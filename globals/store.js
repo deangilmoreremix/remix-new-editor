@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { observable, runInAction, action } from 'mobx';
+import { observable, runInAction } from 'mobx';
 import Cookies from 'js-cookie';
 import Router from 'next/router';
 
@@ -52,7 +52,7 @@ class Store {
   @observable
   whiteLabelManager = null;
 
-  constructor(isServer, source,) {
+  constructor(isServer, source) {
     if (isServer) {
       // eslint-disable-next-line global-require
       global.FormData = require('form-data');
@@ -259,7 +259,7 @@ class Store {
       `/api/users/me/rendering/jobs${_id ? `/${_id}` : ''}`, {
         method: _id ? 'PATCH' : 'POST',
         body: {
-          slides: slides.filter(slide => !!slide.keyFrame),
+          slides: slides.filter((slide) => !!slide.keyFrame),
           source,
           state: { status },
           preset,
@@ -471,7 +471,7 @@ class Store {
 
 export async function initStoreAndPreload(isServer, source, req, preloader) {
   if (isServer) {
-    global.btoa = string => Buffer.from(string).toString('base64');
+    global.btoa = (string) => Buffer.from(string).toString('base64');
     // eslint-disable-next-line global-require
     const config = require('config/config');
     let backend;

@@ -17,6 +17,7 @@ module.exports = {
     'no-console': 0,
     'no-else-return': 0,
     'no-param-reassign': 0,
+    'arrow-parens': 0,
     'no-underscore-dangle': ['error', { 'allow': ['_id', '__STATE'] }],
     'object-curly-newline': ['error',
       {

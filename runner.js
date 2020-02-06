@@ -1,3 +1,4 @@
+/* eslint-disable global-require */
 /**
  * Created by Eugene Butusov on 18/09/2017.
  */
