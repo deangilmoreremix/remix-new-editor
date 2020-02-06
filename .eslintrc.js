@@ -1,0 +1,57 @@
+'use strict';
+
+module.exports = {
+  extends: 'airbnb',
+  rules: {
+    'class-methods-use-this': 0,
+    'consistent-return': 0,
+    'function-paren-newline': 0,
+    'jsx-a11y/anchor-is-valid': [
+      'error',
+      {
+        components: ['Link'],
+        specialLink: ['to'],
+      },
+    ],
+    'jsx-a11y/label-has-for': 0,
+    'no-console': 0,
+    'no-else-return': 0,
+    'no-param-reassign': 0,
+    'no-underscore-dangle': ['error', { 'allow': ['_id', '__STATE'] }],
+    'object-curly-newline': ['error',
+      {
+        multiline: true,
+        consistent: true,
+      },
+    ],
+    'react/prop-types': ['error', {
+      ignore: [
+      ], customValidators: []
+    }],
+    'react/require-default-props': 0,
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    semi: ['error', 'always'],
+  },
+  plugins: [
+  "react-hooks"
+],
+  parser: 'babel-eslint',
+  env: {
+    browser: true,
+    mocha: true,
+    node: true,
+    es6: true,
+    jest: true,
+  },
+  settings: {
+    'import/resolver': {
+      node: {
+        moduleDirectory: [
+          'node_modules',
+          '.',
+        ]
+      }
+    }
+  }
+};

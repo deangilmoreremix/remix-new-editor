@@ -1,0 +1,13 @@
+# APP
+.next
+node_modules
+out
+
+# Other
+*.log
+*.db
+.idea
+.DS_Store
+*.map
+.sass-cache/*
+.vscode/
