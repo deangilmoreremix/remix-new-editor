@@ -34,7 +34,7 @@ app.prepare().then(() => {
   server.use(express.json({ limit: '10mb' }));
   server.use(express.urlencoded({ extended: true }));
   // server.post('/api/media/join', join);
-  server.put('/api/media', processForm, isValidMedia, mediaUpload);
+  // server.put('/api/media', processForm, isValidMedia, mediaUpload);
   server.get('/api/get-content-type', getContentType);
 
   if (!nakedRun) {
