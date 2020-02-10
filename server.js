@@ -11,7 +11,7 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 // const checkAccess = require('./lib/express/check-access');
-const { processForm, isValidMedia, mediaUpload } = require('./lib/express/media-upload');
+// const { processForm, isValidMedia, mediaUpload } = require('./lib/express/media-upload');
 // const { join } = require('./lib/express/video-processing');
 const getContentType = require('./lib/express/get-content-type');
 
