@@ -1,1 +1,9 @@
 @import "~font-awesome/scss/font-awesome";
+//@import "~bootstrap/scss/grid";
+@import "~bootstrap/dist/css/bootstrap.min.css";
+
+@import "styles/components/common/Toolbar";
+
+.home {
+  background: burlywood;
+}
