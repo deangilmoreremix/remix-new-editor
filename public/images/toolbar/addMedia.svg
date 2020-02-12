@@ -1,0 +1,35 @@
+<svg
+        id="Layer_1"
+        data-name="Layer 1"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        viewBox="0 0 47.84 42.01">
+    <defs>
+        <style>
+            .curve-1,
+            .curve-3{fill:none;}
+            .curve-2{clip-path:url(#clip-path);}
+            .curve-3,
+            .curve-4{stroke:#e94f54;stroke-miterlimit:10;stroke-width:1.22px;}
+            .curve-4{fill:#e3e3eb;}
+        </style>
+        <clipPath id="clip-path" transform="translate(-21.27 -23.81)">
+            <rect
+                    class="curve-1"
+                    x="21.52"
+                    y="23.81"
+                    width="47.59"
+                    height="41.76"/>
+        </clipPath>
+    </defs>
+    <title>Add Media</title>
+    <g class="curve-2">
+        <path class="curve-3" d="M52.56,65.21H26.06A4.18,4.18,0,0,1,21.88,61V40.44a4.18,4.18,0,0,1,4.18-4.17h26.5a4.17,4.17,0,0,1,4.17,4.17V61.11A4.16,4.16,0,0,1,52.56,65.21Z" transform="translate(-21.27 -23.81)"/>
+        <path class="curve-3" d="M25.12,36.12v-4.6a1.22,1.22,0,0,1,1.23-1.23H50.83" transform="translate(-21.27 -23.81)"/>
+        <path class="curve-3" d="M62.56,41.45V58.16a1.21,1.21,0,0,1-1.22,1.22H56.73" transform="translate(-21.27 -23.81)"/>
+        <path class="curve-4" d="M32.25,47.93a3,3,0,1,0-3-3A3,3,0,0,0,32.25,47.93Z" transform="translate(-21.27 -23.81)"/>
+        <path class="curve-4" d="M47.37,52.76l-3.45-5.91a.75.75,0,0,0-1.23,0l-3.45,5.91L37.8,55.2a.74.74,0,0,1-1.23,0l-.36-.64-2.37-4.18a.75.75,0,0,0-1.23,0l-2.37,4.18-3,5.18h24Z" transform="translate(-21.27 -23.81)"/>
+        <path class="curve-3" d="M62.56,37V23.81" transform="translate(-21.27 -23.81)"/>
+        <path class="curve-3" d="M56,30.36H69.12" transform="translate(-21.27 -23.81)"/>
+    </g>
+</svg>

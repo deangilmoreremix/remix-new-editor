@@ -1,8 +1,10 @@
 //@import "~font-awesome/scss/font-awesome";
-@import "~bootstrap/dist/css/bootstrap.min.css";
+@import "reset";
+@import "~bootstrap/scss/bootstrap-grid";
 
+@import "variables";
+@import "mixins";
+
+@import "components/Home";
+@import "components/Header";
 @import "styles/components/common/Toolbar";
-
-.home {
-  background: burlywood;
-}

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { Col, Container, Row } from 'react-bootstrap';
+import { Col, Container, Row } from 'reactstrap';
 
+import Header from './Header';
 import Toolbar from './common/Toolbar/Toolbar';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
@@ -10,6 +11,7 @@ class Home extends Component {
   render() {
     return (
       <Container fluid className="home">
+        <Header />
         <Row>
           <Col xs={4}>
             <Toolbar items={toolbarItems} />

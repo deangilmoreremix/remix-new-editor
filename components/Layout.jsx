@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import Head from 'next/head';
 import { Provider } from 'mobx-react';
+import PropTypes from '../lib/PropTypes';
+
 import 'styles/index.scss';
 
 import { initStoreAndPreload, initStore } from '../globals/store';
@@ -18,19 +20,24 @@ class Layout extends Component {
   }
 
   render() {
+    const { children } = this.props;
     return (
       <Provider store={this.store} api={this.api}>
         <Head>
           <title>New Video Editor</title>
         </Head>
-        <div>
-          <div {...this.props} className="main">
-            {this.props.children}
-          </div>
+        <div {...this.props} className="main">
+          {children}
         </div>
       </Provider>
     );
   }
 }
+
+Layout.propTypes = {
+  children: PropTypes.element.isRequired,
+  // eslint-disable-next-line react/forbid-prop-types
+  store: PropTypes.any,
+};
 
 export default Layout;

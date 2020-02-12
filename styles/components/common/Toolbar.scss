@@ -1,3 +1,42 @@
-.toolbar-container {
-  background: blue;
+.toolbar {
+  &-container {
+    display: flex;
+    background: $dark-night;
+    height: 476px;
+    justify-content: center;
+    padding-top: 58px;
+    padding-left: 0;
+  }
+
+  &-tabs {
+    margin-right: auto;
+  }
+
+  &-tab {
+    @include reset-button;
+
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 85px;
+    min-width: 90px;
+    background: $light-twinlight;
+    color: $white;
+    font-size: 12px;
+    border-radius: 7px;
+    cursor: pointer;
+
+    &:not(:last-of-type) {
+      margin-bottom: 5px;
+    }
+
+    &-icon {
+      width: 100%;
+      max-width: 43px;
+      max-height: 37px;
+    }
+  }
 }
+
+@import "ElementsPanel";
