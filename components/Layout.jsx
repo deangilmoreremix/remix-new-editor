@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
 import Head from 'next/head';
 import { Provider } from 'mobx-react';
-// import stylesheet from '../styles/index.scss';
-// import stylesheet from '../styles/index.scss';
+import 'styles/index.scss';
 
 import { initStoreAndPreload, initStore } from '../globals/store';
 
@@ -23,7 +22,6 @@ class Layout extends Component {
       <Provider store={this.store} api={this.api}>
         <Head>
           <title>New Video Editor</title>
-          {/* <style dangerouslySetInnerHTML={{ __html: stylesheet }} /> */}
         </Head>
         <div>
           <div {...this.props} className="main">
