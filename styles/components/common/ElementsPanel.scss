@@ -4,32 +4,31 @@
   }
 
   &-inner-row {
-    display: flex;
-    flex-flow: row wrap;
     justify-content: center;
-    width: 100%;
   }
 
   &-button {
     @include reset-button;
+    @include make-fluid("padding-left", 5px, 10px, $xl + 1, $mock, 10px, px);
+    @include make-fluid("padding-right", 5px, 10px, $xl + 1, $mock, 10px, px);
+    @include make-fluid("font-size", 12px, 14px, $xl + 1, $mock, 12px, px);
+    @include make-fluid("min-width", 100px, 135px, $xl + 1, $mock, 135px, px);
+    @include make-fluid("max-width", 100px, 135px, $xl + 1, $mock, 135px, px);
+    @include make-fluid("min-height", 35px, 43px, $xl + 1, $mock, 40px, px);
+    @include make-fluid("max-height", 35px, 43px, $xl + 1, $mock, 40px, px);
 
-    padding-left: 10px;
-    padding-right: 10px;
     flex: 1 1 30%;
-    max-width: 135px;
-    max-height: 43px;
-    min-height: 43px;
     margin-left: 12px;
     margin-bottom: 12px;
     display: flex;
+    //min-height: 44px;
+    //max-height: 44px;
     justify-content: flex-start;
     align-items: center;
-    font-size: 14px;
     color: $white;
     border: 1px solid $btn-gray;
     border-radius: 4px;
     transition: all 0.25s ease;
-    //cursor: pointer;
 
     &:hover {
       border-color: $red;
@@ -41,7 +40,8 @@
   }
 
   &-icon {
-    margin-right: 10px;
+    @include make-fluid("margin-right", 4px, 10px, $xl + 1, $mock, 10px, px);
+
     display: flex;
     align-items: center;
     justify-content: center;

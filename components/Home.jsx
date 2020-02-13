@@ -12,7 +12,7 @@ class Home extends Component {
     return (
       <Container fluid className="home">
         <Header />
-        <Row>
+        <Row className="controls" noGutters>
           <Col xs={4}>
             <Toolbar items={toolbarItems} />
           </Col>
@@ -23,6 +23,7 @@ class Home extends Component {
             Hi again!
           </Col>
         </Row>
+        <Row className="timeline" noGutters />
       </Container>
     );
   }

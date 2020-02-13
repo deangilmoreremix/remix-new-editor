@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Row } from 'reactstrap';
 
 const Header = () => (
-  <Row className="header-container">
+  <Row tag="header" className="header-container" noGutters>
     Videoremix
   </Row>
 );

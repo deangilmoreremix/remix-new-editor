@@ -6,6 +6,7 @@
     justify-content: center;
     padding-top: 58px;
     padding-left: 0;
+    padding-right: 15px;
   }
 
   &-tabs {
@@ -14,13 +15,15 @@
 
   &-tab {
     @include reset-button;
+    @include make-fluid("min-width", 75px, 90px, $xl + 1, $mock, 90px, px);
+    @include make-fluid("min-height", 70px, 85px, $xl + 1, $mock, 67px, px);
 
     display: flex;
     flex-flow: column;
     align-items: center;
     justify-content: center;
-    min-height: 85px;
-    min-width: 90px;
+    //min-width: 90px;
+    //min-height: 85px;
     background: $light-twinlight;
     color: $white;
     font-size: 12px;
@@ -35,6 +38,7 @@
       width: 100%;
       max-width: 43px;
       max-height: 37px;
+      margin-bottom: 5px;
     }
   }
 }
