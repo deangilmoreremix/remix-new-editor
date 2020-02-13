@@ -4,9 +4,7 @@
     background: $dark-night;
     height: 476px;
     justify-content: center;
-    padding-top: 58px;
-    padding-left: 0;
-    padding-right: 15px;
+    padding: 58px 15px 58px 0;
   }
 
   &-tabs {
@@ -22,8 +20,6 @@
     flex-flow: column;
     align-items: center;
     justify-content: center;
-    //min-width: 90px;
-    //min-height: 85px;
     background: $light-twinlight;
     color: $white;
     font-size: 12px;
