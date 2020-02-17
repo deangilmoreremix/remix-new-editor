@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Col, Container, Row } from 'reactstrap';
 
 import Header from './Header';
-import Toolbar from './common/Toolbar/Toolbar';
+import Toolbar from './common/toolbar/Toolbar';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 class Home extends Component {
