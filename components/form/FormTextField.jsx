@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Col,
-  Label,
-  FormGroup,
-  Input,
-} from 'reactstrap';
+import { Col, Label, FormGroup, Input } from 'reactstrap';
 import MaskedFormControl from 'react-bootstrap-maskedinput';
 
 import PropTypes from '../../lib/PropTypes';
@@ -12,20 +7,31 @@ import PropTypes from '../../lib/PropTypes';
 
 export default function FormTextField(props) {
   const {
-    label,
-    placeholder,
     type,
-    effect,
-    inlineLayout,
-    labelCol,
-    value: defaultValue,
-    controlCol,
-    className,
-    disabled,
     mask,
+    label,
+    effect,
+    onEnter,
+    disabled,
+    labelCol,
+    className,
+    controlCol,
+    placeholder,
+    inlineLayout,
+    value: defaultValue,
   } = props;
 
+  const conditionalProps = {};
   const [value, setValue] = useState(defaultValue || '');
+
+  if (onEnter) {
+    conditionalProps.onKeyPress = ({ which }) => {
+      if (which === 13) {
+        onEnter(value);
+        setValue('');
+      }
+    };
+  }
 
   useEffect(() => {
     effect(value);
@@ -35,8 +41,7 @@ export default function FormTextField(props) {
     setValue(v);
   };
 
-  const getLabel = () => (
-    <Label key="label-key" className="form-control-label">{label}</Label>);
+  const getLabel = () => (<Label key="label-key" className="form-control-label">{label}</Label>);
 
   const getInputField = () => (mask
     ? (
@@ -50,6 +55,7 @@ export default function FormTextField(props) {
         onChange={onChange}
         type={type}
         disabled={disabled}
+        {...conditionalProps}
       />
     )
     : (
@@ -62,13 +68,13 @@ export default function FormTextField(props) {
         onChange={onChange}
         type={type}
         disabled={disabled}
+        {...conditionalProps}
       />
     )
   );
 
   return (
     <FormGroup
-      controlId={label}
       className={className}
     >
       {inlineLayout
@@ -87,35 +93,24 @@ export default function FormTextField(props) {
 }
 
 FormTextField.propTypes = {
-  type: PropTypes.oneOf(['input', 'textarea', 'select']),
-  label: PropTypes.string,
-  placeholder: PropTypes.string,
   effect: PropTypes.func,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
-  inputType: PropTypes.string,
-  labelCol: PropTypes.shape({
-    lg: PropTypes.number,
-    md: PropTypes.number,
-    sm: PropTypes.number,
-    xs: PropTypes.number,
-  }),
-  controlCol: PropTypes.shape({
-    lg: PropTypes.number,
-    md: PropTypes.number,
-    sm: PropTypes.number,
-    xs: PropTypes.number,
-  }),
-  inlineLayout: PropTypes.bool,
-  disabled: PropTypes.bool,
   mask: PropTypes.string,
+  label: PropTypes.string,
+  onEnter: PropTypes.func,
+  disabled: PropTypes.bool,
+  inputType: PropTypes.string,
   className: PropTypes.string,
+  inlineLayout: PropTypes.bool,
+  placeholder: PropTypes.string,
+  type: PropTypes.oneOf(['input', 'textarea', 'select']),
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
 };
 
 FormTextField.defaultProps = {
-  type: 'input',
-  inputType: 'text',
-  disabled: false,
   label: '',
-  inlineLayout: true,
+  type: 'input',
+  disabled: false,
   effect: () => {},
+  inputType: 'text',
+  inlineLayout: true,
 };

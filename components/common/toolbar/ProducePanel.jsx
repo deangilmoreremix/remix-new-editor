@@ -38,7 +38,10 @@ ProducePanel.propTypes = {
       label: PropTypes.string,
       icon: PropTypes.string,
     })),
-    renderer: PropTypes.func.isRequired,
+    renderer: PropTypes.oneOfType([
+      PropTypes.shape({}),
+      PropTypes.func,
+    ]).isRequired,
   })).isRequired,
 };
 
