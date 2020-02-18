@@ -1,13 +1,14 @@
-import React, { useState, useContext } from 'react';
-import { inject, observer } from 'mobx-react';
-import { HuePicker, AlphaPicker } from 'react-color';
+import React from 'react';
+import { observer } from 'mobx-react';
+import { Container } from 'reactstrap';
 
-import { Col, Container, Row } from 'reactstrap';
-import FormTextField from '../../form/FormTextField';
 import FormList from '../../form/FormList';
 import FormColor from '../../form/FormColor';
+import FormTextField from '../../form/FormTextField';
 import FormCheckboxField from '../../form/FormCheckboxField';
+
 import useProjectStore from '../../hooks/useProjectStore';
+
 // todo add styles
 
 export default observer(() => {

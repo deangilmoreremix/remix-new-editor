@@ -4,7 +4,7 @@ import { Input } from 'reactstrap';
 import PropTypes from '../../lib/PropTypes';
 
 const FormCheckboxField = (props) => {
-  const { effect, value: defaultValue, disabled, label, inline } = props;
+  const { effect, value: defaultValue, disabled, label } = props;
 
   const [value, setValue] = useState(defaultValue || false);
 
@@ -21,7 +21,6 @@ const FormCheckboxField = (props) => {
       <Input
         type="checkbox"
         disabled={disabled}
-        // inline={inline}
         checked={value}
         onChange={onChange}
       />
@@ -33,14 +32,12 @@ const FormCheckboxField = (props) => {
 FormCheckboxField.propTypes = {
   effect: PropTypes.func,
   value: PropTypes.bool,
-  inline: PropTypes.bool,
   disabled: PropTypes.bool,
   label: PropTypes.string,
 };
 
 FormCheckboxField.defaultProps = {
   disabled: false,
-  inline: true,
   effect: () => {},
 };
 

@@ -1,4 +1,5 @@
 import Cookies from 'js-cookie';
+
 import requestCreator from '../lib/requestCreator';
 import ProjectStore from './stores/project.store';
 

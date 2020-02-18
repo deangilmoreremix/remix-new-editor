@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Col,
-  Label,
-  FormGroup,
-} from 'reactstrap';
 import { HuePicker } from 'react-color';
+import { Col, Label, FormGroup } from 'reactstrap';
 
 import PropTypes from '../../lib/PropTypes';
 
@@ -12,8 +8,8 @@ import PropTypes from '../../lib/PropTypes';
 export default function FormColor(props) {
   const {
     label,
-    value: color,
     effect,
+    value: color,
   } = props;
 
   const [value, setValue] = useState(color || '');
@@ -39,8 +35,8 @@ export default function FormColor(props) {
 }
 
 FormColor.propTypes = {
-  label: PropTypes.string,
   effect: PropTypes.func,
+  label: PropTypes.string,
   value: PropTypes.string,
 };
 

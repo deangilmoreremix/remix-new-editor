@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { action, isObservableArray, observable, computed } from 'mobx';
-import { FormGroup, Label, Col, Button, Popover, Container } from 'reactstrap';
-import PropTypes from '../../lib/PropTypes';
+import { FormGroup, Label, Col, Button } from 'reactstrap';
+
 import FormTextField from './FormTextField';
-// todo check ListGroupItemHeading
+
+import PropTypes from '../../lib/PropTypes';
+
 
 export default function FormList(props) {
   const {
     label,
-    values: defaultValues,
     effect,
+    values: defaultValues,
   } = props;
 
 
@@ -52,7 +53,6 @@ export default function FormList(props) {
       </div>
       <Col>
         <FormTextField
-            // onChange={this.checkEmail}
           value={newValue}
           onEnter={onEnter}
         />
@@ -62,9 +62,9 @@ export default function FormList(props) {
 }
 
 FormList.propTypes = {
+  effect: PropTypes.func,
   label: PropTypes.string,
   values: PropTypes.arrayOrObservableArray,
-  effect: PropTypes.func,
 };
 
 FormList.defaultProps = {
