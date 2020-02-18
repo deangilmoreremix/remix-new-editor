@@ -51,7 +51,7 @@ class Creator {
       this.authorization = this.clientAuthHeader;
     }
     this.request = requestCreator(
-      `${common.prefixes.api}.${common.whiteLabel && common.whiteLabel.domain}`,
+      `${common.prefixes.api}.${(common.whiteLabel && common.whiteLabel.domain) || 'videoremix.io'}`,
       this.authorization,
       isServer,
       () => this.refreshToken(),
@@ -128,7 +128,10 @@ export async function initCreateStores(isServer, source, req, preloader) {
 export function init(source) {
   if (!creator) {
     creator = new Creator(false, source);
-    stores = { common: creator.common, projectStore: new ProjectStore({ request: this.request }) };
+    stores = {
+      common: creator.common,
+      projectStore: new ProjectStore({ request: creator.request }),
+    };
   }
   return stores;
 }

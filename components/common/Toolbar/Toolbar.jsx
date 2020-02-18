@@ -5,7 +5,7 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../lib/PropTypes';
 
 const Toolbar = ({ items }) => {
-  const [activeTab, setActiveTab] = React.useState(items[1].key);
+  const [activeTab, setActiveTab] = React.useState(items[2].key);
 
   let tabContent = [];
   const activeTabItem = items.find(i => i.key === activeTab);
