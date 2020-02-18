@@ -22,7 +22,7 @@
     justify-content: center;
     background: $light-twinlight;
     color: $white;
-    font-size: 12px;
+    font-size: 0.75rem;
     border-radius: 7px;
     cursor: pointer;
 
@@ -32,9 +32,9 @@
 
     &-icon {
       width: 100%;
-      max-width: 43px;
-      max-height: 37px;
-      margin-bottom: 5px;
+      max-width: 3.58em;
+      max-height: 3.08em;
+      margin-bottom: 0.42em;
     }
   }
 }

@@ -5,7 +5,7 @@ import { useAsync } from 'react-async-hook';
 import { Col, Container, Row } from 'reactstrap';
 
 import Header from './Header';
-import Toolbar from './common/Toolbar/Toolbar';
+import Toolbar from './common/toolbar/Toolbar';
 import useProjectStore from './hooks/useProjectStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
