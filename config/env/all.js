@@ -49,6 +49,7 @@ module.exports = {
     secret: process.env.INTERCOM_SECRET,
   },
   newRelic: {
+    enabled: process.env.NEW_RELIC_ENABLED || false,
     key: process.env.NEW_RELIC_LICENSE_KEY || '',
   },
   useWhiteLabels: process.env.USE_WHITE_LABELS || false,

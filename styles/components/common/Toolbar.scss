@@ -1,0 +1,42 @@
+.toolbar {
+  &-container {
+    display: flex;
+    background: $dark-night;
+    height: 476px;
+    justify-content: center;
+    padding: 58px 15px 58px 0;
+  }
+
+  &-tabs {
+    margin-right: auto;
+  }
+
+  &-tab {
+    @include reset-button;
+    @include make-fluid("min-width", 75px, 90px, $xl + 1, $mock, 90px, px);
+    @include make-fluid("min-height", 70px, 85px, $xl + 1, $mock, 67px, px);
+
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+    background: $light-twinlight;
+    color: $white;
+    font-size: 12px;
+    border-radius: 7px;
+    cursor: pointer;
+
+    &:not(:last-of-type) {
+      margin-bottom: 5px;
+    }
+
+    &-icon {
+      width: 100%;
+      max-width: 43px;
+      max-height: 37px;
+      margin-bottom: 5px;
+    }
+  }
+}
+
+@import "ElementsPanel";

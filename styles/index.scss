@@ -1,1 +1,11 @@
-@import "~font-awesome/scss/font-awesome";
+//@import "~font-awesome/scss/font-awesome";
+@import "reset";
+@import "~bootstrap/scss/bootstrap-grid";
+
+@import "variables";
+@import "mixins/index";
+
+@import "components/Home";
+@import "components/Header";
+@import "styles/components/common/Toolbar";
+@import "styles/components/form/elements";
