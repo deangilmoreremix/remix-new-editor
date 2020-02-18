@@ -1,0 +1,57 @@
+.elements-panel {
+  &-container {
+    height: 100%;
+  }
+
+  &-inner-row {
+    justify-content: center;
+  }
+
+  &-button {
+    @include reset-button;
+    @include make-fluid("padding-left", 5px, 10px, $xl + 1, $mock, 10px, px);
+    @include make-fluid("padding-right", 5px, 10px, $xl + 1, $mock, 10px, px);
+    @include make-fluid("font-size", 12px, 14px, $xl + 1, $mock, 12px, px);
+    @include make-fluid("min-width", 100px, 135px, $xl + 1, $mock, 135px, px);
+    @include make-fluid("max-width", 100px, 135px, $xl + 1, $mock, 135px, px);
+    @include make-fluid("min-height", 35px, 43px, $xl + 1, $mock, 40px, px);
+    @include make-fluid("max-height", 35px, 43px, $xl + 1, $mock, 40px, px);
+
+    flex: 1 1 30%;
+    margin-left: 0.8em;
+    margin-bottom: 0.8em;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    color: $white;
+    border: 1px solid $btn-gray;
+    border-radius: 4px;
+    transition: all 0.25s ease;
+
+    &:hover {
+      border-color: $red;
+    }
+
+    &:disabled {
+      border-color: $btn-gray-disabled;
+    }
+  }
+
+  &-icon {
+    @include make-fluid("margin-right", 4px, 10px, $xl + 1, $mock, 10px, px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &-inline {
+      min-width: 1.3em;
+    }
+  }
+
+  &-label {
+    flex: 1 0 90%;
+    margin-right: auto;
+    text-align: left;
+  }
+}

@@ -1,0 +1,10 @@
+.header {
+  &-container {
+    min-height: 4.5rem;
+    padding-left: 1.9rem;
+    padding-right: 4.8rem;
+    display: flex;
+    align-items: center;
+    background: $light-twinlight;
+  }
+}

@@ -1,14 +1,30 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
+import { Col, Container, Row } from 'reactstrap';
+
+import Header from './Header';
+import Toolbar from './common/toolbar/Toolbar';
+import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 class Home extends Component {
   debugger;
 
   render() {
     return (
-      <Fragment>
-        <div className="home" />
-        Hi!
-      </Fragment>
+      <Container fluid className="home">
+        <Header />
+        <Row className="controls" noGutters>
+          <Col xs={4}>
+            <Toolbar items={toolbarItems} />
+          </Col>
+          <Col xs={4}>
+            Hi!
+          </Col>
+          <Col xs={4}>
+            Hi again!
+          </Col>
+        </Row>
+        <Row className="timeline" noGutters />
+      </Container>
     );
   }
 }
