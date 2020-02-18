@@ -1,40 +1,47 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Input } from 'reactstrap';
 
 import PropTypes from '../../lib/PropTypes';
 
 const FormCheckboxField = (props) => {
-  const { onChange, value, checked, inline, disabled, title, ...rest } = props;
+  const { effect, value: defaultValue, disabled, label, inline } = props;
+
+  const [value, setValue] = useState(defaultValue || false);
+
+  useEffect(() => {
+    effect(value);
+  }, [effect, value]);
+
+  const onChange = () => {
+    setValue(!value);
+  };
+
   return (
     <div>
       <Input
         type="checkbox"
         disabled={disabled}
-        inline={inline}
-        checked={checked}
+        // inline={inline}
+        checked={value}
         onChange={onChange}
-        value={value}
-        name="checkboxGroup[]"
-        {...rest}
       />
-      {' '}
-      {title}
+      {label}
     </div>
   );
 };
 
 FormCheckboxField.propTypes = {
-  checked: PropTypes.bool,
-  children: PropTypes.oneOfType([PropTypes.node, PropTypes.func]),
+  effect: PropTypes.func,
+  value: PropTypes.bool,
   inline: PropTypes.bool,
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool]),
   disabled: PropTypes.bool,
+  label: PropTypes.string,
 };
 
 FormCheckboxField.defaultProps = {
-  inline: true,
   disabled: false,
+  inline: true,
+  effect: () => {},
 };
 
 export default FormCheckboxField;

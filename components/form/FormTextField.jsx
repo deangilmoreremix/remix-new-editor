@@ -22,10 +22,21 @@ export default function FormTextField(props) {
     controlCol,
     className,
     disabled,
+    onEnter,
     mask,
   } = props;
 
+  const conditionalProps = {};
   const [value, setValue] = useState(defaultValue || '');
+
+  if (onEnter) {
+    conditionalProps.onKeyPress = ({ which }) => {
+      if (which === 13) {
+        onEnter(value);
+        setValue('');
+      }
+    };
+  }
 
   useEffect(() => {
     effect(value);
@@ -35,8 +46,7 @@ export default function FormTextField(props) {
     setValue(v);
   };
 
-  const getLabel = () => (
-    <Label key="label-key" className="form-control-label">{label}</Label>);
+  const getLabel = () => (<Label key="label-key" className="form-control-label">{label}</Label>);
 
   const getInputField = () => (mask
     ? (
@@ -50,6 +60,7 @@ export default function FormTextField(props) {
         onChange={onChange}
         type={type}
         disabled={disabled}
+        {...conditionalProps}
       />
     )
     : (
@@ -62,13 +73,13 @@ export default function FormTextField(props) {
         onChange={onChange}
         type={type}
         disabled={disabled}
+        {...conditionalProps}
       />
     )
   );
 
   return (
     <FormGroup
-      controlId={label}
       className={className}
     >
       {inlineLayout
@@ -107,6 +118,7 @@ FormTextField.propTypes = {
   }),
   inlineLayout: PropTypes.bool,
   disabled: PropTypes.bool,
+  onEnter: PropTypes.func,
   mask: PropTypes.string,
   className: PropTypes.string,
 };

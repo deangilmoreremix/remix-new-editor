@@ -1,20 +1,29 @@
 import React, { useState, useContext } from 'react';
 import { inject, observer } from 'mobx-react';
-import { ChromePicker } from 'react-color';
+import { HuePicker, AlphaPicker } from 'react-color';
 
 import { Col, Container, Row } from 'reactstrap';
 import FormTextField from '../../form/FormTextField';
 import FormList from '../../form/FormList';
+import FormColor from '../../form/FormColor';
 import FormCheckboxField from '../../form/FormCheckboxField';
 import useProjectStore from '../../hooks/useProjectStore';
-import PropTypes from '../../../lib/PropTypes';
 // todo add styles
 
-const SettingsPanel = observer(() => {
+export default observer(() => {
   const { item, updateItem } = useProjectStore();
 
   const update = (field) => (value) => {
     updateItem({ [field]: value });
+  };
+  const updateSocials = (social) => (value) => {
+    let { allowedSocials = [] } = item;
+    if (value && !allowedSocials.some(allowedSocial => allowedSocial === social)) {
+      allowedSocials.push(social);
+    } else if (!value && allowedSocials.some(allowedSocial => allowedSocial === social)) {
+      allowedSocials = allowedSocials.filter(allowedSocial => allowedSocial !== social);
+    }
+    update('allowedSocials')(allowedSocials);
   };
 
   return (
@@ -30,36 +39,27 @@ const SettingsPanel = observer(() => {
         effect={update('description')}
         componentClass="textarea"
       />
-      <ChromePicker />
+      <FormColor
+        effect={update('background')}
+        value={item.background}
+        label="Background Color"
+      />
       <FormList
         label="Tags"
         values={item.tags}
+        effect={update('tags')}
       />
       <FormCheckboxField
         label="Facebook"
         value={item.allowedSocials && item.allowedSocials.some(s => s === 'facebook')}
+        effect={updateSocials('facebook')}
       />
       <FormCheckboxField
         label="LinkedIn"
         value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
+        effect={updateSocials('linkedin')}
       />
     </Container>
     // todo implement image uploading
   );
 });
-
-SettingsPanel.propTypes = {
-  items: PropTypes.arrayOf(PropTypes.shape({
-    key: PropTypes.string,
-    label: PropTypes.string,
-    icon: PropTypes.string,
-    items: PropTypes.arrayOf(PropTypes.shape({
-      action: PropTypes.func,
-      label: PropTypes.string,
-      icon: PropTypes.string,
-    })),
-    renderer: PropTypes.func.isRequired,
-  })).isRequired,
-};
-
-export default SettingsPanel;
