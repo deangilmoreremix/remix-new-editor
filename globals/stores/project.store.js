@@ -2,9 +2,7 @@ import { observable, action } from 'mobx';
 
 import BaseStore from './base.store';
 
-const defaultItem = {
-
-};
+const defaultItem = {};
 
 export default class ProjectStore extends BaseStore {
   @observable item = {};
@@ -26,6 +24,7 @@ export default class ProjectStore extends BaseStore {
           },
         });
     } catch (e) {
+      this.item = defaultItem;
       throw e;
     }
     return this.item;
