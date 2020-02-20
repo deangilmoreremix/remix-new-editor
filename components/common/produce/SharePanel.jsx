@@ -1,6 +1,11 @@
 import * as React from 'react';
 
-// todo implement it
-export default () => (
-  <div>Share panel</div>
+export default ({ items }) => (
+  <div>
+    {items.map(({ label, action, re }) => (
+      <button onClick={action}>
+        {label}
+      </button>
+    ))}
+  </div>
 );

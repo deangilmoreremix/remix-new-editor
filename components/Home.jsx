@@ -8,6 +8,7 @@ import Header from './Header';
 import Toolbar from './common/toolbar/Toolbar';
 import useProjectStore from './hooks/useProjectStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
+import useModalStore from './hooks/useModalStore';
 
 
 const getOne = async (store, id) => {
@@ -17,6 +18,7 @@ const getOne = async (store, id) => {
 const Home = observer(() => {
   const { query: { project } } = useRouter();
   const projectStore = useProjectStore();
+  const modalStore = useModalStore();
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
   if (asyncHero.loading) {
@@ -29,12 +31,14 @@ const Home = observer(() => {
     return (<div>Error</div>);
   }
 
+  const { openModal, closeModal } = modalStore || {};
+
   return (
     <Container fluid className="home">
       <Header />
       <Row className="controls" noGutters>
         <Col xs={4}>
-          <Toolbar items={toolbarItems} />
+          <Toolbar items={toolbarItems({ actions: { openModal, closeModal } })} />
         </Col>
         <Col xs={4}>
           Hi!
