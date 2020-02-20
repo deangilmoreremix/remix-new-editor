@@ -1,15 +1,14 @@
 import { observable, action } from 'mobx';
 
-import BaseStore from './base.store';
 import SocialCampaignModal from '../../components/modals/SocialCampaignModal';
 
 export const SOCIAL_CAMPAIGN_MODAL = 'social-campaign';
 export const EMAIL_CAMPAIGN_MODAL = 'email-campaign';
 
-export default class ModalStore extends BaseStore {
-  @observable modalIds = new Set([]);
+export default (/* { request  } */) => {
+  const modalIds = observable([]);
 
-  @observable modals = [
+  const modals = [
     {
       id: SOCIAL_CAMPAIGN_MODAL,
       className: `${SOCIAL_CAMPAIGN_MODAL}-modal`,
@@ -18,18 +17,22 @@ export default class ModalStore extends BaseStore {
     },
   ];
 
-  @action
-  openModal = (modalId) => {
-    console.log('opening modal ', modalId);
+  const openModal = (modalId) => {
     if (!modalId) return;
-    this.modalIds.add(modalId);
-    console.log('this.modalIds => ', this.modalIds);
+    if (!modalIds.includes(modalId)) {
+      modalIds.push(modalId);
+    }
   };
 
-  @action
-  closeModal = (modalId) => {
-    console.log('closing modal ', modalId);
+  const closeModal = (modalId) => {
     if (!modalId) return;
-    this.modalIds.delete(modalId);
+    modalIds.remove(modalId);
   };
-}
+
+  return {
+    modalIds,
+    modals,
+    openModal: action(openModal),
+    closeModal: action(closeModal),
+  };
+};

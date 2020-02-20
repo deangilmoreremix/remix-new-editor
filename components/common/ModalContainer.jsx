@@ -1,31 +1,23 @@
 import * as React from 'react';
-// import { observer } from 'mobx-react';
+import { observer } from 'mobx-react';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 
-import PropTypes from '../../lib/PropTypes';
 import useModalStore from '../hooks/useModalStore';
 
-const ModalContainer = () => {
-  // TODO: connect to modal.store
+const ModalContainer = observer(() => {
   const modalStore = useModalStore();
-  console.log(modalStore);
+  const { modalIds, modals, closeModal } = modalStore;
 
-  modalStore && console.log(modalStore.modalIds);
+  const modalsToShow = modals.filter(m => modalIds.includes(m.id));
 
-  if (!modalStore || !modalStore.modals) return null;
-
-  return modalStore.modals.map(({ id, className, renderer: ModalComponent, title }) => {
-    const close = () => modalStore.closeModal(id);
-    console.log('rendering modal ', id);
-    const isOpen = Array.from(modalStore.modalIds).includes(id);
-
-    console.log(isOpen);
+  return modalsToShow.map(({ id, className, renderer: ModalComponent, title }) => {
+    const close = () => closeModal(id);
 
     return (
-      <Modal isOpen={isOpen} toggle={close} className={className}>
+      <Modal key={id} isOpen toggle={close} className={className}>
         <ModalHeader toggle={close}>{title}</ModalHeader>
         <ModalBody>
-          {ModalComponent}
+          <ModalComponent />
         </ModalBody>
         <ModalFooter>
           <Button color="secondary" onClick={close}>Cancel</Button>
@@ -33,10 +25,6 @@ const ModalContainer = () => {
       </Modal>
     );
   });
-};
-
-ModalContainer.propTypes = {
-  className: PropTypes.string,
-};
+});
 
 export default ModalContainer;

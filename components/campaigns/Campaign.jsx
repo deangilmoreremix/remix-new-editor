@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { observer, inject } from 'mobx-react';
+import { observer } from 'mobx-react';
 import { observable, action, runInAction, computed } from 'mobx';
 import { Button } from 'reactstrap';
 import SVGInline from 'react-svg-inline';
@@ -13,20 +13,21 @@ import YoutubeCampaignStager from './social/stagers/YoutubeCampaignStager';
 import YoutubeUploadProvider from '../../lib/campaign-provider/YoutubeUploadProvider';
 import { showError } from '../../lib/services/alertService';
 import SVGClose from '../../public/static/images/close.svg';
-import useProjectStore from '../hooks/useProjectStore';
+import LinkedinCampaignStager from './social/stagers/LinkedinCampaignStager';
+import LinkedinSocialProvider from '../../lib/campaign-provider/social/LinkedinSocialProvider';
 
 @observer
 class Campaign extends Component {
+  @observable stager;
+
+  @observable isLoading;
+
   constructor(props) {
     super(props);
     this.activeSources = Object.values(this.constructor.sources);
     if (this.activeSources.length === 1) {
       this.stager = this.activeSources[0].loader(this);
     }
-
-    const projectStore = useProjectStore();
-
-    console.log({ projectStore });
     // todo: add
   }
 
@@ -105,14 +106,11 @@ class Campaign extends Component {
     });
   };
 
-  @observable stager;
-
-  @observable isLoading;
-
   render() {
     const { className, onCampaignFinished } = this.props;
     const { stager, isLoading } = this;
 
+    // eslint-disable-next-line react/destructuring-assignment
     const project = (stager && stager.project) || this.props.project;
     if (!project) {
       return null;
@@ -252,12 +250,26 @@ Campaign.sources = {
   //   image: '/static/images/campaign/twitter.svg',
   //   loader: () => {},
   // },
-  // linkedin: {
-  //   key: 'linkedin',
-  //   title: 'LinkedIn',
-  //   image: '/static/images/campaign/linked-in.svg',
-  //   loader: () => {},
-  // },
+  linkedin: {
+    key: 'linkedin',
+    title: 'LinkedIn',
+    image: '/static/images/campaign/linked-in.svg',
+    loader: async (options) => {
+      const { props: { project, store, onCampaignFinished }, unsetStager } = options;
+      const stager = new LinkedinCampaignStager({
+        provider: new LinkedinSocialProvider({
+          backend: store.common.backend,
+          request: store.request,
+        }),
+        project,
+        store,
+        onCampaignFinished,
+        returnToSelect: unsetStager,
+      });
+      await stager.setStage(stager.constructor.steps[0]);
+      return stager;
+    },
+  },
 };
 
 Campaign.propTypes = {

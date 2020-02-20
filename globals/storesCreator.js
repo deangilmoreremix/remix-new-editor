@@ -119,7 +119,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
     stores = {
       common: creator.common,
       projectStore: new ProjectStore({ request: creator.request }),
-      modal: new ModalStore({ request: creator.request }),
+      modalStore: ModalStore({ request: creator.request }),
     };
   }
   if (preloader) {
@@ -134,7 +134,7 @@ export function init(source) {
     stores = {
       common: creator.common,
       projectStore: new ProjectStore({ request: creator.request }),
-      modalStore: new ModalStore({ request: creator.request }),
+      modalStore: ModalStore({ request: creator.request }),
     };
   }
   return stores;
