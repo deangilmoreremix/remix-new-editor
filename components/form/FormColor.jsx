@@ -8,14 +8,14 @@ import PropTypes from '../../lib/PropTypes';
 export default function FormColor(props) {
   const {
     label,
-    effect,
+    onChange,
     value: color,
   } = props;
 
   const [value, setValue] = useState(color || '');
 
   useEffect(() => {
-    effect(value);
+    onChange(value);
   });
 
   const updateColor = (res) => {
@@ -35,11 +35,11 @@ export default function FormColor(props) {
 }
 
 FormColor.propTypes = {
-  effect: PropTypes.func,
+  onChange: PropTypes.func,
   label: PropTypes.string,
   value: PropTypes.string,
 };
 
 FormColor.defaultProps = {
-  effect: () => {},
+  onChange: () => {},
 };

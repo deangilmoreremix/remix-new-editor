@@ -10,7 +10,7 @@ export default function FormTextField(props) {
     type,
     mask,
     label,
-    effect,
+    onChange,
     onEnter,
     disabled,
     labelCol,
@@ -34,10 +34,10 @@ export default function FormTextField(props) {
   }
 
   useEffect(() => {
-    effect(value);
+    onChange(value);
   });
 
-  const onChange = ({ target: { value: v } }) => {
+  const onEdit = ({ target: { value: v } }) => {
     setValue(v);
   };
 
@@ -52,7 +52,7 @@ export default function FormTextField(props) {
         value={value}
         className="form-control"
         placeholder={placeholder}
-        onChange={onChange}
+        onChange={onEdit}
         type={type}
         disabled={disabled}
         {...conditionalProps}
@@ -65,7 +65,7 @@ export default function FormTextField(props) {
         className="form-control"
         value={value || ''}
         placeholder={placeholder}
-        onChange={onChange}
+        onChange={onEdit}
         type={type}
         disabled={disabled}
         {...conditionalProps}
@@ -93,7 +93,7 @@ export default function FormTextField(props) {
 }
 
 FormTextField.propTypes = {
-  effect: PropTypes.func,
+  onChange: PropTypes.func,
   mask: PropTypes.string,
   label: PropTypes.string,
   onEnter: PropTypes.func,
@@ -110,7 +110,7 @@ FormTextField.defaultProps = {
   label: '',
   type: 'input',
   disabled: false,
-  effect: () => {},
+  onChange: () => {},
   inputType: 'text',
   inlineLayout: true,
 };

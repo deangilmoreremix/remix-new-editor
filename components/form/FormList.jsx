@@ -9,7 +9,7 @@ import PropTypes from '../../lib/PropTypes';
 export default function FormList(props) {
   const {
     label,
-    effect,
+    onChange,
     values: defaultValues,
   } = props;
 
@@ -19,8 +19,8 @@ export default function FormList(props) {
   const [newValue, setNewValue] = useState('');
 
   useEffect(() => {
-    effect(values);
-  }, [effect, values]);
+    onChange(values);
+  }, [onChange, values]);
 
   const onEnter = (v) => {
     v.trim();
@@ -62,12 +62,12 @@ export default function FormList(props) {
 }
 
 FormList.propTypes = {
-  effect: PropTypes.func,
+  onChange: PropTypes.func,
   label: PropTypes.string,
   values: PropTypes.arrayOrObservableArray,
 };
 
 FormList.defaultProps = {
   values: [],
-  effect: () => {},
+  onChange: () => {},
 };

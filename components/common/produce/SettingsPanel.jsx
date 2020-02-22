@@ -31,34 +31,34 @@ export default observer(() => {
     <Container>
       <FormTextField
         label="Title"
-        effect={update('title')}
+        onChange={update('title')}
         value={item.title}
       />
       <FormTextField
         label="Description"
         value={item.description}
-        effect={update('description')}
+        onChange={update('description')}
         componentClass="textarea"
       />
       <FormColor
-        effect={update('background')}
+        onChange={update('background')}
         value={item.background}
         label="Background Color"
       />
       <FormList
         label="Tags"
         values={item.tags}
-        effect={update('tags')}
+        onChange={update('tags')}
       />
       <FormCheckboxField
         label="Facebook"
         value={item.allowedSocials && item.allowedSocials.some(s => s === 'facebook')}
-        effect={updateSocials('facebook')}
+        onChange={updateSocials('facebook')}
       />
       <FormCheckboxField
         label="LinkedIn"
         value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
-        effect={updateSocials('linkedin')}
+        onChange={updateSocials('linkedin')}
       />
     </Container>
     // todo implement image uploading
