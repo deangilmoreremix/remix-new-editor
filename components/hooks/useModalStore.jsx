@@ -1,6 +1,6 @@
 import useStores from './useStores';
 
-export default function useModalStore() {
+export default () => {
   const stores = useStores();
   return stores.modalStore;
-}
+};

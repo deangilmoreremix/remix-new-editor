@@ -1,7 +1,9 @@
 import Cookies from 'js-cookie';
 
+import config from '../config/config';
 import requestCreator from '../lib/requestCreator';
 import ProjectStore from './stores/project.store';
+import ApiStore from './stores/api.store';
 import ModalStore from './stores/modal.store';
 
 let creator = null;
@@ -19,6 +21,7 @@ class Creator {
     backend: null,
     clientId: null,
     hostname: null,
+    cdnHostname: config.s3.cdn,
     clientSecret: null,
   };
 
@@ -105,21 +108,22 @@ export async function initCreateStores(isServer, source, req, preloader) {
     global.fetch = require('isomorphic-fetch');
     global.btoa = string => Buffer.from(string).toString('base64');
     // eslint-disable-next-line global-require
-    const config = require('config/config');
     source.common = {
       hostname: req.hostname,
       backend: config.backend,
       prefixes: config.prefixes,
       clientId: config.client.id,
       clientSecret: config.client.secret,
+      cdnHostname: config.s3.cdn,
     };
   }
   if (!creator) {
     creator = new Creator(isServer, source, req);
     stores = {
       common: creator.common,
+      api: new ApiStore({ request: creator.request }),
       projectStore: new ProjectStore({ request: creator.request }),
-      modalStore: ModalStore({ request: creator.request }),
+      modalStore: ModalStore(),
     };
   }
   if (preloader) {
@@ -133,8 +137,9 @@ export function init(source) {
     creator = new Creator(false, source);
     stores = {
       common: creator.common,
+      api: new ApiStore({ request: creator.request }),
       projectStore: new ProjectStore({ request: creator.request }),
-      modalStore: ModalStore({ request: creator.request }),
+      modalStore: ModalStore(),
     };
   }
   return stores;

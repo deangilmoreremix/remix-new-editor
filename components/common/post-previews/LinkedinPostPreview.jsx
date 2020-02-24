@@ -1,7 +1,3 @@
-/**
- * Created by Eugene Butusov on 06/11/2018.
- */
-
 import React from 'react';
 
 import PropTypes from '../../../lib/PropTypes';

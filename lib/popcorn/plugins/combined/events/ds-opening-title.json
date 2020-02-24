@@ -1,0 +1,135 @@
+{
+    "type": "ds-opening-title",
+    "label": "DS Opening Title",
+    "roles": ["p_oto1","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 30.4027644989782,
+                "top": 62.0313830284926,
+                "text": "{{NAME}}\n{{EMAIL}}",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "3",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": true
+                },
+                "width": 40.57233032442039,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 30.007966125543295,
+                "top": 31.05535142520583,
+                "text": "BONUS",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "9",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 42.2465091728237,
+                "zindex": 998
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 30.007966125543295,
+                "top": 38.55535142520583,
+                "text": "TRAINING",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "9",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 42.2465091728237,
+                "zindex": 998
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 30.007966125543295,
+                "top": 46.05535142520583,
+                "text": "WEBINAR",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "9",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 42.2465091728237,
+                "zindex": 998
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/folding_event/DS_OpeningTitle_clean.svg",
+                "width": 47.195357833655706,
+                "height": 47.07903780068728,
+                "top": 26.46048109965636,
+                "left": 25.918762088974855,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 100,
+                "innerHeight": 100,
+                "transition": "popcorn-fade",
+                "zindex": 997
+            }
+        }
+    ]
+}

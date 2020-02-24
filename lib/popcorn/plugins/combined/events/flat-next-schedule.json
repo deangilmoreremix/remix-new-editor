@@ -1,0 +1,107 @@
+{
+    "type": "flat-next-schedule",
+    "label": "Flat Next Schedule",
+    "roles": ["p_oto1","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 4.0519735200690725,
+                "top": 52.12094235712391,
+                "text": "10:00 PM",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Syncopate",
+                "fontSize": "6.2",
+                "fontColor": "#fff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": true
+                },
+                "width": 29.674747249917623,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 3.813622136535598,
+                "top": 13.136172463990581,
+                "text": "NEXT",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "12",
+                "fontColor": "#d66215",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": true
+                },
+                "width": 29.913098633451096,
+                "zindex": 998
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 4.17114921183581,
+                "top": 37.501653647198914,
+                "text": "SOCIAL\nNETWORK",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Roboto",
+                "fontSize": "7",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": true
+                },
+                "width": 29.555571558150884,
+                "zindex": 997
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/flat/flat_nextschedule_clean.svg",
+                "width": 99.98124279857446,
+                "height": 100.00476394645324,
+                "top": 0,
+                "left": 0,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 0,
+                "innerHeight": 0,
+                "transition": "popcorn-fade",
+                "zindex": 996
+            }
+        }
+    ]
+}

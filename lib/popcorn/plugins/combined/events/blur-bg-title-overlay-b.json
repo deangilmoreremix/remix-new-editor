@@ -1,0 +1,79 @@
+{
+    "type": "blur-bg-title-overlay-b",
+    "label": "Blur BG Title Overlay B",
+    "roles": ["p_main","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 0,
+                "top": 50.00191972781213,
+                "text": "{{NAME}}",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Raleway",
+                "fontSize": "7",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "width": 99.79910727529106,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 0,
+                "top": 41.015399592398886,
+                "text": "Welcome to {{PRODUCTBOUGHT}}",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Raleway",
+                "fontSize": "9",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 99.79910727529106,
+                "zindex": 998
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/blur_bg_title_overlay/blur_bg_title_overlay.svg",
+                "width": 100,
+                "height": 100,
+                "top": 0,
+                "left": 0,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 0,
+                "innerHeight": 0,
+                "transition": "popcorn-fade",
+                "zindex": 998
+            }
+        }
+    ]
+}

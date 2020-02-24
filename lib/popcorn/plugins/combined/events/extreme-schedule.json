@@ -1,0 +1,166 @@
+{
+    "type": "extreme-schedule",
+    "label": "Extreme Schedule",
+    "roles": ["p_oto1","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "text": "3:15",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "start": 0,
+                "end": 5,
+                "transition": "popcorn-fade",
+                "fontFamily": "Poppins",
+                "fontSize": 10,
+                "fontColor": "#000000",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "left": 56.107706758509636,
+                "top": 64.88807602083416,
+                "width": 35.21044862906472,
+                "zindex": 1000
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "target": "video-container",
+                "text": "0",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Poppins",
+                "fontSize": 10,
+                "fontColor": "#000000",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "left": 64.25026028425462,
+                "top": 38.37975119452456,
+                "width": 28.357666884579064,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 49.880339708155965,
+                "target": "video-container",
+                "text": "SANDBOARDING",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Poppins",
+                "fontSize": "10",
+                "fontColor": "#000000",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "top": 21.9285364659814,
+                "width": 49.880339708155965,
+                "zindex": 998
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 41.340403380063435,
+                "target": "video-container",
+                "text": "WAKEBOARDING",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Poppins",
+                "fontSize": 10,
+                "fontColor": "#000000",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "top": 48.33197021221643,
+                "width": 55.785574199171926,
+                "zindex": 997
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 29.955312705169746,
+                "top": 74.70160774125532,
+                "text": "LONGBOARDING",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Poppins",
+                "fontSize": 10,
+                "fontColor": "#000000",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 60.31725861448207,
+                "zindex": 996
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/extreme/extreme_c_clean.svg",
+                "width": 100,
+                "height": 100,
+                "top": 0,
+                "left": 0,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 0,
+                "innerHeight": 0,
+                "transition": "popcorn-fade",
+                "zindex": 995
+            }
+        }
+    ]
+}

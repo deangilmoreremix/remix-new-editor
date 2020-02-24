@@ -1,0 +1,107 @@
+{
+    "type": "minimal-typography-a",
+    "label": "Minimal Typography A",
+    "roles": ["p_oto1","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 40.25503699696133,
+                "top": 50.001974319384125,
+                "text": "TYPOGRAPHY",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "12",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 59.44949172398925,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 39.58856287449508,
+                "top": 33.176665425183785,
+                "text": "MINIMAL",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "19",
+                "fontColor": "#ffda06",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 60.11596584645549,
+                "zindex": 998
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 15.99537893918993,
+                "top": 27.015284703363935,
+                "text": "99",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Source Sans Pro",
+                "fontSize": "40",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 24.526247706757896,
+                "zindex": 997
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/stroke_titles/stroke_titles_bg_clean.svg",
+                "width": 100,
+                "height": 100,
+                "top": 0,
+                "left": 0,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 0,
+                "innerHeight": 0,
+                "transition": "popcorn-fade",
+                "zindex": 996
+            }
+        }
+    ]
+}

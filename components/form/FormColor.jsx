@@ -14,9 +14,9 @@ export default function FormColor(props) {
 
   const [value, setValue] = useState(color || '');
 
-  useEffect(() => {
-    effect(value);
-  });
+  // useEffect(() => {
+  //   effect(value);
+  // }, [effect, value]);
 
   const updateColor = (res) => {
     setValue(res.hex);

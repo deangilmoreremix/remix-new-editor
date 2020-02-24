@@ -33,9 +33,9 @@ export default function FormTextField(props) {
     };
   }
 
-  useEffect(() => {
-    effect(value);
-  });
+  // useEffect(() => {
+  //   effect(value);
+  // }, [effect, value]);
 
   const onChange = ({ target: { value: v } }) => {
     setValue(v);

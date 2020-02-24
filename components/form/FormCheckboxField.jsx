@@ -8,9 +8,9 @@ const FormCheckboxField = (props) => {
 
   const [value, setValue] = useState(defaultValue || false);
 
-  useEffect(() => {
-    effect(value);
-  }, [effect, value]);
+  // useEffect(() => {
+  //   effect(value);
+  // }, [effect, value]);
 
   const onChange = () => {
     setValue(!value);

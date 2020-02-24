@@ -1,0 +1,17 @@
+.social-campaign {
+  .social-source-list {
+    display: flex;
+    align-items: center;
+
+    &-item {
+      &:not(:last-of-type) {
+        margin-right: 10px;
+      }
+    }
+  }
+
+  .campaign-icon {
+    display: inline-block;
+    width: 50px;
+  }
+}

@@ -1,0 +1,67 @@
+{
+    "type": "minimal-typography-b",
+    "label": "Minimal Typography B",
+    "roles": ["p_oto1","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 24.456695690349246,
+                "top": 41.649185317202864,
+                "text": "UNIQUE",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "14",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 50.45802884497539,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/stroke_titles/stroke_titles1_clean.svg",
+                "width": 54.22584727886374,
+                "height": 35.602225139071194,
+                "top": 31.595724732795798,
+                "left": 22.746449163268174,
+                "innerTop": -82.02247191011236,
+                "innerLeft": -45.22821576763486,
+                "innerWidth": 184.23236514522821,
+                "innerHeight": 280.8988764044944,
+                "transition": "popcorn-fade",
+                "zindex": 998
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/stroke_titles/stroke_titles_bg_clean.svg",
+                "width": 100,
+                "height": 100,
+                "top": 0,
+                "left": 0,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 0,
+                "innerHeight": 0,
+                "transition": "popcorn-fade",
+                "zindex": 997
+            }
+        }
+    ]
+}

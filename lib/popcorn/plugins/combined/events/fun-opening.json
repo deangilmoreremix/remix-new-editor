@@ -1,0 +1,51 @@
+{
+    "type": "fun-opening",
+    "label": "Fun Opening",
+    "roles": ["p_oto1","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 23.449181438888537,
+                "top": 44.5799917165556,
+                "text": "CHANNEL",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": 10,
+                "fontColor": "#000000",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 57.470826185484036,
+                "zindex": 1000
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/fun/fun_opening.png",
+                "width": 100,
+                "height": 100,
+                "top": 0,
+                "left": 0,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 0,
+                "innerHeight": 0,
+                "transition": "popcorn-fade",
+                "zindex": 999
+            }
+        }
+    ]
+}

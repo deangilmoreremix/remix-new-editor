@@ -1,0 +1,67 @@
+{
+  "type": "cloudy-lower-3rd",
+  "label": "Cloudy Lower 3rd",
+  "roles": ["p_admin"],
+  "events": [
+    {
+      "type": "text",
+      "popcornOptions": {
+        "left": 3.579609012944122,
+        "top": 75.45811828211562,
+        "text": "Title",
+        "linkUrl": "",
+        "linkTarget": "_blank",
+        "position": "custom",
+        "alignment": "left",
+        "transition": "popcorn-fade",
+        "fontFamily": "Merriweather",
+        "fontSize": "13",
+        "fontColor": "#ffffff",
+        "shadow": false,
+        "shadowColor": "#444444",
+        "background": false,
+        "backgroundColor": "#888888",
+        "fontDecorations": {
+          "bold": false,
+          "italics": false
+        },
+        "width": 18.579875352900444,
+        "zindex": 1000
+      }
+    },
+    {
+      "type": "text",
+      "popcornOptions": {
+        "left": 35.114259841261386,
+        "top": 76.67029688905724,
+        "text": "Description...",
+        "position": "custom",
+        "alignment": "left",
+        "transition": "popcorn-fade",
+        "fontFamily": "Merriweather",
+        "fontSize": "5",
+        "fontColor": "#000000",
+        "shadow": false,
+        "background": false,
+        "width": 62.3874713684547,
+        "zindex": 999
+      }
+    },
+    {
+      "type": "image",
+      "popcornOptions": {
+        "src": "http://4.bp.blogspot.com/-cSbr_6dZAho/T9tkvIWrQ-I/AAAAAAAAAFE/RThP4OfVaPw/s1600/place_matters_lowerthird_final.png",
+        "width": 99.65928449744463,
+        "height": 99.39393939393939,
+        "top": 0,
+        "left": 0,
+        "innerTop": 0,
+        "innerLeft": 0,
+        "innerWidth": 100,
+        "innerHeight": 100,
+        "transition": "popcorn-fade",
+        "zindex": 998
+      }
+    }
+  ]
+}

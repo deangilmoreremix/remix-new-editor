@@ -1,0 +1,107 @@
+{
+    "type": "retro-trapezoid",
+    "label": "Retro Trapezoid",
+    "roles": ["p_bonus","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 20.65645545162237,
+                "top": 47.51746826889604,
+                "text": "Without Spending a Cent",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Lora",
+                "fontSize": "5.8",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 64.18672044621852,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 20.656453670873958,
+                "top": 35.06375473343644,
+                "text": "SOCIAL MEDIA CAMPAIGN",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "6",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "width": 64.30342357430254,
+                "zindex": 998
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 14.121078498168075,
+                "top": 21.370217381916884,
+                "text": "How to Run a Successful\n",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Lora",
+                "fontSize": "6",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 60.218814091361374,
+                "zindex": 997
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/retro_trapezoid/retro_trapezoid.svg",
+                "width": 71.5206129313508,
+                "height": 36.08247422680412,
+                "top": 12.371134020618557,
+                "left": 13.344072491826914,
+                "innerTop": -48.57142857142857,
+                "innerLeft": 1.0810810810810811,
+                "innerWidth": 99.45945945945947,
+                "innerHeight": 200,
+                "transition": "popcorn-fade",
+                "zindex": 996
+            }
+        }
+    ]
+}

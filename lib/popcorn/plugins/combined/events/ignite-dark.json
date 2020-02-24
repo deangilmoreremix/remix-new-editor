@@ -1,0 +1,51 @@
+{
+    "type": "ignite-dark",
+    "label": "Ignite Dark",
+    "roles": ["p_main","p_admin", "p2_main"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 2.8031780281142655,
+                "top": 80.81412316744398,
+                "text": "Buy now John!",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Lato",
+                "fontSize": "9.7",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "width": 49.89443233107573,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/ignite_dark/ignite_dark_clean",
+                "width": 82.38895455668941,
+                "height": 18.630380629322726,
+                "top": 78.37608729435823,
+                "left": 0,
+                "innerTop": -171.26436781609195,
+                "innerLeft": -0.29239766081871343,
+                "innerWidth": 100,
+                "innerHeight": 441.37931034482756,
+                "transition": "popcorn-fade",
+                "zindex": 998
+            }
+        }
+    ]
+}

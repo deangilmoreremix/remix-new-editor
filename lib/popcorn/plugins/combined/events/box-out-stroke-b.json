@@ -1,0 +1,51 @@
+{
+    "type": "box-out-stroke-b",
+    "label": "Box Out Stroke Bottom",
+    "roles": ["p_main","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "Only 4 Min 32sec before Price goes up",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Rajdhani",
+                "fontSize": "7",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "left": 29.33894262975964,
+                "top": 75.24177028250203,
+                "width": 38.071759693453735,
+                "zindex": 1000
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/box_out_stroke/box_out_stroke_b.svg",
+                "width": 54.72047832585949,
+                "height": 21.429710337496676,
+                "top": 71.76720701567898,
+                "left": 21.031390134529147,
+                "innerTop": -395.23809523809524,
+                "innerLeft": -53.4965034965035,
+                "innerWidth": 208.04195804195805,
+                "innerHeight": 685.7142857142857,
+                "transition": "popcorn-fade",
+                "zindex": 999
+            }
+        }
+    ]
+}

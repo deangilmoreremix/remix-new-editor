@@ -7,6 +7,9 @@ const defaultItem = {};
 export default class ProjectStore extends BaseStore {
   @observable item = {};
 
+  @observable
+  activeProject = null;
+
   @action
   getOne = async (projectId) => {
     if (!projectId) {

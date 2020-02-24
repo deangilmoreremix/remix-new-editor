@@ -1,0 +1,51 @@
+{
+    "type": "modern-lowerthirds-e",
+    "label": "Modern Lowerthirds E",
+    "roles": ["p_bonus","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "{{NAME}}",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "right",
+                "transition": "popcorn-fade",
+                "fontFamily": "Fjalla One",
+                "fontSize": "7.5",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "left": 0,
+                "top": 79.29157744468237,
+                "width": 37.152034261241965,
+                "zindex": 1000
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/modern_lower_thirds/modern-lower-thirds-e-clean.svg",
+                "width": 40.009667284298715,
+                "height": 21.815473632952365,
+                "top": 73.1374065480794,
+                "left": 0,
+                "innerTop": -337.0967741935484,
+                "innerLeft": -0.49504950495049505,
+                "innerWidth": 250,
+                "innerHeight": 458.0645161290323,
+                "transition": "popcorn-fade",
+                "zindex": 999
+            }
+        }
+    ]
+}

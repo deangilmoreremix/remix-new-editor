@@ -1,0 +1,275 @@
+{
+    "type": "blackred-schedule",
+    "label": "BlackRed Shedule",
+    "roles": ["p_oto1","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 63.347920454316956,
+                "top": 71.94114210848286,
+                "text": "LATER",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "6",
+                "fontColor": "#AF192F",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 20.12726569618766,
+                "zindex": 980
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 63.628600560652046,
+                "top": 80.05001367342818,
+                "text": "The Hunger Games \nMockingjay Part II",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Raleway",
+                "fontSize": "3",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "width": 23.665051149186073,
+                "zindex": 979
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 37.29317398996248,
+                "top": 87.25287788944216,
+                "text": "New Season Premiere",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Raleway",
+                "fontSize": "2.2",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "width": 25.690853193085267,
+                "zindex": 978
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 37.10901016778983,
+                "top": 80.05001367342818,
+                "text": "Once Upon a\nTime in Wonderland",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Raleway",
+                "fontSize": "3",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "width": 25.96709892634425,
+                "zindex": 977
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 63.72068247173838,
+                "top": 87.41657934889703,
+                "text": "Saturday Night Movie",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Raleway",
+                "fontSize": "2.2",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "width": 23.38880541592709,
+                "zindex": 976
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 10.86566621071583,
+                "top": 87.58198686451657,
+                "text": "Season 02 Premiere",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Raleway",
+                "fontSize": "2.2",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "width": 25.875017015257924,
+                "zindex": 975
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 36.97060909457628,
+                "top": 71.94114210848286,
+                "text": "NEXT",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "6",
+                "fontColor": "#AF192F",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 18.43233805861396,
+                "zindex": 974
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 10.865665508186602,
+                "top": 80.05001367342818,
+                "text": "The Adventures Of\nSherlock Holmes",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Raleway",
+                "fontSize": "3",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "width": 25.690853193085267,
+                "zindex": 973
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 10.59329773483561,
+                "top": 71.94114210848286,
+                "text": "NOW",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "6",
+                "fontColor": "#AF192F",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 21.610327379064646,
+                "zindex": 972
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/blackred_broadcast/blackred_schedule_clean.svg",
+                "width": 100,
+                "height": 100,
+                "top": 0,
+                "left": 0,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 0,
+                "innerHeight": 0,
+                "transition": "popcorn-fade",
+                "zindex": 986
+            }
+        }
+    ]
+}

@@ -1,0 +1,87 @@
+{
+    "type": "thuglife",
+    "label": "Thuglife",
+    "roles": ["p_oto1","p_admin"],
+    "events": [
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/thuglife/thuglife_text_clean.svg",
+                "width": 46.132132310672084,
+                "height": 45.73364339760998,
+                "top": 8.845015221751693,
+                "left": 5.666476093499899,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 100.37313432835822,
+                "innerHeight": 100,
+                "transition": "popcorn-fade",
+                "zindex": 1000
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/thuglife/8bitglass.png",
+                "width": 35.842437371488714,
+                "height": 36.28202376210392,
+                "top": 15.856446492558373,
+                "left": 56.42063398689253,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 100,
+                "innerHeight": 100,
+                "transition": "popcorn-fade",
+                "zindex": 999
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/thuglife/necklace.png",
+                "width": 35.49944754018261,
+                "height": 35.36735089415172,
+                "top": 47.26233639257092,
+                "left": 32.92880846622165,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 100,
+                "innerHeight": 100,
+                "transition": "popcorn-fade",
+                "zindex": 998
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/thuglife/cigar.png",
+                "width": 34.127488214958156,
+                "height": 33.84289611423139,
+                "top": 48.48613377928102,
+                "left": 64.15815925999274,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 100,
+                "innerHeight": 100,
+                "transition": "popcorn-fade",
+                "zindex": 997
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/thuglife/cap.png",
+                "width": 31.04057973320315,
+                "height": 39.330933321944585,
+                "top": 46.04383328546151,
+                "left": 4.458271175497998,
+                "innerTop": -44.96124031007752,
+                "innerLeft": -64.83516483516483,
+                "innerWidth": 230.2197802197802,
+                "innerHeight": 181.3953488372093,
+                "transition": "popcorn-fade",
+                "zindex": 996
+            }
+        }
+    ]
+}

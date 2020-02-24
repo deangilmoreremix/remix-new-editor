@@ -1,0 +1,66 @@
+@import '../../../styles/common/zoomer';
+
+.popcorn-editor {
+  height: 60%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content: center;
+
+  * {
+    cursor: pointer;
+  }
+
+  span {
+    &.icon {
+      margin: 0;
+    }
+  }
+
+  .icon {
+    height: 22px;
+    width: auto;
+    margin: 0 10px;
+  }
+
+  .active {
+    filter: none !important;
+  }
+
+  .color-picker-button-container {
+    display: flex;
+    height: 100%;
+    margin: 0 2px;
+    justify-content: center;
+
+    .color-picker-button {
+      color: $secondary-color;
+      font-size: 1.2rem;
+      height: 100%;
+      background: transparent;
+      border: 0.5px solid $secondary-color;
+      border-radius: 3px;
+    }
+  }
+
+  .color-picker {
+    position: absolute;
+    margin: 0;
+    z-index: 10000;
+    margin-top: 5px;
+
+    .color-picker-inner {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+    }
+  }
+  .separator {
+    width: 3%;
+    height: 100%;
+    background: transparent;
+  }
+}

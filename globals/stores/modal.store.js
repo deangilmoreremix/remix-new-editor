@@ -5,28 +5,39 @@ import SocialCampaignModal from '../../components/modals/SocialCampaignModal';
 export const SOCIAL_CAMPAIGN_MODAL = 'social-campaign';
 export const EMAIL_CAMPAIGN_MODAL = 'email-campaign';
 
-export default (/* { request  } */) => {
-  const modalIds = observable([]);
+const modalsConfig = [
+  {
+    id: SOCIAL_CAMPAIGN_MODAL,
+    className: `${SOCIAL_CAMPAIGN_MODAL}-modal`,
+    renderer: SocialCampaignModal,
+    title: 'Social Campaigns',
+  },
+];
 
-  const modals = [
-    {
-      id: SOCIAL_CAMPAIGN_MODAL,
-      className: `${SOCIAL_CAMPAIGN_MODAL}-modal`,
-      renderer: SocialCampaignModal,
-      title: 'Social Campaigns',
-    },
-  ];
+export default () => {
+  const modalIds = observable.set([]);
+
+  const modals = observable(modalsConfig);
 
   const openModal = (modalId) => {
-    if (!modalId) return;
-    if (!modalIds.includes(modalId)) {
-      modalIds.push(modalId);
+    if (modalId) {
+      modalIds.add(modalId);
     }
   };
 
   const closeModal = (modalId) => {
-    if (!modalId) return;
-    modalIds.remove(modalId);
+    if (modalId) {
+      modalIds.delete(modalId);
+    }
+  };
+
+  const updateTitle = (modalId, title) => {
+    if (modalId) {
+      const mutatedModalIndex = modals.findIndex(m => m.id === modalId);
+      const originalModal = modalsConfig.find(m => m.id === modalId);
+
+      modals[mutatedModalIndex].title = title || originalModal.title;
+    }
   };
 
   return {
@@ -34,5 +45,6 @@ export default (/* { request  } */) => {
     modals,
     openModal: action(openModal),
     closeModal: action(closeModal),
+    updateTitle: action(updateTitle),
   };
 };

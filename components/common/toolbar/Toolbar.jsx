@@ -37,7 +37,7 @@ Toolbar.propTypes = {
     label: PropTypes.string.isRequired,
     icon: PropTypes.string.isRequired,
     items: PropTypes.arrayOf(PropTypes.shape({
-      action: PropTypes.func.isRequired,
+      action: PropTypes.func,
       label: PropTypes.string.isRequired,
       icon: PropTypes.string.isRequired,
     })),

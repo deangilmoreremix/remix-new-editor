@@ -18,9 +18,9 @@ export default function FormList(props) {
 
   const [newValue, setNewValue] = useState('');
 
-  useEffect(() => {
-    effect(values);
-  }, [effect, values]);
+  // useEffect(() => {
+  //   effect(values);
+  // }, [effect, values]);
 
   const onEnter = (v) => {
     v.trim();

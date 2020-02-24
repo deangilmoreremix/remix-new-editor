@@ -1,0 +1,81 @@
+{
+  "type": "fun-social-lowerthirds",
+  "label": "Fun Social Lower Thirds",
+  "roles": ["p_bonus","p_admin"],
+  "events": [
+    {
+      "type": "text",
+      "popcornOptions": {
+        "start": 0,
+  "end": 5,
+        "text": "youtube.com/username",
+        "linkUrl": "",
+        "linkTarget": "_blank",
+        "position": "custom",
+        "alignment": "left",
+        "transition": "popcorn-fade",
+        "fontFamily": "Montserrat",
+        "fontSize": "5",
+        "fontColor": "#000000",
+        "shadow": false,
+        "shadowColor": "#444444",
+        "background": false,
+        "backgroundColor": "#888888",
+        "fontDecorations": {
+          "bold": false,
+          "italics": false
+        },
+        "left": 57.89663195116296,
+        "top": 89.15384928385417,
+        "width": 34.75961334465536,
+        "zindex": 995
+      }
+    },
+
+        {
+      "type": "text",
+      "popcornOptions": {
+        "start": 0,
+  "end": 5,
+        "text": "facebook.com/username",
+        "linkUrl": "",
+        "linkTarget": "_blank",
+        "position": "custom",
+        "alignment": "left",
+        "transition": "popcorn-fade",
+        "fontFamily": "Montserrat",
+        "fontSize": "5",
+        "fontColor": "#000000",
+        "shadow": false,
+        "shadowColor": "#444444",
+        "background": false,
+        "backgroundColor": "#888888",
+        "fontDecorations": {
+          "bold": false,
+          "italics": false
+        },
+        "left": 56.456727602637216,
+        "top": 79.66666979667468,
+        "width": 34.75961334465536,
+        "zindex": 994
+      }
+    },
+
+    {
+      "type": "image",
+      "popcornOptions": {
+        "src": "https://cdn.vidcloud.io/events/fun/fun_sociallowerthird_clean.svg",
+        "width": 100,
+        "height": 100,
+        "top": 0,
+        "left": 0,
+        "innerTop": 0,
+        "innerLeft": 0,
+        "innerWidth": 0,
+        "innerHeight": 0,
+        "transition": "popcorn-fade",
+        "zindex": 993
+      }
+    }
+  ]
+}

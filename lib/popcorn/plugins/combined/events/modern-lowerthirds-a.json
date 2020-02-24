@@ -1,0 +1,107 @@
+{
+    "type": "modern-lowerthirds-a",
+    "label": "Modern Lowerthirds A",
+    "roles": ["p_bonus","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "{{LASTNAME}}",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Fjalla One",
+                "fontSize": "7.5",
+                "fontColor": "#03c6fd",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "left": 24.197002141327623,
+                "top": 76.51677373304783,
+                "width": 40.149892933618844,
+                "zindex": 1000
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "MODERN",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Teko",
+                "fontSize": "6",
+                "fontColor": "#f1efef",
+                "shadow": false,
+                "shadowColor": "#ffffff",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "left": 23.126338329764454,
+                "top": 88.88888888888889,
+                "width": 41.54175588865097,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "{{FIRSTNAME}}",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "right",
+                "transition": "popcorn-fade",
+                "fontFamily": "Fjalla One",
+                "fontSize": "7.5",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "left": 0,
+                "top": 76.51677373304783,
+                "width": 23.233404710920773,
+                "zindex": 998
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/modern_lower_thirds/modern-lower-thirds-a-clean.svg",
+                "width": 60.53008942237976,
+                "height": 13.015954856635444,
+                "top": 78.61705479648249,
+                "left": 5.964714412309675,
+                "innerTop": -605.4054054054054,
+                "innerLeft": -9.477124183006536,
+                "innerWidth": 165.03267973856208,
+                "innerHeight": 767.5675675675675,
+                "transition": "popcorn-fade",
+                "zindex": 996
+            }
+        }
+    ]
+}

@@ -1,0 +1,87 @@
+{
+    "type": "hand-written-arrows",
+    "label": "Hand Written Arrows",
+    "roles": ["p_oto1","p_admin"],
+    "events": [
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/hand_written_arrows/arrow3.png",
+                "width": 18.946206063578316,
+                "height": 19.038208732238797,
+                "top": 22.698678065333773,
+                "left": 65.91742099217372,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 100,
+                "innerHeight": 100,
+                "transition": "popcorn-fade",
+                "zindex": 998
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/hand_written_arrows/arrow2.png",
+                "width": 20.358345645956824,
+                "height": 20.711897411996055,
+                "top": 19.875056264425243,
+                "left": 43.41185580127652,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 100.57803468208093,
+                "innerHeight": 98.98989898989899,
+                "transition": "popcorn-fade",
+                "zindex": 997
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/hand_written_arrows/arrow1.png",
+                "width": 24.830120990155432,
+                "height": 24.68690802641954,
+                "top": 20.71190060430387,
+                "left": 16.28659499523907,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 99.52606635071089,
+                "innerHeight": 100,
+                "transition": "popcorn-fade",
+                "zindex": 996
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/hand_written_arrows/circle1.png",
+                "width": 30.24332272260638,
+                "height": 30.54481840556994,
+                "top": 47.071041618116986,
+                "left": 21.817884429481833,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 100,
+                "innerHeight": 98.63013698630137,
+                "transition": "popcorn-fade",
+                "zindex": 995
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/hand_written_arrows/circle2.png",
+                "width": 29.184218035822497,
+                "height": 29.289551895752,
+                "top": 46.86110907158112,
+                "left": 50.87829389163871,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 100,
+                "innerHeight": 100,
+                "transition": "popcorn-fade",
+                "zindex": 994
+            }
+        }
+    ]
+}

@@ -1,0 +1,24 @@
+{
+    "type": "flat-responsive-showcase-a",
+    "label": "Flat Responsive Showcase A",
+    "roles": ["p_bonus","p_admin"],
+    "events": [
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/mockups/flat/flat_responsive_showcase_A.png",
+                "count": 3,
+                "width": 100,
+                "height": 100,
+                "top": 0,
+                "left": 0,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 0,
+                "innerHeight": 0,
+                "transition": "popcorn-fade",
+                "zindex": 1000
+            }
+        }
+    ]
+}

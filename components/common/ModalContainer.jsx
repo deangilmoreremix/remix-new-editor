@@ -6,18 +6,23 @@ import useModalStore from '../hooks/useModalStore';
 
 const ModalContainer = observer(() => {
   const modalStore = useModalStore();
-  const { modalIds, modals, closeModal } = modalStore;
+  const { modalIds, modals, closeModal, updateTitle } = modalStore;
 
-  const modalsToShow = modals.filter(m => modalIds.includes(m.id));
+  const modalsToShow = modals.filter(m => modalIds.has(m.id));
 
   return modalsToShow.map(({ id, className, renderer: ModalComponent, title }) => {
     const close = () => closeModal(id);
+
+    const updateModalTitle = (newTitle) => updateTitle(id, newTitle);
 
     return (
       <Modal key={id} isOpen toggle={close} className={className}>
         <ModalHeader toggle={close}>{title}</ModalHeader>
         <ModalBody>
-          <ModalComponent />
+          <ModalComponent
+            handleClose={close}
+            updateTitle={updateModalTitle}
+          />
         </ModalBody>
         <ModalFooter>
           <Button color="secondary" onClick={close}>Cancel</Button>

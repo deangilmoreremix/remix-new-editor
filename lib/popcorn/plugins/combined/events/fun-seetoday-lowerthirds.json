@@ -1,0 +1,68 @@
+{
+    "type": "fun-seetoday-lowerthirds",
+    "label": "Fun See Today Lower Thirds",
+    "roles": ["p_oto1","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 72.59088546962201,
+                "top": 76.60976099618398,
+                "text": "Party in \nRussia",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "8",
+                "fontColor": "#fff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 27.185431211730947,
+                "zindex": 1000
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/fun/todd_gross.png",
+                "width": 38.70916733650463,
+                "height": 73.01520369199054,
+                "top": 26.834867758333917,
+                "left": 54.978982461226266,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 100,
+                "innerHeight": 100,
+                "transition": "popcorn-fade",
+                "zindex": 999
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/fun/fun_seetodaylowerthird.png",
+                "width": 100,
+                "height": 100,
+                "top": 0,
+                "left": 0,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 0,
+                "innerHeight": 0,
+                "transition": "popcorn-fade",
+                "zindex": 998
+            }
+        }
+
+    ]
+}

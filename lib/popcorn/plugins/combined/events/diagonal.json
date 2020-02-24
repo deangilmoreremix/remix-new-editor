@@ -1,0 +1,79 @@
+{
+    "type": "diagonal",
+    "label": "Diagonal",
+    "roles": ["p_bonus","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "UP",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Teko",
+                "fontSize": "50",
+                "fontColor": "#e6e6e6",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "left": 8.614864420768923,
+                "top": 47.52252252252252,
+                "width": 29.77195792471613,
+                "zindex": 1000
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "RANK",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Oswald",
+                "fontSize": "9",
+                "fontColor": "#e6e6e6",
+                "shadow": false,
+                "shadowColor": "#ffffff",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "left": 9.566517189835576,
+                "top": 42.85942067499335,
+                "width": 10.331838565022423,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/diagonal/diagonal.svg",
+                "width": 100,
+                "height": 100,
+                "top": 0,
+                "left": 0,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 0,
+                "innerHeight": 0,
+                "transition": "popcorn-fade",
+                "zindex": 998
+            }
+        }
+    ]
+}

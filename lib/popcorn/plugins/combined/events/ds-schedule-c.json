@@ -1,0 +1,107 @@
+{
+    "type": "ds-schedule-c",
+    "label": "DS Schedule C",
+     "roles": ["p_oto1","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 51.37749401395272,
+                "top": 74.38940087133699,
+                "text": "12:00",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Poppins",
+                "fontSize": "6.5",
+                "fontColor": "#DA3D3F",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": true
+                },
+                "width": 12.923823236499446,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 64.51355497920878,
+                "top": 76.65194993318187,
+                "text": "SATURDAY",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "right",
+                "transition": "popcorn-fade",
+                "fontFamily": "Raleway",
+                "fontSize": "4",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "width": 24.364584790121903,
+                "zindex": 998
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "left": 57.90378073528891,
+                "top": 59.63380891875545,
+                "text": "LUNCH",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "right",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "10",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "width": 31.144295340416694,
+                "zindex": 997
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/folding_event/DS_ScheduleC_clean.svg",
+                "width": 39.819584496914224,
+                "height": 39.86254295532646,
+                "top": 51.20274914089347,
+                "left": 51.4497392045059,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 100,
+                "innerHeight": 100,
+                "transition": "popcorn-fade",
+                "zindex": 996
+            }
+        }
+    ]
+}

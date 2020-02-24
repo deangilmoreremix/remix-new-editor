@@ -1,0 +1,107 @@
+{
+    "type": "partial-cover-cool",
+    "label": "Partial Cover Cool",
+    "roles": ["p_oto1","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "THE LATE SHOW\nWITH NORM MCDONALD",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Raleway",
+                "fontSize": "6",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "left": 46.65987834615075,
+                "top": 46.072126149302086,
+                "width": 49.56188536670329,
+                "zindex": 1000
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "11 pm",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "6",
+                "fontColor": "#f3a43d",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "left": 47.03608369051875,
+                "top": 62.54295532646048,
+                "width": 50.06442905194556,
+                "zindex": 1000
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "MONDAY",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Montserrat",
+                "fontSize": "13",
+                "fontColor": "#f3a43d",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "left": 46.4497392045059,
+                "top": 32.302405498281786,
+                "width": 49.677831144208525,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/partial_cover_cool/partial-cover-cool.svg",
+                "width": 60.88051662691927,
+                "height": 100,
+                "top": 0,
+                "left": 39.11948337308074,
+                "innerTop": 0,
+                "innerLeft": 0,
+                "innerWidth": 100.84507042253522,
+                "innerHeight": 100.22699386503066,
+                "transition": "popcorn-fade",
+                "zindex": 998
+            }
+        }
+    ]
+}

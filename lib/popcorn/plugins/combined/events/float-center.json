@@ -1,0 +1,79 @@
+{
+    "type": "float-center",
+    "label": "Float Center",
+    "roles": ["p_bonus","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "Only",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Palanquin",
+                "fontSize": "6.5",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "left": 25.06427503736921,
+                "top": 44.90034546904066,
+                "width": 47.832585949177876,
+                "zindex": 1000
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "Access Pass for John's Eyes",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "center",
+                "transition": "popcorn-fade",
+                "fontFamily": "Palanquin",
+                "fontSize": "6.5",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": true,
+                    "italics": false
+                },
+                "left": 25.255605381165918,
+                "top": 38.097262822216315,
+                "width": 47.25859491778775,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/float_center/float_center.svg",
+                "width": 48.18355640535373,
+                "height": 22.108843537414966,
+                "top": 34.01360544217687,
+                "left": 24.8565965583174,
+                "innerTop": -6.153846153846154,
+                "innerLeft": 0,
+                "innerWidth": 100.39682539682539,
+                "innerHeight": 118.46153846153847,
+                "transition": "popcorn-fade",
+                "zindex": 998
+            }
+        }
+    ]
+}

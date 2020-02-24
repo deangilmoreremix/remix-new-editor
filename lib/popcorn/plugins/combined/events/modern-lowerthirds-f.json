@@ -1,0 +1,79 @@
+{
+    "type": "modern-lowerthirds-f",
+    "label": "Modern Lowerthirds F",
+    "roles": ["p_bonus","p_admin"],
+    "events": [
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "MODERN",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "right",
+                "transition": "popcorn-fade",
+                "fontFamily": "Teko",
+                "fontSize": "8",
+                "fontColor": "#00c8fe",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "left": 0,
+                "top": 82.25969545562694,
+                "width": 18.41541755888651,
+                "zindex": 1000
+            }
+        },
+        {
+            "type": "text",
+            "popcornOptions": {
+                "start": 0,
+                "end": 5,
+                "text": "{{FIRSTNAME}} {{LASTNAME}}",
+                "linkUrl": "",
+                "linkTarget": "_blank",
+                "position": "custom",
+                "alignment": "left",
+                "transition": "popcorn-fade",
+                "fontFamily": "Fjalla One",
+                "fontSize": "7",
+                "fontColor": "#ffffff",
+                "shadow": false,
+                "shadowColor": "#444444",
+                "background": false,
+                "backgroundColor": "#888888",
+                "fontDecorations": {
+                    "bold": false,
+                    "italics": false
+                },
+                "left": 20.12847965738758,
+                "top": 82.79800142755175,
+                "width": 79.7644539614561,
+                "zindex": 999
+            }
+        },
+        {
+            "type": "image",
+            "popcornOptions": {
+                "src": "https://cdn.vidcloud.io/events/modern_lower_thirds/modern-lower-thirds-f-clean.svg",
+                "width": 81.12745098039215,
+                "height": 20.043572984749456,
+                "top": 78.10457516339869,
+                "left": 18.88,
+                "innerTop": -378.2608695652174,
+                "innerLeft": -23.11178247734139,
+                "innerWidth": 123.26283987915407,
+                "innerHeight": 498.9130434782608,
+                "transition": "popcorn-fade",
+                "zindex": 998
+            }
+        }
+    ]
+}
