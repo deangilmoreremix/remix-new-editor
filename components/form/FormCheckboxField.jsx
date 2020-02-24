@@ -1,20 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Input } from 'reactstrap';
 
 import PropTypes from '../../lib/PropTypes';
 
 const FormCheckboxField = (props) => {
-  const { onChange, value: defaultValue, disabled, label } = props;
-
-  const [value, setValue] = useState(defaultValue || false);
-
-  useEffect(() => {
-    onChange(value);
-  }, [onChange, value]);
-
-  const onClick = () => {
-    setValue(!value);
-  };
+  const { onChange, value, disabled, label } = props;
 
   return (
     <div>
@@ -22,9 +12,16 @@ const FormCheckboxField = (props) => {
         type="checkbox"
         disabled={disabled}
         checked={value}
-        onChange={onClick}
+        onChange={onChange(!value)}
       />
-      {label}
+      <div
+        onClick={onChange(!value)}
+        role="button"
+        tabIndex="0"
+        onKeyDown={onChange(!value)}
+      >
+        {label}
+      </div>
     </div>
   );
 };

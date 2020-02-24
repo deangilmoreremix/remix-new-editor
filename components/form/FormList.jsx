@@ -10,29 +10,24 @@ export default function FormList(props) {
   const {
     label,
     onChange,
-    values: defaultValues,
+    values,
   } = props;
 
 
-  const [values, setValues] = useState(defaultValues || []);
 
   const [newValue, setNewValue] = useState('');
-
-  useEffect(() => {
-    onChange(values);
-  }, [onChange, values]);
 
   const onEnter = (v) => {
     v.trim();
     if (!values.some(item => item === v)) {
-      setValues([...values, v]);
+      onChange([...values, v]);
     }
     setNewValue('');
   };
 
   const handleRemove = (v) => {
     const newValues = values.filter(item => item !== v);
-    setValues(newValues);
+    onChange(newValues);
   };
 
   return (
