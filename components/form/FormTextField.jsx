@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Col, Label, FormGroup, Input } from 'reactstrap';
 import MaskedFormControl from 'react-bootstrap-maskedinput';
 
@@ -10,40 +10,34 @@ export default function FormTextField(props) {
     type,
     mask,
     label,
-    effect,
+    onChange,
     onEnter,
     disabled,
     labelCol,
     className,
     controlCol,
     placeholder,
-    inlineLayout,
-    value: defaultValue,
+    inline,
+    value,
   } = props;
 
   const conditionalProps = {};
-  const [value, setValue] = useState(defaultValue || '');
 
   if (onEnter) {
-    conditionalProps.onKeyPress = ({ which }) => {
+    conditionalProps.onKeyPress = ({ which, target: { value: v } }) => {
       if (which === 13) {
-        onEnter(value);
-        setValue('');
+        onEnter(v);
       }
     };
   }
 
-  // useEffect(() => {
-  //   effect(value);
-  // }, [effect, value]);
-
-  const onChange = ({ target: { value: v } }) => {
-    setValue(v);
+  const onEdit = ({ target: { value: v } }) => {
+    onChange(v);
   };
 
-  const getLabel = () => (<Label key="label-key" className="form-control-label">{label}</Label>);
+  const renderLabel = () => (<Label key="label-key" className="form-control-label">{label}</Label>);
 
-  const getInputField = () => (mask
+  const renderInputField = () => (mask
     ? (
       <MaskedFormControl
         mask={mask}
@@ -52,7 +46,7 @@ export default function FormTextField(props) {
         value={value}
         className="form-control"
         placeholder={placeholder}
-        onChange={onChange}
+        onChange={onEdit}
         type={type}
         disabled={disabled}
         {...conditionalProps}
@@ -65,7 +59,7 @@ export default function FormTextField(props) {
         className="form-control"
         value={value || ''}
         placeholder={placeholder}
-        onChange={onChange}
+        onChange={onEdit}
         type={type}
         disabled={disabled}
         {...conditionalProps}
@@ -77,30 +71,30 @@ export default function FormTextField(props) {
     <FormGroup
       className={className}
     >
-      {inlineLayout
+      {inline
         ? [
           <Col {...labelCol} key="text-field-label">
-            {getLabel()}
+            {renderLabel()}
           </Col>,
           <Col {...controlCol} key="text-field-input">
-            {getInputField()}
+            {renderInputField()}
           </Col>,
         ]
-        : [getLabel(), getInputField()]
+        : [renderLabel(), renderInputField()]
       }
     </FormGroup>
   );
 }
 
 FormTextField.propTypes = {
-  effect: PropTypes.func,
+  onChange: PropTypes.func,
   mask: PropTypes.string,
   label: PropTypes.string,
   onEnter: PropTypes.func,
   disabled: PropTypes.bool,
   inputType: PropTypes.string,
   className: PropTypes.string,
-  inlineLayout: PropTypes.bool,
+  inline: PropTypes.bool,
   placeholder: PropTypes.string,
   type: PropTypes.oneOf(['input', 'textarea', 'select']),
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
@@ -110,7 +104,7 @@ FormTextField.defaultProps = {
   label: '',
   type: 'input',
   disabled: false,
-  effect: () => {},
+  onChange: () => {},
   inputType: 'text',
-  inlineLayout: true,
+  inline: true,
 };

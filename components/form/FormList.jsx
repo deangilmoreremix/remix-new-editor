@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FormGroup, Label, Col, Button } from 'reactstrap';
 
 import FormTextField from './FormTextField';
@@ -9,30 +9,27 @@ import PropTypes from '../../lib/PropTypes';
 export default function FormList(props) {
   const {
     label,
-    effect,
-    values: defaultValues,
+    onChange,
+    values,
   } = props;
 
-
-  const [values, setValues] = useState(defaultValues || []);
-
   const [newValue, setNewValue] = useState('');
-
-  // useEffect(() => {
-  //   effect(values);
-  // }, [effect, values]);
 
   const onEnter = (v) => {
     v.trim();
     if (!values.some(item => item === v)) {
-      setValues([...values, v]);
+      onChange([...values, v]);
     }
     setNewValue('');
   };
 
+  const onEdit = (v) => {
+    setNewValue(v);
+  };
+
   const handleRemove = (v) => {
     const newValues = values.filter(item => item !== v);
-    setValues(newValues);
+    onChange(newValues);
   };
 
   return (
@@ -55,6 +52,7 @@ export default function FormList(props) {
         <FormTextField
           value={newValue}
           onEnter={onEnter}
+          onChange={onEdit}
         />
       </Col>
     </FormGroup>
@@ -62,12 +60,12 @@ export default function FormList(props) {
 }
 
 FormList.propTypes = {
-  effect: PropTypes.func,
+  onChange: PropTypes.func,
   label: PropTypes.string,
   values: PropTypes.arrayOrObservableArray,
 };
 
 FormList.defaultProps = {
   values: [],
-  effect: () => {},
+  onChange: () => {},
 };

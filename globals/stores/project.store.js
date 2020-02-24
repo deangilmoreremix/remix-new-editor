@@ -2,7 +2,13 @@ import { observable, action } from 'mobx';
 
 import BaseStore from './base.store';
 
-const defaultItem = {};
+const defaultItem = {
+  tags: [],
+  title: '',
+  background: '',
+  description: '',
+  allowedSocials: [],
+};
 
 export default class ProjectStore extends BaseStore {
   @observable item = {};
