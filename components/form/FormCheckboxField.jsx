@@ -6,19 +6,23 @@ import PropTypes from '../../lib/PropTypes';
 const FormCheckboxField = (props) => {
   const { onChange, value, disabled, label } = props;
 
+  const onClick = () => {
+    onChange(!value);
+  };
+
   return (
     <div>
       <Input
         type="checkbox"
         disabled={disabled}
         checked={value}
-        onChange={onChange(!value)}
+        onChange={onClick}
       />
       <div
-        onClick={onChange(!value)}
+        onClick={onClick}
         role="button"
         tabIndex="0"
-        onKeyDown={onChange(!value)}
+        onKeyDown={onClick}
       >
         {label}
       </div>

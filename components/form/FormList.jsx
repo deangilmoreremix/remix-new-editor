@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FormGroup, Label, Col, Button } from 'reactstrap';
 
 import FormTextField from './FormTextField';
@@ -13,8 +13,6 @@ export default function FormList(props) {
     values,
   } = props;
 
-
-
   const [newValue, setNewValue] = useState('');
 
   const onEnter = (v) => {
@@ -23,6 +21,10 @@ export default function FormList(props) {
       onChange([...values, v]);
     }
     setNewValue('');
+  };
+
+  const onEdit = (v) => {
+    setNewValue(v);
   };
 
   const handleRemove = (v) => {
@@ -50,6 +52,7 @@ export default function FormList(props) {
         <FormTextField
           value={newValue}
           onEnter={onEnter}
+          onChange={onEdit}
         />
       </Col>
     </FormGroup>
