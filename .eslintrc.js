@@ -27,6 +27,7 @@ module.exports = {
     ],
     'react/prop-types': ['error', {
       ignore: [
+        'projectStore',
       ], customValidators: []
     }],
     'react/require-default-props': 0,

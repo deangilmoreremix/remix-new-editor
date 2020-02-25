@@ -76,9 +76,13 @@
     "throng": "4.0.0",
     "validator": "12.2.0",
     "webmaker-auth": "git://github.com/strategic-limited/webmaker-auth2#ba029fd7b9107044ffac02f114ecfec72147a794",
-    "webpack": "4.41.5"
+    "webpack": "4.41.5",
+    "react-bootstrap-maskedinput": "0.4.0",
+    "react-async-hook": "3.6.1",
+    "react-color": "2.18.0"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "7.8.3",
     "@babel/plugin-proposal-decorators": "7.8.3",
     "babel-eslint": "10.0.3",
     "raw-loader": "4.0.0"

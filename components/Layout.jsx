@@ -5,24 +5,25 @@ import PropTypes from '../lib/PropTypes';
 
 import 'styles/index.scss';
 
-import { initStoreAndPreload, initStore } from '../globals/store';
+import { init, initCreateStores } from '../globals/storesCreator';
 
 class Layout extends Component {
   static async getInitialProps({ query, req }, preloader) {
     const isServer = !!req;
-    const store = await initStoreAndPreload(isServer, query, req, preloader);
-    return { store };
+    const stores = await initCreateStores(isServer, query, req, preloader);
+    return { stores };
   }
 
   constructor(props) {
     super(props);
-    this.store = initStore(props.store);
+
+    this.stores = init(props.stores);
   }
 
   render() {
     const { children } = this.props;
     return (
-      <Provider store={this.store} api={this.api}>
+      <Provider {...this.stores} api={this.api}>
         <Head>
           <title>New Video Editor</title>
         </Head>
