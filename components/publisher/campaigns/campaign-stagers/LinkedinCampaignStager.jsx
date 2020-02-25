@@ -74,7 +74,7 @@ class LinkedinCampaignStager extends CampaignStager {
             <EmbedDataContainer
               className="embed-item"
               url={[
-                state.project.make.url, [
+                state.project.url, [
                   state.variables.autoplay ? 'autoplay=1' : null,
                   !state.variables.preload ? 'preload=none' : null,
                 ].filter(item => !!item).join('&')]
@@ -109,9 +109,9 @@ class LinkedinCampaignStager extends CampaignStager {
       element: this.constructor.generateStageComponent(() => (
         <div className="facebook-login">
           <div className="login-note">
-            <label>
+            <span>
               You must login to LinkedIn and authorize our app to share videos into timeline
-            </label>
+            </span>
           </div>
           <button
             className="go-button linkedin-login"
@@ -123,6 +123,7 @@ class LinkedinCampaignStager extends CampaignStager {
                 return this.setStage('login');
               }
             }}
+            type="button"
           >
             <i className="fa fa-linkedin-square" />
             Log in
@@ -157,9 +158,9 @@ class LinkedinCampaignStager extends CampaignStager {
             <div className="row embed-group">
               <div className="embed-grid cell linkedin-post-details">
                 <div className="row embed-group">
-                  <label className="cell" htmlFor="linkedin-post-url-input">
+                  <Label className="cell" for="linkedin-post-url-input">
                     Shared Url
-                  </label>
+                  </Label>
                   <Input
                     id="linkedin-post-url-input"
                     className="cell linkedin-post-input"
@@ -174,9 +175,9 @@ class LinkedinCampaignStager extends CampaignStager {
                   />
                 </div>
                 <div className="row embed-group">
-                  <label className="cell" htmlFor="linkedin-post-title-input">
+                  <Label className="cell" for="linkedin-post-title-input">
                     Post Title
-                  </label>
+                  </Label>
                   <Input
                     id="linkedin-post-title-input"
                     className="cell linkedin-post-input"
@@ -191,9 +192,9 @@ class LinkedinCampaignStager extends CampaignStager {
                   />
                 </div>
                 <div className="row embed-group">
-                  <label className="cell" htmlFor="linkedin-post-description-input">
+                  <Label className="cell" for="linkedin-post-description-input">
                     Post Description
-                  </label>
+                  </Label>
                   <Input
                     id="linkedin-post-description-input"
                     className="cell linkedin-post-input"
@@ -208,9 +209,9 @@ class LinkedinCampaignStager extends CampaignStager {
                   />
                 </div>
                 <div className="row embed-group">
-                  <label className="cell" htmlFor="linkedin-post-image-input">
+                  <Label className="cell" for="linkedin-post-image-input">
                     Post Image
-                  </label>
+                  </Label>
                   <Input
                     id="linkedin-post-image-input"
                     className="cell linkedin-post-input"

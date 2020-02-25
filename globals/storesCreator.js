@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 import config from '../config/config';
 import requestCreator from '../lib/requestCreator';
 import ProjectStore from './stores/project.store';
-import ApiStore from './stores/api.store';
+import MediaStore from './stores/media.store';
 import ModalStore from './stores/modal.store';
 
 let creator = null;
@@ -115,15 +115,18 @@ export async function initCreateStores(isServer, source, req, preloader) {
       clientId: config.client.id,
       clientSecret: config.client.secret,
       cdnHostname: config.s3.cdn,
+      assetsPath: config.assetsPath,
+      self: req.get && req.get('host'),
     };
   }
+
   if (!creator) {
     creator = new Creator(isServer, source, req);
     stores = {
       common: creator.common,
-      api: new ApiStore({ request: creator.request }),
-      projectStore: new ProjectStore({ request: creator.request }),
+      mediaStore: new MediaStore({ request: creator.request, common: creator.common, isServer }),
       modalStore: ModalStore(),
+      projectStore: new ProjectStore({ request: creator.request }),
     };
   }
   if (preloader) {
@@ -137,9 +140,13 @@ export function init(source) {
     creator = new Creator(false, source);
     stores = {
       common: creator.common,
-      api: new ApiStore({ request: creator.request }),
-      projectStore: new ProjectStore({ request: creator.request }),
+      mediaStore: new MediaStore({
+        request: creator.request,
+        common: creator.common,
+        isServer: false,
+      }),
       modalStore: ModalStore(),
+      projectStore: new ProjectStore({ request: creator.request }),
     };
   }
   return stores;

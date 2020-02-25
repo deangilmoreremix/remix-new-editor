@@ -4,7 +4,7 @@ import { FormGroup, Alert } from 'reactstrap';
 
 import InfiniteLoading from './InfiniteLoading';
 import PropTypes from '../../lib/PropTypes';
-import MediaTypeDetector from '../../lib/popcorn/util/mediaTypeDetector';
+import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { checkImageResolution } from '../../lib/utils/cropHelper';
 
 @inject('projectStore')

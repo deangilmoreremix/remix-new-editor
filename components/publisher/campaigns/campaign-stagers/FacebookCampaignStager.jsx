@@ -86,7 +86,7 @@ class FacebookCampaignStager extends CampaignStager {
             <EmbedDataContainer
               className="embed-item"
               url={[
-                state.project.make.url, [
+                state.project.url, [
                   state.variables.autoplay ? 'autoplay=1' : null,
                   !state.variables.preload ? 'preload=none' : null,
                 ].filter(item => !!item).join('&')]

@@ -5,7 +5,7 @@ import { action } from 'mobx';
 
 import PropTypes from '../../lib/PropTypes';
 import { showError } from '../../lib/services/alertService';
-import MediaTypeDetector from '../../lib/popcorn/util/mediaTypeDetector';
+import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import InfiniteLoading from './InfiniteLoading';
 
 

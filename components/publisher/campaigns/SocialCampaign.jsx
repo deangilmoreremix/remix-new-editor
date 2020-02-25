@@ -3,7 +3,6 @@ import { Progress } from 'reactstrap';
 import { inject, observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 
-import Project from '../../../lib/editor/Project';
 import PropTypes from '../../../lib/PropTypes';
 import InfiniteLoading from '../../common/InfiniteLoading';
 
@@ -14,7 +13,6 @@ import LinkedinSocialProvider from '../../../lib/social-providers/LinkedinSocial
 import svgFB from '../../../public/static/images/campaign/fb.svg';
 import svgLinkedin from '../../../public/static/images/campaign/linked-in.svg';
 
-@inject('api')
 @inject('projectStore')
 @observer
 class SocialCampaign extends Component {
@@ -23,14 +21,13 @@ class SocialCampaign extends Component {
     title: 'Facebook',
     image: svgFB,
     loader: (props) => {
-      const { iframeConductor, project, api } = props;
+      const { iframeConductor, projectStore } = props;
       return new FacebookCampaignStager(
         new FacebookSocialProvider({
           conductor: iframeConductor,
           appId: '1728968890675795', // TODO: extract to env or any other vars
         }),
-        project,
-        api,
+        projectStore,
       );
     },
   }, {
@@ -38,14 +35,13 @@ class SocialCampaign extends Component {
     title: 'LinkedIn',
     image: svgLinkedin,
     loader: (props) => {
-      const { iframeConductor, project, api } = props;
+      const { iframeConductor, projectStore } = props;
       return new LinkedinCampaignStager(
         new LinkedinSocialProvider({
           conductor: iframeConductor,
           clientId: '77dc93kxh13kfc', // TODO: extract to env or any other vars
         }),
-        project,
-        api,
+        projectStore,
       );
     },
   }];
@@ -53,7 +49,7 @@ class SocialCampaign extends Component {
   constructor(props) {
     super(props);
 
-    const { project } = this.props;
+    const { projectStore: { item: { project } } } = this.props;
     this.activeSocialSources = this.constructor.socialSources
       .filter(item => project.allowedSocials && project.allowedSocials.includes(item.key));
 
@@ -114,7 +110,7 @@ class SocialCampaign extends Component {
   };
 
   render() {
-    const { className, project } = this.props;
+    const { className, projectStore: { item: { project } } } = this.props;
     const { stager, isLoading } = this.state;
     const loading = isLoading || (stager && stager.isUploading);
 
@@ -187,7 +183,6 @@ class SocialCampaign extends Component {
 
 SocialCampaign.propTypes = {
   className: PropTypes.string,
-  project: PropTypes.instanceOf(Project).isRequired,
   onCampaignFinished: PropTypes.func,
   onTitleUpdated: PropTypes.func,
   iframeConductor: PropTypes.oneOfType([

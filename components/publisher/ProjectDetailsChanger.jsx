@@ -3,7 +3,6 @@ import { observer } from 'mobx-react';
 import { Input, FormGroup, Label } from 'reactstrap';
 import { PopupboxManager } from 'react-popupbox';
 
-import Project from '../../lib/editor/Project';
 import PropTypes from '../../lib/PropTypes';
 import ImageUpload from '../common/ImageUpload';
 
@@ -99,7 +98,11 @@ class ProjectDetailsChanger extends Component {
 
 ProjectDetailsChanger.propTypes = {
   className: PropTypes.string,
-  project: PropTypes.instanceOf(Project).isRequired,
+  project: PropTypes.shape({
+    name: PropTypes.string,
+    description: PropTypes.string,
+    thumbnail: PropTypes.string,
+  }).isRequired,
   onChange: PropTypes.func.isRequired,
 };
 

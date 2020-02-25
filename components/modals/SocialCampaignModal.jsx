@@ -1,15 +1,14 @@
-import * as React from 'react';
+import React, { Component, Fragment, createRef } from 'react';
 import { observer, inject } from 'mobx-react';
 
 import PropTypes from '../../lib/PropTypes';
-import Project from '../../lib/editor/Project';
+
 import SocialCampaign from '../publisher/campaigns/SocialCampaign';
 
 @inject('common')
-@inject('projectStore')
 @observer
-class SocialCampaignModal extends React.Component {
-  iframeConductor = React.createRef();
+class SocialCampaignModal extends Component {
+  iframeConductor = createRef();
 
   constructor(props) {
     super(props);
@@ -22,15 +21,15 @@ class SocialCampaignModal extends React.Component {
   }
 
   render() {
-    const { projectStore: { item }, common: { cdnHostname }, updateTitle } = this.props;
+    const { common: { cdnHostname }, updateTitle, handleClose } = this.props;
     const { isLoaded } = this.state;
     return (
-      <>
+      <Fragment>
         {isLoaded && (
           <SocialCampaign
-            project={new Project(item)}
             iframeConductor={this.iframeConductor.current}
             onTitleUpdated={updateTitle}
+            onCampaignFinished={handleClose}
           />
         )}
         <iframe
@@ -41,13 +40,14 @@ class SocialCampaignModal extends React.Component {
           id="conductor-iframe"
           ref={this.iframeConductor}
         />
-      </>
+      </Fragment>
     );
   }
 }
 
-SocialCampaignModal.propsTypes = {
+SocialCampaignModal.propTypes = {
   updateTitle: PropTypes.func.isRequired,
+  handleClose: PropTypes.func.isRequired,
 };
 
 export default SocialCampaignModal;

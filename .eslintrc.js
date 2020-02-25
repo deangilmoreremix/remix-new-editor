@@ -14,6 +14,7 @@ module.exports = {
       },
     ],
     'jsx-a11y/label-has-for': 0,
+    'no-plusplus': 0,
     'no-console': 0,
     'no-else-return': 0,
     'no-param-reassign': 0,
@@ -27,6 +28,7 @@ module.exports = {
     ],
     'react/prop-types': ['error', {
       ignore: [
+        'common',
         'projectStore',
       ], customValidators: []
     }],
@@ -34,6 +36,7 @@ module.exports = {
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
     "react/jsx-props-no-spreading": 0,
+    "react/jsx-fragments": 0,
     semi: ['error', 'always'],
   },
   plugins: [

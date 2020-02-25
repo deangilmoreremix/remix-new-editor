@@ -3,7 +3,7 @@
 import React from 'react';
 import { action, observable, runInAction } from 'mobx';
 
-import MediaTypeDetector from '../../../../lib/popcorn/util/mediaTypeDetector';
+import MediaTypeDetector from '../../../../lib/utils/mediaTypeDetector';
 import { modalContent, isResolutionWrong } from '../../../../lib/utils/cropHelper';
 import { showError } from '../../../../lib/services/alertService';
 import StageComponent from './StageComponent';
@@ -75,10 +75,14 @@ class CampaignStager {
 
   @observable extraModal = null;
 
-  constructor(provider, project, api) {
+  constructor(provider, projectStore) {
     this.provider = provider;
-    this.project = project;
-    this.api = api;
+    this.api = projectStore;
+    this.project = {
+      ...projectStore.item.project,
+      url: projectStore.item.url,
+      thumbnail: projectStore.item.thumbnail,
+    };
   }
 
   async sharePost() {
