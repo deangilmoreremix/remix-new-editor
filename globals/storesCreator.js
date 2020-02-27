@@ -1,7 +1,9 @@
 import Cookies from 'js-cookie';
 
+import config from '../config/config';
 import requestCreator from '../lib/requestCreator';
 import ProjectStore from './stores/project.store';
+import MediaStore from './stores/media.store';
 
 let creator = null;
 let stores = null;
@@ -103,20 +105,25 @@ export async function initCreateStores(isServer, source, req, preloader) {
     // eslint-disable-next-line global-require
     global.fetch = require('isomorphic-fetch');
     global.btoa = string => Buffer.from(string).toString('base64');
-    // eslint-disable-next-line global-require
-    const config = require('config/config');
     source.common = {
       hostname: req.hostname,
       backend: config.backend,
       prefixes: config.prefixes,
       clientId: config.client.id,
       clientSecret: config.client.secret,
+      assetsPath: config.assetsPath,
+      self: req.get && req.get('host'),
     };
   }
   if (!creator) {
     creator = new Creator(isServer, source, req);
     stores = {
       common: creator.common,
+      mediaStore: new MediaStore({
+        request: creator.request,
+        common: creator.common,
+        isServer,
+      }),
       projectStore: new ProjectStore({ request: creator.request }),
     };
   }
@@ -131,6 +138,11 @@ export function init(source) {
     creator = new Creator(false, source);
     stores = {
       common: creator.common,
+      mediaStore: new MediaStore({
+        request: creator.request,
+        common: creator.common,
+        isServer: false,
+      }),
       projectStore: new ProjectStore({ request: creator.request }),
     };
   }
