@@ -1,4 +1,5 @@
 import { action, observable } from 'mobx';
+
 import BaseStore from './base.store';
 import requestCreator from '../../lib/requestCreator';
 import mediaConstants from '../../lib/constants/media';
@@ -7,10 +8,9 @@ export default class Media extends BaseStore {
   @observable
   isLoading = false;
 
-  constructor({ request, common, isServer }) {
-    super({ request });
-    this.selfRequest = requestCreator(common.hostname, null, isServer, () => {});
-    this.common = common;
+  constructor(props) {
+    super(props);
+    const { common, isServer } = props;
 
     this.assetsRequest = requestCreator(
       common.assetsPath,
@@ -37,21 +37,6 @@ export default class Media extends BaseStore {
           );
         }
         return response.slice(count, count + this.perPage);
-      } else {
-        const page = Math.ceil(count / this.perPage);
-        const mediaAssetKinds = {
-          [mediaConstants.ASSET_TYPES.AUDIOS]: mediaConstants.AUDIO,
-          [mediaConstants.VIDEOS]: mediaConstants.VIDEO,
-        };
-
-        return this.request(
-          `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${this.perPage}&page=${page + 1}&q=${query}`,
-          {
-            method: 'GET',
-            headers: {
-              'on-behalf': this.currentUser.id,
-            },
-          });
       }
     } finally {
       this.isLoading = false;
@@ -128,7 +113,7 @@ export default class Media extends BaseStore {
           onProgress(loaded / total);
         };
       }
-      xhr.open('PUT', `//${this.common.self}/api/media${preview ? '?video_preview=true' : ''}`, true);
+      xhr.open('PUT', `//${this.common.hostname}/api/media${preview ? '?video_preview=true' : ''}`, true);
       // If the data being sent is a plain object and isn't a FormData object, convert it to JSON
       if (!(data instanceof FormData) && data === Object(data)) {
         data = JSON.stringify(data);
@@ -143,7 +128,6 @@ export default class Media extends BaseStore {
           console.log(xhr.responseText);
           this.isLoading = false;
           return reject(JSON.parse(xhr.responseText));
-          // return reject(new Error(`HTTP error ${xhr.status}.`));
         }
         try {
           return resolve(JSON.parse(xhr.responseText));

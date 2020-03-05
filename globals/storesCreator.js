@@ -124,7 +124,11 @@ export async function initCreateStores(isServer, source, req, preloader) {
         common: creator.common,
         isServer,
       }),
-      projectStore: new ProjectStore({ request: creator.request }),
+      projectStore: new ProjectStore({
+        request: creator.request,
+        common: creator.common,
+        isServer,
+      }),
     };
   }
   if (preloader) {
@@ -135,15 +139,20 @@ export async function initCreateStores(isServer, source, req, preloader) {
 
 export function init(source) {
   if (!creator) {
+    const isServer = false;
     creator = new Creator(false, source);
     stores = {
       common: creator.common,
       mediaStore: new MediaStore({
         request: creator.request,
         common: creator.common,
-        isServer: false,
+        isServer,
       }),
-      projectStore: new ProjectStore({ request: creator.request }),
+      projectStore: new ProjectStore({
+        request: creator.request,
+        common: creator.common,
+        isServer,
+      }),
     };
   }
   return stores;

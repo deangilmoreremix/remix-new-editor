@@ -10,7 +10,9 @@ export default observer(() => {
   const [isDropzoneShown, toggleDropzone] = React.useState(true);
 
   React.useEffect(() => {
-    if (assets && assets.length) toggleDropzone(false);
+    if (assets && assets.length) {
+      toggleDropzone(false);
+    }
   }, []);
 
   const onMediaUploaded = (asset) => {
@@ -18,13 +20,15 @@ export default observer(() => {
     updateAssets(asset);
   };
 
+  const showDropzone = () => toggleDropzone(true);
+
   return (
     <div className="media-container">
       {isDropzoneShown && <DropzoneArea onUploaded={onMediaUploaded} />}
       {
         !isDropzoneShown
           && assets.length
-          && <MediaLibrary addMedia={() => toggleDropzone(true)} assets={assets} />
+          && <MediaLibrary addMedia={showDropzone} assets={assets} />
       }
     </div>
   );
