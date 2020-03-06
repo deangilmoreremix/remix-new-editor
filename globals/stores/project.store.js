@@ -46,7 +46,7 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  updateAssets = (asset) => {
+  addAsset = (asset) => {
     this.assets.push(asset);
   };
 }

@@ -1,12 +1,15 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 
-import useProjectStore from '../hooks/useProjectStore';
+// COMPONENTS
 import DropzoneArea from './DropzoneArea';
 import MediaLibrary from './MediaLibrary';
 
+// HOOKS
+import useProjectStore from '../hooks/useProjectStore';
+
 export default observer(() => {
-  const { assets, updateAssets } = useProjectStore();
+  const { assets, addAsset } = useProjectStore();
   const [isDropzoneShown, toggleDropzone] = React.useState(true);
 
   React.useEffect(() => {
@@ -17,7 +20,7 @@ export default observer(() => {
 
   const onMediaUploaded = (asset) => {
     toggleDropzone(false);
-    updateAssets(asset);
+    addAsset(asset);
   };
 
   const showDropzone = () => toggleDropzone(true);

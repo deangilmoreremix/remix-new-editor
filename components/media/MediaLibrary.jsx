@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+// TYPES
 import PropTypes from '../../lib/PropTypes';
 
 // TODO: will be implemented in the future
