@@ -1,5 +1,3 @@
-import { action } from 'mobx';
-
 import BaseStore from './base.store';
 import requestCreator from '../../lib/requestCreator';
 import mediaConstants from '../../lib/constants/media';
@@ -17,8 +15,7 @@ export default class Media extends BaseStore {
     );
   }
 
-  @action
-  assets = async (assetScope, assetType, count = 0, query = '') => {
+  getAssets = async (assetScope, assetType, count = 0, query = '') => {
     try {
       const page = Math.ceil(count / this.perPage);
       const mediaAssetKinds = {
@@ -26,7 +23,7 @@ export default class Media extends BaseStore {
         [mediaConstants.VIDEOS]: mediaConstants.VIDEO,
       };
 
-      return this.request(
+      this.request(
         `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${this.perPage}&page=${page + 1}&q=${query}`,
         {
           method: 'GET',
@@ -39,10 +36,9 @@ export default class Media extends BaseStore {
     }
   };
 
-  @action
   mergeMedia = async (videoSrc, audioSrc) => {
     try {
-      return this.selfRequest(
+      await this.selfRequest(
         '/api/media/join', {
           method: 'POST',
           body: { videoSrc, audioSrc },
@@ -65,7 +61,6 @@ export default class Media extends BaseStore {
     item.title = title;
   };
 
-  @action
   storeAsset = async (url, preview, type) => {
     const mediaAssetKinds = {
       [mediaConstants.ASSET_TYPES.AUDIOS]: mediaConstants.AUDIO,
@@ -90,42 +85,34 @@ export default class Media extends BaseStore {
     }
   };
 
-  @action
-  uploadMedia = ({ data, preview }, onProgress = () => {}) => new Promise((resolve, reject) => {
+  uploadMedia = ({ data, preview }) => {
+    const headers = {};
+    let body;
+
     if (typeof data === 'string') {
-      data = { [data.indexOf('data:') === 0 ? 'dataUri' : 'srcUrl']: data };
+      body = { [data.indexOf('data:') === 0 ? 'dataUri' : 'srcUrl']: data };
     } else {
       const fd = new FormData();
       fd.append('media', data);
-      data = fd;
+      body = fd;
     }
-    const xhr = new XMLHttpRequest();
-    if (onProgress) {
-      xhr.upload.onprogress = ({ loaded, total }) => {
-        onProgress(loaded / total);
-      };
+
+    if (!(body instanceof FormData) && body === Object(body)) {
+      body = JSON.stringify(body);
+      headers['Content-Type'] = 'application/json; charset=utf-8';
     }
-    xhr.open('PUT', `//${this.common.hostname}/api/media${preview ? '?video_preview=true' : ''}`, true);
-    // If the data being sent is a plain object and isn't a FormData object, convert it to JSON
-    if (!(data instanceof FormData) && data === Object(data)) {
-      data = JSON.stringify(data);
-      xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
-    }
-    xhr.onload = () => {
-      if (onProgress) {
-        onProgress(1.0);
-      }
-      if (xhr.status !== 200) {
-        console.log(xhr.responseText);
-        return reject(JSON.parse(xhr.responseText));
-      }
-      try {
-        return resolve(JSON.parse(xhr.responseText));
-      } catch (err) {
-        console.error(err);
-        return reject(err);
-      }
-    };
-    xhr.send(data);
-  });
+
+    return this.selfRequest(
+      `/api/media${preview ? '?video_preview=true' : ''}`,
+      {
+        method: 'PUT',
+        headers,
+        body,
+      },
+    )
+      .catch(e => {
+        console.error('An error has occurred during media upload', e);
+        return e;
+      });
+  };
 }
