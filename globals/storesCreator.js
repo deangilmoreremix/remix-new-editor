@@ -1,7 +1,10 @@
+import _ from 'lodash';
 import Cookies from 'js-cookie';
+import { observable } from 'mobx';
 
 import requestCreator from '../lib/requestCreator';
 import ProjectStore from './stores/project.store';
+import WhiteLabelManager from '../lib/white-label/manager';
 
 let creator = null;
 let stores = null;
@@ -15,6 +18,7 @@ class Creator {
 
   common = {
     prefixes: {},
+    intercom: {},
     backend: null,
     clientId: null,
     hostname: null,
@@ -23,13 +27,33 @@ class Creator {
 
   clientAuthHeader = null;
 
+  @observable
+  currentUser = null;
+
+  whiteLabelManager = null;
 
   constructor(isServer, source, req) {
     if (isServer) {
+      const getIntercomUserHash = (email) => {
+        // eslint-disable-next-line global-require
+        const crypto = require('crypto');
+        const hmac = crypto.createHmac('sha256', source.common.intercom.secret);
+        hmac.update(email);
+        return hmac.digest('hex');
+      };
       this.req = req;
+      this.currentUser = req.locals && req.locals.populatedUser;
+      this.whiteLabelManager = new WhiteLabelManager(
+        req.whiteLabel,
+        req.whiteLabel && req.whiteLabel.domain !== 'videoremix.io',
+        `${source.common.cdnHostname}`,
+      );
+      if (this.currentUser) {
+        this.currentUser.hash = getIntercomUserHash(this.currentUser.email);
+      }
     }
     Object.assign(this, source);
-    this.clientAuthHeader = `Basic ${btoa(`${source.common.clientId}:${source.common.clientSecret}`)}`;
+    this.clientAuthHeader = `Basic ${btoa(`${this.common.clientId}:${this.common.clientSecret}`)}`;
     const accessToken = this.getCookies(AUTH_DATA_CONFIG.accessToken);
     this.setupNetworkServices(accessToken, isServer);
   }
@@ -109,21 +133,29 @@ export async function initCreateStores(isServer, source, req, preloader) {
       hostname: req.hostname,
       backend: config.backend,
       prefixes: config.prefixes,
+      intercom: config.intercom,
       clientId: config.client.id,
       clientSecret: config.client.secret,
     };
   }
-  if (!creator) {
+  if (isServer || !creator) {
     creator = new Creator(isServer, source, req);
     stores = {
-      common: creator.common,
-      projectStore: new ProjectStore({ request: creator.request }),
+      common: source.common,
+      projectStore: new ProjectStore({
+        request: creator.request,
+        currentUser: creator.currentUser,
+      }),
     };
   }
   if (preloader) {
     await preloader(creator);
   }
-  return stores;
+  if (isServer) {
+    return { creator: _.omit(creator, 'request', 'req'), stores };
+  } else {
+    return { creator, stores };
+  }
 }
 
 export function init(source) {
@@ -131,10 +163,13 @@ export function init(source) {
     creator = new Creator(false, source);
     stores = {
       common: creator.common,
-      projectStore: new ProjectStore({ request: creator.request }),
+      projectStore: new ProjectStore({
+        request: creator.request,
+        currentUser: creator.currentUser,
+      }),
     };
   }
-  return stores;
+  return { creator, stores };
 }
 
 export default { init, initCreateStores };
