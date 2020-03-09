@@ -20,7 +20,6 @@ export default class ProjectStore extends BaseStore {
 
   @action
   getOne = async (projectId) => {
-    console.info(this);
     if (!projectId) {
       this.item = defaultItem;
       return this.item;

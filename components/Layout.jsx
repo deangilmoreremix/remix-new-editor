@@ -11,7 +11,6 @@ class Layout extends Component {
   static async getInitialProps({ query, req }, preloader) {
     const isServer = !!req;
     const data = await initCreateStores(isServer, query, req, preloader);
-    // JSON.stringify(stores.creator);
     return { ...data };
   }
 
