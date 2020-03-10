@@ -1,0 +1,168 @@
+.popcorn-text {
+  color: #FFF;
+  font-size: 22.5em;
+  display: flex;
+  flex-direction: column;
+  line-height: initial;
+
+  &.off {
+    visibility: hidden;
+  }
+
+  & > .text-inner-div {
+    overflow-y: visible;
+    white-space: pre-wrap;
+    padding: 0 3%;
+  }
+
+  .edit-tooltip {
+    $tooltipWidth: 110px;
+
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    margin-top: -7px;
+    margin-left: - $tooltipWidth / 2;
+    width: $tooltipWidth;
+    padding: 10px;
+    background: #FFF;
+    text-shadow: none;
+    color: #555;
+    line-height: 15px;
+    font-size: 11px;
+    font-weight: 600;
+    @include box-sizing(border-box);
+    border-radius: 2px;
+    text-align: center;
+    border: 1px solid #CCC;
+    box-shadow: 0 5px 6px -5px rgba(0, 0, 0, .3);
+    pointer-events: none;
+    opacity: 1.0;
+    @include transition(opacity 0.3s ease-in-out);
+
+
+    &.hidden {
+      opacity: 0.0;
+      @include transition(opacity 0.3s ease-in-out);
+    }
+  }
+
+  .personalized-token {
+    white-space: nowrap;
+    border: 1px solid white;
+    color: black; border-radius: 3px;
+    background: white;
+    display: inline;
+    margin: 0 3px;
+
+    .parameter {
+      display: none;
+    }
+
+    .token-uppercase {
+      content: url('/static/images/editor/token-uppercase.svg');
+      background: white;
+      margin: auto 2px -4px 0;
+    }
+
+    .token-default {
+      content: url('/static/images/editor/token-default.svg');
+      background:  white;
+      margin: auto 2px -4px 0;
+    }
+  }
+
+  .text-inner-div a {
+    text-decoration: none;
+  }
+  .text-inner-div a:after {
+    font-family: FontAwesome;
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: none;
+    -webkit-font-smoothing: antialiased;
+    font-size: 0.6em;
+    margin-left: 0.2em;
+    vertical-align: middle;
+    content: "\f064"; /* icon-share-alt */
+  }
+  .text-inner-div a:hover {
+    text-decoration: underline;
+  }
+  .text-inner-div a:hover:after {
+    opacity: 1;
+  }
+
+  .center > span,
+  .center > textarea {
+    text-align: center;
+  }
+
+  .right > span,
+  .right > textarea {
+    text-align: right;
+  }
+
+  .left > span,
+  .left > textarea {
+    text-align: left;
+  }
+
+  .text-custom {
+    display: inline-block;
+    max-height: 100%;
+    max-width: 100%;
+  }
+
+  .text-custom > div > span {
+    display: block;
+    width: 100%;
+    line-height: 1;
+    min-height: 1em;
+  }
+
+  .span-container {
+    display: block;
+
+    .text-container {
+      display:inline-block;
+      min-width: 1px;
+      white-space: pre-wrap;
+    }
+  }
+
+  .url-container {
+    display: none;
+    overflow: hidden;
+    min-width: 1px;
+    font-size: 0.8rem;
+    padding: 3%;
+    border: 0.5px dashed;
+    text-align: center;
+    bottom: -32px;
+    width: 100%;
+
+    .link-url-span {
+      .personalized-token {
+        .token-uppercase, .token-default {
+          width: 15px;
+        }
+      }
+    }
+
+    .fa {
+      width: auto;
+      margin: 0 2px;
+    }
+  }
+
+  &.active {
+    .url-container {
+      display: flex;
+      position: absolute;
+      top: 100%;
+      height: auto;
+      overflow-y: auto;
+    }
+  }
+}

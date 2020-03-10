@@ -31,7 +31,7 @@
 
   $b: $b + $units;
 
-  @return calc( #{$k} * 100vw + #{$b} );
+  @return calc( #{$k} * 75vw + #{$b} );
 }
 
 @mixin make-fluid($property, $f-min, $f-max, $w-min, $w-max, $fallback: false, $units: px) {

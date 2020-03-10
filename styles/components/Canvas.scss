@@ -1,0 +1,15 @@
+.stager-wrapper {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  right: 2rem;
+  left: 0;
+  bottom: 0;
+
+  .embed-wrapper {
+    position: relative;
+    flex-grow: 1;
+    background: $canvas-bg;
+  }
+}
