@@ -69,7 +69,7 @@ export default class ProjectStore extends BaseStore {
       project.modified = false;
       return project;
     } catch (e) {
-      console.log(Error(e));
+      throw e;
     }
   }
 }
