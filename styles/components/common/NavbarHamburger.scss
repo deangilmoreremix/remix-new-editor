@@ -1,0 +1,32 @@
+.MuiButton-label {
+  width: 50% !important;
+  color: white;
+  border: 1px solid;
+}
+
+.MuiPaper-root {
+  background: $background-panel !important;
+}
+
+.MuiButtonBase-root:hover {
+  border: 1px solid $red;
+}
+
+.MuiListItemText-root, {
+  color:  $white;
+}
+
+.MuiListItemIcon-root {
+  color:  $white !important;
+}
+
+.MuiDivider-root {
+  background-color: $white !important;
+  opacity: .2;
+}
+
+.makeStyles-list-1 {
+  display: flex;
+  flex-direction: column;
+  margin-top: 2em;
+}

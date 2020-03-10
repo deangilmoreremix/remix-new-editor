@@ -1,0 +1,15 @@
+.footer {
+  &-container {
+    height: 2.5em;
+    position: fixed;
+    z-index: 10;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding-left: 1.9rem;
+    padding-right: 4.8rem;
+    background: $light-twinlight;
+  }
+}

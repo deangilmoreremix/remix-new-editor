@@ -4,11 +4,11 @@ import { useRouter } from 'next/router';
 import { useAsync } from 'react-async-hook';
 import { Col, Container, Row } from 'reactstrap';
 
-import Header from './Header';
 import Toolbar from './common/toolbar/Toolbar';
 import useProjectStore from './hooks/useProjectStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
+import 'styles/index.scss';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -30,8 +30,7 @@ const Home = observer(() => {
   }
 
   return (
-    <Container fluid className="home">
-      <Header />
+    <Container fluid>
       <Row className="controls" noGutters>
         <Col xs={4}>
           <Toolbar items={toolbarItems} />

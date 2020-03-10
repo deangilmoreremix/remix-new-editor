@@ -1,10 +1,80 @@
 .header {
   &-container {
-    min-height: 4.5rem;
-    padding-left: 1.9rem;
-    padding-right: 4.8rem;
-    display: flex;
-    align-items: center;
+    height: 3em;
+    position: fixed;
+    z-index: 10;
+    top: 0;
+    left: 0;
+    width: 100%;
     background: $light-twinlight;
+  }
+}
+
+.navbar .container-page-nav {
+  display: flex;
+  width: 12em;
+  justify-content: space-between;
+}
+
+.navbar-brand {
+  //background-image: url("./public/static/images/logo.svg");
+  //background: url("./public/static/images/logo.svg") no-repeat 0;
+  background-size: contain;
+  width: 177px;
+  min-width: 165px;
+  height: 22px;
+  min-height: 100%;
+  overflow: hidden;
+  text-indent: -10000px;
+  //display: block;
+  //width: 20px;
+  //background: whitesmoke;
+}
+
+.language-container {
+  display: flex;
+  align-items: center;
+  margin-right: 2em;
+
+  a {
+    color: $white;
+    text-decoration: none;
+  }
+}
+
+.group-bordered > a {
+    color: $white !important;
+}
+
+.group-bordered a:after {
+  color: $red;
+}
+
+.dropdown-menu {
+  background: $dark-night;
+  border: 1px solid $red;
+  padding: 0;
+
+  button > a {
+    color: $white;
+    text-decoration: none;
+  }
+
+  .dropdown-item {
+    text-transform: uppercase;
+  }
+
+  .dropdown-item:hover {
+    background: $dark-night;
+    border-top: 1px solid $red;
+    border-bottom: 1px solid $red;
+  }
+
+  .hamburger-menu .group-bordered a:after {
+    background: white;
+  }
+
+  .mr-2 .navbar-toogle {
+    display: block !important;
   }
 }

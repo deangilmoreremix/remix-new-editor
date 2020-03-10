@@ -1,12 +1,14 @@
-import * as React from 'react';
-import { Row } from 'reactstrap';
+import React from 'react';
+import { Container } from 'reactstrap';
 
-// TODO: Will be updated in the future
+import Menu from './Menu';
 
-const Header = () => (
-  <Row tag="header" className="header-container" noGutters>
-    Videoremix
-  </Row>
+const Header = (props) => (
+  <Container>
+    <header className="header-container">
+      <Menu {...props} />
+    </header>
+  </Container>
 );
 
 export default Header;

@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
-import Head from 'next/head';
 import { Provider } from 'mobx-react';
-import PropTypes from '../lib/PropTypes';
+import Head from 'next/head';
 
 import 'styles/index.scss';
 
 import { init, initCreateStores } from '../globals/storesCreator';
+
+import PropTypes from '../lib/PropTypes';
+import Header from './Header';
+import Footer from './Footer';
 
 class Layout extends Component {
   static async getInitialProps({ query, req }, preloader) {
@@ -21,14 +24,17 @@ class Layout extends Component {
   }
 
   render() {
-    const { children } = this.props;
     return (
       <Provider {...this.stores} api={this.api}>
-        <Head>
-          <title>New Video Editor</title>
-        </Head>
-        <div {...this.props} className="main">
-          {children}
+        <div className="layout-container">
+          <Head>
+            <title>New Video Editor</title>
+          </Head>
+          <Header {...this.props} />
+          <div {...this.props} className="main">
+            {this.props.children}
+          </div>
+          <Footer />
         </div>
       </Provider>
     );
@@ -38,7 +44,7 @@ class Layout extends Component {
 Layout.propTypes = {
   children: PropTypes.element.isRequired,
   // eslint-disable-next-line react/forbid-prop-types
-  store: PropTypes.any,
+  stores: PropTypes.any,
 };
 
 export default Layout;
