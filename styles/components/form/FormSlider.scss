@@ -1,0 +1,19 @@
+.MuiSlider-root {
+  color: $red !important;
+}
+
+.MuiInputBase-root {
+  color: $white !important;
+}
+
+.MuiInput-underline:before {
+  display: none;
+}
+
+.MuiInput-underline:after {
+  border-bottom: 2px solid $red !important;
+}
+
+.MuiTypography-gutterBottom {
+  margin-bottom: 0 !important;
+}
