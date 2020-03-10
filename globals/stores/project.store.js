@@ -11,6 +11,11 @@ const defaultItem = {
 };
 
 export default class ProjectStore extends BaseStore {
+  constructor(props) {
+    super(props);
+    this.item = defaultItem;
+  }
+
   @observable item = {};
 
   @action
@@ -25,8 +30,7 @@ export default class ProjectStore extends BaseStore {
         path, {
           method: 'GET',
           headers: {
-            // todo update it. Implemented for testing until login
-            'on-behalf': '5a9007349ab52100041dac25',
+            'on-behalf': this.currentUser.id,
           },
         });
     } catch (e) {
