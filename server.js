@@ -1,3 +1,4 @@
+/* eslint-disable global-require */
 
 const dev = process.env.NODE_ENV !== 'production';
 
@@ -10,7 +11,7 @@ const { port, forceSsl, nakedRun } = require('./config/config');
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-// const checkAccess = require('./lib/express/check-access');
+const checkAccess = require('./lib/express/check-access');
 const { processForm, isValidMedia, mediaUpload } = require('./lib/express/media-upload');
 // const { join } = require('./lib/express/video-processing');
 const getContentType = require('./lib/express/get-content-type');
@@ -30,7 +31,7 @@ app.prepare().then(() => {
     }
   });
   // todo implement auth
-  // require('./lib/express/webmaker-auth')(server);
+  require('./lib/express/webmaker')(server);
   server.use(express.json({ limit: '10mb' }));
   server.use(express.urlencoded({ extended: true }));
   // server.post('/api/media/join', join);
@@ -41,11 +42,8 @@ app.prepare().then(() => {
     server.get('/_next/*', (req, res) => {
       handle(req, res);
     });
-    // todo implement auth
-    // server.get('*', checkAccess, (req, res) => {
-    //   handle(req, res);
-    // });
-    server.get('*', (req, res) => {
+
+    server.get('*', checkAccess, (req, res) => {
       handle(req, res);
     });
   }
