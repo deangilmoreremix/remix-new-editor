@@ -8,7 +8,6 @@ import { init, initCreateStores } from '../globals/storesCreator';
 
 import PropTypes from '../lib/PropTypes';
 import Header from './Header';
-import Footer from './Footer';
 
 class Layout extends Component {
   static async getInitialProps({ query, req }, preloader) {
@@ -34,7 +33,6 @@ class Layout extends Component {
           <div {...this.props} className="main">
             {this.props.children}
           </div>
-          <Footer />
         </div>
       </Provider>
     );
@@ -43,7 +41,6 @@ class Layout extends Component {
 
 Layout.propTypes = {
   children: PropTypes.element.isRequired,
-  // eslint-disable-next-line react/forbid-prop-types
   stores: PropTypes.any,
 };
 

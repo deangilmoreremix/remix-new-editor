@@ -1,14 +1,38 @@
-import React from 'react';
-import { Container } from 'reactstrap';
+import React, { useState } from 'react';
 
-import Menu from './Menu';
+import MenuAppBar from './MenuAppBar';
+import useProjectStore from './hooks/useProjectStore';
 
-const Header = (props) => (
-  <Container>
-    <header className="header-container">
-      <Menu {...props} />
-    </header>
-  </Container>
-);
+function Header() {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const { save } = useProjectStore();
+  const open = Boolean(anchorEl);
+
+  const saveProject = async () => {
+    await save();
+  };
+
+  const openMenu = event => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const closeMenu = () => {
+    setAnchorEl(null);
+  };
+
+  return (
+    <div>
+      <header className="header-container">
+        <MenuAppBar
+          open={open}
+          openMenu={openMenu}
+          closeMenu={closeMenu}
+          anchorEl={anchorEl}
+          onSave={saveProject}
+        />
+      </header>
+    </div>
+  );
+}
 
 export default Header;

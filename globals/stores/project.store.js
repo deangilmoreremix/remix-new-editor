@@ -13,8 +13,7 @@ const defaultItem = {
 export default class ProjectStore extends BaseStore {
   @observable item = {};
 
-  @observable
-  activeProject = null;
+  @observable modified = null;
 
   @action
   getOne = async (projectId) => {
@@ -45,16 +44,15 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  async save(project) {
-    // this.isLoading = true;
+  async save() {
     try {
-      const path = project.make
-        ? `/api/users/me/makes/${project.make._id}`
+      const path = this.item.make
+        ? `/api/users/me/makes/${this.item_id}`
         : '/api/users/me/makes';
-      const serializedProject = project.serialize();
-      project.make = await this.request(
+      const serializedProject = this.item.serialize();
+      this.item.make = await this.request(
         path, {
-          method: project.make ? 'PATCH' : 'POST',
+          method: this.item.make ? 'PATCH' : 'POST',
           headers: {
             'on-behalf': this.currentUser.id,
           },
@@ -66,10 +64,10 @@ export default class ProjectStore extends BaseStore {
             remixedFrom: serializedProject.source,
           },
         });
-      project.modified = false;
-      return project;
+      this.modified = false;
     } catch (e) {
-      throw e;
+      console.error('Error ', e);
     }
+    return this.item;
   }
 }

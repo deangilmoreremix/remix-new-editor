@@ -7,8 +7,8 @@ import Divider from '@material-ui/core/Divider';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
-import MailIcon from '@material-ui/icons/Mail';
+
+import PropTypes from '../../../lib/PropTypes';
 
 const useStyles = makeStyles({
   list: {
@@ -19,21 +19,18 @@ const useStyles = makeStyles({
   },
 });
 
-export default function SwipeableTemporaryDrawer() {
+function NavbarHamburger(props) {
+  const { itemsTop, itemsBottom } = props;
   const classes = useStyles();
-  const [state, setState] = useState({
-    top: false,
+  const [position, setPosition] = useState({
     left: false,
-    bottom: false,
-    right: false,
   });
 
   const toggleDrawer = (side, open) => event => {
     if (event && event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
       return;
     }
-
-    setState({ ...state, [side]: open });
+    setPosition({ ...position, [side]: open });
   };
 
   const sideList = side => (
@@ -44,19 +41,19 @@ export default function SwipeableTemporaryDrawer() {
       onKeyDown={toggleDrawer(side, false)}
     >
       <List>
-        {['New project', 'Make a copy..', 'Rename project', 'Finish video'].map((text, index) => (
-          <ListItem button key={text}>
-            <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-            <ListItemText primary={text} />
+        {itemsTop.map((item) => (
+          <ListItem button key={item.title}>
+            <ListItemIcon>{item.iconName}</ListItemIcon>
+            <ListItemText primary={item.title} />
           </ListItem>
         ))}
       </List>
       <Divider />
       <List>
-        {['Move to trash', 'Close project'].map((text, index) => (
-          <ListItem button key={text}>
-            <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-            <ListItemText primary={text} />
+        {itemsBottom.map((item) => (
+          <ListItem button key={item.title}>
+            <ListItemIcon>{item.iconName}</ListItemIcon>
+            <ListItemText primary={item.title} />
           </ListItem>
         ))}
       </List>
@@ -67,7 +64,7 @@ export default function SwipeableTemporaryDrawer() {
     <div>
       <Button onClick={toggleDrawer('left', true)}>&#5010;</Button>
       <SwipeableDrawer
-        open={state.left}
+        open={position.left}
         onClose={toggleDrawer('left', false)}
         onOpen={toggleDrawer('left', true)}
       >
@@ -76,3 +73,21 @@ export default function SwipeableTemporaryDrawer() {
     </div>
   );
 }
+
+NavbarHamburger.propTypes = {
+  itemsTop: PropTypes.arrayOf(PropTypes.shape({
+    title: PropTypes.string,
+    iconName: PropTypes.string,
+  })),
+  itemsBottom: PropTypes.arrayOf(PropTypes.shape({
+    title: PropTypes.string,
+    iconName: PropTypes.string,
+  })),
+};
+
+NavbarHamburger.defaultProps = {
+  itemsTop: [],
+  itemsBottom: [],
+};
+
+export default NavbarHamburger;

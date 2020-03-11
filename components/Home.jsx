@@ -8,8 +8,6 @@ import Toolbar from './common/toolbar/Toolbar';
 import useProjectStore from './hooks/useProjectStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
-import 'styles/index.scss';
-
 const getOne = async (store, id) => {
   await store.getOne(id);
 };
