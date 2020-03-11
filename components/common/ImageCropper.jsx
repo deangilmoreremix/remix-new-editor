@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import { inject, observer } from 'mobx-react';
 import ImageEditor from 'react-avatar-editor';
 import { action } from 'mobx';
@@ -9,7 +9,7 @@ import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import InfiniteLoading from './InfiniteLoading';
 
 
-@inject('projectStore')
+@inject('mediaStore')
 @observer
 class ImageCropper extends Component {
   constructor(props) {
@@ -37,10 +37,10 @@ class ImageCropper extends Component {
   };
 
   uploadFile = async (imageData) => {
-    const { projectStore, onImageCropped } = this.props;
+    const { mediaStore, onImageCropped } = this.props;
     try {
       this.setState({ isLoading: true });
-      const newUrl = (await projectStore.uploadMedia({ data: imageData })).url;
+      const newUrl = (await mediaStore.uploadMedia({ data: imageData })).url;
       const metadata = await new MediaTypeDetector()
         .getMetadata(newUrl);
       if (!metadata.contentType.includes('image')) {
@@ -63,7 +63,7 @@ class ImageCropper extends Component {
       <div className="image-crop-content">
         {isLoading ? <InfiniteLoading className="auto-margin" />
           : (
-            <>
+            <Fragment>
               <h5 className="crop-title">
                 It seems your image is not fitting required resolution.
                 {' '}
@@ -86,7 +86,7 @@ class ImageCropper extends Component {
               <button className="go-button submit-button save-button" onClick={this.onLoadSuccess} type="button">
                 Save
               </button>
-            </>
+            </Fragment>
           )}
       </div>
     );
@@ -105,9 +105,6 @@ ImageCropper.propTypes = {
     height: PropTypes.number,
   }).isRequired,
   onImageCropped: PropTypes.func.isRequired,
-  projectStore: PropTypes.shape({
-    uploadMedia: PropTypes.func.isRequired,
-  }),
 };
 
 export default ImageCropper;

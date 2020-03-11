@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import { Input } from 'reactstrap';
 
 import PropTypes from '../../lib/PropTypes';
@@ -23,6 +23,10 @@ class EmbedDataContainer extends Component {
     };
   }
 
+  handleInputChange = ({ target: { name, value } }) => this.setState({ [name]: value });
+
+  handleTextAreaClick = ({ target }) => { target.select(); };
+
   render() {
     const {
       url,
@@ -33,7 +37,7 @@ class EmbedDataContainer extends Component {
     const { height, width } = this.state;
 
     return (
-      <>
+      <Fragment>
         <div className={className}>
           <div className={resizable ? 'resizer' : 'hidden'}>
             <span>Size</span>
@@ -41,15 +45,17 @@ class EmbedDataContainer extends Component {
               <Input
                 className="dimension-input"
                 type="text"
+                name="height"
                 value={height}
-                onChange={({ target: { value } }) => this.setState({ height: value })}
+                onChange={this.handleInputChange}
               />
               <span>X</span>
               <Input
                 className="dimension-input"
                 type="text"
+                name="width"
                 value={width}
-                onChange={({ target: { value } }) => this.setState({ width: value })}
+                onChange={this.handleInputChange}
               />
             </span>
           </div>
@@ -58,10 +64,10 @@ class EmbedDataContainer extends Component {
             readOnly
             rows={4}
             value={stringGenerator(url, width, height)}
-            onClick={({ target }) => { target.select(); }}
+            onClick={this.handleTextAreaClick}
           />
         </div>
-      </>
+      </Fragment>
     );
   }
 }

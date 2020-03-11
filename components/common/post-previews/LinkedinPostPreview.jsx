@@ -22,13 +22,11 @@ const LinkedinPostPreview = (props) => {
             <artdeco id="ARTDECO-DROPDOWN-CONTENT_8">
               <ul id="UL_9">
                 <li id="LI_10">
-                  <artdeco id="ARTDECO-DROPDOWN-ITEM_11">
-                  </artdeco>
+                  <artdeco id="ARTDECO-DROPDOWN-ITEM_11" />
                 </li>
                 <li id="LI-ICON_12">
                   <svg id="svg_13">
-                    <path id="path_14">
-                    </path>
+                    <path id="path_14" />
                   </svg>
                 </li>
                 <div id="DIV_15">
@@ -39,8 +37,7 @@ const LinkedinPostPreview = (props) => {
             </artdeco>
             <artdeco id="ARTDECO-DROPDOWN-ITEM_19">
               <svg id="svg_21">
-                <path id="path_22">
-                </path>
+                <path id="path_22" />
               </svg>
               <div id="DIV_23">
                 <span id="SPAN_24">Embed this post</span>
@@ -49,8 +46,7 @@ const LinkedinPostPreview = (props) => {
             </artdeco>
             <artdeco id="ARTDECO-DROPDOWN-ITEM_27">
               <svg id="svg_29">
-                <path id="path_30">
-                </path>
+                <path id="path_30" />
               </svg>
               <div id="DIV_31">
                 <span id="SPAN_32">Edit post</span>
@@ -59,8 +55,7 @@ const LinkedinPostPreview = (props) => {
             </artdeco>
             <artdeco id="ARTDECO-DROPDOWN-ITEM_35">
               <svg id="svg_37">
-                <path id="path_38">
-                </path>
+                <path id="path_38" />
               </svg>
               <div id="DIV_39">
                 <span id="SPAN_40">Delete post</span>
@@ -150,7 +145,7 @@ LinkedinPostPreview.propTypes = {
     userpic: PropTypes.string.isRequired,
   }),
   post: PropTypes.shape({
-    title: PropTypes.string.isRequired,
+    title: PropTypes.string,
     thumbnail: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired,
     link: PropTypes.string.isRequired,

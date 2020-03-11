@@ -8,7 +8,7 @@ export default class Media extends BaseStore {
 
   constructor({ request, common, isServer }) {
     super({ request });
-
+    this.common = common;
     this.selfRequest = requestCreator(common.self, null, isServer, () => {});
 
     this.assetsRequest = requestCreator(
@@ -120,7 +120,7 @@ export default class Media extends BaseStore {
   }
 
   @action
-  uploadMedia({ data, preview }, onProgress = () => {}) {
+  uploadMedia = ({ data, preview }, onProgress = () => {}) => {
     this.isLoading = true;
     return new Promise((resolve, reject) => {
       if (typeof data === 'string') {

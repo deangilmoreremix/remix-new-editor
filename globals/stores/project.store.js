@@ -135,16 +135,16 @@ export default class ProjectStore extends BaseStore {
   }
 
   @action
-  async save(project) {
+  save = async (project) => {
     this.isLoading = true;
     try {
-      const path = project.make
-        ? `/api/users/me/makes/${project.make._id}`
+      const path = project.project
+        ? `/api/users/me/makes/${project.project._id}`
         : '/api/users/me/makes';
       const serializedProject = project.serialize();
-      project.make = await this.request(
+      project.project = await this.request(
         path, {
-          method: project.make ? 'PATCH' : 'POST',
+          method: project.project ? 'PATCH' : 'POST',
           headers: {
             'on-behalf': this.currentUser.id,
           },
@@ -161,7 +161,7 @@ export default class ProjectStore extends BaseStore {
     } finally {
       this.isLoading = false;
     }
-  }
+  };
 
   @action
   async publish(project) {

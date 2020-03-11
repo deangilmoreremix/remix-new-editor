@@ -117,6 +117,8 @@ export async function initCreateStores(isServer, source, req, preloader) {
       cdnHostname: config.s3.cdn,
       assetsPath: config.assetsPath,
       self: req.get && req.get('host'),
+      facebookAppId: config.facebookAppId,
+      linkedinAppId: config.linkedinAppId,
     };
   }
 

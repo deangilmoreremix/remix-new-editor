@@ -53,6 +53,7 @@
     "mobx": "5.15.4",
     "mobx-react": "6.1.8",
     "multipart": "0.1.5",
+    "multiparty": "4.2.1",
     "newrelic": "6.3.0",
     "next": "9.2.1",
     "node-sass": "4.13.1",
@@ -82,6 +83,7 @@
     "sweetalert": "2.1.2",
     "throng": "4.0.0",
     "universal-cookie": "4.0.3",
+    "url": "0.11.0",
     "validator": "12.2.0",
     "webmaker-auth": "git://github.com/strategic-limited/webmaker-auth2#ba029fd7b9107044ffac02f114ecfec72147a794",
     "webpack": "4.41.5"

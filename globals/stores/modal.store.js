@@ -1,6 +1,6 @@
 import { observable, action } from 'mobx';
 
-import SocialCampaignModal from '../../components/modals/SocialCampaignModal';
+import SocialPublisherModal from '../../components/modals/SocialPublisherModal';
 
 export const SOCIAL_CAMPAIGN_MODAL = 'social-campaign';
 export const EMAIL_CAMPAIGN_MODAL = 'email-campaign';
@@ -9,7 +9,7 @@ const modalsConfig = [
   {
     id: SOCIAL_CAMPAIGN_MODAL,
     className: `${SOCIAL_CAMPAIGN_MODAL}-modal`,
-    renderer: SocialCampaignModal,
+    renderer: SocialPublisherModal,
     title: 'Social Campaigns',
   },
 ];
