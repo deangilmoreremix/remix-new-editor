@@ -1,42 +1,28 @@
 import React from 'react';
-import { Container, Button } from 'reactstrap';
+import { Button } from 'reactstrap';
 
-import PropTypes from '../../../lib/PropTypes';
+import { observer } from 'mobx-react';
+import useProjectStore from '../../hooks/useProjectStore';
 
-// todo add styles
-const PlayButton = ({ items }) => {
-  const [activeTab, setActiveTab] = React.useState(items[0].label);
-  //todo media
-  const media = {};
+// todo implement it
+const PlayButton = observer(() => {
+  const projectStore = useProjectStore();
+  const { popcorn } = projectStore;
+  const [name, setName] = React.useState('play');
 
   const play = () => {
-    if (media.paused) {
-      media.paused = false;
+    if (popcorn.media.paused) {
+      setName('pause');
+      popcorn.play();
     } else {
-      _medmediaia.paused = true;
+      setName('play');
+      popcorn.pause();
     }
   };
 
   return (
-    <Button onClick={play}>play</Button>
+    <Button onClick={play} disabled={!popcorn || !popcorn.media}>{name}</Button>
   );
-};
-
-PlayButton.propTypes = {
-  items: PropTypes.arrayOf(PropTypes.shape({
-    key: PropTypes.string,
-    label: PropTypes.string,
-    icon: PropTypes.string,
-    items: PropTypes.arrayOf(PropTypes.shape({
-      action: PropTypes.func,
-      label: PropTypes.string,
-      icon: PropTypes.string,
-    })),
-    renderer: PropTypes.oneOfType([
-      PropTypes.shape({}),
-      PropTypes.func,
-    ]).isRequired,
-  })).isRequired,
-};
+});
 
 export default PlayButton;

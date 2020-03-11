@@ -5,10 +5,6 @@
   flex-direction: column;
   line-height: initial;
 
-  &.off {
-    visibility: hidden;
-  }
-
   & > .text-inner-div {
     overflow-y: visible;
     white-space: pre-wrap;
@@ -38,12 +34,10 @@
     box-shadow: 0 5px 6px -5px rgba(0, 0, 0, .3);
     pointer-events: none;
     opacity: 1.0;
-    @include transition(opacity 0.3s ease-in-out);
 
 
     &.hidden {
       opacity: 0.0;
-      @include transition(opacity 0.3s ease-in-out);
     }
   }
 
@@ -60,13 +54,13 @@
     }
 
     .token-uppercase {
-      content: url('/static/images/editor/token-uppercase.svg');
+      //content: url('/static/images/editor/token-uppercase.svg');
       background: white;
       margin: auto 2px -4px 0;
     }
 
     .token-default {
-      content: url('/static/images/editor/token-default.svg');
+      //content: url('/static/images/editor/token-default.svg');
       background:  white;
       margin: auto 2px -4px 0;
     }

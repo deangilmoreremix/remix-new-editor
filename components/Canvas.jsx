@@ -1,14 +1,14 @@
 import React, { useRef, useEffect } from 'react';
 import { Container } from 'reactstrap';
+import { observer } from 'mobx-react';
 
 import useProjectStore from './hooks/useProjectStore';
 
-const Canvas = () => {
+const Canvas = observer(() => {
   const projectStore = useProjectStore();
   const { item: { ratio: { width = 16, height = 9 } = {} } } = projectStore;
 
   const [style, setStyle] = React.useState({});
-  const [popcorn, setPopcorn] = React.useState();
 
   const aspectRatio = width / height;
   const ref = useRef(null);
@@ -29,16 +29,23 @@ const Canvas = () => {
   useEffect(() => {
     if (wrapper.current) {
       projectStore.setPopcorn(wrapper.current);
-      setPopcorn(projectStore.popcorn);
-      console.info(popcorn);
     }
-  }, []);
+  }, [projectStore]);
 
   return (
-    <div ref={ref} className="stager-wrapper">
-      <div style={style} ref={wrapper} className="embed-wrapper" />
-    </div>
-  );
-};
+    <Container>
+      <div ref={ref} className="stager-wrapper">
+        <div style={style} ref={wrapper} className="embed-wrapper">
+          <div id="video-container" className="video-container">
+            <div
+              id="video"
+              className="video"
+              webkit-playsinline
+            />
+          </div>
+        </div>
+      </div>
+    </Container>);
+});
 
 export default Canvas;

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import { useAsync } from 'react-async-hook';
@@ -9,6 +9,8 @@ import Canvas from './Canvas';
 import Toolbar from './common/toolbar/Toolbar';
 import useProjectStore from './hooks/useProjectStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
+
+import PlayButton from './common/timeline/PlayButton';
 
 
 const getOne = async (store, id) => {
@@ -47,6 +49,7 @@ const Home = observer(() => {
         <Col xs={5}>
           <Canvas />
         </Col>
+        <PlayButton />
       </Row>
       <Row className="timeline" noGutters />
     </Container>

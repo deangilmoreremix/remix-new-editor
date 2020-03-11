@@ -41,7 +41,7 @@ $titleheight: 2.2em;
   .wikipedia-title:before {
     content: "";
     display: block;
-    background: url("wikipedia-logo.png") no-repeat;
+    //background: url("wikipedia-logo.png") no-repeat;
     background-size: contain;
     height: 2.1em;
     width: 2.1em;
@@ -86,7 +86,7 @@ $titleheight: 2.2em;
     overflow: hidden;
     width: 1.4em;
     height: 1.4em;
-    background: url("wikipedia-arrow.png") no-repeat;
+    //background: url("wikipedia-arrow.png") no-repeat;
     background-size: contain;
     opacity: 0.3;
   }
