@@ -13,7 +13,6 @@ const defaultItem = {
   },
 };
 
-// todo add const
 const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
 
 export default class ProjectStore extends BaseStore {
