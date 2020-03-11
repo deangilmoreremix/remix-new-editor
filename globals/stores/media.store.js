@@ -23,7 +23,7 @@ export default class Media extends BaseStore {
         [mediaConstants.VIDEOS]: mediaConstants.VIDEO,
       };
 
-      this.request(
+      await this.request(
         `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${this.perPage}&page=${page + 1}&q=${query}`,
         {
           method: 'GET',
@@ -50,15 +50,19 @@ export default class Media extends BaseStore {
 
   renameAsset = async (item, title) => {
     const { _id } = item;
-    await this.request(
-      `/api/users/me/media-assets/${_id}`, {
-        method: 'PATCH',
-        body: { title },
-        headers: {
-          'on-behalf': this.currentUser.id,
-        },
-      });
-    item.title = title;
+    try {
+      await this.request(
+        `/api/users/me/media-assets/${_id}`, {
+          method: 'PATCH',
+          body: { title },
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+      item.title = title;
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   storeAsset = async (url, preview, type) => {
@@ -85,34 +89,34 @@ export default class Media extends BaseStore {
     }
   };
 
-  uploadMedia = ({ data, preview }) => {
-    const headers = {};
-    let body;
+  uploadMedia = async ({ data, preview }) => {
+    try {
+      const headers = {};
+      let body;
 
-    if (typeof data === 'string') {
-      body = { [data.indexOf('data:') === 0 ? 'dataUri' : 'srcUrl']: data };
-    } else {
-      const fd = new FormData();
-      fd.append('media', data);
-      body = fd;
+      if (typeof data === 'string') {
+        body = { [data.indexOf('data:') === 0 ? 'dataUri' : 'srcUrl']: data };
+      } else {
+        const fd = new FormData();
+        fd.append('media', data);
+        body = fd;
+      }
+
+      if (!(body instanceof FormData) && body === Object(body)) {
+        body = JSON.stringify(body);
+        headers['Content-Type'] = 'application/json; charset=utf-8';
+      }
+
+      await this.selfRequest(
+        `/api/media${preview ? '?video_preview=true' : ''}`,
+        {
+          method: 'PUT',
+          headers,
+          body,
+        },
+      );
+    } catch (e) {
+      console.error(e);
     }
-
-    if (!(body instanceof FormData) && body === Object(body)) {
-      body = JSON.stringify(body);
-      headers['Content-Type'] = 'application/json; charset=utf-8';
-    }
-
-    return this.selfRequest(
-      `/api/media${preview ? '?video_preview=true' : ''}`,
-      {
-        method: 'PUT',
-        headers,
-        body,
-      },
-    )
-      .catch(e => {
-        console.error('An error has occurred during media upload', e);
-        return e;
-      });
   };
 }
