@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
 import Input from '@material-ui/core/Input';
+
+import PropTypes from '../../lib/PropTypes';
+
+// TODO need to move this to the file of consts.js in future after merge all chnages
+const SLIDER_INPUT_STEP = 10;
 
 const useStyles = makeStyles({
   root: {
@@ -14,35 +19,36 @@ const useStyles = makeStyles({
   },
 });
 
-export default function InputSlider() {
+function FormSlider(props) {
+  const { value, onChange, label } = props;
   const classes = useStyles();
-  const [value, setValue] = useState(30);
 
   const handleSliderChange = (event, newValue) => {
-    setValue(newValue);
+    onChange(newValue);
   };
 
   const handleInputChange = event => {
-    setValue(event.target.value === '' ? '' : Number(event.target.value));
+    const { value: val } = event.target;
+    onChange(isNaN(val) ? '' : val);
   };
 
   const handleBlur = () => {
     if (value < 0) {
-      setValue(0);
+      onChange(0);
     } else if (value > 100) {
-      setValue(100);
+      onChange(100);
     }
   };
 
   return (
     <div className={classes.root}>
       <Typography id="input-slider" gutterBottom>
-        Font size
+        { label }
       </Typography>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs>
           <Slider
-            value={typeof value === 'number' ? value : 0}
+            value={value || 0}
             onChange={handleSliderChange}
             aria-labelledby="input-slider"
           />
@@ -55,7 +61,7 @@ export default function InputSlider() {
             onChange={handleInputChange}
             onBlur={handleBlur}
             inputProps={{
-              step: 10,
+              step: SLIDER_INPUT_STEP,
               min: 0,
               max: 100,
               type: 'number',
@@ -67,3 +73,17 @@ export default function InputSlider() {
     </div>
   );
 }
+
+FormSlider.propTypes = {
+  value: PropTypes.number,
+  onChange: PropTypes.func,
+  label: PropTypes.string,
+};
+
+FormSlider.defaultProps = {
+  value: 0,
+  onChange: () => {},
+  label: '',
+};
+
+export default FormSlider;
