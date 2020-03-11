@@ -17,6 +17,11 @@ const defaultItem = {
 const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
 
 export default class ProjectStore extends BaseStore {
+  constructor(props) {
+    super(props);
+    this.item = defaultItem;
+  }
+
   @observable item = {};
 
   @observable projectData = {};
@@ -83,8 +88,7 @@ export default class ProjectStore extends BaseStore {
         path, {
           method: 'GET',
           headers: {
-            // todo update it. Implemented for testing until login
-            'on-behalf': '5a9007349ab52100041dac25',
+            'on-behalf': this.currentUser.id,
           },
         });
       this.setProjectData();
