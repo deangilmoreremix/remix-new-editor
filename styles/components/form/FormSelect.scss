@@ -1,0 +1,33 @@
+.form-container {
+
+  .form-select, .form-list {
+    color: $white !important;
+  }
+
+  .MuiSelect-icon {
+    color: $red !important;
+  }
+
+  .MuiOutlinedInput-notchedOutline {
+    border-color: $white !important;
+    opacity: 0.3;
+  }
+}
+
+.MuiPaper-root {
+  top: 13em !important;
+
+  ul {
+    background: $dark-twinlight;
+    color: $white;
+    border: 1px solid $white;
+    border-radius: 5%;
+
+    .MuiListItem-button:hover {
+      background-color: $red;
+    }
+  }
+}
+
+
+
