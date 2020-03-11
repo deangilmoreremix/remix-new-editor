@@ -148,6 +148,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
         request: creator.request,
         common: creator.common,
         isServer,
+        currentUser: creator.currentUser,
       }),
       projectStore: new ProjectStore({
         request: creator.request,
@@ -177,6 +178,7 @@ export function init(source) {
         request: creator.request,
         common: creator.common,
         isServer,
+        currentUser: creator.currentUser,
       }),
       projectStore: new ProjectStore({
         request: creator.request,

@@ -1,20 +1,7 @@
 import BaseStore from './base.store';
-import requestCreator from '../../lib/requestCreator';
 import mediaConstants from '../../lib/constants/media';
 
 export default class Media extends BaseStore {
-  constructor(props) {
-    super(props);
-    const { common, isServer } = props;
-
-    this.assetsRequest = requestCreator(
-      common.assetsPath,
-      this.authorization,
-      isServer,
-      () => {},
-    );
-  }
-
   getAssets = async (assetScope, assetType, count = 0, query = '') => {
     try {
       const page = Math.ceil(count / this.perPage);
