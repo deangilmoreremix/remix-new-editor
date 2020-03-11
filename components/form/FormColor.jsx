@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// TODO: should be removed after a new component is created instead this one
+import React from 'react';
 import { HuePicker } from 'react-color';
 import { Col, Label, FormGroup } from 'reactstrap';
 

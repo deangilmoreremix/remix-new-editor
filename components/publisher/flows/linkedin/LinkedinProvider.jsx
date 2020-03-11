@@ -47,7 +47,7 @@ const LinkedinProvider = ({ postResponsiveMessage, appId, ...props }) => {
     };
   };
 
-  const share = async (options) => postResponsiveMessage({
+  const share = (options) => postResponsiveMessage({
     topic: MESSAGE_TOPICS.share,
     source: LINKEDIN_SOURCE_ID,
     arguments: {
@@ -108,7 +108,6 @@ LinkedinProvider.propTypes = {
       prompt: PropTypes.string,
       embedGenerator: PropTypes.func,
     }),
-    autoplay: PropTypes.bool,
     preload: PropTypes.bool,
     postData: PropTypes.shape({
       title: PropTypes.string,

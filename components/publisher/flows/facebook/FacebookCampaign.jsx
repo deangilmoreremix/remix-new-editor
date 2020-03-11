@@ -95,27 +95,32 @@ const FacebookCampaign = observer(({
       thumbnail: postData.thumbnail,
     });
 
-    await publish(await save(project));
+    try {
+      await publish(await save(project));
 
-    await invalidateFbCache(shareOptions.projectUrl);
+      await invalidateFbCache(shareOptions.projectUrl);
 
-    expandConductor();
-    const { result } = await share(shareOptions);
+      expandConductor();
+      const { result } = await share(shareOptions);
 
-    collapseConductor();
+      collapseConductor();
 
-    if (result.error_code) {
-      throw new Error(result.error_message);
+      if (result.error_code) {
+        throw new Error(result.error_message);
+      }
+
+      if (embedLocation.key === FACEBOOK_PAGE) {
+        const queryString = [
+          autoplay ? 'autoplay=1' : null,
+          !preload ? 'preload=none' : null,
+        ].filter(item => !!item).join('&');
+
+        await linkToFbPage(project, selectedFbPage, queryString);
+      }
+    } catch (e) {
+      console.error(e);
     }
 
-    if (embedLocation.key === FACEBOOK_PAGE) {
-      const queryString = [
-        autoplay ? 'autoplay=1' : null,
-        !preload ? 'preload=none' : null,
-      ].filter(item => !!item).join('&');
-
-      await linkToFbPage(project, selectedFbPage, queryString);
-    }
     return project;
   };
 
@@ -296,7 +301,6 @@ FacebookCampaign.propTypes = {
       prompt: PropTypes.string,
       embedGenerator: PropTypes.func,
     }),
-    autoplay: PropTypes.bool,
     preload: PropTypes.bool,
     postData: PropTypes.shape({
       title: PropTypes.string,

@@ -113,7 +113,6 @@ LinkedinPost.propTypes = {
       prompt: PropTypes.string,
       embedGenerator: PropTypes.func,
     }),
-    autoplay: PropTypes.bool,
     preload: PropTypes.bool,
   }).isRequired,
   project: PropTypes.shape({

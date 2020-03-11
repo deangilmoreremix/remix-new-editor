@@ -139,10 +139,12 @@ const LinkedinPostPreview = (props) => {
   );
 };
 
+// TODO: `userpic` to defaultProps to handle users without avatar
+
 LinkedinPostPreview.propTypes = {
   user: PropTypes.shape({
     name: PropTypes.string.isRequired,
-    userpic: PropTypes.string.isRequired,
+    userpic: PropTypes.string,
   }),
   post: PropTypes.shape({
     title: PropTypes.string,

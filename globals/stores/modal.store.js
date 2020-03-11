@@ -1,9 +1,7 @@
 import { observable, action } from 'mobx';
 
 import SocialPublisherModal from '../../components/modals/SocialPublisherModal';
-
-export const SOCIAL_CAMPAIGN_MODAL = 'social-campaign';
-export const EMAIL_CAMPAIGN_MODAL = 'email-campaign';
+import { SOCIAL_CAMPAIGN_MODAL } from '../../lib/constants/modals';
 
 const modalsConfig = [
   {

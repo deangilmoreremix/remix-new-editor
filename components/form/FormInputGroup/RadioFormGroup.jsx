@@ -1,3 +1,4 @@
+// TODO: should be removed after a new component is created instead this one
 import PropTypes from 'prop-types';
 import React, { Component, Fragment } from 'react';
 import { FormFeedback, FormGroup, FormText, Input, Label } from 'reactstrap';

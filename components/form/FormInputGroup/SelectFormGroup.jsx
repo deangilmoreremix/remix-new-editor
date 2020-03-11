@@ -1,3 +1,4 @@
+// TODO: should be removed after a new component is created instead this one
 import React, { Component } from 'react';
 import Select from 'react-select';
 import { Label, FormFeedback, FormGroup, FormText } from 'reactstrap';

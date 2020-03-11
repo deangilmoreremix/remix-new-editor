@@ -53,21 +53,24 @@ const LinkedinCampaign = observer(({
       description: postData.description,
       thumbnail: postData.thumbnail,
     });
+    try {
+      await publish(await save(project));
 
-    await publish(await save(project));
-
-    await share({
-      title: postData.title,
-      description: postData.description,
-      url: [
-        embedLocation.key === 'default' ? project.make.url : embedPage, [
-          autoplay ? 'autoplay=1' : null,
-          !preload ? 'preload=none' : null,
-          'preferred_source=linkedin',
-        ].filter(item => !!item).join('&'),
-      ].join('?'),
-      thumbnail: postData.thumbnail,
-    });
+      await share({
+        title: postData.title,
+        description: postData.description,
+        url: [
+          embedLocation.key === 'default' ? project.make.url : embedPage, [
+            autoplay ? 'autoplay=1' : null,
+            !preload ? 'preload=none' : null,
+            'preferred_source=linkedin',
+          ].filter(item => !!item).join('&'),
+        ].join('?'),
+        thumbnail: postData.thumbnail,
+      });
+    } catch (error) {
+      console.error(error);
+    }
     return project;
   };
 
@@ -95,7 +98,7 @@ const LinkedinCampaign = observer(({
     }
   };
 
-  const nextStage = async () => {
+  const nextStage = () => {
     if (currentStage.key === STAGES[STAGES.length - 1].key) {
       return this.sharePost();
     }
@@ -108,7 +111,7 @@ const LinkedinCampaign = observer(({
     setCurrentStageIndex(nextStageIdx);
   };
 
-  const prevStage = async () => {
+  const prevStage = () => {
     let prevStageIdx = Math.min(
       currentStageIndex - 1,
       0,
@@ -119,7 +122,7 @@ const LinkedinCampaign = observer(({
     setCurrentStageIndex(prevStageIdx);
   };
 
-  const setStage = React.useCallback(async (stageKey) => {
+  const setStage = React.useCallback((stageKey) => {
     if (currentStage.key === stageKey) {
       return;
     }
@@ -214,7 +217,6 @@ LinkedinCampaign.propTypes = {
       prompt: PropTypes.string,
       embedGenerator: PropTypes.func,
     }),
-    autoplay: PropTypes.bool,
     preload: PropTypes.bool,
     postData: PropTypes.shape({
       title: PropTypes.string,

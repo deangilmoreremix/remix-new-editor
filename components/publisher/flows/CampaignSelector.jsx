@@ -34,7 +34,6 @@ const CampaignSelector = (props) => {
     facebookPages: null,
     facebookPageTab: null,
     preload: true,
-    autoplay: false,
     error: null,
   });
 

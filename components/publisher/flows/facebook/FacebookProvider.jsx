@@ -9,7 +9,7 @@ import {
 import FacebookCampaign from './FacebookCampaign';
 
 const FacebookProvider = ({ postResponsiveMessage, appId, ...props }) => {
-  const init = async () => postResponsiveMessage({
+  const init = () => postResponsiveMessage({
     topic: MESSAGE_TOPICS.init,
     source: FACEBOOK_SOURCE_ID,
     arguments: appId,
@@ -24,7 +24,7 @@ const FacebookProvider = ({ postResponsiveMessage, appId, ...props }) => {
     return response.loggedIn;
   };
 
-  const logIn = async (permissions) => postResponsiveMessage({
+  const logIn = (permissions) => postResponsiveMessage({
     topic: MESSAGE_TOPICS.logIn,
     source: FACEBOOK_SOURCE_ID,
     arguments: permissions || FACEBOOK_PERMISSIONS,
@@ -66,7 +66,7 @@ const FacebookProvider = ({ postResponsiveMessage, appId, ...props }) => {
     return tabs;
   };
 
-  const createTab = async (pageId, pageAccessToken, tabName) => postResponsiveMessage({
+  const createTab = (pageId, pageAccessToken, tabName) => postResponsiveMessage({
     topic: MESSAGE_TOPICS.createTab,
     source: FACEBOOK_SOURCE_ID,
     arguments: { pageId, pageAccessToken, tabName },
@@ -122,7 +122,6 @@ FacebookProvider.propTypes = {
       prompt: PropTypes.string,
       embedGenerator: PropTypes.func,
     }),
-    autoplay: PropTypes.bool,
     preload: PropTypes.bool,
     postData: PropTypes.shape({
       title: PropTypes.string,

@@ -1,5 +1,5 @@
 module.exports = {
-  port: process.env.PORT || 3010,
+  port: process.env.PORT || 3001,
   self: process.env.SELF,
   app: {
     prefix: process.env.APP_PREFIX || 'go',

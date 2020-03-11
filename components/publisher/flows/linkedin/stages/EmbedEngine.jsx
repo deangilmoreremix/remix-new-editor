@@ -44,20 +44,6 @@ const EmbedEngine = ({ settings, project, updateCampaign }) => (
           }}
         />
       </div>
-      <div className="row embed-group">
-        <Label className="cell" for="autoplay-check">
-          Autoplay
-        </Label>
-        <Input
-          className="cell"
-          type="checkbox"
-          id="autoplay-check"
-          checked={settings.autoplay}
-          onChange={({ target: { checked } }) => {
-            updateCampaign({ autoplay: checked });
-          }}
-        />
-      </div>
     </div>
     {settings.embedLocation && (
       <div className={settings.embedLocation.embedGenerator ? 'embed-details' : 'hidden'}>
@@ -66,7 +52,6 @@ const EmbedEngine = ({ settings, project, updateCampaign }) => (
           className="embed-item"
           url={[
             project.url, [
-              settings.autoplay ? 'autoplay=1' : null,
               !settings.preload ? 'preload=none' : null,
             ].filter(item => !!item).join('&')]
             .join('?')}
@@ -91,7 +76,6 @@ EmbedEngine.propTypes = {
       prompt: PropTypes.string,
       embedGenerator: PropTypes.func,
     }),
-    autoplay: PropTypes.bool,
     preload: PropTypes.bool,
   }).isRequired,
   project: PropTypes.shape({
