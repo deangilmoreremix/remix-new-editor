@@ -7,19 +7,20 @@ import Select from '@material-ui/core/Select';
 
 import PropTypes from '../../lib/PropTypes';
 
-const useStyles = makeStyles(theme => ({
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120,
-  },
-  selectEmpty: {
-    marginTop: theme.spacing(2),
-  },
-}));
-
 function FormSelect(props) {
-  const { items, label, onChange, valueState } = props;
-  const classes = useStyles();
+  const { items, label, onChange, value, minWidth } = props;
+
+  const useStyles = makeStyles(theme => ({
+    formControl: {
+      margin: theme.spacing(1),
+      minWidth,
+    },
+    selectEmpty: {
+      marginTop: theme.spacing(2),
+    },
+  }));
+
+  const classes = useStyles(minWidth);
 
   const inputLabel = useRef(null);
   const [labelWidth, setLabelWidth] = useState(0);
@@ -45,12 +46,12 @@ function FormSelect(props) {
           className="form-list"
           labelId="demo-simple-select-outlined-label"
           id="demo-simple-select-outlined"
-          value={valueState}
+          value={value}
           onChange={handleChange}
           labelWidth={labelWidth}
         >
           {items.map(item => (
-            <MenuItem className="select-item" value={item.value}>{item.value}</MenuItem>
+            <MenuItem key={item.value} className="select-item" value={item.value}>{item.value}</MenuItem>
           ))}
         </Select>
       </FormControl>
@@ -62,14 +63,16 @@ FormSelect.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
     value: PropTypes.string.isRequired,
   })).isRequired,
-  valueState: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
   label: PropTypes.string,
-  onChange: PropTypes.func,
+  onChange: PropTypes.func.isRequired,
+  minWidth: PropTypes.number,
 };
 
 FormSelect.defaultProps = {
-  label: '',
-  onChange: () => {},
+  label: 'label',
+  minWidth: 100,
+
 };
 
 export default FormSelect;
