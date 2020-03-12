@@ -13,6 +13,7 @@ const defaultItem = {
   },
 };
 
+// todo add to global consts
 const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
 
 export default class ProjectStore extends BaseStore {
@@ -108,18 +109,13 @@ export default class ProjectStore extends BaseStore {
     this.popcorn = window.Popcorn.smart(target,
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
     this.attach(target);
-    // popcorn.seek = (at) => {
-    //   popcorn.currentTime(at + 0.01);
-    // };
-    // this.engines.push(popcorn);
-    // return popcorn;
-  }
+  };
 
   @action
   attach = (target) => {
     const findMediaSource = (sources, acceptableSources) => sources.filter((source) => {
       const extension = source.split('.').reverse()[0];
-      return acceptableSources.indexOf(extension) !== -1;
+      return acceptableSources.some(extension);
     })[0];
 
     this.popcornObject.elements.forEach((element) => {
