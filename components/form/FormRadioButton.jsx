@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -6,23 +6,28 @@ import FormControl from '@material-ui/core/FormControl';
 
 import PropTypes from '../../lib/PropTypes';
 
-const FormRadioButton = ({ items }) => {
-  const [value, setValue] = useState('');
+const FormRadioButton = (props) => {
+  const { items, groupName, onChange, value } = props;
 
   const handleChange = event => {
-    setValue(event.target.value);
+    onChange(event.target.value);
   };
 
   return (
     <FormControl component="fieldset">
-      <RadioGroup aria-label="position" name="position" value={value} onChange={handleChange} row>
-        {items.map((el) => (
+      <RadioGroup
+        name={groupName}
+        value={value}
+        onChange={handleChange}
+        row
+      >
+        {items.map((item) => (
           <FormControlLabel
-            key={el.label}
-            value={el.label}
+            key={item.label}
+            value={item.label}
             control={<Radio />}
-            label={el.label}
-            labelPlacement={el.labelPlacement}
+            label={item.label}
+            labelPlacement={item.position}
           />
         ))}
       </RadioGroup>
@@ -30,15 +35,18 @@ const FormRadioButton = ({ items }) => {
   );
 };
 
-// labelPlacement - label position relative to radiobutton
-// values of labelPlacement : {'top' - top position, 'start' - left position label
-// 'end' - right position label, bottom - bottom position label}
-
 FormRadioButton.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
     label: PropTypes.string.isRequired,
-    labelPlacement: PropTypes.string.isRequired,
+    position: PropTypes.string,
   })).isRequired,
+  groupName: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  value: PropTypes.string.isRequired,
+};
+
+FormRadioButton.defaultProps = {
+  groupName: 'default',
 };
 
 export default FormRadioButton;
