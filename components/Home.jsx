@@ -8,6 +8,7 @@ import Header from './Header';
 import Toolbar from './common/toolbar/Toolbar';
 import useProjectStore from './hooks/useProjectStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
+import MediaContainer from './media/MediaContainer';
 
 
 const getOne = async (store, id) => {
@@ -37,7 +38,7 @@ const Home = observer(() => {
           <Toolbar items={toolbarItems} />
         </Col>
         <Col xs={4}>
-          Hi!
+          <MediaContainer />
         </Col>
         <Col xs={4}>
           Hi again!
