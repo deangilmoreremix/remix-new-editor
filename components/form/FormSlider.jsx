@@ -10,18 +10,26 @@ import PropTypes from '../../lib/PropTypes';
 // TODO need to move this to the file of consts.js in future after merge all chnages
 const SLIDER_INPUT_STEP = 10;
 
-const useStyles = makeStyles({
-  root: {
-    width: 250,
-  },
-  input: {
-    width: 42,
-  },
-});
-
 function FormSlider(props) {
-  const { value, onChange, label } = props;
-  const classes = useStyles();
+  const {
+    value,
+    onChange,
+    label,
+    sliderWidth,
+    inputWidth,
+    minValue,
+    maxValue
+  } = props;
+
+  const useStyles = makeStyles({
+    root: {
+      width: sliderWidth,
+    },
+    input: {
+      width: inputWidth,
+    },
+  });
+  const classes = useStyles(sliderWidth, inputWidth);
 
   const handleSliderChange = (event, newValue) => {
     onChange(newValue);
@@ -29,28 +37,33 @@ function FormSlider(props) {
 
   const handleInputChange = event => {
     const { value: val } = event.target;
-    onChange(isNaN(val) ? '' : val);
+    if (val && !isNaN(val)) {
+      onChange(parseInt(val));
+    } else {
+      onChange('');
+    }
   };
 
   const handleBlur = () => {
-    if (value < 0) {
-      onChange(0);
-    } else if (value > 100) {
-      onChange(100);
+    if (!value || value < minValue) {
+      onChange(minValue);
+    } else if (value > maxValue) {
+      onChange(maxValue);
     }
   };
 
   return (
     <div className={classes.root}>
       <Typography id="input-slider" gutterBottom>
-        { label }
+        {label}
       </Typography>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs>
           <Slider
-            value={value || 0}
+            value={value}
             onChange={handleSliderChange}
             aria-labelledby="input-slider"
+            max={maxValue}
           />
         </Grid>
         <Grid item>
@@ -62,8 +75,8 @@ function FormSlider(props) {
             onBlur={handleBlur}
             inputProps={{
               step: SLIDER_INPUT_STEP,
-              min: 0,
-              max: 100,
+              min: minValue,
+              max: maxValue,
               type: 'number',
               'aria-labelledby': 'input-slider',
             }}
@@ -76,14 +89,18 @@ function FormSlider(props) {
 
 FormSlider.propTypes = {
   value: PropTypes.number,
-  onChange: PropTypes.func,
+  onChange: PropTypes.func.isRequired,
   label: PropTypes.string,
+  sliderWidth: PropTypes.number,
+  inputWidth: PropTypes.number,
+  minValue: PropTypes.number,
+  maxValue: PropTypes.number,
 };
 
 FormSlider.defaultProps = {
-  value: 0,
-  onChange: () => {},
   label: '',
+  maxValue: 100,
+  minValue: 0,
 };
 
 export default FormSlider;
