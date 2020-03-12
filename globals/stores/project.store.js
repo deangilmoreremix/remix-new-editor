@@ -17,6 +17,9 @@ export default class ProjectStore extends BaseStore {
   }
 
   @observable
+  assets = [];
+
+  @observable
   item = {};
 
   @action
