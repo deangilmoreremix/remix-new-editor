@@ -7,6 +7,7 @@ import { observer } from 'mobx-react';
 import useProjectStore from './hooks/useProjectStore';
 
 import PlayButton from './common/timeline/PlayButton';
+import Elements from './common/timeline/Elements';
 import Layer from './common/timeline/Layer';
 
 const SortableItem = SortableElement(({ item }) => <Layer item={item} />);
@@ -57,7 +58,8 @@ const Timeline = observer(() => {
 
   return (
     <div>
-      <SortableList items={currentLayers} onSortEnd={onSortEnd} />
+      <Elements />
+      {/*<SortableList items={currentLayers} onSortEnd={onSortEnd} />*/}
       {/* <div ref={ref} className="stager-wrapper"> */}
       {/* <div style={style} ref={wrapper} className="embed-wrapper"> */}
       {/* <div id="video-container" className="video-container"> */}

@@ -54,7 +54,7 @@
     "mobx-react": "6.1.4",
     "multipart": "0.1.5",
     "newrelic": "6.3.0",
-    "next": "9.2.1",
+    "next": "9.3.0",
     "node-sass": "4.13.1",
     "node-uuid": "1.4.8",
     "normalize.css": "8.0.1",
@@ -84,7 +84,9 @@
     "chroma-js": "2.1.0",
     "array-move": "2.2.1",
     "react-sortable-hoc": "1.11.0",
-    "react-beautiful-dnd": "13.0.0"
+    "interactjs": "1.9.3",
+    "moment": "2.24.0",
+    "react-calendar-timeline": "0.26.7"
   },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "7.8.3",
