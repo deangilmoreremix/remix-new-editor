@@ -7,7 +7,6 @@ import Input from '@material-ui/core/Input';
 
 import PropTypes from '../../lib/PropTypes';
 
-// TODO need to move this to the file of consts.js in future after merge all chnages
 const SLIDER_INPUT_STEP = 10;
 
 function FormSlider(props) {
