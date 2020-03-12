@@ -10,7 +10,7 @@ import Toolbar from './common/toolbar/Toolbar';
 import useProjectStore from './hooks/useProjectStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
-import PlayButton from './common/timeline/PlayButton';
+import Timeline from './Timeline';
 
 
 const getOne = async (store, id) => {
@@ -49,9 +49,10 @@ const Home = observer(() => {
         <Col xs={5}>
           <Canvas />
         </Col>
-        <PlayButton />
       </Row>
-      <Row className="timeline" noGutters />
+      <Row className="timeline" noGutters >
+        <Timeline />
+      </Row>
     </Container>
   );
 });

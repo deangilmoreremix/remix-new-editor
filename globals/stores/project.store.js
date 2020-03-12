@@ -12,6 +12,11 @@ const defaultItem = {
     data: {},
   },
 };
+const defaultLayer = {
+  name: 'Layer',
+  id: 0,
+  order: 0,
+};
 
 const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
 
@@ -25,9 +30,17 @@ export default class ProjectStore extends BaseStore {
 
   @observable projectData = {};
 
+  @observable layers = [];
+
+  @observable videoElements = [];
+
+  @observable audioElements = [];
+
   @observable popcornObject = null;
 
   @observable popcorn = {};
+
+  @observable modified = false;
 
   @action
   setProjectData = () => {
@@ -44,7 +57,27 @@ export default class ProjectStore extends BaseStore {
     });
   };
 
-  generatePopcornObject = () => {
+  @action
+  setLayers = () => {
+    this.projectData = JSON.parse(this.item.project.data);
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.type === 'pausePlugin') {
+            trackEvent.popcornOptions.start = media.duration - PAUSE_PLUGIN_TIME_MARGIN;
+            trackEvent.popcornOptions.end = media.duration;
+          }
+        });
+      });
+    });
+  };
+
+  @action
+  makeOut = () => {
+    this.layers = [];
+    this.audioElements = [];
+    this.videoElements = [];
+    const layers = [];
     this.projectData.media.forEach((currentMedia) => {
       // We expect a string (one url) or an array of url strings.
       // Turn a single url into an array of 1 string.
@@ -62,16 +95,56 @@ export default class ProjectStore extends BaseStore {
       };
 
       currentMedia.tracks.forEach((currentTrack) => {
+        const layer = {
+          name: currentTrack.name || `Layer ${currentTrack.id}`,
+          order: currentTrack.order,
+          elements: [],
+        };
         currentTrack.trackEvents.forEach((currentTrackEvent) => {
           popcornData.elements.push({
             type: currentTrackEvent.type,
             popcornOptions: currentTrackEvent.popcornOptions,
           });
+          if (currentTrack.type !== 'sequencer') {
+            layer.elements.push({
+              type: currentTrackEvent.type,
+              popcornOptions: currentTrackEvent.popcornOptions,
+            });
+          } else if (this.isVideo(currentTrackEvent)) {
+            this.videoElements.push(currentTrackEvent.popcornOptions);
+          } else if (this.isAudio(currentTrackEvent)) {
+            this.audioElements.push(currentTrackEvent.popcornOptions);
+          }
         });
+        if (layer.elements.length > 0) {
+          layers.push(layer);
+        }
       });
       this.popcornObject = popcornData;
+      this.sortLayers(layers);
     });
   };
+
+  @action
+  sortLayers = (items, isModify) => {
+    this.layers = items;
+    this.layers.map((layer, index) => {
+      layer.order = index;
+      return layer;
+    });
+    if (isModify && !this.modified) {
+      this.modified = true;
+    }
+  };
+
+  isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'
+        || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
+        && element.popcornOptions.contentType.indexOf('video/') === 0));
+
+  isAudio = (element) => !!((element.popcornOptions.type === 'SoundCloud')
+    || (element.popcornOptions.contentType
+      && (element.popcornOptions.contentType.indexOf('audio/') === 0
+      || element.popcornOptions.contentType.indexOf('application/ogg') === 0)));
 
 
   @action
@@ -91,7 +164,10 @@ export default class ProjectStore extends BaseStore {
           },
         });
       this.setProjectData();
-      this.generatePopcornObject();
+      this.makeOut();
+      if (this.layers.length === 0) {
+        this.layers.push(defaultLayer);
+      }
     } catch (e) {
       this.item = defaultItem;
       throw e;
