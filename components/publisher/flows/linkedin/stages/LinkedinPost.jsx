@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Input, Label } from 'reactstrap';
 
 import PropTypes from '../../../../../lib/PropTypes';
 import { POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT } from '../../../../../lib/constants/campaigns/constants';
@@ -14,11 +13,11 @@ const LinkedinPost = ({ settings, updateCampaign, uploadFile }) => (
       <div className="row embed-group">
         <div className="embed-grid cell linkedin-post-details">
           <div className="row embed-group">
-            <Label className="cell" for="linkedin-post-url-input">
+            <label className="cell" htmlFor="linkedin-post-url-input">
               Shared Url
-            </Label>
+            </label>
             {settings.postData && (
-              <Input
+              <input
                 id="linkedin-post-url-input"
                 className="cell linkedin-post-input"
                 type="text"
@@ -30,11 +29,11 @@ const LinkedinPost = ({ settings, updateCampaign, uploadFile }) => (
             )}
           </div>
           <div className="row embed-group">
-            <Label className="cell" for="linkedin-post-title-input">
+            <label className="cell" htmlFor="linkedin-post-title-input">
               Post Title
-            </Label>
+            </label>
             {settings.postData && (
-              <Input
+              <input
                 id="linkedin-post-title-input"
                 className="cell linkedin-post-input"
                 type="text"
@@ -46,11 +45,11 @@ const LinkedinPost = ({ settings, updateCampaign, uploadFile }) => (
             )}
           </div>
           <div className="row embed-group">
-            <Label className="cell" for="linkedin-post-description-input">
+            <label className="cell" htmlFor="linkedin-post-description-input">
               Post Description
-            </Label>
+            </label>
             {settings.postData && (
-              <Input
+              <input
                 id="linkedin-post-description-input"
                 className="cell linkedin-post-input"
                 type="text"
@@ -62,11 +61,11 @@ const LinkedinPost = ({ settings, updateCampaign, uploadFile }) => (
             )}
           </div>
           <div className="row embed-group">
-            <Label className="cell" for="linkedin-post-image-input">
+            <label className="cell" htmlFor="linkedin-post-image-input">
               Post Image
-            </Label>
+            </label>
             {settings.postData && (
-              <Input
+              <iInput
                 id="linkedin-post-image-input"
                 className="cell linkedin-post-input"
                 type="file"

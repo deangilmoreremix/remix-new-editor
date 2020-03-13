@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Input, Label } from 'reactstrap';
 
 import PropTypes from '../../../../../lib/PropTypes';
 import { POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT } from '../../../../../lib/constants/campaigns/constants';
@@ -14,11 +13,11 @@ const FacebookPost = ({ settings, updateCampaign, uploadFile }) => (
       <div className="row embed-group">
         <div className="embed-grid cell facebook-post-details">
           <div className="row embed-group">
-            <Label className="cell" for="facebook-post-url-input">
+            <label className="cell" htmlFor="facebook-post-url-input">
               Shared Url
-            </Label>
+            </label>
             {settings.postData && (
-              <Input
+              <input
                 id="facebook-post-url-input"
                 className="cell facebook-post-input"
                 type="text"
@@ -33,11 +32,11 @@ const FacebookPost = ({ settings, updateCampaign, uploadFile }) => (
             )}
           </div>
           <div className="row embed-group">
-            <Label className="cell" htmlFor="facebook-post-title-input">
+            <label className="cell" htmlFor="facebook-post-title-input">
               Post Title
-            </Label>
+            </label>
             {settings.postData && (
-              <Input
+              <input
                 id="facebook-post-title-input"
                 className="cell facebook-post-input"
                 type="text"
@@ -53,11 +52,11 @@ const FacebookPost = ({ settings, updateCampaign, uploadFile }) => (
             )}
           </div>
           <div className="row embed-group">
-            <Label className="cell" for="facebook-post-description-input">
+            <label className="cell" htmlFor="facebook-post-description-input">
               Post Description
-            </Label>
+            </label>
             {settings.postData && (
-              <Input
+              <input
                 id="facebook-post-description-input"
                 className="cell facebook-post-input"
                 type="text"
@@ -73,11 +72,11 @@ const FacebookPost = ({ settings, updateCampaign, uploadFile }) => (
             )}
           </div>
           <div className="row embed-group">
-            <Label className="cell" for="facebook-post-image-input">
+            <label className="cell" htmlFor="facebook-post-image-input">
               Post Image
-            </Label>
+            </label>
             {settings.postData && (
-              <Input
+              <input
                 id="facebook-post-image-input"
                 className="cell facebook-post-input"
                 type="file"

@@ -4,18 +4,19 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../lib/PropTypes';
 import FacebookProvider from './facebook/FacebookProvider';
 import LinkedinProvider from './linkedin/LinkedinProvider';
+import withModal from '../../hoc/withModal';
 import useProjectStore from '../../hooks/useProjectStore';
 import useMediaStore from '../../hooks/useMediaStore';
+import useCommonStore from '../../hooks/useCommonStore';
 import {
   FACEBOOK_SOURCE_ID,
   LINKEDIN_SOURCE_ID,
   SOCIAL_SOURCES,
   POSTER_FRAME_RECOMMENDED_RESOLUTION,
 } from '../../../lib/constants/campaigns/constants';
+import { NOT_SUPPORTED_IMAGE_FORMAT } from '../../../lib/constants/media';
 import { isResolutionWrong, modalContent } from '../../../lib/utils/cropHelper';
 import MediaTypeDetector from '../../../lib/utils/mediaTypeDetector';
-import withModal from '../../hoc/withModal';
-import useCommonStore from '../../hooks/useCommonStore';
 
 const CampaignSelector = (props) => {
   const { openModal, closeModal } = props;
@@ -42,7 +43,7 @@ const CampaignSelector = (props) => {
   };
 
   const showError = (error, timeout = null) => {
-    updateCampaign({ error: error.message || 'This image format is not supported.' });
+    updateCampaign({ error: error.message || NOT_SUPPORTED_IMAGE_FORMAT });
     if (timeout) {
       setTimeout(() => {
         updateCampaign({ error: null });
@@ -55,10 +56,10 @@ const CampaignSelector = (props) => {
       return;
     }
     if (!file.type.includes('image/')) {
-      showError('This image format is not supported.', 5000);
+      showError(NOT_SUPPORTED_IMAGE_FORMAT, 5000);
       openModal({
         header: 'Error',
-        body: 'This image format is not supported.',
+        body: NOT_SUPPORTED_IMAGE_FORMAT,
       });
       return;
     }
@@ -85,7 +86,7 @@ const CampaignSelector = (props) => {
       openModal({
         header: 'Error',
       });
-      showError(err.message || 'This image format is not supported.', 5000);
+      showError(err.message || NOT_SUPPORTED_IMAGE_FORMAT, 5000);
     }
   };
 

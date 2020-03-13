@@ -31,8 +31,8 @@ export default () => {
 
   const updateTitle = (modalId, title) => {
     if (modalId) {
-      const mutatedModalIndex = modals.findIndex(m => m.id === modalId);
-      const originalModal = modalsConfig.find(m => m.id === modalId);
+      const mutatedModalIndex = modals.findIndex(modal => modal.id === modalId);
+      const originalModal = modalsConfig.find(modal => modal.id === modalId);
 
       modals[mutatedModalIndex].title = title || originalModal.title;
     }

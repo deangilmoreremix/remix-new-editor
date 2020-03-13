@@ -47,36 +47,38 @@ const LinkedinProvider = ({ postResponsiveMessage, appId, ...props }) => {
     };
   };
 
-  const share = (options) => postResponsiveMessage({
-    topic: MESSAGE_TOPICS.share,
-    source: LINKEDIN_SOURCE_ID,
-    arguments: {
-      lifecycleState: 'PUBLISHED',
-      specificContent: {
-        'com.linkedin.ugc.ShareContent': {
-          shareCommentary: {
-            text: options.description,
-          },
-          shareMediaCategory: 'ARTICLE',
-          media: [
-            {
-              status: 'READY',
-              description: {
-                text: options.description,
-              },
-              originalUrl: options.url,
-              title: {
-                text: options.title,
-              },
+  const share = async (options) => {
+    await postResponsiveMessage({
+      topic: MESSAGE_TOPICS.share,
+      source: LINKEDIN_SOURCE_ID,
+      arguments: {
+        lifecycleState: 'PUBLISHED',
+        specificContent: {
+          'com.linkedin.ugc.ShareContent': {
+            shareCommentary: {
+              text: options.description,
             },
-          ],
+            shareMediaCategory: 'ARTICLE',
+            media: [
+              {
+                status: 'READY',
+                description: {
+                  text: options.description,
+                },
+                originalUrl: options.url,
+                title: {
+                  text: options.title,
+                },
+              },
+            ],
+          },
+        },
+        visibility: {
+          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC',
         },
       },
-      visibility: {
-        'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC',
-      },
-    },
-  });
+    });
+  };
 
   const campaignProps = {
     init,

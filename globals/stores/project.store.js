@@ -55,15 +55,28 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  save = async (project) => {
+  serialize() {
+    return {
+      data: JSON.stringify(this.item),
+      allowedSocials: this.item.allowedSocials,
+      name: this.item.name,
+      editor: 'smart-video',
+      description: this.item.description,
+      thumbnail: this.item.thumbnail,
+      source: this.item.source,
+    };
+  }
+
+  @action
+  save = async () => {
     try {
-      const path = project.project
-        ? `/api/users/me/makes/${project.project._id}`
+      const path = this.item
+        ? `/api/users/me/makes/${this.item._id}`
         : '/api/users/me/makes';
-      const serializedProject = project.serialize();
-      project.project = await this.request(
+      const serializedProject = this.serialize();
+      this.item = await this.request(
         path, {
-          method: project.project ? 'PATCH' : 'POST',
+          method: this.item ? 'PATCH' : 'POST',
           headers: {
             'on-behalf': this.currentUser.id,
           },
@@ -75,8 +88,8 @@ export default class ProjectStore extends BaseStore {
             remixedFrom: serializedProject.source,
           },
         });
-      project.modified = false;
-      return project;
+      this.item.modified = false;
+      return this.item;
     } catch (e) {
       console.error(e);
     }

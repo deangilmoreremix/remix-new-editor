@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Input, Label } from 'reactstrap';
 
 import PropTypes from '../../../../../lib/PropTypes';
 import { FACEBOOK_EMBED_LOCATIONS } from '../../../../../lib/constants/campaigns/constants';
@@ -10,7 +9,7 @@ const EmbedEngine = ({ settings, project, updateCampaign }) => (
     <h5 className="embed-title">Where do you want to embed your video?</h5>
     <div className="embed-grid">
       <div className="row embed-group">
-        <Label className="cell" for="embed-location-select">Embed Location</Label>
+        <label className="cell" htmlFor="embed-location-select">Embed Location</label>
         {settings.embedLocation && (
           <select
             className="cell"
@@ -31,10 +30,10 @@ const EmbedEngine = ({ settings, project, updateCampaign }) => (
         )}
       </div>
       <div className="row embed-group">
-        <Label className="cell" for="preload-check">
+        <label className="cell" htmlFor="preload-check">
           Preload
-        </Label>
-        <Input
+        </label>
+        <input
           className="cell"
           type="checkbox"
           id="preload-check"

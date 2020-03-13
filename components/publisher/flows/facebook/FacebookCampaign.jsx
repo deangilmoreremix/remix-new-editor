@@ -8,7 +8,6 @@ import {
   DEFAULT_PERMISSIONS,
   FACEBOOK_EMBED_LOCATIONS,
   FB_PAGE_PERMISSIONS,
-  MIN_FANS_PAGE,
   EMBED_ENGINE,
   EMBED_LOCATION,
   FACEBOOK_LOGIN,
@@ -18,6 +17,7 @@ import {
 } from '../../../../lib/constants/campaigns/constants';
 import useProjectStore from '../../../hooks/useProjectStore';
 import CampaignStage from '../CampaignStage';
+import { isEnoughFans } from '../../../../lib/utils/social-campaigns';
 
 const FacebookCampaign = observer(({
   collapseConductor,
@@ -137,9 +137,9 @@ const FacebookCampaign = observer(({
         return userData;
       case FACEBOOK_PAGE:
         return selectedFbPage
-          && facebookPages.find(
+          && isEnoughFans(facebookPages.find(
             page => page.id === selectedFbPage,
-          ).fanCount >= MIN_FANS_PAGE
+          ))
           && facebookPageTab && facebookPageTab.name.length > 0;
       case FACEBOOK_POST:
         return userData && postData

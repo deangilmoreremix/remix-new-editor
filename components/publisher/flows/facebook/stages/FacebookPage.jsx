@@ -1,8 +1,7 @@
 import * as React from 'react';
-import { Input, Label } from 'reactstrap';
 
-import { MIN_FANS_PAGE } from '../../../../../lib/constants/campaigns/constants';
 import PropTypes from '../../../../../lib/PropTypes';
+import { isEnoughFans } from '../../../../../lib/utils/social-campaigns';
 
 const FacebookPage = ({ settings, updateCampaign, provider }) => (
   <div className="facebook-page">
@@ -11,9 +10,9 @@ const FacebookPage = ({ settings, updateCampaign, provider }) => (
     </h5>
     <div className="embed-grid">
       <div className="row embed-group">
-        <Label className="cell" for="facebook-page-select">
+        <label className="cell" htmlFor="facebook-page-select">
           Facebook pages
-        </Label>
+        </label>
         <select
           id="facebook-page-select"
           className="cell"
@@ -34,15 +33,13 @@ const FacebookPage = ({ settings, updateCampaign, provider }) => (
       </div>
       {
         settings.selectedFbPage
-        && (settings.facebookPages.find(
-          page => page.id === settings.selectedFbPage,
-        ).fanCount >= MIN_FANS_PAGE)
+        && (isEnoughFans(settings.facebookPages.find(page => page.id === settings.selectedFbPage)))
           ? (
             <div className="row embed-group">
-              <Label className="cell" for="facebook-page-tab-input">
+              <label className="cell" htmlFor="facebook-page-tab-input">
                 Facebook Page tab name
-              </Label>
-              <Input
+              </label>
+              <input
                 id="facebook-page-tab-input"
                 className="cell facebook-page-tab"
                 type="text"
@@ -62,9 +59,9 @@ const FacebookPage = ({ settings, updateCampaign, provider }) => (
       }
     </div>
     {!settings.selectedFbPage
-    || (settings.facebookPages.find(
+    || (isEnoughFans(settings.facebookPages.find(
       page => page.id === settings.selectedFbPage,
-    ).fanCount < MIN_FANS_PAGE)
+    )))
       ? (
         <div className="warning">
           <strong>Warning! </strong>
