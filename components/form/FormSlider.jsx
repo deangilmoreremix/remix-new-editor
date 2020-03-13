@@ -4,12 +4,11 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
 import Input from '@material-ui/core/Input';
+import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
 
-const SLIDER_INPUT_STEP = 10;
-
-function FormSlider(props) {
+const FormSlider = props => {
   const {
     value,
     onChange,
@@ -17,7 +16,12 @@ function FormSlider(props) {
     sliderWidth,
     inputWidth,
     minValue,
-    maxValue
+    maxValue,
+    componentClasses: {
+      containerClass,
+      sliderClass,
+      inputClass,
+    },
   } = props;
 
   const useStyles = makeStyles({
@@ -52,13 +56,14 @@ function FormSlider(props) {
   };
 
   return (
-    <div className={classes.root}>
+    <div className={classnames(classes.root, containerClass)}>
       <Typography id="input-slider" gutterBottom>
         {label}
       </Typography>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs>
           <Slider
+            className={classnames(sliderClass)}
             value={value}
             onChange={handleSliderChange}
             aria-labelledby="input-slider"
@@ -67,13 +72,12 @@ function FormSlider(props) {
         </Grid>
         <Grid item>
           <Input
-            className={classes.input}
+            className={classnames(classes.input, inputClass)}
             value={value}
             margin="dense"
             onChange={handleInputChange}
             onBlur={handleBlur}
             inputProps={{
-              step: SLIDER_INPUT_STEP,
               min: minValue,
               max: maxValue,
               type: 'number',
@@ -94,12 +98,18 @@ FormSlider.propTypes = {
   inputWidth: PropTypes.number,
   minValue: PropTypes.number,
   maxValue: PropTypes.number,
+  componentClasses: PropTypes.objectOf(PropTypes.shape({
+    containerClass: PropTypes.string,
+    sliderClass: PropTypes.string,
+    inputClass: PropTypes.string,
+  }))
 };
 
 FormSlider.defaultProps = {
   label: '',
   maxValue: 100,
   minValue: 0,
+  componentClasses: {},
 };
 
 export default FormSlider;
