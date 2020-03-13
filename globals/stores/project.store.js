@@ -53,7 +53,6 @@ export default class ProjectStore extends BaseStore {
   addAsset = (asset) => {
     this.assets.push(asset);
   };
-  };
 
   @action
   save = async (project) => {
