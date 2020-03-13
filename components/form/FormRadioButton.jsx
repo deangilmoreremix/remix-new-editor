@@ -42,7 +42,7 @@ FormRadioButton.propTypes = {
   })).isRequired,
   groupName: PropTypes.string,
   onChange: PropTypes.func.isRequired,
-  value: PropTypes.string.isRequired,
+  value: PropTypes.string,
 };
 
 FormRadioButton.defaultProps = {
