@@ -110,6 +110,7 @@ FormSlider.defaultProps = {
   maxValue: 100,
   minValue: 0,
   componentClasses: {},
+  value: 0,
 };
 
 export default FormSlider;
