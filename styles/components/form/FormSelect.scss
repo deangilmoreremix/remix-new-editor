@@ -1,21 +1,21 @@
 .form-container {
 
   .form-select, .form-list {
-    color: $white !important;
+    color: $white;
   }
 
   .MuiSelect-icon {
-    color: $red !important;
+    color: $red;
   }
 
   .MuiOutlinedInput-notchedOutline {
-    border-color: $white !important;
+    border-color: $white;
     opacity: 0.3;
   }
 }
 
 .MuiPaper-root {
-  top: 13em !important;
+  top: 13em;
 
   ul {
     background: $dark-twinlight;
