@@ -31,6 +31,7 @@
     "babel-plugin-wrap-in-js": "1.1.1",
     "bluebird": "3.7.1",
     "bootstrap": "4.4.1",
+    "classnames": "2.2.6",
     "compression": "1.7.4",
     "cross-env": "7.0.0",
     "csurf": "1.11.0",
@@ -67,10 +68,11 @@
     "qrcode.react": "1.0.0",
     "react": "16.12.0",
     "react-async-hook": "3.6.1",
-    "react-avatar-editor": "12.0.0-beta.0",
     "react-bootstrap-maskedinput": "0.4.0",
+    "react-avatar-editor": "12.0.0-beta.0",
     "react-color": "2.18.0",
     "react-dom": "16.12.0",
+    "react-dropzone": "10.2.1",
     "react-popupbox": "2.0.8",
     "react-select": "3.0.8",
     "react-svg-inline": "2.1.1",
@@ -86,7 +88,8 @@
     "url": "0.11.0",
     "validator": "12.2.0",
     "webmaker-auth": "git://github.com/strategic-limited/webmaker-auth2#ba029fd7b9107044ffac02f114ecfec72147a794",
-    "webpack": "4.41.5"
+    "webpack": "4.41.5",
+    "chroma-js": "2.1.0"
   },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "7.8.3",

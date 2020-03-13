@@ -11,7 +11,16 @@ const defaultItem = {
 };
 
 export default class ProjectStore extends BaseStore {
-  @observable item = {};
+  constructor(props) {
+    super(props);
+    this.item = defaultItem;
+  }
+
+  @observable
+  assets = [];
+
+  @observable
+  item = {};
 
   @action
   getOne = async (projectId) => {
@@ -25,8 +34,7 @@ export default class ProjectStore extends BaseStore {
         path, {
           method: 'GET',
           headers: {
-            // todo update it. Implemented for testing until login
-            'on-behalf': '5a9007349ab52100041dac25',
+            'on-behalf': this.currentUser.id,
           },
         });
     } catch (e) {
@@ -39,6 +47,12 @@ export default class ProjectStore extends BaseStore {
   @action
   updateItem = (value) => {
     this.item = { ...this.item, ...value };
+  };
+
+  @action
+  addAsset = (asset) => {
+    this.assets.push(asset);
+  };
   };
 
   @action

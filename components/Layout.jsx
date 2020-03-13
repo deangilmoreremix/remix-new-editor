@@ -11,20 +11,20 @@ import ModalContainer from './common/ModalContainer';
 class Layout extends Component {
   static async getInitialProps({ query, req }, preloader) {
     const isServer = !!req;
-    const stores = await initCreateStores(isServer, query, req, preloader);
-    return { stores };
+    const data = await initCreateStores(isServer, query, req, preloader);
+    return { ...data };
   }
 
   constructor(props) {
     super(props);
-
-    this.stores = init(props.stores);
+    const data = init(props.creator);
+    this.stores = data.stores;
   }
 
   render() {
     const { children } = this.props;
     return (
-      <Provider {...this.stores} api={this.api}>
+      <Provider {...this.stores}>
         <Head>
           <title>New Video Editor</title>
         </Head>

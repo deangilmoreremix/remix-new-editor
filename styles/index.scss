@@ -4,8 +4,11 @@
 @import "variables";
 @import "mixins/index";
 
+@import "components/DropzoneArea";
 @import "components/Home";
 @import "components/Header";
+@import "components/Media";
+@import "components/MediaLibrary";
 @import "styles/components/common/Toolbar";
 @import "styles/components/form/elements";
 @import "styles/components/campaigns/index";

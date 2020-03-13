@@ -1,102 +1,65 @@
-import { action } from 'mobx';
 import BaseStore from './base.store';
-import requestCreator from '../../lib/requestCreator';
+import mediaConstants from '../../lib/constants/media';
 
 export default class Media extends BaseStore {
-  constructor({ request, common, isServer }) {
-    super({ request });
-    this.common = common;
-    this.selfRequest = requestCreator(common.self, null, isServer, () => {});
-
-    this.assetsRequest = requestCreator(
-      common.assetsPath,
-      this.authorization,
-      isServer,
-      () => {},
-    );
-  }
-
-  static ASSET_TYPES = {
-    VIDEOS: 'videos',
-    AUDIOS: 'audios',
-    IMAGES: 'images',
-  };
-
-  static ASSET_SCOPES = {
-    LIBRARY: 'LIBRARY',
-    UPLOADS: 'UPLOADS',
-  };
-
-  @action
-  async assets(assetScope, assetType, count = 0, query = '') {
+  getAssets = async (assetScope, assetType, count = 0, query = '') => {
     try {
-      if (assetScope === Media.ASSET_SCOPES.LIBRARY) {
-        let response = await this.assetsRequest(
-          `/${assetType}/index.json`, {
-            method: 'GET',
-          });
-        response.reverse();
-        if (query.length > 0) {
-          const lookup = new RegExp(`.*${query}.*`, 'i');
-          response = response.filter(
-            item => lookup.test(item.title) || (item.keywords && lookup.test(item.keywords)),
-          );
-        }
-        return response.slice(count, count + this.perPage);
-      } else {
-        const page = Math.ceil(count / this.perPage);
-        const mediaAssetKinds = {
-          [Media.ASSET_TYPES.AUDIOS]: 'audio',
-          [Media.ASSET_TYPES.VIDEOS]: 'video',
-        };
-        return this.request(
-          `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${this.perPage}&page=${page + 1}&q=${query}`, {
-            method: 'GET',
-            headers: {
-              'on-behalf': this.currentUser.id,
-            },
-          });
-      }
-    } catch (error) {
-      console.error(error);
+      const page = Math.ceil(count / this.perPage);
+      const mediaAssetKinds = {
+        [mediaConstants.ASSET_TYPES.AUDIOS]: mediaConstants.AUDIO,
+        [mediaConstants.VIDEOS]: mediaConstants.VIDEO,
+      };
+
+      await this.request(
+        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${this.perPage}&page=${page + 1}&q=${query}`,
+        {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+    } catch (e) {
+      console.error(e);
     }
-  }
+  };
 
-  @action
-  async mergeMedia(videoSrc, audioSrc) {
+  mergeMedia = async (videoSrc, audioSrc) => {
     try {
-      return this.selfRequest(
+      await this.selfRequest(
         '/api/media/join', {
           method: 'POST',
           body: { videoSrc, audioSrc },
         });
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
     }
-  }
+  };
 
-  async renameAsset(item, title) {
+  renameAsset = async (item, title) => {
     const { _id } = item;
-    await this.request(
-      `/api/users/me/media-assets/${_id}`, {
-        method: 'PATCH',
-        body: { title },
-        headers: {
-          'on-behalf': this.currentUser.id,
-        },
-      });
-    item.title = title;
-  }
+    try {
+      await this.request(
+        `/api/users/me/media-assets/${_id}`, {
+          method: 'PATCH',
+          body: { title },
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+      item.title = title;
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-  @action
-  async storeAsset(url, preview, type) {
+  storeAsset = async (url, preview, type) => {
     const mediaAssetKinds = {
-      [Media.ASSET_TYPES.AUDIOS]: 'audio',
-      [Media.ASSET_TYPES.VIDEOS]: 'video',
-      [Media.ASSET_TYPES.IMAGES]: 'image',
+      [mediaConstants.ASSET_TYPES.AUDIOS]: mediaConstants.AUDIO,
+      [mediaConstants.ASSET_TYPES.VIDEOS]: mediaConstants.VIDEO,
+      [mediaConstants.ASSET_TYPES.IMAGES]: mediaConstants.IMAGE,
     };
     try {
-      return await this.request(
+      await this.request(
         '/api/users/me/media-assets', {
           method: 'POST',
           headers: {
@@ -108,47 +71,41 @@ export default class Media extends BaseStore {
             kind: mediaAssetKinds[type],
           },
         });
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
     }
-  }
+  };
 
-  @action
-  uploadMedia = ({ data, preview }, onProgress = () => {}) => new Promise((resolve, reject) => {
-    if (typeof data === 'string') {
-      data = { [data.indexOf('data:') === 0 ? 'dataUri' : 'srcUrl']: data };
-    } else {
-      const fd = new FormData();
-      fd.append('media', data);
-      data = fd;
-    }
-    const xhr = new XMLHttpRequest();
-    if (onProgress) {
-      xhr.upload.onprogress = ({ loaded, total }) => {
-        onProgress(loaded / total);
-      };
-    }
-    xhr.open('PUT', `//${this.common.self}/api/media?${preview ? 'video_preview=true' : ''}`, true);
-    // If the data being sent is a plain object and isn't a FormData object, convert it to JSON
-    if (!(data instanceof FormData) && data === Object(data)) {
-      data = JSON.stringify(data);
-      xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
-    }
-    xhr.onload = () => {
-      if (onProgress) {
-        onProgress(1.0);
+  uploadMedia = async ({ data, preview }) => {
+    let asset;
+    try {
+      const headers = {};
+      let body;
+
+      if (typeof data === 'string') {
+        body = { [data.indexOf('data:') === 0 ? 'dataUri' : 'srcUrl']: data };
+      } else {
+        const fd = new FormData();
+        fd.append('media', data);
+        body = fd;
       }
-      if (xhr.status !== 200) {
-        console.log(xhr.responseText);
-        return reject(JSON.parse(xhr.responseText));
-        // return reject(new Error(`HTTP error ${xhr.status}.`));
+
+      if (!(body instanceof FormData) && body === Object(body)) {
+        body = JSON.stringify(body);
+        headers['Content-Type'] = 'application/json; charset=utf-8';
       }
-      try {
-        return resolve(JSON.parse(xhr.responseText));
-      } catch (err) {
-        return reject(err);
-      }
-    };
-    xhr.send(data);
-  });
+
+      asset = await this.selfRequest(
+        `/api/media${preview ? '?video_preview=true' : ''}`,
+        {
+          method: 'PUT',
+          headers,
+          body,
+        },
+      );
+    } catch (e) {
+      console.error(e);
+    }
+    return asset;
+  };
 }
