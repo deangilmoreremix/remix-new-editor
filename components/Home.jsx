@@ -44,16 +44,16 @@ const Home = observer(() => {
           <Row>
             <Col xs={6}>
               <Toolbar
-            items={toolbarItems({
-              actions: {
-                openModal,
-                closeModal,
-              },
-            })}
-          />
+                items={toolbarItems({
+                  actions: {
+                    openModal,
+                    closeModal,
+                  },
+                })}
+              />
             </Col>
             <Col xs={6}>
-          Hi!
+              Hi!
             </Col>
           </Row>
         </Col>
