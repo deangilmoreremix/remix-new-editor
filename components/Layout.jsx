@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { Provider } from 'mobx-react';
 import PropTypes from '../lib/PropTypes';
 
+import PopcornProxy from '../lib/PopcornProxy';
 import 'styles/index.scss';
 
 import { init, initCreateStores } from '../globals/storesCreator';
@@ -22,6 +23,9 @@ class Layout extends Component {
   }
 
   render() {
+    if (process.browser) {
+      PopcornProxy.init(window);
+    }
     const { children } = this.props;
     return (
       <Provider {...this.stores}>
