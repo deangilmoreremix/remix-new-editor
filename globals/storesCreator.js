@@ -2,8 +2,10 @@ import _ from 'lodash';
 import Cookies from 'js-cookie';
 import { observable } from 'mobx';
 
+import config from '../config/config';
 import requestCreator from '../lib/requestCreator';
 import ProjectStore from './stores/project.store';
+import MediaStore from './stores/media.store';
 import WhiteLabelManager from '../lib/white-label/manager';
 
 let creator = null;
@@ -127,8 +129,6 @@ export async function initCreateStores(isServer, source, req, preloader) {
     // eslint-disable-next-line global-require
     global.fetch = require('isomorphic-fetch');
     global.btoa = string => Buffer.from(string).toString('base64');
-    // eslint-disable-next-line global-require
-    const config = require('config/config');
     source.common = {
       hostname: req.hostname,
       backend: config.backend,
@@ -136,14 +136,24 @@ export async function initCreateStores(isServer, source, req, preloader) {
       intercom: config.intercom,
       clientId: config.client.id,
       clientSecret: config.client.secret,
+      assetsPath: config.assetsPath,
+      self: req.get && req.get('host'),
     };
   }
   if (isServer || !creator) {
     creator = new Creator(isServer, source, req);
     stores = {
-      common: source.common,
+      common: creator.common,
+      mediaStore: new MediaStore({
+        request: creator.request,
+        common: creator.common,
+        isServer,
+        currentUser: creator.currentUser,
+      }),
       projectStore: new ProjectStore({
         request: creator.request,
+        common: creator.common,
+        isServer,
         currentUser: creator.currentUser,
       }),
     };
@@ -160,11 +170,20 @@ export async function initCreateStores(isServer, source, req, preloader) {
 
 export function init(source) {
   if (!creator) {
+    const isServer = false;
     creator = new Creator(false, source);
     stores = {
       common: creator.common,
+      mediaStore: new MediaStore({
+        request: creator.request,
+        common: creator.common,
+        isServer,
+        currentUser: creator.currentUser,
+      }),
       projectStore: new ProjectStore({
         request: creator.request,
+        common: creator.common,
+        isServer,
         currentUser: creator.currentUser,
       }),
     };
