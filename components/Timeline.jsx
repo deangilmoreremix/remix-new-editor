@@ -58,8 +58,10 @@ const Timeline = observer(() => {
 
   return (
     <div>
+      <PlayButton />
+    <div style={{ width: '100%' }}>
       <Elements />
-      {/*<SortableList items={currentLayers} onSortEnd={onSortEnd} />*/}
+      {/* <SortableList items={currentLayers} onSortEnd={onSortEnd} /> */}
       {/* <div ref={ref} className="stager-wrapper"> */}
       {/* <div style={style} ref={wrapper} className="embed-wrapper"> */}
       {/* <div id="video-container" className="video-container"> */}
@@ -71,7 +73,9 @@ const Timeline = observer(() => {
       {/* </div> */}
       {/* </div> */}
       {/* </div> */}
-    </div>);
+    </div>
+    </div>
+      );
 });
 
 export default Timeline;

@@ -42,6 +42,11 @@ export default class ProjectStore extends BaseStore {
 
   @observable modified = false;
 
+  @observable duration = 0;
+
+  @observable
+  engines = [];
+
   @action
   setProjectData = () => {
     this.projectData = JSON.parse(this.item.project.data);
@@ -105,7 +110,7 @@ export default class ProjectStore extends BaseStore {
             type: currentTrackEvent.type,
             popcornOptions: currentTrackEvent.popcornOptions,
           });
-          if (currentTrack.type !== 'sequencer') {
+          if (currentTrackEvent.type !== 'sequencer') {
             layer.elements.push({
               type: currentTrackEvent.type,
               popcornOptions: currentTrackEvent.popcornOptions,
@@ -184,11 +189,7 @@ export default class ProjectStore extends BaseStore {
     this.popcorn = window.Popcorn.smart(target,
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
     this.attach(target);
-    // popcorn.seek = (at) => {
-    //   popcorn.currentTime(at + 0.01);
-    // };
-    // this.engines.push(popcorn);
-    // return popcorn;
+    this.engines.push(this.popcorn);
   }
 
   @action
@@ -199,14 +200,10 @@ export default class ProjectStore extends BaseStore {
     })[0];
 
     this.popcornObject.elements.forEach((element) => {
-      if (element.type === 'sequencer') {
-        if (element.type === 'sequencer') {
-          if (element.type === 'sequencer' && element.popcornOptions.source[0].split('|').length > 1) {
-            element.popcornOptions.source = [findMediaSource(
-              element.popcornOptions.source[0].split('|'), ['mp4', 'webm'],
-            )];
-          }
-        }
+      if (element.type === 'sequencer' && element.popcornOptions.source[0].split('|').length > 1) {
+        element.popcornOptions.source = [findMediaSource(
+          element.popcornOptions.source[0].split('|'), ['mp4', 'webm'],
+        )];
       }
       this.popcorn[element.type](target
         ? { ...element.popcornOptions, target }
