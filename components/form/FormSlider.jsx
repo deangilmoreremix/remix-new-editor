@@ -88,7 +88,7 @@ const FormSlider = props => {
       </Grid>
     </div>
   );
-}
+};
 
 FormSlider.propTypes = {
   value: PropTypes.number,
@@ -102,7 +102,7 @@ FormSlider.propTypes = {
     containerClass: PropTypes.string,
     sliderClass: PropTypes.string,
     inputClass: PropTypes.string,
-  }))
+  })),
 };
 
 FormSlider.defaultProps = {
