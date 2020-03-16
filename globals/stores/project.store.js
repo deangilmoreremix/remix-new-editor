@@ -16,7 +16,8 @@ export default class ProjectStore extends BaseStore {
     this.item = defaultItem;
   }
 
-  @observable item = {};
+  @observable
+  item = {};
 
   @action
   getOne = async (projectId) => {
@@ -43,5 +44,10 @@ export default class ProjectStore extends BaseStore {
   @action
   updateItem = (value) => {
     this.item = { ...this.item, ...value };
-  }
+  };
+
+  @action
+  addAsset = (asset) => {
+    this.assets.push(asset);
+  };
 }
