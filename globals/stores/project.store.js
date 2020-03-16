@@ -22,17 +22,17 @@ export default class ProjectStore extends BaseStore {
     this.item = defaultItem;
   }
 
-  @observable
-  assets = [];
+  @observable assets = [];
 
-  @observable
-  item = {};
+  @observable item = {};
 
   @observable projectData = {};
 
   @observable popcornObject = null;
 
   @observable popcorn = {};
+
+  @observable modified = false;
 
   @action
   setProjectData = () => {
@@ -165,6 +165,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   save = async () => {
+    // TODO: should be refactored in https://app.asana.com/0/1134020730337032/1154072706347831
     try {
       const path = this.item
         ? `/api/users/me/makes/${this.item._id}`
@@ -184,7 +185,7 @@ export default class ProjectStore extends BaseStore {
             remixedFrom: serializedProject.source,
           },
         });
-      this.item.modified = false;
+      this.modified = false;
       return this.item;
     } catch (e) {
       console.error(e);
