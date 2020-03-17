@@ -5,10 +5,12 @@ import { useAsync } from 'react-async-hook';
 import { Col, Container, Row } from 'reactstrap';
 
 import Header from './Header';
+import Canvas from './Canvas';
 import Toolbar from './common/toolbar/Toolbar';
 import useProjectStore from './hooks/useProjectStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
-import MediaContainer from './media/MediaContainer';
+
+import PlayButton from './common/timeline/PlayButton';
 
 
 const getOne = async (store, id) => {
@@ -34,15 +36,20 @@ const Home = observer(() => {
     <Container fluid className="home">
       <Header />
       <Row className="controls" noGutters>
-        <Col xs={4}>
-          <Toolbar items={toolbarItems} />
+        <Col xs={7}>
+          <Row>
+            <Col xs={6}>
+              <Toolbar items={toolbarItems} />
+            </Col>
+            <Col xs={6}>
+          Hi!
+            </Col>
+          </Row>
         </Col>
-        <Col xs={4}>
-          <MediaContainer />
+        <Col xs={5}>
+          <Canvas />
         </Col>
-        <Col xs={4}>
-          Hi again!
-        </Col>
+        <PlayButton />
       </Row>
       <Row className="timeline" noGutters />
     </Container>

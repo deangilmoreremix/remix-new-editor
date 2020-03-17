@@ -3,18 +3,11 @@ import SVGInline from 'react-svg-inline';
 import cn from 'classnames';
 import { useDropzone } from 'react-dropzone';
 
-// ASSETS
 import svgAudio from '../../public/static/images/media/icon-audio.svg';
 import svgVideo from '../../public/static/images/media/icon-video.svg';
 import svgImage from '../../public/static/images/media/icon-image.svg';
-
-// HOOKS
 import useMediaStore from '../hooks/useMediaStore';
-
-// TYPES
 import PropTypes from '../../lib/PropTypes';
-
-// CONSTANTS
 import mediaConstants from '../../lib/constants/media';
 
 const DropzoneArea = ({ onUploaded }) => {

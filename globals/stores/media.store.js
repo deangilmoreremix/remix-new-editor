@@ -77,6 +77,7 @@ export default class Media extends BaseStore {
   };
 
   uploadMedia = async ({ data, preview }) => {
+    let asset;
     try {
       const headers = {};
       let body;
@@ -94,7 +95,7 @@ export default class Media extends BaseStore {
         headers['Content-Type'] = 'application/json; charset=utf-8';
       }
 
-      await this.selfRequest(
+      asset = await this.selfRequest(
         `/api/media${preview ? '?video_preview=true' : ''}`,
         {
           method: 'PUT',
@@ -105,5 +106,6 @@ export default class Media extends BaseStore {
     } catch (e) {
       console.error(e);
     }
+    return asset;
   };
 }
