@@ -1,3 +1,4 @@
+// TODO: should be removed after a new component is created instead this one
 import React from 'react';
 import { Col, Label, FormGroup, Input } from 'reactstrap';
 import MaskedFormControl from 'react-bootstrap-maskedinput';
