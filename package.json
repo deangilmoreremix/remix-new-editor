@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "node runner.js",
     "build": "next build && next export",
-    "eslint": "eslint .",
+    "eslint": "eslint --ext .js,.jsx .",
     "export": "cross-env NODE_ENV=production next export",
     "postinstall": "npm run build",
     "start": "cross-env NODE_ENV=production node runner.js",
