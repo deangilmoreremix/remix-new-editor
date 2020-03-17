@@ -32,13 +32,6 @@ const FieldBuilder = (props) => {
             : inputs.text({ ...field, ...props, onChange: handleChange })
       }
 
-      {/* <input */}
-      {/*  type={type} */}
-      {/*  {...field} */}
-      {/*  placeholder={placeholder || field.name} */}
-      {/*  onChange={handleChange} */}
-      {/* /> */}
-
       {meta.touched && meta.error ? (
         <div className="field-error">{meta.error}</div>
       ) : null}

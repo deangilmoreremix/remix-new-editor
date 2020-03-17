@@ -17,19 +17,50 @@ const FormTesting = () => {
   };
 
   const onChange = (e) => {
-      console.log(e);
-  }
+    console.log(e);
+  };
+
+  const fields = [
+    {
+      type: 'text',
+      name: 'name',
+      onChange,
+      placeholder: 'Your name',
+    },
+    {
+      type: 'radio',
+      name: "Radio btns",
+      groupName: 'Radio btn for test',
+      onChange,
+      items: [
+        { label: 'first btn', position: 'start' },
+        { label: 'second btn', position: 'start' },
+      ],
+    },
+    {
+      type: 'color',
+      name: 'color',
+      onChange,
+      placeholder: 'Select item',
+    },
+    // {
+    //   type: 'select',
+    //   name: 'cars',
+    //   onChange,
+    //   items: [
+    //     {value: "BMW"},
+    //     {value: "MAZDA"}
+    //   ],
+    // },
+  ];
 
   return (
     <Formik {...formikSettings}>
       { formikProps => (
         <Form>
-          <FieldBuilder
-            name="name"
-            onChange={onChange}
-            placeholder={"Your name"}
-            type="text"
-          />
+          {
+            fields.map(field => <FieldBuilder {...field} />)
+          }
         </Form>
       )}
     </Formik>
