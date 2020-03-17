@@ -11,6 +11,7 @@ import useProjectStore from './hooks/useProjectStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import PlayButton from './common/timeline/PlayButton';
+import FormTesting from "./form/FormTesting";
 
 
 const getOne = async (store, id) => {
@@ -52,6 +53,7 @@ const Home = observer(() => {
         <PlayButton />
       </Row>
       <Row className="timeline" noGutters />
+      <FormTesting />
     </Container>
   );
 });
