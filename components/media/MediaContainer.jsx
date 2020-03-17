@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 
-// COMPONENTS
 import DropzoneArea from './DropzoneArea';
 import MediaLibrary from './MediaLibrary';
 
-// HOOKS
 import useProjectStore from '../hooks/useProjectStore';
 
 export default observer(() => {
