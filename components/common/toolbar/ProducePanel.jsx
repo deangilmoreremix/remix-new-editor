@@ -8,7 +8,7 @@ const ProducePanel = ({ items }) => {
   const [activeTab, setActiveTab] = React.useState(items[0].label);
 
   const activeTabItem = items.find(i => i.label === activeTab);
-  const Panel = activeTabItem.renderer;
+  const { renderer: Panel, items: panelItems = [] } = activeTabItem;
 
   return (
     <Container>
@@ -23,7 +23,7 @@ const ProducePanel = ({ items }) => {
           </button>
         ))}
       </div>
-      <Panel />
+      <Panel items={panelItems} />
     </Container>
   );
 };

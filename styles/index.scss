@@ -1,5 +1,5 @@
 @import "reset";
-@import "~bootstrap/scss/bootstrap-grid";
+@import "~bootstrap/scss/bootstrap";
 
 @import "variables";
 @import "mixins/index";
@@ -15,5 +15,7 @@
 @import "components/MediaLibrary";
 
 @import "styles/components/common/Toolbar";
+@import "styles/components/modals/SocialCampaignModal";
+@import "styles/components/campaigns/index";
 @import "styles/components/form/elements";
 @import "components/form/FormSelect";

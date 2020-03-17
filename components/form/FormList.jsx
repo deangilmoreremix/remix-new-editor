@@ -1,3 +1,4 @@
+// TODO: should be removed after a new component is created instead this one
 import React, { useState } from 'react';
 import { FormGroup, Label, Col, Button } from 'reactstrap';
 

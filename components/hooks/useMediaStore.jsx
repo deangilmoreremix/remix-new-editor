@@ -1,6 +1,6 @@
 import useStores from './useStores';
 
-export default function useMediaStore() {
+export default () => {
   const { mediaStore } = useStores();
   return mediaStore;
-}
+};
