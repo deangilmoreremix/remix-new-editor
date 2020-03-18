@@ -1,0 +1,157 @@
+.library-layout {
+  max-width: 508px;
+  height: 384px;
+  background: $light-twinlight;
+  padding: 21px 42px 28px 25px;
+  box-sizing: border-box;
+  font-family: "Proxima Nova", sans-serif;
+  color: #fff;
+
+  * {
+    box-sizing: border-box;
+    font-size: 14px;
+    line-height: 1;
+    color: #fff;
+  }
+
+  button {
+    outline: none;
+    background: none;
+    cursor: pointer;
+  }
+}
+
+.library-layout__title {
+  font-weight: bold;
+  margin-bottom: 0.96em;
+}
+
+// library-layout__row
+.library-layout__row {
+  display: flex;
+
+  &-first {
+    align-items: flex-end;
+    margin-bottom: 16.5px;
+  }
+
+  &>div:first-child {width: 151.5px}
+  &>div:last-child {flex: 1}
+}
+
+// library-layout__add
+.library-layout__add {
+  width: 124.4px;
+  border: 1px solid $red;
+  border-radius: 4px;
+  padding: 9.5px 0;
+}
+
+// library-layout__block-search
+.library-layout__block-search {
+  position: relative;
+}
+
+// library-layout__search
+.library-layout__search {
+  width: 100%;
+  display: block;
+  background: none;
+  border: none;
+  outline: none;
+  border-bottom: 1px solid $red;
+  padding: 4.5px 0;
+
+  &+label {
+    position: absolute;
+    bottom: 4.5px;
+    left: 0;
+    font-size: 10px;
+
+    span {
+      font-size: 10px;
+      color: $red;
+    }
+  }
+}
+
+
+// === library-layout__btns ===
+.library-layout__btns {
+  margin-top: 40px;
+}
+
+.library-layout__btn {
+  display: block;
+  max-width: 114px;
+  padding-left: 26px;
+  margin-bottom: 12.5px;
+  position: relative;
+  border: none;
+
+  svg {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+  }
+
+  &-active {
+    path {fill: $red;}
+    span {color: $red;}
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// ===== library-layout__images =====
+.library-layout__images {
+  height: 261px;
+  width: 288px;
+  overflow: hidden;
+  overflow-y: auto;
+  @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
+
+  &:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+.library-layout__image {
+  width: 78px;
+  height: 79px;
+  position: relative;
+  overflow: hidden;
+  background-color: #222228;
+  margin-right: 9px;
+  margin-bottom: 9px;
+  float: left;
+
+  img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateY(-50%) translateX(-50%);
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
