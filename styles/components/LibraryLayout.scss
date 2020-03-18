@@ -78,7 +78,12 @@
 
 // === library-layout__btns ===
 .library-layout__btns {
+  max-width: 123px;
+  max-height: 200px;
   margin-top: 40px;
+  overflow: hidden;
+  overflow-y: auto;
+  @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
 }
 
 .library-layout__btn {
