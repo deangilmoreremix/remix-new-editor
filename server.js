@@ -12,7 +12,7 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 const checkAccess = require('./lib/express/check-access');
-// const { processForm, isValidMedia, mediaUpload } = require('./lib/express/media-upload');
+const { processForm, isValidMedia, mediaUpload } = require('./lib/express/media-upload');
 // const { join } = require('./lib/express/video-processing');
 const getContentType = require('./lib/express/get-content-type');
 
@@ -35,7 +35,7 @@ app.prepare().then(() => {
   server.use(express.json({ limit: '10mb' }));
   server.use(express.urlencoded({ extended: true }));
   // server.post('/api/media/join', join);
-  // server.put('/api/media', processForm, isValidMedia, mediaUpload);
+  server.put('/api/media', processForm, isValidMedia, mediaUpload);
   server.get('/api/get-content-type', getContentType);
 
   if (!nakedRun) {

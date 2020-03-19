@@ -7,6 +7,7 @@ import PopcornProxy from '../lib/PopcornProxy';
 import 'styles/index.scss';
 
 import { init, initCreateStores } from '../globals/storesCreator';
+import ModalContainer from './common/ModalContainer';
 
 class Layout extends Component {
   static async getInitialProps({ query, req }, preloader) {
@@ -32,6 +33,7 @@ class Layout extends Component {
           <title>New Video Editor</title>
         </Head>
         <div {...this.props} className="main">
+          <ModalContainer />
           {children}
         </div>
       </Provider>
@@ -42,7 +44,7 @@ class Layout extends Component {
 Layout.propTypes = {
   children: PropTypes.element.isRequired,
   // eslint-disable-next-line react/forbid-prop-types
-  store: PropTypes.any,
+  stores: PropTypes.any,
 };
 
 export default Layout;

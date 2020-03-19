@@ -8,20 +8,25 @@ import useProjectStore from '../../hooks/useProjectStore';
 const PlayButton = observer(() => {
   const projectStore = useProjectStore();
   const { popcorn } = projectStore;
-  const [name, setName] = React.useState('play');
+  const [isPlaying, setIsPlaying] = React.useState(false);
 
   const play = () => {
     if (popcorn.media.paused) {
-      setName('pause');
+      setIsPlaying(true);
       popcorn.play();
     } else {
-      setName('play');
+      setIsPlaying(false);
       popcorn.pause();
     }
   };
 
   return (
-    <Button onClick={play} disabled={!popcorn || !popcorn.media}>{name}</Button>
+    <Button
+      onClick={play}
+      disabled={!popcorn || !popcorn.media}
+    >
+      {isPlaying ? 'pause' : 'play'}
+    </Button>
   );
 });
 

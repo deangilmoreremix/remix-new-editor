@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { Container } from 'reactstrap';
 import { observer } from 'mobx-react';
 
@@ -10,7 +10,8 @@ const Canvas = observer(() => {
 
   const [style, setStyle] = React.useState({});
 
-  const aspectRatio = width / height;
+  const aspectRatio = useMemo(() => width / height, [width, height]);
+
   const ref = useRef(null);
   const wrapper = useRef(null);
   const marginLeft = 20;

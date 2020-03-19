@@ -1,6 +1,6 @@
 import useStores from './useStores';
 
-export default function useProjectStore() {
+export default () => {
   const { projectStore } = useStores();
   return projectStore;
-}
+};

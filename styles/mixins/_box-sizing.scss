@@ -1,7 +1,0 @@
-@mixin box-sizing( $property ) {
-  // https://developer.mozilla.org/En/CSS/Box-sizing
-  -webkit-box-sizing: $property; // Chrome 10-
-  -moz-box-sizing: $property;
-  -ms-box-sizing: $property; // IE 8+
-  box-sizing: $property; // Opera, Safari 5.1+, Chrome 10+
-}

@@ -1,26 +1,26 @@
+// TODO: should be removed after a new component is created instead this one
 import React from 'react';
-import { Col, Label, FormGroup, Input } from 'reactstrap';
+import FormGroup from '@material-ui/core/FormGroup';
+import InputLabel from '@material-ui/core/InputLabel';
+import TextField from '@material-ui/core/TextField';
+import classnames from 'classnames';
 import MaskedFormControl from 'react-bootstrap-maskedinput';
 
 import PropTypes from '../../lib/PropTypes';
 
-
-export default function FormTextField(props) {
-  const {
-    type,
-    mask,
-    label,
-    onChange,
-    onEnter,
-    disabled,
-    labelCol,
-    className,
-    controlCol,
-    placeholder,
-    inline,
-    value,
-  } = props;
-
+export default function FormTextField({
+                                        type,
+                                        mask,
+                                        label,
+                                        onChange,
+                                        onEnter,
+                                        disabled,
+                                        inputClassName,
+                                        labelClassName,
+                                        className,
+                                        placeholder,
+                                        value,
+                                      }) {
   const conditionalProps = {};
 
   if (onEnter) {
@@ -35,53 +35,45 @@ export default function FormTextField(props) {
     onChange(v);
   };
 
-  const renderLabel = () => (<Label key="label-key" className="form-control-label">{label}</Label>);
-
-  const renderInputField = () => (mask
-    ? (
-      <MaskedFormControl
-        mask={mask}
-        key="masked-input-key"
-        id={label}
-        value={value}
-        className="form-control"
-        placeholder={placeholder}
-        onChange={onEdit}
-        type={type}
-        disabled={disabled}
-        {...conditionalProps}
-      />
-    )
-    : (
-      <Input
-        key="input-key"
-        id={label}
-        className="form-control"
-        value={value || ''}
-        placeholder={placeholder}
-        onChange={onEdit}
-        type={type}
-        disabled={disabled}
-        {...conditionalProps}
-      />
-    )
-  );
-
   return (
     <FormGroup
-      className={className}
+      className={classnames(className)}
     >
-      {inline
-        ? [
-          <Col {...labelCol} key="text-field-label">
-            {renderLabel()}
-          </Col>,
-          <Col {...controlCol} key="text-field-input">
-            {renderInputField()}
-          </Col>,
-        ]
-        : [renderLabel(), renderInputField()]
+      <InputLabel key="label-key" className={classnames('form-control-label', labelClassName)}>
+        {label}
+      </InputLabel>
+      {
+        mask
+          ? (
+            <MaskedFormControl
+              mask={mask}
+              key="masked-input-key"
+              id={label}
+              value={value}
+              className={classnames(inputClassName)}
+              placeholder={placeholder}
+              onChange={onEdit}
+              type={type}
+              disabled={disabled}
+              {...conditionalProps}
+            />
+          )
+          : (
+            <TextField
+              key="input-key"
+              id={label}
+              className={classnames(inputClassName,
+                type === 'input' && 'text-input'
+              )}
+              value={value || ''}
+              placeholder={placeholder}
+              onChange={onEdit}
+              type={type}
+              disabled={disabled}
+              {...conditionalProps}
+            />)
       }
+
     </FormGroup>
   );
 }
@@ -94,6 +86,8 @@ FormTextField.propTypes = {
   disabled: PropTypes.bool,
   inputType: PropTypes.string,
   className: PropTypes.string,
+  inputClassName: PropTypes.string,
+  labelClassName: PropTypes.string,
   inline: PropTypes.bool,
   placeholder: PropTypes.string,
   type: PropTypes.oneOf(['input', 'textarea', 'select']),
