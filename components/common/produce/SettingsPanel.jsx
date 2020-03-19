@@ -61,13 +61,13 @@ class SettingsPanel extends Component {
           label="Facebook"
           value={item.allowedSocials && item.allowedSocials.some(s => s === 'facebook')}
           onChange={this.updateSocials('facebook')}
-          floatClassName='float-left'
+          floatClassName="float-left"
         />
         <FormCheckboxField
           label="LinkedIn"
           value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
           onChange={this.updateSocials('linkedin')}
-          floatClassName='float-left'
+          floatClassName="float-left"
         />
       </Container>
       // todo implement image uploading

@@ -15,8 +15,8 @@ const FormCheckboxField = (props) => {
   };
 
   return (
-    <div className={classnames('checkbox-element',floatClassName)}>
-      <Button disableripple='true' onClick={onClick}>
+    <div className={classnames('checkbox-element', floatClassName)}>
+      <Button disableripple="true" onClick={onClick}>
         <InputLabel>
           {label}
         </InputLabel>
@@ -26,8 +26,8 @@ const FormCheckboxField = (props) => {
         checked={value}
         onChange={onClick}
         onClick={onClick}
-        disableripple='true'
-        classes={{ root: classnames('checkmark',value ? 'checked' : 'unchecked')}}
+        disableripple="true"
+        classes={{ root: classnames('checkmark', value ? 'checked' : 'unchecked') }}
       />
     </div>
   );
@@ -38,6 +38,7 @@ FormCheckboxField.propTypes = {
   value: PropTypes.bool,
   disabled: PropTypes.bool,
   label: PropTypes.string,
+  floatClassName: PropTypes.string,
 };
 
 FormCheckboxField.defaultProps = {
