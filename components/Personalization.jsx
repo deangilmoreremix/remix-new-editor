@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import classnames from 'classnames';
-import { systemDefaults, radioBtns } from '../lib/constants/implements_tokens';
+import { systemDefaults, radioBtns } from '../lib/constants/tokens';
 
 
-const ImplementsTokens = () => {
+const Personalization = () => {
   const [listItem, setListItem] = useState(systemDefaults[0]);
   const [radio, setRadio] = useState(radioBtns[0]);
   const [activeInput, setActiveInput] = useState(true);
@@ -80,4 +80,4 @@ const ImplementsTokens = () => {
   );
 };
 
-export default ImplementsTokens;
+export default Personalization;
