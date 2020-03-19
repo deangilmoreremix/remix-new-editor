@@ -1,4 +1,4 @@
-import { observable, action, computed } from 'mobx';
+import { observable, action, computed, when } from 'mobx';
 
 import BaseStore from './base.store';
 
@@ -24,13 +24,24 @@ export default class ProjectStore extends BaseStore {
   constructor(props) {
     super(props);
     this.item = defaultItem;
+    when(
+      () => this.popcorn && this.popcorn.on,
+      () => {
+        this.popcorn.on('canplayall', () => {
+          this.duration = this.popcorn.duration();
+          this.isLoaded = true;
+        });
+      },
+    );
   }
 
   @observable item = {};
 
+  @observable isLoaded = false;
+
   @observable projectData = {};
 
-  @observable layers = {};
+  @observable layers = [];
 
   @observable videoElements = [];
 
@@ -42,7 +53,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable modified = false;
 
-  @observable duration = 0;
+  @observable duration = 30;
 
   @observable
   engines = [];
@@ -64,6 +75,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   makeOut = () => {
+    const layers = [];
     this.audioElements = [];
     this.videoElements = [];
     this.projectData.media.forEach((currentMedia) => {
@@ -84,40 +96,29 @@ export default class ProjectStore extends BaseStore {
 
       currentMedia.tracks.forEach((currentTrack) => {
         const layer = {
-          name: currentTrack.name || `Layer ${currentTrack.id}`,
+          name: currentTrack.name,
+          defaultName: `Layer ${currentTrack.order}`,
           order: currentTrack.order,
           id: currentTrack.id,
         };
-        let isVideo;
-        let isAudio;
         currentTrack.trackEvents.forEach((currentTrackEvent) => {
           popcornData.elements.push({
             type: currentTrackEvent.type,
             popcornOptions: currentTrackEvent.popcornOptions,
+            order: layer.order,
             layerId: layer.id,
           });
-          if (currentTrackEvent.type === 'sequencer') {
-            if (this.isVideo(currentTrackEvent)) {
-              isVideo = true;
-              this.videoElements.push(currentTrackEvent.popcornOptions);
-            } else if (this.isAudio(currentTrackEvent)) {
-              isAudio = true;
-              this.audioElements.push(currentTrackEvent.popcornOptions);
-            }
-          }
         });
-        if (!isAudio && !isVideo) {
-          this.layers[layer.id] = layer;
-        }
+        layers.push(layer);
       });
+      this.sortLayers(layers);
       this.popcornObject = popcornData;
     });
   };
 
   @computed
   get elements() {
-    return (this.popcornObject && this.popcornObject.elements.filter(({ type }) => type !== 'sequencer')
-    ) || [];
+    return (this.popcornObject && this.popcornObject.elements) || [];
   }
 
   @action
@@ -129,11 +130,43 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  sortLayers = (items) => {
+    this.layers = (items || this.layers).sort((a, b) => a.order - b.order);
+  };
+
+  @action
+  updateOrders = (items) => {
+    this.layers = (items || this.layers).map((layer, index) => {
+      layer.order = index;
+      layer.defaultName = `Layer ${index}`;
+      this.popcornObject.elements = this.popcornObject.elements.map(element => {
+        if (element.layerId === layer.id) {
+          element.order = index;
+        }
+        return element;
+      });
+      return layer;
+    });
+  };
+
+  @action
   setLayer = (elementId, newLayerLevel) => {
-    const newLayer = Object.values(this.layers).find(layer => layer.order === newLayerLevel);
+    const newLayer = this.layers.find(layer => layer.order === newLayerLevel);
     this.popcornObject.elements = this.elements.map(element => {
       if (element.id === elementId) {
         element.layerId = newLayer.id;
+        element.order = newLayer.order;
+      }
+      return element;
+    });
+  };
+
+  @action
+  updateStartEnd = (elementId, start, end) => {
+    this.popcornObject.elements = this.elements.map(element => {
+      if (element.id === elementId) {
+        element.start = start;
+        element.end = end;
       }
       return element;
     });
@@ -185,9 +218,10 @@ export default class ProjectStore extends BaseStore {
 
     this.popcorn = window.Popcorn.smart(target,
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
+
     this.attach(target);
     this.engines.push(this.popcorn);
-  }
+  };
 
   @action
   attach = (target) => {

@@ -7,7 +7,7 @@ import ResponsiveGrid from '../../form/grids/ResponsiveGrid';
 
 const ms = 1000;
 
-const generateComponent = (options) => (
+const generateComponent = (options, cols) => (
   <div
     style={{ background: 'red' }}
     key={options.i}
@@ -16,6 +16,7 @@ const generateComponent = (options) => (
       minH: 1,
       maxH: 1,
       minW: ms,
+      maxW: cols - options.x,
       i: options.i,
       x: options.x,
       y: options.y,
@@ -26,14 +27,24 @@ const generateComponent = (options) => (
   </div>
 );
 
-const generateElements = (elements, layers) => {
+const generateElements = (elements, cols) => {
   const result = [];
   elements.forEach(element => {
-    const { popcornOptions: { id: i, start, end }, type } = element;
+    const { popcornOptions: { id: i, start, end }, type, order } = element;
     const x = start * ms;
     const w = (end - start) * ms;
-    const y = layers[element.layerId].order;
-    result.push({ i, x, w, h: 1, y, static: false, type });
+    result.push({
+      i,
+      x,
+      w,
+      h: 1,
+      y: order,
+      type,
+      minH: 1,
+      maxH: 1,
+      minW: ms,
+      maxW: cols - x,
+    });
   });
   return result;
 };
@@ -41,39 +52,34 @@ const generateElements = (elements, layers) => {
 const PopcornElements = observer(() => {
   const projectStore = useProjectStore();
   // todo for empty project
-  const { popcorn, layers, elements, setLayer } = projectStore;
-  const [duration, setDuration] = React.useState(30);
+  const { duration, layers, elements, setLayer, updateStartEnd } = projectStore;
 
   const cols = React.useMemo(() => duration * ms, [duration]);
 
   const layersCount = React.useMemo(() => _.size(layers), [layers]);
 
-  const layouts = React.useMemo(() => generateElements(elements, layers), [elements, layers]);
+  const layouts = React.useMemo(() => generateElements(elements, cols), [elements, cols]);
 
-  const components = React.useMemo(() => layouts.map((item) => generateComponent(item)), [layouts]);
-
-  if (!popcorn || !popcorn.on) {
-    return <div>Loading</div>;
-  }
-
-  popcorn.on('canplayall', () => {
-    console.info(`duration = ${popcorn.duration()}`);
-    const newDuration = popcorn.duration();
-    if (duration !== newDuration) {
-      setDuration(newDuration);
-    }
-  });
+  const components = React.useMemo(() => layouts.map((item) => generateComponent(item, cols)), [layouts, cols]);
 
   const onDragStop = (el, oldEl, newEl) => {
-    if (oldEl.y === newEl.y) {
-      return;
+    if (oldEl.y !== newEl.y) {
+      setLayer(oldEl.i, newEl.y);
     }
-    setLayer(oldEl.i, newEl.y)
-    debugger;
+    if (oldEl.x !== newEl.x) {
+      const start = newEl.x / ms;
+      updateStartEnd(oldEl.i, start, start + newEl.w / ms);
+    }
+  };
+  const onResizeStop = (el, oldEl, newEl) => {
+    if (oldEl.x !== newEl.x || oldEl.w !== newEl.w) {
+      const start = newEl.x / ms;
+      updateStartEnd(oldEl.i, start, start + newEl.w / ms);
+    }
   };
 
   return (
-    <div style={{ width: '80%', float: 'right' }}>
+    <div>
       <ResponsiveGrid
         cols={cols}
         rowHeight={30}
@@ -81,6 +87,7 @@ const PopcornElements = observer(() => {
         layouts={layouts}
         components={components}
         onDragStop={onDragStop}
+        onResizeStop={onResizeStop}
         width={1200}
         marginTop={5}
         marginLeft={1}

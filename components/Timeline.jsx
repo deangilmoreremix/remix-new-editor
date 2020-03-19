@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { SortableContainer, SortableElement } from 'react-sortable-hoc';
-import { Container } from 'reactstrap';
+import { Col, Container, Row } from 'reactstrap';
 import arrayMove from 'array-move';
 import { observer } from 'mobx-react';
 
@@ -14,7 +14,7 @@ const SortableItem = SortableElement(({ item }) => <Layer item={item} />);
 
 const SortableList = SortableContainer(({ items, className }) => (
   <ul className={className}>
-    {items.map((item, index) => (
+    {items.map((item) => (
       <SortableItem sortIndex={item.order} className="layer" key={`item-${item.id}`} index={item.order} item={item} />
     ))}
   </ul>
@@ -22,31 +22,19 @@ const SortableList = SortableContainer(({ items, className }) => (
 
 const Timeline = observer(() => {
   const projectStore = useProjectStore();
-  const { layers, videoElements, audioElements } = projectStore;
+  const { layers, isLoaded } = projectStore;
 
-  const [currentLayers, setCurrentLayers] = React.useState(Object.values(layers));
+  // const [currentLayers, setCurrentLayers] = React.useState(Object.values(layers));
 
   const onSortEnd = ({ oldIndex, newIndex }) => {
     if (oldIndex === newIndex) {
       return;
     }
-    setCurrentLayers(arrayMove(currentLayers, oldIndex, newIndex));
-    const newLayers = {};
-    currentLayers.forEach(item => {
-      if (item.order === oldIndex) {
-        item.order = newIndex;
-      } else if (item.order === newIndex) {
-        item.order = oldIndex;
-      }
-      newLayers[item.id] = item;
-    });
+    const newLayers = (arrayMove(layers, oldIndex, newIndex));
 
-    projectStore.setLayers(newLayers, true);
+    projectStore.updateOrders(newLayers);
   };
 
-  if (!currentLayers || currentLayers.length === 0) {
-    return;
-  }
   // const { item: { ratio: { width = 16, height = 9 } = {} } } = projectStore;
   //
   // const [style, setStyle] = React.useState({});
@@ -77,9 +65,11 @@ const Timeline = observer(() => {
     <div style={{ width: '100%' }}>
       <PlayButton />
       <div className="layers">
-        <SortableList className="layers-settings" items={currentLayers} onSortEnd={onSortEnd} />
-        <div className="elements">
-          <PopcornElements layers={currentLayers} />
+        <Col md={3}>
+          <SortableList className="layers-settings" items={layers} onSortEnd={onSortEnd} />
+        </Col>
+        <Col md={9} className="elements">
+          { isLoaded && <PopcornElements /> }
           {/* <div ref={ref} className="stager-wrapper"> */}
           {/* <div style={style} ref={wrapper} className="embed-wrapper"> */}
           {/* <div id="video-container" className="video-container"> */}
@@ -91,7 +81,7 @@ const Timeline = observer(() => {
           {/* </div> */}
           {/* </div> */}
           {/* </div> */}
-        </div>
+        </Col>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ const ResponsiveGrid = observer((props) => {
     maxRows,
     layouts,
     onDragStop,
+    onResizeStop,
     components,
     rowHeight,
     marginTop,
@@ -49,6 +50,7 @@ const ResponsiveGrid = observer((props) => {
 ResponsiveGrid.propTypes = {
   maxRows: PropTypes.number,
   onDragStop: PropTypes.func,
+  onResizeStop: PropTypes.func,
   marginTop: PropTypes.number,
   marginLeft: PropTypes.number,
   compactType: PropTypes.string,
@@ -73,6 +75,7 @@ ResponsiveGrid.defaultProps = {
   marginLeft: 10,
   compactType: null,
   onDragStop: () => {},
+  onResizeStop: () => {},
   preventCollision: true,
 };
 
