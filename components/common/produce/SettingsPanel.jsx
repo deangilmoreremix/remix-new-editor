@@ -37,17 +37,20 @@ class SettingsPanel extends Component {
           label="Title"
           onChange={this.update('title')}
           value={item.title}
+          labelClassName="label-top"
         />
         <FormTextField
           label="Description"
           value={item.description}
           onChange={this.update('description')}
           componentClass="textarea"
+          labelClassName="label-top"
         />
         <FormColor
           onChange={this.update('background')}
           value={item.background}
           label="Background Color"
+          labelClassName="label-top"
         />
         <FormList
           label="Tags"
@@ -58,11 +61,13 @@ class SettingsPanel extends Component {
           label="Facebook"
           value={item.allowedSocials && item.allowedSocials.some(s => s === 'facebook')}
           onChange={this.updateSocials('facebook')}
+          floatClassName="float-left"
         />
         <FormCheckboxField
           label="LinkedIn"
           value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
           onChange={this.updateSocials('linkedin')}
+          floatClassName="float-left"
         />
       </Container>
       // todo implement image uploading

@@ -46,7 +46,8 @@ const Canvas = observer(() => {
           </div>
         </div>
       </div>
-    </Container>);
+    </Container>
+  );
 });
 
 export default Canvas;

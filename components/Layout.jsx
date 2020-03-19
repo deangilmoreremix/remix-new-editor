@@ -45,6 +45,8 @@ Layout.propTypes = {
   children: PropTypes.element.isRequired,
   // eslint-disable-next-line react/forbid-prop-types
   stores: PropTypes.any,
+  // eslint-disable-next-line react/forbid-prop-types
+  creator: PropTypes.any,
 };
 
 export default Layout;

@@ -1,32 +1,34 @@
 // TODO: should be removed after a new component is created instead this one
 import React from 'react';
-import { Input } from 'reactstrap';
+import InputLabel from '@material-ui/core/InputLabel';
+import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
+import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
 
 const FormCheckboxField = (props) => {
-  const { onChange, value, disabled, label } = props;
+  const { onChange, value, disabled, label, floatClassName } = props;
 
   const onClick = () => {
     onChange(!value);
   };
 
   return (
-    <div>
-      <Input
-        type="checkbox"
+    <div className={classnames('checkbox-element', floatClassName)}>
+      <Button disableripple="true" onClick={onClick}>
+        <InputLabel>
+          {label}
+        </InputLabel>
+      </Button>
+      <Checkbox
         disabled={disabled}
         checked={value}
         onChange={onClick}
-      />
-      <div
         onClick={onClick}
-        role="button"
-        tabIndex="0"
-        onKeyDown={onClick}
-      >
-        {label}
-      </div>
+        disableripple="true"
+        classes={{ root: classnames('checkmark', value ? 'checked' : 'unchecked') }}
+      />
     </div>
   );
 };
@@ -36,6 +38,7 @@ FormCheckboxField.propTypes = {
   value: PropTypes.bool,
   disabled: PropTypes.bool,
   label: PropTypes.string,
+  floatClassName: PropTypes.string,
 };
 
 FormCheckboxField.defaultProps = {
