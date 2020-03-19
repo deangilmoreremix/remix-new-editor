@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import { systemDefaults, radioBtns } from '../lib/constants/implements_tokens';
 
 
-const ImplementsToken = () => {
+const ImplementsTokens = () => {
   const [listItem, setListItem] = useState(systemDefaults[0]);
   const [radio, setRadio] = useState(radioBtns[0]);
   const [activeInput, setActiveInput] = useState(true);
@@ -13,14 +13,15 @@ const ImplementsToken = () => {
 
   useEffect(() => {
     if (radio === radioBtns[1]) {
-      (async () => {
-        await setActiveInput(false);
-        await inputRef.current.focus();
-      })();
+      setActiveInput(false);
     } else {
       setActiveInput(true);
     }
   }, [radio]);
+
+  useEffect(() => {
+    if (!activeInput) inputRef.current.focus();
+  }, [activeInput]);
 
   const handleChangeListItem = value => () => setListItem(value);
 
@@ -79,4 +80,4 @@ const ImplementsToken = () => {
   );
 };
 
-export default ImplementsToken;
+export default ImplementsTokens;
