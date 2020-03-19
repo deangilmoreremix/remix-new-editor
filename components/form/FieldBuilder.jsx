@@ -1,36 +1,50 @@
 import React from 'react';
 import { useField } from 'formik';
 import PropTypes from '../../lib/PropTypes';
-// Inputs
+
 import FormColor from './FormColor';
 import FormRadioButton from './FormRadioButton';
 import FormTextField from './FormTextField';
 import FormSelect from './FormSelect';
+import FormList from './FormList';
+import FormCheckboxField from './FormCheckboxField';
+import FormSlider from './FormSlider';
 
 const inputs = {
-  text: FormTextField,
-  color: FormColor,
-  radio: FormRadioButton,
-  select: FormSelect
+  input: (props) => <FormTextField {...props} />,
+  color: (props) => <FormColor {...props} />,
+  radio: (props) => <FormRadioButton {...props} />,
+  select: (props) => <FormSelect {...props} />,
+  list: (props) => <FormList {...props} />,
+  checkbox: (props) => <FormCheckboxField {...props} />,
+  slider: (props) => <FormSlider {...props} />,
 };
 
-// ===== Component =====
 const FieldBuilder = (props) => {
-  const { type, onChange } = props;
+  const { type, onChange, name } = props;
   const [field, meta, helpers] = useField(props);
 
-  const handleChange = (value) => {
+  const handleChange = value => {
     helpers.setValue(value);
     onChange(value);
   };
 
+  const checkProps = (data) => {
+    if (!data.value) {
+      const newProps = data;
+      delete newProps.value;
+      return { ...newProps, onChange: handleChange, name };
+    } else {
+      return { ...data, onChange: handleChange, name };
+    }
+  };
 
   return (
     <div>
       {
           type
-            ? inputs[type]({ ...field, ...props, onChange: handleChange })
-            : inputs.text({ ...field, ...props, onChange: handleChange })
+            ? inputs[type](checkProps({ ...props, ...field }))
+            : inputs.input(checkProps({ ...props, ...field }))
       }
 
       {meta.touched && meta.error ? (
@@ -39,17 +53,11 @@ const FieldBuilder = (props) => {
     </div>
   );
 };
-// ===== Component =====
 
-// ===== PropTypes =====
 FieldBuilder.propTypes = {
   type: PropTypes.string,
-  placeholder: PropTypes.string,
   onChange: PropTypes.func,
-  value: PropTypes.bool,
-  disabled: PropTypes.bool,
-  required: PropTypes.bool,
+  name: PropTypes.string.isRequired,
 };
-// ===== PropTypes =====
 
 export default FieldBuilder;
