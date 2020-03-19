@@ -1,5 +1,10 @@
+// TODO: should be removed after a new component is created instead this one
 import React, { useState } from 'react';
-import { FormGroup, Label, Col, Button } from 'reactstrap';
+
+import Button from '@material-ui/core/Button';
+import Box from '@material-ui/core/Box';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormLabel from '@material-ui/core/FormLabel';
 
 import FormTextField from './FormTextField';
 
@@ -34,7 +39,7 @@ export default function FormList(props) {
 
   return (
     <FormGroup>
-      <Label key="label-key" className="form-control-label">{label}</Label>
+      <FormLabel key="label-key" className="form-control-label">{label}</FormLabel>
       <div key="multiselect-key">
         <div>
           <ul>
@@ -48,13 +53,13 @@ export default function FormList(props) {
           </ul>
         </div>
       </div>
-      <Col>
+      <Box>
         <FormTextField
           value={newValue}
           onEnter={onEnter}
           onChange={onEdit}
         />
-      </Col>
+      </Box>
     </FormGroup>
   );
 }
