@@ -1,5 +1,5 @@
 import React, {useState, useRef} from "react";
-import cn from 'classnames';
+import classnames from 'classnames';
 
 const systemDefaults = [
     'firstname',
@@ -13,23 +13,27 @@ const systemDefaults = [
     'custom'
 ];
 
-const radioBtns = ['Plain', 'Fallback value:' , 'UPPERCASE']
+const radioBtns = ['Plain', 'Fallback value:', 'UPPERCASE'];
 
 const ImplementsToken = () => {
     const [listItem, setListItem] = useState(systemDefaults[0]);
     const [radio, setRadio] = useState(radioBtns[0]);
     const [activeInput, setActiveInput] = useState(true);
-    const input = useRef(null);
+    const inputRef = useRef(null);
 
-    const hanbleChangeRadio = async(value) => {
+    const handleChangeRadio = value => async () => {
         setRadio(value);
         if (value === radioBtns[1]) {
             await setActiveInput(false);
-            await input.current.focus();
+            await inputRef.current.focus();
         } else {
             setActiveInput(true);
         }
     };
+
+    const handleChangeListItem = value => () => setListItem(value);
+
+    const onInputFocus = () => handleChangeRadio(radioBtns[1]);
 
     return (
         <div className="implements">
@@ -44,9 +48,9 @@ const ImplementsToken = () => {
                         {
                             systemDefaults.map(item => (
                                 <li
-                                    className={cn('implements__item', {'implements__item-active': listItem === item})}
+                                    className={classnames('implements__item', {'implements__item-active': listItem === item})}
                                     key={item}
-                                    onClick={() => setListItem(item)}
+                                    onClick={handleChangeListItem(item)}
                                 >
                                     {item}
                                 </li>
@@ -56,22 +60,22 @@ const ImplementsToken = () => {
 
                     <div className="implements__info">
                         <div>
-                            <p className="implements__name">{listItem ? listItem : ''}</p>
+                            <p className="implements__name">{listItem || ''}</p>
                             <ul>
                                 {
                                     radioBtns.map(item => (
                                         <li
-                                            className={cn('implements__item', {'implements__item-active': radio === item})}
+                                            className={classnames('implements__item', {'implements__item-active': radio === item})}
                                             key={item}
-                                            onClick={() => hanbleChangeRadio(item)}
+                                            onClick={handleChangeRadio(item)}
                                         >
                                             {item}
                                         </li>
                                     ))
                                 }
                             </ul>
-                            <div className='implements__block-input' onClick={() => hanbleChangeRadio(radioBtns[1])}>
-                                <input className="implements__input" type="text" disabled={activeInput} ref={input} />
+                            <div className='implements__block-input' onClick={onInputFocus}>
+                                <input className="implements__input" type="text" disabled={activeInput} ref={inputRef} />
                             </div>
                         </div>
                         <button className='implements__add'>add</button>
