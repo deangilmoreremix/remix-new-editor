@@ -1,6 +1,7 @@
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import PropTypes from '../../lib/PropTypes';
+
+import PropTypes from '../../../lib/PropTypes';
 
 const Images = ({ images }) => (
   <div className="library-layout__images">

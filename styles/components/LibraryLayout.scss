@@ -1,15 +1,17 @@
 .library-layout {
-  max-width: 508px;
-  height: 384px;
+  max-width: 31.75rem;
+  height: 24rem;
   background: $light-twinlight;
-  padding: 21px 42px 28px 25px;
+  padding: 1.31rem 2.62rem 1.75rem 1.56rem;
   box-sizing: border-box;
-  font-family: "Proxima Nova", sans-serif;
+  font-family: $font-primary;
   color: #fff;
+  position: relative;
+  z-index: 1;
 
   * {
     box-sizing: border-box;
-    font-size: 14px;
+    font-size: 0.875rem;
     line-height: 1;
     color: #fff;
   }
@@ -23,16 +25,16 @@
 
 .library-layout__title {
   font-weight: bold;
-  margin-bottom: 0.96em;
+  margin-bottom: 1em;
 }
 
-// library-layout__row
+
 .library-layout__row {
   display: flex;
 
   &-first {
     align-items: flex-end;
-    margin-bottom: 16.5px;
+    margin-bottom: 1.18em;
   }
 
   &>div:first-child {width: 151.5px}
@@ -41,10 +43,10 @@
 
 // library-layout__add
 .library-layout__add {
-  width: 124.4px;
+  width: 8.88em;
   border: 1px solid $red;
   border-radius: 4px;
-  padding: 9.5px 0;
+  padding: 0.67em 0;
 }
 
 // library-layout__block-search
@@ -66,17 +68,16 @@
     position: absolute;
     bottom: 4.5px;
     left: 0;
-    font-size: 10px;
+    font-size: 0.7em;
 
     span {
-      font-size: 10px;
+      font-size: 0.7em;
       color: $red;
     }
   }
 }
 
 
-// === library-layout__btns ===
 .library-layout__btns {
   max-width: 123px;
   max-height: 200px;
@@ -87,7 +88,8 @@
 }
 
 .library-layout__btn {
-  display: block;
+  display: flex;
+  align-items: center;
   max-width: 114px;
   padding-left: 26px;
   margin-bottom: 12.5px;
@@ -99,11 +101,17 @@
     top: 50%;
     left: 0;
     transform: translateY(-50%);
+    max-width: 16.5px;
+    max-height: 12.3px;
+  }
+
+  p {
+    margin-bottom: 0;
   }
 
   &-active {
     path {fill: $red;}
-    span {color: $red;}
+    p {color: $red;}
   }
 
   &:last-child {
@@ -117,7 +125,7 @@
   width: 288px;
   overflow: hidden;
   overflow-y: auto;
-  @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
+  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
 
   &:after {
     content: "";
@@ -131,7 +139,7 @@
   height: 79px;
   position: relative;
   overflow: hidden;
-  background-color: #222228;
+  background-color: $canvas-bg;
   margin-right: 9px;
   margin-bottom: 9px;
   float: left;
@@ -145,18 +153,3 @@
     max-height: 100%;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
