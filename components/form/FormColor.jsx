@@ -1,34 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { HuePicker } from 'react-color';
-import { Col, Label, FormGroup } from 'reactstrap';
+import React, { useState, useEffect, Component } from 'react';
+import FormGroup from '@material-ui/core/FormGroup';
+import FormLabel from '@material-ui/core/FormLabel';
+import Box from '@material-ui/core/Box';
+import { BlockPicker } from 'react-color';
+import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
+import FormTextField from './FormTextField';
 
 
-export default function FormColor(props) {
-  const {
-    label,
-    onChange,
-    value: color,
-  } = props;
+const FormColor = ({label, onChange,value:color}) => {
 
+   const [showPicker, togglePicker] = useState(false);
 
-  const updateColor = (res) => {
-    onChange(res.hex);
-  };
-  return (
-    <FormGroup>
-      <Col><Label key="label-key" className="form-control-label">{label}</Label></Col>
-      <Col>
-        <HuePicker
-          color={color}
-          onChangeComplete={updateColor}
-        />
-      </Col>
-    </FormGroup>
-  );
-}
+   const colorPrimary = '#EB5054';
 
+   const updateColor = (res) => {
+     onChange(res.hex || res || colorPrimary);
+   };
+   const pickerClick = () => {
+     togglePicker(!showPicker);
+   };
+
+     return (
+       <FormGroup>
+         <Box><FormLabel key="label-key" className="form-control-label">{label}</FormLabel></Box>
+         <Box>
+           <FormTextField
+             labelClass='label-left'
+             value={color || colorPrimary}
+             onChange={updateColor}
+           />
+           <button onClick={pickerClick} className={ classnames('color-element',{'close-color-picker':showPicker})}
+                style={{ backgroundColor: color || colorPrimary }}/>
+           {showPicker && <BlockPicker onChange={updateColor} color={color}/>  }
+         </Box>
+       </FormGroup>
+     );
+
+ }
 FormColor.propTypes = {
   onChange: PropTypes.func,
   label: PropTypes.string,
@@ -38,3 +48,5 @@ FormColor.propTypes = {
 FormColor.defaultProps = {
   onChange: () => {},
 };
+
+export default FormColor

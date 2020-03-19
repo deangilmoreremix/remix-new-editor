@@ -7,7 +7,10 @@ import { Col, Container, Row } from 'reactstrap';
 import Header from './Header';
 import Canvas from './Canvas';
 import Toolbar from './common/toolbar/Toolbar';
+
 import useProjectStore from './hooks/useProjectStore';
+import useModalStore from './hooks/useModalStore';
+
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import PlayButton from './common/timeline/PlayButton';
@@ -20,6 +23,8 @@ const getOne = async (store, id) => {
 const Home = observer(() => {
   const { query: { project } } = useRouter();
   const projectStore = useProjectStore();
+  const { openModal, closeModal } = useModalStore();
+
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
   if (asyncHero.loading) {
@@ -39,10 +44,17 @@ const Home = observer(() => {
         <Col xs={7}>
           <Row>
             <Col xs={6}>
-              <Toolbar items={toolbarItems} />
+              <Toolbar
+                items={toolbarItems({
+                  actions: {
+                    openModal,
+                    closeModal,
+                  },
+                })}
+              />
             </Col>
             <Col xs={6}>
-          Hi!
+              Hi!
             </Col>
           </Row>
         </Col>

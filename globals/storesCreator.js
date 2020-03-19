@@ -5,6 +5,7 @@ import { observable } from 'mobx';
 import config from '../config/config';
 import requestCreator from '../lib/requestCreator';
 import ProjectStore from './stores/project.store';
+import ModalStore from './stores/modal.store';
 import MediaStore from './stores/media.store';
 import WhiteLabelManager from '../lib/white-label/manager';
 
@@ -24,6 +25,7 @@ class Creator {
     backend: null,
     clientId: null,
     hostname: null,
+    cdnHostname: config.s3.cdn,
     clientSecret: null,
   };
 
@@ -129,6 +131,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
     // eslint-disable-next-line global-require
     global.fetch = require('isomorphic-fetch');
     global.btoa = string => Buffer.from(string).toString('base64');
+
     source.common = {
       hostname: req.hostname,
       backend: config.backend,
@@ -138,8 +141,12 @@ export async function initCreateStores(isServer, source, req, preloader) {
       clientSecret: config.client.secret,
       assetsPath: config.assetsPath,
       self: req.get && req.get('host'),
+      cdnHostname: config.s3.cdn,
+      facebookAppId: config.facebookAppId,
+      linkedinAppId: config.linkedinAppId,
     };
   }
+
   if (isServer || !creator) {
     creator = new Creator(isServer, source, req);
     stores = {
@@ -156,6 +163,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
         isServer,
         currentUser: creator.currentUser,
       }),
+      modalStore: ModalStore(),
     };
   }
   if (preloader) {
@@ -174,6 +182,7 @@ export function init(source) {
     creator = new Creator(false, source);
     stores = {
       common: creator.common,
+      modalStore: ModalStore(),
       mediaStore: new MediaStore({
         request: creator.request,
         common: creator.common,
