@@ -21,9 +21,8 @@ const getOne = async (store, id) => {
 
 const Home = observer(() => {
   const { query: { project } } = useRouter();
-  const projectStore = useProjectStore();
   const { openModal, closeModal } = useModalStore();
-
+  const projectStore = useProjectStore();
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
   if (asyncHero.loading) {

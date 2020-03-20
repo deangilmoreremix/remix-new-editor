@@ -27,6 +27,7 @@ class SelectFormGroup extends Component {
         label,
         handler,
         hint,
+        placeholder,
         ...restProps
       } = this.props;
       const listInput = list.map(Item => ({
@@ -44,7 +45,7 @@ class SelectFormGroup extends Component {
             type={inputType}
             name={name}
             noResultsText="This is not found..."
-            placeholder={label}
+            placeholder={placeholder || label}
             value={value}
             resetValue={this.handleChange}
             onChange={this.handleChange}
