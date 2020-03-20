@@ -1,29 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
 import classnames from 'classnames';
-import { systemDefaults, radioBtns } from '../lib/constants/tokens';
 
+import { tokens, tokenModes } from '../lib/constants/tokens';
 
 const Personalization = () => {
-  const [listItem, setListItem] = useState(systemDefaults[0]);
-  const [radio, setRadio] = useState(radioBtns[0]);
-  const [activeInput, setActiveInput] = useState(true);
+  const [token, setToken] = useState(tokens[0]);
+  const [tokenState, setTokenState] = useState(tokenModes[0]);
+  const [disabled, setDisabled] = useState(true);
   const inputRef = useRef(null);
 
-  const handleChangeRadio = value => () => setRadio(value);
-
   useEffect(() => {
-    if (radio === radioBtns[1]) {
-      setActiveInput(false);
+    if (tokenState === tokenModes[1]) {
+      setDisabled(false);
     } else {
-      setActiveInput(true);
+      setDisabled(true);
     }
-  }, [radio]);
+  }, [tokenState]);
 
   useEffect(() => {
-    if (!activeInput) inputRef.current.focus();
-  }, [activeInput]);
+    if (!disabled) inputRef.current.focus();
+  }, [disabled]);
 
-  const handleChangeListItem = value => () => setListItem(value);
+  const handleChangeListItem = value => () => setToken(value);
 
   return (
     <div className="implements">
@@ -36,10 +34,10 @@ const Personalization = () => {
         <div className="implements__body">
           <div className="implements__list">
             {
-              systemDefaults.map((item, i) => (
+              tokens.map((item, i) => (
                 <button
                   type="button"
-                  className={classnames('implements__item', { 'implements__item-active': listItem === item })}
+                  className={classnames('implements__item', { 'implements__item-active': token === item })}
                   key={item}
                   tabIndex={i}
                   onClick={handleChangeListItem(item)}
@@ -52,16 +50,16 @@ const Personalization = () => {
 
           <div className="implements__info">
             <div>
-              <p className="implements__name">{listItem || ''}</p>
+              <p className="implements__name">{token || ''}</p>
               <div>
                 {
-                  radioBtns.map((item, i) => (
+                  tokenModes.map((item, i) => (
                     <button
                       type="button"
-                      className={classnames('implements__item', { 'implements__item-active': radio === item })}
+                      className={classnames('implements__item', { 'implements__item-active': tokenState === item })}
                       key={item}
                       tabIndex={i}
-                      onClick={handleChangeRadio(item)}
+                      onClick={() => setTokenState(item)}
                     >
                       {item}
                     </button>
@@ -69,7 +67,7 @@ const Personalization = () => {
                 }
               </div>
               <div>
-                <input className="implements__input" type="text" disabled={activeInput} ref={inputRef} />
+                <input className="implements__input" type="text" disabled={disabled} ref={inputRef} />
               </div>
             </div>
             <button className="implements__add" type="button">add</button>
