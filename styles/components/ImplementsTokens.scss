@@ -7,11 +7,11 @@
   transform: translateY(-50%) translateX(-50%);
   z-index: 100;
   background: rgba(0, 0, 0, 0.7);
+  font: 0.875rem $font-primary;
+  color: #343a40;
 
-  * {
-    font-size: 0.875rem;
+  button, input {
     font-family: $font-primary;
-    box-sizing: border-box;
   }
 }
 
@@ -19,8 +19,8 @@
   display: flex;
   flex-direction: column;
   width: 95%;
-  max-width: 648px;
-  height: 369px;
+  max-width: 46em;
+  height: 26.4em;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -33,8 +33,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 18px;
-  color: #343a40;
+  font-size: 1.3em;
   padding: 9px 15px;
   border-bottom: 1px #ccc solid;
   line-height: 1;
@@ -45,7 +44,7 @@
   border: none;
   outline: none;
   background: none;
-  font-size: 18px;
+  font-size: 1.1em;
   opacity: 0.5;
   transition: 0.3s all;
 
@@ -62,20 +61,20 @@
 }
 
 .implements__list {
+  @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
   width: 25%;
-  min-width: 155px;
-  max-height: 297px;
+  min-width: 11em;
+  max-height: 21em;
   overflow: hidden;
   overflow-y: auto;
   border-right: 1px #ccc solid;
-  @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
 }
 
 .implements__item {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 0.7em;
   position: relative;
-  padding-left: 15px;
+  padding-left: 1.1em;
   cursor: pointer;
   border: none;
   outline: none;
@@ -87,8 +86,8 @@
 
   &:before {
     content: "";
-    width: 10px;
-    height: 10px;
+    width: 0.7em;
+    height: 0.7em;
     position: absolute;
     top: 50%;
     left: 0;
@@ -111,7 +110,6 @@
   text-transform: uppercase;
 }
 
-// implements__info
 .implements__info {
   display: flex;
   flex-direction: column;
@@ -123,25 +121,19 @@
 .implements__name {
   text-transform: uppercase;
   border-bottom: 1px #ccc solid;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
+  padding-bottom: 0.7em;
+  margin-bottom: 0.7em;
 }
 
-//implements__block-input
-.implements__block-input {
-  margin: 10px 0;
-}
-
-// implements__input
 .implements__input {
   display: block;
   width: 100%;
   outline: none;
   padding: 5px;
   border: 1px solid #888898;
+  margin: 0.7em 0;
 }
 
-// implements__add
 .implements__add {
   border: none;
   outline: none;
@@ -150,6 +142,6 @@
   text-transform: uppercase;
   border-radius: 3px;
   padding: 5px;
-  width: 100px;
+  width: 7em;
   align-self: flex-end;
 }

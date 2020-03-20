@@ -5,12 +5,12 @@ import { tokens, tokenModes } from '../lib/constants/tokens';
 
 const Personalization = () => {
   const [token, setToken] = useState(tokens[0]);
-  const [tokenState, setTokenState] = useState(tokenModes[0]);
+  const [tokenState, setTokenState] = useState(tokenModes.plain);
   const [disabled, setDisabled] = useState(true);
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if (tokenState === tokenModes[1]) {
+    if (tokenState === tokenModes.fallbackValue) {
       setDisabled(false);
     } else {
       setDisabled(true);
@@ -18,7 +18,9 @@ const Personalization = () => {
   }, [tokenState]);
 
   useEffect(() => {
-    if (!disabled) inputRef.current.focus();
+    if (!disabled) {
+      inputRef.current.focus();
+    }
   }, [disabled]);
 
   const handleChangeListItem = value => () => setToken(value);
@@ -53,22 +55,20 @@ const Personalization = () => {
               <p className="implements__name">{token || ''}</p>
               <div>
                 {
-                  tokenModes.map((item, i) => (
+                  Object.keys(tokenModes).map((item, i) => (
                     <button
                       type="button"
-                      className={classnames('implements__item', { 'implements__item-active': tokenState === item })}
-                      key={item}
+                      className={classnames('implements__item', { 'implements__item-active': tokenState === tokenModes[item] })}
+                      key={tokenModes[item]}
                       tabIndex={i}
-                      onClick={() => setTokenState(item)}
+                      onClick={() => setTokenState(tokenModes[item])}
                     >
-                      {item}
+                      {tokenModes[item]}
                     </button>
                   ))
                 }
               </div>
-              <div>
-                <input className="implements__input" type="text" disabled={disabled} ref={inputRef} />
-              </div>
+              <input className="implements__input" type="text" disabled={disabled} ref={inputRef} />
             </div>
             <button className="implements__add" type="button">add</button>
           </div>
