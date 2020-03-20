@@ -11,17 +11,17 @@ import FormCheckboxField from './FormCheckboxField';
 import FormSlider from './FormSlider';
 
 const inputs = {
-  input: (props) => <FormTextField {...props} />,
-  color: (props) => <FormColor {...props} />,
-  radio: (props) => <FormRadioButton {...props} />,
-  select: (props) => <FormSelect {...props} />,
-  list: (props) => <FormList {...props} />,
-  checkbox: (props) => <FormCheckboxField {...props} />,
-  slider: (props) => <FormSlider {...props} />,
+  input: FormTextField,
+  color: FormColor,
+  radio: FormRadioButton,
+  select: FormSelect,
+  list: FormList,
+  checkbox: FormCheckboxField,
+  slider: FormSlider,
 };
 
 const FieldBuilder = (props) => {
-  const { type, onChange, name } = props;
+  const { type, onChange } = props;
   const [field, meta, helpers] = useField(props);
 
   const handleChange = value => {
@@ -29,28 +29,10 @@ const FieldBuilder = (props) => {
     onChange(value);
   };
 
-  const checkProps = (data) => {
-    if (!data.value) {
-      const newProps = data;
-      delete newProps.value;
-      return { ...newProps, onChange: handleChange, name };
-    } else {
-      return { ...data, onChange: handleChange, name };
-    }
-  };
+  const InputComponent = inputs[type];
 
   return (
-    <div>
-      {
-          type
-            ? inputs[type](checkProps({ ...props, ...field }))
-            : inputs.input(checkProps({ ...props, ...field }))
-      }
-
-      {meta.touched && meta.error ? (
-        <div className="field-error">{meta.error}</div>
-      ) : null}
-    </div>
+    <InputComponent {...props} {...field} {...meta} onChange={handleChange} />
   );
 };
 
