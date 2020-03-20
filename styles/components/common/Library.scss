@@ -15,12 +15,6 @@
     line-height: 1;
     color: #fff;
   }
-
-  button {
-    outline: none;
-    background: none;
-    cursor: pointer;
-  }
 }
 
 .library-layout__title {
@@ -37,12 +31,18 @@
     margin-bottom: 1.18em;
   }
 
-  &>div:first-child {width: 151.5px}
-  &>div:last-child {flex: 1}
+  &>div:first-child {
+    width: 10.8em
+  }
+
+  &>div:last-child {
+    flex: 1
+  }
 }
 
 // library-layout__add
 .library-layout__add {
+  @include reset-button;
   width: 8.88em;
   border: 1px solid $red;
   border-radius: 4px;
@@ -62,11 +62,11 @@
   border: none;
   outline: none;
   border-bottom: 1px solid $red;
-  padding: 4.5px 0;
+  padding: 0.3em 0;
 
   &+label {
     position: absolute;
-    bottom: 4.5px;
+    bottom: 0.3em;
     left: 0;
     font-size: 0.7em;
 
@@ -79,30 +79,32 @@
 
 
 .library-layout__btns {
-  max-width: 123px;
-  max-height: 200px;
-  margin-top: 40px;
+  @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
+  max-width: 8.8em;
+  max-height: 14.3em;
+  margin-top: 2.85em;
   overflow: hidden;
   overflow-y: auto;
-  @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
 }
 
 .library-layout__btn {
   display: flex;
   align-items: center;
-  max-width: 114px;
-  padding-left: 26px;
-  margin-bottom: 12.5px;
+  max-width: 8.14em;
+  padding-left: 1.86em;
+  margin-bottom: 0.9em;
   position: relative;
   border: none;
+  background: none;
+  outline: none !important;
 
   svg {
     position: absolute;
     top: 50%;
     left: 0;
     transform: translateY(-50%);
-    max-width: 16.5px;
-    max-height: 12.3px;
+    max-width: 1.18em;
+    max-height: 0.88em;
   }
 
   p {
@@ -110,8 +112,13 @@
   }
 
   &-active {
-    path {fill: $red;}
-    p {color: $red;}
+    path {
+      fill: $red;
+    }
+
+    p {
+      color: $red;
+    }
   }
 
   &:last-child {
@@ -121,34 +128,29 @@
 
 // ===== library-layout__images =====
 .library-layout__images {
-  height: 261px;
-  width: 288px;
+  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+  display: flex;
+  flex-wrap: wrap;
+  height: 18.64em;
   overflow: hidden;
   overflow-y: auto;
-  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
-
-  &:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
 }
 
 .library-layout__image {
-  width: 78px;
-  height: 79px;
+  @include reset-button;
+  width: 5.58em;
+  height: 5.58em;
   position: relative;
   overflow: hidden;
   background-color: $canvas-bg;
-  margin-right: 9px;
-  margin-bottom: 9px;
-  float: left;
+  margin-right: 0.64em;
+  margin-bottom: 0.64em;
 
   img {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translateY(-50%) translateX(-50%);
+    transform: translate(-50%, -50%);
     max-width: 100%;
     max-height: 100%;
   }
