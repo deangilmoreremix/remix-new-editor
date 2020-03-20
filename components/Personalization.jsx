@@ -44,7 +44,7 @@ const Personalization = () => {
                   tabIndex={i}
                   onClick={handleChangeListItem(item)}
                 >
-                  {item}
+                  { item }
                 </button>
               ))
             }
