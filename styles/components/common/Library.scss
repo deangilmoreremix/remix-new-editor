@@ -5,14 +5,13 @@
   padding: 1.31rem 2.62rem 1.75rem 1.56rem;
   box-sizing: border-box;
   font-family: $font-primary;
-  color: #fff;
   position: relative;
   z-index: 1;
+  font-size: 0.875rem;
+  line-height: 1;
+  color: #fff;
 
-  * {
-    box-sizing: border-box;
-    font-size: 0.875rem;
-    line-height: 1;
+  button, input {
     color: #fff;
   }
 }
@@ -40,7 +39,6 @@
   }
 }
 
-// library-layout__add
 .library-layout__add {
   @include reset-button;
   width: 8.88em;
@@ -49,12 +47,10 @@
   padding: 0.67em 0;
 }
 
-// library-layout__block-search
 .library-layout__block-search {
   position: relative;
 }
 
-// library-layout__search
 .library-layout__search {
   width: 100%;
   display: block;
@@ -63,6 +59,10 @@
   outline: none;
   border-bottom: 1px solid $red;
   padding: 0.3em 0;
+
+  &:focus ~ label {
+    display: none;
+  }
 
   &+label {
     position: absolute;

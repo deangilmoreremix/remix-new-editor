@@ -1,24 +1,13 @@
 import React, { useState } from 'react';
 
-import ImageProviderList from './libraryes/ImageProviderList';
-import LibraryContent from './libraryes/LibraryContent';
+import ImageProviderList from '../common/libraryes/ImageProviderList';
+import LibraryContent from '../common/libraryes/LibraryContent';
 import PropTypes from '../../lib/PropTypes';
-import {imageProviders} from '../../lib/constants/library';
+import { imageProviders } from '../../lib/constants/library';
 
 const Library = ({ images, providers, addImages, title, onSearch }) => {
-  const [viewPlaceholder, setViewPlaceholder] = useState(true);
   const [query, setQuery] = useState('');
   const [activeBtn, setActiveBtn] = useState(null);
-
-  const handleChange = e => setQuery(e.target.value);
-
-  const handleFocus = () => setViewPlaceholder(false);
-
-  const handleBlur = () => {
-    if (!query) {
-      setViewPlaceholder(true);
-    }
-  };
 
   const handleSearch = (e) => {
     if (e.keyCode === 13 && query) {
@@ -49,14 +38,12 @@ const Library = ({ images, providers, addImages, title, onSearch }) => {
             id="library-layout__search"
             type="text"
             value={query}
-            onChange={handleChange}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
+            onChange={e => setQuery(e.target.value)}
             onKeyDown={handleSearch}
           />
-          {viewPlaceholder && (
+          {!query && (
           <label htmlFor="library-layout__search">
-            Try searching for keywords,like
+            Try searching for keywords, like
             <span> business, sports, meeting...</span>
           </label>
           )}
