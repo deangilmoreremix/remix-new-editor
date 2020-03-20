@@ -5,7 +5,7 @@ import useCommonStore from '../hooks/useCommonStore';
 
 import { INITIAL_LOAD, MESSAGE_TOPICS } from '../../lib/constants/campaigns/constants';
 
-const Publisher = ({ children }) => {
+const Publisher = ({ children, withIframe }) => {
   const [isLoaded, setIsLoaded] = React.useState(false);
   const conductorRef = React.useRef(null);
 
@@ -13,7 +13,7 @@ const Publisher = ({ children }) => {
   const [isLoading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
-    if (conductorRef && conductorRef.current) {
+    if (!withIframe || (conductorRef && conductorRef.current)) {
       setIsLoaded(true);
     }
   }, []);
@@ -86,7 +86,7 @@ const Publisher = ({ children }) => {
     <div className="social-campaign">
       {isLoading && <div className="spinner">Loading...</div>}
       {
-        isLoaded && conductor && children({
+        isLoaded && children({
           postResponsiveMessage,
           collapseConductor,
           expandConductor,
@@ -94,20 +94,27 @@ const Publisher = ({ children }) => {
           setLoading,
         })
       }
-      <iframe
-        title="Iframe social conductor"
-        src={`${cdnHostname}/social-campaign/social-campaign.html`}
-        frameBorder="0"
-        className="conductor-iframe"
-        id="conductor-iframe"
-        ref={conductorRef}
-      />
+      {withIframe && (
+        <iframe
+          title="Iframe social conductor"
+          src={`${cdnHostname}/social-campaign/social-campaign.html`}
+          frameBorder="0"
+          className="conductor-iframe"
+          id="conductor-iframe"
+          ref={conductorRef}
+        />
+      )}
     </div>
   );
 };
 
+Publisher.defaultProps = {
+  withIframe: true,
+};
+
 Publisher.propTypes = {
   children: PropTypes.func.isRequired,
+  withIframe: PropTypes.bool,
 };
 
 export default Publisher;
