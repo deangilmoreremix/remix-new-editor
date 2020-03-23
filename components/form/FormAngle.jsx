@@ -4,6 +4,7 @@ import Input from '@material-ui/core/Input';
 import Rotate from '../../lib/utils/rotate';
 
 import PropTypes from '../../lib/PropTypes';
+import FormTextField from './FormTextField';
 
 const useStyles = makeStyles(() => ({
   angleInput: {
@@ -57,6 +58,11 @@ const FormAngle = ({ name, onChange, value = 0 }) => {
         name={name}
         onChange={onInputChange}
         type="text"
+        value={angle}
+      />
+      <FormTextField
+        inputType="number"
+        onChange={onInputChange}
         value={angle}
       />
     </div>
