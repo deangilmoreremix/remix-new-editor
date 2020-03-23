@@ -16,7 +16,7 @@ const FormAngle = ({ name, onChange, value = 0 }) => {
     return () => {
       item.delete();
     };
-  }, [angle]);
+  }, []);
 
   useEffect(() => {
     if (onChange) {
