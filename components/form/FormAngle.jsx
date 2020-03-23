@@ -11,9 +11,7 @@ const FormAngle = ({ name, onChange, value = 0 }) => {
 
   useEffect(() => {
     const item = new Rotate(handleRotate.current, angle, setAngle);
-
     item.start();
-
     setFormAngle(item);
     return () => {
       item.delete();
