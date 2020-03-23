@@ -13,3 +13,18 @@
     outline: none;
   }
 }
+
+@mixin button-primary {
+  color: $white;
+  border: 1px solid $btn-gray;
+  border-radius: 4px;
+  transition: all 0.25s ease;
+
+  &:hover {
+    border-color: $red;
+  }
+
+  &:disabled {
+    border-color: $btn-gray-disabled;
+  }
+}

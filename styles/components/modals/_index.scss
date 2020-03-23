@@ -1,0 +1,12 @@
+.modal {
+  &-content {
+    background: $light-twinlight;
+    color: $white;
+  }
+
+  &-header {
+    background: $modal-header-bg;
+  }
+}
+
+@import "SocialCampaignModal";
