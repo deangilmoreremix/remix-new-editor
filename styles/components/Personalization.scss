@@ -1,4 +1,4 @@
-.implements {
+.personalization {
   width: 100%;
   height: 100%;
   position: fixed;
@@ -12,10 +12,11 @@
 
   button, input {
     font-family: $font-primary;
+    outline: none;
   }
 }
 
-.implements__wrapper {
+.personalization__wrapper {
   display: flex;
   flex-direction: column;
   width: 95%;
@@ -29,7 +30,7 @@
   border-radius: 3px;
 }
 
-.implements__header {
+.personalization__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -39,7 +40,7 @@
   line-height: 1;
 }
 
-.implements__close {
+.personalization__close {
   padding: 0;
   border: none;
   outline: none;
@@ -54,14 +55,15 @@
   }
 }
 
-.implements__body {
+.personalization__body {
   display: flex;
   flex: 1;
   padding: 15px;
 }
 
-.implements__list {
+.personalization__list {
   @include tiny-scrollbar($thumbColor: $red, $scrollbarColor: $modal-header-bg);
+
   width: 25%;
   min-width: 11em;
   max-height: 21em;
@@ -70,7 +72,7 @@
   border-right: 1px $grey solid;
 }
 
-.implements__item {
+.personalization__item {
   display: block;
   margin-bottom: 0.7em;
   position: relative;
@@ -106,11 +108,11 @@
   }
 }
 
-.implements__list .implements__item {
+.personalization__list .personalization__item {
   text-transform: uppercase;
 }
 
-.implements__info {
+.personalization__info {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -118,14 +120,14 @@
   padding-left: 15px;
 }
 
-.implements__name {
+.personalization__name {
   text-transform: uppercase;
   border-bottom: 1px $grey solid;
   padding-bottom: 0.7em;
   margin-bottom: 0.7em;
 }
 
-.implements__input {
+.personalization__input {
   display: block;
   width: 100%;
   outline: none;
@@ -134,7 +136,7 @@
   margin: 0.7em 0;
 }
 
-.implements__add {
+.personalization__add {
   border: none;
   outline: none;
   background: $red;

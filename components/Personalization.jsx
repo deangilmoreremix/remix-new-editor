@@ -20,20 +20,20 @@ const Personalization = () => {
   }, [disabled]);
 
   return (
-    <div className="implements">
-      <div className="implements__wrapper">
-        <div className="implements__header">
+    <div className="personalization">
+      <div className="personalization__wrapper">
+        <div className="personalization__header">
           <p>Personalizer</p>
-          <button className="implements__close" type="button">X</button>
+          <button className="personalization__close" type="button">X</button>
         </div>
 
-        <div className="implements__body">
-          <div className="implements__list">
+        <div className="personalization__body">
+          <div className="personalization__list">
             {
               tokens.map((item, i) => (
                 <button
                   type="button"
-                  className={classnames('implements__item', { 'implements__item-active': token === item })}
+                  className={classnames('personalization__item', { 'personalization__item-active': token === item })}
                   key={item}
                   tabIndex={i}
                   onClick={() => setToken(item)}
@@ -44,15 +44,15 @@ const Personalization = () => {
             }
           </div>
 
-          <div className="implements__info">
+          <div className="personalization__info">
             <div>
-              <p className="implements__name">{token || ''}</p>
+              <p className="personalization__name">{token || ''}</p>
               <div>
                 {
                   Object.keys(tokenModes).map((item, i) => (
                     <button
                       type="button"
-                      className={classnames('implements__item', { 'implements__item-active': tokenState === tokenModes[item] })}
+                      className={classnames('personalization__item', { 'personalization__item-active': tokenState === tokenModes[item] })}
                       key={tokenModes[item]}
                       tabIndex={i}
                       onClick={() => setTokenState(tokenModes[item])}
@@ -62,9 +62,9 @@ const Personalization = () => {
                   ))
                 }
               </div>
-              <input className="implements__input" type="text" disabled={disabled} ref={inputRef} />
+              <input className="personalization__input" type="text" disabled={disabled} ref={inputRef} />
             </div>
-            <button className="implements__add" type="button">add</button>
+            <button className="personalization__add" type="button">add</button>
           </div>
         </div>
       </div>
