@@ -61,7 +61,7 @@
 }
 
 .implements__list {
-  @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
+  @include tiny-scrollbar($thumbColor: $red, $scrollbarColor: $modal-header-bg);
   width: 25%;
   min-width: 11em;
   max-height: 21em;
