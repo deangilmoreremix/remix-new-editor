@@ -9,14 +9,15 @@
   z-index: 1;
   font-size: 0.875rem;
   line-height: 1;
-  color: #fff;
+  color: $white;
 
   button, input {
-    color: #fff;
+    color: $white;
   }
 }
 
 .library-layout__title {
+  font-size: 1em;
   font-weight: bold;
   margin-bottom: 1em;
 }
@@ -39,8 +40,15 @@
   }
 }
 
+.library-layout__add-file {
+  input {
+    display: none;
+  }
+}
+
 .library-layout__add {
   @include reset-button;
+
   width: 8.88em;
   border: 1px solid $red;
   border-radius: 4px;
@@ -80,6 +88,7 @@
 
 .library-layout__btns {
   @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
+
   max-width: 8.8em;
   max-height: 14.3em;
   margin-top: 2.85em;
@@ -126,9 +135,9 @@
   }
 }
 
-// ===== library-layout__images =====
 .library-layout__images {
   @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+
   display: flex;
   flex-wrap: wrap;
   height: 18.64em;
@@ -138,6 +147,7 @@
 
 .library-layout__image {
   @include reset-button;
+
   width: 5.58em;
   height: 5.58em;
   position: relative;
