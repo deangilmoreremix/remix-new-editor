@@ -64,8 +64,9 @@ export default function FormTextField({
               id={label}
               className={classnames(inputClassName,
                 type === 'input' && 'text-input',
+                type === 'number' && 'text-input',
               )}
-              value={value || ''}
+              value={value || value === 0 ? value : ''}
               placeholder={placeholder}
               onChange={onEdit}
               type={type}
@@ -91,7 +92,7 @@ FormTextField.propTypes = {
   labelClassName: PropTypes.string,
   inline: PropTypes.bool,
   placeholder: PropTypes.string,
-  type: PropTypes.oneOf(['input', 'textarea', 'select']),
+  type: PropTypes.oneOf(['input', 'textarea', 'select', 'number']),
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
 };
 

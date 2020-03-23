@@ -1,28 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import Input from '@material-ui/core/Input';
 import Rotate from '../../lib/utils/rotate';
 
 import PropTypes from '../../lib/PropTypes';
 import FormTextField from './FormTextField';
 
-const useStyles = makeStyles(() => ({
-  angleInput: {
-    border: '1px solid #999999',
-    width: '54px',
-    height: '34px',
-    padding: '9px',
-    borderRadius: '3px',
-    color: '#fff',
-    fontSize: '14px',
-  },
-}));
-
 const FormAngle = ({ name, onChange, value = 0 }) => {
   const [angle, setAngle] = useState(value);
   const [formAngle, setFormAngle] = useState();
   const handleRotate = useRef();
-  const classes = useStyles();
 
   useEffect(() => {
     const item = new Rotate(handleRotate.current, angle, setAngle);
@@ -31,7 +16,7 @@ const FormAngle = ({ name, onChange, value = 0 }) => {
     return () => {
       item.delete();
     };
-  }, []);
+  }, [angle]);
 
   useEffect(() => {
     if (onChange) {
@@ -39,12 +24,19 @@ const FormAngle = ({ name, onChange, value = 0 }) => {
     }
   }, [angle, onChange]);
 
-  const onInputChange = (e) => {
+  const onInputChange = (angleValue) => {
+    let newValue = parseFloat(angleValue);
+    if (angleValue > 360) {
+      newValue = 360;
+    } else if (value < 0) {
+      newValue = 0;
+    }
+
     formAngle.delete();
-    const item = new Rotate(handleRotate.current, e.target.value, setAngle);
+    const item = new Rotate(handleRotate.current, newValue, setAngle);
     item.start();
     setFormAngle(item);
-    setAngle(e.target.value);
+    setAngle(newValue);
   };
 
   return (
@@ -52,19 +44,20 @@ const FormAngle = ({ name, onChange, value = 0 }) => {
       <div className="angle-circle">
         <span className="angle-circle__line" ref={handleRotate} />
       </div>
-      <Input
-        className={classes.angleInput}
-        variant="outlined"
-        name={name}
-        onChange={onInputChange}
-        type="text"
-        value={angle}
-      />
-      <FormTextField
-        inputType="number"
-        onChange={onInputChange}
-        value={angle}
-      />
+      <div className="form-angle__input">
+        <FormTextField
+          type="number"
+          name={name}
+          onChange={onInputChange}
+          value={angle}
+        />
+        <span
+          className="form-angle__input-degree"
+          style={{ left: `${String(angle).length * 9 + 10}px` }}
+        >
+          &#176;
+        </span>
+      </div>
     </div>
   );
 };

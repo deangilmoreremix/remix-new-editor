@@ -39,7 +39,22 @@
 }
 
 .form-angle__input {
-  border: 1px solid #999999;
+  width: 60px;
+  position: relative;
+
+  &-degree {
+    position: absolute;
+    top: 0;
+  }
+
+  label {
+    display: none;
+  }
+
+  input {
+    font-size: 0.875rem;
+    height: auto;
+  }
 }
 
 
