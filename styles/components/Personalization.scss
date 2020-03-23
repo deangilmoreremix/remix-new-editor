@@ -25,7 +25,7 @@
   top: 50%;
   left: 50%;
   transform: translateY(-50%) translateX(-50%);
-  background: #fff;
+  background: $white;
   border-radius: 3px;
 }
 
@@ -35,7 +35,7 @@
   align-items: center;
   font-size: 1.3em;
   padding: 9px 15px;
-  border-bottom: 1px #ccc solid;
+  border-bottom: 1px $grey solid;
   line-height: 1;
 }
 
@@ -67,7 +67,7 @@
   max-height: 21em;
   overflow: hidden;
   overflow-y: auto;
-  border-right: 1px #ccc solid;
+  border-right: 1px $grey solid;
 }
 
 .implements__item {
@@ -120,7 +120,7 @@
 
 .implements__name {
   text-transform: uppercase;
-  border-bottom: 1px #ccc solid;
+  border-bottom: 1px $grey solid;
   padding-bottom: 0.7em;
   margin-bottom: 0.7em;
 }
@@ -130,7 +130,7 @@
   width: 100%;
   outline: none;
   padding: 5px;
-  border: 1px solid #888898;
+  border: 1px solid $border-grey;
   margin: 0.7em 0;
 }
 
@@ -138,7 +138,7 @@
   border: none;
   outline: none;
   background: $red;
-  color: #fff;
+  color: $white;
   text-transform: uppercase;
   border-radius: 3px;
   padding: 5px;

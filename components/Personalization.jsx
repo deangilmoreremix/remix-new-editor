@@ -10,11 +10,7 @@ const Personalization = () => {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if (tokenState === tokenModes.fallbackValue) {
-      setDisabled(false);
-    } else {
-      setDisabled(true);
-    }
+    setDisabled(tokenState !== tokenModes.fallbackValue);
   }, [tokenState]);
 
   useEffect(() => {
@@ -22,8 +18,6 @@ const Personalization = () => {
       inputRef.current.focus();
     }
   }, [disabled]);
-
-  const handleChangeListItem = value => () => setToken(value);
 
   return (
     <div className="implements">
@@ -42,7 +36,7 @@ const Personalization = () => {
                   className={classnames('implements__item', { 'implements__item-active': token === item })}
                   key={item}
                   tabIndex={i}
-                  onClick={handleChangeListItem(item)}
+                  onClick={() => setToken(item)}
                 >
                   {item}
                 </button>
