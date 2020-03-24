@@ -12,7 +12,6 @@ import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
-
 import PlayButton from './common/timeline/PlayButton';
 
 const getOne = async (store, id) => {
