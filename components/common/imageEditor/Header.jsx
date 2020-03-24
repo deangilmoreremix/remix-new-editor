@@ -1,30 +1,31 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import SVGInline from 'react-svg-inline';
 import search from '../../../public/static/images/search.svg';
-import PropTypes from '../../../lib/PropTypes';
 import { panelItems } from '../../../lib/constants/imageEditor/editor-panel';
+import PanelContext from './context';
 
 import FormTextField from '../../form/FormTextField';
 
-const Header = ({placeholder}) => {
-  const placeholderText = placeholder ? panelItems[placeholder].name : "";
+const Header = () => {
+  const { activeButton, onSearch, searchValue } = useContext(PanelContext);
+  const placeholderText = activeButton ? panelItems[activeButton].name : '';
 
   return (
     <div className="editor-sidebar-header">
-      <div className='editor-sidebar-search'>
+      <div className="editor-sidebar-search">
         <SVGInline
           className="editor-icon-search"
           svg={search}
           alt=""
         />
-        <FormTextField placeholder={`Search ${placeholderText}`} />
+        <FormTextField
+          placeholder={`Search ${placeholderText}`}
+          onChange={onSearch}
+          value={searchValue}
+        />
       </div>
     </div>
   );
-};
-
-Header.propTypes = {
-  placeholder: PropTypes.string.isRequired,
 };
 
 export default Header;
