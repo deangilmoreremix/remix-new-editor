@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import SVGInline from 'react-svg-inline';
 import classnames from 'classnames';
-import { panelItems } from '../../../lib/constants/imageEditor/editor-panel';
+import { panelItems } from '../../../../lib/constants/imageEditor/editor-panel';
 import PanelContext from './context';
 
 import PanelContent from './PanelContent';

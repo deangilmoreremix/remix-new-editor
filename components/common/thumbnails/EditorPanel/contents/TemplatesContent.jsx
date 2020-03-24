@@ -1,6 +1,6 @@
 import React from 'react';
 import SVGInline from 'react-svg-inline';
-import star from '../../../../public/static/images/star.svg';
+import star from '../../../../../public/static/images/star.svg';
 
 const Templates = () => (
   <div className="panel-content__body">
