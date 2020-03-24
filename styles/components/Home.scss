@@ -5,3 +5,16 @@
   padding-right: 0;
   color: $white;
 }
+
+.top-wrapper {
+  background: $dark-twinlight;
+
+  &-item {
+    padding-top: 56px;
+    padding-bottom: 87px;
+
+    &.toolbar {
+      background: $dark-night;
+    }
+  }
+}

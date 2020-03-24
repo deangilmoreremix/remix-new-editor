@@ -87,7 +87,6 @@ export default class ProjectStore extends BaseStore {
     });
   };
 
-
   @action
   getOne = async (projectId) => {
     if (!projectId) {
@@ -196,6 +195,15 @@ export default class ProjectStore extends BaseStore {
         });
       this.modified = false;
       return this.item;
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  @action
+  setRatio = (newRatio) => {
+    try {
+      this.item.ratio = newRatio;
     } catch (e) {
       console.error(e);
     }

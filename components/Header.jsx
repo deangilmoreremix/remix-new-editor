@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { Row } from 'reactstrap';
+import Grid from '@material-ui/core/Grid';
 
 // TODO: Will be updated in the future
 
 const Header = () => (
-  <Row tag="header" className="header-container" noGutters>
+  <Grid item xs={12} className="header-container">
     Videoremix
-  </Row>
+  </Grid>
 );
 
 export default Header;

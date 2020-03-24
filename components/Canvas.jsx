@@ -1,12 +1,13 @@
 import React, { useRef, useEffect, useMemo } from 'react';
-import { Container } from 'reactstrap';
 import { observer } from 'mobx-react';
 
+import SizeSelector from './canvas/SizeSelector';
+import { CANVAS_SIZES } from '../lib/constants/media';
 import useProjectStore from './hooks/useProjectStore';
 
 const Canvas = observer(() => {
   const projectStore = useProjectStore();
-  const { item: { ratio: { width = 16, height = 9 } = {} } } = projectStore;
+  const { item: { ratio: { width = 16, height = 9 } = {} }, setRatio } = projectStore;
 
   const [style, setStyle] = React.useState({});
 
@@ -14,8 +15,8 @@ const Canvas = observer(() => {
 
   const ref = useRef(null);
   const wrapper = useRef(null);
-  const marginLeft = 20;
-  const marginTop = 20;
+  const marginLeft = 0;
+  const marginTop = 0;
 
   useEffect(() => {
     if (ref.current) {
@@ -34,7 +35,8 @@ const Canvas = observer(() => {
   }, [projectStore]);
 
   return (
-    <Container>
+    <div className="canvas-container">
+      <SizeSelector sizes={CANVAS_SIZES} onChange={setRatio} active={{ width, height }} />
       <div ref={ref} className="stager-wrapper">
         <div style={style} ref={wrapper} className="embed-wrapper">
           <div id="video-container" className="video-container">
@@ -46,7 +48,7 @@ const Canvas = observer(() => {
           </div>
         </div>
       </div>
-    </Container>
+    </div>
   );
 });
 

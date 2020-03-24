@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import { useAsync } from 'react-async-hook';
-import { Col, Container, Row } from 'reactstrap';
+import { Grid } from '@material-ui/core';
 
 import Header from './Header';
 import Canvas from './Canvas';
@@ -14,6 +14,7 @@ import useModalStore from './hooks/useModalStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import PlayButton from './common/timeline/PlayButton';
+import MediaContainer from './media/MediaContainer';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -36,33 +37,30 @@ const Home = observer(() => {
   }
 
   return (
-    <Container fluid className="home">
-      <Header />
-      <Row className="controls" noGutters>
-        <Col xs={7}>
-          <Row>
-            <Col xs={6}>
-              <Toolbar
-                items={toolbarItems({
-                  actions: {
-                    openModal,
-                    closeModal,
-                  },
-                })}
-              />
-            </Col>
-            <Col xs={6}>
-              Hi!
-            </Col>
-          </Row>
-        </Col>
-        <Col xs={5}>
+    <React.Fragment>
+      <Grid container spacing={0} className="top-wrapper">
+        <Header />
+        <Grid item container xs={7} spacing={0}>
+          <Grid item xs={6} className="top-wrapper-item toolbar">
+            <Toolbar
+              items={toolbarItems({
+                actions: {
+                  openModal,
+                  closeModal,
+                },
+              })}
+            />
+          </Grid>
+          <Grid item xs={6} className="top-wrapper-item media">
+            <MediaContainer />
+          </Grid>
+        </Grid>
+        <Grid item xs={5} className="top-wrapper-item canvas">
           <Canvas />
-        </Col>
-        <PlayButton />
-      </Row>
-      <Row className="timeline" noGutters />
-    </Container>
+        </Grid>
+      </Grid>
+      <PlayButton />
+    </React.Fragment>
   );
 });
 
