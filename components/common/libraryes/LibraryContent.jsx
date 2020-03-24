@@ -2,14 +2,11 @@ import React from 'react';
 
 import PropTypes from '../../../lib/PropTypes';
 
-const LibraryContent = ({ items, onSelect }) => {
-  const selectImage = img => () => onSelect(img);
-
-  return (
-    <>
-      {
+const LibraryContent = ({ items, onSelect }) => (
+  <>
+    {
         items && items.length
-          ? (
+          && (
             <div className="library-layout__images">
               {
                 items.map(src => (
@@ -17,7 +14,7 @@ const LibraryContent = ({ items, onSelect }) => {
                     type="button"
                     key={src}
                     className="library-layout__image"
-                    onClick={selectImage(src)}
+                    onClick={() => onSelect(src)}
                   >
                     <img src={src} alt="" />
                   </button>
@@ -25,15 +22,13 @@ const LibraryContent = ({ items, onSelect }) => {
             }
             </div>
           )
-          : <p>Nothing found</p>
       }
-    </>
-  );
-};
+  </>
+);
 
 LibraryContent.propTypes = {
-  items: PropTypes.arrayOf(PropTypes.string),
-  onSelect: PropTypes.func,
+  items: PropTypes.arrayOf(PropTypes.string.isRequired),
+  onSelect: PropTypes.func.isRequired,
 };
 
 export default LibraryContent;
