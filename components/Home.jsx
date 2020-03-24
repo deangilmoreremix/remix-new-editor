@@ -13,6 +13,7 @@ import useModalStore from './hooks/useModalStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 import PlayButton from './common/timeline/PlayButton';
+import ThumbnailsEditor from "./common/ThumbnailsEditor";
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -61,6 +62,7 @@ const Home = observer(() => {
         <PlayButton />
       </Row>
       <Row className="timeline" noGutters />
+      <ThumbnailsEditor />
     </Container>
   );
 });
