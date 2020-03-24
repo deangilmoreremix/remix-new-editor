@@ -6,7 +6,7 @@ import PanelContext from './context';
 
 import PanelContent from './PanelContent';
 
-const EditorPanel = () => {
+const Index = () => {
   const [activeButton, setActiveButton] = useState('TEMPLATES');
   const [searchValue, setSearchValue] = useState('');
 
@@ -48,4 +48,4 @@ const EditorPanel = () => {
   );
 };
 
-export default EditorPanel;
+export default Index;
