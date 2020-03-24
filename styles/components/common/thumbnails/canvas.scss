@@ -1,0 +1,43 @@
+.thumbnails-header {
+   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.375rem 0;
+
+  button {
+    @include reset-button;
+
+    display: block;
+  }
+
+  &__back {
+    width: 34.8px;
+    height: 34.7px;
+  }
+
+  &__block {
+    display: flex;
+    align-items: center;
+
+    button {
+      display: block;
+      margin-left: 1.2rem;
+      width: 15px;
+      height: 15px;
+      position: relative;
+
+      svg {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    }
+  }
+}
+
+.thumbnails-image {
+  width: 58.75rem;
+  height: 27.69rem;
+  background: #B1CEE5;
+}
