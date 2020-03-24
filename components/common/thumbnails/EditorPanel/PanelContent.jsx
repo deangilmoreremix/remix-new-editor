@@ -1,6 +1,6 @@
 import React from 'react';
 import Header from './Header';
-import PropTypes from '../../../lib/PropTypes';
+import PropTypes from '../../../../lib/PropTypes';
 
 import TemplatesContent from './contents/TemplatesContent';
 
