@@ -1,0 +1,33 @@
+.editor-sidebar-header {
+  padding: 1.2rem 2.3rem 1.28rem 1.5rem;
+}
+
+.editor-sidebar-search {
+  position: relative;
+
+  label {
+    display: none;
+  }
+
+  input {
+    @include input-placeholder;
+
+    padding-left: 38px;
+  }
+}
+
+.editor-icon-search {
+  width: 1.03rem;
+  height: 1.03rem;
+  position: absolute;
+  top: 50%;
+  left: 9px;
+  transform: translateY(-50%);
+  z-index: 1;
+
+  svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+}
