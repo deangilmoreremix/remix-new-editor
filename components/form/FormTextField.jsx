@@ -66,7 +66,7 @@ export default function FormTextField({
                 type === 'input' && 'text-input',
                 type === 'number' && 'text-input',
               )}
-              value={value || value === 0 ? value : ''}
+              value={value || (value === 0 && type === 'number') ? value : ''}
               placeholder={placeholder}
               onChange={onEdit}
               type={type}

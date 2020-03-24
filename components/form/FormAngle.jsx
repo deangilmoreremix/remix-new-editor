@@ -1,16 +1,22 @@
 import React, { useEffect, useRef, useState } from 'react';
-import Rotate from '../../lib/utils/rotate';
 
+import Rotate from '../../lib/utils/rotate';
 import PropTypes from '../../lib/PropTypes';
+
 import FormTextField from './FormTextField';
+
+const stylesSizes = {
+  paddingLeft: 10,
+  charWidth: 9,
+};
 
 const FormAngle = ({ name, onChange, value = 0 }) => {
   const [angle, setAngle] = useState(value);
   const [formAngle, setFormAngle] = useState();
-  const handleRotate = useRef();
+  const rotateRef = useRef();
 
   useEffect(() => {
-    const item = new Rotate(handleRotate.current, angle, setAngle);
+    const item = new Rotate(rotateRef.current, angle, setAngle);
     item.start();
     setFormAngle(item);
     return () => {
@@ -19,30 +25,27 @@ const FormAngle = ({ name, onChange, value = 0 }) => {
   }, []);
 
   useEffect(() => {
-    if (onChange) {
-      onChange(angle);
-    }
+    onChange(angle);
   }, [angle, onChange]);
 
   const onInputChange = (angleValue) => {
-    let newValue = parseFloat(angleValue);
     if (angleValue > 360) {
-      newValue = 360;
-    } else if (value < 0) {
-      newValue = 0;
+      angleValue = 360;
+    } else if (angleValue < 0) {
+      angleValue = 0;
     }
 
     formAngle.delete();
-    const item = new Rotate(handleRotate.current, newValue, setAngle);
+    const item = new Rotate(rotateRef.current, Number(angleValue), setAngle);
     item.start();
     setFormAngle(item);
-    setAngle(newValue);
+    setAngle(Number(angleValue));
   };
 
   return (
     <div className="form-angle">
       <div className="angle-circle">
-        <span className="angle-circle__line" ref={handleRotate} />
+        <span className="angle-circle__line" ref={rotateRef} />
       </div>
       <div className="form-angle__input">
         <FormTextField
@@ -53,7 +56,7 @@ const FormAngle = ({ name, onChange, value = 0 }) => {
         />
         <span
           className="form-angle__input-degree"
-          style={{ left: `${String(angle).length * 9 + 10}px` }}
+          style={{ left: `${String(angle).length * stylesSizes.charWidth + stylesSizes.paddingLeft}px` }}
         >
           &#176;
         </span>
@@ -63,9 +66,9 @@ const FormAngle = ({ name, onChange, value = 0 }) => {
 };
 
 FormAngle.propTypes = {
-  name: PropTypes.string.isRequired,
-  onChange: PropTypes.func,
-  value: PropTypes.numbers,
+  name: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  value: PropTypes.number,
 };
 
 export default FormAngle;
