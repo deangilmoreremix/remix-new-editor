@@ -14,14 +14,17 @@
 @import "components/Media";
 @import "components/MediaLibrary";
 
-@import "styles/components/modals/index";
+@import "components/modals/index";
 
-@import "styles/components/common/Toolbar";
-@import "styles/components/campaigns/index";
-@import "styles/components/form/elements";
-@import "styles/components/form/inputs";
-@import "styles/components/form/checkbox";
-@import "styles/components/form/colorpicker";
-@import "styles/components/form/FormSlider";
-@import "styles/components/form/FormRadioButton";
+@import "components/common/Toolbar";
+@import "components/campaigns/index";
+@import "components/form/elements";
+@import "components/form/inputs";
+@import "components/form/checkbox";
+@import "components/form/colorpicker";
+@import "components/form/FormSlider";
+@import "components/form/FormRadioButton";
+@import "components/imageEditor/editorPanel";
+@import "components/imageEditor/header";
+@import "components/imageEditor/content";
 

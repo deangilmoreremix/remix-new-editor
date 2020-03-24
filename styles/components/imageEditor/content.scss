@@ -1,0 +1,45 @@
+.editor-panel-content {
+  width: 23.44rem;
+  height: 100%;
+  background: $sidebr-bg;
+  font: 0.875rem $font-primary;
+  color: $white;
+
+  p {
+    margin: 0;
+  }
+}
+
+.panel-content {
+  padding: $sidebar_padding;
+  padding-right: 8px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.panel-content__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.panel-content__button {
+  @include reset-button;
+
+  color: $white;
+}
+
+.panel-content__img {
+  @include reset-button;
+
+  width: 48.7%;
+  height: 5.27rem;
+  overflow: hidden;
+  background: $btn-bg-img;
+}
+
+
+
+
