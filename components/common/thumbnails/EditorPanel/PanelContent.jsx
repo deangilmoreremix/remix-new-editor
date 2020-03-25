@@ -11,9 +11,7 @@ const contents = {
 const PanelContent = ({ activeItem }) => (
   <div className="editor-panel-content">
     <Header />
-    {
-        contents[activeItem]
-      }
+    { contents[activeItem] }
   </div>
 );
 

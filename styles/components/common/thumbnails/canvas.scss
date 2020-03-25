@@ -1,12 +1,11 @@
 .thumbnails-header {
-   display: flex;
+  display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1.375rem 0;
 
   button {
     @include reset-button;
-
     display: block;
   }
 

@@ -21,7 +21,6 @@
 
 .panel-content {
   @include tiny-scrollbar($thumbColor: $red, $scrollbarColor: $modal-header-bg);
-
   max-height: 100%;
   padding-right: 2em;
   padding-bottom: 1.28rem;
@@ -47,13 +46,11 @@
 
 .panel-content__button {
   @include reset-button;
-
   color: $white;
 }
 
 .panel-content__img {
   @include reset-button;
-
   width: 48.7%;
   height: 5.27rem;
   overflow: hidden;
@@ -73,7 +70,3 @@
   width: 30.6px;
   height: 29.1px;
 }
-
-
-
-

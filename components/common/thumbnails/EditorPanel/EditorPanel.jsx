@@ -1,26 +1,27 @@
 import React, { useState } from 'react';
 import SVGInline from 'react-svg-inline';
 import classnames from 'classnames';
+
 import { panelItems } from '../../../../lib/constants/imageEditor/editor-panel';
-import PanelContext from './context';
+import PanelContext from './PanelContext';
 
 import PanelContent from './PanelContent';
 
-const Index = () => {
+const EditorPanel = () => {
   const [activeButton, setActiveButton] = useState('TEMPLATES');
-  const [searchValue, setSearchValue] = useState('');
+  const [query, setQuery] = useState('');
 
   const onChangeSection = (item) => {
     setActiveButton(item);
-    setSearchValue('');
+    setQuery('');
   };
 
-  const onSearch = (value) => {
-    setSearchValue(value);
+  const onSearch = () => {
+    console.log(query);
   };
 
   return (
-    <PanelContext.Provider value={{ activeButton, onSearch, searchValue }}>
+    <PanelContext.Provider value={{ activeButton, setQuery, query, onSearch }}>
       <div className="editor-sidebar">
         <div className="editor-panel">
           {
@@ -34,7 +35,6 @@ const Index = () => {
                 <span className="editor-panel__icon">
                   <SVGInline
                     svg={panelItems[item].icon}
-                    alt=""
                   />
                 </span>
                 <span className="editor-panel__name">{panelItems[item].name}</span>
@@ -48,4 +48,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default EditorPanel;

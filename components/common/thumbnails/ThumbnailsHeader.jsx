@@ -17,7 +17,6 @@ const ThumbnailsHeader = () => {
         <button className="thumbnails__close-btn">
           <SVGInline
             svg={arrow}
-            alt=""
           />
         </button>
         <p className="thumbnails__close-text">return to SmartVideo editor</p>
@@ -27,7 +26,6 @@ const ThumbnailsHeader = () => {
         <button type="button" className="thumbnails__header-download">
           <SVGInline
             svg={download}
-            alt=""
           />
           <p>Download</p>
         </button>
@@ -40,7 +38,6 @@ const ThumbnailsHeader = () => {
           <SVGInline
             className="thumbnails__header-select-icon"
             svg={arrow}
-            alt=""
           />
         </div>
       </div>

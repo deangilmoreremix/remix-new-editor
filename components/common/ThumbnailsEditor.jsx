@@ -1,8 +1,8 @@
 import React from 'react';
 
-import EditorPanel from './thumbnails/EditorPanel';
+import EditorPanel from './thumbnails/EditorPanel/EditorPanel';
 import ThumbnailsHeader from './thumbnails/ThumbnailsHeader';
-import ThumbnailCanvas from './thumbnails/Canvas';
+import ThumbnailCanvas from './thumbnails/Canvas/Canvas';
 
 const ThumbnailsEditor = () => (
   <section className="thumbnails-editor">
