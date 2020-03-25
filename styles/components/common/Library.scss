@@ -22,7 +22,6 @@
   margin-bottom: 1em;
 }
 
-
 .library-layout__row {
   display: flex;
 
@@ -84,7 +83,6 @@
     }
   }
 }
-
 
 .library-layout__btns {
   @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
