@@ -16,6 +16,7 @@
     @include make-fluid("max-width", 100px, 135px, $xl + 1, $mock, 135px, px);
     @include make-fluid("min-height", 35px, 43px, $xl + 1, $mock, 40px, px);
     @include make-fluid("max-height", 35px, 43px, $xl + 1, $mock, 40px, px);
+    @include button-primary;
 
     flex: 1 1 30%;
     margin-left: 0.8em;
@@ -23,18 +24,6 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    color: $white;
-    border: 1px solid $btn-gray;
-    border-radius: 4px;
-    transition: all 0.25s ease;
-
-    &:hover {
-      border-color: $red;
-    }
-
-    &:disabled {
-      border-color: $btn-gray-disabled;
-    }
   }
 
   &-icon {

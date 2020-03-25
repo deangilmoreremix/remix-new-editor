@@ -40,8 +40,8 @@ const FormSlider = props => {
 
   const handleInputChange = event => {
     const { value: val } = event.target;
-    if (val && !isNaN(val)) {
-      onChange(parseInt(val));
+    if (val && !Number.isNaN(val)) {
+      onChange(parseInt(val, 10));
     } else {
       onChange('');
     }

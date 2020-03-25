@@ -1,6 +1,7 @@
 import { observable, action } from 'mobx';
 
 import BaseStore from './base.store';
+import { EMAIL_SKIP_TOKENS } from '../../lib/constants/campaigns/constants';
 
 const defaultItem = {
   tags: [],
@@ -12,6 +13,9 @@ const defaultItem = {
     data: {},
   },
 };
+
+// TODO: remove the fake data when ready
+const mockPersonalizations = ['FIRSTNAME', 'LASTNAME', 'GENDER', 'FIRSTNAME', 'GEOCOUNTRY'];
 
 // todo add to global consts
 const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
@@ -33,6 +37,11 @@ export default class ProjectStore extends BaseStore {
   @observable popcorn = {};
 
   @observable modified = false;
+
+  // TODO: remove the fake data when ready
+  @observable personalizations = new Set(
+    mockPersonalizations.filter(token => !EMAIL_SKIP_TOKENS.includes(token)),
+  );
 
   @action
   setProjectData = () => {

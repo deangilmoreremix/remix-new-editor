@@ -41,12 +41,13 @@ const Canvas = observer(() => {
             <div
               id="video"
               className="video"
-              webkit-playsinline
+              webkit-playsinline="webkit-playsinline"
             />
           </div>
         </div>
       </div>
-    </Container>);
+    </Container>
+  );
 });
 
 export default Canvas;

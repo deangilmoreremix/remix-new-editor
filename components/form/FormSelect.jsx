@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -21,7 +21,7 @@ const FormSelect = props => {
       labelClass,
       selectClass,
       itemClass,
-    }
+    },
   } = props;
 
   const useStyles = makeStyles(theme => ({
@@ -86,6 +86,7 @@ FormSelect.propTypes = {
   label: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   minWidth: PropTypes.number,
+  labelWidth: PropTypes.number,
 };
 
 FormSelect.defaultProps = {
