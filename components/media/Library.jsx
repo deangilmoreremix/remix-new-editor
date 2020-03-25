@@ -8,7 +8,14 @@ import DropzoneArea from './DropzoneArea';
 
 const Library = (props) => {
   const {
-    items, providers, onAdd, title, onSearch, addButtonTitle, label, subLabel, onUploaded,
+    items,
+    providers,
+    onAdd, title,
+    onSearch,
+    addButtonTitle,
+    label,
+    subLabel,
+    onUploaded,
   } = props;
   const [query, setQuery] = useState('');
   const [activeBtn, setActiveBtn] = useState(null);
