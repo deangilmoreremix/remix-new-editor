@@ -1,9 +1,49 @@
-import React from "react";
+import React from 'react';
+import SVGInline from 'react-svg-inline';
+
+import arrow from '../../../public/static/images/arrow-red.svg';
+import download from '../../../public/static/images/download.svg';
+
+import FormSelect from '../../form/FormSelect';
 
 const ThumbnailsHeader = () => {
+  const onChange = (e) => {
+    console.log(e);
+  };
+
   return (
     <div className="thumbnails__header">
+      <div className="thumbnails__close">
+        <button className="thumbnails__close-btn">
+          <SVGInline
+            svg={arrow}
+            alt=""
+          />
+        </button>
+        <p className="thumbnails__close-text">return to SmartVideo editor</p>
+      </div>
 
+      <div className="thumbnails__header-pull">
+        <button type="button" className="thumbnails__header-download">
+          <SVGInline
+            svg={download}
+            alt=""
+          />
+          <p>Download</p>
+        </button>
+        <div className="thumbnails__header-select">
+          <FormSelect
+            items={[{ value: 'first' }, { value: 'second' }]}
+            minWidth="auto"
+            onChange={onChange}
+          />
+          <SVGInline
+            className="thumbnails__header-select-icon"
+            svg={arrow}
+            alt=""
+          />
+        </div>
+      </div>
     </div>
   );
 };
