@@ -10,7 +10,7 @@ const stylesSizes = {
   charWidth: 9,
 };
 
-const FormAngle = ({ name, onChange, value = 0 }) => {
+const AngleInput = ({ name, onChange, value = 0 }) => {
   const [angle, setAngle] = useState(value);
   const [formAngle, setFormAngle] = useState();
   const rotateRef = useRef();
@@ -65,10 +65,10 @@ const FormAngle = ({ name, onChange, value = 0 }) => {
   );
 };
 
-FormAngle.propTypes = {
+AngleInput.propTypes = {
   name: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   value: PropTypes.number,
 };
 
-export default FormAngle;
+export default AngleInput;
