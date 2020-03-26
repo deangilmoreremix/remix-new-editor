@@ -15,7 +15,6 @@ const AngleInput = ({ name, onChange, value = 0 }) => {
     if (angleValue > 360) {
       angleValue = 0;
     }
-
     if (angleValue < 0) {
       angleValue = 360;
     }
