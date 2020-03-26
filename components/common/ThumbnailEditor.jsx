@@ -4,16 +4,16 @@ import EditorPanel from './thumbnails/EditorPanel/EditorPanel';
 import ThumbnailsHeader from './thumbnails/ThumbnailsHeader';
 import ThumbnailCanvas from './thumbnails/Canvas/Canvas';
 
-const ThumbnailsEditor = () => (
-  <section className="thumbnails-editor">
+const ThumbnailEditor = () => (
+  <section className="thumbnail-editor">
     <ThumbnailsHeader />
-    <div className="thumbnails__body">
+    <div className="thumbnail__body">
       <EditorPanel />
-      <div className="thumbnails__body-editor">
+      <div className="thumbnail__body-editor">
         <ThumbnailCanvas />
       </div>
     </div>
   </section>
 );
 
-export default ThumbnailsEditor;
+export default ThumbnailEditor;

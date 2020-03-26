@@ -18,8 +18,8 @@ const Header = () => {
         <SVGInline
           className="editor-icon-search"
           svg={searchIcon}
-          alt=""
           onClick={onSearch}
+          component="button"
         />
         <FormTextField
           placeholder={placeholderText}

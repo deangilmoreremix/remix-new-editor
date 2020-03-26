@@ -1,11 +1,11 @@
 import React from 'react';
 
-import ThumbnailCanvasHeader from './CanvasHeader';
+import Header from './Header';
 import CanvasImage from './CanvasImage';
 
 const ThumbnailCanvas = () => (
   <div className="thumbnails-canvas">
-    <ThumbnailCanvasHeader />
+    <Header />
     <CanvasImage />
   </div>
 );

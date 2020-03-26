@@ -1,10 +1,15 @@
 import React from 'react';
 import SVGInline from 'react-svg-inline';
 
-import arrow from '../../../public/static/images/arrow-red.svg';
-import download from '../../../public/static/images/download.svg';
+import arrowIcon from '../../../public/static/images/arrow-red.svg';
+import downloadIcon from '../../../public/static/images/download.svg';
 
 import FormSelect from '../../form/FormSelect';
+
+const selectItems = [
+  { value: 'First item' },
+  { value: 'Second item' },
+];
 
 const ThumbnailsHeader = () => {
   const onChange = (e) => {
@@ -14,30 +19,30 @@ const ThumbnailsHeader = () => {
   return (
     <div className="thumbnails__header">
       <div className="thumbnails__close">
-        <button className="thumbnails__close-btn">
-          <SVGInline
-            svg={arrow}
-          />
-        </button>
+        <SVGInline
+          className="thumbnails__close-btn"
+          svg={arrowIcon}
+          component="button"
+        />
         <p className="thumbnails__close-text">return to SmartVideo editor</p>
       </div>
 
       <div className="thumbnails__header-pull">
         <button type="button" className="thumbnails__header-download">
           <SVGInline
-            svg={download}
+            svg={downloadIcon}
           />
           <p>Download</p>
         </button>
         <div className="thumbnails__header-select">
           <FormSelect
-            items={[{ value: 'first' }, { value: 'second' }]}
+            items={selectItems}
             minWidth="auto"
             onChange={onChange}
           />
           <SVGInline
             className="thumbnails__header-select-icon"
-            svg={arrow}
+            svg={arrowIcon}
           />
         </div>
       </div>

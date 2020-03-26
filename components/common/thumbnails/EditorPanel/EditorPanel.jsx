@@ -8,7 +8,7 @@ import PanelContext from './PanelContext';
 import PanelContent from './PanelContent';
 
 const EditorPanel = () => {
-  const [activeButton, setActiveButton] = useState('TEMPLATES');
+  const [activeButton, setActiveButton] = useState(Object.keys(panelItems)[0]);
   const [query, setQuery] = useState('');
 
   const onChangeSection = (item) => {
@@ -32,11 +32,10 @@ const EditorPanel = () => {
                 className={classnames('editor-panel__item', { 'editor-panel__item-active': activeButton === item })}
                 onClick={() => onChangeSection(item)}
               >
-                <span className="editor-panel__icon">
-                  <SVGInline
-                    svg={panelItems[item].icon}
-                  />
-                </span>
+                <SVGInline
+                  className="editor-panel__icon"
+                  svg={panelItems[item].icon}
+                />
                 <span className="editor-panel__name">{panelItems[item].name}</span>
               </button>
             ))

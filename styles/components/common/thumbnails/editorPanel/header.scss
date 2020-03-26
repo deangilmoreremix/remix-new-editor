@@ -16,6 +16,7 @@
 }
 
 .editor-icon-search {
+  @include reset-button;
   width: 1.03rem;
   height: 1.03rem;
   position: absolute;
