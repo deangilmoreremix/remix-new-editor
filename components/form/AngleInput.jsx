@@ -14,9 +14,12 @@ const AngleInput = ({ name, onChange, value = 0 }) => {
   const onInputChange = (angleValue) => {
     if (angleValue > 360) {
       angleValue = 0;
-    } else if (angleValue < 0) {
+    }
+
+    if (angleValue < 0) {
       angleValue = 360;
     }
+
     onChange(Number(angleValue));
   };
 
@@ -31,7 +34,7 @@ const AngleInput = ({ name, onChange, value = 0 }) => {
           value={value}
         />
         <span
-          className="form-angle__input-degree"
+          className="form-angle__degree"
           style={{ left: `${String(value).length * stylesSizes.charWidth + stylesSizes.paddingLeft}px` }}
         >
           &#176;

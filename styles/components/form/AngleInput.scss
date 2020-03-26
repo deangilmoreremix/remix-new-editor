@@ -46,11 +46,6 @@
   width: 60px;
   position: relative;
 
-  &-degree {
-    position: absolute;
-    top: 0;
-  }
-
   label {
     display: none;
   }
@@ -59,4 +54,9 @@
     font-size: 0.875rem;
     height: auto;
   }
+}
+
+.form-angle__degree {
+  position: absolute;
+  top: 0;
 }
