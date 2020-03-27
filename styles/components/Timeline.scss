@@ -4,22 +4,30 @@
 }
 
 .layers {
-  @include tiny-scrollbar($thumbHeight: 120px);
+  @include tiny-scrollbar($thumbColor: $red, $scrollbarColor: $modal-header-bg);
   width: 100%;
   display: flex;
   position: relative;
   margin: $layer-height auto;
   overflow-y: auto;
-  height: 120px;
+  height: 211px;
+  margin-top: 29px;
 }
 
 .layers-settings {
+  margin-bottom: 0;
+
   .layer {
     padding: 0 0;
     background-color: $layer-color;
     font-size: $small;
-    border-bottom: 0.5px solid $third-color;
+    border: 1px solid $btn-gray;
+    border-bottom: none;
     height: $layer-height;
+
+    &:last-of-type {
+      border: 1px solid $btn-gray;
+    }
   }
   .pen-icon {
     width: 2em;
@@ -29,6 +37,7 @@
   .reset-input {
     @include reset-button;
     max-width: 100%;
+    color: $white;
   }
 }
 
@@ -45,9 +54,14 @@
     top: 0;
     .element-row {
       height: $layer-height;
-      border-bottom: 0.5px solid $third-color;
-      border-left: 0.5px solid $third-color;
-      border-right: 0.5px solid $third-color;
+      border-bottom: none !important;
+      border-top: 0.5px solid #4D4D4D !important;
+      border-right: 0.5px solid #4D4D4D !important;
+      border-left: none !important;
+
+      &:last-of-type {
+        border-bottom: 0.5px solid #4D4D4D !important;
+      }
     }
   }
 
@@ -99,4 +113,41 @@
     box-sizing: border-box;
     cursor: se-resize;
   }
+}
+
+.timeline__btns {
+  padding-left: 17px;
+  padding-right: 20px;
+
+  button {
+    margin-right: 10px;
+
+    &:last-of-type {
+      margin-right: 0;
+    }
+  }
+}
+
+.timeline-play,
+.timeline-add {
+  width: 21px;
+  height: 21px;
+}
+
+.timeline-slider {
+  color: $modal-header-bg !important;
+
+  .MuiSlider-thumb {
+    color: $red;
+
+    &:hover {
+      box-shadow: none;
+    }
+  }
+}
+
+.timeline__line-arrow,
+.timeline__line-central {
+  height: 1px;
+  background: $modal-header-bg;
 }

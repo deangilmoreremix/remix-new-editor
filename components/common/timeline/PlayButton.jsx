@@ -18,7 +18,7 @@ const PlayButton = observer(() => {
     <SVGInline
       onClick={projectStore.playPause}
       component="button"
-      className="icon icon-button"
+      className="icon-button timeline-play"
       classSuffix=""
       svg={icon}
       cleanup={['title']}

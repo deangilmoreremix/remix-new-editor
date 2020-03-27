@@ -1,11 +1,23 @@
-<svg width="23" height="23" viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0)">
-<path d="M18.4 21.9H4C2.1 21.9 0.5 20.3 0.5 18.4V4C0.5 2.1 2.1 0.5 4 0.5H18.3C20.2 0.5 21.8 2.1 21.8 4V18.3C21.9 20.3 20.3 21.9 18.4 21.9Z" stroke="#EB5054" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M18.4 10H12.4V4H10V10H4V12.4H10V18.4H12.4V12.4H18.4V10Z" fill="#E4E4EC"/>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 23.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Слой_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 22.4 22.4" style="enable-background:new 0 0 22.4 22.4;" xml:space="preserve">
+<style type="text/css">
+	.st0{clip-path:url(#SVGID_2_);}
+	.st1{fill:none;stroke:#EB5054;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st2{fill:#E4E4EC;}
+</style>
+<g>
+	<defs>
+		<rect id="SVGID_1_" width="22.4" height="22.4"/>
+	</defs>
+	<clipPath id="SVGID_2_">
+		<use xlink:href="#SVGID_1_"  style="overflow:visible;"/>
+	</clipPath>
+	<g class="st0">
+		<path class="st1" d="M18.4,21.9H4c-1.9,0-3.5-1.6-3.5-3.5V4c0-1.9,1.6-3.5,3.5-3.5h14.3c1.9,0,3.5,1.6,3.5,3.5v14.3
+			C21.9,20.3,20.3,21.9,18.4,21.9z"/>
+		<path class="st2" d="M18.4,10h-6V4H10v6H4v2.4h6v6h2.4v-6h6V10z"/>
+	</g>
 </g>
-<defs>
-<clipPath id="clip0">
-<rect width="22.4" height="22.4" fill="white"/>
-</clipPath>
-</defs>
 </svg>

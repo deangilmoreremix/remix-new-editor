@@ -1,23 +1,23 @@
 // Thin scrollbars styling
 
-@mixin tiny-scrollbar($thumbHeight: 100px) {
+@mixin tiny-scrollbar($thumbColor: lighten(#CDCCCD, 10%), $thumbHover: #CDCCCD, $scrollbarColor: #FAFAFA) {
   &::-webkit-scrollbar {
     width: 6px;
   }
 
   &::-webkit-scrollbar-thumb {
-    height: $thumbHeight;
+    //height: $thumbHeight;
     border-radius: 7px;
-    background-color: lighten(#CDCCCD, 10%);
+    background-color: $thumbColor;
     transition: all 0.25s ease;
 
     &:hover {
-      background-color: #CDCCCD;
+      background-color: $thumbHover;
     }
   }
 
   &::-webkit-scrollbar-track {
     border-radius: 7px;
-    background-color: #FAFAFA;
+    background-color: $scrollbarColor;
   }
 }

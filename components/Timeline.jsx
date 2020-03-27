@@ -43,9 +43,9 @@ const Timeline = observer(() => {
   return (
     <div className="timeline">
       <Grid container>
-        <Grid item xs={2}>
+        <Grid xs={2} container alignItems="center" className="timeline__btns">
           {isLoaded && <PlayButton /> }
-          <PlusButton onClick={() => addLayer()} alt="Add Layer" className="icon" />
+          <PlusButton onClick={() => addLayer()} alt="Add Layer" className="timeline-add icon-button" />
         </Grid>
         <Grid item xs={9}>
           {isLoaded && (
@@ -56,16 +56,24 @@ const Timeline = observer(() => {
             withoutInput
             value={time}
             onChange={(value) => updateTime(value)}
+            componentClasses={{ sliderClass: 'timeline-slider' }}
           />
           )
           }
         </Grid>
         <Grid item xs={1} />
       </Grid>
+
+      <Grid container className="timeline__line">
+        <Grid item xs={2} className="timeline__line-arrow"></Grid>
+        <Grid item xs={9} className="timeline__line-central"></Grid>
+        <Grid item xs={1} className="timeline__line-arrow"></Grid>
+      </Grid>
+
       <Grid container className="layers">
         <Grid item xs={2}>
           <SortableList
-            className="layers-settings full-height"
+            className="layers-settings"
             items={layers}
             onSortEnd={onSortEnd}
             component={Layer}
@@ -73,7 +81,7 @@ const Timeline = observer(() => {
             onRemove={(item) => removeLayer(item.id)}
           />
         </Grid>
-        <Grid item xs={9} ref={ref} className="without-side-padding full-height">
+        <Grid item xs={9} ref={ref} className="without-side-padding timeline-side">
           { isLoaded && <PopcornElements width={width} /> }
         </Grid>
       </Grid>

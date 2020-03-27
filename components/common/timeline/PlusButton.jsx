@@ -9,6 +9,7 @@ import PropTypes from '../../../lib/PropTypes';
 const PlusButton = observer(({ onClick, alt, className }) => (
   <SVGInline
     className={className || ''}
+    component="button"
     classSuffix=""
     svg={SVGPlus}
     cleanup={['title']}
