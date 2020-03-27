@@ -4,29 +4,34 @@ import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 
-const ProviderList = ({ activeItem, onSelectItem, items, title }) => (
-  <div>
+const ProviderList = ({ activeItem, onSelectItem, items, title, userContentTitle }) => (
+  <div className="library__block">
     <p>{title}</p>
-    <div className="library-layout__btns">
-      { items && items.length
-          && items.map(item => (
-            <button
-              type="button"
-              key={item.name}
-              className={classnames('library-layout__btn', { 'library-layout__btn-active': activeItem === item.name })}
-              onClick={() => onSelectItem(item.name)}
-            >
-              {item.icon && (
+    <div className="library__btns">
+      {
+        items && Object.keys(items).map(element => (
+          <button
+            type="button"
+            key={items[element].name}
+            className={classnames(
+              'library__btn',
+              { 'library__btn-active': activeItem === element },
+              { 'library__btn-user': element === 'USER' },
+            )}
+            onClick={() => onSelectItem(element)}
+          >
+            {items[element].icon && (
               <SVGInline
-                classSuffix=""
-                svg={item.icon}
-                cleanup={[item.name]}
-                alt=""
+                className="library__icon-btn"
+                svg={items[element].icon}
               />
-              )}
-              <p>{item.name}</p>
-            </button>
-          ))}
+            )}
+            <p>
+              {element === 'USER' ? `${items[element].name} ${userContentTitle}` : items[element].name}
+            </p>
+          </button>
+        ))
+      }
     </div>
   </div>
 );
@@ -34,15 +39,14 @@ const ProviderList = ({ activeItem, onSelectItem, items, title }) => (
 ProviderList.propTypes = {
   activeItem: PropTypes.string,
   onSelectItem: PropTypes.func.isRequired,
-  items: PropTypes.arrayOrObservableArrayOf(PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    icon: PropTypes.string,
-  })),
-  title: PropTypes.string,
-};
-
-ProviderList.defaultProps = {
-  title: 'Find Free Photos',
+  items: PropTypes.objectOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      icon: PropTypes.string,
+    }),
+  ),
+  title: PropTypes.string.isRequired,
+  userContentTitle: PropTypes.string.isRequired,
 };
 
 export default ProviderList;

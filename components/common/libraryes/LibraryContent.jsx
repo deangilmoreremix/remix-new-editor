@@ -1,23 +1,43 @@
 import React from 'react';
+import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 
-const LibraryContent = ({ items, onSelect }) => (
+import trashIcon from '../../../public/static/images/trash.svg';
+import addIcon from '../../../public/static/images/add-white.svg';
+
+const LibraryContent = ({ items, onSelect, activeBtn, onDelete }) => (
   <>
     {
         items && items.length
           && (
-            <div className="library-layout__images">
+            <div className="library__images">
               {
                 items.map(src => (
-                  <button
-                    type="button"
+                  <div
                     key={src}
-                    className="library-layout__image"
-                    onClick={() => onSelect(src)}
+                    className="library__image"
                   >
                     <img src={src} alt="" />
-                  </button>
+                    <div className="library__image-actions">
+                      {
+                        activeBtn === 'USER' && (
+                          <button className="library__image-delete" onClick={() => onDelete(src)}>
+                            <SVGInline
+                              className="library__image-icon"
+                              svg={trashIcon}
+                            />
+                          </button>
+                        )
+                      }
+                      <button className="library__image-add" onClick={() => onSelect(src)}>
+                        <SVGInline
+                          className="library__image-icon"
+                          svg={addIcon}
+                        />
+                      </button>
+                    </div>
+                  </div>
                 ))
             }
             </div>
@@ -29,6 +49,8 @@ const LibraryContent = ({ items, onSelect }) => (
 LibraryContent.propTypes = {
   items: PropTypes.arrayOf(PropTypes.string.isRequired),
   onSelect: PropTypes.func.isRequired,
+  activeBtn: PropTypes.string.isRequired,
+  onDelete: PropTypes.func.isRequired,
 };
 
 export default LibraryContent;

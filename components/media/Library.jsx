@@ -1,24 +1,68 @@
-import React, { useState } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
+import {useDropzone} from "react-dropzone";
+import { useAsync } from 'react-async-hook';
 
+import PropTypes from '../../lib/PropTypes';
+import { libraryProviders, tabItems } from '../../lib/constants/library';
+import useMediaStore from "../hooks/useMediaStore";
+
+import Tabs from '../common/libraryes/Tabs';
 import ProviderList from '../common/libraryes/ProviderList';
 import LibraryContent from '../common/libraryes/LibraryContent';
-import PropTypes from '../../lib/PropTypes';
-import { imageProviders } from '../../lib/constants/library';
 import DropzoneArea from './DropzoneArea';
+
+import mediaConstants from "../../lib/constants/media";
 
 const Library = (props) => {
   const {
-    items,
+    // items,
     providers,
-    onAdd, title,
+    onAdd,
     onSearch,
-    addButtonTitle,
     label,
     subLabel,
     onUploaded,
   } = props;
+  // =============== USE STATE ===============
   const [query, setQuery] = useState('');
-  const [activeBtn, setActiveBtn] = useState(null);
+  const [activeBtn, setActiveBtn] = useState((Object.keys(providers)[0]));
+  const [activeTub, setActiveTub] = useState(Object.keys(tabItems)[0]);
+  const [items, setItems] = useState([
+    "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__340.jpg",
+  ]);
+  // =============== USE STATE ===============
+
+  const { uploadMedia, storeAsset, getAssets } = useMediaStore();
+  const asyncHero = useAsync(getAssets, ['images', 20]);
+
+  // =============== HOOKS ===============
+  useEffect(() => {
+    if (asyncHero.result) {
+      console.log(asyncHero.result);
+      setItems(asyncHero.result);
+    }
+  }, [asyncHero.result]);
+  // =============== HOOKS ===============
+
+  // =============== FUNCTIONS ===============
+  // === Drop ===
+  const onDrop = React.useCallback(acceptedFiles => {
+    Promise.all(acceptedFiles.map(async data => {
+      const asset = await uploadMedia({ data, preview: true });
+      const img = await storeAsset(asset.url, asset.preview, 'images');
+      setItems([
+        ...items,
+        img.url,
+      ]);
+    }));
+  }, [uploadMedia]);
+
+  const { getInputProps } = useDropzone({
+    accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
+    onDrop,
+    disabled: false,
+  });
+  // === Drop ===
 
   const handleSearch = (e) => {
     if (e.key === 'Enter' && query) {
@@ -26,55 +70,82 @@ const Library = (props) => {
     }
   };
 
-  const onSelect = (img) => {
-    console.log(img);
+  const onSelect = (item) => {
+    console.log('Select item', item);
   };
+
+  const onDelete = (item) => {
+    console.log('Delete item', item);
+  };
+  // =============== FUNCTIONS ===============
 
   if (!items || items.length === 0) {
     return (
-      <div className="library-layout">
+      <div className="library">
         <DropzoneArea onUploaded={onUploaded} />
       </div>
     );
   }
 
+  if (asyncHero.loading) {
+    // todo implement loading
+    return (<div>Loading</div>);
+  }
+
+  if (asyncHero.error) {
+    // todo implement err message
+    return (<div>asyncHero.error.message</div>);
+  }
+
+
+
   return (
-    <div className="library-layout">
-      <h2 className="library-layout__title">{title}</h2>
-      <div className="library-layout__row library-layout__row-first">
-        <div>
-          <div className="library-layout__add-file">
-            <input type="file" id="add-file" onChange={onAdd} />
-            <label htmlFor="add-file" className="library-layout__add">
-              {addButtonTitle}
-            </label>
+    <div className="library">
+      <Tabs items={tabItems} setActiveTub={setActiveTub} />
+
+      <div className="library__body">
+        <div className="library__row library__row-first">
+          <div>
+            <div className="library__add-file">
+              <input id="add-file" {...getInputProps()} />
+              <label htmlFor="add-file" className="library__add">
+                {Object.keys(tabItems).length ? `Add ${tabItems[activeTub].text}` : ''}
+              </label>
+            </div>
+          </div>
+          <div className="library__block">
+            <input
+              className="library__search"
+              id="library-layout__search"
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={handleSearch}
+            />
+            {!query && (
+              <label htmlFor="library__search">
+                {label}
+                <span>{subLabel}</span>
+              </label>
+            )}
           </div>
         </div>
-        <div className="library-layout__block-search">
-          <input
-            className="library-layout__search"
-            id="library-layout__search"
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={handleSearch}
-          />
-          {!query && (
-          <label htmlFor="library-layout__search">
-            {label}
-            <span>{subLabel}</span>
-          </label>
-          )}
-        </div>
-      </div>
 
-      <div className="library-layout__row">
-        <ProviderList
-          activeItem={activeBtn}
-          onSelectItem={setActiveBtn}
-          items={providers}
-        />
-        <LibraryContent items={items} onSelect={onSelect} />
+        <div className="library__row">
+          <ProviderList
+            activeItem={activeBtn}
+            onSelectItem={setActiveBtn}
+            items={providers}
+            title={Object.keys(tabItems).length ? tabItems[activeTub].find : ''}
+            userContentTitle={Object.keys(tabItems).length ? tabItems[activeTub].text : ''}
+          />
+          <LibraryContent
+            items={items}
+            onSelect={onSelect}
+            activeBtn={activeBtn}
+            onDelete={onDelete}
+          />
+        </div>
       </div>
     </div>
   );
@@ -82,25 +153,23 @@ const Library = (props) => {
 
 Library.propTypes = {
   items: PropTypes.arrayOf(PropTypes.string.isRequired),
-  providers: PropTypes.arrayOf(PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    icon: PropTypes.string,
-  })),
+  providers: PropTypes.objectOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      icon: PropTypes.string,
+    }),
+  ),
   onAdd: PropTypes.func.isRequired,
-  title: PropTypes.string,
   onSearch: PropTypes.func.isRequired,
-  addButtonTitle: PropTypes.string,
   label: PropTypes.string,
   subLabel: PropTypes.string,
   onUploaded: PropTypes.func.isRequired,
 };
 
 Library.defaultProps = {
-  providers: imageProviders,
-  addButtonTitle: 'Add images',
+  providers: libraryProviders,
   label: 'Try searching for keywords, like',
   subLabel: ' business, sports, meeting...',
-  title: 'Add images',
 };
 
 export default Library;
