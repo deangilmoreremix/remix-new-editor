@@ -61,7 +61,7 @@ const Home = observer(() => {
           <Canvas />
         </Col>
       </Row>
-      <Row className="timeline" noGutters >
+      <Row className="timeline" noGutters>
         <Timeline />
       </Row>
     </Container>

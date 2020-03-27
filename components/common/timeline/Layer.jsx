@@ -1,56 +1,114 @@
-import React from 'react';
-import { Button, Container, Row, Col } from 'reactstrap';
+import React, { useEffect, useRef, useState } from 'react';
 import SVGInline from 'react-svg-inline';
+import Grid from '@material-ui/core/Grid';
 
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../../lib/PropTypes';
 
 import useProjectStore from '../../hooks/useProjectStore';
-import ElementsPanel from '../toolbar/ElementsPanel';
-import SVGTrash from '../../../public/static/svgImages/common/trash.svg';
 
-// todo implement it
-const Layer = observer(({ item }) => (
-  <Row className="layer">
-    <Col md={1} className="without-padding">
-      <SVGInline
-        className="icon"
-        classSuffix=""
-        svg={SVGTrash}
-        cleanup={['title']}
-        alt="Remove Element"
-        data-tip="Remove text element"
-      />
-    </Col>
-    <Col md={3} className="without-padding">
-      <span className="title">
-        {item.name || item.defaultName}
-      </span>
-    </Col>
-    <Col md={1} className="without-padding">
-      <Button>edit</Button>
-    </Col>
-    <Col md={3} className="without-padding">
-      <Button>Normal</Button>
-    </Col>
-    <Col md={1} className="without-padding">
-      <Button>100%</Button>
-    </Col>
-    <Col md={1} className="without-padding">
-      <Button>0</Button>
-    </Col>
-    <Col md={1} className="without-padding">
-      <Button>0</Button>
-    </Col>
-  </Row>
-),
+import trashIcon from '../../../public/static/svgImages/common/trash.svg';
+import penIcon from '../../../public/static/svgImages/common/pen.svg';
+
+const Layer = observer(({ item, onRemove }) => {
+  const projectStore = useProjectStore();
+  const { layers, editLayer } = projectStore;
+  const ref = useRef(null);
+  const [isEdit, setIsEdit] = useState(false);
+  const [name, setName] = useState(item.name || item.defaultName);
+
+  const layersCount = React.useMemo(() => layers.length, [layers.length]);
+
+  const onEdit = () => {
+    setIsEdit(!isEdit);
+  };
+
+  const onEdited = () => {
+    editLayer(item.id, { name });
+    if (!name) {
+      setName(item.defaultName);
+    }
+  };
+
+  useEffect(() => {
+    if (ref.current) {
+      if (isEdit) {
+        ref.current.focus();
+      } else {
+        ref.current.blur();
+      }
+    }
+  }, [isEdit]);
+
+  return (
+    <Grid container className="layer flex-center">
+      <Grid item xs={5}>
+        <Grid container className="flex-center">
+          <Grid item xs={3} className="without-side-padding flex-center">
+            {layersCount > 1 ? (
+              <div className="flex-center">
+                <SVGInline
+                  className="icon"
+                  classSuffix=""
+                  svg={trashIcon}
+                  cleanup={['title']}
+                  alt="Remove layer"
+                  data-tip="Remove layer"
+                />
+                <button onClick={() => onRemove(item)} className="icon icon-button svg-fix" type="button" />
+              </div>
+            ) : null
+            }
+          </Grid>
+          <Grid item xs={5} className="without-side-padding">
+            <input
+              className="title reset-input"
+              value={name}
+              ref={ref}
+              onChange={(e) => { setName(e.target.value); }}
+              onFocus={() => setIsEdit(true)}
+              onBlur={onEdited}
+            />
+          </Grid>
+          <Grid item xs={4} className="without-side-padding flex-center">
+            <SVGInline
+              className="icon"
+              classSuffix=""
+              svg={penIcon}
+              cleanup={['title']}
+              alt="Edit layer"
+              data-tip="Edit layer"
+            />
+            <button onClick={onEdit} className="icon icon-button svg-fix" type="button" />
+          </Grid>
+        </Grid>
+      </Grid>
+      <Grid item xs={7}>
+        <Grid container>
+          <Grid item xs={6} className="without-side-padding">
+            {/* todo implement blend modes */}
+          </Grid>
+          <Grid item xs={2} className="without-side-padding">
+            {/* todo implement opacity */}
+          </Grid>
+          <Grid item xs={2} className="without-side-padding">
+            {/* todo implement it */}
+          </Grid>
+          <Grid item xs={2} className="without-side-padding">
+            {/* todo implement locked */}
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
+  );
+},
 );
 
 Layer.propTypes = {
   item: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    action: PropTypes.func.isRequired,
+    name: PropTypes.string,
+    defaultName: PropTypes.string,
   }).isRequired,
 };
 

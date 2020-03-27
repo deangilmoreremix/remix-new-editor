@@ -33,11 +33,11 @@ const ResponsiveGrid = observer((props) => {
       compactType={compactType}
       margin={[marginLeft, marginTop]}
       layouts={{ lg: layouts }}
-        // onResizeStop={onResizeStop}
+      onResizeStop={onResizeStop}
       onDragStop={onDragStop}
       preventCollision={preventCollision}
       maxRows={maxRows || Infinity}
-      measureBeforeMount={false}
+      // measureBeforeMount={false}
     >
       {components}
     </Responsive>

@@ -1,75 +1,87 @@
 import React, { useRef, useEffect } from 'react';
-import { SortableContainer, SortableElement } from 'react-sortable-hoc';
-import { Col, Container, Row } from 'reactstrap';
 import arrayMove from 'array-move';
 import { observer } from 'mobx-react';
+import Grid from '@material-ui/core/Grid';
 
 import useProjectStore from './hooks/useProjectStore';
 
 import PlayButton from './common/timeline/PlayButton';
+import SortableList from './common/SortableList';
+import PlusButton from './common/timeline/PlusButton';
 import PopcornElements from './common/timeline/PopcornElements';
 import Layer from './common/timeline/Layer';
-
-const SortableItem = SortableElement(({ item }) => <Layer item={item} />);
-
-const SortableList = SortableContainer(({ items, className }) => (
-  <ul className={className}>
-    {items.map((item) => (
-      <SortableItem sortIndex={item.order} className="layer" key={`item-${item.id}`} index={item.order} item={item} />
-    ))}
-  </ul>
-));
+import FormSlider from './form/FormSlider';
 
 const Timeline = observer(() => {
   const projectStore = useProjectStore();
-  const { layers, isLoaded } = projectStore;
-
-  // const [currentLayers, setCurrentLayers] = React.useState(Object.values(layers));
+  const { layers, isLoaded, addLayer, removeLayer, updateTime, duration, time, moveElements } = projectStore;
+  const ref = useRef(null);
 
   const onSortEnd = ({ oldIndex, newIndex }) => {
     if (oldIndex === newIndex) {
       return;
     }
-    const newLayers = (arrayMove(layers, oldIndex, newIndex));
-
-    projectStore.updateOrders(newLayers);
+    moveElements(oldIndex, newIndex);
   };
 
-  // const { item: { ratio: { width = 16, height = 9 } = {} } } = projectStore;
-  //
-  // const [style, setStyle] = React.useState({});
-  //
-  // const aspectRatio = width / height;
-  // const ref = useRef(null);
-  // const wrapper = useRef(null);
-  // const marginLeft = 20;
-  // const marginTop = 20;
-  //
-  // useEffect(() => {
-  //   if (ref.current) {
-  //     const maxWidth = ref.current.offsetWidth - (marginLeft * 2);
-  //     const maxHeight = ref.current.offsetHeight - (marginTop * 2);
-  //     const sideIndent = (maxWidth - (maxHeight * aspectRatio)) / 2;
-  //     setStyle(sideIndent > 0 ? { margin: `${marginTop}px ${sideIndent + marginLeft}px` }
-  //       : { margin: `${((maxHeight - (maxWidth / aspectRatio))) / 2 + marginTop}px ${marginLeft}px` });
-  //   }
-  // }, [aspectRatio]);
-  //
-  // useEffect(() => {
-  //   if (wrapper.current) {
-  //     projectStore.setPopcorn(wrapper.current);
-  //   }
-  // }, [projectStore]);
+  const addNewLayer = () => {
+    addLayer();
+  };
+
+  const onChangeTime = (value) => {
+    updateTime(value);
+  };
+
+  const onRemove = (item) => {
+    removeLayer(item.id);
+  };
+
+  useEffect(() => {
+    if (ref.current) {
+      setWidth(ref.current.offsetWidth);
+    }
+  }, []);
+
+  const [width, setWidth] = React.useState(0);
+
   // todo calculate width
+  // todo add Remove
   return (
-    <div style={{ width: '100%' }}>
-      <PlayButton />
-      <div className="layers">
-        <Col md={3}>
-          <SortableList className="layers-settings" items={layers} onSortEnd={onSortEnd} />
-        </Col>
-        <Col md={9} className="elements">
-          { isLoaded && <PopcornElements /> }
+    <div className="timeline">
+      <Grid container>
+        <Grid item xs={2}>
+          {isLoaded && <PlayButton /> }
+          <PlusButton onClick={addNewLayer} alt="Add Layer" className="icon" />
+        </Grid>
+        <Grid item xs={9}>
+          {isLoaded && (
+          <FormSlider
+            minValue={0}
+            maxValue={duration}
+            sliderWidth={width}
+            withoutInput
+            value={time}
+            onChange={onChangeTime}
+          />
+          )
+          }
+        </Grid>
+        <Grid item xs={1} />
+      </Grid>
+      <Grid container className="layers">
+        <Grid item xs={2}>
+          <SortableList
+            className="layers-settings full-height"
+            items={layers}
+            onSortEnd={onSortEnd}
+            component={Layer}
+            idField="order"
+            onRemove={onRemove}
+          />
+        </Grid>
+        <Grid item xs={9} ref={ref} className="without-side-padding full-height">
+          {/* <Ff /> */}
+          { isLoaded && <PopcornElements width={width} /> }
           {/* <div ref={ref} className="stager-wrapper"> */}
           {/* <div style={style} ref={wrapper} className="embed-wrapper"> */}
           {/* <div id="video-container" className="video-container"> */}
@@ -81,8 +93,8 @@ const Timeline = observer(() => {
           {/* </div> */}
           {/* </div> */}
           {/* </div> */}
-        </Col>
-      </div>
+        </Grid>
+      </Grid>
     </div>
   );
 });

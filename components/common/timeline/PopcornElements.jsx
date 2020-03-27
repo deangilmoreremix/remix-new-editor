@@ -5,32 +5,13 @@ import _ from 'lodash';
 import useProjectStore from '../../hooks/useProjectStore';
 import ResponsiveGrid from '../../form/grids/ResponsiveGrid';
 
-const ms = 1000;
+const ms = 100;
 
-const generateComponent = (options, cols) => (
-  <div
-    style={{ background: 'red' }}
-    key={options.i}
-    data-grid={{
-      h: 1,
-      minH: 1,
-      maxH: 1,
-      minW: ms,
-      maxW: cols - options.x,
-      i: options.i,
-      x: options.x,
-      y: options.y,
-      w: options.w,
-    }}
-  >
-    {options.type}
-  </div>
-);
-
-const generateElements = (elements, cols) => {
+const generateElements = (cols, layers, elements) => {
   const result = [];
   elements.forEach(element => {
-    const { popcornOptions: { id: i, start, end }, type, order } = element;
+    const { popcornOptions: { id: i, start, end }, type } = element;
+    const layer = layers.find(item => item.id === element.track);
     const x = start * ms;
     const w = (end - start) * ms;
     result.push({
@@ -38,7 +19,7 @@ const generateElements = (elements, cols) => {
       x,
       w,
       h: 1,
-      y: order,
+      y: layer.order,
       type,
       minH: 1,
       maxH: 1,
@@ -46,21 +27,47 @@ const generateElements = (elements, cols) => {
       maxW: cols - x,
     });
   });
+  // });
   return result;
 };
 
-const PopcornElements = observer(() => {
+const PopcornElements = observer(({width}) => {
   const projectStore = useProjectStore();
   // todo for empty project
-  const { duration, layers, elements, setLayer, updateStartEnd } = projectStore;
-
-  const cols = React.useMemo(() => duration * ms, [duration]);
+  // todo get width
+  const { duration: cols, setLayer, updateStartEnd, popcorn, elements, layers } = projectStore;
 
   const layersCount = React.useMemo(() => _.size(layers), [layers]);
 
-  const layouts = React.useMemo(() => generateElements(elements, cols), [elements, cols]);
+  const backgroundGrid = React.useMemo(() => {
+    const arr = [];
+    for (let i = 0; i < layersCount; i++) {
+      arr.push(i);
+    }
+    return arr.map((value) => <div className="element-row" key={`background-${value}`} />);
+  }, [layersCount]);
 
-  const components = React.useMemo(() => layouts.map((item) => generateComponent(item, cols)), [layouts, cols]);
+  const layouts = React.useMemo(() => generateElements(cols, layers, elements), [cols, layers]);
+
+  const components = React.useMemo(() => layouts.map((item) => (
+    <div
+      // onClick={() => { popcorn.seek(item.x); }}
+      key={item.i}
+      data-grid={{
+        h: 1,
+        minH: 1,
+        maxH: 1,
+        minW: ms,
+        maxW: cols - item.x,
+        i: item.i,
+        x: item.x,
+        y: item.y,
+        w: item.w,
+      }}
+    >
+      {item.type}
+    </div>
+  )), [layouts, cols]);
 
   const onDragStop = (el, oldEl, newEl) => {
     if (oldEl.y !== newEl.y) {
@@ -78,21 +85,28 @@ const PopcornElements = observer(() => {
     }
   };
 
+  if (!width) {
+    return null;
+  }
+
   return (
-    <div>
+    <div className="elements">
       <ResponsiveGrid
         cols={cols}
-        rowHeight={30}
+        rowHeight={34}
         maxRows={layersCount}
         layouts={layouts}
         components={components}
         onDragStop={onDragStop}
         onResizeStop={onResizeStop}
-        width={1200}
-        marginTop={5}
+        width={width}
+        marginTop={1}
         marginLeft={1}
         preventCollision
       />
+      <div className="elements-grid">
+        {backgroundGrid}
+      </div>
     </div>
   );
 },
