@@ -1,21 +1,31 @@
 import React, { useRef, useEffect } from 'react';
-import arrayMove from 'array-move';
 import { observer } from 'mobx-react';
 import Grid from '@material-ui/core/Grid';
 
 import useProjectStore from './hooks/useProjectStore';
 
-import PlayButton from './common/timeline/PlayButton';
+import FormSlider from './form/FormSlider';
+import Layer from './common/timeline/Layer';
 import SortableList from './common/SortableList';
+import PlayButton from './common/timeline/PlayButton';
 import PlusButton from './common/timeline/PlusButton';
 import PopcornElements from './common/timeline/PopcornElements';
-import Layer from './common/timeline/Layer';
-import FormSlider from './form/FormSlider';
 
 const Timeline = observer(() => {
-  const projectStore = useProjectStore();
-  const { layers, isLoaded, addLayer, removeLayer, updateTime, duration, time, moveElements } = projectStore;
   const ref = useRef(null);
+  const projectStore = useProjectStore();
+  const [width, setWidth] = React.useState(0);
+
+  const {
+    time,
+    layers,
+    duration,
+    isLoaded,
+    addLayer,
+    updateTime,
+    removeLayer,
+    moveElements,
+  } = projectStore;
 
   const onSortEnd = ({ oldIndex, newIndex }) => {
     if (oldIndex === newIndex) {
@@ -24,34 +34,18 @@ const Timeline = observer(() => {
     moveElements(oldIndex, newIndex);
   };
 
-  const addNewLayer = () => {
-    addLayer();
-  };
-
-  const onChangeTime = (value) => {
-    updateTime(value);
-  };
-
-  const onRemove = (item) => {
-    removeLayer(item.id);
-  };
-
   useEffect(() => {
     if (ref.current) {
       setWidth(ref.current.offsetWidth);
     }
   }, []);
 
-  const [width, setWidth] = React.useState(0);
-
-  // todo calculate width
-  // todo add Remove
   return (
     <div className="timeline">
       <Grid container>
         <Grid item xs={2}>
           {isLoaded && <PlayButton /> }
-          <PlusButton onClick={addNewLayer} alt="Add Layer" className="icon" />
+          <PlusButton onClick={() => addLayer()} alt="Add Layer" className="icon" />
         </Grid>
         <Grid item xs={9}>
           {isLoaded && (
@@ -61,7 +55,7 @@ const Timeline = observer(() => {
             sliderWidth={width}
             withoutInput
             value={time}
-            onChange={onChangeTime}
+            onChange={(value) => updateTime(value)}
           />
           )
           }
@@ -76,23 +70,11 @@ const Timeline = observer(() => {
             onSortEnd={onSortEnd}
             component={Layer}
             idField="order"
-            onRemove={onRemove}
+            onRemove={(item) => removeLayer(item.id)}
           />
         </Grid>
         <Grid item xs={9} ref={ref} className="without-side-padding full-height">
-          {/* <Ff /> */}
           { isLoaded && <PopcornElements width={width} /> }
-          {/* <div ref={ref} className="stager-wrapper"> */}
-          {/* <div style={style} ref={wrapper} className="embed-wrapper"> */}
-          {/* <div id="video-container" className="video-container"> */}
-          {/* <div */}
-          {/* id="video" */}
-          {/* className="video" */}
-          {/* webkit-playsinline */}
-          {/* /> */}
-          {/* </div> */}
-          {/* </div> */}
-          {/* </div> */}
         </Grid>
       </Grid>
     </div>
