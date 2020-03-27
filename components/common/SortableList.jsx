@@ -5,8 +5,17 @@ import { SortableContainer, SortableElement } from 'react-sortable-hoc';
 import PropTypes from '../../lib/PropTypes';
 
 
-const SortableList = observer(({ onSortEnd, items, className, component: Component, idField, axis, collection, ...rest }) => {
-  const Item = React.useMemo(() => SortableElement(({ item }) => <Component item={item} {...rest} />), []);
+const SortableList = observer((props) => {
+  const {
+    items,
+    idField,
+    onSortEnd,
+    className,
+    component: Component,
+    ...rest
+  } = props;
+  const Item = React.useMemo(
+    () => SortableElement(({ item }) => <Component item={item} {...rest} />), [rest]);
   const List = React.useMemo(() => SortableContainer(() => (
     <ul className={className}>
       {items.map((item) => (
@@ -20,10 +29,10 @@ const SortableList = observer(({ onSortEnd, items, className, component: Compone
         />
       ))}
     </ul>
-  )), [className, idField, items, rest]);
+  )), [className, idField, items]);
 
   return (
-    <List onSortEnd={onSortEnd} className={className || ''} items={items} axis={axis || 'y'} />
+    <List onSortEnd={onSortEnd} className={className || ''} items={items} />
   );
 },
 );
