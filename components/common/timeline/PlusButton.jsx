@@ -20,9 +20,9 @@ const PlusButton = observer(({ onClick, alt, className }) => (
 ));
 
 PlusButton.propTypes = {
-  onClick: PropTypes.func.isRequired,
   alt: PropTypes.string,
   className: PropTypes.string,
+  onClick: PropTypes.func.isRequired,
 };
 
 
