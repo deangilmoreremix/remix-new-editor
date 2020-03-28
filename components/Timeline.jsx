@@ -45,16 +45,20 @@ const Timeline = observer(() => {
       <Grid container>
         <Grid xs={2} container alignItems="center" className="timeline__btns">
           {isLoaded && <PlayButton /> }
-          <PlusButton onClick={() => addLayer()} alt="Add Layer" className="timeline-add icon-button" />
+          <PlusButton
+            onClick={() => addLayer()}
+            alt="Add Layer"
+            className="timeline-add icon-button"
+          />
         </Grid>
         <Grid item xs={9}>
           {isLoaded && (
           <FormSlider
             minValue={0}
-            maxValue={duration}
-            sliderWidth={width}
             withoutInput
             value={time}
+            maxValue={duration}
+            sliderWidth={width}
             onChange={(value) => updateTime(value)}
             componentClasses={{ sliderClass: 'timeline-slider' }}
           />
@@ -65,9 +69,9 @@ const Timeline = observer(() => {
       </Grid>
 
       <Grid container className="timeline__line">
-        <Grid item xs={2} className="timeline__line-arrow"></Grid>
-        <Grid item xs={9} className="timeline__line-central"></Grid>
-        <Grid item xs={1} className="timeline__line-arrow"></Grid>
+        <Grid item xs={2} className="timeline__line-arrow" />
+        <Grid item xs={9} className="timeline__line-central" />
+        <Grid item xs={1} className="timeline__line-arrow" />
       </Grid>
 
       <Grid container className="layers">
