@@ -2,13 +2,13 @@ import React, { Fragment, useState } from 'react';
 
 import PropTypes from '../../lib/PropTypes';
 import { DEFAULT_IFRAME_SIZE } from '../../lib/constants/campaigns/constants';
-import { iframeGenerator } from '../../lib/generators/iframe';
+import { styledIframeWithScript } from '../../lib/generators/iframe';
 
 const EmbedDataContainer = ({
   url,
   className,
   resizable = false,
-  stringGenerator = iframeGenerator,
+  stringGenerator = styledIframeWithScript,
 }) => {
   const [size, setSize] = useState(DEFAULT_IFRAME_SIZE);
 

@@ -10,10 +10,9 @@ export default (RootComponent, className, preloader, options) => (
     }
 
     render() {
-      const { statusCode } = this.props;
       return (
         <Layout className={className} {...this.props}>
-          <RootComponent statusCode={statusCode} {...options} />
+          <RootComponent {...options} />
         </Layout>
       );
     }

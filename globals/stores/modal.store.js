@@ -1,7 +1,8 @@
 import { observable, action } from 'mobx';
 
 import SocialPublisherModal from '../../components/modals/SocialPublisherModal';
-import { SOCIAL_CAMPAIGN_MODAL } from '../../lib/constants/modals';
+import EmailCampaingModal from '../../components/modals/EmailCampaignModal';
+import { SOCIAL_CAMPAIGN_MODAL, EMAIL_CAMPAIGN_MODAL } from '../../lib/constants/modals';
 
 const modalsConfig = [
   {
@@ -9,6 +10,12 @@ const modalsConfig = [
     className: `${SOCIAL_CAMPAIGN_MODAL}-modal`,
     renderer: SocialPublisherModal,
     title: 'Social Campaigns',
+  },
+  {
+    id: EMAIL_CAMPAIGN_MODAL,
+    className: `${EMAIL_CAMPAIGN_MODAL}-modal`,
+    renderer: EmailCampaingModal,
+    title: 'Email Campaigns',
   },
 ];
 

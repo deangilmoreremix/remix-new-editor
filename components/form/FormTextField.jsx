@@ -9,18 +9,18 @@ import MaskedFormControl from 'react-bootstrap-maskedinput';
 import PropTypes from '../../lib/PropTypes';
 
 export default function FormTextField({
-                                        type,
-                                        mask,
-                                        label,
-                                        onChange,
-                                        onEnter,
-                                        disabled,
-                                        inputClassName,
-                                        labelClassName,
-                                        className,
-                                        placeholder,
-                                        value,
-                                      }) {
+  type,
+  mask,
+  label,
+  onChange,
+  onEnter,
+  disabled,
+  inputClassName,
+  labelClassName,
+  className,
+  placeholder,
+  value,
+}) {
   const conditionalProps = {};
 
   if (onEnter) {
@@ -63,15 +63,17 @@ export default function FormTextField({
               key="input-key"
               id={label}
               className={classnames(inputClassName,
-                type === 'input' && 'text-input'
+                type === 'input' && 'text-input',
+                type === 'number' && 'text-input',
               )}
-              value={value || ''}
+              value={value || (value === 0 && type === 'number') ? value : ''}
               placeholder={placeholder}
               onChange={onEdit}
               type={type}
               disabled={disabled}
               {...conditionalProps}
-            />)
+            />
+          )
       }
 
     </FormGroup>
@@ -90,7 +92,7 @@ FormTextField.propTypes = {
   labelClassName: PropTypes.string,
   inline: PropTypes.bool,
   placeholder: PropTypes.string,
-  type: PropTypes.oneOf(['input', 'textarea', 'select']),
+  type: PropTypes.oneOf(['input', 'textarea', 'select', 'number']),
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
 };
 

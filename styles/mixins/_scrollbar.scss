@@ -6,7 +6,7 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    //height: $thumbHeight;
+    height: $thumbHeight;
     border-radius: 7px;
     background-color: $thumbColor;
     transition: all 0.25s ease;

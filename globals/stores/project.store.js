@@ -2,6 +2,7 @@ import { observable, action, computed, reaction, runInAction } from 'mobx';
 
 import arrayMove from 'array-move';
 import BaseStore from './base.store';
+import { EMAIL_SKIP_TOKENS } from '../../lib/constants/campaigns/constants';
 
 const defaultItem = {
   tags: [],
@@ -35,6 +36,10 @@ const defaultItem = {
     },
   },
 };
+
+// TODO: remove the fake data when ready
+const mockPersonalizations = ['FIRSTNAME', 'LASTNAME', 'GENDER', 'FIRSTNAME', 'GEOCOUNTRY'];
+
 const maxPluginZIndex = 1000;
 // todo add to global consts
 const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
@@ -89,6 +94,11 @@ export default class ProjectStore extends BaseStore {
   @observable popcorn = {};
 
   @observable modified = false;
+
+  // TODO: remove the fake data when ready
+  @observable personalizations = new Set(
+    mockPersonalizations.filter(token => !EMAIL_SKIP_TOKENS.includes(token)),
+  );
 
   @observable duration = 30 * 100;
 
@@ -156,23 +166,10 @@ export default class ProjectStore extends BaseStore {
     return popcornObject;
   };
 
-  // @computed
-  // get layers() {
-  //   return (this.popcornObject && this.popcornObject.layers) || [];
-  // }
-
   @computed
   get popcornObject() {
     return this.generatePopcornObject();
   }
-
-  @action
-  setLayers = (items, isModify) => {
-    // this.layers = items;
-    // if (isModify && !this.modified) {
-    //   this.modified = true;
-    // }
-  };
 
   @action
   sortLayers = () => {
@@ -480,7 +477,6 @@ export default class ProjectStore extends BaseStore {
 
     this.popcorn = window.Popcorn.smart(target,
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
-    console.info(this.popcorn);
     this.attach(target);
   };
 
