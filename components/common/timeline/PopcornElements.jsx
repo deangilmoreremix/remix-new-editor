@@ -96,6 +96,7 @@ const PopcornElements = observer(({ width }) => {
         rowHeight={34}
         preventCollision
         layouts={layouts}
+        className="layout"
         maxRows={layersCount}
         components={components}
         onDragStop={onDragStop}

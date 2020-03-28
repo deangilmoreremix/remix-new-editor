@@ -10,23 +10,23 @@ const ResponsiveGrid = observer((props) => {
     width,
     maxRows,
     layouts,
-    onDragStop,
-    onResizeStop,
-    components,
+    className,
     rowHeight,
     marginTop,
+    components,
+    onDragStop,
     marginLeft,
     compactType,
+    onResizeStop,
     preventCollision,
   } = props;
 
-  // todo useMemp
   if (!components || components.length === 0) {
     return null;
   }
   return (
     <Responsive
-      className="layout"
+      className={className || ''}
       cols={{ md: cols }}
       rowHeight={rowHeight}
       width={width}
@@ -37,7 +37,6 @@ const ResponsiveGrid = observer((props) => {
       onDragStop={onDragStop}
       preventCollision={preventCollision}
       maxRows={maxRows || Infinity}
-      // measureBeforeMount={false}
     >
       {components}
     </Responsive>
@@ -50,9 +49,9 @@ const ResponsiveGrid = observer((props) => {
 ResponsiveGrid.propTypes = {
   maxRows: PropTypes.number,
   onDragStop: PropTypes.func,
-  onResizeStop: PropTypes.func,
   marginTop: PropTypes.number,
   marginLeft: PropTypes.number,
+  onResizeStop: PropTypes.func,
   compactType: PropTypes.string,
   preventCollision: PropTypes.bool,
   cols: PropTypes.number.isRequired,
