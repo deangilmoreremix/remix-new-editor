@@ -1,15 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 import Grid from '@material-ui/core/Grid';
 
-import { observer } from 'mobx-react';
-
-import PropTypes from '../../../lib/PropTypes';
-
 import useProjectStore from '../../hooks/useProjectStore';
 
-import trashIcon from '../../../public/static/svgImages/common/trash.svg';
 import penIcon from '../../../public/static/svgImages/common/pen.svg';
+import trashIcon from '../../../public/static/svgImages/common/trash.svg';
+
+import PropTypes from '../../../lib/PropTypes';
 
 const Layer = observer(({ item, onRemove }) => {
   const projectStore = useProjectStore();
@@ -109,7 +108,9 @@ Layer.propTypes = {
   item: PropTypes.shape({
     name: PropTypes.string,
     defaultName: PropTypes.string,
+    id: PropTypes.string.isRequired,
   }).isRequired,
+  onRemove: PropTypes.func.isRequired,
 };
 
 export default Layer;
