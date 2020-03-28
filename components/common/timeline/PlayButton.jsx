@@ -7,7 +7,6 @@ import useProjectStore from '../../hooks/useProjectStore';
 import playIcon from '../../../public/static/svgImages/common/play.svg';
 import pauseIcon from '../../../public/static/svgImages/common/pause.svg';
 
-// todo implement it
 const PlayButton = observer(() => {
   const projectStore = useProjectStore();
   const { isPlayed } = projectStore;
