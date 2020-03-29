@@ -103,11 +103,11 @@ FormSlider.propTypes = {
   minValue: PropTypes.number,
   withoutInput: PropTypes.bool,
   maxValue: PropTypes.number,
-  componentClasses: PropTypes.objectOf(PropTypes.shape({
+  componentClasses: PropTypes.shape({
     containerClass: PropTypes.string,
     sliderClass: PropTypes.string,
     inputClass: PropTypes.string,
-  })),
+  }),
 };
 
 FormSlider.defaultProps = {

@@ -1,8 +1,16 @@
-import { observable, action, computed, reaction, runInAction } from 'mobx';
-
+import { observable, action, computed, reaction } from 'mobx';
 import arrayMove from 'array-move';
+
 import BaseStore from './base.store';
+
 import { EMAIL_SKIP_TOKENS } from '../../lib/constants/campaigns/constants';
+import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
+
+const defaultLayer = {
+  name: '',
+  order: 0,
+  trackEvents: [],
+};
 
 const defaultItem = {
   tags: [],
@@ -40,8 +48,6 @@ const defaultItem = {
 // TODO: remove the fake data when ready
 const mockPersonalizations = ['FIRSTNAME', 'LASTNAME', 'GENDER', 'FIRSTNAME', 'GEOCOUNTRY'];
 
-const maxPluginZIndex = 1000;
-// todo add to global consts
 const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
 
 export default class ProjectStore extends BaseStore {
@@ -52,11 +58,11 @@ export default class ProjectStore extends BaseStore {
       () => this.popcorn && this.popcorn.on,
       () => {
         this.popcorn.on('canplayall', () => {
-          this.duration = (this.popcorn.duration() || 30) * 100;
+          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
           this.isLoaded = true;
         });
         this.popcorn.on('timeupdate', () => {
-          this.time = this.popcorn.currentTime() * 100;
+          this.time = this.popcorn.currentTime() * SANTISECOND;
         });
         this.popcorn.on('ended', () => {
           this.time = 0;
@@ -100,7 +106,7 @@ export default class ProjectStore extends BaseStore {
     mockPersonalizations.filter(token => !EMAIL_SKIP_TOKENS.includes(token)),
   );
 
-  @observable duration = 30 * 100;
+  @observable duration = 30 * SANTISECOND;
 
   @observable time = 0;
 
@@ -108,10 +114,10 @@ export default class ProjectStore extends BaseStore {
 
   @action
   setProjectData = (data) => {
-    const layers = [];
+    let layers = [];
     const elements = [];
-    this.projectData = data;
-    this.projectData.media.forEach((media) => {
+    const projectData = data;
+    projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
           if (trackEvent.type === 'pausePlugin') {
@@ -130,10 +136,12 @@ export default class ProjectStore extends BaseStore {
         };
         layers.push(layer);
       });
-      this.sortLayers();
-      this.layers = layers;
-      this.elements = elements;
+      media.tracks = media.tracks.sort((a, b) => a.order - b.order);
     });
+    layers = layers.sort((a, b) => a.order - b.order);
+    this.layers = layers;
+    this.elements = elements;
+    this.projectData = projectData;
   };
 
   generatePopcornObject = () => {
@@ -172,45 +180,25 @@ export default class ProjectStore extends BaseStore {
   }
 
   @action
-  sortLayers = () => {
-    this.projectData.media.forEach((media) => {
-      media.tracks = media.tracks.sort((a, b) => a.order - b.order);
-    });
-    this.layers = this.layers.sort((a, b) => a.order - b.order);
-  };
-
-  @action
   moveElements = (oldIndex, newIndex) => {
     this.modified = true;
     this.projectData.media.forEach((media) => {
       const topElements = media.tracks[oldIndex].trackEvents;
       const bottomElements = media.tracks[newIndex].trackEvents;
-      const topZIndex = maxPluginZIndex - media.tracks[oldIndex].order;
-      const bottomZIndex = maxPluginZIndex - media.tracks[newIndex].order;
-      media.tracks = arrayMove(media.tracks, oldIndex, newIndex);
-      media.tracks = this.orderItems(media.tracks, true);
+      const topZIndex = MAX_ZINDEX - media.tracks[oldIndex].order;
+      const bottomZIndex = MAX_ZINDEX - media.tracks[newIndex].order;
+      const tracks = arrayMove(media.tracks, oldIndex, newIndex);
+      media.tracks = this.orderItems(tracks, true);
       topElements.forEach(element => {
-        if (!this.isVideo(element) && !this.isAudio(element)) {
+        if (!this.isAudio(element)) {
           element.popcornOptions.zindex = topZIndex;
-          const trackEvent = this.popcorn.getTrackEvent(element.id);
-          // eslint-disable-next-line no-underscore-dangle
-          if (trackEvent && trackEvent._natives._update) {
-            // _natives and _update is popcorn functions
-            // eslint-disable-next-line no-underscore-dangle
-            trackEvent._natives._update(trackEvent, { zindex: topZIndex });
-          }
+          this.update(element, { zindex: topZIndex });
         }
       });
       bottomElements.forEach(element => {
-        if (!this.isVideo(element) && !this.isAudio(element)) {
+        if (!this.isAudio(element)) {
           element.popcornOptions.zindex = bottomZIndex;
-          const trackEvent = this.popcorn.getTrackEvent(element.id);
-          // eslint-disable-next-line no-underscore-dangle
-          if (trackEvent && trackEvent._natives._update) {
-            // _natives and _update is popcorn functions
-            // eslint-disable-next-line no-underscore-dangle
-            trackEvent._natives._update(trackEvent, { zindex: bottomZIndex });
-          }
+          this.update(element, { zindex: bottomZIndex });
         }
       });
     });
@@ -236,15 +224,9 @@ export default class ProjectStore extends BaseStore {
   orderItems = (items, updateTracks) => items.map((track, index) => {
     track.defaultName = `Layer ${index}`;
     if (updateTracks) {
-      const zindex = maxPluginZIndex - index;
+      const zindex = MAX_ZINDEX - index;
       track.trackEvents.forEach(element => {
-        const trackEvent = this.popcorn.getTrackEvent(element.id);
-        // eslint-disable-next-line no-underscore-dangle
-        if (trackEvent && trackEvent._natives._update) {
-          // _natives and _update is popcorn functions
-          // eslint-disable-next-line no-underscore-dangle
-          trackEvent._natives._update(trackEvent, { zindex });
-        }
+        this.update(element, { zindex });
       });
     }
     track.order = index;
@@ -257,25 +239,14 @@ export default class ProjectStore extends BaseStore {
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
         track.order += 1;
-        const zindex = maxPluginZIndex - track.order;
-        track.trackEvents.forEach(event => {
-          event.popcornOptions.zindex = zindex;
-          const trackEvent = this.popcorn.getTrackEvent(event.id);
-          // eslint-disable-next-line no-underscore-dangle
-          if (trackEvent && trackEvent._natives._update) {
-            // _natives and _update is popcorn functions
-            // eslint-disable-next-line no-underscore-dangle
-            trackEvent._natives._update(trackEvent, { zindex });
-          }
+        const zindex = MAX_ZINDEX - track.order;
+        track.trackEvents.forEach(element => {
+          element.popcornOptions.zindex = zindex;
+          this.update(element, { zindex });
         });
         return track;
       });
-      media.tracks.unshift({
-        name: '',
-        id: `${media.tracks.length}`,
-        order: 0,
-        trackEvents: [],
-      });
+      media.tracks.unshift({ ...defaultLayer, id: media.tracks.length });
     });
 
     this.layers = this.layers.map(track => {
@@ -283,13 +254,7 @@ export default class ProjectStore extends BaseStore {
       track.defaultName = `Layer ${track.order}`;
       return track;
     });
-    this.layers.unshift({
-      name: '',
-      id: `${this.layers.length}`,
-      order: 0,
-      defaultName: 'Layer 0',
-      trackEvents: [],
-    });
+    this.layers.unshift({ ...defaultLayer, id: `${this.layers.length}`, defaultName: 'Layer 0' });
   };
 
   @action
@@ -308,13 +273,9 @@ export default class ProjectStore extends BaseStore {
       media.tracks = media.tracks.filter(track => track.id !== id);
       media.tracks = this.orderItems(media.tracks, true);
     });
-
-    runInAction(() => {
-      this.modified = true;
-      this.layers = this.layers.filter(track => track.id !== id);
-      this.layers = this.orderItems(this.layers);
-      this.elements = this.elements.filter(item => item.track !== id);
-    });
+    this.layers = this.layers.filter(track => track.id !== id);
+    this.layers = this.orderItems(this.layers);
+    this.elements = this.elements.filter(item => item.track !== id);
   };
 
   @action
@@ -377,7 +338,7 @@ export default class ProjectStore extends BaseStore {
   @action
   updateTime = (value) => {
     this.time = value;
-    this.popcorn.currentTime(value / 100);
+    this.popcorn.currentTime(value / SANTISECOND);
   };
 
   @action
@@ -398,18 +359,11 @@ export default class ProjectStore extends BaseStore {
         });
       });
     });
-    const trackEvent = this.popcorn.getTrackEvent(elementId);
-    // _natives and _update is popcorn functions
-    // eslint-disable-next-line no-underscore-dangle
-    if (trackEvent && trackEvent._natives._update) {
-      // _natives and _update is popcorn functions
-      // eslint-disable-next-line no-underscore-dangle
-      trackEvent._natives._update(trackEvent, { start, end });
-    }
+    this.update(elementId, { start, end });
   };
 
   @action
-  update(element, options) {
+  findAndUpdate = (element, options) => {
     const elementId = (element && element.id) || element;
     this.modified = true;
     this.projectData.media.forEach((media) => {
@@ -421,17 +375,20 @@ export default class ProjectStore extends BaseStore {
         });
       });
     });
-    const trackEvent = this.popcorn.getTrackEvent(elementId);
-    // _natives and _update is popcorn functions
-    // eslint-disable-next-line no-underscore-dangle
-    if (trackEvent && trackEvent._natives._update) {
-      // _natives and _update is popcorn functions
+    this.update(elementId, options);
+  };
+
+  @action
+    update = (element, options) => {
+      const elementId = (element && element.id) || element;
+      const trackEvent = this.popcorn.getTrackEvent(elementId);
       // eslint-disable-next-line no-underscore-dangle
-      trackEvent._natives._update(trackEvent, options);
-      trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
-      // trackEvent.view.update(trackEvent.popcornOptions);
-    }
-  }
+      if (trackEvent && trackEvent._natives._update) {
+        // _natives and _update is popcorn functions
+        // eslint-disable-next-line no-underscore-dangle
+        trackEvent._natives._update(trackEvent, options);
+      }
+    };
 
   isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'
         || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
@@ -459,7 +416,6 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
         });
-      debugger;
       this.setProjectData(JSON.parse(this.item.project.data));
     } catch (e) {
       this.item = defaultItem;

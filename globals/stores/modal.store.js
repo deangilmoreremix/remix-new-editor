@@ -25,7 +25,9 @@ export default () => {
   const modals = observable(modalsConfig);
 
   const openModal = (modalId) => {
-    if (modalId) modalIds.add(modalId);
+    if (modalId) {
+      modalIds.add(modalId);
+    }
   };
 
   const closeModal = (modalId) => {

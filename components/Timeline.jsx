@@ -43,13 +43,15 @@ const Timeline = observer(() => {
   return (
     <div className="timeline">
       <Grid container>
-        <Grid xs={2} container alignItems="center" className="timeline__btns">
-          {isLoaded && <PlayButton /> }
-          <PlusButton
-            onClick={() => addLayer()}
-            alt="Add Layer"
-            className="timeline-add icon-button"
-          />
+        <Grid xs={2} item>
+          <Grid container alignItems="center" className="timeline__btns">
+            {isLoaded && <PlayButton /> }
+            <PlusButton
+              onClick={() => addLayer()}
+              alt="Add Layer"
+              className="timeline-add icon-button"
+            />
+          </Grid>
         </Grid>
         <Grid item xs={9}>
           {isLoaded && (

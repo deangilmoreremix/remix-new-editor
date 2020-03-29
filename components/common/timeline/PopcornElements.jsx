@@ -18,7 +18,11 @@ const PopcornElements = observer(({ width }) => {
 
   const { duration: cols, setLayer, updateStartEnd, elements, layers } = projectStore;
 
-  const layersCount = React.useMemo(() => layers.length, [layers.length]);
+  const layersCount = React.useMemo(() => layers.length, [layers]);
+
+  if (!layersCount) {
+    return null;
+  }
 
   const backgroundGrid = React.useMemo(() => {
     const arr = [];
