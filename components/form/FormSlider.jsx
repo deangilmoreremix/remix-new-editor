@@ -71,23 +71,24 @@ const FormSlider = props => {
             max={maxValue}
           />
         </Grid>
-        {!withoutInput && (
-          <Grid item>
-            <Input
-              className={classnames(classes.input, inputClass)}
-              value={value}
-              margin="dense"
-              onChange={handleInputChange}
-              onBlur={handleBlur}
-              inputProps={{
-                min: minValue,
-                max: maxValue,
-                type: 'number',
-                'aria-labelledby': 'input-slider',
-              }}
-            />
-          </Grid>
-        )
+        {
+          !withoutInput && (
+            <Grid item>
+              <Input
+                className={classnames(classes.input, inputClass)}
+                value={value}
+                margin="dense"
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                inputProps={{
+                  min: minValue,
+                  max: maxValue,
+                  type: 'number',
+                  'aria-labelledby': 'input-slider',
+                }}
+              />
+            </Grid>
+          )
         }
       </Grid>
     </div>

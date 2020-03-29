@@ -54,17 +54,18 @@ const Timeline = observer(() => {
           </Grid>
         </Grid>
         <Grid item xs={9}>
-          {isLoaded && (
-          <FormSlider
-            minValue={0}
-            withoutInput
-            value={time}
-            maxValue={duration}
-            sliderWidth={width}
-            onChange={(value) => updateTime(value)}
-            componentClasses={{ sliderClass: 'timeline-slider' }}
-          />
-          )
+          {
+            isLoaded && (
+            <FormSlider
+              minValue={0}
+              withoutInput
+              value={time}
+              maxValue={duration}
+              sliderWidth={width}
+              onChange={(value) => updateTime(value)}
+              componentClasses={{ sliderClass: 'timeline-slider' }}
+            />
+            )
           }
         </Grid>
         <Grid item xs={1} />

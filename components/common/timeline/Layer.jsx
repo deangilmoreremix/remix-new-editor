@@ -45,19 +45,20 @@ const Layer = observer(({ item, onRemove }) => {
       <Grid item xs={5}>
         <Grid container className="flex-center">
           <Grid item xs={3} className="without-side-padding flex-center">
-            {layersCount > 1 ? (
-              <div className="flex-center">
-                <SVGInline
-                  className="icon"
-                  classSuffix=""
-                  svg={trashIcon}
-                  cleanup={['title']}
-                  alt="Remove layer"
-                  data-tip="Remove layer"
-                />
-                <button onClick={() => onRemove(item)} className="icon icon-button svg-fix" type="button" />
-              </div>
-            ) : null
+            {
+              layersCount > 1 ? (
+                <div className="flex-center">
+                  <SVGInline
+                    className="icon"
+                    classSuffix=""
+                    svg={trashIcon}
+                    cleanup={['title']}
+                    alt="Remove layer"
+                    data-tip="Remove layer"
+                  />
+                  <button onClick={() => onRemove(item)} className="icon icon-button svg-fix" type="button" />
+                </div>
+              ) : null
             }
           </Grid>
           <Grid item xs={5} className="without-side-padding">
