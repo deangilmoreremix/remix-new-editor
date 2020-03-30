@@ -4,9 +4,14 @@ import { useRouter } from 'next/router';
 import { useAsync } from 'react-async-hook';
 import { Col, Container, Row } from 'reactstrap';
 
+import Canvas from './Canvas';
 import Toolbar from './common/toolbar/Toolbar';
+
 import useProjectStore from './hooks/useProjectStore';
+import useModalStore from './hooks/useModalStore';
+
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
+import PlayButton from './common/timeline/PlayButton';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -14,6 +19,7 @@ const getOne = async (store, id) => {
 
 const Home = observer(() => {
   const { query: { project } } = useRouter();
+  const { openModal, closeModal } = useModalStore();
   const projectStore = useProjectStore();
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
@@ -30,15 +36,27 @@ const Home = observer(() => {
   return (
     <Container fluid>
       <Row className="controls" noGutters>
-        <Col xs={4}>
-          <Toolbar items={toolbarItems} />
+        <Col xs={7}>
+          <Row>
+            <Col xs={6}>
+              <Toolbar
+                items={toolbarItems({
+                  actions: {
+                    openModal,
+                    closeModal,
+                  },
+                })}
+              />
+            </Col>
+            <Col xs={6}>
+              Hi!
+            </Col>
+          </Row>
         </Col>
-        <Col xs={4}>
-          Hi!
+        <Col xs={5}>
+          <Canvas />
         </Col>
-        <Col xs={4}>
-          Hi again!
-        </Col>
+        <PlayButton />
       </Row>
       <Row className="timeline" noGutters />
     </Container>

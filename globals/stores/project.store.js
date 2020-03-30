@@ -1,6 +1,7 @@
 import { observable, action } from 'mobx';
 
 import BaseStore from './base.store';
+import { EMAIL_SKIP_TOKENS } from '../../lib/constants/campaigns/constants';
 
 const defaultItem = {
   tags: [],
@@ -8,17 +9,90 @@ const defaultItem = {
   background: '',
   description: '',
   allowedSocials: [],
+  project: {
+    data: {},
+  },
 };
 
+// TODO: remove the fake data when ready
+const mockPersonalizations = ['FIRSTNAME', 'LASTNAME', 'GENDER', 'FIRSTNAME', 'GEOCOUNTRY'];
+
+// todo add to global consts
+const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
+
 export default class ProjectStore extends BaseStore {
+  constructor(props) {
+    super(props);
+    this.item = defaultItem;
+  }
+
+  @observable assets = [];
+
   @observable item = {};
 
-  @observable modified = null;
+  @observable projectData = {};
+
+  @observable popcornObject = null;
+
+  @observable popcorn = {};
+
+  @observable modified = false;
+
+  // TODO: remove the fake data when ready
+  @observable personalizations = new Set(
+    mockPersonalizations.filter(token => !EMAIL_SKIP_TOKENS.includes(token)),
+  );
+
+  @action
+  setProjectData = () => {
+    this.projectData = JSON.parse(this.item.project.data);
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.type === 'pausePlugin') {
+            trackEvent.popcornOptions.start = media.duration - PAUSE_PLUGIN_TIME_MARGIN;
+            trackEvent.popcornOptions.end = media.duration;
+          }
+        });
+      });
+    });
+  };
+
+  generatePopcornObject = () => {
+    this.projectData.media.forEach((currentMedia) => {
+      // We expect a string (one url) or an array of url strings.
+      // Turn a single url into an array of 1 string.
+      const mediaUrls = typeof currentMedia.url === 'string' ? [currentMedia.url] : currentMedia.url;
+      const mediaUrlsString = `[ '${mediaUrls.join('')}' ]`;
+
+      const mediaPopcornOptions = currentMedia.popcornOptions || {};
+      // Force the Popcorn instance we generate to have an ID we can query.
+      mediaPopcornOptions.id = 'Butter-Generated';
+
+      const popcornData = {
+        target: currentMedia.target,
+        mediaUrlsString,
+        elements: [],
+      };
+
+      currentMedia.tracks.forEach((currentTrack) => {
+        currentTrack.trackEvents.forEach((currentTrackEvent) => {
+          popcornData.elements.push({
+            type: currentTrackEvent.type,
+            popcornOptions: currentTrackEvent.popcornOptions,
+          });
+        });
+      });
+      this.popcornObject = popcornData;
+    });
+  };
+
 
   @action
   getOne = async (projectId) => {
     if (!projectId) {
       this.item = defaultItem;
+      this.projectData = {};
       return this.item;
     }
     const path = `/api/users/me/makes/${projectId}`;
@@ -27,10 +101,11 @@ export default class ProjectStore extends BaseStore {
         path, {
           method: 'GET',
           headers: {
-            // todo update it. Implemented for testing until login
-            'on-behalf': '5a9007349ab52100041dac25',
+            'on-behalf': this.currentUser.id,
           },
         });
+      this.setProjectData();
+      this.generatePopcornObject();
     } catch (e) {
       this.item = defaultItem;
       throw e;
@@ -39,12 +114,66 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  setPopcorn = (target) => {
+    if (!this.popcornObject) {
+      return;
+    }
+
+    this.popcorn = window.Popcorn.smart(target,
+      this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
+    this.attach(target);
+  };
+
+  @action
+  attach = (target) => {
+    const findMediaSource = (sources, acceptableSources) => sources.filter((source) => {
+      const extension = source.split('.').reverse()[0];
+      return acceptableSources.some(extension);
+    })[0];
+
+    this.popcornObject.elements.forEach((element) => {
+      if (element.type === 'sequencer') {
+        if (element.type === 'sequencer') {
+          if (element.type === 'sequencer' && element.popcornOptions.source[0].split('|').length > 1) {
+            element.popcornOptions.source = [findMediaSource(
+              element.popcornOptions.source[0].split('|'), ['mp4', 'webm'],
+            )];
+          }
+        }
+      }
+      this.popcorn[element.type](target
+        ? { ...element.popcornOptions, target }
+        : element.popcornOptions);
+    });
+    this.popcorn.target = target;
+    return this.popcorn;
+  };
+
+  @action
   updateItem = (value) => {
     this.item = { ...this.item, ...value };
   };
 
   @action
-  async save() {
+  addAsset = (asset) => {
+    this.assets.push(asset);
+  };
+
+  @action
+  serialize() {
+    return {
+      data: JSON.stringify(this.item),
+      allowedSocials: this.item.allowedSocials,
+      name: this.item.name,
+      editor: 'smart-video',
+      description: this.item.description,
+      thumbnail: this.item.thumbnail,
+      source: this.item.source,
+    };
+  };
+
+  @action
+  save = async () => {
     try {
       const path = this.item.make
         ? `/api/users/me/makes/${this.item_id}`

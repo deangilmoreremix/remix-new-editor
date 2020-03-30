@@ -1,11 +1,30 @@
 @mixin reset-button {
   background: none;
+  border: 0 none;
   outline: none;
   border: none;
   padding: 0;
   margin: 0;
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   &:focus {
     outline: none;
+  }
+}
+
+@mixin button-primary {
+  color: $white;
+  border: 1px solid $btn-gray;
+  border-radius: 4px;
+  transition: all 0.25s ease;
+
+  &:hover {
+    border-color: $red;
+  }
+
+  &:disabled {
+    border-color: $btn-gray-disabled;
   }
 }

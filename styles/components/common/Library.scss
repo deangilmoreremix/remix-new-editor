@@ -1,0 +1,165 @@
+.library-layout {
+  max-width: 31.75rem;
+  height: 24rem;
+  background: $light-twinlight;
+  padding: 1.31rem 2.62rem 1.75rem 1.56rem;
+  box-sizing: border-box;
+  font-family: $font-primary;
+  position: relative;
+  z-index: 1;
+  font-size: 0.875rem;
+  line-height: 1;
+  color: $white;
+
+  button, input {
+    color: $white;
+  }
+}
+
+.library-layout__title {
+  font-size: 1em;
+  font-weight: bold;
+  margin-bottom: 1em;
+}
+
+.library-layout__row {
+  display: flex;
+
+  &-first {
+    align-items: flex-end;
+    margin-bottom: 1.18em;
+  }
+
+  &>div:first-child {
+    width: 10.8em
+  }
+
+  &>div:last-child {
+    flex: 1
+  }
+}
+
+.library-layout__add-file {
+  input {
+    display: none;
+  }
+}
+
+.library-layout__add {
+  @include reset-button;
+
+  width: 8.88em;
+  border: 1px solid $red;
+  border-radius: 4px;
+  padding: 0.67em 0;
+}
+
+.library-layout__block-search {
+  position: relative;
+}
+
+.library-layout__search {
+  width: 100%;
+  display: block;
+  background: none;
+  border: none;
+  outline: none;
+  border-bottom: 1px solid $red;
+  padding: 0.3em 0;
+
+  &:focus ~ label {
+    display: none;
+  }
+
+  &+label {
+    position: absolute;
+    bottom: 0.3em;
+    left: 0;
+    font-size: 0.7em;
+
+    span {
+      font-size: 0.7em;
+      color: $red;
+    }
+  }
+}
+
+.library-layout__btns {
+  @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
+
+  max-width: 8.8em;
+  max-height: 14.3em;
+  margin-top: 2.85em;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+.library-layout__btn {
+  display: flex;
+  align-items: center;
+  max-width: 8.14em;
+  padding-left: 1.86em;
+  margin-bottom: 0.9em;
+  position: relative;
+  border: none;
+  background: none;
+  outline: none !important;
+
+  svg {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    max-width: 1.18em;
+    max-height: 0.88em;
+  }
+
+  p {
+    margin-bottom: 0;
+  }
+
+  &-active {
+    path {
+      fill: $red;
+    }
+
+    p {
+      color: $red;
+    }
+  }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.library-layout__images {
+  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+
+  display: flex;
+  flex-wrap: wrap;
+  height: 18.64em;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+.library-layout__image {
+  @include reset-button;
+
+  width: 5.58em;
+  height: 5.58em;
+  position: relative;
+  overflow: hidden;
+  background-color: $canvas-bg;
+  margin-right: 0.64em;
+  margin-bottom: 0.64em;
+
+  img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
