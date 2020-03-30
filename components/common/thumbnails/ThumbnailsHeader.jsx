@@ -9,6 +9,7 @@ import FormSelect from '../../form/FormSelect';
 const selectItems = [
   { value: 'First item' },
   { value: 'Second item' },
+  { value: 'New item' },
 ];
 
 const ThumbnailsHeader = () => {
