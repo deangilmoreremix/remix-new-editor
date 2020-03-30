@@ -1,32 +1,27 @@
 import React from 'react';
-import { Button } from 'reactstrap';
-
 import { observer } from 'mobx-react';
+import SVGInline from 'react-svg-inline';
+
 import useProjectStore from '../../hooks/useProjectStore';
 
-// todo implement it
+import playIcon from '../../../public/static/svgImages/common/play.svg';
+import pauseIcon from '../../../public/static/svgImages/common/pause.svg';
+
 const PlayButton = observer(() => {
   const projectStore = useProjectStore();
-  const { popcorn } = projectStore;
-  const [isPlaying, setIsPlaying] = React.useState(false);
+  const { isPlayed } = projectStore;
 
-  const play = () => {
-    if (popcorn.media.paused) {
-      setIsPlaying(true);
-      popcorn.play();
-    } else {
-      setIsPlaying(false);
-      popcorn.pause();
-    }
-  };
+  const icon = React.useMemo(() => (isPlayed ? pauseIcon : playIcon), [isPlayed]);
 
   return (
-    <Button
-      onClick={play}
-      disabled={!popcorn || !popcorn.media}
-    >
-      {isPlaying ? 'pause' : 'play'}
-    </Button>
+    <SVGInline
+      onClick={projectStore.playPause}
+      component="button"
+      className="icon-button timeline-play"
+      classSuffix=""
+      svg={icon}
+      cleanup={['title']}
+    />
   );
 });
 

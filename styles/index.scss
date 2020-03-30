@@ -4,29 +4,33 @@
 @import "variables";
 @import "mixins/index";
 
+@import "popcorn";
+
 @import "components/DropzoneArea";
 @import "components/Home";
 @import "components/Header";
 @import "components/form/FormSelect";
 @import "components/Canvas";
-@import "popcorn";
-
+@import "components/Timeline";
+@import "components/Personalization";
 @import "components/Media";
 @import "components/MediaLibrary";
-@import "components/common/Library";
 @import "components/Layout";
 
 @import "components/modals/index";
+@import "components/modals/SocialCampaignModal";
 
-
-@import "components/common/NavbarHamburger";
+@import "components/common/index";
 @import "components/common/Toolbar";
+@import "components/common/Library";
+@import "components/common/NavbarHamburger";
+
 @import "components/campaigns/index";
+
 @import "components/form/elements";
 @import "components/form/inputs";
 @import "components/form/checkbox";
 @import "components/form/colorpicker";
 @import "components/form/FormSlider";
 @import "components/form/FormRadioButton";
-@import "components/Personalization";
 @import "components/form/AngleInput";
