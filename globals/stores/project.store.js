@@ -53,7 +53,8 @@ const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
 export default class ProjectStore extends BaseStore {
   constructor(props) {
     super(props);
-    this.item = defaultItem;
+    this.layers = [];
+    this.elements = [];
     reaction(
       () => this.popcorn && this.popcorn.on,
       () => {
@@ -89,9 +90,9 @@ export default class ProjectStore extends BaseStore {
 
   @observable projectData = {};
 
-  @observable layers = [];
+  @observable layers;
 
-  @observable elements = [];
+  @observable elements;
 
   @observable videoElements = [];
 

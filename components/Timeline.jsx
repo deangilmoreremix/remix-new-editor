@@ -55,7 +55,7 @@ const Timeline = observer(() => {
         </Grid>
         <Grid item xs={9}>
           {
-            isLoaded && (
+            isLoaded && width && (
             <FormSlider
               minValue={0}
               withoutInput
@@ -89,7 +89,7 @@ const Timeline = observer(() => {
           />
         </Grid>
         <Grid item xs={9} ref={ref} className="without-side-padding timeline-side">
-          { isLoaded && <PopcornElements width={width} /> }
+          { isLoaded && width && <PopcornElements width={width} /> }
         </Grid>
       </Grid>
     </div>

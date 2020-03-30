@@ -11,14 +11,11 @@ import PropTypes from '../../../lib/PropTypes';
 
 
 const PopcornElements = observer(({ width }) => {
-  if (!width) {
-    return null;
-  }
   const projectStore = useProjectStore();
 
   const { duration: cols, setLayer, updateStartEnd, elements, layers } = projectStore;
 
-  const layersCount = React.useMemo(() => layers.length, [layers]);
+  const layersCount = React.useMemo(() => layers.length, [layers.length]);
 
   if (!layersCount) {
     return null;
