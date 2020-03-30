@@ -12,7 +12,8 @@ import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
-import PlayButton from './common/timeline/PlayButton';
+
+import Timeline from './Timeline';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -20,8 +21,9 @@ const getOne = async (store, id) => {
 
 const Home = observer(() => {
   const { query: { project } } = useRouter();
-  const { openModal, closeModal } = useModalStore();
   const projectStore = useProjectStore();
+  const { openModal, closeModal } = useModalStore();
+
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
   if (asyncHero.loading) {
@@ -58,9 +60,10 @@ const Home = observer(() => {
         <Col xs={5}>
           <Canvas />
         </Col>
-        <PlayButton />
       </Row>
-      <Row className="timeline" noGutters />
+      <Row className="timeline" noGutters>
+        <Timeline />
+      </Row>
     </Container>
   );
 });
