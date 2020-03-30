@@ -62,13 +62,7 @@ const Home = observer(() => {
         <PlayButton />
       </Row>
       <Row className="timeline" noGutters />
-      <Library
-        items={[
-          "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__340.jpg",
-          "https://static.toiimg.com/photo/72975551.cms",
-          "https://cdn.pixabay.com/photo/2015/12/01/20/28/road-1072823__340.jpg"
-        ]}
-      />
+      <Library />
     </Container>
   );
 });

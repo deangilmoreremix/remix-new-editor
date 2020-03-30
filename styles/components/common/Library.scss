@@ -1,4 +1,6 @@
 .library {
+  display: flex;
+  flex-direction: column;
   max-width: 31.75rem;
   height: 24rem;
   background: $light-twinlight;
@@ -16,6 +18,14 @@
   }
 }
 
+.library__error {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .library__tabs {
   display: flex;
   justify-content: space-between;
@@ -23,6 +33,9 @@
 }
 
 .library__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   padding: 1rem 2.62rem 1.6rem 1.56rem;
 }
 
@@ -63,6 +76,10 @@
     margin-bottom: 1.18em;
   }
 
+  &-second {
+    flex: 1;
+  }
+
   &>div:first-child {
     width: 10.8em
   }
@@ -70,6 +87,10 @@
   &>div:last-child {
     flex: 1
   }
+}
+
+.library__placeholder {
+  cursor: auto;
 }
 
 .library__add-file {

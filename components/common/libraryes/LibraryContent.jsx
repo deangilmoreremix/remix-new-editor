@@ -6,11 +6,24 @@ import PropTypes from '../../../lib/PropTypes';
 import trashIcon from '../../../public/static/images/trash.svg';
 import addIcon from '../../../public/static/images/add-white.svg';
 
-const LibraryContent = ({ items, onSelect, activeBtn, onDelete }) => (
-  <>
-    {
+import { LoaderCircle } from '../../media/Loader';
+
+const LibraryContent = ({ items, onSelect, activeBtn, onDelete, isLoading }) => {
+  if (isLoading) {
+    return (
+      <>
+        <div className="library__images">
+          <LoaderCircle />
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {
         items && items.length
-          && (
+          ? (
             <div className="library__images">
               {
                 items.map(src => (
@@ -39,18 +52,20 @@ const LibraryContent = ({ items, onSelect, activeBtn, onDelete }) => (
                     </div>
                   </div>
                 ))
-            }
+              }
             </div>
-          )
+          ) : null
       }
-  </>
-);
+    </>
+  );
+};
 
 LibraryContent.propTypes = {
   items: PropTypes.arrayOf(PropTypes.string.isRequired),
   onSelect: PropTypes.func.isRequired,
   activeBtn: PropTypes.string.isRequired,
   onDelete: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool.isRequired,
 };
 
 export default LibraryContent;
