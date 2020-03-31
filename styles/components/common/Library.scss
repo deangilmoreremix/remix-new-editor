@@ -102,9 +102,9 @@
 .library__add {
   @include reset-button;
   width: 8.88em;
+  height: 2.45em;
   border: 1px solid $red;
   border-radius: 4px;
-  padding: 0.67em 0;
 }
 
 .library__block-search {
@@ -201,6 +201,7 @@
   @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
   display: flex;
   flex-wrap: wrap;
+  align-content: flex-start;
   height: 18.64em;
   overflow: hidden;
   overflow-y: auto;
@@ -211,7 +212,7 @@
   height: 5.58em;
   position: relative;
   overflow: hidden;
-  background-color: $canvas-bg;
+  background-color: $scrollbarColor;
   margin-right: 0.64em;
   margin-bottom: 0.64em;
 

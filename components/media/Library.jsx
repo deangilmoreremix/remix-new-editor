@@ -9,74 +9,146 @@ import useMediaStore from '../hooks/useMediaStore';
 import Tabs from '../common/libraryes/Tabs';
 import ProviderList from '../common/libraryes/ProviderList';
 import LibraryContent from '../common/libraryes/LibraryContent';
-import DropzoneArea from './DropzoneArea';
-import { LoaderCircle } from './Loader';
+import { LibrarySpinner } from './Loader';
 
 import mediaConstants from '../../lib/constants/media';
 
 const Library = (props) => {
   const {
     providers,
-    onAdd,
-    onSearch,
     label,
     subLabel,
-    onUploaded,
   } = props;
   // =============== USE STATE ===============
   const [query, setQuery] = useState('');
+
   const [activeBtn, setActiveBtn] = useState((Object.keys(providers)[0]));
   const [activeTub, setActiveTub] = useState(Object.keys(tabItems)[0]);
+
+  const [perPage, setPerPage] = useState(1);
+  const [isDownloadAllItems, setIsDownloadAllItems] = useState(false);
+
+  console.log("perPage", perPage);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDisabledUpload, setIsDisabledUpload] = useState(false);
   const [items, setItems] = useState([]);
+
+
   const inputRef = useRef();
   // =============== USE STATE ===============
 
-  const { uploadMedia, storeAsset, getAssets } = useMediaStore();
-  const asyncHero = useAsync(getAssets, ['images', 0]);
+  const { uploadMedia, storeAsset, getAssets, deleteItemAsset } = useMediaStore();
+  // const asyncHero = useAsync(getAssets, ['images', 0]);
 
   // =============== HOOKS ===============
+  // useEffect(() => {
+  //   console.log(1);
+  //   if (asyncHero.result) {
+  //     const elements = [];
+  //     asyncHero.result.forEach(item => {
+  //       const element = {
+  //         id: item._id,
+  //         url: item.url,
+  //       };
+  //       elements.push(element);
+  //     });
+  //     setItems([
+  //       ...items,
+  //       ...elements,
+  //     ]);
+  //     setIsLoading(false);
+  //   }
+  // }, [asyncHero.result]);
+
   useEffect(() => {
-    if (asyncHero.result) {
-      const links = [];
-      asyncHero.result.forEach(item => {
-        links.push(item.url);
-      });
-      setItems([
-        ...items,
-        ...links,
-      ]);
-      setIsLoading(false);
+    console.log(2);
+    setQuery('');
+    loadingItems(activeTub);
+  }, [activeTub]);
+
+  useEffect(() => {
+    if (perPage !== 1) {
+      console.log(1);
+      loadingItems(null, perPage);
     }
-  }, [asyncHero.result]);
+  }, [perPage]);
   // =============== HOOKS ===============
 
   // =============== FUNCTIONS ===============
-  const chooseTab = (tab) => {
-    setIsLoading(true);
-    setActiveTub(tab);
-    getAssets(tabItems[tab].text.toLowerCase(), 0)
+  const loadingItems = (tab, page = 1, queryStr = '') => {
+    let currentTub = '';
+    if (tab) {
+      setIsLoading(true);
+      setActiveTub(tab);
+      currentTub = tabItems[tab].text.toLowerCase();
+      setPerPage(1);
+    } else {
+      currentTub = tabItems[activeTub].text.toLowerCase();
+    }
+    getAssets(currentTub, page, queryStr)
       .then(data => {
-        const links = [];
-        data.forEach(item => {
-          links.push(item.url);
-        });
-        setItems(links);
+        const elements = [];
+        if (data.length) {
+          setIsDownloadAllItems(false);
+          data.forEach(item => {
+            const element = {
+              id: item._id,
+              url: item.url,
+            };
+            elements.push(element);
+          });
+          if (tab) {
+            setItems(elements);
+          } else {
+            setItems([
+              ...items,
+              ...elements,
+            ]);
+          }
+        } else {
+          setIsDownloadAllItems(true);
+        }
       })
       .then(() => setIsLoading(false))
       .catch(() => console.log('error load media'));
   };
 
+  const chooseTab = (tab) => {
+    setIsLoading(true);
+    setActiveTub(tab);
+    loadingItems(tab);
+  };
+
   // === Drop ===
   const onDrop = (acceptedFiles) => {
+    setIsDisabledUpload(true);
+    const elements = [];
     Promise.all(acceptedFiles.map(async data => {
       const asset = await uploadMedia({ data, preview: true });
-      const img = await storeAsset(asset.url, asset.preview, 'images');
+      const item = await storeAsset(asset.url, asset.preview, 'images');
+      const fileExtension = item.url.match(/\.[0-9a-z]{1,5}$/)[0];
+      elements.push({
+        id: item._id,
+        url: item.url,
+      });
+      return fileExtension;
+    })).then(fileExtension => {
+      const extension = fileExtension[fileExtension.length - 1];
+
+      Object.keys(tabItems).forEach((item, i) => {
+        tabItems[item].formats.forEach(format => {
+          if (format === extension) {
+            setActiveTub(Object.keys(tabItems)[i]);
+          }
+        });
+      });
+
       setItems([
+        ...elements,
         ...items,
-        img.url,
       ]);
-    }));
+    }).catch(error => console.log(error))
+      .finally(() => setIsDisabledUpload(false));
   };
 
   const { getInputProps } = useDropzone({
@@ -87,8 +159,8 @@ const Library = (props) => {
   // === Drop ===
 
   const handleSearch = (e) => {
-    if (e.key === 'Enter' && query) {
-      onSearch(query);
+    if (e.key === 'Enter') {
+      loadingItems(activeTub, query);
     }
   };
 
@@ -96,51 +168,59 @@ const Library = (props) => {
     inputRef.current.focus();
   };
 
-  const onSelect = (item) => {
-    console.log('Select item', item);
+  const onSelect = (id) => {
+    console.log('Select item', id);
   };
 
-  const onDelete = (item) => {
-    console.log('Delete item', item);
+  const onDelete = (id) => {
+    deleteItemAsset(id)
+      .then(() => {
+        let index = -1;
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].id === id) {
+            index = i;
+            break;
+          }
+        }
+        setItems([
+          ...items.slice(0, index),
+          ...items.slice(index + 1),
+        ]);
+      });
   };
   // =============== FUNCTIONS ===============
 
-  if (asyncHero.loading) {
-    // todo implement loading
-    return (
-      <div className="library">
-        <LoaderCircle />
-      </div>
-    );
-  }
-
-  if (asyncHero.error) {
-    // todo implement err message
-    return (
-      <div className="library">
-        <div className="library__error">{asyncHero.error.message}</div>
-      </div>
-    );
-  }
-
-  if (!items || items.length === 0) {
-    return (
-      <div className="library">
-        <DropzoneArea onUploaded={onUploaded} />
-      </div>
-    );
-  }
+  // if (asyncHero.loading) {
+  //   // todo implement loading
+  //   return (
+  //     <div className="library">
+  //       <LoaderCircle />
+  //     </div>
+  //   );
+  // }
+  //
+  // if (asyncHero.error) {
+  //   // todo implement err message
+  //   return (
+  //     <div className="library">
+  //       <div className="library__error">{asyncHero.error.message}</div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="library">
       <Tabs items={tabItems} setActiveTub={chooseTab} />
+
       <div className="library__body">
         <div className="library__row library__row-first">
           <div>
             <div className="library__add-file">
-              <input id="add-file" {...getInputProps()} />
+              <input id="add-file" {...getInputProps()} disabled={isDisabledUpload} />
               <label htmlFor="add-file" className="library__add">
-                {Object.keys(tabItems).length ? `Add ${tabItems[activeTub].text}` : ''}
+                {
+                  isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTub].text}`
+                }
               </label>
             </div>
           </div>
@@ -181,6 +261,8 @@ const Library = (props) => {
             activeBtn={activeBtn}
             onDelete={onDelete}
             isLoading={isLoading}
+            setPerPage={setPerPage}
+            isDownloadAllItems={isDownloadAllItems}
           />
         </div>
       </div>
@@ -195,11 +277,8 @@ Library.propTypes = {
       icon: PropTypes.string,
     }),
   ),
-  onAdd: PropTypes.func.isRequired,
-  onSearch: PropTypes.func.isRequired,
   label: PropTypes.string,
   subLabel: PropTypes.string,
-  onUploaded: PropTypes.func.isRequired,
 };
 
 Library.defaultProps = {
