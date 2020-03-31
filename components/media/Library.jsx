@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useAsync } from 'react-async-hook';
 
@@ -229,25 +229,31 @@ const Library = (props) => {
             </div>
           </div>
           <div className="library__block">
-            <input
-              className="library__search"
-              id="library-layout__search"
-              type="text"
-              value={query}
-              ref={inputRef}
-              onChange={e => setQuery(e.target.value)}
-              onKeyDown={handleSearch}
-            />
-            {!query && (
-              <label
-                htmlFor="library__search"
-                className="library__placeholder"
-                onClick={onFocus}
-              >
-                {label}
-                <span>{subLabel}</span>
-              </label>
-            )}
+            {
+              activeBtn !== Object.keys(providers)[0] && (
+                <Fragment>
+                  <input
+                    className="library__search"
+                    id="library-layout__search"
+                    type="text"
+                    value={query}
+                    ref={inputRef}
+                    onChange={e => setQuery(e.target.value)}
+                    onKeyDown={handleSearch}
+                  />
+                  {!query && (
+                    <label
+                      htmlFor="library__search"
+                      className="library__placeholder"
+                      onClick={onFocus}
+                    >
+                      {label}
+                      <span>{subLabel}</span>
+                    </label>
+                  )}
+                </Fragment>
+              )
+            }
           </div>
         </div>
 

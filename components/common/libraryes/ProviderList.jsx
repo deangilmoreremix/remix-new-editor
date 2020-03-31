@@ -8,7 +8,6 @@ const ProviderList = ({ activeItem, onSelectItem, setPerPage, items, title, user
   const buttonClick = element => () => {
     onSelectItem(element);
     setPerPage(1);
-    console.log("element", element);
   };
 
   return (
