@@ -25,7 +25,9 @@ const Library = (props) => {
   const [activeBtn, setActiveBtn] = useState(Object.keys(providers)[0]);
   const [activeTub, setActiveTub] = useState(Object.keys(tabItems)[0]);
 
-  const [perPage, setPerPage] = useState(1);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [itemsOnPage, setItemsOnPage] = useState(0);
+
   const [isDownloadAllItems, setIsDownloadAllItems] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -64,10 +66,10 @@ const Library = (props) => {
   }, [activeTub]);
 
   useEffect(() => {
-    if (perPage !== 1) {
-      loadingItems(null, perPage);
+    if (pageNumber !== 1) {
+      loadingItems(null, pageNumber);
     }
-  }, [perPage]);
+  }, [pageNumber]);
 
   useEffect(() => {
     loadingItems(activeTub);
@@ -81,7 +83,7 @@ const Library = (props) => {
       setIsLoading(true);
       setActiveTub(tab);
       currentTub = tabItems[tab].text.toLowerCase();
-      setPerPage(1);
+      setPageNumber(1);
     } else {
       currentTub = tabItems[activeTub].text.toLowerCase();
     }
@@ -89,6 +91,7 @@ const Library = (props) => {
       .then(data => {
         const elements = [];
         if (data.length) {
+          setItemsOnPage(state => state + data.length);
           setIsDownloadAllItems(false);
           data.forEach(item => {
             const element = {
@@ -118,7 +121,7 @@ const Library = (props) => {
     setActiveTub(tab);
     loadingItems(tab);
   };
-
+  console.log("itemsOnPage", itemsOnPage);
   // === Drop ===
   const onDrop = (acceptedFiles) => {
     setIsDisabledUpload(true);
@@ -139,14 +142,15 @@ const Library = (props) => {
         tabItems[item].formats.forEach(format => {
           if (format === extension) {
             setActiveTub(Object.keys(tabItems)[i]);
+          } else {
+            setItems([
+              ...elements,
+              ...items,
+            ]);
+            setItemsOnPage(state => state + elements.length);
           }
         });
       });
-
-      setItems([
-        ...elements,
-        ...items,
-      ]);
     }).catch(error => console.log(error))
       .finally(() => setIsDisabledUpload(false));
   };
@@ -257,7 +261,7 @@ const Library = (props) => {
           <ProviderList
             activeItem={activeBtn}
             onSelectItem={setActiveBtn}
-            setPerPage={setPerPage}
+            setPageNumber={setPageNumber}
             items={providers}
             title={Object.keys(tabItems).length ? tabItems[activeTub].find : ''}
             userContentTitle={Object.keys(tabItems).length ? tabItems[activeTub].text : ''}
@@ -268,7 +272,7 @@ const Library = (props) => {
             activeBtn={activeBtn}
             onDelete={onDelete}
             isLoading={isLoading}
-            setPerPage={setPerPage}
+            setPageNumber={setPageNumber}
             isDownloadAllItems={isDownloadAllItems}
             getRootProps={getRootProps}
             getInputProps={getInputProps}

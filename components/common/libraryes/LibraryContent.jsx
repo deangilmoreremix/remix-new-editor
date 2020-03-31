@@ -19,7 +19,7 @@ const LibraryContent = (props) => {
     activeBtn,
     onDelete,
     isLoading,
-    setPerPage,
+    setPageNumber,
     isDownloadAllItems,
     getRootProps,
     getInputProps,
@@ -98,7 +98,7 @@ const LibraryContent = (props) => {
         }
         {
           !isDownloadAllItems && (
-            <Waypoint onEnter={() => setPerPage(state => state + 1)}>
+            <Waypoint onEnter={() => setPageNumber(state => state + 1)}>
               <p style={{ width: '100%', height: '1px', margin: 0 }} />
             </Waypoint>
           )
@@ -114,7 +114,7 @@ LibraryContent.propTypes = {
   activeBtn: PropTypes.string.isRequired,
   onDelete: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired,
-  setPerPage: PropTypes.func.isRequired,
+  setPageNumber: PropTypes.func.isRequired,
   isDownloadAllItems: PropTypes.bool.isRequired,
   getRootProps: PropTypes.func.isRequired,
   getInputProps: PropTypes.func.isRequired,

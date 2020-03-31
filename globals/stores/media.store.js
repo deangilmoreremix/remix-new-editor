@@ -2,7 +2,7 @@ import BaseStore from './base.store';
 import mediaConstants from '../../lib/constants/media';
 
 export default class Media extends BaseStore {
-  getAssets = async (assetType, page = 1, query = '') => {
+  getAssets = async (assetType, page = 0, query = '') => {
     try {
       // const page = Math.ceil(count / 10);
       const mediaAssetKinds = {

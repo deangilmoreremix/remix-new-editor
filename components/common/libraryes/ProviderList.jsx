@@ -4,10 +4,10 @@ import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 
-const ProviderList = ({ activeItem, onSelectItem, setPerPage, items, title, userContentTitle }) => {
+const ProviderList = ({ activeItem, onSelectItem, setPageNumber, items, title, userContentTitle }) => {
   const buttonClick = element => () => {
     onSelectItem(element);
-    setPerPage(1);
+    setPageNumber(1);
   };
 
   return (
@@ -46,7 +46,7 @@ const ProviderList = ({ activeItem, onSelectItem, setPerPage, items, title, user
 ProviderList.propTypes = {
   activeItem: PropTypes.string,
   onSelectItem: PropTypes.func.isRequired,
-  setPerPage: PropTypes.func.isRequired,
+  setPageNumber: PropTypes.func.isRequired,
   items: PropTypes.objectOf(
     PropTypes.shape({
       name: PropTypes.string.isRequired,
