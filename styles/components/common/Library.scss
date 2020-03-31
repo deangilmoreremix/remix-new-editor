@@ -212,9 +212,30 @@
   height: 5.58em;
   position: relative;
   overflow: hidden;
-  background-color: $scrollbarColor;
+  background-color: $block-dark;
   margin-right: 0.64em;
   margin-bottom: 0.64em;
+
+  &-drop {
+    background: $scrollbarColor;
+    cursor: pointer;
+    outline: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.3s all;
+  }
+
+  &-drag {
+    .library__image-plus {
+      transform: scale(1.1);
+    }
+  }
+
+  &-disabled {
+    opacity: 0.5;
+    cursor: auto;
+  }
 
   img {
     position: absolute;
@@ -257,4 +278,10 @@
 .library__image-icon {
   width: 14px;
   height: 15px;
+}
+
+.library__image-plus {
+  width: 50%;
+  height: 50%;
+  transition: 0.3s all;
 }

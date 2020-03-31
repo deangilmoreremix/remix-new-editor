@@ -22,7 +22,7 @@ const Library = (props) => {
   // =============== USE STATE ===============
   const [query, setQuery] = useState('');
 
-  const [activeBtn, setActiveBtn] = useState((Object.keys(providers)[0]));
+  const [activeBtn, setActiveBtn] = useState(Object.keys(providers)[0]);
   const [activeTub, setActiveTub] = useState(Object.keys(tabItems)[0]);
 
   const [perPage, setPerPage] = useState(1);
@@ -72,6 +72,10 @@ const Library = (props) => {
       loadingItems(null, perPage);
     }
   }, [perPage]);
+
+  useEffect(() => {
+    loadingItems(activeTub);
+  }, [activeBtn]);
   // =============== HOOKS ===============
 
   // =============== FUNCTIONS ===============
@@ -151,7 +155,7 @@ const Library = (props) => {
       .finally(() => setIsDisabledUpload(false));
   };
 
-  const { getInputProps } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
     onDrop,
     disabled: false,
@@ -251,6 +255,7 @@ const Library = (props) => {
           <ProviderList
             activeItem={activeBtn}
             onSelectItem={setActiveBtn}
+            setPerPage={setPerPage}
             items={providers}
             title={Object.keys(tabItems).length ? tabItems[activeTub].find : ''}
             userContentTitle={Object.keys(tabItems).length ? tabItems[activeTub].text : ''}
@@ -263,6 +268,10 @@ const Library = (props) => {
             isLoading={isLoading}
             setPerPage={setPerPage}
             isDownloadAllItems={isDownloadAllItems}
+            getRootProps={getRootProps}
+            getInputProps={getInputProps}
+            isDragActive={isDragActive}
+            isDisabledUpload={isDisabledUpload}
           />
         </div>
       </div>
