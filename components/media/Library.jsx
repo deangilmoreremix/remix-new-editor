@@ -28,11 +28,9 @@ const Library = (props) => {
   const [perPage, setPerPage] = useState(1);
   const [isDownloadAllItems, setIsDownloadAllItems] = useState(false);
 
-  console.log("perPage", perPage);
   const [isLoading, setIsLoading] = useState(true);
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
   const [items, setItems] = useState([]);
-
 
   const inputRef = useRef();
   // =============== USE STATE ===============
@@ -42,7 +40,6 @@ const Library = (props) => {
 
   // =============== HOOKS ===============
   // useEffect(() => {
-  //   console.log(1);
   //   if (asyncHero.result) {
   //     const elements = [];
   //     asyncHero.result.forEach(item => {
@@ -59,16 +56,15 @@ const Library = (props) => {
   //     setIsLoading(false);
   //   }
   // }, [asyncHero.result]);
+  // }, [asyncHero.result]);
 
   useEffect(() => {
-    console.log(2);
     setQuery('');
     loadingItems(activeTub);
   }, [activeTub]);
 
   useEffect(() => {
     if (perPage !== 1) {
-      console.log(1);
       loadingItems(null, perPage);
     }
   }, [perPage]);
