@@ -40,6 +40,7 @@ const Home = observer(() => {
   return (
     <Container fluid className="home">
       <Header />
+      <Library />
       <Row className="controls" noGutters>
         <Col xs={7}>
           <Row>

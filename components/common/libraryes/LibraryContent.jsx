@@ -55,6 +55,7 @@ const LibraryContent = (props) => {
   return (
     <Fragment>
       <div className="library__images">
+        {/*<Waypoint bottomOffset="10%" onEnter={() => console.log("hello")} />*/}
         {
           activeBtn === Object.keys(libraryProviders)[0] && (
             <div
@@ -111,13 +112,7 @@ const LibraryContent = (props) => {
               </>
             )
         }
-        {
-          !isDownloadAllItems && (
-            <Waypoint onEnter={uploadNewItems}>
-              <p style={{ width: '100%', height: '1px', margin: 0 }} />
-            </Waypoint>
-          )
-        }
+        { !isDownloadAllItems && <Waypoint bottomOffset="10%" onEnter={uploadNewItems} /> }
       </div>
     </Fragment>
   );
