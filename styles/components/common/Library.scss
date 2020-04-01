@@ -120,20 +120,21 @@
   border-bottom: 1px solid $red;
   padding: 0.3em 0;
 
-  &:focus ~ label {
+  &:focus ~ .library__placeholder {
     display: none;
   }
+}
 
-  &+label {
-    position: absolute;
-    bottom: 0.3em;
-    left: 0;
-    font-size: 0.7em;
+.library__placeholder {
+  position: absolute;
+  bottom: 0.3em;
+  left: 0;
+  font-size: 0.7em;
+  outline: none;
 
-    span {
-      font-size: 0.7em;
-      color: $red;
-    }
+  span {
+    font-size: 1em;
+    color: $red;
   }
 }
 
@@ -284,4 +285,11 @@
   width: 50%;
   height: 50%;
   transition: 0.3s all;
+}
+
+.library__error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
 }

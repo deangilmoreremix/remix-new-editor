@@ -19,13 +19,13 @@ const LibraryContent = (props) => {
     activeBtn,
     onDelete,
     isLoading,
-    pageNumber,
     loadingItems,
     isDownloadAllItems,
     getRootProps,
     getInputProps,
     isDragActive,
     isDisabledUpload,
+    error,
   } = props;
 
   const uploadNewItems = () => {
@@ -37,6 +37,16 @@ const LibraryContent = (props) => {
       <Fragment>
         <div className="library__images">
           <LoaderCircle />
+        </div>
+      </Fragment>
+    );
+  }
+
+  if (error) {
+    return (
+      <Fragment>
+        <div className="library__images">
+          <p className="library__error">An error occurred while loading items</p>
         </div>
       </Fragment>
     );
@@ -119,13 +129,13 @@ LibraryContent.propTypes = {
   activeBtn: PropTypes.string.isRequired,
   onDelete: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired,
-  pageNumber: PropTypes.number.isRequired,
   loadingItems: PropTypes.func.isRequired,
   isDownloadAllItems: PropTypes.bool.isRequired,
   getRootProps: PropTypes.func.isRequired,
   getInputProps: PropTypes.func.isRequired,
   isDragActive: PropTypes.bool.isRequired,
   isDisabledUpload: PropTypes.bool.isRequired,
+  error: PropTypes.bool.isRequired,
 };
 
 export default LibraryContent;

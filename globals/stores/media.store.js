@@ -4,8 +4,6 @@ import mediaConstants from '../../lib/constants/media';
 export default class Media extends BaseStore {
   getAssets = async (assetType, page = 1, query = '', uploadedItems) => {
     try {
-      // const page = Math.ceil(count / 10);
-      console.log("=============", uploadedItems);
       const alreadyUploaded = JSON.stringify({ _id: { $nin: uploadedItems } });
       const mediaAssetKinds = {
         [mediaConstants.ASSET_TYPES.AUDIOS]: mediaConstants.AUDIO,

@@ -18,7 +18,7 @@ const Library = (props) => {
     label,
     subLabel,
   } = props;
-  // =============== USE STATE ===============
+  // =============== STATE ===============
   const [query, setQuery] = useState('');
 
   const [activeBtn, setActiveBtn] = useState(Object.keys(providers)[0]);
@@ -30,13 +30,14 @@ const Library = (props) => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
+  const [error, setError] = useState(false);
 
   const [items, setItems] = useState([]);
   const [deletedItems, setDeletedItems] = useState([]);
   const [uploadedItems, setUploadedItems] = useState([]);
 
   const inputRef = useRef();
-  // =============== USE STATE ===============
+  // =============== STATE ===============
 
   const { uploadMedia, storeAsset, getAssets, deleteItemAsset } = useMediaStore();
 
@@ -49,18 +50,6 @@ const Library = (props) => {
     }
   }, [activeTub]);
 
-  // useEffect(() => {
-  //   if (pageNumber !== 1) {
-  //     loadingItems(null, pageNumber);
-  //   }
-  // }, [pageNumber]);
-  //
-  // useEffect(() => {
-  //   loadingItems(activeTub);
-  // }, [activeBtn]);
-  // =============== HOOKS ===============
-
-  // =============== FUNCTIONS ===============
   const loadingItems = (tab, queryStr = '') => {
     let currentTub = '';
     let currentPage = 0;
@@ -104,12 +93,10 @@ const Library = (props) => {
         }
       })
       .then(() => setIsLoading(false))
-      .catch(() => console.log('error load media'));
+      .catch(() => setError(true));
   };
 
-  console.log("pageNumber", pageNumber);
-
-  // === Drop ===
+  // === Drag and Drop ===
   const onDrop = (acceptedFiles) => {
     setIsDisabledUpload(true);
     const elements = [];
@@ -143,7 +130,7 @@ const Library = (props) => {
           }
         });
       });
-    }).catch(error => console.log(error))
+    }).catch(err => console.log(err))
       .finally(() => setIsDisabledUpload(false));
   };
 
@@ -152,11 +139,11 @@ const Library = (props) => {
     onDrop,
     disabled: false,
   });
-  // === Drop ===
+  // === Drag and Drop ===
 
   const handleSearch = (e) => {
     if (e.key === 'Enter') {
-      loadingItems(activeTub, query);
+      onFetchDelete(null, query);
     }
   };
 
@@ -187,7 +174,7 @@ const Library = (props) => {
     ]);
   };
 
-  const onFetchDelete = (unmount) => {
+  const onFetchDelete = (unmount, searchText) => {
     const promiseArr = [];
     deletedItems.forEach(id => promiseArr.push(deleteItemAsset(id)));
     Promise.all(promiseArr)
@@ -199,32 +186,11 @@ const Library = (props) => {
       })
       .then(() => {
         if (!unmount) {
-          loadingItems(activeTub);
+          loadingItems(activeTub, searchText);
         }
       })
-      .then(() => onClick(false))
       .catch(() => console.log('Error while deleting items'));
   };
-
-  // =============== FUNCTIONS ===============
-
-  // if (asyncHero.loading) {
-  //   // todo implement loading
-  //   return (
-  //     <div className="library">
-  //       <LoaderCircle />
-  //     </div>
-  //   );
-  // }
-  //
-  // if (asyncHero.error) {
-  //   // todo implement err message
-  //   return (
-  //     <div className="library">
-  //       <div className="library__error">{asyncHero.error.message}</div>
-  //     </div>
-  //   );
-  // }
 
   return (
     <div className="library">
@@ -243,11 +209,10 @@ const Library = (props) => {
           </div>
           <div className="library__block">
             {
-              activeBtn !== Object.keys(providers)[0] && (
+              activeBtn === Object.keys(providers)[0] && (
                 <Fragment>
                   <input
                     className="library__search"
-                    id="library-layout__search"
                     type="text"
                     value={query}
                     ref={inputRef}
@@ -255,14 +220,16 @@ const Library = (props) => {
                     onKeyDown={handleSearch}
                   />
                   {!query && (
-                    <label
-                      htmlFor="library__search"
+                    <div
+                      role="button"
+                      tabIndex={-10}
                       className="library__placeholder"
                       onClick={onFocus}
+                      onKeyDown={() => {}}
                     >
                       {label}
                       <span>{subLabel}</span>
-                    </label>
+                    </div>
                   )}
                 </Fragment>
               )
@@ -295,6 +262,7 @@ const Library = (props) => {
             getInputProps={getInputProps}
             isDragActive={isDragActive}
             isDisabledUpload={isDisabledUpload}
+            error={error}
           />
         </div>
       </div>
