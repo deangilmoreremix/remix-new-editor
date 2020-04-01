@@ -1,4 +1,4 @@
-import { observable, action, computed, reaction } from 'mobx';
+import { observable, action, computed, reaction, set } from 'mobx';
 import arrayMove from 'array-move';
 
 import BaseStore from './base.store';
@@ -78,6 +78,15 @@ export default class ProjectStore extends BaseStore {
         });
       },
     );
+    // TODO: refactor this to properly update the projectData
+    reaction(
+      () => this.activeElement && this.activeElement.popcornOptions,
+      () => {
+        if (this.activeElement) {
+          this.findAndUpdate(this.activeElement, this.activeElement.popcornOptions);
+        }
+      },
+    );
   }
 
   @observable assets = [];
@@ -101,6 +110,9 @@ export default class ProjectStore extends BaseStore {
   @observable popcorn = {};
 
   @observable modified = false;
+
+  // TODO: refactor this to properly update the projectData
+  @observable activeElement = null;
 
   // TODO: remove the fake data when ready
   @observable personalizations = new Set(
@@ -143,6 +155,32 @@ export default class ProjectStore extends BaseStore {
     this.layers = layers;
     this.elements = elements;
     this.projectData = projectData;
+  };
+
+  // TODO: refactor this to properly update the projectData
+  @action
+  editElement = (elementId) => {
+    this.activeElement = { ...this.findElement(elementId) };
+  };
+
+  @action
+  releaseElement = () => {
+    set(this.activeElement, null);
+  };
+
+  @action
+  addElement = (trackEvent, mediaId) => {
+    const id = `0.${Math.random()}`;
+    const media = mediaId
+      ? this.projectData.media.find(m => m.id === mediaId)
+      : this.projectData.media[0];
+    media.tracks[0].trackEvents.push({
+      ...trackEvent,
+      id,
+    });
+    if (trackEvent) {
+      this.editElement(id);
+    }
   };
 
   generatePopcornObject = () => {
@@ -363,19 +401,48 @@ export default class ProjectStore extends BaseStore {
     this.update(elementId, { start, end });
   };
 
+  // TODO: refactor this to properly update the projectData
+  @action
+  findElement = (elementId) => {
+    let element;
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.id === elementId) {
+            element = trackEvent;
+          }
+        });
+      });
+    });
+    console.log('element found', element);
+    return element;
+  };
+
+  @action
+  updateActiveElement = (options) => {
+    // if (!this.activeElement) // TODO:
+    this.activeElement.popcornOptions = {
+      ...this.activeElement.popcornOptions,
+      ...options,
+    };
+  };
+
   @action
   findAndUpdate = (element, options) => {
+    // TODO: refactor this to properly update the projectData
     const elementId = (element && element.id) || element;
     this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
           if (trackEvent.id === elementId) {
-            trackEvent.popcornOptions = { ...trackEvent.popcornOptions, options };
+            console.log('findAndUpdate element, options', { element, options });
+            trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
           }
         });
       });
     });
+    console.log(this.projectData);
     this.update(elementId, options);
   };
 
@@ -471,7 +538,7 @@ export default class ProjectStore extends BaseStore {
   @action
   serialize() {
     return {
-      data: JSON.stringify(this.item),
+      data: JSON.stringify(this.projectData),
       allowedSocials: this.item.allowedSocials,
       name: this.item.name,
       editor: 'smart-video',
