@@ -2,9 +2,11 @@ import BaseStore from './base.store';
 import mediaConstants from '../../lib/constants/media';
 
 export default class Media extends BaseStore {
-  getAssets = async (assetType, page = 0, query = '') => {
+  getAssets = async (assetType, page = 1, query = '', uploadedItems) => {
     try {
       // const page = Math.ceil(count / 10);
+      console.log("=============", uploadedItems);
+      const alreadyUploaded = JSON.stringify({ _id: { $nin: uploadedItems } });
       const mediaAssetKinds = {
         [mediaConstants.ASSET_TYPES.AUDIOS]: mediaConstants.AUDIO,
         [mediaConstants.VIDEOS]: mediaConstants.VIDEO,
@@ -12,14 +14,14 @@ export default class Media extends BaseStore {
       };
 
       const data = await this.request(
-        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${12}&page=${page}&q=${query}`,
+        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${12}&page=${page}&q=${query}&filter=${alreadyUploaded}`,
         {
           method: 'GET',
           headers: {
             'on-behalf': this.currentUser.id,
           },
         });
-       return data;
+      return data;
     } catch (e) {
       console.error(e);
     }

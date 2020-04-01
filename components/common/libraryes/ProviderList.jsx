@@ -4,10 +4,14 @@ import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 
-const ProviderList = ({ activeItem, onSelectItem, setPageNumber, items, title, userContentTitle }) => {
+const ProviderList = ({ activeItem, activeTub, onSelectItem, loadingItems, items, title, userContentTitle, deletedItems, onFetchDelete }) => {
   const buttonClick = element => () => {
     onSelectItem(element);
-    setPageNumber(1);
+    if (deletedItems.length) {
+      onFetchDelete();
+    } else {
+      loadingItems(activeTub);
+    }
   };
 
   return (
@@ -44,9 +48,12 @@ const ProviderList = ({ activeItem, onSelectItem, setPageNumber, items, title, u
 };
 
 ProviderList.propTypes = {
-  activeItem: PropTypes.string,
+  activeItem: PropTypes.string.isRequired,
+  activeTub: PropTypes.string.isRequired,
   onSelectItem: PropTypes.func.isRequired,
-  setPageNumber: PropTypes.func.isRequired,
+  loadingItems: PropTypes.func.isRequired,
+  onFetchDelete: PropTypes.func.isRequired,
+  deletedItems: PropTypes.array,
   items: PropTypes.objectOf(
     PropTypes.shape({
       name: PropTypes.string.isRequired,
