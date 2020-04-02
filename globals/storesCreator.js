@@ -5,6 +5,7 @@ import { observable } from 'mobx';
 import config from '../config/config';
 import requestCreator from '../lib/requestCreator';
 import ProjectStore from './stores/project.store';
+import UserStore from './stores/user.store';
 import ModalStore from './stores/modal.store';
 import MediaStore from './stores/media.store';
 import WhiteLabelManager from '../lib/white-label/manager';
@@ -164,6 +165,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
         currentUser: creator.currentUser,
       }),
       modalStore: ModalStore(),
+      userStore: new UserStore(creator.currentUser),
     };
   }
   if (preloader) {
@@ -195,6 +197,7 @@ export function init(source) {
         isServer,
         currentUser: creator.currentUser,
       }),
+      userStore: new UserStore(creator.currentUser),
     };
   }
   return { creator, stores };

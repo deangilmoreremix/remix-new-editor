@@ -1,13 +1,15 @@
 import React, { Component } from 'react';
-import { Provider } from 'mobx-react';
 import Head from 'next/head';
+import { Provider } from 'mobx-react';
 
-import PopcornProxy from '../lib/PopcornProxy';
 import 'styles/index.scss';
 
 import Header from './Header';
-import { init, initCreateStores } from '../globals/storesCreator';
+
 import ModalContainer from './common/ModalContainer';
+import { init, initCreateStores } from '../globals/storesCreator';
+
+import PopcornProxy from '../lib/PopcornProxy';
 
 import PropTypes from '../lib/PropTypes';
 

@@ -13,30 +13,76 @@
       justify-content: space-between;
       align-items: center;
 
-      .container-left-bar {
-        display: flex;
-        align-items: center;
-        width: 50%;
-        justify-content: space-between;
-
-        .container-nav {
-          width: 30%;
-          display: flex;
-          justify-content: space-between;
+      .user-menu {
+        .MuiButton-label {
+          color: $white;
+          font-family: $font-primary;
+          border: 1px solid $secondary-color;
         }
-      }
+
+        .MuiPaper-root {
+          border-radius: 0;
+          outline: 1px solid $secondary-color;
+
+          .MuiList-root {
+            border-radius: 0;
+            border: none;
+            width: 100%;
+            background: inherit;
+          }
+
+          .MuiListItem-root {
+            margin: auto;
+            text-transform: uppercase;
+            font-family: $font-primary;
+          }
+        }
+
+    .toggler-icon {
+      width: 0.5rem;
+    }
+
+    .menu-popper,
+    button {
+      padding: 0;
+      min-width: 70%;
+      max-width: 70%;
     }
   }
+
+  .container-left-bar {
+    display: flex;
+    align-items: center;
+    width: 50%;
+    justify-content: space-between;
+
+    .container-nav {
+      width: 30%;
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+
+  .logo {
+    width: 7rem;
+  }
+
+  .icon-button {
+    @include reset-button;
+    margin: auto;
+    color: $third-color;
+  }
+}
+}
 }
 
 .header-menu {
-
   ul {
     border: 1px solid $white;
     color: $white;
   }
   ul li:hover {
-    border-top: 1px solid $red;
-    border-bottom: 1px solid $red;
+    border-top: 1px solid $secondary-color;
+    border-bottom: 1px solid $secondary-color;
   }
 }

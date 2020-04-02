@@ -182,7 +182,6 @@ export default class ProjectStore extends BaseStore {
 
   @action
   moveElements = (oldIndex, newIndex) => {
-    this.modified = true;
     this.projectData.media.forEach((media) => {
       const topElements = media.tracks[oldIndex].trackEvents;
       const bottomElements = media.tracks[newIndex].trackEvents;
@@ -236,7 +235,6 @@ export default class ProjectStore extends BaseStore {
 
   @action
   addLayer = () => {
-    this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
         track.order += 1;
@@ -260,6 +258,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   removeLayer = (id) => {
+    this.modified = true;
     if (this.layers.length <= 1) {
       return;
     }
@@ -366,7 +365,6 @@ export default class ProjectStore extends BaseStore {
   @action
   findAndUpdate = (element, options) => {
     const elementId = (element && element.id) || element;
-    this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
@@ -380,16 +378,17 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-    update = (element, options) => {
-      const elementId = (element && element.id) || element;
-      const trackEvent = this.popcorn.getTrackEvent(elementId);
+  update = (element, options) => {
+    this.modified = true;
+    const elementId = (element && element.id) || element;
+    const trackEvent = this.popcorn.getTrackEvent(elementId);
+    // eslint-disable-next-line no-underscore-dangle
+    if (trackEvent && trackEvent._natives._update) {
+      // _natives and _update is popcorn functions
       // eslint-disable-next-line no-underscore-dangle
-      if (trackEvent && trackEvent._natives._update) {
-        // _natives and _update is popcorn functions
-        // eslint-disable-next-line no-underscore-dangle
-        trackEvent._natives._update(trackEvent, options);
-      }
-    };
+      trackEvent._natives._update(trackEvent, options);
+    }
+  };
 
   isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'
         || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
@@ -404,6 +403,7 @@ export default class ProjectStore extends BaseStore {
   @action
   getOne = async (projectId) => {
     if (!projectId) {
+      this.modified = true;
       this.item = defaultItem;
       this.setProjectData(this.item.project.data);
       return this.item;
@@ -460,6 +460,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   updateItem = (value) => {
+    this.modified = true;
     this.item = { ...this.item, ...value };
   };
 
@@ -469,39 +470,39 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  serialize() {
-    return {
-      data: JSON.stringify(this.item),
-      allowedSocials: this.item.allowedSocials,
-      name: this.item.name,
-      editor: 'smart-video',
-      description: this.item.description,
-      thumbnail: this.item.thumbnail,
-      source: this.item.source,
-    };
-  };
+  serializeProject = () => ({
+    data: JSON.stringify(this.projectData),
+    allowedSocials: this.item.allowedSocials,
+    name: this.item.name,
+    editor: 'smart-video',
+    description: this.item.description,
+    thumbnail: this.item.thumbnail,
+    source: this.item.source,
+  });
 
   @action
   save = async () => {
     try {
-      const path = this.item.make
-        ? `/api/users/me/makes/${this.item_id}`
+      const path = this.item._id
+        ? `/api/users/me/makes/${this.item._id}`
         : '/api/users/me/makes';
-      const serializedProject = this.item.serialize();
-      this.item.make = await this.request(
+      const serializedData = this.serializeProject();
+      const result = await this.request(
         path, {
-          method: this.item.make ? 'PATCH' : 'POST',
+          method: this.item._id ? 'PATCH' : 'POST',
           headers: {
             'on-behalf': this.currentUser.id,
           },
           body: {
-            title: serializedProject.name,
-            description: serializedProject.description,
-            project: serializedProject,
-            thumbnail: serializedProject.thumbnail,
-            remixedFrom: serializedProject.source,
+            title: serializedData.name,
+            description: serializedData.description,
+            project: serializedData,
+            thumbnail: serializedData.thumbnail,
+            remixedFrom: serializedData.source,
           },
         });
+      this.item = { ...this.item, result };
+      this.setProjectData(this.item.project.data);
       this.modified = false;
     } catch (e) {
       console.error('Error ', e);

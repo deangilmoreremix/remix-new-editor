@@ -1,27 +1,25 @@
 import React, { useState } from 'react';
+import SVGInline from 'react-svg-inline';
+
 import { makeStyles } from '@material-ui/core/styles';
-import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
-import Button from '@material-ui/core/Button';
-import List from '@material-ui/core/List';
-import Divider from '@material-ui/core/Divider';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
+import { ListItemText, ListItemIcon, Divider, ListItem, Button, Drawer, List } from '@material-ui/core';
+
+import hamburgerIcon from '../../../public/static/svgImages/header/hamburger.svg';
 
 import PropTypes from '../../../lib/PropTypes';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
   list: {
     width: 250,
   },
   fullList: {
     width: 'auto',
   },
-});
+}));
 
 function NavbarHamburger(props) {
-  const { itemsTop, itemsBottom } = props;
-  const classes = useStyles();
+  const { itemsTop, itemsBottom, classes } = props;
+  // const classes = useStyles();
   const [position, setPosition] = useState({
     left: false,
   });
@@ -34,12 +32,6 @@ function NavbarHamburger(props) {
   };
 
   const sideList = side => (
-    <div
-      className={classes.list}
-      role="presentation"
-      onClick={toggleDrawer(side, false)}
-      onKeyDown={toggleDrawer(side, false)}
-    >
       <List>
         {itemsTop.map((item) => (
           <ListItem button key={item.title}>
@@ -48,28 +40,26 @@ function NavbarHamburger(props) {
           </ListItem>
         ))}
       </List>
-      <Divider />
-      <List>
-        {itemsBottom.map((item) => (
-          <ListItem button key={item.title}>
-            <ListItemIcon>{item.iconName}</ListItemIcon>
-            <ListItemText primary={item.title} />
-          </ListItem>
-        ))}
-      </List>
-    </div>
   );
 
   return (
     <div>
-      <Button onClick={toggleDrawer('left', true)}>&#5010;</Button>
-      <SwipeableDrawer
+      <SVGInline
+        className="icon icon-button"
+        classSuffix=""
+        svg={hamburgerIcon}
+        cleanup={['title']}
+        component="button"
+        onClick={toggleDrawer('left', true)}
+      />
+      <Drawer
         open={position.left}
         onClose={toggleDrawer('left', false)}
         onOpen={toggleDrawer('left', true)}
+        className={classes.drawer}
       >
         {sideList('left')}
-      </SwipeableDrawer>
+      </Drawer>
     </div>
   );
 }
