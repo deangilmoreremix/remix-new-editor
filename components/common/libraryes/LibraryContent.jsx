@@ -1,4 +1,4 @@
-import React, {Fragment, useRef} from 'react';
+import React, { Fragment } from 'react';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
 import classnames from 'classnames';
