@@ -12,6 +12,7 @@ import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
+import Animation from "./media/Animation";
 
 import Timeline from './Timeline';
 
@@ -39,6 +40,7 @@ const Home = observer(() => {
   return (
     <Container fluid className="home">
       <Header />
+      <Animation type="in" />
       <Row className="controls" noGutters>
         <Col xs={7}>
           <Row>

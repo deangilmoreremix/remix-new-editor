@@ -1,0 +1,37 @@
+.animation-container {
+  width: 31.75rem;
+  height: 24rem;
+  display: flex;
+  flex-direction: column;
+  background: $light-twinlight;
+  overflow: hidden;
+  padding: 1.3rem 2.6rem 1.7rem 2.7rem;
+
+  &__title {
+    margin-bottom: 2.4em;
+    font-size: 0.875em;
+    color: $white;
+    font-weight: bold;
+  }
+}
+
+.animation-blocks {
+  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  overflow-y: auto;
+  padding-right: 2.25rem;
+  margin: 0 -1%;
+}
+
+.animation-block {
+  width: 31.3%;
+  height: 5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 1% 0.5rem;
+  overflow: hidden;
+  background: $scrollbarColor;
+}
