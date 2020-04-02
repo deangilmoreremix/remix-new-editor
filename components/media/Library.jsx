@@ -81,6 +81,7 @@ const Library = (props) => {
           });
           if (tab) {
             setItems(elements);
+          // Loading new items when scrolling
           } else {
             setItems([
               ...items,

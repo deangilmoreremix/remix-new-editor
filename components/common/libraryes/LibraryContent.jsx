@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, {Fragment, useRef} from 'react';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
 import classnames from 'classnames';
@@ -55,7 +55,6 @@ const LibraryContent = (props) => {
   return (
     <Fragment>
       <div className="library__images">
-        {/*<Waypoint bottomOffset="10%" onEnter={() => console.log("hello")} />*/}
         {
           activeBtn === Object.keys(libraryProviders)[0] && (
             <div
