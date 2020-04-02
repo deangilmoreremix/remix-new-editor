@@ -6,7 +6,7 @@ import { animations, animationsBg } from '../../lib/constants/animations';
 
 import HideWindow from '../common/HideWindow';
 
-const Animation = ({ type }) => {
+const Animation = ({ type, onSelect }) => {
   const onHover = (e, className, action) => {
     const text = e.target.getElementsByClassName('animation__title')[0];
     if (action && text) {
@@ -43,6 +43,11 @@ const Animation = ({ type }) => {
                   className="animation__bg"
                   svg={animationsBg[bgIndex]}
                 />
+                <button
+                  type="button"
+                  className="animation-add"
+                  onClick={() => onSelect(item)}
+                />
               </div>
             );
           })
@@ -54,7 +59,8 @@ const Animation = ({ type }) => {
 };
 
 Animation.propTypes = {
-  type: PropTypes.string.isRequired,
+  type: PropTypes.oneOf(['in', 'out', 'idle']).isRequired,
+  onSelect: PropTypes.func.isRequired,
 };
 
 export default Animation;
