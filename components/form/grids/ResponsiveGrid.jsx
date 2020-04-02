@@ -27,7 +27,7 @@ const ResponsiveGrid = observer((props) => {
   return (
     <Responsive
       className={className || ''}
-      cols={{ md: cols }}
+      cols={{ lg: cols, md: cols, sm: cols, xs: cols, xxs: cols }}
       rowHeight={rowHeight}
       width={width}
       compactType={compactType}
