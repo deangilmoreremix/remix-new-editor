@@ -13,16 +13,12 @@ import { LibrarySpinner } from './Loader';
 import mediaConstants from '../../lib/constants/media';
 
 const Library = (props) => {
-  const {
-    providers,
-    label,
-    subLabel,
-  } = props;
+  const { providers, label, subLabel, tub } = props;
   // =============== STATE ===============
   const [query, setQuery] = useState('');
 
   const [activeBtn, setActiveBtn] = useState(Object.keys(providers)[0]);
-  const [activeTub, setActiveTub] = useState(Object.keys(tabItems)[0]);
+  const [activeTub, setActiveTub] = useState(tub);
 
   const [pageNumber, setPageNumber] = useState(1);
 
@@ -280,12 +276,14 @@ Library.propTypes = {
   ),
   label: PropTypes.string,
   subLabel: PropTypes.string,
+  tub: PropTypes.string,
 };
 
 Library.defaultProps = {
   providers: libraryProviders,
   label: 'Try searching for keywords, like',
   subLabel: ' business, sports, meeting...',
+  tub: Object.keys(tabItems)[0],
 };
 
 export default Library;
