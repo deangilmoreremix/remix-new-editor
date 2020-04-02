@@ -40,7 +40,7 @@ const Home = observer(() => {
   return (
     <Container fluid className="home">
       <Header />
-      <Animation type="in" />
+      <Animation type="out" />
       <Row className="controls" noGutters>
         <Col xs={7}>
           <Row>

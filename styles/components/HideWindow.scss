@@ -1,0 +1,14 @@
+.hide-window {
+  @include reset-button;
+  width: 14.83px;
+  height: 22.13px;
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+}

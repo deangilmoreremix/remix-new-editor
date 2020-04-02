@@ -1,4 +1,5 @@
 .animation-container {
+  position: relative;
   width: 31.75rem;
   height: 24rem;
   display: flex;
@@ -20,6 +21,7 @@
   flex: 1;
   display: flex;
   flex-wrap: wrap;
+  align-content: start;
   overflow-y: auto;
   padding-right: 2.25rem;
   margin: 0 -1%;
@@ -31,7 +33,36 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0 1% 0.5rem;
+  position: relative;
+  margin-right: 2%;
+  margin-bottom: 0.5rem;
   overflow: hidden;
   background: $scrollbarColor;
+}
+
+.animation__text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: context-menu;
+  z-index: 1;
+  margin: 0;
+}
+
+.animation__title {
+  color: $white;
+  font-size: 0.93rem;
+}
+
+.animation__bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
