@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import { useAsync } from 'react-async-hook';
@@ -25,6 +25,8 @@ const Home = observer(() => {
   const projectStore = useProjectStore();
   const { openModal, closeModal } = useModalStore();
 
+  const [openWindow, setOpenWindow] = useState(true);
+
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
   if (asyncHero.loading) {
@@ -37,10 +39,11 @@ const Home = observer(() => {
     return (<div>Error</div>);
   }
 
+
   return (
     <Container fluid className="home">
       <Header />
-      <AnimationCard type="in" onSelect={item => console.log(item)} />
+      {openWindow && <AnimationCard type="in" onSelect={item => console.log(item)} closeWindow={setOpenWindow} />}
       <Row className="controls" noGutters>
         <Col xs={7}>
           <Row>

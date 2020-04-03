@@ -8,7 +8,7 @@ import arrowIcon from '../../public/static/svgImages/common/arrow-back.svg';
 
 const CloseButton = ({ onClick, classNames = [] }) => (
   <SVGInline
-    className={classnames('hide-window', classNames.join(' '))}
+    className={classnames('close-button', classNames.join(' '))}
     svg={arrowIcon}
     component="button"
     onClick={onClick}
