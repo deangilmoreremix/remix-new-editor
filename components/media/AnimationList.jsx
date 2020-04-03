@@ -25,6 +25,7 @@ const AnimationList = ({ type, onSelect }) => (
           })
         }
     </div>
+    {/* ToDo Need to remove the close button */}
     <CloseButton onClick={() => console.log('click')} />
   </div>
 );
@@ -32,7 +33,6 @@ const AnimationList = ({ type, onSelect }) => (
 AnimationList.propTypes = {
   type: PropTypes.oneOf(['in', 'out', 'idle']).isRequired,
   onSelect: PropTypes.func.isRequired,
-  closeWindow: PropTypes.func.isRequired,
 };
 
 export default AnimationList;
