@@ -121,7 +121,7 @@ LibraryContent.propTypes = {
   getInputProps: PropTypes.func.isRequired,
   isDragActive: PropTypes.bool.isRequired,
   isDisabledUpload: PropTypes.bool.isRequired,
-  error: PropTypes.bool.isRequired,
+  error: PropTypes.bool,
 };
 
 export default LibraryContent;
