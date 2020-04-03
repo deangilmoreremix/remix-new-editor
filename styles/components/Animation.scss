@@ -27,7 +27,7 @@
   margin: 0 -1%;
 }
 
-.animation-block {
+.animation-preview {
   width: 31.3%;
   height: 5rem;
   display: flex;
@@ -39,12 +39,12 @@
   overflow: hidden;
   background: $scrollbarColor;
 
-  &:hover .animation-add {
+  &:hover .animation-preview__add {
     opacity: 1;
   }
 }
 
-.animation__text {
+.animation-preview__text {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -56,14 +56,11 @@
   cursor: context-menu;
   z-index: 1;
   margin: 0;
-}
-
-.animation__title {
   color: $white;
   font-size: 0.93rem;
 }
 
-.animation__bg {
+.animation-preview__bg {
   position: absolute;
   top: 0;
   left: 0;
@@ -71,7 +68,7 @@
   height: 100%;
 }
 
-.animation-add {
+.animation-preview__add {
   @include reset-button;
   width: 1.75rem;
   height: 1.75rem;

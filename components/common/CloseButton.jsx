@@ -6,7 +6,7 @@ import PropTypes from '../../lib/PropTypes';
 
 import arrowIcon from '../../public/static/svgImages/common/arrow-back.svg';
 
-const HideWindow = ({ onClick, classNames = [] }) => (
+const CloseButton = ({ onClick, classNames = [] }) => (
   <SVGInline
     className={classnames('hide-window', classNames.join(' '))}
     svg={arrowIcon}
@@ -15,9 +15,9 @@ const HideWindow = ({ onClick, classNames = [] }) => (
   />
 );
 
-HideWindow.propTypes = {
+CloseButton.propTypes = {
   onClick: PropTypes.func.isRequired,
   classNames: PropTypes.arrayOf(PropTypes.string),
 };
 
-export default HideWindow;
+export default CloseButton;
