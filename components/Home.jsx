@@ -14,6 +14,7 @@ import useModalStore from './hooks/useModalStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import Timeline from './Timeline';
+import Library from "./media/Library";
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -39,6 +40,7 @@ const Home = observer(() => {
   return (
     <Container fluid className="home">
       <Header />
+      <Library />
       <Row className="controls" noGutters>
         <Col xs={7}>
           <Row>

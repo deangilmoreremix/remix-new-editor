@@ -3,44 +3,32 @@ import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
+import { libraryProviders } from '../../../lib/constants/library';
 
 const ProviderList = (props) => {
   const {
     activeItem,
-    activeTub,
-    onSelectItem,
-    loadingItems,
     items,
     title,
     userContentTitle,
-    deletedItems,
-    onFetchDelete,
+    handleButtonClick,
   } = props;
-
-  const buttonClick = element => () => {
-    onSelectItem(element);
-    if (deletedItems.length) {
-      onFetchDelete();
-    } else {
-      loadingItems(activeTub);
-    }
-  };
 
   return (
     <div className="library__block">
       <p>{title}</p>
-      <div className="library__btns">
+      <div className="library__btn-container">
         {
           items && Object.keys(items).map(element => (
             <button
               type="button"
               key={items[element].name}
               className={classnames(
-                'library__btn',
+                'library__btn-item',
                 { 'library__btn-active': activeItem === element },
-                { 'library__btn-user': element === 'USER' },
+                { 'library__btn-user': element === Object.keys(libraryProviders)[0] },
               )}
-              onClick={buttonClick(element)}
+              onClick={() => handleButtonClick(element)}
             >
               {items[element].icon && (
                 <SVGInline
@@ -49,7 +37,7 @@ const ProviderList = (props) => {
                 />
               )}
               <p>
-                {element === 'USER' ? `${items[element].name} ${userContentTitle}` : items[element].name}
+                {element === Object.keys(libraryProviders)[0] ? `${items[element].name} ${userContentTitle}` : items[element].name}
               </p>
             </button>
           ))
@@ -61,11 +49,6 @@ const ProviderList = (props) => {
 
 ProviderList.propTypes = {
   activeItem: PropTypes.string.isRequired,
-  activeTub: PropTypes.string.isRequired,
-  onSelectItem: PropTypes.func.isRequired,
-  loadingItems: PropTypes.func.isRequired,
-  onFetchDelete: PropTypes.func.isRequired,
-  deletedItems: PropTypes.arrayOf(PropTypes.string),
   items: PropTypes.objectOf(
     PropTypes.shape({
       name: PropTypes.string.isRequired,
@@ -74,6 +57,7 @@ ProviderList.propTypes = {
   ),
   title: PropTypes.string.isRequired,
   userContentTitle: PropTypes.string.isRequired,
+  handleButtonClick: PropTypes.func.isRequired,
 };
 
 export default ProviderList;

@@ -5,24 +5,24 @@ import PropTypes from '../../lib/PropTypes';
 import { libraryProviders, tabItems } from '../../lib/constants/library';
 import useMediaStore from '../hooks/useMediaStore';
 
-import Tabs from '../common/libraryes/Tabs';
-import ProviderList from '../common/libraryes/ProviderList';
-import LibraryContent from '../common/libraryes/LibraryContent';
+import Tabs from '../common/library/Tabs';
+import ProviderList from '../common/library/ProviderList';
+import LibraryContent from '../common/library/LibraryContent';
 import { LibrarySpinner } from './Loader';
 
 import mediaConstants from '../../lib/constants/media';
 
 const Library = (props) => {
-  const { providers, label, subLabel, tub } = props;
+  const { providers, label, subLabel, tab } = props;
   // =============== STATE ===============
   const [query, setQuery] = useState('');
 
   const [activeBtn, setActiveBtn] = useState(Object.keys(providers)[0]);
-  const [activeTub, setActiveTub] = useState(tub);
+  const [activeTab, setActiveTab] = useState(tab);
 
   const [pageNumber, setPageNumber] = useState(1);
 
-  const [isDownloadAllItems, setIsDownloadAllItems] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
@@ -42,40 +42,51 @@ const Library = (props) => {
     if (deletedItems.length) {
       onFetchDelete();
     } else {
-      loadingItems(activeTub);
+      fetchItems(activeTab);
     }
-  }, [activeTub]);
+  }, [activeTab]);
 
-  const loadingItems = (tab, queryStr = '') => {
-    let currentTub = '';
+  const handleButtonClick = element => {
+    setActiveBtn(element);
+    if (deletedItems.length) {
+      onFetchDelete();
+    } else {
+      fetchItems(activeTab);
+    }
+  };
+
+  const fetchItems = (thisTab, queryStr = '') => {
+    let currentTab = '';
     let currentPage = 0;
     let uploaded = [];
-    if (tab) {
+    if (thisTab) {
       setIsLoading(true);
       setPageNumber(1);
       setUploadedItems([]);
-      currentTub = tabItems[tab].text.toLowerCase();
+      currentTab = tabItems[thisTab].label.toLowerCase();
       currentPage = 1;
       uploaded = [];
     } else {
-      currentTub = tabItems[activeTub].text.toLowerCase();
+      currentTab = tabItems[activeTab].label.toLowerCase();
       currentPage = pageNumber + 1;
       setPageNumber(state => state + 1);
       uploaded = uploadedItems;
     }
-    getAssets(currentTub, currentPage, queryStr, uploaded)
+
+    getAssets(currentTab, currentPage, queryStr, { _id: { $nin: uploaded } })
       .then(data => {
         const elements = [];
         if (data.length) {
-          setIsDownloadAllItems(false);
+          setHasMore(false);
           data.forEach(item => {
             const element = {
               id: item._id,
               url: item.url,
+              title: item.title,
             };
             elements.push(element);
           });
-          if (tab) {
+          if (thisTab) {
             setItems(elements);
           // Loading new items when scrolling
           } else {
@@ -85,7 +96,7 @@ const Library = (props) => {
             ]);
           }
         } else {
-          setIsDownloadAllItems(true);
+          setHasMore(true);
           setPageNumber(state => state - 1);
         }
       })
@@ -105,6 +116,7 @@ const Library = (props) => {
       elements.push({
         id: item._id,
         url: item.url,
+        title: item.title,
       });
       elementsIds.push(item._id);
       return fileExtension;
@@ -114,7 +126,7 @@ const Library = (props) => {
       Object.keys(tabItems).forEach((item, i) => {
         tabItems[item].formats.forEach(format => {
           if (format === extension) {
-            setActiveTub(Object.keys(tabItems)[i]);
+            setActiveTab(Object.keys(tabItems)[i]);
           } else {
             setItems([
               ...elements,
@@ -144,7 +156,7 @@ const Library = (props) => {
     }
   };
 
-  const onFocus = () => {
+  const handleSetFocus = () => {
     inputRef.current.focus();
   };
 
@@ -153,21 +165,21 @@ const Library = (props) => {
   };
 
   const onDelete = (id) => {
-    let index = -1;
+    let filter = -1;
     for (let i = 0; i < items.length; i++) {
       if (items[i].id === id) {
-        index = i;
+        filter = i;
         break;
       }
     }
     setItems([
-      ...items.slice(0, index),
-      ...items.slice(index + 1),
+      ...items.slice(0, filter),
+      ...items.slice(filter + 1),
     ]);
 
     setDeletedItems([
       ...deletedItems,
-      items[index].id,
+      items[filter].id,
     ]);
   };
 
@@ -183,7 +195,7 @@ const Library = (props) => {
       })
       .then(() => {
         if (!unmount) {
-          loadingItems(activeTub, searchText);
+          fetchItems(activeTab, searchText);
         }
       })
       .catch(() => console.log('Error while deleting items'));
@@ -191,7 +203,7 @@ const Library = (props) => {
 
   return (
     <div className="library">
-      <Tabs items={tabItems} setActiveTub={setActiveTub} />
+      <Tabs setActiveTab={setActiveTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
           <div>
@@ -199,7 +211,7 @@ const Library = (props) => {
               <input id="add-file" {...getInputProps()} disabled={isDisabledUpload} />
               <label htmlFor="add-file" className="library__add">
                 {
-                  isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTub].text}`
+                  isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
                 }
               </label>
             </div>
@@ -221,7 +233,7 @@ const Library = (props) => {
                       role="button"
                       tabIndex={-10}
                       className="library__placeholder"
-                      onClick={onFocus}
+                      onClick={handleSetFocus}
                       onKeyDown={() => {}}
                     >
                       {label}
@@ -237,14 +249,10 @@ const Library = (props) => {
         <div className="library__row library__row-second">
           <ProviderList
             activeItem={activeBtn}
-            activeTub={activeTub}
-            onSelectItem={setActiveBtn}
-            loadingItems={loadingItems}
             items={providers}
-            title={Object.keys(tabItems).length ? tabItems[activeTub].find : ''}
-            userContentTitle={Object.keys(tabItems).length ? tabItems[activeTub].text : ''}
-            deletedItems={deletedItems}
-            onFetchDelete={onFetchDelete}
+            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
+            userContentTitle={Object.keys(tabItems).length ? tabItems[activeTab].label : ''}
+            handleButtonClick={handleButtonClick}
           />
           <LibraryContent
             items={items}
@@ -253,8 +261,8 @@ const Library = (props) => {
             onDelete={onDelete}
             isLoading={isLoading}
             pageNumber={pageNumber}
-            loadingItems={loadingItems}
-            isDownloadAllItems={isDownloadAllItems}
+            fetchItems={fetchItems}
+            hasMore={hasMore}
             getRootProps={getRootProps}
             getInputProps={getInputProps}
             isDragActive={isDragActive}
@@ -276,14 +284,14 @@ Library.propTypes = {
   ),
   label: PropTypes.string,
   subLabel: PropTypes.string,
-  tub: PropTypes.string,
+  tab: PropTypes.string,
 };
 
 Library.defaultProps = {
   providers: libraryProviders,
   label: 'Try searching for keywords, like',
   subLabel: ' business, sports, meeting...',
-  tub: Object.keys(tabItems)[0],
+  tab: Object.keys(tabItems)[0],
 };
 
 export default Library;
