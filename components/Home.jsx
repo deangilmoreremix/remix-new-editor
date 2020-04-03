@@ -14,7 +14,7 @@ import useModalStore from './hooks/useModalStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import Timeline from './Timeline';
-import AnimationCard from "./media/AnimationCard";
+import AnimationList from "./media/AnimationList";
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -43,7 +43,7 @@ const Home = observer(() => {
   return (
     <Container fluid className="home">
       <Header />
-      {openWindow && <AnimationCard type="in" onSelect={item => console.log(item)} closeWindow={setOpenWindow} />}
+      {openWindow && <AnimationList type="in" onSelect={item => console.log(item)} closeWindow={setOpenWindow} />}
       <Row className="controls" noGutters>
         <Col xs={7}>
           <Row>

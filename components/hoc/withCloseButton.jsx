@@ -1,10 +1,13 @@
 import React, { Fragment } from 'react';
 
 const withCloseButton = WrappedComponent => props => {
+  const []
+
   return (
-    <Fragment>
-      <WrappedComponent {...props} close={hide} openModal={show} />
-    </Fragment>
+    <div className="close-block">
+      <WrappedComponent {...props} />
+      <button>click</button>
+    </div>
   );
 };
 

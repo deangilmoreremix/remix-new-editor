@@ -6,7 +6,7 @@ import { animations, animationsBg } from '../../lib/constants/animations';
 import AnimationPreview from '../common/AnimationPreview';
 import CloseButton from '../common/CloseButton';
 
-const AnimationCard = ({ type, onSelect }) => (
+const AnimationList = ({ type, onSelect }) => (
   <div className="animation-container">
     <p className="animation-container__title">Add Animation</p>
     <div className="animation-blocks">
@@ -29,9 +29,10 @@ const AnimationCard = ({ type, onSelect }) => (
   </div>
 );
 
-AnimationCard.propTypes = {
+AnimationList.propTypes = {
   type: PropTypes.oneOf(['in', 'out', 'idle']).isRequired,
   onSelect: PropTypes.func.isRequired,
+  closeWindow: PropTypes.func.isRequired,
 };
 
-export default AnimationCard;
+export default AnimationList;
