@@ -10,26 +10,23 @@ const SettingsContainer = ({ tab, type }) => {
     [type],
   );
 
-  const {
-    projectData,
-    activeElement,
-    updateActiveElement,
-  } = useProjectStore();
-  console.log('this.activeElement', activeElement);
+  const store = useProjectStore();
+  console.log('SettingsContainer.activeElement', store.activeElement);
 
   React.useEffect(() => {
-    console.log({ projectData });
-  }, [projectData]);
+    console.log({ prjData: store.projectData });
+  }, [store]);
 
-  const updateElement = (newOptions) => {
+  const updateElement = React.useCallback((newOptions) => {
     console.log('updateElement', { ...newOptions });
-    updateActiveElement(newOptions);
-  };
+    // Object.assign(store.activeElement.popcornOptions, newOptions);
+    store.updateActiveElement(newOptions);
+  }, [store]);
 
   return (
     <SettingsComponent
       tab={tab}
-      element={activeElement}
+      element={store.activeElement}
       update={updateElement}
     />
   );

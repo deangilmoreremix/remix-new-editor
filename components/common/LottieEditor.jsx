@@ -24,6 +24,7 @@ const LottieEditor = ({ showControls, file, /* setColor, */ segments = {} }) => 
     // Play initial segment
     // Should be a proper range, e.g. [0, 1] or [24, 25]
     // [0, 0] or [24, 24] won't work
+    console.log('Lottie onload', { ...animation });
     if (isEmpty(segments)) {
       anim.play();
     } else {

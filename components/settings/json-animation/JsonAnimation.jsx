@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import PropTypes from '../../../lib/PropTypes';
-import { BASIC, ADVANCED } from '../../../lib/constants/settings/svg-preset';
+import { BASIC, ADVANCED } from '../../../lib/constants/settings/json-animation';
 import LottieEditor from '../../common/LottieEditor';
 import Basic from './tabs/Basic';
 import Advanced from './tabs/Advanced';
@@ -11,12 +11,12 @@ const TabMap = {
   [ADVANCED]: Advanced,
 };
 
-const SVGPresets = ({ tab = BASIC, element, update }) => {
-  const Tab = React.useMemo(() => TabMap[tab], [tab]);
+const JsonAnimation = ({ tab = BASIC, element, update }) => {
+  const Tab = TabMap[tab];
+  console.log('SVGPresets element', element);
 
   const handleChange = (field) => {
     console.log('SVGPresets onChange ', { ...field });
-    // const newOptions = { ...field };
     update(field);
   };
 
@@ -24,19 +24,17 @@ const SVGPresets = ({ tab = BASIC, element, update }) => {
     console.log('SVGPresets updating colors', colors);
   };
 
-  const { popcornOptions } = element || {};
-
-  console.log('SVGPresets popcornOptions', popcornOptions);
+  console.log('SVGPresets popcornOptions', element && element.popcornOptions);
 
   return (
     <div className="svg-presets-form">
-      {popcornOptions && (
-        <Tab options={popcornOptions} onChange={handleChange} />
+      {element && element.popcornOptions && (
+        <Tab options={element.popcornOptions} onChange={handleChange} />
       )}
-      {popcornOptions && popcornOptions.url && (
+      {element && element.popcornOptions && element.popcornOptions.url && (
         <LottieEditor
           showControls
-          file={popcornOptions.url}
+          file={element.popcornOptions.url}
           setColor={handleSetColors}
         />
       )}
@@ -44,15 +42,15 @@ const SVGPresets = ({ tab = BASIC, element, update }) => {
   );
 };
 
-SVGPresets.propTypes = {
+JsonAnimation.propTypes = {
   element: PropTypes.shape({
-    id: PropTypes.number.isRequired,
+    id: PropTypes.string,
     popcornOptions: PropTypes.shape({
       url: PropTypes.string,
     }),
-  }).isRequired,
+  }),
   tab: PropTypes.string.isRequired,
   update: PropTypes.func.isRequired,
 };
 
-export default SVGPresets;
+export default JsonAnimation;

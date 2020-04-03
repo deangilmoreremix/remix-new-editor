@@ -6,23 +6,8 @@ import Tab from '@material-ui/core/Tab';
 // import makeStyles from '@material-ui/core/styles/makeStyles';
 
 import PropTypes from '../../lib/PropTypes';
-// import { COLORS } from '../../lib/constants/styles';
-
-// const useStyles = makeStyles({
-//   inactive: {
-//     background: COLORS.headerTabInactive,
-//   },
-//   selected: {
-//     background: COLORS.headerTabActive,
-//   },
-//   disabled: {
-//     background: COLORS.headerTabDisabled,
-//   },
-// });
 
 const SettingsHeader = ({ className, tabs, setTab, activeTab }) => {
-  // const classes = useStyles();
-
   const handleChange = (event, newValue) => {
     if (setTab) {
       return setTab(newValue);
@@ -37,11 +22,9 @@ const SettingsHeader = ({ className, tabs, setTab, activeTab }) => {
         indicatorColor="primary"
         textColor="primary"
         onChange={handleChange}
-        // classes={classes}
       >
         {tabs && tabs.map(({ label, disabled }) => (
           <Tab
-            // disableRipple
             key={label}
             label={label}
             disabled={disabled}
@@ -56,7 +39,10 @@ SettingsHeader.propTypes = {
   activeTab: PropTypes.number.isRequired,
   className: PropTypes.string,
   setTab: PropTypes.func,
-  tabs: PropTypes.arrayOf(PropTypes.string).isRequired,
+  tabs: PropTypes.arrayOf(PropTypes.shape({
+    label: PropTypes.string,
+    disabled: PropTypes.bool,
+  })).isRequired,
 };
 
 export default SettingsHeader;

@@ -31,11 +31,10 @@ const ModalContainer = observer(() => {
     className,
     renderer: ModalComponent,
     header: headerProps,
-    onClose,
   }) => {
     const close = () => {
-      if (onClose) {
-        onClose();
+      if (headerProps && headerProps.onClose) {
+        headerProps.onClose();
       }
       closeModal(id);
     };
