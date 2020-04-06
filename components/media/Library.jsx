@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
 
 import PropTypes from '../../lib/PropTypes';
-import { libraryProviders, USER_ITEMS, tabItems } from '../../lib/constants/library';
+import { USER_ITEMS, tabItems } from '../../lib/constants/library';
 import useMediaStore from '../hooks/useMediaStore';
 
 import Tabs from '../common/library/Tabs';
