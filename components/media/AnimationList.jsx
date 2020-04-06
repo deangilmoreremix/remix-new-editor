@@ -17,7 +17,7 @@ const AnimationList = ({ type, onSelect }) => (
             return (
               <AnimationPreview
                 title={item}
-                bg={animationsBg[bgIndex]}
+                background={animationsBg[bgIndex]}
                 onSelect={onSelect}
                 key={item}
               />
