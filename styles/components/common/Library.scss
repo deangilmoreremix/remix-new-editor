@@ -90,7 +90,8 @@
 }
 
 .library__placeholder {
-  cursor: auto;
+  @include reset-button;
+  cursor: text !important;
 }
 
 .library__add-file {

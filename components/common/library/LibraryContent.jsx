@@ -4,7 +4,7 @@ import { Waypoint } from 'react-waypoint';
 import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
-import { libraryProviders, USER_ITEMS } from '../../../lib/constants/library';
+import { USER_ITEMS } from '../../../lib/constants/library';
 
 import trashIcon from '../../../public/static/svgImages/trash.svg';
 import addIcon from '../../../public/static/svgImages/add-white.svg';

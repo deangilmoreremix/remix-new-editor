@@ -236,16 +236,13 @@ const Library = (props) => {
                     onKeyDown={handleSearch}
                   />
                   {!query && (
-                    <div
-                      role="button"
-                      tabIndex={-10}
+                    <button
                       className="library__placeholder"
                       onClick={handleSetFocus}
-                      onKeyDown={() => {}}
                     >
                       {label}
                       <span>{subLabel}</span>
-                    </div>
+                    </button>
                   )}
                 </Fragment>
               )
