@@ -7,7 +7,7 @@ const EmptyItemsContainer = ({ count }) => {
     for (let i = 0; i < count; i++) {
       arr.push(i);
     }
-    return arr.map((item, i) => <div className="library__item" key={i} />);
+    return arr.map(item => <div className="library__item" key={item} />);
   };
 
   return (
