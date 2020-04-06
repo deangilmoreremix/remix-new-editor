@@ -14,15 +14,14 @@ import mediaConstants from '../../lib/constants/media';
 
 const Library = (props) => {
   const { providers, label, subLabel, tab } = props;
+  const perPage = 12;
   // =============== STATE ===============
   const [query, setQuery] = useState('');
 
   const [activeBtn, setActiveBtn] = useState(Object.keys(providers)[0]);
   const [activeTab, setActiveTab] = useState(tab);
 
-  const [pageNumber, setPageNumber] = useState(1);
-
-  const [hasMore, setHasMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
@@ -57,27 +56,26 @@ const Library = (props) => {
 
   const fetchItems = (getTab, queryStr = '') => {
     let currentTab = '';
-    let currentPage = 0;
+    let itemsLength = 0;
     let uploaded = [];
     if (getTab) {
       setIsLoading(true);
-      setPageNumber(1);
       setUploadedItems([]);
       currentTab = tabItems[getTab].label.toLowerCase();
-      currentPage = 1;
+      itemsLength = 0;
       uploaded = [];
     } else {
       currentTab = tabItems[activeTab].label.toLowerCase();
-      currentPage = pageNumber + 1;
-      setPageNumber(state => state + 1);
+      itemsLength = items.length;
       uploaded = uploadedItems;
     }
 
-    getAssets(currentTab, currentPage, queryStr, { _id: { $nin: uploaded } })
+    getAssets(currentTab, itemsLength, queryStr, { _id: { $nin: uploaded } })
       .then(data => {
         const elements = [];
         if (data.length) {
-          setHasMore(false);
+          setHasMore(data.length === 12);
+
           data.forEach(item => {
             const element = {
               id: item._id,
@@ -86,6 +84,7 @@ const Library = (props) => {
             };
             elements.push(element);
           });
+
           if (getTab) {
             setItems(elements);
           // Loading new items when scrolling
@@ -95,9 +94,6 @@ const Library = (props) => {
               ...elements,
             ]);
           }
-        } else {
-          setHasMore(true);
-          setPageNumber(state => state - 1);
         }
       })
       .then(() => setIsLoading(false))
@@ -259,7 +255,6 @@ const Library = (props) => {
             activeBtn={activeBtn}
             onDelete={onDelete}
             isLoading={isLoading}
-            pageNumber={pageNumber}
             fetchItems={fetchItems}
             hasMore={hasMore}
             getRootProps={getRootProps}

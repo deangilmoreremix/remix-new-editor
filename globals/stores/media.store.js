@@ -2,8 +2,11 @@ import BaseStore from './base.store';
 import mediaConstants from '../../lib/constants/media';
 
 export default class Media extends BaseStore {
-  getAssets = async (assetType, page = 1, query = '', uploadedItems) => {
+  perPage = 12;
+
+  getAssets = async (assetType, count = 0, query = '', uploadedItems) => {
     try {
+      const page = Math.ceil(count / this.perPage);
       const mediaAssetKinds = {
         [mediaConstants.ASSET_TYPES.AUDIOS]: mediaConstants.AUDIO,
         [mediaConstants.VIDEOS]: mediaConstants.VIDEO,
@@ -11,7 +14,7 @@ export default class Media extends BaseStore {
       };
 
       const data = await this.request(
-        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${12}&page=${page}&q=${query}&filter=${JSON.stringify(uploadedItems)}`,
+        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${this.perPage}&page=${page + 1}&q=${query}&filter=${JSON.stringify(uploadedItems)}`,
         {
           method: 'GET',
           headers: {
