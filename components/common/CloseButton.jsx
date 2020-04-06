@@ -5,9 +5,9 @@ import PropTypes from '../../lib/PropTypes';
 
 import arrowIcon from '../../public/static/svgImages/common/arrow-back.svg';
 
-const CloseButton = ({ onClick, classNames }) => (
+const CloseButton = ({ onClick, className }) => (
   <SVGInline
-    className={`close-button ${classNames}`}
+    className={`close-button ${className}`}
     svg={arrowIcon}
     component="button"
     onClick={onClick}
@@ -16,7 +16,7 @@ const CloseButton = ({ onClick, classNames }) => (
 
 CloseButton.propTypes = {
   onClick: PropTypes.func.isRequired,
-  classNames: PropTypes.string,
+  className: PropTypes.string,
 };
 
 export default CloseButton;

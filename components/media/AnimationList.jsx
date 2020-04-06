@@ -11,7 +11,7 @@ const AnimationList = ({ type, onSelect }) => (
     <p className="animation-container__title">Add Animation</p>
     <div className="animation-blocks">
       {
-          animations[type].types.map((item, i) => {
+          animations[type].map((item, i) => {
             const bgIndex = animationsBg.length - (i % animationsBg.length) - 1;
 
             return (
@@ -23,7 +23,7 @@ const AnimationList = ({ type, onSelect }) => (
               />
             );
           })
-        }
+      }
     </div>
     {/* ToDo Need to remove the close button */}
     <CloseButton onClick={() => console.log('click')} />
