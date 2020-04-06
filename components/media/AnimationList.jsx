@@ -16,10 +16,10 @@ const AnimationList = ({ type, onSelect }) => (
 
             return (
               <AnimationPreview
-                title={item}
+                animation={item}
                 background={animationsBg[bgIndex]}
                 onSelect={onSelect}
-                key={item}
+                key={item.value}
               />
             );
           })
