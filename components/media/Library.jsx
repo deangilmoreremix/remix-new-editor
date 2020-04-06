@@ -153,7 +153,7 @@ const Library = (props) => {
       .finally(() => setIsDisabledUpload(false));
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getInputProps } = useDropzone({
     accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
     onDrop,
     disabled: false,
@@ -265,11 +265,9 @@ const Library = (props) => {
             isLoading={isLoading}
             fetchItems={fetchItems}
             hasMore={hasMore}
-            getRootProps={getRootProps}
-            getInputProps={getInputProps}
-            isDragActive={isDragActive}
             isDisabledUpload={isDisabledUpload}
             error={error}
+            onDrop={onDrop}
           />
         </div>
       </div>

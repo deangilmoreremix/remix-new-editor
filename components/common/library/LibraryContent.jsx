@@ -2,9 +2,11 @@ import React from 'react';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
 import classnames from 'classnames';
+import { useDropzone } from 'react-dropzone';
 
 import PropTypes from '../../../lib/PropTypes';
 import { USER_ITEMS } from '../../../lib/constants/library';
+import mediaConstants from '../../../lib/constants/media';
 
 import trashIcon from '../../../public/static/svgImages/trash.svg';
 import addIcon from '../../../public/static/svgImages/add-white.svg';
@@ -22,12 +24,16 @@ const LibraryContent = (props) => {
     isLoading,
     fetchItems,
     hasMore,
-    getRootProps,
-    getInputProps,
-    isDragActive,
     isDisabledUpload,
     error,
+    onDrop,
   } = props;
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
+    onDrop,
+    disabled: false,
+  });
 
   const uploadNewItems = () => {
     fetchItems();
@@ -77,7 +83,7 @@ const LibraryContent = (props) => {
                 <img src={item.url} alt={item.title} />
                 <div className="library__item-actions">
                   {
-                  activeBtn === USER_ITEMS && (
+                  activeBtn === USER_ITEMS && !isDisabledUpload && !isDragActive && (
                     <button className="library__item-delete" onClick={() => onDelete(item.id)}>
                       <SVGInline
                         className="library__item-icon"
@@ -117,11 +123,9 @@ LibraryContent.propTypes = {
   isLoading: PropTypes.bool.isRequired,
   fetchItems: PropTypes.func.isRequired,
   hasMore: PropTypes.bool.isRequired,
-  getRootProps: PropTypes.func.isRequired,
-  getInputProps: PropTypes.func.isRequired,
-  isDragActive: PropTypes.bool.isRequired,
   isDisabledUpload: PropTypes.bool.isRequired,
   error: PropTypes.bool,
+  onDrop: PropTypes.func.isRequired,
 };
 
 export default LibraryContent;
