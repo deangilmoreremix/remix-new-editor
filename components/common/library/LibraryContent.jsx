@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
 import classnames from 'classnames';
@@ -23,11 +23,11 @@ const LibraryContent = (props) => {
     onDelete,
     isLoading,
     fetchItems,
-    hasMore,
     isDisabledUpload,
-    error,
     onDrop,
   } = props;
+
+  const [hasMore, setHasMore] = useState(true);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
@@ -36,22 +36,13 @@ const LibraryContent = (props) => {
   });
 
   const uploadNewItems = () => {
-    fetchItems();
+    fetchItems().then(uploadMore => setHasMore(uploadMore));
   };
 
   if (isLoading) {
     return (
       <div className="library__items">
         <LoaderCircle />
-      </div>
-
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="library__items">
-        <p className="library__error">An error occurred while loading items</p>
       </div>
     );
   }
@@ -122,9 +113,7 @@ LibraryContent.propTypes = {
   onDelete: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired,
   fetchItems: PropTypes.func.isRequired,
-  hasMore: PropTypes.bool.isRequired,
   isDisabledUpload: PropTypes.bool.isRequired,
-  error: PropTypes.bool,
   onDrop: PropTypes.func.isRequired,
 };
 

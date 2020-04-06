@@ -18,14 +18,6 @@
   }
 }
 
-.library__error {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
 .library__tabs {
   display: flex;
   justify-content: space-between;
@@ -288,11 +280,4 @@
   width: 50%;
   height: 50%;
   transition: 0.3s all;
-}
-
-.library__error {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0;
 }

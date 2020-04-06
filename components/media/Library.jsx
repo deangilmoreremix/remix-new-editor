@@ -4,17 +4,17 @@ import { useDropzone } from 'react-dropzone';
 import PropTypes from '../../lib/PropTypes';
 import { USER_ITEMS, tabItems } from '../../lib/constants/library';
 import useMediaStore from '../hooks/useMediaStore';
+import mediaConstants from '../../lib/constants/media';
+import { showError } from '../../lib/services/alertService';
 
 import Tabs from '../common/library/Tabs';
 import ProviderList from '../common/library/ProviderList';
 import LibraryContent from '../common/library/LibraryContent';
 import { LibrarySpinner } from './Loader';
 
-import mediaConstants from '../../lib/constants/media';
-
 const Library = (props) => {
   const { label, subLabel, tab } = props;
-  const perPage = 12;
+
   // =============== STATE ===============
   const [query, setQuery] = useState('');
 
@@ -23,11 +23,8 @@ const Library = (props) => {
 
   const [pageNumber, setPageNumber] = useState(1);
 
-  const [hasMore, setHasMore] = useState(true);
-
   const [isLoading, setIsLoading] = useState(true);
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
-  const [error, setError] = useState(false);
 
   const [items, setItems] = useState([]);
   const [deletedItems, setDeletedItems] = useState([]);
@@ -77,20 +74,19 @@ const Library = (props) => {
 
     try {
       const data = await getAssets(
-        currentTab, currentPage, queryStr, { _id: { $nin: [...uploaded, ...deletedItems] } },
+        currentTab, currentPage, queryStr, { _id: { $nin: uploaded } },
       );
-      await forEachItems(data, getTab);
+      const hasMore = await forEachItems(data, getTab);
       setIsLoading(false);
+      return hasMore;
     } catch (e) {
-      setError(true);
+      showError('An error occurred while loading items');
     }
   };
 
   const forEachItems = (data, getTab) => {
     const elements = [];
     if (data.length) {
-      // setHasMore(data.length === perPage);
-
       data.forEach(item => {
         const element = {
           id: item._id,
@@ -109,9 +105,8 @@ const Library = (props) => {
           ...elements,
         ]);
       }
-    } else {
-      // setHasMore(false);
     }
+    return !!(data && data.length === 12);
   };
 
   // === Drag and Drop ===
@@ -149,7 +144,7 @@ const Library = (props) => {
           }
         });
       });
-    }).catch(err => console.log(err))
+    }).catch(err => showError(err))
       .finally(() => setIsDisabledUpload(false));
   };
 
@@ -205,7 +200,7 @@ const Library = (props) => {
           fetchItems(activeTab, searchText);
         }
       })
-      .catch(e => console.log('Error while deleting items', e));
+      .catch(e => showError(`Error while deleting items, ${e}`));
   };
 
   return (
@@ -264,9 +259,7 @@ const Library = (props) => {
             onDelete={onDelete}
             isLoading={isLoading}
             fetchItems={fetchItems}
-            hasMore={hasMore}
             isDisabledUpload={isDisabledUpload}
-            error={error}
             onDrop={onDrop}
           />
         </div>
