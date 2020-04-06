@@ -70,9 +70,11 @@ const Library = (props) => {
       itemsLength = items.length;
       uploaded = uploadedItems;
     }
-
+    console.log(items);
     try {
-      const data = await getAssets(currentTab, itemsLength, queryStr, { _id: { $nin: uploaded } })
+      const data = await getAssets(
+        currentTab, itemsLength, queryStr, { _id: { $nin: [...uploaded, ...deletedItems] } },
+      );
       await forEachItems(data, getTab);
       setIsLoading(false);
     } catch (e) {
@@ -83,7 +85,8 @@ const Library = (props) => {
   const forEachItems = (data, getTab) => {
     const elements = [];
     if (data.length) {
-      setHasMore(data.length === 12);
+      setHasMore(data.length === perPage);
+      console.log(data.length);
 
       data.forEach(item => {
         const element = {
@@ -159,7 +162,9 @@ const Library = (props) => {
   };
 
   const handleSetFocus = () => {
-    inputRef.current.focus();
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   const onSelect = (id) => {
@@ -167,22 +172,17 @@ const Library = (props) => {
   };
 
   const onDelete = (id) => {
-    let filter = -1;
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].id === id) {
-        filter = i;
-        break;
+    const newArr = items.filter(item => {
+      if (item.id !== id) {
+        return item;
+      } else {
+        return setDeletedItems([
+          ...deletedItems,
+          item.id,
+        ]);
       }
-    }
-    setItems([
-      ...items.slice(0, filter),
-      ...items.slice(filter + 1),
-    ]);
-
-    setDeletedItems([
-      ...deletedItems,
-      items[filter].id,
-    ]);
+    });
+    setItems(newArr);
   };
 
   const onFetchDelete = (unmount, searchText) => {
