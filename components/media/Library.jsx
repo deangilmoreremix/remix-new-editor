@@ -21,6 +21,8 @@ const Library = (props) => {
   const [activeBtn, setActiveBtn] = useState(Object.keys(providers)[0]);
   const [activeTab, setActiveTab] = useState(tab);
 
+  const [pageNumber, setPageNumber] = useState(1);
+
   const [hasMore, setHasMore] = useState(true);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -56,24 +58,26 @@ const Library = (props) => {
 
   const fetchItems = async (getTab, queryStr = '') => {
     let currentTab = '';
-    let itemsLength = 0;
+    let currentPage = 0;
     let uploaded = [];
 
     if (getTab) {
       setIsLoading(true);
+      setPageNumber(1);
       setUploadedItems([]);
       currentTab = tabItems[getTab].label.toLowerCase();
-      itemsLength = 0;
+      currentPage = 1;
       uploaded = [];
     } else {
       currentTab = tabItems[activeTab].label.toLowerCase();
-      itemsLength = items.length;
+      currentPage = pageNumber + 1;
+      setPageNumber(state => state + 1);
       uploaded = uploadedItems;
     }
-    console.log(items);
+
     try {
       const data = await getAssets(
-        currentTab, itemsLength, queryStr, { _id: { $nin: [...uploaded, ...deletedItems] } },
+        currentTab, currentPage, queryStr, { _id: { $nin: [...uploaded, ...deletedItems] } },
       );
       await forEachItems(data, getTab);
       setIsLoading(false);
@@ -86,7 +90,6 @@ const Library = (props) => {
     const elements = [];
     if (data.length) {
       setHasMore(data.length === perPage);
-      console.log(data.length);
 
       data.forEach(item => {
         const element = {
@@ -106,6 +109,8 @@ const Library = (props) => {
           ...elements,
         ]);
       }
+    } else {
+      setHasMore(false);
     }
   };
 
