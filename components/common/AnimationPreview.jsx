@@ -5,10 +5,10 @@ import classnames from 'classnames';
 import PropTypes from '../../lib/PropTypes';
 
 const AnimationPreview = ({ bg, title, onSelect }) => {
-  const [active, setActive] = useState(false);
+  const [isActive, setIsActive] = useState(false);
 
   const onHover = () => {
-    setActive(!active);
+    setIsActive(!isActive);
   };
 
   return (
@@ -17,13 +17,15 @@ const AnimationPreview = ({ bg, title, onSelect }) => {
       onMouseEnter={onHover}
       onMouseLeave={onHover}
     >
-      <p className={classnames('animated', 'animation-preview__text', { [title]: active })}>
+      <p className={classnames('animated', 'animation-preview__text', { [title]: isActive })}>
         {title}
       </p>
-      <SVGInline
-        className="animation-preview__bg"
-        svg={bg}
-      />
+      {bg && (
+        <SVGInline
+          className="animation-preview__bg"
+          svg={bg}
+        />
+      )}
       <button
         type="button"
         className="animation-preview__add"

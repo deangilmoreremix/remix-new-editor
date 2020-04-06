@@ -36,7 +36,6 @@ const Home = observer(() => {
     return (<div>Error</div>);
   }
 
-
   return (
     <Container fluid className="home">
       <Header />
