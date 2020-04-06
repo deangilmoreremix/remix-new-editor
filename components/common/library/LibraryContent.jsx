@@ -4,14 +4,14 @@ import { Waypoint } from 'react-waypoint';
 import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
-import { libraryProviders } from '../../../lib/constants/library';
+import { libraryProviders, USER_ITEMS } from '../../../lib/constants/library';
 
 import trashIcon from '../../../public/static/svgImages/trash.svg';
 import addIcon from '../../../public/static/svgImages/add-white.svg';
 import plusIcon from '../../../public/static/svgImages/plus-circle.svg';
 
 import { LoaderCircle } from '../../media/Loader';
-import NoItemsPlaceholder from './NoItemsPlaceholder';
+import EmptyItemsContainer from './EmptyItemsContainer';
 
 const LibraryContent = (props) => {
   const {
@@ -53,7 +53,7 @@ const LibraryContent = (props) => {
   return (
     <div className="library__items">
       {
-          activeBtn === Object.keys(libraryProviders)[0] && (
+          activeBtn === USER_ITEMS && (
             <div
               {...getRootProps()}
               className={classnames('library__item library__item-drop', { 'library__item-drag': isDragActive }, { 'library__item-disabled': isDisabledUpload })}
@@ -74,10 +74,10 @@ const LibraryContent = (props) => {
                 key={item.id}
                 className="library__item"
               >
-                <img src={item.url} alt={item.title || ''} />
+                <img src={item.url} alt={item.title} />
                 <div className="library__item-actions">
                   {
-                  activeBtn === Object.keys(libraryProviders)[0] && (
+                  activeBtn === USER_ITEMS && (
                     <button className="library__item-delete" onClick={() => onDelete(item.id)}>
                       <SVGInline
                         className="library__item-icon"
@@ -95,8 +95,8 @@ const LibraryContent = (props) => {
                 </div>
               </div>
             )) : (
-              <NoItemsPlaceholder
-                count={activeBtn !== Object.keys(libraryProviders)[0] ? 9 : 8}
+              <EmptyItemsContainer
+                count={activeBtn !== USER_ITEMS ? 9 : 8}
               />
             )
         }

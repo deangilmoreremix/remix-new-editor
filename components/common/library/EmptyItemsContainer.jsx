@@ -1,7 +1,7 @@
 import React, { Fragment } from 'react';
 import PropTypes from '../../../lib/PropTypes';
 
-const NoItemsPlaceholder = ({ count }) => {
+const EmptyItemsContainer = ({ count }) => {
   const backgroundGrid = () => {
     const arr = [];
     for (let i = 0; i < count; i++) {
@@ -17,8 +17,8 @@ const NoItemsPlaceholder = ({ count }) => {
   );
 };
 
-NoItemsPlaceholder.propTypes = {
+EmptyItemsContainer.propTypes = {
   count: PropTypes.number.isRequired,
 };
 
-export default NoItemsPlaceholder;
+export default EmptyItemsContainer;

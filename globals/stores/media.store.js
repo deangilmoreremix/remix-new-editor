@@ -2,15 +2,22 @@ import BaseStore from './base.store';
 import mediaConstants from '../../lib/constants/media';
 
 export default class Media extends BaseStore {
-  getAssets = async (assetType, page = 1, query = '', uploadedItems) => {
+  getAssets = async (assetType, page = 1, query = '', filter) => {
     try {
       const mediaAssetKinds = {
         [mediaConstants.ASSET_TYPES.AUDIOS]: mediaConstants.AUDIO,
         [mediaConstants.VIDEOS]: mediaConstants.VIDEO,
         [mediaConstants.ASSET_TYPES.IMAGES]: mediaConstants.IMAGE,
       };
+
+      if (filter) {
+        filter = JSON.stringify(filter);
+      } else {
+        filter = '';
+      }
+
       const data = await this.request(
-        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${12}&page=${page}&q=${query}&filter=${JSON.stringify(uploadedItems)}`,
+        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${12}&page=${page}&q=${query}&filter=${filter}`,
         {
           method: 'GET',
           headers: {
@@ -79,7 +86,7 @@ export default class Media extends BaseStore {
     return file;
   };
 
-  deleteItemAsset = async (id) => {
+  deleteAsset = async (id) => {
     try {
       await this.request(
         `/api/users/me/media-assets/${id}`, {

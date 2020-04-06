@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
 
 import PropTypes from '../../lib/PropTypes';
-import { libraryProviders, tabItems } from '../../lib/constants/library';
+import { libraryProviders, USER_ITEMS, tabItems } from '../../lib/constants/library';
 import useMediaStore from '../hooks/useMediaStore';
 
 import Tabs from '../common/library/Tabs';
@@ -13,12 +13,12 @@ import { LibrarySpinner } from './Loader';
 import mediaConstants from '../../lib/constants/media';
 
 const Library = (props) => {
-  const { providers, label, subLabel, tab } = props;
+  const { label, subLabel, tab } = props;
   const perPage = 12;
   // =============== STATE ===============
   const [query, setQuery] = useState('');
 
-  const [activeBtn, setActiveBtn] = useState(Object.keys(providers)[0]);
+  const [activeBtn, setActiveBtn] = useState(USER_ITEMS);
   const [activeTab, setActiveTab] = useState(tab);
 
   const [pageNumber, setPageNumber] = useState(1);
@@ -36,12 +36,12 @@ const Library = (props) => {
   const inputRef = useRef();
   // =============== STATE ===============
 
-  const { uploadMedia, storeAsset, getAssets, deleteItemAsset } = useMediaStore();
+  const { uploadMedia, storeAsset, getAssets, deleteAsset } = useMediaStore();
 
   useEffect(() => {
     setQuery('');
     if (deletedItems.length) {
-      onFetchDelete();
+      bulkDeleteItems();
     } else {
       fetchItems(activeTab);
     }
@@ -50,7 +50,7 @@ const Library = (props) => {
   const handleButtonClick = element => {
     setActiveBtn(element);
     if (deletedItems.length) {
-      onFetchDelete();
+      bulkDeleteItems();
     } else {
       fetchItems(activeTab);
     }
@@ -71,7 +71,7 @@ const Library = (props) => {
     } else {
       currentTab = tabItems[activeTab].label.toLowerCase();
       currentPage = pageNumber + 1;
-      setPageNumber(state => state + 1);
+      setPageNumber(pageNumber + 1);
       uploaded = uploadedItems;
     }
 
@@ -162,7 +162,7 @@ const Library = (props) => {
 
   const handleSearch = (e) => {
     if (e.key === 'Enter') {
-      onFetchDelete(null, query);
+      bulkDeleteItems(null, query);
     }
   };
 
@@ -190,9 +190,9 @@ const Library = (props) => {
     setItems(newArr);
   };
 
-  const onFetchDelete = (unmount, searchText) => {
-    const promiseArr = [];
-    deletedItems.forEach(id => promiseArr.push(deleteItemAsset(id)));
+  const bulkDeleteItems = (unmount, searchText) => {
+    const promiseArr = deletedItems.map(id => deleteAsset(id));
+
     Promise.all(promiseArr)
       .then(() => {
         if (!unmount) {
@@ -205,7 +205,7 @@ const Library = (props) => {
           fetchItems(activeTab, searchText);
         }
       })
-      .catch(() => console.log('Error while deleting items'));
+      .catch(e => console.log('Error while deleting items', e));
   };
 
   return (
@@ -225,7 +225,7 @@ const Library = (props) => {
           </div>
           <div className="library__block">
             {
-              activeBtn === Object.keys(providers)[0] && (
+              activeBtn === USER_ITEMS && (
                 <Fragment>
                   <input
                     className="library__search"
@@ -257,7 +257,7 @@ const Library = (props) => {
           <ProviderList
             activeItem={activeBtn}
             title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
-            userContentTitle={Object.keys(tabItems).length ? tabItems[activeTab].label : ''}
+            userContentTitle={tabItems[activeTab].label}
             handleButtonClick={handleButtonClick}
           />
           <LibraryContent
@@ -281,19 +281,12 @@ const Library = (props) => {
 };
 
 Library.propTypes = {
-  providers: PropTypes.objectOf(
-    PropTypes.shape({
-      name: PropTypes.string.isRequired,
-      icon: PropTypes.string,
-    }),
-  ),
   label: PropTypes.string,
   subLabel: PropTypes.string,
   tab: PropTypes.string,
 };
 
 Library.defaultProps = {
-  providers: libraryProviders,
   label: 'Try searching for keywords, like',
   subLabel: ' business, sports, meeting...',
   tab: Object.keys(tabItems)[0],
