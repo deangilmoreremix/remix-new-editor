@@ -106,7 +106,7 @@ const LibraryContent = (props) => {
               />
             )
         }
-      { hasMore && <Waypoint bottomOffset="10%" onEnter={uploadNewItems} /> }
+      { hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} /> }
     </div>
   );
 };

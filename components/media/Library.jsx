@@ -89,7 +89,7 @@ const Library = (props) => {
   const forEachItems = (data, getTab) => {
     const elements = [];
     if (data.length) {
-      setHasMore(data.length === perPage);
+      // setHasMore(data.length === perPage);
 
       data.forEach(item => {
         const element = {
@@ -110,7 +110,7 @@ const Library = (props) => {
         ]);
       }
     } else {
-      setHasMore(false);
+      // setHasMore(false);
     }
   };
 
