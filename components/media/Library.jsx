@@ -55,15 +55,15 @@ const Library = (props) => {
     }
   };
 
-  const fetchItems = (thisTab, queryStr = '') => {
+  const fetchItems = (getTab, queryStr = '') => {
     let currentTab = '';
     let currentPage = 0;
     let uploaded = [];
-    if (thisTab) {
+    if (getTab) {
       setIsLoading(true);
       setPageNumber(1);
       setUploadedItems([]);
-      currentTab = tabItems[thisTab].label.toLowerCase();
+      currentTab = tabItems[getTab].label.toLowerCase();
       currentPage = 1;
       uploaded = [];
     } else {
@@ -86,7 +86,7 @@ const Library = (props) => {
             };
             elements.push(element);
           });
-          if (thisTab) {
+          if (getTab) {
             setItems(elements);
           // Loading new items when scrolling
           } else {
@@ -249,7 +249,6 @@ const Library = (props) => {
         <div className="library__row library__row-second">
           <ProviderList
             activeItem={activeBtn}
-            items={providers}
             title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
             userContentTitle={Object.keys(tabItems).length ? tabItems[activeTab].label : ''}
             handleButtonClick={handleButtonClick}

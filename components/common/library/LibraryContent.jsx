@@ -96,7 +96,7 @@ const LibraryContent = (props) => {
               </div>
             )) : (
               <NoItemsPlaceholder
-                isUserItems={activeBtn !== Object.keys(libraryProviders)[0]}
+                count={activeBtn !== Object.keys(libraryProviders)[0] ? 9 : 8}
               />
             )
         }
