@@ -54,10 +54,11 @@ const Library = (props) => {
     }
   };
 
-  const fetchItems = (getTab, queryStr = '') => {
+  const fetchItems = async (getTab, queryStr = '') => {
     let currentTab = '';
     let itemsLength = 0;
     let uploaded = [];
+
     if (getTab) {
       setIsLoading(true);
       setUploadedItems([]);
@@ -70,34 +71,39 @@ const Library = (props) => {
       uploaded = uploadedItems;
     }
 
-    getAssets(currentTab, itemsLength, queryStr, { _id: { $nin: uploaded } })
-      .then(data => {
-        const elements = [];
-        if (data.length) {
-          setHasMore(data.length === 12);
+    try {
+      const data = await getAssets(currentTab, itemsLength, queryStr, { _id: { $nin: uploaded } })
+      await forEachItems(data, getTab);
+      setIsLoading(false);
+    } catch (e) {
+      setError(true);
+    }
+  };
 
-          data.forEach(item => {
-            const element = {
-              id: item._id,
-              url: item.url,
-              title: item.title,
-            };
-            elements.push(element);
-          });
+  const forEachItems = (data, getTab) => {
+    const elements = [];
+    if (data.length) {
+      setHasMore(data.length === 12);
 
-          if (getTab) {
-            setItems(elements);
-          // Loading new items when scrolling
-          } else {
-            setItems([
-              ...items,
-              ...elements,
-            ]);
-          }
-        }
-      })
-      .then(() => setIsLoading(false))
-      .catch(() => setError(true));
+      data.forEach(item => {
+        const element = {
+          id: item._id,
+          url: item.url,
+          title: item.title,
+        };
+        elements.push(element);
+      });
+
+      if (getTab) {
+        setItems(elements);
+        // Loading new items when scrolling
+      } else {
+        setItems([
+          ...items,
+          ...elements,
+        ]);
+      }
+    }
   };
 
   // === Drag and Drop ===
