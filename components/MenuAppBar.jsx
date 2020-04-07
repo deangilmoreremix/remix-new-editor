@@ -127,18 +127,4 @@ const MenuAppBar = observer(() => {
   );
 });
 
-MenuAppBar.propTypes = {
-  open: PropTypes.bool.isRequired,
-  openMenu: PropTypes.func,
-  closeMenu: PropTypes.func,
-  anchorEl: PropTypes.element,
-  onSave: PropTypes.func,
-};
-
-MenuAppBar.defaultProps = {
-  openMenu: () => {},
-  closeMenu: () => {},
-  onSave: () => {},
-};
-
 export default MenuAppBar;
