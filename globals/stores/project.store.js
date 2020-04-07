@@ -237,6 +237,186 @@ export default class ProjectStore extends BaseStore {
 
   @action
   addLayer = () => {
+    this.modified = true;
+    this.projectData.media.forEach((media) => {
+      media.tracks = media.tracks.map(track => {
+        track.order += 1;
+        const zindex = MAX_ZINDEX - track.order;
+        track.trackEvents.forEach(element => {
+          element.popcornOptions.zindex = zindex;
+          this.update(element, { zindex });
+        });
+        return track;
+      });
+      media.tracks.unshift({ ...defaultLayer, id: media.tracks.length });
+    });
+
+    this.layers = this.layers.map(track => {
+      track.order += 1;
+      track.defaultName = `Layer ${track.order}`;
+      return track;
+    });
+    this.layers.unshift({ ...defaultLayer, id: `${this.layers.length}`, defaultName: 'Layer 0' });
+  };
+
+  @action
+  removeLayer = (id) => {
+    if (this.layers.length <= 1) {
+      return;
+    }
+    this.modified = true;
+    this.projectData.media.forEach((media) => {
+      const removedTrack = media.tracks.find(track => track.id === id);
+      if (removedTrack && removedTrack.trackEvents.length) {
+        removedTrack.trackEvents.forEach((trackEvent) => {
+          this.popcorn.removeTrackEvent(trackEvent.id);
+        });
+        this.elements = this.elements.filter(element => element.track !== id);
+      }
+      media.tracks = media.tracks.filter(track => track.id !== id);
+      media.tracks = this.orderItems(media.tracks, true);
+    });
+    this.layers = this.layers.filter(track => track.id !== id);
+    this.layers = this.orderItems(this.layers);
+    this.elements = this.elements.filter(item => item.track !== id);
+  };
+
+  @action
+  editLayer = (id, options) => {
+    this.modified = true;
+    this.projectData.media.forEach((media) => {
+      media.tracks = media.tracks.map(track => {
+        if (track.id === id) {
+          track = { ...track, ...options };
+        }
+        return track;
+      });
+    });
+    this.layers = this.layers.map(track => {
+      if (track.id === id) {
+        track = { ...track, ...options };
+      }
+      return track;
+    });
+  };
+
+  @action
+  removeElement(id) {
+    this.modified = true;
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents = track.trackEvents.filter(trackEvent => trackEvent.id !== id);
+        this.popcorn.removeTrackEvent(id);
+      });
+    });
+  }
+
+  @action
+  setLayer = (elementId, newLayerLevel) => {
+    let element;
+    this.modified = true;
+    const layer = this.layers.find(item => item.order === newLayerLevel);
+    this.elements = this.elements.map(item => {
+      if (item.id === elementId) {
+        element = item;
+        item.track = layer.id;
+      }
+      return item;
+    });
+    if (!element) {
+      return;
+    }
+    this.projectData.media.forEach((media) => {
+      media.tracks = media.tracks.map(track => {
+        if (track.order === newLayerLevel) {
+          track.trackEvents.push({ ...element, track: track.id });
+        } else {
+          track.trackEvents = track.trackEvents.filter(item => item.id !== elementId);
+        }
+        return track;
+      });
+    });
+  };
+
+  @action
+  updateTime = (value) => {
+    this.time = value;
+    this.popcorn.currentTime(value / SANTISECOND);
+  };
+
+  @action
+  updateStartEnd = (elementId, start, end) => {
+    this.elements = this.elements.map(element => {
+      if (element.id === elementId) {
+        element.start = start;
+        element.end = end;
+      }
+      return element;
+    });
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.id === elementId) {
+            trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...{ start, end } };
+          }
+        });
+      });
+    });
+    this.update(elementId, { start, end });
+  };
+
+  @action
+  findAndUpdate = (element, options) => {
+    const elementId = (element && element.id) || element;
+    this.modified = true;
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.id === elementId) {
+            trackEvent.popcornOptions = { ...trackEvent.popcornOptions, options };
+          }
+        });
+      });
+    });
+    this.update(elementId, options);
+  };
+
+  @action
+    update = (element, options) => {
+      const elementId = (element && element.id) || element;
+      const trackEvent = this.popcorn.getTrackEvent(elementId);
+      // eslint-disable-next-line no-underscore-dangle
+      if (trackEvent && trackEvent._natives._update) {
+        // _natives and _update is popcorn functions
+        // eslint-disable-next-line no-underscore-dangle
+        trackEvent._natives._update(trackEvent, options);
+      }
+    };
+
+  isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'
+        || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
+        && element.popcornOptions.contentType.indexOf('video/') === 0));
+
+  isAudio = (element) => !!((element.popcornOptions.type === 'SoundCloud')
+    || (element.popcornOptions.contentType
+      && (element.popcornOptions.contentType.indexOf('audio/') === 0
+      || element.popcornOptions.contentType.indexOf('application/ogg') === 0)));
+
+  @action
+  orderItems = (items, updateTracks) => items.map((track, index) => {
+    track.defaultName = `Layer ${index}`;
+    if (updateTracks) {
+      const zindex = MAX_ZINDEX - index;
+      track.trackEvents.forEach(element => {
+        this.update(element, { zindex });
+      });
+    }
+    track.order = index;
+    return track;
+  });
+
+  @action
+  addLayer = () => {
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
         track.order += 1;

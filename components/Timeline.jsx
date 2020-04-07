@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import Grid from '@material-ui/core/Grid';
+import SVGInline from 'react-svg-inline';
 
 import useProjectStore from './hooks/useProjectStore';
 
@@ -10,6 +11,8 @@ import SortableList from './common/SortableList';
 import PlayButton from './common/timeline/PlayButton';
 import PlusButton from './common/timeline/PlusButton';
 import PopcornElements from './common/timeline/PopcornElements';
+
+import rulerIcon from '../public/static/svgImages/common/ruler.svg';
 
 const Timeline = observer(() => {
   const ref = useRef(null);
@@ -73,7 +76,12 @@ const Timeline = observer(() => {
 
       <Grid container className="timeline__line">
         <Grid item xs={2} className="timeline__line-arrow" />
-        <Grid item xs={9} className="timeline__line-central" />
+        <Grid item xs={9} className="timeline__line-central">
+          <SVGInline
+            className="ruler"
+            svg={rulerIcon}
+          />
+        </Grid>
         <Grid item xs={1} className="timeline__line-arrow" />
       </Grid>
 
