@@ -54,7 +54,8 @@ const MenuAppBar = observer(() => {
                       svg={hamburgerIcon}
                       cleanup={['title']}
                     />
-                  )}
+                  )
+                }
                 items={projectMenu}
                 className="project-menu"
                 parent={anchorRef}
