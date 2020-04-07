@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
 import classnames from 'classnames';
@@ -39,6 +39,10 @@ const LibraryContent = (props) => {
     fetchItems().then(uploadMore => setHasMore(uploadMore));
   };
 
+  useEffect(() => {
+    setHasMore(true);
+  }, [isLoading]);
+
   if (isLoading) {
     return (
       <div className="library__items">
@@ -68,14 +72,14 @@ const LibraryContent = (props) => {
           items.length
             ? items.map(item => (
               <div
-                key={item.id}
+                key={item._id}
                 className="library__item"
               >
                 <img src={item.url} alt={item.title} />
                 <div className="library__item-actions">
                   {
                   activeBtn === USER_ITEMS && !isDisabledUpload && !isDragActive && (
-                    <button className="library__item-delete" onClick={() => onDelete(item.id)}>
+                    <button className="library__item-delete" onClick={() => onDelete(item._id)}>
                       <SVGInline
                         className="library__item-icon"
                         svg={trashIcon}
@@ -83,7 +87,7 @@ const LibraryContent = (props) => {
                     </button>
                   )
                 }
-                  <button className="library__item-add" onClick={() => onSelect(item.id)}>
+                  <button className="library__item-add" onClick={() => onSelect(item._id)}>
                     <SVGInline
                       className="library__item-icon"
                       svg={addIcon}
@@ -104,7 +108,7 @@ const LibraryContent = (props) => {
 
 LibraryContent.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
+    _id: PropTypes.string.isRequired,
     url: PropTypes.string.isRequired,
     title: PropTypes.string,
   })),

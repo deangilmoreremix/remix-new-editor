@@ -10,14 +10,8 @@ export default class Media extends BaseStore {
         [mediaConstants.ASSET_TYPES.IMAGES]: mediaConstants.IMAGE,
       };
 
-      if (filter) {
-        filter = JSON.stringify(filter);
-      } else {
-        filter = '';
-      }
-
       const data = await this.request(
-        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${12}&page=${page}&q=${query}&filter=${filter}`,
+        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${12}&page=${page}&q=${query}${filter ? `&filter=${JSON.stringify(filter)}` : ''}`,
         {
           method: 'GET',
           headers: {
@@ -120,8 +114,7 @@ export default class Media extends BaseStore {
         headers['Content-Type'] = 'application/json; charset=utf-8';
       }
 
-      asset = await this.selfRequest(
-        `/api/media${preview ? '?video_preview=true' : ''}`,
+      asset = await this.selfRequest(`/api/media${preview ? '?video_preview=true' : ''}`,
         {
           method: 'PUT',
           headers,

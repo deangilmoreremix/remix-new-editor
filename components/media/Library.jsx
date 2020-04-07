@@ -53,20 +53,20 @@ const Library = (props) => {
     }
   };
 
-  const fetchItems = async (getTab, queryStr = '') => {
-    let currentTab = '';
+  const fetchItems = async (currentTab, queryStr = '') => {
+    let section = '';
     let currentPage = 0;
     let uploaded = [];
 
-    if (getTab) {
+    if (currentTab) {
       setIsLoading(true);
       setPageNumber(1);
       setUploadedItems([]);
-      currentTab = tabItems[getTab].label.toLowerCase();
+      section = tabItems[currentTab].label.toLowerCase();
       currentPage = 1;
       uploaded = [];
     } else {
-      currentTab = tabItems[activeTab].label.toLowerCase();
+      section = tabItems[activeTab].label.toLowerCase();
       currentPage = pageNumber + 1;
       setPageNumber(pageNumber + 1);
       uploaded = uploadedItems;
@@ -74,39 +74,25 @@ const Library = (props) => {
 
     try {
       const data = await getAssets(
-        currentTab, currentPage, queryStr, { _id: { $nin: uploaded } },
+        section, currentPage, queryStr, { _id: { $nin: uploaded } },
       );
-      const hasMore = await forEachItems(data, getTab);
+
+      if (data.length) {
+        if (currentTab) {
+          setItems(data);
+          // Loading new items when scrolling
+        } else {
+          setItems([
+            ...items,
+            ...data,
+          ]);
+        }
+      }
       setIsLoading(false);
-      return hasMore;
+      return !!(data && data.length === 12);
     } catch (e) {
       showError('An error occurred while loading items');
     }
-  };
-
-  const forEachItems = (data, getTab) => {
-    const elements = [];
-    if (data.length) {
-      data.forEach(item => {
-        const element = {
-          id: item._id,
-          url: item.url,
-          title: item.title,
-        };
-        elements.push(element);
-      });
-
-      if (getTab) {
-        setItems(elements);
-        // Loading new items when scrolling
-      } else {
-        setItems([
-          ...items,
-          ...elements,
-        ]);
-      }
-    }
-    return !!(data && data.length === 12);
   };
 
   // === Drag and Drop ===

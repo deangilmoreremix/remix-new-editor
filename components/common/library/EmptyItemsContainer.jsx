@@ -2,17 +2,16 @@ import React, { Fragment } from 'react';
 import PropTypes from '../../../lib/PropTypes';
 
 const EmptyItemsContainer = ({ count }) => {
-  const backgroundGrid = () => {
-    const arr = [];
-    for (let i = 0; i < count; i++) {
-      arr.push(i);
-    }
-    return arr.map(item => <div className="library__item" key={item} />);
-  };
+  const arr = [];
+  for (let i = 0; i < count; i++) {
+    arr.push(i);
+  }
 
   return (
     <Fragment>
-      {backgroundGrid()}
+      {arr && arr.map(item => (
+        <div className="library__item" key={item} />
+      ))}
     </Fragment>
   );
 };
