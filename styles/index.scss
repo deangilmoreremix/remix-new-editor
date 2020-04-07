@@ -1,5 +1,6 @@
 @import "reset";
 @import "~bootstrap/scss/bootstrap";
+@import "~animate.css/animate.min.css";
 
 @import "variables";
 @import "mixins/index";
@@ -34,5 +35,7 @@
 @import "components/form/AngleInput";
 @import "components/common/ThumbnailEditor";
 @import "components/common/thumbnails";
+@import "components/Animation";
+@import "components/CloseButton";
 @import "components/Loader";
 
