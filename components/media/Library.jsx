@@ -105,11 +105,7 @@ const Library = (props) => {
       const asset = await uploadMedia({ data, preview: true });
       const item = await storeAsset(asset.url, asset.preview, 'images');
       const fileExtension = item.url.match(/\.[0-9a-z]{1,5}$/)[0];
-      elements.push({
-        id: item._id,
-        url: item.url,
-        title: item.title,
-      });
+      elements.push(item);
       elementsIds.push(item._id);
       return fileExtension;
     })).then(fileExtension => {
@@ -160,12 +156,12 @@ const Library = (props) => {
 
   const onDelete = (id) => {
     const newArr = items.filter(item => {
-      if (item.id !== id) {
+      if (item._id !== id) {
         return item;
       } else {
         return setDeletedItems([
           ...deletedItems,
-          item.id,
+          item._id,
         ]);
       }
     });

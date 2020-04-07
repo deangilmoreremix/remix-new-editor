@@ -10,7 +10,6 @@ export default class Media extends BaseStore {
         [mediaConstants.VIDEOS]: mediaConstants.VIDEO,
         [mediaConstants.ASSET_TYPES.IMAGES]: mediaConstants.IMAGE,
       };
-
       const data = await this.request(
         `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${perPage}&page=${page}&q=${query}${filter ? `&filter=${JSON.stringify(filter)}` : ''}`,
         {
