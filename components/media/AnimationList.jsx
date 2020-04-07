@@ -1,7 +1,7 @@
 import React from 'react';
 
 import PropTypes from '../../lib/PropTypes';
-import { animations, animationsBg } from '../../lib/constants/animations';
+import { animations } from '../../lib/constants/animations';
 
 import AnimationPreview from '../common/AnimationPreview';
 import CloseButton from '../common/CloseButton';
@@ -11,18 +11,14 @@ const AnimationList = ({ type, onSelect }) => (
     <p className="animation-container__title">Add Animation</p>
     <div className="animation-blocks">
       {
-          animations[type].map((item, i) => {
-            const bgIndex = animationsBg.length - (i % animationsBg.length) - 1;
-
-            return (
-              <AnimationPreview
-                animation={item}
-                background={animationsBg[bgIndex]}
-                onSelect={onSelect}
-                key={item.value}
-              />
-            );
-          })
+          animations[type].map(item => (
+            <AnimationPreview
+              animation={item}
+              onSelect={onSelect}
+              key={item.value}
+            />
+          ),
+          )
       }
     </div>
     {/* ToDo Need to remove the close button */}

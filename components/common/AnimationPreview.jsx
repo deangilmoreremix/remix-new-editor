@@ -4,7 +4,7 @@ import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
 
-const AnimationPreview = ({ background, animation, onSelect }) => {
+const AnimationPreview = ({ animation, onSelect }) => {
   const [isActive, setIsActive] = useState(false);
 
   const onHover = () => {
@@ -20,10 +20,10 @@ const AnimationPreview = ({ background, animation, onSelect }) => {
       <p className={classnames('animated', 'animation-preview__text', { [animation.value]: isActive })}>
         {animation.name}
       </p>
-      {background && (
+      {animation.background && (
         <SVGInline
           className="animation-preview__bg"
-          svg={background}
+          svg={animation.background}
         />
       )}
       <button
@@ -36,10 +36,10 @@ const AnimationPreview = ({ background, animation, onSelect }) => {
 };
 
 AnimationPreview.propTypes = {
-  background: PropTypes.string,
   animation: PropTypes.shape({
-    name: PropTypes.string,
-    value: PropTypes.string,
+    name: PropTypes.string.isRequired,
+    value: PropTypes.string.isRequired,
+    background: PropTypes.string.isRequired,
   }).isRequired,
   onSelect: PropTypes.func.isRequired,
 };
