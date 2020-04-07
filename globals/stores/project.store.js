@@ -485,6 +485,9 @@ export default class ProjectStore extends BaseStore {
 
   @action
   save = async () => {
+    if (!this.modified) {
+      return;
+    }
     this.isLoading = true;
     try {
       const path = this.item._id

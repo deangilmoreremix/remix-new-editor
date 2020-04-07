@@ -3,8 +3,8 @@ import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 import { Grid, AppBar, Toolbar } from '@material-ui/core';
 
-import UserBox from './common/user/UserBox';
 import Menu from './common/Menu';
+import UserBox from './common/user/UserBox';
 
 import outIcon from '../public/static/svgImages/header/out.svg';
 import logoIcon from '../public/static/svgImages/header/logo.svg';
@@ -52,7 +52,6 @@ const MenuAppBar = observer(() => {
                     classSuffix=""
                     svg={hamburgerIcon}
                     cleanup={['title']}
-                    component="button"
                   />)}
                 items={projectMenu}
                 className="project-menu"
@@ -97,10 +96,12 @@ const MenuAppBar = observer(() => {
                   cleanup={['title']}
                   component="button"
                   onClick={() => save()}
+                  disabled={!modified}
                 />
                 <button
                   className={`icon-button ${modified ? 'active-save' : ''}`}
                   onClick={() => save()}
+                  disabled={!modified}
                 >
                   save
                 </button>

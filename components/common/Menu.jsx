@@ -75,9 +75,11 @@ const Menu = observer(({ toggleElement, items, className, needEndIcon, parent, p
 Menu.propTypes = {
   className: PropTypes.string,
   toggleElement: PropTypes.node.isRequired,
+  parent: PropTypes.shape({ current: PropTypes.any }),
+  placement: PropTypes.string,
   needEndIcon: PropTypes.bool,
   items: PropTypes.arrayOrObservableArrayOf(PropTypes.shape({
-    name: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
     icon: PropTypes.string,
   })),
 };
