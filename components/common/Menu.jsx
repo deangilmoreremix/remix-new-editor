@@ -28,7 +28,7 @@ const Menu = observer(({ toggleElement, items, className, needEndIcon, parent, p
           />
         ) : null}
       >
-        {toggleElement()}
+        {toggleElement}
       </Button>
       <Popper open={open} role={undefined} transition disablePortal className="popover" placement={placement || 'bottom'} anchorEl={parent ? parent.current : anchorRef.current}>
         {({ TransitionProps, placement: currentPlacement }) => (

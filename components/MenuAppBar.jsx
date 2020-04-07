@@ -1,16 +1,10 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
-import { makeStyles } from '@material-ui/core/styles';
-import { Grid, AppBar } from '@material-ui/core';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import MenuItem from '@material-ui/core/MenuItem';
+import { Grid, AppBar, Toolbar } from '@material-ui/core';
 
-import NavbarHamburger from './common/navbar/NavbarHamburger';
 import UserBox from './common/user/UserBox';
 import Menu from './common/Menu';
-import PropTypes from '../lib/PropTypes';
 
 import outIcon from '../public/static/svgImages/header/out.svg';
 import logoIcon from '../public/static/svgImages/header/logo.svg';
@@ -18,54 +12,32 @@ import redoIcon from '../public/static/svgImages/header/redo.svg';
 import undoIcon from '../public/static/svgImages/header/undo.svg';
 import saveIcon from '../public/static/svgImages/header/save.svg';
 import folderIcon from '../public/static/svgImages/header/folder.svg';
-import collaborateIcon from '../public/static/svgImages/header/collaborate.svg';
 import hamburgerIcon from '../public/static/svgImages/header/hamburger.svg';
+import collaborateIcon from '../public/static/svgImages/header/collaborate.svg';
+
 import useProjectStore from './hooks/useProjectStore';
 
-// const useStyles = makeStyles(theme => ({
-//   root: {
-//     flexGrow: 1,
-//   },
-//   menuButton: {
-//     marginRight: theme.spacing(2),
-//   },
-//   title: {
-//     flexGrow: 1,
-//   },
-// }));
 
-const items = [
+const userMenu = [
   { title: 'My Projects', icon: folderIcon },
   { title: 'Sign Out', icon: outIcon },
   { title: 'Collaborate', icon: collaborateIcon },
 ];
 
+const projectMenu = [
+  { title: 'New a project...' },
+  { title: 'Make a copy' },
+  { title: 'Rename project' },
+  { title: 'Finish project' },
+  { title: 'Move to trash' },
+  { title: 'Close project' },
+];
+
 const MenuAppBar = observer(() => {
+  const anchorRef = React.useRef(null);
   const projectStore = useProjectStore();
 
   const { save, modified } = projectStore;
-
-  const anchorRef = React.useRef(null);
-  const ToggleElement = () => (<UserBox />);
-
-  const Nav = () => (
-    <SVGInline
-      className="icon icon-button"
-      classSuffix=""
-      svg={hamburgerIcon}
-      cleanup={['title']}
-      component="button"
-    />
-  );
-
-  const items2 = [
-    { title: 'New a project...' },
-    { title: 'Make a copy' },
-    { title: 'Rename project' },
-    { title: 'Finish project' },
-    { title: 'Move to trash' },
-    { title: 'Close project' },
-  ];
 
   return (
     <div className="container-header" ref={anchorRef}>
@@ -73,7 +45,20 @@ const MenuAppBar = observer(() => {
         <Toolbar className="container-menu">
           <Grid container>
             <Grid item xs={1} className="flex-vertical-center">
-              <Menu toggleElement={Nav} items={items2} className="project-menu" parent={anchorRef} placement="bottom-start" />
+              <Menu
+                toggleElement={(
+                  <SVGInline
+                    className="icon icon-button"
+                    classSuffix=""
+                    svg={hamburgerIcon}
+                    cleanup={['title']}
+                    component="button"
+                  />)}
+                items={projectMenu}
+                className="project-menu"
+                parent={anchorRef}
+                placement="bottom-start"
+              />
             </Grid>
             <Grid item xs={2} className="flex-vertical-center">
               <SVGInline
@@ -113,12 +98,22 @@ const MenuAppBar = observer(() => {
                   component="button"
                   onClick={() => save()}
                 />
-                <button className={`icon-button ${modified ? 'active-save' : ''}`} onClick={() => save()}>save</button>
+                <button
+                  className={`icon-button ${modified ? 'active-save' : ''}`}
+                  onClick={() => save()}
+                >
+                  save
+                </button>
               </div>
             </Grid>
             <Grid item xs={6} />
             <Grid item xs={2}>
-              <Menu toggleElement={ToggleElement} items={items} className="user-menu flex-center" needEndIcon />
+              <Menu
+                toggleElement={<UserBox />}
+                items={userMenu}
+                className="user-menu flex-center"
+                needEndIcon
+              />
             </Grid>
           </Grid>
         </Toolbar>
