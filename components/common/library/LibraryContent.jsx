@@ -42,12 +42,19 @@ const LibraryContent = (props) => {
           activeBtn === USER_ITEMS && (
             <div
               {...getRootProps()}
-              className={classnames('library__item library__item-drop', { 'library__item-drag': isDragActive }, { 'library__item-disabled': isDisabledUpload })}
+              className={classnames(
+                'library__item library__item-drop',
+                {
+                  'library__item-drag': isDragActive,
+                  'library__item-disabled': isDisabledUpload,
+                },
+              )}
             >
               <input {...getInputProps()} disabled={isDisabledUpload} />
               <SVGInline
                 className="library__item-plus"
                 svg={plusIcon}
+                cleanup={['plus']}
               />
             </div>
           )

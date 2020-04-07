@@ -33,6 +33,7 @@ const ProviderList = (props) => {
                 <SVGInline
                   className="library__icon-btn"
                   svg={libraryProviders[element].icon}
+                  cleanup={[libraryProviders[element].name]}
                 />
               )}
               <p>
