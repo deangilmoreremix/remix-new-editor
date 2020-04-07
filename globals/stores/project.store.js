@@ -1,4 +1,4 @@
-import { observable, action, computed, reaction } from 'mobx';
+import { observable, action, computed, reaction, runInAction } from 'mobx';
 import arrayMove from 'array-move';
 
 import BaseStore from './base.store';
@@ -87,6 +87,8 @@ export default class ProjectStore extends BaseStore {
   @observable isLoaded = false;
 
   @observable isPlayed = false;
+
+  @observable isLoading = false;
 
   @observable projectData = {};
 
@@ -474,7 +476,7 @@ export default class ProjectStore extends BaseStore {
     data: JSON.stringify(this.projectData),
     allowedSocials: this.item.allowedSocials,
     name: this.item.name,
-    editor: 'smart-video',
+    editor: 'videotastic',
     description: this.item.description,
     thumbnail: this.item.thumbnail,
     source: this.item.source,
@@ -482,6 +484,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   save = async () => {
+    this.isLoading = true;
     try {
       const path = this.item._id
         ? `/api/users/me/makes/${this.item._id}`
@@ -501,10 +504,14 @@ export default class ProjectStore extends BaseStore {
             remixedFrom: serializedData.source,
           },
         });
-      this.item = { ...this.item, result };
-      this.setProjectData(this.item.project.data);
-      this.modified = false;
+      runInAction(() => {
+        this.item = { ...this.item, ...result };
+        this.setProjectData(JSON.parse(this.item.project.data));
+        this.modified = false;
+        this.isLoading = false;
+      });
     } catch (e) {
+      this.isLoading = true;
       console.error('Error ', e);
     }
     return this.item;

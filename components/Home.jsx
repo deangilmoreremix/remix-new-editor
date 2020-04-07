@@ -22,10 +22,11 @@ const Home = observer(() => {
   const { query: { project } } = useRouter();
   const projectStore = useProjectStore();
   const { openModal, closeModal } = useModalStore();
+  const { isLoading } = projectStore;
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
-  if (asyncHero.loading) {
+  if (asyncHero.loading || isLoading) {
     // todo implement loading
     return (<div>Loading</div>);
   }
@@ -36,7 +37,7 @@ const Home = observer(() => {
   }
 
   return (
-    <Container fluid>
+    <Container fluid className="home">
       <Row className="controls" noGutters>
         <Col xs={7}>
           <Row>

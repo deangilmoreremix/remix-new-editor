@@ -21,17 +21,15 @@ function Header() {
   };
 
   return (
-    <div>
-      <header className="header-container">
-        <MenuAppBar
-          open={open}
-          openMenu={openMenu}
-          closeMenu={closeMenu}
-          anchorEl={anchorEl}
-          onSave={saveProject}
-        />
-      </header>
-    </div>
+    <header className="menu-app-bar">
+      <MenuAppBar
+        open={open}
+        openMenu={openMenu}
+        closeMenu={closeMenu}
+        anchorEl={anchorEl}
+        onSave={saveProject}
+      />
+    </header>
   );
 }
 

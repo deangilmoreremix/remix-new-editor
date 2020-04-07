@@ -9,7 +9,7 @@ const UserBox = () => {
   return (
     <Fragment>
       <div>
-        <img className="userpic" src={photo} alt={`${firstName}'s avatar`} />
+        <img className="userpic" src={photo} />
       </div>
       { `Hi, ${firstName}` }
     </Fragment>
