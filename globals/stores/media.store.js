@@ -1,5 +1,6 @@
 import BaseStore from './base.store';
 import mediaConstants from '../../lib/constants/media';
+import { perPage } from '../../lib/constants/library';
 
 export default class Media extends BaseStore {
   getAssets = async (assetType, page = 1, query = '', filter) => {
@@ -11,7 +12,7 @@ export default class Media extends BaseStore {
       };
 
       const data = await this.request(
-        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${12}&page=${page}&q=${query}${filter ? `&filter=${JSON.stringify(filter)}` : ''}`,
+        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${perPage}&page=${page}&q=${query}${filter ? `&filter=${JSON.stringify(filter)}` : ''}`,
         {
           method: 'GET',
           headers: {

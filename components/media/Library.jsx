@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
 
 import PropTypes from '../../lib/PropTypes';
-import { USER_ITEMS, tabItems } from '../../lib/constants/library';
+import { USER_ITEMS, tabItems, perPage } from '../../lib/constants/library';
 import useMediaStore from '../hooks/useMediaStore';
 import mediaConstants from '../../lib/constants/media';
 import { showError } from '../../lib/services/alertService';
@@ -90,7 +90,7 @@ const Library = (props) => {
         }
       }
       setIsLoading(false);
-      setHasMore(!!(data && data.length === 12));
+      setHasMore(!!(data && data.length === perPage));
     } catch (e) {
       showError('An error occurred while loading items');
     }
