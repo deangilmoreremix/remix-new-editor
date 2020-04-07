@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { observer } from 'mobx-react';
 
 import PropTypes from '../../../lib/PropTypes';
 import { BASIC, ADVANCED } from '../../../lib/constants/settings/json-animation';
@@ -11,23 +12,19 @@ const TabMap = {
   [ADVANCED]: Advanced,
 };
 
-const JsonAnimation = ({ tab = BASIC, element, update }) => {
+const JsonAnimation = observer(({ tab = BASIC, element, update }) => {
   const Tab = TabMap[tab];
-  console.log('SVGPresets element', element);
 
   const handleChange = (field) => {
-    console.log('SVGPresets onChange ', { ...field });
     update(field);
   };
 
   const handleSetColors = (colors) => {
-    console.log('SVGPresets updating colors', colors);
+    console.log('JsonAnimation updating colors', colors);
   };
 
-  console.log('SVGPresets popcornOptions', element && element.popcornOptions);
-
   return (
-    <div className="svg-presets-form">
+    <div className="json-animation-form">
       {element && element.popcornOptions && (
         <Tab options={element.popcornOptions} onChange={handleChange} />
       )}
@@ -40,7 +37,7 @@ const JsonAnimation = ({ tab = BASIC, element, update }) => {
       )}
     </div>
   );
-};
+});
 
 JsonAnimation.propTypes = {
   element: PropTypes.shape({

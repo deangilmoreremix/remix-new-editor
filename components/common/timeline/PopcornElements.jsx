@@ -21,6 +21,8 @@ const PopcornElements = observer(({ width }) => {
     return null;
   }
 
+  console.log('PopcornElements', { elements });
+
   const backgroundGrid = React.useMemo(() => {
     const arr = [];
     for (let i = 0; i < layersCount; i++) {

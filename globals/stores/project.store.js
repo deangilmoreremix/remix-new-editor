@@ -1,10 +1,13 @@
-import { observable, action, computed, reaction, /* set, */ autorun, trace } from 'mobx';
+import { observable, action, computed, reaction } from 'mobx';
 import arrayMove from 'array-move';
 
 import BaseStore from './base.store';
 
 import { EMAIL_SKIP_TOKENS } from '../../lib/constants/campaigns/constants';
 import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
+
+// TODO: get options from popcorn and pass them to SettingsContainer
+// import { getNativeOptions } from '../../lib/popcorn/helpers';
 
 const defaultLayer = {
   name: '',
@@ -78,16 +81,6 @@ export default class ProjectStore extends BaseStore {
         });
       },
     );
-    // TODO: refactor this to properly update the projectData
-    reaction(
-      () => this.activeElement,
-      (element) => {
-        console.log('reaction start', element);
-        if (element) {
-          this.findAndUpdate(element.id, element.popcornOptions);
-        }
-      },
-    );
   }
 
   @observable assets = [];
@@ -113,7 +106,7 @@ export default class ProjectStore extends BaseStore {
   @observable modified = false;
 
   // TODO: refactor this to properly update the projectData
-  @observable activeElement = {};
+  @observable activeElementId;
 
   // TODO: remove the fake data when ready
   @observable personalizations = new Set(
@@ -129,56 +122,54 @@ export default class ProjectStore extends BaseStore {
   // TODO: refactor this to properly update the projectData
   @action
   editElement = (elementId) => {
-    this.findElement(elementId);
+    this.activeElementId = elementId;
   };
 
   @action
   releaseElement = () => {
-    this.activeElement = null;
+    this.activeElementId = null;
   };
 
   @action
   addElement = (trackEvent, mediaId) => {
     const id = this.generateUid();
+
     const element = {
       ...trackEvent,
       id,
+      name: id,
+      track: '0',
     };
-    console.log('Adding this element', element);
+
     const media = mediaId
       ? this.projectData.media.find(m => m.id === mediaId)
       : this.projectData.media[0];
     media.tracks[0].trackEvents.push(element);
+
+    if (this.popcorn.target) {
+      element.popcornOptions.target = this.popcorn.target;
+    }
+    this.popcorn[element.type]({ id, ...element.popcornOptions });
+
     if (trackEvent) {
       this.editElement(id);
-      console.log('addElement ', this.activeElement);
     }
   };
 
   // TODO: refactor this to properly update the projectData
   @action
   findElement = (elementId) => {
-    // let element = null;
+    let element = null;
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
           if (trackEvent.id === elementId) {
-            this.activeElement = trackEvent;
+            element = trackEvent;
           }
         });
       });
     });
-    console.log('element found', this.activeElement);
-    // return element;
-  };
-
-  @action
-  updateActiveElement = (options) => {
-    console.log('projectStore.updateActiveElement [before update]', { thisOptions: this.activeElement, newOptions: options });
-
-    Object.assign(this.activeElement.popcornOptions, options);
-
-    console.log('projectStore.updateActiveElement [after update]', { 'this.activeElement': this.activeElement });
+    return element;
   };
 
   @action
@@ -189,8 +180,6 @@ export default class ProjectStore extends BaseStore {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
           if (trackEvent.id === elementId) {
-            // m = i; t = j; te = k;
-            console.log('findAndUpdate updating the element with options', { elementId, options });
             trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
           }
         });
@@ -579,9 +568,4 @@ export default class ProjectStore extends BaseStore {
       console.error(e);
     }
   };
-
-  disposer = autorun(() => {
-    console.log('autorun ', this.activeElement);
-    trace();
-  });
 }

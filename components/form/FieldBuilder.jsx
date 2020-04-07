@@ -26,11 +26,9 @@ const inputs = {
 };
 
 const FieldBuilder = ({ onChange, value, ...props }) => {
-  console.log('FieldBuilder props.value', value);
   const { name, type } = props;
 
   const handleChangeField = val => {
-    console.log('FieldBuilder handleChangeField(val) => ', val);
     onChange({ [name]: val });
   };
 
