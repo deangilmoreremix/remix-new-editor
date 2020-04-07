@@ -10,7 +10,7 @@ import { showError } from '../../lib/services/alertService';
 import Tabs from '../common/library/Tabs';
 import ProviderList from '../common/library/ProviderList';
 import LibraryContent from '../common/library/LibraryContent';
-import { LibrarySpinner } from './Loader';
+import { LibrarySpinner, LoaderCircle } from './Loader';
 
 const Library = (props) => {
   const { label, subLabel, tab } = props;
@@ -20,6 +20,7 @@ const Library = (props) => {
 
   const [activeBtn, setActiveBtn] = useState(USER_ITEMS);
   const [activeTab, setActiveTab] = useState(tab);
+  const [hasMore, setHasMore] = useState(true);
 
   const [pageNumber, setPageNumber] = useState(1);
 
@@ -89,7 +90,7 @@ const Library = (props) => {
         }
       }
       setIsLoading(false);
-      return !!(data && data.length === 12);
+      setHasMore(!!(data && data.length === 12));
     } catch (e) {
       showError('An error occurred while loading items');
     }
@@ -238,16 +239,24 @@ const Library = (props) => {
             userContentTitle={tabItems[activeTab].label}
             handleButtonClick={handleButtonClick}
           />
-          <LibraryContent
-            items={items}
-            onSelect={onSelect}
-            activeBtn={activeBtn}
-            onDelete={onDelete}
-            isLoading={isLoading}
-            fetchItems={fetchItems}
-            isDisabledUpload={isDisabledUpload}
-            onDrop={onDrop}
-          />
+          {isLoading
+            ? (
+              <div className="library__items">
+                <LoaderCircle />
+              </div>
+            )
+            : (
+              <LibraryContent
+                items={items}
+                onSelect={onSelect}
+                activeBtn={activeBtn}
+                onDelete={onDelete}
+                fetchItems={fetchItems}
+                isDisabledUpload={isDisabledUpload}
+                onDrop={onDrop}
+                hasMore={hasMore}
+              />
+            )}
         </div>
       </div>
     </div>

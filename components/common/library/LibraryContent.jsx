@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
 import classnames from 'classnames';
@@ -12,7 +12,6 @@ import trashIcon from '../../../public/static/svgImages/trash.svg';
 import addIcon from '../../../public/static/svgImages/add-white.svg';
 import plusIcon from '../../../public/static/svgImages/plus-circle.svg';
 
-import { LoaderCircle } from '../../media/Loader';
 import EmptyItemsContainer from './EmptyItemsContainer';
 
 const LibraryContent = (props) => {
@@ -21,13 +20,11 @@ const LibraryContent = (props) => {
     onSelect,
     activeBtn,
     onDelete,
-    isLoading,
     fetchItems,
     isDisabledUpload,
     onDrop,
+    hasMore,
   } = props;
-
-  const [hasMore, setHasMore] = useState(true);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
@@ -36,20 +33,8 @@ const LibraryContent = (props) => {
   });
 
   const uploadNewItems = () => {
-    fetchItems().then(uploadMore => setHasMore(uploadMore));
+    fetchItems();
   };
-
-  useEffect(() => {
-    setHasMore(true);
-  }, [isLoading]);
-
-  if (isLoading) {
-    return (
-      <div className="library__items">
-        <LoaderCircle />
-      </div>
-    );
-  }
 
   return (
     <div className="library__items">
@@ -115,10 +100,10 @@ LibraryContent.propTypes = {
   onSelect: PropTypes.func.isRequired,
   activeBtn: PropTypes.string.isRequired,
   onDelete: PropTypes.func.isRequired,
-  isLoading: PropTypes.bool.isRequired,
   fetchItems: PropTypes.func.isRequired,
   isDisabledUpload: PropTypes.bool.isRequired,
   onDrop: PropTypes.func.isRequired,
+  hasMore: PropTypes.bool.isRequired,
 };
 
 export default LibraryContent;
