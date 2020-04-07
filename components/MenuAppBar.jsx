@@ -46,13 +46,15 @@ const MenuAppBar = observer(() => {
           <Grid container>
             <Grid item xs={1} className="flex-vertical-center">
               <Menu
-                toggleElement={(
-                  <SVGInline
-                    className="icon icon-button"
-                    classSuffix=""
-                    svg={hamburgerIcon}
-                    cleanup={['title']}
-                  />)}
+                toggleElement={
+                  (
+                    <SVGInline
+                      className="icon icon-button"
+                      classSuffix=""
+                      svg={hamburgerIcon}
+                      cleanup={['title']}
+                    />
+                  )}
                 items={projectMenu}
                 className="project-menu"
                 parent={anchorRef}

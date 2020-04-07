@@ -1,4 +1,4 @@
-import { observable, action, computed, reaction } from 'mobx';
+import { observable, computed } from 'mobx';
 
 export default class UserStore {
   @observable currentUser = null;
