@@ -83,6 +83,8 @@
 
 .library__placeholder {
   @include reset-button;
+  display: flex;
+  flex-wrap: wrap;
   cursor: text !important;
 }
 
