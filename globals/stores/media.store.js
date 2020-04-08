@@ -1,23 +1,24 @@
 import BaseStore from './base.store';
 import mediaConstants from '../../lib/constants/media';
+import { perPage } from '../../lib/constants/library';
 
 export default class Media extends BaseStore {
-  getAssets = async (assetScope, assetType, count = 0, query = '') => {
+  getAssets = async (assetType, page = 1, query = '', filter) => {
     try {
-      const page = Math.ceil(count / this.perPage);
       const mediaAssetKinds = {
         [mediaConstants.ASSET_TYPES.AUDIOS]: mediaConstants.AUDIO,
         [mediaConstants.VIDEOS]: mediaConstants.VIDEO,
+        [mediaConstants.ASSET_TYPES.IMAGES]: mediaConstants.IMAGE,
       };
-
-      await this.request(
-        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${this.perPage}&page=${page + 1}&q=${query}`,
+      const data = await this.request(
+        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${perPage}&page=${page}&q=${query}${filter ? `&filter=${JSON.stringify(filter)}` : ''}`,
         {
           method: 'GET',
           headers: {
             'on-behalf': this.currentUser.id,
           },
         });
+      return data;
     } catch (e) {
       console.error(e);
     }
@@ -53,13 +54,14 @@ export default class Media extends BaseStore {
   };
 
   storeAsset = async (url, preview, type) => {
+    let file;
     const mediaAssetKinds = {
       [mediaConstants.ASSET_TYPES.AUDIOS]: mediaConstants.AUDIO,
       [mediaConstants.ASSET_TYPES.VIDEOS]: mediaConstants.VIDEO,
       [mediaConstants.ASSET_TYPES.IMAGES]: mediaConstants.IMAGE,
     };
     try {
-      await this.request(
+      file = await this.request(
         '/api/users/me/media-assets', {
           method: 'POST',
           headers: {
@@ -73,6 +75,23 @@ export default class Media extends BaseStore {
         });
     } catch (e) {
       console.error(e);
+      return e;
+    }
+    return file;
+  };
+
+  deleteAsset = async (id) => {
+    try {
+      await this.request(
+        `/api/users/me/media-assets/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+    } catch (e) {
+      console.error(e);
+      return e;
     }
   };
 
@@ -95,8 +114,7 @@ export default class Media extends BaseStore {
         headers['Content-Type'] = 'application/json; charset=utf-8';
       }
 
-      asset = await this.selfRequest(
-        `/api/media${preview ? '?video_preview=true' : ''}`,
+      asset = await this.selfRequest(`/api/media${preview ? '?video_preview=true' : ''}`,
         {
           method: 'PUT',
           headers,

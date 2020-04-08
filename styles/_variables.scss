@@ -3,19 +3,33 @@ $dark-night: #131319;
 $light-twinlight: #1C1C26;
 $dark-twinlight: #17171C;
 $modal-header-bg: #3E3E51;
+$modal-lightdark-bg: #2D2D3C;
+$modal-dark-bg: #22222F;
+$panel-dark: #3A3A51;
+$block-dark: #2d2d3d;
 
 $canvas-bg: #222228;
 $dropzone-bg: #222228;
+$sidebr-bg: #272735;
 
 $white: #ffffff;
+$dark-white: #E4E4EC;
 $red: #EB5054;
 $btn-gray: #999999;
 $btn-gray-disabled: #49494C;
 $border-grey: #888898;
 $grey: #ccc;
+$btn-bg-img: #404349;
 
 $thumbColor: #EB5054;
 $scrollbarColor: #3E3E51;
+$layer-color: #464666;
+$third-color: #999999;
+$secondary-color: #EB5054;
+
+$background-panel: #08080A;
+$menu-panel: #08080A;
+$menu-height: 9vh;
 
 $backgroundSlider: #565670;
 
@@ -30,3 +44,10 @@ $xxl: 2560px;
 
 //fonts
 $font-primary: 'Proxima Nova', sans-serif;
+
+//font sizes
+$small: 0.8em;
+$main: 1em;
+
+//timeline
+$layer-height: 35px;
