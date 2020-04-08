@@ -90,7 +90,7 @@ const Library = (props) => {
         }
       }
       setIsLoading(false);
-      setHasMore(!!(data && data.length === perPage));
+      setHasMore(data && data.length === perPage);
     } catch (e) {
       showError('An error occurred while loading items');
     }
