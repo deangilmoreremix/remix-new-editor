@@ -92,7 +92,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable layers;
 
-  @observable elements;
+  @observable elements = [];
 
   @observable videoElements = [];
 

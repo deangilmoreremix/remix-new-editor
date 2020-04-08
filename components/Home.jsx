@@ -10,10 +10,12 @@ import Toolbar from './common/toolbar/Toolbar';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
+import useUI from './hooks/useUIStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import Timeline from './Timeline';
+import Library from './media/Library';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -22,7 +24,10 @@ const getOne = async (store, id) => {
 const Home = observer(() => {
   const { query: { project } } = useRouter();
   const projectStore = useProjectStore();
+  const uiStore = useUI();
   const { openModal, closeModal } = useModalStore();
+
+  const { libraryType, setLibraryType } = uiStore;
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
@@ -48,12 +53,13 @@ const Home = observer(() => {
                   actions: {
                     openModal,
                     closeModal,
+                    setLibraryType,
                   },
                 })}
               />
             </Col>
             <Col xs={6}>
-              Hi!
+              {libraryType && <Library tab={libraryType} />}
             </Col>
           </Row>
         </Col>

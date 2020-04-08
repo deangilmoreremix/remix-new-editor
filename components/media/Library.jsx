@@ -13,7 +13,7 @@ import LibraryContent from '../common/library/LibraryContent';
 import { LibrarySpinner, LoaderCircle } from './Loader';
 
 const Library = (props) => {
-  const { label, subLabel, tab } = props;
+  const { tab } = props;
 
   // =============== STATE ===============
   const [query, setQuery] = useState('');
@@ -218,8 +218,8 @@ const Library = (props) => {
                       className="library__placeholder"
                       onClick={handleSetFocus}
                     >
-                      {label}
-                      <span>{subLabel}</span>
+                      {activeTab.search.label}
+                      <span>{activeTab.search.subLabel}</span>
                     </button>
                   )}
                 </Fragment>
@@ -260,14 +260,10 @@ const Library = (props) => {
 };
 
 Library.propTypes = {
-  label: PropTypes.string,
-  subLabel: PropTypes.string,
   tab: PropTypes.string,
 };
 
 Library.defaultProps = {
-  label: 'Try searching for keywords, like',
-  subLabel: ' business, sports, meeting...',
   tab: Object.keys(tabItems)[0],
 };
 
