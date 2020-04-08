@@ -37,7 +37,7 @@ const FormRadioButton = (props) => {
 
 FormRadioButton.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
-    label: PropTypes.string.isRequired,
+    label: PropTypes.string,
     position: PropTypes.string,
   })).isRequired,
   groupName: PropTypes.string,

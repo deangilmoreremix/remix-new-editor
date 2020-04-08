@@ -1,5 +1,4 @@
 import React from 'react';
-import { useField } from 'formik';
 import PropTypes from '../../lib/PropTypes';
 
 import FormColor from './FormColor';
@@ -12,6 +11,8 @@ import FormSlider from './FormSlider';
 
 const inputs = {
   input: FormTextField,
+  time: FormTextField,
+  number: FormTextField,
   color: FormColor,
   radio: FormRadioButton,
   select: FormSelect,
@@ -21,18 +22,16 @@ const inputs = {
 };
 
 const FieldBuilder = (props) => {
-  const { type, onChange } = props;
-  const [field, meta, helpers] = useField(props);
+  const { name, type, onChange } = props;
 
-  const handleChange = value => {
-    helpers.setValue(value);
-    onChange(value);
+  const handleChangeField = value => {
+    onChange({ [name]: value });
   };
 
   const InputComponent = inputs[type];
 
   return (
-    <InputComponent {...props} {...field} {...meta} onChange={handleChange} />
+    <InputComponent {...props} onChange={handleChangeField} />
   );
 };
 

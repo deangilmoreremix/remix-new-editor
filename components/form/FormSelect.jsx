@@ -16,12 +16,10 @@ const FormSelect = props => {
     value,
     minWidth,
     labelWidth,
-    componentClasses: {
-      containerClass,
-      labelClass,
-      selectClass,
-      itemClass,
-    },
+    containerClass,
+    labelClass,
+    selectClass,
+    itemClass,
   } = props;
 
   const useStyles = makeStyles(theme => ({
@@ -41,16 +39,18 @@ const FormSelect = props => {
   };
 
   return (
-    <div className={classnames(containerClass)}>
+    <div className={classnames(containerClass, 'container-select')}>
       <FormControl variant="outlined" className={classes.formControl}>
-        <InputLabel
-          className={classnames(labelClass)}
-          id="demo-simple-select-outlined-label"
-        >
-          {label}
-        </InputLabel>
+        {label && (
+          <InputLabel
+            className={classnames(labelClass, 'label-select')}
+            id="demo-simple-select-outlined-label"
+          >
+            {label}
+          </InputLabel>
+        )}
         <Select
-          className={classnames(selectClass)}
+          className={classnames(selectClass, 'list-items')}
           labelId="demo-simple-select-outlined-label"
           id="demo-simple-select-outlined"
           value={value}
@@ -59,11 +59,11 @@ const FormSelect = props => {
         >
           {items.map(item => (
             <MenuItem
-              key={item.value}
-              className={classnames(itemClass)}
-              value={item.value}
+              key={item}
+              className={classnames(itemClass, 'input-select')}
+              value={item}
             >
-              {item.value}
+              {item}
             </MenuItem>
           ))}
         </Select>
@@ -73,15 +73,11 @@ const FormSelect = props => {
 };
 
 FormSelect.propTypes = {
-  items: PropTypes.arrayOf(PropTypes.shape({
-    value: PropTypes.string.isRequired,
-  })).isRequired,
-  componentClasses: PropTypes.objectOf(PropTypes.shape({
-    containerClass: PropTypes.string,
-    labelClass: PropTypes.string,
-    selectClass: PropTypes.string,
-    itemClass: PropTypes.string,
-  })),
+  items: PropTypes.arrayOrObservableArrayOf(PropTypes.string),
+  containerClass: PropTypes.string,
+  labelClass: PropTypes.string,
+  selectClass: PropTypes.string,
+  itemClass: PropTypes.string,
   value: PropTypes.string,
   label: PropTypes.string,
   onChange: PropTypes.func.isRequired,
@@ -90,10 +86,8 @@ FormSelect.propTypes = {
 };
 
 FormSelect.defaultProps = {
-  label: 'label',
   minWidth: 100,
   labelWidth: 40,
-  componentClasses: {},
 };
 
 export default FormSelect;

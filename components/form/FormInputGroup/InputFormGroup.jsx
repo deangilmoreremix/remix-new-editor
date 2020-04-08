@@ -23,8 +23,7 @@ const InputFormGroup = observer(({
   handler,
   ...restProps
 }) => {
-  let error;
-  observable(error);
+  let error = observable.box(null);
 
   const handleChange = (event) => {
     const { value } = event.target;

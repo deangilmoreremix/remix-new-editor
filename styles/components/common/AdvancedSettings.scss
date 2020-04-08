@@ -1,0 +1,97 @@
+.container-select{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: $btn-gray;
+
+    .MuiSvgIcon-root {
+      color: $btn-gray;
+    }
+    .MuiOutlinedInput-notchedOutline {
+      border-color: $btn-gray;
+      opacity: 0.23;
+    }
+    .MuiOutlinedInput-notchedOutline:hover {
+      border-color: $red;
+    }
+
+  &-slider {
+    &-element.MuiSlider-root {
+      color: $backgroundSlider;
+    }
+    &-input.MuiInputBase-root {
+      color: $white;
+    }
+  }
+}
+
+.container-form-checkbox {
+  .checbox-background {
+    justify-content: flex-end;
+  }
+}
+
+.container-text-edit {
+  display: flex;
+  justify-content: space-between;
+  width: 15rem;
+
+  .icon-text {
+    @include make-fluid("margin-right", 4px, 10px, $xl + 1, $mock, 10px, px);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &-inline {
+      min-width: 1.3em;
+    }
+  }
+}
+.font-section, .font-style-section {
+  display: flex;
+  justify-content: space-between;
+}
+
+.font-decoration-section {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 3em;
+}
+
+.container-font-style {
+  display: flex;
+  flex-wrap: wrap;
+  width: 50%;
+  justify-content: flex-end;
+}
+
+.container-icon-arrow {
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: 2em;
+  margin-bottom: 2em;
+  .icon-arrow {
+      @include make-fluid("margin-right", 4px, 10px, $xl + 1, $mock, 10px, px);
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      &-inline {
+        min-width: 1.2rem;
+      }
+  }
+  .icon-arrow-rotate {
+    transform: rotate(180deg);
+  }
+}
+
+.container-font-color {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+

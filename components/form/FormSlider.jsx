@@ -56,7 +56,7 @@ const FormSlider = props => {
   };
 
   return (
-    <div className={classnames(classes.root, containerClass)}>
+    <div className={classnames(classes.root, containerClass, 'container-slider')}>
       <Typography id="input-slider" gutterBottom>
         {label}
       </Typography>
@@ -72,7 +72,7 @@ const FormSlider = props => {
         </Grid>
         <Grid item>
           <Input
-            className={classnames(classes.input, inputClass)}
+            className={classnames(classes.input, inputClass, 'input-number-slider')}
             value={value}
             margin="dense"
             onChange={handleInputChange}
