@@ -150,8 +150,8 @@ const Library = (props) => {
     }
   };
 
-  const onSelect = (id) => {
-    console.log('Select item', id);
+  const onSelect = (item) => {
+    console.log('Select item', item);
   };
 
   const onDelete = (id) => {

@@ -79,7 +79,7 @@ const LibraryContent = (props) => {
                     </button>
                   )
                 }
-                  <button className="library__item-add" onClick={() => onSelect(item._id)}>
+                  <button className="library__item-add" onClick={() => onSelect(item)}>
                     <SVGInline
                       className="library__item-icon"
                       svg={addIcon}
