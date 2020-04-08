@@ -155,16 +155,8 @@ const Library = (props) => {
   };
 
   const onDelete = (id) => {
-    const newArr = items.filter(item => {
-      if (item._id !== id) {
-        return item;
-      } else {
-        return setDeletedItems([
-          ...deletedItems,
-          item._id,
-        ]);
-      }
-    });
+    const newArr = items.filter(item => item._id !== id);
+    setDeletedItems([...deletedItems, id]);
     setItems(newArr);
   };
 
