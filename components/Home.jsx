@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { useAsync } from 'react-async-hook';
 import { Col, Container, Row } from 'reactstrap';
 
-import Header from './Header';
 import Canvas from './Canvas';
 import Toolbar from './common/toolbar/Toolbar';
 
@@ -13,7 +12,6 @@ import useModalStore from './hooks/useModalStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 import Timeline from './Timeline';
-import MediaContainer from './media/MediaContainer';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -23,10 +21,11 @@ const Home = observer(() => {
   const { query: { project } } = useRouter();
   const projectStore = useProjectStore();
   const { openModal, closeModal } = useModalStore();
+  const { isLoading } = projectStore;
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
-  if (asyncHero.loading) {
+  if (asyncHero.loading || isLoading) {
     // todo implement loading
     return (<div>Loading</div>);
   }
@@ -38,7 +37,6 @@ const Home = observer(() => {
 
   return (
     <Container fluid className="home">
-      <Header />
       <Row className="controls" noGutters>
         <Col xs={7}>
           <Row>
@@ -53,7 +51,7 @@ const Home = observer(() => {
               />
             </Col>
             <Col xs={6}>
-              <MediaContainer />
+              Hi!
             </Col>
           </Row>
         </Col>

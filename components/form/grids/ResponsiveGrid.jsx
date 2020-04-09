@@ -24,17 +24,10 @@ const ResponsiveGrid = observer((props) => {
   if (!components || components.length === 0) {
     return null;
   }
-
   return (
     <Responsive
       className={className || ''}
-      cols={{
-        md: cols,
-        lg: cols,
-        xs: cols,
-        xxs: cols,
-        sm: cols,
-      }}
+      cols={{ lg: cols, md: cols, sm: cols, xs: cols, xxs: cols }}
       rowHeight={rowHeight}
       width={width}
       compactType={compactType}

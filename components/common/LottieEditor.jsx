@@ -110,7 +110,6 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
     loop: false,
     autoplay: true,
     animationData: preparedAnimation,
-    // path: '/public/menu.json',
     rendererSettings: {
       viewBoxOnly: false,
       preserveAspectRatio: 'xMidYMid slice',
@@ -163,7 +162,7 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
 
 LottieEditor.propTypes = {
   showControls: PropTypes.bool,
-  file: PropTypes.string,
+  file: PropTypes.string.isRequired,
   setColor: PropTypes.func,
   segments: PropTypes.shape({}),
 };

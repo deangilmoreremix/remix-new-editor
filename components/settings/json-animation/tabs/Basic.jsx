@@ -27,7 +27,7 @@ Basic.propTypes = {
   fields: PropTypes.objectOf(
     PropTypes.shape({
       type: PropTypes.string.isRequired,
-      label: PropTypes.number,
+      label: PropTypes.string,
     }),
   ),
 };

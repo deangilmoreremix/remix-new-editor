@@ -1,26 +1,13 @@
 import * as React from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
-import { makeStyles } from '@material-ui/core/styles';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 
 import useModalStore from '../hooks/useModalStore';
 import SettingsHeader from '../settings/SettingsHeader';
-import { COLORS } from '../../lib/constants/styles';
-
-const useStyles = makeStyles({
-  root: {
-    background: COLORS.darkTwinlight,
-    color: COLORS.white,
-  },
-  modalContainer: {
-    top: 0,
-  },
-});
 
 const ModalContainer = observer(() => {
-  const classes = useStyles();
   const modalStore = useModalStore();
   const { modalIds, modals, closeModal, updateHeader, options } = modalStore;
 
@@ -49,10 +36,10 @@ const ModalContainer = observer(() => {
         open
         onClose={close}
         aria-labelledby="max-width-dialog-title"
-        className={classes.modalContainer}
+        className="modal-container"
       >
         <SettingsHeader {...headerProps} />
-        <DialogContent className={classnames(classes.root, className)}>
+        <DialogContent className={classnames('modal-container__content', className)}>
           <ModalComponent
             options={options}
             handleClose={close}

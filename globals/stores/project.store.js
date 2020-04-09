@@ -1,4 +1,4 @@
-import { observable, action, computed, reaction } from 'mobx';
+import { observable, action, computed, reaction, runInAction } from 'mobx';
 import arrayMove from 'array-move';
 
 import BaseStore from './base.store';
@@ -88,6 +88,8 @@ export default class ProjectStore extends BaseStore {
   @observable isLoaded = false;
 
   @observable isPlayed = false;
+
+  @observable isLoading = false;
 
   @observable projectData = {};
 
@@ -207,13 +209,29 @@ export default class ProjectStore extends BaseStore {
       });
     });
 
+    const { start, end } = options;
     this.elements.forEach(element => {
       if (element.id === elementId) {
-        element.popcornOptions = { ...element.popcornOptions, ...options };
+        element.popcornOptions = {
+          ...element.popcornOptions,
+          ...(start && start !== element.start ? { start } : {}),
+          ...(end && end !== element.end ? { end } : {}),
+        };
       }
     });
 
     this.updatePopcorn(elementId, options);
+  };
+
+  @action
+  addToPopcorn = (element) => {
+    if (this.popcorn.target) {
+      element.popcornOptions.target = this.popcorn.target;
+    }
+    this.popcorn[element.type]({
+      id: element.id,
+      ...element.popcornOptions,
+    });
   };
 
   @action
@@ -297,7 +315,6 @@ export default class ProjectStore extends BaseStore {
 
   @action
   moveElements = (oldIndex, newIndex) => {
-    this.modified = true;
     this.projectData.media.forEach((media) => {
       const topElements = media.tracks[oldIndex].trackEvents;
       const bottomElements = media.tracks[newIndex].trackEvents;
@@ -374,10 +391,22 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  removeElement = (id) => {
+    this.modified = true;
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents = track.trackEvents.filter(trackEvent => trackEvent.id !== id);
+        this.popcorn.removeTrackEvent(id);
+      });
+    });
+  };
+
+  @action
   removeLayer = (id) => {
     if (this.layers.length <= 1) {
       return;
     }
+    this.modified = true;
     this.projectData.media.forEach((media) => {
       const removedTrack = media.tracks.find(track => track.id === id);
       if (removedTrack && removedTrack.trackEvents.length) {
@@ -412,17 +441,6 @@ export default class ProjectStore extends BaseStore {
       return track;
     });
   };
-
-  @action
-  removeElement(id) {
-    this.modified = true;
-    this.projectData.media.forEach((media) => {
-      media.tracks.forEach((track) => {
-        track.trackEvents = track.trackEvents.filter(trackEvent => trackEvent.id !== id);
-        this.popcorn.removeTrackEvent(id);
-      });
-    });
-  }
 
   @action
   setLayer = (elementId, newLayerLevel) => {
@@ -491,6 +509,7 @@ export default class ProjectStore extends BaseStore {
   @action
   getOne = async (projectId) => {
     if (!projectId) {
+      this.modified = true;
       this.item = defaultItem;
       this.setProjectData(this.item.project.data);
       return this.item;
@@ -547,6 +566,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   updateItem = (value) => {
+    this.modified = true;
     this.item = { ...this.item, ...value };
   };
 
@@ -556,44 +576,51 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  serialize() {
-    return {
-      data: JSON.stringify(this.projectData),
-      allowedSocials: this.item.allowedSocials,
-      name: this.item.name,
-      editor: 'smart-video',
-      description: this.item.description,
-      thumbnail: this.item.thumbnail,
-      source: this.item.source,
-    };
-  }
+  serializeProject = () => ({
+    data: JSON.stringify(this.projectData),
+    allowedSocials: this.item.allowedSocials,
+    name: this.item.name,
+    editor: 'videotastic',
+    description: this.item.description,
+    thumbnail: this.item.thumbnail,
+    source: this.item.source,
+  });
 
   @action
   save = async () => {
-    // TODO: should be refactored in https://app.asana.com/0/1134020730337032/1154072706347831
+    if (!this.modified) {
+      return;
+    }
+    this.isLoading = true;
     try {
-      const path = this.item
+      const path = this.item._id
         ? `/api/users/me/makes/${this.item._id}`
         : '/api/users/me/makes';
-      const serializedProject = this.serialize();
-      this.item = await this.request(
+      const serializedData = this.serializeProject();
+      const result = await this.request(
         path, {
-          method: this.item ? 'PATCH' : 'POST',
+          method: this.item._id ? 'PATCH' : 'POST',
           headers: {
             'on-behalf': this.currentUser.id,
           },
           body: {
-            title: serializedProject.name,
-            description: serializedProject.description,
-            project: serializedProject,
-            thumbnail: serializedProject.thumbnail,
-            remixedFrom: serializedProject.source,
+            title: serializedData.name,
+            description: serializedData.description,
+            project: serializedData,
+            thumbnail: serializedData.thumbnail,
+            remixedFrom: serializedData.source,
           },
         });
-      this.modified = false;
-      return this.item;
+      runInAction(() => {
+        this.item = { ...this.item, ...result };
+        this.setProjectData(JSON.parse(this.item.project.data));
+        this.modified = false;
+        this.isLoading = false;
+      });
     } catch (e) {
-      console.error(e);
+      this.isLoading = true;
+      console.error('Error ', e);
     }
-  };
+    return this.item;
+  }
 }
