@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../lib/PropTypes';

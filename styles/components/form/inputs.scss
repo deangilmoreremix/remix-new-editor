@@ -96,3 +96,44 @@ div {
 .label-none {
   display: none;
 }
+
+.container-textarea {
+
+  .text-area {
+    display: flex;
+
+    textarea {
+      color: $white;
+    }
+
+    fieldset {
+      border-color: $btn-gray;
+    }
+
+    .MuiOutlinedInput-root:hover fieldset, .MuiOutlinedInput-root.Mui-focused fieldset {
+      border-color: $red;
+    }
+
+
+
+    //fieldset:hover {
+    //  border: 0.055rem solid $red !important;
+    //}
+
+    //padding-left: 0.546rem;
+    //background-color: $dark-night;
+    //outline: none;
+    //color: $white;
+    //font-family: $font-primary;
+    //border: 0.055rem solid $btn-gray;
+    //border-radius: 0.218rem;
+    //font-style: normal;
+    //font-weight: normal;
+    //font-size: 0.765rem;
+    //line-height: 0.93rem;
+    // &:hover {
+    //  border: 0.055rem solid $red;
+    //}
+  }
+
+}

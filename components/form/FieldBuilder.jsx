@@ -8,8 +8,12 @@ import FormSelect from './FormSelect';
 import FormList from './FormList';
 import FormCheckboxField from './FormCheckboxField';
 import FormSlider from './FormSlider';
+import AngleInput from './AngleInput';
+import FormTextArea from './FormTextArea';
 
 const inputs = {
+  inputTextRotation: AngleInput,
+  textarea: FormTextArea,
   input: FormTextField,
   time: FormTextField,
   number: FormTextField,

@@ -21,7 +21,7 @@ import PropTypes from '../../lib/PropTypes';
 // });
 
 const SettingsHeader = ({ className, tabs, setTab, activeTab }) => {
-  console.log('tabs', tabs)
+  console.log('tabs', tabs);
   // const classes = useStyles();
 
   const handleChange = (event, newValue) => {

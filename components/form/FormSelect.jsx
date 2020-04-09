@@ -22,6 +22,8 @@ const FormSelect = props => {
     itemClass,
   } = props;
 
+  console.log('select')
+
   const useStyles = makeStyles(theme => ({
     formControl: {
       margin: theme.spacing(1),

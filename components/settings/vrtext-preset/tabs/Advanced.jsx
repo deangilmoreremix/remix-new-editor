@@ -29,6 +29,10 @@ const Advanced = ({ options, onChange }) => {
   console.log('advanced options', options);
   console.log('font decorations', options[FONT_DECORATIONS].bold);
 
+  const handleChangeFontDecoration = (field) => (value) => {
+    onChange({ [field]: value });
+  };
+
   return (
     <Fragment>
       <div className="container-advanced-settings">
@@ -52,13 +56,13 @@ const Advanced = ({ options, onChange }) => {
             value={options[FONT_DECORATIONS][FONT_DECORATIONS_BOLD]}
             name={[FONT_DECORATIONS_BOLD]}
             {...ADVANCED_FIELDS[FONT_DECORATIONS][FONT_DECORATIONS_BOLD]}
-            onChange={onChange}
+            onChange={handleChangeFontDecoration(FONT_DECORATIONS)}
           />
           <FieldBuilder
             value={options[FONT_DECORATIONS][FONT_DECORATIONS_ITALIC]}
             name={[FONT_DECORATIONS_ITALIC]}
             {...ADVANCED_FIELDS[FONT_DECORATIONS][FONT_DECORATIONS_ITALIC]}
-            onChange={onChange}
+            onChange={handleChangeFontDecoration(FONT_DECORATIONS)}
           />
         </div>
         <div className="font-style-section">

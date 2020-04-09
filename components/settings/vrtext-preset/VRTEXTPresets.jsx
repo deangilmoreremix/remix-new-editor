@@ -6,7 +6,6 @@ import { BASIC, ADVANCED } from '../../../lib/constants/settings/vrtext-preset';
 import Basic from './tabs/Basic';
 import Advanced from './tabs/Advanced';
 
-
 const TabMap = {
   [BASIC]: Basic,
   [ADVANCED]: Advanced,
