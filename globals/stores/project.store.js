@@ -155,10 +155,7 @@ export default class ProjectStore extends BaseStore {
     };
 
     // Step 1 - add element to Popcorn
-    if (this.popcorn.target) {
-      element.popcornOptions.target = this.popcorn.target;
-    }
-    this.popcorn[element.type]({ id, ...element.popcornOptions });
+    this.addToPopcorn(element);
 
     // Step 2 - check layer availability
     if (!isLayerFulfilled(
@@ -209,13 +206,29 @@ export default class ProjectStore extends BaseStore {
       });
     });
 
+    const { start, end } = options;
     this.elements.forEach(element => {
       if (element.id === elementId) {
-        element.popcornOptions = { ...element.popcornOptions, ...options };
+        element.popcornOptions = {
+          ...element.popcornOptions,
+          ...(start && start !== element.start ? { start } : {}),
+          ...(end && end !== element.end ? { end } : {}),
+        };
       }
     });
 
     this.updatePopcorn(elementId, options);
+  };
+
+  @action
+  addToPopcorn = (element) => {
+    if (this.popcorn.target) {
+      element.popcornOptions.target = this.popcorn.target;
+    }
+    this.popcorn[element.type]({
+      id: element.id,
+      ...element.popcornOptions,
+    });
   };
 
   @action

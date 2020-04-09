@@ -12,7 +12,6 @@ import useModalStore from './hooks/useModalStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 import Timeline from './Timeline';
-import MediaContainer from './media/MediaContainer';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -52,7 +51,7 @@ const Home = observer(() => {
               />
             </Col>
             <Col xs={6}>
-              <MediaContainer />
+              Hi!
             </Col>
           </Row>
         </Col>
