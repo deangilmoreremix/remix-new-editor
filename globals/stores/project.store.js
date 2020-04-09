@@ -386,19 +386,6 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  orderItems = (items, updateTracks) => items.map((track, index) => {
-    track.defaultName = `Layer ${index}`;
-    if (updateTracks) {
-      const zindex = MAX_ZINDEX - index;
-      track.trackEvents.forEach(element => {
-        this.update(element, { zindex });
-      });
-    }
-    track.order = index;
-    return track;
-  });
-
-  @action
   removeLayer = (id) => {
     if (this.layers.length <= 1) {
       return;
