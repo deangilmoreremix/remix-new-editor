@@ -30,7 +30,7 @@ const JsonAnimation = ({ tab = BASIC, element, update, form }) => {
               )
             )
           ) {
-            result[ fieldName ] = field;
+            result[fieldName] = field;
           }
         });
       }
