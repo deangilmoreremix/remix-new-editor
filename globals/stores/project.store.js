@@ -5,6 +5,8 @@ import BaseStore from './base.store';
 
 import { EMAIL_SKIP_TOKENS } from '../../lib/constants/campaigns/constants';
 import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
+import { MEDIA_TYPES, SEQUENCER } from '../../lib/constants/popcorn';
+import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 
 const defaultLayer = {
   name: '',
@@ -51,34 +53,7 @@ const mockPersonalizations = ['FIRSTNAME', 'LASTNAME', 'GENDER', 'FIRSTNAME', 'G
 const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
 
 export default class ProjectStore extends BaseStore {
-  constructor(props) {
-    super(props);
-    this.layers = [];
-    this.elements = [];
-    reaction(
-      () => this.popcorn && this.popcorn.on,
-      () => {
-        this.popcorn.on('canplayall', () => {
-          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
-          this.isLoaded = true;
-        });
-        this.popcorn.on('timeupdate', () => {
-          this.time = this.popcorn.currentTime() * SANTISECOND;
-        });
-        this.popcorn.on('ended', () => {
-          this.time = 0;
-          this.popcorn.currentTime(0);
-        });
-
-        this.popcorn.on('pause', () => {
-          this.isPlayed = false;
-        });
-        this.popcorn.on('play', () => {
-          this.isPlayed = true;
-        });
-      },
-    );
-  }
+  @observable activeElementId;
 
   @observable assets = [];
 
@@ -106,12 +81,62 @@ export default class ProjectStore extends BaseStore {
   @observable personalizations = new Set(
     mockPersonalizations.filter(token => !EMAIL_SKIP_TOKENS.includes(token)),
   );
+  generateUid = () => `${Date.now() / Math.random()}`;
 
   @observable duration = 30 * SANTISECOND;
 
   @observable time = 0;
+  @action
+  addElement = async (type, item) => {
+    const options = {};
 
-  generateUid = () => `${Date.now()}/${Math.random()}`;
+    type = MEDIA_TYPES[type] || type;
+    const start = item.start || (this.time / SANTISECOND);
+    let { end } = item;
+    console.info(`isPlayed = ${this.isPlayed}`);
+    if (this.isPlayed) {
+      this.playPause();
+    }
+    if (type === SEQUENCER) {
+      const source = (item.extra && item.extra.source) || [item.url];
+      const videoMeta = await this.mediaTypeDetector.getMetadata(source[0]);
+      end = start + videoMeta.duration;
+      options.source = source;
+      options.title = videoMeta.title;
+      options.duration = videoMeta.duration;
+      options.from = start;
+      options.contentType = videoMeta.contentType;
+    }
+    let track = this.layers[0];
+    const layerElements = this.elements.filter(element => element.track === track.id);
+
+    const layerIsClosed = layerElements
+      .some(({ popcornOptions: { start: itemStart, end: itemEnd } }) => !(((itemEnd >= end)
+        && (itemStart >= end)) || ((itemStart <= start) && (itemEnd <= start))));
+    if (layerIsClosed) {
+      this.addLayer();
+      [track] = this.layers;
+    }
+    const zindex = MAX_ZINDEX - track.order;
+    const id = `0.${this.generateUid()}`;
+    const element = {
+      id,
+      type,
+      track: track.id,
+      name: id,
+      popcornOptions: { id, ...item, ...options, start, end, zindex },
+    };
+    this.addPopcornElement(element);
+    if (end > this.duration / SANTISECOND) {
+      this.recompressProject(end);
+      // this.duration = end * SANTISECOND;
+    }
+    console.info(this.popcorn);
+    this.popcorn.duration(end);
+    console.info(this.popcorn.duration());
+    this.duration = this.popcorn.duration() * SANTISECOND;
+    this.elements = [element, ...this.elements];
+  };
 
   @action
   setProjectData = (data) => {
@@ -480,6 +505,93 @@ export default class ProjectStore extends BaseStore {
       source: this.item.source,
     };
   }
+  trailisePauseElements = (projectData) => {
+    projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.type === 'pausePlugin') {
+            trackEvent.popcornOptions.start = media.duration - PAUSE_PLUGIN_TIME_MARGIN;
+            trackEvent.popcornOptions.end = media.duration;
+          }
+        });
+      });
+    });
+    return projectData;
+  };
+
+  // todo implement
+  @action
+  recompressProject = (newDuration) => {
+    this.projectData.media.forEach((media) => {
+      const initialDuration = media.duration;
+      if (initialDuration === newDuration) {
+        return;
+      }
+      media.duration = newDuration;
+      media.url = `#t=,${media.duration}`;
+      const recompressRatio = newDuration / initialDuration;
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.type !== 'sequencer') {
+            trackEvent.popcornOptions.start = Math
+              .round(trackEvent.popcornOptions.start * recompressRatio * 100) / 100;
+            trackEvent.popcornOptions.end = Math
+              .round(trackEvent.popcornOptions.end * recompressRatio * 100) / 100;
+          }
+        });
+      });
+    });
+    console.info(this.projectData);
+    // this.popcorn.duration = newDuration;
+    this.duration = this.popcorn.duration() * SANTISECOND;
+    this.projectData = this.trailisePauseElements(this.projectData);
+  };
+  @action
+  addPopcornElement = (trackEvent) => {
+    if (!trackEvent.popcornOptions.target) {
+      trackEvent.popcornOptions.target = this.popcorn && this.popcorn.target;
+    }
+    // this.popcorn.removeTrackEvent(trackEvent.id);
+    this.popcorn[trackEvent.type]({ id: trackEvent.id, ...trackEvent.popcornOptions });
+    this.projectData.media.forEach((media) => {
+      media.tracks = media.tracks.map(track => {
+        if (track.id === trackEvent.track) {
+          track.trackEvents.push(trackEvent);
+        }
+        return track;
+      });
+    });
+  };
+
+  constructor(props) {
+    super(props);
+    this.layers = [];
+    this.elements = [];
+    this.mediaTypeDetector = new MediaTypeDetector();
+    reaction(
+      () => this.popcorn && this.popcorn.on,
+      () => {
+        this.popcorn.on('canplayall', () => {
+          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
+          this.isLoaded = true;
+        });
+        this.popcorn.on('timeupdate', () => {
+          this.time = this.popcorn.currentTime() * SANTISECOND;
+        });
+        this.popcorn.on('ended', () => {
+          this.time = 0;
+          this.popcorn.currentTime(0);
+        });
+        this.popcorn.on('pause', () => {
+          this.isPlayed = false;
+        });
+        this.popcorn.on('play', () => {
+          this.isPlayed = true;
+        });
+      },
+    );
+  }
+
 
   @action
   save = async () => {
