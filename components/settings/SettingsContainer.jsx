@@ -1,36 +1,35 @@
 import * as React from 'react';
+import { observer } from 'mobx-react';
 
 import PropTypes from '../../lib/PropTypes';
 import useProjectStore from '../hooks/useProjectStore';
 import { SETTINGS_COMPONENTS } from '../../lib/constants/settings';
 
-const SettingsContainer = ({ tab, type }) => {
+const SettingsContainer = observer(({ tab, type }) => {
   const SettingsComponent = React.useMemo(
     () => SETTINGS_COMPONENTS[type],
     [type],
   );
 
-  const store = useProjectStore();
-  console.log('SettingsContainer.activeElement', store.activeElement);
-
-  React.useEffect(() => {
-    console.log({ prjData: store.projectData });
-  }, [store]);
+  const { findElement, activeElementId, findAndUpdate, form } = useProjectStore();
+  const element = React.useMemo(
+    () => findElement(activeElementId),
+    [activeElementId],
+  );
 
   const updateElement = React.useCallback((newOptions) => {
-    console.log('updateElement', { ...newOptions });
-    // Object.assign(store.activeElement.popcornOptions, newOptions);
-    store.updateActiveElement(newOptions);
-  }, [store]);
+    findAndUpdate(activeElementId, newOptions);
+  }, [activeElementId]);
 
   return (
     <SettingsComponent
       tab={tab}
-      element={store.activeElement}
+      form={form}
+      element={element}
       update={updateElement}
     />
   );
-};
+});
 
 SettingsContainer.propTypes = {
   tab: PropTypes.string.isRequired,

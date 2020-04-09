@@ -20,11 +20,9 @@ const LottieEditor = ({ showControls, file, /* setColor, */ segments = {} }) => 
   // TODO: left here for the future segments playback
   const load = () => {
     const { anim } = animationElement.current;
-
     // Play initial segment
     // Should be a proper range, e.g. [0, 1] or [24, 25]
     // [0, 0] or [24, 24] won't work
-    console.log('Lottie onload', { ...animation });
     if (isEmpty(segments)) {
       anim.play();
     } else {
@@ -84,7 +82,7 @@ const LottieEditor = ({ showControls, file, /* setColor, */ segments = {} }) => 
   const preparedAnimation = React.useMemo(
     () => {
       const coloredAnimation = { ...animation };
-      if (colors && colors.length) {
+      if (animation && colors && colors.length) {
         colors.forEach(({ i, j, k, r, g, b, a }) => {
           coloredAnimation.layers[i].shapes[j].it[k].c.k = [
             toUnitVector(r),
@@ -108,6 +106,7 @@ const LottieEditor = ({ showControls, file, /* setColor, */ segments = {} }) => 
     animationData: preparedAnimation,
     // path: '/public/menu.json',
     rendererSettings: {
+      viewBoxOnly: false,
       preserveAspectRatio: 'xMidYMid slice',
     },
   }), [preparedAnimation]);
@@ -123,7 +122,7 @@ const LottieEditor = ({ showControls, file, /* setColor, */ segments = {} }) => 
           />
         ))
         : null}
-      { preparedAnimation && options && (
+      {!isEmpty(preparedAnimation) && options && (
         <Lottie
           ref={animationElement}
           options={options}

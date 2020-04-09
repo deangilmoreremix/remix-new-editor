@@ -4,7 +4,7 @@ import moment from 'moment';
 import NumberFormat from 'react-number-format';
 
 import PropTypes from '../../lib/PropTypes';
-import { TIME_DISPLAY_FORMAT } from '../../lib/constants/forms';
+import { TIME_DISPLAY_FORMAT } from '../../lib/constants/formats';
 
 const DEFAULT_TIME_VALUE = '0:00:00';
 
