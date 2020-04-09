@@ -5,9 +5,7 @@ import BaseStore from './base.store';
 
 import { EMAIL_SKIP_TOKENS } from '../../lib/constants/campaigns/constants';
 import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
-
-// TODO: get options from popcorn and pass them to SettingsContainer
-// import { getNativeOptions } from '../../lib/popcorn/helpers';
+import { isLayerFulfilled } from '../../lib/utils/project';
 
 const defaultLayer = {
   name: '',
@@ -105,7 +103,6 @@ export default class ProjectStore extends BaseStore {
 
   @observable modified = false;
 
-  // TODO: refactor this to properly update the projectData
   @observable activeElementId;
 
   // TODO: remove the fake data when ready
@@ -119,7 +116,6 @@ export default class ProjectStore extends BaseStore {
 
   generateUid = () => `${Date.now()}/${Math.random()}`;
 
-  // TODO: refactor this to properly update the projectData
   @action
   editElement = (elementId) => {
     this.activeElementId = elementId;
@@ -130,33 +126,59 @@ export default class ProjectStore extends BaseStore {
     this.activeElementId = null;
   };
 
+  @computed
+  get form() {
+    if (!this.activeElementId) {
+      return null;
+    }
+    const element = this.popcorn.getTrackEvent(this.activeElementId);
+    return element && element.form;
+  }
+
+
   @action
   addElement = (trackEvent, mediaId) => {
     const id = this.generateUid();
-
+    // Step 0 - prepare element
     const element = {
-      ...trackEvent,
       id,
       name: id,
       track: '0',
+      ...trackEvent,
+      popcornOptions: {
+        id,
+        type: trackEvent.type,
+        ...trackEvent.popcornOptions,
+      },
     };
 
-    const media = mediaId
-      ? this.projectData.media.find(m => m.id === mediaId)
-      : this.projectData.media[0];
-    media.tracks[0].trackEvents.push(element);
-
+    // Step 1 - add element to Popcorn
     if (this.popcorn.target) {
       element.popcornOptions.target = this.popcorn.target;
     }
     this.popcorn[element.type]({ id, ...element.popcornOptions });
 
-    if (trackEvent) {
-      this.editElement(id);
+    // Step 2 - check layer availability
+    if (!isLayerFulfilled(
+      element.popcornOptions,
+      this.elements.filter(e => e.track === element.track),
+    )) {
+      this.addLayer();
     }
+
+    // Step 3 - add element to projectData
+    const media = mediaId
+      ? this.projectData.media.find(m => m.id === mediaId)
+      : this.projectData.media[0];
+    media.tracks[0].trackEvents.push(element);
+
+    // Step 4 - add element to elements
+    this.elements.push({ ...element });
+
+    // Step 5 - set activeElementId to whoe element settings
+    this.editElement(id);
   };
 
-  // TODO: refactor this to properly update the projectData
   @action
   findElement = (elementId) => {
     let element = null;
@@ -174,7 +196,6 @@ export default class ProjectStore extends BaseStore {
 
   @action
   findAndUpdate = (elementId, options) => {
-    // TODO: refactor this to properly update the projectData
     this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
@@ -185,11 +206,18 @@ export default class ProjectStore extends BaseStore {
         });
       });
     });
-    this.update(elementId, options);
+
+    this.elements.forEach(element => {
+      if (element.id === elementId) {
+        element.popcornOptions = { ...element.popcornOptions, ...options };
+      }
+    });
+
+    this.updatePopcorn(elementId, options);
   };
 
   @action
-  update = (element, options) => {
+  updatePopcorn = (element, options) => {
     const elementId = (element && element.id) || element;
     const trackEvent = this.popcorn.getTrackEvent(elementId);
     // eslint-disable-next-line no-underscore-dangle
@@ -280,13 +308,13 @@ export default class ProjectStore extends BaseStore {
       topElements.forEach(element => {
         if (!this.isAudio(element)) {
           element.popcornOptions.zindex = topZIndex;
-          this.update(element, { zindex: topZIndex });
+          this.updatePopcorn(element, { zindex: topZIndex });
         }
       });
       bottomElements.forEach(element => {
         if (!this.isAudio(element)) {
           element.popcornOptions.zindex = bottomZIndex;
-          this.update(element, { zindex: bottomZIndex });
+          this.updatePopcorn(element, { zindex: bottomZIndex });
         }
       });
     });
@@ -314,7 +342,7 @@ export default class ProjectStore extends BaseStore {
     if (updateTracks) {
       const zindex = MAX_ZINDEX - index;
       track.trackEvents.forEach(element => {
-        this.update(element, { zindex });
+        this.updatePopcorn(element, { zindex });
       });
     }
     track.order = index;
@@ -330,7 +358,7 @@ export default class ProjectStore extends BaseStore {
         const zindex = MAX_ZINDEX - track.order;
         track.trackEvents.forEach(element => {
           element.popcornOptions.zindex = zindex;
-          this.update(element, { zindex });
+          this.updatePopcorn(element, { zindex });
         });
         return track;
       });
@@ -447,7 +475,7 @@ export default class ProjectStore extends BaseStore {
         });
       });
     });
-    this.update(elementId, { start, end });
+    this.updatePopcorn(elementId, { start, end });
   };
 
   isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'

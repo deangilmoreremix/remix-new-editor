@@ -11,8 +11,7 @@ const SettingsContainer = observer(({ tab, type }) => {
     [type],
   );
 
-  const { findElement, activeElementId, findAndUpdate } = useProjectStore();
-
+  const { findElement, activeElementId, findAndUpdate, form } = useProjectStore();
   const element = React.useMemo(
     () => findElement(activeElementId),
     [activeElementId],
@@ -25,6 +24,7 @@ const SettingsContainer = observer(({ tab, type }) => {
   return (
     <SettingsComponent
       tab={tab}
+      form={form}
       element={element}
       update={updateElement}
     />

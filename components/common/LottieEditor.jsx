@@ -8,7 +8,7 @@ import { getColors, getDimensions, hexToRgb, toUnitVector } from '../../lib/lott
 
 const baseDimension = 150;
 
-const LottieEditor = ({ showControls, file, /* setColor, */ segments = {} }) => {
+const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
   const [ratio, setRatio] = React.useState(1);
   const [isStopped, setIsStopped] = React.useState(false);
   const [isPaused, setIsPaused] = React.useState(false);
@@ -20,14 +20,13 @@ const LottieEditor = ({ showControls, file, /* setColor, */ segments = {} }) => 
   // TODO: left here for the future segments playback
   const load = () => {
     const { anim } = animationElement.current;
-
     // Play initial segment
     // Should be a proper range, e.g. [0, 1] or [24, 25]
     // [0, 0] or [24, 24] won't work
     if (isEmpty(segments)) {
       anim.play();
     } else {
-      // segments = [25, 0];
+      // segments = [3, 7]; // TODO: try to fix segments
       anim.playSegments(segments, true);
     }
   };
@@ -79,11 +78,11 @@ const LottieEditor = ({ showControls, file, /* setColor, */ segments = {} }) => 
 
     setColors(newColors);
   };
-
+  // TODO: check changing URL in the form
   const preparedAnimation = React.useMemo(
     () => {
       const coloredAnimation = { ...animation };
-      if (colors && colors.length) {
+      if (animation && colors && colors.length) {
         colors.forEach(({ i, j, k, r, g, b, a }) => {
           coloredAnimation.layers[i].shapes[j].it[k].c.k = [
             toUnitVector(r),
@@ -99,6 +98,12 @@ const LottieEditor = ({ showControls, file, /* setColor, */ segments = {} }) => 
     [animation, colors],
   );
 
+  React.useEffect(() => {
+    if (colors.length) {
+      setColor(colors);
+    }
+  }, [colors]);
+
   const showColors = React.useMemo(() => Array.from(new Set(colors.map(c => c.color))), [colors]);
 
   const options = React.useMemo(() => ({
@@ -107,6 +112,7 @@ const LottieEditor = ({ showControls, file, /* setColor, */ segments = {} }) => 
     animationData: preparedAnimation,
     // path: '/public/menu.json',
     rendererSettings: {
+      viewBoxOnly: false,
       preserveAspectRatio: 'xMidYMid slice',
     },
   }), [preparedAnimation]);
@@ -122,7 +128,7 @@ const LottieEditor = ({ showControls, file, /* setColor, */ segments = {} }) => 
           />
         ))
         : null}
-      { preparedAnimation && options && (
+      {!isEmpty(preparedAnimation) && options && (
         <Lottie
           ref={animationElement}
           options={options}
@@ -158,7 +164,7 @@ const LottieEditor = ({ showControls, file, /* setColor, */ segments = {} }) => 
 LottieEditor.propTypes = {
   showControls: PropTypes.bool,
   file: PropTypes.string,
-  // setColor: PropTypes.func,
+  setColor: PropTypes.func,
   segments: PropTypes.shape({}),
 };
 

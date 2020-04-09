@@ -1,13 +1,12 @@
 import * as React from 'react';
 
 import PropTypes from '../../../../lib/PropTypes';
-import { BASIC_FIELDS } from '../../../../lib/constants/settings/json-animation';
 import FieldBuilder from '../../../form/FieldBuilder';
 
-const Basic = ({ options, ...props }) => (
+const Basic = ({ options, fields, ...props }) => (
   <div>
-    {Object.keys(BASIC_FIELDS).map(key => {
-      const { label, type } = BASIC_FIELDS[key];
+    {fields && Object.keys(fields).map(key => {
+      const { label, type } = fields[key];
       return (
         <FieldBuilder
           {...props}
@@ -25,6 +24,12 @@ const Basic = ({ options, ...props }) => (
 Basic.propTypes = {
   options: PropTypes.shape({}),
   onChange: PropTypes.func.isRequired,
+  fields: PropTypes.objectOf(
+    PropTypes.shape({
+      type: PropTypes.string.isRequired,
+      label: PropTypes.number,
+    }),
+  ),
 };
 
 export default Basic;
