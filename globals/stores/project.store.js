@@ -91,14 +91,15 @@ export default class ProjectStore extends BaseStore {
   @action
   addElement = async (type, item) => {
     const options = {};
-
     type = MEDIA_TYPES[type] || type;
+
     const start = item.start || (this.time / SANTISECOND);
     let { end } = item;
-    console.info(`isPlayed = ${this.isPlayed}`);
+
     if (this.isPlayed) {
       this.playPause();
     }
+
     if (type === SEQUENCER) {
       const source = (item.extra && item.extra.source) || [item.url];
       const videoMeta = await this.mediaTypeDetector.getMetadata(source[0]);
@@ -109,6 +110,7 @@ export default class ProjectStore extends BaseStore {
       options.from = start;
       options.contentType = videoMeta.contentType;
     }
+
     let track = this.layers[0];
     const layerElements = this.elements.filter(element => element.track === track.id);
 
@@ -119,8 +121,10 @@ export default class ProjectStore extends BaseStore {
       this.addLayer();
       [track] = this.layers;
     }
+
     const zindex = MAX_ZINDEX - track.order;
     const id = `0.${this.generateUid()}`;
+
     const element = {
       id,
       type,
@@ -128,7 +132,9 @@ export default class ProjectStore extends BaseStore {
       name: id,
       popcornOptions: { id, ...item, ...options, start, end, zindex },
     };
+
     this.addPopcornElement(element);
+
     if (end > this.duration / SANTISECOND) {
       this.recompressProject(end);
       this.popcorn.duration(end);
@@ -551,12 +557,7 @@ export default class ProjectStore extends BaseStore {
     }
     this.popcorn[trackEvent.type]({ id: trackEvent.id, ...trackEvent.popcornOptions });
     this.projectData.media.forEach((media) => {
-      media.tracks = media.tracks.map(track => {
-        if (track.id === trackEvent.track) {
-          track.trackEvents.push(trackEvent);
-        }
-        return track;
-      });
+      media.tracks[0].trackEvents.push(trackEvent);
     });
   };
 
