@@ -81,11 +81,13 @@ export default class ProjectStore extends BaseStore {
   @observable personalizations = new Set(
     mockPersonalizations.filter(token => !EMAIL_SKIP_TOKENS.includes(token)),
   );
+
   generateUid = () => `${Date.now() / Math.random()}`;
 
   @observable duration = 30 * SANTISECOND;
 
   @observable time = 0;
+
   @action
   addElement = async (type, item) => {
     const options = {};
@@ -129,12 +131,9 @@ export default class ProjectStore extends BaseStore {
     this.addPopcornElement(element);
     if (end > this.duration / SANTISECOND) {
       this.recompressProject(end);
-      // this.duration = end * SANTISECOND;
+      this.popcorn.duration(end);
+      this.duration = this.popcorn.duration() * SANTISECOND;
     }
-    console.info(this.popcorn);
-    this.popcorn.duration(end);
-    console.info(this.popcorn.duration());
-    this.duration = this.popcorn.duration() * SANTISECOND;
     this.elements = [element, ...this.elements];
   };
 
@@ -505,6 +504,7 @@ export default class ProjectStore extends BaseStore {
       source: this.item.source,
     };
   }
+
   trailisePauseElements = (projectData) => {
     projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
@@ -541,17 +541,14 @@ export default class ProjectStore extends BaseStore {
         });
       });
     });
-    console.info(this.projectData);
-    // this.popcorn.duration = newDuration;
-    this.duration = this.popcorn.duration() * SANTISECOND;
     this.projectData = this.trailisePauseElements(this.projectData);
   };
+
   @action
   addPopcornElement = (trackEvent) => {
     if (!trackEvent.popcornOptions.target) {
       trackEvent.popcornOptions.target = this.popcorn && this.popcorn.target;
     }
-    // this.popcorn.removeTrackEvent(trackEvent.id);
     this.popcorn[trackEvent.type]({ id: trackEvent.id, ...trackEvent.popcornOptions });
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
