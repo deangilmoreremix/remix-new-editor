@@ -11,7 +11,7 @@ import FormCheckboxField from '../../form/FormCheckboxField';
 
 @inject('projectStore')
 @observer
-class SettingsPanel extends Component {
+class ProducePanel extends Component {
   update = (field) => (value) => {
     const { projectStore } = this.props;
     projectStore.updateItem({ [field]: value });
@@ -75,4 +75,4 @@ class SettingsPanel extends Component {
   }
 }
 
-export default SettingsPanel;
+export default ProducePanel;
