@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { observer } from 'mobx-react';
 
 import PropTypes from '../../lib/PropTypes';
 import { USER_ITEMS, tabItems, perPage } from '../../lib/constants/library';
@@ -11,11 +12,13 @@ import ProviderList from '../common/library/ProviderList';
 import LibraryContent from '../common/library/LibraryContent';
 import { LibrarySpinner, LoaderCircle } from './Loader';
 
+import useUI from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
 
-const Library = (props) => {
-  const { tab } = props;
+const Library = observer(() => {
+  const uiStore = useUI();
+  const { libraryType: tab } = uiStore;
 
   // =============== STATE ===============
   const [query, setQuery] = useState('');
@@ -260,7 +263,7 @@ const Library = (props) => {
       </div>
     </div>
   );
-};
+});
 
 Library.propTypes = {
   tab: PropTypes.string,
