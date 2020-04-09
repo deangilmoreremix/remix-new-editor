@@ -1,106 +1,266 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, Fragment } from 'react';
+import { useDropzone } from 'react-dropzone';
 
-import ProviderList from '../common/libraryes/ProviderList';
-import LibraryContent from '../common/libraryes/LibraryContent';
 import PropTypes from '../../lib/PropTypes';
-import { imageProviders } from '../../lib/constants/library';
-import DropzoneArea from './DropzoneArea';
+import { USER_ITEMS, tabItems, perPage } from '../../lib/constants/library';
+import useMediaStore from '../hooks/useMediaStore';
+import mediaConstants from '../../lib/constants/media';
+import { showError } from '../../lib/services/alertService';
+
+import Tabs from '../common/library/Tabs';
+import ProviderList from '../common/library/ProviderList';
+import LibraryContent from '../common/library/LibraryContent';
+import { LibrarySpinner, LoaderCircle } from './Loader';
 
 const Library = (props) => {
-  const {
-    items,
-    providers,
-    onAdd, title,
-    onSearch,
-    addButtonTitle,
-    label,
-    subLabel,
-    onUploaded,
-  } = props;
-  const [query, setQuery] = useState('');
-  const [activeBtn, setActiveBtn] = useState(null);
+  const { label, subLabel, tab } = props;
 
-  const handleSearch = (e) => {
-    if (e.key === 'Enter' && query) {
-      onSearch(query);
+  // =============== STATE ===============
+  const [query, setQuery] = useState('');
+
+  const [activeBtn, setActiveBtn] = useState(USER_ITEMS);
+  const [activeTab, setActiveTab] = useState(tab);
+  const [hasMore, setHasMore] = useState(true);
+
+  const [pageNumber, setPageNumber] = useState(1);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDisabledUpload, setIsDisabledUpload] = useState(false);
+
+  const [items, setItems] = useState([]);
+  const [deletedItems, setDeletedItems] = useState([]);
+  const [uploadedItems, setUploadedItems] = useState([]);
+
+  const inputRef = useRef();
+  // =============== STATE ===============
+
+  const { uploadMedia, storeAsset, getAssets, deleteAsset } = useMediaStore();
+
+  useEffect(() => {
+    setQuery('');
+    if (deletedItems.length) {
+      bulkDeleteItems();
+    } else {
+      fetchItems(activeTab);
+    }
+  }, [activeTab]);
+
+  const handleButtonClick = element => {
+    setActiveBtn(element);
+    if (deletedItems.length) {
+      bulkDeleteItems();
+    } else {
+      fetchItems(activeTab);
     }
   };
 
-  const onSelect = (img) => {
-    console.log(img);
+  const fetchItems = async (currentTab, queryStr = '') => {
+    let section = '';
+    let currentPage = 0;
+    let uploaded = [];
+
+    if (currentTab) {
+      setIsLoading(true);
+      setPageNumber(1);
+      setUploadedItems([]);
+      section = tabItems[currentTab].label.toLowerCase();
+      currentPage = 1;
+      uploaded = [];
+    } else {
+      section = tabItems[activeTab].label.toLowerCase();
+      currentPage = pageNumber + 1;
+      setPageNumber(pageNumber + 1);
+      uploaded = uploadedItems;
+    }
+
+    try {
+      const data = await getAssets(
+        section, currentPage, queryStr, { _id: { $nin: uploaded } },
+      );
+
+      if (data.length) {
+        if (currentTab) {
+          setItems(data);
+          // Loading new items when scrolling
+        } else {
+          setItems([
+            ...items,
+            ...data,
+          ]);
+        }
+      }
+      setIsLoading(false);
+      setHasMore(data && data.length === perPage);
+    } catch (e) {
+      showError('An error occurred while loading items');
+    }
   };
 
-  if (!items || items.length === 0) {
-    return (
-      <div className="library-layout">
-        <DropzoneArea onUploaded={onUploaded} />
-      </div>
-    );
-  }
+  // === Drag and Drop ===
+  const onDrop = (acceptedFiles) => {
+    setIsDisabledUpload(true);
+    const elements = [];
+    const elementsIds = [];
+    Promise.all(acceptedFiles.map(async data => {
+      const asset = await uploadMedia({ data, preview: true });
+      const item = await storeAsset(asset.url, asset.preview, 'images');
+      const fileExtension = item.url.match(/\.[0-9a-z]{1,5}$/)[0];
+      elements.push(item);
+      elementsIds.push(item._id);
+      return fileExtension;
+    })).then(fileExtension => {
+      const extension = fileExtension[fileExtension.length - 1];
+
+      Object.keys(tabItems).forEach((item, i) => {
+        tabItems[item].formats.forEach(format => {
+          if (format === extension) {
+            setActiveTab(Object.keys(tabItems)[i]);
+          } else {
+            setItems([
+              ...elements,
+              ...items,
+            ]);
+            setUploadedItems([
+              ...uploadedItems,
+              ...elementsIds,
+            ]);
+          }
+        });
+      });
+    }).catch(err => showError(err))
+      .finally(() => setIsDisabledUpload(false));
+  };
+
+  const { getInputProps } = useDropzone({
+    accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
+    onDrop,
+    disabled: false,
+  });
+  // === Drag and Drop ===
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter') {
+      bulkDeleteItems(null, query);
+    }
+  };
+
+  const handleSetFocus = () => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  const onSelect = (item) => {
+    console.log('Select item', item);
+  };
+
+  const onDelete = (id) => {
+    const newArr = items.filter(item => item._id !== id);
+    setDeletedItems([...deletedItems, id]);
+    setItems(newArr);
+  };
+
+  const bulkDeleteItems = (unmount, searchText) => {
+    const promiseArr = deletedItems.map(id => deleteAsset(id));
+
+    Promise.all(promiseArr)
+      .then(() => {
+        if (!unmount) {
+          setDeletedItems([]);
+          setItems([]);
+        }
+      })
+      .then(() => {
+        if (!unmount) {
+          fetchItems(activeTab, searchText);
+        }
+      })
+      .catch(e => showError(`Error while deleting items, ${e}`));
+  };
 
   return (
-    <div className="library-layout">
-      <h2 className="library-layout__title">{title}</h2>
-      <div className="library-layout__row library-layout__row-first">
-        <div>
-          <div className="library-layout__add-file">
-            <input type="file" id="add-file" onChange={onAdd} />
-            <label htmlFor="add-file" className="library-layout__add">
-              {addButtonTitle}
-            </label>
+    <div className="library">
+      <Tabs setActiveTab={setActiveTab} />
+      <div className="library__body">
+        <div className="library__row library__row-first">
+          <div>
+            <div className="library__add-file">
+              <input id="add-file" {...getInputProps()} disabled={isDisabledUpload} />
+              <label htmlFor="add-file" className="library__add">
+                {
+                  isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
+                }
+              </label>
+            </div>
+          </div>
+          <div className="library__block">
+            {
+              activeBtn === USER_ITEMS && (
+                <Fragment>
+                  <input
+                    className="library__search"
+                    type="text"
+                    value={query}
+                    ref={inputRef}
+                    onChange={e => setQuery(e.target.value)}
+                    onKeyDown={handleSearch}
+                  />
+                  {!query && (
+                    <button
+                      className="library__placeholder"
+                      onClick={handleSetFocus}
+                    >
+                      {label}
+                      <span>{subLabel}</span>
+                    </button>
+                  )}
+                </Fragment>
+              )
+            }
           </div>
         </div>
-        <div className="library-layout__block-search">
-          <input
-            className="library-layout__search"
-            id="library-layout__search"
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={handleSearch}
-          />
-          {!query && (
-          <label htmlFor="library-layout__search">
-            {label}
-            <span>{subLabel}</span>
-          </label>
-          )}
-        </div>
-      </div>
 
-      <div className="library-layout__row">
-        <ProviderList
-          activeItem={activeBtn}
-          onSelectItem={setActiveBtn}
-          items={providers}
-        />
-        <LibraryContent items={items} onSelect={onSelect} />
+        <div className="library__row library__row-second">
+          <ProviderList
+            activeItem={activeBtn}
+            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
+            userContentTitle={tabItems[activeTab].label}
+            handleButtonClick={handleButtonClick}
+          />
+          {isLoading
+            ? (
+              <div className="library__items">
+                <LoaderCircle />
+              </div>
+            )
+            : (
+              <LibraryContent
+                items={items}
+                onSelect={onSelect}
+                activeBtn={activeBtn}
+                onDelete={onDelete}
+                fetchItems={fetchItems}
+                isDisabledUpload={isDisabledUpload}
+                onDrop={onDrop}
+                hasMore={hasMore}
+              />
+            )}
+        </div>
       </div>
     </div>
   );
 };
 
 Library.propTypes = {
-  items: PropTypes.arrayOf(PropTypes.string.isRequired),
-  providers: PropTypes.arrayOf(PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    icon: PropTypes.string,
-  })),
-  onAdd: PropTypes.func.isRequired,
-  title: PropTypes.string,
-  onSearch: PropTypes.func.isRequired,
-  addButtonTitle: PropTypes.string,
   label: PropTypes.string,
   subLabel: PropTypes.string,
-  onUploaded: PropTypes.func.isRequired,
+  tab: PropTypes.string,
 };
 
 Library.defaultProps = {
-  providers: imageProviders,
-  addButtonTitle: 'Add images',
   label: 'Try searching for keywords, like',
   subLabel: ' business, sports, meeting...',
-  title: 'Add images',
+  tab: Object.keys(tabItems)[0],
 };
 
 export default Library;

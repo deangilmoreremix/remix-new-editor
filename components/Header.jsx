@@ -1,12 +1,13 @@
-import * as React from 'react';
-import { Row } from 'reactstrap';
+import React from 'react';
 
-// TODO: Will be updated in the future
+import MenuAppBar from './MenuAppBar';
 
-const Header = () => (
-  <Row tag="header" className="header-container" noGutters>
-    Videoremix
-  </Row>
-);
+function Header() {
+  return (
+    <header className="menu-app-bar">
+      <MenuAppBar />
+    </header>
+  );
+}
 
 export default Header;

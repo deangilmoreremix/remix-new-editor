@@ -9,8 +9,25 @@
   align-items: center;
 }
 
+.flex-vertical-center {
+  display: flex;
+  align-items: center;
+}
+
 .full-height {
   height: 100%;
+}
+
+.flex {
+  display: flex;
+}
+
+.auto-margin {
+  margin: auto;
+}
+
+.margin-left-5 {
+  margin-left: 5px;
 }
 
 .icon {
@@ -27,6 +44,11 @@
   position: absolute;
   z-index: 2;
 }
+
+.self-align-center {
+  align-self: center;
+}
+
 html {
   overflow: hidden;
 }

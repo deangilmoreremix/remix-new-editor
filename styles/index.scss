@@ -1,5 +1,6 @@
 @import "reset";
 @import "~bootstrap/scss/bootstrap";
+@import "~animate.css/animate.min.css";
 
 @import "variables";
 @import "mixins/index";
@@ -15,13 +16,15 @@
 @import "components/Personalization";
 @import "components/Media";
 @import "components/MediaLibrary";
-@import "components/common/Library";
+@import "components/Layout";
 
 @import "components/modals/index";
 @import "components/modals/SocialCampaignModal";
 
 @import "components/common/index";
 @import "components/common/Toolbar";
+@import "components/common/Library";
+@import "components/common/UserBox";
 
 @import "components/campaigns/index";
 
@@ -34,4 +37,7 @@
 @import "components/form/AngleInput";
 @import "components/common/ThumbnailEditor";
 @import "components/common/thumbnails";
+@import "components/Animation";
+@import "components/CloseButton";
+@import "components/Loader";
 
