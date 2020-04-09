@@ -1,0 +1,32 @@
+.produce-panel {
+  justify-content: space-between;
+}
+
+.produce-input {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row !important;
+  align-items: center;
+  margin-bottom: 1.68rem;
+
+  label {
+    width: 26%;
+    min-width: 5.6rem;
+    margin: 0;
+    font-size: $small;
+    color: $white;
+  }
+
+  .text-input {
+    flex: 1;
+  }
+}
+
+.produce__inputs {
+  flex: 1;
+
+  &:first-child {
+    width: 42.5%;
+    margin-right: 4.8%;
+  }
+}

@@ -1,0 +1,36 @@
+@import "produce/index";
+
+.produce {
+  flex: 1;
+  background: $sidebr-bg;
+  margin-left: 2.7rem;
+};
+
+.produce-block {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 2.1rem 3.9rem 1.1rem 1.56rem;
+}
+
+.produce__tabs {
+  display: flex;
+  align-items: center;
+}
+
+.produce__tab {
+  @include reset-button;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  background: $modal-lightdark-bg;
+  color: $red;
+  font-size: $small;
+  text-transform: uppercase;
+
+  &-active {
+    background: $scrollbarColor;
+    color: #fff;
+  }
+}

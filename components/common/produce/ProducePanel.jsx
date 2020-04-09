@@ -1,78 +1,72 @@
-import React, { Component } from 'react';
-import { observer, inject } from 'mobx-react';
-import { Container } from 'reactstrap';
+import React from 'react';
+import { observer } from 'mobx-react';
+import useProjectStore from '../../hooks/useProjectStore';
 
 import FormList from '../../form/FormList';
 import FormColor from '../../form/FormColor';
 import FormTextField from '../../form/FormTextField';
 import FormCheckboxField from '../../form/FormCheckboxField';
 
-// todo add styles
+const Test = observer(() => {
+  const { item, updateItem } = useProjectStore();
+  let { item: { allowedSocials = [] } } = useProjectStore();
 
-@inject('projectStore')
-@observer
-class ProducePanel extends Component {
-  update = (field) => (value) => {
-    const { projectStore } = this.props;
-    projectStore.updateItem({ [field]: value });
+  const update = (field) => (value) => {
+    updateItem({ [field]: value });
   };
 
-  updateSocials = (social) => (value) => {
-    const { projectStore } = this.props;
-    let { allowedSocials = [] } = projectStore.item;
+  const updateSocials = (social) => (value) => {
     if (value && !allowedSocials.some(allowedSocial => allowedSocial === social)) {
       allowedSocials.push(social);
     } else if (!value && allowedSocials.some(allowedSocial => allowedSocial === social)) {
       allowedSocials = allowedSocials.filter(allowedSocial => allowedSocial !== social);
     }
-    this.update('allowedSocials')(allowedSocials);
+    update('allowedSocials')(allowedSocials);
   };
 
-  render() {
-    const { projectStore: { item } } = this.props;
-
-    return (
-      <Container>
+  return (
+    <div className="produce-block produce-panel">
+      <div className="produce__inputs">
         <FormTextField
           label="Title"
-          onChange={this.update('title')}
+          onChange={update('title')}
           value={item.title}
-          labelClassName="label-top"
+          className="produce-input"
         />
         <FormTextField
           label="Description"
           value={item.description}
-          onChange={this.update('description')}
+          onChange={update('description')}
           componentClass="textarea"
-          labelClassName="label-top"
+          className="produce-input"
         />
         <FormColor
-          onChange={this.update('background')}
+          onChange={update('background')}
           value={item.background}
           label="Background Color"
-          labelClassName="label-top"
         />
+      </div>
+      <div className="produce__inputs">
         <FormList
           label="Tags"
           values={item.tags}
-          onChange={this.update('tags')}
+          onChange={update('tags')}
         />
         <FormCheckboxField
           label="Facebook"
           value={item.allowedSocials && item.allowedSocials.some(s => s === 'facebook')}
-          onChange={this.updateSocials('facebook')}
+          onChange={updateSocials('facebook')}
           floatClassName="float-left"
         />
         <FormCheckboxField
           label="LinkedIn"
           value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
-          onChange={this.updateSocials('linkedin')}
+          onChange={updateSocials('linkedin')}
           floatClassName="float-left"
         />
-      </Container>
-      // todo implement image uploading
-    );
-  }
-}
+      </div>
+    </div>
+  );
+});
 
-export default ProducePanel;
+export default Test;

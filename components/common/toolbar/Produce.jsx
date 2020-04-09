@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container } from 'reactstrap';
+import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
 
@@ -18,7 +18,10 @@ const Produce = ({ items }) => {
             key={label}
             onClick={() => setActiveTab(label)}
             type="button"
-            className="produce__tab"
+            className={classnames(
+              'produce__tab',
+              { 'produce__tab-active': activeTabItem.label.toLowerCase() === label.toLowerCase() },
+            )}
           >
             <span className="toolbar__tab-title">{label}</span>
           </button>
