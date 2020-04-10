@@ -7,7 +7,7 @@ import {
   EMAIL_SKIP_TOKENS,
 } from '../../lib/constants/campaigns/constants';
 import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
-import { MEDIA_TYPES, SEQUENCER } from '../../lib/constants/popcorn';
+import { SEQUENCER } from '../../lib/constants/popcorn';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { isLayerFulfilled } from '../../lib/utils/project';
@@ -96,14 +96,14 @@ export default class ProjectStore extends BaseStore {
 
   @observable time = 0;
 
-  setElementOptions = async (type, item) => {
+  setElementOptions = async (item) => {
     const options = {};
     options.start = item.start || (this.time / SANTISECOND);
-    options.end = item || options.start + DEFAULT_DURATION;
+    options.end = item.end || options.start + DEFAULT_DURATION;
     options.id = `0.${this.generateUid()}`;
     options.zindex = MAX_ZINDEX;
 
-    switch (type) {
+    switch (item.type) {
       case SEQUENCER: {
         const source = (item.extra && item.extra.source) || [item.url];
         const videoMeta = await this.mediaTypeDetector.getMetadata(source[0]);
@@ -122,15 +122,14 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addElement = async (type, item) => {
-    // const options = {};
-    type = MEDIA_TYPES[type] || type;
+  addElement = async (item) => {
+    const { type } = item;
 
     if (this.isPlayed) {
       this.playPause();
     }
 
-    const options = await this.setElementOptions(type, item);
+    const options = await this.setElementOptions(item);
 
     // get first track
     let track = this.layers[0];
@@ -159,6 +158,8 @@ export default class ProjectStore extends BaseStore {
 
     // update timeline
     this.elements = [element, ...this.elements];
+
+    this.editElement(element.id);
   };
 
   @action
@@ -179,47 +180,6 @@ export default class ProjectStore extends BaseStore {
     const element = this.popcorn.getTrackEvent(this.activeElementId);
     return element && element.form;
   }
-
-
-  @action
-  addElement = (trackEvent, mediaId) => {
-    const id = this.generateUid();
-    // Step 0 - prepare element
-    const element = {
-      id,
-      name: id,
-      track: '0',
-      ...trackEvent,
-      popcornOptions: {
-        id,
-        type: trackEvent.type,
-        ...trackEvent.popcornOptions,
-      },
-    };
-
-    // Step 1 - add element to Popcorn
-    this.addToPopcorn(element);
-
-    // Step 2 - check layer availability
-    if (!isLayerFulfilled(
-      element.popcornOptions,
-      this.elements.filter(e => e.track === element.track),
-    )) {
-      this.addLayer();
-    }
-
-    // Step 3 - add element to projectData
-    const media = mediaId
-      ? this.projectData.media.find(m => m.id === mediaId)
-      : this.projectData.media[0];
-    media.tracks[0].trackEvents.push(element);
-
-    // Step 4 - add element to elements
-    this.elements.push({ ...element });
-
-    // Step 5 - set activeElementId to whoe element settings
-    this.editElement(id);
-  };
 
   @action
   findElement = (elementId) => {
@@ -667,10 +627,11 @@ export default class ProjectStore extends BaseStore {
 
   @action
   addElementToProject = (trackEvent) => {
-    if (!trackEvent.popcornOptions.target) {
-      trackEvent.popcornOptions.target = this.popcorn && this.popcorn.target;
+    const { id, popcornOptions } = trackEvent;
+    if (!popcornOptions.target) {
+      popcornOptions.target = this.popcorn && this.popcorn.target;
     }
-    this.popcorn[trackEvent.type]({ id: trackEvent.id, ...trackEvent.popcornOptions });
+    this.popcorn[trackEvent.type]({ id, ...popcornOptions });
     this.projectData.media.forEach((media) => {
       media.tracks[0].trackEvents.push(trackEvent);
     });
