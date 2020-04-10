@@ -1,7 +1,7 @@
 .produce-panel {
   justify-content: space-between;
-  padding-top: 2.1rem;
-  padding-bottom: 1.1rem;
+  padding-top: 1.8rem;
+  padding-bottom: 1rem;
 }
 
 .produce-panel-text,
@@ -196,6 +196,7 @@ $arrow-position: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   margin-bottom: 1.125rem;
 
   &:last-of-type {
@@ -260,6 +261,66 @@ $arrow-position: 0.5rem;
 
     &:first-letter {
       text-transform: uppercase;
+    }
+  }
+}
+
+@media screen and (max-width: 1600px) {
+  .produce__row-block:first-child {
+    width: 45%;
+  }
+}
+
+@media screen and (max-width: 1315px) {
+  .produce__inputs {
+    &:first-child {
+      width: 100%;
+      margin-right: 0;
+    }
+  }
+
+  .produce-input label {
+    width: 17%;
+  }
+}
+
+@media screen and (max-width: 940px) {
+  .produce-input {
+    flex-direction: column !important;
+
+    input {
+      width: 100%;
+    }
+  }
+
+  .produce__row-block {
+    &:first-child {
+      width: 100%;
+      padding-right: 0;
+      margin-bottom: 1.125rem;
+    }
+  }
+
+  .produce__add-file,
+  .produce__add,
+  .produce-panel-text,
+  .produce-input>:last-child {
+    width: 100%;
+  }
+
+  .produce-input label {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding-right: 0;
+  }
+
+  .produce-panel-text {
+    margin-bottom: 0.5rem;
+  }
+
+  .produce-allow {
+    .produce-panel-text {
+      margin-bottom: 0;
     }
   }
 }

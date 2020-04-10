@@ -9,11 +9,14 @@
 };
 
 .produce-block {
+  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
   display: flex;
   flex: 1;
   flex-wrap: wrap;
   padding-right: 3.9rem;
   padding-left: 1.56rem;
+  overflow: hidden;
+  overflow-y: auto;
 }
 
 .produce__tabs {

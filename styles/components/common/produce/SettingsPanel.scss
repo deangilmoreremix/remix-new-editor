@@ -7,6 +7,7 @@
 
 .settings-panel__button {
   @include reset-button;
+  min-width: 7.2rem;
   flex-direction: column;
   line-height: 1;
   color: $white;
@@ -33,5 +34,17 @@
     width: 100%;
     max-width: 3.6rem;
     max-height: 3.3rem;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .settings-panel {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .settings-panel__button {
+    width: 100%;
+    margin-bottom: 1rem;
   }
 }
