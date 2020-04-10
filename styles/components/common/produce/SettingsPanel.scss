@@ -12,6 +12,11 @@
   color: $white;
   text-transform: uppercase;
   font-size: 0.75rem;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: auto;
+  }
 }
 
 .settings-panel__icon {
