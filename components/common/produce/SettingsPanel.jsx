@@ -55,7 +55,7 @@ const Test = observer(() => {
           }
         });
       });
-    }).catch(err => showError(err))
+    }).catch(() => showError('An error occurred while loading the image.'))
       .finally(() => setIsDisabledUpload(false));
   };
 
