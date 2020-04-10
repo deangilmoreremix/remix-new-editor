@@ -43,8 +43,8 @@ const Test = observer(() => {
   const onDrop = (acceptedFiles) => {
     setIsDisabledUpload(true);
     Promise.all(acceptedFiles.map(async data => {
-      const asset = await uploadMedia({ data, preview: true });
-      const element = await storeAsset(asset.url, asset.preview, 'images');
+      const asset = await uploadMedia({ data });
+      const element = await storeAsset(asset, mediaConstants.ASSET_TYPES.IMAGE.toUpperCase());
       const fileExtension = element.url.match(/\.[0-9a-z]{1,5}$/)[0];
       return { element, fileExtension };
     })).then(([{ element, fileExtension }]) => {
