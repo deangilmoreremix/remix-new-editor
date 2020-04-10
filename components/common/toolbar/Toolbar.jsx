@@ -9,7 +9,18 @@ const Toolbar = ({ items }) => {
 
   // FIXME: Probably, we should refactor the line below when all the panels are implemented
   //        as not all the panels will have the `items` array to render
-  const { items: tabContent = [], renderer: TabRenderer } = items.find(i => i.label === activeTab);
+  const {
+    items: tabContent = [],
+    renderer: TabRenderer, func,
+  } = items.find(i => i.label === activeTab);
+  const onClick = (label) => {
+    setActiveTab(label);
+  };
+  React.useEffect(() => {
+    if (func) {
+      func();
+    }
+  }, [activeTab, func]);
 
   return (
     <Container className="toolbar-container">
@@ -18,7 +29,7 @@ const Toolbar = ({ items }) => {
           <button
             className="toolbar-tab"
             key={label}
-            onClick={() => setActiveTab(label)}
+            onClick={() => onClick(label)}
             type="button"
           >
             <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
@@ -40,7 +51,8 @@ Toolbar.propTypes = {
       label: PropTypes.string.isRequired,
       icon: PropTypes.string.isRequired,
     })),
-    renderer: PropTypes.func.isRequired,
+    renderer: PropTypes.func,
+    func: PropTypes.func,
   })).isRequired,
 };
 

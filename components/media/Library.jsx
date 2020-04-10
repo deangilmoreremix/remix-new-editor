@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { observer } from 'mobx-react';
 
-import PropTypes from '../../lib/PropTypes';
 import { USER_ITEMS, tabItems, perPage } from '../../lib/constants/library';
-import useMediaStore from '../hooks/useMediaStore';
 import mediaConstants from '../../lib/constants/media';
 import { showError } from '../../lib/services/alertService';
 
@@ -12,8 +11,13 @@ import ProviderList from '../common/library/ProviderList';
 import LibraryContent from '../common/library/LibraryContent';
 import { LibrarySpinner, LoaderCircle } from './Loader';
 
-const Library = (props) => {
-  const { label, subLabel, tab } = props;
+import useUIStore from '../hooks/useUIStore';
+import useMediaStore from '../hooks/useMediaStore';
+import useProjectStore from '../hooks/useProjectStore';
+
+const Library = observer(() => {
+  const uiStore = useUIStore();
+  const { libraryType: tab } = uiStore;
 
   // =============== STATE ===============
   const [query, setQuery] = useState('');
@@ -35,6 +39,7 @@ const Library = (props) => {
   // =============== STATE ===============
 
   const { uploadMedia, storeAsset, getAssets, deleteAsset } = useMediaStore();
+  const projectStore = useProjectStore();
 
   useEffect(() => {
     setQuery('');
@@ -55,7 +60,6 @@ const Library = (props) => {
   };
 
   const fetchItems = async (currentTab, queryStr = '') => {
-    let section = '';
     let currentPage = 0;
     let uploaded = [];
 
@@ -63,11 +67,9 @@ const Library = (props) => {
       setIsLoading(true);
       setPageNumber(1);
       setUploadedItems([]);
-      section = tabItems[currentTab].label.toLowerCase();
       currentPage = 1;
       uploaded = [];
     } else {
-      section = tabItems[activeTab].label.toLowerCase();
       currentPage = pageNumber + 1;
       setPageNumber(pageNumber + 1);
       uploaded = uploadedItems;
@@ -75,7 +77,7 @@ const Library = (props) => {
 
     try {
       const data = await getAssets(
-        section, currentPage, queryStr, { _id: { $nin: uploaded } },
+        tab, currentPage, queryStr, { _id: { $nin: uploaded } },
       );
 
       if (data.length) {
@@ -102,8 +104,8 @@ const Library = (props) => {
     const elements = [];
     const elementsIds = [];
     Promise.all(acceptedFiles.map(async data => {
-      const asset = await uploadMedia({ data, preview: true });
-      const item = await storeAsset(asset.url, asset.preview, 'images');
+      const asset = await uploadMedia({ data });
+      const item = await storeAsset(asset, tab);
       const fileExtension = item.url.match(/\.[0-9a-z]{1,5}$/)[0];
       elements.push(item);
       elementsIds.push(item._id);
@@ -150,8 +152,10 @@ const Library = (props) => {
     }
   };
 
-  const onSelect = (item) => {
-    console.log('Select item', item);
+  const onSelect = async (item) => {
+    setIsLoading(true);
+    await projectStore.addElement(tab, item);
+    setIsLoading(false);
   };
 
   const onDelete = (id) => {
@@ -210,8 +214,8 @@ const Library = (props) => {
                       className="library__placeholder"
                       onClick={handleSetFocus}
                     >
-                      {label}
-                      <span>{subLabel}</span>
+                      {activeTab.search.label}
+                      <span>{activeTab.search.subLabel}</span>
                     </button>
                   )}
                 </Fragment>
@@ -243,24 +247,14 @@ const Library = (props) => {
                 isDisabledUpload={isDisabledUpload}
                 onDrop={onDrop}
                 hasMore={hasMore}
+                type={tab}
               />
             )}
         </div>
       </div>
     </div>
   );
-};
+});
 
-Library.propTypes = {
-  label: PropTypes.string,
-  subLabel: PropTypes.string,
-  tab: PropTypes.string,
-};
-
-Library.defaultProps = {
-  label: 'Try searching for keywords, like',
-  subLabel: ' business, sports, meeting...',
-  tab: Object.keys(tabItems)[0],
-};
 
 export default Library;
