@@ -5,6 +5,7 @@ import { observer } from 'mobx-react';
 import { USER_ITEMS, tabItems, perPage } from '../../lib/constants/library';
 import mediaConstants from '../../lib/constants/media';
 import { showError } from '../../lib/services/alertService';
+import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 
 import Tabs from '../common/library/Tabs';
 import ProviderList from '../common/library/ProviderList';
@@ -154,7 +155,8 @@ const Library = observer(() => {
 
   const onSelect = async (item) => {
     setIsLoading(true);
-    await projectStore.addElement(activeTab, item);
+    item.type = MEDIA_TYPES[activeTab];
+    await projectStore.addElement(item);
     setIsLoading(false);
   };
 
