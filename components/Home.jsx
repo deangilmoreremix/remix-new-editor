@@ -9,7 +9,7 @@ import Toolbar from './common/toolbar/Toolbar';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
-import useUI from './hooks/useUIStore';
+import useUIStore from './hooks/useUIStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
@@ -23,7 +23,7 @@ const getOne = async (store, id) => {
 const Home = observer(() => {
   const { query: { project } } = useRouter();
   const projectStore = useProjectStore();
-  const uiStore = useUI();
+  const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
   const { isLoading } = projectStore;
 
