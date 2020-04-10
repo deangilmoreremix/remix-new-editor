@@ -26,6 +26,11 @@
   margin-bottom: 0.375rem;
   margin-right: 0.375rem;
   padding: 2px 7px;
+  position: relative;
+
+  &:before {
+    content: "#";
+  }
 }
 
 .react-tagsinput-remove {
@@ -49,4 +54,10 @@
   outline: none;
   padding: 0 5px;
   margin-bottom: 0.375rem;
+}
+
+.tags-input-title {
+  font-size: $small;
+  color: $white;
+  line-height: 1;
 }

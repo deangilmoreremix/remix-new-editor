@@ -11,7 +11,6 @@ import { tabItems } from '../../../lib/constants/library';
 import useProjectStore from '../../hooks/useProjectStore';
 import useMediaStore from '../../hooks/useMediaStore';
 
-import FormList from '../../form/FormList';
 import FormColor from '../../form/FormColor';
 import FormTextField from '../../form/FormTextField';
 import FormCheckboxField from '../../form/FormCheckboxField';
@@ -22,8 +21,6 @@ import arrowIcon from '../../../public/static/svgImages/arrow-upper-left.svg';
 
 const Test = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
-  const [activeImg, setActiveImg] = useState('');
-  const [tags, setTags] = useState(['first', 'second']);
 
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
@@ -45,7 +42,6 @@ const Test = observer(() => {
   // === Drag and Drop ===
   const onDrop = (acceptedFiles) => {
     setIsDisabledUpload(true);
-    // let fileExtension = '';
     Promise.all(acceptedFiles.map(async data => {
       const asset = await uploadMedia({ data, preview: true });
       const element = await storeAsset(asset.url, asset.preview, 'images');
@@ -55,7 +51,7 @@ const Test = observer(() => {
       Object.keys(tabItems).forEach(tab => {
         tabItems[tab].formats.forEach(format => {
           if (format === fileExtension) {
-            setActiveImg(element.url);
+            update('thumbnail')(element.url);
           }
         });
       });
@@ -96,24 +92,26 @@ const Test = observer(() => {
         />
       </div>
       <div className="produce__inputs">
-        <FormList
-          label="Tags"
-          values={item.tags}
+        <TagsFormInput
+          value={item.tags}
           onChange={update('tags')}
-          value={item.title}
+          title="Tags"
           className="produce-input"
+          titleClass="produce-panel-text"
         />
-        <TagsFormInput value={tags} onChange={setTags} />
-        <div>
+        <div className="produce-allow">
+          <p className="produce-panel-text">Allow</p>
           <FormCheckboxField
             label="Facebook"
             value={item.allowedSocials && item.allowedSocials.some(s => s === 'facebook')}
             onChange={updateSocials('facebook')}
+            floatClassName="produce-checkbox"
           />
           <FormCheckboxField
             label="LinkedIn"
             value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
             onChange={updateSocials('linkedin')}
+            floatClassName="produce-checkbox"
           />
         </div>
 
@@ -121,7 +119,7 @@ const Test = observer(() => {
           <div className="produce__row-block">
             <div className="produce__row-img">
               <p className="produce__row-text">Thumbnail</p>
-              <div className="produce-img-preview"><img src={activeImg} alt="" /></div>
+              <div className="produce-img-preview"><img src={item.thumbnail} alt="" /></div>
             </div>
           </div>
           <div className="produce__row-block">
@@ -155,12 +153,12 @@ const Test = observer(() => {
               <input {...getInputProps()} disabled={isDisabledUpload} multiple={false} />
 
               {
-                activeImg
-                  ? <img src={activeImg} alt="" />
+                item.thumbnail
+                  ? <img src={item.thumbnail} alt="" />
                   : (<p className="drag-drop__text">Drag and drop an image here, or click to upload</p>)
               }
               {
-                !activeImg && (
+                !item.thumbnail && (
                   <Fragment>
                     <SVGInline className="drag-arrow drag-arrow-upper-left" svg={arrowIcon} cleanup={['arrow']} />
                     <SVGInline className="drag-arrow drag-arrow-upper-right" svg={arrowIcon} cleanup={['arrow']} />
