@@ -224,17 +224,6 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addToPopcorn = (element) => {
-    if (this.popcorn.target) {
-      element.popcornOptions.target = this.popcorn.target;
-    }
-    this.popcorn[element.type]({
-      id: element.id,
-      ...element.popcornOptions,
-    });
-  };
-
-  @action
   updatePopcorn = (element, options) => {
     const elementId = (element && element.id) || element;
     const trackEvent = this.popcorn.getTrackEvent(elementId);
