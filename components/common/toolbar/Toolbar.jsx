@@ -51,7 +51,8 @@ Toolbar.propTypes = {
       label: PropTypes.string.isRequired,
       icon: PropTypes.string.isRequired,
     })),
-    renderer: PropTypes.func.isRequired,
+    renderer: PropTypes.func,
+    func: PropTypes.func,
   })).isRequired,
 };
 
