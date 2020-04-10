@@ -144,6 +144,26 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  editElement = (elementId) => {
+    this.activeElementId = elementId;
+  };
+
+  @action
+  releaseElement = () => {
+    this.activeElementId = null;
+  };
+
+  updateAnimation = (animationName, type) => {
+    const animation = {
+      [type]: {
+        type: animationName,
+        duration: 1,
+      },
+    };
+    this.findAndUpdate(this.activeElementId, { animation });
+  };
+
+  @action
   setProjectData = (data) => {
     let layers = [];
     const elements = [];
@@ -395,7 +415,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   findAndUpdate = (element, options) => {
-    const elementId = (element && element.id) || element;
+    const elementId = (element && element.id) || element || this.activeElementId;
     this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {

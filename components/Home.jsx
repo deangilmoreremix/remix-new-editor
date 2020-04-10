@@ -16,6 +16,7 @@ import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import Timeline from './Timeline';
 import Library from './media/Library';
+import AnimationList from './media/AnimationList';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -27,7 +28,7 @@ const Home = observer(() => {
   const uiStore = useUI();
   const { openModal, closeModal } = useModalStore();
 
-  const { libraryType, setLibraryType } = uiStore;
+  const { libraryType, animationType, setLibraryType } = uiStore;
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
@@ -60,6 +61,7 @@ const Home = observer(() => {
             </Col>
             <Col xs={6}>
               {libraryType && <Library tab={libraryType} />}
+              {animationType && <AnimationList />}
             </Col>
           </Row>
         </Col>

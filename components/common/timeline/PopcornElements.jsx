@@ -1,7 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react';
-
-import useProjectStore from '../../hooks/useProjectStore';
+import Grid from '@material-ui/core/Grid';
 
 import ResponsiveGrid from '../../form/grids/ResponsiveGrid';
 
@@ -9,11 +8,19 @@ import { SANTISECOND } from '../../../lib/constants/project';
 
 import PropTypes from '../../../lib/PropTypes';
 
+import useUI from '../../hooks/useUIStore';
+import useProjectStore from '../../hooks/useProjectStore';
+
+import { ANIMATION_TYPES } from '../../../lib/constants/animations';
+
 
 const PopcornElements = observer(({ width }) => {
   const projectStore = useProjectStore();
+  const uiStore = useUI();
 
-  const { duration: cols, setLayer, updateStartEnd, elements, layers } = projectStore;
+  const { setAnimationType } = uiStore;
+
+  const { duration: cols, setLayer, updateStartEnd, elements, layers, editElement } = projectStore;
 
   const layersCount = React.useMemo(() => layers.length, [layers.length]);
 
@@ -52,8 +59,14 @@ const PopcornElements = observer(({ width }) => {
     return result;
   }, [cols, elements, layers]);
 
+  const setAnim = (type, id) => {
+    editElement(id);
+    setAnimationType(type);
+  };
+
   const components = React.useMemo(() => layouts.map((item) => (
-    <div
+    <Grid
+      container
       key={item.i}
       data-grid={{
         h: 1,
@@ -67,9 +80,18 @@ const PopcornElements = observer(({ width }) => {
         maxW: cols - item.x,
       }}
     >
-      {item.type}
-    </div>
-  )), [layouts, cols]);
+      <Grid xs={4} item>
+        <button onClick={() => setAnim(ANIMATION_TYPES.IN, item.i)}>a</button>
+      </Grid>
+      <Grid xs={4} item>
+        <button onClick={() => setAnim(ANIMATION_TYPES.IDLE, item.i)}>b</button>
+        {item.type}
+      </Grid>
+      <Grid xs={4} item>
+        <button onClick={() => setAnim(ANIMATION_TYPES.OUT, item.i)}>c</button>
+      </Grid>
+    </Grid>
+  )), [layouts, cols, setAnim]);
 
   const onDragStop = (element, oldElement, newElement) => {
     if (oldElement.y !== newElement.y) {
