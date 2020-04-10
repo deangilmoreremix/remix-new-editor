@@ -67,22 +67,22 @@ const Test = observer(() => {
   // === Drag and Drop ===
 
   return (
-    <div className="produce-block produce-panel">
-      <div className="produce__inputs">
+    <div className="produce-block settings-panel">
+      <div className="settings__inputs">
         <FormTextField
           label="Title"
           onChange={update('title')}
           value={item.title}
-          className="produce-input"
-          labelClassName="produce-panel-text"
+          className="settings-input"
+          labelClassName="settings-panel-text"
           placeholder="My Perfect Videos"
         />
         <FormTextField
           label="Description"
           value={item.description}
           onChange={update('description')}
-          className="produce-input"
-          labelClassName="produce-panel-text"
+          className="settings-input"
+          labelClassName="settings-panel-text"
           placeholder="A project about ..."
         />
         <FormColor
@@ -91,55 +91,55 @@ const Test = observer(() => {
           label="Background Color"
         />
       </div>
-      <div className="produce__inputs">
+      <div className="settings__inputs">
         <TagsFormInput
           value={item.tags}
           onChange={update('tags')}
           title="Tags"
-          className="produce-input"
-          titleClass="produce-panel-text"
+          className="settings-input"
+          titleClass="settings-panel-text"
         />
-        <div className="produce-allow">
-          <p className="produce-panel-text">Allow</p>
+        <div className="settings-allow">
+          <p className="settings-panel-text">Allow</p>
           <FormCheckboxField
             label="Facebook"
             value={item.allowedSocials && item.allowedSocials.some(s => s === 'facebook')}
             onChange={updateSocials('facebook')}
-            floatClassName="produce-checkbox"
+            floatClassName="settings-checkbox"
           />
           <FormCheckboxField
             label="LinkedIn"
             value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
             onChange={updateSocials('linkedin')}
-            floatClassName="produce-checkbox"
+            floatClassName="settings-checkbox"
           />
         </div>
 
-        <div className="produce__row">
-          <div className="produce__row-block">
-            <div className="produce__row-img">
-              <p className="produce__row-text">Thumbnail</p>
-              <div className="produce-img-preview"><img src={item.thumbnail} alt="" /></div>
+        <div className="settings__row">
+          <div className="settings__row-block">
+            <div className="settings__row-img">
+              <p className="settings__row-text">Thumbnail</p>
+              <div className="settings-img-preview"><img src={item.thumbnail} alt="" /></div>
             </div>
           </div>
-          <div className="produce__row-block">
-            <button className="produce__open-thumbnails" type="button">Use Thumbnails Editor</button>
+          <div className="settings__row-block">
+            <button className="settings__open-thumbnails" type="button">Use Thumbnails Editor</button>
           </div>
         </div>
 
-        <div className="produce__row">
-          <div className="produce__row-block">
-            <div className="produce__add-file">
-              <input id="produce-file" {...getInputProps()} disabled={isDisabledUpload} multiple={false} />
-              <label htmlFor="produce-file" className="produce__add">
+        <div className="settings__row">
+          <div className="settings__row-block">
+            <div className="settings__add-file">
+              <input id="settings-file" {...getInputProps()} disabled={isDisabledUpload} multiple={false} />
+              <label htmlFor="settings-file" className="settings__add">
                 {
                   isDisabledUpload ? <LibrarySpinner /> : <span>Upload</span>
                 }
               </label>
             </div>
-            <p className="produce__row-text-2">recommended image resolution 1200x630</p>
+            <p className="settings__row-text-2">recommended image resolution 1200x630</p>
           </div>
-          <div className="produce__row-block">
+          <div className="settings__row-block">
             <div
               {...getRootProps()}
               className={classnames(

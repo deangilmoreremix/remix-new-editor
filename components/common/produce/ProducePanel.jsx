@@ -9,17 +9,17 @@ const ProducePanel = observer(({ items }) => {
   const { modified } = useProjectStore();
 
   return (
-    <div className="produce-block settings-panel">
+    <div className="produce-block produce-panel">
       {items.map(({ label, action, icon }) => (
         <button
           type="button"
           key={label}
           onClick={action}
-          className="settings-panel__button"
+          className="produce-panel__button"
           disabled={modified && label.toLowerCase() !== 'list builder'}
         >
           <SVGInline
-            className="settings-panel__icon"
+            className="produce-panel__icon"
             svg={icon}
             cleanup={['title']}
           />
