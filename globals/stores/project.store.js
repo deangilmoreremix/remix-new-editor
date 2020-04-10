@@ -3,8 +3,13 @@ import arrayMove from 'array-move';
 
 import BaseStore from './base.store';
 
-import { EMAIL_SKIP_TOKENS } from '../../lib/constants/campaigns/constants';
+import {
+  EMAIL_SKIP_TOKENS,
+} from '../../lib/constants/campaigns/constants';
 import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
+import { SEQUENCER } from '../../lib/constants/popcorn';
+
+import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { isLayerFulfilled } from '../../lib/utils/project';
 
 const defaultLayer = {
@@ -51,35 +56,10 @@ const mockPersonalizations = ['FIRSTNAME', 'LASTNAME', 'GENDER', 'FIRSTNAME', 'G
 
 const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
 
-export default class ProjectStore extends BaseStore {
-  constructor(props) {
-    super(props);
-    this.layers = [];
-    this.elements = [];
-    reaction(
-      () => this.popcorn && this.popcorn.on,
-      () => {
-        this.popcorn.on('canplayall', () => {
-          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
-          this.isLoaded = true;
-        });
-        this.popcorn.on('timeupdate', () => {
-          this.time = this.popcorn.currentTime() * SANTISECOND;
-        });
-        this.popcorn.on('ended', () => {
-          this.time = 0;
-          this.popcorn.currentTime(0);
-        });
+const DEFAULT_DURATION = 5;
 
-        this.popcorn.on('pause', () => {
-          this.isPlayed = false;
-        });
-        this.popcorn.on('play', () => {
-          this.isPlayed = true;
-        });
-      },
-    );
-  }
+export default class ProjectStore extends BaseStore {
+  @observable activeElementId;
 
   @observable assets = [];
 
@@ -95,7 +75,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable layers;
 
-  @observable elements;
+  @observable elements = [];
 
   @observable videoElements = [];
 
@@ -105,18 +85,82 @@ export default class ProjectStore extends BaseStore {
 
   @observable modified = false;
 
-  @observable activeElementId;
-
   // TODO: remove the fake data when ready
   @observable personalizations = new Set(
     mockPersonalizations.filter(token => !EMAIL_SKIP_TOKENS.includes(token)),
   );
 
+  generateUid = () => `${Date.now() / Math.random()}`;
+
   @observable duration = 30 * SANTISECOND;
 
   @observable time = 0;
 
-  generateUid = () => `${Date.now()}/${Math.random()}`;
+  setElementOptions = async (item) => {
+    const options = {};
+    options.start = item.start || (this.time / SANTISECOND);
+    options.end = item.end || options.start + DEFAULT_DURATION;
+    options.id = `0.${this.generateUid()}`;
+    options.zindex = MAX_ZINDEX;
+
+    switch (item.type) {
+      case SEQUENCER: {
+        const source = (item.extra && item.extra.source) || [item.url];
+        const videoMeta = await this.mediaTypeDetector.getMetadata(source[0]);
+        options.end = options.start + videoMeta.duration;
+        options.source = source;
+        options.title = videoMeta.title;
+        options.duration = videoMeta.duration;
+        options.from = options.start;
+        options.contentType = videoMeta.contentType;
+        break;
+      }
+      default:
+        break;
+    }
+    return options;
+  };
+
+  @action
+  addElement = async (item) => {
+    const { type } = item;
+
+    if (this.isPlayed) {
+      this.playPause();
+    }
+
+    const options = await this.setElementOptions(item);
+
+    // get first track
+    let track = this.layers[0];
+    const layerElements = this.elements.filter(element => element.track === track.id);
+    if (isLayerFulfilled(options, layerElements)) {
+      this.addLayer();
+      [track] = this.layers;
+    }
+
+    const element = {
+      id: options.id,
+      type,
+      track: track.id,
+      name: options.id,
+      popcornOptions: { ...item, ...options },
+    };
+
+    this.addElementToProject(element);
+
+    // update duration
+    if (options.end > this.duration / SANTISECOND) {
+      this.recompressProject(options.end);
+      this.popcorn.duration(options.end);
+      this.duration = this.popcorn.duration() * SANTISECOND;
+    }
+
+    // update timeline
+    this.elements = [element, ...this.elements];
+
+    this.editElement(element.id);
+  };
 
   @action
   editElement = (elementId) => {
@@ -136,50 +180,6 @@ export default class ProjectStore extends BaseStore {
     const element = this.popcorn.getTrackEvent(this.activeElementId);
     return element && element.form;
   }
-
-
-  @action
-  addElement = (trackEvent, mediaId) => {
-    const id = this.generateUid();
-    // Step 0 - prepare element
-    const element = {
-      id,
-      name: id,
-      track: '0',
-      ...trackEvent,
-      popcornOptions: {
-        id,
-        type: trackEvent.type,
-        ...trackEvent.popcornOptions,
-      },
-    };
-
-    // Step 1 - add element to Popcorn
-    if (this.popcorn.target) {
-      element.popcornOptions.target = this.popcorn.target;
-    }
-    this.popcorn[element.type]({ id, ...element.popcornOptions });
-
-    // Step 2 - check layer availability
-    if (!isLayerFulfilled(
-      element.popcornOptions,
-      this.elements.filter(e => e.track === element.track),
-    )) {
-      this.addLayer();
-    }
-
-    // Step 3 - add element to projectData
-    const media = mediaId
-      ? this.projectData.media.find(m => m.id === mediaId)
-      : this.projectData.media[0];
-    media.tracks[0].trackEvents.push(element);
-
-    // Step 4 - add element to elements
-    this.elements.push({ ...element });
-
-    // Step 5 - set activeElementId to whoe element settings
-    this.editElement(id);
-  };
 
   @action
   findElement = (elementId) => {
@@ -221,17 +221,6 @@ export default class ProjectStore extends BaseStore {
     });
 
     this.updatePopcorn(elementId, options);
-  };
-
-  @action
-  addToPopcorn = (element) => {
-    if (this.popcorn.target) {
-      element.popcornOptions.target = this.popcorn.target;
-    }
-    this.popcorn[element.type]({
-      id: element.id,
-      ...element.popcornOptions,
-    });
   };
 
   @action
@@ -585,6 +574,87 @@ export default class ProjectStore extends BaseStore {
     thumbnail: this.item.thumbnail,
     source: this.item.source,
   });
+
+  trailisePauseElements = (projectData) => {
+    projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.type === 'pausePlugin') {
+            trackEvent.popcornOptions.start = media.duration - PAUSE_PLUGIN_TIME_MARGIN;
+            trackEvent.popcornOptions.end = media.duration;
+          }
+        });
+      });
+    });
+    return projectData;
+  };
+
+  // todo implement
+  @action
+  recompressProject = (newDuration) => {
+    this.projectData.media.forEach((media) => {
+      const initialDuration = media.duration;
+      if (initialDuration === newDuration) {
+        return;
+      }
+      media.duration = newDuration;
+      media.url = `#t=,${media.duration}`;
+      const recompressRatio = newDuration / initialDuration;
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.type !== 'sequencer') {
+            trackEvent.popcornOptions.start = Math
+              .round(trackEvent.popcornOptions.start * recompressRatio * 100) / 100;
+            trackEvent.popcornOptions.end = Math
+              .round(trackEvent.popcornOptions.end * recompressRatio * 100) / 100;
+          }
+        });
+      });
+    });
+    this.projectData = this.trailisePauseElements(this.projectData);
+  };
+
+  @action
+  addElementToProject = (trackEvent) => {
+    const { id, popcornOptions } = trackEvent;
+    if (!popcornOptions.target) {
+      popcornOptions.target = this.popcorn && this.popcorn.target;
+    }
+    this.popcorn[trackEvent.type]({ id, ...popcornOptions });
+    this.projectData.media.forEach((media) => {
+      media.tracks[0].trackEvents.push(trackEvent);
+    });
+  };
+
+  constructor(props) {
+    super(props);
+    this.layers = [];
+    this.elements = [];
+    this.mediaTypeDetector = new MediaTypeDetector();
+    reaction(
+      () => this.popcorn && this.popcorn.on,
+      () => {
+        this.popcorn.on('canplayall', () => {
+          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
+          this.isLoaded = true;
+        });
+        this.popcorn.on('timeupdate', () => {
+          this.time = this.popcorn.currentTime() * SANTISECOND;
+        });
+        this.popcorn.on('ended', () => {
+          this.time = 0;
+          this.popcorn.currentTime(0);
+        });
+        this.popcorn.on('pause', () => {
+          this.isPlayed = false;
+        });
+        this.popcorn.on('play', () => {
+          this.isPlayed = true;
+        });
+      },
+    );
+  }
+
 
   @action
   save = async () => {

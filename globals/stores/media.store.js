@@ -1,17 +1,12 @@
 import BaseStore from './base.store';
-import mediaConstants from '../../lib/constants/media';
+import mediaConsts from '../../lib/constants/media';
 import { perPage } from '../../lib/constants/library';
 
 export default class Media extends BaseStore {
   getAssets = async (assetType, page = 1, query = '', filter) => {
     try {
-      const mediaAssetKinds = {
-        [mediaConstants.ASSET_TYPES.AUDIOS]: mediaConstants.AUDIO,
-        [mediaConstants.VIDEOS]: mediaConstants.VIDEO,
-        [mediaConstants.ASSET_TYPES.IMAGES]: mediaConstants.IMAGE,
-      };
       const data = await this.request(
-        `/api/users/me/media-assets?kind=${mediaAssetKinds[assetType]}&perPage=${perPage}&page=${page}&q=${query}${filter ? `&filter=${JSON.stringify(filter)}` : ''}`,
+        `/api/users/me/media-assets?kind=${mediaConsts.ASSET_TYPES[assetType]}&perPage=${perPage}&page=${page}&q=${query}${filter ? `&filter=${JSON.stringify(filter)}` : ''}`,
         {
           method: 'GET',
           headers: {
@@ -53,13 +48,27 @@ export default class Media extends BaseStore {
     }
   };
 
-  storeAsset = async (url, preview, type) => {
+  storeAsset = async (item, type) => {
     let file;
-    const mediaAssetKinds = {
-      [mediaConstants.ASSET_TYPES.AUDIOS]: mediaConstants.AUDIO,
-      [mediaConstants.ASSET_TYPES.VIDEOS]: mediaConstants.VIDEO,
-      [mediaConstants.ASSET_TYPES.IMAGES]: mediaConstants.IMAGE,
-    };
+    const extra = {};
+    const kind = mediaConsts.ASSET_TYPES[type];
+    if (kind === mediaConsts.ASSET_TYPES.VIDEO) {
+      console.info('in');
+      const source = [];
+      if (item.hls) {
+        source.push(item.hls);
+      }
+      if (item.dash) {
+        source.push(item.dash);
+      }
+      if (item.url) {
+        source.push(item.url);
+      }
+      if (source.length > 0) {
+        // popcorn format
+        extra.source = [`${source.join('|')}`];
+      }
+    }
     try {
       file = await this.request(
         '/api/users/me/media-assets', {
@@ -68,9 +77,9 @@ export default class Media extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
           body: {
-            url,
-            preview,
-            kind: mediaAssetKinds[type],
+            ...item,
+            extra,
+            kind,
           },
         });
     } catch (e) {
