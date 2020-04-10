@@ -17,13 +17,13 @@ import useProjectStore from '../hooks/useProjectStore';
 
 const Library = observer(() => {
   const uiStore = useUIStore();
-  const { libraryType: tab } = uiStore;
+  const { libraryType: activeTab, setLibraryType: setActiveTab } = uiStore;
 
   // =============== STATE ===============
   const [query, setQuery] = useState('');
 
   const [activeBtn, setActiveBtn] = useState(USER_ITEMS);
-  const [activeTab, setActiveTab] = useState(tab);
+  // const [activeTab, setActiveTab] = useState(tab);
   const [hasMore, setHasMore] = useState(true);
 
   const [pageNumber, setPageNumber] = useState(1);
@@ -77,7 +77,7 @@ const Library = observer(() => {
 
     try {
       const data = await getAssets(
-        tab, currentPage, queryStr, { _id: { $nin: uploaded } },
+        activeTab, currentPage, queryStr, { _id: { $nin: uploaded } },
       );
 
       if (data.length) {
@@ -105,7 +105,7 @@ const Library = observer(() => {
     const elementsIds = [];
     Promise.all(acceptedFiles.map(async data => {
       const asset = await uploadMedia({ data });
-      const item = await storeAsset(asset, tab);
+      const item = await storeAsset(asset, activeTab);
       const fileExtension = item.url.match(/\.[0-9a-z]{1,5}$/)[0];
       elements.push(item);
       elementsIds.push(item._id);
@@ -154,7 +154,7 @@ const Library = observer(() => {
 
   const onSelect = async (item) => {
     setIsLoading(true);
-    await projectStore.addElement(tab, item);
+    await projectStore.addElement(activeTab, item);
     setIsLoading(false);
   };
 
@@ -184,7 +184,7 @@ const Library = observer(() => {
 
   return (
     <div className="library">
-      <Tabs setActiveTab={setActiveTab} />
+      <Tabs setActiveTab={setActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
           <div>
@@ -247,7 +247,7 @@ const Library = observer(() => {
                 isDisabledUpload={isDisabledUpload}
                 onDrop={onDrop}
                 hasMore={hasMore}
-                type={tab}
+                type={activeTab}
               />
             )}
         </div>

@@ -46,17 +46,10 @@
   flex: 1;
   height: 2.1rem;
   text-transform: uppercase;
+  background: $modal-lightdark-bg;
 
-  &:first-child {
-    background: $modal-header-bg;
-  }
-
-  &:nth-child(2) {
-    background: $modal-lightdark-bg;
-  }
-
-  &:last-child {
-    background: $modal-dark-bg;
+  &-active {
+    background: $scrollbarColor;
   }
 }
 
@@ -235,7 +228,7 @@
     cursor: auto;
   }
 
-  img {
+  img, video {
     position: absolute;
     top: 50%;
     left: 50%;
