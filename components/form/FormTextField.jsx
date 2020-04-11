@@ -4,13 +4,11 @@ import FormGroup from '@material-ui/core/FormGroup';
 import InputLabel from '@material-ui/core/InputLabel';
 import TextField from '@material-ui/core/TextField';
 import classnames from 'classnames';
-import MaskedFormControl from 'react-bootstrap-maskedinput';
 
 import PropTypes from '../../lib/PropTypes';
 
 export default function FormTextField({
   type,
-  mask,
   label,
   onChange,
   onEnter,
@@ -42,23 +40,6 @@ export default function FormTextField({
       <InputLabel key="label-key" className={classnames('form-control-label', labelClassName)}>
         {label}
       </InputLabel>
-      {
-        mask
-          ? (
-            <MaskedFormControl
-              mask={mask}
-              key="masked-input-key"
-              id={label}
-              value={value}
-              className={classnames(inputClassName)}
-              placeholder={placeholder}
-              onChange={onEdit}
-              type={type}
-              disabled={disabled}
-              {...conditionalProps}
-            />
-          )
-          : (
             <TextField
               key="input-key"
               id={label}
@@ -73,16 +54,12 @@ export default function FormTextField({
               disabled={disabled}
               {...conditionalProps}
             />
-          )
-      }
-
     </FormGroup>
   );
 }
 
 FormTextField.propTypes = {
   onChange: PropTypes.func,
-  mask: PropTypes.string,
   label: PropTypes.string,
   onEnter: PropTypes.func,
   disabled: PropTypes.bool,

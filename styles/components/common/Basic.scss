@@ -1,11 +1,11 @@
 .container-text {
+  margin-top: 1em;
   display: flex;
   justify-content: space-between;
   align-items: center;
 
   &-time {
     display: flex;
-    justify-content: space-between;
     width: 50%;
   }
 
@@ -14,7 +14,19 @@
   }
 
   .input-time-position {
-    width: 45%;
+    width: 40%;
+
+    & input {
+      width: 70%;
+      background: $modal-lightdark-bg;
+      color: $white;
+      border: 0.055rem solid $btn-gray;
+      text-align: center;
+      padding: 4px 2px;
+    }
+    &:hover input {
+      border: 0.055rem solid $red;
+    }
   }
 }
 

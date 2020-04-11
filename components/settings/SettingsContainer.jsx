@@ -16,7 +16,6 @@ const SettingsContainer = observer(({ tab, type }) => {
     activeElementId,
     findAndUpdate,
   } = useProjectStore();
-  console.log('this.activeElement', activeElementId);
 
   const element = useMemo(() => findElement(activeElementId), [activeElementId]);
 

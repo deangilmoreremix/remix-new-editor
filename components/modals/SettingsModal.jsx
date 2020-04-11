@@ -10,7 +10,6 @@ const SettingsModal = observer(({ options, setHeader, elementId }) => {
   const [activeTab, setTab] = React.useState(0);
 
   const store = useProjectStore();
-  console.log({ store });
   const { addElement, editElement, releaseElement } = store;
 
   React.useEffect(() => {
@@ -29,7 +28,6 @@ const SettingsModal = observer(({ options, setHeader, elementId }) => {
       tab={options.header.tabs[activeTab].label}
       type={options.type}
       options={options}
-      elementId={elementId}
     />
   );
 });

@@ -10,8 +10,10 @@ import FormCheckboxField from './FormCheckboxField';
 import FormSlider from './FormSlider';
 import AngleInput from './AngleInput';
 import FormTextArea from './FormTextArea';
+import TimeInput from './TimeInput';
 
 const inputs = {
+  timeInput: TimeInput,
   inputTextRotation: AngleInput,
   textarea: FormTextArea,
   input: FormTextField,

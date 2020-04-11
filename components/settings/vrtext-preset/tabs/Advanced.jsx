@@ -4,19 +4,19 @@ import classnames from 'classnames';
 
 import PropTypes from '../../../../lib/PropTypes';
 import {
-  ADVANCED_FIELDS,
+  DEFAULT_FIELDS,
   FONT_FAMILY,
   FONT_SIZE,
   FONT_DECORATIONS,
   FONT_COLOR,
   STROKE,
-  BACKGROUND,
   SHADOW,
+  BACKGROUND,
   STROKE_COLOR,
   BACKGROUND_COLOR,
   SHADOW_COLOR,
   FONT_DECORATIONS_ITALIC,
-  FONT_DECORATIONS_BOLD,
+  FONT_DECORATIONS_BOLD, FONT_DECORATIONS_RESPONSIVE,
 } from '../../../../lib/constants/settings/vrtext-preset';
 import FieldBuilder from '../../../form/FieldBuilder';
 
@@ -27,7 +27,6 @@ import fonts from '../../../../lib/constants/fonts';
 const Advanced = ({ options, onChange }) => {
   const [additionalOptions, setAdditionalOptions] = useState(false);
   console.log('advanced options', options);
-  console.log('font decorations', options[FONT_DECORATIONS].bold);
 
   const handleChangeFontDecoration = (field) => (value) => {
     onChange({ [field]: value });
@@ -41,13 +40,13 @@ const Advanced = ({ options, onChange }) => {
           <FieldBuilder
             value={options[FONT_FAMILY]}
             name={FONT_FAMILY}
-            {...ADVANCED_FIELDS[FONT_FAMILY]}
+            {...DEFAULT_FIELDS[FONT_FAMILY]}
             onChange={onChange}
           />
           <FieldBuilder
             value={options[FONT_SIZE]}
             name={FONT_SIZE}
-            {...ADVANCED_FIELDS[FONT_SIZE]}
+            {...DEFAULT_FIELDS[FONT_SIZE]}
             onChange={onChange}
           />
         </div>
@@ -55,13 +54,13 @@ const Advanced = ({ options, onChange }) => {
           <FieldBuilder
             value={options[FONT_DECORATIONS][FONT_DECORATIONS_BOLD]}
             name={[FONT_DECORATIONS_BOLD]}
-            {...ADVANCED_FIELDS[FONT_DECORATIONS][FONT_DECORATIONS_BOLD]}
+            {...DEFAULT_FIELDS[FONT_DECORATIONS][FONT_DECORATIONS_BOLD]}
             onChange={handleChangeFontDecoration(FONT_DECORATIONS)}
           />
           <FieldBuilder
             value={options[FONT_DECORATIONS][FONT_DECORATIONS_ITALIC]}
             name={[FONT_DECORATIONS_ITALIC]}
-            {...ADVANCED_FIELDS[FONT_DECORATIONS][FONT_DECORATIONS_ITALIC]}
+            {...DEFAULT_FIELDS[FONT_DECORATIONS][FONT_DECORATIONS_ITALIC]}
             onChange={handleChangeFontDecoration(FONT_DECORATIONS)}
           />
         </div>
@@ -69,26 +68,26 @@ const Advanced = ({ options, onChange }) => {
           <FieldBuilder
             value={options[FONT_COLOR]}
             name={FONT_COLOR}
-            {...ADVANCED_FIELDS[FONT_COLOR]}
+            {...DEFAULT_FIELDS[FONT_COLOR]}
             onChange={onChange}
           />
           <div className="container-font-style">
             <FieldBuilder
               value={options[SHADOW]}
               name={SHADOW}
-              {...ADVANCED_FIELDS[SHADOW]}
+              {...DEFAULT_FIELDS[SHADOW]}
               onChange={onChange}
             />
             <FieldBuilder
-              value={options[STROKE].stroke}
+              value={options[STROKE]}
               name={STROKE}
-              {...ADVANCED_FIELDS[STROKE].stroke}
+              {...DEFAULT_FIELDS[STROKE]}
               onChange={onChange}
             />
             <FieldBuilder
               value={options[BACKGROUND]}
               name={BACKGROUND}
-              {...ADVANCED_FIELDS[BACKGROUND]}
+              {...DEFAULT_FIELDS[BACKGROUND]}
               onChange={onChange}
             />
           </div>
@@ -109,29 +108,29 @@ const Advanced = ({ options, onChange }) => {
             value={options[SHADOW_COLOR]}
             key={SHADOW_COLOR}
             name={SHADOW_COLOR}
-            {...ADVANCED_FIELDS[SHADOW_COLOR]}
+            {...DEFAULT_FIELDS[SHADOW_COLOR]}
             onChange={onChange}
           />
           <FieldBuilder
             value={options[STROKE_COLOR]}
             key={STROKE_COLOR}
             name={STROKE_COLOR}
-            {...ADVANCED_FIELDS[STROKE_COLOR]}
+            {...DEFAULT_FIELDS[STROKE_COLOR]}
             onChange={onChange}
           />
           <FieldBuilder
             value={options[BACKGROUND_COLOR]}
             key={BACKGROUND_COLOR}
             name={BACKGROUND_COLOR}
-            {...ADVANCED_FIELDS[BACKGROUND_COLOR]}
+            {...DEFAULT_FIELDS[BACKGROUND_COLOR]}
             onChange={onChange}
           />
           <FieldBuilder
-            value={options[BACKGROUND]}
-            key={BACKGROUND}
-            name={BACKGROUND}
-            {...ADVANCED_FIELDS[BACKGROUND]}
-            onChange={onChange}
+            value={options[FONT_DECORATIONS][FONT_DECORATIONS_RESPONSIVE]}
+            key={FONT_DECORATIONS_RESPONSIVE}
+            name={FONT_DECORATIONS_RESPONSIVE}
+            {...DEFAULT_FIELDS[FONT_DECORATIONS][FONT_DECORATIONS_RESPONSIVE]}
+            onChange={handleChangeFontDecoration(FONT_DECORATIONS)}
           />
         </div>
       )}

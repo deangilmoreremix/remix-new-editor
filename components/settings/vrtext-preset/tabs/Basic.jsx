@@ -1,30 +1,25 @@
-import React, {Fragment, useState} from 'react';
+import React, { Fragment, useState } from 'react';
 import SVGInline from 'react-svg-inline';
 import classnames from 'classnames';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faQuestionCircle} from '@fortawesome/free-solid-svg-icons';
-import FormTextField from '../../../form/FormTextField';
-import FormCheckboxField from '../../../form/FormCheckboxField';
-import AngleCircle from '../../../form/AngleCircle';
-import AngleInput from '../../../form/AngleInput';
-import svgArrowBottom from '../../../../public/static/images/text/arrow-bottom.svg';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
+
+import PropTypes from '../../../../lib/PropTypes';
 import FieldBuilder from '../../../form/FieldBuilder';
+import svgArrowBottom from '../../../../public/static/images/text/arrow-bottom.svg';
 import {
-  ADVANCED_FIELDS, BACKGROUND,
-  BACKGROUND_COLOR, FONT_DECORATIONS, FONT_DECORATIONS_BOLD,
-  SHADOW_COLOR,
-  STROKE_COLOR,
+  DEFAULT_FIELDS,
   INPUT_TEXT_ROTATION, TEXT,
   START, END, LINK_URL, CALL_TO_NOTIFY, OPEN_LINK,
 } from '../../../../lib/constants/settings/vrtext-preset';
 
-const switchLinkTarget = {
-  _blank: ADVANCED_FIELDS[OPEN_LINK].items[0],
-  _parent: ADVANCED_FIELDS[OPEN_LINK].items[1],
-};
 const resLinkTargetValue = { 'New Tab': '_blank', 'Current Tab': '_parent' };
+const switchLinkTarget = {
+  _blank: DEFAULT_FIELDS[OPEN_LINK].items[0],
+  _parent: DEFAULT_FIELDS[OPEN_LINK].items[1],
+};
 
-const Basic = ({options, onChange}) => {
+const Basic = ({ options, onChange }) => {
   const [additionalOptions, setAdditionalOptions] = useState(false);
 
   const handleChangeLinkTarget = (e) => {
@@ -37,39 +32,34 @@ const Basic = ({options, onChange}) => {
         <div className="container-text-time">
           <FieldBuilder
             value={options[START]}
-            {...ADVANCED_FIELDS[START]}
+            {...DEFAULT_FIELDS[START]}
             name={START}
             className="input-time-position"
             onChange={onChange}
           />
-          <FormTextField
-            value="sdsad"
+          <FieldBuilder
+            value={options[END]}
+            {...DEFAULT_FIELDS[END]}
+            name={END}
             className="input-time-position"
-            placeholder="Placeholder"
-            onChange={() => {
-              console.log('onChange');
-            }}
-            onEnter={() => {
-              console.log('onEnter');
-            }}
-            id="standard-read-only-input"
-            defaultValue="Hello World"
+            onChange={onChange}
           />
         </div>
         <span>Text Position</span>
       </div>
-      <div className="container-text-position">
-        <FormCheckboxField/>
-        <FormCheckboxField/>
-        <FormCheckboxField/>
-        <FormCheckboxField/>
-        <FormCheckboxField/>
-      </div>
+      {/*<div className="container-text-position">*/}
+      {/*  // todo need update after adding styles and reformate FormRadioButton for SVG as well*/}
+      {/*  <FieldBuilder />*/}
+      {/*  <FieldBuilder />*/}
+      {/*  <FieldBuilder />*/}
+      {/*  <FieldBuilder />*/}
+      {/*  <FieldBuilder />*/}
+      {/*</div>*/}
       <FieldBuilder
         className="container-input-textarea"
         inputClassName="input-text-area"
         value={options[TEXT]}
-        {...ADVANCED_FIELDS[TEXT]}
+        {...DEFAULT_FIELDS[TEXT]}
         name={TEXT}
         onChange={onChange}
       />
@@ -91,7 +81,7 @@ const Basic = ({options, onChange}) => {
           <div className="container-link-url">
             <FieldBuilder
               value={options[LINK_URL]}
-              {...ADVANCED_FIELDS[LINK_URL]}
+              {...DEFAULT_FIELDS[LINK_URL]}
               name={LINK_URL}
               className="input-time-position"
               onChange={onChange}
@@ -103,7 +93,7 @@ const Basic = ({options, onChange}) => {
           <div className="container-email-link">
             <FieldBuilder
               value={options[CALL_TO_NOTIFY]}
-              {...ADVANCED_FIELDS[CALL_TO_NOTIFY]}
+              {...DEFAULT_FIELDS[CALL_TO_NOTIFY]}
               name={CALL_TO_NOTIFY}
               className="email-notify"
               labelClassName="email-notify-label"
@@ -114,7 +104,7 @@ const Basic = ({options, onChange}) => {
               <span>Open Link In</span>
               <FieldBuilder
                 value={switchLinkTarget[options[OPEN_LINK]]}
-                {...ADVANCED_FIELDS[OPEN_LINK]}
+                {...DEFAULT_FIELDS[OPEN_LINK]}
                 name={OPEN_LINK}
                 onChange={handleChangeLinkTarget}
               />
@@ -127,7 +117,7 @@ const Basic = ({options, onChange}) => {
               <FieldBuilder
                 value={options[INPUT_TEXT_ROTATION]}
                 name={INPUT_TEXT_ROTATION}
-                {...ADVANCED_FIELDS[INPUT_TEXT_ROTATION]}
+                {...DEFAULT_FIELDS[INPUT_TEXT_ROTATION]}
                 onChange={onChange}
               />
             </div>
@@ -148,6 +138,10 @@ const Basic = ({options, onChange}) => {
     </Fragment>
   );
 };
-Basic.propTypes = {};
+
+Basic.propTypes = {
+  options: PropTypes.shape({}),
+  onChange: PropTypes.func.isRequired,
+};
 
 export default Basic;

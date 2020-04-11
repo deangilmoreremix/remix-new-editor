@@ -1,25 +1,20 @@
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import classnames from 'classnames';
-import {
-  createStyles,
-  fade,
-  Theme,
-  withStyles,
-  makeStyles,
-  createMuiTheme,
-} from '@material-ui/core/styles';
 
-export default function FormTextArea({
-   label,
-   onChange,
-   textAreaClassName,
-   className,
-   placeholder,
-   value,
-   rows,
-  variant,
-  }) {
+import PropTypes from '../../lib/PropTypes';
+
+const FormTextArea = (props) => {
+  const {
+    label,
+    onChange,
+    textAreaClassName,
+    className,
+    placeholder,
+    value,
+    rows,
+    variant,
+  } = props;
 
   const onEdit = ({ target: { value: v } }) => {
     onChange(v);
@@ -43,3 +38,23 @@ export default function FormTextArea({
     </form>
   );
 }
+
+FormTextArea.propTypes = {
+  onChange: PropTypes.func,
+  label: PropTypes.string,
+  className: PropTypes.string,
+  textAreaClassName: PropTypes.string,
+  placeholder: PropTypes.string,
+  rows: PropTypes.number,
+  variant: PropTypes.string,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
+};
+
+FormTextArea.defaultProps = {
+  label: '',
+  rows: 3,
+  onChange: () => {
+  },
+};
+
+export default FormTextArea;

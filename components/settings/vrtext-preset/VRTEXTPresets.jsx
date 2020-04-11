@@ -12,27 +12,16 @@ const TabMap = {
 };
 
 const VRTEXTPreset = observer(({ tab = Basic, element, update }) => {
-  console.log('eleemnt', element);
-  const Tab = React.useMemo(() => TabMap[tab], [tab]);
+  const Tab = TabMap[tab];
 
   const handleChange = (field) => {
-    console.log('SVGPresets onChange ', { ...field });
-    // const newOptions = { ...field };
     update(field);
   };
 
-  // const handleSetColors = (colors) => {
-  //   console.log('SVGPresets updating colors', colors);
-  // };
-
-  const { popcornOptions } = element || {};
-
-  console.log(' popcornOptions', popcornOptions);
-
   return (
     <div className="vrtext-presets-form">
-      {popcornOptions && (
-        <Tab options={popcornOptions} onChange={handleChange} />
+      {element && element.popcornOptions && (
+        <Tab options={element.popcornOptions} onChange={handleChange} />
       )}
     </div>
   );
