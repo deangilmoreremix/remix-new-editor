@@ -5,7 +5,7 @@ import classnames from 'classnames';
 import { useDropzone } from 'react-dropzone';
 
 import PropTypes from '../../../lib/PropTypes';
-import { USER_ITEMS } from '../../../lib/constants/library';
+import { USER_ITEMS, LIBRARY_TABS } from '../../../lib/constants/library';
 import mediaConstants from '../../../lib/constants/media';
 
 import trashIcon from '../../../public/static/svgImages/trash.svg';
@@ -16,6 +16,7 @@ import EmptyItemsContainer from './EmptyItemsContainer';
 
 const LibraryContent = (props) => {
   const {
+    type,
     items,
     onSelect,
     activeBtn,
@@ -36,40 +37,51 @@ const LibraryContent = (props) => {
     fetchItems();
   };
 
+  const Element = (item) => {
+    switch (type) {
+      case LIBRARY_TABS.VIDEO: {
+        return <video src={item.url}><track /></video>;
+      } default: {
+        return <img src={item.url} alt={item.title} />;
+      }
+    }
+  };
+
+
   return (
     <div className="library__items">
       {
-          activeBtn === USER_ITEMS && (
-            <div
-              {...getRootProps()}
-              className={classnames(
-                'library__item library__item-drop',
-                {
-                  'library__item-drag': isDragActive,
-                  'library__item-disabled': isDisabledUpload,
-                },
-              )}
-            >
-              <input {...getInputProps()} disabled={isDisabledUpload} />
-              <SVGInline
-                className="library__item-plus"
-                svg={plusIcon}
-                cleanup={['plus']}
-              />
-            </div>
-          )
-        }
+        activeBtn === USER_ITEMS && (
+          <div
+            {...getRootProps()}
+            className={classnames(
+              'library__item library__item-drop',
+              {
+                'library__item-drag': isDragActive,
+                'library__item-disabled': isDisabledUpload,
+              },
+            )}
+          >
+            <input {...getInputProps()} disabled={isDisabledUpload} />
+            <SVGInline
+              className="library__item-plus"
+              svg={plusIcon}
+              cleanup={['plus']}
+            />
+          </div>
+        )
+      }
 
       {
-          items.length
-            ? items.map(item => (
-              <div
-                key={item._id}
-                className="library__item"
-              >
-                <img src={item.url} alt={item.title} />
-                <div className="library__item-actions">
-                  {
+        items.length
+          ? items.map(item => (
+            <div
+              key={item._id}
+              className="library__item"
+            >
+              {Element(item)}
+              <div className="library__item-actions">
+                {
                   activeBtn === USER_ITEMS && !isDisabledUpload && !isDragActive && (
                     <button className="library__item-delete" onClick={() => onDelete(item._id)}>
                       <SVGInline
@@ -79,20 +91,20 @@ const LibraryContent = (props) => {
                     </button>
                   )
                 }
-                  <button className="library__item-add" onClick={() => onSelect(item)}>
-                    <SVGInline
-                      className="library__item-icon"
-                      svg={addIcon}
-                    />
-                  </button>
-                </div>
+                <button className="library__item-add" onClick={() => onSelect(item)}>
+                  <SVGInline
+                    className="library__item-icon"
+                    svg={addIcon}
+                  />
+                </button>
               </div>
-            )) : (
-              <EmptyItemsContainer
-                count={activeBtn !== USER_ITEMS ? 9 : 8}
-              />
-            )
-        }
+            </div>
+          )) : (
+            <EmptyItemsContainer
+              count={activeBtn !== USER_ITEMS ? 9 : 8}
+            />
+          )
+      }
       { hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} /> }
     </div>
   );
@@ -111,6 +123,7 @@ LibraryContent.propTypes = {
   isDisabledUpload: PropTypes.bool.isRequired,
   onDrop: PropTypes.func.isRequired,
   hasMore: PropTypes.bool.isRequired,
+  type: PropTypes.string.isRequired,
 };
 
 export default LibraryContent;
