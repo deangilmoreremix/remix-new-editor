@@ -1,0 +1,285 @@
+.library {
+  display: flex;
+  flex-direction: column;
+  max-width: 31.75rem;
+  height: 24rem;
+  background: $light-twinlight;
+  box-sizing: border-box;
+  font-family: $font-primary;
+  position: relative;
+  z-index: 1;
+  font-size: 0.875rem;
+  line-height: 1;
+  color: $white;
+  overflow: hidden;
+
+  button, input {
+    color: $white;
+  }
+}
+
+.library__tabs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.library__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 2.62rem 1.6rem 1.56rem;
+}
+
+.library__block {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  p {
+    margin-bottom: 0;
+  }
+}
+
+.library__tab {
+  @include reset-button;
+  flex: 1;
+  height: 2.1rem;
+  text-transform: uppercase;
+
+  &:first-child {
+    background: $modal-header-bg;
+  }
+
+  &:nth-child(2) {
+    background: $modal-lightdark-bg;
+  }
+
+  &:last-child {
+    background: $modal-dark-bg;
+  }
+}
+
+.library__row {
+  display: flex;
+
+  &-first {
+    align-items: flex-end;
+    margin-bottom: 1.18em;
+  }
+
+  &-second {
+    flex: 1;
+  }
+
+  &>div:first-child {
+    width: 10.8em
+  }
+
+  &>div:last-child {
+    flex: 1
+  }
+}
+
+.library__placeholder {
+  @include reset-button;
+  display: flex;
+  flex-wrap: wrap;
+  cursor: text !important;
+}
+
+.library__add-file {
+  input {
+    display: none;
+  }
+}
+
+.library__add {
+  @include reset-button;
+  width: 8.88em;
+  height: 2.45em;
+  border: 1px solid $red;
+  border-radius: 4px;
+}
+
+.library__block-search {
+  position: relative;
+}
+
+.library__search {
+  width: 100%;
+  display: block;
+  background: none;
+  border: none;
+  outline: none;
+  border-bottom: 1px solid $red;
+  padding: 0.3rem 0;
+
+  &:focus ~ .library__placeholder {
+    display: none;
+  }
+}
+
+.library__placeholder {
+  position: absolute;
+  bottom: 0.3rem;
+  left: 0;
+  font-size: 0.7em;
+  outline: none;
+
+  span {
+    font-size: 1em;
+    color: $red;
+  }
+}
+
+.library__btn {
+  &-container {
+    @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
+    flex: 1;
+    max-width: 8.8em;
+    max-height: 14.3em;
+    margin-top: 1.843rem;
+    overflow: hidden;
+    overflow-y: auto;
+  }
+
+  &-item {
+    display: flex;
+    align-items: center;
+    max-width: 8.14em;
+    padding: 0;
+    margin-bottom: 0.9em;
+    position: relative;
+    border: none;
+    background: none;
+    outline: none !important;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &-active {
+    path {
+      fill: $red;
+    }
+
+    p {
+      color: $red;
+    }
+  }
+
+  &-user {
+    margin-bottom: 2.3rem;
+
+    .library__icon-btn {
+      width: 17px;
+      height: 17px;
+    }
+  }
+}
+
+.library__icon-btn {
+  width: 1.18em;
+  height: 0.88em;
+  position: relative;
+  margin-right: 0.6rem;
+
+  svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+
+.library__items {
+  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  height: 18.65em;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+.library__item {
+  width: 5.58em;
+  height: 5.58em;
+  position: relative;
+  overflow: hidden;
+  background-color: $block-dark;
+  margin-right: 0.64em;
+  margin-bottom: 0.64em;
+
+  &-drop {
+    background: $scrollbarColor;
+    cursor: pointer;
+    outline: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.3s all;
+  }
+
+  &-drag {
+    .library__item-plus {
+      transform: scale(1.1);
+    }
+  }
+
+  &-disabled {
+    opacity: 0.5;
+    cursor: auto;
+  }
+
+  img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  &:hover .library__item-actions {
+    opacity: 1;
+  }
+}
+
+.library__item-actions {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: 0.3s all;
+}
+
+.library__item-delete {
+  @include reset-button;
+  flex: 1;
+  background-color: rgba(235, 80, 84, 0.8);
+}
+
+.library__item-add {
+  @include reset-button;
+  flex: 1;
+  background-color: rgba(62, 62, 81, 0.77);
+}
+
+.library__item-icon {
+  width: 14px;
+  height: 15px;
+}
+
+.library__item-plus {
+  width: 50%;
+  height: 50%;
+  transition: 0.3s all;
+}

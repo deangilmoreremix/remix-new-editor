@@ -1,0 +1,70 @@
+// Fluid Size Function
+// helper function, that strips units (12px => 12)
+@function strip-unit($number) {
+  @if type-of($number) == "number" and not unitless($number) {
+    @return $number / ($number * 0 + 1);
+  }
+
+  @return $number;
+}
+
+@function is-string($variable) {
+  @if type-of($variable) != "string" { @return false; }
+
+  @return true;
+}
+
+// helper function, that calculates fluid size
+// $f-min - min font size
+// $f-max - max font size
+// $w-min - min window width
+// $w-max - max window width
+// $units - measure units (e.x. px, em, rem, vw)
+@function calcFluidSize($f-min, $f-max, $w-min, $w-max, $units: px) {
+  $f-min: strip-unit($f-min);
+  $f-max: strip-unit($f-max);
+  $w-min: strip-unit($w-min);
+  $w-max: strip-unit($w-max);
+
+  $k: ($f-max - $f-min)/($w-max - $w-min);
+  $b: $f-min - $k * $w-min;
+
+  $b: $b + $units;
+
+  @return calc( #{$k} * 75vw + #{$b} );
+}
+
+@mixin make-fluid($property, $f-min, $f-max, $w-min, $w-max, $fallback: false, $units: px) {
+  @if (is-string($property)) {
+
+    #{$property}: $f-min;
+
+    @include min-w($w-min) {
+      @if ($fallback) {
+        #{$property}: $fallback;
+      }
+      #{$property}: calcFluidSize($f-min, $f-max, $w-min, $w-max, $units);
+    }
+    @include min-w($w-max) {
+      #{$property}: $f-max;
+    }
+  }
+  @else  {
+    position: relative;
+
+    &:before {
+      content: "Wrong property name!";
+      position: absolute;
+      display: block;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 5px;
+      border-radius: 6px;
+      background: #F00;
+      color: #FFF;
+      font-size: 10px;
+      z-index: 1000;
+    }
+  }
+}

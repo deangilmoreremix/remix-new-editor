@@ -1,0 +1,137 @@
+.menu-app-bar {
+  height: $menu-height;
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: $light-twinlight;
+
+  .container-header {
+    height: $menu-height;
+    flex-grow: 1;
+
+    .app-bar {
+      height: inherit;
+    }
+  }
+  .MuiPaper-root {
+    background: $light-twinlight;
+  }
+
+  .container-menu {
+    height: inherit;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .user-menu {
+      .MuiButton-label {
+        color: $white;
+        font-family: $font-primary;
+        border: 1px solid $secondary-color;
+      }
+
+      .MuiPaper-root {
+        border-radius: 0;
+        outline: 1px solid $secondary-color;
+        background-color: $menu-panel;
+
+        .MuiList-root {
+          border-radius: 0;
+          border: none;
+          width: 100%;
+          background: inherit;
+        }
+
+        .MuiListItem-root {
+          margin: auto;
+          text-transform: uppercase;
+          font-family: $font-primary;
+        }
+      }
+
+      .toggler-icon {
+        width: 0.5rem;
+      }
+
+      .menu-popper,
+      button {
+        padding: 0;
+        min-width: 70%;
+        max-width: 70%;
+      }
+    }
+
+    .project-menu {
+      .MuiPaper-root {
+        border-radius: 0;
+        border: none;
+        background-color: $menu-panel;
+
+        .MuiList-root {
+          border-radius: 0;
+          border: none;
+          width: 100%;
+          background: inherit;
+        }
+
+        .MuiListItem-root {
+          margin: auto;
+          font-size: $small;
+          font-family: $font-primary;
+        }
+      }
+
+      .popover {
+        border: 0;
+        width: 20rem;
+        transform: none !important;
+        margin-top: $menu-height;
+        height: 100vh - $menu-height;
+        background-color: $menu-panel;
+      }
+
+      .container-left-bar {
+        display: flex;
+        align-items: center;
+        width: 50%;
+        justify-content: space-between;
+
+        .container-nav {
+          width: 30%;
+          display: flex;
+          justify-content: space-between;
+        }
+      }
+    }
+
+    .logo {
+      width: 7rem;
+    }
+    .icon-button {
+      @include reset-button;
+      margin: auto;
+      color: $third-color;
+
+      &.active-save {
+        color: $secondary-color;
+        // svg styles
+        .save-0 {
+          fill: $secondary-color;
+        }
+      }
+    }
+  }
+}
+
+.header-menu {
+  ul {
+    border: 1px solid $white;
+    color: $white;
+  }
+  ul li:hover {
+    border-top: 1px solid $secondary-color;
+    border-bottom: 1px solid $secondary-color;
+  }
+}
