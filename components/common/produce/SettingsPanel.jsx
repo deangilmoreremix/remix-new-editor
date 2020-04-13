@@ -16,6 +16,7 @@ import FormTextField from '../../form/FormTextField';
 import FormCheckboxField from '../../form/FormCheckboxField';
 import { LibrarySpinner } from '../../media/Loader';
 import TagsFormInput from '../../form/TagsFormInput';
+import DropzoneArea from "../../media/DropzoneArea";
 
 import arrowIcon from '../../../public/static/svgImages/arrow-upper-left.svg';
 
@@ -42,16 +43,20 @@ const Test = observer(() => {
   // === Drag and Drop ===
   const onDrop = (acceptedFiles) => {
     setIsDisabledUpload(true);
+    const elements = [];
     Promise.all(acceptedFiles.map(async data => {
       const asset = await uploadMedia({ data });
       const element = await storeAsset(asset, mediaConstants.ASSET_TYPES.IMAGE.toUpperCase());
       const fileExtension = element.url.match(/\.[0-9a-z]{1,5}$/)[0];
-      return { element, fileExtension };
-    })).then(([{ element, fileExtension }]) => {
+      elements.push(element);
+      return fileExtension;
+    })).then((fileExtension) => {
+      const extension = fileExtension[fileExtension.length - 1];
+
       Object.keys(tabItems).forEach(tab => {
         tabItems[tab].formats.forEach(format => {
-          if (format === fileExtension) {
-            update('thumbnail')(element.url);
+          if (format === extension) {
+            update('thumbnail')(elements[0].url);
           }
         });
       });
@@ -68,6 +73,7 @@ const Test = observer(() => {
 
   return (
     <div className="produce-block settings-panel">
+      <DropzoneArea onUploaded={e => console.log(e)} />
       <div className="settings__inputs">
         <FormTextField
           label="Title"
