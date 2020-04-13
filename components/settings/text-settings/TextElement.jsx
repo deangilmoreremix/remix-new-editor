@@ -11,31 +11,29 @@ const TabMap = {
   [ADVANCED]: Advanced,
 };
 
-const VRTEXTPreset = observer(({ tab = Basic, element, update }) => {
+const TextElement = observer(({ tab = BASIC, element, update, fields }) => {
   const Tab = TabMap[tab];
-
-  const handleChange = (field) => {
-    update(field);
-  };
 
   return (
     <div className="vrtext-presets-form">
       {element && element.popcornOptions && (
-        <Tab options={element.popcornOptions} onChange={handleChange} />
+        <Tab values={element.popcornOptions} onChange={(field) => update(field)} fields={fields} />
       )}
     </div>
   );
 });
 
-VRTEXTPreset.propTypes = {
+TextElement.propTypes = {
   element: PropTypes.shape({
     id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+    track: PropTypes.number.isRequired,
     popcornOptions: PropTypes.shape({
       url: PropTypes.string,
     }),
   }).isRequired,
-  tab: PropTypes.string.isRequired,
+  tab: PropTypes.string,
   update: PropTypes.func.isRequired,
 };
 
-export default VRTEXTPreset;
+export default TextElement;

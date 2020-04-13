@@ -1,14 +1,15 @@
-// TODO: should be removed after a new component is created instead this one
 import React from 'react';
 import FormGroup from '@material-ui/core/FormGroup';
 import InputLabel from '@material-ui/core/InputLabel';
 import TextField from '@material-ui/core/TextField';
 import classnames from 'classnames';
+import MaskedFormControl from 'react-bootstrap-maskedinput';
 
 import PropTypes from '../../lib/PropTypes';
 
 export default function FormTextField({
   type,
+  mask,
   label,
   onChange,
   onEnter,
@@ -41,29 +42,47 @@ export default function FormTextField({
       <InputLabel key="label-key" className={classnames('form-control-label', labelClassName)}>
         {label}
       </InputLabel>
-      <TextField
-        key="input-key"
-        id={name}
-        className={classnames(inputClassName,
-          type === 'input' && 'text-input',
-          type === 'number' && 'text-input',
-        )}
-        value={value || (value === 0 && type === 'number') ? value : ''}
-        placeholder={placeholder}
-        onChange={onEdit}
-        type={type}
-        disabled={disabled}
-        {...conditionalProps}
-        min={0}
-        max={100}
-        name={name}
-      />
+      {
+        mask
+          ? (
+            <MaskedFormControl
+              mask={mask}
+              key="masked-input-key"
+              id={label}
+              value={value}
+              className={classnames(inputClassName)}
+              placeholder={placeholder}
+              onChange={onEdit}
+              type={type}
+              disabled={disabled}
+              {...conditionalProps}
+            />
+          )
+          : (
+            <TextField
+              key="input-key"
+              id={name}
+              className={classnames(inputClassName,
+                type === 'input' && 'text-input',
+                type === 'number' && 'text-input',
+              )}
+              value={value || (value === 0 && type === 'number') ? value : ''}
+              placeholder={placeholder}
+              onChange={onEdit}
+              type={type}
+              disabled={disabled}
+              {...conditionalProps}
+            />
+          )
+      }
+
     </FormGroup>
   );
 }
 
 FormTextField.propTypes = {
   onChange: PropTypes.func,
+  mask: PropTypes.string,
   label: PropTypes.string,
   name: PropTypes.string,
   onEnter: PropTypes.func,

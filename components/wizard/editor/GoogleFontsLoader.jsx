@@ -10,7 +10,7 @@ const GoogleFontsLoader = ({ fonts }) => (
 );
 
 GoogleFontsLoader.propTypes = {
-  fonts: PropTypes.arrayOrObservableArrayOf(PropTypes.string),
+  fonts: PropTypes.arrayOrObservableArrayOf(PropTypes.string).isRequired,
 };
 
 export default GoogleFontsLoader;

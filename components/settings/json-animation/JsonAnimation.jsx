@@ -11,32 +11,11 @@ const TabMap = {
   [ADVANCED]: Advanced,
 };
 
-const JsonAnimation = ({ tab = BASIC, element, update, form }) => {
+const JsonAnimation = ({ tab = BASIC, element, update, fields }) => {
   const Tab = TabMap[tab];
   const handleChange = (field) => {
     update(field);
   };
-
-  const fields = React.useMemo(
-    () => {
-      const result = {};
-      if (form) {
-        Object.keys(form).forEach(fieldName => {
-          const field = form[fieldName];
-          if (
-            field && (
-              !field.group || (
-                field.group && field.group.toLowerCase() === tab.toLowerCase()
-              )
-            )
-          ) {
-            result[fieldName] = field;
-          }
-        });
-      }
-      return result;
-    },
-    [tab, form]);
 
   const handleSetColors = (colors) => {
     console.log('SVGPresets updating colors', colors);
@@ -67,12 +46,8 @@ JsonAnimation.propTypes = {
   }),
   tab: PropTypes.string.isRequired,
   update: PropTypes.func.isRequired,
-  form: PropTypes.objectOf(
-    PropTypes.shape({
-      type: PropTypes.string.isRequired,
-      group: PropTypes.string,
-    }),
-  ),
+  // eslint-disable-next-line react/forbid-prop-types
+  fields: PropTypes.object,
 };
 
 export default JsonAnimation;

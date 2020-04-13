@@ -139,7 +139,7 @@ export default class ProjectStore extends BaseStore {
       [track] = this.layers;
     }
 
-    const { popcornOptions } = item;
+    const { popcornOptions } = item
 
     const element = {
       id: options.id,
@@ -174,13 +174,31 @@ export default class ProjectStore extends BaseStore {
     this.activeElementId = null;
   };
 
+  // @computed
+  // get form() {
+  //   if (!this.activeElementId) {
+  //     return null;
+  //   }
+  //   const element = this.popcorn.getTrackEvent(this.activeElementId);
+  //   return element && element.form;
+  // }
+
   @computed
   get form() {
     if (!this.activeElementId) {
       return null;
     }
     const element = this.popcorn.getTrackEvent(this.activeElementId);
-    return element && element.form;
+    const options = element._natives.manifest.options;
+    const resultOptions = {};
+    if (options) {
+      Object.keys(options).forEach((fieldName) => {
+        if (!options[fieldName].hidden) {
+          resultOptions[fieldName] = options[fieldName];
+        }
+      });
+    }
+    return resultOptions;
   }
 
   @action
@@ -486,6 +504,15 @@ export default class ProjectStore extends BaseStore {
     });
     this.updatePopcorn(elementId, { start, end });
   };
+
+  isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'
+    || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
+    && element.popcornOptions.contentType.indexOf('video/') === 0));
+
+  isAudio = (element) => !!((element.popcornOptions.type === 'SoundCloud')
+    || (element.popcornOptions.contentType
+      && (element.popcornOptions.contentType.indexOf('audio/') === 0
+        || element.popcornOptions.contentType.indexOf('application/ogg') === 0)));
 
   @action
   getOne = async (projectId) => {

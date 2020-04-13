@@ -6,24 +6,21 @@ import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 
 import PropTypes from '../../../../lib/PropTypes';
 import FieldBuilder from '../../../form/FieldBuilder';
-import svgArrowBottom from '../../../../public/static/images/text/arrow-bottom.svg';
-import {
-  DEFAULT_FIELDS,
-  INPUT_TEXT_ROTATION, TEXT,
-  START, END, LINK_URL, CALL_TO_NOTIFY, OPEN_LINK,
-} from '../../../../lib/constants/settings/vrtext-preset';
+import svgArrowBottom from '../../../../public/static/svgImages/text/arrow-bottom.svg';
 
-const resLinkTargetValue = { 'New Tab': '_blank', 'Current Tab': '_parent' };
-const switchLinkTarget = {
-  _blank: DEFAULT_FIELDS[OPEN_LINK].items[0],
-  _parent: DEFAULT_FIELDS[OPEN_LINK].items[1],
-};
+// const resLinkTargetValue = { 'New Tab': '_blank', 'Current Tab': '_parent' };
+// const switchLinkTargetUI = {
+//   _blank: DEFAULT_FIELDS[OPEN_LINK].items[0],
+//   _parent: DEFAULT_FIELDS[OPEN_LINK].items[1],
+// };
 
-const Basic = ({ options, onChange }) => {
+const Basic = ({ values, fields, onChange }) => {
   const [additionalOptions, setAdditionalOptions] = useState(false);
 
-  const handleChangeLinkTarget = (e) => {
-    onChange({ linkTarget: resLinkTargetValue[e.linkTarget] });
+  const isValuePresent = val => (val !== undefined ? val : fields[val].default);
+
+  const handleChangeLinkTarget = () => {
+    // onChange({ linkTarget: resLinkTargetValue[e.linkTarget] });
   };
 
   return (
@@ -31,16 +28,16 @@ const Basic = ({ options, onChange }) => {
       <div className="container-text">
         <div className="container-text-time">
           <FieldBuilder
-            value={options[START]}
-            {...DEFAULT_FIELDS[START]}
-            name={START}
+            value={isValuePresent(values.start)}
+            {...fields.start}
+            name={fields.start.name}
             className="input-time-position"
             onChange={onChange}
           />
           <FieldBuilder
-            value={options[END]}
-            {...DEFAULT_FIELDS[END]}
-            name={END}
+            value={isValuePresent(values.end)}
+            {...fields.end}
+            name={values.end.name}
             className="input-time-position"
             onChange={onChange}
           />
@@ -53,9 +50,9 @@ const Basic = ({ options, onChange }) => {
       <FieldBuilder
         className="container-input-textarea"
         inputClassName="input-text-area"
-        value={options[TEXT]}
-        {...DEFAULT_FIELDS[TEXT]}
-        name={TEXT}
+        value={isValuePresent(values.text)}
+        {...fields.text}
+        name={fields.text.name}
         onChange={onChange}
       />
       <div className="container-personalize">
@@ -80,9 +77,9 @@ const Basic = ({ options, onChange }) => {
           {/* <span>Link Url or Phone number</span> */}
           <div className="container-link-url">
             <FieldBuilder
-              value={options[LINK_URL]}
-              {...DEFAULT_FIELDS[LINK_URL]}
-              name={LINK_URL}
+              value={isValuePresent(values.linkUrl)}
+              {...fields.linkUrl}
+              name={fields.linkUrl.name}
               className="input-time-position"
               onChange={onChange}
             />
@@ -92,9 +89,9 @@ const Basic = ({ options, onChange }) => {
           </div>
           <div className="container-email-link">
             <FieldBuilder
-              value={options[CALL_TO_NOTIFY]}
-              {...DEFAULT_FIELDS[CALL_TO_NOTIFY]}
-              name={CALL_TO_NOTIFY}
+              value={isValuePresent(values.callNotifyAddress)}
+              {...fields.callNotifyAddress}
+              name={fields.callNotifyAddress.name}
               className="email-notify"
               labelClassName="email-notify-label"
               inputClassName="email-notify-input"
@@ -103,9 +100,9 @@ const Basic = ({ options, onChange }) => {
             <div className="container-open-link">
               <span>Open Link In</span>
               <FieldBuilder
-                value={switchLinkTarget[options[OPEN_LINK]]}
-                {...DEFAULT_FIELDS[OPEN_LINK]}
-                name={OPEN_LINK}
+                value={isValuePresent(values.linkTarget)}
+                {...fields.linkTarget}
+                name={fields.linkTarget.name}
                 onChange={handleChangeLinkTarget}
               />
             </div>
@@ -115,9 +112,9 @@ const Basic = ({ options, onChange }) => {
             <div className="container-text-transform-rotation">
               <span>Rotation</span>
               <FieldBuilder
-                value={options[INPUT_TEXT_ROTATION]}
-                name={INPUT_TEXT_ROTATION}
-                {...DEFAULT_FIELDS[INPUT_TEXT_ROTATION]}
+                value={isValuePresent(values.rotation)}
+                name={fields.rotation.name}
+                {...fields.rotation}
                 onChange={onChange}
               />
             </div>
@@ -140,8 +137,9 @@ const Basic = ({ options, onChange }) => {
 };
 
 Basic.propTypes = {
-  options: PropTypes.shape({}),
+  values: PropTypes.shape({}),
   onChange: PropTypes.func.isRequired,
+  fields: PropTypes.shape({}),
 };
 
 export default Basic;
