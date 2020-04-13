@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import TagsInput from 'react-tagsinput';
 import classnames from 'classnames';
 
