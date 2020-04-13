@@ -12,7 +12,6 @@ import useModalStore from './hooks/useModalStore';
 import useUIStore from './hooks/useUIStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
-
 import Timeline from './Timeline';
 import Library from './media/Library';
 
