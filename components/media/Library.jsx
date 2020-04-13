@@ -5,7 +5,6 @@ import { observer } from 'mobx-react';
 import { USER_ITEMS, tabItems, perPage } from '../../lib/constants/library';
 import mediaConstants from '../../lib/constants/media';
 import { showError } from '../../lib/services/alertService';
-import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 
 import Tabs from '../common/library/Tabs';
 import ProviderList from '../common/library/ProviderList';
@@ -15,6 +14,7 @@ import { LibrarySpinner, LoaderCircle } from './Loader';
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
+import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 
 const Library = observer(() => {
   const uiStore = useUIStore();
