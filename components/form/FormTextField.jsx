@@ -41,23 +41,23 @@ export default function FormTextField({
       <InputLabel key="label-key" className={classnames('form-control-label', labelClassName)}>
         {label}
       </InputLabel>
-            <TextField
-              key="input-key"
-              id={name}
-              className={classnames(inputClassName,
-                type === 'input' && 'text-input',
-                type === 'number' && 'text-input',
-              )}
-              value={value || (value === 0 && type === 'number') ? value : ''}
-              placeholder={placeholder}
-              onChange={onEdit}
-              type={type}
-              disabled={disabled}
-              {...conditionalProps}
-              min={0}
-              max={100}
-              name={name}
-            />
+      <TextField
+        key="input-key"
+        id={name}
+        className={classnames(inputClassName,
+          type === 'input' && 'text-input',
+          type === 'number' && 'text-input',
+        )}
+        value={value || (value === 0 && type === 'number') ? value : ''}
+        placeholder={placeholder}
+        onChange={onEdit}
+        type={type}
+        disabled={disabled}
+        {...conditionalProps}
+        min={0}
+        max={100}
+        name={name}
+      />
     </FormGroup>
   );
 }

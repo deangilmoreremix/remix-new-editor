@@ -47,14 +47,9 @@ const Basic = ({ options, onChange }) => {
         </div>
         <span>Text Position</span>
       </div>
-      {/*<div className="container-text-position">*/}
-      {/*  // todo need update after adding styles and reformate FormRadioButton for SVG as well*/}
-      {/*  <FieldBuilder />*/}
-      {/*  <FieldBuilder />*/}
-      {/*  <FieldBuilder />*/}
-      {/*  <FieldBuilder />*/}
-      {/*  <FieldBuilder />*/}
-      {/*</div>*/}
+      <div className="container-text-position">
+        {/* todo need update after adding styles and reformate FormRadioButton for SVG as well */}
+      </div>
       <FieldBuilder
         className="container-input-textarea"
         inputClassName="input-text-area"
@@ -65,11 +60,16 @@ const Basic = ({ options, onChange }) => {
       />
       <div className="container-personalize">
         <button className="btn-personalize">Personalize</button>
-        <FontAwesomeIcon icon={faQuestionCircle} className="fa-inverse"/>
+        <FontAwesomeIcon icon={faQuestionCircle} className="fa-inverse" />
       </div>
-      <div className="container-icon-arrow" onClick={() => setAdditionalOptions(!additionalOptions)}>
+      {/* eslint-disable-next-line max-len */}
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions,jsx-a11y/click-events-have-key-events */}
+      <div
+        className="container-icon-arrow"
+        onClick={() => setAdditionalOptions(!additionalOptions)}
+      >
         <SVGInline
-          className={classnames('icon-arrow', {'icon-arrow-rotate': additionalOptions})}
+          className={classnames('icon-arrow', { 'icon-arrow-rotate': additionalOptions })}
           classSuffix="-inline"
           svg={svgArrowBottom}
           cleanup={['title']}

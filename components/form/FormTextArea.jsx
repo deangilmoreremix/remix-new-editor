@@ -37,7 +37,7 @@ const FormTextArea = (props) => {
       </div>
     </form>
   );
-}
+};
 
 FormTextArea.propTypes = {
   onChange: PropTypes.func,

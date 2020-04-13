@@ -13,7 +13,6 @@ import FormCheckboxField from '../../form/FormCheckboxField';
 @observer
 class SettingsPanel extends Component {
   update = (field) => (value) => {
-    console.log('settings panel ', this)
     const { projectStore } = this.props;
     projectStore.updateItem({ [field]: value });
   };

@@ -139,14 +139,14 @@ export default class ProjectStore extends BaseStore {
       [track] = this.layers;
     }
 
-    const {popcornOptions} = item;
+    const { popcornOptions } = item;
 
     const element = {
       id: options.id,
       type,
       track: track.id,
       name: options.id,
-      popcornOptions: {...popcornOptions, ...options},
+      popcornOptions: { ...popcornOptions, ...options },
     };
 
     this.addElementToProject(element);
@@ -554,6 +554,7 @@ export default class ProjectStore extends BaseStore {
   addAsset = (asset) => {
     this.assets.push(asset);
   };
+
   @action
   serializeProject = () => ({
     data: JSON.stringify(this.projectData),

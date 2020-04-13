@@ -1,6 +1,7 @@
 import React, { Fragment, useState } from 'react';
 import SVGInline from 'react-svg-inline';
 import classnames from 'classnames';
+import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 
 import PropTypes from '../../../../lib/PropTypes';
 import {
@@ -18,15 +19,13 @@ import {
   FONT_DECORATIONS_ITALIC,
   FONT_DECORATIONS_BOLD, FONT_DECORATIONS_RESPONSIVE,
 } from '../../../../lib/constants/settings/vrtext-preset';
-import FieldBuilder from '../../../form/FieldBuilder';
 
+import FieldBuilder from '../../../form/FieldBuilder';
 import svgArrowBottom from '../../../../public/static/images/text/arrow-bottom.svg';
-import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 import fonts from '../../../../lib/constants/fonts';
 
 const Advanced = ({ options, onChange }) => {
   const [additionalOptions, setAdditionalOptions] = useState(false);
-  console.log('advanced options', options);
 
   const handleChangeFontDecoration = (field) => (value) => {
     onChange({ [field]: value });
@@ -94,6 +93,8 @@ const Advanced = ({ options, onChange }) => {
         </div>
 
       </div>
+      {/* eslint-disable-next-line max-len */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
       <div className="container-icon-arrow" onClick={() => setAdditionalOptions(!additionalOptions)}>
         <SVGInline
           className={classnames('icon-arrow', { 'icon-arrow-rotate': additionalOptions })}
