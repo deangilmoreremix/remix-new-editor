@@ -1,47 +1,36 @@
-import { observable, action } from 'mobx';
+import { set, observable, action } from 'mobx';
 
-import SocialPublisherModal from '../../components/modals/SocialPublisherModal';
-import EmailCampaingModal from '../../components/modals/EmailCampaignModal';
-import { SOCIAL_CAMPAIGN_MODAL, EMAIL_CAMPAIGN_MODAL } from '../../lib/constants/modals';
-
-const modalsConfig = [
-  {
-    id: SOCIAL_CAMPAIGN_MODAL,
-    className: `${SOCIAL_CAMPAIGN_MODAL}-modal`,
-    renderer: SocialPublisherModal,
-    title: 'Social Campaigns',
-  },
-  {
-    id: EMAIL_CAMPAIGN_MODAL,
-    className: `${EMAIL_CAMPAIGN_MODAL}-modal`,
-    renderer: EmailCampaingModal,
-    title: 'Email Campaigns',
-  },
-];
+import { MODAL_CONFIG } from '../../lib/constants/modals';
 
 export default () => {
   const modalIds = observable.set([]);
 
-  const modals = observable(modalsConfig);
+  const modals = observable(MODAL_CONFIG);
 
-  const openModal = (modalId) => {
+  const options = observable({});
+
+  const openModal = (modalId, modalOptions) => {
     if (modalId) {
       modalIds.add(modalId);
+      if (modalOptions) {
+        set(options, { ...modalOptions });
+      }
     }
   };
 
   const closeModal = (modalId) => {
     if (modalId) {
       modalIds.delete(modalId);
+      set(options, {});
     }
   };
 
-  const updateTitle = (modalId, title) => {
+  const updateHeader = (modalId, header) => {
     if (modalId) {
       const mutatedModalIndex = modals.findIndex(modal => modal.id === modalId);
-      const originalModal = modalsConfig.find(modal => modal.id === modalId);
+      const originalModal = MODAL_CONFIG.find(modal => modal.id === modalId);
 
-      modals[mutatedModalIndex].title = title || originalModal.title;
+      modals[mutatedModalIndex].header = header || originalModal.header;
     }
   };
 
@@ -50,6 +39,7 @@ export default () => {
     modals,
     openModal: action(openModal),
     closeModal: action(closeModal),
-    updateTitle: action(updateTitle),
+    updateHeader: action(updateHeader),
+    options,
   };
 };

@@ -20,6 +20,7 @@ export default function FormTextField({
   className,
   placeholder,
   value,
+  name,
 }) {
   const conditionalProps = {};
 
@@ -48,20 +49,21 @@ export default function FormTextField({
             <MaskedFormControl
               mask={mask}
               key="masked-input-key"
-              id={label}
+              id={name}
               value={value}
               className={classnames(inputClassName)}
               placeholder={placeholder}
               onChange={onEdit}
               type={type}
               disabled={disabled}
+              name={name}
               {...conditionalProps}
             />
           )
           : (
             <TextField
               key="input-key"
-              id={label}
+              id={name}
               className={classnames(inputClassName,
                 type === 'input' && 'text-input',
                 type === 'number' && 'text-input',
@@ -72,6 +74,9 @@ export default function FormTextField({
               type={type}
               disabled={disabled}
               {...conditionalProps}
+              min={0}
+              max={100}
+              name={name}
             />
           )
       }
@@ -84,6 +89,7 @@ FormTextField.propTypes = {
   onChange: PropTypes.func,
   mask: PropTypes.string,
   label: PropTypes.string,
+  name: PropTypes.string,
   onEnter: PropTypes.func,
   disabled: PropTypes.bool,
   inputType: PropTypes.string,
