@@ -66,6 +66,7 @@ const Test = observer(() => {
   });
   // === Drag and Drop ===
 
+  // ToDo Check fields
   return (
     <div className="produce-block settings-panel">
       <div className="settings__inputs">
