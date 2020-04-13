@@ -22,13 +22,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .library__body {
+  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
   flex: 1;
   display: flex;
   flex-direction: column;
   padding: 1rem 2.62rem 1.6rem 1.56rem;
+  overflow-y: auto;
 }
 
 .library__block {
@@ -275,4 +278,66 @@
   width: 50%;
   height: 50%;
   transition: 0.3s all;
+}
+
+@media screen and (max-width: 1450px) {
+  .library__body {
+    padding-left: 1rem;
+    padding-right: 2rem;
+  }
+
+  .library__row-first {
+    margin-bottom: 1rem;
+  }
+
+  .library__row {
+    flex-direction: column;
+
+    &>div:first-child,
+    &>div:last-child,
+    .library__add {
+      width: 100%;
+    }
+  }
+
+  .library__add {
+    margin-bottom: 1rem;
+  }
+
+  .library__btn-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 0.4rem;
+    padding: 3px 0;
+  }
+
+  .library__btn-item {
+    max-width: none;
+    width: 50%;
+  }
+
+  .library__btn-user {
+    margin-bottom: 0.9rem;
+  }
+
+  .library__items {
+    max-height: 16rem;
+  }
+
+  .library__btn-container {
+    max-width: 100%;
+    margin-bottom: 1rem;
+  }
+}
+
+@media screen and (max-width: 1000px) {
+  .library__tab {
+    flex: none;
+    width: 100%;
+  }
+
+  .library__btn-item {
+    width: 100%;
+  }
 }
