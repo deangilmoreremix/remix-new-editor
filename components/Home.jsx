@@ -26,7 +26,7 @@ const Home = observer(() => {
   const { openModal, closeModal } = useModalStore();
   const { isLoading } = projectStore;
 
-  const { libraryType, setLibraryType, produceWindow, setProduceWindow } = uiStore;
+  const { libraryType, setLibraryType, wideWindow, setWideWindow } = uiStore;
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
@@ -45,19 +45,19 @@ const Home = observer(() => {
       <Row className="controls" noGutters>
         <Col xs={7}>
           <Row>
-            <Col xs={produceWindow ? 12 : 6}>
+            <Col xs={wideWindow ? 12 : 6}>
               <Toolbar
                 items={toolbarItems({
                   actions: {
                     openModal,
                     closeModal,
                     setLibraryType,
-                    setProduceWindow,
+                    setWideWindow,
                   },
                 })}
               />
             </Col>
-            <Col xs={produceWindow ? 0 : 6}>
+            <Col xs={!wideWindow ? 0 : 6}>
               {libraryType && <Library tab={libraryType} />}
             </Col>
           </Row>

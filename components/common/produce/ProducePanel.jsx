@@ -7,6 +7,7 @@ import useProjectStore from '../../hooks/useProjectStore';
 
 const ProducePanel = observer(({ items }) => {
   const { modified } = useProjectStore();
+  const alwaysActive = 'list builder';
 
   return (
     <div className="produce-block produce-panel">
@@ -16,7 +17,7 @@ const ProducePanel = observer(({ items }) => {
           key={label}
           onClick={action}
           className="produce-panel__button"
-          disabled={modified && label.toLowerCase() !== 'list builder'}
+          disabled={modified && label.toLowerCase() !== alwaysActive}
         >
           <SVGInline
             className="produce-panel__icon"

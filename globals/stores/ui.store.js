@@ -1,9 +1,9 @@
 import { observable, action } from 'mobx';
 
-export default class UI {
+export default class UIStore {
   @observable libraryType = null;
 
-  @observable produceWindow = false;
+  @observable wideWindow = false;
 
   @action
   setLibraryType = (type) => {
@@ -11,7 +11,7 @@ export default class UI {
   };
 
   @action
-  setProduceWindow = (value = true) => {
-    this.produceWindow = value;
+  setWideWindow = (value = true) => {
+    this.wideWindow = value;
   }
 }
