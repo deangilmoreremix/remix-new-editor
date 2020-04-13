@@ -1,8 +1,6 @@
-import React, { Fragment, useState } from 'react';
+import React, { useState } from 'react';
 import { observer } from 'mobx-react';
 import { useDropzone } from 'react-dropzone';
-import classnames from 'classnames';
-import SVGInline from 'react-svg-inline';
 
 import { showError } from '../../../lib/services/alertService';
 import mediaConstants from '../../../lib/constants/media';
@@ -16,9 +14,7 @@ import FormTextField from '../../form/FormTextField';
 import FormCheckboxField from '../../form/FormCheckboxField';
 import { LibrarySpinner } from '../../media/Loader';
 import TagsFormInput from '../../form/TagsFormInput';
-import DropzoneArea from "../../media/DropzoneArea";
-
-import arrowIcon from '../../../public/static/svgImages/arrow-upper-left.svg';
+import DropzoneArea from '../../media/DropzoneArea';
 
 const Test = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
@@ -41,30 +37,29 @@ const Test = observer(() => {
   };
 
   // === Drag and Drop ===
+  const onUploadedImage = (image, extension) => {
+    Object.keys(tabItems).forEach(tab => {
+      tabItems[tab].formats.forEach(format => {
+        if (format === extension) {
+          update('thumbnail')(image.url);
+        }
+      });
+    });
+  };
+
   const onDrop = (acceptedFiles) => {
     setIsDisabledUpload(true);
-    const elements = [];
     Promise.all(acceptedFiles.map(async data => {
       const asset = await uploadMedia({ data });
       const element = await storeAsset(asset, mediaConstants.ASSET_TYPES.IMAGE.toUpperCase());
       const fileExtension = element.url.match(/\.[0-9a-z]{1,5}$/)[0];
-      elements.push(element);
-      return fileExtension;
-    })).then((fileExtension) => {
-      const extension = fileExtension[fileExtension.length - 1];
-
-      Object.keys(tabItems).forEach(tab => {
-        tabItems[tab].formats.forEach(format => {
-          if (format === extension) {
-            update('thumbnail')(elements[0].url);
-          }
-        });
-      });
-    }).catch(() => showError('An error occurred while loading the image.'))
+      return { element, fileExtension };
+    })).then(([{ element, fileExtension }]) => onUploadedImage(element, fileExtension))
+      .catch(() => showError('An error occurred while loading the image.'))
       .finally(() => setIsDisabledUpload(false));
   };
 
-  const { getInputProps, getRootProps, isDragActive } = useDropzone({
+  const { getInputProps } = useDropzone({
     accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
     onDrop,
     disabled: false,
@@ -73,7 +68,6 @@ const Test = observer(() => {
 
   return (
     <div className="produce-block settings-panel">
-      <DropzoneArea onUploaded={e => console.log(e)} />
       <div className="settings__inputs">
         <FormTextField
           label="Title"
@@ -146,34 +140,16 @@ const Test = observer(() => {
             <p className="settings__row-text-2">recommended image resolution 1200x630</p>
           </div>
           <div className="settings__row-block">
-            <div
-              {...getRootProps()}
-              className={classnames(
-                'drag-drop',
-                {
-                  'drag-drop-active': isDragActive,
-                  'drag-drop-disabled': isDisabledUpload,
-                },
-              )}
-            >
-              <input {...getInputProps()} disabled={isDisabledUpload} multiple={false} />
-
-              {
-                item.thumbnail
-                  ? <img src={item.thumbnail} alt="" />
-                  : (<p className="drag-drop__text">Drag and drop an image here, or click to upload</p>)
-              }
-              {
-                !item.thumbnail && (
-                  <Fragment>
-                    <SVGInline className="drag-arrow drag-arrow-upper-left" svg={arrowIcon} cleanup={['arrow']} />
-                    <SVGInline className="drag-arrow drag-arrow-upper-right" svg={arrowIcon} cleanup={['arrow']} />
-                    <SVGInline className="drag-arrow drag-arrow-bottom-left" svg={arrowIcon} cleanup={['arrow']} />
-                    <SVGInline className="drag-arrow drag-arrow-bottom-right" svg={arrowIcon} cleanup={['arrow']} />
-                  </Fragment>
-                )
-              }
-            </div>
+            <DropzoneArea
+              inline="small"
+              onUploaded={onUploadedImage}
+              type={mediaConstants.ASSET_TYPES.IMAGE}
+              isDisabled={isDisabledUpload}
+              value={item.thumbnail}
+              startUpload={() => setIsDisabledUpload(true)}
+              endUpload={() => setIsDisabledUpload(false)}
+              multiple={false}
+            />
           </div>
         </div>
       </div>

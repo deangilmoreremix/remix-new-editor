@@ -1,24 +1,40 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import SVGInline from 'react-svg-inline';
-import cn from 'classnames';
+import classnames from 'classnames';
 import { useDropzone } from 'react-dropzone';
 
-import { tabItems } from '../../lib/constants/library';
-
-import svgAudio from '../../public/static/images/media/icon-audio.svg';
-import svgVideo from '../../public/static/images/media/icon-video.svg';
-import svgImage from '../../public/static/images/media/icon-image.svg';
-import useMediaStore from '../hooks/useMediaStore';
 import PropTypes from '../../lib/PropTypes';
 import mediaConstants from '../../lib/constants/media';
 import { showError } from '../../lib/services/alertService';
 
-const DropzoneArea = ({ onUploaded, startUpload, endUpload, type, isDisabled }) => {
+import useMediaStore from '../hooks/useMediaStore';
+
+import svgAudio from '../../public/static/images/media/icon-audio.svg';
+import svgVideo from '../../public/static/images/media/icon-video.svg';
+import svgImage from '../../public/static/images/media/icon-image.svg';
+import arrowIcon from '../../public/static/svgImages/arrow-upper-left.svg';
+
+const DropzoneArea = (
+  {
+    onUploaded,
+    startUpload,
+    endUpload,
+    type,
+    isDisabled,
+    inline,
+    multiple,
+    value,
+    className,
+    isArrows,
+  }) => {
   const { uploadMedia, storeAsset } = useMediaStore();
 
   const onDrop = React.useCallback(acceptedFiles => {
     const elements = [];
-    startUpload();
+    if (startUpload) {
+      startUpload();
+    }
+
     Promise.all(acceptedFiles.map(async data => {
       const asset = await uploadMedia({ data });
       const element = await storeAsset(asset, type.toUpperCase());
@@ -28,10 +44,18 @@ const DropzoneArea = ({ onUploaded, startUpload, endUpload, type, isDisabled }) 
     }))
       .then(fileExtension => {
         const extension = fileExtension[fileExtension.length - 1];
-        onUploaded(elements, extension);
+        if (!multiple) {
+          onUploaded(elements[0], extension);
+        } else {
+          onUploaded(elements, extension);
+        }
       })
       .catch(() => showError('An error occurred while loading the image.'))
-      .finally(() => endUpload());
+      .finally(() => {
+        if (endUpload) {
+          endUpload();
+        }
+      });
   }, [uploadMedia]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -40,44 +64,90 @@ const DropzoneArea = ({ onUploaded, startUpload, endUpload, type, isDisabled }) 
     disabled: false,
   });
 
-  return (
-    <div {...getRootProps()} className="dropzone-container">
-      <input {...getInputProps()} disabled={isDisabled} />
-      <div className={cn('dropzone-placeholder', { drag: isDragActive })}>
-        <SVGInline
-          component="div"
-          className="dropzone-placeholder-item"
-          classSuffix="-inline"
-          svg={svgAudio}
-          cleanup={['title']}
-        />
-        <SVGInline
-          component="div"
-          className="dropzone-placeholder-item"
-          classSuffix="-inline"
-          svg={svgVideo}
-          cleanup={['title']}
-        />
-        <SVGInline
-          component="div"
-          className="dropzone-placeholder-item"
-          classSuffix="-inline"
-          svg={svgImage}
-          cleanup={['title']}
-        />
-        {isDragActive && <div className="overlay" />}
+  if (inline === 'big') {
+    return (
+      <div {...getRootProps()} className={classnames('dropzone-container', className)}>
+        <input {...getInputProps()} disabled={isDisabled} multiple={multiple} />
+        <div className={classnames('dropzone-placeholder', { drag: isDragActive })}>
+          <SVGInline
+            component="div"
+            className="dropzone-placeholder-item"
+            classSuffix="-inline"
+            svg={svgAudio}
+            cleanup={['title']}
+          />
+          <SVGInline
+            component="div"
+            className="dropzone-placeholder-item"
+            classSuffix="-inline"
+            svg={svgVideo}
+            cleanup={['title']}
+          />
+          <SVGInline
+            component="div"
+            className="dropzone-placeholder-item"
+            classSuffix="-inline"
+            svg={svgImage}
+            cleanup={['title']}
+          />
+          {isDragActive && <div className="overlay" />}
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (inline === 'small') {
+    return (
+      <div
+        {...getRootProps()}
+        className={classnames(
+          'drag-drop',
+          className,
+          {
+            'drag-drop-active': isDragActive,
+            'drag-drop-disabled': isDisabled,
+          },
+        )}
+      >
+        <input {...getInputProps()} disabled={isDisabled} multiple={multiple} />
+
+        {
+          value
+            ? <img src={value} alt="" />
+            : (<p className="drag-drop__text">Drag and drop an image here, or click to upload</p>)
+        }
+        {
+          !value && isArrows && (
+            <Fragment>
+              <SVGInline className="drag-arrow drag-arrow-upper-left" svg={arrowIcon} cleanup={['arrow']} />
+              <SVGInline className="drag-arrow drag-arrow-upper-right" svg={arrowIcon} cleanup={['arrow']} />
+              <SVGInline className="drag-arrow drag-arrow-bottom-left" svg={arrowIcon} cleanup={['arrow']} />
+              <SVGInline className="drag-arrow drag-arrow-bottom-right" svg={arrowIcon} cleanup={['arrow']} />
+            </Fragment>
+          )
+        }
+      </div>
+    );
+  }
 };
 
 DropzoneArea.propTypes = {
-  inline: PropTypes.oneOf(['big', 'small']).isRequired,
+  inline: PropTypes.oneOf(['big', 'small']),
   onUploaded: PropTypes.func.isRequired,
   type: PropTypes.string.isRequired,
   startUpload: PropTypes.func,
   endUpload: PropTypes.func,
   isDisabled: PropTypes.bool,
+  multiple: PropTypes.bool,
+  value: PropTypes.string,
+  className: PropTypes.string,
+  isArrows: PropTypes.bool,
+};
+
+DropzoneArea.defaultProps = {
+  inline: 'small',
+  multiple: true,
+  isArrows: true,
 };
 
 export default DropzoneArea;
