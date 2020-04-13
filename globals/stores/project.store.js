@@ -99,71 +99,6 @@ export default class ProjectStore extends BaseStore {
 
   @observable time = 0;
 
-  setElementOptions = async (type, item) => {
-    const options = {};
-    options.start = item.start || (this.time / SANTISECOND);
-    options.end = item || options.start + DEFAULT_DURATION;
-    options.id = `0.${this.generateUid()}`;
-    options.zindex = MAX_ZINDEX;
-
-    switch (type) {
-      case SEQUENCER: {
-        const source = (item.extra && item.extra.source) || [item.url];
-        const videoMeta = await this.mediaTypeDetector.getMetadata(source[0]);
-        options.end = options.start + videoMeta.duration;
-        options.source = source;
-        options.title = videoMeta.title;
-        options.duration = videoMeta.duration;
-        options.from = options.start;
-        options.contentType = videoMeta.contentType;
-        break;
-      }
-      default:
-        break;
-    }
-    return options;
-  };
-
-  @action
-  addElement = async (type, item) => {
-    // const options = {};
-    type = MEDIA_TYPES[type] || type;
-
-    if (this.isPlayed) {
-      this.playPause();
-    }
-
-    const options = await this.setElementOptions(type, item);
-
-    // get first track
-    let track = this.layers[0];
-    const layerElements = this.elements.filter(element => element.track === track.id);
-    if (isLayerFulfilled(options, layerElements)) {
-      this.addLayer();
-      [track] = this.layers;
-    }
-
-    const element = {
-      id: options.id,
-      type,
-      track: track.id,
-      name: options.id,
-      popcornOptions: { ...item, ...options },
-    };
-
-    this.addElementToProject(element);
-
-    // update duration
-    if (options.end > this.duration / SANTISECOND) {
-      this.recompressProject(options.end);
-      this.popcorn.duration(options.end);
-      this.duration = this.popcorn.duration() * SANTISECOND;
-    }
-
-    // update timeline
-    this.elements = [element, ...this.elements];
-  };
-
   @action
   setProjectData = (data) => {
     let layers = [];
@@ -349,19 +284,6 @@ export default class ProjectStore extends BaseStore {
       this.popcorn.play();
     }
   };
-
-  @action
-  orderItems = (items, updateTracks) => items.map((track, index) => {
-    track.defaultName = `Layer ${index}`;
-    if (updateTracks) {
-      const zindex = MAX_ZINDEX - index;
-      track.trackEvents.forEach(element => {
-        this.update(element, { zindex });
-      });
-    }
-    track.order = index;
-    return track;
-  });
 
   @action
   addLayer = () => {
