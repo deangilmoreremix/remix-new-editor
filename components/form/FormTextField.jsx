@@ -18,6 +18,7 @@ export default function FormTextField({
   className,
   placeholder,
   value,
+  name,
 }) {
   const conditionalProps = {};
 
@@ -42,7 +43,7 @@ export default function FormTextField({
       </InputLabel>
             <TextField
               key="input-key"
-              id={label}
+              id={name}
               className={classnames(inputClassName,
                 type === 'input' && 'text-input',
                 type === 'number' && 'text-input',
@@ -53,6 +54,9 @@ export default function FormTextField({
               type={type}
               disabled={disabled}
               {...conditionalProps}
+              min={0}
+              max={100}
+              name={name}
             />
     </FormGroup>
   );
@@ -61,6 +65,7 @@ export default function FormTextField({
 FormTextField.propTypes = {
   onChange: PropTypes.func,
   label: PropTypes.string,
+  name: PropTypes.string,
   onEnter: PropTypes.func,
   disabled: PropTypes.bool,
   inputType: PropTypes.string,

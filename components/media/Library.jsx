@@ -14,6 +14,7 @@ import { LibrarySpinner, LoaderCircle } from './Loader';
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
+import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 
 const Library = observer(() => {
   const uiStore = useUIStore();
@@ -154,7 +155,8 @@ const Library = observer(() => {
 
   const onSelect = async (item) => {
     setIsLoading(true);
-    await projectStore.addElement(tab, item);
+    item.type = MEDIA_TYPES[tab];
+    await projectStore.addElement(item);
     setIsLoading(false);
   };
 

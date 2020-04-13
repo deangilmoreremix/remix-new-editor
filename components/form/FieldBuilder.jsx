@@ -1,43 +1,24 @@
 import React from 'react';
+
 import PropTypes from '../../lib/PropTypes';
+import { INPUT, INPUT_ELEMENTS } from '../../lib/constants/forms';
 
-import FormColor from './FormColor';
-import FormRadioButton from './FormRadioButton';
-import FormTextField from './FormTextField';
-import FormSelect from './FormSelect';
-import FormList from './FormList';
-import FormCheckboxField from './FormCheckboxField';
-import FormSlider from './FormSlider';
-import AngleInput from './AngleInput';
-import FormTextArea from './FormTextArea';
-import TimeInput from './TimeInput';
+const FieldBuilder = ({ onChange, value, ...props }) => {
+  const { name, type } = props;
 
-const inputs = {
-  timeInput: TimeInput,
-  inputTextRotation: AngleInput,
-  textarea: FormTextArea,
-  input: FormTextField,
-  time: FormTextField,
-  number: FormTextField,
-  color: FormColor,
-  radio: FormRadioButton,
-  select: FormSelect,
-  list: FormList,
-  checkbox: FormCheckboxField,
-  slider: FormSlider,
-};
-
-const FieldBuilder = (props) => {
-  const { name, type, onChange } = props;
-
-  const handleChangeField = value => {
-    onChange({ [name]: value });
+  const handleChangeField = val => {
+    onChange({ [name]: val });
   };
 
-  const InputComponent = inputs[type];
+  const InputComponent = React.useMemo(() => {
+    if (INPUT_ELEMENTS[type]) {
+      return INPUT_ELEMENTS[type];
+    }
+    return INPUT_ELEMENTS[INPUT];
+  }, []);
 
   return (
-    <InputComponent {...props} onChange={handleChangeField} />
+    <InputComponent {...props} value={value} onChange={handleChangeField} />
   );
 };
 
@@ -45,6 +26,7 @@ FieldBuilder.propTypes = {
   type: PropTypes.string,
   onChange: PropTypes.func,
   name: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
 };
 
 export default FieldBuilder;

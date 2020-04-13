@@ -9,17 +9,16 @@ import { DEFAULT_SETTINGS } from '../../lib/constants/settings';
 const SettingsModal = observer(({ options, setHeader, elementId }) => {
   const [activeTab, setTab] = React.useState(0);
 
-  const store = useProjectStore();
-  const { addElement, editElement, releaseElement } = store;
-
+  const { addElement, editElement, releaseElement } = useProjectStore();
   React.useEffect(() => {
-    if (options && options.header) {
-      setHeader({ ...options.header, activeTab, setTab, onClose: () => releaseElement() });
+    const { header, type } = options || {};
+    if (header) {
+      setHeader({ ...header, activeTab, setTab, onClose: () => releaseElement() });
     }
     if (elementId) {
       editElement(elementId);
     } else {
-      addElement(DEFAULT_SETTINGS[options.type]);
+      addElement(DEFAULT_SETTINGS[type]);
     }
   }, []);
 
@@ -36,7 +35,9 @@ SettingsModal.propTypes = {
   options: PropTypes.shape({
     type: PropTypes.string.isRequired,
     header: PropTypes.shape({
-      tabs: PropTypes.arrayOf(PropTypes.string),
+      tabs: PropTypes.arrayOf(PropTypes.shape({
+        label: PropTypes.string,
+      })),
     }),
   }).isRequired,
   elementId: PropTypes.number,

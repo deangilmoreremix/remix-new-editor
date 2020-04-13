@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import * as React from 'react';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../lib/PropTypes';
@@ -11,21 +11,20 @@ const SettingsContainer = observer(({ tab, type }) => {
     [type],
   );
 
-  const {
-    findElement,
-    activeElementId,
-    findAndUpdate,
-  } = useProjectStore();
+  const { findElement, activeElementId, findAndUpdate, form } = useProjectStore();
+  const element = React.useMemo(
+    () => findElement(activeElementId),
+    [activeElementId],
+  );
 
-  const element = useMemo(() => findElement(activeElementId), [activeElementId]);
-
-  const updateElement = useCallback((newOptions) => {
+  const updateElement = React.useCallback((newOptions) => {
     findAndUpdate(activeElementId, newOptions);
   }, [activeElementId]);
 
   return (
     <SettingsComponent
       tab={tab}
+      form={form}
       element={element}
       update={updateElement}
     />

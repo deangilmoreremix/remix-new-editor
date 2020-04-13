@@ -9,17 +9,17 @@ import { TIME_DISPLAY_FORMAT } from '../../lib/constants/formats';
 const DEFAULT_TIME_VALUE = '0:00:00';
 
 const TimeInput = ({
-                     name,
-                     label,
-                     onChange,
-                     onEnter,
-                     disabled,
-                     inputClassName,
-                     labelClassName,
-                     className,
-                     placeholder,
-                     value,
-                   }) => {
+  name,
+  label,
+  onChange,
+  onEnter,
+  disabled,
+  inputClassName,
+  labelClassName,
+  className,
+  placeholder,
+  value,
+}) => {
   const conditionalProps = {};
 
   if (onEnter) {
@@ -37,7 +37,10 @@ const TimeInput = ({
   };
 
   const formattedValue = seconds => {
-    if (!seconds) return DEFAULT_TIME_VALUE;
+    if (!seconds) {
+      return DEFAULT_TIME_VALUE;
+    }
+
     const duration = moment.duration({ seconds });
     return moment({ minutes: 0, seconds: 0 }).add(duration).format(TIME_DISPLAY_FORMAT);
   };

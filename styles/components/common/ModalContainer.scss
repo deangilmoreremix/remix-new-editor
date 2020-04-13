@@ -1,0 +1,8 @@
+.modal-container {
+  top: 0;
+
+  &__content {
+    background: $dark-twinlight;
+    color: $white;
+  }
+}
