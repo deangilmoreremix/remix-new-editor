@@ -691,7 +691,7 @@ export default class ProjectStore extends BaseStore {
       console.error('Error ', e);
     }
     return this.item;
-  }
+  };
 
   updateAnimation = (animationName, type) => {
     const animation = {
