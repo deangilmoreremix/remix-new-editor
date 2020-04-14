@@ -16,13 +16,16 @@
 @import "components/Personalization";
 @import "components/Media";
 @import "components/MediaLibrary";
-@import "components/common/Library";
+@import "components/Layout";
 
 @import "components/modals/index";
 @import "components/modals/SocialCampaignModal";
 
 @import "components/common/index";
 @import "components/common/Toolbar";
+@import "components/common/Library";
+@import "components/common/ModalContainer";
+@import "components/common/UserBox";
 
 @import "components/campaigns/index";
 

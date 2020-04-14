@@ -21,7 +21,7 @@ class SocialPublisherModal extends Component {
 }
 
 SocialPublisherModal.propTypes = {
-  updateTitle: PropTypes.func.isRequired,
+  setHeader: PropTypes.func.isRequired,
   handleClose: PropTypes.func.isRequired,
 };
 

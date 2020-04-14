@@ -1,6 +1,6 @@
 import { observable, action } from 'mobx';
 
-export default class UI {
+export default class UIStore {
   @observable libraryType = null;
 
   @observable animationType = null;

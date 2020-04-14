@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
 
-import PropTypes from '../../lib/PropTypes';
 import { USER_ITEMS, tabItems, perPage } from '../../lib/constants/library';
 import mediaConstants from '../../lib/constants/media';
 import { showError } from '../../lib/services/alertService';
@@ -12,12 +11,13 @@ import ProviderList from '../common/library/ProviderList';
 import LibraryContent from '../common/library/LibraryContent';
 import { LibrarySpinner, LoaderCircle } from './Loader';
 
-import useUI from '../hooks/useUIStore';
+import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
+import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 
 const Library = observer(() => {
-  const uiStore = useUI();
+  const uiStore = useUIStore();
   const { libraryType: tab } = uiStore;
 
   // =============== STATE ===============
@@ -155,21 +155,14 @@ const Library = observer(() => {
 
   const onSelect = async (item) => {
     setIsLoading(true);
-    await projectStore.addElement(tab, item);
+    item.type = MEDIA_TYPES[tab];
+    await projectStore.addElement(item);
     setIsLoading(false);
   };
 
   const onDelete = (id) => {
-    const newArr = items.filter(item => {
-      if (item._id !== id) {
-        return item;
-      } else {
-        return setDeletedItems([
-          ...deletedItems,
-          item._id,
-        ]);
-      }
-    });
+    const newArr = items.filter(item => item._id !== id);
+    setDeletedItems([...deletedItems, id]);
     setItems(newArr);
   };
 
@@ -265,12 +258,5 @@ const Library = observer(() => {
   );
 });
 
-Library.propTypes = {
-  tab: PropTypes.string,
-};
-
-Library.defaultProps = {
-  tab: Object.keys(tabItems)[0],
-};
 
 export default Library;

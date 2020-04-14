@@ -1,3 +1,8 @@
+.main {
+  .controls {
+    padding-top: $menu-height;
+  }
+}
 .home {
   background: $dark-twinlight;
   min-height: 100vh;
@@ -5,3 +10,4 @@
   padding-right: 0;
   color: $white;
 }
+

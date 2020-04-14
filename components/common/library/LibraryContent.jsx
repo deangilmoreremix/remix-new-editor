@@ -5,7 +5,7 @@ import classnames from 'classnames';
 import { useDropzone } from 'react-dropzone';
 
 import PropTypes from '../../../lib/PropTypes';
-import { USER_ITEMS, TAB_NAMES } from '../../../lib/constants/library';
+import { USER_ITEMS, LIBRARY_TABS } from '../../../lib/constants/library';
 import mediaConstants from '../../../lib/constants/media';
 
 import trashIcon from '../../../public/static/svgImages/trash.svg';
@@ -39,7 +39,7 @@ const LibraryContent = (props) => {
 
   const Element = (item) => {
     switch (type) {
-      case TAB_NAMES.VIDEO: {
+      case LIBRARY_TABS.VIDEO: {
         return <video src={item.url}><track /></video>;
       } default: {
         return <img src={item.url} alt={item.title} />;

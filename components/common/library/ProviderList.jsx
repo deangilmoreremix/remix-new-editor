@@ -24,8 +24,10 @@ const ProviderList = (props) => {
               key={libraryProviders[element].name}
               className={classnames(
                 'library__btn-item',
-                { 'library__btn-active': activeItem === element },
-                { 'library__btn-user': element === USER_ITEMS },
+                {
+                  'library__btn-active': activeItem === element,
+                  'library__btn-user': element === USER_ITEMS,
+                },
               )}
               onClick={() => handleButtonClick(element)}
             >

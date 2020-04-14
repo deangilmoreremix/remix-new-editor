@@ -6,6 +6,8 @@ module.exports = {
     'class-methods-use-this': 0,
     'consistent-return': 0,
     'function-paren-newline': 0,
+    'jsx-a11y/alt-text': 0,
+    'jsx-a11y/media-has-caption': 0,
     'jsx-a11y/media-has-caption': 0,
     'jsx-a11y/anchor-is-valid': 0,
     "jsx-a11y/label-has-associated-control" : 0,

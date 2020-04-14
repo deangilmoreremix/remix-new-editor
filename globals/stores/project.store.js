@@ -1,12 +1,16 @@
-import { observable, action, computed, reaction } from 'mobx';
+import { observable, action, computed, reaction, runInAction } from 'mobx';
 import arrayMove from 'array-move';
 
 import BaseStore from './base.store';
 
-import { EMAIL_SKIP_TOKENS } from '../../lib/constants/campaigns/constants';
+import {
+  EMAIL_SKIP_TOKENS,
+} from '../../lib/constants/campaigns/constants';
 import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
-import { MEDIA_TYPES, SEQUENCER } from '../../lib/constants/popcorn';
+import { SEQUENCER } from '../../lib/constants/popcorn';
+
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
+import { isLayerFulfilled } from '../../lib/utils/project';
 
 const defaultLayer = {
   name: '',
@@ -52,6 +56,8 @@ const mockPersonalizations = ['FIRSTNAME', 'LASTNAME', 'GENDER', 'FIRSTNAME', 'G
 
 const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
 
+const DEFAULT_DURATION = 5;
+
 export default class ProjectStore extends BaseStore {
   @observable activeElementId;
 
@@ -62,6 +68,8 @@ export default class ProjectStore extends BaseStore {
   @observable isLoaded = false;
 
   @observable isPlayed = false;
+
+  @observable isLoading = false;
 
   @observable projectData = {};
 
@@ -88,59 +96,70 @@ export default class ProjectStore extends BaseStore {
 
   @observable time = 0;
 
-  @action
-  addElement = async (type, item) => {
+  setElementOptions = async (item) => {
     const options = {};
-    type = MEDIA_TYPES[type] || type;
+    options.start = item.start || (this.time / SANTISECOND);
+    options.end = item.end || options.start + DEFAULT_DURATION;
+    options.id = `0.${this.generateUid()}`;
+    options.zindex = MAX_ZINDEX;
 
-    const start = item.start || (this.time / SANTISECOND);
-    let { end } = item;
+    switch (item.type) {
+      case SEQUENCER: {
+        const source = (item.extra && item.extra.source) || [item.url];
+        const videoMeta = await this.mediaTypeDetector.getMetadata(source[0]);
+        options.end = options.start + videoMeta.duration;
+        options.source = source;
+        options.title = videoMeta.title;
+        options.duration = videoMeta.duration;
+        options.from = options.start;
+        options.contentType = videoMeta.contentType;
+        break;
+      }
+      default:
+        break;
+    }
+    return options;
+  };
+
+  @action
+  addElement = async (item) => {
+    const { type } = item;
 
     if (this.isPlayed) {
       this.playPause();
     }
 
-    if (type === SEQUENCER) {
-      const source = (item.extra && item.extra.source) || [item.url];
-      const videoMeta = await this.mediaTypeDetector.getMetadata(source[0]);
-      end = start + videoMeta.duration;
-      options.source = source;
-      options.title = videoMeta.title;
-      options.duration = videoMeta.duration;
-      options.from = start;
-      options.contentType = videoMeta.contentType;
-    }
+    const options = await this.setElementOptions(item);
 
+    // get first track
     let track = this.layers[0];
     const layerElements = this.elements.filter(element => element.track === track.id);
-
-    const layerIsClosed = layerElements
-      .some(({ popcornOptions: { start: itemStart, end: itemEnd } }) => !(((itemEnd >= end)
-        && (itemStart >= end)) || ((itemStart <= start) && (itemEnd <= start))));
-    if (layerIsClosed) {
+    if (isLayerFulfilled(options, layerElements)) {
       this.addLayer();
       [track] = this.layers;
     }
 
-    const zindex = MAX_ZINDEX - track.order;
-    const id = `0.${this.generateUid()}`;
-
     const element = {
-      id,
+      id: options.id,
       type,
       track: track.id,
-      name: id,
-      popcornOptions: { id, ...item, ...options, start, end, zindex },
+      name: options.id,
+      popcornOptions: { ...item, ...options },
     };
 
-    this.addPopcornElement(element);
+    this.addElementToProject(element);
 
-    if (end > this.duration / SANTISECOND) {
-      this.recompressProject(end);
-      this.popcorn.duration(end);
+    // update duration
+    if (options.end > this.duration / SANTISECOND) {
+      this.recompressProject(options.end);
+      this.popcorn.duration(options.end);
       this.duration = this.popcorn.duration() * SANTISECOND;
     }
+
+    // update timeline
     this.elements = [element, ...this.elements];
+
+    this.editElement(element.id);
   };
 
   @action
@@ -153,14 +172,97 @@ export default class ProjectStore extends BaseStore {
     this.activeElementId = null;
   };
 
-  updateAnimation = (animationName, type) => {
-    const animation = {
-      [type]: {
-        type: animationName,
-        duration: 1,
-      },
-    };
-    this.findAndUpdate(this.activeElementId, { animation });
+  @computed
+  get form() {
+    if (!this.activeElementId) {
+      return null;
+    }
+    const element = this.popcorn.getTrackEvent(this.activeElementId);
+    return element && element.form;
+  }
+
+  @action
+  findElement = (elementId) => {
+    let element = null;
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.id === elementId) {
+            element = trackEvent;
+          }
+        });
+      });
+    });
+    return element;
+  };
+
+  @action
+  findAndUpdate = (elementId, options) => {
+    this.modified = true;
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.id === elementId) {
+            trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
+          }
+        });
+      });
+    });
+
+    const { start, end } = options;
+    this.elements.forEach(element => {
+      if (element.id === elementId) {
+        element.popcornOptions = {
+          ...element.popcornOptions,
+          ...(start && start !== element.start ? { start } : {}),
+          ...(end && end !== element.end ? { end } : {}),
+        };
+      }
+    });
+
+    this.updatePopcorn(elementId, options);
+  };
+
+  @action
+  updatePopcorn = (element, options) => {
+    const elementId = (element && element.id) || element;
+    const trackEvent = this.popcorn.getTrackEvent(elementId);
+    // eslint-disable-next-line no-underscore-dangle
+    if (trackEvent && trackEvent._natives._update) {
+      // _natives and _update is popcorn functions
+      // eslint-disable-next-line no-underscore-dangle
+      trackEvent._natives._update(trackEvent, options);
+    }
+  };
+
+  generatePopcornObject = () => {
+    let popcornObject = {};
+    this.projectData.media.forEach((currentMedia) => {
+      // We expect a string (one url) or an array of url strings.
+      // Turn a single url into an array of 1 string.
+      const mediaUrls = typeof currentMedia.url === 'string' ? [currentMedia.url] : currentMedia.url;
+      const mediaUrlsString = `[ '${mediaUrls.join('')}' ]`;
+
+      const mediaPopcornOptions = currentMedia.popcornOptions || {};
+      // Force the Popcorn instance we generate to have an ID we can query.
+      mediaPopcornOptions.id = 'Butter-Generated';
+
+      const popcornData = {
+        target: currentMedia.target,
+        mediaUrlsString,
+        popcornElements: [],
+      };
+
+      currentMedia.tracks.forEach((currentTrack) => {
+        currentTrack.trackEvents.forEach((currentTrackEvent) => {
+          popcornData.popcornElements.push({
+            ...currentTrackEvent,
+          });
+        });
+      });
+      popcornObject = popcornData;
+    });
+    return popcornObject;
   };
 
   @action
@@ -195,36 +297,6 @@ export default class ProjectStore extends BaseStore {
     this.projectData = projectData;
   };
 
-  generatePopcornObject = () => {
-    let popcornObject = {};
-    this.projectData.media.forEach((currentMedia) => {
-      // We expect a string (one url) or an array of url strings.
-      // Turn a single url into an array of 1 string.
-      const mediaUrls = typeof currentMedia.url === 'string' ? [currentMedia.url] : currentMedia.url;
-      const mediaUrlsString = `[ '${mediaUrls.join('')}' ]`;
-
-      const mediaPopcornOptions = currentMedia.popcornOptions || {};
-      // Force the Popcorn instance we generate to have an ID we can query.
-      mediaPopcornOptions.id = 'Butter-Generated';
-
-      const popcornData = {
-        target: currentMedia.target,
-        mediaUrlsString,
-        popcornElements: [],
-      };
-
-      currentMedia.tracks.forEach((currentTrack) => {
-        currentTrack.trackEvents.forEach((currentTrackEvent) => {
-          popcornData.popcornElements.push({
-            ...currentTrackEvent,
-          });
-        });
-      });
-      popcornObject = popcornData;
-    });
-    return popcornObject;
-  };
-
   @computed
   get popcornObject() {
     return this.generatePopcornObject();
@@ -232,7 +304,6 @@ export default class ProjectStore extends BaseStore {
 
   @action
   moveElements = (oldIndex, newIndex) => {
-    this.modified = true;
     this.projectData.media.forEach((media) => {
       const topElements = media.tracks[oldIndex].trackEvents;
       const bottomElements = media.tracks[newIndex].trackEvents;
@@ -243,13 +314,13 @@ export default class ProjectStore extends BaseStore {
       topElements.forEach(element => {
         if (!this.isAudio(element)) {
           element.popcornOptions.zindex = topZIndex;
-          this.update(element, { zindex: topZIndex });
+          this.updatePopcorn(element, { zindex: topZIndex });
         }
       });
       bottomElements.forEach(element => {
         if (!this.isAudio(element)) {
           element.popcornOptions.zindex = bottomZIndex;
-          this.update(element, { zindex: bottomZIndex });
+          this.updatePopcorn(element, { zindex: bottomZIndex });
         }
       });
     });
@@ -277,7 +348,7 @@ export default class ProjectStore extends BaseStore {
     if (updateTracks) {
       const zindex = MAX_ZINDEX - index;
       track.trackEvents.forEach(element => {
-        this.update(element, { zindex });
+        this.updatePopcorn(element, { zindex });
       });
     }
     track.order = index;
@@ -293,7 +364,7 @@ export default class ProjectStore extends BaseStore {
         const zindex = MAX_ZINDEX - track.order;
         track.trackEvents.forEach(element => {
           element.popcornOptions.zindex = zindex;
-          this.update(element, { zindex });
+          this.updatePopcorn(element, { zindex });
         });
         return track;
       });
@@ -309,10 +380,22 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  removeElement = (id) => {
+    this.modified = true;
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents = track.trackEvents.filter(trackEvent => trackEvent.id !== id);
+        this.popcorn.removeTrackEvent(id);
+      });
+    });
+  };
+
+  @action
   removeLayer = (id) => {
     if (this.layers.length <= 1) {
       return;
     }
+    this.modified = true;
     this.projectData.media.forEach((media) => {
       const removedTrack = media.tracks.find(track => track.id === id);
       if (removedTrack && removedTrack.trackEvents.length) {
@@ -347,17 +430,6 @@ export default class ProjectStore extends BaseStore {
       return track;
     });
   };
-
-  @action
-  removeElement(id) {
-    this.modified = true;
-    this.projectData.media.forEach((media) => {
-      media.tracks.forEach((track) => {
-        track.trackEvents = track.trackEvents.filter(trackEvent => trackEvent.id !== id);
-        this.popcorn.removeTrackEvent(id);
-      });
-    });
-  }
 
   @action
   setLayer = (elementId, newLayerLevel) => {
@@ -410,36 +482,8 @@ export default class ProjectStore extends BaseStore {
         });
       });
     });
-    this.update(elementId, { start, end });
+    this.updatePopcorn(elementId, { start, end });
   };
-
-  @action
-  findAndUpdate = (element, options) => {
-    const elementId = (element && element.id) || element || this.activeElementId;
-    this.modified = true;
-    this.projectData.media.forEach((media) => {
-      media.tracks.forEach((track) => {
-        track.trackEvents.forEach((trackEvent) => {
-          if (trackEvent.id === elementId) {
-            trackEvent.popcornOptions = { ...trackEvent.popcornOptions, options };
-          }
-        });
-      });
-    });
-    this.update(elementId, options);
-  };
-
-  @action
-    update = (element, options) => {
-      const elementId = (element && element.id) || element;
-      const trackEvent = this.popcorn.getTrackEvent(elementId);
-      // eslint-disable-next-line no-underscore-dangle
-      if (trackEvent && trackEvent._natives._update) {
-        // _natives and _update is popcorn functions
-        // eslint-disable-next-line no-underscore-dangle
-        trackEvent._natives._update(trackEvent, options);
-      }
-    };
 
   isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'
         || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
@@ -454,6 +498,7 @@ export default class ProjectStore extends BaseStore {
   @action
   getOne = async (projectId) => {
     if (!projectId) {
+      this.modified = true;
       this.item = defaultItem;
       this.setProjectData(this.item.project.data);
       return this.item;
@@ -510,6 +555,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   updateItem = (value) => {
+    this.modified = true;
     this.item = { ...this.item, ...value };
   };
 
@@ -519,17 +565,15 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  serialize() {
-    return {
-      data: JSON.stringify(this.item),
-      allowedSocials: this.item.allowedSocials,
-      name: this.item.name,
-      editor: 'smart-video',
-      description: this.item.description,
-      thumbnail: this.item.thumbnail,
-      source: this.item.source,
-    };
-  }
+  serializeProject = () => ({
+    data: JSON.stringify(this.projectData),
+    allowedSocials: this.item.allowedSocials,
+    name: this.item.name,
+    editor: 'videotastic',
+    description: this.item.description,
+    thumbnail: this.item.thumbnail,
+    source: this.item.source,
+  });
 
   trailisePauseElements = (projectData) => {
     projectData.media.forEach((media) => {
@@ -545,6 +589,7 @@ export default class ProjectStore extends BaseStore {
     return projectData;
   };
 
+  // todo implement
   @action
   recompressProject = (newDuration) => {
     this.projectData.media.forEach((media) => {
@@ -570,11 +615,12 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addPopcornElement = (trackEvent) => {
-    if (!trackEvent.popcornOptions.target) {
-      trackEvent.popcornOptions.target = this.popcorn && this.popcorn.target;
+  addElementToProject = (trackEvent) => {
+    const { id, popcornOptions } = trackEvent;
+    if (!popcornOptions.target) {
+      popcornOptions.target = this.popcorn && this.popcorn.target;
     }
-    this.popcorn[trackEvent.type]({ id: trackEvent.id, ...trackEvent.popcornOptions });
+    this.popcorn[trackEvent.type]({ id, ...popcornOptions });
     this.projectData.media.forEach((media) => {
       media.tracks[0].trackEvents.push(trackEvent);
     });
@@ -609,33 +655,51 @@ export default class ProjectStore extends BaseStore {
     );
   }
 
-
   @action
   save = async () => {
-    // TODO: should be refactored in https://app.asana.com/0/1134020730337032/1154072706347831
+    if (!this.modified) {
+      return;
+    }
+    this.isLoading = true;
     try {
-      const path = this.item
+      const path = this.item._id
         ? `/api/users/me/makes/${this.item._id}`
         : '/api/users/me/makes';
-      const serializedProject = this.serialize();
-      this.item = await this.request(
+      const serializedData = this.serializeProject();
+      const result = await this.request(
         path, {
-          method: this.item ? 'PATCH' : 'POST',
+          method: this.item._id ? 'PATCH' : 'POST',
           headers: {
             'on-behalf': this.currentUser.id,
           },
           body: {
-            title: serializedProject.name,
-            description: serializedProject.description,
-            project: serializedProject,
-            thumbnail: serializedProject.thumbnail,
-            remixedFrom: serializedProject.source,
+            title: serializedData.name,
+            description: serializedData.description,
+            project: serializedData,
+            thumbnail: serializedData.thumbnail,
+            remixedFrom: serializedData.source,
           },
         });
-      this.modified = false;
-      return this.item;
+      runInAction(() => {
+        this.item = { ...this.item, ...result };
+        this.setProjectData(JSON.parse(this.item.project.data));
+        this.modified = false;
+        this.isLoading = false;
+      });
     } catch (e) {
-      console.error(e);
+      this.isLoading = true;
+      console.error('Error ', e);
     }
+    return this.item;
+  }
+
+  updateAnimation = (animationName, type) => {
+    const animation = {
+      [type]: {
+        type: animationName,
+        duration: 1,
+      },
+    };
+    this.findAndUpdate(this.activeElementId, { animation });
   };
 }
