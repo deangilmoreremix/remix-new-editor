@@ -1,2 +1,114 @@
 @import "SettingsPanel";
 @import "ProducePanel";
+
+.produce {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: $sidebr-bg;
+  margin-left: 2.7rem;
+};
+
+.produce-block {
+  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  padding-right: 3.9rem;
+  padding-left: 1.56rem;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+.produce__tabs {
+  display: flex;
+  align-items: center;
+}
+
+.produce__tab {
+  @include reset-button;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  background: $modal-lightdark-bg;
+  color: $red;
+  font-size: $small;
+  text-transform: uppercase;
+
+  &-active {
+    background: $scrollbarColor;
+    color: #fff;
+  }
+}
+
+
+@media screen and (max-width: $xl) {
+  .settings__row-block:first-child {
+    width: 45%;
+  }
+
+  .settings__inputs {
+    &:first-child {
+      width: 100%;
+      margin-right: 0;
+    }
+  }
+
+  .settings-input label {
+    width: 17%;
+  }
+}
+
+@media screen and (max-width: $lg) {
+  .settings-input {
+    flex-direction: column !important;
+
+    input, textarea {
+      width: 100%;
+    }
+  }
+
+  .settings__row-block {
+    &:first-child {
+      width: 100%;
+      padding-right: 0;
+      margin-bottom: 1.125rem;
+    }
+  }
+
+  .settings__add-file,
+  .settings__add,
+  .settings-panel-text,
+  .settings-input>:last-child {
+    width: 100%;
+  }
+
+  .settings-input label {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding-right: 0;
+  }
+
+  .settings-panel-text {
+    margin-bottom: 0.5rem;
+  }
+
+  .settings-allow {
+    .settings-panel-text {
+      margin-bottom: 0;
+    }
+  }
+
+  .produce-panel {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .produce-panel__button {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+}
+
