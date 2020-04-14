@@ -172,15 +172,6 @@ export default class ProjectStore extends BaseStore {
     this.activeElementId = null;
   };
 
-  // @computed
-  // get form() {
-  //   if (!this.activeElementId) {
-  //     return null;
-  //   }
-  //   const element = this.popcorn.getTrackEvent(this.activeElementId);
-  //   return element && element.form;
-  // }
-
   @computed
   get form() {
     if (!this.activeElementId) {
