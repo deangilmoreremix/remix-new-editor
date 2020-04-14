@@ -8,19 +8,31 @@ import PropTypes from '../../../../lib/PropTypes';
 import FieldBuilder from '../../../form/FieldBuilder';
 import svgArrowBottom from '../../../../public/static/svgImages/text/arrow-bottom.svg';
 
-// const resLinkTargetValue = { 'New Tab': '_blank', 'Current Tab': '_parent' };
-// const switchLinkTargetUI = {
-//   _blank: DEFAULT_FIELDS[OPEN_LINK].items[0],
-//   _parent: DEFAULT_FIELDS[OPEN_LINK].items[1],
-// };
-
 const Basic = ({ values, fields, onChange }) => {
   const [additionalOptions, setAdditionalOptions] = useState(false);
 
   const isValuePresent = val => (val !== undefined ? val : fields[val].default);
 
-  const handleChangeLinkTarget = () => {
-    // onChange({ linkTarget: resLinkTargetValue[e.linkTarget] });
+  const valueLinkTarget = (linkTarget) => {
+    switch (linkTarget) {
+      case fields.linkTarget.values[1]:
+        return fields.linkTarget.items[1];
+      default:
+        return fields.linkTarget.items[0];
+    }
+  };
+
+  const handleChangeLinkTarget = (e) => {
+    switch (e.linkTarget) {
+      case fields.linkTarget.items[0]:
+        onChange({ linkTarget : fields.linkTarget.values[0] });
+        break;
+      case fields.linkTarget.items[1]:
+        onChange({ linkTarget: fields.linkTarget.values[1] });
+        break;
+      default:
+        return;
+    }
   };
 
   return (
@@ -59,8 +71,6 @@ const Basic = ({ values, fields, onChange }) => {
         <button className="btn-personalize">Personalize</button>
         <FontAwesomeIcon icon={faQuestionCircle} className="fa-inverse" />
       </div>
-      {/* eslint-disable-next-line max-len */}
-      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions,jsx-a11y/click-events-have-key-events */}
       <div
         className="container-icon-arrow"
         onClick={() => setAdditionalOptions(!additionalOptions)}
@@ -100,7 +110,7 @@ const Basic = ({ values, fields, onChange }) => {
             <div className="container-open-link">
               <span>Open Link In</span>
               <FieldBuilder
-                value={isValuePresent(values.linkTarget)}
+                value={valueLinkTarget(values.linkTarget)}
                 {...fields.linkTarget}
                 name={fields.linkTarget.name}
                 onChange={handleChangeLinkTarget}
