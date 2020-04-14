@@ -16,7 +16,7 @@ import { LibrarySpinner } from '../../media/Loader';
 import TagsFormInput from '../../form/TagsFormInput';
 import DropzoneArea from '../../media/DropzoneArea';
 
-const Test = observer(() => {
+const SettingPanel = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
 
   const { item, updateItem } = useProjectStore();
@@ -158,4 +158,4 @@ const Test = observer(() => {
   );
 });
 
-export default Test;
+export default SettingPanel;

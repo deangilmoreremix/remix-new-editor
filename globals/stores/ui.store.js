@@ -6,7 +6,8 @@ export default class UIStore {
   @observable wideWindow = false;
 
   @action
-  setLibraryType = (type) => {
+  setLibraryType = (type, isWideWindow = false) => {
+    this.wideWindow = isWideWindow;
     this.libraryType = type;
   };
 
