@@ -9,7 +9,7 @@ import classnames from 'classnames';
 import PropTypes from '../../lib/PropTypes';
 import FormTextField from './FormTextField';
 
-const FormColor = ({ label, onChange, value: color }) => {
+const FormColor = ({ label, onChange, value: color, className }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const open = Boolean(anchorEl);
@@ -46,8 +46,9 @@ const FormColor = ({ label, onChange, value: color }) => {
       a: +components[3],
     };
   };
+  console.log(label);
   return (
-    <FormGroup>
+    <FormGroup className={className}>
       <Box>
         <FormLabel key="label-key" className="form-control-label">{label}</FormLabel>
       </Box>
@@ -91,6 +92,7 @@ FormColor.propTypes = {
   onChange: PropTypes.func,
   label: PropTypes.string,
   value: PropTypes.string,
+  className: PropTypes.string,
 };
 
 FormColor.defaultProps = {

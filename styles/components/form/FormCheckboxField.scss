@@ -14,10 +14,23 @@
   }
 }
 
+.MuiBox-root:not(:first-child) {
+  height: 2.065rem;
+}
+
+button.color-element {
+  height: 100% !important;
+  top: -2.1rem !important;
+}
+
 .checkbox-element {
   cursor: pointer;
   align-items: center;
   justify-content: flex-start;
+
+  .checkmark .MuiIconButton-label {
+    margin: 0;
+  }
 
   button {
     @include reset-button;

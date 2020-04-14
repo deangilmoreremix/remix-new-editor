@@ -85,11 +85,15 @@ const SettingPanel = observer(() => {
           className="settings-input"
           labelClassName="settings-panel-text"
           placeholder="A project about ..."
+          type="text"
+          rowsMin={7}
+          rowsMax={7}
         />
         <FormColor
           onChange={update('background')}
           value={item.background}
           label="Background Color"
+          className="settings-formcolor"
         />
       </div>
       <div className="settings__inputs">
