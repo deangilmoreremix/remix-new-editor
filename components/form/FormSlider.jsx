@@ -1,9 +1,9 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
 import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
 import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
@@ -58,9 +58,11 @@ const FormSlider = props => {
 
   return (
     <div className={classnames(classes.root, containerClass)}>
-      <Typography id="input-slider" gutterBottom>
+      <InputLabel
+        className={classnames('form-control-label')}
+      >
         {label}
-      </Typography>
+      </InputLabel>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs>
           <Slider
@@ -77,7 +79,6 @@ const FormSlider = props => {
               <Input
                 className={classnames(classes.input, inputClass)}
                 value={value}
-                margin="dense"
                 onChange={handleInputChange}
                 onBlur={handleBlur}
                 inputProps={{

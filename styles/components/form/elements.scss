@@ -4,6 +4,7 @@
   box-shadow: none;
   font-size: 1.2rem;
   width: 100%;
+
   &:active,
   &.focus,
   &:focus {
@@ -12,17 +13,13 @@
   }
 }
 
-.form-control-label {
-  font-size: 1.2rem;
-  margin-bottom: 0.3rem;
+label.form-control-label {
+  font-size: $small;
+  color: $white;;
 }
 
 .form-group {
   .col {
     margin-bottom: 0.2em;
   }
-}
-
-.inline {
-
 }
