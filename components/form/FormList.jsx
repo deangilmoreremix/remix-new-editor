@@ -1,6 +1,4 @@
-// TODO: should be removed after a new component is created instead this one
 import React, { useState } from 'react';
-
 import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import FormGroup from '@material-ui/core/FormGroup';
