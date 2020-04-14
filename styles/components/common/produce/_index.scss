@@ -10,7 +10,7 @@
 };
 
 .produce-block {
-  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+  @include tiny-scrollbar;
   display: flex;
   flex: 1;
   flex-wrap: wrap;
