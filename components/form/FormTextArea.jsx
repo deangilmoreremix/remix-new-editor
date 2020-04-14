@@ -45,7 +45,7 @@ FormTextArea.propTypes = {
   className: PropTypes.string,
   textAreaClassName: PropTypes.string,
   placeholder: PropTypes.string,
-  rows: PropTypes.number,
+  rows: PropTypes.string,
   variant: PropTypes.string,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
 };

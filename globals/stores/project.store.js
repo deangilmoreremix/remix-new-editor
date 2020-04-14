@@ -139,14 +139,12 @@ export default class ProjectStore extends BaseStore {
       [track] = this.layers;
     }
 
-    const { popcornOptions } = item
-
     const element = {
       id: options.id,
       type,
       track: track.id,
       name: options.id,
-      popcornOptions: { ...popcornOptions, ...options },
+      popcornOptions: { ...item, ...options },
     };
 
     this.addElementToProject(element);
@@ -189,7 +187,7 @@ export default class ProjectStore extends BaseStore {
       return null;
     }
     const element = this.popcorn.getTrackEvent(this.activeElementId);
-    const options = element._natives.manifest.options;
+    const { options } = element._natives.manifest;
     const resultOptions = {};
     if (options) {
       Object.keys(options).forEach((fieldName) => {

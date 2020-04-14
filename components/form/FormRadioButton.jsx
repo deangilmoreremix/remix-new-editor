@@ -24,8 +24,8 @@ const FormRadioButton = (props) => {
       >
         {items.map((item) => (
           <FormControlLabel
-            key={item.label}
-            value={item.label}
+            key={item}
+            value={item}
             control={(
               <Radio
                 disableRipple

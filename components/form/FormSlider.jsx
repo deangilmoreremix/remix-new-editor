@@ -18,11 +18,9 @@ const FormSlider = props => {
     inputWidth,
     minValue,
     maxValue,
-    componentClasses: {
-      containerClass,
-      sliderClass,
-      inputClass,
-    },
+    containerClass,
+    sliderClass,
+    inputClass,
   } = props;
 
   const useStyles = makeStyles({
@@ -105,18 +103,15 @@ FormSlider.propTypes = {
   minValue: PropTypes.number,
   withoutInput: PropTypes.bool,
   maxValue: PropTypes.number,
-  componentClasses: PropTypes.shape({
-    containerClass: PropTypes.string,
-    sliderClass: PropTypes.string,
-    inputClass: PropTypes.string,
-  }),
+  containerClass: PropTypes.string,
+  sliderClass: PropTypes.string,
+  inputClass: PropTypes.string,
 };
 
 FormSlider.defaultProps = {
   label: '',
   maxValue: 100,
   minValue: 0,
-  componentClasses: {},
   value: 0,
 };
 

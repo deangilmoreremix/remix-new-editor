@@ -23,15 +23,19 @@ const FormSelect = props => {
   return (
     <FormGroup>
       <Box>
-        <InputLabel
-          className={classnames(labelClassName)}
-        >
-          {label}
-        </InputLabel>
+        {
+          label && (
+            <InputLabel
+              className={classnames(labelClassName)}
+            >
+              {label}
+            </InputLabel>
+          )
+        }
         <Select
           className={classnames('select-element', selectClassName)}
           classNamePrefix="select"
-          value={value}
+          defaultValue={value}
           onChange={handleChange}
           options={items}
         />
@@ -42,17 +46,20 @@ const FormSelect = props => {
 
 FormSelect.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
+    label: PropTypes.string.isRequired,
     value: PropTypes.string.isRequired,
   })).isRequired,
   labelClassName: PropTypes.string,
   selectClassName: PropTypes.string,
-  value: PropTypes.string,
+  value: PropTypes.shape({
+    value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+  }),
   label: PropTypes.string,
   onChange: PropTypes.func.isRequired,
 };
 
 FormSelect.defaultProps = {
-  label: 'label',
   labelClassName: 'select-label-top',
 };
 
