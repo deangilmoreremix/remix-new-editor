@@ -46,7 +46,7 @@ const FormColor = ({ label, onChange, value: color, className }) => {
       a: +components[3],
     };
   };
-  console.log(label);
+
   return (
     <FormGroup className={className}>
       <Box>

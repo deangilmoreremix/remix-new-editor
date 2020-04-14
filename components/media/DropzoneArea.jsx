@@ -64,39 +64,7 @@ const DropzoneArea = (
     disabled: false,
   });
 
-  if (inline === 'big') {
-    return (
-      <div {...getRootProps()} className={classnames('dropzone-container', className)}>
-        <input {...getInputProps()} disabled={isDisabled} multiple={multiple} />
-        <div className={classnames('dropzone-placeholder', { drag: isDragActive })}>
-          <SVGInline
-            component="div"
-            className="dropzone-placeholder-item"
-            classSuffix="-inline"
-            svg={svgAudio}
-            cleanup={['title']}
-          />
-          <SVGInline
-            component="div"
-            className="dropzone-placeholder-item"
-            classSuffix="-inline"
-            svg={svgVideo}
-            cleanup={['title']}
-          />
-          <SVGInline
-            component="div"
-            className="dropzone-placeholder-item"
-            classSuffix="-inline"
-            svg={svgImage}
-            cleanup={['title']}
-          />
-          {isDragActive && <div className="overlay" />}
-        </div>
-      </div>
-    );
-  }
-
-  if (inline === 'small') {
+  if (inline) {
     return (
       <div
         {...getRootProps()}
@@ -129,10 +97,40 @@ const DropzoneArea = (
       </div>
     );
   }
+
+  return (
+    <div {...getRootProps()} className={classnames('dropzone-container', className)}>
+      <input {...getInputProps()} disabled={isDisabled} multiple={multiple} />
+      <div className={classnames('dropzone-placeholder', { drag: isDragActive })}>
+        <SVGInline
+          component="div"
+          className="dropzone-placeholder-item"
+          classSuffix="-inline"
+          svg={svgAudio}
+          cleanup={['title']}
+        />
+        <SVGInline
+          component="div"
+          className="dropzone-placeholder-item"
+          classSuffix="-inline"
+          svg={svgVideo}
+          cleanup={['title']}
+        />
+        <SVGInline
+          component="div"
+          className="dropzone-placeholder-item"
+          classSuffix="-inline"
+          svg={svgImage}
+          cleanup={['title']}
+        />
+        {isDragActive && <div className="overlay" />}
+      </div>
+    </div>
+  );
 };
 
 DropzoneArea.propTypes = {
-  inline: PropTypes.oneOf(['big', 'small']),
+  inline: PropTypes.bool,
   onUploaded: PropTypes.func.isRequired,
   type: PropTypes.string.isRequired,
   startUpload: PropTypes.func,
@@ -145,7 +143,7 @@ DropzoneArea.propTypes = {
 };
 
 DropzoneArea.defaultProps = {
-  inline: 'small',
+  inline: true,
   multiple: true,
   isArrows: true,
 };

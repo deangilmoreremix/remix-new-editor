@@ -27,7 +27,7 @@ const SettingPanel = observer(() => {
     updateItem({ [field]: value });
   };
 
-  const updateSocials = (social) => (value) => {
+  const updateSocials = (social, value) => {
     if (value && !allowedSocials.some(allowedSocial => allowedSocial === social)) {
       allowedSocials.push(social);
     } else if (!value && allowedSocials.some(allowedSocial => allowedSocial === social)) {
@@ -66,7 +66,6 @@ const SettingPanel = observer(() => {
   });
   // === Drag and Drop ===
 
-  // ToDo Check fields
   return (
     <div className="produce-block settings-panel">
       <div className="settings__inputs">
@@ -109,13 +108,13 @@ const SettingPanel = observer(() => {
           <FormCheckboxField
             label="Facebook"
             value={item.allowedSocials && item.allowedSocials.some(s => s === 'facebook')}
-            onChange={updateSocials('facebook')}
+            onChange={value => updateSocials('facebook', value)}
             floatClassName="settings-checkbox"
           />
           <FormCheckboxField
             label="LinkedIn"
             value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
-            onChange={updateSocials('linkedin')}
+            onChange={value => updateSocials('linkedin', value)}
             floatClassName="settings-checkbox"
           />
         </div>
@@ -146,7 +145,6 @@ const SettingPanel = observer(() => {
           </div>
           <div className="settings__row-block">
             <DropzoneArea
-              inline="small"
               onUploaded={onUploadedImage}
               type={mediaConstants.ASSET_TYPES.IMAGE}
               isDisabled={isDisabledUpload}
