@@ -10,7 +10,11 @@ import svgTextAlignmentLeft from '../../../../public/static/svgImages/text/text-
 import svgTextAlignmentCenter from '../../../../public/static/svgImages/text/text-align-center.svg';
 import svgTextAlignmentRight from '../../../../public/static/svgImages/text/text-align-right.svg';
 
-const itemIcons = [{ icon: svgTextAlignmentLeft }, { icon: svgTextAlignmentCenter }, { icon: svgTextAlignmentRight }];
+const itemIcons = [
+  { icon: svgTextAlignmentLeft },
+  { icon: svgTextAlignmentCenter },
+  { icon: svgTextAlignmentRight },
+];
 
 const Advanced = ({ values, fields, onChange }) => {
   const handleChangeFontDecoration = (field) => (value) => {
@@ -88,32 +92,32 @@ const Advanced = ({ values, fields, onChange }) => {
         </div>
 
       </div>
-        <div className="container-font-color">
-          <FieldBuilder
-            value={values.shadowColor}
-            name={fields.shadowColor.name}
-            {...fields.shadowColor}
-            onChange={onChange}
-          />
-          <FieldBuilder
-            value={values.strokeColor}
-            name={fields.strokeColor.name}
-            {...fields.strokeColor}
-            onChange={onChange}
-          />
-          <FieldBuilder
-            value={values.backgroundColor}
-            name={fields.backgroundColor.name}
-            {...fields.backgroundColor}
-            onChange={onChange}
-          />
-          <FieldBuilder
-            value={values.fontDecorations.responsive}
-            name={fields.fontDecorations.responsive.name}
-            {...fields.fontDecorations.responsive}
-            onChange={handleChangeFontDecoration(fields.fontDecorations.name)}
-          />
-        </div>
+      <div className="container-font-color">
+        <FieldBuilder
+          value={values.shadowColor}
+          name={fields.shadowColor.name}
+          {...fields.shadowColor}
+          onChange={onChange}
+        />
+        <FieldBuilder
+          value={values.strokeColor}
+          name={fields.strokeColor.name}
+          {...fields.strokeColor}
+          onChange={onChange}
+        />
+        <FieldBuilder
+          value={values.backgroundColor}
+          name={fields.backgroundColor.name}
+          {...fields.backgroundColor}
+          onChange={onChange}
+        />
+        <FieldBuilder
+          value={values.fontDecorations.responsive}
+          name={fields.fontDecorations.responsive.name}
+          {...fields.fontDecorations.responsive}
+          onChange={handleChangeFontDecoration(fields.fontDecorations.name)}
+        />
+      </div>
     </Fragment>
   );
 };
@@ -141,9 +145,10 @@ Advanced.propTypes = {
     fontFamily: PropTypes.string,
     fontSize: PropTypes.number,
     fontDecorations: PropTypes.shape({
-      bold: PropTypes.boolean,
-      italics: PropTypes.boolean,
-      responsive: PropTypes.boolean,
+      name: PropTypes.string,
+      bold: PropTypes.object,
+      italics: PropTypes.object,
+      responsive: PropTypes.object,
     }),
     alignment: PropTypes.arrayOf(PropTypes.string),
     fontColor: PropTypes.string,
@@ -153,7 +158,7 @@ Advanced.propTypes = {
     shadowColor: PropTypes.string,
     strokeColor: PropTypes.string,
     backgroundColor: PropTypes.string,
-  })
+  }),
 };
 
 export default Advanced;

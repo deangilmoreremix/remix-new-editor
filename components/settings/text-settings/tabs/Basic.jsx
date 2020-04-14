@@ -80,64 +80,68 @@ const Basic = ({ values, fields, onChange }) => {
         <button className="btn-personalize">Personalize</button>
         <FontAwesomeIcon icon={faQuestionCircle} className="fa-inverse" />
       </div>
-        <div className="container-additional-options">
-          {/* <span>Link Url or Phone number</span> */}
-          <div className="container-link-url">
-            <FieldBuilder
-              value={values && values.linkUrl !== undefined ? values.linkUrl : fields.linkUrl.default}
-              {...fields.linkUrl}
-              name={fields.linkUrl.name}
-              className="input-time-position"
-              onChange={onChange}
-            />
-            <div>
-              <button className="btn-personalize">Personalize</button>
-            </div>
+      <div className="container-additional-options">
+        {/* <span>Link Url or Phone number</span> */}
+        <div className="container-link-url">
+          <FieldBuilder
+            value={values && values.linkUrl !== undefined ? values.linkUrl : fields.linkUrl.default}
+            {...fields.linkUrl}
+            name={fields.linkUrl.name}
+            className="input-time-position"
+            onChange={onChange}
+          />
+          <div>
+            <button className="btn-personalize">Personalize</button>
           </div>
-          <div className="container-email-link">
+        </div>
+        <div className="container-email-link">
+          <FieldBuilder
+            value={values && values.callNotifyAddress !== undefined
+              ? values.callNotifyAddress
+              : fields.callNotifyAddress.default}
+            {...fields.callNotifyAddress}
+            name={fields.callNotifyAddress.name}
+            className="email-notify"
+            labelClassName="email-notify-label"
+            inputClassName="email-notify-input"
+            onChange={onChange}
+          />
+          <div className="container-open-link">
+            <span>Open Link In</span>
             <FieldBuilder
-              value={values && values.callNotifyAddress !== undefined ? values.callNotifyAddress : fields.callNotifyAddress.default}
-              {...fields.callNotifyAddress}
-              name={fields.callNotifyAddress.name}
-              className="email-notify"
-              labelClassName="email-notify-label"
-              inputClassName="email-notify-input"
-              onChange={onChange}
+              value={valueSelect}
+              {...fields.linkTarget}
+              name={fields.linkTarget.name}
+              onChange={setValueSelect}
             />
-            <div className="container-open-link">
-              <span>Open Link In</span>
-              <FieldBuilder
-                value={valueSelect}
-                {...fields.linkTarget}
-                name={fields.linkTarget.name}
-                onChange={setValueSelect}
-              />
-            </div>
-
-          </div>
-          <div className="container-text-transform">
-            <div className="container-text-transform-rotation">
-              <span>Rotation</span>
-              <FieldBuilder
-                value={values && values.rotation !== undefined ? values.rotation : fields.rotation.default}
-                name={fields.rotation.name}
-                {...fields.rotation}
-                onChange={onChange}
-              />
-            </div>
-            <div className="container-text-transform-transition">
-              <span>Transition</span>
-              <button className="btn-library">Open Library</button>
-            </div>
-            <div className="container-text-transform-font">
-              <div>
-                <span>Font Combination</span>
-                <button className="btn-library">Open Library</button>
-              </div>
-            </div>
           </div>
 
         </div>
+        <div className="container-text-transform">
+          <div className="container-text-transform-rotation">
+            <span>Rotation</span>
+            <FieldBuilder
+              value={values && values.rotation !== undefined
+                ? values.rotation
+                : fields.rotation.default}
+              name={fields.rotation.name}
+              {...fields.rotation}
+              onChange={onChange}
+            />
+          </div>
+          <div className="container-text-transform-transition">
+            <span>Transition</span>
+            <button className="btn-library">Open Library</button>
+          </div>
+          <div className="container-text-transform-font">
+            <div>
+              <span>Font Combination</span>
+              <button className="btn-library">Open Library</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </Fragment>
   );
 };

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { observer } from 'mobx-react';
 import { FormFeedback, FormGroup, FormText, Input, Label } from 'reactstrap';
-import { observable, action } from 'mobx';
+import { action } from 'mobx';
 
 import { required, minLength, wrongPattern } from '../../../lib/validators';
 
@@ -23,6 +23,7 @@ const InputFormGroup = observer(({
   handler,
   ...restProps
 }) => {
+  let error = null;
 
   const handleChange = (event) => {
     const { value } = event.target;
