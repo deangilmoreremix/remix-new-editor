@@ -4,7 +4,8 @@ import isEmpty from 'lodash/isEmpty';
 import PropTypes from '../../lib/PropTypes';
 import Lottie from '../../lib/lottie/Lottie';
 import FormColor from '../form/FormColor';
-import { getColors, getDimensions, hexToRgb, toUnitVector } from '../../lib/lottie/utils';
+import { rgbToHex, getColors, getDimensions, toUnitVector } from '../../lib/lottie/utils';
+import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 
 const baseDimension = 150;
 
@@ -26,7 +27,6 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
     if (isEmpty(segments)) {
       anim.play();
     } else {
-      // segments = [3, 7]; // TODO: try to fix segments
       anim.playSegments(segments, true);
     }
   };
@@ -66,19 +66,23 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
   }, [animation]);
 
   const pickColor = (newColor, oldColor) => {
-    const rgb = hexToRgb(newColor);
+    const newRgb = parseRgbaString(newColor);
+    const oldRgb = parseRgbaString(oldColor);
 
     const newColors = colors.map(c => {
-      if (c.color === oldColor) {
-        return { ...c, color: newColor, ...rgb };
+      const shouldUpdate = Object.keys(oldRgb).every(key => c[key] === oldRgb[key]);
+
+      if (shouldUpdate) {
+        const { r, g, b } = newRgb;
+        const hex = rgbToHex(r, g, b);
+        return { ...c, color: hex, ...newRgb };
       }
 
       return c;
     });
-
     setColors(newColors);
   };
-  // TODO: check changing URL in the form
+
   const preparedAnimation = React.useMemo(
     () => {
       const coloredAnimation = { ...animation };
@@ -104,7 +108,15 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
     }
   }, [colors]);
 
-  const showColors = React.useMemo(() => Array.from(new Set(colors.map(c => c.color))), [colors]);
+  const showColors = React.useMemo(() => {
+    const result = new Set();
+
+    colors.forEach(c => {
+      result.add(colorToRgbaString(c));
+    });
+
+    return Array.from(result);
+  }, [colors]);
 
   const options = React.useMemo(() => ({
     loop: false,
