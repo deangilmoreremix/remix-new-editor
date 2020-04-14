@@ -1,9 +1,9 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
 import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
 import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
@@ -18,9 +18,11 @@ const FormSlider = props => {
     inputWidth,
     minValue,
     maxValue,
-    containerClass,
-    sliderClass,
-    inputClass,
+    componentClasses: {
+      containerClass,
+      sliderClass,
+      inputClass,
+    },
   } = props;
 
   const useStyles = makeStyles({
@@ -55,10 +57,12 @@ const FormSlider = props => {
   };
 
   return (
-    <div className={classnames(classes.root, containerClass, 'container-slider')}>
-      <Typography id="input-slider" gutterBottom>
+    <div className={classnames(classes.root, containerClass)}>
+      <InputLabel
+        className={classnames('form-control-label')}
+      >
         {label}
-      </Typography>
+      </InputLabel>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs>
           <Slider
@@ -73,9 +77,8 @@ const FormSlider = props => {
           !withoutInput && (
             <Grid item>
               <Input
-                className={classnames(classes.input, inputClass, 'input-slider-number')}
+                className={classnames(classes.input, inputClass)}
                 value={value}
-                margin="dense"
                 onChange={handleInputChange}
                 onBlur={handleBlur}
                 inputProps={{
@@ -102,15 +105,18 @@ FormSlider.propTypes = {
   minValue: PropTypes.number,
   withoutInput: PropTypes.bool,
   maxValue: PropTypes.number,
-  containerClass: PropTypes.string,
-  sliderClass: PropTypes.string,
-  inputClass: PropTypes.string,
+  componentClasses: PropTypes.shape({
+    containerClass: PropTypes.string,
+    sliderClass: PropTypes.string,
+    inputClass: PropTypes.string,
+  }),
 };
 
 FormSlider.defaultProps = {
   label: '',
   maxValue: 100,
   minValue: 0,
+  componentClasses: {},
   value: 0,
 };
 

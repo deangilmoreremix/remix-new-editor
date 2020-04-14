@@ -50,7 +50,7 @@ div {
   }
 
   &.text-input {
-    height: 2.065rem;
+    min-height: 2.065rem;
     padding-left: 0.546rem;
     background-color: $dark-night;
     outline: none;
@@ -68,21 +68,28 @@ div {
     border: 0.055rem solid $red;
   }
 }
- label {
-   &.label-left, &.label-top {
-     font-family: $font-primary;
-     font-size: 0.765rem;
-     vertical-align: middle;
-     color: $white;
-   }
- }
+
+label {
+  &.label-left,
+  &.label-top,
+  &.select-label-left,
+  &.select-label-top {
+    font-family: $font-primary;
+    font-size: 0.765rem;
+    vertical-align: middle;
+    color: $white;
+  }
+}
 .label-left {
   display: inline-block;
   margin-right: 1.093rem;
+  margin-top: 1rem;
+  margin-bottom: -1.5rem;
 }
 
-.label-left + .text-input {
+.label-left + div.text-input {
   display: inline-block;
+  margin-left: 3rem;
 }
 
 .label-top {

@@ -1,38 +1,79 @@
-.form-container {
+.select-element {
+  min-width: 10rem;
 
-  .form-select, .form-list {
-    color: $white;
+  .select__control, {
+    background-color: $dark-night;
+    border: 0.055rem solid $btn-gray;
+    box-shadow: none;
+
+    &:hover {
+      border: 0.055rem solid $red;
+    }
   }
 
-  .MuiSelect-icon {
-    color: $red;
+  .select__value-container {
+    .select__placeholder {
+      color: $white;
+    }
+
+    .select__single-value {
+      color: $white;
+    }
   }
 
-  .MuiOutlinedInput-notchedOutline {
-    border-color: $white;
-    opacity: 0.3;
+  .select__indicators {
+    .select__indicator-separator {
+      display: none;
+    }
+
+    .select__dropdown-indicator {
+      color: $red;
+
+      svg {
+        width: 1rem;
+      }
+    }
   }
-}
 
-.MuiPaper-root {
-  ul {
-    background: $dark-twinlight;
-    color: $white;
-    border: 1px solid $white;
-    border-radius: 5%;
+  .select__menu {
+    background-color: $dark-twinlight;
+    margin-top: 0;
 
-    .MuiListItem-button:hover {
-      background-color: $red;
+    .select__menu-list {
+
+      .select__option {
+        color: $white;
+        z-index: 1;
+
+        &:hover {
+          color: $dark-twinlight;
+        }
+      }
+
+      .select__option--is-focused {
+        color: $dark-twinlight;
+      }
     }
   }
 }
 
-.container-select {
-  .list-items {
-    color: $white;
+label {
+  &.select-label-none {
+    display: none;
+  }
+
+  &.select-label-left {
+    display: inline-block;
+    margin-top: 0.5rem;
+    margin-right: 1.093rem;
   }
 }
 
+.select-label-left + .select-element {
+  display: inline-block;
+  margin-top: 1rem;
+}
 
-
-
+.select-label-none + .select-element {
+  margin-top: 1rem;
+}

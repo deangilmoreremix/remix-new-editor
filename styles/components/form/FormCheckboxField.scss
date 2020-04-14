@@ -10,7 +10,7 @@
 
 .MuiCheckbox-colorSecondary {
   .MuiSvgIcon-root {
-    fill: transparent;
+    display: none;
   }
 }
 
@@ -34,6 +34,10 @@
       text-transform: none;
     }
 
+    .MuiTouchRipple-root {
+      display: none;
+    }
+
     &:focus {
       outline-width: 0;
     }
@@ -54,6 +58,8 @@
   }
 
   &.checked .MuiIconButton-label {
+    border-color: $red;
+
     &::after {
       background-color: $red;
     }
@@ -73,6 +79,7 @@
     border: 0.055rem solid;
     border-color: $btn-gray;
     border-radius: 0.175rem;
+    margin-bottom: 0.625rem;
 
     &:hover {
       border-color: $red;
@@ -92,7 +99,5 @@
       top: 1rem;
       left: 1rem;
     }
-
   }
-
 }
