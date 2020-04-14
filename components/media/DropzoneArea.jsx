@@ -50,7 +50,7 @@ const DropzoneArea = (
           onUploaded(elements, extension);
         }
       })
-      .catch(() => showError('An error occurred while loading the image.'))
+      .catch(() => showError('An error occurred while loading the items.'))
       .finally(() => {
         if (endUpload) {
           endUpload();

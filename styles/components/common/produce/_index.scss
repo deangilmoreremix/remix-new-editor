@@ -62,6 +62,12 @@
 }
 
 @media screen and (max-width: $lg) {
+  .settings__inputs {
+    .MuiBox-root {
+      width: 100%;
+    }
+  }
+
   .settings-input {
     flex-direction: column !important;
 
@@ -78,8 +84,7 @@
     }
   }
 
-  .settings__add-file,
-  .settings__add,
+  div.settings__add-file,
   .settings-panel-text,
   .settings-input>:last-child {
     width: 100%;

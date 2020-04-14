@@ -1,24 +1,20 @@
 import React, { useState } from 'react';
 import { observer } from 'mobx-react';
-import { useDropzone } from 'react-dropzone';
 
-import { showError } from '../../../lib/services/alertService';
 import mediaConstants from '../../../lib/constants/media';
 import { tabItems } from '../../../lib/constants/library';
 
 import useProjectStore from '../../hooks/useProjectStore';
-import useMediaStore from '../../hooks/useMediaStore';
 
-import { LibrarySpinner } from '../../media/Loader';
 import FieldBuilder from '../../form/FieldBuilder';
 import DropzoneArea from '../../media/DropzoneArea';
+import DropButton from '../../media/DropButton';
 
 const SettingPanel = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
 
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
-  const { uploadMedia, storeAsset } = useMediaStore();
 
   const updateSocials = (data) => {
     if (data[Object.keys(data)[0]]
@@ -33,7 +29,6 @@ const SettingPanel = observer(() => {
     updateItem({ allowedSocials });
   };
 
-  // === Drag and Drop ===
   const onUploadedImage = (image, extension) => {
     Object.keys(tabItems).forEach(tab => {
       tabItems[tab].formats.forEach(format => {
@@ -43,25 +38,6 @@ const SettingPanel = observer(() => {
       });
     });
   };
-
-  const onDrop = (acceptedFiles) => {
-    setIsDisabledUpload(true);
-    Promise.all(acceptedFiles.map(async data => {
-      const asset = await uploadMedia({ data });
-      const element = await storeAsset(asset, mediaConstants.ASSET_TYPES.IMAGE.toUpperCase());
-      const fileExtension = element.url.match(/\.[0-9a-z]{1,5}$/)[0];
-      return { element, fileExtension };
-    })).then(([{ element, fileExtension }]) => onUploadedImage(element, fileExtension))
-      .catch(() => showError('An error occurred while loading the image.'))
-      .finally(() => setIsDisabledUpload(false));
-  };
-
-  const { getInputProps } = useDropzone({
-    accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
-    onDrop,
-    disabled: false,
-  });
-  // === Drag and Drop ===
 
   return (
     <div className="produce-block settings-panel">
@@ -138,17 +114,17 @@ const SettingPanel = observer(() => {
             <button className="settings__open-thumbnails" type="button">Use Thumbnails Editor</button>
           </div>
         </div>
-
         <div className="settings__row">
           <div className="settings__row-block">
-            <div className="settings__add-file">
-              <input id="settings-file" {...getInputProps()} disabled={isDisabledUpload} multiple={false} />
-              <label htmlFor="settings-file" className="settings__add">
-                {
-                  isDisabledUpload ? <LibrarySpinner /> : <span>Upload</span>
-                }
-              </label>
-            </div>
+            <DropButton
+              onUploaded={onUploadedImage}
+              type={mediaConstants.ASSET_TYPES.IMAGE}
+              isDisabled={isDisabledUpload}
+              startUpload={() => setIsDisabledUpload(true)}
+              endUpload={() => setIsDisabledUpload(false)}
+              multiple={false}
+              className="settings__add-file"
+            />
             <p className="settings__row-text-2">recommended image resolution 1200x630</p>
           </div>
           <div className="settings__row-block">
