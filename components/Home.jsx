@@ -30,6 +30,8 @@ const Home = observer(() => {
 
   const { libraryType, animationType, setLibraryType } = uiStore;
 
+  const { updateAnimation } = projectStore;
+
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
   if (asyncHero.loading) {
@@ -61,7 +63,7 @@ const Home = observer(() => {
             </Col>
             <Col xs={6}>
               {libraryType && <Library tab={libraryType} />}
-              {animationType && <AnimationList />}
+              {animationType && <AnimationList onSelect={(item) => updateAnimation(item, animationType)} />}
             </Col>
           </Row>
         </Col>

@@ -545,7 +545,6 @@ export default class ProjectStore extends BaseStore {
     return projectData;
   };
 
-  // todo implement
   @action
   recompressProject = (newDuration) => {
     this.projectData.media.forEach((media) => {

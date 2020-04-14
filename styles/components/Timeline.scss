@@ -65,6 +65,21 @@
     }
   }
 
+  .in-animation-element {
+    background-color: $inColor;
+    border: 1px solid $secondary-color;
+  }
+
+  .idle-animation-element {
+    background-color: $idleColor;
+    border: 1px solid $secondary-color;
+  }
+
+  .out-animation-element {
+    background-color: $outColor;
+    border: 1px solid $secondary-color;
+  }
+
   .layout {
     position: relative;
     transition: height 200ms ease;

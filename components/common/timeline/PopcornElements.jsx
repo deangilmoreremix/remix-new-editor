@@ -39,7 +39,7 @@ const PopcornElements = observer(({ width }) => {
   const layouts = React.useMemo(() => {
     const result = [];
     elements.forEach(element => {
-      const { popcornOptions: { id: i, start, end }, type } = element;
+      const { popcornOptions: { id: i, start, end, animation }, type } = element;
       const layer = layers.find(item => item.id === element.track);
       const x = start * SANTISECOND;
       const w = (end - start) * SANTISECOND;
@@ -51,6 +51,7 @@ const PopcornElements = observer(({ width }) => {
         type,
         minH: 1,
         maxH: 1,
+        animation,
         y: layer.order,
         maxW: cols - x,
         minW: SANTISECOND,
@@ -80,14 +81,14 @@ const PopcornElements = observer(({ width }) => {
         maxW: cols - item.x,
       }}
     >
-      <Grid xs={4} item>
+      <span>{item.type}</span>
+      <Grid xs={4} item className={item.animations && item.animation.in ? 'in-animation-element' : ''}>
         <button onClick={() => setAnim(ANIMATION_TYPES.IN, item.i)}>a</button>
       </Grid>
-      <Grid xs={4} item>
+      <Grid xs={4} item className={item.animations && item.animation.idle ? 'idle-animation-element' : ''}>
         <button onClick={() => setAnim(ANIMATION_TYPES.IDLE, item.i)}>b</button>
-        {item.type}
       </Grid>
-      <Grid xs={4} item>
+      <Grid xs={4} item className={item.animations && item.animation.out ? 'out-animation-element' : ''}>
         <button onClick={() => setAnim(ANIMATION_TYPES.OUT, item.i)}>c</button>
       </Grid>
     </Grid>
