@@ -9,11 +9,8 @@ import { tabItems } from '../../../lib/constants/library';
 import useProjectStore from '../../hooks/useProjectStore';
 import useMediaStore from '../../hooks/useMediaStore';
 
-import FormColor from '../../form/FormColor';
-import FormTextField from '../../form/FormTextField';
-import FormCheckboxField from '../../form/FormCheckboxField';
 import { LibrarySpinner } from '../../media/Loader';
-import TagsFormInput from '../../form/TagsFormInput';
+import FieldBuilder from '../../form/FieldBuilder';
 import DropzoneArea from '../../media/DropzoneArea';
 
 const SettingPanel = observer(() => {
@@ -23,17 +20,17 @@ const SettingPanel = observer(() => {
   let { item: { allowedSocials = [] } } = useProjectStore();
   const { uploadMedia, storeAsset } = useMediaStore();
 
-  const update = (field) => (value) => {
-    updateItem({ [field]: value });
-  };
-
-  const updateSocials = (social, value) => {
-    if (value && !allowedSocials.some(allowedSocial => allowedSocial === social)) {
-      allowedSocials.push(social);
-    } else if (!value && allowedSocials.some(allowedSocial => allowedSocial === social)) {
-      allowedSocials = allowedSocials.filter(allowedSocial => allowedSocial !== social);
+  const updateSocials = (data) => {
+    if (data[Object.keys(data)[0]]
+      && !allowedSocials.some(allowedSocial => allowedSocial === Object.keys(data)[0])) {
+      allowedSocials.push(Object.keys(data)[0]);
+    } else if (!data[Object.keys(data)[0]]
+      && allowedSocials.some(allowedSocial => allowedSocial === Object.keys(data)[0])) {
+      allowedSocials = allowedSocials.filter(
+        allowedSocial => allowedSocial !== Object.keys(data)[0],
+      );
     }
-    update('allowedSocials')(allowedSocials);
+    updateItem({ allowedSocials });
   };
 
   // === Drag and Drop ===
@@ -41,7 +38,7 @@ const SettingPanel = observer(() => {
     Object.keys(tabItems).forEach(tab => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
-          update('thumbnail')(image.url);
+          updateItem({ thumbnail: image.url });
         }
       });
     });
@@ -69,52 +66,63 @@ const SettingPanel = observer(() => {
   return (
     <div className="produce-block settings-panel">
       <div className="settings__inputs">
-        <FormTextField
+        <FieldBuilder
+          type="input"
+          name="title"
           label="Title"
-          onChange={update('title')}
+          onChange={updateItem}
           value={item.title}
           className="settings-input"
           labelClassName="settings-panel-text"
           placeholder="My Perfect Videos"
         />
-        <FormTextField
+        <FieldBuilder
+          type="text"
+          name="description"
           label="Description"
           value={item.description}
-          onChange={update('description')}
+          onChange={updateItem}
           className="settings-input"
           labelClassName="settings-panel-text"
           placeholder="A project about ..."
-          type="text"
           rowsMin={7}
           rowsMax={7}
         />
-        <FormColor
-          onChange={update('background')}
+        <FieldBuilder
+          type="color"
+          name="background"
+          onChange={updateItem}
           value={item.background}
           label="Background Color"
           className="settings-formcolor"
         />
       </div>
       <div className="settings__inputs">
-        <TagsFormInput
+        <FieldBuilder
+          type="tags"
+          name="tags"
           value={item.tags}
-          onChange={update('tags')}
+          onChange={updateItem}
           title="Tags"
           className="settings-input"
           titleClass="settings-panel-text"
         />
         <div className="settings-allow">
           <p className="settings-panel-text">Allow</p>
-          <FormCheckboxField
+          <FieldBuilder
+            type="checkbox"
+            name="facebook"
             label="Facebook"
             value={item.allowedSocials && item.allowedSocials.some(s => s === 'facebook')}
-            onChange={value => updateSocials('facebook', value)}
+            onChange={updateSocials}
             floatClassName="settings-checkbox"
           />
-          <FormCheckboxField
+          <FieldBuilder
+            type="checkbox"
+            name="linkedin"
             label="LinkedIn"
             value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
-            onChange={value => updateSocials('linkedin', value)}
+            onChange={updateSocials}
             floatClassName="settings-checkbox"
           />
         </div>
