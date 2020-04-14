@@ -144,6 +144,7 @@ DropzoneArea.propTypes = {
 
 DropzoneArea.defaultProps = {
   inline: true,
+  isDisabled: false,
   multiple: true,
   isArrows: true,
 };

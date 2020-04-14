@@ -71,7 +71,7 @@ const DropButton = (
 
 DropButton.propTypes = {
   onUploaded: PropTypes.func.isRequired,
-  type: PropTypes.string,
+  type: PropTypes.string.isRequired,
   startUpload: PropTypes.func,
   endUpload: PropTypes.func,
   isDisabled: PropTypes.bool,
@@ -80,6 +80,7 @@ DropButton.propTypes = {
 };
 
 DropButton.defaultProps = {
+  isDisabled: false,
   multiple: true,
 };
 
