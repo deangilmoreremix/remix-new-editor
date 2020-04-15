@@ -178,7 +178,17 @@ export default class ProjectStore extends BaseStore {
       return null;
     }
     const element = this.popcorn.getTrackEvent(this.activeElementId);
-    return element && element.form;
+    // eslint-disable-next-line no-underscore-dangle
+    const { options } = (element && element._natives && element._natives.manifest) || {};
+    const resultOptions = {};
+    if (options) {
+      Object.keys(options).forEach((fieldName) => {
+        if (!options[fieldName].hidden) {
+          resultOptions[fieldName] = options[fieldName];
+        }
+      });
+    }
+    return resultOptions;
   }
 
   @action

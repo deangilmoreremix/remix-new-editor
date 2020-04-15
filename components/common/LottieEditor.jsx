@@ -6,6 +6,7 @@ import Lottie from '../../lib/lottie/Lottie';
 import FormColor from '../form/FormColor';
 import { rgbToHex, getColors, getDimensions, toUnitVector } from '../../lib/lottie/utils';
 import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
+import { isValidJsonUrl } from '../../lib/popcorn/helpers';
 
 const baseDimension = 150;
 
@@ -34,7 +35,7 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
   React.useEffect(
     // Refresh original animation object on each URL change
     () => {
-      if (file) {
+      if (file && isValidJsonUrl(file)) {
         fetch(file).then(response => response.json()).then(c => {
           setAnimation(c);
         });
@@ -103,7 +104,7 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
   );
 
   React.useEffect(() => {
-    if (colors.length) {
+    if (colors && colors.length) {
       setColor(colors);
     }
   }, [colors]);
@@ -111,8 +112,8 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
   const showColors = React.useMemo(() => {
     const result = new Set();
 
-    colors.forEach(c => {
-      result.add(colorToRgbaString(c));
+    colors.forEach(color => {
+      result.add(colorToRgbaString(color));
     });
 
     return Array.from(result);
