@@ -22,16 +22,16 @@ const FormRadioButton = (props) => {
         onChange={handleChange}
         row
       >
-        {items.map((item) => (
+        {items.map((item,i) => (
           <FormControlLabel
-            key={item}
-            value={item}
+            key={groupName + i}
+            value={item.value}
             control={(
               <Radio
                 disableRipple
                 checkedIcon={<SVGInline className="radio-button-icon" svg={item.checkedIcon} cleanup={['title']} />}
                 icon={<SVGInline className="radio-button-icon" svg={item.icon} cleanup={['title']} />}
-                position={item.position}
+                position={item.position||'start'}
               />
 )}
             label={item.label}
@@ -45,6 +45,9 @@ const FormRadioButton = (props) => {
 
 FormRadioButton.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
+    value: PropTypes.oneOfType([
+      PropTypes.string, PropTypes.number, PropTypes.bool
+    ]),
     label: PropTypes.string,
     position: PropTypes.string,
     icon: PropTypes.string,
