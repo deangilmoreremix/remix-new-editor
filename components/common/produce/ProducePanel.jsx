@@ -7,17 +7,16 @@ import useProjectStore from '../../hooks/useProjectStore';
 
 const ProducePanel = observer(({ items }) => {
   const { modified } = useProjectStore();
-  const alwaysActive = 'list builder';
 
   return (
     <div className="produce-block produce-panel">
-      {items.map(({ label, action, icon }) => (
+      {items.map(({ label, action, icon, alwaysOnDisplay }) => (
         <button
           type="button"
           key={label}
           onClick={action}
           className="produce-panel__button"
-          disabled={modified && label.toLowerCase() !== alwaysActive}
+          disabled={modified && !alwaysOnDisplay}
         >
           <SVGInline
             className="produce-panel__icon"

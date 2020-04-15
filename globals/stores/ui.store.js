@@ -12,7 +12,7 @@ export default class UIStore {
   };
 
   @action
-  setWideWindow = (value = true) => {
-    this.wideWindow = value;
+  setWideWindow = () => {
+    this.wideWindow = false;
   }
 }

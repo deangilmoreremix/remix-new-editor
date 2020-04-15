@@ -60,7 +60,7 @@ const SettingPanel = observer(() => {
           onChange={updateItem}
           className="settings-input"
           labelClassName="settings-panel-text"
-          placeholder="A project about ..."
+          placeholder="A project about"
           rowsMin={7}
           rowsMax={7}
         />
