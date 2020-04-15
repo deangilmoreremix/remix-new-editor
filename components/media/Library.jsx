@@ -24,7 +24,6 @@ const Library = observer(() => {
   const [query, setQuery] = useState('');
 
   const [activeBtn, setActiveBtn] = useState(USER_ITEMS);
-  // const [activeTab, setActiveTab] = useState(tab);
   const [hasMore, setHasMore] = useState(true);
 
   const [pageNumber, setPageNumber] = useState(1);
@@ -154,7 +153,7 @@ const Library = observer(() => {
   };
 
   const onSelect = async (item) => {
-    setIsLoading(true);
+    item.src = item.url;
     item.type = MEDIA_TYPES[activeTab];
     await projectStore.addElement(item);
     setIsLoading(false);
