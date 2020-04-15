@@ -1,4 +1,3 @@
-// TODO: should be removed after a new component is created instead this one
 import React from 'react';
 import InputLabel from '@material-ui/core/InputLabel';
 import Button from '@material-ui/core/Button';
@@ -17,7 +16,7 @@ const FormCheckboxField = (props) => {
   return (
     <div className={classnames('checkbox-element', floatClassName)}>
       <Button disableripple="true" onClick={onClick}>
-        <InputLabel>
+        <InputLabel className="form-control-label">
           {label}
         </InputLabel>
       </Button>

@@ -3,6 +3,7 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
+import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../lib/PropTypes';
 
@@ -25,7 +26,14 @@ const FormRadioButton = (props) => {
           <FormControlLabel
             key={item.label}
             value={item.label}
-            control={<Radio />}
+            control={(
+              <Radio
+                disableRipple
+                checkedIcon={<SVGInline className="radio-button-icon" svg={item.checkedIcon} cleanup={['title']} />}
+                icon={<SVGInline className="radio-button-icon" svg={item.icon} cleanup={['title']} />}
+                position={item.position}
+              />
+)}
             label={item.label}
             labelPlacement={item.position}
           />
@@ -37,8 +45,9 @@ const FormRadioButton = (props) => {
 
 FormRadioButton.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
-    label: PropTypes.string.isRequired,
+    label: PropTypes.string,
     position: PropTypes.string,
+    icon: PropTypes.string,
   })).isRequired,
   groupName: PropTypes.string,
   onChange: PropTypes.func.isRequired,
