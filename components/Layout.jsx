@@ -1,13 +1,17 @@
 import React, { Component } from 'react';
 import Head from 'next/head';
 import { Provider } from 'mobx-react';
-import PropTypes from '../lib/PropTypes';
 
-import PopcornProxy from '../lib/PopcornProxy';
 import 'styles/index.scss';
 
-import { init, initCreateStores } from '../globals/storesCreator';
+import Header from './Header';
+
 import ModalContainer from './common/ModalContainer';
+import { init, initCreateStores } from '../globals/storesCreator';
+
+import PopcornProxy from '../lib/PopcornProxy';
+
+import PropTypes from '../lib/PropTypes';
 
 class Layout extends Component {
   static async getInitialProps({ query, req }, preloader) {
@@ -29,12 +33,15 @@ class Layout extends Component {
     const { children } = this.props;
     return (
       <Provider {...this.stores}>
-        <Head>
-          <title>New Video Editor</title>
-        </Head>
-        <div {...this.props} className="main">
-          <ModalContainer />
-          {children}
+        <div className="layout-container">
+          <Head>
+            <title>New Video Editor</title>
+          </Head>
+          <Header {...this.props} />
+          <div {...this.props} className="main">
+            <ModalContainer />
+            {children}
+          </div>
         </div>
       </Provider>
     );

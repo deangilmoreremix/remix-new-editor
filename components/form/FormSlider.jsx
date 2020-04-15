@@ -1,9 +1,9 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Grid from '@material-ui/core/Grid';
-import Typography from '@material-ui/core/Typography';
 import Slider from '@material-ui/core/Slider';
 import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
 import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
@@ -14,6 +14,7 @@ const FormSlider = props => {
     onChange,
     label,
     sliderWidth,
+    withoutInput,
     inputWidth,
     minValue,
     maxValue,
@@ -57,9 +58,11 @@ const FormSlider = props => {
 
   return (
     <div className={classnames(classes.root, containerClass)}>
-      <Typography id="input-slider" gutterBottom>
+      <InputLabel
+        className={classnames('form-control-label')}
+      >
         {label}
-      </Typography>
+      </InputLabel>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs>
           <Slider
@@ -70,21 +73,24 @@ const FormSlider = props => {
             max={maxValue}
           />
         </Grid>
-        <Grid item>
-          <Input
-            className={classnames(classes.input, inputClass)}
-            value={value}
-            margin="dense"
-            onChange={handleInputChange}
-            onBlur={handleBlur}
-            inputProps={{
-              min: minValue,
-              max: maxValue,
-              type: 'number',
-              'aria-labelledby': 'input-slider',
-            }}
-          />
-        </Grid>
+        {
+          !withoutInput && (
+            <Grid item>
+              <Input
+                className={classnames(classes.input, inputClass)}
+                value={value}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                inputProps={{
+                  min: minValue,
+                  max: maxValue,
+                  type: 'number',
+                  'aria-labelledby': 'input-slider',
+                }}
+              />
+            </Grid>
+          )
+        }
       </Grid>
     </div>
   );
@@ -97,12 +103,13 @@ FormSlider.propTypes = {
   sliderWidth: PropTypes.number,
   inputWidth: PropTypes.number,
   minValue: PropTypes.number,
+  withoutInput: PropTypes.bool,
   maxValue: PropTypes.number,
-  componentClasses: PropTypes.objectOf(PropTypes.shape({
+  componentClasses: PropTypes.shape({
     containerClass: PropTypes.string,
     sliderClass: PropTypes.string,
     inputClass: PropTypes.string,
-  })),
+  }),
 };
 
 FormSlider.defaultProps = {

@@ -1,11 +1,9 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
+import Select from 'react-select';
 import classnames from 'classnames';
-
+import FormGroup from '@material-ui/core/FormGroup';
+import Box from '@material-ui/core/Box';
 import PropTypes from '../../lib/PropTypes';
 
 const FormSelect = props => {
@@ -14,61 +12,31 @@ const FormSelect = props => {
     label,
     onChange,
     value,
-    minWidth,
-    labelWidth,
-    componentClasses: {
-      containerClass,
-      labelClass,
-      selectClass,
-      itemClass,
-    },
+    labelClassName,
+    selectClassName,
   } = props;
 
-  const useStyles = makeStyles(theme => ({
-    formControl: {
-      margin: theme.spacing(1),
-      minWidth,
-    },
-    selectEmpty: {
-      marginTop: theme.spacing(2),
-    },
-  }));
-
-  const classes = useStyles(minWidth);
-
   const handleChange = event => {
-    onChange(event.target.value);
+    onChange(event.value);
   };
 
   return (
-    <div className={classnames(containerClass)}>
-      <FormControl variant="outlined" className={classes.formControl}>
+    <FormGroup>
+      <Box>
         <InputLabel
-          className={classnames(labelClass)}
-          id="demo-simple-select-outlined-label"
+          className={classnames(labelClassName)}
         >
           {label}
         </InputLabel>
         <Select
-          className={classnames(selectClass)}
-          labelId="demo-simple-select-outlined-label"
-          id="demo-simple-select-outlined"
+          className={classnames('select-element', selectClassName)}
+          classNamePrefix="select"
           value={value}
           onChange={handleChange}
-          labelWidth={labelWidth}
-        >
-          {items.map(item => (
-            <MenuItem
-              key={item.value}
-              className={classnames(itemClass)}
-              value={item.value}
-            >
-              {item.value}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    </div>
+          options={items}
+        />
+      </Box>
+    </FormGroup>
   );
 };
 
@@ -76,24 +44,16 @@ FormSelect.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
     value: PropTypes.string.isRequired,
   })).isRequired,
-  componentClasses: PropTypes.objectOf(PropTypes.shape({
-    containerClass: PropTypes.string,
-    labelClass: PropTypes.string,
-    selectClass: PropTypes.string,
-    itemClass: PropTypes.string,
-  })),
+  labelClassName: PropTypes.string,
+  selectClassName: PropTypes.string,
   value: PropTypes.string,
   label: PropTypes.string,
   onChange: PropTypes.func.isRequired,
-  minWidth: PropTypes.number,
-  labelWidth: PropTypes.number,
 };
 
 FormSelect.defaultProps = {
   label: 'label',
-  minWidth: 100,
-  labelWidth: 40,
-  componentClasses: {},
+  labelClassName: 'select-label-top',
 };
 
 export default FormSelect;

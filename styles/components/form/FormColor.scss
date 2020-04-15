@@ -1,0 +1,11 @@
+button.color-element {
+  width: 2rem;
+  height: 2rem;
+  float: right;
+  top: -2rem;
+  position: relative;
+  border-radius: 0.175rem;
+  border: 0.055rem solid $btn-gray;
+  cursor: pointer;
+  outline: none;
+}

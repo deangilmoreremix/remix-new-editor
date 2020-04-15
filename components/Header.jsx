@@ -1,12 +1,13 @@
-import * as React from 'react';
-import Grid from '@material-ui/core/Grid';
+import React from 'react';
 
-// TODO: Will be updated in the future
+import MenuAppBar from './MenuAppBar';
 
-const Header = () => (
-  <Grid item xs={12} className="header-container">
-    Videoremix
-  </Grid>
-);
+function Header() {
+  return (
+    <header className="menu-app-bar">
+      <MenuAppBar />
+    </header>
+  );
+}
 
 export default Header;

@@ -1,10 +1,11 @@
-// TODO: should be removed after a new component is created instead this one
+
 import React from 'react';
 import FormGroup from '@material-ui/core/FormGroup';
 import InputLabel from '@material-ui/core/InputLabel';
 import TextField from '@material-ui/core/TextField';
 import classnames from 'classnames';
 import MaskedFormControl from 'react-bootstrap-maskedinput';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
 import PropTypes from '../../lib/PropTypes';
 
@@ -12,6 +13,7 @@ export default function FormTextField({
   type,
   mask,
   label,
+  name,
   onChange,
   onEnter,
   disabled,
@@ -20,6 +22,9 @@ export default function FormTextField({
   className,
   placeholder,
   value,
+  multiline,
+  rowsMin,
+  rowsMax,
 }) {
   const conditionalProps = {};
 
@@ -42,18 +47,19 @@ export default function FormTextField({
       <InputLabel key="label-key" className={classnames('form-control-label', labelClassName)}>
         {label}
       </InputLabel>
-      {
+      { type !== 'text' && (
         mask
           ? (
             <MaskedFormControl
               mask={mask}
               key="masked-input-key"
-              id={label}
+              id={name}
               value={value}
               className={classnames(inputClassName)}
               placeholder={placeholder}
               onChange={onEdit}
               type={type}
+              name={name}
               disabled={disabled}
               {...conditionalProps}
             />
@@ -61,19 +67,32 @@ export default function FormTextField({
           : (
             <TextField
               key="input-key"
-              id={label}
-              className={classnames(inputClassName,
-                type === 'input' && 'text-input',
-              )}
-              value={value || ''}
+              id={name}
+              className={classnames('text-input', inputClassName)}
+              value={value || (value === 0 && type === 'number') ? value : ''}
               placeholder={placeholder}
               onChange={onEdit}
               type={type}
               disabled={disabled}
               {...conditionalProps}
+              multiline={multiline}
             />
-          )
-      }
+          ))}
+      {type === 'text' && (
+        <TextareaAutosize
+          key="input-key"
+          id={name}
+          className={classnames('text-input', inputClassName)}
+          value={value || ''}
+          placeholder={placeholder}
+          onChange={onEdit}
+          disabled={disabled}
+          {...conditionalProps}
+          multiline={multiline}
+          rowsMin={rowsMin}
+          rowsMax={rowsMax}
+        />
+      )}
 
     </FormGroup>
   );
@@ -83,16 +102,18 @@ FormTextField.propTypes = {
   onChange: PropTypes.func,
   mask: PropTypes.string,
   label: PropTypes.string,
+  name: PropTypes.string,
   onEnter: PropTypes.func,
   disabled: PropTypes.bool,
-  inputType: PropTypes.string,
   className: PropTypes.string,
   inputClassName: PropTypes.string,
   labelClassName: PropTypes.string,
-  inline: PropTypes.bool,
   placeholder: PropTypes.string,
-  type: PropTypes.oneOf(['input', 'textarea', 'select']),
+  type: PropTypes.oneOf(['input', 'text', 'number']),
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
+  multiline: PropTypes.bool,
+  rowsMin: PropTypes.number,
+  rowsMax: PropTypes.number,
 };
 
 FormTextField.defaultProps = {
@@ -100,6 +121,4 @@ FormTextField.defaultProps = {
   type: 'input',
   disabled: false,
   onChange: () => {},
-  inputType: 'text',
-  inline: true,
 };

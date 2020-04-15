@@ -5,8 +5,10 @@ import { observable } from 'mobx';
 import config from '../config/config';
 import requestCreator from '../lib/requestCreator';
 import ProjectStore from './stores/project.store';
+import UserStore from './stores/user.store';
 import ModalStore from './stores/modal.store';
 import MediaStore from './stores/media.store';
+import UIStore from './stores/ui.store';
 import WhiteLabelManager from '../lib/white-label/manager';
 
 let creator = null;
@@ -164,6 +166,8 @@ export async function initCreateStores(isServer, source, req, preloader) {
         currentUser: creator.currentUser,
       }),
       modalStore: ModalStore(),
+      uiStore: new UIStore(),
+      userStore: new UserStore(creator.currentUser),
     };
   }
   if (preloader) {
@@ -195,6 +199,8 @@ export function init(source) {
         isServer,
         currentUser: creator.currentUser,
       }),
+      uiStore: new UIStore(),
+      userStore: new UserStore(creator.currentUser),
     };
   }
   return { creator, stores };

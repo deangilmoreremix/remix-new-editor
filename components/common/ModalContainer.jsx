@@ -1,33 +1,52 @@
 import * as React from 'react';
+import classnames from 'classnames';
 import { observer } from 'mobx-react';
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
 
 import useModalStore from '../hooks/useModalStore';
+import SettingsHeader from '../settings/SettingsHeader';
 
 const ModalContainer = observer(() => {
   const modalStore = useModalStore();
-  const { modalIds, modals, closeModal, updateTitle } = modalStore;
+  const { modalIds, modals, closeModal, updateHeader, options } = modalStore;
 
   const modalsToShow = modals.filter(m => modalIds.has(m.id));
 
-  return modalsToShow.map(({ id, className, renderer: ModalComponent, title }) => {
-    const close = () => closeModal(id);
+  return modalsToShow.map(({
+    id,
+    className,
+    renderer: ModalComponent,
+    header: headerProps,
+  }) => {
+    const close = () => {
+      if (headerProps && headerProps.onClose) {
+        headerProps.onClose();
+      }
+      closeModal(id);
+    };
 
-    const updateModalTitle = (newTitle) => updateTitle(id, newTitle);
+    const updateModalHeader = (newHeaderProps) => updateHeader(id, newHeaderProps);
 
     return (
-      <Modal key={id} isOpen toggle={close} className={className}>
-        <ModalHeader toggle={close}>{title}</ModalHeader>
-        <ModalBody>
+      <Dialog
+        key={id}
+        fullWidth={false}
+        // maxWidth={maxWidth}
+        open
+        onClose={close}
+        aria-labelledby="max-width-dialog-title"
+        className="modal-container"
+      >
+        <SettingsHeader {...headerProps} />
+        <DialogContent className={classnames('modal-container__content', className)}>
           <ModalComponent
+            options={options}
             handleClose={close}
-            updateTitle={updateModalTitle}
+            setHeader={updateModalHeader}
           />
-        </ModalBody>
-        <ModalFooter>
-          <Button color="secondary" onClick={close}>Cancel</Button>
-        </ModalFooter>
-      </Modal>
+        </DialogContent>
+      </Dialog>
     );
   });
 });
