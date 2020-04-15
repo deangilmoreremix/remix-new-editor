@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import SVGInline from 'react-svg-inline';
 import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
 
-const AnimationPreview = ({ animation, onSelect }) => {
+const AnimationPreview = ({ animation, onSelect, className }) => {
   const [isActive, setIsActive] = useState(false);
 
   const onHover = () => {
@@ -13,23 +12,17 @@ const AnimationPreview = ({ animation, onSelect }) => {
 
   return (
     <div
-      className="animation-preview"
+      className={`animation-preview ${className || ''}`}
       onMouseEnter={onHover}
       onMouseLeave={onHover}
     >
       <p className={classnames('animated', 'animation-preview__text', { [animation.value]: isActive })}>
         {animation.name}
       </p>
-      {animation.background && (
-        <SVGInline
-          className="animation-preview__bg"
-          svg={animation.background}
-        />
-      )}
       <button
         type="button"
         className="animation-preview__add"
-        onClick={() => onSelect(animation.value)}
+        onClick={onSelect}
       />
     </div>
   );
@@ -39,9 +32,9 @@ AnimationPreview.propTypes = {
   animation: PropTypes.shape({
     name: PropTypes.string.isRequired,
     value: PropTypes.string.isRequired,
-    background: PropTypes.string.isRequired,
   }).isRequired,
   onSelect: PropTypes.func.isRequired,
+  className: PropTypes.string,
 };
 
 export default AnimationPreview;

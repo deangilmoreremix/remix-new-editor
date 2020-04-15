@@ -210,13 +210,22 @@ export default class ProjectStore extends BaseStore {
     });
 
     const { start, end } = options;
+    let { animation } = options;
     this.elements.forEach(element => {
       if (element.id === elementId) {
-        element.popcornOptions = {
-          ...element.popcornOptions,
-          ...(start && start !== element.start ? { start } : {}),
-          ...(end && end !== element.end ? { end } : {}),
-        };
+        if (animation || start !== element.popcornOptions.start
+          || end !== element.popcornOptions.end) {
+          const oldAnimation = element.popcornOptions.animation;
+          if (animation && oldAnimation) {
+            animation = { ...oldAnimation, ...animation };
+          }
+          element.popcornOptions = {
+            ...element.popcornOptions,
+            ...(start && start !== element.start ? { start } : {}),
+            ...(end && end !== element.end ? { end } : {}),
+            ...(animation ? { animation } : {}),
+          };
+        }
       }
     });
 
@@ -461,18 +470,19 @@ export default class ProjectStore extends BaseStore {
   @action
   updateTime = (value) => {
     this.time = value;
-    this.popcorn.currentTime(value / SANTISECOND);
+    return this.popcorn.currentTime(value / SANTISECOND);
   };
 
   @action
   updateStartEnd = (elementId, start, end) => {
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
-        element.start = start;
-        element.end = end;
+        element.popcornOptions.start = start;
+        element.popcornOptions.end = end;
       }
       return element;
     });
+
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
@@ -697,6 +707,7 @@ export default class ProjectStore extends BaseStore {
     const animation = {
       [type]: {
         type: animationName,
+        // The animated class has a default speed of 1s
         duration: 1,
       },
     };

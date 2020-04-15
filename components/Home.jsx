@@ -27,7 +27,7 @@ const Home = observer(() => {
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
 
-  const { libraryType, animationType, setLibraryType } = uiStore;
+  const { libraryType, showAnimation, setLibraryType } = uiStore;
 
   const { updateAnimation, isLoading } = projectStore;
 
@@ -61,7 +61,9 @@ const Home = observer(() => {
             </Col>
             <Col xs={6}>
               {libraryType && <Library tab={libraryType} />}
-              {animationType && <AnimationList onSelect={(item) => updateAnimation(item, animationType)} />}
+              {showAnimation
+              && <AnimationList onSelect={(item, type) => updateAnimation(item, type)} />
+              }
             </Col>
           </Row>
         </Col>

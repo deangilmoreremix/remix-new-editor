@@ -18,13 +18,18 @@
 
 .animation-blocks {
   @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+  overflow-y: auto;
+  padding-right: 2.25rem;
+  margin: 0 -1%;
+}
+
+.animation-block {
+  width: 100%;
   flex: 1;
   display: flex;
   flex-wrap: wrap;
   align-content: start;
-  overflow-y: auto;
-  padding-right: 2.25rem;
-  margin: 0 -1%;
+  margin-bottom: 2rem;
 }
 
 .animation-preview {
@@ -42,6 +47,18 @@
   &:hover .animation-preview__add {
     opacity: 1;
   }
+}
+
+.in {
+  background-color: $inColor;
+}
+
+.idle {
+  background-color: $idleColor;
+}
+
+.out {
+  background-color: $outColor;
 }
 
 .animation-preview__text {

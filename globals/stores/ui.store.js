@@ -3,7 +3,7 @@ import { observable, action } from 'mobx';
 export default class UIStore {
   @observable libraryType = null;
 
-  @observable animationType = null;
+  @observable showAnimation = false;
 
   @action
   setLibraryType = (type) => {
@@ -12,8 +12,8 @@ export default class UIStore {
   };
 
   @action
-  setAnimationType = (type) => {
+  openAnimation = () => {
     this.libraryType = null;
-    this.animationType = type;
+    this.showAnimation = true;
   }
 }

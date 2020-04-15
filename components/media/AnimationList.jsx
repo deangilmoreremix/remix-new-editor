@@ -2,31 +2,33 @@ import React from 'react';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../lib/PropTypes';
-import { animations } from '../../lib/constants/animations';
+import { animations, ANIMATION_TYPES } from '../../lib/constants/animations';
 
 import AnimationPreview from '../common/AnimationPreview';
 import CloseButton from '../common/CloseButton';
 
-import useUI from '../hooks/useUIStore';
-
 const AnimationList = observer(({ onSelect }) => {
-  const uiStore = useUI();
-  const { animationType: type } = uiStore;
+  const block = React.useCallback((type) => (
+    <div key={type} className="animation-block">
+      {
+          animations[type].map(item => (
+            <AnimationPreview
+              animation={item}
+              onSelect={() => onSelect(item.value, type)}
+              key={item.value}
+              className={type}
+            />
+          ),
+          )
+        }
+    </div>
+  ), [onSelect]);
 
   return (
     <div className="animation-container">
       <p className="animation-container__title">Add Animation</p>
       <div className="animation-blocks">
-        {
-      animations[type].map(item => (
-        <AnimationPreview
-          animation={item}
-          onSelect={onSelect}
-          key={item.value}
-        />
-      ),
-      )
-    }
+        { Object.values(ANIMATION_TYPES).map((type => block(type)))}
       </div>
       {/* ToDo Need to remove the close button */}
       <CloseButton onClick={() => console.log('click')} />
