@@ -53,7 +53,7 @@ const SettingPanel = observer(() => {
           placeholder="My Perfect Videos"
         />
         <FieldBuilder
-          type="text"
+          type="textarea"
           name="description"
           label="Description"
           value={item.description}
