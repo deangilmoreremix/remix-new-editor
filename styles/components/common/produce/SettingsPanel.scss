@@ -77,7 +77,7 @@ label.settings-panel-text {
   }
 
   &-active {
-    border-color: $red;
+    border-color: $secondary-color;
 
     .drag-arrow-upper-left {
       top: 0.3rem;
@@ -223,7 +223,7 @@ $arrow-position: 0.5rem;
   height: 2.18rem;
   justify-content: center;
   align-items: center;
-  background: $red;
+  background: $secondary-color;
   color: $white;
   border-radius: 3px;
   font-size: $small;

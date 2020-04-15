@@ -17,13 +17,16 @@ const SettingPanel = observer(() => {
   let { item: { allowedSocials = [] } } = useProjectStore();
 
   const updateSocials = (data) => {
-    if (data[Object.keys(data)[0]]
-      && !allowedSocials.some(allowedSocial => allowedSocial === Object.keys(data)[0])) {
-      allowedSocials.push(Object.keys(data)[0]);
-    } else if (!data[Object.keys(data)[0]]
-      && allowedSocials.some(allowedSocial => allowedSocial === Object.keys(data)[0])) {
+    const socialValue = data[Object.keys(data)[0]];
+    const socialKey = Object.keys(data)[0];
+
+    if (socialValue
+      && !allowedSocials.includes(socialKey)) {
+      allowedSocials.push(socialKey);
+    } else if (!socialValue
+      && allowedSocials.includes(socialKey)) {
       allowedSocials = allowedSocials.filter(
-        allowedSocial => allowedSocial !== Object.keys(data)[0],
+        allowedSocial => allowedSocial !== socialKey,
       );
     }
     updateItem({ allowedSocials });

@@ -3,22 +3,3 @@
     color: $white;
   }
 }
-
-.container-textarea {
-
-  .text-area {
-    display: flex;
-
-    textarea {
-      color: $white;
-    }
-
-    fieldset {
-      border-color: $btn-gray;
-    }
-
-    .MuiOutlinedInput-root:hover fieldset, .MuiOutlinedInput-root.Mui-focused fieldset {
-      border-color: $red;
-    }
-  }
-}
