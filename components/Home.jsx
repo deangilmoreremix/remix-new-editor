@@ -27,7 +27,7 @@ const Home = observer(() => {
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
 
-  const { libraryType, showAnimation, setLibraryType } = uiStore;
+  const { libraryType, showAnimation, setLibraryType, wideWindow, setWideWindow } = uiStore;
 
   const { updateAnimation, isLoading } = projectStore;
 
@@ -48,18 +48,19 @@ const Home = observer(() => {
       <Row className="controls" noGutters>
         <Col xs={7}>
           <Row>
-            <Col xs={6}>
+            <Col xs={wideWindow ? 12 : 6}>
               <Toolbar
                 items={toolbarItems({
                   actions: {
                     openModal,
                     closeModal,
                     setLibraryType,
+                    setWideWindow,
                   },
                 })}
               />
             </Col>
-            <Col xs={6} className="home__center">
+            <Col xs={!wideWindow ? 0 : 6} className="home__center">
               {libraryType && <Library tab={libraryType} />}
               {
                 showAnimation

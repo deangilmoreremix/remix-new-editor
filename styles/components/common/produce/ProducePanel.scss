@@ -1,0 +1,38 @@
+.produce-panel {
+  justify-content: space-around;
+  align-items: center;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+
+  &__button {
+    @include reset-button;
+    min-width: 7.2rem;
+    flex-direction: column;
+    line-height: 1;
+    color: $white;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: auto;
+    }
+  }
+
+  &__icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 5.2rem;
+    height: 6.2rem;
+    border: 1px solid $secondary-color;
+    border-radius: 3px;
+    margin-bottom: 1.125rem;
+
+    svg {
+      width: 100%;
+      max-width: 3.6rem;
+      max-height: 3.3rem;
+    }
+  }
+}

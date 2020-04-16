@@ -26,6 +26,7 @@ const defaultItem = {
   background: '',
   description: '',
   allowedSocials: [],
+  thumbnail: '',
   project: {
     data: {
       targets: [{

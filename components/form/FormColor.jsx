@@ -10,7 +10,7 @@ import PropTypes from '../../lib/PropTypes';
 import FormTextField from './FormTextField';
 import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 
-const FormColor = ({ label, onChange, value }) => {
+const FormColor = ({ label, onChange, value, className }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const open = Boolean(anchorEl);
@@ -33,7 +33,7 @@ const FormColor = ({ label, onChange, value }) => {
   const color = React.useMemo(() => parseRgbaString(value), [value]);
 
   return (
-    <FormGroup>
+    <FormGroup className={className}>
       <Box>
         <FormLabel key="label-key" className="form-control-label">{label}</FormLabel>
       </Box>
@@ -75,6 +75,7 @@ FormColor.propTypes = {
   onChange: PropTypes.func,
   label: PropTypes.string,
   value: PropTypes.string,
+  className: PropTypes.string,
 };
 
 FormColor.defaultProps = {
