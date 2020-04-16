@@ -13,7 +13,7 @@ const Tabs = ({ setActiveTab, activeTab }) => (
           className={classnames(
             'library__tab',
             {
-              'library__tab-active': activeTab && activeTab === item,
+              'library__tab-active': activeTab === item,
             })}
           onClick={() => setActiveTab(item)}
           key={item}
