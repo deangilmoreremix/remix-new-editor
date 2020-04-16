@@ -10,7 +10,7 @@ import PropTypes from '../../lib/PropTypes';
 import FormTextField from './FormTextField';
 import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 
-const FormColor = ({ label, onChange, value: color, className }) => {
+const FormColor = ({ label, onChange, value, className }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const open = Boolean(anchorEl);
