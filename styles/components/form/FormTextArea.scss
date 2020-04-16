@@ -1,7 +1,7 @@
-.text-area {
+.container-textarea .text-area {
   width: 100%;
 
-  & label {
+  label {
     color: $white;
   }
 
@@ -14,5 +14,20 @@
   textarea {
     @include input-placeholder;
     @include tiny-scrollbar;
+
+    &:focus+fieldset {
+      border: 1px solid $third-color;
+    }
+  }
+}
+
+.text-area-label + .text-area {
+  .MuiInputBase-root {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  legend {
+    display: none;
   }
 }

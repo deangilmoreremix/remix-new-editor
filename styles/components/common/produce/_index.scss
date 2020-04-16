@@ -99,6 +99,10 @@
 
   .settings-panel-text {
     margin-bottom: 0.5rem;
+
+    &.text-area-label {
+      margin-bottom: 0.7rem;
+    }
   }
 
   .settings-allow {
