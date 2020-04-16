@@ -1,24 +1,27 @@
-.container-select{
+.container-select {
   display: flex;
   align-items: center;
   justify-content: space-between;
   color: $btn-gray;
 
-    .MuiSvgIcon-root {
-      color: $btn-gray;
-    }
-    .MuiOutlinedInput-notchedOutline {
-      border-color: $btn-gray;
-      opacity: 0.23;
-    }
-    .MuiOutlinedInput-notchedOutline:hover {
-      border-color: $red;
-    }
+  .MuiSvgIcon-root {
+    color: $btn-gray;
+  }
+
+  .MuiOutlinedInput-notchedOutline {
+    border-color: $btn-gray;
+    opacity: 0.23;
+  }
+
+  .MuiOutlinedInput-notchedOutline:hover {
+    border-color: $red;
+  }
 
   &-slider {
     &-element.MuiSlider-root {
       color: $backgroundSlider;
     }
+
     &-input.MuiInputBase-root {
       color: $white;
     }
@@ -48,6 +51,7 @@
     }
   }
 }
+
 .font-section, .font-style-section {
   display: flex;
   justify-content: space-between;
@@ -60,6 +64,34 @@
 
   .font-style-container {
     display: flex;
+  }
+
+  .icon-edit-text {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+
+    .container-text-radio {
+      width: 40%;
+    }
+
+    .container-text-auto {
+      display: flex;
+      width: 40%;
+      justify-content: space-between;
+
+      .btn-text-auto {
+        color: $white;
+        background-color: $dark-twinlight;
+        border: none;
+        padding: 0;
+      }
+    }
+    .input-text-percent {
+      width: 2em;
+      border: none;
+      border-bottom: 0.055rem solid #999999;
+    }
   }
 }
 
@@ -76,17 +108,19 @@
   cursor: pointer;
   margin-top: 2em;
   margin-bottom: 2em;
+
   .icon-arrow {
-      @include make-fluid("margin-right", 4px, 10px, $xl + 1, $mock, 10px, px);
+    @include make-fluid("margin-right", 4px, 10px, $xl + 1, $mock, 10px, px);
 
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-      &-inline {
-        min-width: 1.2rem;
-      }
+    &-inline {
+      min-width: 1.2rem;
+    }
   }
+
   .icon-arrow-rotate {
     transform: rotate(180deg);
   }

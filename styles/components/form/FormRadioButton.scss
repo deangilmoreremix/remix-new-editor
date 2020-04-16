@@ -13,3 +13,13 @@
 .radio-button-icon {
  min-width: 1rem;
 }
+
+.radio-button-icon-svg:hover {
+  color: $red;
+}
+
+.icon-svg-checked-svg {
+  border: 1px solid $btn-gray;
+  padding: 5px;
+  border-radius: 4px;
+}

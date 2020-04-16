@@ -1,32 +1,13 @@
 import React, { Fragment, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../../lib/PropTypes';
 import FieldBuilder from '../../../form/FieldBuilder';
-import FormRadioButton from '../../../form/FormRadioButton';
+import { iconAlignment, iconPosition } from '../../../../lib/constants/settings/vrtext-element';
 
-import svgTextLeft from '../../../../public/static/svgImages/text/basic_group/text-icon-left.svg';
-import svgTextCenter from '../../../../public/static/svgImages/text/basic_group/text-icon-center.svg';
-import svgTextRight from '../../../../public/static/svgImages/text/basic_group/text-icon-right.svg';
-import svgTextPositionTop from '../../../../public/static/svgImages/text/basic_group/text-position-top.svg';
-import svgTextPositionCenter from '../../../../public/static/svgImages/text/basic_group/text-position-center.svg';
-import svgTextPositionBottom from '../../../../public/static/svgImages/text/basic_group/text-position-bottom.svg';
 import svgTextLetterSpacing from '../../../../public/static/svgImages/text/basic_group/letter-spacing.svg';
 
-const iconAlignment = [
-  { icon: svgTextLeft },
-  { icon: svgTextCenter },
-  { icon: svgTextRight },
-];
-const iconPosition = [
-  { icon: svgTextPositionTop },
-  { icon: svgTextPositionCenter },
-  { icon: svgTextPositionBottom },
-];
-
-const Basic = ({ values, fields, onChange }) => {
+const Basic = ({ fields, onChange, checkKeyInObj }) => {
   const [valueSelect, setValueSelect] = useState(fields.linkTarget.items[0]);
 
   return (
@@ -34,16 +15,14 @@ const Basic = ({ values, fields, onChange }) => {
       <div className="container-text">
         <div className="container-text-time">
           <FieldBuilder
-            value={values && values.start !== undefined ? values.start : fields.start.default}
+            value={checkKeyInObj(fields.start.name)}
             {...fields.start}
-            name={fields.start.name}
             className="input-time-position"
             onChange={onChange}
           />
           <FieldBuilder
-            value={values && values.end !== undefined ? values.end : fields.end.default}
+            value={checkKeyInObj(fields.end.name)}
             {...fields.end}
-            name={values.end.name}
             className="input-time-position"
             onChange={onChange}
           />
@@ -52,13 +31,15 @@ const Basic = ({ values, fields, onChange }) => {
       </div>
       {/* todo icons doesn't work. Need to update radiobuton */}
       <div className="container-text-position">
-        <FormRadioButton
-          type="radio"
+        <FieldBuilder
+          value={checkKeyInObj(fields.alignment.name)}
+          {...fields.alignment}
           onChange={onChange}
           items={iconAlignment}
         />
-        <FormRadioButton
-          type="radio"
+        <FieldBuilder
+          value={checkKeyInObj(fields.position.name)}
+          {...fields.position}
           onChange={onChange}
           items={iconPosition}
         />
@@ -71,22 +52,18 @@ const Basic = ({ values, fields, onChange }) => {
       <FieldBuilder
         className="container-input-textarea"
         inputClassName="input-text-area"
-        value={values && values.text !== undefined ? values.text : fields.text.default}
+        value={checkKeyInObj(fields.text.name)}
         {...fields.text}
-        name={fields.text.name}
         onChange={onChange}
       />
       <div className="container-personalize">
         <button className="btn-personalize">Personalize</button>
-        <FontAwesomeIcon icon={faQuestionCircle} className="fa-inverse" />
       </div>
       <div className="container-additional-options">
-        {/* <span>Link Url or Phone number</span> */}
         <div className="container-link-url">
           <FieldBuilder
-            value={values && values.linkUrl !== undefined ? values.linkUrl : fields.linkUrl.default}
+            value={checkKeyInObj(fields.linkUrl.name)}
             {...fields.linkUrl}
-            name={fields.linkUrl.name}
             className="input-time-position"
             onChange={onChange}
           />
@@ -96,11 +73,8 @@ const Basic = ({ values, fields, onChange }) => {
         </div>
         <div className="container-email-link">
           <FieldBuilder
-            value={values && values.callNotifyAddress !== undefined
-              ? values.callNotifyAddress
-              : fields.callNotifyAddress.default}
+            value={checkKeyInObj(fields.callNotifyAddress.name)}
             {...fields.callNotifyAddress}
-            name={fields.callNotifyAddress.name}
             className="email-notify"
             labelClassName="email-notify-label"
             inputClassName="email-notify-input"
@@ -111,7 +85,6 @@ const Basic = ({ values, fields, onChange }) => {
             <FieldBuilder
               value={valueSelect}
               {...fields.linkTarget}
-              name={fields.linkTarget.name}
               onChange={setValueSelect}
             />
           </div>
@@ -121,10 +94,7 @@ const Basic = ({ values, fields, onChange }) => {
           <div className="container-text-transform-rotation">
             <span>Rotation</span>
             <FieldBuilder
-              value={values && values.rotation !== undefined
-                ? values.rotation
-                : fields.rotation.default}
-              name={fields.rotation.name}
+              value={checkKeyInObj(fields.rotation.name)}
               {...fields.rotation}
               onChange={onChange}
             />
@@ -147,23 +117,18 @@ const Basic = ({ values, fields, onChange }) => {
 };
 
 Basic.propTypes = {
-  values: PropTypes.shape({
-    start: PropTypes.number,
-    end: PropTypes.number,
-    text: PropTypes.string,
-    linkUrl: PropTypes.string,
-    callNotifyAddress: PropTypes.string,
-    rotation: PropTypes.number,
-  }),
+  checkKeyInObj: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({
-    start: PropTypes.number,
-    end: PropTypes.number,
-    text: PropTypes.string,
+    start: PropTypes.object,
+    end: PropTypes.object,
+    text: PropTypes.object,
     linkTarget: PropTypes.arrayOf(PropTypes.string),
-    linkUrl: PropTypes.string,
-    callNotifyAddress: PropTypes.string,
-    rotation: PropTypes.number,
+    linkUrl: PropTypes.object,
+    callNotifyAddress: PropTypes.object,
+    rotation: PropTypes.object,
+    alignment: PropTypes.object,
+    position: PropTypes.object,
   }),
 };
 

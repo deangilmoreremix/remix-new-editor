@@ -67,6 +67,11 @@ div {
   &.text-input:focus, &.text-input:hover {
     border: 0.055rem solid $red;
   }
+
+  &.input-disabled:hover {
+    border: 0.055rem solid $btn-gray;
+    cursor: not-allowed;
+  }
 }
 
 label {
@@ -122,3 +127,21 @@ label {
     }
   }
 }
+
+//disabled form color
+.input-disabled, .button-disabled, .label-disabled {
+   opacity: 0.3;
+
+  & input:hover {
+    cursor: not-allowed;
+  }
+}
+
+.button-disabled:hover {
+  cursor: not-allowed;
+}
+
+.label-disabled-color {
+
+}
+

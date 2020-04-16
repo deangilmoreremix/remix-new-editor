@@ -8,7 +8,7 @@ const FormTextArea = (props) => {
   const {
     label,
     onChange,
-    textAreaClassName,
+    inputClassName,
     className,
     placeholder,
     value,
@@ -21,40 +21,36 @@ const FormTextArea = (props) => {
   };
 
   return (
-    <form className={classnames('form-container-textarea', className)}>
-      <div className={classnames('container-textarea', className)}>
-        <TextField
-          id={label}
-          className={classnames(textAreaClassName, 'text-area')}
-          value={value || ''}
-          placeholder={placeholder}
-          onChange={onEdit}
-          label={label}
-          multiline
-          rows={rows}
-          variant={variant}
-        />
-      </div>
-    </form>
+    <div className={classnames('container-textarea', className)}>
+      <TextField
+        id={label}
+        className={classnames(inputClassName, 'text-area')}
+        value={value || ''}
+        placeholder={placeholder}
+        onChange={onEdit}
+        label={label}
+        multiline
+        rows={rows}
+        variant={variant}
+      />
+    </div>
   );
 };
 
 FormTextArea.propTypes = {
-  onChange: PropTypes.func,
+  onChange: PropTypes.func.isRequired,
   label: PropTypes.string,
   className: PropTypes.string,
-  textAreaClassName: PropTypes.string,
+  inputClassName: PropTypes.string,
   placeholder: PropTypes.string,
   rows: PropTypes.string,
   variant: PropTypes.string,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 FormTextArea.defaultProps = {
   label: '',
   rows: 3,
-  onChange: () => {
-  },
 };
 
 export default FormTextArea;
