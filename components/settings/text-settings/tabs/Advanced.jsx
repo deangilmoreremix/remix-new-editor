@@ -3,25 +3,12 @@ import SVGInline from 'react-svg-inline';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 
 import PropTypes from '../../../../lib/PropTypes';
-
 import FieldBuilder from '../../../form/FieldBuilder';
 import fonts from '../../../../lib/constants/fonts';
+import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 
-import svgAlignmentLeft from '../../../../public/static/svgImages/text/advanced/text-align-left.svg';
-import svgAlignmentCenter from '../../../../public/static/svgImages/text/advanced/text-align-center.svg';
 import svgLetterSpacing from '../../../../public/static/svgImages/text/advanced/letter-spacing.svg';
 import svgLineHeight from '../../../../public/static/svgImages/text/advanced/line-height.svg';
-import svgAlignmentRight from '../../../../public/static/svgImages/text/advanced/text-align-right.svg';
-import svgAlignmentLeftChecked from '../../../../public/static/svgImages/text/advanced/text-align-left-checked.svg';
-import svgAlignmentCenterChecked from '../../../../public/static/svgImages/text/advanced/text-align-center-checked.svg';
-import svgAlignmentRightChecked from '../../../../public/static/svgImages/text/advanced/text-align-right-checked.svg';
-
-
-const iconAlignment = [
-  { value: 'left', icon: svgAlignmentLeft, checkedIcon: svgAlignmentLeftChecked },
-  { value: 'center', icon: svgAlignmentCenter, checkedIcon: svgAlignmentCenterChecked },
-  { value: 'right', icon: svgAlignmentRight, checkedIcon: svgAlignmentRightChecked },
-];
 
 const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
   const handleChangeFontDecoration = (field) => (value) => {
@@ -44,6 +31,9 @@ const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
             name={fields.fontSize.name}
             {...fields.fontSize}
             onChange={onChange}
+            disabled={checkKeyInObj(fields.fontDecorations.responsive.name, fields.fontDecorations.name) && true}
+            min={8}
+            max={90}
           />
         </div>
         <div className="font-decoration-section">
@@ -67,7 +57,7 @@ const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
               {...fields.alignment}
               onChange={onChange}
               containerClass="container-text-radio"
-              items={iconAlignment}
+              items={iconAlignmentAdvanced}
             />
             <div className="container-text-auto">
               <SVGInline

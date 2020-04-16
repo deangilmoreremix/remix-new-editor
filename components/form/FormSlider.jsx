@@ -21,6 +21,7 @@ const FormSlider = props => {
     containerClass,
     sliderClass,
     inputClass,
+    disabled,
   } = props;
 
   const useStyles = makeStyles({
@@ -69,6 +70,7 @@ const FormSlider = props => {
             onChange={handleSliderChange}
             aria-labelledby="input-slider"
             max={maxValue}
+            disabled={disabled}
           />
         </Grid>
         {
@@ -77,6 +79,7 @@ const FormSlider = props => {
               <Input
                 className={classnames(classes.input, inputClass)}
                 value={value}
+                disabled={disabled}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
                 inputProps={{
@@ -106,6 +109,7 @@ FormSlider.propTypes = {
   containerClass: PropTypes.string,
   sliderClass: PropTypes.string,
   inputClass: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 FormSlider.defaultProps = {
@@ -113,6 +117,7 @@ FormSlider.defaultProps = {
   maxValue: 100,
   minValue: 0,
   value: 0,
+  disabled: false,
 };
 
 export default FormSlider;

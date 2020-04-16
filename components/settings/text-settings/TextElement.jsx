@@ -21,7 +21,7 @@ const TextElement = observer(({ tab = BASIC, element, update, fields }) => {
         && popcornOptions[parentObjKey].hasOwnProperty(objKey)) {
         return popcornOptions[parentObjKey][objKey];
       } else {
-        return fields[parentObjKey][objKey].default;
+        return fields[parentObjKey].default[objKey];
       }
     }
     return popcornOptions.hasOwnProperty(objKey) ? popcornOptions[objKey] : fields[objKey].default;
