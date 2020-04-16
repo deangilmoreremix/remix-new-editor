@@ -32,8 +32,7 @@ const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
             {...fields.fontSize}
             onChange={onChange}
             disabled={checkKeyInObj(fields.fontDecorations.responsive.name, fields.fontDecorations.name) && true}
-            min={8}
-            max={90}
+            minValue={1}
           />
         </div>
         <div className="font-decoration-section">

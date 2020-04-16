@@ -70,6 +70,7 @@ const FormSlider = props => {
             onChange={handleSliderChange}
             aria-labelledby="input-slider"
             max={maxValue}
+            min={minValue}
             disabled={disabled}
           />
         </Grid>
