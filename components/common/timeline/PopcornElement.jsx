@@ -32,9 +32,8 @@ const PopcornElement = observer(({ item }) => {
             className={classnames('popcorn-element-part',
               { [`${animationType}-animation-element`]: animated })}
           >
-            {animated
-            && (
-              <button className="icon-button" onClick={() => updateAnimation(animationType, NONE_CLASS)}>
+            {animated && (
+              <button className="icon-button" onClick={() => updateAnimation(animationType)}>
                 x
               </button>
             )}

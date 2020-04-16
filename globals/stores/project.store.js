@@ -1,16 +1,18 @@
 import { observable, action, computed, reaction, runInAction } from 'mobx';
 import arrayMove from 'array-move';
+import size from 'lodash/size';
 
 import BaseStore from './base.store';
 
 import {
   EMAIL_SKIP_TOKENS,
 } from '../../lib/constants/campaigns/constants';
-import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
 import { SEQUENCER } from '../../lib/constants/popcorn';
+import { isLayerFulfilled } from '../../lib/utils/project';
+import { NONE_CLASS } from '../../lib/constants/animations';
+import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-import { isLayerFulfilled } from '../../lib/utils/project';
 
 const defaultLayer = {
   name: '',
@@ -208,28 +210,37 @@ export default class ProjectStore extends BaseStore {
         });
       });
     });
+    this.updateElement(elementId, options);
+    this.updatePopcorn(elementId, options);
+  };
 
-    const { start, end } = options;
-    let { animation } = options;
+  @action
+  updateElement = (elementId, options) => {
+    // we need to update the elements, if the user updates the start,
+    // end or animation, this is necessary to rerender the elements
+    const { start, end, animation } = options;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
-        if (animation || start !== element.popcornOptions.start
-          || end !== element.popcornOptions.end) {
-          const oldAnimation = element.popcornOptions.animation;
-          if (animation && oldAnimation) {
-            animation = { ...oldAnimation, ...animation };
-          }
+        const newOptions = {};
+        if (start !== undefined && start !== element.popcornOptions.start) {
+          newOptions.start = start;
+        }
+        if (end !== undefined && end !== element.popcornOptions.end) {
+          newOptions.end = end;
+        }
+        if (animation) {
+          const { animation: oldAnimation } = element.popcornOptions;
+          newOptions.animation = oldAnimation ? { ...oldAnimation, ...animation } : animation;
+        }
+        if (size(newOptions) > 0) {
           element.popcornOptions = {
             ...element.popcornOptions,
-            ...(start && start !== element.start ? { start } : {}),
-            ...(end && end !== element.end ? { end } : {}),
-            ...(animation ? { animation } : {}),
+            ...newOptions,
           };
         }
       }
       return element;
     });
-    this.updatePopcorn(elementId, options);
   };
 
   @action
@@ -703,7 +714,7 @@ export default class ProjectStore extends BaseStore {
     return this.item;
   };
 
-  updateAnimation = (animationName, type) => {
+  updateAnimation = (type, animationName = NONE_CLASS) => {
     const animation = {
       [type]: {
         type: animationName,

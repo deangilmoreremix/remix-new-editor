@@ -63,7 +63,7 @@ const Home = observer(() => {
               {libraryType && <Library tab={libraryType} />}
               {
                 showAnimation
-                && <AnimationList onSelect={(item, type) => updateAnimation(item, type)} />
+                && <AnimationList onSelect={(item, type) => updateAnimation(type, item)} />
               }
             </Col>
           </Row>

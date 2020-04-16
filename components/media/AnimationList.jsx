@@ -28,7 +28,7 @@ const AnimationList = observer(({ onSelect }) => {
     <div className="animation-container">
       <p className="animation-container__title">Add Animation</p>
       <div className="animation-blocks">
-        { Object.values(ANIMATION_TYPES).map((type => block(type)))}
+        {Object.values(ANIMATION_TYPES).map((type => block(type)))}
       </div>
       {/* ToDo Need to remove the close button */}
       <CloseButton onClick={() => console.log('click')} />
