@@ -17,6 +17,8 @@ import Library from './media/Library';
 import { CANVAS_SIZES } from '../lib/constants/media';
 import SizeSelector from './canvas/SizeSelector';
 
+import { DEFAULT_RATIO } from '../lib/constants/project';
+
 const getOne = async (store, id) => {
   await store.getOne(id);
 };
@@ -32,7 +34,7 @@ const Home = observer(() => {
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
-  const { item: { ratio: { width = 16, height = 9 } = {} }, setRatio } = projectStore;
+  const { item: { ratio: { width, height } = DEFAULT_RATIO }, setRatio } = projectStore;
 
   if (asyncHero.loading || isLoading) {
     // todo implement loading

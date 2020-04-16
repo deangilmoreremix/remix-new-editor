@@ -3,12 +3,13 @@ import { observer } from 'mobx-react';
 import { useWindowSize } from '@react-hook/window-size';
 
 import useProjectStore from './hooks/useProjectStore';
+import { DEFAULT_RATIO, DEFAULT_VIDEO_WIDTH, DEFAULT_FONT_SIZE } from '../lib/constants/project';
 
 const Canvas = observer(() => {
   const projectStore = useProjectStore();
-  const { item: { ratio: { width = 16, height = 9 } = {} }, runTextfill } = projectStore;
+  const { item: { ratio: { width, height } = DEFAULT_RATIO }, runTextfill } = projectStore;
   const [style, setStyle] = React.useState({});
-  const [fontSize, setFontSize] = React.useState(0);
+  const [fontSize, setFontSize] = React.useState(DEFAULT_FONT_SIZE);
   const [windowWidth, windowHeight] = useWindowSize();
 
   const aspectRatio = useMemo(() => width / height, [width, height]);
@@ -32,13 +33,13 @@ const Canvas = observer(() => {
     if (wrapper.current) {
       projectStore.setPopcorn(wrapper.current);
       // todo add consts
-      setFontSize(`${14 * (wrapper.current.offsetWidth / 560)}px`);
+      setFontSize(`${DEFAULT_FONT_SIZE * (wrapper.current.offsetWidth / DEFAULT_VIDEO_WIDTH)}px`);
     }
   }, [projectStore, style]);
 
   useEffect(() => {
     if (wrapper.current) {
-      setFontSize(`${14 * (wrapper.current.offsetWidth / 560)}px`);
+      setFontSize(`${DEFAULT_FONT_SIZE * (wrapper.current.offsetWidth / DEFAULT_VIDEO_WIDTH)}px`);
       runTextfill();
     }
   }, [runTextfill, style]);
