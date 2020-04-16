@@ -39,7 +39,7 @@ const JsonAnimation = ({ tab = BASIC, element, update, form }) => {
     [tab, form]);
 
   const handleSetColors = (colors) => {
-    console.log('SVGPresets updating colors', colors);
+    update({ colors });
   };
 
   return (

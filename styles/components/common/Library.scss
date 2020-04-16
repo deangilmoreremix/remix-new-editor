@@ -135,13 +135,12 @@
 
 .library__btn {
   &-container {
-    @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
+    @include tiny-scrollbar;
     flex: 1;
     max-width: 8.8em;
     max-height: 14.3em;
     margin-top: 1.843rem;
-    overflow: hidden;
-    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   &-item {
@@ -196,13 +195,12 @@
 }
 
 .library__items {
-  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+  @include tiny-scrollbar;
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
   height: 18.65em;
-  overflow: hidden;
-  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .library__item {

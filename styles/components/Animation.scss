@@ -17,12 +17,11 @@
 }
 
 .animation-blocks {
-  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+  @include tiny-scrollbar;
   flex: 1;
   display: flex;
   flex-wrap: wrap;
   align-content: start;
-  overflow-y: auto;
   padding-right: 2.25rem;
   margin: 0 -1%;
 }
