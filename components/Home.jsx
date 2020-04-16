@@ -59,7 +59,7 @@ const Home = observer(() => {
                 })}
               />
             </Col>
-            <Col xs={6}>
+            <Col xs={6} className="home__center">
               {libraryType && <Library tab={libraryType} />}
               {
                 showAnimation
