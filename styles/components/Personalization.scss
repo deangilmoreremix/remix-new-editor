@@ -62,13 +62,12 @@
 }
 
 .personalization__list {
-  @include tiny-scrollbar($thumbColor: $red, $scrollbarColor: $modal-header-bg);
+  @include tiny-scrollbar;
 
   width: 25%;
   min-width: 11em;
   max-height: 21em;
-  overflow: hidden;
-  overflow-y: auto;
+  overflow-x: hidden;
   border-right: 1px $grey solid;
 }
 

@@ -12,6 +12,7 @@ import useModalStore from './hooks/useModalStore';
 import useUIStore from './hooks/useUIStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
+
 import Timeline from './Timeline';
 import Library from './media/Library';
 import { CANVAS_SIZES } from '../lib/constants/media';
@@ -28,9 +29,10 @@ const Home = observer(() => {
   const projectStore = useProjectStore();
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
-  const { isLoading } = projectStore;
 
-  const { libraryType, setLibraryType } = uiStore;
+  const { libraryType, showAnimation, setLibraryType } = uiStore;
+
+  const { updateAnimation, isLoading } = projectStore;
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
@@ -64,6 +66,10 @@ const Home = observer(() => {
             </Grid>
             <Grid item xs={6}>
               {libraryType && <Library tab={libraryType} />}
+              {
+                showAnimation
+                && <AnimationList onSelect={(item, type) => updateAnimation(type, item)} />
+              }
             </Grid>
           </Grid>
         </Grid>

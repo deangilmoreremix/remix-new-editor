@@ -1,16 +1,18 @@
 import { observable, action, computed, reaction, runInAction } from 'mobx';
 import arrayMove from 'array-move';
+import size from 'lodash/size';
 
 import BaseStore from './base.store';
 
 import {
   EMAIL_SKIP_TOKENS,
 } from '../../lib/constants/campaigns/constants';
-import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
 import { SEQUENCER } from '../../lib/constants/popcorn';
+import { isLayerFulfilled } from '../../lib/utils/project';
+import { NONE_CLASS } from '../../lib/constants/animations';
+import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-import { isLayerFulfilled } from '../../lib/utils/project';
 
 const defaultLayer = {
   name: '',
@@ -182,7 +184,17 @@ export default class ProjectStore extends BaseStore {
       return null;
     }
     const element = this.popcorn.getTrackEvent(this.activeElementId);
-    return element && element.form;
+    // eslint-disable-next-line no-underscore-dangle
+    const { options } = (element && element._natives && element._natives.manifest) || {};
+    const resultOptions = {};
+    if (options) {
+      Object.keys(options).forEach((fieldName) => {
+        if (!options[fieldName].hidden) {
+          resultOptions[fieldName] = options[fieldName];
+        }
+      });
+    }
+    return resultOptions;
   }
 
   @action
@@ -212,19 +224,37 @@ export default class ProjectStore extends BaseStore {
         });
       });
     });
-
-    const { start, end } = options;
-    this.elements.forEach(element => {
-      if (element.id === elementId) {
-        element.popcornOptions = {
-          ...element.popcornOptions,
-          ...(start && start !== element.start ? { start } : {}),
-          ...(end && end !== element.end ? { end } : {}),
-        };
-      }
-    });
-
+    this.updateElement(elementId, options);
     this.updatePopcorn(elementId, options);
+  };
+
+  @action
+  updateElement = (elementId, options) => {
+    // we need to update the elements, if the user updates the start,
+    // end or animation, this is necessary to rerender the elements
+    const { start, end, animation } = options;
+    this.elements = this.elements.map(element => {
+      if (element.id === elementId) {
+        const newOptions = {};
+        if (start !== undefined && start !== element.popcornOptions.start) {
+          newOptions.start = start;
+        }
+        if (end !== undefined && end !== element.popcornOptions.end) {
+          newOptions.end = end;
+        }
+        if (animation) {
+          const { animation: oldAnimation } = element.popcornOptions;
+          newOptions.animation = oldAnimation ? { ...oldAnimation, ...animation } : animation;
+        }
+        if (size(newOptions) > 0) {
+          element.popcornOptions = {
+            ...element.popcornOptions,
+            ...newOptions,
+          };
+        }
+      }
+      return element;
+    });
   };
 
   @action
@@ -305,44 +335,6 @@ export default class ProjectStore extends BaseStore {
   get popcornObject() {
     return this.generatePopcornObject();
   }
-
-  @action
-  save = async () => {
-    if (!this.modified) {
-      return;
-    }
-    this.isLoading = true;
-    try {
-      const path = this.item._id
-        ? `/api/users/me/makes/${this.item._id}`
-        : '/api/users/me/makes';
-      const serializedData = this.serializeProject();
-      const result = await this.request(
-        path, {
-          method: this.item._id ? 'PATCH' : 'POST',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-          body: {
-            title: serializedData.name,
-            description: serializedData.description,
-            project: serializedData,
-            thumbnail: serializedData.thumbnail,
-            remixedFrom: serializedData.source,
-          },
-        });
-      runInAction(() => {
-        this.item = { ...this.item, ...result };
-        this.setProjectData(JSON.parse(this.item.project.data));
-        this.modified = false;
-        this.isLoading = false;
-      });
-    } catch (e) {
-      this.isLoading = true;
-      console.error('Error ', e);
-    }
-    return this.item;
-  };
 
   @action
   moveElements = (oldIndex, newIndex) => {
@@ -503,7 +495,7 @@ export default class ProjectStore extends BaseStore {
   @action
   updateTime = (value) => {
     this.time = value;
-    this.popcorn.currentTime(value / SANTISECOND);
+    return this.popcorn.currentTime(value / SANTISECOND);
   };
 
   @action
@@ -515,6 +507,7 @@ export default class ProjectStore extends BaseStore {
       }
       return element;
     });
+
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
@@ -696,6 +689,54 @@ export default class ProjectStore extends BaseStore {
     );
   }
 
+  @action
+  save = async () => {
+    if (!this.modified) {
+      return;
+    }
+    this.isLoading = true;
+    try {
+      const path = this.item._id
+        ? `/api/users/me/makes/${this.item._id}`
+        : '/api/users/me/makes';
+      const serializedData = this.serializeProject();
+      const result = await this.request(
+        path, {
+          method: this.item._id ? 'PATCH' : 'POST',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+          body: {
+            title: serializedData.name,
+            description: serializedData.description,
+            project: serializedData,
+            thumbnail: serializedData.thumbnail,
+            remixedFrom: serializedData.source,
+          },
+        });
+      runInAction(() => {
+        this.item = { ...this.item, ...result };
+        this.setProjectData(JSON.parse(this.item.project.data));
+        this.modified = false;
+        this.isLoading = false;
+      });
+    } catch (e) {
+      this.isLoading = true;
+      console.error('Error ', e);
+    }
+    return this.item;
+  };
+
+  updateAnimation = (type, animationName = NONE_CLASS) => {
+    const animation = {
+      [type]: {
+        type: animationName,
+        // The animated class has a default speed of 1s
+        duration: 1,
+      },
+    };
+    this.findAndUpdate(this.activeElementId, { animation });
+  };
   @action
   runTextfill = () => {
     this.popcornElements.forEach(element => {
