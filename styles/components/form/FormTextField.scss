@@ -74,7 +74,7 @@ div, textarea {
   }
 
   &.text-input:focus, &.text-input:hover {
-    border: 0.055rem solid $red;
+    border: 0.055rem solid $secondary-color;
   }
 }
 
@@ -116,4 +116,23 @@ label {
 
 .label-none {
   display: none;
+}
+
+.container-textarea {
+
+  .text-area {
+    display: flex;
+
+    textarea {
+      color: $white;
+    }
+
+    fieldset {
+      border-color: $btn-gray;
+    }
+
+    .MuiOutlinedInput-root:hover fieldset, .MuiOutlinedInput-root.Mui-focused fieldset {
+      border-color: $secondary-color;
+    }
+  }
 }

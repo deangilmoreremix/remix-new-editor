@@ -98,7 +98,7 @@
   @include reset-button;
   width: 8.88em;
   height: 2.45em;
-  border: 1px solid $red;
+  border: 1px solid $secondary-color;
   border-radius: 4px;
 }
 
@@ -112,7 +112,7 @@
   background: none;
   border: none;
   outline: none;
-  border-bottom: 1px solid $red;
+  border-bottom: 1px solid $secondary-color;
   padding: 0.3rem 0;
 
   &:focus ~ .library__placeholder {
@@ -129,7 +129,7 @@
 
   span {
     font-size: 1em;
-    color: $red;
+    color: $secondary-color;
   }
 }
 
@@ -161,11 +161,11 @@
 
   &-active {
     path {
-      fill: $red;
+      fill: $secondary-color;
     }
 
     p {
-      color: $red;
+      color: $secondary-color;
     }
   }
 

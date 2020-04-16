@@ -56,16 +56,17 @@
     }
   }
 
-  .settings-input label {
+  .settings-panel-text {
     width: 17%;
   }
 }
 
 @media screen and (max-width: $lg) {
-  .settings__inputs {
-    .MuiBox-root {
-      width: 100%;
-    }
+  .settings-panel-text,
+  label.settings-panel-text,
+  .text-input,
+  .settings-input p {
+    width: 100%;
   }
 
   .settings-input {
@@ -90,8 +91,8 @@
     width: 100%;
   }
 
-  .settings-input label {
-    width: 100%;
+  .settings-panel-text,
+  label.settings-panel-text {
     margin-bottom: 0.5rem;
     padding-right: 0;
   }

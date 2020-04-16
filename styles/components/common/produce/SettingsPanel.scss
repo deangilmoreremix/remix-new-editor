@@ -21,7 +21,7 @@ label.settings-panel-text {
   align-items: center;
   margin-bottom: 1.4rem;
 
-  label {
+  label, p {
     width: 26%;
     min-width: 5.6rem;
   }
@@ -36,6 +36,10 @@ label.settings-panel-text {
   label {
     min-width: 7rem;
     margin: 0;
+  }
+
+  .MuiBox-root {
+    margin: 0.4rem 0;
   }
 }
 

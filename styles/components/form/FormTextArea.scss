@@ -1,0 +1,18 @@
+.text-area {
+  width: 100%;
+
+  & label {
+    color: $white;
+  }
+
+  .MuiInput-root {
+    &:hover, &:before, &:after {
+      border: none !important;
+    }
+  }
+
+  textarea {
+    @include input-placeholder;
+    @include tiny-scrollbar;
+  }
+}

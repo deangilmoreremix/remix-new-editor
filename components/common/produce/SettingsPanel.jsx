@@ -58,14 +58,13 @@ const SettingPanel = observer(() => {
         <FieldBuilder
           type="textarea"
           name="description"
-          label="Description"
+          text="Description"
           value={item.description}
           onChange={updateItem}
           className="settings-input"
-          labelClassName="settings-panel-text"
+          textClassName="settings-panel-text"
           placeholder="A project about"
-          rowsMin={7}
-          rowsMax={7}
+          rows="5"
         />
         <FieldBuilder
           type="color"
