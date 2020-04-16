@@ -64,6 +64,48 @@
     }
   }
 
+  .popcorn-element-name {
+    position: absolute;
+    bottom: 0;
+    border-top: none;
+  }
+
+  .popcorn-element {
+    border: none;
+  }
+
+  .popcorn-element-part {
+    display: flex;
+    justify-content: flex-end;
+    align-items: baseline;
+    height: $layer-height - 1px;
+
+    button {
+      line-height: 0.8rem;
+      border: none;
+      margin-right: 2px;
+    }
+  }
+
+  .in-animation-element {
+    background-color: $inColor;
+    border: 1px solid $secondary-color;
+    border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
+  }
+
+  .idle-animation-element {
+    background-color: $idleColor;
+    border: 1px solid $secondary-color;
+  }
+
+  .out-animation-element {
+    background-color: $outColor;
+    border: 1px solid $secondary-color;
+    border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
+  }
+
   .layout {
     position: relative;
     transition: height 200ms ease;
@@ -73,7 +115,9 @@
     transition: all 200ms ease;
     transition-property: left, top;
     border-radius: 5px;
-    background-color: $secondary-color;
+    background-color: $fourth-color;
+    border: 0.5px solid $secondary-color;
+    font-size: $small;
   }
   .react-grid-item.cssTransforms {
     transition-property: transform;

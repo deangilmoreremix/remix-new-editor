@@ -5,8 +5,11 @@ export default class UIStore {
 
   @observable wideWindow = false;
 
+  @observable showAnimation = false;
+
   @action
   setLibraryType = (type, isWideWindow = false) => {
+    this.animationType = null;
     this.wideWindow = isWideWindow;
     this.libraryType = type;
   };
@@ -14,5 +17,11 @@ export default class UIStore {
   @action
   setWideWindow = () => {
     this.wideWindow = false;
+  };
+
+  @action
+  openAnimation = () => {
+    this.libraryType = null;
+    this.showAnimation = true;
   }
 }

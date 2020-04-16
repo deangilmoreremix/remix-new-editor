@@ -12,8 +12,10 @@ import useModalStore from './hooks/useModalStore';
 import useUIStore from './hooks/useUIStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
+
 import Timeline from './Timeline';
 import Library from './media/Library';
+import AnimationList from './media/AnimationList';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -24,9 +26,10 @@ const Home = observer(() => {
   const projectStore = useProjectStore();
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
-  const { isLoading } = projectStore;
 
-  const { libraryType, setLibraryType, wideWindow, setWideWindow } = uiStore;
+  const { libraryType, showAnimation, setLibraryType, wideWindow, setWideWindow } = uiStore;
+
+  const { updateAnimation, isLoading } = projectStore;
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
@@ -59,6 +62,10 @@ const Home = observer(() => {
             </Col>
             <Col xs={!wideWindow ? 0 : 6}>
               {libraryType && <Library tab={libraryType} />}
+              {
+                showAnimation
+                && <AnimationList onSelect={(item, type) => updateAnimation(type, item)} />
+              }
             </Col>
           </Row>
         </Col>
