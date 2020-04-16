@@ -44,9 +44,13 @@ export default function FormTextField({
     <FormGroup
       className={classnames(className)}
     >
-      <InputLabel key="label-key" className={classnames('form-control-label', labelClassName)}>
-        {label}
-      </InputLabel>
+      {
+        label && (
+          <InputLabel key="label-key" className={classnames('form-control-label', labelClassName)}>
+            {label}
+          </InputLabel>
+        )
+      }
       { type !== 'text' && (
         mask
           ? (
