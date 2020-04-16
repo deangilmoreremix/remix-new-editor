@@ -123,7 +123,7 @@ Basic.propTypes = {
     start: PropTypes.object,
     end: PropTypes.object,
     text: PropTypes.object,
-    linkTarget: PropTypes.arrayOf(PropTypes.string),
+    linkTarget: PropTypes.object,
     linkUrl: PropTypes.object,
     callNotifyAddress: PropTypes.object,
     rotation: PropTypes.object,

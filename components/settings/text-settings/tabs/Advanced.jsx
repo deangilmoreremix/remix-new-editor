@@ -31,7 +31,8 @@ const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
             name={fields.fontSize.name}
             {...fields.fontSize}
             onChange={onChange}
-            disabled={checkKeyInObj(fields.fontDecorations.responsive.name, fields.fontDecorations.name) && true}
+            disabled={checkKeyInObj(fields.fontDecorations.responsive.name,
+              fields.fontDecorations.name) && true}
             minValue={1}
           />
         </div>
@@ -44,7 +45,8 @@ const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
               onChange={handleChangeFontDecoration(fields.fontDecorations.name)}
             />
             <FieldBuilder
-              value={checkKeyInObj(fields.fontDecorations.italics.name, fields.fontDecorations.name)}
+              value={checkKeyInObj(fields.fontDecorations.italics.name,
+                fields.fontDecorations.name)}
               name={fields.fontDecorations.italics.name}
               {...fields.fontDecorations.italics}
               onChange={handleChangeFontDecoration(fields.fontDecorations.name)}
@@ -145,7 +147,7 @@ const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
 
 Advanced.propTypes = {
   values: PropTypes.shape({
-    fontFamily: PropTypes.string,
+    fontFamily: PropTypes.object,
     fontSize: PropTypes.number,
     fontDecorations: PropTypes.shape({
       bold: PropTypes.boolean,

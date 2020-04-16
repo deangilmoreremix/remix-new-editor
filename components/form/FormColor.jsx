@@ -91,13 +91,14 @@ const FormColor = ({ label, onChange, value: color, disabled }) => {
   );
 };
 FormColor.propTypes = {
-  onChange: PropTypes.func,
+  onChange: PropTypes.func.isRequired,
   label: PropTypes.string,
   value: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 FormColor.defaultProps = {
-  onChange: () => {},
+  disabled: false,
 };
 
 export default FormColor;
