@@ -31,6 +31,7 @@
   "dependencies": {
     "@material-ui/core": "4.9.5",
     "@material-ui/icons": "4.9.1",
+    "@react-hook/window-size": "1.0.13",
     "@zeit/next-sass": "1.0.1",
     "animate.css": "3.7.2",
     "array-move": "2.2.1",
@@ -57,6 +58,7 @@
     "form-data": "3.0.0",
     "formik": "2.1.4",
     "glob": "7.1.6",
+    "husky": "3.1.0",
     "interactjs": "1.9.3",
     "isomorphic-fetch": "2.2.1",
     "jquery": "2.2.3",
@@ -109,7 +111,6 @@
     "url": "0.11.0",
     "validator": "12.2.0",
     "webmaker-auth": "git://github.com/strategic-limited/webmaker-auth2#ba029fd7b9107044ffac02f114ecfec72147a794",
-    "husky": "3.1.0",
     "webpack": "4.41.5"
   },
   "devDependencies": {

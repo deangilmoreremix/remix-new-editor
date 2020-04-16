@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react';
+import { useWindowSize } from '@react-hook/window-size';
 
 import useProjectStore from './hooks/useProjectStore';
 
@@ -8,6 +9,7 @@ const Canvas = observer(() => {
   const { item: { ratio: { width = 16, height = 9 } = {} }, runTextfill } = projectStore;
   const [style, setStyle] = React.useState({});
   const [fontSize, setFontSize] = React.useState(0);
+  const [windowWidth, windowHeight] = useWindowSize();
 
   const aspectRatio = useMemo(() => width / height, [width, height]);
 
@@ -21,10 +23,10 @@ const Canvas = observer(() => {
       const maxWidth = ref.current.offsetWidth - (marginLeft * 2);
       const maxHeight = ref.current.offsetHeight - (marginTop * 2);
       const sideIndent = (maxWidth - (maxHeight * aspectRatio)) / 2;
-      setStyle(sideIndent > 0 ? { margin: `${marginTop}px ${sideIndent + marginLeft}px`, fontSize }
-        : { margin: `${((maxHeight - (maxWidth / aspectRatio))) / 2 + marginTop}px ${marginLeft}px`, fontSize });
+      setStyle(sideIndent > 0 ? { margin: `${marginTop}px ${sideIndent + marginLeft}px` }
+        : { margin: `${((maxHeight - (maxWidth / aspectRatio))) / 2 + marginTop}px ${marginLeft}px` });
     }
-  }, [aspectRatio, fontSize]);
+  }, [aspectRatio, windowWidth, windowHeight]);
 
   useEffect(() => {
     if (wrapper.current) {
@@ -32,7 +34,7 @@ const Canvas = observer(() => {
       // todo add consts
       setFontSize(`${14 * (wrapper.current.offsetWidth / 560)}px`);
     }
-  }, [projectStore]);
+  }, [projectStore, style]);
 
   useEffect(() => {
     if (wrapper.current) {
@@ -41,29 +43,9 @@ const Canvas = observer(() => {
     }
   }, [runTextfill, style]);
 
-  //
-  // const aspectRatio = useMemo(() => width / height, [width, height]);
-  //
-  // const ref = useRef(null);
-  // const wrapper = useRef(null);
-  // const marginLeft = 0;
-  // const marginTop = 0;
-  //
-  // useEffect(() => {
-  //   if (ref.current) {
-  //     const maxWidth = ref.current.offsetWidth - (marginLeft * 2);
-  //     const maxHeight = ref.current.offsetHeight - (marginTop * 2);
-  //     const sideIndent = (maxWidth - (maxHeight * aspectRatio)) / 2;
-  //     setStyle(sideIndent > 0 ? { margin: `${marginTop}px ${sideIndent + marginLeft}px` }
-  //       : { margin: `${((maxHeight - (maxWidth / aspectRatio))) / 2 + marginTop}px ${marginLeft}px` });
-  //   }
-  // }, [aspectRatio]);
-  //
-  // useEffect(() => {
-  //   if (wrapper.current) {
-  //     projectStore.setPopcorn(wrapper.current);
-  //   }
-  // }, [projectStore]);
+  useEffect(() => {
+    runTextfill();
+  }, [fontSize, runTextfill]);
 
   return (
     <div ref={ref} className="stager-wrapper">
