@@ -5,7 +5,11 @@ import { useAsync } from 'react-async-hook';
 import Grid from '@material-ui/core/Grid';
 
 import Canvas from './Canvas';
+import Timeline from './Timeline';
+import Library from './media/Library';
 import Toolbar from './common/toolbar/Toolbar';
+import SizeSelector from './canvas/SizeSelector';
+import AnimationList from './media/AnimationList';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
@@ -13,11 +17,7 @@ import useUIStore from './hooks/useUIStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
-import Timeline from './Timeline';
-import Library from './media/Library';
 import { CANVAS_SIZES } from '../lib/constants/media';
-import SizeSelector from './canvas/SizeSelector';
-
 import { DEFAULT_RATIO } from '../lib/constants/project';
 
 const getOne = async (store, id) => {

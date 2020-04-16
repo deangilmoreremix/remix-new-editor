@@ -10,7 +10,7 @@ import {
 import { SEQUENCER } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
-import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
+import { SANTISECOND, MAX_ZINDEX, DEFAULT_RATIO } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 
@@ -51,10 +51,7 @@ const defaultItem = {
       tags: [],
     },
   },
-  ratio: {
-    width: 16,
-    height: 9,
-  },
+  ratio: DEFAULT_RATIO,
 };
 
 // TODO: remove the fake data when ready
@@ -737,6 +734,7 @@ export default class ProjectStore extends BaseStore {
     };
     this.findAndUpdate(this.activeElementId, { animation });
   };
+
   @action
   runTextfill = () => {
     this.popcornElements.forEach(element => {
