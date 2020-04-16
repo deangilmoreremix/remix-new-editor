@@ -8,6 +8,7 @@ import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
 import FormTextField from './FormTextField';
+import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 
 const FormColor = ({ label, onChange, value: color, className }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -29,23 +30,7 @@ const FormColor = ({ label, onChange, value: color, className }) => {
     setAnchorEl(null);
   };
 
-  const parseRgba = (rgba) => {
-    const rgbaRegexp = new RegExp(/\((\s*?.*?)*?\)/, 'i');
-    if (!rgba) {
-      return { r: 0, g: 0, b: 0, a: 1 };
-    }
-    rgba = rgba.replace(/\s/g, '');
-    if (!rgbaRegexp.test(rgba)) {
-      return rgba;
-    }
-    const components = rgba.split('(')[1].split(')')[0].split(',');
-    return {
-      r: +components[0],
-      g: +components[1],
-      b: +components[2],
-      a: +components[3],
-    };
-  };
+  const color = React.useMemo(() => parseRgbaString(value), [value]);
 
   return (
     <FormGroup className={className}>
@@ -55,13 +40,13 @@ const FormColor = ({ label, onChange, value: color, className }) => {
       <Box tabIndex={-1}>
         <FormTextField
           labelClass="label-left"
-          value={color || colorPrimary}
+          value={value || colorPrimary}
           onChange={updateColor}
         />
         <button
           onClick={handleClick}
           className={classnames('color-element')}
-          style={{ backgroundColor: color || colorPrimary }}
+          style={{ backgroundColor: value || colorPrimary }}
         />
         <Popover
           id={id}
@@ -78,10 +63,8 @@ const FormColor = ({ label, onChange, value: color, className }) => {
           }}
         >
           <ChromePicker
-            onChangeComplete={newColor => updateColor(
-              `rgb(${newColor.rgb.r}, ${newColor.rgb.g}, ${newColor.rgb.b}, ${newColor.rgb.a})`,
-            )}
-            color={parseRgba(color)}
+            onChangeComplete={(r) => updateColor(colorToRgbaString(r.rgb))}
+            color={color}
           />
         </Popover>
       </Box>

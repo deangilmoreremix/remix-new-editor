@@ -4,12 +4,11 @@
 }
 
 .layers {
-  @include tiny-scrollbar($thumbHeight: 0, $thumbColor: $red, $scrollbarColor: $modal-header-bg);
+  @include tiny-scrollbar;
   width: 100%;
   display: flex;
   position: relative;
   margin: $layer-height auto;
-  overflow-y: auto;
   height: 130px;
   margin-top: 29px;
 }
