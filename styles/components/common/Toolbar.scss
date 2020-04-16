@@ -1,14 +1,10 @@
 .toolbar {
   &-container {
-    @include tiny-scrollbar;
-
     display: flex;
-    height: 37vh;
+    background: $dark-night;
+    height: $toolbarHeight;
     justify-content: center;
-    padding-right: 1.89rem;
-    max-height: 100%;
-    overflow-y: auto;
-
+    padding: 58px 15px 58px 0;
   }
 
   &-tabs {

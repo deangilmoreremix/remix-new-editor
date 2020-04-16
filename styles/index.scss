@@ -11,12 +11,14 @@
 @import "components/Home";
 @import "components/Header";
 @import "components/form/FormSelect";
-@import "components/Canvas";
 @import "components/Timeline";
 @import "components/Personalization";
 @import "components/Media";
 @import "components/MediaLibrary";
 @import "components/Layout";
+@import "components/Animation";
+@import "components/CloseButton";
+@import "components/Loader";
 
 @import "components/modals/index";
 @import "components/modals/SocialCampaignModal";
@@ -38,6 +40,6 @@
 @import "components/form/AngleInput";
 @import "components/common/ThumbnailEditor";
 @import "components/common/thumbnails";
-@import "components/Animation";
-@import "components/CloseButton";
-@import "components/Loader";
+
+@import "components/canvas/Canvas";
+@import "components/canvas/SizeSelector";

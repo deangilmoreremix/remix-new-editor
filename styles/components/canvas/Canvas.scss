@@ -1,27 +1,14 @@
-.canvas-container {
-  position: relative;
-  flex: auto;
-  height: 100%;
-}
-
-.canvas-size-selector {
-  position: relative;
-  flex: auto;
-}
-
 .stager-wrapper {
-  position: absolute;
+  display: flex;
+  flex-direction: column;
+  position: relative;
   top: 0;
-  right: 5.5rem;
+  right: 2rem;
   left: 0;
-  bottom: 0;
+  height: $toolbarHeight;
 
   .embed-wrapper {
     position: relative;
     flex-grow: 1;
-    background: $canvas-bg;
-    height: 100%;
   }
 }
-
-@import "SizeSelector";

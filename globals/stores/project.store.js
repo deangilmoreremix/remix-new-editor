@@ -49,6 +49,10 @@ const defaultItem = {
       tags: [],
     },
   },
+  ratio: {
+    width: 16,
+    height: 9,
+  },
 };
 
 // TODO: remove the fake data when ready
@@ -301,6 +305,44 @@ export default class ProjectStore extends BaseStore {
   get popcornObject() {
     return this.generatePopcornObject();
   }
+
+  @action
+  save = async () => {
+    if (!this.modified) {
+      return;
+    }
+    this.isLoading = true;
+    try {
+      const path = this.item._id
+        ? `/api/users/me/makes/${this.item._id}`
+        : '/api/users/me/makes';
+      const serializedData = this.serializeProject();
+      const result = await this.request(
+        path, {
+          method: this.item._id ? 'PATCH' : 'POST',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+          body: {
+            title: serializedData.name,
+            description: serializedData.description,
+            project: serializedData,
+            thumbnail: serializedData.thumbnail,
+            remixedFrom: serializedData.source,
+          },
+        });
+      runInAction(() => {
+        this.item = { ...this.item, ...result };
+        this.setProjectData(JSON.parse(this.item.project.data));
+        this.modified = false;
+        this.isLoading = false;
+      });
+    } catch (e) {
+      this.isLoading = true;
+      console.error('Error ', e);
+    }
+    return this.item;
+  };
 
   @action
   moveElements = (oldIndex, newIndex) => {
@@ -653,51 +695,26 @@ export default class ProjectStore extends BaseStore {
       },
     );
   }
-
-
-  @action
-  save = async () => {
-    if (!this.modified) {
-      return;
-    }
-    this.isLoading = true;
-    try {
-      const path = this.item._id
-        ? `/api/users/me/makes/${this.item._id}`
-        : '/api/users/me/makes';
-      const serializedData = this.serializeProject();
-      const result = await this.request(
-        path, {
-          method: this.item._id ? 'PATCH' : 'POST',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-          body: {
-            title: serializedData.name,
-            description: serializedData.description,
-            project: serializedData,
-            thumbnail: serializedData.thumbnail,
-            remixedFrom: serializedData.source,
-          },
-        });
-      runInAction(() => {
-        this.item = { ...this.item, ...result };
-        this.setProjectData(JSON.parse(this.item.project.data));
-        this.modified = false;
-        this.isLoading = false;
-      });
-    } catch (e) {
-      this.isLoading = true;
-      console.error('Error ', e);
-    }
-    return this.item;
-  }
   @action
   setRatio = (newRatio) => {
-    try {
-      this.item.ratio = newRatio;
-    } catch (e) {
-      console.error(e);
-    }
+    this.item.ratio = newRatio;
   };
+  @action
+  runTextfill = () => {
+    this.popcornElements.forEach(element => {
+      const currentTime = this.time / SANTISECOND;
+      const isCurrentElement = (element.popcornOptions.start <= currentTime)
+        && (currentTime <= element.popcornOptions.end);
+      if (isCurrentElement && element.popcornOptions.fontDecorations
+        && element.popcornOptions.fontDecorations.responsive) {
+        // we need to recount the fontsize. This is done in the update method.
+        this.updatePopcorn(element, { fontDecorations: element.popcornOptions.fontDecorations });
+      }
+    });
+  };
+
+  @computed
+  get popcornElements() {
+    return this.popcornObject.popcornElements;
+  }
 }

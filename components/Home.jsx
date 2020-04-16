@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import { useAsync } from 'react-async-hook';
-import { Col, Container, Row } from 'reactstrap';
+import Grid from '@material-ui/core/Grid';
 
 import Canvas from './Canvas';
 import Toolbar from './common/toolbar/Toolbar';
@@ -14,6 +14,8 @@ import useUIStore from './hooks/useUIStore';
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 import Timeline from './Timeline';
 import Library from './media/Library';
+import { CANVAS_SIZES } from '../lib/constants/media';
+import SizeSelector from './canvas/SizeSelector';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -30,6 +32,8 @@ const Home = observer(() => {
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
+  const { item: { ratio: { width = 16, height = 9 } = {} }, setRatio } = projectStore;
+
   if (asyncHero.loading || isLoading) {
     // todo implement loading
     return (<div>Loading</div>);
@@ -41,11 +45,11 @@ const Home = observer(() => {
   }
 
   return (
-    <Container fluid className="home">
-      <Row className="controls" noGutters>
-        <Col xs={7}>
-          <Row>
-            <Col xs={6}>
+    <div className="home">
+      <Grid container className="controls">
+        <Grid item xs={7}>
+          <Grid container>
+            <Grid item xs={6}>
               <Toolbar
                 items={toolbarItems({
                   actions: {
@@ -55,20 +59,21 @@ const Home = observer(() => {
                   },
                 })}
               />
-            </Col>
-            <Col xs={6}>
+            </Grid>
+            <Grid item xs={6}>
               {libraryType && <Library tab={libraryType} />}
-            </Col>
-          </Row>
-        </Col>
-        <Col xs={5}>
+            </Grid>
+          </Grid>
+        </Grid>
+        <Grid item xs={5}>
           <Canvas />
-        </Col>
-      </Row>
-      <Row className="timeline" noGutters>
+        </Grid>
+      </Grid>
+      <SizeSelector sizes={CANVAS_SIZES} onChange={setRatio} active={{ width, height }} />
+      <Grid container className="timeline">
         <Timeline />
-      </Row>
-    </Container>
+      </Grid>
+    </div>
   );
 });
 

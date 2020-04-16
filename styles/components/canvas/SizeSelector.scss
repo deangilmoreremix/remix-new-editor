@@ -1,11 +1,11 @@
 .canvas-size {
   &-selector {
     position: absolute;
-    top: -2.5rem;
     right: 1rem;
     display: flex;
     flex-flow: column;
     align-items: center;
+    bottom: 100vh - $toolbarHeight;
   }
 
   &-item {
