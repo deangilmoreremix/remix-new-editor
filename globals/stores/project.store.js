@@ -1,16 +1,18 @@
 import { observable, action, computed, reaction, runInAction } from 'mobx';
 import arrayMove from 'array-move';
+import size from 'lodash/size';
 
 import BaseStore from './base.store';
 
 import {
   EMAIL_SKIP_TOKENS,
 } from '../../lib/constants/campaigns/constants';
-import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
 import { SEQUENCER } from '../../lib/constants/popcorn';
+import { isLayerFulfilled } from '../../lib/utils/project';
+import { NONE_CLASS } from '../../lib/constants/animations';
+import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-import { isLayerFulfilled } from '../../lib/utils/project';
 
 const defaultLayer = {
   name: '',
@@ -218,19 +220,37 @@ export default class ProjectStore extends BaseStore {
         });
       });
     });
-
-    const { start, end } = options;
-    this.elements.forEach(element => {
-      if (element.id === elementId) {
-        element.popcornOptions = {
-          ...element.popcornOptions,
-          ...(start && start !== element.start ? { start } : {}),
-          ...(end && end !== element.end ? { end } : {}),
-        };
-      }
-    });
-
+    this.updateElement(elementId, options);
     this.updatePopcorn(elementId, options);
+  };
+
+  @action
+  updateElement = (elementId, options) => {
+    // we need to update the elements, if the user updates the start,
+    // end or animation, this is necessary to rerender the elements
+    const { start, end, animation } = options;
+    this.elements = this.elements.map(element => {
+      if (element.id === elementId) {
+        const newOptions = {};
+        if (start !== undefined && start !== element.popcornOptions.start) {
+          newOptions.start = start;
+        }
+        if (end !== undefined && end !== element.popcornOptions.end) {
+          newOptions.end = end;
+        }
+        if (animation) {
+          const { animation: oldAnimation } = element.popcornOptions;
+          newOptions.animation = oldAnimation ? { ...oldAnimation, ...animation } : animation;
+        }
+        if (size(newOptions) > 0) {
+          element.popcornOptions = {
+            ...element.popcornOptions,
+            ...newOptions,
+          };
+        }
+      }
+      return element;
+    });
   };
 
   @action
@@ -471,18 +491,19 @@ export default class ProjectStore extends BaseStore {
   @action
   updateTime = (value) => {
     this.time = value;
-    this.popcorn.currentTime(value / SANTISECOND);
+    return this.popcorn.currentTime(value / SANTISECOND);
   };
 
   @action
   updateStartEnd = (elementId, start, end) => {
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
-        element.start = start;
-        element.end = end;
+        element.popcornOptions.start = start;
+        element.popcornOptions.end = end;
       }
       return element;
     });
+
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
@@ -665,7 +686,6 @@ export default class ProjectStore extends BaseStore {
     );
   }
 
-
   @action
   save = async () => {
     if (!this.modified) {
@@ -702,5 +722,16 @@ export default class ProjectStore extends BaseStore {
       console.error('Error ', e);
     }
     return this.item;
-  }
+  };
+
+  updateAnimation = (type, animationName = NONE_CLASS) => {
+    const animation = {
+      [type]: {
+        type: animationName,
+        // The animated class has a default speed of 1s
+        duration: 1,
+      },
+    };
+    this.findAndUpdate(this.activeElementId, { animation });
+  };
 }

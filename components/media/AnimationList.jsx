@@ -1,33 +1,43 @@
 import React from 'react';
+import { observer } from 'mobx-react';
 
 import PropTypes from '../../lib/PropTypes';
-import { animations } from '../../lib/constants/animations';
+import { animations, ANIMATION_TYPES } from '../../lib/constants/animations';
 
 import AnimationPreview from '../common/AnimationPreview';
 import CloseButton from '../common/CloseButton';
 
-const AnimationList = ({ type, onSelect }) => (
-  <div className="animation-container">
-    <p className="animation-container__title">Add Animation</p>
-    <div className="animation-blocks">
+const AnimationList = observer(({ onSelect }) => {
+  const block = React.useCallback((type) => (
+    <div key={type} className="animation-block">
       {
           animations[type].map(item => (
             <AnimationPreview
               animation={item}
-              onSelect={onSelect}
+              onSelect={() => onSelect(item.value, type)}
               key={item.value}
+              className={type}
             />
           ),
           )
-      }
+        }
     </div>
-    {/* ToDo Need to remove the close button */}
-    <CloseButton onClick={() => console.log('click')} />
-  </div>
+  ), [onSelect]);
+
+  return (
+    <div className="animation-container">
+      <p className="animation-container__title">Add Animation</p>
+      <div className="animation-blocks">
+        {Object.values(ANIMATION_TYPES).map((type => block(type)))}
+      </div>
+      {/* ToDo Need to remove the close button */}
+      <CloseButton onClick={() => console.log('click')} />
+    </div>
+  );
+},
 );
 
 AnimationList.propTypes = {
-  type: PropTypes.oneOf(['in', 'out', 'idle']).isRequired,
   onSelect: PropTypes.func.isRequired,
 };
 
