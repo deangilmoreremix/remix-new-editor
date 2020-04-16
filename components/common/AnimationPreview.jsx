@@ -12,7 +12,7 @@ const AnimationPreview = ({ animation, onSelect, className }) => {
 
   return (
     <div
-      className={`animation-preview ${className || ''}`}
+      className={classnames('animation-preview ', className)}
       onMouseEnter={onHover}
       onMouseLeave={onHover}
     >

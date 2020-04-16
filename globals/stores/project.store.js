@@ -211,7 +211,7 @@ export default class ProjectStore extends BaseStore {
 
     const { start, end } = options;
     let { animation } = options;
-    this.elements.forEach(element => {
+    this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         if (animation || start !== element.popcornOptions.start
           || end !== element.popcornOptions.end) {
@@ -227,8 +227,8 @@ export default class ProjectStore extends BaseStore {
           };
         }
       }
+      return element;
     });
-
     this.updatePopcorn(elementId, options);
   };
 

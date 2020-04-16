@@ -1,4 +1,5 @@
 import React from 'react';
+import classnames from 'classnames';
 import { observer } from 'mobx-react';
 import Grid from '@material-ui/core/Grid/Grid';
 
@@ -10,36 +11,6 @@ import PropTypes from '../../../lib/PropTypes';
 import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
 import { NONE_CLASS, ANIMATION_TYPES } from '../../../lib/constants/animations';
 
-const getGridItem = (animationType, item, updateAnimation) => {
-  switch (item.type) {
-    case POPCORN_ELEMENT_TYPES.TEXT: {
-      const animated = item.animation && item.animation[animationType]
-        && item.animation[animationType].type !== NONE_CLASS;
-      return (
-        <Grid
-          xs={4}
-          item
-          className={`popcorn-element-part ${animated ? `${animationType}-animation-element` : ''}`}
-        >
-          {animated
-          && (
-          <button className="icon-button" onClick={() => updateAnimation(animationType, NONE_CLASS)}>
-            x
-          </button>
-          )}
-        </Grid>
-      );
-    } default: {
-      return (
-        <Grid
-          xs={4}
-          item
-        />
-      );
-    }
-  }
-};
-
 const PopcornElement = observer(({ item }) => {
   const projectStore = useProjectStore();
   const uiStore = useUIStore();
@@ -48,6 +19,38 @@ const PopcornElement = observer(({ item }) => {
   const { openAnimation } = uiStore;
 
   let rest = {};
+
+  const getGridItem = (animationType) => {
+    switch (item.type) {
+      case POPCORN_ELEMENT_TYPES.TEXT: {
+        const animated = item.animation && item.animation[animationType]
+          && item.animation[animationType].type !== NONE_CLASS;
+        return (
+          <Grid
+            xs={4}
+            item
+            className={classnames('popcorn-element-part',
+              { [`${animationType}-animation-element`]: animated })}
+          >
+            {animated
+            && (
+              <button className="icon-button" onClick={() => updateAnimation(animationType, NONE_CLASS)}>
+                x
+              </button>
+            )}
+          </Grid>
+        );
+      } default: {
+        return (
+          <Grid
+            xs={4}
+            item
+          />
+        );
+      }
+    }
+  };
+
 
   if (item.type === POPCORN_ELEMENT_TYPES.TEXT) {
     rest = {
@@ -65,9 +68,9 @@ const PopcornElement = observer(({ item }) => {
       {...rest}
     >
       <span className="popcorn-element-name">{item.type}</span>
-      {getGridItem(ANIMATION_TYPES.IN, item, updateAnimation)}
-      {getGridItem(ANIMATION_TYPES.IDLE, item, updateAnimation)}
-      {getGridItem(ANIMATION_TYPES.OUT, item, updateAnimation)}
+      {getGridItem(ANIMATION_TYPES.IN)}
+      {getGridItem(ANIMATION_TYPES.IDLE)}
+      {getGridItem(ANIMATION_TYPES.OUT)}
     </Grid>
   );
 });
