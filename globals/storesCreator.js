@@ -9,6 +9,7 @@ import UserStore from './stores/user.store';
 import ModalStore from './stores/modal.store';
 import MediaStore from './stores/media.store';
 import UIStore from './stores/ui.store';
+import PresetStore from './stores/preset.store';
 import WhiteLabelManager from '../lib/white-label/manager';
 
 let creator = null;
@@ -168,6 +169,12 @@ export async function initCreateStores(isServer, source, req, preloader) {
       modalStore: ModalStore(),
       uiStore: new UIStore(),
       userStore: new UserStore(creator.currentUser),
+      presetStore: new PresetStore({
+        request: creator.request,
+        common: creator.common,
+        isServer,
+        currentUser: creator.currentUser,
+      }),
     };
   }
   if (preloader) {
@@ -201,6 +208,12 @@ export function init(source) {
       }),
       uiStore: new UIStore(),
       userStore: new UserStore(creator.currentUser),
+      presetStore: new PresetStore({
+        request: creator.request,
+        common: creator.common,
+        isServer,
+        currentUser: creator.currentUser,
+      }),
     };
   }
   return { creator, stores };

@@ -44,10 +44,14 @@ export default function FormTextField({
     <FormGroup
       className={classnames(className)}
     >
-      <InputLabel key="label-key" className={classnames('form-control-label', labelClassName)}>
-        {label}
-      </InputLabel>
-      { type !== 'textarea' && (
+      {
+        label && (
+          <InputLabel key="label-key" className={classnames('form-control-label', labelClassName)}>
+            {label}
+          </InputLabel>
+        )
+      }
+      { type !== 'text' && (
         mask
           ? (
             <MaskedFormControl
@@ -78,7 +82,7 @@ export default function FormTextField({
               multiline={multiline}
             />
           ))}
-      {type === 'textarea' && (
+      {type === 'text' && (
         <TextareaAutosize
           key="input-key"
           id={name}
@@ -109,7 +113,7 @@ FormTextField.propTypes = {
   inputClassName: PropTypes.string,
   labelClassName: PropTypes.string,
   placeholder: PropTypes.string,
-  type: PropTypes.oneOf(['input', 'textarea', 'number']),
+  type: PropTypes.oneOf(['input', 'text', 'number']),
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
   multiline: PropTypes.bool,
   rowsMin: PropTypes.number,

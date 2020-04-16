@@ -4,7 +4,7 @@ import { Paper, Tab, Tabs } from '@material-ui/core';
 
 import PropTypes from '../../lib/PropTypes';
 
-const SettingsHeader = ({ className, tabs, setTab, activeTab }) => {
+const SettingsHeader = ({ className, tabs, setTab, activeTab, title }) => {
   const handleChange = (event, newValue) => {
     if (setTab) {
       return setTab(newValue);
@@ -14,32 +14,40 @@ const SettingsHeader = ({ className, tabs, setTab, activeTab }) => {
 
   return (
     <Paper square className={classnames(className, 'header-tabs')}>
-      <Tabs
-        value={activeTab}
-        indicatorColor="primary"
-        textColor="primary"
-        onChange={handleChange}
-      >
-        {tabs && tabs.map(({ label, disabled }) => (
-          <Tab
-            key={label}
-            label={label}
-            disabled={disabled}
-          />
-        ))}
-      </Tabs>
+      {
+        title && <p className="header-tabs__title">{title}</p>
+      }
+      {
+        tabs && (
+          <Tabs
+            value={activeTab}
+            indicatorColor="primary"
+            textColor="primary"
+            onChange={handleChange}
+          >
+            {tabs && tabs.map(({ label, disabled }) => (
+              <Tab
+                key={label}
+                label={label}
+                disabled={disabled}
+              />
+            ))}
+          </Tabs>
+        )
+      }
     </Paper>
   );
 };
 
 SettingsHeader.propTypes = {
-  activeTab: PropTypes.number.isRequired,
+  activeTab: PropTypes.number,
   className: PropTypes.string,
   setTab: PropTypes.func,
   tabs: PropTypes.arrayOf(PropTypes.shape({
     label: PropTypes.string,
     disabled: PropTypes.bool,
-  })).isRequired,
+  })),
+  title: PropTypes.string,
 };
 
 export default SettingsHeader;
