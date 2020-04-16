@@ -695,10 +695,7 @@ export default class ProjectStore extends BaseStore {
       },
     );
   }
-  @action
-  setRatio = (newRatio) => {
-    this.item.ratio = newRatio;
-  };
+
   @action
   runTextfill = () => {
     this.popcornElements.forEach(element => {

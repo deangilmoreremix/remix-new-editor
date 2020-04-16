@@ -26,7 +26,7 @@ const SizeSelector = ({ active, sizes, onChange }) => {
             {
               active: isEqual({ width, height }, active),
             })}
-          onClick={() => onChange({ width, height })}
+          onClick={() => onChange({ ratio: { width, height } })}
           type="button"
           style={getStyle({ width, height })}
         >

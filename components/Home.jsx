@@ -34,7 +34,7 @@ const Home = observer(() => {
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
-  const { item: { ratio: { width, height } = DEFAULT_RATIO }, setRatio } = projectStore;
+  const { item: { ratio: { width, height } = DEFAULT_RATIO }, updateItem } = projectStore;
 
   if (asyncHero.loading || isLoading) {
     // todo implement loading
@@ -71,7 +71,7 @@ const Home = observer(() => {
           <Canvas />
         </Grid>
       </Grid>
-      <SizeSelector sizes={CANVAS_SIZES} onChange={setRatio} active={{ width, height }} />
+      <SizeSelector sizes={CANVAS_SIZES} onChange={updateItem} active={{ width, height }} />
       <Grid container className="timeline">
         <Timeline />
       </Grid>
