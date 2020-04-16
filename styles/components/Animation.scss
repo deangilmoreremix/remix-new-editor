@@ -17,7 +17,7 @@
 }
 
 .animation-blocks {
-  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+  @include tiny-scrollbar;
   overflow-y: auto;
   padding-right: 2.25rem;
   margin: 0 -1%;
@@ -30,6 +30,8 @@
   flex-wrap: wrap;
   align-content: start;
   margin-bottom: 2rem;
+  padding-right: 2.25rem;
+  margin: 0 -1%;
 }
 
 .animation-preview {

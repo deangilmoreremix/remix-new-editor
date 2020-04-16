@@ -130,7 +130,7 @@ const Library = observer(() => {
           }
         });
       });
-    }).catch(err => showError(err))
+    }).catch(err => showError(err.message))
       .finally(() => setIsDisabledUpload(false));
   };
 

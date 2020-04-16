@@ -1,6 +1,10 @@
 .elements-panel {
   &-container {
+    @include tiny-scrollbar;
+
     height: 100%;
+    max-height: 100%;
+    overflow-x: hidden;
   }
 
   &-inner-row {

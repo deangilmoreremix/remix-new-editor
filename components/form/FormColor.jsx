@@ -2,40 +2,71 @@ import React, { useState } from 'react';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import Box from '@material-ui/core/Box';
-import { BlockPicker } from 'react-color';
+import Popover from '@material-ui/core/Popover';
+import { ChromePicker } from 'react-color';
 import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
 import FormTextField from './FormTextField';
+import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 
+const FormColor = ({ label, onChange, value }) => {
+  const [anchorEl, setAnchorEl] = useState(null);
 
-const FormColor = ({ label, onChange, value: color }) => {
-  const [showPicker, togglePicker] = useState(false);
+  const open = Boolean(anchorEl);
+  const id = open ? 'simple-popover' : undefined;
 
-  const colorPrimary = '#EB5054';
+  const colorPrimary = 'rgb(235, 80, 84, 1)';
 
   const updateColor = (res) => {
-    onChange(res.hex || res || colorPrimary);
+    onChange(res.rgb || res || colorPrimary);
   };
-  const pickerClick = () => {
-    togglePicker(!showPicker);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
   };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const color = React.useMemo(() => parseRgbaString(value), [value]);
 
   return (
     <FormGroup>
-      <Box><FormLabel key="label-key" className="form-control-label">{label}</FormLabel></Box>
       <Box>
+        <FormLabel key="label-key" className="form-control-label">{label}</FormLabel>
+      </Box>
+      <Box tabIndex={-1}>
         <FormTextField
           labelClass="label-left"
-          value={color || colorPrimary}
+          value={value || colorPrimary}
           onChange={updateColor}
         />
         <button
-          onClick={pickerClick}
-          className={classnames('color-element', { 'close-color-picker': showPicker })}
-          style={{ backgroundColor: color || colorPrimary }}
+          onClick={handleClick}
+          className={classnames('color-element')}
+          style={{ backgroundColor: value || colorPrimary }}
         />
-        {showPicker && <BlockPicker onChange={updateColor} color={color} /> }
+        <Popover
+          id={id}
+          open={open}
+          anchorEl={anchorEl}
+          onClose={handleClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+        >
+          <ChromePicker
+            onChangeComplete={(r) => updateColor(colorToRgbaString(r.rgb))}
+            color={color}
+          />
+        </Popover>
       </Box>
     </FormGroup>
   );
