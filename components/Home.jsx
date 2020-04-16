@@ -60,7 +60,7 @@ const Home = observer(() => {
                 })}
               />
             </Col>
-            <Col xs={!wideWindow ? 0 : 6}>
+            <Col xs={!wideWindow ? 0 : 6} className="home__center">
               {libraryType && <Library tab={libraryType} />}
               {
                 showAnimation
