@@ -65,7 +65,7 @@ const Home = observer(() => {
                 })}
               />
             </Grid>
-            <Grid item xs={!wideWindow ? false : 6} className="home__center">
+            <Grid item xs={wideWindow ? false : 6} className="home__center">
               {libraryType && <Library tab={libraryType} />}
               {
                 showAnimation
