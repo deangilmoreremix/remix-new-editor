@@ -114,7 +114,7 @@ const Basic = ({ values, fields, onChange }) => {
           </div>
           <div className="container-text-transform-transition">
             <span>Animations</span>
-            <button className="btn-library" onClick={() => console.log('todo')}>Open Library</button>
+            <button className="btn-library" onClick={() => setLibraryType('IMAGE')}>Open Library</button>
           </div>
           <div className="container-text-transform-font">
             <div>

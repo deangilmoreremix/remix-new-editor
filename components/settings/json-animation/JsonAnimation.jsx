@@ -12,7 +12,7 @@ const TabMap = {
   [ADVANCED]: Advanced,
 };
 
-const JsonAnimation = observer({ tab = BASIC, element, update, fields }) => {
+const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
   const Tab = TabMap[tab];
   const handleChange = (field) => {
     update(field);
