@@ -10,7 +10,7 @@ import {
 import { SEQUENCER } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
-import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
+import { SANTISECOND, MAX_ZINDEX, DEFAULT_RATIO } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 
@@ -52,6 +52,7 @@ const defaultItem = {
       tags: [],
     },
   },
+  ratio: DEFAULT_RATIO,
 };
 
 // TODO: remove the fake data when ready
@@ -336,24 +337,8 @@ export default class ProjectStore extends BaseStore {
   @action
   moveElements = (oldIndex, newIndex) => {
     this.projectData.media.forEach((media) => {
-      const topElements = media.tracks[oldIndex].trackEvents;
-      const bottomElements = media.tracks[newIndex].trackEvents;
-      const topZIndex = MAX_ZINDEX - media.tracks[oldIndex].order;
-      const bottomZIndex = MAX_ZINDEX - media.tracks[newIndex].order;
       const tracks = arrayMove(media.tracks, oldIndex, newIndex);
       media.tracks = this.orderItems(tracks, true);
-      topElements.forEach(element => {
-        if (!this.isAudio(element)) {
-          element.popcornOptions.zindex = topZIndex;
-          this.updatePopcorn(element, { zindex: topZIndex });
-        }
-      });
-      bottomElements.forEach(element => {
-        if (!this.isAudio(element)) {
-          element.popcornOptions.zindex = bottomZIndex;
-          this.updatePopcorn(element, { zindex: bottomZIndex });
-        }
-      });
     });
     let newLayers = [...this.layers];
     newLayers = arrayMove(newLayers, oldIndex, newIndex);
@@ -499,8 +484,8 @@ export default class ProjectStore extends BaseStore {
   updateStartEnd = (elementId, start, end) => {
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
-        element.popcornOptions.start = start;
-        element.popcornOptions.end = end;
+        element.start = start;
+        element.end = end;
       }
       return element;
     });
@@ -525,7 +510,6 @@ export default class ProjectStore extends BaseStore {
     || (element.popcornOptions.contentType
       && (element.popcornOptions.contentType.indexOf('audio/') === 0
       || element.popcornOptions.contentType.indexOf('application/ogg') === 0)));
-
 
   @action
   getOne = async (projectId) => {
@@ -735,4 +719,23 @@ export default class ProjectStore extends BaseStore {
     };
     this.findAndUpdate(this.activeElementId, { animation });
   };
+
+  @action
+  runTextfill = () => {
+    this.popcornElements.forEach(element => {
+      const currentTime = this.time / SANTISECOND;
+      const isCurrentElement = (element.popcornOptions.start <= currentTime)
+        && (currentTime <= element.popcornOptions.end);
+      if (isCurrentElement && element.popcornOptions.fontDecorations
+        && element.popcornOptions.fontDecorations.responsive) {
+        // we need to recount the fontsize. This is done in the update method.
+        this.updatePopcorn(element, { fontDecorations: element.popcornOptions.fontDecorations });
+      }
+    });
+  };
+
+  @computed
+  get popcornElements() {
+    return this.popcornObject.popcornElements;
+  }
 }

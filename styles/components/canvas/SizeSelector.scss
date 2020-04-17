@@ -1,0 +1,31 @@
+.canvas-size {
+  &-selector {
+    position: absolute;
+    right: 1rem;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    bottom: 100vh - $toolbarHeight;
+  }
+
+  &-item {
+    @include reset-button;
+    @include button-primary;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $btn-gray;
+    border-color: $btn-gray;
+    font-size: 12px;
+
+    &.active {
+      background: $red;
+      color: $white;
+    }
+
+    &:not(:last-of-type) {
+      margin-bottom: 0.75rem;
+    }
+  }
+}

@@ -2,7 +2,7 @@
   &-container {
     display: flex;
     background: $dark-night;
-    height: 476px;
+    height: $toolbarHeight;
     justify-content: center;
     padding: 58px 15px 58px 0;
   }
