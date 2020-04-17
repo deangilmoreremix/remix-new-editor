@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment } from 'react';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../../lib/PropTypes';
@@ -7,21 +7,31 @@ import { iconAlignment, iconPosition } from '../../../../lib/constants/settings/
 
 import svgTextLetterSpacing from '../../../../public/static/svgImages/text/basic_group/letter-spacing.svg';
 
-const Basic = ({ fields, onChange, checkKeyInObj }) => {
-  const [valueSelect, setValueSelect] = useState(fields.linkTarget.items[0]);
+const Basic = ({ values, fields, onChange }) => {
+  const {
+    start,
+    end,
+    alignment,
+    position,
+    text,
+    linkUrl,
+    linkTarget,
+    callNotifyAddress,
+    rotation,
+  } = values;
 
   return (
     <Fragment>
       <div className="container-text">
         <div className="container-text-time">
           <FieldBuilder
-            value={checkKeyInObj(fields.start.name)}
+            value={start || fields.start.default}
             {...fields.start}
             className="input-time-position"
             onChange={onChange}
           />
           <FieldBuilder
-            value={checkKeyInObj(fields.end.name)}
+            value={end || fields.end.default}
             {...fields.end}
             className="input-time-position"
             onChange={onChange}
@@ -32,13 +42,13 @@ const Basic = ({ fields, onChange, checkKeyInObj }) => {
       {/* todo icons doesn't work. Need to update radiobuton */}
       <div className="container-text-position">
         <FieldBuilder
-          value={checkKeyInObj(fields.alignment.name)}
+          value={alignment || fields.alignment.default}
           {...fields.alignment}
           onChange={onChange}
           items={iconAlignment}
         />
         <FieldBuilder
-          value={checkKeyInObj(fields.position.name)}
+          value={position || fields.position.default}
           {...fields.position}
           onChange={onChange}
           items={iconPosition}
@@ -52,7 +62,7 @@ const Basic = ({ fields, onChange, checkKeyInObj }) => {
       <FieldBuilder
         className="container-input-textarea"
         inputClassName="input-text-area"
-        value={checkKeyInObj(fields.text.name)}
+        value={text || fields.text.default}
         {...fields.text}
         onChange={onChange}
       />
@@ -62,7 +72,7 @@ const Basic = ({ fields, onChange, checkKeyInObj }) => {
       <div className="container-additional-options">
         <div className="container-link-url">
           <FieldBuilder
-            value={checkKeyInObj(fields.linkUrl.name)}
+            value={linkUrl || ''}
             {...fields.linkUrl}
             className="input-time-position"
             onChange={onChange}
@@ -73,7 +83,7 @@ const Basic = ({ fields, onChange, checkKeyInObj }) => {
         </div>
         <div className="container-email-link">
           <FieldBuilder
-            value={checkKeyInObj(fields.callNotifyAddress.name)}
+            value={callNotifyAddress || ''}
             {...fields.callNotifyAddress}
             className="email-notify"
             labelClassName="email-notify-label"
@@ -83,9 +93,9 @@ const Basic = ({ fields, onChange, checkKeyInObj }) => {
           <div className="container-open-link">
             <span>Open Link In</span>
             <FieldBuilder
-              value={valueSelect}
+              value={linkTarget || fields.linkTarget.default}
               {...fields.linkTarget}
-              onChange={setValueSelect}
+              onChange={onChange}
             />
           </div>
 
@@ -94,14 +104,14 @@ const Basic = ({ fields, onChange, checkKeyInObj }) => {
           <div className="container-text-transform-rotation">
             <span>Rotation</span>
             <FieldBuilder
-              value={checkKeyInObj(fields.rotation.name)}
+              value={rotation || fields.rotation.default}
               {...fields.rotation}
               onChange={onChange}
             />
           </div>
           <div className="container-text-transform-transition">
-            <span>Transition</span>
-            <button className="btn-library">Open Library</button>
+            <span>Animations</span>
+            <button className="btn-library" onClick={() => console.log('todo')}>Open Library</button>
           </div>
           <div className="container-text-transform-font">
             <div>
@@ -117,19 +127,9 @@ const Basic = ({ fields, onChange, checkKeyInObj }) => {
 };
 
 Basic.propTypes = {
-  checkKeyInObj: PropTypes.func.isRequired,
+  values: PropTypes.shape(PropTypes.object),
   onChange: PropTypes.func.isRequired,
-  fields: PropTypes.shape({
-    start: PropTypes.object,
-    end: PropTypes.object,
-    text: PropTypes.object,
-    linkTarget: PropTypes.object,
-    linkUrl: PropTypes.object,
-    callNotifyAddress: PropTypes.object,
-    rotation: PropTypes.object,
-    alignment: PropTypes.object,
-    position: PropTypes.object,
-  }),
+  fields: PropTypes.shape(PropTypes.object),
 };
 
 export default Basic;

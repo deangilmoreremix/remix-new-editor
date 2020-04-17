@@ -10,7 +10,20 @@ import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext
 import svgLetterSpacing from '../../../../public/static/svgImages/text/advanced/letter-spacing.svg';
 import svgLineHeight from '../../../../public/static/svgImages/text/advanced/line-height.svg';
 
-const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
+const Advanced = ({ values, fields, onChange }) => {
+  const { bold, italics, responsive } = values.fontDecorations || fields.fontDecorations.default;
+  const {
+    fontFamily,
+    fontSize,
+    alignment,
+    fontColor,
+    shadow,
+    stroke,
+    background,
+    shadowColor,
+    strokeColor,
+    backgroundColor,
+  } = values;
   const handleChangeFontDecoration = (field) => (value) => {
     onChange({ [field]: value });
   };
@@ -21,32 +34,30 @@ const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
         <div className="font-section">
           <GoogleFontsLoader fonts={fonts} />
           <FieldBuilder
-            value={checkKeyInObj(fields.fontFamily.name)}
+            value={fontFamily || fields.fontFamily.default}
             name={fields.fontFamily.name}
             {...fields.fontFamily}
             onChange={onChange}
           />
           <FieldBuilder
-            value={checkKeyInObj(fields.fontSize.name)}
+            value={fontSize || fields.fontSize.default}
             name={fields.fontSize.name}
             {...fields.fontSize}
             onChange={onChange}
-            disabled={checkKeyInObj(fields.fontDecorations.responsive.name,
-              fields.fontDecorations.name) && true}
+            disabled={responsive}
             minValue={1}
           />
         </div>
         <div className="font-decoration-section">
           <div className="font-style-container">
             <FieldBuilder
-              value={checkKeyInObj(fields.fontDecorations.bold.name, fields.fontDecorations.name)}
+              value={bold}
               name={fields.fontDecorations.bold.name}
               {...fields.fontDecorations.bold}
               onChange={handleChangeFontDecoration(fields.fontDecorations.name)}
             />
             <FieldBuilder
-              value={checkKeyInObj(fields.fontDecorations.italics.name,
-                fields.fontDecorations.name)}
+              value={italics}
               name={fields.fontDecorations.italics.name}
               {...fields.fontDecorations.italics}
               onChange={handleChangeFontDecoration(fields.fontDecorations.name)}
@@ -54,7 +65,7 @@ const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
           </div>
           <div className="icon-edit-text">
             <FieldBuilder
-              value={checkKeyInObj(fields.alignment.name)}
+              value={alignment || fields.alignment.default}
               {...fields.alignment}
               onChange={onChange}
               containerClass="container-text-radio"
@@ -84,26 +95,26 @@ const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
         </div>
         <div className="font-style-section">
           <FieldBuilder
-            value={checkKeyInObj(fields.fontColor.name)}
+            value={fontColor || fields.fontColor.default}
             name={fields.fontColor.name}
             {...fields.fontColor}
             onChange={onChange}
           />
           <div className="container-font-style">
             <FieldBuilder
-              value={checkKeyInObj(fields.shadow.name)}
+              value={shadow || fields.shadow.default}
               name={fields.shadow.name}
               {...fields.shadow}
               onChange={onChange}
             />
             <FieldBuilder
-              value={checkKeyInObj(fields.stroke.name)}
+              value={stroke || fields.stroke.default}
               name={fields.stroke.name}
               {...fields.stroke}
               onChange={onChange}
             />
             <FieldBuilder
-              value={checkKeyInObj(fields.background.name)}
+              value={background || fields.background.stroke}
               name={fields.background.name}
               {...fields.background}
               onChange={onChange}
@@ -114,28 +125,28 @@ const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
       </div>
       <div className="container-font-color">
         <FieldBuilder
-          value={checkKeyInObj(fields.shadowColor.name)}
-          disabled={!values.shadow && true}
+          value={shadowColor || fields.shadowColor.default}
+          disabled={!values.shadow}
           name={fields.shadowColor.name}
           {...fields.shadowColor}
           onChange={onChange}
         />
         <FieldBuilder
-          value={checkKeyInObj(fields.strokeColor.name)}
-          disabled={!values.stroke && true}
+          value={strokeColor || fields.strokeColor.default}
+          disabled={!values.stroke}
           name={fields.strokeColor.name}
           {...fields.strokeColor}
           onChange={onChange}
         />
         <FieldBuilder
-          value={checkKeyInObj(fields.backgroundColor.name)}
-          disabled={!values.background && true}
+          value={backgroundColor || fields.backgroundColor.default}
+          disabled={!values.background}
           name={fields.backgroundColor.name}
           {...fields.backgroundColor}
           onChange={onChange}
         />
         <FieldBuilder
-          value={checkKeyInObj(fields.fontDecorations.responsive.name, fields.fontDecorations.name)}
+          value={responsive}
           name={fields.fontDecorations.responsive.name}
           {...fields.fontDecorations.responsive}
           onChange={handleChangeFontDecoration(fields.fontDecorations.name)}
@@ -146,43 +157,9 @@ const Advanced = ({ values, fields, onChange, checkKeyInObj }) => {
 };
 
 Advanced.propTypes = {
-  values: PropTypes.shape({
-    fontFamily: PropTypes.object,
-    fontSize: PropTypes.number,
-    fontDecorations: PropTypes.shape({
-      bold: PropTypes.boolean,
-      italics: PropTypes.boolean,
-      responsive: PropTypes.boolean,
-    }),
-    alignment: PropTypes.arrayOf(PropTypes.string),
-    fontColor: PropTypes.string,
-    shadow: PropTypes.boolean,
-    stroke: PropTypes.boolean,
-    background: PropTypes.boolean,
-    shadowColor: PropTypes.string,
-    strokeColor: PropTypes.string,
-    backgroundColor: PropTypes.string,
-  }),
-  checkKeyInObj: PropTypes.func.isRequired,
+  values: PropTypes.shape(PropTypes.object),
   onChange: PropTypes.func.isRequired,
-  fields: PropTypes.shape({
-    fontFamily: PropTypes.string,
-    fontSize: PropTypes.number,
-    fontDecorations: PropTypes.shape({
-      name: PropTypes.string,
-      bold: PropTypes.object,
-      italics: PropTypes.object,
-      responsive: PropTypes.object,
-    }),
-    alignment: PropTypes.arrayOf(PropTypes.string),
-    fontColor: PropTypes.string,
-    shadow: PropTypes.boolean,
-    stroke: PropTypes.boolean,
-    background: PropTypes.boolean,
-    shadowColor: PropTypes.string,
-    strokeColor: PropTypes.string,
-    backgroundColor: PropTypes.string,
-  }),
+  fields: PropTypes.shape(PropTypes.object),
 };
 
 export default Advanced;

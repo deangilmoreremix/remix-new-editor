@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -8,26 +8,24 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../lib/PropTypes';
 
 const FormRadioButton = (props) => {
-  const { items, groupName, onChange, value, containerClass } = props;
-  const [startValue, setValue] = useState(value);
+  const { items, groupName, onChange, value, containerClassName } = props;
 
   const handleChange = event => {
     const { value: val } = event.target;
     onChange(val);
-    setValue(val);
   };
 
   return (
-    <FormControl component="fieldset" className={containerClass}>
+    <FormControl component="fieldset" className={containerClassName}>
       <RadioGroup
         name={groupName}
-        value={startValue}
+        value={value}
         onChange={handleChange}
         row
       >
-        {items.map((item, i) => (
+        {items.map((item) => (
           <FormControlLabel
-            key={groupName + i}
+            key={item.value}
             value={item.value}
             control={(
               <Radio
@@ -58,7 +56,7 @@ FormRadioButton.propTypes = {
   groupName: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   value: PropTypes.string,
-  containerClass: PropTypes.string,
+  containerClassName: PropTypes.string,
 };
 
 FormRadioButton.defaultProps = {

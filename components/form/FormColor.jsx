@@ -49,21 +49,26 @@ const FormColor = ({ label, onChange, value: color, disabled }) => {
   return (
     <FormGroup>
       <Box>
-        <FormLabel key="label-key" className={classnames('form-control-label', `${disabled && 'label-disabled'}`)}>{label}</FormLabel>
+        <FormLabel
+          key="label-key"
+          className={classnames('form-control-label', `${disabled && 'label-disabled'}`)}
+        >
+          {label}
+        </FormLabel>
       </Box>
       <Box tabIndex={-1}>
         <FormTextField
           labelClass="label-left"
           value={color || colorPrimary}
           onChange={updateColor}
-          disabled={disabled || false}
+          disabled={disabled}
           inputClassName={disabled && 'input-disabled'}
         />
         <button
           onClick={handleClick}
           className={classnames('color-element', `${disabled && 'button-disabled'}`)}
           style={{ backgroundColor: color || colorPrimary }}
-          disabled={disabled || false}
+          disabled={disabled}
         />
         <Popover
           id={id}

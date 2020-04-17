@@ -18,9 +18,9 @@ const FormSlider = props => {
     inputWidth,
     minValue,
     maxValue,
-    containerClass,
-    sliderClass,
-    inputClass,
+    containerClassName,
+    sliderClassName,
+    inputClassName,
     disabled,
   } = props;
 
@@ -56,7 +56,7 @@ const FormSlider = props => {
   };
 
   return (
-    <div className={classnames(classes.root, containerClass)}>
+    <div className={classnames(classes.root, containerClassName)}>
       <InputLabel
         className={classnames('form-control-label')}
       >
@@ -65,7 +65,7 @@ const FormSlider = props => {
       <Grid container spacing={2} alignItems="center">
         <Grid item xs>
           <Slider
-            className={classnames(sliderClass)}
+            className={classnames(sliderClassName)}
             value={value}
             onChange={handleSliderChange}
             aria-labelledby="input-slider"
@@ -78,7 +78,7 @@ const FormSlider = props => {
           !withoutInput && (
             <Grid item>
               <Input
-                className={classnames(classes.input, inputClass)}
+                className={classnames(classes.input, inputClassName)}
                 value={value}
                 disabled={disabled}
                 onChange={handleInputChange}
@@ -107,9 +107,9 @@ FormSlider.propTypes = {
   minValue: PropTypes.number,
   withoutInput: PropTypes.bool,
   maxValue: PropTypes.number,
-  containerClass: PropTypes.string,
-  sliderClass: PropTypes.string,
-  inputClass: PropTypes.string,
+  containerClassName: PropTypes.string,
+  sliderClassName: PropTypes.string,
+  inputClassName: PropTypes.string,
   disabled: PropTypes.bool,
 };
 

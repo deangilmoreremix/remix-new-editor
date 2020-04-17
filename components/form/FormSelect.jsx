@@ -16,8 +16,9 @@ const FormSelect = props => {
     selectClassName,
   } = props;
 
-  const handleChange = event => {
-    onChange(event.value);
+  // eslint-disable-next-line no-shadow
+  const handleChange = ({ value }) => {
+    onChange(value);
   };
 
   return (

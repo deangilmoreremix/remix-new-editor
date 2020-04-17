@@ -46,8 +46,7 @@ JsonAnimation.propTypes = {
   }),
   tab: PropTypes.string.isRequired,
   update: PropTypes.func.isRequired,
-  // eslint-disable-next-line react/forbid-prop-types
-  fields: PropTypes.object,
+  fields: PropTypes.shape({}),
 };
 
 export default JsonAnimation;
