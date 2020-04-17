@@ -6,8 +6,11 @@ import FieldBuilder from '../../../form/FieldBuilder';
 import { iconAlignment, iconPosition } from '../../../../lib/constants/settings/vrtext-element';
 
 import svgTextLetterSpacing from '../../../../public/static/svgImages/text/basic_group/letter-spacing.svg';
+import useUIStore from '../../../hooks/useUIStore';
 
 const Basic = ({ values, fields, onChange }) => {
+  const { setLibraryType } = useUIStore();
+
   const {
     start,
     end,
