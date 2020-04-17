@@ -32,9 +32,8 @@ const Canvas = observer(() => {
   useEffect(() => {
     if (wrapper.current) {
       projectStore.setPopcorn(wrapper.current);
-      setFontSize(`${DEFAULT_FONT_SIZE * (wrapper.current.offsetWidth / DEFAULT_VIDEO_WIDTH)}px`);
     }
-  }, [projectStore, style]);
+  }, [projectStore]);
 
   useEffect(() => {
     if (wrapper.current) {

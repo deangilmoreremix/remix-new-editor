@@ -336,24 +336,8 @@ export default class ProjectStore extends BaseStore {
   @action
   moveElements = (oldIndex, newIndex) => {
     this.projectData.media.forEach((media) => {
-      const topElements = media.tracks[oldIndex].trackEvents;
-      const bottomElements = media.tracks[newIndex].trackEvents;
-      const topZIndex = MAX_ZINDEX - media.tracks[oldIndex].order;
-      const bottomZIndex = MAX_ZINDEX - media.tracks[newIndex].order;
       const tracks = arrayMove(media.tracks, oldIndex, newIndex);
       media.tracks = this.orderItems(tracks, true);
-      topElements.forEach(element => {
-        if (!this.isAudio(element)) {
-          element.popcornOptions.zindex = topZIndex;
-          this.updatePopcorn(element, { zindex: topZIndex });
-        }
-      });
-      bottomElements.forEach(element => {
-        if (!this.isAudio(element)) {
-          element.popcornOptions.zindex = bottomZIndex;
-          this.updatePopcorn(element, { zindex: bottomZIndex });
-        }
-      });
     });
     let newLayers = [...this.layers];
     newLayers = arrayMove(newLayers, oldIndex, newIndex);
