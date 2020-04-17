@@ -30,7 +30,7 @@ const Home = observer(() => {
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
 
-  const { libraryType, showAnimation, setLibraryType } = uiStore;
+  const { libraryType, showAnimation, setLibraryType, wideWindow, setWideWindow } = uiStore;
 
   const { updateAnimation, isLoading } = projectStore;
 
@@ -53,18 +53,19 @@ const Home = observer(() => {
       <Grid container className="controls">
         <Grid item xs={7}>
           <Grid container>
-            <Grid item xs={6}>
+            <Grid item xs={wideWindow ? 12 : 6}>
               <Toolbar
                 items={toolbarItems({
                   actions: {
                     openModal,
                     closeModal,
                     setLibraryType,
+                    setWideWindow,
                   },
                 })}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={!wideWindow ? 0 : 6} className="home__center">
               {libraryType && <Library tab={libraryType} />}
               {
                 showAnimation

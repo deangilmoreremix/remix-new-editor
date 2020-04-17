@@ -12,7 +12,7 @@
   }
 }
 
-div {
+div, textarea {
   &.medium-long {
     width: 10.9375rem;
   }
@@ -50,9 +50,11 @@ div {
   }
 
   &.text-input {
+    @include input-placeholder;
+    @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
     min-height: 2.065rem;
-    padding-left: 0.546rem;
-    background-color: $dark-night;
+    padding: 0 0.546rem;
+    background-color: $sidebr-bg;
     outline: none;
     color: $white;
     font-family: $font-primary;
@@ -60,13 +62,27 @@ div {
     border-radius: 0.218rem;
     font-style: normal;
     font-weight: normal;
-    font-size: 0.765rem;
     line-height: 0.93rem;
+    background: $sidebr-bg;
+    font-size: 0.875rem;
+    line-height: 1;
+
+    input {
+      @include input-placeholder;
+      padding: 0;
+      font-size: 0.875rem;
+      min-height: 2.065rem;
+    }
   }
 
   &.text-input:focus, &.text-input:hover {
-    border: 0.055rem solid $red;
+    border: 0.055rem solid $secondary-color;
   }
+}
+
+textarea.text-input {
+  padding: 0.546rem;
+  resize: none;
 }
 
 label {
@@ -102,4 +118,23 @@ label {
 
 .label-none {
   display: none;
+}
+
+.container-textarea {
+
+  .text-area {
+    display: flex;
+
+    textarea {
+      color: $white;
+    }
+
+    fieldset {
+      border-color: $btn-gray;
+    }
+
+    .MuiOutlinedInput-root:hover fieldset, .MuiOutlinedInput-root.Mui-focused fieldset {
+      border-color: $secondary-color;
+    }
+  }
 }

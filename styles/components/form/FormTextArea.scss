@@ -1,0 +1,32 @@
+.container-textarea .text-area {
+  width: 100%;
+
+  label {
+    color: $white;
+  }
+
+  .MuiInput-root {
+    &:hover, &:before, &:after {
+      border: none !important;
+    }
+  }
+
+  textarea {
+    @include input-placeholder;
+    @include tiny-scrollbar;
+
+    &:focus+fieldset {
+      border: 1px solid $third-color;
+    }
+  }
+}
+
+.text-area-label + .text-area {
+  .MuiInputBase-root {
+    padding: 0.5rem 0.546rem;
+  }
+
+  legend {
+    display: none;
+  }
+}

@@ -1,8 +1,17 @@
 .modal-container {
   top: 0;
+  border-radius: 0;
+}
 
-  &__content {
-    background: $dark-twinlight;
-    color: $white;
-  }
+div.modal-container__content {
+  background: $dark-twinlight;
+  color: $white;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.header-tabs__title {
+  line-height: 1;
+  padding: 1rem;
+  margin: 0;
 }
