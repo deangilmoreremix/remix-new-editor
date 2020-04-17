@@ -7,9 +7,11 @@ import PropTypes from '../../lib/PropTypes';
 const FormTextArea = (props) => {
   const {
     label,
+    text,
     onChange,
     inputClassName,
     className,
+    textClassName,
     placeholder,
     value,
     rows,
@@ -19,16 +21,16 @@ const FormTextArea = (props) => {
   const onEdit = ({ target: { value: v } }) => {
     onChange(v);
   };
-
   return (
     <div className={classnames('container-textarea', className)}>
+      {text && label && <p className={classnames('text-area-label', textClassName)}>{label}</p>}
       <TextField
         id={label}
         className={classnames(inputClassName, 'text-area')}
         value={value || ''}
         placeholder={placeholder}
         onChange={onEdit}
-        label={label}
+        label={!text && label}
         multiline
         rows={rows}
         variant={variant}
@@ -40,8 +42,10 @@ const FormTextArea = (props) => {
 FormTextArea.propTypes = {
   onChange: PropTypes.func.isRequired,
   label: PropTypes.string,
+  text: PropTypes.bool,
   className: PropTypes.string,
   inputClassName: PropTypes.string,
+  textClassName: PropTypes.string,
   placeholder: PropTypes.string,
   rows: PropTypes.string,
   variant: PropTypes.string,
@@ -51,6 +55,6 @@ FormTextArea.propTypes = {
 FormTextArea.defaultProps = {
   label: '',
   rows: 3,
+  variant: 'outlined',
 };
-
 export default FormTextArea;

@@ -13,7 +13,8 @@
   color: $white;
   overflow: hidden;
 
-  button, input {
+  button,
+  input {
     color: $white;
   }
 }
@@ -22,13 +23,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .library__body {
+  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 1rem 2.62rem 1.6rem 1.56rem;
+  padding: 1rem 2.62rem 1.4rem 1.56rem;
+  overflow-y: auto;
 }
 
 .library__block {
@@ -46,17 +50,10 @@
   flex: 1;
   height: 2.1rem;
   text-transform: uppercase;
+  background: $modal-lightdark-bg;
 
-  &:first-child {
-    background: $modal-header-bg;
-  }
-
-  &:nth-child(2) {
-    background: $modal-lightdark-bg;
-  }
-
-  &:last-child {
-    background: $modal-dark-bg;
+  &-active {
+    background: $scrollbarColor;
   }
 }
 
@@ -98,7 +95,7 @@
   @include reset-button;
   width: 8.88em;
   height: 2.45em;
-  border: 1px solid $red;
+  border: 1px solid $secondary-color;
   border-radius: 4px;
 }
 
@@ -112,7 +109,7 @@
   background: none;
   border: none;
   outline: none;
-  border-bottom: 1px solid $red;
+  border-bottom: 1px solid $secondary-color;
   padding: 0.3rem 0;
 
   &:focus ~ .library__placeholder {
@@ -128,20 +125,20 @@
   outline: none;
 
   span {
+    margin-left: 0.3em;
     font-size: 1em;
-    color: $red;
+    color: $secondary-color;
   }
 }
 
 .library__btn {
   &-container {
-    @include tiny-scrollbar($thumbColor: #EB5054, $scrollbarColor: #3E3E51);
+    @include tiny-scrollbar;
     flex: 1;
     max-width: 8.8em;
     max-height: 14.3em;
     margin-top: 1.843rem;
-    overflow: hidden;
-    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   &-item {
@@ -162,11 +159,11 @@
 
   &-active {
     path {
-      fill: $red;
+      fill: $secondary-color;
     }
 
     p {
-      color: $red;
+      color: $secondary-color;
     }
   }
 
@@ -196,13 +193,12 @@
 }
 
 .library__items {
-  @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+  @include tiny-scrollbar;
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
   height: 18.65em;
-  overflow: hidden;
-  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .library__item {
@@ -235,7 +231,7 @@
     cursor: auto;
   }
 
-  img {
+  img, video {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -282,4 +278,66 @@
   width: 50%;
   height: 50%;
   transition: 0.3s all;
+}
+
+@media screen and (max-width: 1450px) {
+  .library__body {
+    padding-left: 1rem;
+    padding-right: 2rem;
+  }
+
+  .library__row-first {
+    margin-bottom: 1rem;
+  }
+
+  .library__row {
+    flex-direction: column;
+
+    &>div:first-child,
+    &>div:last-child,
+    .library__add {
+      width: 100%;
+    }
+  }
+
+  .library__add {
+    margin-bottom: 1rem;
+  }
+
+  .library__btn-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 0.4rem;
+    padding: 3px 0;
+  }
+
+  .library__btn-item {
+    max-width: none;
+    width: 50%;
+  }
+
+  .library__btn-user {
+    margin-bottom: 0.9rem;
+  }
+
+  .library__items {
+    max-height: 16rem;
+  }
+
+  .library__btn-container {
+    max-width: 100%;
+    margin-bottom: 1rem;
+  }
+}
+
+@media screen and (max-width: 1000px) {
+  .library__tab {
+    flex: none;
+    width: 100%;
+  }
+
+  .library__btn-item {
+    width: 100%;
+  }
 }

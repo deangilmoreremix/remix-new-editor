@@ -8,6 +8,11 @@ export default class UserStore {
   }
 
   @computed
+  get isSuperAdmin() {
+    return this.currentUser.authorityLevel === 0;
+  }
+
+  @computed
   get firstAndLastName() {
     if (!this.currentUser.fullName) {
       return null;

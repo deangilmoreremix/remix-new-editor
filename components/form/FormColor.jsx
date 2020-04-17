@@ -8,8 +8,9 @@ import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
 import FormTextField from './FormTextField';
+import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 
-const FormColor = ({ label, onChange, value: color, disabled }) => {
+const FormColor = ({ label, onChange, value, className, disabled }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const open = Boolean(anchorEl);
@@ -29,25 +30,10 @@ const FormColor = ({ label, onChange, value: color, disabled }) => {
     setAnchorEl(null);
   };
 
-  const parseRgba = (rgba) => {
-    const rgbaRegexp = new RegExp(/\((\s*?.*?)*?\)/, 'i');
-    if (!rgba) {
-      return { r: 0, g: 0, b: 0, a: 1 };
-    }
-    rgba = rgba.replace(/\s/g, '');
-    if (!rgbaRegexp.test(rgba)) {
-      return rgba;
-    }
-    const components = rgba.split('(')[1].split(')')[0].split(',');
-    return {
-      r: +components[0],
-      g: +components[1],
-      b: +components[2],
-      a: +components[3],
-    };
-  };
+  const color = React.useMemo(() => parseRgbaString(value), [value]);
+
   return (
-    <FormGroup>
+    <FormGroup className={className}>
       <Box>
         <FormLabel
           key="label-key"
@@ -59,15 +45,15 @@ const FormColor = ({ label, onChange, value: color, disabled }) => {
       <Box tabIndex={-1}>
         <FormTextField
           labelClass="label-left"
-          value={color || colorPrimary}
+          value={value || colorPrimary}
           onChange={updateColor}
           disabled={disabled}
           inputClassName={disabled && 'input-disabled'}
         />
         <button
           onClick={handleClick}
+          style={{ backgroundColor: value || colorPrimary }}
           className={classnames('color-element', `${disabled && 'button-disabled'}`)}
-          style={{ backgroundColor: color || colorPrimary }}
           disabled={disabled}
         />
         <Popover
@@ -85,10 +71,8 @@ const FormColor = ({ label, onChange, value: color, disabled }) => {
           }}
         >
           <ChromePicker
-            onChangeComplete={newColor => updateColor(
-              `rgb(${newColor.rgb.r}, ${newColor.rgb.g}, ${newColor.rgb.b}, ${newColor.rgb.a})`,
-            )}
-            color={parseRgba(color)}
+            onChangeComplete={(r) => updateColor(colorToRgbaString(r.rgb))}
+            color={color}
           />
         </Popover>
       </Box>
@@ -99,6 +83,7 @@ FormColor.propTypes = {
   onChange: PropTypes.func.isRequired,
   label: PropTypes.string,
   value: PropTypes.string,
+  className: PropTypes.string,
   disabled: PropTypes.bool,
 };
 
