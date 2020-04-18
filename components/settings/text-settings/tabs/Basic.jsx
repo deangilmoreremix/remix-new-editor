@@ -25,8 +25,8 @@ const Basic = ({ values, fields, onChange }) => {
 
   return (
     <Fragment>
-      <div className="container-text">
-        <div className="container-text-time">
+      <div className="text-container">
+        <div className="text-container-time">
           <FieldBuilder
             value={start || fields.start.default}
             {...fields.start}
@@ -43,7 +43,7 @@ const Basic = ({ values, fields, onChange }) => {
         <span>Text Position</span>
       </div>
       {/* todo icons doesn't work. Need to update radiobuton */}
-      <div className="container-text-position">
+      <div className="text-position-container">
         <FieldBuilder
           value={alignment || fields.alignment.default}
           {...fields.alignment}
@@ -63,17 +63,17 @@ const Basic = ({ values, fields, onChange }) => {
         />
       </div>
       <FieldBuilder
-        className="container-input-textarea"
+        className="input-textarea-container"
         inputClassName="input-text-area"
         value={text || fields.text.default}
         {...fields.text}
         onChange={onChange}
       />
-      <div className="container-personalize">
+      <div className="personalize-container">
         <button className="btn-personalize">Personalize</button>
       </div>
-      <div className="container-additional-options">
-        <div className="container-link-url">
+      <div className="additional-options-container">
+        <div className="link-url-container">
           <FieldBuilder
             value={linkUrl || ''}
             {...fields.linkUrl}
@@ -84,7 +84,7 @@ const Basic = ({ values, fields, onChange }) => {
             <button className="btn-personalize">Personalize</button>
           </div>
         </div>
-        <div className="container-email-link">
+        <div className="email-link-container">
           <FieldBuilder
             value={callNotifyAddress || ''}
             {...fields.callNotifyAddress}
@@ -93,7 +93,7 @@ const Basic = ({ values, fields, onChange }) => {
             inputClassName="email-notify-input"
             onChange={onChange}
           />
-          <div className="container-open-link">
+          <div className="open-link-container">
             <span>Open Link In</span>
             <FieldBuilder
               value={linkTarget || fields.linkTarget.default}
@@ -103,8 +103,8 @@ const Basic = ({ values, fields, onChange }) => {
           </div>
 
         </div>
-        <div className="container-text-transform">
-          <div className="container-text-transform-rotation">
+        <div className="text-transform-container">
+          <div className="text-transform-container-rotation">
             <span>Rotation</span>
             <FieldBuilder
               value={rotation || fields.rotation.default}
@@ -112,11 +112,11 @@ const Basic = ({ values, fields, onChange }) => {
               onChange={onChange}
             />
           </div>
-          <div className="container-text-transform-transition">
+          <div className="text-transform-container-transition">
             <span>Animations</span>
             <button className="btn-library" onClick={() => console.log('todo')}>Open Library</button>
           </div>
-          <div className="container-text-transform-font">
+          <div className="text-transform-container-font">
             <div>
               <span>Font Combination</span>
               <button className="btn-library">Open Library</button>

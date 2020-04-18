@@ -1,4 +1,4 @@
-.container-text {
+.text-container {
   margin-top: 1em;
   margin-bottom: 1em;
   display: flex;
@@ -21,11 +21,6 @@
 
     & input {
       width: 70%;
-      background: $modal-lightdark-bg;
-      color: $white;
-      border: 0.055rem solid $btn-gray;
-      text-align: center;
-      padding: 4px 2px;
     }
     &:hover input {
       border: 0.055rem solid $red;
@@ -33,22 +28,22 @@
   }
 }
 
-.container-personalize {
+.personalize-container {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   margin-top: 1em;
 }
 
-.container-additional-options {
+.additional-options-container {
 
-  .container-link-url {
+  .link-url-container {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
   }
 
-  .container-email-link {
+  .email-link-container {
     margin-top: 2em;
     margin-bottom: 2em;
 
@@ -68,7 +63,7 @@
     }
   }
 
-  .container-text-transform {
+  .text-transform-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -96,7 +91,7 @@
   }
 }
 
-.container-open-link {
+.open-link-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -120,7 +115,8 @@
   padding: 4px 15px;
 }
 
-.container-text-position {
+.text-position-container {
+  display: flex;
   align-items: center;
   justify-content: flex-end;
 }

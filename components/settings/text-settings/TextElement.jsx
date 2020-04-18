@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../../lib/PropTypes';
-import { BASIC, ADVANCED } from '../../../lib/constants/settings/common';
+import { BASIC, ADVANCED } from '../../../lib/constants/popcorn';
 import Basic from './tabs/Basic';
 import Advanced from './tabs/Advanced';
 

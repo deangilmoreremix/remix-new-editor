@@ -1,0 +1,13 @@
+.time-input {
+  background: $modal-lightdark-bg;
+  color: $white;
+  border: 0.055rem solid $secondary-color;
+  border-radius: 5px;
+  padding: 2px 2px;
+  line-height: 1.4;
+  text-align: center;
+
+  &:focus {
+    border: 0.055rem solid $secondary-color;
+  }
+}

@@ -30,7 +30,7 @@ const Advanced = ({ values, fields, onChange }) => {
 
   return (
     <Fragment>
-      <div className="container-advanced-settings">
+      <div className="advanced-settings-container">
         <div className="font-section">
           <GoogleFontsLoader fonts={fonts} />
           <FieldBuilder
@@ -49,7 +49,7 @@ const Advanced = ({ values, fields, onChange }) => {
           />
         </div>
         <div className="font-decoration-section">
-          <div className="font-style-container">
+          <div className="font-decoration-container">
             <FieldBuilder
               value={bold}
               name={fields.fontDecorations.bold.name}
@@ -68,10 +68,10 @@ const Advanced = ({ values, fields, onChange }) => {
               value={alignment || fields.alignment.default}
               {...fields.alignment}
               onChange={onChange}
-              containerClass="container-text-radio"
+              containerClass="text-radio-container"
               items={iconAlignmentAdvanced}
             />
-            <div className="container-text-auto">
+            <div className="text-auto-container">
               <SVGInline
                 className="elements-panel-icon"
                 classSuffix="-settings-group"
@@ -100,7 +100,7 @@ const Advanced = ({ values, fields, onChange }) => {
             {...fields.fontColor}
             onChange={onChange}
           />
-          <div className="container-font-style">
+          <div className="font-style-container">
             <FieldBuilder
               value={shadow || fields.shadow.default}
               name={fields.shadow.name}
@@ -123,7 +123,7 @@ const Advanced = ({ values, fields, onChange }) => {
         </div>
 
       </div>
-      <div className="container-font-color">
+      <div className="font-color-container">
         <FieldBuilder
           value={shadowColor || fields.shadowColor.default}
           disabled={!values.shadow}
