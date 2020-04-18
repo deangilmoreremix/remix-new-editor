@@ -20,12 +20,11 @@
 }
 
 .panel-content {
-  @include tiny-scrollbar($thumbColor: $red, $scrollbarColor: $modal-header-bg);
+  @include tiny-scrollbar;
   max-height: 100%;
   padding-right: 2em;
   padding-bottom: 1.28rem;
-  overflow: hidden;
-  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .panel-content__block {

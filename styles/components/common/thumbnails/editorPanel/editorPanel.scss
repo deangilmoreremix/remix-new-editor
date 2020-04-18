@@ -6,10 +6,9 @@ $size: 72.8px;
 }
 
 .editor-panel {
-  @include tiny-scrollbar($thumbColor: $red, $scrollbarColor: $modal-header-bg);
+  @include tiny-scrollbar;
   width: $size;
   height: 100%;
-  overflow-y: auto;
   background: $dark-twinlight;
   font-family: $font-primary;
 }

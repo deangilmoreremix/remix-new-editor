@@ -1,13 +1,15 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 
-import useProjectStore from '../../hooks/useProjectStore';
-
+import PopcornElement from './PopcornElement';
 import ResponsiveGrid from '../../form/grids/ResponsiveGrid';
 
-import { SANTISECOND } from '../../../lib/constants/project';
-
 import PropTypes from '../../../lib/PropTypes';
+
+import useProjectStore from '../../hooks/useProjectStore';
+
+import { SANTISECOND } from '../../../lib/constants/project';
+import { MIN_DURATION } from '../../../lib/constants/popcorn';
 
 
 const PopcornElements = observer(({ width }) => {
@@ -21,6 +23,19 @@ const PopcornElements = observer(({ width }) => {
     return null;
   }
 
+  const getExtraDuration = React.useCallback((animation) => {
+    if (animation && animation.out && animation.out.duration) {
+      return animation.out.duration;
+    }
+    return 0;
+  }, []);
+
+  const getEnd = React.useCallback((end, animation) => {
+    end += getExtraDuration(animation);
+    return end;
+  }, [getExtraDuration]);
+
+
   const backgroundGrid = React.useMemo(() => {
     const arr = [];
     for (let i = 0; i < layersCount; i++) {
@@ -32,10 +47,10 @@ const PopcornElements = observer(({ width }) => {
   const layouts = React.useMemo(() => {
     const result = [];
     elements.forEach(element => {
-      const { popcornOptions: { id: i, start, end }, type } = element;
+      const { popcornOptions: { id: i, start, end, animation }, type } = element;
       const layer = layers.find(item => item.id === element.track);
       const x = start * SANTISECOND;
-      const w = (end - start) * SANTISECOND;
+      const w = (getEnd(end, animation) - start) * SANTISECOND;
       result.push({
         i,
         x,
@@ -44,13 +59,15 @@ const PopcornElements = observer(({ width }) => {
         type,
         minH: 1,
         maxH: 1,
+        animation,
         y: layer.order,
         maxW: cols - x,
-        minW: SANTISECOND,
+        minW: (MIN_DURATION + getExtraDuration(animation)) * SANTISECOND,
       });
     });
     return result;
-  }, [cols, elements, layers]);
+  }, [cols, elements, getEnd, getExtraDuration, layers]);
+
 
   const components = React.useMemo(() => layouts.map((item) => (
     <div
@@ -63,11 +80,13 @@ const PopcornElements = observer(({ width }) => {
         x: item.x,
         y: item.y,
         w: item.w,
-        minW: SANTISECOND,
+        minW: item.minW,
         maxW: cols - item.x,
       }}
     >
-      {item.type}
+      <PopcornElement
+        item={item}
+      />
     </div>
   )), [layouts, cols]);
 
@@ -77,13 +96,15 @@ const PopcornElements = observer(({ width }) => {
     }
     if (oldElement.x !== newElement.x) {
       const start = newElement.x / SANTISECOND;
-      updateStartEnd(oldElement.i, start, start + newElement.w / SANTISECOND);
+      const end = start + (newElement.w - newElement.minW) / SANTISECOND + MIN_DURATION;
+      updateStartEnd(oldElement.i, start, end);
     }
   };
   const onResizeStop = (element, oldElement, newElement) => {
     if (oldElement.x !== newElement.x || oldElement.w !== newElement.w) {
       const start = newElement.x / SANTISECOND;
-      updateStartEnd(oldElement.i, start, start + newElement.w / SANTISECOND);
+      const end = start + (newElement.w - newElement.minW) / SANTISECOND + MIN_DURATION;
+      updateStartEnd(oldElement.i, start, end);
     }
   };
 

@@ -5,6 +5,7 @@ import { Grid, AppBar, Toolbar } from '@material-ui/core';
 
 import Menu from './common/Menu';
 import UserBox from './common/user/UserBox';
+import { SAVE_PROJECT_MODAL } from '../lib/constants/modals';
 
 import outIcon from '../public/static/svgImages/header/out.svg';
 import logoIcon from '../public/static/svgImages/header/logo.svg';
@@ -14,9 +15,17 @@ import saveIcon from '../public/static/svgImages/header/save.svg';
 import folderIcon from '../public/static/svgImages/header/folder.svg';
 import hamburgerIcon from '../public/static/svgImages/header/hamburger.svg';
 import collaborateIcon from '../public/static/svgImages/header/collaborate.svg';
+import newProjectIcon from '../public/static/svgImages/menu/new-project.svg';
+import makeCopyIcon from '../public/static/svgImages/menu/make-copy.svg';
+import renameProjectIcon from '../public/static/svgImages/menu/rename-project.svg';
+import finishVideoIcon from '../public/static/svgImages/menu/finish-video.svg';
+import trashIcon from '../public/static/svgImages/trash.svg';
+import closeProjectIcon from '../public/static/svgImages/menu/close-project.svg';
+import saveAsIcon from '../public/static/svgImages/menu/save-as.svg';
 
 import useProjectStore from './hooks/useProjectStore';
-
+import useUserStore from './hooks/useUserStore';
+import useModalStore from './hooks/useModalStore';
 
 const userMenu = [
   { title: 'My Projects', icon: folderIcon },
@@ -25,19 +34,31 @@ const userMenu = [
 ];
 
 const projectMenu = [
-  { title: 'New a project...' },
-  { title: 'Make a copy' },
-  { title: 'Rename project' },
-  { title: 'Finish project' },
-  { title: 'Move to trash' },
-  { title: 'Close project' },
+  { title: 'New a project...', icon: newProjectIcon },
+  { title: 'Make a copy', icon: makeCopyIcon },
+  { title: 'Rename project', icon: renameProjectIcon },
+  { title: 'Finish project', icon: finishVideoIcon },
+  { title: 'Move to trash', icon: trashIcon },
+  { title: 'Close project', icon: closeProjectIcon },
 ];
 
 const MenuAppBar = observer(() => {
   const anchorRef = React.useRef(null);
-  const projectStore = useProjectStore();
+  let menu = [];
 
-  const { save, modified } = projectStore;
+  const { save, modified } = useProjectStore();
+  const { isSuperAdmin } = useUserStore();
+  const { openModal } = useModalStore();
+
+  const projectAdminMenu = [
+    { title: 'Save as', icon: saveAsIcon, action: () => openModal(SAVE_PROJECT_MODAL) },
+  ];
+
+  if (isSuperAdmin) {
+    menu = [...projectMenu, ...projectAdminMenu];
+  } else {
+    menu = projectMenu;
+  }
 
   return (
     <div className="container-header" ref={anchorRef}>
@@ -56,7 +77,7 @@ const MenuAppBar = observer(() => {
                     />
                   )
                 }
-                items={projectMenu}
+                items={menu}
                 className="project-menu"
                 parent={anchorRef}
                 placement="bottom-start"

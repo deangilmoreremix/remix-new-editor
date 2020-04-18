@@ -1,16 +1,18 @@
 import { observable, action, computed, reaction, runInAction } from 'mobx';
 import arrayMove from 'array-move';
+import size from 'lodash/size';
 
 import BaseStore from './base.store';
 
 import {
   EMAIL_SKIP_TOKENS,
 } from '../../lib/constants/campaigns/constants';
-import { SANTISECOND, MAX_ZINDEX } from '../../lib/constants/project';
 import { SEQUENCER } from '../../lib/constants/popcorn';
+import { isLayerFulfilled } from '../../lib/utils/project';
+import { NONE_CLASS } from '../../lib/constants/animations';
+import { SANTISECOND, MAX_ZINDEX, DEFAULT_RATIO } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-import { isLayerFulfilled } from '../../lib/utils/project';
 
 const defaultLayer = {
   name: '',
@@ -24,6 +26,7 @@ const defaultItem = {
   background: '',
   description: '',
   allowedSocials: [],
+  thumbnail: '',
   project: {
     data: {
       targets: [{
@@ -49,6 +52,7 @@ const defaultItem = {
       tags: [],
     },
   },
+  ratio: DEFAULT_RATIO,
 };
 
 // TODO: remove the fake data when ready
@@ -218,19 +222,37 @@ export default class ProjectStore extends BaseStore {
         });
       });
     });
-
-    const { start, end } = options;
-    this.elements.forEach(element => {
-      if (element.id === elementId) {
-        element.popcornOptions = {
-          ...element.popcornOptions,
-          ...(start && start !== element.start ? { start } : {}),
-          ...(end && end !== element.end ? { end } : {}),
-        };
-      }
-    });
-
+    this.updateElement(elementId, options);
     this.updatePopcorn(elementId, options);
+  };
+
+  @action
+  updateElement = (elementId, options) => {
+    // we need to update the elements, if the user updates the start,
+    // end or animation, this is necessary to rerender the elements
+    const { start, end, animation } = options;
+    this.elements = this.elements.map(element => {
+      if (element.id === elementId) {
+        const newOptions = {};
+        if (start !== undefined && start !== element.popcornOptions.start) {
+          newOptions.start = start;
+        }
+        if (end !== undefined && end !== element.popcornOptions.end) {
+          newOptions.end = end;
+        }
+        if (animation) {
+          const { animation: oldAnimation } = element.popcornOptions;
+          newOptions.animation = oldAnimation ? { ...oldAnimation, ...animation } : animation;
+        }
+        if (size(newOptions) > 0) {
+          element.popcornOptions = {
+            ...element.popcornOptions,
+            ...newOptions,
+          };
+        }
+      }
+      return element;
+    });
   };
 
   @action
@@ -315,24 +337,8 @@ export default class ProjectStore extends BaseStore {
   @action
   moveElements = (oldIndex, newIndex) => {
     this.projectData.media.forEach((media) => {
-      const topElements = media.tracks[oldIndex].trackEvents;
-      const bottomElements = media.tracks[newIndex].trackEvents;
-      const topZIndex = MAX_ZINDEX - media.tracks[oldIndex].order;
-      const bottomZIndex = MAX_ZINDEX - media.tracks[newIndex].order;
       const tracks = arrayMove(media.tracks, oldIndex, newIndex);
       media.tracks = this.orderItems(tracks, true);
-      topElements.forEach(element => {
-        if (!this.isAudio(element)) {
-          element.popcornOptions.zindex = topZIndex;
-          this.updatePopcorn(element, { zindex: topZIndex });
-        }
-      });
-      bottomElements.forEach(element => {
-        if (!this.isAudio(element)) {
-          element.popcornOptions.zindex = bottomZIndex;
-          this.updatePopcorn(element, { zindex: bottomZIndex });
-        }
-      });
     });
     let newLayers = [...this.layers];
     newLayers = arrayMove(newLayers, oldIndex, newIndex);
@@ -471,7 +477,7 @@ export default class ProjectStore extends BaseStore {
   @action
   updateTime = (value) => {
     this.time = value;
-    this.popcorn.currentTime(value / SANTISECOND);
+    return this.popcorn.currentTime(value / SANTISECOND);
   };
 
   @action
@@ -483,6 +489,7 @@ export default class ProjectStore extends BaseStore {
       }
       return element;
     });
+
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
@@ -663,7 +670,6 @@ export default class ProjectStore extends BaseStore {
     );
   }
 
-
   @action
   save = async () => {
     if (!this.modified) {
@@ -700,5 +706,35 @@ export default class ProjectStore extends BaseStore {
       console.error('Error ', e);
     }
     return this.item;
+  };
+
+  updateAnimation = (type, animationName = NONE_CLASS) => {
+    const animation = {
+      [type]: {
+        type: animationName,
+        // The animated class has a default speed of 1s
+        duration: 1,
+      },
+    };
+    this.findAndUpdate(this.activeElementId, { animation });
+  };
+
+  @action
+  runTextfill = () => {
+    this.popcornElements.forEach(element => {
+      const currentTime = this.time / SANTISECOND;
+      const isCurrentElement = (element.popcornOptions.start <= currentTime)
+        && (currentTime <= element.popcornOptions.end);
+      if (isCurrentElement && element.popcornOptions.fontDecorations
+        && element.popcornOptions.fontDecorations.responsive) {
+        // we need to recount the fontsize. This is done in the update method.
+        this.updatePopcorn(element, { fontDecorations: element.popcornOptions.fontDecorations });
+      }
+    });
+  };
+
+  @computed
+  get popcornElements() {
+    return this.popcornObject.popcornElements;
   }
 }

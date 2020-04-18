@@ -12,6 +12,7 @@ const FormSelect = props => {
     label,
     onChange,
     value,
+    className,
     labelClassName,
     selectClassName,
   } = props;
@@ -22,7 +23,7 @@ const FormSelect = props => {
   };
 
   return (
-    <FormGroup>
+    <FormGroup className={className}>
       <Box>
         {
           label && (
@@ -47,11 +48,12 @@ const FormSelect = props => {
 
 FormSelect.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
-    label: PropTypes.string.isRequired,
     value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
   })).isRequired,
   labelClassName: PropTypes.string,
   selectClassName: PropTypes.string,
+  className: PropTypes.string,
   value: PropTypes.shape({
     value: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,

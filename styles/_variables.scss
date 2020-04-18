@@ -25,8 +25,9 @@ $thumbColor: #EB5054;
 $scrollbarColor: #3E3E51;
 $slidertrackColor: #565670;
 $layer-color: #464666;
-$third-color: #999999;
 $secondary-color: #EB5054;
+$third-color: #999999;
+$fourth-color: #363651;
 
 $background-panel: #08080A;
 $menu-panel: #08080A;
@@ -43,6 +44,11 @@ $xl: 1140px;
 $mock: 1920px;
 $xxl: 2560px;
 
+//animations
+$inColor: #A627B1;
+$idleColor: #2CB753;
+$outColor: #01AACD;
+
 //fonts
 $font-primary: 'Proxima Nova', sans-serif;
 
@@ -52,3 +58,7 @@ $main: 1em;
 
 //timeline
 $layer-height: 35px;
+
+//toolbar
+
+$toolbarHeight: 59vh;
