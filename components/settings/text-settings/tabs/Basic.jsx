@@ -4,12 +4,14 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../../lib/PropTypes';
 import FieldBuilder from '../../../form/FieldBuilder';
 import { iconAlignment, iconPosition } from '../../../../lib/constants/settings/vrtext-element';
-
+import { SETTINGS_MODAL } from '../../../../lib/constants/modals';
 import svgTextLetterSpacing from '../../../../public/static/svgImages/text/basic_group/letter-spacing.svg';
 import useUIStore from '../../../hooks/useUIStore';
+import useModalStore from "../../../hooks/useModalStore";
 
 const Basic = ({ values, fields, onChange }) => {
-  const { setLibraryType } = useUIStore();
+  const { openAnimation } = useUIStore();
+  const { closeModal } = useModalStore();
 
   const {
     start,
@@ -22,6 +24,11 @@ const Basic = ({ values, fields, onChange }) => {
     callNotifyAddress,
     rotation,
   } = values;
+
+  const openLibrary = () => {
+    closeModal(SETTINGS_MODAL);
+    openAnimation();
+  };
 
   return (
     <Fragment>
@@ -114,7 +121,7 @@ const Basic = ({ values, fields, onChange }) => {
           </div>
           <div className="text-transform-container-transition">
             <span>Animations</span>
-            <button className="btn-library" onClick={() => console.log('todo')}>Open Library</button>
+            <button className="btn-library" onClick={() => openLibrary()}>Open Library</button>
           </div>
           <div className="text-transform-container-font">
             <div>
