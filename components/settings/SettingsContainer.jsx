@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 
 import PropTypes from '../../lib/PropTypes';
 import useProjectStore from '../hooks/useProjectStore';
+// eslint-disable-next-line import/no-cycle
 import { SETTINGS_COMPONENTS } from '../../lib/constants/settings';
 
 const SettingsContainer = observer(({ tab, type }) => {

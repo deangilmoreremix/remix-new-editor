@@ -2,8 +2,10 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../lib/PropTypes';
+// eslint-disable-next-line import/no-cycle
 import SettingsContainer from '../settings/SettingsContainer';
 import useProjectStore from '../hooks/useProjectStore';
+// eslint-disable-next-line import/no-cycle
 import { DEFAULT_SETTINGS } from '../../lib/constants/settings';
 
 const SettingsModal = observer(({ options, setHeader, elementId }) => {

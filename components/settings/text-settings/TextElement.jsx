@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 
 import PropTypes from '../../../lib/PropTypes';
 import { BASIC, ADVANCED } from '../../../lib/constants/popcorn';
+// eslint-disable-next-line import/no-cycle
 import Basic from './tabs/Basic';
 import Advanced from './tabs/Advanced';
 

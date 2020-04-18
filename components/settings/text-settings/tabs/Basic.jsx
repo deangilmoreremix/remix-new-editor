@@ -4,10 +4,11 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../../lib/PropTypes';
 import FieldBuilder from '../../../form/FieldBuilder';
 import { iconAlignment, iconPosition } from '../../../../lib/constants/settings/vrtext-element';
-import { SETTINGS_MODAL } from '../../../../lib/constants/modals';
 import svgTextLetterSpacing from '../../../../public/static/svgImages/text/basic_group/letter-spacing.svg';
 import useUIStore from '../../../hooks/useUIStore';
-import useModalStore from "../../../hooks/useModalStore";
+import useModalStore from '../../../hooks/useModalStore';
+// eslint-disable-next-line import/no-cycle
+import { SETTINGS_MODAL } from '../../../../lib/constants/modals';
 
 const Basic = ({ values, fields, onChange }) => {
   const { openAnimation } = useUIStore();
