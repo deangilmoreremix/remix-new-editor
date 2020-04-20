@@ -20,6 +20,10 @@ const PopcornElement = observer(({ item }) => {
 
   let rest = {};
 
+  const selectItem = () => {
+    console.log(item.i);
+  };
+
   const getGridItem = (animationType) => {
     switch (item.type) {
       case POPCORN_ELEMENT_TYPES.TEXT: {
@@ -65,6 +69,7 @@ const PopcornElement = observer(({ item }) => {
       container
       className="popcorn-element"
       {...rest}
+      onClick={selectItem}
     >
       <span className="popcorn-element-name">{item.type}</span>
       {getGridItem(ANIMATION_TYPES.IN)}
