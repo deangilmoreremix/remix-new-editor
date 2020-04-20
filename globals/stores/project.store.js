@@ -196,6 +196,34 @@ export default class ProjectStore extends BaseStore {
   }
 
   @action
+  updateElement = (elementId, options) => {
+    // we need to update the elements, if the user updates the start,
+    // end or animation, this is necessary to rerender the elements
+    const { start, end, animation } = options;
+    this.elements = this.elements.map(element => {
+      if (element.id === elementId) {
+        const newOptions = {};
+        if (start !== undefined && start !== element.popcornOptions.start) {
+          newOptions.start = start;
+        }
+        if (end !== undefined && end !== element.popcornOptions.end) {
+          newOptions.end = end;
+        }
+        if (animation) {
+          newOptions.animation = animation;
+        }
+        if (size(newOptions) > 0) {
+          element.popcornOptions = {
+            ...element.popcornOptions,
+            ...newOptions,
+          };
+        }
+      }
+      return element;
+    });
+  };
+
+  @action
   findElement = (elementId) => {
     let element = null;
     this.projectData.media.forEach((media) => {
@@ -225,34 +253,17 @@ export default class ProjectStore extends BaseStore {
     this.updateElement(elementId, options);
     this.updatePopcorn(elementId, options);
   };
-
-  @action
-  updateElement = (elementId, options) => {
-    // we need to update the elements, if the user updates the start,
-    // end or animation, this is necessary to rerender the elements
-    const { start, end, animation } = options;
-    this.elements = this.elements.map(element => {
-      if (element.id === elementId) {
-        const newOptions = {};
-        if (start !== undefined && start !== element.popcornOptions.start) {
-          newOptions.start = start;
-        }
-        if (end !== undefined && end !== element.popcornOptions.end) {
-          newOptions.end = end;
-        }
-        if (animation) {
-          const { animation: oldAnimation } = element.popcornOptions;
-          newOptions.animation = oldAnimation ? { ...oldAnimation, ...animation } : animation;
-        }
-        if (size(newOptions) > 0) {
-          element.popcornOptions = {
-            ...element.popcornOptions,
-            ...newOptions,
-          };
-        }
-      }
-      return element;
-    });
+  updateAnimation = (type, animationName = NONE_CLASS) => {
+    const oldAnimation = this.element && this.element.popcornOptions.animation;
+    const animation = {
+      ...(oldAnimation ? { ...oldAnimation } : {}),
+      [type]: {
+        type: animationName,
+        // The animated class has a default speed of 1s
+        duration: 1,
+      },
+    };
+    this.findAndUpdate(this.activeElementId, { animation });
   };
 
   @action
@@ -709,16 +720,13 @@ export default class ProjectStore extends BaseStore {
     return this.item;
   };
 
-  updateAnimation = (type, animationName = NONE_CLASS) => {
-    const animation = {
-      [type]: {
-        type: animationName,
-        // The animated class has a default speed of 1s
-        duration: 1,
-      },
-    };
-    this.findAndUpdate(this.activeElementId, { animation });
-  };
+  @computed
+  get element() {
+    if (!this.activeElementId) {
+      return null;
+    }
+    return this.popcornElements.find(element => element.id === this.activeElementId);
+  }
 
   @action
   runTextfill = () => {
