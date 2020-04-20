@@ -1,0 +1,39 @@
+.guidelines {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+
+  &__square {
+    width: 67%;
+    height: 66%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px solid #CCCCCC;
+  }
+}
+
+.guidelines__line {
+  position: absolute;
+  background: #FAFF04;
+
+  &--h {
+    width: 100%;
+    height: 1px;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+  }
+
+  &--v {
+    width: 1px;
+    height: 100%;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
