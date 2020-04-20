@@ -253,6 +253,7 @@ export default class ProjectStore extends BaseStore {
     this.updateElement(elementId, options);
     this.updatePopcorn(elementId, options);
   };
+
   updateAnimation = (type, animationName = NONE_CLASS) => {
     const oldAnimation = this.element && this.element.popcornOptions.animation;
     const animation = {
