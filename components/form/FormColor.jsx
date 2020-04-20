@@ -47,7 +47,7 @@ const FormColor = ({ label, onChange, value, className, disabled }) => {
         />
         <button
           onClick={handleClick}
-          className={classnames('color-element', `${disabled && 'button-disabled'}`)}
+          className={classnames('color-element', (disabled && 'button-disabled'))}
           style={{ backgroundColor: value || colorPrimary }}
           disabled={disabled}
         />

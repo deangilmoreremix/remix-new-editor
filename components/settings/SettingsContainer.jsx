@@ -3,10 +3,9 @@ import { observer } from 'mobx-react';
 
 import PropTypes from '../../lib/PropTypes';
 import useProjectStore from '../hooks/useProjectStore';
-// eslint-disable-next-line import/no-cycle
 import { SETTINGS_COMPONENTS } from '../../lib/constants/settings';
 
-const SettingsContainer = observer(({ tab, type }) => {
+const SettingsContainer = observer(({ tab, type, handleClose }) => {
   const SettingsComponent = useMemo(
     () => SETTINGS_COMPONENTS[type],
     [type],
@@ -49,6 +48,7 @@ const SettingsContainer = observer(({ tab, type }) => {
       fields={fields}
       element={element}
       update={updateElement}
+      handleClose={handleClose}
     />
   );
 });
@@ -56,6 +56,7 @@ const SettingsContainer = observer(({ tab, type }) => {
 SettingsContainer.propTypes = {
   tab: PropTypes.string.isRequired,
   type: PropTypes.string.isRequired,
+  handleClose: PropTypes.func,
 };
 
 export default SettingsContainer;

@@ -1,18 +1,15 @@
 import React, { Fragment } from 'react';
 import SVGInline from 'react-svg-inline';
+import { observer } from 'mobx-react';
 
 import PropTypes from '../../../../lib/PropTypes';
 import FieldBuilder from '../../../form/FieldBuilder';
 import { iconAlignment, iconPosition } from '../../../../lib/constants/settings/vrtext-element';
 import svgTextLetterSpacing from '../../../../public/static/svgImages/text/basic_group/letter-spacing.svg';
 import useUIStore from '../../../hooks/useUIStore';
-import useModalStore from '../../../hooks/useModalStore';
-// eslint-disable-next-line import/no-cycle
-import { SETTINGS_MODAL } from '../../../../lib/constants/modals';
 
-const Basic = ({ values, fields, onChange }) => {
+const Basic = observer(({ values, fields, onChange, closeModal }) => {
   const { openAnimation } = useUIStore();
-  const { closeModal } = useModalStore();
 
   const {
     start,
@@ -27,7 +24,7 @@ const Basic = ({ values, fields, onChange }) => {
   } = values;
 
   const openLibrary = () => {
-    closeModal(SETTINGS_MODAL);
+    closeModal();
     openAnimation();
   };
 
@@ -135,12 +132,33 @@ const Basic = ({ values, fields, onChange }) => {
       </div>
     </Fragment>
   );
-};
+});
 
 Basic.propTypes = {
-  values: PropTypes.shape(PropTypes.object),
+  values: PropTypes.shape({
+    start: PropTypes.number,
+    end: PropTypes.number,
+    alignment: PropTypes.string,
+    position: PropTypes.string,
+    text: PropTypes.string,
+    linkUrl: PropTypes.string,
+    callNotifyAddress: PropTypes.string,
+    linkTarget: PropTypes.string,
+    rotation: PropTypes.string,
+  }),
   onChange: PropTypes.func.isRequired,
-  fields: PropTypes.shape(PropTypes.object),
+  fields: PropTypes.shape({
+    start: PropTypes.object,
+    end: PropTypes.object,
+    alignment: PropTypes.object,
+    position: PropTypes.object,
+    text: PropTypes.object,
+    linkUrl: PropTypes.object,
+    callNotifyAddress: PropTypes.object,
+    linkTarget: PropTypes.object,
+    rotation: PropTypes.object,
+  }),
+  closeModal: PropTypes.func,
 };
 
 export default Basic;

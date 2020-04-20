@@ -102,7 +102,7 @@ export default function FormTextField({
 }
 
 FormTextField.propTypes = {
-  onChange: PropTypes.func,
+  onChange: PropTypes.func.isRequired,
   mask: PropTypes.string,
   label: PropTypes.string,
   name: PropTypes.string,
@@ -123,5 +123,7 @@ FormTextField.defaultProps = {
   label: '',
   type: 'input',
   disabled: false,
-  onChange: () => {},
+  inputClassName: '',
+  labelClassName: '',
+  className: '',
 };

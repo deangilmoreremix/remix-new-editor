@@ -24,9 +24,6 @@ const Advanced = ({ values, fields, onChange }) => {
     strokeColor,
     backgroundColor,
   } = values;
-  const handleChangeFontDecoration = (field) => (value) => {
-    onChange({ [field]: value });
-  };
 
   return (
     <Fragment>
@@ -54,18 +51,19 @@ const Advanced = ({ values, fields, onChange }) => {
               value={bold}
               name={fields.fontDecorations.bold.name}
               {...fields.fontDecorations.bold}
-              onChange={handleChangeFontDecoration(fields.fontDecorations.name)}
+              onChange={(v) => onChange({ [fields.fontDecorations.name]: v })}
             />
             <FieldBuilder
               value={italics}
               name={fields.fontDecorations.italics.name}
               {...fields.fontDecorations.italics}
-              onChange={handleChangeFontDecoration(fields.fontDecorations.name)}
+              onChange={(v) => onChange({ [fields.fontDecorations.name]: v })}
             />
           </div>
           <div className="icon-edit-text">
             <FieldBuilder
               value={alignment || fields.alignment.default}
+              name={fields.alignment.name}
               {...fields.alignment}
               onChange={onChange}
               containerClass="text-radio-container"
@@ -86,6 +84,7 @@ const Advanced = ({ values, fields, onChange }) => {
                 cleanup={['title']}
               />
               <FieldBuilder
+                name={fields.fontSize.name}
                 inputClassName="input-text-percent"
                 type="number"
                 onChange={onChange}
@@ -149,7 +148,7 @@ const Advanced = ({ values, fields, onChange }) => {
           value={responsive}
           name={fields.fontDecorations.responsive.name}
           {...fields.fontDecorations.responsive}
-          onChange={handleChangeFontDecoration(fields.fontDecorations.name)}
+          onChange={(v) => onChange({ [fields.fontDecorations.name]: v })}
         />
       </div>
     </Fragment>
@@ -157,9 +156,43 @@ const Advanced = ({ values, fields, onChange }) => {
 };
 
 Advanced.propTypes = {
-  values: PropTypes.shape(PropTypes.object),
+  values: PropTypes.shape({
+    fontFamily: PropTypes.string,
+    fontSize: PropTypes.number,
+    fontDecorations: PropTypes.shape({
+      bold: PropTypes.boolean,
+      italics: PropTypes.boolean,
+      responsive: PropTypes.boolean,
+    }),
+    alignment: PropTypes.string,
+    fontColor: PropTypes.string,
+    shadow: PropTypes.boolean,
+    stroke: PropTypes.boolean,
+    background: PropTypes.boolean,
+    shadowColor: PropTypes.string,
+    strokeColor: PropTypes.string,
+    backgroundColor: PropTypes.string,
+  }),
   onChange: PropTypes.func.isRequired,
-  fields: PropTypes.shape(PropTypes.object),
+  fields: PropTypes.shape({
+    fontFamily: PropTypes.object,
+    fontSize: PropTypes.object,
+    fontDecorations: PropTypes.shape({
+      bold: PropTypes.object,
+      italics: PropTypes.object,
+      responsive: PropTypes.object,
+      name: PropTypes.string,
+      default: PropTypes.object,
+    }),
+    alignment: PropTypes.object,
+    fontColor: PropTypes.object,
+    shadow: PropTypes.object,
+    stroke: PropTypes.object,
+    background: PropTypes.object,
+    shadowColor: PropTypes.object,
+    strokeColor: PropTypes.object,
+    backgroundColor: PropTypes.object,
+  }),
 };
 
 export default Advanced;

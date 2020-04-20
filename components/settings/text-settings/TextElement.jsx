@@ -3,7 +3,6 @@ import { observer } from 'mobx-react';
 
 import PropTypes from '../../../lib/PropTypes';
 import { BASIC, ADVANCED } from '../../../lib/constants/popcorn';
-// eslint-disable-next-line import/no-cycle
 import Basic from './tabs/Basic';
 import Advanced from './tabs/Advanced';
 
@@ -12,16 +11,17 @@ const TabMap = {
   [ADVANCED]: Advanced,
 };
 
-const TextElement = observer(({ tab = BASIC, element, update, fields }) => {
+const TextElement = observer(({ tab = BASIC, element, update, fields, handleClose }) => {
   const Tab = TabMap[tab];
 
   return (
-    <div className="vrtext-presets-form">
+    <div className="text-form">
       {element && element.popcornOptions && (
         <Tab
           values={element.popcornOptions}
           onChange={(field) => update(field)}
           fields={fields}
+          closeModal={handleClose}
         />
       )}
     </div>

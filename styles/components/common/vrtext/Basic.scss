@@ -23,7 +23,7 @@
       width: 70%;
     }
     &:hover input {
-      border: 0.055rem solid $red;
+      border: 0.055rem solid $secondary-color;
     }
   }
 }
@@ -99,7 +99,7 @@
   width: 70%;
 
   .MuiOutlinedInput-root:hover fieldset {
-    border-color: $red;
+    border-color: $secondary-color;
   }
 
   .open-link {
@@ -108,7 +108,7 @@
 }
 
 .btn-personalize, .btn-library {
-  background: $red;
+  background: $secondary-color;
   color: $white;
   border: none;
   font-size: 1rem;
