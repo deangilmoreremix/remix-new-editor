@@ -10,7 +10,6 @@ import Library from './media/Library';
 import Toolbar from './common/toolbar/Toolbar';
 import SizeSelector from './canvas/SizeSelector';
 import AnimationList from './media/AnimationList';
-import GuidelinesActivation from './common/GuidelinesActivation';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
@@ -76,7 +75,6 @@ const Home = observer(() => {
           </Grid>
         </Grid>
         <Grid item xs={5}>
-          <GuidelinesActivation />
           <Canvas />
         </Grid>
       </Grid>

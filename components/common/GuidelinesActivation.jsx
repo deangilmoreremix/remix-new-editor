@@ -24,6 +24,7 @@ const GuidelinesActivation = observer(() => {
         value={isGuideLines}
         onChange={() => setGuideLines(!isGuideLines)}
         name="guidelines"
+        floatClassName="guidelines-field"
       />
     </div>
   );

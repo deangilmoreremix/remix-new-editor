@@ -5,11 +5,14 @@ import { useWindowSize } from '@react-hook/window-size';
 import useProjectStore from './hooks/useProjectStore';
 import { DEFAULT_RATIO, DEFAULT_VIDEO_WIDTH, DEFAULT_FONT_SIZE } from '../lib/constants/project';
 
+import GuidelinesActivation from './common/GuidelinesActivation';
 import Guidelines from './common/Guidelines';
 
 const Canvas = observer(() => {
   const projectStore = useProjectStore();
-  const { item: { ratio: { width, height } = DEFAULT_RATIO }, runTextfill, isGuideLines } = projectStore;
+  const {
+    item: { ratio: { width, height } = DEFAULT_RATIO }, runTextfill, isGuideLines,
+  } = projectStore;
   const [style, setStyle] = React.useState({});
   const [fontSize, setFontSize] = React.useState(DEFAULT_FONT_SIZE);
   const [windowWidth, windowHeight] = useWindowSize();
@@ -19,7 +22,7 @@ const Canvas = observer(() => {
   const ref = useRef(null);
   const wrapper = useRef(null);
   const marginLeft = 20;
-  const marginTop = 20;
+  const marginTop = 60;
 
   useEffect(() => {
     if (ref.current) {
@@ -50,6 +53,7 @@ const Canvas = observer(() => {
 
   return (
     <div ref={ref} className="stager-wrapper">
+      <GuidelinesActivation />
       <div style={{ ...style, fontSize }} ref={wrapper} className="embed-wrapper">
         {isGuideLines && <Guidelines />}
         <div id="video-container" className="video-container">
