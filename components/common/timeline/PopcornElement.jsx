@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 import Grid from '@material-ui/core/Grid/Grid';
@@ -7,6 +7,7 @@ import useUIStore from '../../hooks/useUIStore';
 import useProjectStore from '../../hooks/useProjectStore';
 
 import PropTypes from '../../../lib/PropTypes';
+import emitter from '../../../lib/mitt/emitter';
 
 import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
 import { NONE_CLASS, ANIMATION_TYPES } from '../../../lib/constants/animations';
@@ -14,6 +15,7 @@ import { NONE_CLASS, ANIMATION_TYPES } from '../../../lib/constants/animations';
 const PopcornElement = observer(({ item }) => {
   const projectStore = useProjectStore();
   const uiStore = useUIStore();
+  const gridElementRef = useRef();
 
   const { editElement, updateAnimation } = projectStore;
   const { openAnimation } = uiStore;
@@ -21,7 +23,11 @@ const PopcornElement = observer(({ item }) => {
   let rest = {};
 
   const selectItem = () => {
-    console.log(item.i);
+    gridElementRef.current.addEventListener('keydown', e => {
+      if (e.key === 'Delete') {
+        emitter.emit('delete', item.i);
+      }
+    });
   };
 
   const getGridItem = (animationType) => {
@@ -68,8 +74,10 @@ const PopcornElement = observer(({ item }) => {
     <Grid
       container
       className="popcorn-element"
-      {...rest}
       onClick={selectItem}
+      ref={gridElementRef}
+      tabIndex={-1}
+      {...rest}
     >
       <span className="popcorn-element-name">{item.type}</span>
       {getGridItem(ANIMATION_TYPES.IN)}
