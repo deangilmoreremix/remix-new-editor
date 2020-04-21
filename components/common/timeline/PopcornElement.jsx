@@ -62,6 +62,7 @@ const PopcornElement = observer(({ item }) => {
   if (item.type === POPCORN_ELEMENT_TYPES.TEXT) {
     rest = {
       onClick: () => {
+        addDeleteListener(gridElementRef.current, item.i);
         editElement(item.i);
         openAnimation();
       },
