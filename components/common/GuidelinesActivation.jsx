@@ -2,14 +2,14 @@ import React from 'react';
 import SVGInline from 'react-svg-inline';
 import { observer } from 'mobx-react';
 
-import useProjectStore from '../hooks/useProjectStore';
+import useUIStore from '../hooks/useUIStore';
 
 import FieldBuilder from '../form/FieldBuilder';
 
 import guidelinesIcon from '../../public/static/svgImages/guidlines.svg';
 
 const GuidelinesActivation = observer(() => {
-  const { isGuideLines, setGuideLines } = useProjectStore();
+  const { hasGuidLines, setGuideLines } = useUIStore();
 
   return (
     <div className="guidelines-activation">
@@ -21,8 +21,8 @@ const GuidelinesActivation = observer(() => {
       <FieldBuilder
         type="checkbox"
         label="Guideline"
-        value={isGuideLines}
-        onChange={() => setGuideLines(!isGuideLines)}
+        value={hasGuidLines}
+        onChange={() => setGuideLines(!hasGuidLines)}
         name="guidelines"
         floatClassName="guidelines-field"
       />

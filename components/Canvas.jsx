@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import { useWindowSize } from '@react-hook/window-size';
 
 import useProjectStore from './hooks/useProjectStore';
+import useUIStore from './hooks/useUIStore';
 import {
   DEFAULT_RATIO,
   DEFAULT_VIDEO_WIDTH,
@@ -15,9 +16,9 @@ import Guidelines from './common/Guidelines';
 
 const Canvas = observer(() => {
   const projectStore = useProjectStore();
-  const {
-    item: { ratio: { width, height } = DEFAULT_RATIO }, runTextfill, isGuideLines,
-  } = projectStore;
+  const uiStore = useUIStore();
+  const { item: { ratio: { width, height } = DEFAULT_RATIO }, runTextfill } = projectStore;
+  const { hasGuidLines } = uiStore;
   const [style, setStyle] = React.useState({});
   const [fontSize, setFontSize] = React.useState(DEFAULT_FONT_SIZE);
   const [windowWidth, windowHeight] = useWindowSize();
@@ -60,7 +61,7 @@ const Canvas = observer(() => {
     <div ref={ref} className="stager-wrapper">
       <GuidelinesActivation />
       <div style={{ ...style, fontSize }} className="embed-wrapper">
-        {isGuideLines && <Guidelines />}
+        {hasGuidLines && <Guidelines />}
         <div id={DEFAULT_CONTAINER} ref={wrapper} className="video-container">
           <div
             id="video"

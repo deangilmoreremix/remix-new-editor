@@ -89,8 +89,6 @@ export default class ProjectStore extends BaseStore {
 
   @observable modified = false;
 
-  @observable isGuideLines = false;
-
   // TODO: remove the fake data when ready
   @observable personalizations = new Set(
     mockPersonalizations.filter(token => !EMAIL_SKIP_TOKENS.includes(token)),
@@ -125,11 +123,6 @@ export default class ProjectStore extends BaseStore {
         break;
     }
     return options;
-  };
-
-  @action
-  setGuideLines = async (value = false) => {
-    this.isGuideLines = value;
   };
 
   @action
