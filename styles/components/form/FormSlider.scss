@@ -1,7 +1,7 @@
 .slider-element {
   .MuiSlider-track, .MuiSlider-rail {
     color: $slidertrackColor;
-    opacity:1;
+    opacity: 1;
   }
 
   .MuiSlider-thumb {
@@ -17,5 +17,11 @@
       width: 9px;
       height: 9px;
     }
+  }
+}
+
+.slider-input {
+  & input {
+    color: $white;
   }
 }
