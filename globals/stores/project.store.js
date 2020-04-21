@@ -657,6 +657,7 @@ export default class ProjectStore extends BaseStore {
       media.tracks[0].trackEvents.push(trackEvent);
     });
   };
+
   @action
   save = async () => {
     if (!this.modified) {
