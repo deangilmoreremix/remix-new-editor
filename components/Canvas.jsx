@@ -3,7 +3,12 @@ import { observer } from 'mobx-react';
 import { useWindowSize } from '@react-hook/window-size';
 
 import useProjectStore from './hooks/useProjectStore';
-import { DEFAULT_RATIO, DEFAULT_VIDEO_WIDTH, DEFAULT_FONT_SIZE } from '../lib/constants/project';
+import {
+  DEFAULT_RATIO,
+  DEFAULT_VIDEO_WIDTH,
+  DEFAULT_FONT_SIZE,
+  DEFAULT_CONTAINER,
+} from '../lib/constants/project';
 
 const Canvas = observer(() => {
   const projectStore = useProjectStore();
@@ -48,8 +53,8 @@ const Canvas = observer(() => {
 
   return (
     <div ref={ref} className="stager-wrapper">
-      <div style={{ ...style, fontSize }} ref={wrapper} className="embed-wrapper">
-        <div id="video-container" className="video-container">
+      <div style={{ ...style, fontSize }} className="embed-wrapper">
+        <div id={DEFAULT_CONTAINER} ref={wrapper} className="video-container">
           <div
             id="video"
             className="video"
