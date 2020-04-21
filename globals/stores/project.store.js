@@ -156,11 +156,7 @@ export default class ProjectStore extends BaseStore {
     // update duration
     if (options.end > this.duration / SANTISECOND) {
       this.recompressProject(options.end);
-      const t = this.popcorn;
-      debugger;
-      this.popcorn.data.durationChange();
-      this.duration = this.popcorn.duration() * SANTISECOND;
-      console.info(this.duration);
+      this.duration = options.end * SANTISECOND;
     }
 
     // update timeline
