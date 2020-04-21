@@ -188,7 +188,7 @@ export default class ProjectStore extends BaseStore {
     }
     const element = this.popcorn.getTrackEvent(this.activeElementId);
     // eslint-disable-next-line no-underscore-dangle
-    const { options } = (element && element._natives && element._natives.manifest) || {};
+    const { options } = element._natives.manifest;
     const resultOptions = {};
     if (options) {
       Object.keys(options).forEach((fieldName) => {
@@ -524,13 +524,13 @@ export default class ProjectStore extends BaseStore {
   };
 
   isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'
-        || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
-        && element.popcornOptions.contentType.indexOf('video/') === 0));
+    || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
+    && element.popcornOptions.contentType.indexOf('video/') === 0));
 
   isAudio = (element) => !!((element.popcornOptions.type === 'SoundCloud')
     || (element.popcornOptions.contentType
       && (element.popcornOptions.contentType.indexOf('audio/') === 0
-      || element.popcornOptions.contentType.indexOf('application/ogg') === 0)));
+        || element.popcornOptions.contentType.indexOf('application/ogg') === 0)));
 
   @action
   getOne = async (projectId) => {

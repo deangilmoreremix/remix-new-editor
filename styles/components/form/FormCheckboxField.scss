@@ -20,6 +20,7 @@
 
 .checkbox-element {
   cursor: pointer;
+  display: flex;
   align-items: center;
   justify-content: flex-start;
 
@@ -38,6 +39,7 @@
 
     span.MuiButton-label label.MuiInputLabel-root {
       color: $white;
+      text-transform: none;
     }
 
     .MuiTouchRipple-root {
