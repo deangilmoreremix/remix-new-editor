@@ -3,7 +3,12 @@ import { observer } from 'mobx-react';
 import { useWindowSize } from '@react-hook/window-size';
 
 import useProjectStore from './hooks/useProjectStore';
-import { DEFAULT_RATIO, DEFAULT_VIDEO_WIDTH, DEFAULT_FONT_SIZE } from '../lib/constants/project';
+import {
+  DEFAULT_RATIO,
+  DEFAULT_VIDEO_WIDTH,
+  DEFAULT_FONT_SIZE,
+  DEFAULT_CONTAINER,
+} from '../lib/constants/project';
 
 import GuidelinesActivation from './common/GuidelinesActivation';
 import Guidelines from './common/Guidelines';
@@ -54,9 +59,9 @@ const Canvas = observer(() => {
   return (
     <div ref={ref} className="stager-wrapper">
       <GuidelinesActivation />
-      <div style={{ ...style, fontSize }} ref={wrapper} className="embed-wrapper">
+      <div style={{ ...style, fontSize }} className="embed-wrapper">
         {isGuideLines && <Guidelines />}
-        <div id="video-container" className="video-container">
+        <div id={DEFAULT_CONTAINER} ref={wrapper} className="video-container">
           <div
             id="video"
             className="video"

@@ -27,6 +27,8 @@ import useProjectStore from './hooks/useProjectStore';
 import useUserStore from './hooks/useUserStore';
 import useModalStore from './hooks/useModalStore';
 
+import { showError } from '../lib/services/alertService';
+
 const userMenu = [
   { title: 'My Projects', icon: folderIcon },
   { title: 'Sign Out', icon: outIcon },
@@ -53,6 +55,14 @@ const MenuAppBar = observer(() => {
   const projectAdminMenu = [
     { title: 'Save as', icon: saveAsIcon, action: () => openModal(SAVE_PROJECT_MODAL) },
   ];
+
+  const saveProject = React.useCallback(async () => {
+    try {
+      await save();
+    } catch (e) {
+      showError(e.message);
+    }
+  }, []);
 
   if (isSuperAdmin) {
     menu = [...projectMenu, ...projectAdminMenu];
@@ -119,12 +129,12 @@ const MenuAppBar = observer(() => {
                   svg={saveIcon}
                   cleanup={['title']}
                   component="button"
-                  onClick={() => save()}
+                  onClick={() => saveProject()}
                   disabled={!modified}
                 />
                 <button
                   className={`icon-button ${modified ? 'active-save' : ''}`}
-                  onClick={() => save()}
+                  onClick={() => saveProject()}
                   disabled={!modified}
                 >
                   save

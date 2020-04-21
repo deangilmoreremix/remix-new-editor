@@ -10,7 +10,7 @@ import {
 import { SEQUENCER } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
-import { SANTISECOND, MAX_ZINDEX, DEFAULT_RATIO } from '../../lib/constants/project';
+import { SANTISECOND, MAX_ZINDEX, DEFAULT_RATIO, DEFAULT_CONTAINER } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 
@@ -31,8 +31,8 @@ const defaultItem = {
     data: {
       targets: [{
         id: 'Target0',
-        name: 'video-container',
-        element: 'video-container',
+        name: DEFAULT_CONTAINER,
+        element: DEFAULT_CONTAINER,
       }],
       media: [{
         id: 'Media0',
@@ -164,7 +164,7 @@ export default class ProjectStore extends BaseStore {
     if (options.end > this.duration / SANTISECOND) {
       this.recompressProject(options.end);
       this.popcorn.duration(options.end);
-      this.duration = this.popcorn.duration() * SANTISECOND;
+      this.duration = options.end * SANTISECOND;
     }
 
     // update timeline
@@ -403,7 +403,7 @@ export default class ProjectStore extends BaseStore {
         });
         return track;
       });
-      media.tracks.unshift({ ...defaultLayer, id: media.tracks.length });
+      media.tracks.unshift({ ...defaultLayer, id: `${media.tracks.length}` });
     });
 
     this.layers = this.layers.map(track => {
@@ -496,7 +496,7 @@ export default class ProjectStore extends BaseStore {
   @action
   updateTime = (value) => {
     this.time = value;
-    return this.popcorn.currentTime(value / SANTISECOND);
+    return this.popcorn.currentTime((value && value / SANTISECOND) || 0);
   };
 
   @action
@@ -561,22 +561,22 @@ export default class ProjectStore extends BaseStore {
     if (!this.popcornObject) {
       return;
     }
-
     this.popcorn = window.Popcorn.smart(target,
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
     this.attach(target);
   };
 
+  findMediaSource = (sources, acceptableSources) => sources.filter((source) => {
+    const extension = source.split('.').reverse()[0];
+    return acceptableSources.includes(extension);
+  })[0];
+
+
   @action
   attach = (target) => {
-    const findMediaSource = (sources, acceptableSources) => sources.filter((source) => {
-      const extension = source.split('.').reverse()[0];
-      return acceptableSources.some(extension);
-    })[0];
-
     this.popcornObject.popcornElements.forEach((element) => {
       if (element.type === 'sequencer' && element.popcornOptions.source[0].split('|').length > 1) {
-        element.popcornOptions.source = [findMediaSource(
+        element.popcornOptions.source = [this.findMediaSource(
           element.popcornOptions.source[0].split('|'), ['mp4', 'webm'],
         )];
       }
@@ -603,7 +603,7 @@ export default class ProjectStore extends BaseStore {
   serializeProject = () => ({
     data: JSON.stringify(this.projectData),
     allowedSocials: this.item.allowedSocials,
-    name: this.item.name,
+    name: this.item.title,
     editor: 'videotastic',
     description: this.item.description,
     thumbnail: this.item.thumbnail,
@@ -634,6 +634,7 @@ export default class ProjectStore extends BaseStore {
       }
       media.duration = newDuration;
       media.url = `#t=,${media.duration}`;
+      media.src = `#t=,${media.duration}`;
       const recompressRatio = newDuration / initialDuration;
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
@@ -653,42 +654,13 @@ export default class ProjectStore extends BaseStore {
   addElementToProject = (trackEvent) => {
     const { id, popcornOptions } = trackEvent;
     if (!popcornOptions.target) {
-      popcornOptions.target = this.popcorn && this.popcorn.target;
+      popcornOptions.target = DEFAULT_CONTAINER;
     }
     this.popcorn[trackEvent.type]({ id, ...popcornOptions });
     this.projectData.media.forEach((media) => {
       media.tracks[0].trackEvents.push(trackEvent);
     });
   };
-
-  constructor(props) {
-    super(props);
-    this.layers = [];
-    this.elements = [];
-    this.mediaTypeDetector = new MediaTypeDetector();
-    reaction(
-      () => this.popcorn && this.popcorn.on,
-      () => {
-        this.popcorn.on('canplayall', () => {
-          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
-          this.isLoaded = true;
-        });
-        this.popcorn.on('timeupdate', () => {
-          this.time = this.popcorn.currentTime() * SANTISECOND;
-        });
-        this.popcorn.on('ended', () => {
-          this.time = 0;
-          this.popcorn.currentTime(0);
-        });
-        this.popcorn.on('pause', () => {
-          this.isPlayed = false;
-        });
-        this.popcorn.on('play', () => {
-          this.isPlayed = true;
-        });
-      },
-    );
-  }
 
   @action
   save = async () => {
@@ -724,9 +696,39 @@ export default class ProjectStore extends BaseStore {
     } catch (e) {
       this.isLoading = true;
       console.error('Error ', e);
+      throw e;
     }
     return this.item;
   };
+
+  constructor(props) {
+    super(props);
+    this.layers = [];
+    this.elements = [];
+    this.mediaTypeDetector = new MediaTypeDetector();
+    reaction(
+      () => this.popcorn && this.popcorn.on,
+      () => {
+        this.popcorn.on('canplayall', () => {
+          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
+          this.isLoaded = true;
+        });
+        this.popcorn.on('timeupdate', () => {
+          this.time = this.popcorn.currentTime() * SANTISECOND;
+        });
+        this.popcorn.on('ended', () => {
+          this.time = 0;
+          this.updateTime(0);
+        });
+        this.popcorn.on('pause', () => {
+          this.isPlayed = false;
+        });
+        this.popcorn.on('play', () => {
+          this.isPlayed = true;
+        });
+      },
+    );
+  }
 
   @computed
   get element() {
