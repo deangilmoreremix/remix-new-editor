@@ -3,7 +3,7 @@ import arrayMove from 'array-move';
 import size from 'lodash/size';
 
 import BaseStore from './base.store';
-import { emitter } from '../../lib/mitt/emitter';
+import { emitter, emitterActions } from '../../lib/mitt/emitter';
 
 import {
   EMAIL_SKIP_TOKENS,
@@ -101,7 +101,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable time = 0;
 
-  deleteItem = emitter.on('delete', id => {
+  deleteItem = emitter.on(emitterActions.DELETE, id => {
     this.removeElement(id);
   });
 
