@@ -50,4 +50,15 @@
       width: 0.8rem;
     }
   }
+
+  .select__menu {
+    width: 6.25rem;
+    height: 5.6rem;
+    top: 1rem;
+
+    * {
+      @include tiny-scrollbar;
+      max-height: 100%;
+    }
+  }
 }
