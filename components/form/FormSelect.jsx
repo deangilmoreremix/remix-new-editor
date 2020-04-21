@@ -17,8 +17,8 @@ const FormSelect = props => {
     selectClassName,
   } = props;
 
-  const handleChange = event => {
-    onChange(event.value);
+  const handleChange = ({ value }) => {
+    onChange(value);
   };
 
   return (
@@ -48,7 +48,6 @@ const FormSelect = props => {
 FormSelect.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
     value: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
   })).isRequired,
   labelClassName: PropTypes.string,
   selectClassName: PropTypes.string,
