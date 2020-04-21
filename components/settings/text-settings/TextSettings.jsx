@@ -11,7 +11,7 @@ const TabMap = {
   [ADVANCED]: Advanced,
 };
 
-const TextElement = observer(({ tab = BASIC, element, update, fields, handleClose }) => {
+const TextSettings = observer(({ tab = BASIC, element, update, fields, handleClose }) => {
   const Tab = TabMap[tab];
 
   return (
@@ -28,7 +28,7 @@ const TextElement = observer(({ tab = BASIC, element, update, fields, handleClos
   );
 });
 
-TextElement.propTypes = {
+TextSettings.propTypes = {
   element: PropTypes.shape({
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
@@ -41,4 +41,4 @@ TextElement.propTypes = {
   update: PropTypes.func.isRequired,
 };
 
-export default TextElement;
+export default TextSettings;

@@ -43,7 +43,7 @@ SettingsModal.propTypes = {
   }).isRequired,
   elementId: PropTypes.number,
   setHeader: PropTypes.func.isRequired,
-  handleClose: PropTypes.func,
+  handleClose: PropTypes.func.isRequired,
 };
 
 export default SettingsModal;

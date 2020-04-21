@@ -47,7 +47,6 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
         </div>
         <span>Text Position</span>
       </div>
-      {/* todo icons doesn't work. Need to update radiobuton */}
       <div className="text-position-container">
         <FieldBuilder
           value={alignment || fields.alignment.default}
@@ -148,15 +147,15 @@ Basic.propTypes = {
   }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({
-    start: PropTypes.object,
-    end: PropTypes.object,
-    alignment: PropTypes.object,
-    position: PropTypes.object,
-    text: PropTypes.object,
-    linkUrl: PropTypes.object,
-    callNotifyAddress: PropTypes.object,
-    linkTarget: PropTypes.object,
-    rotation: PropTypes.object,
+    start: PropTypes.shape(),
+    end: PropTypes.shape(),
+    alignment: PropTypes.shape(),
+    position: PropTypes.shape(),
+    text: PropTypes.shape(),
+    linkUrl: PropTypes.shape(),
+    callNotifyAddress: PropTypes.shape(),
+    linkTarget: PropTypes.shape(),
+    rotation: PropTypes.shape(),
   }),
   closeModal: PropTypes.func,
 };

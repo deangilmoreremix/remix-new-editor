@@ -32,7 +32,7 @@ const FormRadioButton = (props) => {
                 disableRipple
                 checkedIcon={<SVGInline className="radio-button-icon icon-svg-checked" svg={item.checkedIcon || item.icon} cleanup={['title']} />}
                 icon={<SVGInline className="radio-button-icon" svg={item.icon} cleanup={['title']} />}
-                position={item.position || 'start'}
+                position={item.position}
               />
 )}
             label={item.label}
