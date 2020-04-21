@@ -117,6 +117,8 @@ export default class ProjectStore extends BaseStore {
         options.duration = videoMeta.duration;
         options.from = options.start;
         options.contentType = videoMeta.contentType;
+        options.in = options.start;
+        options.out = options.end;
         break;
       }
       default:
@@ -156,7 +158,7 @@ export default class ProjectStore extends BaseStore {
     // update duration
     if (options.end > this.duration / SANTISECOND) {
       this.recompressProject(options.end);
-      this.popcorn.duration(options.end);
+      this.setPopcorn(this.popcorn.target);
       this.duration = options.end * SANTISECOND;
     }
 
@@ -183,7 +185,7 @@ export default class ProjectStore extends BaseStore {
     }
     const element = this.popcorn.getTrackEvent(this.activeElementId);
     // eslint-disable-next-line no-underscore-dangle
-    const { options } = (element && element._natives && element._natives.manifest) || {};
+    const { options } = element._natives.manifest;
     const resultOptions = {};
     if (options) {
       Object.keys(options).forEach((fieldName) => {
@@ -515,13 +517,13 @@ export default class ProjectStore extends BaseStore {
   };
 
   isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'
-        || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
-        && element.popcornOptions.contentType.indexOf('video/') === 0));
+    || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
+    && element.popcornOptions.contentType.indexOf('video/') === 0));
 
   isAudio = (element) => !!((element.popcornOptions.type === 'SoundCloud')
     || (element.popcornOptions.contentType
       && (element.popcornOptions.contentType.indexOf('audio/') === 0
-      || element.popcornOptions.contentType.indexOf('application/ogg') === 0)));
+        || element.popcornOptions.contentType.indexOf('application/ogg') === 0)));
 
   @action
   getOne = async (projectId) => {
@@ -626,8 +628,7 @@ export default class ProjectStore extends BaseStore {
         return;
       }
       media.duration = newDuration;
-      media.url = `#t=,${media.duration}`;
-      media.src = `#t=,${media.duration}`;
+      media.url = `#t=,${newDuration}`;
       const recompressRatio = newDuration / initialDuration;
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
@@ -700,8 +701,11 @@ export default class ProjectStore extends BaseStore {
     this.elements = [];
     this.mediaTypeDetector = new MediaTypeDetector();
     reaction(
-      () => this.popcorn && this.popcorn.on,
+      () => this.popcorn,
       () => {
+        if (!this.popcorn.on) {
+          return;
+        }
         this.popcorn.on('canplayall', () => {
           this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
           this.isLoaded = true;

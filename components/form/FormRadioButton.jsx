@@ -8,14 +8,15 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../lib/PropTypes';
 
 const FormRadioButton = (props) => {
-  const { items, groupName, onChange, value } = props;
+  const { items, groupName, onChange, value, containerClassName } = props;
 
   const handleChange = event => {
-    onChange(event.target.value);
+    const { value: val } = event.target;
+    onChange(val);
   };
 
   return (
-    <FormControl component="fieldset">
+    <FormControl component="fieldset" className={containerClassName}>
       <RadioGroup
         name={groupName}
         value={value}
@@ -24,12 +25,12 @@ const FormRadioButton = (props) => {
       >
         {items.map((item) => (
           <FormControlLabel
-            key={item.label}
-            value={item.label}
+            key={item.value}
+            value={item.value}
             control={(
               <Radio
                 disableRipple
-                checkedIcon={<SVGInline className="radio-button-icon" svg={item.checkedIcon} cleanup={['title']} />}
+                checkedIcon={<SVGInline className="radio-button-icon icon-svg-checked" svg={item.checkedIcon || item.icon} cleanup={['title']} />}
                 icon={<SVGInline className="radio-button-icon" svg={item.icon} cleanup={['title']} />}
                 position={item.position}
               />
@@ -45,6 +46,9 @@ const FormRadioButton = (props) => {
 
 FormRadioButton.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
+    value: PropTypes.oneOfType([
+      PropTypes.string, PropTypes.number, PropTypes.bool,
+    ]),
     label: PropTypes.string,
     position: PropTypes.string,
     icon: PropTypes.string,
@@ -52,6 +56,7 @@ FormRadioButton.propTypes = {
   groupName: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   value: PropTypes.string,
+  containerClassName: PropTypes.string,
 };
 
 FormRadioButton.defaultProps = {

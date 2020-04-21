@@ -10,7 +10,7 @@ import PropTypes from '../../lib/PropTypes';
 import FormTextField from './FormTextField';
 import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 
-const FormColor = ({ label, onChange, value, className }) => {
+const FormColor = ({ label, onChange, value, className, disabled }) => {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const open = Boolean(anchorEl);
@@ -42,11 +42,14 @@ const FormColor = ({ label, onChange, value, className }) => {
           labelClass="label-left"
           value={value || colorPrimary}
           onChange={updateColor}
+          disabled={disabled}
+          inputClassName={disabled && 'input-disabled'}
         />
         <button
           onClick={handleClick}
-          className={classnames('color-element')}
+          className={classnames('color-element', (disabled && 'button-disabled'))}
           style={{ backgroundColor: value || colorPrimary }}
+          disabled={disabled}
         />
         <Popover
           id={id}
@@ -72,14 +75,15 @@ const FormColor = ({ label, onChange, value, className }) => {
   );
 };
 FormColor.propTypes = {
-  onChange: PropTypes.func,
+  onChange: PropTypes.func.isRequired,
   label: PropTypes.string,
   value: PropTypes.string,
+  disabled: PropTypes.bool,
   className: PropTypes.string,
 };
 
 FormColor.defaultProps = {
-  onChange: () => {},
+  disabled: false,
 };
 
 export default FormColor;

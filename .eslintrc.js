@@ -8,7 +8,6 @@ module.exports = {
     'function-paren-newline': 0,
     'jsx-a11y/alt-text': 0,
     'jsx-a11y/media-has-caption': 0,
-    'jsx-a11y/media-has-caption': 0,
     'jsx-a11y/anchor-is-valid': 0,
     "jsx-a11y/label-has-associated-control" : 0,
     "jsx-a11y/control-has-associated-label" : 0,
@@ -29,6 +28,7 @@ module.exports = {
       },
     ],
     'import/prefer-default-export': 0,
+    "import/no-cycle": 0,
     'react/prop-types': ['error', {
       ignore: [
         'common',

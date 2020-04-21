@@ -60,6 +60,7 @@ const Home = observer(() => {
                     openModal,
                     closeModal,
                     setLibraryType,
+                    libraryType,
                     setWideWindow,
                   },
                 })}

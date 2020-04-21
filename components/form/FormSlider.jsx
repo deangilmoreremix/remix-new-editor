@@ -18,11 +18,10 @@ const FormSlider = props => {
     inputWidth,
     minValue,
     maxValue,
-    componentClasses: {
-      containerClass,
-      sliderClass,
-      inputClass,
-    },
+    containerClassName,
+    sliderClassName,
+    inputClassName,
+    disabled,
   } = props;
 
   const useStyles = makeStyles({
@@ -57,7 +56,7 @@ const FormSlider = props => {
   };
 
   return (
-    <div className={classnames(classes.root, containerClass)}>
+    <div className={classnames(classes.root, containerClassName)}>
       <InputLabel
         className={classnames('form-control-label')}
       >
@@ -66,19 +65,22 @@ const FormSlider = props => {
       <Grid container spacing={2} alignItems="center">
         <Grid item xs>
           <Slider
-            className={classnames(sliderClass)}
+            className={classnames(sliderClassName)}
             value={value}
             onChange={handleSliderChange}
             aria-labelledby="input-slider"
             max={maxValue}
+            min={minValue}
+            disabled={disabled}
           />
         </Grid>
         {
           !withoutInput && (
             <Grid item>
               <Input
-                className={classnames(classes.input, inputClass)}
+                className={classnames(classes.input, inputClassName)}
                 value={value}
+                disabled={disabled}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
                 inputProps={{
@@ -105,19 +107,18 @@ FormSlider.propTypes = {
   minValue: PropTypes.number,
   withoutInput: PropTypes.bool,
   maxValue: PropTypes.number,
-  componentClasses: PropTypes.shape({
-    containerClass: PropTypes.string,
-    sliderClass: PropTypes.string,
-    inputClass: PropTypes.string,
-  }),
+  containerClassName: PropTypes.string,
+  sliderClassName: PropTypes.string,
+  inputClassName: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 FormSlider.defaultProps = {
   label: '',
   maxValue: 100,
   minValue: 0,
-  componentClasses: {},
   value: 0,
+  disabled: false,
 };
 
 export default FormSlider;
