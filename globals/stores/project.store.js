@@ -3,7 +3,7 @@ import arrayMove from 'array-move';
 import size from 'lodash/size';
 
 import BaseStore from './base.store';
-import emitter from '../../lib/mitt/emitter';
+import { emitter } from '../../lib/mitt/emitter';
 
 import {
   EMAIL_SKIP_TOKENS,

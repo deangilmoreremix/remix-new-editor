@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 import Grid from '@material-ui/core/Grid/Grid';
@@ -7,7 +7,7 @@ import useUIStore from '../../hooks/useUIStore';
 import useProjectStore from '../../hooks/useProjectStore';
 
 import PropTypes from '../../../lib/PropTypes';
-import emitter from '../../../lib/mitt/emitter';
+import { addDeleteListener, removeDeleteListener } from '../../../lib/mitt/emitter';
 
 import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
 import { NONE_CLASS, ANIMATION_TYPES } from '../../../lib/constants/animations';
@@ -23,12 +23,10 @@ const PopcornElement = observer(({ item }) => {
   let rest = {};
 
   const selectItem = () => {
-    gridElementRef.current.addEventListener('keydown', e => {
-      if (e.key === 'Delete') {
-        emitter.emit('delete', item.i);
-      }
-    });
+    addDeleteListener(gridElementRef.current, item.i);
   };
+
+  useEffect(() => () => removeDeleteListener(gridElementRef.current, item.i), []);
 
   const getGridItem = (animationType) => {
     switch (item.type) {
