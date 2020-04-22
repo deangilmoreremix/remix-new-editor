@@ -16,6 +16,7 @@ export default class UIStore {
 
   @action
   setLibraryType = (type, isWideWindow = false) => {
+    this.showAnimation = false;
     this.wideWindow = isWideWindow;
     this.libraryType = type;
   };
