@@ -4,6 +4,7 @@ import size from 'lodash/size';
 
 import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
+import fixBlendModes from '../../lib/constants/blendMode';
 
 import {
   EMAIL_SKIP_TOKENS,
@@ -799,7 +800,7 @@ export default class ProjectStore extends BaseStore {
         item[0].track = id;
         this.updatePopcorn(item[0], { blendMode: layer.blendMode });
         if (!layer.blendMode) {
-          this.updatePopcorn(item[0], { blendMode: 'normal' });
+          this.updatePopcorn(item[0], { blendMode: fixBlendModes[0].value });
         }
       }
     });
