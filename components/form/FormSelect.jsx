@@ -17,8 +17,8 @@ const FormSelect = props => {
     selectClassName,
   } = props;
 
-  const handleChange = ({ data }) => {
-    onChange(data);
+  const handleChange = data => {
+    onChange(data.value);
   };
 
   return (
