@@ -1,64 +1,60 @@
 .blend-mode-select {
-  width: 4.3rem;
+  display: block;
+  max-width: 3.8rem;
   height: 0.875rem;
 
-  .MuiBox-root,
-  .select-element,
-  .select__control,
-  .select__value-container,
-  .select__placeholder {
+  .menu__open {
+    position: relative;
+    display: block;
+    align-items: center;
     width: 100%;
     height: 100%;
-    min-width: auto;
-    min-height: auto;
+    line-height: 1;
+    border: none;
+    outline: none;
     font-size: 0.5625rem;
     color: $white;
-  }
+    border-radius: 3px;
+    background: $light-twinlight;
+    text-align: left;
+    padding: 0 0.9rem 0 0.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
-  .select__control {
-    border: none;
+    .menu-arrow {
+      height: 0.4rem;
+      width: 0.3rem;
+      position: absolute;
+      top: 50%;
+      right: 0.375rem;
+      transform: translateY(-50%) rotate(-90deg);
 
-    &:hover {
-      border: none;
+      svg {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
     }
   }
 
-  .select__value-container {
-    position: relative;
-    padding: 2px 4px;
-  }
-
-  .select__single-value {
-    margin: 0;
-  }
-
-  .select__indicators {
-    height: 100%;
-  }
-
-  .css-b8ldur-Input {
-    height: 100%;
-    position: absolute;
-    margin: 0;
-    padding: 0;
-  }
-
-  .select__indicator {
-    padding: 1px;
-
-    svg {
-      width: 0.8rem;
-    }
-  }
-
-  .select__menu {
+  .popover {
+    @include tiny-scrollbar;
     width: 6.25rem;
     height: 5.6rem;
-    top: 1rem;
+    border-radius: 3px;
+    overflow: hidden;
+    overflow-y: auto;
+  }
 
-    * {
-      @include tiny-scrollbar;
-      max-height: 100%;
-    }
+  .menu__item {
+    height: auto;
+    padding: 7px 9px;
+  }
+
+  * {
+    background: $light-twinlight;
   }
 }

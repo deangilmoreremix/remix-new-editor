@@ -89,7 +89,9 @@ const Layer = observer(({ item, onRemove }) => {
       <Grid item xs={7}>
         <Grid container>
           <Grid item xs={6} className="without-side-padding">
-            <BlendingMode />
+            <BlendingMode
+              id={item.id}
+            />
           </Grid>
           <Grid item xs={2} className="without-side-padding">
             {/* todo implement opacity */}

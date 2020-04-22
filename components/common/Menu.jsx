@@ -4,39 +4,75 @@ import SVGInline from 'react-svg-inline';
 import { Popper, Button, Grow, ClickAwayListener, Paper } from '@material-ui/core';
 
 import togglerIcon from '../../public/static/svgImages/common/toggler.svg';
+import arrowIcon from '../../public/static/images/arrow-red.svg';
 
 import PropTypes from '../../lib/PropTypes';
 
-const Menu = observer(({ toggleElement, items, className, needEndIcon, parent, placement }) => {
+const Menu = observer((
+  {
+    toggleElement,
+    items, className,
+    needEndIcon,
+    parent,
+    placement,
+    simpleBtn,
+    onClick,
+  }) => {
   const anchorRef = React.useRef(null);
   const [open, setOpen] = React.useState(false);
 
   const handleAction = (action) => {
     setOpen(false);
-    if (action) {
+    if (action && typeof action === 'function') {
       action();
+    }
+
+    if (onClick && action) {
+      onClick(action);
     }
   };
 
   return (
     <div className={className || ''}>
-      <Button
-        className="menu__open"
-        ref={anchorRef}
-        aria-controls={open ? 'menu-list-grow' : undefined}
-        aria-haspopup="true"
-        onClick={() => { setOpen(!open); }}
-        endIcon={needEndIcon ? (
-          <SVGInline
-            className="toggler-icon"
-            classSuffix=""
-            svg={togglerIcon}
-            cleanup={['title']}
-          />
-        ) : null}
-      >
-        {toggleElement}
-      </Button>
+      {
+        simpleBtn
+          ? (
+            <button
+              className="menu__open"
+              ref={anchorRef}
+              aria-controls={open ? 'menu-list-grow' : undefined}
+              aria-haspopup="true"
+              onClick={() => { setOpen(!open); }}
+            >
+              {toggleElement}
+              <SVGInline
+                className="menu-arrow"
+                svg={arrowIcon}
+                cleanup={['arrow']}
+              />
+            </button>
+          )
+          : (
+
+            <Button
+              className="menu__open"
+              ref={anchorRef}
+              aria-controls={open ? 'menu-list-grow' : undefined}
+              aria-haspopup="true"
+              onClick={() => { setOpen(!open); }}
+              endIcon={needEndIcon ? (
+                <SVGInline
+                  className="toggler-icon"
+                  classSuffix=""
+                  svg={togglerIcon}
+                  cleanup={['title']}
+                />
+              ) : null}
+            >
+              {toggleElement}
+            </Button>
+          )
+      }
       <Popper
         open={open}
         role={undefined}
@@ -60,7 +96,8 @@ const Menu = observer(({ toggleElement, items, className, needEndIcon, parent, p
                   {items.map((item) => (
                     <button
                       key={`menu-${item.title}`}
-                      onClick={() => handleAction(item.action)}
+                      onClick={onClick
+                        ? (() => handleAction(item.value)) : (() => handleAction(item.action))}
                       className="menu__item"
                     >
                       {item.icon ? (
@@ -71,7 +108,7 @@ const Menu = observer(({ toggleElement, items, className, needEndIcon, parent, p
                           cleanup={['title']}
                         />
                       ) : null}
-                      <span>{item.title}</span>
+                      {item.title}
                     </button>
                   ))}
                 </div>
@@ -94,6 +131,12 @@ Menu.propTypes = {
     title: PropTypes.string.isRequired,
     icon: PropTypes.string,
   })),
+  simpleBtn: PropTypes.bool,
+  onClick: PropTypes.func,
+};
+
+Menu.defaultProps = {
+  simpleBtn: false,
 };
 
 export default Menu;

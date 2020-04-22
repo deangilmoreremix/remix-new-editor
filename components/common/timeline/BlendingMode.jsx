@@ -1,27 +1,38 @@
 import React, { useState } from 'react';
 
+import useProjectStore from '../../hooks/useProjectStore';
+
+import PropTypes from '../../../lib/PropTypes';
 import blendMode from '../../../lib/constants/blendMode';
 
-import FormSelect from '../../form/FormSelect';
+import Menu from '../Menu';
 
-const BlendingMode = () => {
+const BlendingMode = ({ id }) => {
   const [value, setValue] = useState(blendMode[0]);
-  const onChange = (inputValue) => {
-    Object.keys(blendMode).forEach(item => {
-      if (item.value === inputValue) {
+  const { setBlendMode } = useProjectStore();
+
+  const onChange = (mode) => {
+    blendMode.forEach(item => {
+      if (item.value === mode) {
         setValue(item);
       }
     });
+    setBlendMode(id, mode);
   };
 
   return (
-    <FormSelect
+    <Menu
+      toggleElement={value.title}
       items={blendMode}
-      value={value}
+      simpleBtn
       className="blend-mode-select"
-      onChange={onChange}
+      onClick={onChange}
     />
   );
+};
+
+BlendingMode.propTypes = {
+  id: PropTypes.string.isRequired,
 };
 
 export default BlendingMode;
