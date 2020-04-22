@@ -800,7 +800,7 @@ export default class ProjectStore extends BaseStore {
         item[0].track = id;
         this.updatePopcorn(item[0], { blendMode: layer.blendMode });
         if (!layer.blendMode) {
-          this.updatePopcorn(item[0], { blendMode: '' });
+          this.updatePopcorn(item[0], { blendMode: 'normal' });
         }
       }
     });
