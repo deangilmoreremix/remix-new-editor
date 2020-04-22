@@ -6,7 +6,7 @@ import SettingsContainer from '../settings/SettingsContainer';
 import useProjectStore from '../hooks/useProjectStore';
 import { DEFAULT_SETTINGS } from '../../lib/constants/settings';
 
-const SettingsModal = observer(({ options, setHeader, elementId }) => {
+const SettingsModal = observer(({ options, setHeader, elementId, handleClose }) => {
   const [activeTab, setTab] = React.useState(0);
 
   const { addElement, editElement, releaseElement } = useProjectStore();
@@ -18,7 +18,7 @@ const SettingsModal = observer(({ options, setHeader, elementId }) => {
     if (elementId) {
       editElement(elementId);
     } else {
-      addElement(DEFAULT_SETTINGS[type]);
+      addElement({ ...DEFAULT_SETTINGS[type], ...options });
     }
   }, []);
 
@@ -27,6 +27,7 @@ const SettingsModal = observer(({ options, setHeader, elementId }) => {
       tab={options.header.tabs[activeTab].label}
       type={options.type}
       options={options}
+      handleClose={handleClose}
     />
   );
 });
@@ -42,6 +43,7 @@ SettingsModal.propTypes = {
   }).isRequired,
   elementId: PropTypes.number,
   setHeader: PropTypes.func.isRequired,
+  handleClose: PropTypes.func.isRequired,
 };
 
 export default SettingsModal;

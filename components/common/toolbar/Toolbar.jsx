@@ -1,5 +1,4 @@
 import React from 'react';
-import { Container } from 'reactstrap';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
@@ -23,7 +22,7 @@ const Toolbar = ({ items }) => {
   }, [activeTab, func]);
 
   return (
-    <Container className="toolbar-container">
+    <div className="toolbar-container">
       <div className="toolbar-tabs">
         {items.map(({ label, icon }) => (
           <button
@@ -38,7 +37,7 @@ const Toolbar = ({ items }) => {
         ))}
       </div>
       {TabRenderer && <TabRenderer items={tabContent} />}
-    </Container>
+    </div>
   );
 };
 

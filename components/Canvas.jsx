@@ -1,21 +1,34 @@
 import React, { useRef, useEffect, useMemo } from 'react';
-import { Container } from 'reactstrap';
 import { observer } from 'mobx-react';
+import { useWindowSize } from '@react-hook/window-size';
 
 import useProjectStore from './hooks/useProjectStore';
+import useUIStore from './hooks/useUIStore';
+import {
+  DEFAULT_RATIO,
+  DEFAULT_VIDEO_WIDTH,
+  DEFAULT_FONT_SIZE,
+  DEFAULT_CONTAINER,
+} from '../lib/constants/project';
+
+import GuidelinesActivation from './common/GuidelinesActivation';
+import Guidelines from './common/Guidelines';
 
 const Canvas = observer(() => {
   const projectStore = useProjectStore();
-  const { item: { ratio: { width = 16, height = 9 } = {} } } = projectStore;
-
+  const uiStore = useUIStore();
+  const { item: { ratio: { width, height } = DEFAULT_RATIO }, runTextfill } = projectStore;
+  const { hasGuidLines } = uiStore;
   const [style, setStyle] = React.useState({});
+  const [fontSize, setFontSize] = React.useState(DEFAULT_FONT_SIZE);
+  const [windowWidth, windowHeight] = useWindowSize();
 
   const aspectRatio = useMemo(() => width / height, [width, height]);
 
   const ref = useRef(null);
   const wrapper = useRef(null);
   const marginLeft = 20;
-  const marginTop = 20;
+  const marginTop = 60;
 
   useEffect(() => {
     if (ref.current) {
@@ -25,7 +38,7 @@ const Canvas = observer(() => {
       setStyle(sideIndent > 0 ? { margin: `${marginTop}px ${sideIndent + marginLeft}px` }
         : { margin: `${((maxHeight - (maxWidth / aspectRatio))) / 2 + marginTop}px ${marginLeft}px` });
     }
-  }, [aspectRatio]);
+  }, [aspectRatio, windowWidth, windowHeight]);
 
   useEffect(() => {
     if (wrapper.current) {
@@ -33,20 +46,31 @@ const Canvas = observer(() => {
     }
   }, [projectStore]);
 
+  useEffect(() => {
+    if (wrapper.current) {
+      setFontSize(`${DEFAULT_FONT_SIZE * (wrapper.current.offsetWidth / DEFAULT_VIDEO_WIDTH)}px`);
+      runTextfill();
+    }
+  }, [runTextfill, style]);
+
+  useEffect(() => {
+    runTextfill();
+  }, [fontSize, runTextfill]);
+
   return (
-    <Container>
-      <div ref={ref} className="stager-wrapper">
-        <div style={style} ref={wrapper} className="embed-wrapper">
-          <div id="video-container" className="video-container">
-            <div
-              id="video"
-              className="video"
-              webkit-playsinline="webkit-playsinline"
-            />
-          </div>
+    <div ref={ref} className="stager-wrapper">
+      <GuidelinesActivation />
+      <div style={{ ...style, fontSize }} className="embed-wrapper">
+        {hasGuidLines && <Guidelines />}
+        <div id={DEFAULT_CONTAINER} ref={wrapper} className="video-container">
+          <div
+            id="video"
+            className="video"
+            webkit-playsinline="webkit-playsinline"
+          />
         </div>
       </div>
-    </Container>
+    </div>
   );
 });
 

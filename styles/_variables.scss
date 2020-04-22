@@ -30,8 +30,11 @@ $third-color: #999999;
 $fourth-color: #363651;
 
 $background-panel: #08080A;
+$background-dark: #060606;
 $menu-panel: #08080A;
 $menu-height: 9vh;
+
+$backgroundSlider: #565670;
 
 // Screen breakpoints
 $xs: 450px;
@@ -56,3 +59,9 @@ $main: 1em;
 
 //timeline
 $layer-height: 35px;
+
+//toolbar
+$toolbarHeight: 59vh;
+
+//placeholder
+$placeholderOpacity: 0.3;

@@ -1,0 +1,122 @@
+.text-container {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &-time {
+    display: flex;
+    width: 50%;
+  }
+
+  &-position {
+    display: flex;
+  }
+
+  .input-time-position {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+
+    & input {
+      width: 70%;
+    }
+    &:hover input {
+      border: 0.055rem solid $secondary-color;
+    }
+  }
+}
+
+.personalize-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 1em;
+}
+
+.additional-options-container {
+
+  .link-url-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .email-link-container {
+    margin-top: 2em;
+    margin-bottom: 2em;
+
+    .email-notify, .open-link {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+
+      &-label {
+        line-height: 1.4;
+        width: 40%;
+      }
+
+      &-input {
+        width: 60%;
+      }
+    }
+  }
+
+  .text-transform-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+
+    &-rotation, &-transition {
+      display: flex;
+      width: 38%;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    &-font {
+      margin-top: 1em;
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+
+      & > div {
+        display: flex;
+        width: 47%;
+        justify-content: space-between;
+      }
+    }
+  }
+}
+
+.open-link-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1em;
+  width: 70%;
+
+  .MuiOutlinedInput-root:hover fieldset {
+    border-color: $secondary-color;
+  }
+
+  .open-link {
+    justify-content: flex-start;
+  }
+}
+
+.btn-personalize, .btn-library {
+  background: $secondary-color;
+  color: $white;
+  border: none;
+  font-size: 1rem;
+  padding: 4px 15px;
+}
+
+.text-position-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}

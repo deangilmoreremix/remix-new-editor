@@ -17,6 +17,14 @@
 
     &:focus+fieldset {
       border: 1px solid $third-color;
+      legend {
+        display: none;
+      }
+    }
+    &+fieldset {
+      legend {
+        display: none;
+      }
     }
   }
 }
@@ -24,9 +32,5 @@
 .text-area-label + .text-area {
   .MuiInputBase-root {
     padding: 0.5rem 0.546rem;
-  }
-
-  legend {
-    display: none;
   }
 }

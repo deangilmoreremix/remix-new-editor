@@ -27,8 +27,12 @@ FieldBuilder.propTypes = {
   onChange: PropTypes.func,
   name: PropTypes.string.isRequired,
   value: PropTypes.oneOfType([
-    PropTypes.string, PropTypes.number, PropTypes.bool, PropTypes.array,
-  ]).isRequired,
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.bool,
+    PropTypes.array,
+    PropTypes.shape(),
+  ]),
 };
 
 export default FieldBuilder;

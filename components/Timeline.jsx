@@ -66,7 +66,7 @@ const Timeline = observer(() => {
               maxValue={duration}
               sliderWidth={width}
               onChange={(value) => updateTime(value)}
-              componentClasses={{ sliderClass: 'timeline-slider' }}
+              sliderClassName="timeline-slider"
             />
             )
           }

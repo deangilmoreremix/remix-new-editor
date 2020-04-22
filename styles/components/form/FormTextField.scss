@@ -78,6 +78,11 @@ div, textarea {
   &.text-input:focus, &.text-input:hover {
     border: 0.055rem solid $secondary-color;
   }
+
+  &.input-disabled:hover {
+    border: 0.055rem solid $btn-gray;
+    cursor: not-allowed;
+  }
 }
 
 textarea.text-input {
@@ -138,3 +143,17 @@ label {
     }
   }
 }
+
+//disabled form color
+.input-disabled, .button-disabled, .label-disabled {
+   opacity: 0.3;
+
+  & input:hover {
+    cursor: not-allowed;
+  }
+}
+
+.button-disabled:hover {
+  cursor: not-allowed;
+}
+

@@ -1,5 +1,6 @@
 .popcorn-image {
   position: absolute;
+  outline: none;
 
   & .track-event-editing .clone-container {
     display: inline-block;
@@ -108,6 +109,15 @@
       position: relative;
       top: 100%;
       overflow-y: auto;
+    }
+
+    .resize-handle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: $white;
+      border: $secondary-color solid 0.5px;
     }
   }
 }

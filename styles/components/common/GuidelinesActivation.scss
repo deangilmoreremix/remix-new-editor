@@ -1,0 +1,32 @@
+.guidelines-activation {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  z-index: 1100;
+  padding: 1rem 0;
+}
+
+.guidelines-icon {
+  width: 1.8rem;
+  height: 1.8rem;
+
+  svg {
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+
+.guidelines-field {
+  display: flex;
+  align-items: center;
+
+  * {
+    margin-bottom: 0;
+    color: $btn-gray;
+  }
+
+  label {
+    color: $btn-gray;
+  }
+}
