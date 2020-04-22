@@ -13,11 +13,6 @@
     text-transform: uppercase;
     font-size: 0.75rem;
     margin-bottom: 1rem;
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: auto;
-    }
   }
 
   &__icon {
