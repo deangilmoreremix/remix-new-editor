@@ -1,0 +1,21 @@
+
+div.retarget-opt-in-modal {
+  min-width: 20rem;
+  nav {
+    li {
+      border: 0.055rem solid $secondary-color;
+      justify-content: center;
+    }
+  }
+  .done-button {
+    position: absolute;
+    right: 1.4rem;
+    bottom: 0.5rem;
+    color: $white;
+    border-color: $white;
+    &:hover {
+      color: $secondary-color;
+      border-color: $secondary-color;
+    }
+  }
+}

@@ -18,7 +18,7 @@ const SettingsModal = observer(({ options, setHeader, elementId, handleClose }) 
     if (elementId) {
       editElement(elementId);
     } else {
-      addElement(DEFAULT_SETTINGS[type]);
+      addElement({ ...DEFAULT_SETTINGS[type], ...options });
     }
   }, []);
 
