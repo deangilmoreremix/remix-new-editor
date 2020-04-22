@@ -175,23 +175,59 @@ Advanced.propTypes = {
   }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({
-    fontFamily: PropTypes.shape({}),
-    fontSize: PropTypes.shape({}),
-    fontDecorations: PropTypes.shape({
-      bold: PropTypes.shape({}),
-      italics: PropTypes.shape({}),
-      responsive: PropTypes.shape({}),
-      name: PropTypes.shape({}),
-      default: PropTypes.shape({}),
+    fontFamily: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
     }),
-    alignment: PropTypes.shape({}),
-    fontColor: PropTypes.shape({}),
-    shadow: PropTypes.shape({}),
-    stroke: PropTypes.shape({}),
-    background: PropTypes.shape({}),
-    shadowColor: PropTypes.shape({}),
-    strokeColor: PropTypes.shape({}),
-    backgroundColor: PropTypes.shape({}),
+    fontSize: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    fontDecorations: PropTypes.shape({
+      bold: PropTypes.shape({
+        name: PropTypes.string,
+      }),
+      italics: PropTypes.shape({
+        name: PropTypes.string,
+      }),
+      responsive: PropTypes.shape({
+        name: PropTypes.string,
+      }),
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    alignment: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    fontColor: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    shadow: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    stroke: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    background: PropTypes.shape({
+      name: PropTypes.string,
+      stroke: PropTypes.string,
+    }),
+    shadowColor: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    strokeColor: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
+    backgroundColor: PropTypes.shape({
+      name: PropTypes.string,
+      default: PropTypes.string,
+    }),
   }),
 };
 

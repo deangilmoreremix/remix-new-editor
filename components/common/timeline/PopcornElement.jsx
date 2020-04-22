@@ -60,8 +60,10 @@ const PopcornElement = observer(({ item }) => {
   rest = {
     onClick: () => {
       if (Object.values(POPCORN_ELEMENT_TYPES).includes(item.type)) {
+        addDeleteListener(gridElementRef.current, item.i);
         editElement(item.i);
       } else {
+        addDeleteListener(gridElementRef.current, item.i);
         releaseElement();
       }
     },

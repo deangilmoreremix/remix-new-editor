@@ -3,7 +3,7 @@ import arrayMove from 'array-move';
 import size from 'lodash/size';
 
 import BaseStore from './base.store';
-import { emitter } from '../../lib/mitt/emitter';
+import { emitter, emitterActions } from '../../lib/mitt/emitter';
 
 import {
   EMAIL_SKIP_TOKENS,
@@ -101,7 +101,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable time = 0;
 
-  deleteItem = emitter.on('delete', id => {
+  deleteItem = emitter.on(emitterActions.DELETE, id => {
     this.removeElement(id);
   });
 
@@ -122,6 +122,8 @@ export default class ProjectStore extends BaseStore {
         options.duration = videoMeta.duration;
         options.from = options.start;
         options.contentType = videoMeta.contentType;
+        options.in = options.start;
+        options.out = options.end;
         break;
       }
       default:
@@ -161,7 +163,7 @@ export default class ProjectStore extends BaseStore {
     // update duration
     if (options.end > this.duration / SANTISECOND) {
       this.recompressProject(options.end);
-      this.popcorn.duration(options.end);
+      this.setPopcorn(this.popcorn.target);
       this.duration = options.end * SANTISECOND;
     }
 
@@ -635,8 +637,7 @@ export default class ProjectStore extends BaseStore {
         return;
       }
       media.duration = newDuration;
-      media.url = `#t=,${media.duration}`;
-      media.src = `#t=,${media.duration}`;
+      media.url = `#t=,${newDuration}`;
       const recompressRatio = newDuration / initialDuration;
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
@@ -738,8 +739,11 @@ export default class ProjectStore extends BaseStore {
     this.elements = [];
     this.mediaTypeDetector = new MediaTypeDetector();
     reaction(
-      () => this.popcorn && this.popcorn.on,
+      () => this.popcorn,
       () => {
+        if (!this.popcorn.on) {
+          return;
+        }
         this.popcorn.on('canplayall', () => {
           this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
           this.isLoaded = true;
