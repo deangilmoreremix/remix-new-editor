@@ -16,6 +16,7 @@ const FormTextArea = (props) => {
     value,
     rows,
     variant,
+    inputRef,
   } = props;
   const onEdit = ({ target: { value: v } }) => {
     onChange(v);
@@ -33,12 +34,13 @@ const FormTextArea = (props) => {
         multiline
         rows={rows}
         variant={variant}
+        inputRef={inputRef}
       />
     </div>
   );
 };
 FormTextArea.propTypes = {
-  onChange: PropTypes.func.isRequired,
+  onChange: PropTypes.func,
   label: PropTypes.string,
   text: PropTypes.bool,
   className: PropTypes.string,
@@ -48,6 +50,7 @@ FormTextArea.propTypes = {
   rows: PropTypes.string,
   variant: PropTypes.string,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  inputRef: PropTypes.shape({}),
 };
 FormTextArea.defaultProps = {
   label: '',

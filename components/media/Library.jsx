@@ -2,8 +2,11 @@ import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
 
-import { USER_ITEMS, tabItems, perPage } from '../../lib/constants/library';
+import { USER_ITEMS, tabItems, perPage, LIBRARY_TABS } from '../../lib/constants/library';
 import mediaConstants from '../../lib/constants/media';
+import { POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
+import { SETTINGS_MODAL } from '../../lib/constants/modals';
+import { TABS as IMAGE_TABS } from '../../lib/constants/settings/image';
 import { showError } from '../../lib/services/alertService';
 
 import Tabs from '../common/library/Tabs';
@@ -14,10 +17,10 @@ import { LibrarySpinner, LoaderCircle } from './Loader';
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
-import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 
 const Library = observer(() => {
   const uiStore = useUIStore();
+  const projectStore = useProjectStore();
   const { secondaryWindowType: activeTab, setLibraryType: setActiveTab } = uiStore;
 
   // =============== STATE ===============
@@ -39,7 +42,6 @@ const Library = observer(() => {
   // =============== STATE ===============
 
   const { uploadMedia, storeAsset, getAssets, deleteAsset } = useMediaStore();
-  const projectStore = useProjectStore();
 
   useEffect(() => {
     setQuery('');
@@ -154,9 +156,10 @@ const Library = observer(() => {
 
   const onSelect = async (item) => {
     item.src = item.url;
-    item.type = MEDIA_TYPES[activeTab];
+    item.type = POPCORN_ELEMENT_TYPES[activeTab];
     await projectStore.addElement(item);
     setIsLoading(false);
+    setActiveTab(null);
   };
 
   const onDelete = (id) => {

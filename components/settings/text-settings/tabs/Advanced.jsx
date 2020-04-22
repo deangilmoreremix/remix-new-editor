@@ -113,7 +113,7 @@ const Advanced = ({ values, fields, onChange }) => {
               onChange={onChange}
             />
             <FieldBuilder
-              value={background || fields.background.stroke}
+              value={background || fields.background.default}
               name={fields.background.name}
               {...fields.background}
               onChange={onChange}
@@ -177,7 +177,7 @@ Advanced.propTypes = {
   fields: PropTypes.shape({
     fontFamily: PropTypes.shape({
       name: PropTypes.string,
-      default: PropTypes.string,
+      default: PropTypes.shape(),
     }),
     fontSize: PropTypes.shape({
       name: PropTypes.string,
@@ -194,7 +194,7 @@ Advanced.propTypes = {
         name: PropTypes.string,
       }),
       name: PropTypes.string,
-      default: PropTypes.string,
+      default: PropTypes.shape(),
     }),
     alignment: PropTypes.shape({
       name: PropTypes.string,
@@ -206,15 +206,15 @@ Advanced.propTypes = {
     }),
     shadow: PropTypes.shape({
       name: PropTypes.string,
-      default: PropTypes.string,
+      default: PropTypes.bool,
     }),
     stroke: PropTypes.shape({
       name: PropTypes.string,
-      default: PropTypes.string,
+      default: PropTypes.bool,
     }),
     background: PropTypes.shape({
       name: PropTypes.string,
-      stroke: PropTypes.string,
+      default: PropTypes.bool,
     }),
     shadowColor: PropTypes.shape({
       name: PropTypes.string,

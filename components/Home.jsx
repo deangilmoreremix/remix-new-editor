@@ -15,6 +15,7 @@ import SettingsEditor from './common/SettingsEditor';
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
 import useUIStore from './hooks/useUIStore';
+import useUserStore from './hooks/useUserStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
@@ -34,11 +35,15 @@ const Home = observer(() => {
 
   const { setLibraryType, wideWindow, setWideWindow, secondaryWindowType } = uiStore;
 
-  const { updateAnimation, isLoading, addElement } = projectStore;
+  const { updateAnimation, isLoading, addElement, modified } = projectStore;
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
   const { item: { ratio: { width, height } = DEFAULT_RATIO }, updateItem } = projectStore;
+
+  const userStore = useUserStore();
+
+  const { optinCodeEnabled } = userStore;
 
   const SecondaryWindow = React.useMemo(() => {
     switch (secondaryWindowType) {
@@ -83,6 +88,8 @@ const Home = observer(() => {
                     setLibraryType,
                     setWideWindow,
                     addElement,
+                    optinCodeEnabled,
+                    modified,
                   },
                 })}
               />

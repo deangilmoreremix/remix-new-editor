@@ -11,6 +11,13 @@ export default class UIStore {
 
   @observable firstWindowType = null;
 
+  @observable hasGuidLines = false;
+
+  @action
+  setGuideLines = (value = false) => {
+    this.hasGuidLines = value;
+  };
+
   @action
   setLibraryType = (type, isWideWindow = false) => {
     this.wideWindow = isWideWindow;
