@@ -704,13 +704,6 @@ export default class ProjectStore extends BaseStore {
     return this.item;
   };
 
-  ffn = (id, blendMode) => {
-    const elements = this.popcornElements.filter(element => element.track === id);
-    elements.forEach(element => {
-      this.updatePopcorn(element, { blendMode });
-    });
-  }
-
   @computed
   get element() {
     if (!this.activeElementId) {
