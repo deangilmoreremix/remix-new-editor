@@ -10,6 +10,7 @@ import useProjectStore from '../../hooks/useProjectStore';
 
 import { SANTISECOND } from '../../../lib/constants/project';
 import { MIN_DURATION } from '../../../lib/constants/popcorn';
+import { NONE_CLASS } from '../../../lib/constants/animations';
 
 
 const PopcornElements = observer(({ width }) => {
@@ -24,7 +25,7 @@ const PopcornElements = observer(({ width }) => {
   }
 
   const getExtraDuration = React.useCallback((animation) => {
-    if (animation && animation.out && animation.out.duration) {
+    if (animation && animation.out && animation.out.duration && animation.out.type !== NONE_CLASS) {
       return animation.out.duration;
     }
     return 0;
