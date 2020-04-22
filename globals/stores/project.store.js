@@ -771,7 +771,6 @@ export default class ProjectStore extends BaseStore {
   setBlendMode = (id, blendMode) => {
     const elements = this.popcornElements.filter(element => element.track === id);
     elements.forEach(element => {
-      console.log(element);
       this.updatePopcorn(element, { blendMode });
     });
 
