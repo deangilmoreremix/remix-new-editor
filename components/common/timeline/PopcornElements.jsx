@@ -16,7 +16,14 @@ import { NONE_CLASS } from '../../../lib/constants/animations';
 const PopcornElements = observer(({ width }) => {
   const projectStore = useProjectStore();
 
-  const { duration: cols, setLayer, updateStartEnd, elements, layers } = projectStore;
+  const {
+    duration: cols,
+    setLayer,
+    updateStartEnd,
+    elements,
+    layers,
+    updateInDragBlendMode,
+  } = projectStore;
 
   const layersCount = React.useMemo(() => layers.length, [layers.length]);
 
@@ -92,6 +99,8 @@ const PopcornElements = observer(({ width }) => {
   )), [layouts, cols]);
 
   const onDragStop = (element, oldElement, newElement) => {
+    updateInDragBlendMode(oldElement);
+
     if (oldElement.y !== newElement.y) {
       setLayer(oldElement.i, newElement.y);
     }

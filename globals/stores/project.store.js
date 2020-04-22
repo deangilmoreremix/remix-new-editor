@@ -767,7 +767,38 @@ export default class ProjectStore extends BaseStore {
   setBlendMode = (id, blendMode) => {
     const elements = this.popcornElements.filter(element => element.track === id);
     elements.forEach(element => {
+      console.log(element);
       this.updatePopcorn(element, { blendMode });
+    });
+
+    this.layers.forEach(layer => {
+      if (layer.id === id) {
+        layer.blendMode = blendMode;
+      }
+    });
+
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        if (track.id === id) {
+          track.blendMode = blendMode;
+        }
+      });
+    });
+  }
+
+  @action
+  updateInDragBlendMode = (element) => {
+    const id = element.y;
+    const item = this.popcornElements.filter(popcornElement => popcornElement.id === element.i);
+
+    this.layers.forEach(layer => {
+      if (Number(layer.id) === id) {
+        item[0].track = id;
+        this.updatePopcorn(item[0], { blendMode: layer.blendMode });
+        if (!layer.blendMode) {
+          this.updatePopcorn(item[0], { blendMode: '' });
+        }
+      }
     });
   }
 }
