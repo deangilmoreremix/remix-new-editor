@@ -12,12 +12,12 @@ export default class UIStore {
           && Object.values(POPCORN_ELEMENT_TYPES).includes(this.projectStore.element.type)) {
           this.secondaryWindowType = WINDOW_TYPES.SETTING;
         } else {
-          debugger
           this.secondaryWindowType = null;
         }
       },
     );
   }
+
   @observable projectStore = {};
 
   @observable secondaryWindowType = null;
