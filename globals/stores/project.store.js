@@ -695,6 +695,7 @@ export default class ProjectStore extends BaseStore {
         this.setProjectData(JSON.parse(this.item.project.data));
         this.modified = false;
         this.isLoading = false;
+        this.allowedSocials = this.item.allowedSocials;
       });
     } catch (e) {
       this.isLoading = true;

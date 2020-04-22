@@ -13,6 +13,10 @@
     text-transform: uppercase;
     font-size: 0.75rem;
     margin-bottom: 1rem;
+
+    &--active {
+      opacity: 0.5;
+    }
   }
 
   &__icon {
