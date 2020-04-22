@@ -3,7 +3,6 @@ import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
 
-// todo add styles
 const Produce = ({ items }) => {
   const [activeTab, setActiveTab] = React.useState(items[0].label);
 
@@ -27,7 +26,11 @@ const Produce = ({ items }) => {
           </button>
         ))}
       </div>
-      <Panel items={panelItems} />
+      <Panel
+        items={panelItems}
+        setActiveTab={setActiveTab}
+        tabs={items}
+      />
     </div>
   );
 };

@@ -4,16 +4,21 @@ import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
+
 import useProjectStore from '../../hooks/useProjectStore';
 
-const ProducePanel = observer(({ items }) => {
+import { showInfo } from '../../../lib/services/alertService';
+
+const ProducePanel = observer(({ items, tabs, setActiveTab }) => {
   const { modified, allowedSocials } = useProjectStore();
 
   const onCLick = (action, alwaysOnDisplay) => {
-    if ((modified && alwaysOnDisplay) || ((allowedSocials && allowedSocials.length) || alwaysOnDisplay)) {
+    if ((modified && alwaysOnDisplay)
+      || ((allowedSocials && allowedSocials.length) || alwaysOnDisplay)) {
       action();
     } else {
-
+      showInfo('Please allow Facebook and LinkedIn in our project to continue');
+      setActiveTab(tabs[1].label);
     }
   };
 
@@ -48,6 +53,10 @@ ProducePanel.propTypes = {
     action: PropTypes.func.isRequired,
     icon: PropTypes.string.isRequired,
   })).isRequired,
+  tabs: PropTypes.arrayOf(PropTypes.shape({
+    label: PropTypes.string.isRequired,
+  })).isRequired,
+  setActiveTab: PropTypes.func.isRequired,
 };
 
 export default ProducePanel;
