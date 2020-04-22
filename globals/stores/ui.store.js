@@ -3,6 +3,21 @@ import { WINDOW_TYPES } from '../../lib/constants/ui';
 import { POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 
 export default class UIStore {
+  constructor(props) {
+    this.projectStore = props.projectStore;
+    reaction(
+      () => this.projectStore.activeElementId,
+      () => {
+        if (this.projectStore.activeElementId
+          && Object.values(POPCORN_ELEMENT_TYPES).includes(this.projectStore.element.type)) {
+          this.secondaryWindowType = WINDOW_TYPES.SETTING;
+        } else {
+          debugger
+          this.secondaryWindowType = null;
+        }
+      },
+    );
+  }
   @observable projectStore = {};
 
   @observable secondaryWindowType = null;
@@ -38,19 +53,4 @@ export default class UIStore {
   setWideWindow = () => {
     this.wideWindow = false;
   };
-
-  constructor(props) {
-    this.projectStore = props.projectStore;
-    reaction(
-      () => this.projectStore.activeElementId,
-      () => {
-        if (this.projectStore.activeElementId
-          && Object.values(POPCORN_ELEMENT_TYPES).includes(this.projectStore.element.type)) {
-          this.secondaryWindowType = WINDOW_TYPES.SETTING;
-        } else {
-          this.secondaryWindowType = null;
-        }
-      },
-    );
-  }
 }

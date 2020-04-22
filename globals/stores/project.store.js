@@ -417,6 +417,7 @@ export default class ProjectStore extends BaseStore {
   @action
   removeElement = (id) => {
     this.modified = true;
+    this.releaseElement();
     if (this.projectData.media) {
       this.projectData.media.forEach((media) => {
         media.tracks.forEach((track) => {

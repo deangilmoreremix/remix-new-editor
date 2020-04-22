@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../../lib/PropTypes';
-import { BASIC } from '../../../lib/constants/settings/image';
+import { BASIC } from '../../../lib/constants/popcorn';
 import Basic from './tabs/Basic';
 
 const TabMap = {
