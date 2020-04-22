@@ -5,21 +5,16 @@ import PropTypes from '../../lib/PropTypes';
 import useProjectStore from '../hooks/useProjectStore';
 import { SETTINGS_COMPONENTS } from '../../lib/constants/settings';
 
-const SettingsContainer = observer(({ tab, type, handleClose }) => {
+const SettingsContainer = observer(({ tab, handleClose }) => {
+  const { element, element: { type }, activeElementId, findAndUpdate, form } = useProjectStore();
   const SettingsComponent = useMemo(
     () => SETTINGS_COMPONENTS[type],
     [type],
   );
 
-  const { findElement, activeElementId, findAndUpdate, form } = useProjectStore();
-  const element = useMemo(
-    () => findElement(activeElementId),
-    [activeElementId],
-  );
-
   const updateElement = useCallback((newOptions) => {
     findAndUpdate(activeElementId, newOptions);
-  }, [activeElementId]);
+  }, [activeElementId, findAndUpdate]);
 
   const fields = useMemo(
     () => {
@@ -55,7 +50,6 @@ const SettingsContainer = observer(({ tab, type, handleClose }) => {
 
 SettingsContainer.propTypes = {
   tab: PropTypes.string.isRequired,
-  type: PropTypes.string.isRequired,
   handleClose: PropTypes.func,
 };
 

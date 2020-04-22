@@ -1,0 +1,12 @@
+.base-editor {
+  margin: auto 1.5rem;
+  background: $modal-lightdark-bg;
+  height: $toolbarHeight - 5vh;
+
+  .base-editor-elements {
+    margin: auto 1.5rem;
+    height: 85%;
+    @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
+    overflow-y: auto;
+  }
+}

@@ -19,7 +19,7 @@ const Toolbar = ({ items }) => {
     if (func) {
       func();
     }
-  }, [activeTab, func]);
+  }, [activeTab]);
 
   return (
     <div className="toolbar-container">
