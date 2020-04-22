@@ -4,23 +4,28 @@ import { POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 
 export default class UIStore {
   @observable projectStore = {};
+
   @observable secondaryWindowType = null;
 
   @observable wideWindow = false;
+
   @observable firstWindowType = null;
+
   @action
   setLibraryType = (type, isWideWindow = false) => {
     this.wideWindow = isWideWindow;
     this.secondaryWindowType = type;
   };
+
   @action
   closeSecondaryWindow = () => {
     this.secondaryWindowType = null;
   };
+
   @action
   openAnimation = () => {
     this.secondaryWindowType = WINDOW_TYPES.ANIMATION;
-  }
+  };
 
   @action
   setWideWindow = () => {
