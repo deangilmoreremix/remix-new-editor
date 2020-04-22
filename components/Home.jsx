@@ -19,6 +19,7 @@ import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import { CANVAS_SIZES } from '../lib/constants/media';
 import { DEFAULT_RATIO } from '../lib/constants/project';
+import useUserStore from './hooks/useUserStore';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -32,11 +33,15 @@ const Home = observer(() => {
 
   const { libraryType, showAnimation, setLibraryType, wideWindow, setWideWindow } = uiStore;
 
-  const { updateAnimation, isLoading } = projectStore;
+  const { updateAnimation, isLoading, modified } = projectStore;
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
   const { item: { ratio: { width, height } = DEFAULT_RATIO }, updateItem } = projectStore;
+
+  const userStore = useUserStore();
+
+  const { optinCodeEnabled } = userStore;
 
   if (asyncHero.loading || isLoading) {
     // todo implement loading
@@ -62,6 +67,8 @@ const Home = observer(() => {
                     setLibraryType,
                     libraryType,
                     setWideWindow,
+                    optinCodeEnabled,
+                    modified,
                   },
                 })}
               />
