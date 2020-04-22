@@ -18,7 +18,7 @@ import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 
 const Library = observer(() => {
   const uiStore = useUIStore();
-  const { libraryType: activeTab, setLibraryType: setActiveTab } = uiStore;
+  const { secondaryWindowType: activeTab, setLibraryType: setActiveTab } = uiStore;
 
   // =============== STATE ===============
   const [query, setQuery] = useState('');

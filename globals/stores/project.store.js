@@ -703,33 +703,11 @@ export default class ProjectStore extends BaseStore {
     return this.item;
   };
 
-  constructor(props) {
-    super(props);
-    this.layers = [];
-    this.elements = [];
-    this.mediaTypeDetector = new MediaTypeDetector();
-    reaction(
-      () => this.popcorn && this.popcorn.on,
-      () => {
-        this.popcorn.on('canplayall', () => {
-          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
-          this.isLoaded = true;
-        });
-        this.popcorn.on('timeupdate', () => {
-          this.time = this.popcorn.currentTime() * SANTISECOND;
-        });
-        this.popcorn.on('ended', () => {
-          this.time = 0;
-          this.updateTime(0);
-        });
-        this.popcorn.on('pause', () => {
-          this.isPlayed = false;
-        });
-        this.popcorn.on('play', () => {
-          this.isPlayed = true;
-        });
-      },
-    );
+  ffn = (id, blendMode) => {
+    const elements = this.popcornElements.filter(element => element.track === id);
+    elements.forEach(element => {
+      this.updatePopcorn(element, { blendMode });
+    });
   }
 
   @computed
@@ -753,6 +731,38 @@ export default class ProjectStore extends BaseStore {
       }
     });
   };
+
+  constructor(props) {
+    super(props);
+    this.layers = [];
+    this.elements = [];
+    this.mediaTypeDetector = new MediaTypeDetector();
+    reaction(
+      () => this.popcorn && this.popcorn.on,
+      () => {
+        this.popcorn.on('canplayall', () => {
+          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
+          this.isLoaded = true;
+        });
+        this.popcorn.on('elementSelected', ({ element }) => {
+          this.editElement(element.id);
+        });
+        this.popcorn.on('timeupdate', () => {
+          this.time = this.popcorn.currentTime() * SANTISECOND;
+        });
+        this.popcorn.on('ended', () => {
+          this.time = 0;
+          this.updateTime(0);
+        });
+        this.popcorn.on('pause', () => {
+          this.isPlayed = false;
+        });
+        this.popcorn.on('play', () => {
+          this.isPlayed = true;
+        });
+      },
+    );
+  }
 
   @computed
   get popcornElements() {
