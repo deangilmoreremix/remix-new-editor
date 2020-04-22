@@ -3,6 +3,7 @@ import arrayMove from 'array-move';
 import size from 'lodash/size';
 
 import BaseStore from './base.store';
+import { emitter, emitterActions } from '../../lib/mitt/emitter';
 
 import {
   EMAIL_SKIP_TOKENS,
@@ -99,6 +100,10 @@ export default class ProjectStore extends BaseStore {
   @observable duration = 30 * SANTISECOND;
 
   @observable time = 0;
+
+  deleteItem = emitter.on(emitterActions.DELETE, id => {
+    this.removeElement(id);
+  });
 
   setElementOptions = async (item) => {
     const options = {};
@@ -412,12 +417,16 @@ export default class ProjectStore extends BaseStore {
   @action
   removeElement = (id) => {
     this.modified = true;
-    this.projectData.media.forEach((media) => {
-      media.tracks.forEach((track) => {
-        track.trackEvents = track.trackEvents.filter(trackEvent => trackEvent.id !== id);
-        this.popcorn.removeTrackEvent(id);
+    if (this.projectData.media) {
+      this.projectData.media.forEach((media) => {
+        media.tracks.forEach((track) => {
+          track.trackEvents = track.trackEvents.filter(trackEvent => trackEvent.id !== id);
+          this.popcorn.removeTrackEvent(id);
+        });
       });
-    });
+
+      this.elements = this.elements.filter(element => element.id !== id);
+    }
   };
 
   @action

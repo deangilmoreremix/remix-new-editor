@@ -27,3 +27,21 @@
     border-color: $btn-gray-disabled;
   }
 }
+
+@mixin red-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 2.18rem;
+  padding: 0 1.6rem;
+  color: $white;
+  background: $secondary-color;
+  border-radius: 4px;
+  transition: all 0.25s ease;
+  border: none;
+  outline: none;
+
+  &:focus {
+    outline: none;
+  }
+}
