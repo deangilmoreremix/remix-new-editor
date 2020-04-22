@@ -1,11 +1,30 @@
-import { observable, action } from 'mobx';
+import { observable, action, reaction } from 'mobx';
+import { WINDOW_TYPES } from '../../lib/constants/ui';
+import { POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 
 export default class UIStore {
-  @observable libraryType = null;
+  constructor(props) {
+    this.projectStore = props.projectStore;
+    reaction(
+      () => this.projectStore.activeElementId,
+      () => {
+        if (this.projectStore.activeElementId
+          && Object.values(POPCORN_ELEMENT_TYPES).includes(this.projectStore.element.type)) {
+          this.secondaryWindowType = WINDOW_TYPES.SETTING;
+        } else {
+          this.secondaryWindowType = null;
+        }
+      },
+    );
+  }
+
+  @observable projectStore = {};
+
+  @observable secondaryWindowType = null;
 
   @observable wideWindow = false;
 
-  @observable showAnimation = false;
+  @observable firstWindowType = null;
 
   @observable hasGuidLines = false;
 
@@ -16,19 +35,22 @@ export default class UIStore {
 
   @action
   setLibraryType = (type, isWideWindow = false) => {
-    this.showAnimation = false;
     this.wideWindow = isWideWindow;
-    this.libraryType = type;
+    this.secondaryWindowType = type;
+  };
+
+  @action
+  closeSecondaryWindow = () => {
+    this.secondaryWindowType = null;
+  };
+
+  @action
+  openAnimation = () => {
+    this.secondaryWindowType = WINDOW_TYPES.ANIMATION;
   };
 
   @action
   setWideWindow = () => {
     this.wideWindow = false;
   };
-
-  @action
-  openAnimation = () => {
-    this.libraryType = null;
-    this.showAnimation = true;
-  }
 }

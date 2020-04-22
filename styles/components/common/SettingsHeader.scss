@@ -1,7 +1,9 @@
-.text-preset-settings-header.header-tabs {
+.header-tabs {
   display: flex;
   justify-content: space-evenly;
   background-color: $modal-lightdark-bg;
+  height: 10%;
+  min-height: 10%;
 
   & span {
     color: $white;

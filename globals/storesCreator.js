@@ -152,6 +152,13 @@ export async function initCreateStores(isServer, source, req, preloader) {
 
   if (isServer || !creator) {
     creator = new Creator(isServer, source, req);
+    const projectStore = new ProjectStore({
+      request: creator.request,
+      common: creator.common,
+      isServer,
+      currentUser: creator.currentUser,
+    });
+
     stores = {
       common: creator.common,
       mediaStore: new MediaStore({
@@ -160,14 +167,9 @@ export async function initCreateStores(isServer, source, req, preloader) {
         isServer,
         currentUser: creator.currentUser,
       }),
-      projectStore: new ProjectStore({
-        request: creator.request,
-        common: creator.common,
-        isServer,
-        currentUser: creator.currentUser,
-      }),
+      projectStore,
       modalStore: ModalStore(),
-      uiStore: new UIStore(),
+      uiStore: new UIStore({ projectStore }),
       userStore: new UserStore(creator.currentUser),
       presetStore: new PresetStore({
         request: creator.request,
@@ -191,6 +193,12 @@ export function init(source) {
   if (!creator) {
     const isServer = false;
     creator = new Creator(false, source);
+    const projectStore = new ProjectStore({
+      request: creator.request,
+      common: creator.common,
+      isServer,
+      currentUser: creator.currentUser,
+    });
     stores = {
       common: creator.common,
       modalStore: ModalStore(),
@@ -200,13 +208,8 @@ export function init(source) {
         isServer,
         currentUser: creator.currentUser,
       }),
-      projectStore: new ProjectStore({
-        request: creator.request,
-        common: creator.common,
-        isServer,
-        currentUser: creator.currentUser,
-      }),
-      uiStore: new UIStore(),
+      projectStore,
+      uiStore: new UIStore({ projectStore }),
       userStore: new UserStore(creator.currentUser),
       presetStore: new PresetStore({
         request: creator.request,
