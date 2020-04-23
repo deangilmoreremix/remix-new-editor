@@ -509,8 +509,8 @@ export default class ProjectStore extends BaseStore {
   updateStartEnd = (elementId, start, end) => {
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
-        element.start = start;
-        element.end = end;
+        element.popcornOptions.start = start;
+        element.popcornOptions.end = end;
       }
       return element;
     });
