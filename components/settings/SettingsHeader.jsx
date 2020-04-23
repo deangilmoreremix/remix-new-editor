@@ -18,7 +18,7 @@ const SettingsHeader = ({ className, tabs, setTab, activeTab, title }) => {
         title && <p className="header-tabs__title">{title}</p>
       }
       {
-        tabs && (
+        tabs && tabs[activeTab] && (
           <Tabs
             value={activeTab}
             indicatorColor="primary"
