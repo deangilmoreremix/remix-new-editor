@@ -1,6 +1,6 @@
 import { observable, computed } from 'mobx';
 
-import { STATE, FEATURES } from '../../lib/constants/features';
+import { STATE } from '../../lib/constants/features';
 
 export default class UserStore {
   @observable currentUser = null;
@@ -43,6 +43,6 @@ export default class UserStore {
 
   @computed
   get optinCodeEnabled() {
-    return this.isSuperAdmin || this.isfeatureEnabled(FEATURES.OPTIN_CODE);
+    return this.isSuperAdmin;
   }
 }

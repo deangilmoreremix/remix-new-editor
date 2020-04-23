@@ -181,7 +181,7 @@ Advanced.propTypes = {
     }),
     fontSize: PropTypes.shape({
       name: PropTypes.string,
-      default: PropTypes.string,
+      default: PropTypes.number,
     }),
     fontDecorations: PropTypes.shape({
       bold: PropTypes.shape({
