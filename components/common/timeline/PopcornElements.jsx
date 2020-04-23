@@ -99,10 +99,9 @@ const PopcornElements = observer(({ width }) => {
   )), [layouts, cols]);
 
   const onDragStop = (element, oldElement, newElement) => {
-    updateInDragBlendMode(oldElement);
-
     if (oldElement.y !== newElement.y) {
       setLayer(oldElement.i, newElement.y);
+      updateInDragBlendMode(oldElement);
     }
     if (oldElement.x !== newElement.x) {
       const start = newElement.x / SANTISECOND;

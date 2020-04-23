@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import useProjectStore from '../../hooks/useProjectStore';
 
@@ -7,23 +7,21 @@ import fixBlendModes from '../../../lib/constants/blendMode';
 
 import Menu from '../Menu';
 
-const BlendingMode = ({ id }) => {
-  const [value, setValue] = useState(fixBlendModes[0]);
+const BlendingMode = ({ item }) => {
   const { setBlendMode } = useProjectStore();
 
-  const onChange = (mode) => {
-    fixBlendModes.forEach(item => {
-      if (item.value === mode) {
-        setValue(item);
+  const onChange = title => {
+    Object.keys(fixBlendModes).forEach(key => {
+      if (fixBlendModes[key].title === title) {
+        setBlendMode(item.id, key);
       }
     });
-    setBlendMode(id, mode);
   };
 
   return (
     <Menu
-      toggleElement={value.title}
-      items={fixBlendModes}
+      toggleElement={item.blendMode ? item.blendMode : Object.values(fixBlendModes)[0].title}
+      items={Object.values(fixBlendModes)}
       simpleBtn
       className="blend-mode-select"
       onClick={onChange}
@@ -32,7 +30,7 @@ const BlendingMode = ({ id }) => {
 };
 
 BlendingMode.propTypes = {
-  id: PropTypes.string.isRequired,
+  item: PropTypes.shape().isRequired,
 };
 
 export default BlendingMode;

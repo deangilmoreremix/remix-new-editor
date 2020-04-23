@@ -775,17 +775,19 @@ export default class ProjectStore extends BaseStore {
       this.updatePopcorn(element, { blendMode });
     });
 
-    this.layers.forEach(layer => {
+    this.layers = this.layers.map(layer => {
       if (layer.id === id) {
         layer.blendMode = blendMode;
       }
+      return layer;
     });
 
     this.projectData.media.forEach((media) => {
-      media.tracks.forEach((track) => {
+      media.tracks = media.tracks.map((track) => {
         if (track.id === id) {
           track.blendMode = blendMode;
         }
+        return track;
       });
     });
   }
@@ -800,7 +802,7 @@ export default class ProjectStore extends BaseStore {
         item[0].track = id;
         this.updatePopcorn(item[0], { blendMode: layer.blendMode });
         if (!layer.blendMode) {
-          this.updatePopcorn(item[0], { blendMode: fixBlendModes[0].value });
+          this.updatePopcorn(item[0], { blendMode: Object.keys(fixBlendModes)[0] });
         }
       }
     });

@@ -97,7 +97,7 @@ const Menu = observer((
                     <button
                       key={`menu-${item.title}`}
                       onClick={onClick
-                        ? (() => handleAction(item.value)) : (() => handleAction(item.action))}
+                        ? (() => handleAction(item.title)) : (() => handleAction(item.action))}
                       className="menu__item"
                     >
                       {item.icon ? (
