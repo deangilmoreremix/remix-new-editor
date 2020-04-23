@@ -3,7 +3,6 @@ import classnames from 'classnames';
 import { observer } from 'mobx-react';
 import Grid from '@material-ui/core/Grid/Grid';
 
-import useUIStore from '../../hooks/useUIStore';
 import useProjectStore from '../../hooks/useProjectStore';
 
 import PropTypes from '../../../lib/PropTypes';
@@ -12,13 +11,12 @@ import { addDeleteListener, removeDeleteListener } from '../../../lib/mitt/emitt
 import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
 import { NONE_CLASS, ANIMATION_TYPES } from '../../../lib/constants/animations';
 
+
 const PopcornElement = observer(({ item }) => {
   const projectStore = useProjectStore();
-  const uiStore = useUIStore();
   const gridElementRef = useRef();
 
-  const { editElement, updateAnimation } = projectStore;
-  const { openAnimation } = uiStore;
+  const { editElement, updateAnimation, releaseElement } = projectStore;
 
   let rest = {};
 
@@ -26,7 +24,7 @@ const PopcornElement = observer(({ item }) => {
     addDeleteListener(gridElementRef.current, item.i);
   };
 
-  useEffect(() => () => removeDeleteListener(gridElementRef.current, item.i), []);
+  useEffect(() => () => removeDeleteListener(gridElementRef.current, item.i), [item.i]);
 
   const getGridItem = (animationType) => {
     switch (item.type) {
@@ -59,15 +57,17 @@ const PopcornElement = observer(({ item }) => {
   };
 
 
-  if (item.type === POPCORN_ELEMENT_TYPES.TEXT) {
-    rest = {
-      onClick: () => {
+  rest = {
+    onClick: () => {
+      if (Object.values(POPCORN_ELEMENT_TYPES).includes(item.type)) {
         addDeleteListener(gridElementRef.current, item.i);
         editElement(item.i);
-        openAnimation();
-      },
-    };
-  }
+      } else {
+        addDeleteListener(gridElementRef.current, item.i);
+        releaseElement();
+      }
+    },
+  };
 
   return (
     <Grid

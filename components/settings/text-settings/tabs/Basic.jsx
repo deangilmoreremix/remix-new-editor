@@ -76,7 +76,7 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
       <div className="personalize-container">
         <button className="btn-personalize">Personalize</button>
       </div>
-      <div className="additional-options-container">
+      <div>
         <div className="link-url-container">
           <FieldBuilder
             value={linkUrl || ''}

@@ -32,7 +32,7 @@ TextSettings.propTypes = {
   element: PropTypes.shape({
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    track: PropTypes.number.isRequired,
+    track: PropTypes.string.isRequired,
     popcornOptions: PropTypes.shape({
       url: PropTypes.string,
     }).isRequired,

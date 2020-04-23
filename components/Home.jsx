@@ -10,16 +10,18 @@ import Library from './media/Library';
 import Toolbar from './common/toolbar/Toolbar';
 import SizeSelector from './canvas/SizeSelector';
 import AnimationList from './media/AnimationList';
+import SettingsEditor from './common/SettingsEditor';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
 import useUIStore from './hooks/useUIStore';
+import useUserStore from './hooks/useUserStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import { CANVAS_SIZES } from '../lib/constants/media';
 import { DEFAULT_RATIO } from '../lib/constants/project';
-import useUserStore from './hooks/useUserStore';
+import { WINDOW_TYPES } from '../lib/constants/ui';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
@@ -31,9 +33,9 @@ const Home = observer(() => {
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
 
-  const { libraryType, showAnimation, setLibraryType, wideWindow, setWideWindow } = uiStore;
+  const { setLibraryType, wideWindow, setWideWindow, secondaryWindowType } = uiStore;
 
-  const { updateAnimation, isLoading, modified } = projectStore;
+  const { updateAnimation, isLoading, addElement, modified } = projectStore;
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
@@ -42,6 +44,25 @@ const Home = observer(() => {
   const userStore = useUserStore();
 
   const { optinCodeEnabled } = userStore;
+
+  const SecondaryWindow = React.useMemo(() => {
+    switch (secondaryWindowType) {
+      case WINDOW_TYPES.SETTING: {
+        return <SettingsEditor />;
+      }
+      case WINDOW_TYPES.ANIMATION: {
+        return <AnimationList onSelect={(item, type) => updateAnimation(type, item)} />;
+      }
+      case WINDOW_TYPES.VIDEO:
+      case WINDOW_TYPES.AUDIO:
+      case WINDOW_TYPES.IMAGE: {
+        return <Library />;
+      }
+      default: {
+        return null;
+      }
+    }
+  }, [secondaryWindowType]);
 
   if (asyncHero.loading || isLoading) {
     // todo implement loading
@@ -65,8 +86,8 @@ const Home = observer(() => {
                     openModal,
                     closeModal,
                     setLibraryType,
-                    libraryType,
                     setWideWindow,
+                    addElement,
                     optinCodeEnabled,
                     modified,
                   },
@@ -74,11 +95,7 @@ const Home = observer(() => {
               />
             </Grid>
             <Grid item xs={wideWindow ? false : 6} className="home__center">
-              {libraryType && <Library tab={libraryType} />}
-              {
-                showAnimation
-                && <AnimationList onSelect={(item, type) => updateAnimation(type, item)} />
-              }
+              {SecondaryWindow}
             </Grid>
           </Grid>
         </Grid>
