@@ -10,7 +10,7 @@ import useProjectStore from '../../hooks/useProjectStore';
 import { showInfo } from '../../../lib/services/alertService';
 
 const ProducePanel = observer(({ items, tabs, setActiveTab }) => {
-  const { modified, allowedSocials } = useProjectStore();
+  const { modified, item: { allowedSocials } } = useProjectStore();
 
   const onCLick = (action, alwaysOnDisplay) => {
     if ((modified && alwaysOnDisplay)
