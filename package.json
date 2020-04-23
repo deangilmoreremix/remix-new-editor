@@ -59,7 +59,7 @@
     "formik": "2.1.4",
     "glob": "7.1.6",
     "husky": "3.1.0",
-    "interactjs": "1.9.3",
+    "interactjs": "1.9.10",
     "isomorphic-fetch": "2.2.1",
     "jquery": "2.2.3",
     "jquery-textfill": "git://github.com/strategic-limited/jquery-textfill#8ed46e20baa7ec217dcdf78cf07f9800f3ca118d",
