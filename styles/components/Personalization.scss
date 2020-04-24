@@ -20,13 +20,13 @@
   display: flex;
   flex-direction: column;
   width: 95%;
-  max-width: 46em;
-  height: 26.4em;
+  max-width: 40em;
+  height: 23em;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translateY(-50%) translateX(-50%);
-  background: $white;
+  background: $dark-twinlight;
   border-radius: 3px;
 }
 
@@ -36,8 +36,20 @@
   align-items: center;
   font-size: 1.3em;
   padding: 9px 15px;
-  border-bottom: 1px $grey solid;
+  text-transform: uppercase;
   line-height: 1;
+  color: $white;
+  background: $modal-lightdark-bg;
+
+  &__title {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 0.3em;
+    padding-top: 0.3em;
+    margin: 0;
+  }
 }
 
 .personalization__close {
@@ -46,8 +58,10 @@
   outline: none;
   background: none;
   font-size: 1.1em;
+  color: $secondary-color;
   opacity: 0.5;
   transition: 0.3s all;
+  font-weight: 700;
 
   &:hover {
     opacity: 1;
@@ -66,9 +80,39 @@
 
   width: 25%;
   min-width: 11em;
-  max-height: 21em;
+  max-height: 18em;
   overflow-x: hidden;
-  border-right: 1px $grey solid;
+  border-right: 1px $modal-lightdark-bg solid;
+}
+
+.personalization__list__border {
+  border-right: none;
+}
+
+.personalization__items {
+  display: flex;
+  padding: 5px;
+
+  .personalization__svg__active {
+    svg {
+      path {
+        fill: $secondary-color;
+      }
+    }
+  }
+
+  &:hover {
+    .radio-button-icon {
+      svg {
+        path {
+          fill: $secondary-color;
+        }
+      }
+    }
+    .personalization__item {
+      color: $secondary-color;
+    }
+  }
 }
 
 .personalization__item {
@@ -80,30 +124,14 @@
   border: none;
   outline: none;
   background: none;
+  color: $white;
 
   &:last-child {
     margin-bottom: 0;
   }
 
-  &:before {
-    content: "";
-    width: 0.7em;
-    height: 0.7em;
-    position: absolute;
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
-    border-radius: 50%;
-    border: 2px solid $dark-twinlight;
-    opacity: 0.5;
-    transition: 0.3s all;
-  }
-
   &-active {
-    &:before {
-      opacity: 1;
-      border-color: $red;
-    }
+    color: $secondary-color;
   }
 }
 
@@ -117,32 +145,80 @@
   justify-content: space-between;
   flex: 1;
   padding-left: 15px;
+
+  .personalization__item {
+
+    &:hover {
+      color: $secondary-color;
+    }
+    &:before {
+      content: "";
+      width: 0.8em;
+      height: 0.8em;
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      border-radius: 20%;
+      border: 2px solid $modal-lightdark-bg;
+      opacity: 0.5;
+      transition: 0.3s all;
+    }
+    &-active {
+      color: $secondary-color;
+      &:before {
+        opacity: 1;
+        border-color: $secondary-color;
+      }
+    }
+  }
+}
+
+.personalization__item__container {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.item-fallback {
+  display: flex;
+
+  .personalization__item {
+    margin-bottom: 0;
+  }
 }
 
 .personalization__name {
   text-transform: uppercase;
-  border-bottom: 1px $grey solid;
+  border-bottom: 1px $modal-header-bg solid;
   padding-bottom: 0.7em;
   margin-bottom: 0.7em;
+  color: $white;
 }
 
 .personalization__input {
   display: block;
-  width: 100%;
+  width: 60%;
   outline: none;
-  padding: 5px;
-  border: 1px solid $border-grey;
-  margin: 0.7em 0;
+  padding: 0.8em;
+  margin-left: 2em;
+  border: 1px solid $btn-gray;
+  border-radius: 3px;
+  background: $dark-twinlight;
+  color: $white;
 }
 
 .personalization__add {
-  border: none;
   outline: none;
-  background: $red;
+  border: 1px solid $secondary-color;
+  background: $dark-twinlight;
   color: $white;
   text-transform: uppercase;
   border-radius: 3px;
-  padding: 5px;
-  width: 7em;
+  padding: 0.7em;
+  width: 5em;
   align-self: flex-end;
+
+  &:hover {
+    background: $secondary-color;
+  }
 }

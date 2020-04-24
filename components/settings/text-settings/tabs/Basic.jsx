@@ -7,6 +7,7 @@ import FieldBuilder from '../../../form/FieldBuilder';
 import { iconAlignment, iconPosition } from '../../../../lib/constants/settings/vrtext-element';
 import svgTextLetterSpacing from '../../../../public/static/svgImages/text/basic_group/letter-spacing.svg';
 import useUIStore from '../../../hooks/useUIStore';
+import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
 
 const Basic = observer(({ values, fields, onChange, closeModal }) => {
   const { openAnimation } = useUIStore();
@@ -73,10 +74,8 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
         {...fields.text}
         onChange={onChange}
       />
-      <div className="personalize-container">
-        <button className="btn-personalize">Personalize</button>
-      </div>
-      <div>
+      <PersonalizeButton />
+      <div className="additional-options-container">
         <div className="link-url-container">
           <FieldBuilder
             value={linkUrl || ''}
@@ -84,9 +83,7 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
             className="input-time-position"
             onChange={onChange}
           />
-          <div>
-            <button className="btn-personalize">Personalize</button>
-          </div>
+          <PersonalizeButton />
         </div>
         <div className="email-link-container">
           <FieldBuilder
