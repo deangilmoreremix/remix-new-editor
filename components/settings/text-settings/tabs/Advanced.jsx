@@ -1,14 +1,11 @@
 import React, { Fragment } from 'react';
-import SVGInline from 'react-svg-inline';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 
 import PropTypes from '../../../../lib/PropTypes';
+
 import FieldBuilder from '../../../form/FieldBuilder';
 import fonts from '../../../../lib/constants/fonts';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
-
-import svgLetterSpacing from '../../../../public/static/svgImages/text/advanced/letter-spacing.svg';
-import svgLineHeight from '../../../../public/static/svgImages/text/advanced/line-height.svg';
 
 const Advanced = ({ values, fields, onChange }) => {
   const { bold, italics, responsive } = values.fontDecorations || fields.fontDecorations.default;
@@ -43,6 +40,7 @@ const Advanced = ({ values, fields, onChange }) => {
             onChange={onChange}
             disabled={responsive}
             minValue={1}
+            containerClassName="slider-container"
           />
         </div>
         <div className="font-decoration-section">
@@ -69,27 +67,6 @@ const Advanced = ({ values, fields, onChange }) => {
               containerClass="text-radio-container"
               items={iconAlignmentAdvanced}
             />
-            <div className="text-auto-container">
-              <SVGInline
-                className="elements-panel-icon"
-                classSuffix="-settings-group"
-                svg={svgLetterSpacing}
-                cleanup={['title']}
-              />
-              <button className="btn-text-auto">Auto</button>
-              <SVGInline
-                className="elements-panel-icon"
-                classSuffix="-settings-group"
-                svg={svgLineHeight}
-                cleanup={['title']}
-              />
-              <FieldBuilder
-                name={fields.fontSize.name}
-                inputClassName="input-text-percent"
-                type="number"
-                onChange={onChange}
-              />
-            </div>
           </div>
         </div>
         <div className="font-style-section">
@@ -98,6 +75,7 @@ const Advanced = ({ values, fields, onChange }) => {
             name={fields.fontColor.name}
             {...fields.fontColor}
             onChange={onChange}
+            className="font-color-container-input"
           />
           <div className="font-style-container">
             <FieldBuilder
@@ -129,6 +107,7 @@ const Advanced = ({ values, fields, onChange }) => {
           name={fields.shadowColor.name}
           {...fields.shadowColor}
           onChange={onChange}
+          className="font-color-container-input"
         />
         <FieldBuilder
           value={strokeColor || fields.strokeColor.default}
@@ -136,6 +115,7 @@ const Advanced = ({ values, fields, onChange }) => {
           name={fields.strokeColor.name}
           {...fields.strokeColor}
           onChange={onChange}
+          className="font-color-container-input"
         />
         <FieldBuilder
           value={backgroundColor || fields.backgroundColor.default}
@@ -143,6 +123,7 @@ const Advanced = ({ values, fields, onChange }) => {
           name={fields.backgroundColor.name}
           {...fields.backgroundColor}
           onChange={onChange}
+          className="font-color-container-input"
         />
         <FieldBuilder
           value={responsive}
