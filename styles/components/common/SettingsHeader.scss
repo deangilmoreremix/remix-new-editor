@@ -1,11 +1,12 @@
-.header-tabs {
-  display: flex;
-  justify-content: space-evenly;
-  background-color: $modal-lightdark-bg;
-  height: 10%;
-  min-height: 10%;
+.base-editor {
+  .header-tabs {
+    display: flex;
+    justify-content: space-evenly;
+    background-color: $modal-lightdark-bg;
+    min-height: 10%;
 
-  & span {
-    color: $white;
-  };
+    & span {
+      color: $white;
+    };
+  }
 }
