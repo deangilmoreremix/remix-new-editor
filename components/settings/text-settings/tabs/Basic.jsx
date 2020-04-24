@@ -25,6 +25,7 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
     linkTarget,
     callNotifyAddress,
     rotation,
+    type,
   } = values;
 
   const openLibrary = () => {
@@ -82,7 +83,7 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
           onChange={onChange}
         />
       </div>
-      <PersonalizeButton />
+      <PersonalizeButton elementType={type} />
       <div>
         <div className="link-url-container">
           <FieldBuilder
@@ -91,7 +92,7 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
             className="input-url-position"
             onChange={onChange}
           />
-          <PersonalizeButton />
+          <PersonalizeButton elementType={type} />
         </div>
         <div className="email-link-container">
           <FieldBuilder
@@ -149,6 +150,7 @@ Basic.propTypes = {
     callNotifyAddress: PropTypes.string,
     linkTarget: PropTypes.string,
     rotation: PropTypes.string,
+    type: PropTypes.string,
   }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({

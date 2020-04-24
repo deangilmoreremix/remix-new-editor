@@ -8,8 +8,12 @@ import { tokens, tokenModes, INPUT_PLACEHOLDER } from '../../../lib/constants/to
 
 import svgCogWheel from '../../../public/static/images/cogwheel.svg';
 
-const Personalization = ({ closeModal }) => {
-  const [token, setToken] = useState(tokens[0]);
+const Personalization = ({ closeModal, type }) => {
+  const currentTokens = type !== 'image'
+    ? tokens.filter((token) => token !== 'image')
+    : tokens.filter((token) => token === type);
+
+  const [token, setToken] = useState(currentTokens[0]);
   const [tokenState, setTokenState] = useState(tokenModes.plain);
   const [disabled, setDisabled] = useState(true);
   const inputRef = useRef(null);
@@ -41,9 +45,10 @@ const Personalization = ({ closeModal }) => {
         <div className="personalization__body">
           <div className={classnames('personalization__list', { personalization__list__border: tokens.length > 9 })}>
             {
-              tokens.map((item, i) => (
-                <div className="personalization__items">
+              currentTokens.map((item, i) => (
+                <div key={item} className="personalization__items">
                   <SVGInline
+                    key={`${item}-icon`}
                     className={classnames('radio-button-icon', { personalization__svg__active: token === item })}
                     svg={svgCogWheel}
                     cleanup={['title']}
@@ -51,7 +56,7 @@ const Personalization = ({ closeModal }) => {
                   <button
                     type="button"
                     className={classnames('personalization__item', { 'personalization__item-active': token === item })}
-                    key={item}
+                    key={`${item}-token`}
                     tabIndex={i}
                     onClick={() => setToken(item)}
                   >
@@ -68,11 +73,14 @@ const Personalization = ({ closeModal }) => {
               <div className="personalization__item__right">
                 {
                   Object.keys(tokenModes).map((item, i) => (
-                    <div className={classnames('personalization__item__container', { 'item-fallback': item === 'fallbackValue' })}>
+                    <div
+                      key={tokenModes[item]}
+                      className={classnames('personalization__item__container', { 'item-fallback': item === 'fallbackValue' })}
+                    >
                       <button
                         type="button"
                         className={classnames('personalization__item', { 'personalization__item-active': tokenState === tokenModes[item] })}
-                        key={tokenModes[item]}
+                        key={`${tokenModes[item] + i}`}
                         tabIndex={i}
                         onClick={() => setTokenState(tokenModes[item])}
                       >
@@ -103,6 +111,7 @@ const Personalization = ({ closeModal }) => {
 
 Personalization.propTypes = {
   closeModal: PropTypes.func.isRequired,
+  type: PropTypes.string,
 };
 
 export default Personalization;
