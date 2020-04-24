@@ -250,10 +250,11 @@ export default class ProjectStore extends BaseStore {
     this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
-        track.trackEvents.forEach((trackEvent) => {
+        track.trackEvents = track.trackEvents.map((trackEvent) => {
           if (trackEvent.id === elementId) {
             trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
           }
+          return trackEvent;
         });
       });
     });
@@ -742,6 +743,10 @@ export default class ProjectStore extends BaseStore {
         this.popcorn.on('canplayall', () => {
           this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
           this.isLoaded = true;
+        });
+        this.popcorn.on('elementUpdated', (data) => {
+          const { element, options } = data;
+          this.findAndUpdate(element.id, options);
         });
         this.popcorn.on('elementSelected', ({ element }) => {
           this.editElement(element.id);
