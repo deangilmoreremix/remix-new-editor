@@ -610,7 +610,7 @@ export default class ProjectStore extends BaseStore {
     data: JSON.stringify(this.projectData),
     allowedSocials: this.item.allowedSocials,
     name: this.item.title,
-    editor: 'videotastic',
+    editor: 'revolution',
     description: this.item.description,
     thumbnail: this.item.thumbnail,
     source: this.item.source,
