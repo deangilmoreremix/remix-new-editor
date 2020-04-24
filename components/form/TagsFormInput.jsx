@@ -15,6 +15,7 @@ const TagsFormInput = ({ value, onChange, className, placeholder, title, titleCl
       value={value}
       onChange={onChange}
       placeholder={placeholder}
+      addOnBlur
     />
   </div>
 );
