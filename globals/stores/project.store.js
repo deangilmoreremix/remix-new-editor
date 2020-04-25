@@ -491,7 +491,9 @@ export default class ProjectStore extends BaseStore {
       media.tracks = media.tracks.map(track => {
         if (track.order === newLayerLevel) {
           const zindex = MAX_ZINDEX - track.order;
-          track.trackEvents.push({ ...element, track: track.id, zindex });
+          element.track = track.id;
+          element.popcornOptions.zindex = zindex;
+          track.trackEvents.push(element);
           this.updatePopcorn(element, { zindex });
         } else {
           track.trackEvents = track.trackEvents.filter(item => item.id !== elementId);
