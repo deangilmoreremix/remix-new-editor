@@ -41,7 +41,7 @@ class Layout extends Component {
           <Head>
             <title>New Video Editor</title>
           </Head>
-          {!this.hasPermissions ? (
+          {this.hasPermissions ? (
             <div>
               <Header {...this.props} />
               <div {...this.props} className="main">
