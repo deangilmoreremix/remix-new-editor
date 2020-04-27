@@ -1,6 +1,6 @@
 import { observable, computed } from 'mobx';
 
-import { STATE } from '../../lib/constants/features';
+import { STATE, FEATURES } from '../../lib/constants/features';
 
 export default class UserStore {
   @observable currentUser = null;
@@ -38,11 +38,18 @@ export default class UserStore {
   }
 
   isfeatureEnabled(feature) {
-    return this.currentUser.features[feature].state === STATE.ENABLED;
+    return this.isSuperAdmin || (
+      this.currentUser.features && this.currentUser.features[feature]
+      && this.currentUser.features[feature].state === STATE.ENABLED);
   }
 
   @computed
   get optinCodeEnabled() {
-    return this.isSuperAdmin;
+    return this.isfeatureEnabled(FEATURES.OPTIN_CODE);
+  }
+
+  @computed
+  get hasPermissions() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION);
   }
 }
