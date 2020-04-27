@@ -25,7 +25,6 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
     linkTarget,
     callNotifyAddress,
     rotation,
-    type,
   } = values;
 
   const openLibrary = () => {
@@ -150,7 +149,6 @@ Basic.propTypes = {
     callNotifyAddress: PropTypes.string,
     linkTarget: PropTypes.string,
     rotation: PropTypes.string,
-    type: PropTypes.string,
   }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({
