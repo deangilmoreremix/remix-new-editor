@@ -797,16 +797,16 @@ export default class ProjectStore extends BaseStore {
         if (track.id === id) {
           track.blendMode = blendMode;
         }
-        track.trackEvents.forEach(element => {
-          if (track.id === id) {
-            element.popcornOptions.blendMode = blendMode;
-            this.updatePopcorn(element, { blendMode });
+        track.trackEvents.forEach(trackEvent => {
+          if (trackEvent.track === id) {
+            trackEvent.popcornOptions.blendMode = blendMode;
+            this.updatePopcorn(trackEvent, { blendMode });
           }
         });
         return track;
       });
     });
-  }
+  };
 
   @action
   updateInDragBlendMode = (element) => {
