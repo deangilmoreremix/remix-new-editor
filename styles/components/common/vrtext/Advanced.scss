@@ -1,3 +1,11 @@
+.advanced-settings-container {
+  margin-top: 1em;
+
+  .slider-input input {
+    width: 3em;
+  }
+}
+
 .container-select {
   display: flex;
   align-items: center;
@@ -55,12 +63,18 @@
 .font-section, .font-style-section {
   display: flex;
   justify-content: space-between;
+
+  .select-element {
+    min-width: 8rem;
+  }
+  .slider-container {
+    width: 55%;
+  }
 }
 
 .font-decoration-section {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 3em;
 
   .font-decoration-container {
     display: flex;
@@ -75,32 +89,15 @@
     .container-text-radio {
       width: 40%;
     }
-
-    .text-auto-container {
-      display: flex;
-      width: 40%;
-      justify-content: space-between;
-
-      .btn-text-auto {
-        color: $white;
-        background-color: $dark-twinlight;
-        border: none;
-        padding: 0;
-      }
-    }
-    .input-text-percent {
-      width: 2em;
-      border: none;
-      border-bottom: 0.055rem solid #999999;
-    }
   }
 }
 
 .font-style-container {
   display: flex;
   flex-wrap: wrap;
-  width: 50%;
+  max-width: 45%;
   justify-content: flex-end;
+  padding-top: 1.1em;
 }
 
 .container-icon-arrow {
@@ -131,6 +128,10 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+
+  &-input {
+    width: 48%;
+  }
 }
 
 

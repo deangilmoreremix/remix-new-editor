@@ -1,6 +1,9 @@
 .container-textarea .text-area {
   width: 100%;
 
+  div {
+    padding: 0.5em 0.8em;
+  }
   label {
     color: $white;
   }
@@ -33,6 +36,4 @@
   .MuiInputBase-root {
     padding: 0.5rem 0.546rem;
   }
-
-
 }

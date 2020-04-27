@@ -1,12 +1,24 @@
 .base-editor {
-  margin: auto 1.5rem;
+  font-family: $font-primary;
   background: $modal-lightdark-bg;
   height: $toolbarHeight - 5vh;
 
+  .header-tabs {
+    box-shadow: none;
+
+    .MuiTabs-indicator {
+      background: $secondary-color;
+    }
+  }
+
   .base-editor-elements {
-    margin: auto 1.5rem;
-    height: 85%;
+    margin: auto 0.8rem;
+    height: 78%;
     @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
     overflow-y: auto;
+
+    .text-form {
+      max-width: 95%;
+    }
   }
 }
