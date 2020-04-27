@@ -20,6 +20,14 @@ const Library = observer(() => {
   const uiStore = useUIStore();
   const projectStore = useProjectStore();
   const { secondaryWindowType: activeTab, setLibraryType: setActiveTab } = uiStore;
+  const {
+    uploadMedia,
+    storeAsset,
+    getAssets,
+    deleteAsset,
+    libraryItemsForDelete,
+    setLibraryItemsForDelete,
+  } = useMediaStore();
 
   // =============== STATE ===============
   const [query, setQuery] = useState('');
@@ -33,17 +41,20 @@ const Library = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
 
   const [items, setItems] = useState([]);
-  const [deletedItems, setDeletedItems] = useState([]);
   const [uploadedItems, setUploadedItems] = useState([]);
 
   const inputRef = useRef();
   // =============== STATE ===============
 
-  const { uploadMedia, storeAsset, getAssets, deleteAsset } = useMediaStore();
+  useEffect(() => () => {
+    if (libraryItemsForDelete.length) {
+      bulkDeleteItems(true);
+    }
+  }, []);
 
   useEffect(() => {
     setQuery('');
-    if (deletedItems.length) {
+    if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
       fetchItems(activeTab);
@@ -52,7 +63,7 @@ const Library = observer(() => {
 
   const handleButtonClick = element => {
     setActiveBtn(element);
-    if (deletedItems.length) {
+    if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
       fetchItems(activeTab);
@@ -161,17 +172,14 @@ const Library = observer(() => {
 
   const onDelete = (id) => {
     const newArr = items.filter(item => item._id !== id);
-    setDeletedItems([...deletedItems, id]);
+    setLibraryItemsForDelete(id);
     setItems(newArr);
   };
 
   const bulkDeleteItems = (unmount, searchText) => {
-    const promiseArr = deletedItems.map(id => deleteAsset(id));
-
-    Promise.all(promiseArr)
+    deleteAsset()
       .then(() => {
         if (!unmount) {
-          setDeletedItems([]);
           setItems([]);
         }
       })
