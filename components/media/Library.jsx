@@ -153,10 +153,13 @@ const Library = observer(() => {
   };
 
   const onSelect = async (item) => {
-    item.src = item.url;
+    console.log("item", item);
+    item.src = item.src ? item.src : item.url;
+    console.log("item.src", item.src);
     item.type = MEDIA_TYPES[activeTab];
+    console.log("item.type", item.type);
+    console.log("item", item);
     await projectStore.addElement(item);
-    setIsLoading(false);
   };
 
   const onDelete = (id) => {
