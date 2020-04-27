@@ -5,12 +5,13 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../lib/PropTypes';
 
 import { tokens, tokenModes, INPUT_PLACEHOLDER } from '../../../lib/constants/tokens';
+import mediaConstants from '../../../lib/constants/media';
 
 import svgCogWheel from '../../../public/static/images/cogwheel.svg';
 
 const Personalization = ({ closeModal, type }) => {
-  const currentTokens = type !== 'image'
-    ? tokens.filter((token) => token !== 'image')
+  const currentTokens = type !== mediaConstants.ASSET_TYPES.IMAGE
+    ? tokens.filter((token) => token !== mediaConstants.ASSET_TYPES.IMAGE)
     : tokens.filter((token) => token === type);
 
   const [token, setToken] = useState(currentTokens[0]);
