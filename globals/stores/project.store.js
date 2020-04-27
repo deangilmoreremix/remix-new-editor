@@ -339,6 +339,7 @@ export default class ProjectStore extends BaseStore {
           defaultName: `Layer ${track.order}`,
           order: track.order,
           id: track.id,
+          blendMode: track.blendMode,
         };
         layers.push(layer);
       });
