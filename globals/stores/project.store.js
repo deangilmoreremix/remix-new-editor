@@ -814,7 +814,7 @@ export default class ProjectStore extends BaseStore {
     const id = element.y;
     const item = this.popcornElements.filter(popcornElement => popcornElement.id === element.i);
 
-    this.layers.forEach(layer => {
+    this.layers.map(layer => {
       if (Number(layer.id) === id) {
         item[0].track = id;
         this.updatePopcorn(item[0], { blendMode: layer.blendMode });
@@ -822,6 +822,7 @@ export default class ProjectStore extends BaseStore {
           this.updatePopcorn(item[0], { blendMode: Object.keys(fixBlendModes)[0] });
         }
       }
+      return null;
     });
   }
 }
