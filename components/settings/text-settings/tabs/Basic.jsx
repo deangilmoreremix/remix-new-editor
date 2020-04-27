@@ -83,7 +83,7 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
           onChange={onChange}
         />
       </div>
-      <PersonalizeButton elementType={type} />
+      <PersonalizeButton />
       <div>
         <div className="link-url-container">
           <FieldBuilder
@@ -92,7 +92,7 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
             className="input-url-position"
             onChange={onChange}
           />
-          <PersonalizeButton elementType={type} />
+          <PersonalizeButton />
         </div>
         <div className="email-link-container">
           <FieldBuilder

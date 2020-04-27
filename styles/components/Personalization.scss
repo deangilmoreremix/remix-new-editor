@@ -195,7 +195,7 @@
   color: $white;
 }
 
-.personalization__input {
+.personalization__input, .personalization__input__image{
   display: block;
   width: 60%;
   outline: none;
@@ -205,6 +205,13 @@
   border-radius: 3px;
   background: $dark-twinlight;
   color: $white;
+}
+
+.personalization__input__image {
+  input {
+    text-transform: uppercase;
+    color: $white;
+  }
 }
 
 .personalization__add {
