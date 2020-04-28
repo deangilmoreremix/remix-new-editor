@@ -65,7 +65,7 @@ const SettingPanel = observer(() => {
           className="settings-input"
           textClassName="settings-panel-text"
           placeholder="A project about"
-          rows="5"
+          rows={5}
         />
         <FieldBuilder
           type="color"

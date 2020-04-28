@@ -15,7 +15,6 @@
 .image-settings__block {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
   flex-wrap: wrap;
   margin-bottom: 1.25rem;
 
@@ -40,8 +39,13 @@
   &--second {
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
     align-items: flex-end;
     width: 41%;
+
+    .drag-drop {
+      flex: 1;
+    }
   }
 }
 

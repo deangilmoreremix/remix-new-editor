@@ -1,8 +1,12 @@
 .library {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   max-width: 31.75rem;
-  height: 24rem;
+  height: $toolbarHeight - 5vh;
   background: $light-twinlight;
   box-sizing: border-box;
   font-family: $font-primary;
@@ -12,6 +16,7 @@
   line-height: 1;
   color: $white;
   overflow: hidden;
+  padding-bottom: 1rem;
 
   button,
   input {
@@ -67,6 +72,7 @@ button.library__tab {
   }
 
   &-second {
+    max-height: calc(100% - 6vh);
     flex: 1;
   }
 
@@ -198,18 +204,22 @@ button.library__tab {
   display: flex;
   flex-wrap: wrap;
   align-content: flex-start;
-  height: 18.65em;
   overflow-x: hidden;
 }
 
 .library__item {
-  width: 5.58em;
-  height: 5.58em;
+  width: calc(33.33% - 0.64em);
   position: relative;
   overflow: hidden;
   background-color: $block-dark;
   margin-right: 0.64em;
   margin-bottom: 0.64em;
+
+  &:before {
+    content:'';
+    display: block;
+    padding-bottom: 100%;
+  }
 
   &-drop {
     background: $scrollbarColor;
@@ -233,12 +243,12 @@ button.library__tab {
   }
 
   img, video {
+    height: 100%;
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    max-width: 100%;
-    max-height: 100%;
+    transform: translateY(-50%) translateX(-50%);
+    object-fit: contain;
   }
 
   &:hover .library__item-actions {
@@ -333,12 +343,28 @@ button.library__tab {
 }
 
 @media screen and (max-width: 1000px) {
+  .library__row-second {
+    max-height: 50rem;
+  }
+
   .library__tab {
     flex: none;
     width: 100%;
   }
 
   .library__btn-item {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 950px) {
+  .library__item {
+    width: calc(50% - 0.64em);
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .library__item {
     width: 100%;
   }
 }

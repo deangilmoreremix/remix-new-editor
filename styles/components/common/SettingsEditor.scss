@@ -1,21 +1,19 @@
 .base-editor {
-  font-family: $font-primary;
-  background: $modal-lightdark-bg;
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  max-width: 31.75rem;
   height: $toolbarHeight - 5vh;
-
-  .header-tabs {
-    box-shadow: none;
-
-    .MuiTabs-indicator {
-      background: $secondary-color;
-    }
-  }
+  background: $light-twinlight;
 
   .base-editor-elements {
-    margin: auto 0.8rem;
-    height: 78%;
-    @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
-    overflow-y: auto;
+    @include tiny-scrollbar;
+    overflow-x: hidden;
+    flex: 1;
+    padding: 1rem;
 
     .text-form {
       max-width: 95%;

@@ -1,8 +1,12 @@
+import { action, observable } from 'mobx';
+
 import BaseStore from './base.store';
 import mediaConsts from '../../lib/constants/media';
 import { perPage } from '../../lib/constants/library';
 
 export default class Media extends BaseStore {
+  @observable libraryItemsForDelete = [];
+
   getAssets = async (assetType, page = 1, query = '', filter) => {
     try {
       const data = await this.request(
@@ -89,18 +93,30 @@ export default class Media extends BaseStore {
     return file;
   };
 
-  deleteAsset = async (id) => {
-    try {
-      await this.request(
-        `/api/users/me/media-assets/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
-    } catch (e) {
-      console.error(e);
-      return e;
+  @action
+  setLibraryItemsForDelete = (id) => {
+    if (id) {
+      this.libraryItemsForDelete.push(id);
+    } else {
+      this.libraryItemsForDelete = [];
+    }
+  };
+
+  @action
+  deleteAsset = async () => {
+    if (this.libraryItemsForDelete.length) {
+      const promiseArr = this.libraryItemsForDelete.map(id => (
+        this.request(
+          `/api/users/me/media-assets/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'on-behalf': this.currentUser.id,
+            },
+          })
+      ));
+      return Promise.all(promiseArr).then(() => { this.libraryItemsForDelete = []; });
+    } else {
+      return Promise.resolve();
     }
   };
 
