@@ -36,7 +36,7 @@ const GuidelinesActivation = observer(({ marginLeft }) => {
 });
 
 GuidelinesActivation.propTypes = {
-  marginLeft: PropTypes.number,
+  marginLeft: PropTypes.string,
 };
 
 export default GuidelinesActivation;
