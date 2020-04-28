@@ -22,7 +22,7 @@ const BlendingMode = ({ item }) => {
     <Menu
       toggleElement={item.blendMode ? item.blendMode : Object.values(fixBlendModes)[0].title}
       items={Object.values(fixBlendModes)}
-      simpleBtn
+      useButton
       className="blend-mode-select"
       onClick={onChange}
     />

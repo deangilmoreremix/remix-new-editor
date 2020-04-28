@@ -15,7 +15,7 @@ const Menu = observer((
     needEndIcon,
     parent,
     placement,
-    simpleBtn,
+    useButton,
     onClick,
   }) => {
   const anchorRef = React.useRef(null);
@@ -35,7 +35,7 @@ const Menu = observer((
   return (
     <div className={className || ''}>
       {
-        simpleBtn
+        useButton
           ? (
             <button
               className="menu__open"
@@ -131,12 +131,12 @@ Menu.propTypes = {
     title: PropTypes.string.isRequired,
     icon: PropTypes.string,
   })),
-  simpleBtn: PropTypes.bool,
+  useButton: PropTypes.bool,
   onClick: PropTypes.func,
 };
 
 Menu.defaultProps = {
-  simpleBtn: false,
+  useButton: false,
 };
 
 export default Menu;
