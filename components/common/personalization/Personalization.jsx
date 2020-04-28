@@ -46,7 +46,6 @@ const Personalization = ({ closeModal, tokenList }) => {
               tokenList.map((item) => (
                 <div key={item} className="personalization__items">
                   <SVGInline
-                    // key={`${item}-icon`}
                     className={classnames('radio-button-icon', { personalization__svg__active: token === item })}
                     svg={svgCogWheel}
                     cleanup={['title']}
@@ -54,8 +53,6 @@ const Personalization = ({ closeModal, tokenList }) => {
                   <button
                     type="button"
                     className={classnames('personalization__item', { 'personalization__item-active': token === item })}
-                    // key={`${item}-token`}
-                    // tabIndex={i}
                     onClick={() => setToken(item)}
                   >
                     {item}
