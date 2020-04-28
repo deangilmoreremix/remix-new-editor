@@ -59,7 +59,7 @@ const Canvas = observer(() => {
 
   return (
     <div ref={ref} className="stager-wrapper">
-      <GuidelinesActivation />
+      <GuidelinesActivation marginLeft={marginLeft} />
       <div style={{ ...style, fontSize }} className="embed-wrapper">
         {hasGuidLines && <Guidelines />}
         <div id={DEFAULT_CONTAINER} ref={wrapper} className="video-container">
