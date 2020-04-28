@@ -31,8 +31,8 @@ FieldBuilder.propTypes = {
     PropTypes.number,
     PropTypes.bool,
     PropTypes.array,
-    PropTypes.object,
-  ]).isRequired,
+    PropTypes.shape(),
+  ]),
 };
 
 export default FieldBuilder;

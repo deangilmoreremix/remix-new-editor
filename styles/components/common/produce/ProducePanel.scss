@@ -14,9 +14,8 @@
     font-size: 0.75rem;
     margin-bottom: 1rem;
 
-    &:disabled {
+    &--active {
       opacity: 0.5;
-      cursor: auto;
     }
   }
 

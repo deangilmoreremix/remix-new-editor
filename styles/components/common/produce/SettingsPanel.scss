@@ -58,7 +58,12 @@ label.settings-panel-text {
   margin-bottom: 0.875rem;
 }
 
+.drag-drop-container {
+  width: 100%;
+}
+
 .drag-drop {
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;

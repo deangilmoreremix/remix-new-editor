@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useState } from 'react';
 import SVGInline from 'react-svg-inline';
 import classnames from 'classnames';
 import { useDropzone } from 'react-dropzone';
@@ -27,6 +27,7 @@ const DropzoneArea = (
     className,
     isArrows,
   }) => {
+  const [image, setImage] = useState();
   const { uploadMedia, storeAsset } = useMediaStore();
 
   const onDrop = React.useCallback(acceptedFiles => {
@@ -46,6 +47,7 @@ const DropzoneArea = (
         const extension = fileExtension[fileExtension.length - 1];
         if (!multiple) {
           onUploaded(elements[0], extension);
+          setImage(elements[0].url);
         } else {
           onUploaded(elements, extension);
         }
@@ -80,12 +82,12 @@ const DropzoneArea = (
         <input {...getInputProps()} disabled={isDisabled} multiple={multiple} />
 
         {
-          value
-            ? <img src={value} alt="" />
+          image || value
+            ? <img src={image || value} alt="" />
             : (<p className="drag-drop__text">Drag and drop an image here, or click to upload</p>)
         }
         {
-          !value && isArrows && (
+          !image && !value && isArrows && (
             <Fragment>
               <SVGInline className="drag-arrow drag-arrow-upper-left" svg={arrowIcon} cleanup={['arrow']} />
               <SVGInline className="drag-arrow drag-arrow-upper-right" svg={arrowIcon} cleanup={['arrow']} />
@@ -131,7 +133,7 @@ const DropzoneArea = (
 
 DropzoneArea.propTypes = {
   inline: PropTypes.bool,
-  onUploaded: PropTypes.func.isRequired,
+  onUploaded: PropTypes.func,
   type: PropTypes.string.isRequired,
   startUpload: PropTypes.func,
   endUpload: PropTypes.func,

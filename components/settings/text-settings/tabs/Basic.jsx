@@ -3,10 +3,14 @@ import SVGInline from 'react-svg-inline';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../../../lib/PropTypes';
+
 import FieldBuilder from '../../../form/FieldBuilder';
-import { iconAlignment, iconPosition } from '../../../../lib/constants/settings/vrtext-element';
-import svgTextLetterSpacing from '../../../../public/static/svgImages/text/basic_group/letter-spacing.svg';
 import useUIStore from '../../../hooks/useUIStore';
+import { iconAlignment, iconPosition } from '../../../../lib/constants/settings/vrtext-element';
+
+import svgTextLetterSpacing from '../../../../public/static/svgImages/text/basic_group/letter-spacing.svg';
+
+import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
 
 const Basic = observer(({ values, fields, onChange, closeModal }) => {
   const { openAnimation } = useUIStore();
@@ -45,48 +49,49 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
             onChange={onChange}
           />
         </div>
-        <span>Text Position</span>
+        <span className="text-settings-label">Text Position</span>
       </div>
-      <div className="text-position-container">
+      <div>
+        <div className="text-position-container">
+          <span className="text-position-container-label text-settings-label">Text</span>
+          <div className="text-position-container-icons">
+            <FieldBuilder
+              value={alignment || fields.alignment.default}
+              {...fields.alignment}
+              onChange={onChange}
+              items={iconAlignment}
+            />
+            <FieldBuilder
+              value={position || fields.position.default}
+              {...fields.position}
+              onChange={onChange}
+              items={iconPosition}
+            />
+            <SVGInline
+              className="radio-button-icon"
+              svg={svgTextLetterSpacing}
+              cleanup={['title']}
+            />
+          </div>
+        </div>
         <FieldBuilder
-          value={alignment || fields.alignment.default}
-          {...fields.alignment}
+          className="input-textarea-container"
+          inputClassName="input-text-area"
+          value={typeof (text) !== 'undefined' ? text : fields.text.default}
+          {...fields.text}
           onChange={onChange}
-          items={iconAlignment}
-        />
-        <FieldBuilder
-          value={position || fields.position.default}
-          {...fields.position}
-          onChange={onChange}
-          items={iconPosition}
-        />
-        <SVGInline
-          className="radio-button-icon"
-          svg={svgTextLetterSpacing}
-          cleanup={['title']}
         />
       </div>
-      <FieldBuilder
-        className="input-textarea-container"
-        inputClassName="input-text-area"
-        value={text || fields.text.default}
-        {...fields.text}
-        onChange={onChange}
-      />
-      <div className="personalize-container">
-        <button className="btn-personalize">Personalize</button>
-      </div>
-      <div className="additional-options-container">
+      <PersonalizeButton />
+      <div>
         <div className="link-url-container">
           <FieldBuilder
             value={linkUrl || ''}
             {...fields.linkUrl}
-            className="input-time-position"
+            className="input-url-position"
             onChange={onChange}
           />
-          <div>
-            <button className="btn-personalize">Personalize</button>
-          </div>
+          <PersonalizeButton />
         </div>
         <div className="email-link-container">
           <FieldBuilder
@@ -98,7 +103,7 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
             onChange={onChange}
           />
           <div className="open-link-container">
-            <span>Open Link In</span>
+            <span className="text-settings-label">Open Link In</span>
             <FieldBuilder
               value={linkTarget || fields.linkTarget.default}
               {...fields.linkTarget}
@@ -109,20 +114,20 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
         </div>
         <div className="text-transform-container">
           <div className="text-transform-container-rotation">
-            <span>Rotation</span>
             <FieldBuilder
+              className="text-transform-container-input"
               value={rotation || fields.rotation.default}
               {...fields.rotation}
               onChange={onChange}
             />
           </div>
           <div className="text-transform-container-transition">
-            <span>Animations</span>
+            <span className="text-settings-label">Animations</span>
             <button className="btn-library" onClick={() => openLibrary()}>Open Library</button>
           </div>
           <div className="text-transform-container-font">
             <div>
-              <span>Font Combination</span>
+              <span className="text-settings-label">Font Combination</span>
               <button className="btn-library">Open Library</button>
             </div>
           </div>

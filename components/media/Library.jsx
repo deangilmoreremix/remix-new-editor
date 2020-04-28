@@ -4,6 +4,7 @@ import { observer } from 'mobx-react';
 
 import { USER_ITEMS, tabItems, perPage } from '../../lib/constants/library';
 import mediaConstants from '../../lib/constants/media';
+import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import { showError } from '../../lib/services/alertService';
 
 import Tabs from '../common/library/Tabs';
@@ -14,11 +15,19 @@ import { LibrarySpinner, LoaderCircle } from './Loader';
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
-import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 
 const Library = observer(() => {
   const uiStore = useUIStore();
-  const { libraryType: activeTab, setLibraryType: setActiveTab } = uiStore;
+  const projectStore = useProjectStore();
+  const { secondaryWindowType: activeTab, setLibraryType: setActiveTab } = uiStore;
+  const {
+    uploadMedia,
+    storeAsset,
+    getAssets,
+    deleteAsset,
+    libraryItemsForDelete,
+    setLibraryItemsForDelete,
+  } = useMediaStore();
 
   // =============== STATE ===============
   const [query, setQuery] = useState('');
@@ -32,18 +41,20 @@ const Library = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
 
   const [items, setItems] = useState([]);
-  const [deletedItems, setDeletedItems] = useState([]);
   const [uploadedItems, setUploadedItems] = useState([]);
 
   const inputRef = useRef();
   // =============== STATE ===============
 
-  const { uploadMedia, storeAsset, getAssets, deleteAsset } = useMediaStore();
-  const projectStore = useProjectStore();
+  useEffect(() => () => {
+    if (libraryItemsForDelete.length) {
+      bulkDeleteItems(true);
+    }
+  }, []);
 
   useEffect(() => {
     setQuery('');
-    if (deletedItems.length) {
+    if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
       fetchItems(activeTab);
@@ -52,7 +63,7 @@ const Library = observer(() => {
 
   const handleButtonClick = element => {
     setActiveBtn(element);
-    if (deletedItems.length) {
+    if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
       fetchItems(activeTab);
@@ -161,17 +172,14 @@ const Library = observer(() => {
 
   const onDelete = (id) => {
     const newArr = items.filter(item => item._id !== id);
-    setDeletedItems([...deletedItems, id]);
+    setLibraryItemsForDelete(id);
     setItems(newArr);
   };
 
   const bulkDeleteItems = (unmount, searchText) => {
-    const promiseArr = deletedItems.map(id => deleteAsset(id));
-
-    Promise.all(promiseArr)
+    deleteAsset()
       .then(() => {
         if (!unmount) {
-          setDeletedItems([]);
           setItems([]);
         }
       })

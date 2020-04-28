@@ -5,6 +5,7 @@ import { Provider } from 'mobx-react';
 import 'styles/index.scss';
 
 import Header from './Header';
+import UnauthorizedView from './common/UnauthorizedView';
 
 import ModalContainer from './common/ModalContainer';
 import { init, initCreateStores } from '../globals/storesCreator';
@@ -24,6 +25,9 @@ class Layout extends Component {
     super(props);
     const data = init(props.creator);
     this.stores = data.stores;
+
+    const { userStore: { hasPermissions } } = this.stores;
+    this.hasPermissions = hasPermissions;
   }
 
   render() {
@@ -37,11 +41,16 @@ class Layout extends Component {
           <Head>
             <title>New Video Editor</title>
           </Head>
-          <Header {...this.props} />
-          <div {...this.props} className="main">
-            <ModalContainer />
-            {children}
-          </div>
+          {this.hasPermissions ? (
+            <div>
+              <Header {...this.props} />
+              <div {...this.props} className="main">
+                <ModalContainer />
+                {children}
+              </div>
+            </div>
+          )
+            : <UnauthorizedView />}
         </div>
       </Provider>
     );

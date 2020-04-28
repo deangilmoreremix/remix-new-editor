@@ -250,10 +250,11 @@ export default class ProjectStore extends BaseStore {
     this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
-        track.trackEvents.forEach((trackEvent) => {
+        track.trackEvents = track.trackEvents.map((trackEvent) => {
           if (trackEvent.id === elementId) {
             trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
           }
+          return trackEvent;
         });
       });
     });
@@ -417,6 +418,7 @@ export default class ProjectStore extends BaseStore {
   @action
   removeElement = (id) => {
     this.modified = true;
+    this.releaseElement();
     if (this.projectData.media) {
       this.projectData.media.forEach((media) => {
         media.tracks.forEach((track) => {
@@ -488,7 +490,11 @@ export default class ProjectStore extends BaseStore {
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
         if (track.order === newLayerLevel) {
-          track.trackEvents.push({ ...element, track: track.id });
+          const zindex = MAX_ZINDEX - track.order;
+          element.track = track.id;
+          element.popcornOptions.zindex = zindex;
+          track.trackEvents.push(element);
+          this.updatePopcorn(element, { zindex });
         } else {
           track.trackEvents = track.trackEvents.filter(item => item.id !== elementId);
         }
@@ -507,8 +513,8 @@ export default class ProjectStore extends BaseStore {
   updateStartEnd = (elementId, start, end) => {
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
-        element.start = start;
-        element.end = end;
+        element.popcornOptions.start = start;
+        element.popcornOptions.end = end;
       }
       return element;
     });
@@ -608,7 +614,7 @@ export default class ProjectStore extends BaseStore {
     data: JSON.stringify(this.projectData),
     allowedSocials: this.item.allowedSocials,
     name: this.item.title,
-    editor: 'videotastic',
+    editor: 'revolution',
     description: this.item.description,
     thumbnail: this.item.thumbnail,
     source: this.item.source,
@@ -704,38 +710,6 @@ export default class ProjectStore extends BaseStore {
     return this.item;
   };
 
-  constructor(props) {
-    super(props);
-    this.layers = [];
-    this.elements = [];
-    this.mediaTypeDetector = new MediaTypeDetector();
-    reaction(
-      () => this.popcorn,
-      () => {
-        if (!this.popcorn.on) {
-          return;
-        }
-        this.popcorn.on('canplayall', () => {
-          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
-          this.isLoaded = true;
-        });
-        this.popcorn.on('timeupdate', () => {
-          this.time = this.popcorn.currentTime() * SANTISECOND;
-        });
-        this.popcorn.on('ended', () => {
-          this.time = 0;
-          this.updateTime(0);
-        });
-        this.popcorn.on('pause', () => {
-          this.isPlayed = false;
-        });
-        this.popcorn.on('play', () => {
-          this.isPlayed = true;
-        });
-      },
-    );
-  }
-
   @computed
   get element() {
     if (!this.activeElementId) {
@@ -757,6 +731,45 @@ export default class ProjectStore extends BaseStore {
       }
     });
   };
+
+  constructor(props) {
+    super(props);
+    this.layers = [];
+    this.elements = [];
+    this.mediaTypeDetector = new MediaTypeDetector();
+    reaction(
+      () => this.popcorn,
+      () => {
+        if (!this.popcorn.on) {
+          return;
+        }
+        this.popcorn.on('canplayall', () => {
+          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
+          this.isLoaded = true;
+        });
+        this.popcorn.on('elementUpdated', (data) => {
+          const { element, options } = data;
+          this.findAndUpdate(element.id, options);
+        });
+        this.popcorn.on('elementSelected', ({ element }) => {
+          this.editElement(element.id);
+        });
+        this.popcorn.on('timeupdate', () => {
+          this.time = this.popcorn.currentTime() * SANTISECOND;
+        });
+        this.popcorn.on('ended', () => {
+          this.time = 0;
+          this.updateTime(0);
+        });
+        this.popcorn.on('pause', () => {
+          this.isPlayed = false;
+        });
+        this.popcorn.on('play', () => {
+          this.isPlayed = true;
+        });
+      },
+    );
+  }
 
   @computed
   get popcornElements() {

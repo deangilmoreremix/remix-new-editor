@@ -19,7 +19,7 @@ const Toolbar = ({ items }) => {
     if (func) {
       func();
     }
-  }, [activeTab, func]);
+  }, [activeTab]);
 
   return (
     <div className="toolbar-container">
@@ -48,7 +48,7 @@ Toolbar.propTypes = {
     items: PropTypes.arrayOf(PropTypes.shape({
       action: PropTypes.func,
       label: PropTypes.string.isRequired,
-      icon: PropTypes.string.isRequired,
+      icon: PropTypes.string,
     })),
     renderer: PropTypes.func,
     func: PropTypes.func,

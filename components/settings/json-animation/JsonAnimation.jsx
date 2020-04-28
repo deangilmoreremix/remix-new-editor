@@ -2,7 +2,7 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../../lib/PropTypes';
-import { BASIC, ADVANCED } from '../../../lib/constants/settings/json-animation';
+import { BASIC, ADVANCED } from '../../../lib/constants/popcorn';
 import LottieEditor from '../../common/LottieEditor';
 import Basic from './tabs/Basic';
 import Advanced from './tabs/Advanced';
