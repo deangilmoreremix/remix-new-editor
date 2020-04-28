@@ -81,7 +81,7 @@ const Personalization = ({ closeModal, tokenList }) => {
               }
               <div className="personalization__item__right">
                 {
-                  Object.keys(tokenModes).map((item, i) => (
+                  Object.keys(tokenModes).map((item) => (
                     <div
                       key={tokenModes[item]}
                       className={classnames('personalization__item__container', { 'item-fallback': item === 'fallbackValue' })}
