@@ -21,14 +21,14 @@ const Menu = observer((
   const anchorRef = React.useRef(null);
   const [open, setOpen] = React.useState(false);
 
-  const handleAction = (action) => {
+  const handleAction = (arg) => {
     setOpen(false);
-    if (action && typeof action === 'function') {
-      action();
+    if (arg && typeof arg === 'function') {
+      arg();
     }
 
-    if (onClick && action) {
-      onClick(action);
+    if (onClick && arg) {
+      onClick(arg);
     }
   };
 
