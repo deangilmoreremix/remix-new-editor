@@ -4,7 +4,7 @@ import size from 'lodash/size';
 
 import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
-import fixBlendModes from '../../lib/constants/blendMode';
+import blendModeConstants from '../../lib/constants/blendMode';
 
 import {
   EMAIL_SKIP_TOKENS,
@@ -779,15 +779,15 @@ export default class ProjectStore extends BaseStore {
   }
 
   @action
-  setBlendMode = (id, blendMode) => {
+  setBlendMode = (layerId, blendMode) => {
     this.modified = true;
-    const elements = this.popcornElements.filter(element => element.track === id);
+    const elements = this.popcornElements.filter(element => element.track === layerId);
     elements.forEach(element => {
       this.updatePopcorn(element, { blendMode });
     });
 
     this.layers = this.layers.map(layer => {
-      if (layer.id === id) {
+      if (layer.id === layerId) {
         layer.blendMode = blendMode;
       }
       return layer;
@@ -795,11 +795,11 @@ export default class ProjectStore extends BaseStore {
 
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map((track) => {
-        if (track.id === id) {
+        if (track.id === layerId) {
           track.blendMode = blendMode;
         }
         track.trackEvents.forEach(trackEvent => {
-          if (trackEvent.track === id) {
+          if (trackEvent.track === layerId) {
             trackEvent.popcornOptions.blendMode = blendMode;
             this.updatePopcorn(trackEvent, { blendMode });
           }
@@ -819,7 +819,7 @@ export default class ProjectStore extends BaseStore {
         item[0].track = id;
         this.updatePopcorn(item[0], { blendMode: layer.blendMode });
         if (!layer.blendMode) {
-          this.updatePopcorn(item[0], { blendMode: Object.keys(fixBlendModes)[0] });
+          this.updatePopcorn(item[0], { blendMode: blendModeConstants.normal.value });
         }
       }
       return null;

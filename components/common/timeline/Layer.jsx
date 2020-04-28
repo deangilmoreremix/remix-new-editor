@@ -90,7 +90,7 @@ const Layer = observer(({ item, onRemove }) => {
         <Grid container>
           <Grid item xs={6} className="without-side-padding">
             <BlendingMode
-              item={item}
+              layer={item}
             />
           </Grid>
           <Grid item xs={2} className="without-side-padding">

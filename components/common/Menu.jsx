@@ -45,11 +45,20 @@ const Menu = observer((
               onClick={() => { setOpen(!open); }}
             >
               {toggleElement}
-              <SVGInline
-                className="menu-arrow"
-                svg={arrowIcon}
-                cleanup={['arrow']}
-              />
+              {needEndIcon ? (
+                <SVGInline
+                  className="toggler-icon"
+                  classSuffix=""
+                  svg={togglerIcon}
+                  cleanup={['title']}
+                />
+              ) : (
+                <SVGInline
+                  className="menu-arrow"
+                  svg={arrowIcon}
+                  cleanup={['arrow']}
+                />
+              )}
             </button>
           )
           : (
@@ -97,7 +106,7 @@ const Menu = observer((
                     <button
                       key={`menu-${item.title}`}
                       onClick={onClick
-                        ? (() => handleAction(item.title)) : (() => handleAction(item.action))}
+                        ? (() => handleAction(item.value)) : (() => handleAction(item.action))}
                       className="menu__item"
                     >
                       {item.icon ? (
