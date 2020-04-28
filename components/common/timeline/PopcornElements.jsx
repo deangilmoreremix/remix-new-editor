@@ -22,7 +22,6 @@ const PopcornElements = observer(({ width }) => {
     updateStartEnd,
     elements,
     layers,
-    updateInDragBlendMode,
   } = projectStore;
 
   const layersCount = React.useMemo(() => layers.length, [layers.length]);
@@ -101,7 +100,6 @@ const PopcornElements = observer(({ width }) => {
   const onDragStop = (element, oldElement, newElement) => {
     if (oldElement.y !== newElement.y) {
       setLayer(oldElement.i, newElement.y);
-      updateInDragBlendMode(oldElement);
     }
     if (oldElement.x !== newElement.x) {
       const start = newElement.x / SANTISECOND;

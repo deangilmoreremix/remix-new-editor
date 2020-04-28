@@ -483,6 +483,12 @@ export default class ProjectStore extends BaseStore {
       if (item.id === elementId) {
         element = item;
         item.track = layer.id;
+        item.popcornOptions.blendMode = layer.blendMode;
+        if (layer.blendMode) {
+          this.updatePopcorn(item, { blendMode: layer.blendMode });
+        } else {
+          this.updatePopcorn(item, { blendMode: blendModeConstants.normal.value });
+        }
       }
       return item;
     });
@@ -493,16 +499,19 @@ export default class ProjectStore extends BaseStore {
       media.tracks = media.tracks.map(track => {
         if (track.order === newLayerLevel) {
           const zindex = MAX_ZINDEX - track.order;
+          const { blendMode } = element.popcornOptions;
           element.track = track.id;
           element.popcornOptions.zindex = zindex;
           track.trackEvents.push(element);
-          this.updatePopcorn(element, { zindex });
+          this.updatePopcorn(element, { zindex, blendMode });
         } else {
           track.trackEvents = track.trackEvents.filter(item => item.id !== elementId);
         }
         return track;
       });
     });
+
+    // this.updateBladeMode(elementId, layer.id);
   };
 
   @action
@@ -808,21 +817,4 @@ export default class ProjectStore extends BaseStore {
       });
     });
   };
-
-  @action
-  updateInDragBlendMode = (element) => {
-    const id = element.y;
-    const item = this.popcornElements.filter(popcornElement => popcornElement.id === element.i);
-
-    this.layers.map(layer => {
-      if (Number(layer.id) === id) {
-        item[0].track = id;
-        this.updatePopcorn(item[0], { blendMode: layer.blendMode });
-        if (!layer.blendMode) {
-          this.updatePopcorn(item[0], { blendMode: blendModeConstants.normal.value });
-        }
-      }
-      return null;
-    });
-  }
 }
