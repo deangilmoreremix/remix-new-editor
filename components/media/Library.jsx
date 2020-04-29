@@ -164,7 +164,7 @@ const Library = observer(() => {
   };
 
   const onSelect = async (item) => {
-    item.src = item.src ? item.src : item.url;
+    item.src = item.src || item.url;
     item.type = MEDIA_TYPES[activeTab];
     await projectStore.addElement(item);
   };

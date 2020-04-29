@@ -510,8 +510,6 @@ export default class ProjectStore extends BaseStore {
         return track;
       });
     });
-
-    // this.updateBladeMode(elementId, layer.id);
   };
 
   @action

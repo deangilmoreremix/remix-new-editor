@@ -25,9 +25,10 @@ const Menu = observer((
     setOpen(false);
     if (arg && typeof arg === 'function') {
       arg();
+      return;
     }
 
-    if (onClick && arg) {
+    if (onClick && typeof arg !== 'function') {
       onClick(arg);
     }
   };
