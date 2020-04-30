@@ -28,6 +28,8 @@ export default class UIStore {
 
   @observable hasGuidLines = false;
 
+  @observable updateElementInLibrary = null;
+
   @action
   setGuideLines = (value = false) => {
     this.hasGuidLines = value;
@@ -41,9 +43,20 @@ export default class UIStore {
   };
 
   @action
+  setUpdateElementInLibrary = (value = null) => {
+    this.updateElementInLibrary = value;
+  };
+
+  @action
   setLibraryType = (type, isWideWindow = false) => {
+    this.showAnimation = false;
     this.wideWindow = isWideWindow;
     this.secondaryWindowType = type;
+  };
+
+  @action
+  openImageSettings = () => {
+    this.secondaryWindowType = WINDOW_TYPES.SETTING;
   };
 
   @action

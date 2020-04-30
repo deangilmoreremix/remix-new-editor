@@ -17,16 +17,17 @@ import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
 
 const Basic = ({ values, fields, onChange, handleClose }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { setLibraryType } = useUIStore();
-  const { addElement } = useProjectStore();
+  const { setLibraryType, setUpdateElementInLibrary } = useUIStore();
+  const { findAndUpdate, element } = useProjectStore();
 
   const backToLibrary = () => {
     handleClose();
+    setUpdateElementInLibrary(element.id);
     setLibraryType(LIBRARY_TABS.IMAGE);
   };
 
   const selectImage = (item) => {
-    addElement({ ...INITIAL_VALUES, ...item, src: item.url });
+    findAndUpdate(element.id, { ...INITIAL_VALUES, ...item, src: item.url });
   };
 
   // ToDo add select field "Select the kind of Image you want to add"
@@ -75,6 +76,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
             endUpload={() => setIsLoading(false)}
             isDisabled={isLoading}
             isArrows={false}
+            value={element.popcornOptions.src}
           />
         </div>
       </div>

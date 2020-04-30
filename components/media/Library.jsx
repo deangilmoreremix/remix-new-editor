@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
 
-import { USER_ITEMS, tabItems, perPage } from '../../lib/constants/library';
+import { USER_ITEMS, tabItems, perPage, LIBRARY_TABS } from '../../lib/constants/library';
 import mediaConstants from '../../lib/constants/media';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import { showError } from '../../lib/services/alertService';
@@ -19,7 +19,15 @@ import useProjectStore from '../hooks/useProjectStore';
 const Library = observer(() => {
   const uiStore = useUIStore();
   const projectStore = useProjectStore();
-  const { secondaryWindowType: activeTab, setLibraryType: setActiveTab } = uiStore;
+
+  const {
+    secondaryWindowType: activeTab,
+    setLibraryType: setActiveTab,
+    updateElementInLibrary,
+    setUpdateElementInLibrary,
+    openImageSettings,
+  } = uiStore;
+
   const {
     uploadMedia,
     storeAsset,
@@ -47,6 +55,9 @@ const Library = observer(() => {
   // =============== STATE ===============
 
   useEffect(() => () => {
+    if (updateElementInLibrary) {
+      setUpdateElementInLibrary();
+    }
     if (libraryItemsForDelete.length) {
       bulkDeleteItems(true);
     }
@@ -166,7 +177,13 @@ const Library = observer(() => {
   const onSelect = async (item) => {
     item.src = item.src || item.url;
     item.type = MEDIA_TYPES[activeTab];
-    await projectStore.addElement(item);
+    if (updateElementInLibrary && activeTab === LIBRARY_TABS.IMAGE) {
+      projectStore.findAndUpdate(updateElementInLibrary, item);
+      openImageSettings();
+      setUpdateElementInLibrary();
+    } else {
+      await projectStore.addElement(item, updateElementInLibrary);
+    }
   };
 
   const onDelete = (id) => {
