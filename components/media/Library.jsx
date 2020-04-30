@@ -122,37 +122,67 @@ const Library = observer(() => {
 
   // === Drag and Drop ===
   const onDrop = (acceptedFiles) => {
-    setIsDisabledUpload(true);
+    const wrongFormat = [];
+    const files = [];
+
+    acceptedFiles.forEach(file => {
+      const result = Object.keys(tabItems).some(item => (
+        tabItems[item].formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0])
+      ));
+      if (result) {
+        files.push(file);
+      } else {
+        wrongFormat.push(file);
+      }
+    });
+
+    const errorMessage = `
+      Invalid file ${wrongFormat.length > 1 ? 'formats' : 'format'} with ${wrongFormat.length > 1 ? 'names' : 'name'}:
+      ${wrongFormat.map(file => (` ${file.name}`))}. \n
+      Supported Formats:
+      Video: ${tabItems.VIDEO.formats.map(format => (` ${format}`))}.
+      Image: ${tabItems.IMAGE.formats.map(format => (` ${format}`))}.
+      Audio: ${tabItems.AUDIO.formats.map(format => (` ${format}`))}.
+    `;
+
+    if (wrongFormat.length) {
+      showError(errorMessage);
+    }
+
     const elements = [];
     const elementsIds = [];
-    Promise.all(acceptedFiles.map(async data => {
-      const asset = await uploadMedia({ data });
-      const item = await storeAsset(asset, activeTab);
-      const fileExtension = item.url.match(/\.[0-9a-z]{1,5}$/)[0];
-      elements.push(item);
-      elementsIds.push(item._id);
-      return fileExtension;
-    })).then(fileExtension => {
-      const extension = fileExtension[fileExtension.length - 1];
 
-      Object.keys(tabItems).forEach((item, i) => {
-        tabItems[item].formats.forEach(format => {
-          if (format === extension) {
-            setActiveTab(Object.keys(tabItems)[i]);
-          } else {
-            setItems([
-              ...elements,
-              ...items,
-            ]);
-            setUploadedItems([
-              ...uploadedItems,
-              ...elementsIds,
-            ]);
-          }
+    if (files.length) {
+      setIsDisabledUpload(true);
+      Promise.all(files.map(async data => {
+        const asset = await uploadMedia({ data });
+        const item = await storeAsset(asset, activeTab);
+        const fileExtension = item.url.match(/\.[0-9a-z]{1,5}$/)[0];
+        elements.push(item);
+        elementsIds.push(item._id);
+        return fileExtension;
+      })).then(fileExtension => {
+        const extension = fileExtension[fileExtension.length - 1];
+
+        Object.keys(tabItems).forEach((item, i) => {
+          tabItems[item].formats.forEach(format => {
+            if (format === extension) {
+              setActiveTab(Object.keys(tabItems)[i]);
+            } else {
+              setItems([
+                ...elements,
+                ...items,
+              ]);
+              setUploadedItems([
+                ...uploadedItems,
+                ...elementsIds,
+              ]);
+            }
+          });
         });
-      });
-    }).catch(err => showError(err.message))
-      .finally(() => setIsDisabledUpload(false));
+      }).catch(err => showError(err.message))
+        .finally(() => setIsDisabledUpload(false));
+    }
   };
 
   const { getInputProps } = useDropzone({

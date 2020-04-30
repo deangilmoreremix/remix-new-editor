@@ -15,7 +15,7 @@ const ProviderList = (props) => {
 
   return (
     <div className="library__block">
-      <p>{title}</p>
+      <p className="library__block--title">{title}</p>
       <div className="library__btn-container">
         {
           libraryProviders && Object.keys(libraryProviders).map(element => (

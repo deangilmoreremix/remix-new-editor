@@ -50,6 +50,10 @@
   }
 }
 
+.library__block--title {
+  text-align: left;
+}
+
 button.library__tab {
   @include reset-button;
   flex: 1;
@@ -308,6 +312,10 @@ button.library__tab {
     &>div:last-child,
     .library__add {
       width: 100%;
+    }
+
+    .library__block--title {
+      text-align: center;
     }
   }
 

@@ -596,7 +596,7 @@ export default class ProjectStore extends BaseStore {
     this.popcornObject.popcornElements.forEach((element) => {
       if (element.type === 'sequencer' && element.popcornOptions.source[0].split('|').length > 1) {
         element.popcornOptions.source = [this.findMediaSource(
-          element.popcornOptions.source[0].split('|'), ['mp4', 'webm'],
+          element.popcornOptions.source[0].split('|'), ['mp4', 'webm', 'ogv'],
         )];
       }
       this.popcorn[element.type](target
