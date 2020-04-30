@@ -16,7 +16,13 @@ import { NONE_CLASS } from '../../../lib/constants/animations';
 const PopcornElements = observer(({ width }) => {
   const projectStore = useProjectStore();
 
-  const { duration: cols, setLayer, updateStartEnd, elements, layers } = projectStore;
+  const {
+    duration: cols,
+    setLayer,
+    updateStartEnd,
+    elements,
+    layers,
+  } = projectStore;
 
   const layersCount = React.useMemo(() => layers.length, [layers.length]);
 

@@ -4,6 +4,7 @@ import size from 'lodash/size';
 
 import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
+import blendModeConstants from '../../lib/constants/blendMode';
 
 import {
   EMAIL_SKIP_TOKENS,
@@ -338,6 +339,7 @@ export default class ProjectStore extends BaseStore {
           defaultName: `Layer ${track.order}`,
           order: track.order,
           id: track.id,
+          blendMode: track.blendMode,
         };
         layers.push(layer);
       });
@@ -481,6 +483,12 @@ export default class ProjectStore extends BaseStore {
       if (item.id === elementId) {
         element = item;
         item.track = layer.id;
+        item.popcornOptions.blendMode = layer.blendMode;
+        if (layer.blendMode) {
+          this.updatePopcorn(item, { blendMode: layer.blendMode });
+        } else {
+          this.updatePopcorn(item, { blendMode: blendModeConstants.normal.value });
+        }
       }
       return item;
     });
@@ -491,10 +499,11 @@ export default class ProjectStore extends BaseStore {
       media.tracks = media.tracks.map(track => {
         if (track.order === newLayerLevel) {
           const zindex = MAX_ZINDEX - track.order;
+          const { blendMode } = element.popcornOptions;
           element.track = track.id;
           element.popcornOptions.zindex = zindex;
           track.trackEvents.push(element);
-          this.updatePopcorn(element, { zindex });
+          this.updatePopcorn(element, { zindex, blendMode });
         } else {
           track.trackEvents = track.trackEvents.filter(item => item.id !== elementId);
         }
@@ -775,4 +784,35 @@ export default class ProjectStore extends BaseStore {
   get popcornElements() {
     return this.popcornObject.popcornElements;
   }
+
+  @action
+  setBlendMode = (layerId, blendMode) => {
+    this.modified = true;
+    const elements = this.popcornElements.filter(element => element.track === layerId);
+    elements.forEach(element => {
+      this.updatePopcorn(element, { blendMode });
+    });
+
+    this.layers = this.layers.map(layer => {
+      if (layer.id === layerId) {
+        layer.blendMode = blendMode;
+      }
+      return layer;
+    });
+
+    this.projectData.media.forEach((media) => {
+      media.tracks = media.tracks.map((track) => {
+        if (track.id === layerId) {
+          track.blendMode = blendMode;
+        }
+        track.trackEvents.forEach(trackEvent => {
+          if (trackEvent.track === layerId) {
+            trackEvent.popcornOptions.blendMode = blendMode;
+            this.updatePopcorn(trackEvent, { blendMode });
+          }
+        });
+        return track;
+      });
+    });
+  };
 }

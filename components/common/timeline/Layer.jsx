@@ -8,6 +8,8 @@ import useProjectStore from '../../hooks/useProjectStore';
 import penIcon from '../../../public/static/svgImages/common/pen.svg';
 import trashIcon from '../../../public/static/svgImages/common/trash.svg';
 
+import BlendingMode from './BlendingMode';
+
 import PropTypes from '../../../lib/PropTypes';
 
 const Layer = observer(({ item, onRemove }) => {
@@ -87,7 +89,9 @@ const Layer = observer(({ item, onRemove }) => {
       <Grid item xs={7}>
         <Grid container>
           <Grid item xs={6} className="without-side-padding">
-            {/* todo implement blend modes */}
+            <BlendingMode
+              layer={item}
+            />
           </Grid>
           <Grid item xs={2} className="without-side-padding">
             {/* todo implement opacity */}

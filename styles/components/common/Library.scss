@@ -50,7 +50,7 @@
   }
 }
 
-.library__tab {
+button.library__tab {
   @include reset-button;
   flex: 1;
   height: 2.1rem;
@@ -59,6 +59,7 @@
 
   &-active {
     background: $scrollbarColor;
+    color: $secondary-color;
   }
 }
 
