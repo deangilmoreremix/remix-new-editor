@@ -67,6 +67,11 @@
   .text-input,
   .settings-input p {
     width: 100%;
+    text-align: center;
+  }
+
+  .settings-allow .settings-panel-text {
+    text-align: left;
   }
 
   .settings-input {
@@ -118,6 +123,10 @@
 
   .produce-panel__button {
     width: 100%;
+  }
+
+  .settings-formcolor {
+    flex-direction: column !important;
   }
 }
 

@@ -627,6 +627,7 @@ export default class ProjectStore extends BaseStore {
     description: this.item.description,
     thumbnail: this.item.thumbnail,
     source: this.item.source,
+    tags: this.item.tags,
   });
 
   trailisePauseElements = (projectData) => {
@@ -703,6 +704,7 @@ export default class ProjectStore extends BaseStore {
             project: serializedData,
             thumbnail: serializedData.thumbnail,
             remixedFrom: serializedData.source,
+            tags: serializedData.tags,
           },
         });
       runInAction(() => {

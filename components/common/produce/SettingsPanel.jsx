@@ -107,14 +107,9 @@ const SettingPanel = observer(() => {
         </div>
 
         <div className="settings__row">
-          <div className="settings__row-block">
-            <div className="settings__row-img">
-              <p className="settings__row-text">Thumbnail</p>
-              <div className="settings-img-preview"><img src={item.thumbnail} alt="" /></div>
-            </div>
-          </div>
-          <div className="settings__row-block">
-            <button className="settings__open-thumbnails" type="button">Use Thumbnails Editor</button>
+          <div className="settings__row-img">
+            <p className="settings__row-text">Thumbnail</p>
+            <div className="settings-img-preview"><img src={item.thumbnail} alt="" /></div>
           </div>
         </div>
         <div className="settings__row">
