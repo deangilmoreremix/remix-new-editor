@@ -12,14 +12,14 @@ import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 
 const FormColor = ({ label, onChange, value, className, disabled }) => {
   const [anchorEl, setAnchorEl] = useState(null);
-
+  const [color, setColor] = useState('');
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
 
   const colorPrimary = 'rgb(235, 80, 84, 1)';
 
-  const updateColor = (res) => {
-    onChange(res.rgb || res || colorPrimary);
+  const changeColor = (res) => {
+    onChange(res);
   };
 
   const handleClick = (event) => {
@@ -27,10 +27,14 @@ const FormColor = ({ label, onChange, value, className, disabled }) => {
   };
 
   const handleClose = () => {
+    changeColor(colorToRgbaString(color));
     setAnchorEl(null);
   };
 
-  const color = React.useMemo(() => parseRgbaString(value), [value]);
+  const updateColor = (res) => {
+    const parsedColor = parseRgbaString(res);
+    setColor(parsedColor || parsedColor.rgb || colorPrimary);
+  };
 
   return (
     <FormGroup className={className}>
@@ -66,7 +70,7 @@ const FormColor = ({ label, onChange, value, className, disabled }) => {
           }}
         >
           <ChromePicker
-            onChangeComplete={(r) => updateColor(colorToRgbaString(r.rgb))}
+            onChange={(r) => updateColor(colorToRgbaString(r.rgb))}
             color={color}
           />
         </Popover>
