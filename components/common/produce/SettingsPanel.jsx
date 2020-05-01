@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { observer } from 'mobx-react';
 
+import PropTypes from '../../../lib/PropTypes';
 import mediaConstants from '../../../lib/constants/media';
 import { tabItems } from '../../../lib/constants/library';
 
@@ -10,8 +11,16 @@ import FieldBuilder from '../../form/FieldBuilder';
 import DropzoneArea from '../../media/DropzoneArea';
 import DropButton from '../../media/DropButton';
 
-const SettingPanel = observer(() => {
+const SettingPanel = observer(({ options = {} }) => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
+
+  const titleRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (options && options.focusTitle && titleRef && titleRef.current) {
+      titleRef.current.focus();
+    }
+  }, [titleRef]);
 
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
@@ -46,6 +55,7 @@ const SettingPanel = observer(() => {
     <div className="produce-block settings-panel">
       <div className="settings__inputs">
         <FieldBuilder
+          ref={titleRef}
           type="input"
           name="title"
           label="Title"
@@ -141,5 +151,11 @@ const SettingPanel = observer(() => {
     </div>
   );
 });
+
+SettingPanel.propTypes = {
+  options: PropTypes.shape({
+    focusTitle: PropTypes.bool,
+  }),
+};
 
 export default SettingPanel;

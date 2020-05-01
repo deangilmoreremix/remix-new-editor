@@ -3,23 +3,24 @@ import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
 
-const Produce = ({ items }) => {
-  const [activeTab, setActiveTab] = React.useState(items[0].label);
+const Produce = ({ items, options: { tab, ...options } = {} }) => {
+  const defaultTab = tab || items[0].id;
+  const [activeTab, setActiveTab] = React.useState(defaultTab);
 
-  const activeTabItem = items.find(i => i.label === activeTab);
+  const activeTabItem = items.find(i => i.id === activeTab);
   const { renderer: Panel, items: panelItems = [] } = activeTabItem;
 
   return (
     <div className="produce">
       <div className="produce__tabs">
-        {items.map(({ label }) => (
+        {items.map(({ label, id }) => (
           <button
             key={label}
-            onClick={() => setActiveTab(label)}
+            onClick={() => setActiveTab(id)}
             type="button"
             className={classnames(
               'produce__tab',
-              { 'produce__tab-active': activeTabItem.label.toLowerCase() === label.toLowerCase() },
+              { 'produce__tab-active': activeTabItem && activeTabItem.id === id },
             )}
           >
             <span className="toolbar__tab-title">{label}</span>
@@ -30,6 +31,7 @@ const Produce = ({ items }) => {
         items={panelItems}
         setActiveTab={setActiveTab}
         tabs={items}
+        options={options}
       />
     </div>
   );
@@ -37,7 +39,7 @@ const Produce = ({ items }) => {
 
 Produce.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
-    key: PropTypes.string,
+    id: PropTypes.string,
     label: PropTypes.string,
     icon: PropTypes.string,
     items: PropTypes.arrayOf(PropTypes.shape({
@@ -50,6 +52,10 @@ Produce.propTypes = {
       PropTypes.func,
     ]).isRequired,
   })).isRequired,
+  options: PropTypes.shape({
+    tab: PropTypes.string,
+    focusTitle: PropTypes.bool,
+  }),
 };
 
 export default Produce;

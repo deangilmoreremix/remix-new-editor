@@ -28,6 +28,9 @@ import useUserStore from './hooks/useUserStore';
 import useModalStore from './hooks/useModalStore';
 
 import { showError } from '../lib/services/alertService';
+import useUIStore from './hooks/useUIStore';
+import { PRODUCE_TABS } from '../lib/constants/ui';
+import { validateBeforeSave } from '../lib/utils/project';
 
 const userMenu = [
   { title: 'My Projects', icon: folderIcon },
@@ -48,9 +51,14 @@ const MenuAppBar = observer(() => {
   const anchorRef = React.useRef(null);
   let menu = [];
 
-  const { save, modified } = useProjectStore();
+  const {
+    save,
+    modified,
+    item,
+  } = useProjectStore();
   const { isSuperAdmin } = useUserStore();
   const { openModal } = useModalStore();
+  const { showProducePanel } = useUIStore();
 
   const projectAdminMenu = [
     { title: 'Save as', icon: saveAsIcon, action: () => openModal(SAVE_PROJECT_MODAL) },
@@ -58,11 +66,23 @@ const MenuAppBar = observer(() => {
 
   const saveProject = React.useCallback(async () => {
     try {
-      await save();
+      const errors = validateBeforeSave(item);
+      if (errors) {
+        switch (true) {
+          case errors.title: {
+            return showProducePanel({ tab: PRODUCE_TABS.SETTINGS, focusTitle: true });
+          }
+          default: {
+            return showError('The project is not valid.');
+          }
+        }
+      } else {
+        await save();
+      }
     } catch (e) {
       showError(e.message);
     }
-  }, []);
+  }, [item]);
 
   if (isSuperAdmin) {
     menu = [...projectMenu, ...projectAdminMenu];
@@ -129,12 +149,12 @@ const MenuAppBar = observer(() => {
                   svg={saveIcon}
                   cleanup={['title']}
                   component="button"
-                  onClick={() => saveProject()}
+                  onClick={saveProject}
                   disabled={!modified}
                 />
                 <button
                   className={`icon-button ${modified ? 'active-save' : ''}`}
-                  onClick={() => saveProject()}
+                  onClick={saveProject}
                   disabled={!modified}
                 >
                   save

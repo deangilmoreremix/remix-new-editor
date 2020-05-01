@@ -33,13 +33,23 @@ const Home = observer(() => {
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
 
-  const { setLibraryType, wideWindow, setWideWindow, secondaryWindowType } = uiStore;
-
-  const { updateAnimation, isLoading, addElement, modified } = projectStore;
-
   const asyncHero = useAsync(getOne, [projectStore, project]);
 
-  const { item: { ratio: { width, height } = DEFAULT_RATIO }, updateItem } = projectStore;
+  const {
+    setLibraryType,
+    wideWindow,
+    setWideWindow,
+    secondaryWindowType,
+  } = uiStore;
+
+  const {
+    item: { ratio: { width, height } = DEFAULT_RATIO },
+    updateItem,
+    updateAnimation,
+    isLoading,
+    addElement,
+    modified,
+  } = projectStore;
 
   const userStore = useUserStore();
 
@@ -64,50 +74,63 @@ const Home = observer(() => {
     }
   }, [secondaryWindowType]);
 
-  if (asyncHero.loading || isLoading) {
-    // todo implement loading
-    return (<div>Loading</div>);
-  }
-
-  if (asyncHero.error) {
-    // todo implement err message
-    return (<div>Error</div>);
-  }
+  const toolbarContent = React.useMemo(() => {
+    const items = toolbarItems({
+      actions: {
+        openModal,
+        closeModal,
+        setLibraryType,
+        setWideWindow,
+        addElement,
+        optinCodeEnabled,
+        modified,
+      },
+    });
+    return items && items.length ? items : [];
+  }, [
+    openModal,
+    closeModal,
+    setLibraryType,
+    setWideWindow,
+    addElement,
+    optinCodeEnabled,
+    modified,
+  ]);
 
   return (
-    <div className="home">
-      <Grid container className="controls">
-        <Grid item xs={7}>
-          <Grid container>
-            <Grid item xs={wideWindow ? 12 : 6}>
-              <Toolbar
-                items={toolbarItems({
-                  actions: {
-                    openModal,
-                    closeModal,
-                    setLibraryType,
-                    setWideWindow,
-                    addElement,
-                    optinCodeEnabled,
-                    modified,
-                  },
-                })}
-              />
+    <React.Fragment>
+      {(asyncHero.loading || isLoading) && ( // todo implement loading
+        <div>Loading</div>
+      )}
+      {asyncHero.error && ( // todo implement err message
+        <div>Error</div>
+      )}
+      {!asyncHero.loading && (
+        <div className="home">
+          <Grid container className="controls">
+            <Grid item xs={7}>
+              <Grid container>
+                <Grid item xs={wideWindow ? 12 : 6}>
+                  <Toolbar
+                    items={toolbarContent}
+                  />
+                </Grid>
+                <Grid item xs={wideWindow ? false : 6} className="home__center">
+                  {SecondaryWindow}
+                </Grid>
+              </Grid>
             </Grid>
-            <Grid item xs={wideWindow ? false : 6} className="home__center">
-              {SecondaryWindow}
+            <Grid item xs={5}>
+              <Canvas />
             </Grid>
           </Grid>
-        </Grid>
-        <Grid item xs={5}>
-          <Canvas />
-        </Grid>
-      </Grid>
-      <SizeSelector sizes={CANVAS_SIZES} onChange={updateItem} active={{ width, height }} />
-      <Grid container className="timeline">
-        <Timeline />
-      </Grid>
-    </div>
+          <SizeSelector sizes={CANVAS_SIZES} onChange={updateItem} active={{ width, height }} />
+          <Grid container className="timeline">
+            <Timeline />
+          </Grid>
+        </div>
+      )}
+    </React.Fragment>
   );
 });
 

@@ -714,7 +714,7 @@ export default class ProjectStore extends BaseStore {
         this.isLoading = false;
       });
     } catch (e) {
-      this.isLoading = true;
+      this.isLoading = false;
       console.error('Error ', e);
       throw e;
     }

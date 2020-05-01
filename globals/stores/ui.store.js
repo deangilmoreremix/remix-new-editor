@@ -1,5 +1,5 @@
 import { observable, action, reaction } from 'mobx';
-import { WINDOW_TYPES } from '../../lib/constants/ui';
+import { WINDOW_TYPES, TOOLBARS } from '../../lib/constants/ui';
 import { POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 
 export default class UIStore {
@@ -18,6 +18,11 @@ export default class UIStore {
     );
   }
 
+  @observable toolbarItem = {
+    id: null,
+    options: {},
+  };
+
   @observable projectStore = {};
 
   @observable secondaryWindowType = null;
@@ -29,13 +34,6 @@ export default class UIStore {
   @observable hasGuidLines = false;
 
   @observable updateElementInLibrary = null;
-
-  @action
-  setGuideLines = (value = false) => {
-    this.hasGuidLines = value;
-  };
-
-  @observable hasGuidLines = false;
 
   @action
   setGuideLines = (value = false) => {
@@ -72,5 +70,16 @@ export default class UIStore {
   @action
   setWideWindow = () => {
     this.wideWindow = false;
+  };
+
+  @action
+  setToolbarItem = (id, options = {}) => {
+    this.toolbarItem = { id, options };
+  };
+
+  @action
+  showProducePanel = (options) => {
+    this.setLibraryType(null, true);
+    this.setToolbarItem(TOOLBARS.PRODUCE, options);
   };
 }

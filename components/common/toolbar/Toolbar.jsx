@@ -1,34 +1,41 @@
 import React from 'react';
+import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
+import useUIStore from '../../hooks/useUIStore';
 
-const Toolbar = ({ items }) => {
-  const [activeTab, setActiveTab] = React.useState(items[1].label);
+const Toolbar = observer(({ items }) => {
+  const { toolbarItem: { id, options }, setToolbarItem } = useUIStore();
 
-  // FIXME: Probably, we should refactor the line below when all the panels are implemented
-  //        as not all the panels will have the `items` array to render
+  React.useEffect(() => {
+    if (items && items.length && !id) {
+      setToolbarItem(items[1].id);
+    }
+  }, [items]);
+
   const {
     items: tabContent = [],
-    renderer: TabRenderer, func,
-  } = items.find(i => i.label === activeTab);
+    renderer: TabRenderer,
+    func,
+  } = items.find(i => i.id === id) || {};
   const onClick = (label) => {
-    setActiveTab(label);
+    setToolbarItem(label);
   };
   React.useEffect(() => {
     if (func) {
       func();
     }
-  }, [activeTab]);
+  }, [id]);
 
   return (
     <div className="toolbar-container">
       <div className="toolbar-tabs">
-        {items.map(({ label, icon }) => (
+        {items.map(({ label, icon, id: tabId }) => (
           <button
             className="toolbar-tab"
             key={label}
-            onClick={() => onClick(label)}
+            onClick={() => onClick(tabId)}
             type="button"
           >
             <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
@@ -36,13 +43,14 @@ const Toolbar = ({ items }) => {
           </button>
         ))}
       </div>
-      {TabRenderer && <TabRenderer items={tabContent} />}
+      {TabRenderer && <TabRenderer items={tabContent} options={options} />}
     </div>
   );
-};
+});
 
 Toolbar.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     icon: PropTypes.string.isRequired,
     items: PropTypes.arrayOf(PropTypes.shape({

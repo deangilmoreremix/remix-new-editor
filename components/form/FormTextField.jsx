@@ -8,7 +8,7 @@ import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
 import PropTypes from '../../lib/PropTypes';
 
-export default function FormTextField({
+const FormTextField = React.forwardRef(({
   type,
   mask,
   label,
@@ -24,7 +24,7 @@ export default function FormTextField({
   multiline,
   rowsMin,
   rowsMax,
-}) {
+}, ref) => {
   const conditionalProps = {};
 
   if (onEnter) {
@@ -54,6 +54,7 @@ export default function FormTextField({
         mask
           ? (
             <MaskedFormControl
+              ref={ref}
               mask={mask}
               key="masked-input-key"
               id={name}
@@ -69,6 +70,7 @@ export default function FormTextField({
           )
           : (
             <TextField
+              inputRef={ref}
               key="input-key"
               id={name}
               className={classnames('text-input', inputClassName)}
@@ -83,6 +85,7 @@ export default function FormTextField({
           ))}
       {type === 'text' && (
         <TextareaAutosize
+          inputRef={ref}
           key="input-key"
           id={name}
           className={classnames('text-input', inputClassName)}
@@ -99,7 +102,7 @@ export default function FormTextField({
 
     </FormGroup>
   );
-}
+});
 
 FormTextField.propTypes = {
   onChange: PropTypes.func.isRequired,
@@ -127,3 +130,5 @@ FormTextField.defaultProps = {
   labelClassName: '',
   className: '',
 };
+
+export default FormTextField;

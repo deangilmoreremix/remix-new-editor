@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from '../../lib/PropTypes';
 import { INPUT, INPUT_ELEMENTS } from '../../lib/constants/forms';
 
-const FieldBuilder = ({ onChange, value, ...props }) => {
+const FieldBuilder = React.forwardRef(({ onChange, value, ...props }, ref) => {
   const { name, type } = props;
 
   const handleChangeField = val => {
@@ -18,9 +18,14 @@ const FieldBuilder = ({ onChange, value, ...props }) => {
   }, []);
 
   return (
-    <InputComponent {...props} value={value} onChange={handleChangeField} />
+    <InputComponent
+      {...props}
+      value={value}
+      onChange={handleChangeField}
+      ref={ref}
+    />
   );
-};
+});
 
 FieldBuilder.propTypes = {
   type: PropTypes.string,

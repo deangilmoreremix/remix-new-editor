@@ -7,6 +7,10 @@
   left: 0;
   height: $toolbarHeight;
 
+  .video-container {
+    overflow: hidden;
+  }
+
   .embed-wrapper {
     position: relative;
     flex-grow: 1;
