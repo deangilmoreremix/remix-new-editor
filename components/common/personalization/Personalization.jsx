@@ -4,12 +4,14 @@ import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 
-import { tokens, tokenModes, INPUT_PLACEHOLDER } from '../../../lib/constants/tokens';
+import { tokenModes, INPUT_PLACEHOLDER } from '../../../lib/constants/tokens';
+import FormTextField from '../../form/FormTextField';
 
 import svgCogWheel from '../../../public/static/images/cogwheel.svg';
 
-const Personalization = ({ closeModal }) => {
-  const [token, setToken] = useState(tokens[0]);
+
+const Personalization = ({ closeModal, tokenList }) => {
+  const [token, setToken] = useState(tokenList[0]);
   const [tokenState, setTokenState] = useState(tokenModes.plain);
   const [disabled, setDisabled] = useState(true);
   const inputRef = useRef(null);
@@ -39,10 +41,10 @@ const Personalization = ({ closeModal }) => {
         </div>
 
         <div className="personalization__body">
-          <div className={classnames('personalization__list', { personalization__list__border: tokens.length > 9 })}>
+          <div className={classnames('personalization__list', { personalization__list__border: tokenList.length > 9 })}>
             {
-              tokens.map((item, i) => (
-                <div className="personalization__items">
+              tokenList.map((item) => (
+                <div key={item} className="personalization__items">
                   <SVGInline
                     className={classnames('radio-button-icon', { personalization__svg__active: token === item })}
                     svg={svgCogWheel}
@@ -51,8 +53,6 @@ const Personalization = ({ closeModal }) => {
                   <button
                     type="button"
                     className={classnames('personalization__item', { 'personalization__item-active': token === item })}
-                    key={item}
-                    tabIndex={i}
                     onClick={() => setToken(item)}
                   >
                     {item}
@@ -64,16 +64,28 @@ const Personalization = ({ closeModal }) => {
 
           <div className="personalization__info">
             <div>
-              <p className="personalization__name">{token || ''}</p>
+              {
+                tokenList.length > 1 ? <p className="personalization__name">{token}</p>
+                  : (
+                    <FormTextField
+                      name="text"
+                      inputClassName="personalization__input__image"
+                      type="input"
+                      value={token}
+                      onChange={(v) => setToken(v)}
+                    />
+                  )
+              }
               <div className="personalization__item__right">
                 {
-                  Object.keys(tokenModes).map((item, i) => (
-                    <div className={classnames('personalization__item__container', { 'item-fallback': item === 'fallbackValue' })}>
+                  Object.keys(tokenModes).map((item) => (
+                    <div
+                      key={tokenModes[item]}
+                      className={classnames('personalization__item__container', { 'item-fallback': item === 'fallbackValue' })}
+                    >
                       <button
                         type="button"
                         className={classnames('personalization__item', { 'personalization__item-active': tokenState === tokenModes[item] })}
-                        key={tokenModes[item]}
-                        tabIndex={i}
                         onClick={() => setTokenState(tokenModes[item])}
                       >
                         {tokenModes[item]}
@@ -103,6 +115,7 @@ const Personalization = ({ closeModal }) => {
 
 Personalization.propTypes = {
   closeModal: PropTypes.func.isRequired,
+  tokenList: PropTypes.arrayOf(PropTypes.string),
 };
 
 export default Personalization;

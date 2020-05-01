@@ -2,13 +2,15 @@ import React from 'react';
 
 import useModalStore from '../../hooks/useModalStore';
 
+import PropTypes from '../../../lib/PropTypes';
+
 import { PERSONALIZATION_MODAL } from '../../../lib/constants/modals';
 
-const PersonalizeButton = () => {
+const PersonalizeButton = ({ elementType }) => {
   const { openModal } = useModalStore();
 
   const openPersonalize = () => {
-    openModal(PERSONALIZATION_MODAL);
+    openModal(PERSONALIZATION_MODAL, { elementType });
   };
 
   return (
@@ -23,5 +25,8 @@ const PersonalizeButton = () => {
   );
 };
 
+PersonalizeButton.propTypes = {
+  elementType: PropTypes.string,
+};
 
 export default PersonalizeButton;
