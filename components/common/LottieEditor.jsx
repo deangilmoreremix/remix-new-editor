@@ -1,23 +1,34 @@
 import * as React from 'react';
 import isEmpty from 'lodash/isEmpty';
+import { useAsync } from 'react-async-hook';
 
 import PropTypes from '../../lib/PropTypes';
 import Lottie from '../../lib/lottie/Lottie';
 import FormColor from '../form/FormColor';
-import { rgbToHex, getColors, getDimensions, toUnitVector } from '../../lib/lottie/utils';
+import { rgbToHex, getColors, setColors, getDimensions } from '../../lib/lottie/utils';
 import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 import { isValidJsonUrl } from '../../lib/popcorn/helpers';
+import { loadUrl } from '../../lib/requestCreator';
 
 const baseDimension = 150;
+
+const fetchAnimation = async (url) => new Promise((resolve, reject) => {
+  if (isValidJsonUrl(url)) {
+    resolve(url);
+  } else {
+    reject(new Error('Not correct URL'));
+  }
+}).then(loadUrl);
 
 const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
   const [ratio, setRatio] = React.useState(1);
   const [isStopped, setIsStopped] = React.useState(false);
   const [isPaused, setIsPaused] = React.useState(false);
-  const [animation, setAnimation] = React.useState(null);
-  const [colors, setColors] = React.useState([]);
+  const [colors, storeColors] = React.useState([]);
 
   const animationElement = React.useRef(null);
+
+  const { result: animation } = useAsync(fetchAnimation, [file]);
 
   // TODO: left here for the future segments playback
   const load = () => {
@@ -32,23 +43,8 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
     }
   };
 
-  React.useEffect(
-    // Refresh original animation object on each URL change
-    () => {
-      if (file && isValidJsonUrl(file)) {
-        fetch(file).then(response => response.json()).then(c => {
-          setAnimation(c);
-        });
-        return () => setAnimation(null);
-      }
-    },
-    [file],
-  );
-
   React.useEffect(() => {
     // Recalculate original animation colors
-    setColors([]);
-
     const rows = [];
 
     const { ratio: jsonRatio } = getDimensions(animation) || {};
@@ -62,8 +58,8 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
       animation.assets.forEach((asset, i) => getColors(asset.layers, color => rows.push(color), i));
     }
 
-    setTimeout(() => setColors(rows), 500);
-    return () => setColors([]);
+    setTimeout(() => storeColors(rows), 0);
+    return () => storeColors([]);
   }, [animation]);
 
   const pickColor = (newColor, oldColor) => {
@@ -81,24 +77,18 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
 
       return c;
     });
-    setColors(newColors);
+    storeColors(newColors);
   };
 
   const preparedAnimation = React.useMemo(
     () => {
-      const coloredAnimation = { ...animation };
+      let coloredAnimation;
+
       if (animation && colors && colors.length) {
-        colors.forEach(({ i, j, k, r, g, b, a }) => {
-          coloredAnimation.layers[i].shapes[j].it[k].c.k = [
-            toUnitVector(r),
-            toUnitVector(g),
-            toUnitVector(b),
-            a,
-          ];
-        });
+        coloredAnimation = setColors(animation, colors);
       }
 
-      return coloredAnimation;
+      return coloredAnimation || animation;
     },
     [animation, colors],
   );
@@ -112,9 +102,11 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
   const showColors = React.useMemo(() => {
     const result = new Set();
 
-    colors.forEach(color => {
-      result.add(colorToRgbaString(color));
-    });
+    if (colors && colors.length) {
+      colors.forEach(color => {
+        result.add(colorToRgbaString(color));
+      });
+    }
 
     return Array.from(result);
   }, [colors]);
