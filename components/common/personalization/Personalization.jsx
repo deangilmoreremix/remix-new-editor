@@ -8,12 +8,14 @@ import { tokenModes, INPUT_PLACEHOLDER } from '../../../lib/constants/tokens';
 import FormTextField from '../../form/FormTextField';
 
 import svgCogWheel from '../../../public/static/images/cogwheel.svg';
+import { formatToken } from '../../../lib/utils/tokens-helper';
 
 
-const Personalization = ({ closeModal, tokenList }) => {
+const Personalization = ({ closeModal, tokenList, onAdd }) => {
   const [token, setToken] = useState(tokenList[0]);
   const [tokenState, setTokenState] = useState(tokenModes.plain);
   const [disabled, setDisabled] = useState(true);
+  const [fallbackValue, setFallbackValue] = useState('');
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -25,6 +27,12 @@ const Personalization = ({ closeModal, tokenList }) => {
       inputRef.current.focus();
     }
   }, [disabled]);
+
+  const addToken = React.useCallback(() => {
+    const tokenString = formatToken(token, tokenState, !disabled && fallbackValue);
+    onAdd(tokenString);
+    closeModal();
+  }, [disabled, fallbackValue, token, tokenState]);
 
   return (
     <div className="personalization">
@@ -98,6 +106,8 @@ const Personalization = ({ closeModal, tokenList }) => {
                           disabled={disabled}
                           ref={inputRef}
                           placeholder={INPUT_PLACEHOLDER}
+                          value={fallbackValue}
+                          onChange={(e) => { setFallbackValue(e.target.value); }}
                         />
                       )}
                     </div>
@@ -105,7 +115,7 @@ const Personalization = ({ closeModal, tokenList }) => {
                 }
               </div>
             </div>
-            <button className="personalization__add" type="button">+ add</button>
+            <button className="personalization__add" type="button" onClick={addToken}>+ add</button>
           </div>
         </div>
       </div>
@@ -115,6 +125,7 @@ const Personalization = ({ closeModal, tokenList }) => {
 
 Personalization.propTypes = {
   closeModal: PropTypes.func.isRequired,
+  onAdd: PropTypes.func.isRequired,
   tokenList: PropTypes.arrayOf(PropTypes.string),
 };
 

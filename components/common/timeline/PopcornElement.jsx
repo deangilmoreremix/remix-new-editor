@@ -4,6 +4,7 @@ import { observer } from 'mobx-react';
 import Grid from '@material-ui/core/Grid/Grid';
 
 import useProjectStore from '../../hooks/useProjectStore';
+import useUiStore from '../../hooks/useUIStore';
 
 import PropTypes from '../../../lib/PropTypes';
 import { addDeleteListener, removeDeleteListener } from '../../../lib/mitt/emitter';
@@ -14,6 +15,7 @@ import { NONE_CLASS, ANIMATION_TYPES } from '../../../lib/constants/animations';
 
 const PopcornElement = observer(({ item }) => {
   const projectStore = useProjectStore();
+  const uiStore = useUiStore();
   const gridElementRef = useRef();
 
   const { editElement, updateAnimation, releaseElement } = projectStore;
@@ -62,6 +64,7 @@ const PopcornElement = observer(({ item }) => {
       if (Object.values(POPCORN_ELEMENT_TYPES).includes(item.type)) {
         addDeleteListener(gridElementRef.current, item.i);
         editElement(item.i);
+        uiStore.openSettings();
       } else {
         addDeleteListener(gridElementRef.current, item.i);
         releaseElement();

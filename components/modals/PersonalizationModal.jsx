@@ -8,7 +8,7 @@ import Personalization from '../common/personalization/Personalization';
 import { POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 import { tokens, imgTokens } from '../../lib/constants/tokens';
 
-const PersonalizationModal = observer(({ handleClose, options: { elementType } }) => {
+const PersonalizationModal = observer(({ handleClose, options: { elementType, onAdd } }) => {
   const tokensArr = elementType && elementType === POPCORN_ELEMENT_TYPES.IMAGE
     ? imgTokens
     : tokens;
@@ -16,12 +16,14 @@ const PersonalizationModal = observer(({ handleClose, options: { elementType } }
     <Personalization
       closeModal={handleClose}
       tokenList={tokensArr}
+      onAdd={onAdd}
     />
   );
 });
 
 PersonalizationModal.PropTypes = {
   handleClose: PropTypes.func.isRequired,
+  onAdd: PropTypes.func.isRequired,
   elementType: PropTypes.string,
 };
 

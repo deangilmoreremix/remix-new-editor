@@ -14,12 +14,20 @@ const TabMap = {
 const TextSettings = observer(({ tab = BASIC, element, update, fields, handleClose }) => {
   const Tab = TabMap[tab];
 
+  const handleChange = (value, options) => {
+    let newOptions = { ...value };
+    if (options) {
+      newOptions = { ...newOptions, ...options };
+    }
+    update(newOptions);
+  };
+
   return (
     <div className="text-form">
       {element && element.popcornOptions && (
         <Tab
           values={element.popcornOptions}
-          onChange={(field) => update(field)}
+          onChange={(field, options) => handleChange(field, options)}
           fields={fields}
           closeModal={handleClose}
         />

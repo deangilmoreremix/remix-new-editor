@@ -53,7 +53,7 @@ export default class UIStore {
   };
 
   @action
-  openImageSettings = () => {
+  openSettings = () => {
     this.secondaryWindowType = WINDOW_TYPES.SETTING;
   };
 

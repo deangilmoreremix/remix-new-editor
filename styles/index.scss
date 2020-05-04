@@ -42,6 +42,10 @@
 @import "components/common/Guidelines";
 @import "components/common/GuidelinesActivation";
 @import "components/common/image-settings";
+@import "components/common/ThumbnailEditor";
+@import "components/common/thumbnails";
+@import "components/common/produce";
+
 @import "components/campaigns/index";
 
 @import "components/form/elements";
@@ -54,10 +58,7 @@
 @import "components/form/FormTextArea";
 @import "components/form/TagsFormInput";
 @import "components/form/TimeInput";
-
-@import "components/common/ThumbnailEditor";
-@import "components/common/thumbnails";
-@import "components/common/produce";
+@import "components/form/FormTokensTextArea";
 
 @import "components/canvas/Canvas";
 @import "components/canvas/SizeSelector";

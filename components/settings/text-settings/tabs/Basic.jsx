@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useCallback } from 'react';
 import SVGInline from 'react-svg-inline';
 import { observer } from 'mobx-react';
 
@@ -11,6 +11,7 @@ import { iconAlignment, iconPosition } from '../../../../lib/constants/settings/
 import svgTextLetterSpacing from '../../../../public/static/svgImages/text/basic_group/letter-spacing.svg';
 
 import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
+import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 
 const Basic = observer(({ values, fields, onChange, closeModal }) => {
   const { openAnimation } = useUIStore();
@@ -21,7 +22,11 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
     alignment,
     position,
     text,
+    caretOffset,
+    urlCaretOffset,
+    htmlText,
     linkUrl,
+    htmlUrl,
     linkTarget,
     callNotifyAddress,
     rotation,
@@ -31,6 +36,16 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
     closeModal();
     openAnimation();
   };
+
+  const onAddTextToken = useCallback((token) => {
+    const result = addToken(text, token, caretOffset);
+    onChange({ text: result, htmlText: wrapTokens(result) });
+  }, [text, caretOffset, onChange]);
+
+  const onAddUrlToken = useCallback((token) => {
+    const result = addToken(linkUrl, token, urlCaretOffset);
+    onChange({ linkUrl: result, htmlUrl: wrapTokens(result) });
+  }, [linkUrl, urlCaretOffset, onChange]);
 
   return (
     <Fragment>
@@ -77,21 +92,23 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
         <FieldBuilder
           className="input-textarea-container"
           inputClassName="input-text-area"
-          value={typeof (text) !== 'undefined' ? text : fields.text.default}
-          {...fields.text}
+          value={typeof (htmlText) !== 'undefined' ? htmlText : fields.htmlText.default}
+          {...fields.htmlText}
           onChange={onChange}
+          updateCaret={(value) => onChange({ caretOffset: value })}
         />
       </div>
-      <PersonalizeButton />
+      <PersonalizeButton onAdd={onAddTextToken} />
       <div>
         <div className="link-url-container">
           <FieldBuilder
-            value={linkUrl || ''}
-            {...fields.linkUrl}
+            value={htmlUrl || ''}
+            {...fields.htmlUrl}
             className="input-url-position"
             onChange={onChange}
+            updateCaret={(value) => onChange({ urlCaretOffset: value })}
           />
-          <PersonalizeButton />
+          <PersonalizeButton onAdd={onAddUrlToken} />
         </div>
         <div className="email-link-container">
           <FieldBuilder
@@ -144,7 +161,7 @@ Basic.propTypes = {
     end: PropTypes.number,
     alignment: PropTypes.string,
     position: PropTypes.string,
-    text: PropTypes.string,
+    htmlText: PropTypes.string,
     linkUrl: PropTypes.string,
     callNotifyAddress: PropTypes.string,
     linkTarget: PropTypes.string,

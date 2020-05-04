@@ -25,7 +25,7 @@ const Library = observer(() => {
     setLibraryType: setActiveTab,
     updateElementInLibrary,
     setUpdateElementInLibrary,
-    openImageSettings,
+    openSettings,
   } = uiStore;
 
   const {
@@ -209,7 +209,7 @@ const Library = observer(() => {
     item.type = MEDIA_TYPES[activeTab];
     if (updateElementInLibrary && activeTab === LIBRARY_TABS.IMAGE) {
       projectStore.findAndUpdate(updateElementInLibrary, item);
-      openImageSettings();
+      openSettings();
       setUpdateElementInLibrary();
     } else {
       await projectStore.addElement(item, updateElementInLibrary);

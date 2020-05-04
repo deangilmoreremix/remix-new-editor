@@ -6,8 +6,8 @@ import { INPUT, INPUT_ELEMENTS } from '../../lib/constants/forms';
 const FieldBuilder = React.forwardRef(({ onChange, value, ...props }, ref) => {
   const { name, type } = props;
 
-  const handleChangeField = val => {
-    onChange({ [name]: val });
+  const handleChangeField = (val, options) => {
+    onChange({ [name]: val }, options);
   };
 
   const InputComponent = React.useMemo(() => {
@@ -15,7 +15,7 @@ const FieldBuilder = React.forwardRef(({ onChange, value, ...props }, ref) => {
       return INPUT_ELEMENTS[type];
     }
     return INPUT_ELEMENTS[INPUT];
-  }, []);
+  }, [type]);
 
   return (
     <InputComponent

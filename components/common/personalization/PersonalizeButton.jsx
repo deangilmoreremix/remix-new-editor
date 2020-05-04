@@ -6,11 +6,11 @@ import PropTypes from '../../../lib/PropTypes';
 
 import { PERSONALIZATION_MODAL } from '../../../lib/constants/modals';
 
-const PersonalizeButton = ({ elementType }) => {
+const PersonalizeButton = ({ elementType, onAdd }) => {
   const { openModal } = useModalStore();
 
   const openPersonalize = () => {
-    openModal(PERSONALIZATION_MODAL, { elementType });
+    openModal(PERSONALIZATION_MODAL, { elementType, onAdd });
   };
 
   return (
@@ -27,6 +27,7 @@ const PersonalizeButton = ({ elementType }) => {
 
 PersonalizeButton.propTypes = {
   elementType: PropTypes.string,
+  onAdd: PropTypes.func.isRequired,
 };
 
 export default PersonalizeButton;
