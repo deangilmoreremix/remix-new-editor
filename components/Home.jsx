@@ -22,16 +22,28 @@ import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 import { CANVAS_SIZES } from '../lib/constants/media';
 import { DEFAULT_RATIO } from '../lib/constants/project';
 import { WINDOW_TYPES } from '../lib/constants/ui';
+import { ROUTES } from '../lib/constants/routing';
 
 const getOne = async (store, id) => {
   await store.getOne(id);
 };
 
 const Home = observer(() => {
-  const { query: { project } } = useRouter();
+  const { pathname, query: { project }, push } = useRouter();
   const projectStore = useProjectStore();
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
+
+  React.useEffect(() => {
+    if (!project && pathname !== ROUTES.edit) {
+      push({
+        pathname: ROUTES.edit,
+      },
+      undefined,
+      { shallow: true },
+      );
+    }
+  }, []);
 
   const asyncHero = useAsync(getOne, [projectStore, project]);
 

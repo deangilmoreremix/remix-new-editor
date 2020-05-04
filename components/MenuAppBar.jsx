@@ -1,26 +1,20 @@
 import React from 'react';
 import { observer } from 'mobx-react';
+import Router from 'next/router';
 import SVGInline from 'react-svg-inline';
 import { Grid, AppBar, Toolbar } from '@material-ui/core';
 
 import Menu from './common/Menu';
 import UserBox from './common/user/UserBox';
 import { SAVE_PROJECT_MODAL } from '../lib/constants/modals';
+import { ROUTES } from '../lib/constants/routing';
+import { PRODUCE_TABS, USER_MENU_ITEMS, PROJECT_MENU_ITEMS } from '../lib/constants/ui';
 
-import outIcon from '../public/static/svgImages/header/out.svg';
 import logoIcon from '../public/static/svgImages/header/logo.svg';
 import redoIcon from '../public/static/svgImages/header/redo.svg';
 import undoIcon from '../public/static/svgImages/header/undo.svg';
 import saveIcon from '../public/static/svgImages/header/save.svg';
-import folderIcon from '../public/static/svgImages/header/folder.svg';
 import hamburgerIcon from '../public/static/svgImages/header/hamburger.svg';
-import collaborateIcon from '../public/static/svgImages/header/collaborate.svg';
-import newProjectIcon from '../public/static/svgImages/menu/new-project.svg';
-import makeCopyIcon from '../public/static/svgImages/menu/make-copy.svg';
-import renameProjectIcon from '../public/static/svgImages/menu/rename-project.svg';
-import finishVideoIcon from '../public/static/svgImages/menu/finish-video.svg';
-import trashIcon from '../public/static/svgImages/trash.svg';
-import closeProjectIcon from '../public/static/svgImages/menu/close-project.svg';
 import saveAsIcon from '../public/static/svgImages/menu/save-as.svg';
 
 import useProjectStore from './hooks/useProjectStore';
@@ -29,23 +23,7 @@ import useModalStore from './hooks/useModalStore';
 
 import { showError } from '../lib/services/alertService';
 import useUIStore from './hooks/useUIStore';
-import { PRODUCE_TABS } from '../lib/constants/ui';
 import { validateBeforeSave } from '../lib/utils/project';
-
-const userMenu = [
-  { title: 'My Projects', icon: folderIcon },
-  { title: 'Sign Out', icon: outIcon },
-  { title: 'Collaborate', icon: collaborateIcon },
-];
-
-const projectMenu = [
-  { title: 'New a project...', icon: newProjectIcon },
-  { title: 'Make a copy', icon: makeCopyIcon },
-  { title: 'Rename project', icon: renameProjectIcon },
-  { title: 'Finish project', icon: finishVideoIcon },
-  { title: 'Move to trash', icon: trashIcon },
-  { title: 'Close project', icon: closeProjectIcon },
-];
 
 const MenuAppBar = observer(() => {
   const anchorRef = React.useRef(null);
@@ -77,7 +55,21 @@ const MenuAppBar = observer(() => {
           }
         }
       } else {
-        await save();
+        const project = await save();
+        if (project && project._id) {
+          Router.push(
+            {
+              pathname: ROUTES.edit,
+              query: {
+                project: project._id,
+              },
+            },
+            undefined,
+            {
+              shallow: true,
+            },
+          );
+        }
       }
     } catch (e) {
       showError(e.message);
@@ -85,9 +77,9 @@ const MenuAppBar = observer(() => {
   }, [item]);
 
   if (isSuperAdmin) {
-    menu = [...projectMenu, ...projectAdminMenu];
+    menu = [...PROJECT_MENU_ITEMS, ...projectAdminMenu];
   } else {
-    menu = projectMenu;
+    menu = PROJECT_MENU_ITEMS;
   }
 
   return (
@@ -165,7 +157,7 @@ const MenuAppBar = observer(() => {
             <Grid item xs={2}>
               <Menu
                 toggleElement={<UserBox />}
-                items={userMenu}
+                items={USER_MENU_ITEMS}
                 className="user-menu flex-center"
                 needEndIcon
               />
