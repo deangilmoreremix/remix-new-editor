@@ -121,7 +121,7 @@ export default class ProjectStore extends BaseStore {
         options.source = source;
         options.title = videoMeta.title;
         options.duration = videoMeta.duration;
-        options.from = options.start;
+        options.from = 0;
         options.contentType = videoMeta.contentType;
         options.in = options.start;
         options.out = options.end;
@@ -184,24 +184,23 @@ export default class ProjectStore extends BaseStore {
     this.activeElementId = null;
   };
 
-  @computed
-  get form() {
-    if (!this.activeElementId) {
-      return null;
-    }
-    const element = this.popcorn.getTrackEvent(this.activeElementId);
-    // eslint-disable-next-line no-underscore-dangle
-    const { options } = element._natives.manifest;
-    const resultOptions = {};
-    if (options) {
-      Object.keys(options).forEach((fieldName) => {
-        if (!options[fieldName].hidden) {
-          resultOptions[fieldName] = options[fieldName];
-        }
+  @action
+  findAndUpdate = (elementId, options) => {
+    this.modified = true;
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents = track.trackEvents.map((trackEvent) => {
+          if (trackEvent.id === elementId) {
+            trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
+          }
+          return trackEvent;
+        });
       });
-    }
-    return resultOptions;
-  }
+    });
+    this.updateElement(elementId, options);
+    this.updatePopcorn(elementId, options);
+    console.info(this.popcorn);
+  };
 
   @action
   updateElement = (elementId, options) => {
@@ -250,20 +249,25 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  findAndUpdate = (elementId, options) => {
-    this.modified = true;
-    this.projectData.media.forEach((media) => {
-      media.tracks.forEach((track) => {
-        track.trackEvents = track.trackEvents.map((trackEvent) => {
-          if (trackEvent.id === elementId) {
-            trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
-          }
-          return trackEvent;
-        });
-      });
-    });
-    this.updateElement(elementId, options);
-    this.updatePopcorn(elementId, options);
+  updatePopcorn = (element, options) => {
+    const elementId = (element && element.id) || element;
+    element = typeof element === 'string' ? this.getElementById(elementId) : element;
+
+    // need rewrite element, if user update the start or end field
+    if ((options.start !== undefined && (element.popcornOptions.start !== options.start))
+      || (options.end !== undefined && (element.popcornOptions.end !== options.end))) {
+      this.popcorn.removeTrackEvent(elementId);
+      element.popcornOptions = { ...element.popcornOptions, ...options };
+      this.popcorn[element.type](element.popcornOptions);
+    } else {
+      const trackEvent = this.popcorn.getTrackEvent(elementId);
+      // eslint-disable-next-line no-underscore-dangle
+      if (trackEvent && trackEvent._natives._update) {
+        // _natives and _update is popcorn functions
+        // eslint-disable-next-line no-underscore-dangle
+        trackEvent._natives._update(trackEvent, options);
+      }
+    }
   };
 
   updateAnimation = (type, animationName = NONE_CLASS) => {
@@ -280,15 +284,14 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  updatePopcorn = (element, options) => {
-    const elementId = (element && element.id) || element;
-    const trackEvent = this.popcorn.getTrackEvent(elementId);
-    // eslint-disable-next-line no-underscore-dangle
-    if (trackEvent && trackEvent._natives._update) {
-      // _natives and _update is popcorn functions
-      // eslint-disable-next-line no-underscore-dangle
-      trackEvent._natives._update(trackEvent, options);
+  setPopcorn = (target) => {
+    if (!this.popcornObject) {
+      return;
     }
+    this.popcorn = window.Popcorn.smart(target,
+      this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
+    this.attach(target);
+    console.info(this.popcorn);
   };
 
   generatePopcornObject = () => {
@@ -578,15 +581,28 @@ export default class ProjectStore extends BaseStore {
     return this.item;
   };
 
-  @action
-  setPopcorn = (target) => {
-    if (!this.popcornObject) {
-      return;
+  @computed
+  get form() {
+    if (!this.activeElementId) {
+      return null;
     }
-    this.popcorn = window.Popcorn.smart(target,
-      this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
-    this.attach(target);
-  };
+    const element = this.popcorn.getTrackEvent(this.activeElementId);
+
+    if (!element) {
+      return null;
+    }
+    // eslint-disable-next-line no-underscore-dangle
+    const { options } = element._natives.manifest;
+    const resultOptions = {};
+    if (options) {
+      Object.keys(options).forEach((fieldName) => {
+        if (!options[fieldName].hidden) {
+          resultOptions[fieldName] = options[fieldName];
+        }
+      });
+    }
+    return resultOptions;
+  }
 
   findMediaSource = (sources, acceptableSources) => sources.filter((source) => {
     const extension = source.split('.').reverse()[0];
@@ -730,6 +746,10 @@ export default class ProjectStore extends BaseStore {
       return null;
     }
     return this.popcornElements.find(element => element.id === this.activeElementId);
+  }
+
+  getElementById(id) {
+    return this.popcornElements.find(element => element.id === id);
   }
 
   @action
