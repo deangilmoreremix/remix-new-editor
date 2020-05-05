@@ -55,7 +55,7 @@ const Home = observer(() => {
   } = uiStore;
 
   const {
-    item: { ratio: { width, height } = DEFAULT_RATIO },
+    item: { ratio: { width, height } = DEFAULT_RATIO, allowedSocials },
     updateItem,
     updateAnimation,
     isLoading,
@@ -95,6 +95,9 @@ const Home = observer(() => {
         setWideWindow,
         addElement,
         optinCodeEnabled,
+      },
+      project: {
+        allowedSocials,
         modified,
       },
     });

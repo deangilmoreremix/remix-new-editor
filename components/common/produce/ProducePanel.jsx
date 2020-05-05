@@ -5,34 +5,27 @@ import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
 
-import useProjectStore from '../../hooks/useProjectStore';
-
 import { showInfo } from '../../../lib/services/alertService';
 
-const ProducePanel = observer(({ items, tabs, setActiveTab }) => {
-  const { modified, item: { allowedSocials } } = useProjectStore();
-
-  const onCLick = (action, alwaysOnDisplay) => {
-    if ((modified && alwaysOnDisplay)
-      || ((allowedSocials && allowedSocials.length) || alwaysOnDisplay)) {
+const ProducePanel = observer(({ items, tab, setActiveTab }) => {
+  const onCLick = (action, isActive, errorMessage) => {
+    if (isActive) {
       action();
     } else {
-      showInfo('Please allow Facebook and LinkedIn in our project to continue');
-      setActiveTab(tabs[1].label);
+      showInfo(errorMessage);
+      setActiveTab(tab);
     }
   };
 
   return (
     <div className="produce-block produce-panel">
-      {items.map(({ label, action, icon, alwaysOnDisplay }) => (
+      {items.map(({ label, action, icon, isActive, errorMessage }) => (
         <button
           type="button"
           key={label}
-          onClick={() => onCLick(action, alwaysOnDisplay)}
+          onClick={() => onCLick(action, isActive, errorMessage)}
           className={classnames('produce-panel__button', {
-            'produce-panel__button--active':
-              (modified && !alwaysOnDisplay)
-              || (allowedSocials && allowedSocials.length === 0 && !alwaysOnDisplay),
+            'produce-panel__button--active': isActive,
           })}
         >
           <SVGInline
@@ -53,9 +46,7 @@ ProducePanel.propTypes = {
     action: PropTypes.func.isRequired,
     icon: PropTypes.string.isRequired,
   })).isRequired,
-  tabs: PropTypes.arrayOf(PropTypes.shape({
-    label: PropTypes.string.isRequired,
-  })).isRequired,
+  tab: PropTypes.string.isRequired,
   setActiveTab: PropTypes.func.isRequired,
 };
 

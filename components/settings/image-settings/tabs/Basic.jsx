@@ -118,7 +118,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           onChange={onChange}
           className="image-settings__time"
         />
-        <div className="image-settings__btn--block">
+        <div className="image-settings__btn--block image-settings__btn--transition">
           <p>Transition</p>
           <button className="image-settings__btn">Open Library</button>
         </div>

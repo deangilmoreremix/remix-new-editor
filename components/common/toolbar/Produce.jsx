@@ -30,7 +30,7 @@ const Produce = ({ items, options: { tab, ...options } = {} }) => {
       <Panel
         items={panelItems}
         setActiveTab={setActiveTab}
-        tabs={items}
+        tab={items[1].id}
         options={options}
       />
     </div>
