@@ -67,7 +67,6 @@
   .text-input,
   .settings-input p {
     width: 100%;
-    text-align: center;
   }
 
   .settings-allow .settings-panel-text {
@@ -97,8 +96,9 @@
   }
 
   .settings-panel-text,
-  label.settings-panel-text {
-    margin-bottom: 0.5rem;
+  label.settings-panel-text,
+  .settings-input .tags-input-title {
+    margin-bottom: 1rem;
     padding-right: 0;
   }
 
@@ -106,7 +106,7 @@
     margin-bottom: 0.5rem;
 
     &.text-area-label {
-      margin-bottom: 0.7rem;
+      margin-bottom: 1rem;
     }
   }
 
@@ -127,6 +127,17 @@
 
   .settings-formcolor {
     flex-direction: column !important;
+
+    .MuiBox-root {
+      width: 100%;
+      margin: 0;
+    }
+
+    label {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 1rem;
+    }
   }
 }
 

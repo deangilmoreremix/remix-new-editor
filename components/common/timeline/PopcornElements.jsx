@@ -54,7 +54,7 @@ const PopcornElements = observer(({ width }) => {
   const layouts = React.useMemo(() => {
     const result = [];
     elements.forEach(element => {
-      const { popcornOptions: { id: i, start, end, animation }, type } = element;
+      const { popcornOptions: { id: i, start, end, animation, title }, type } = element;
       const layer = layers.find(item => item.id === element.track);
       const x = start * SANTISECOND;
       const w = (getEnd(end, animation) - start) * SANTISECOND;
@@ -67,6 +67,7 @@ const PopcornElements = observer(({ width }) => {
         minH: 1,
         maxH: 1,
         animation,
+        title,
         y: layer.order,
         maxW: cols - x,
         minW: (MIN_DURATION + getExtraDuration(animation)) * SANTISECOND,

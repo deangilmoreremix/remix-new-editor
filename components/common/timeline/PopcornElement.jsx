@@ -27,7 +27,6 @@ const PopcornElement = observer(({ item }) => {
   };
 
   useEffect(() => () => removeDeleteListener(gridElementRef.current, item.i), [item.i]);
-
   const getGridItem = (animationType) => {
     switch (item.type) {
       case POPCORN_ELEMENT_TYPES.TEXT: {
@@ -81,7 +80,9 @@ const PopcornElement = observer(({ item }) => {
       tabIndex={-1}
       {...rest}
     >
-      <span className="popcorn-element-name">{item.type}</span>
+      <span className="popcorn-element-name">
+        {item.title || item.htmlText || item.type}
+      </span>
       {getGridItem(ANIMATION_TYPES.IN)}
       {getGridItem(ANIMATION_TYPES.IDLE)}
       {getGridItem(ANIMATION_TYPES.OUT)}

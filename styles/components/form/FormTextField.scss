@@ -51,10 +51,8 @@ div, textarea {
 
   &.text-input {
     @include input-placeholder;
-    @include tiny-scrollbar($thumbColor: $thumbColor, $scrollbarColor: $scrollbarColor);
     min-height: 2.065rem;
     padding: 0 0.546rem;
-    background-color: $sidebr-bg;
     outline: none;
     color: $white;
     font-family: $font-primary;
@@ -62,13 +60,11 @@ div, textarea {
     border-radius: 0.218rem;
     font-style: normal;
     font-weight: normal;
-    line-height: 0.93rem;
     background: $sidebr-bg;
     font-size: 0.875rem;
     line-height: 1;
 
     input {
-      @include input-placeholder;
       padding: 0;
       font-size: 0.875rem;
       min-height: 2.065rem;

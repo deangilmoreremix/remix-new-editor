@@ -1,4 +1,5 @@
 import React from 'react';
+import { observer } from 'mobx-react';
 
 import PropTypes from '../../lib/PropTypes';
 import { INPUT, INPUT_ELEMENTS } from '../../lib/constants/forms';
@@ -40,4 +41,4 @@ FieldBuilder.propTypes = {
   ]),
 };
 
-export default FieldBuilder;
+export default observer(FieldBuilder);

@@ -26,6 +26,7 @@ const FormTokensTextArea = observer((props) => {
     textClassName,
     inputClassName,
     additionalFieldName,
+    disabled,
   } = props;
 
   const onEdit = (e) => {
@@ -57,6 +58,7 @@ const FormTokensTextArea = observer((props) => {
         onChange={onEdit}
         onClick={onClick}
         onKeyPress={onKeyPress}
+        disabled={disabled}
       />
     </div>
   );
@@ -71,7 +73,8 @@ FormTokensTextArea.propTypes = {
   onChange: PropTypes.func.isRequired,
   additionalFieldName: PropTypes.string,
   updateCaret: PropTypes.func.isRequired,
-  caretName: PropTypes.string.isRequired,
+  caretName: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 export default FormTokensTextArea;

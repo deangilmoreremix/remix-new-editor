@@ -1,6 +1,7 @@
 .react-tagsinput {
-  min-height: 2.065rem;
-  padding: 0.375rem;
+  display: flex;
+  min-height: 2.174rem;
+  padding: 0.42rem;
   padding-bottom: 0;
   background: $sidebr-bg;
   outline: none;
@@ -37,11 +38,11 @@
   cursor: pointer;
   font-weight: bold;
   margin-left: 0.625rem;
-}
 
-.react-tagsinput-tag a::before {
-  content: "×";
-  color: $red;
+  &:before {
+    content: "×";
+    color: $secondary-color;
+  }
 }
 
 .react-tagsinput-input {

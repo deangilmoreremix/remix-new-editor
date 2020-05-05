@@ -92,7 +92,7 @@ const SettingPanel = observer(({ options = {} }) => {
           name="tags"
           value={item.tags}
           onChange={updateItem}
-          title="Tags"
+          label="Tags"
           className="settings-input"
           titleClass="settings-panel-text"
         />

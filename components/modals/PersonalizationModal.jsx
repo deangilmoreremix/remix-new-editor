@@ -21,7 +21,7 @@ const PersonalizationModal = observer(({ handleClose, options: { elementType, on
   );
 });
 
-PersonalizationModal.PropTypes = {
+PersonalizationModal.propTypes = {
   handleClose: PropTypes.func.isRequired,
   onAdd: PropTypes.func.isRequired,
   elementType: PropTypes.string,

@@ -1,5 +1,6 @@
 .personalized-image {
   position: absolute;
+  outline: none;
 
   & .track-event-editing .clone-container {
     display: inline-block;
@@ -97,6 +98,15 @@
   &.active {
     .url-container {
       display: flex;
+    }
+
+    .resize-handle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: $white;
+      border: $secondary-color solid 0.5px;
     }
   }
 }

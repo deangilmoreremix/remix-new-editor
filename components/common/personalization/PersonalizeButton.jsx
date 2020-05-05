@@ -1,4 +1,5 @@
 import React from 'react';
+import classnames from 'classnames';
 
 import useModalStore from '../../hooks/useModalStore';
 
@@ -6,7 +7,7 @@ import PropTypes from '../../../lib/PropTypes';
 
 import { PERSONALIZATION_MODAL } from '../../../lib/constants/modals';
 
-const PersonalizeButton = ({ elementType, onAdd }) => {
+const PersonalizeButton = ({ elementType, onAdd, text, className }) => {
   const { openModal } = useModalStore();
 
   const openPersonalize = () => {
@@ -14,12 +15,12 @@ const PersonalizeButton = ({ elementType, onAdd }) => {
   };
 
   return (
-    <div className="personalize-container">
+    <div className={classnames('personalize-container', className)}>
       <button
         className="btn-personalize"
         onClick={() => openPersonalize()}
       >
-        Personalize
+        {text}
       </button>
     </div>
   );
@@ -28,6 +29,12 @@ const PersonalizeButton = ({ elementType, onAdd }) => {
 PersonalizeButton.propTypes = {
   elementType: PropTypes.string,
   onAdd: PropTypes.func.isRequired,
+  text: PropTypes.string,
+  className: PropTypes.string,
+};
+
+PersonalizeButton.defaultProps = {
+  text: 'Personalize',
 };
 
 export default PersonalizeButton;

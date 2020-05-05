@@ -71,9 +71,13 @@
   }
 
   .popcorn-element-name {
+    max-width: 100%;
+    overflow: hidden;
     position: absolute;
     bottom: 0;
     border-top: none;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .popcorn-element {
