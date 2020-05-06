@@ -28,8 +28,12 @@ const getOne = async (store, id) => {
   await store.getOne(id);
 };
 
+const remixOne = async (store, id) => {
+  await store.remixOne(id);
+};
+
 const Home = observer(() => {
-  const { pathname, query: { project }, push } = useRouter();
+  const { pathname, query: { project, remix }, push } = useRouter();
   const projectStore = useProjectStore();
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -45,7 +49,7 @@ const Home = observer(() => {
     }
   }, []);
 
-  const asyncHero = useAsync(getOne, [projectStore, project]);
+  const asyncHero = useAsync(project ? getOne : remixOne, [projectStore, project || remix]);
 
   const {
     setLibraryType,

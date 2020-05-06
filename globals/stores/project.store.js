@@ -55,6 +55,7 @@ const defaultItem = {
     },
   },
   ratio: DEFAULT_RATIO,
+  remixedFrom: null,
 };
 
 // TODO: remove the fake data when ready
@@ -90,6 +91,8 @@ export default class ProjectStore extends BaseStore {
   @observable popcorn = {};
 
   @observable modified = false;
+
+  @observable remixedFromUrl = null;
 
   // TODO: remove the fake data when ready
   @observable personalizations = new Set(
@@ -572,6 +575,36 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
         });
+      this.setProjectData(JSON.parse(this.item.project.data));
+    } catch (e) {
+      this.item = defaultItem;
+      this.setProjectData(this.item.project.data);
+      throw e;
+    }
+    return this.item;
+  };
+
+  @action
+  remixOne = async (projectId) => {
+    if (!projectId) {
+      this.modified = true;
+      this.item = defaultItem;
+      this.setProjectData(this.item.project.data);
+      return this.item;
+    }
+    const path = `/api/makes/${projectId}/remix`;
+    try {
+      this.item = await this.request(
+        path, {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+      this.modified = true;
+      this.item.title = `Remix of ${this.item.title}`;
+      this.item.remixedFrom = this.item.project._id;
+      this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${this.item._id}`;
       this.setProjectData(JSON.parse(this.item.project.data));
     } catch (e) {
       this.item = defaultItem;
