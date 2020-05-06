@@ -718,6 +718,7 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
           body: {
+            ratio: this.item.ratio,
             title: serializedData.name,
             description: serializedData.description,
             project: serializedData,
