@@ -44,7 +44,7 @@ const RetargetOptInModal = observer(({ handleClose }) => {
       <Box> 2) Copy & Paste this embed code inside the custom HTML element:</Box>
       <FormTextArea
         inputClassName="opt-in-textarea"
-        rows="10"
+        rows={10}
         inputRef={textareaRef}
         value={optInTemplate(tokens)}
         multiline

@@ -84,7 +84,7 @@ const Home = observer(() => {
         return null;
       }
     }
-  }, [secondaryWindowType]);
+  }, [secondaryWindowType, updateAnimation]);
 
   const toolbarContent = React.useMemo(() => {
     const items = toolbarItems({
@@ -94,11 +94,11 @@ const Home = observer(() => {
         setLibraryType,
         setWideWindow,
         addElement,
-        optinCodeEnabled,
       },
       project: {
         allowedSocials,
         modified,
+        optinCodeEnabled,
       },
     });
     return items && items.length ? items : [];
