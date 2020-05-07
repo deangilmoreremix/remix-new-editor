@@ -90,4 +90,10 @@ export default class UIStore {
     this.setLibraryType(null, true);
     this.setToolbarItem(TOOLBARS.PRODUCE, options);
   };
+
+  @action
+  setInitialView = () => {
+    this.setLibraryType(null);
+    this.setToolbarItem(TOOLBARS.ELEMENTS);
+  };
 }

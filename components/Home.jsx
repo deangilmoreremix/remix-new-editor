@@ -24,14 +24,6 @@ import { DEFAULT_RATIO } from '../lib/constants/project';
 import { WINDOW_TYPES } from '../lib/constants/ui';
 import { ROUTES } from '../lib/constants/routing';
 
-const getOne = async (store, id) => {
-  await store.getOne(id);
-};
-
-const remixOne = async (store, id) => {
-  await store.remixOne(id);
-};
-
 const Home = observer(() => {
   const { pathname, query: { project, remix }, push } = useRouter();
   const projectStore = useProjectStore();
@@ -49,7 +41,12 @@ const Home = observer(() => {
     }
   }, []);
 
-  const asyncHero = useAsync(project ? getOne : remixOne, [projectStore, project || remix]);
+  const asyncHero = useAsync(
+    project
+      ? projectStore.getOne
+      : projectStore.remixOne,
+    [project || remix],
+  );
 
   const {
     setLibraryType,
@@ -63,6 +60,7 @@ const Home = observer(() => {
     updateItem,
     updateAnimation,
     isLoading,
+    isLoaded,
     addElement,
     modified,
   } = projectStore;
@@ -124,7 +122,7 @@ const Home = observer(() => {
       {asyncHero.error && ( // todo implement err message
         <div>Error</div>
       )}
-      {!asyncHero.loading && (
+      {(!asyncHero.loading || isLoaded) && (
         <div className="home">
           <Grid container className="controls">
             <Grid item xs={7}>

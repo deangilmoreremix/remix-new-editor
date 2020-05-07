@@ -12,58 +12,18 @@ import {
 import { SEQUENCER } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
-import { SANTISECOND, MAX_ZINDEX, DEFAULT_RATIO, DEFAULT_CONTAINER } from '../../lib/constants/project';
+import {
+  SANTISECOND,
+  MAX_ZINDEX,
+  DEFAULT_CONTAINER,
+  PERSONALIZATIONS_MOCK,
+  DEFAULT_DURATION,
+  PAUSE_PLUGIN_TIME_MARGIN,
+  DEFAULT_LAYER,
+  DEFAULT_ITEM,
+} from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-
-const defaultLayer = {
-  name: '',
-  order: 0,
-  trackEvents: [],
-};
-
-const defaultItem = {
-  tags: [],
-  title: '',
-  background: '',
-  description: '',
-  allowedSocials: [],
-  thumbnail: '',
-  project: {
-    data: {
-      targets: [{
-        id: 'Target0',
-        name: DEFAULT_CONTAINER,
-        element: DEFAULT_CONTAINER,
-      }],
-      media: [{
-        id: 'Media0',
-        name: 'Media0',
-        url: '#t=,30',
-        target: 'video',
-        duration: 30,
-        controls: false,
-        tracks: [{
-          name: '',
-          id: '0',
-          order: 0,
-          trackEvents: [],
-        }],
-      }],
-      template: 'basic',
-      tags: [],
-    },
-  },
-  ratio: DEFAULT_RATIO,
-  remixedFrom: null,
-};
-
-// TODO: remove the fake data when ready
-const mockPersonalizations = ['FIRSTNAME', 'LASTNAME', 'GENDER', 'FIRSTNAME', 'GEOCOUNTRY'];
-
-const PAUSE_PLUGIN_TIME_MARGIN = 0.5;
-
-const DEFAULT_DURATION = 5;
 
 export default class ProjectStore extends BaseStore {
   @observable activeElementId;
@@ -96,7 +56,7 @@ export default class ProjectStore extends BaseStore {
 
   // TODO: remove the fake data when ready
   @observable personalizations = new Set(
-    mockPersonalizations.filter(token => !EMAIL_SKIP_TOKENS.includes(token)),
+    PERSONALIZATIONS_MOCK.filter(token => !EMAIL_SKIP_TOKENS.includes(token)),
   );
 
   generateUid = () => `${Date.now() / Math.random()}`;
@@ -202,7 +162,6 @@ export default class ProjectStore extends BaseStore {
     });
     this.updateElement(elementId, options);
     this.updatePopcorn(elementId, options);
-    console.info(this.popcorn);
   };
 
   @action
@@ -294,7 +253,6 @@ export default class ProjectStore extends BaseStore {
     this.popcorn = window.Popcorn.smart(target,
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
     this.attach(target);
-    console.info(this.popcorn);
   };
 
   generatePopcornObject = () => {
@@ -415,7 +373,7 @@ export default class ProjectStore extends BaseStore {
         });
         return track;
       });
-      media.tracks.unshift({ ...defaultLayer, id: `${media.tracks.length}` });
+      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}` });
     });
 
     this.layers = this.layers.map(track => {
@@ -423,7 +381,7 @@ export default class ProjectStore extends BaseStore {
       track.defaultName = `Layer ${track.order}`;
       return track;
     });
-    this.layers.unshift({ ...defaultLayer, id: `${this.layers.length}`, defaultName: 'Layer 0' });
+    this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
   };
 
   @action
@@ -562,7 +520,7 @@ export default class ProjectStore extends BaseStore {
   getOne = async (projectId) => {
     if (!projectId) {
       this.modified = true;
-      this.item = defaultItem;
+      this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);
       return this.item;
     }
@@ -577,7 +535,7 @@ export default class ProjectStore extends BaseStore {
         });
       this.setProjectData(JSON.parse(this.item.project.data));
     } catch (e) {
-      this.item = defaultItem;
+      this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);
       throw e;
     }
@@ -588,7 +546,7 @@ export default class ProjectStore extends BaseStore {
   remixOne = async (projectId) => {
     if (!projectId) {
       this.modified = true;
-      this.item = defaultItem;
+      this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);
       return this.item;
     }
@@ -607,7 +565,7 @@ export default class ProjectStore extends BaseStore {
       this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${this.item._id}`;
       this.setProjectData(JSON.parse(this.item.project.data));
     } catch (e) {
-      this.item = defaultItem;
+      this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);
       throw e;
     }

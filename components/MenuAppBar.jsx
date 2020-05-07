@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { observer } from 'mobx-react';
 import Router from 'next/router';
 import SVGInline from 'react-svg-inline';
@@ -27,7 +27,6 @@ import { validateBeforeSave } from '../lib/utils/project';
 
 const MenuAppBar = observer(() => {
   const anchorRef = React.useRef(null);
-  let menu = [];
 
   const {
     save,
@@ -36,11 +35,18 @@ const MenuAppBar = observer(() => {
   } = useProjectStore();
   const { isSuperAdmin } = useUserStore();
   const { openModal } = useModalStore();
-  const { showProducePanel } = useUIStore();
+  const { showProducePanel, setInitialView } = useUIStore();
 
-  const projectAdminMenu = [
-    { title: 'Save as', icon: saveAsIcon, action: () => openModal(SAVE_PROJECT_MODAL) },
-  ];
+  const menu = React.useMemo(() => {
+    const projectAdminMenu = [
+      { title: 'Save as', icon: saveAsIcon, action: () => openModal(SAVE_PROJECT_MODAL) },
+    ];
+
+    return [
+      ...PROJECT_MENU_ITEMS,
+      ...(isSuperAdmin ? projectAdminMenu : []),
+    ];
+  }, [isSuperAdmin, openModal]);
 
   const saveProject = React.useCallback(async () => {
     try {
@@ -69,18 +75,13 @@ const MenuAppBar = observer(() => {
               shallow: true,
             },
           );
+          setInitialView();
         }
       }
     } catch (e) {
       showError(e.message);
     }
   }, [item]);
-
-  if (isSuperAdmin) {
-    menu = [...PROJECT_MENU_ITEMS, ...projectAdminMenu];
-  } else {
-    menu = PROJECT_MENU_ITEMS;
-  }
 
   return (
     <div className="container-header" ref={anchorRef}>
