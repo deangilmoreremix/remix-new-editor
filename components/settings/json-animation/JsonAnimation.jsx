@@ -32,6 +32,7 @@ const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
           showControls
           file={element.popcornOptions.url}
           setColor={handleSetColors}
+          value={element.popcornOptions.colors}
         />
       )}
     </div>

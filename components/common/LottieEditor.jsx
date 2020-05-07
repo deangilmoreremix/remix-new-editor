@@ -20,11 +20,11 @@ const fetchAnimation = async (url) => new Promise((resolve, reject) => {
   }
 }).then(loadUrl);
 
-const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
+const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [] }) => {
   const [ratio, setRatio] = React.useState(1);
   const [isStopped, setIsStopped] = React.useState(false);
   const [isPaused, setIsPaused] = React.useState(false);
-  const [colors, storeColors] = React.useState([]);
+  const [colors, storeColors] = React.useState(value);
 
   const animationElement = React.useRef(null);
 
@@ -50,16 +50,20 @@ const LottieEditor = ({ showControls, file, setColor, segments = {} }) => {
     const { ratio: jsonRatio } = getDimensions(animation) || {};
     setRatio(jsonRatio);
 
-    if (animation && animation.layers) {
-      getColors(animation.layers, color => rows.push(color));
-    }
+    if (!value.length) {
+      if (animation && animation.layers) {
+        getColors(animation.layers, color => rows.push(color));
+      }
 
-    if (animation && animation.assets) {
-      animation.assets.forEach((asset, i) => getColors(asset.layers, color => rows.push(color), i));
-    }
+      if (animation && animation.assets) {
+        animation.assets.forEach((asset, i) => getColors(
+          asset.layers,
+          color => rows.push(color), i),
+        );
+      }
 
-    setTimeout(() => storeColors(rows), 0);
-    return () => storeColors([]);
+      setTimeout(() => storeColors(rows), 0);
+    }
   }, [animation]);
 
   const pickColor = (newColor, oldColor) => {
@@ -170,6 +174,20 @@ LottieEditor.propTypes = {
   file: PropTypes.string.isRequired,
   setColor: PropTypes.func,
   segments: PropTypes.shape({}),
+  value: PropTypes.arrayOf(
+    PropTypes.shape({
+      a: PropTypes.number,
+      asset: PropTypes.number,
+      b: PropTypes.number,
+      color: PropTypes.string,
+      g: PropTypes.number,
+      i: PropTypes.number,
+      j: PropTypes.number,
+      k: PropTypes.number,
+      nm: PropTypes.string,
+      r: PropTypes.number,
+    }),
+  ),
 };
 
 export default LottieEditor;
