@@ -127,7 +127,7 @@ export default class Media extends BaseStore {
       let body;
 
       if (typeof data === 'string') {
-        body = { [data.indexOf('data:') === 0 ? 'dataUri' : 'srcUrl']: data };
+        body = { [data.includes('data:') ? 'dataUri' : 'srcUrl']: data };
       } else {
         const fd = new FormData();
         fd.append('media', data);

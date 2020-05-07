@@ -36,9 +36,10 @@ const FormSelect = props => {
         <Select
           className={classnames('select-element', selectClassName)}
           classNamePrefix="select"
-          defaultValue={value}
+          defaultValue={items.find(i => i.value === value)}
           onChange={handleChange}
           options={items}
+          value={items.find(i => i.value === value)}
         />
       </Box>
     </FormGroup>

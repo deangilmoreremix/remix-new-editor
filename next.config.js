@@ -1,6 +1,7 @@
 const path = require('path');
 const glob = require('glob');
 const withSass = require('@zeit/next-sass');
+const withImages = require('next-images');
 
 module.exports = withSass({
   exportPathMap() {
@@ -11,6 +12,10 @@ module.exports = withSass({
   },
   webpack: (config) => {
     config.module.rules.push(
+      {
+        test: /\.(jpg|png)$/,
+        loader: 'url-loader',
+      },
       {
         test: /\.svg$/,
         loader: 'svg-inline-loader',
@@ -30,4 +35,5 @@ module.exports = withSass({
         .reduce((a, c) => a.concat(c), []),
     },
   },
+  withImages: withImages(),
 });

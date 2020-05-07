@@ -24,8 +24,13 @@ const FormTextField = React.forwardRef(({
   multiline,
   rowsMin,
   rowsMax,
+  readOnly,
 }, ref) => {
   const conditionalProps = {};
+
+  const InputProps = {
+    ...(readOnly ? { readOnly } : {}),
+  };
 
   if (onEnter) {
     conditionalProps.onKeyPress = ({ which, target: { value: v } }) => {
@@ -65,6 +70,7 @@ const FormTextField = React.forwardRef(({
               type={type}
               name={name}
               disabled={disabled}
+              InputProps={InputProps}
               {...conditionalProps}
             />
           )
@@ -81,6 +87,7 @@ const FormTextField = React.forwardRef(({
               disabled={disabled}
               {...conditionalProps}
               multiline={multiline}
+              InputProps={InputProps}
             />
           ))}
       {type === 'text' && (
@@ -97,6 +104,7 @@ const FormTextField = React.forwardRef(({
           multiline={multiline}
           rowsMin={rowsMin}
           rowsMax={rowsMax}
+          InputProps={InputProps}
         />
       )}
 
@@ -120,6 +128,7 @@ FormTextField.propTypes = {
   multiline: PropTypes.bool,
   rowsMin: PropTypes.number,
   rowsMax: PropTypes.number,
+  readOnly: PropTypes.bool,
 };
 
 FormTextField.defaultProps = {
@@ -129,6 +138,7 @@ FormTextField.defaultProps = {
   inputClassName: '',
   labelClassName: '',
   className: '',
+  readOnly: false,
 };
 
 export default FormTextField;

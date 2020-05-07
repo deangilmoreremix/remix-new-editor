@@ -6,7 +6,14 @@ import useProjectStore from '../hooks/useProjectStore';
 import { SETTINGS_COMPONENTS } from '../../lib/constants/settings';
 
 const SettingsContainer = observer(({ tab, handleClose }) => {
-  const { element, element: { type }, activeElementId, findAndUpdate, form } = useProjectStore();
+  const {
+    element,
+    element: { type },
+    activeElementId,
+    findAndUpdate,
+    form,
+    findElement,
+  } = useProjectStore();
   const SettingsComponent = useMemo(
     () => SETTINGS_COMPONENTS[type],
     [type],
@@ -44,6 +51,7 @@ const SettingsContainer = observer(({ tab, handleClose }) => {
       element={element}
       update={updateElement}
       handleClose={handleClose}
+      find={findElement}
     />
   );
 });

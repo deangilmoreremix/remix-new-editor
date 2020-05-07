@@ -11,24 +11,21 @@ export default class UserStore {
 
   @computed
   get isSuperAdmin() {
-    return this.currentUser.authorityLevel === 0;
+    return this.currentUser && this.currentUser.authorityLevel === 0;
   }
 
   @computed
   get firstAndLastName() {
-    if (!this.currentUser.fullName) {
-      return null;
-    }
-    return this.currentUser.fullName.split(' ');
+    return this.currentUser && this.currentUser.fullName
+      ? this.currentUser.fullName.split(' ')
+      : [];
   }
 
   @computed
   get firstName() {
-    const fullNameArr = this.firstAndLastName;
-    if (!fullNameArr || !fullNameArr.length) {
-      return '';
-    }
-    return fullNameArr[0];
+    return this.firstAndLastName && this.firstAndLastName.length
+      ? this.firstAndLastName[0]
+      : '';
   }
 
   @computed

@@ -9,9 +9,11 @@ import PropTypes from '../../../lib/PropTypes';
 import useProjectStore from '../../hooks/useProjectStore';
 
 import { SANTISECOND } from '../../../lib/constants/project';
-import { MIN_DURATION } from '../../../lib/constants/popcorn';
+import { MIN_DURATION, POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
 import { NONE_CLASS } from '../../../lib/constants/animations';
+import { DEFAULT_SETTINGS } from '../../../lib/constants/settings';
 
+import { checkTransitionAvailable } from '../../../lib/utils/timeline';
 
 const PopcornElements = observer(({ width }) => {
   const projectStore = useProjectStore();
@@ -22,6 +24,7 @@ const PopcornElements = observer(({ width }) => {
     updateStartEnd,
     elements,
     layers,
+    addElement,
   } = projectStore;
 
   const layersCount = React.useMemo(() => layers.length, [layers.length]);
@@ -42,6 +45,13 @@ const PopcornElements = observer(({ width }) => {
     return end;
   }, [getExtraDuration]);
 
+  const insertTransition = async ({ transition, element }) => {
+    await updateStartEnd(element.id, element.start, element.end);
+    await addElement({
+      ...DEFAULT_SETTINGS[POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION],
+      ...transition,
+    });
+  };
 
   const backgroundGrid = React.useMemo(() => {
     const arr = [];
@@ -76,27 +86,38 @@ const PopcornElements = observer(({ width }) => {
     return result;
   }, [cols, elements, getEnd, getExtraDuration, layers]);
 
-
-  const components = React.useMemo(() => layouts.map((item) => (
-    <div
-      key={item.i}
-      data-grid={{
-        h: 1,
-        minH: 1,
-        maxH: 1,
-        i: item.i,
-        x: item.x,
-        y: item.y,
-        w: item.w,
-        minW: item.minW,
-        maxW: cols - item.x,
-      }}
-    >
-      <PopcornElement
-        item={item}
-      />
-    </div>
-  )), [layouts, cols]);
+  const components = React.useMemo(() => layouts.map((item, index, items) => {
+    const transition = checkTransitionAvailable(item, index, items);
+    return (
+      <div
+        key={item.i}
+        data-grid={{
+          h: 1,
+          minH: 1,
+          maxH: 1,
+          i: item.i,
+          x: item.x,
+          y: item.y,
+          w: item.w,
+          minW: item.minW,
+          maxW: cols - item.x,
+        }}
+      >
+        <PopcornElement
+          item={item}
+        />
+        {transition && (
+          <button
+            title="Animate transition"
+            type="button"
+            onClick={() => insertTransition(transition)}
+          >
+            Animate transition
+          </button>
+        )}
+      </div>
+    );
+  }), [layouts, cols]);
 
   const onDragStop = (element, oldElement, newElement) => {
     if (oldElement.y !== newElement.y) {

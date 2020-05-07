@@ -46,13 +46,9 @@ const PopcornElement = observer(({ item }) => {
             )}
           </Grid>
         );
-      } default: {
-        return (
-          <Grid
-            xs={4}
-            item
-          />
-        );
+      }
+      default: {
+        return null;
       }
     }
   };

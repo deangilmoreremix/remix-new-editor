@@ -600,7 +600,6 @@ export default class ProjectStore extends BaseStore {
     return acceptableSources.includes(extension);
   })[0];
 
-
   @action
   attach = (target) => {
     this.popcornObject.popcornElements.forEach((element) => {
@@ -681,11 +680,11 @@ export default class ProjectStore extends BaseStore {
 
   @action
   addElementToProject = (trackEvent) => {
-    const { id, popcornOptions } = trackEvent;
+    const { id, popcornOptions, type } = trackEvent;
     if (!popcornOptions.target) {
       popcornOptions.target = DEFAULT_CONTAINER;
     }
-    this.popcorn[trackEvent.type]({ id, ...popcornOptions });
+    this.popcorn[type]({ id, ...popcornOptions });
     this.projectData.media.forEach((media) => {
       media.tracks[0].trackEvents.push(trackEvent);
     });
