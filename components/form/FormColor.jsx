@@ -11,15 +11,16 @@ import FormTextField from './FormTextField';
 import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 
 const FormColor = ({ label, onChange, value, className, disabled }) => {
+  const colorPrimary = 'rgb(235, 80, 84, 1)';
   const [anchorEl, setAnchorEl] = useState(null);
-  const [color, setColor] = useState('');
+  const [color, setColor] = useState(parseRgbaString(value || ''));
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
 
-  const colorPrimary = 'rgb(235, 80, 84, 1)';
-
-  const changeColor = (res) => {
-    onChange(res);
+  const changeColor = (newColor) => {
+    if (newColor) {
+      onChange(newColor);
+    }
   };
 
   const handleClick = (event) => {
@@ -31,9 +32,9 @@ const FormColor = ({ label, onChange, value, className, disabled }) => {
     setAnchorEl(null);
   };
 
-  const updateColor = (res) => {
-    const parsedColor = parseRgbaString(res);
-    setColor(parsedColor || parsedColor.rgb || colorPrimary);
+  const updateColor = (newColor) => {
+    const parsedColor = parseRgbaString(newColor);
+    setColor(parsedColor || parsedColor.rgb);
   };
 
   return (
@@ -44,7 +45,7 @@ const FormColor = ({ label, onChange, value, className, disabled }) => {
       <Box tabIndex={-1}>
         <FormTextField
           labelClass="label-left"
-          value={value || colorPrimary}
+          value={colorToRgbaString(color) || value || colorPrimary}
           onChange={updateColor}
           disabled={disabled}
           inputClassName={classnames({ 'input-disabled': disabled })}
