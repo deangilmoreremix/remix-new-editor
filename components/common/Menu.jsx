@@ -4,7 +4,6 @@ import SVGInline from 'react-svg-inline';
 import { Popper, Button, Grow, ClickAwayListener, Paper } from '@material-ui/core';
 
 import togglerIcon from '../../public/static/svgImages/common/toggler.svg';
-import arrowIcon from '../../public/static/images/arrow-red.svg';
 
 import PropTypes from '../../lib/PropTypes';
 
@@ -46,18 +45,12 @@ const Menu = observer((
               onClick={() => setOpen(!open)}
             >
               {toggleElement}
-              {needEndIcon ? (
+              {needEndIcon && (
                 <SVGInline
                   className="toggler-icon"
                   classSuffix=""
                   svg={togglerIcon}
                   cleanup={['title']}
-                />
-              ) : (
-                <SVGInline
-                  className="menu-arrow"
-                  svg={arrowIcon}
-                  cleanup={['arrow']}
                 />
               )}
             </button>
