@@ -2,21 +2,35 @@ import { action, observable } from 'mobx';
 
 import BaseStore from './base.store';
 import mediaConsts from '../../lib/constants/media';
-import { perPage } from '../../lib/constants/library';
+import { providers } from '../../lib/utils/media';
+
+const { ASSET_TYPES } = mediaConsts;
 
 export default class Media extends BaseStore {
   @observable libraryItemsForDelete = [];
 
-  getAssets = async (assetType, page = 1, query = '', filter) => {
+  getProvider = (providerName, assetType) => {
     try {
-      const data = await this.request(
-        `/api/users/me/media-assets?kind=${mediaConsts.ASSET_TYPES[assetType]}&perPage=${perPage}&page=${page}&q=${query}${filter ? `&filter=${JSON.stringify(filter)}` : ''}`,
-        {
-          method: 'GET',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+      return providers[providerName][assetType];
+    } catch (e) {
+      throw new Error(`Unknown provider ${providerName} with asset type ${assetType}`);
+    }
+  }
+
+  getAssets = async ({ providerName, assetType, page = 1, query = '', filter }) => {
+    const provider = this.getProvider(providerName, ASSET_TYPES[assetType]);
+    provider.setRequest(this.request.bind(this));
+
+    try {
+      const data = await provider.getAssets({
+        page,
+        query,
+        filter,
+        perPage: 20,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
       return data;
     } catch (e) {
       console.error(e);

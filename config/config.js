@@ -23,7 +23,6 @@ files.push(allConfig);
 
 const config = _.defaultsDeep(...files);
 
-
 module.exports = config;
 module.exports.isTest = process.env.NODE_ENV === 'test';
 module.exports.isProduction = process.env.NODE_ENV === 'production';

@@ -68,7 +68,7 @@ const Library = observer(() => {
     if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
-      fetchItems(activeTab);
+      fetchItems({ currentTab: activeTab, source: activeBtn });
     }
   }, [activeTab]);
 
@@ -77,11 +77,11 @@ const Library = observer(() => {
     if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
-      fetchItems(activeTab);
+      fetchItems({ source: element, currentTab: activeTab });
     }
   };
 
-  const fetchItems = async (currentTab, queryStr = '') => {
+  const fetchItems = async ({ source = activeBtn, currentTab = activeTab, queryStr = '' }) => {
     let currentPage = 0;
     let uploaded = [];
 
@@ -98,9 +98,13 @@ const Library = observer(() => {
     }
 
     try {
-      const data = await getAssets(
-        activeTab, currentPage, queryStr, { _id: { $nin: uploaded } },
-      );
+      const data = await getAssets({
+        providerName: source,
+        assetType: activeTab,
+        page: currentPage,
+        query: queryStr,
+        filter: { _id: { $nin: uploaded } },
+      });
 
       if (data.length) {
         if (currentTab) {
@@ -231,7 +235,7 @@ const Library = observer(() => {
       })
       .then(() => {
         if (!unmount) {
-          fetchItems(activeTab, searchText);
+          fetchItems({ source: activeBtn, currentTab: activeTab, queryStr: searchText });
         }
       })
       .catch(e => showError(`Error while deleting items, ${e}`));

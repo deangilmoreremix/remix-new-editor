@@ -82,4 +82,18 @@ module.exports = {
   posterframe: process.env.DEFAULT_POSTERFRAME || 'https://cdn.vidcloud.io/resources/go/posterframe_default.jpg',
   facebookAppId: process.env.FACEBOOK_APP_ID || '766265603823913',
   linkedinAppId: process.env.LINKEDIN_APP_ID || '77dc93kxh13kfc',
+  mediaProviders: {
+    PEXELS: {
+      apiUrl: process.env.PEXELS_API_URL || 'https://api.pexels.com',
+      apiKey: process.env.PEXELS_API_KEY || '563492ad6f917000010000016536fdd8a2cd46b7be0af6abf04caf86',
+      imagesApiPath: 'v1',
+      videosApiPath: 'videos',
+    },
+    PIXABAY: {
+      apiUrl: process.env.PIXABAY_API_URL || 'https://pixabay.com',
+      apiKey: process.env.PIXABAY_API_KEY || '13298235-276e448db1c79d704ffc96bc3',
+      imagesApiPath: 'api',
+      videosApiPath: 'api/videos',
+    },
+  },
 };
