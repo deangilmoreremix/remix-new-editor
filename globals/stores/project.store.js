@@ -6,9 +6,6 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 
-import {
-  EMAIL_SKIP_TOKENS,
-} from '../../lib/constants/campaigns/constants';
 import { SEQUENCER } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
@@ -16,7 +13,6 @@ import {
   SANTISECOND,
   MAX_ZINDEX,
   DEFAULT_CONTAINER,
-  PERSONALIZATIONS_MOCK,
   DEFAULT_DURATION,
   PAUSE_PLUGIN_TIME_MARGIN,
   DEFAULT_LAYER,
@@ -24,6 +20,7 @@ import {
 } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
+import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 
 export default class ProjectStore extends BaseStore {
   @observable activeElementId;
@@ -52,12 +49,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable modified = false;
 
-  @observable remixedFromUrl = null;
-
-  // TODO: remove the fake data when ready
-  @observable personalizations = new Set(
-    PERSONALIZATIONS_MOCK.filter(token => !EMAIL_SKIP_TOKENS.includes(token)),
-  );
+  getPersonalization = () => getCustomVarsFromMediaArr(this.projectData.media);
 
   generateUid = () => `${Date.now() / Math.random()}`;
 
@@ -708,7 +700,7 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
           body: {
-            ratio: this.item.ratio,
+            ...this.item,
             title: serializedData.name,
             description: serializedData.description,
             project: serializedData,
@@ -717,8 +709,10 @@ export default class ProjectStore extends BaseStore {
             tags: serializedData.tags,
           },
         });
+      const publishedMake = await this.publish(result._id);
       runInAction(() => {
         this.item = { ...this.item, ...result };
+        this.item.contentUrl = publishedMake.contenturl;
         this.setProjectData(JSON.parse(this.item.project.data));
         this.modified = false;
         this.isLoading = false;
@@ -730,6 +724,16 @@ export default class ProjectStore extends BaseStore {
     }
     return this.item;
   };
+
+  @action
+  invalidateFbCache = (url) => this.request(
+    '/api/makes/update-fb-cache', {
+      method: 'POST',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      },
+      body: { publishUrl: url },
+    });
 
   @computed
   get element() {
@@ -756,6 +760,16 @@ export default class ProjectStore extends BaseStore {
       }
     });
   };
+
+  publish(id) {
+    return this.request(
+      `/api/users/me/makes/${id}/publish`, {
+        method: 'POST',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+  }
 
   constructor(props) {
     super(props);

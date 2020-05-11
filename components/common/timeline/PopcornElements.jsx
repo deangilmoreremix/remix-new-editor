@@ -33,15 +33,18 @@ const PopcornElements = observer(({ width }) => {
     return null;
   }
 
-  const getExtraDuration = React.useCallback((animation) => {
+  const getExtraDuration = React.useCallback((animation, outDuration) => {
     if (animation && animation.out && animation.out.duration && animation.out.type !== NONE_CLASS) {
       return animation.out.duration;
+    }
+    if (outDuration) {
+      return outDuration;
     }
     return 0;
   }, []);
 
-  const getEnd = React.useCallback((end, animation) => {
-    end += getExtraDuration(animation);
+  const getEnd = React.useCallback((end, animation, outDuration) => {
+    end += getExtraDuration(animation, outDuration);
     return end;
   }, [getExtraDuration]);
 
@@ -64,10 +67,13 @@ const PopcornElements = observer(({ width }) => {
   const layouts = React.useMemo(() => {
     const result = [];
     elements.forEach(element => {
-      const { popcornOptions: { id: i, start, end, animation, title }, type } = element;
+      const {
+        popcornOptions: { id: i, start, end, animation, title, outDuration },
+        type,
+      } = element;
       const layer = layers.find(item => item.id === element.track);
       const x = start * SANTISECOND;
-      const w = (getEnd(end, animation) - start) * SANTISECOND;
+      const w = (getEnd(end, animation, outDuration) - start) * SANTISECOND;
       result.push({
         i,
         x,
@@ -80,7 +86,7 @@ const PopcornElements = observer(({ width }) => {
         title,
         y: layer.order,
         maxW: cols - x,
-        minW: (MIN_DURATION + getExtraDuration(animation)) * SANTISECOND,
+        minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
       });
     });
     return result;

@@ -1,6 +1,10 @@
 import * as React from 'react';
 
-import { EMAIL_EMBED_LOCATIONS, WORDPRESS } from '../../../../../lib/constants/campaigns/constants';
+import {
+  DEFAULT,
+  EMAIL_EMBED_LOCATIONS,
+  WORDPRESS,
+} from '../../../../../lib/constants/campaigns/constants';
 import EmbedDataContainer from '../../../EmbedDataContainer';
 import PropTypes from '../../../../../lib/PropTypes';
 
@@ -57,12 +61,14 @@ const EmbedEngine = ({ settings, updateCampaign, project }) => {
               : null
           }
           <span className="embed-line">{embedLocation.prompt}</span>
-          <EmbedDataContainer
-            className="embed-item"
-            url={project.url}
-            stringGenerator={embedLocation.embedGenerator}
-            resizable
-          />
+          { embedLocation.key === DEFAULT ? null : (
+            <EmbedDataContainer
+              className="embed-item"
+              url={project.url}
+              stringGenerator={embedLocation.embedGenerator}
+              resizable
+            />
+          )}
         </div>
       )}
     </div>
@@ -73,7 +79,7 @@ EmbedEngine.propTypes = {
   settings: PropTypes.shape({
     embedLocation: PropTypes.shape({
       key: PropTypes.string.isRequired,
-      prompt: PropTypes.string.isRequired,
+      prompt: PropTypes.string,
       embedGenerator: PropTypes.func.isRequired,
     }),
     preload: PropTypes.bool,

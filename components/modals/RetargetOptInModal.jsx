@@ -26,8 +26,8 @@ const SortableList = SortableContainer(({ items }) => (
 
 const RetargetOptInModal = observer(({ handleClose }) => {
   const projectStore = useProjectStore();
-  const { personalizations } = projectStore;
-  const [tokens, toggleTokens] = useState([...personalizations.values()]);
+  const { getPersonalization } = projectStore;
+  const [tokens, toggleTokens] = useState(getPersonalization());
   const textareaRef = useRef();
 
   const toggle = ({ oldIndex, newIndex }) => {
