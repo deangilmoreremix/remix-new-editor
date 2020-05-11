@@ -62,7 +62,7 @@ const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [] 
         );
       }
 
-      setTimeout(() => storeColors(rows), 0);
+      storeColors(rows);
     }
   }, [animation]);
 
