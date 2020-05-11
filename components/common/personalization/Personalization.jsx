@@ -4,7 +4,7 @@ import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 
-import { tokenModes, INPUT_PLACEHOLDER } from '../../../lib/constants/tokens';
+import { tokenModes, INPUT_PLACEHOLDER, CUSTOM } from '../../../lib/constants/tokens';
 import FormTextField from '../../form/FormTextField';
 
 import svgCogWheel from '../../../public/static/images/cogwheel.svg';
@@ -13,6 +13,7 @@ import { formatToken } from '../../../lib/utils/tokens-helper';
 
 const Personalization = ({ closeModal, tokenList, onAdd }) => {
   const [token, setToken] = useState(tokenList[0]);
+  const [customToken, setCustomToken] = useState(CUSTOM);
   const [tokenState, setTokenState] = useState(tokenModes.plain);
   const [disabled, setDisabled] = useState(true);
   const [fallbackValue, setFallbackValue] = useState('');
@@ -29,10 +30,12 @@ const Personalization = ({ closeModal, tokenList, onAdd }) => {
   }, [disabled]);
 
   const addToken = React.useCallback(() => {
-    const tokenString = formatToken(token, tokenState, !disabled && fallbackValue);
+    const tokenValue = token === CUSTOM ? customToken : token;
+    const tokenString = formatToken(tokenValue.toUpperCase(),
+      tokenState, !disabled && fallbackValue);
     onAdd(tokenString);
     closeModal();
-  }, [disabled, fallbackValue, token, tokenState]);
+  }, [closeModal, customToken, disabled, fallbackValue, onAdd, token, tokenState]);
 
   return (
     <div className="personalization">
@@ -73,7 +76,22 @@ const Personalization = ({ closeModal, tokenList, onAdd }) => {
           <div className="personalization__info">
             <div>
               {
-                tokenList.length > 1 ? <p className="personalization__name">{token}</p>
+                tokenList.length > 1 ? (
+                  <div>
+                    {
+                  token === CUSTOM ? (
+                    <FormTextField
+                      name="text"
+                      inputClassName="personalization__input__image"
+                      type="input"
+                      value={customToken}
+                      onChange={(v) => setCustomToken(v)}
+                    />
+                  )
+                    : <p className="personalization__name">{token}</p>
+                }
+                  </div>
+                )
                   : (
                     <FormTextField
                       name="text"

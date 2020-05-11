@@ -44,15 +44,17 @@
   }
 
   .token-uppercase {
-    //content: url('/static/images/editor/token-uppercase.svg');
-    background: white;
-    margin: auto 2px -4px 0;
+    content: url('/static/svgImages/tokens/uppercase.svg');
+    margin: auto 4px auto auto;
+    width: 1rem;
+    height: 1rem;
   }
 
   .token-default {
-    //content: url('/static/images/editor/token-default.svg');
-    background:  white;
-    margin: auto 2px -4px 0;
+    content: url('/static/svgImages/tokens/default.svg');
+    margin: auto 4px auto auto;
+    width: 1rem;
+    height: 1rem;
   }
 }
 
