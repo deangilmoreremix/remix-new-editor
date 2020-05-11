@@ -8,12 +8,8 @@ import useUserStore from '../../hooks/useUserStore';
 import trashIcon from '../../../public/static/svgImages/trash.svg';
 import addIcon from '../../../public/static/svgImages/add-white.svg';
 
-const ContentItem = ({ item, onDelete }) => {
+const ContentItem = ({ item, onDelete, onSelect }) => {
   const { isSuperAdmin } = useUserStore();
-
-  const onSelect = () => {
-    console.log(item);
-  };
 
   return (
     <div className="stickers-content__item">
@@ -31,7 +27,7 @@ const ContentItem = ({ item, onDelete }) => {
                 svg={trashIcon}
               />
             </button>
-            <button className="stickers-content__append" onClick={() => onSelect()}>
+            <button className="stickers-content__append" onClick={() => onSelect(item)}>
               <SVGInline
                 className="stickers-content__icon"
                 svg={addIcon}
@@ -39,7 +35,7 @@ const ContentItem = ({ item, onDelete }) => {
             </button>
           </div>
         ) : (
-          <button type="button" className="animation-preview__add" />
+          <button type="button" className="animation-preview__add" onClick={() => onSelect(item)} />
         )
       }
     </div>
@@ -52,6 +48,7 @@ ContentItem.propTypes = {
     preview: PropTypes.string.isRequired,
   }).isRequired,
   onDelete: PropTypes.func.isRequired,
+  onSelect: PropTypes.func.isRequired,
 };
 
 export default ContentItem;

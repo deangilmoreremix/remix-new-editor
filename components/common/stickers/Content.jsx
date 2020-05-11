@@ -7,10 +7,12 @@ import { Waypoint } from 'react-waypoint';
 import mediaConstants from '../../../lib/constants/media';
 import { showError } from '../../../lib/services/alertService';
 import { perPage } from '../../../lib/constants/library';
+import { MEDIA_TYPES } from '../../../lib/constants/popcorn';
 
 import useUserStore from '../../hooks/useUserStore';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
+import useProjectStore from '../../hooks/useProjectStore';
 
 import plusIcon from '../../../public/static/svgImages/plus-circle.svg';
 
@@ -29,7 +31,7 @@ const Content = () => {
   const [filesToUpload, setFilesToUpload] = useState();
 
   const { secondaryWindowType: activeTab } = useUIStore();
-
+  const { addElement } = useProjectStore();
   const { isSuperAdmin } = useUserStore();
   const {
     uploadMedia,
@@ -76,7 +78,6 @@ const Content = () => {
           setIsLoading(false);
           setNewLottieElements(null);
           setFilesToUpload(null);
-          // setIsReady(false);
         });
     }
   }, [filesToUpload, isReady]);
@@ -136,12 +137,6 @@ const Content = () => {
     }
   };
 
-  const onDelete = (id) => {
-    const newArr = items.filter(item => item._id !== id);
-    setPresetsForDelete(id);
-    setItems(newArr);
-  };
-
   const bulkDeleteItems = (unmount) => {
     deletePreset()
       .then(() => {
@@ -168,6 +163,18 @@ const Content = () => {
     onDrop,
     disabled: false,
   });
+
+  const onSelect = item => {
+    item.src = item.data;
+    item.type = MEDIA_TYPES.LOTTIE_JSON;
+    return addElement(item);
+  };
+
+  const onDelete = (id) => {
+    const newItems = items.filter(item => item._id !== id);
+    setPresetsForDelete(id);
+    setItems(newItems);
+  };
 
   return (
     <div className="stickers-content">
@@ -204,6 +211,7 @@ const Content = () => {
             key={item._id}
             item={item}
             onDelete={onDelete}
+            onSelect={onSelect}
           />
         ))
       }
