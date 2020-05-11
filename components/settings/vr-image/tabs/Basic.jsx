@@ -24,7 +24,7 @@ const Basic = ({ values, fields, onChange }) => {
     if (!src) {
       onChange({ src: fields.src.default, htmlSrc: wrapTokens(fields.src.default) });
     }
-  }, []);
+  }, [src]);
 
   const onAddSrc = useCallback((token) => {
     onChange({ src: token, htmlSrc: wrapTokens(token) });

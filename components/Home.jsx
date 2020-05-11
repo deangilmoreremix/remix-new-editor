@@ -7,6 +7,7 @@ import Grid from '@material-ui/core/Grid';
 import Canvas from './Canvas';
 import Timeline from './Timeline';
 import Library from './media/Library';
+import Stickers from './media/Stickers';
 import Toolbar from './common/toolbar/Toolbar';
 import SizeSelector from './canvas/SizeSelector';
 import AnimationList from './media/AnimationList';
@@ -53,6 +54,7 @@ const Home = observer(() => {
     wideWindow,
     setWideWindow,
     secondaryWindowType,
+    openStickers,
   } = uiStore;
 
   const {
@@ -82,6 +84,11 @@ const Home = observer(() => {
       case WINDOW_TYPES.IMAGE: {
         return <Library />;
       }
+      case WINDOW_TYPES.STICKERS.value:
+      case WINDOW_TYPES.ANIMATED_EMOJI.value:
+      case WINDOW_TYPES.STATIC_EMOJI.value:
+      case WINDOW_TYPES.FLAGS.value:
+        return <Stickers />;
       default: {
         return null;
       }
@@ -94,6 +101,7 @@ const Home = observer(() => {
         openModal,
         closeModal,
         setLibraryType,
+        openStickers,
         setWideWindow,
         addElement,
       },

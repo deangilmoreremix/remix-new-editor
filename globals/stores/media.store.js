@@ -3,11 +3,14 @@ import { action, observable } from 'mobx';
 import BaseStore from './base.store';
 import mediaConsts from '../../lib/constants/media';
 import { providers } from '../../lib/utils/media';
+import { perPage } from '../../lib/constants/library';
 
 const { ASSET_TYPES } = mediaConsts;
 
 export default class Media extends BaseStore {
   @observable libraryItemsForDelete = [];
+
+  @observable presetsItemsForDelete = [];
 
   getProvider = (providerName, assetType) => {
     try {
@@ -26,7 +29,7 @@ export default class Media extends BaseStore {
         page,
         query,
         filter,
-        perPage: 20,
+        perPage,
         headers: {
           'on-behalf': this.currentUser.id,
         },
@@ -34,6 +37,26 @@ export default class Media extends BaseStore {
       return data;
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  getPresets = async (assetType, page = 1, filter = {}) => {
+    if (!filter.type) {
+      filter.type = assetType;
+    }
+
+    try {
+      const data = await this.request(
+        `/api/presets?perPage=${perPage}&page=${page}${filter ? `&filter=${JSON.stringify(filter)}` : ''}`,
+        {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+      return data;
+    } catch (e) {
+      throw new Error('An error occurred while loading items.');
     }
   };
 
@@ -134,6 +157,33 @@ export default class Media extends BaseStore {
     }
   };
 
+  @action
+  setPresetsForDelete = (id) => {
+    if (id) {
+      this.presetsItemsForDelete.push(id);
+    } else {
+      this.presetsItemsForDelete = [];
+    }
+  };
+
+  @action
+  deletePreset = async () => {
+    if (this.presetsItemsForDelete.length) {
+      const promiseArr = this.presetsItemsForDelete.map(id => (
+        this.request(
+          `/api/presets/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'on-behalf': this.currentUser.id,
+            },
+          })
+      ));
+      return Promise.all(promiseArr).then(() => { this.presetsItemsForDelete = []; });
+    } else {
+      return Promise.resolve();
+    }
+  };
+
   uploadMedia = async ({ data, preview }) => {
     let asset;
     try {
@@ -161,8 +211,30 @@ export default class Media extends BaseStore {
         },
       );
     } catch (e) {
-      console.error(e);
+      throw new Error(e.message);
     }
     return asset;
   };
+
+  addPreset = async (item, kind) => {
+    let asset;
+    try {
+      asset = await this.request('/api/presets',
+        {
+          method: 'POST',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+          body: {
+            type: kind,
+            data: item.data,
+            preview: item.preview,
+          },
+        },
+      );
+    } catch (e) {
+      console.error(e);
+    }
+    return asset;
+  }
 }

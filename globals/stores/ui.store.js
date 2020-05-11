@@ -54,9 +54,12 @@ export default class UIStore {
   };
 
   @action
-  setLibraryType = (type, isWideWindow = false) => {
-    this.showAnimation = false;
-    this.wideWindow = isWideWindow;
+  setLibraryType = (type) => {
+    this.secondaryWindowType = type;
+  };
+
+  @action
+  openStickers = (type) => {
     this.secondaryWindowType = type;
   };
 

@@ -136,6 +136,7 @@ export default class Lottie extends React.Component {
       ariaLabel,
       isClickToPauseDisabled,
       title,
+      className,
     } = this.props;
 
     const getSize = (initial) => {
@@ -178,6 +179,7 @@ export default class Lottie extends React.Component {
         aria-label={ariaLabel}
         // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
         tabIndex="0"
+        className={className}
       />
     );
   }
@@ -198,7 +200,8 @@ Lottie.propTypes = {
   ariaLabel: PropTypes.string,
   isClickToPauseDisabled: PropTypes.bool,
   title: PropTypes.string,
-  style: PropTypes.string,
+  style: PropTypes.shape({}),
+  className: PropTypes.string,
 };
 
 Lottie.defaultProps = {
