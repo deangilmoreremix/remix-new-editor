@@ -95,5 +95,16 @@ module.exports = {
       imagesApiPath: 'api',
       videosApiPath: 'api/videos',
     },
+    UNSPLASH: {
+      apiUrl: process.env.UNSPLASH_API_URL || 'https://api.unsplash.com',
+      apiKey: process.env.UNSPLASH_API_KEY || '089197d4e5af98ac2ae777e512eb6f22bf89d18c48e86ae1093f781dd876dfd9',
+      imagesApiPath: 'photos',
+    },
+    DROPMOCK: {
+      apiUrl: process.env.DROPMOCK_API_URL || 'https://app.dropmock.com',
+      apiKey: process.env.DROPMOCK_API_KEY || 'bTzbENea9u3p35y726pn5xALu7KerQulOWxIPt0F',
+      imagesApiPath: 'api/v1/images',
+      videosApiPath: 'api/v1/fusion/videos',
+    },
   },
 };
