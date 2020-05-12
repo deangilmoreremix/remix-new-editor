@@ -706,7 +706,7 @@ export default class ProjectStore extends BaseStore {
     source: this.item.source,
     tags: this.item.tags,
     retargetForm: {
-      options: this.retarget.options,
+      options: this.retarget ? this.retarget.options : DEFAULT_OPTIONS,
     },
   });
 

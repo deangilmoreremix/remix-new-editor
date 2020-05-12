@@ -206,7 +206,7 @@ const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
             onChange={onChange}
           />
           <FieldBuilder
-            value={values.transition || fields.transition.defaultFontSelect}
+            value={values.transition || fields.transition.default}
             {...fields.transition}
             onChange={onChange}
           />
@@ -226,7 +226,7 @@ StylesTab.propTypes = {
     height: PropTypes.number,
     fontFamily: PropTypes.string,
     captionAlignment: PropTypes.string,
-    captionFontSize: PropTypes.string,
+    captionFontSize: PropTypes.number,
     fontColor: PropTypes.string,
     innerColor: PropTypes.string,
     fontSize: PropTypes.number,
@@ -236,33 +236,73 @@ StylesTab.propTypes = {
     backgroundColor: PropTypes.string,
     buttonBackground: PropTypes.string,
     buttonFontColor: PropTypes.string,
-    buttonBorderRadius: PropTypes.number,
+    buttonBorderRadius: PropTypes.string,
     btnBottomBorder: PropTypes.string,
     transition: PropTypes.string,
   }),
   onClose: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({
-    brandLogoSrc: PropTypes.string,
-    backgroundImage: PropTypes.string,
-    enableSkipButton: PropTypes.bool,
-    width: PropTypes.number,
-    height: PropTypes.number,
-    fontFamily: PropTypes.string,
-    captionAlignment: PropTypes.string,
-    captionFontSize: PropTypes.string,
-    fontColor: PropTypes.string,
-    innerColor: PropTypes.string,
-    fontSize: PropTypes.number,
-    innerWidth: PropTypes.number,
-    innerHeight: PropTypes.number,
-    innerOpacity: PropTypes.number,
-    backgroundColor: PropTypes.string,
-    buttonBackground: PropTypes.string,
-    buttonFontColor: PropTypes.string,
-    buttonBorderRadius: PropTypes.number,
-    btnBottomBorder: PropTypes.string,
-    transition: PropTypes.string,
+    brandLogoSrc: PropTypes.shape({
+      name: PropTypes.string,
+    }),
+    backgroundImage: PropTypes.shape({
+      name: PropTypes.string,
+    }),
+    enableSkipButton: PropTypes.shape({
+      default: PropTypes.bool,
+    }),
+    width: PropTypes.shape({
+      default: PropTypes.number,
+    }),
+    height: PropTypes.shape({
+      default: PropTypes.number,
+    }),
+    fontFamily: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    captionAlignment: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    captionFontSize: PropTypes.shape({
+      default: PropTypes.number,
+    }),
+    fontColor: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    innerColor: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    fontSize: PropTypes.shape({
+      default: PropTypes.number,
+    }),
+    innerWidth: PropTypes.shape({
+      default: PropTypes.number,
+    }),
+    innerHeight: PropTypes.shape({
+      default: PropTypes.number,
+    }),
+    innerOpacity: PropTypes.shape({
+      default: PropTypes.number,
+    }),
+    backgroundColor: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    buttonBackground: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    buttonFontColor: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    buttonBorderRadius: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    btnBottomBorder: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    transition: PropTypes.shape({
+      default: PropTypes.string,
+    }),
   }),
 };
 

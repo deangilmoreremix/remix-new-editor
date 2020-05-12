@@ -21,7 +21,7 @@ export default class UIStore {
       },
     );
     reaction(
-      () => this.projectStore.retarget.showedForm,
+      () => this.projectStore.retarget,
       () => {
         if (this.projectStore.retarget.showedForm) {
           this.secondaryWindowType = WINDOW_TYPES.SETTING;

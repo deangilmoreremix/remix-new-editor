@@ -134,12 +134,24 @@ FieldsTab.propTypes = {
   }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({
-    elements: PropTypes.arr,
-    caption: PropTypes.string,
-    privacyDisclaimer: PropTypes.string,
-    privacyPolicyCaption: PropTypes.string,
-    privacyPolicyLink: PropTypes.string,
-    btnText: PropTypes.string,
+    elements: PropTypes.shape({
+      default: PropTypes.arrayOf(PropTypes.shape({})),
+    }),
+    caption: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    privacyDisclaimer: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    privacyPolicyCaption: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    privacyPolicyLink: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    btnText: PropTypes.shape({
+      default: PropTypes.string,
+    }),
   }),
 };
 export default FieldsTab;

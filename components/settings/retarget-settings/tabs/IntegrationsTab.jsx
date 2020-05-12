@@ -63,13 +63,27 @@ IntegrationsTab.propTypes = {
   }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({
-    webhookEnabled: PropTypes.bool,
-    webhook: PropTypes.string,
-    dialEnabled: PropTypes.bool,
-    phone: PropTypes.string,
-    callNotifyAddress: PropTypes.string,
-    emailEnabled: PropTypes.bool,
-    emailAddress: PropTypes.bool,
+    webhookEnabled: PropTypes.shape({
+      default: PropTypes.bool,
+    }),
+    webhook: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    dialEnabled: PropTypes.shape({
+      default: PropTypes.bool,
+    }),
+    phone: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    callNotifyAddress: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    emailEnabled: PropTypes.shape({
+      default: PropTypes.bool,
+    }),
+    emailAddress: PropTypes.shape({
+      default: PropTypes.string,
+    }),
   }),
 };
 
