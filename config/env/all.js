@@ -20,7 +20,7 @@ module.exports = {
   access: {
     minAuthLevel: process.env.MIN_AUTH_LEVEL || 5,
     features: {
-      main: process.env.GO_FEATURE_NAME || 'go:editor',
+      main: process.env.REVOLUTION_FEATURE_NAME || 'revolution',
       generator: process.env.GO_TEMPLATE_GENERATOR || 'go:generator',
       cta: process.env.GO_CTA_LIBRARY || 'go:cta',
       leadgen: process.env.GO_LEAD_GENERATOR || 'go:leadgen',
