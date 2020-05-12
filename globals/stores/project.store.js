@@ -9,6 +9,8 @@ import blendModeConstants from '../../lib/constants/blendMode';
 import { SEQUENCER } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
+import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
+
 import {
   SANTISECOND,
   MAX_ZINDEX,
@@ -49,6 +51,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable modified = false;
 
+  @observable retarget = null;
+
   getPersonalization = () => getCustomVarsFromMediaArr(this.projectData.media);
 
   generateUid = () => `${Date.now() / Math.random()}`;
@@ -87,6 +91,55 @@ export default class ProjectStore extends BaseStore {
     }
     return options;
   };
+
+  @action
+  createRetargetForm = (initialOptions) => {
+    const { type } = initialOptions;
+    const popcornFunctions = window.Popcorn.compositions.retargetForm();
+    const manifest = window.Popcorn.manifest.retargetForm;
+
+    const options = this.retarget ? this.retarget.options : DEFAULT_OPTIONS;
+
+    const retargetOptions = {
+      id: `0.${this.generateUid()}`,
+      manifest,
+      type,
+      showed: true,
+      showedForm: true,
+      options,
+    };
+
+    popcornFunctions._setup(retargetOptions);
+    this.editElement(retargetOptions.id);
+    this.retarget = { ...retargetOptions, ...popcornFunctions };
+    this.retarget.end = () => {
+      if (popcornFunctions.end) {
+        popcornFunctions.end(this.retarget);
+      }
+    };
+    this.retarget.start = () => {
+      if (popcornFunctions.start) {
+        popcornFunctions.start(retargetOptions);
+      }
+    };
+  }
+
+  @action
+  addRetargetForm = (retargetForm) => {
+    if (this.retarget) {
+      if (!this.retarget.showedForm && !this.retarget.id) {
+        this.createRetargetForm(retargetForm);
+        this.retarget.start();
+      } else {
+        this.retarget.showedForm = true;
+        this.editElement(this.retarget.id);
+        this.retarget.start();
+      }
+    } else {
+      this.createRetargetForm(retargetForm);
+      this.retarget.start();
+    }
+  }
 
   @action
   addElement = async (item) => {
@@ -131,6 +184,10 @@ export default class ProjectStore extends BaseStore {
 
   @action
   editElement = (elementId) => {
+    if (this.retarget && this.retarget.showedForm && elementId !== this.retarget.id) {
+      this.retarget.showedForm = false;
+      this.retarget.end();
+    }
     this.activeElementId = elementId;
   };
 
@@ -141,19 +198,28 @@ export default class ProjectStore extends BaseStore {
 
   @action
   findAndUpdate = (elementId, options) => {
-    this.modified = true;
-    this.projectData.media.forEach((media) => {
-      media.tracks.forEach((track) => {
-        track.trackEvents = track.trackEvents.map((trackEvent) => {
-          if (trackEvent.id === elementId) {
-            trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
-          }
-          return trackEvent;
+    if (this.retarget && this.retarget.showedForm && elementId === this.retarget.id) {
+      this.modified = true;
+      this.retarget.options = {
+        ...this.retarget.options,
+        ...options,
+      };
+      this.retarget._update(this.retarget, options);
+    } else {
+      this.modified = true;
+      this.projectData.media.forEach((media) => {
+        media.tracks.forEach((track) => {
+          track.trackEvents = track.trackEvents.map((trackEvent) => {
+            if (trackEvent.id === elementId) {
+              trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
+            }
+            return trackEvent;
+          });
         });
       });
-    });
-    this.updateElement(elementId, options);
-    this.updatePopcorn(elementId, options);
+      this.updateElement(elementId, options);
+      this.updatePopcorn(elementId, options);
+    }
   };
 
   @action
@@ -529,6 +595,9 @@ export default class ProjectStore extends BaseStore {
           },
         });
       this.setProjectData(JSON.parse(this.item.project.data));
+      if (this.item.project.retargetForm) {
+        this.retarget = this.item.project.retargetForm;
+      }
     } catch (e) {
       this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);
@@ -572,15 +641,19 @@ export default class ProjectStore extends BaseStore {
     if (!this.activeElementId) {
       return null;
     }
-    const element = this.popcorn.getTrackEvent(this.activeElementId);
-
-    if (!element) {
-      return null;
-    }
-    // eslint-disable-next-line no-underscore-dangle
-    const { options } = element._natives.manifest;
+    let element;
     const resultOptions = {};
-    if (options) {
+    if (this.retarget && this.retarget.showedForm) {
+      element = this.retarget.manifest;
+      const { options } = element;
+      Object.keys(options).forEach((fieldName) => {
+        if (!options[fieldName].hidden) {
+          resultOptions[fieldName] = options[fieldName];
+        }
+      });
+    } else {
+      element = this.popcorn.getTrackEvent(this.activeElementId);
+      const { options } = element._natives.manifest;
       Object.keys(options).forEach((fieldName) => {
         if (!options[fieldName].hidden) {
           resultOptions[fieldName] = options[fieldName];
@@ -632,6 +705,9 @@ export default class ProjectStore extends BaseStore {
     thumbnail: this.item.thumbnail,
     source: this.item.source,
     tags: this.item.tags,
+    retargetForm: {
+      options: this.retarget.options,
+    },
   });
 
   trailisePauseElements = (projectData) => {
@@ -710,6 +786,7 @@ export default class ProjectStore extends BaseStore {
             thumbnail: serializedData.thumbnail,
             remixedFrom: serializedData.source,
             tags: serializedData.tags,
+            retarget: serializedData.retarget,
           },
         });
       const publishedMake = await this.publish(result._id);

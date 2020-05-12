@@ -38,7 +38,7 @@ const FormSelect = React.forwardRef((props, ref) => {
           ref={ref}
           className={classnames('select-element', selectClassName)}
           classNamePrefix="select"
-          defaultValue={items.find(i => i.value === value)}
+          defaultValue={items.find(item => item.value === value)}
           onChange={handleChange}
           options={items}
           value={items.find(i => i.value === value)}

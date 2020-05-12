@@ -8,8 +8,22 @@ export default class UIStore {
     reaction(
       () => this.projectStore.activeElementId,
       () => {
-        if (this.projectStore.activeElementId
+        if (this.projectStore.activeElementId && this.projectStore.element
           && Object.values(POPCORN_ELEMENT_TYPES).includes(this.projectStore.element.type)) {
+          this.secondaryWindowType = WINDOW_TYPES.SETTING;
+        } else if (this.projectStore.activeElementId
+          && this.projectStore.retarget
+          && this.projectStore.retarget.showedForm) {
+          this.secondaryWindowType = WINDOW_TYPES.SETTING;
+        } else {
+          this.secondaryWindowType = null;
+        }
+      },
+    );
+    reaction(
+      () => this.projectStore.retarget.showedForm,
+      () => {
+        if (this.projectStore.retarget.showedForm) {
           this.secondaryWindowType = WINDOW_TYPES.SETTING;
         } else {
           this.secondaryWindowType = null;

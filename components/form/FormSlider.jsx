@@ -78,7 +78,7 @@ const FormSlider = props => {
           !withoutInput && (
             <Grid item>
               <Input
-                className={classnames(classes.input, inputClassName)}
+                className={classnames(classes.input, 'slider-input', inputClassName)}
                 value={value}
                 disabled={disabled}
                 onChange={handleInputChange}

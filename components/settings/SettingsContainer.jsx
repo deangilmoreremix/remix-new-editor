@@ -5,15 +5,10 @@ import PropTypes from '../../lib/PropTypes';
 import useProjectStore from '../hooks/useProjectStore';
 import { SETTINGS_COMPONENTS } from '../../lib/constants/settings';
 
-const SettingsContainer = observer(({ tab, handleClose }) => {
-  const {
-    element,
-    element: { type },
-    activeElementId,
-    findAndUpdate,
-    form,
-    findElement,
-  } = useProjectStore();
+const SettingsContainer = observer(({ tab, handleClose, element }) => {
+  const { activeElementId, findAndUpdate, form, findElement} = useProjectStore();
+  const { type } = element;
+
   const SettingsComponent = useMemo(
     () => SETTINGS_COMPONENTS[type],
     [type],

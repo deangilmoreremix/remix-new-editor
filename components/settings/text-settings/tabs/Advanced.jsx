@@ -1,4 +1,6 @@
 import React, { Fragment } from 'react';
+import classnames from 'classnames';
+
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 
 import PropTypes from '../../../../lib/PropTypes';
@@ -40,7 +42,7 @@ const Advanced = ({ values, fields, onChange }) => {
             onChange={onChange}
             disabled={responsive}
             minValue={1}
-            containerClassName="slider-container"
+            containerClassName={classnames('slider-container', { 'slider-element': !responsive })}
           />
         </div>
         <div className="font-decoration-section">

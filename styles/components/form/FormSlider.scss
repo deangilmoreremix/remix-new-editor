@@ -1,7 +1,13 @@
 .slider-element {
   .MuiSlider-track, .MuiSlider-rail {
-    color: $slidertrackColor;
     opacity: 1;
+  }
+  .MuiSlider-track {
+    background-color: $secondary-color;
+  }
+  .MuiSlider-rail {
+    background-color: $slidertrackColor;
+    opacity: 0.4;
   }
 
   .MuiSlider-thumb {

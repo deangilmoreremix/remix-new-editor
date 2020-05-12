@@ -8,7 +8,7 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../lib/PropTypes';
 
 const FormRadioButton = (props) => {
-  const { items, groupName, onChange, value, containerClassName } = props;
+  const { items, groupName, onChange, value, containerClassName, label, radioClassName } = props;
 
   const handleChange = event => {
     const { value: val } = event.target;
@@ -17,11 +17,13 @@ const FormRadioButton = (props) => {
 
   return (
     <FormControl component="fieldset" className={containerClassName}>
+      {label && <label className="form-control-label">{label}</label>}
       <RadioGroup
         name={groupName}
         value={value}
         onChange={handleChange}
         row
+        className={radioClassName}
       >
         {items.map((item) => (
           <FormControlLabel
@@ -35,8 +37,6 @@ const FormRadioButton = (props) => {
                 position={item.position}
               />
 )}
-            label={item.label}
-            labelPlacement={item.position}
           />
         ))}
       </RadioGroup>
@@ -57,6 +57,8 @@ FormRadioButton.propTypes = {
   onChange: PropTypes.func.isRequired,
   value: PropTypes.string,
   containerClassName: PropTypes.string,
+  label: PropTypes.string,
+  radioClassName: PropTypes.string,
 };
 
 FormRadioButton.defaultProps = {

@@ -1,0 +1,189 @@
+.popcorn {
+  &.retarget-form,
+  &.lead-form {
+    background-size: cover;
+    background-position: center;
+    position: absolute;
+    text-align: center;
+
+    .form-scrollable-inner {
+      padding: 0 3%;
+    }
+
+    .brand-logo {
+      width: 40%;
+      margin-bottom: 3%;
+    }
+
+    .retarget-caption,
+    .lead-form-caption {
+      padding: 0 0 2% 0;
+      font-weight: bold;
+    }
+
+    input {
+      padding: 3% 5%;
+    }
+
+    .input-wrapper {
+      padding: 1% 0;
+      display: block;
+    }
+
+    .input-wrapper-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 2%;
+    }
+
+    input[type="email"] {
+      width: 100%;
+    }
+
+    input[type="date"] {
+      height: 2.5em;
+      display: flex;
+      padding: 3% 3%
+    }
+
+    input[type="date"]:before {
+      content: attr(placeholder);
+      color: #aaa;
+      margin-right: 0.5em;
+    }
+
+    input[type="date"]:focus:before {
+      content: "";
+    }
+
+    .form-inner {
+      position: absolute;
+      min-height: 7.5em;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: 5%;
+    }
+
+    .form-scrollable {
+      overflow-y: auto;
+      -ms-overflow-y: auto;
+      display: grid;
+      position: relative;
+      height: 100%;
+    }
+
+    .form-scrollable-inner {
+      padding: 3%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      .privacy-disclaimer {
+        font-size: 35%;
+        display: inline-block;
+      }
+
+      .privacy-policy-link {
+        font-size: 35%;
+        display: block;
+        text-decoration: underline;
+        color: inherit;
+      }
+
+      @media only screen and (max-height: 480px) {
+        .privacy-disclaimer {
+          font-size: 50%;
+          display: inline-block;
+        }
+
+        .privacy-policy-link {
+          font-size: 50%;
+          display: block;
+          text-decoration: underline;
+          color: inherit;
+        }
+      }
+
+      @media only screen and (max-width: 480px) {
+        .privacy-disclaimer {
+          font-size: 50%;
+          display: inline-block;
+        }
+
+        .privacy-policy-link {
+          font-size: 50%;
+          display: block;
+          text-decoration: underline;
+          color: inherit;
+        }
+      }
+    }
+
+    label {
+      font-weight: 300;
+      margin-bottom: 2px;
+    }
+
+    textarea, input {
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      width: 100%;
+      height: 2.5em;
+      border: 1px #c1c1c1 solid;
+    }
+
+    .buttons-inner {
+      display: inline-block;
+      width: 100%;
+      margin: 2% 0;
+      height: auto;
+      max-width: 75%;
+
+      input[type=submit], button {
+        position: relative;
+        height: 2.5em;
+        box-sizing: content-box;
+        display: block;
+        float: right;
+        width: 10%;
+        min-width: 85px;
+        margin: 0 auto;
+        bottom: 0;
+        padding: 0;
+        cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    @media only screen {
+      input[type=date] {
+        display: list-item;
+        height: auto;
+      }
+    }
+
+    textarea {
+      resize: none;
+    }
+  }
+  &.retarget-form {
+    .skip-button {
+      position: absolute;
+      bottom: 0;
+      right: 4px;
+      border: none;
+      background: initial;
+      font-size: 12px;
+      cursor: pointer;
+    }
+  }
+}

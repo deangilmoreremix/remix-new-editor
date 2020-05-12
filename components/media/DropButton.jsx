@@ -19,6 +19,7 @@ const DropButton = (
     isDisabled,
     multiple,
     className,
+    optionName,
   }) => {
   const { uploadMedia, storeAsset } = useMediaStore();
 
@@ -38,9 +39,9 @@ const DropButton = (
       .then(fileExtension => {
         const extension = fileExtension[fileExtension.length - 1];
         if (!multiple) {
-          onUploaded(elements[0], extension);
+          onUploaded(elements[0], extension, optionName);
         } else {
-          onUploaded(elements, extension);
+          onUploaded(elements, extension, optionName);
         }
       })
       .catch(() => showError('An error occurred while loading the items.'))
@@ -77,6 +78,7 @@ DropButton.propTypes = {
   isDisabled: PropTypes.bool,
   multiple: PropTypes.bool,
   className: PropTypes.string,
+  optionName: PropTypes.string,
 };
 
 DropButton.defaultProps = {

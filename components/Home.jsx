@@ -65,6 +65,7 @@ const Home = observer(() => {
     isLoaded,
     addElement,
     modified,
+    addRetargetForm,
   } = projectStore;
 
   const userStore = useUserStore();
@@ -104,6 +105,7 @@ const Home = observer(() => {
         openStickers,
         setWideWindow,
         addElement,
+        addRetargetForm,
       },
       project: {
         allowedSocials,

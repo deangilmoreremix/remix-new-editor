@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState, useMemo } from 'react';
 import { observer } from 'mobx-react';
 
 import SettingsHeader from '../settings/SettingsHeader';
@@ -10,18 +10,30 @@ import useProjectStore from '../hooks/useProjectStore';
 import { DEFAULT_TABS, CUSTOM_TABS } from '../../lib/constants/settings';
 
 const SettingsEditor = observer(() => {
-  const [activeTab, setTab] = React.useState(0);
-  const { element } = useProjectStore();
+  const [activeTab, setTab] = useState(0);
+
+  const { element, retarget, activeElementId } = useProjectStore();
   const { closeSecondaryWindow } = useUIStore();
 
-  if (!element) {
+  const currentElement = useMemo(() => {
+    if (retarget) {
+      if (retarget.id !== activeElementId) {
+        return element;
+      } else {
+        return retarget;
+      }
+    }
+    return element;
+  }, [element, retarget, activeElementId]);
+
+  if (!currentElement) {
     return null;
   }
 
-  const { type } = element;
+  const { type } = currentElement;
 
   let tabs = React.useMemo(
-    () => CUSTOM_TABS[element.type] || DEFAULT_TABS,
+    () => CUSTOM_TABS[type] || DEFAULT_TABS,
     [type],
   );
   tabs = tabs.filter(tab => !tab.disabled);
@@ -38,6 +50,7 @@ const SettingsEditor = observer(() => {
           <SettingsContainer
             tab={tabs[activeTab].label}
             handleClose={() => closeSecondaryWindow()}
+            element={currentElement}
           />
         )}
       </div>
