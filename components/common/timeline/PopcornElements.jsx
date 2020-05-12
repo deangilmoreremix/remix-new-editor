@@ -1,5 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react';
+import classnames from 'classnames';
 
 import PopcornElement from './PopcornElement';
 import ResponsiveGrid from '../../form/grids/ResponsiveGrid';
@@ -13,7 +14,9 @@ import { MIN_DURATION, POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popc
 import { NONE_CLASS } from '../../../lib/constants/animations';
 import { DEFAULT_SETTINGS } from '../../../lib/constants/settings';
 
-import { checkTransitionAvailable } from '../../../lib/utils/timeline';
+import { getTransitionButtons } from '../../../lib/utils/timeline';
+import TransitionButton from './TransitionButton';
+
 
 const PopcornElements = observer(({ width }) => {
   const projectStore = useProjectStore();
@@ -64,38 +67,37 @@ const PopcornElements = observer(({ width }) => {
     return arr.map((value) => <div className="element-row" key={`background-${value}`} />);
   }, [layersCount]);
 
-  const layouts = React.useMemo(() => {
-    const result = [];
-    elements.forEach(element => {
-      const {
-        popcornOptions: { id: i, start, end, animation, title, outDuration },
-        type,
-      } = element;
-      const layer = layers.find(item => item.id === element.track);
-      const x = start * SANTISECOND;
-      const w = (getEnd(end, animation, outDuration) - start) * SANTISECOND;
-      result.push({
-        i,
-        x,
-        w,
-        h: 1,
-        type,
-        minH: 1,
-        maxH: 1,
-        animation,
-        title,
-        y: layer.order,
-        maxW: cols - x,
-        minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
-      });
-    });
-    return result;
-  }, [cols, elements, getEnd, getExtraDuration, layers]);
+  const layouts = React.useMemo(() => elements.map(element => {
+    const {
+      popcornOptions: { id: i, start, end, animation, title, outDuration },
+      type,
+    } = element;
+    const layer = layers.find(item => item.id === element.track);
+    const x = start * SANTISECOND;
+    const w = (getEnd(end, animation, outDuration) - start) * SANTISECOND;
+    return {
+      i,
+      x,
+      w,
+      h: 1,
+      type,
+      minH: 1,
+      maxH: 1,
+      animation,
+      title,
+      y: layer.order,
+      maxW: cols - x,
+      minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
+      layer,
+    };
+  }), [cols, elements, layers]);
 
   const components = React.useMemo(() => layouts.map((item, index, items) => {
-    const transition = checkTransitionAvailable(item, index, items);
+    const transitionButtons = getTransitionButtons(item, index, items);
+
     return (
       <div
+        className={classnames('timeline-grid-item', item.type)}
         key={item.i}
         data-grid={{
           h: 1,
@@ -112,15 +114,23 @@ const PopcornElements = observer(({ width }) => {
         <PopcornElement
           item={item}
         />
-        {transition && (
-          <button
-            title="Animate transition"
-            type="button"
-            onClick={() => insertTransition(transition)}
-          >
-            Animate transition
-          </button>
-        )}
+        {transitionButtons && transitionButtons.length
+          ? transitionButtons.map(({
+            transition,
+            element,
+            type,
+            key,
+            pair,
+          }) => (
+            <TransitionButton
+              key={key}
+              type={type}
+              onClick={() => insertTransition({ transition, element })}
+              from={pair.from}
+              to={pair.to}
+            />
+          ))
+          : null}
       </div>
     );
   }), [layouts, cols]);

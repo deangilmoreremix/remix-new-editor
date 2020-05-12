@@ -99,7 +99,7 @@ export default class ProjectStore extends BaseStore {
     const options = await this.setElementOptions(item);
 
     // get first track
-    let track = this.layers[0];
+    let track = item.track || this.layers[0];
     const layerElements = this.elements.filter(element => element.track === track.id);
     if (isLayerFulfilled(options, layerElements)) {
       this.addLayer();
@@ -241,6 +241,9 @@ export default class ProjectStore extends BaseStore {
   setPopcorn = (target) => {
     if (!this.popcornObject) {
       return;
+    }
+    if (!target) {
+      target = this.popcorn.target;
     }
     this.popcorn = window.Popcorn.smart(target,
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);

@@ -2,18 +2,25 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 import captureVideoFrame from 'capture-video-frame';
 import { Player, ControlBar } from 'video-react';
+import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
+
 import FieldBuilder from '../../form/FieldBuilder';
-import { FROM, KIND, TO } from '../../../lib/constants/popcorn';
+import svgPlayIcon from '../../../public/static/svgImages/common/play.svg';
+
 import useMediaStore from '../../hooks/useMediaStore';
 import useProjectStore from '../../hooks/useProjectStore';
+
+import { KIND } from '../../../lib/constants/popcorn';
 import { TRANSITION_TIMELINE_OFFSET } from '../../../lib/constants/settings/video-transition';
+import { RATIO_9_TO_16 } from '../../../lib/constants/ui';
+
 import { loadImage } from '../../../lib/requestCreator';
 import { makeTransition, playTransition } from '../../../lib/utils/transition';
 
 const VideoTransitionSettings = observer(({ element, update, fields, find }) => {
-  const { findAndUpdate } = useProjectStore();
+  const { findAndUpdate, setPopcorn } = useProjectStore();
   const { uploadMedia } = useMediaStore();
 
   const [isCaptured, setIsCaptured] = React.useState(false);
@@ -22,12 +29,14 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
 
   const newFromEnd = React.useRef(null);
   const newToStart = React.useRef(null);
+  const selectRef = React.useRef(null);
 
   const imageFrom = React.useRef(null);
   const imageTo = React.useRef(null);
   const fromPlayer = React.useRef(null);
   const toPlayer = React.useRef(null);
   const canvasEl = React.useRef(null);
+  const canvasContainerRef = React.useRef(null);
 
   const { popcornOptions: values } = element || {};
 
@@ -122,113 +131,163 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
     return setIsCaptured(true);
   }, [fromVideo, isCaptured, toVideo]);
 
-  const handleSave = React.useCallback(
-    async () => {
-      // 1. upload images
-      if (from && to) {
-        const [fromImageResponse, toImageResponse] = await Promise.all([
-          ...(from.blob ? [uploadMedia({ data: from.blob })] : []),
-          ...(to.blob ? [uploadMedia({ data: to.blob })] : []),
-        ]);
+  const handleSave = React.useCallback(async () => {
+    // 1. upload images
+    if (from && to) {
+      const [fromImageResponse, toImageResponse] = await Promise.all([
+        ...(from.blob ? [uploadMedia({ data: from.blob })] : []),
+        ...(to.blob ? [uploadMedia({ data: to.blob })] : []),
+      ]);
 
-        const newFromUrl = fromImageResponse ? fromImageResponse.url : fromUrl;
-        const newToUrl = toImageResponse ? toImageResponse.url : toUrl;
+      const newFromUrl = fromImageResponse ? fromImageResponse.url : fromUrl;
+      const newToUrl = toImageResponse ? toImageResponse.url : toUrl;
 
-        const {
-          start: fromVideoStart,
-          end: fromVideoEnd,
-        } = fromVideo.popcornOptions;
-        const { from: toVideoFrom } = toVideo.popcornOptions;
+      const {
+        start: fromVideoStart,
+        end: fromVideoEnd,
+      } = fromVideo.popcornOptions;
+      const { from: toVideoFrom } = toVideo.popcornOptions;
 
-        // 2. Prepare to update the first video
-        const fromVideoNewOptions = {
-          end: newFromEnd.current ? (fromVideoStart + newFromEnd.current) : fromVideoEnd,
-        };
+      // 2. Prepare to update the first video
+      const fromVideoNewOptions = {
+        end: newFromEnd.current
+          ? (fromVideoStart + newFromEnd.current - TRANSITION_TIMELINE_OFFSET)
+          : fromVideoEnd,
+      };
 
-        const transitionStart = fromVideoNewOptions.end + TRANSITION_TIMELINE_OFFSET;
-        const transitionEnd = transitionStart + duration;
+      const transitionStart = fromVideoNewOptions.end + TRANSITION_TIMELINE_OFFSET;
+      const transitionEnd = transitionStart + duration;
 
-        // 3. Prepare to update transition
-        const transitionOptions = {
-          fromUrl: newFromUrl || fromUrl,
-          toUrl: newToUrl || toUrl,
-          start: transitionStart,
-          end: transitionEnd,
-        };
+      // 3. Prepare to update transition
+      const transitionOptions = {
+        fromUrl: newFromUrl || fromUrl,
+        toUrl: newToUrl || toUrl,
+        start: transitionStart,
+        end: transitionEnd,
+      };
 
-        // 4. Prepare to update the second video
-        const toVideoNewOptions = {
-          from: newToStart.current || toVideoFrom,
-          start: transitionOptions.end + TRANSITION_TIMELINE_OFFSET,
-        };
+      // 4. Prepare to update the second video
+      const toVideoNewOptions = {
+        from: newToStart.current ? newToStart.current + TRANSITION_TIMELINE_OFFSET : toVideoFrom,
+        start: transitionOptions.end + TRANSITION_TIMELINE_OFFSET,
+      };
 
-        // 5. update From video end
-        findAndUpdate(fromVideo.id, fromVideoNewOptions);
+      // 5. update From video end
+      findAndUpdate(fromVideo.id, fromVideoNewOptions);
 
-        // 6. update transition element
-        update(transitionOptions);
+      // 6. update transition element
+      update(transitionOptions);
 
-        // 7. update To video start
-        findAndUpdate(toVideo.id, toVideoNewOptions);
+      // 7. update To video start
+      findAndUpdate(toVideo.id, toVideoNewOptions);
 
-        // 8. Clear time refs
-        newFromEnd.current = null;
-        newToStart.current = null;
+      // 8. Set popcorn
+      setPopcorn();
+
+      // 9. Clear time refs
+      newFromEnd.current = null;
+      newToStart.current = null;
+    }
+  }, [
+    duration,
+    from,
+    fromVideo,
+    to,
+    toVideo,
+  ]);
+
+  const handlePlay = () => {
+    const { current: canvas } = canvasEl;
+    if (from && to && canvas && kind) {
+      setIsPlaying(true);
+    } else {
+      setIsPlaying(false);
+      if (selectRef && selectRef.current && selectRef.current.select) {
+        selectRef.current.select.focus();
       }
-    },
-    [
-      duration,
-      from,
-      fromVideo,
-      to,
-      toVideo,
-    ],
-  );
+    }
+  };
 
   return (
-    <div className="video-transition-form">
+    <div className="video-transition-settings">
       {values && (
-        <React.Fragment>
-          <FieldBuilder name={KIND} value={values.kind} onChange={update} {...fields[KIND]} />
-          <FieldBuilder name={FROM} value={values.from} onChange={update} {...fields[FROM]} />
-          <FieldBuilder name={TO} value={values.to} onChange={update} {...fields[TO]} />
-        </React.Fragment>
+        <div className="video-transition-form">
+          <FieldBuilder
+            ref={selectRef}
+            name={KIND}
+            value={values.kind}
+            onChange={update}
+            {...fields[KIND]}
+          />
+        </div>
       )}
       {isCaptured ? (
-        <React.Fragment>
-          <canvas ref={canvasEl} width={300} height={300 * 0.5625} />
-          <button
-            disabled={!(from && to)}
-            type="button"
-            onClick={() => setIsPlaying(!isPlaying)}
-          >
-            {isPlaying ? 'stop' : 'play'}
-          </button>
-          <button type="button" onClick={handleSave} disabled={!(from && to)}>
-            save
-          </button>
-        </React.Fragment>
+        <div className="video-transition-selected">
+          <div className="title">Choose and Preview the Effect</div>
+          <div className="canvas-player" ref={canvasContainerRef}>
+            <canvas className="canvas" ref={canvasEl} width={300} height={300 * RATIO_9_TO_16} />
+            {!isPlaying && (
+              <button
+                className="video-transition-btn play"
+                disabled={!(from && to)}
+                type="button"
+                onClick={handlePlay}
+              >
+                <SVGInline
+                  className="play-icon"
+                  classSuffix="--inline"
+                  svg={svgPlayIcon}
+                  cleanup={['title']}
+                />
+              </button>
+            )}
+          </div>
+        </div>
       ) : (
         <React.Fragment>
-          <Player
-            ref={fromPlayer}
-            src={fromVideo && fromVideo.popcornOptions ? fromVideo.popcornOptions.src : ''}
-            videoId={fromVideo.id}
-            crossOrigin="anonymous"
-          >
-            <ControlBar autoHide={false} />
-          </Player>
-          <Player
-            ref={toPlayer}
-            src={toVideo && toVideo.popcornOptions ? toVideo.popcornOptions.src : ''}
-            videoId={toVideo.id}
-            crossOrigin="anonymous"
-          >
-            <ControlBar autoHide={false} />
-          </Player>
+          <div className="video-transition-preview">
+            <div className="title">Select the Start Frame</div>
+            <Player
+              ref={fromPlayer}
+              src={fromVideo && fromVideo.popcornOptions ? fromVideo.popcornOptions.src : ''}
+              videoId={fromVideo.id}
+              crossOrigin="anonymous"
+            >
+              <ControlBar autoHide={false} />
+            </Player>
+          </div>
+          <div className="video-transition-preview">
+            <div className="title">Select the End Frame</div>
+            <Player
+              ref={toPlayer}
+              src={toVideo && toVideo.popcornOptions ? toVideo.popcornOptions.src : ''}
+              videoId={toVideo.id}
+              crossOrigin="anonymous"
+            >
+              <ControlBar autoHide={false} />
+            </Player>
+          </div>
         </React.Fragment>
       )}
-      <button type="button" onClick={handleCaptureClick}>{isCaptured ? 'Reselect' : 'Capture'}</button>
+      <div className="video-transition-controls">
+        <button
+          className="video-transition-btn merge"
+          type="button"
+          onClick={handleCaptureClick}
+        >
+          {isCaptured ? 'Change' : 'Merge'}
+        </button>
+        {isCaptured && (
+          <button
+            className="video-transition-btn apply"
+            type="button"
+            onClick={handleSave}
+            disabled={!(from && to)}
+          >
+            Apply
+          </button>
+        )}
+      </div>
     </div>
   );
 });

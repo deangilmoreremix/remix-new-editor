@@ -6,7 +6,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 import Box from '@material-ui/core/Box';
 import PropTypes from '../../lib/PropTypes';
 
-const FormSelect = props => {
+const FormSelect = React.forwardRef((props, ref) => {
   const {
     items,
     label,
@@ -15,6 +15,7 @@ const FormSelect = props => {
     className,
     labelClassName,
     selectClassName,
+    ...rest
   } = props;
 
   const handleChange = data => {
@@ -34,17 +35,19 @@ const FormSelect = props => {
           )
         }
         <Select
+          ref={ref}
           className={classnames('select-element', selectClassName)}
           classNamePrefix="select"
           defaultValue={items.find(i => i.value === value)}
           onChange={handleChange}
           options={items}
           value={items.find(i => i.value === value)}
+          {...rest}
         />
       </Box>
     </FormGroup>
   );
-};
+});
 
 FormSelect.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({

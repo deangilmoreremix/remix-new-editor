@@ -1,7 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import classnames from 'classnames';
 import { observer } from 'mobx-react';
-import Grid from '@material-ui/core/Grid/Grid';
 
 import useProjectStore from '../../hooks/useProjectStore';
 import useUiStore from '../../hooks/useUIStore';
@@ -10,15 +8,15 @@ import PropTypes from '../../../lib/PropTypes';
 import { addDeleteListener, removeDeleteListener } from '../../../lib/mitt/emitter';
 
 import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
-import { NONE_CLASS, ANIMATION_TYPES } from '../../../lib/constants/animations';
-
+import { TIMELINE_COMPONENTS } from '../../../lib/constants/timeline';
+import DefaultElement from './elements/DefaultElement';
 
 const PopcornElement = observer(({ item }) => {
   const projectStore = useProjectStore();
   const uiStore = useUiStore();
   const gridElementRef = useRef();
 
-  const { editElement, updateAnimation, releaseElement } = projectStore;
+  const { editElement, releaseElement } = projectStore;
 
   let rest = {};
 
@@ -27,32 +25,6 @@ const PopcornElement = observer(({ item }) => {
   };
 
   useEffect(() => () => removeDeleteListener(gridElementRef.current, item.i), [item.i]);
-  const getGridItem = (animationType) => {
-    switch (item.type) {
-      case POPCORN_ELEMENT_TYPES.TEXT: {
-        const animated = item.animation && item.animation[animationType]
-          && item.animation[animationType].type !== NONE_CLASS;
-        return (
-          <Grid
-            xs={4}
-            item
-            className={classnames('popcorn-element-part',
-              { [`${animationType}-animation-element`]: animated })}
-          >
-            {animated && (
-              <button className="icon-button" onClick={() => updateAnimation(animationType)}>
-                x
-              </button>
-            )}
-          </Grid>
-        );
-      }
-      default: {
-        return null;
-      }
-    }
-  };
-
 
   rest = {
     onClick: () => {
@@ -67,22 +39,25 @@ const PopcornElement = observer(({ item }) => {
     },
   };
 
+  const Element = React.useMemo(() => {
+    if (TIMELINE_COMPONENTS[item.type]) {
+      return TIMELINE_COMPONENTS[item.type];
+    }
+    return DefaultElement;
+  }, [item]);
+
+  if (!Element) {
+    return null;
+  }
+
   return (
-    <Grid
-      container
-      className="popcorn-element"
-      onClick={selectItem}
+    <Element
+      item={item}
+      onSelect={selectItem}
       ref={gridElementRef}
       tabIndex={-1}
       {...rest}
-    >
-      <span className="popcorn-element-name">
-        {item.title || item.htmlText || item.type}
-      </span>
-      {getGridItem(ANIMATION_TYPES.IN)}
-      {getGridItem(ANIMATION_TYPES.IDLE)}
-      {getGridItem(ANIMATION_TYPES.OUT)}
-    </Grid>
+    />
   );
 });
 

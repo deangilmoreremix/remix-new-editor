@@ -6,6 +6,7 @@
 
 @import "variables";
 @import "mixins/index";
+@import "animations";
 
 @import "popcorn";
 
@@ -24,9 +25,10 @@
 @import "components/Menu";
 @import "components/DropButton";
 @import "components/Stickers";
-
 @import "components/modals/index";
 @import "components/modals/SocialCampaignModal";
+
+@import "components/settings/index";
 
 @import "components/common/SettingsEditor";
 @import "components/common/SettingsHeader";
