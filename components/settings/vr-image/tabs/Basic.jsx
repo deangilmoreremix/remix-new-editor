@@ -24,11 +24,11 @@ const Basic = ({ values, fields, onChange }) => {
     if (!src) {
       onChange({ src: fields.src.default, htmlSrc: wrapTokens(fields.src.default) });
     }
-  }, [src]);
+  }, [fields.src.default, onChange, src]);
 
   const onAddSrc = useCallback((token) => {
     onChange({ src: token, htmlSrc: wrapTokens(token) });
-  }, [src, onChange]);
+  }, [onChange]);
 
   const onAddUrlToken = useCallback((token) => {
     const result = addToken(linkUrl, token, urlCaretOffset);
@@ -107,12 +107,14 @@ const Basic = ({ values, fields, onChange }) => {
         </div>
       </div>
 
-      <div className="vrimage-settings__block">
-        <div className="vrimage-settings__btn--block">
-          <p>Transition</p>
-          <button className="vrimage-settings__button vrimage-settings__button--little">Open Library</button>
-        </div>
-      </div>
+      {/* <div className="vrimage-settings__block"> */}
+      {/* <div className="vrimage-settings__btn--block"> */}
+      {/* <p>Transition</p> */}
+      {/* <button */}
+      {/* className="vrimage-settings__button vrimage-settings__button--little"> */}
+      {/* Open Library</button> */}
+      {/* </div> */}
+      {/* </div> */}
 
       <div className="vrimage-settings__block vrimage-settings__block--rotate">
         <FieldBuilder

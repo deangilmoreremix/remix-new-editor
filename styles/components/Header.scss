@@ -58,8 +58,18 @@
       .menu-popper,
       button {
         padding: 0;
-        min-width: 70%;
-        max-width: 70%;
+        width: 10rem;
+      }
+      .menu__list {
+        width: 10rem;
+      }
+
+      .menu__item-icon {
+        margin: inherit;
+        width: auto;
+        svg {
+          margin: auto 1rem;
+        }
       }
     }
 

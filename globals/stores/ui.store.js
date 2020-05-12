@@ -16,14 +16,6 @@ export default class UIStore {
         }
       },
     );
-    reaction(
-      () => this.secondaryWindowType,
-      () => {
-        if (this.secondaryWindowType !== WINDOW_TYPES.SETTING) {
-          this.projectStore.releaseElement();
-        }
-      },
-    );
   }
 
   @observable toolbarItem = {

@@ -142,12 +142,12 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
             <span className="text-settings-label">Animations</span>
             <button className="btn-library" onClick={() => openLibrary()}>Open Library</button>
           </div>
-          <div className="text-transform-container-font">
-            <div>
-              <span className="text-settings-label">Font Combination</span>
-              <button className="btn-library">Open Library</button>
-            </div>
-          </div>
+          {/* <div className="text-transform-container-font"> */}
+          {/* <div> */}
+          {/* <span className="text-settings-label">Font Combination</span> */}
+          {/* <button className="btn-library">Open Library</button> */}
+          {/* </div> */}
+          {/* </div> */}
         </div>
 
       </div>
