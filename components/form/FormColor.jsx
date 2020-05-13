@@ -13,7 +13,7 @@ import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 const FormColor = ({ label, onChange, value, className, disabled }) => {
   const colorPrimary = 'rgb(235, 80, 84, 1)';
   const [anchorEl, setAnchorEl] = useState(null);
-  const [color, setColor] = useState(parseRgbaString(value || ''));
+  const [color, setColor] = useState(parseRgbaString(value || colorPrimary));
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
 
