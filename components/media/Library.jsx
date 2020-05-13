@@ -68,7 +68,7 @@ const Library = observer(() => {
     if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
-      fetchItems({ currentTab: activeTab, source: activeBtn });
+      fetchItems({ source: activeBtn });
     }
   }, [activeTab]);
 
@@ -77,15 +77,15 @@ const Library = observer(() => {
     if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
-      fetchItems({ source: element, currentTab: activeTab });
+      fetchItems({ source: element });
     }
   };
 
-  const fetchItems = async ({ source = activeBtn, currentTab = activeTab, queryStr = '' }) => {
+  const fetchItems = async ({ source = activeBtn, queryStr = '', isScrolling = false }) => {
     let currentPage = 0;
     let uploaded = [];
 
-    if (currentTab) {
+    if (!isScrolling) {
       setIsLoading(true);
       setPageNumber(1);
       setUploadedItems([]);
@@ -107,7 +107,7 @@ const Library = observer(() => {
       });
 
       if (data.length) {
-        if (currentTab) {
+        if (!isScrolling) {
           setItems(data);
           // Loading new items when scrolling
         } else {
@@ -235,7 +235,7 @@ const Library = observer(() => {
       })
       .then(() => {
         if (!unmount) {
-          fetchItems({ source: activeBtn, currentTab: activeTab, queryStr: searchText });
+          fetchItems({ source: activeBtn, queryStr: searchText });
         }
       })
       .catch(e => showError(`Error while deleting items, ${e}`));

@@ -33,7 +33,7 @@ const LibraryContent = observer((props) => {
   });
 
   const uploadNewItems = () => {
-    fetchItems();
+    fetchItems({ source: activeBtn, isScrolling: true });
   };
 
   const Element = (item) => {
@@ -107,7 +107,10 @@ const LibraryContent = observer((props) => {
 
 LibraryContent.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
-    _id: PropTypes.string.isRequired,
+    _id: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
     url: PropTypes.string.isRequired,
     title: PropTypes.string,
   })),
