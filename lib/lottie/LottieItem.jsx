@@ -1,23 +1,46 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useAsync } from 'react-async-hook';
 
-import PropTypes from '../../../lib/PropTypes';
-import { fileReader } from '../../../lib/utils/fileReader';
+import PropTypes from '../PropTypes';
+import { fileReader } from '../utils/fileReader';
+import { isValidJsonUrl } from '../popcorn/helpers';
+import { loadUrl } from '../requestCreator';
 
-import Lottie from '../../../lib/lottie/Lottie';
+import Lottie from './Lottie';
 
+const fetchAnimation = async (url) => new Promise((resolve, reject) => {
+  if (isValidJsonUrl(url)) {
+    resolve(url);
+  } else {
+    reject(new Error('Not correct URL'));
+  }
+}).then(loadUrl);
 
-const LottieItem = ({ items, setFilesToUpload, isReady }) => {
+const LottieItem = ({ items, setFilesToUpload, isReady, url }) => {
   const [images, setImages] = useState();
   const [previews, setPreviews] = useState();
   const animationElement = useRef(null);
 
+  const { result: animation } = useAsync(fetchAnimation, [url]);
+
   useEffect(() => {
     if (!isReady && previews) {
-      const newArr = [];
-      items.forEach((item, i) => {
-        newArr.push({ data: item, preview: previews[i] });
-      });
-      setFilesToUpload(newArr);
+      if (items && items.length) {
+        const newArr = [];
+        items.forEach((item, i) => {
+          newArr.push({ data: item, preview: previews[i] });
+        });
+        setFilesToUpload(newArr);
+      }
+
+      if (url) {
+        const json = JSON.stringify(images[0].data);
+        const blob = new Blob([json], { type: 'application/json' });
+        setFilesToUpload([{
+          data: new File([blob], Date.now(), { type: 'application/json' }),
+          preview: previews[0],
+        }]);
+      }
     }
   }, [previews]);
 
@@ -33,7 +56,14 @@ const LottieItem = ({ items, setFilesToUpload, isReady }) => {
         setImages(elements);
       })();
     }
-  }, [items]);
+
+    if (animation) {
+      (async () => {
+        const element = { data: animation };
+        setImages([element]);
+      })();
+    }
+  }, [items, animation]);
 
   const load = () => {
     const { anim } = animationElement.current;
@@ -51,7 +81,7 @@ const LottieItem = ({ items, setFilesToUpload, isReady }) => {
     }
   };
 
-  if (!items || !items.length) {
+  if (!items && !url) {
     return null;
   }
 
@@ -69,9 +99,11 @@ const LottieItem = ({ items, setFilesToUpload, isReady }) => {
             },
           };
 
+          const key = items ? items[i].name : i;
+
           return (
             <Lottie
-              key={items[i].name}
+              key={key}
               options={defaultOptions}
               width="95%"
               height="95%"
@@ -91,6 +123,7 @@ LottieItem.propTypes = {
   items: PropTypes.arrayOrObservableArray,
   setFilesToUpload: PropTypes.func.isRequired,
   isReady: PropTypes.bool.isRequired,
+  url: PropTypes.string,
 };
 
 export default LottieItem;

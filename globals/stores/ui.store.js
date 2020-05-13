@@ -70,6 +70,11 @@ export default class UIStore {
   };
 
   @action
+  openLowerThird = (tab = WINDOW_TYPES.LOWER_THIRDS) => {
+    this.secondaryWindowType = tab;
+  }
+
+  @action
   openSettings = () => {
     this.secondaryWindowType = WINDOW_TYPES.SETTING;
   };
@@ -85,8 +90,8 @@ export default class UIStore {
   };
 
   @action
-  setWideWindow = () => {
-    this.wideWindow = false;
+  setWideWindow = (value = false) => {
+    this.wideWindow = value;
   };
 
   @action

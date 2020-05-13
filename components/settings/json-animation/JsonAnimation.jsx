@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 
+import useUserStore from '../../hooks/useUserStore';
+
 import PropTypes from '../../../lib/PropTypes';
 import { BASIC, ADVANCED } from '../../../lib/constants/popcorn';
 import LottieEditor from '../../common/LottieEditor';
@@ -13,6 +15,8 @@ const TabMap = {
 };
 
 const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
+  const { isSuperAdmin } = useUserStore();
+
   const Tab = TabMap[tab];
   const handleChange = (field) => {
     update(field);
@@ -24,7 +28,7 @@ const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
 
   return (
     <div className="json-animation-form">
-      {element && element.popcornOptions && (
+      {(element && element.popcornOptions) && isSuperAdmin && (
         <Tab options={element.popcornOptions} onChange={handleChange} fields={fields} />
       )}
       {element && element.popcornOptions && element.popcornOptions.url && (
@@ -33,6 +37,7 @@ const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
           file={element.popcornOptions.url}
           setColor={handleSetColors}
           value={element.popcornOptions.colors}
+          className="json-animation-preview"
         />
       )}
     </div>

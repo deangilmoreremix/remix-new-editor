@@ -1,16 +1,19 @@
 import * as React from 'react';
 import isEmpty from 'lodash/isEmpty';
 import { useAsync } from 'react-async-hook';
+import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../lib/PropTypes';
 import Lottie from '../../lib/lottie/Lottie';
 import FormColor from '../form/FormColor';
-import { rgbToHex, getColors, setColors, getDimensions } from '../../lib/lottie/utils';
+import { rgbToHex, getColors, setColors } from '../../lib/lottie/utils';
 import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 import { isValidJsonUrl } from '../../lib/popcorn/helpers';
 import { loadUrl } from '../../lib/requestCreator';
 
-const baseDimension = 150;
+import playIcon from '../../public/static/svgImages/common/play.svg';
+import stopIcon from '../../public/static/svgImages/common/stop.svg';
+import pauseIcon from '../../public/static/svgImages/common/pause.svg';
 
 const fetchAnimation = async (url) => new Promise((resolve, reject) => {
   if (isValidJsonUrl(url)) {
@@ -20,8 +23,7 @@ const fetchAnimation = async (url) => new Promise((resolve, reject) => {
   }
 }).then(loadUrl);
 
-const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [] }) => {
-  const [ratio, setRatio] = React.useState(1);
+const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [], className }) => {
   const [isStopped, setIsStopped] = React.useState(false);
   const [isPaused, setIsPaused] = React.useState(false);
   const [colors, storeColors] = React.useState(value);
@@ -29,6 +31,8 @@ const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [] 
   const animationElement = React.useRef(null);
 
   const { result: animation } = useAsync(fetchAnimation, [file]);
+
+  const icon = React.useMemo(() => (!isStopped ? stopIcon : playIcon), [isStopped]);
 
   // TODO: left here for the future segments playback
   const load = () => {
@@ -46,9 +50,6 @@ const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [] 
   React.useEffect(() => {
     // Recalculate original animation colors
     const rows = [];
-
-    const { ratio: jsonRatio } = getDimensions(animation) || {};
-    setRatio(jsonRatio);
 
     if (!value.length) {
       if (animation && animation.layers) {
@@ -125,6 +126,15 @@ const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [] 
     },
   }), [preparedAnimation]);
 
+  const handleStop = () => {
+    setIsStopped(!isStopped);
+    setIsPaused(false);
+  };
+
+  const completeAnimation = () => {
+    setIsStopped(true);
+  };
+
   return (
     <React.Fragment>
       {showColors && showColors.length
@@ -140,29 +150,35 @@ const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [] 
         <Lottie
           ref={animationElement}
           options={options}
-          height={baseDimension}
-          width={ratio * baseDimension}
           isStopped={isStopped}
           isPaused={isPaused}
-          eventListeners={[{ eventName: 'DOMLoaded', callback: load }]}
+          eventListeners={[
+            { eventName: 'DOMLoaded', callback: load },
+            { eventName: 'complete', callback: completeAnimation },
+          ]}
           speed={1}
           looped={false}
+          className={className}
         />
       )}
       {showControls && (
         <div className="lottie-controls">
-          <button
-            type="button"
-            onClick={() => setIsStopped(!isStopped)}
-          >
-            {isStopped ? 'play' : 'stop'}
-          </button>
-          <button
-            type="button"
+          <SVGInline
+            onClick={handleStop}
+            component="button"
+            className="icon-button timeline-play"
+            classSuffix=""
+            svg={icon}
+            cleanup={['title']}
+          />
+          <SVGInline
             onClick={() => setIsPaused(!isPaused)}
-          >
-            pause
-          </button>
+            component="button"
+            className="icon-button timeline-play"
+            classSuffix=""
+            svg={pauseIcon}
+            cleanup={['title']}
+          />
         </div>
       )}
     </React.Fragment>
@@ -174,6 +190,7 @@ LottieEditor.propTypes = {
   file: PropTypes.string.isRequired,
   setColor: PropTypes.func,
   segments: PropTypes.shape({}),
+  className: PropTypes.string,
   value: PropTypes.arrayOf(
     PropTypes.shape({
       a: PropTypes.number,

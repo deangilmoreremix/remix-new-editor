@@ -157,7 +157,6 @@ export default class Lottie extends React.Component {
       width: getSize(width),
       height: getSize(height),
       overflow: 'hidden',
-      margin: '0 auto',
       outline: 'none',
       ...style,
     };

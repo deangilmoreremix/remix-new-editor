@@ -7,7 +7,8 @@ import { Waypoint } from 'react-waypoint';
 import mediaConstants from '../../../lib/constants/media';
 import { showError } from '../../../lib/services/alertService';
 import { perPage } from '../../../lib/constants/library';
-import { MEDIA_TYPES } from '../../../lib/constants/popcorn';
+import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
+import { LOWER_THIRDS_TYPE } from '../../../lib/constants/lowerThirds';
 
 import useUserStore from '../../hooks/useUserStore';
 import useMediaStore from '../../hooks/useMediaStore';
@@ -18,6 +19,7 @@ import plusIcon from '../../../public/static/svgImages/plus-circle.svg';
 
 import ContentItem from './ContentItem';
 import LottieItem from '../../../lib/lottie/LottieItem';
+import FormTextField from '../../form/FormTextField';
 
 const Content = () => {
   const [isLoading, setIsLoading] = useState();
@@ -29,6 +31,9 @@ const Content = () => {
   const [newLottieElements, setNewLottieElements] = useState(null);
 
   const [filesToUpload, setFilesToUpload] = useState();
+  const [urlToUpload, setUrlToUpload] = useState();
+
+  const [inputUrl, setInputUrl] = useState('');
 
   const { secondaryWindowType: activeTab } = useUIStore();
   const { addElement } = useProjectStore();
@@ -37,8 +42,8 @@ const Content = () => {
     uploadMedia,
     getPresets,
     addPreset,
-    presetsItemsForDelete,
-    setPresetsForDelete,
+    presetsTLItemsForDelete,
+    setPresetsTLForDelete,
     deletePreset,
   } = useMediaStore();
 
@@ -51,7 +56,11 @@ const Content = () => {
       const elements = [];
       const elementsIds = [];
       Promise.all(filesToUpload.map(async data => {
-        const assetJson = await uploadMedia({ data: data.data });
+        let assetJson;
+        const regExp = /cdn.videoremix/gmi;
+        if (!urlToUpload || !regExp.test(urlToUpload)) {
+          assetJson = await uploadMedia({ data: data.data });
+        }
 
         const previewFile = await fetch(data.preview)
           .then(res => res.blob())
@@ -59,7 +68,11 @@ const Content = () => {
 
         const assetPreview = await uploadMedia({ data: previewFile });
 
-        const item = await addPreset({ data: assetJson.url, preview: assetPreview.url }, activeTab);
+        const itemDataUrl = assetJson ? assetJson.url : urlToUpload;
+        const item = await addPreset(
+          { data: itemDataUrl, preview: assetPreview.url },
+          LOWER_THIRDS_TYPE,
+        );
         elements.push(item);
         elementsIds.push(item._id);
       }))
@@ -78,23 +91,25 @@ const Content = () => {
           setIsLoading(false);
           setNewLottieElements(null);
           setFilesToUpload(null);
+          setUrlToUpload(null);
         });
     }
   }, [filesToUpload, isReady]);
 
   useEffect(() => () => {
-    if (presetsItemsForDelete.length) {
+    if (presetsTLItemsForDelete.length) {
       bulkDeleteItems(true);
     }
   }, []);
 
   useEffect(() => {
-    setIsFirstFetch(true);
-    setItems([]);
-    if (presetsItemsForDelete.length) {
-      bulkDeleteItems();
-    } else {
-      fetchItems(activeTab);
+    if (activeTab === LOWER_THIRDS_TYPE) {
+      setItems([]);
+      if (presetsTLItemsForDelete.length) {
+        bulkDeleteItems();
+      } else {
+        fetchItems(LOWER_THIRDS_TYPE);
+      }
     }
   }, [activeTab]);
 
@@ -102,7 +117,6 @@ const Content = () => {
     if (!currentTab && isFirstFetch) {
       return;
     }
-
     let currentPage = 0;
     let uploaded = [];
 
@@ -117,7 +131,7 @@ const Content = () => {
     }
 
     try {
-      const data = await getPresets(activeTab, currentPage, { _id: { $nin: uploaded } });
+      const data = await getPresets(LOWER_THIRDS_TYPE, currentPage, { _id: { $nin: uploaded } });
 
       if (data.length) {
         if (currentTab) {
@@ -146,7 +160,7 @@ const Content = () => {
       })
       .then(() => {
         if (!unmount) {
-          fetchItems(activeTab);
+          fetchItems(LOWER_THIRDS_TYPE);
         }
       })
       .catch(e => showError(`Error while deleting items, ${e.message}`));
@@ -166,57 +180,80 @@ const Content = () => {
 
   const onSelect = item => {
     item.src = item.data;
-    item.type = MEDIA_TYPES.LOTTIE_JSON;
+    item.url = item.data;
+    item.type = POPCORN_ELEMENT_TYPES.JSON_ANIMATION;
     return addElement(item);
   };
 
   const onDelete = (id) => {
     const newItems = items.filter(item => item._id !== id);
-    setPresetsForDelete(id);
+    setPresetsTLForDelete(id);
     setItems(newItems);
   };
 
+  const onChangeInput = value => {
+    setInputUrl(value);
+  };
+
+  const onEnter = () => {
+    setIsLoading(true);
+    setUrlToUpload(inputUrl);
+  };
+
   return (
-    <div className="stickers-content">
+    <>
       {isSuperAdmin && (
-        <div
-          {...getRootProps()}
-          className={classnames(
-            'stickers-content__item stickers-content__add',
-            {
-              'stickers-content__add--active': isDragActive,
-              'stickers-content__add--disabled': isLoading,
-            },
-          )}
-        >
-          <input {...getInputProps()} disabled={isLoading} />
-          <SVGInline
-            className="stickers-item-plus"
-            svg={plusIcon}
-            cleanup={['plus']}
-          />
-          {newLottieElements && newLottieElements.length > 0 && (
-            <LottieItem
-              items={newLottieElements}
-              setFilesToUpload={setFilesToUpload}
-              isReady={isReady}
-            />
-          )}
-        </div>
+        <FormTextField
+          placeholder="Url"
+          value={inputUrl}
+          onChange={onChangeInput}
+          onEnter={onEnter}
+          disabled={isLoading}
+        />
       )}
 
-      {
-        items.map(item => (
-          <ContentItem
-            key={item._id}
-            item={item}
-            onDelete={onDelete}
-            onSelect={onSelect}
-          />
-        ))
-      }
-      {hasMore && <Waypoint bottomOffset="3%" onEnter={() => fetchItems()} />}
-    </div>
+      <div className="lower-thirds-content">
+        {isSuperAdmin && (
+          <div
+            {...getRootProps()}
+            className={classnames(
+              'lower-thirds-content__item lower-thirds-content__add',
+              {
+                'lower-thirds-content__add--active': isDragActive,
+                'lower-thirds-content__add--disabled': isLoading,
+              },
+            )}
+          >
+            <input {...getInputProps()} disabled={isLoading} />
+            <SVGInline
+              className="stickers-item-plus"
+              svg={plusIcon}
+              cleanup={['plus']}
+            />
+            {((newLottieElements && newLottieElements.length > 0) || urlToUpload) && (
+              <LottieItem
+                items={newLottieElements}
+                setFilesToUpload={setFilesToUpload}
+                isReady={isReady}
+                url={urlToUpload}
+              />
+            )}
+          </div>
+        )}
+
+        {
+          items.map(item => (
+            <ContentItem
+              key={item._id}
+              item={item}
+              onDelete={onDelete}
+              onSelect={onSelect}
+            />
+          ))
+        }
+        {hasMore && <Waypoint topOffset="3%" onEnter={() => fetchItems()} />}
+      </div>
+    </>
   );
 };
 

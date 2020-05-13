@@ -12,6 +12,8 @@ export default class Media extends BaseStore {
 
   @observable presetsItemsForDelete = [];
 
+  @observable presetsTLItemsForDelete = [];
+
   getProvider = (providerName, assetType) => {
     try {
       return providers[providerName][assetType];
@@ -167,6 +169,15 @@ export default class Media extends BaseStore {
   };
 
   @action
+  setPresetsTLForDelete = (id) => {
+    if (id) {
+      this.presetsTLItemsForDelete.push(id);
+    } else {
+      this.presetsTLItemsForDelete = [];
+    }
+  };
+
+  @action
   deletePreset = async () => {
     if (this.presetsItemsForDelete.length) {
       const promiseArr = this.presetsItemsForDelete.map(id => (
@@ -179,6 +190,24 @@ export default class Media extends BaseStore {
           })
       ));
       return Promise.all(promiseArr).then(() => { this.presetsItemsForDelete = []; });
+    } else {
+      return Promise.resolve();
+    }
+  };
+
+  @action
+  deleteTLPreset = async () => {
+    if (this.presetsTLItemsForDelete.length) {
+      const promiseArr = this.presetsTKItemsForDelete.map(id => (
+        this.request(
+          `/api/presets/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'on-behalf': this.currentUser.id,
+            },
+          })
+      ));
+      return Promise.all(promiseArr).then(() => { this.presetsTLItemsForDelete = []; });
     } else {
       return Promise.resolve();
     }

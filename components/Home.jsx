@@ -8,6 +8,7 @@ import Canvas from './Canvas';
 import Timeline from './Timeline';
 import Library from './media/Library';
 import Stickers from './media/Stickers';
+import LowerThirds from './media/LowerThirds';
 import Toolbar from './common/toolbar/Toolbar';
 import SizeSelector from './canvas/SizeSelector';
 import AnimationList from './media/AnimationList';
@@ -51,6 +52,7 @@ const Home = observer(() => {
 
   const {
     setLibraryType,
+    openLowerThird,
     wideWindow,
     setWideWindow,
     secondaryWindowType,
@@ -90,6 +92,10 @@ const Home = observer(() => {
       case WINDOW_TYPES.STATIC_EMOJI.value:
       case WINDOW_TYPES.FLAGS.value:
         return <Stickers />;
+      case WINDOW_TYPES.LOWER_THIRDS.value:
+      case WINDOW_TYPES.PRESETS.value: {
+        return <LowerThirds />;
+      }
       default: {
         return null;
       }
@@ -103,6 +109,7 @@ const Home = observer(() => {
         closeModal,
         setLibraryType,
         openStickers,
+        openLowerThird,
         setWideWindow,
         addElement,
         addRetargetForm,

@@ -21,7 +21,7 @@ const DefaultElement = React.forwardRef(({ onSelect, item, ...rest }, ref) => (
 DefaultElement.propTypes = {
   item: PropTypes.shape({
     type: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
+    title: PropTypes.string,
     htmlText: PropTypes.string,
   }).isRequired,
   onSelect: PropTypes.func.isRequired,
