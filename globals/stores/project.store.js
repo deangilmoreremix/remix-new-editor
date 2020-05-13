@@ -472,6 +472,9 @@ export default class ProjectStore extends BaseStore {
       if (removedTrack && removedTrack.trackEvents.length) {
         removedTrack.trackEvents.forEach((trackEvent) => {
           this.popcorn.removeTrackEvent(trackEvent.id);
+          if (trackEvent.id === this.activeElementId) {
+            this.releaseElement();
+          }
         });
         this.elements = this.elements.filter(element => element.track !== id);
       }
