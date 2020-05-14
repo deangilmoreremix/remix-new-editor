@@ -32,6 +32,7 @@ const FieldsTab = ({ values, fields, onChange }) => {
   const handleChangeInput = (option, id) => {
     const newArr = values.elements.map(element => {
       if (element.id === id) {
+        // eslint-disable-next-line no-prototype-builtins
         if (option && !option.hasOwnProperty(INPUT_NAME)) {
           element.type = option.elements;
         } else {

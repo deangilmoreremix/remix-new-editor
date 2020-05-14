@@ -109,6 +109,7 @@ export default class ProjectStore extends BaseStore {
       options,
     };
 
+    // eslint-disable-next-line no-underscore-dangle
     popcornFunctions._setup(retargetOptions);
     this.editElement(retargetOptions.id);
     this.retarget = { ...retargetOptions, ...popcornFunctions };
@@ -204,6 +205,7 @@ export default class ProjectStore extends BaseStore {
         ...this.retarget.options,
         ...options,
       };
+      // eslint-disable-next-line no-underscore-dangle
       this.retarget._update(this.retarget, options);
     } else {
       this.modified = true;
@@ -656,6 +658,7 @@ export default class ProjectStore extends BaseStore {
       });
     } else {
       element = this.popcorn.getTrackEvent(this.activeElementId);
+      // eslint-disable-next-line no-underscore-dangle
       const { options } = element._natives.manifest;
       Object.keys(options).forEach((fieldName) => {
         if (!options[fieldName].hidden) {
