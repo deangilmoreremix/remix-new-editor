@@ -65,6 +65,10 @@ export default class ProjectStore extends BaseStore {
     this.removeElement(id);
   });
 
+  selectItem = emitter.on(emitterActions.SELECT, id => {
+    this.editElement(id);
+  });
+
   setElementOptions = async (item) => {
     const options = {};
     options.start = item.start || (this.time / SANTISECOND);
@@ -875,9 +879,6 @@ export default class ProjectStore extends BaseStore {
         this.popcorn.on('elementUpdated', (data) => {
           const { element, options } = data;
           this.findAndUpdate(element.id, options);
-        });
-        this.popcorn.on('elementSelected', ({ element }) => {
-          this.editElement(element.id);
         });
         this.popcorn.on('timeupdate', () => {
           this.time = this.popcorn.currentTime() * SANTISECOND;
