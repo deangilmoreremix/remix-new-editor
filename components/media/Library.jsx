@@ -2,23 +2,35 @@ import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
 
-import { USER_ITEMS, tabItems, perPage, LIBRARY_TABS } from '../../lib/constants/library';
+import { CircleLoader } from 'react-spinners';
+import {
+  USER_ITEMS,
+  tabItems,
+  perPage,
+  LIBRARY_TABS,
+  LIBRARY_KEYS,
+  DEFAULT_PROVIDERS,
+} from '../../lib/constants/library';
+import { LOADING_COLOR } from '../../lib/constants/ui';
 import mediaConstants from '../../lib/constants/media';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
+
 import { showError } from '../../lib/services/alertService';
 
 import Tabs from '../common/library/Tabs';
 import ProviderList from '../common/library/ProviderList';
 import LibraryContent from '../common/library/LibraryContent';
-import { LibrarySpinner, LoaderCircle } from './Loader';
+import { LibrarySpinner } from './Loader';
 
 import useUIStore from '../hooks/useUIStore';
+import useUserStore from '../hooks/useUserStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
 
 const Library = observer(() => {
   const uiStore = useUIStore();
   const projectStore = useProjectStore();
+  const userStore = useUserStore();
 
   const {
     secondaryWindowType: activeTab,
@@ -68,9 +80,23 @@ const Library = observer(() => {
     if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
-      fetchItems({ source: activeBtn });
+      fetchItems({ source: activeBtn, queryStr: '' });
     }
   }, [activeTab]);
+
+  const listProviders = React.useMemo(() => {
+    switch (activeTab) {
+      case LIBRARY_TABS.IMAGE: {
+        return userStore.imageProviders;
+      }
+      case LIBRARY_TABS.VIDEO: {
+        return userStore.videoProviders;
+      }
+      default: {
+        return DEFAULT_PROVIDERS;
+      }
+    }
+  }, [activeTab, userStore]);
 
   const handleButtonClick = element => {
     setActiveBtn(element);
@@ -81,7 +107,7 @@ const Library = observer(() => {
     }
   };
 
-  const fetchItems = async ({ source = activeBtn, queryStr = '', isScrolling = false }) => {
+  const fetchItems = async ({ source = activeBtn, queryStr = query || '', isScrolling = false }) => {
     let currentPage = 0;
     let uploaded = [];
 
@@ -95,6 +121,10 @@ const Library = observer(() => {
       currentPage = pageNumber + 1;
       setPageNumber(pageNumber + 1);
       uploaded = uploadedItems;
+    }
+    if (!listProviders[source]) {
+      source = USER_ITEMS;
+      setActiveBtn(source);
     }
 
     try {
@@ -117,10 +147,11 @@ const Library = observer(() => {
           ]);
         }
       }
-      setIsLoading(false);
       setHasMore(data && data.length === perPage);
     } catch (e) {
       showError('An error occurred while loading items');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -258,7 +289,7 @@ const Library = observer(() => {
           </div>
           <div className="library__block">
             {
-              activeBtn === USER_ITEMS && (
+              activeBtn !== LIBRARY_KEYS.DROPMOCK && (
                 <Fragment>
                   <input
                     className="library__search"
@@ -289,11 +320,17 @@ const Library = observer(() => {
             title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
             userContentTitle={tabItems[activeTab].label}
             handleButtonClick={handleButtonClick}
+            list={listProviders}
           />
           {isLoading
             ? (
               <div className="library__items">
-                <LoaderCircle />
+                <CircleLoader
+                  size={100}
+                  css={{ margin: 'auto' }}
+                  loading
+                  color={LOADING_COLOR}
+                />
               </div>
             )
             : (

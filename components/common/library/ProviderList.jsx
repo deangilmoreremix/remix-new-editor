@@ -3,10 +3,11 @@ import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
-import { libraryProviders, USER_ITEMS } from '../../../lib/constants/library';
+import { USER_ITEMS } from '../../../lib/constants/library';
 
 const ProviderList = (props) => {
   const {
+    list,
     activeItem,
     title,
     userContentTitle,
@@ -18,10 +19,10 @@ const ProviderList = (props) => {
       <p className="library__block--title">{title}</p>
       <div className="library__btn-container">
         {
-          libraryProviders && Object.keys(libraryProviders).map(element => (
+          list && Object.keys(list).map(element => (
             <button
               type="button"
-              key={libraryProviders[element].name}
+              key={list[element].name}
               className={classnames(
                 'library__btn-item',
                 {
@@ -31,15 +32,15 @@ const ProviderList = (props) => {
               )}
               onClick={() => handleButtonClick(element)}
             >
-              {libraryProviders[element].icon && (
+              {list[element].icon && (
                 <SVGInline
                   className="library__icon-btn"
-                  svg={libraryProviders[element].icon}
-                  cleanup={[libraryProviders[element].name]}
+                  svg={list[element].icon}
+                  cleanup={[list[element].name]}
                 />
               )}
               <p>
-                {element === USER_ITEMS ? `${libraryProviders[element].name} ${userContentTitle}` : libraryProviders[element].name}
+                {element === USER_ITEMS ? `${list[element].name} ${userContentTitle}` : list[element].name}
               </p>
             </button>
           ))
@@ -50,6 +51,7 @@ const ProviderList = (props) => {
 };
 
 ProviderList.propTypes = {
+  list: PropTypes.shape({}).isRequired,
   activeItem: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
   userContentTitle: PropTypes.string.isRequired,

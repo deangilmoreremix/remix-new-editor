@@ -315,7 +315,7 @@ export default class ProjectStore extends BaseStore {
       return;
     }
     if (!target) {
-      target = this.popcorn.target;
+      target = this.popcorn && this.popcorn.target;
     }
     this.popcorn = window.Popcorn.smart(target,
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
@@ -892,6 +892,12 @@ export default class ProjectStore extends BaseStore {
         });
         this.popcorn.on('play', () => {
           this.isPlayed = true;
+        });
+        emitter.on(emitterActions.SEQUENCES_LOADING, () => {
+          this.isLoading = true;
+        });
+        emitter.on(emitterActions.SEQUENCES_READY, () => {
+          this.isLoading = false;
         });
       },
     );

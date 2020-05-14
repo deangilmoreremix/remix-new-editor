@@ -121,6 +121,7 @@
     "sweetalert": "2.1.2",
     "throng": "4.0.0",
     "universal-cookie": "4.0.3",
+    "react-spinners": "0.8.3",
     "url": "0.11.0",
     "url-loader": "4.1.0",
     "validator": "12.2.0",
