@@ -283,13 +283,13 @@ export default class ProjectStore extends BaseStore {
       this.popcorn.removeTrackEvent(elementId);
       element.popcornOptions = { ...element.popcornOptions, ...options };
       this.popcorn[element.type](element.popcornOptions);
-      const trackEvent = this.popcorn.getTrackEvent(elementId);
+    }
+    const trackEvent = this.popcorn.getTrackEvent(elementId);
+    // eslint-disable-next-line no-underscore-dangle
+    if (trackEvent && trackEvent._natives._update) {
+      // _natives and _update is popcorn functions
       // eslint-disable-next-line no-underscore-dangle
-      if (trackEvent && trackEvent._natives._update) {
-        // _natives and _update is popcorn functions
-        // eslint-disable-next-line no-underscore-dangle
-        trackEvent._natives._update(trackEvent, options);
-      }
+      trackEvent._natives._update(trackEvent, options);
     }
   };
 
