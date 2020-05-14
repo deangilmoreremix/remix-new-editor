@@ -9,6 +9,7 @@ import { showError } from '../../../lib/services/alertService';
 import { perPage } from '../../../lib/constants/library';
 import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
 import { LOWER_THIRDS_TYPE } from '../../../lib/constants/lowerThirds';
+import { isValidJsonUrl } from '../../../lib/popcorn/helpers';
 
 import useUserStore from '../../hooks/useUserStore';
 import useMediaStore from '../../hooks/useMediaStore';
@@ -196,8 +197,12 @@ const Content = () => {
   };
 
   const onEnter = () => {
-    setIsLoading(true);
-    setUrlToUpload(inputUrl);
+    if (inputUrl && isValidJsonUrl(inputUrl)) {
+      setIsLoading(true);
+      setUrlToUpload(inputUrl);
+    } else {
+      showError('Not correct URL');
+    }
   };
 
   return (

@@ -49,7 +49,7 @@ const ContentItem = ({ item, onDelete, onSelect }) => {
             </button>
           </div>
         ) : (
-          <button type="button" className="animation-preview__add" onClick={() => onSelect(item)} />
+          <button className="animation-preview__add" onClick={() => onSelect(item)} />
         )
       }
     </div>
