@@ -279,13 +279,10 @@ export default class ProjectStore extends BaseStore {
     const elementId = (element && element.id) || element;
     element = typeof element === 'string' ? this.getElementById(elementId) : element;
 
-    // need rewrite element, if user update the start or end field
-    if ((options.start !== undefined && (element.popcornOptions.start !== options.start))
-      || (options.end !== undefined && (element.popcornOptions.end !== options.end))) {
+    if (options.start !== undefined || options.end !== undefined) {
       this.popcorn.removeTrackEvent(elementId);
       element.popcornOptions = { ...element.popcornOptions, ...options };
       this.popcorn[element.type](element.popcornOptions);
-    } else {
       const trackEvent = this.popcorn.getTrackEvent(elementId);
       // eslint-disable-next-line no-underscore-dangle
       if (trackEvent && trackEvent._natives._update) {
