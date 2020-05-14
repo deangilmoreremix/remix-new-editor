@@ -177,7 +177,6 @@ const Library = observer(() => {
       Supported Formats:
       Video: ${tabItems.VIDEO.formats.map(format => (` ${format}`))}.
       Image: ${tabItems.IMAGE.formats.map(format => (` ${format}`))}.
-      Audio: ${tabItems.AUDIO.formats.map(format => (` ${format}`))}.
     `;
 
     if (wrongFormat.length) {
