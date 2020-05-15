@@ -20,7 +20,7 @@ const SettingPanel = observer(({ options = {} }) => {
     if (options && options.focusTitle && titleRef && titleRef.current) {
       titleRef.current.focus();
     }
-  }, [titleRef]);
+  }, [options, titleRef]);
 
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
@@ -106,14 +106,15 @@ const SettingPanel = observer(({ options = {} }) => {
             onChange={updateSocials}
             floatClassName="settings-checkbox"
           />
-          <FieldBuilder
-            type="checkbox"
-            name="linkedin"
-            label="LinkedIn"
-            value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
-            onChange={updateSocials}
-            floatClassName="settings-checkbox"
-          />
+          {/* TODO uncommnet it, after implementing linkedin */}
+          {/* <FieldBuilder */}
+          {/* type="checkbox" */}
+          {/* name="linkedin" */}
+          {/* label="LinkedIn" */}
+          {/* value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')} */}
+          {/* onChange={updateSocials} */}
+          {/* floatClassName="settings-checkbox" */}
+          {/* /> */}
         </div>
 
         <div className="settings__row">

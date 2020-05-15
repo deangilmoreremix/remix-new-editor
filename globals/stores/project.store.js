@@ -615,6 +615,9 @@ export default class ProjectStore extends BaseStore {
       if (this.item.project.retargetForm) {
         this.retarget = this.item.project.retargetForm;
       }
+      if (this.item.project && this.item.project.allowedSocials) {
+        this.item.allowedSocials = this.item.project.allowedSocials;
+      }
     } catch (e) {
       this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);
@@ -810,6 +813,9 @@ export default class ProjectStore extends BaseStore {
       const publishedMake = await this.publish(result._id);
       runInAction(() => {
         this.item = { ...this.item, ...result };
+        if (this.item.project.allowedSocials) {
+          this.item.allowedSocials = this.item.project.allowedSocials;
+        }
         this.item.contentUrl = publishedMake.contenturl;
         this.setProjectData(JSON.parse(this.item.project.data));
         this.modified = false;
@@ -832,6 +838,14 @@ export default class ProjectStore extends BaseStore {
       },
       body: { publishUrl: url },
     });
+
+  publish = (id) => this.request(
+    `/api/users/me/makes/${id}/publish`, {
+      method: 'POST',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      },
+    })
 
   @computed
   get element() {
@@ -858,16 +872,6 @@ export default class ProjectStore extends BaseStore {
       }
     });
   };
-
-  publish(id) {
-    return this.request(
-      `/api/users/me/makes/${id}/publish`, {
-        method: 'POST',
-        headers: {
-          'on-behalf': this.currentUser.id,
-        },
-      });
-  }
 
   constructor(props) {
     super(props);

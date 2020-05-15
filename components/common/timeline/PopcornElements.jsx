@@ -90,7 +90,7 @@ const PopcornElements = observer(({ width }) => {
       minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
       layer,
     };
-  }), [cols, elements, layers]);
+  }), [cols, elements, getEnd, getExtraDuration, layers]);
 
   const components = React.useMemo(() => layouts.map((item, index, items) => {
     const transitionButtons = getTransitionButtons(item, index, items);

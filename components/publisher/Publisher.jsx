@@ -84,7 +84,6 @@ const Publisher = ({ children, withIframe }) => {
 
   return (
     <div className="social-campaign">
-      {isLoading && <div className="spinner">Loading...</div>}
       {
         isLoaded && children({
           postResponsiveMessage,

@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import PropTypes from '../../../../../lib/PropTypes';
 import { DEFAULT_PERMISSIONS, FACEBOOK_LOGIN } from '../../../../../lib/constants/campaigns/constants';
+import { showError } from '../../../../../lib/services/alertService';
 
 const FacebookLogin = ({ provider, nextStage, setStage }) => (
   <div className="facebook-login">
@@ -17,6 +18,7 @@ const FacebookLogin = ({ provider, nextStage, setStage }) => (
           await provider.logIn(DEFAULT_PERMISSIONS);
           nextStage();
         } catch (e) {
+          showError(e.message);
           setStage(FACEBOOK_LOGIN);
         }
       }}
@@ -49,9 +51,6 @@ FacebookLogin.propTypes = {
       embedGenerator: PropTypes.func,
     }),
     preload: PropTypes.bool,
-  }).isRequired,
-  project: PropTypes.shape({
-    url: PropTypes.string.isRequired,
   }).isRequired,
   provider: PropTypes.shape({
     logIn: PropTypes.func.isRequired,

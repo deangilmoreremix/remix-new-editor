@@ -6,7 +6,6 @@ import { FACEBOOK_STAGES as STAGES } from '../../../../lib/constants/campaigns/s
 import {
   BACKEND_URL,
   DEFAULT_PERMISSIONS,
-  FACEBOOK_EMBED_LOCATIONS,
   FB_PAGE_PERMISSIONS,
   EMBED_ENGINE,
   EMBED_LOCATION,
@@ -18,6 +17,7 @@ import {
 import useProjectStore from '../../../hooks/useProjectStore';
 import CampaignStage from '../CampaignStage';
 import { isEnoughFans } from '../../../../lib/utils/social-campaigns';
+import { showError } from '../../../../lib/services/alertService';
 
 const FacebookCampaign = observer(({
   collapseConductor,
@@ -29,20 +29,15 @@ const FacebookCampaign = observer(({
   getPageTabs,
   createTab,
   fetchUserData,
+  setLoading,
   isLoading,
   settings,
   updateCampaign,
   share,
-  uploadFile,
   appId,
 }) => {
   const [currentStageIndex, setCurrentStageIndex] = React.useState(0);
-  const currentStage = STAGES[currentStageIndex];
-
-  // Campaign initialization on first render
-  React.useEffect(() => {
-    updateCampaign({ embedLocation: FACEBOOK_EMBED_LOCATIONS[0] });
-  }, []);
+  const [currentStage, setCurrentStage] = React.useState(STAGES[currentStageIndex]);
 
   const {
     embedLocation,
@@ -52,21 +47,18 @@ const FacebookCampaign = observer(({
     embedPage,
     postData,
     userData,
-    autoplay,
     preload,
   } = settings;
 
   const {
     item: project,
-    publish,
-    save,
     invalidateFbCache,
     linkToFbPage,
     updateItem,
   } = useProjectStore();
 
-  // TODO: Refactor share post when project store is ready (save, serialize, etc)
-  const sharePost = async () => {
+  const sharePost = React.useCallback(async () => {
+    setLoading(true);
     const shareOptions = {
       shouldCreateTab: embedLocation.key === FACEBOOK_PAGE,
     };
@@ -80,9 +72,8 @@ const FacebookCampaign = observer(({
     } else {
       shareOptions.redirectUrl = embedPage;
     }
-    shareOptions.project = [
-      project.project.url, [
-        autoplay ? 'autoplay=1' : null,
+    shareOptions.projectUrl = [
+      project.url, [
         !preload ? 'preload=none' : null,
         'preferred_source=facebook',
       ].filter(item => !!item).join('&'),
@@ -96,8 +87,6 @@ const FacebookCampaign = observer(({
     });
 
     try {
-      await publish(await save(project));
-
       await invalidateFbCache(shareOptions.projectUrl);
 
       expandConductor();
@@ -106,28 +95,38 @@ const FacebookCampaign = observer(({
       collapseConductor();
 
       if (result.error_code) {
-        throw new Error(result.error_message);
+        showError(result.error_message);
       }
 
       if (embedLocation.key === FACEBOOK_PAGE) {
         const queryString = [
-          autoplay ? 'autoplay=1' : null,
           !preload ? 'preload=none' : null,
         ].filter(item => !!item).join('&');
 
         await linkToFbPage(project, selectedFbPage, queryString);
       }
     } catch (e) {
-      console.error(e);
+      showError(e.message);
+    } finally {
+      setLoading(false);
     }
-
     return project;
-  };
+  }, [appId,
+    collapseConductor,
+    embedLocation.key,
+    embedPage,
+    expandConductor,
+    invalidateFbCache,
+    linkToFbPage,
+    postData,
+    preload,
+    project,
+    selectedFbPage,
+    setLoading,
+    share,
+    updateItem]);
 
-  const canBypassStage = (stage) => {
-    if (isLoading) {
-      return false;
-    }
+  const canBypassStage = React.useCallback((stage) => {
     switch (stage.key) {
       case EMBED_ENGINE:
         return true;
@@ -142,15 +141,13 @@ const FacebookCampaign = observer(({
           ))
           && facebookPageTab && facebookPageTab.name.length > 0;
       case FACEBOOK_POST:
-        return userData && postData
-          && postData.title && postData.title.length > 0
-          && postData.thumbnail && postData.thumbnail.length > 0;
+        return userData && postData && postData.title && postData.title.length > 0;
       default:
         return false;
     }
-  };
+  }, [embedPage, facebookPageTab, facebookPages, postData, selectedFbPage, userData]);
 
-  const nextStage = async () => {
+  const nextStage = React.useCallback(() => {
     if (currentStage.key === STAGES[STAGES.length - 1].key) {
       return sharePost();
     }
@@ -175,9 +172,9 @@ const FacebookCampaign = observer(({
       }
     }
     setCurrentStageIndex(nextStageIdx);
-  };
+  }, [currentStage, currentStageIndex, embedLocation.key, sharePost]);
 
-  const prevStage = async () => {
+  const prevStage = () => {
     if (STAGES[currentStageIndex].key === FACEBOOK_PAGE) {
       updateCampaign({ selectedFbPage: null });
     }
@@ -191,32 +188,33 @@ const FacebookCampaign = observer(({
     setCurrentStageIndex(prevStageIdx);
   };
 
-  const setStage = async (stageKey) => {
+  const setStage = React.useCallback((stageKey) => {
     if (currentStage.key === stageKey) {
       return;
     }
 
     const nextStageIdx = STAGES.findIndex(item => item.key === stageKey);
     setCurrentStageIndex(nextStageIdx);
-  };
+  }, [currentStage.key]);
 
-  const handleBackButtonClick = async () => {
+  const handleBackButtonClick = () => {
     if (isLoading || currentStageIndex === 0) {
       return;
     }
-    await prevStage();
+    return prevStage();
   };
 
-  const handleNextButtonClick = async () => {
+  const handleNextButtonClick = React.useCallback(() => {
+    setLoading(true);
     if (!canBypassStage(currentStage)) {
       return;
     }
     if (currentStage.key === STAGES[STAGES.length - 1].key) {
-      await sharePost();
+      return sharePost();
     } else {
-      await nextStage();
+      return nextStage();
     }
-  };
+  }, [canBypassStage, currentStage, nextStage, setLoading, sharePost]);
 
   const bootstrapData = React.useMemo(() => {
     const permissions = embedLocation === FACEBOOK_PAGE
@@ -238,13 +236,24 @@ const FacebookCampaign = observer(({
       selectedFbPage,
       facebookPages,
       createTab,
+      setLoading,
     };
   }, [
-    project,
     embedLocation,
+    init,
+    isAuthorized,
+    nextStage,
+    setStage,
+    fetchPagesData,
+    updateCampaign,
+    getPageTabs,
+    fetchUserData,
+    project,
     facebookPageTab,
     selectedFbPage,
     facebookPages,
+    createTab,
+    setLoading,
   ]);
 
   const stageProps = React.useMemo(() => ({
@@ -260,22 +269,39 @@ const FacebookCampaign = observer(({
     },
     setStage,
     nextStage,
-    uploadFile,
     handleBackButtonClick,
     handleNextButtonClick,
     canBypassStage,
+    isLoading,
   }), [
     settings,
     project,
+    canBypassStage,
+    createTab,
+    fetchPagesData,
+    fetchUserData,
+    getPageTabs,
+    handleBackButtonClick,
+    handleNextButtonClick,
+    logIn,
+    nextStage,
+    setStage,
+    updateCampaign,
+    isLoading,
   ]);
 
-  // bootstrap new stage
   React.useEffect(() => {
-    const newStage = STAGES[currentStageIndex];
-    if (newStage && newStage.bootstrap) {
-      newStage.bootstrap(bootstrapData);
+    setCurrentStage(STAGES[currentStageIndex]);
+    bootstrap(STAGES[currentStageIndex]);
+  }, [bootstrap, currentStageIndex]);
+
+  const bootstrap = React.useCallback((st) => {
+    if (st && st.bootstrap) {
+      return st.bootstrap(bootstrapData);
+    } else {
+      setLoading(false);
     }
-  }, [currentStageIndex]);
+  }, [bootstrapData, setLoading]);
 
   return (
     <CampaignStage
@@ -318,7 +344,6 @@ FacebookCampaign.propTypes = {
   fetchUserData: PropTypes.func.isRequired,
   share: PropTypes.func.isRequired,
   updateCampaign: PropTypes.func.isRequired,
-  uploadFile: PropTypes.func.isRequired,
 };
 
 export default FacebookCampaign;

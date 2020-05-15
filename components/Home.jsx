@@ -142,6 +142,7 @@ const Home = observer(() => {
     modified,
     videoUrl,
     userStore,
+    allowedSocials,
   ]);
 
   return (

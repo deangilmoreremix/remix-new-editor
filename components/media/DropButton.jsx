@@ -20,6 +20,7 @@ const DropButton = (
     multiple,
     className,
     optionName,
+    needSaveAsset,
   }) => {
   const { uploadMedia, storeAsset } = useMediaStore();
 
@@ -31,10 +32,13 @@ const DropButton = (
 
     Promise.all(acceptedFiles.map(async data => {
       const asset = await uploadMedia({ data });
-      const element = await storeAsset(asset, type.toUpperCase());
-      const fileExtension = element.url.match(/\.[0-9a-z]{1,5}$/)[0];
-      elements.push(element);
-      return fileExtension;
+      if (needSaveAsset) {
+        const element = await storeAsset(asset, type.toUpperCase());
+        elements.push(element);
+      } else {
+        elements.push(asset);
+      }
+      return asset.url.match(/\.[0-9a-z]{1,5}$/)[0];
     }))
       .then(fileExtension => {
         const extension = fileExtension[fileExtension.length - 1];
@@ -79,11 +83,13 @@ DropButton.propTypes = {
   multiple: PropTypes.bool,
   className: PropTypes.string,
   optionName: PropTypes.string,
+  needSaveAsset: PropTypes.bool,
 };
 
 DropButton.defaultProps = {
   isDisabled: false,
   multiple: true,
+  needSaveAsset: true,
 };
 
 export default DropButton;

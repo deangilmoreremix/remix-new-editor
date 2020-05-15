@@ -1,10 +1,17 @@
 import * as React from 'react';
 
-import PropTypes from '../../../../../lib/PropTypes';
-import { POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT } from '../../../../../lib/constants/campaigns/constants';
+import DropButton from '../../../../media/DropButton';
+import FieldBuilder from '../../../../form/FieldBuilder';
 import LinkedinPostPreview from '../../../../common/post-previews/LinkedinPostPreview';
 
-const LinkedinPost = ({ settings, updateCampaign, uploadFile }) => (
+import mediaConstants from '../../../../../lib/constants/media';
+import {
+  POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT,
+} from '../../../../../lib/constants/campaigns/constants';
+
+import PropTypes from '../../../../../lib/PropTypes';
+
+const LinkedinPost = ({ settings, updateCampaign }) => (
   <div className="linkedin-post">
     <h5 className="embed-title">
       What do you want the LinkedIn Share to look like?
@@ -12,81 +19,90 @@ const LinkedinPost = ({ settings, updateCampaign, uploadFile }) => (
     <div className="embed-grid">
       <div className="row embed-group">
         <div className="embed-grid cell linkedin-post-details">
+          <FieldBuilder
+            type="input"
+            name="title"
+            label="Post Title"
+            onChange={({ title }) => updateCampaign({
+              postData: {
+                ...settings.postData,
+                title,
+              },
+            })}
+            value={settings.postData.title}
+            className="settings-input"
+            labelClassName="settings-panel-text"
+            placeholder="Post Title"
+          />
           <div className="row embed-group">
-            <label className="cell" htmlFor="linkedin-post-url-input">
-              Shared Url
-            </label>
-            {settings.postData && (
-              <input
-                id="linkedin-post-url-input"
-                className="cell linkedin-post-input"
-                type="text"
-                value={settings.postData.link}
-                onChange={({ target: { value } }) => {
-                  updateCampaign({ postData: { link: value } });
-                }}
-              />
-            )}
-          </div>
-          <div className="row embed-group">
-            <label className="cell" htmlFor="linkedin-post-title-input">
-              Post Title
-            </label>
-            {settings.postData && (
-              <input
-                id="linkedin-post-title-input"
-                className="cell linkedin-post-input"
-                type="text"
-                value={settings.postData.title}
-                onChange={({ target: { value } }) => {
-                  updateCampaign({ postData: { title: value } });
-                }}
-              />
-            )}
-          </div>
-          <div className="row embed-group">
-            <label className="cell" htmlFor="linkedin-post-description-input">
-              Post Description
-            </label>
-            {settings.postData && (
-              <input
-                id="linkedin-post-description-input"
-                className="cell linkedin-post-input"
-                type="text"
-                value={settings.postData.description}
-                onChange={({ target: { value } }) => {
-                  updateCampaign({ postData: { description: value } });
-                }}
-              />
-            )}
+            <FieldBuilder
+              type="input"
+              name="description"
+              label="Post Description"
+              onChange={({ description }) => updateCampaign({
+                postData: {
+                  ...settings.postData,
+                  description,
+                },
+              })}
+              value={settings.postData.title}
+              className="settings-input"
+              labelClassName="settings-panel-text"
+              placeholder="Post Description"
+            />
           </div>
           <div className="row embed-group">
             <label className="cell" htmlFor="linkedin-post-image-input">
               Post Image
             </label>
-            {settings.postData && (
-              <iInput
-                id="linkedin-post-image-input"
-                className="cell linkedin-post-input"
-                type="file"
-                accept="image/*"
-                onChange={uploadFile((imageData) => {
-                  updateCampaign({ postData: { thumbnail: imageData.source } });
-                })}
-              />
-            )}
+            {
+              settings.postData
+            && (
+              <div>
+                {
+                  settings.postData.thumbnail
+                  && (
+                  <div className="settings__row-img">
+                    <p className="settings__row-text">Thumbnail</p>
+                    <div className="settings-img-preview">
+                      <img
+                        src={settings.postData.thumbnail}
+                        alt=""
+                      />
+                    </div>
+                  </div>
+                  )
+                }
+                <DropButton
+                  onUploaded={({ url: thumbnail }) => updateCampaign({
+                    postData: {
+                      ...settings.postData,
+                      thumbnail,
+                    },
+                  })}
+                  needSaveAsset={false}
+                  type={mediaConstants.ASSET_TYPES.IMAGE}
+                  multiple={false}
+                  className="settings__add-file"
+                />
+              </div>
+            )
+            }
             <p className="text-resolution">
               {`*Recommended image resolution ${POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT}`}
             </p>
           </div>
         </div>
-        {settings.postData && settings.userData && (
+        {
+          settings.postData && settings.userData
+          && (
           <LinkedinPostPreview
             className="cell"
             user={settings.userData}
             post={settings.postData}
           />
-        )}
+          )
+        }
       </div>
     </div>
   </div>
@@ -121,7 +137,6 @@ LinkedinPost.propTypes = {
   provider: PropTypes.shape({
     logIn: PropTypes.func.isRequired,
   }).isRequired,
-  uploadFile: PropTypes.func.isRequired,
 };
 
 export default LinkedinPost;

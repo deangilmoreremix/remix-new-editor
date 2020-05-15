@@ -13,6 +13,7 @@ import {
   LINKEDIN_SOURCE_ID,
   SOCIAL_SOURCES,
   POSTER_FRAME_RECOMMENDED_RESOLUTION,
+  EMBED_LOCATIONS,
 } from '../../../lib/constants/campaigns/constants';
 import { NOT_SUPPORTED_IMAGE_FORMAT } from '../../../lib/constants/media';
 import { isResolutionWrong, modalContent } from '../../../lib/utils/cropHelper';
@@ -25,10 +26,11 @@ const CampaignSelector = (props) => {
   const { uploadMedia } = useMediaStore();
 
   const { facebookAppId, linkedinAppId } = useCommonStore();
+  const { item: { title, description, thumbnail, url } } = useProjectStore();
 
   const [settings, setSettings] = React.useState({
-    embedLocation: null,
-    postData: null,
+    embedLocation: EMBED_LOCATIONS[0],
+    postData: { title, description, thumbnail, url },
     userData: null,
     selectedFbPage: null,
     embedPage: null,

@@ -10,6 +10,7 @@ const CampaignStage = ({
   handleBackButtonClick,
   handleNextButtonClick,
   canBypassStage,
+  isLoading,
   ...props
 }) => {
   const {
@@ -23,32 +24,39 @@ const CampaignStage = ({
 
   return (
     <React.Fragment>
-      <Stage {...props} />
-      <Progress
-        className="embed-progress"
-        value={completionPercentage}
-      />
-      <div className="controls">
-        <button
-          disabled={index === 0}
-          className={`go-button back ${key === STAGES[0].key ? 'hidden' : ''}`}
-          onClick={handleBackButtonClick}
-          type="button"
-        >
-          Back
-        </button>
-        <button
-          className={
-            `go-button ${`next ${actionButtonClassName || ''}`} ${
-              canBypassStage(stage) ? '' : 'inactive'}`
-          }
-          onClick={handleNextButtonClick}
-          type="button"
-        >
-          <i className={actionButtonIconClassName || 'hidden'} />
-          {actionButtonCaption || 'Next'}
-        </button>
-      </div>
+      {
+        isLoading ? <div className="spinner">Loading...</div>
+          : (
+            <div>
+              <Stage {...props} />
+              <Progress
+                className="embed-progress"
+                value={completionPercentage}
+              />
+              <div className="controls">
+                <button
+                  disabled={index === 0}
+                  className={`go-button back ${key === STAGES[0].key ? 'hidden' : ''}`}
+                  onClick={handleBackButtonClick}
+                  type="button"
+                >
+        Back
+                </button>
+                <button
+                  className={
+        `go-button ${`next ${actionButtonClassName || ''}`}`
+      }
+                  disabled={!canBypassStage(stage)}
+                  onClick={handleNextButtonClick}
+                  type="button"
+                >
+                  <i className={actionButtonIconClassName || 'hidden'} />
+                  {actionButtonCaption || 'Next'}
+                </button>
+              </div>
+            </div>
+          )
+      }
     </React.Fragment>
   );
 };
@@ -67,6 +75,7 @@ CampaignStage.propTypes = {
   handleBackButtonClick: PropTypes.func.isRequired,
   handleNextButtonClick: PropTypes.func.isRequired,
   canBypassStage: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool,
 };
 
 export default CampaignStage;
