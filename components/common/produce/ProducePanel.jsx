@@ -44,7 +44,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   return (
     <div className="produce-block produce-panel">
       {items.map(({ label, action, icon, isActive, errorMessage, url }) => (
-        url ? (
+        isActive && url ? (
         // eslint-disable-next-line react/jsx-no-target-blank
           <a key={`${label}-href`} href={url} target="_blank">
             {svgButton(label, action, isActive, errorMessage, icon, url)}
