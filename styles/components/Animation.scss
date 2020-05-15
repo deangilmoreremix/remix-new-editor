@@ -48,6 +48,10 @@
   margin-bottom: 0.5rem;
   overflow: hidden;
   background: $scrollbarColor;
+
+  &:hover .animation-preview__add {
+    opacity: 1;
+  }
 }
 
 .lower-thirds-content__item:hover .animation-preview__add {

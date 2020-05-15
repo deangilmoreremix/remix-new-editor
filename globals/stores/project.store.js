@@ -158,6 +158,13 @@ export default class ProjectStore extends BaseStore {
 
     // get first track
     let track = item.track || this.layers[0];
+
+    if (track.blendMode) {
+      options.blendMode = track.blendMode;
+    } else {
+      options.blendMode = blendModeConstants.normal.value;
+    }
+
     const layerElements = this.elements.filter(element => element.track === track.id);
     if (isLayerFulfilled(options, layerElements)) {
       this.addLayer();
@@ -510,34 +517,38 @@ export default class ProjectStore extends BaseStore {
 
   @action
   setLayer = (elementId, newLayerLevel) => {
-    let element;
+    const element = this.getElementById(elementId);
+    let newElement;
     this.modified = true;
     const layer = this.layers.find(item => item.order === newLayerLevel);
     this.elements = this.elements.map(item => {
       if (item.id === elementId) {
-        element = item;
         item.track = layer.id;
         item.popcornOptions.blendMode = layer.blendMode;
+        newElement = item;
         if (layer.blendMode) {
-          this.updatePopcorn(item, { blendMode: layer.blendMode });
+          newElement.popcornOptions.blendMode = layer.blendMode;
         } else {
-          this.updatePopcorn(item, { blendMode: blendModeConstants.normal.value });
+          newElement.popcornOptions.blendMode = blendModeConstants.normal.value;
         }
       }
       return item;
     });
-    if (!element) {
-      return;
-    }
+
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
         if (track.order === newLayerLevel) {
           const zindex = MAX_ZINDEX - track.order;
-          const { blendMode } = element.popcornOptions;
+          const { blendMode } = newElement.popcornOptions;
           element.track = track.id;
           element.popcornOptions.zindex = zindex;
+          if (layer.blendMode) {
+            element.popcornOptions.blendMode = layer.blendMode;
+          } else {
+            element.popcornOptions.blendMode = blendModeConstants.normal.value;
+          }
           track.trackEvents.push(element);
-          this.updatePopcorn(element, { zindex, blendMode });
+          this.updatePopcorn(element.id, { zindex, blendMode });
         } else {
           track.trackEvents = track.trackEvents.filter(item => item.id !== elementId);
         }
