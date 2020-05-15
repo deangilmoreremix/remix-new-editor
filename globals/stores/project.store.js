@@ -22,7 +22,7 @@ import {
 } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
+import { getCustomVarsFromMediaArr, openVideoUrl } from '../../lib/utils/tokens-helper';
 
 export default class ProjectStore extends BaseStore {
   @observable activeElementId;
@@ -914,6 +914,11 @@ export default class ProjectStore extends BaseStore {
   @computed
   get popcornElements() {
     return this.popcornObject.popcornElements;
+  }
+
+  @computed
+  get videoUrl() {
+    return openVideoUrl(this.item.url, this.getPersonalization());
   }
 
   @action

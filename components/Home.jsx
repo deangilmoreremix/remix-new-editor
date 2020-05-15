@@ -70,6 +70,7 @@ const Home = observer(() => {
     addElement,
     modified,
     addRetargetForm,
+    videoUrl,
   } = projectStore;
 
   const userStore = useUserStore();
@@ -120,6 +121,7 @@ const Home = observer(() => {
         allowedSocials,
         modified,
         optinCodeEnabled,
+        videoUrl,
       },
     });
     return items && items.length ? items : [];
@@ -131,6 +133,7 @@ const Home = observer(() => {
     addElement,
     optinCodeEnabled,
     modified,
+    videoUrl,
   ]);
 
   return (
