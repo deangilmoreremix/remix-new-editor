@@ -60,7 +60,8 @@ export default class UIStore {
   };
 
   @action
-  setLibraryType = (type) => {
+  setLibraryType = (type, isWideWindow = false) => {
+    this.wideWindow = isWideWindow;
     this.secondaryWindowType = type;
   };
 
@@ -104,6 +105,11 @@ export default class UIStore {
     this.setLibraryType(null, true);
     this.setToolbarItem(TOOLBARS.PRODUCE, options);
   };
+
+  @action
+  setSecondaryWindowType = (type) => {
+    this.secondaryWindowType = type;
+  }
 
   @action
   setInitialView = () => {

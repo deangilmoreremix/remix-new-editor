@@ -15,6 +15,7 @@ import Toolbar from './common/toolbar/Toolbar';
 import SizeSelector from './canvas/SizeSelector';
 import AnimationList from './media/AnimationList';
 import SettingsEditor from './common/SettingsEditor';
+import Recorder from './common/recorder/Recorder';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
@@ -59,6 +60,7 @@ const Home = observer(() => {
     setWideWindow,
     secondaryWindowType,
     openStickers,
+    setSecondaryWindowType,
   } = uiStore;
 
   const {
@@ -99,6 +101,9 @@ const Home = observer(() => {
       case WINDOW_TYPES.PRESETS.value: {
         return <LowerThirds />;
       }
+      case WINDOW_TYPES.RECORDER: {
+        return <Recorder />;
+      }
       default: {
         return null;
       }
@@ -116,12 +121,14 @@ const Home = observer(() => {
         setWideWindow,
         addElement,
         addRetargetForm,
+        setSecondaryWindowType,
       },
       project: {
         allowedSocials,
         modified,
         optinCodeEnabled,
         videoUrl,
+        userStore,
       },
     });
     return items && items.length ? items : [];
@@ -134,6 +141,7 @@ const Home = observer(() => {
     optinCodeEnabled,
     modified,
     videoUrl,
+    userStore,
   ]);
 
   return (

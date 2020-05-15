@@ -1,6 +1,9 @@
 @import "reset";
 @import "~bootstrap/scss/bootstrap";
 @import "~animate.css/animate.min.css";
+@import "~videojs-wavesurfer-dealiased/dist/css/videojs.wavesurfer.css";
+@import "~video.js/dist/video-js.css";
+@import "~videojs-record-dealiased/dist/css/videojs.record.css";
 @import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css');
 @import '~video-react/styles/scss/video-react';
 
@@ -53,6 +56,7 @@
 @import "components/common/thumbnails";
 @import "components/common/produce";
 @import "components/common/vrimage-settings";
+@import "components/common/Recorder";
 
 @import "components/campaigns/index";
 

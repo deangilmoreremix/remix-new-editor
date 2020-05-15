@@ -96,7 +96,6 @@ export default class Media extends BaseStore {
     const extra = {};
     const kind = mediaConsts.ASSET_TYPES[type];
     if (kind === mediaConsts.ASSET_TYPES.VIDEO) {
-      console.info('in');
       const source = [];
       if (item.hls) {
         source.push(item.hls);

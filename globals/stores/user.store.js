@@ -79,6 +79,11 @@ export default class UserStore {
   }
 
   @computed
+  get recorderEnabled() {
+    return this.isfeatureEnabled(FEATURES.RECORDER);
+  }
+
+  @computed
   get hasPermissions() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION);
   }
