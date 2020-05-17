@@ -1,5 +1,4 @@
 import React, { Fragment, useCallback } from 'react';
-import SVGInline from 'react-svg-inline';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../../../lib/PropTypes';
@@ -7,8 +6,6 @@ import PropTypes from '../../../../lib/PropTypes';
 import FieldBuilder from '../../../form/FieldBuilder';
 import useUIStore from '../../../hooks/useUIStore';
 import { iconAlignment, iconPosition } from '../../../../lib/constants/settings/vrtext-element';
-
-import svgTextLetterSpacing from '../../../../public/static/svgImages/text/basic_group/letter-spacing.svg';
 
 import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
 import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
@@ -81,11 +78,6 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
               {...fields.position}
               onChange={onChange}
               items={iconPosition}
-            />
-            <SVGInline
-              className="radio-button-icon"
-              svg={svgTextLetterSpacing}
-              cleanup={['title']}
             />
           </div>
         </div>

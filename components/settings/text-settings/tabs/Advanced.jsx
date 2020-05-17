@@ -5,12 +5,16 @@ import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 
 import PropTypes from '../../../../lib/PropTypes';
 
+import { showInfo } from '../../../../lib/services/alertService';
 import FieldBuilder from '../../../form/FieldBuilder';
 import fonts from '../../../../lib/constants/fonts';
-import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
+import {
+  iconAlignmentAdvanced,
+  WARNING,
+  CONTENT_RESPONSIVE,
+} from '../../../../lib/constants/settings/vrtext-element';
 
 const Advanced = ({ values, fields, onChange }) => {
-  const { bold, italics, responsive } = values.fontDecorations || fields.fontDecorations.default;
   const {
     fontFamily,
     fontSize,
@@ -22,7 +26,15 @@ const Advanced = ({ values, fields, onChange }) => {
     shadowColor,
     strokeColor,
     backgroundColor,
+    fontDecorations,
   } = values;
+
+  const handleChange = (option, fieldName) => {
+    if (fieldName && !option.responsive) {
+      showInfo(CONTENT_RESPONSIVE, WARNING);
+    }
+    onChange({ [fields.fontDecorations.name]: { ...fontDecorations, ...option } });
+  };
 
   return (
     <Fragment>
@@ -40,24 +52,24 @@ const Advanced = ({ values, fields, onChange }) => {
             name={fields.fontSize.name}
             {...fields.fontSize}
             onChange={onChange}
-            disabled={responsive}
+            disabled={fontDecorations.responsive}
             minValue={1}
-            containerClassName={classnames('slider-container', { 'slider-element': !responsive })}
+            containerClassName={classnames('slider-container', { 'slider-element': !fontDecorations.responsive })}
           />
         </div>
         <div className="font-decoration-section">
           <div className="font-decoration-container">
             <FieldBuilder
-              value={bold}
+              value={fontDecorations.bold}
               name={fields.fontDecorations.bold.name}
               {...fields.fontDecorations.bold}
-              onChange={(v) => onChange({ [fields.fontDecorations.name]: v })}
+              onChange={(v) => handleChange(v)}
             />
             <FieldBuilder
-              value={italics}
+              value={fontDecorations.italics}
               name={fields.fontDecorations.italics.name}
               {...fields.fontDecorations.italics}
-              onChange={(v) => onChange({ [fields.fontDecorations.name]: v })}
+              onChange={(v) => handleChange(v)}
             />
           </div>
           <div className="icon-edit-text">
@@ -128,10 +140,10 @@ const Advanced = ({ values, fields, onChange }) => {
           className="font-color-container-input"
         />
         <FieldBuilder
-          value={responsive}
+          value={fontDecorations.responsive}
           name={fields.fontDecorations.responsive.name}
           {...fields.fontDecorations.responsive}
-          onChange={(v) => onChange({ [fields.fontDecorations.name]: v })}
+          onChange={(v) => handleChange(v, fields.fontDecorations.responsive.name)}
         />
       </div>
     </Fragment>
@@ -160,7 +172,7 @@ Advanced.propTypes = {
   fields: PropTypes.shape({
     fontFamily: PropTypes.shape({
       name: PropTypes.string,
-      default: PropTypes.shape(),
+      default: PropTypes.string,
     }),
     fontSize: PropTypes.shape({
       name: PropTypes.string,
