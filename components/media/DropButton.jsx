@@ -54,7 +54,7 @@ const DropButton = (
           endUpload();
         }
       });
-  }, [uploadMedia]);
+  }, [onUploaded, uploadMedia]);
 
   const { getInputProps } = useDropzone({
     accept: mediaConstants.ACCEPTED_MEDIA_TYPES,

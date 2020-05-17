@@ -106,14 +106,14 @@ const SettingPanel = observer(({ options = {} }) => {
             onChange={updateSocials}
             floatClassName="settings-checkbox"
           />
-          {/* <FieldBuilder */}
-          {/* type="checkbox" */}
-          {/* name="linkedin" */}
-          {/* label="LinkedIn" */}
-          {/* value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')} */}
-          {/* onChange={updateSocials} */}
-          {/* floatClassName="settings-checkbox" */}
-          {/* /> */}
+          <FieldBuilder
+            type="checkbox"
+            name="linkedin"
+            label="LinkedIn"
+            value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
+            onChange={updateSocials}
+            floatClassName="settings-checkbox"
+          />
         </div>
 
         <div className="settings__row">

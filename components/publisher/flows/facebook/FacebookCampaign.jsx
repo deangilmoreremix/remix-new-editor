@@ -15,9 +15,11 @@ import {
   DEFAULT,
 } from '../../../../lib/constants/campaigns/constants';
 import useProjectStore from '../../../hooks/useProjectStore';
+import useModalStore from '../../../hooks/useModalStore';
 import CampaignStage from '../CampaignStage';
 import { isEnoughFans } from '../../../../lib/utils/social-campaigns';
-import { showError } from '../../../../lib/services/alertService';
+import { showError, showInfo } from '../../../../lib/services/alertService';
+import { SOCIAL_CAMPAIGN_MODAL } from '../../../../lib/constants/modals';
 
 const FacebookCampaign = observer(({
   collapseConductor,
@@ -56,6 +58,8 @@ const FacebookCampaign = observer(({
     linkToFbPage,
     updateItem,
   } = useProjectStore();
+
+  const { closeModal } = useModalStore();
 
   const sharePost = React.useCallback(async () => {
     setLoading(true);
@@ -105,13 +109,17 @@ const FacebookCampaign = observer(({
 
         await linkToFbPage(project, selectedFbPage, queryString);
       }
+      closeModal(SOCIAL_CAMPAIGN_MODAL);
+      showInfo('Success');
     } catch (e) {
       showError(e.message);
     } finally {
       setLoading(false);
     }
     return project;
-  }, [appId,
+  }, [
+    appId,
+    closeModal,
     collapseConductor,
     embedLocation.key,
     embedPage,
@@ -124,7 +132,8 @@ const FacebookCampaign = observer(({
     selectedFbPage,
     setLoading,
     share,
-    updateItem]);
+    updateItem,
+  ]);
 
   const canBypassStage = React.useCallback((stage) => {
     switch (stage.key) {
@@ -291,9 +300,13 @@ const FacebookCampaign = observer(({
   ]);
 
   React.useEffect(() => {
+    setLoading(true);
     setCurrentStage(STAGES[currentStageIndex]);
-    bootstrap(STAGES[currentStageIndex]);
-  }, [bootstrap, currentStageIndex]);
+    (async function startBootstrap() {
+      await bootstrap(STAGES[currentStageIndex]);
+      setLoading(false);
+    }());
+  }, [bootstrap, currentStageIndex, setLoading]);
 
   const bootstrap = React.useCallback((st) => {
     if (st && st.bootstrap) {

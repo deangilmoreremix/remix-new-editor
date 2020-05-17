@@ -38,11 +38,12 @@ const CampaignSelector = (props) => {
     facebookPageTab: null,
     preload: true,
     error: null,
+    authorized: false,
   });
 
-  const updateCampaign = (newSettings) => {
+  const updateCampaign = React.useCallback((newSettings) => {
     setSettings({ ...settings, ...newSettings });
-  };
+  }, [settings]);
 
   const showError = (error, timeout = null) => {
     updateCampaign({ error: error.message || NOT_SUPPORTED_IMAGE_FORMAT });
@@ -126,6 +127,7 @@ const CampaignSelector = (props) => {
             updateCampaign={updateCampaign}
             uploadFile={uploadFile}
             appId={facebookAppId}
+            closeModal={closeModal}
           />
         );
       }
@@ -137,6 +139,7 @@ const CampaignSelector = (props) => {
             updateCampaign={updateCampaign}
             uploadFile={uploadFile}
             appId={linkedinAppId}
+            closeModal={closeModal}
           />
         );
       }

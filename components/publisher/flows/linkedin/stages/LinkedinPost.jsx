@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { observer } from 'mobx-react';
 
 import DropButton from '../../../../media/DropButton';
 import FieldBuilder from '../../../../form/FieldBuilder';
@@ -11,102 +12,105 @@ import {
 
 import PropTypes from '../../../../../lib/PropTypes';
 
-const LinkedinPost = ({ settings, updateCampaign }) => (
-  <div className="linkedin-post">
-    <h5 className="embed-title">
-      What do you want the LinkedIn Share to look like?
-    </h5>
-    <div className="embed-grid">
-      <div className="row embed-group">
-        <div className="embed-grid cell linkedin-post-details">
-          <FieldBuilder
-            type="input"
-            name="title"
-            label="Post Title"
-            onChange={({ title }) => updateCampaign({
-              postData: {
-                ...settings.postData,
-                title,
-              },
-            })}
-            value={settings.postData.title}
-            className="settings-input"
-            labelClassName="settings-panel-text"
-            placeholder="Post Title"
-          />
-          <div className="row embed-group">
+const LinkedinPost = observer((props) => {
+  const { settings, updateCampaign } = props;
+  return (
+    <div className="linkedin-post">
+      <h5 className="embed-title">
+        What do you want the LinkedIn Share to look like?
+      </h5>
+      <div className="embed-grid">
+        <div className="row embed-group">
+          <div className="embed-grid cell linkedin-post-details">
             <FieldBuilder
               type="input"
-              name="description"
-              label="Post Description"
-              onChange={({ description }) => updateCampaign({
+              name="title"
+              label="Post Title"
+              onChange={({ title }) => updateCampaign({
                 postData: {
                   ...settings.postData,
-                  description,
+                  title,
                 },
               })}
               value={settings.postData.title}
               className="settings-input"
               labelClassName="settings-panel-text"
-              placeholder="Post Description"
+              placeholder="Post Title"
             />
-          </div>
-          <div className="row embed-group">
-            <label className="cell" htmlFor="linkedin-post-image-input">
-              Post Image
-            </label>
-            {
-              settings.postData
-            && (
-              <div>
-                {
-                  settings.postData.thumbnail
-                  && (
-                  <div className="settings__row-img">
-                    <p className="settings__row-text">Thumbnail</p>
-                    <div className="settings-img-preview">
-                      <img
-                        src={settings.postData.thumbnail}
-                        alt=""
-                      />
-                    </div>
+            <div className="row embed-group">
+              <FieldBuilder
+                type="input"
+                name="description"
+                label="Post Description"
+                onChange={({ description }) => updateCampaign({
+                  postData: {
+                    ...settings.postData,
+                    description,
+                  },
+                })}
+                value={settings.postData.description}
+                className="settings-input"
+                labelClassName="settings-panel-text"
+                placeholder="Post Description"
+              />
+            </div>
+            <div className="row embed-group">
+              <label className="cell" htmlFor="linkedin-post-image-input">
+                Post Image
+              </label>
+              {
+                settings.postData
+                && (
+                  <div>
+                    {
+                      settings.postData.thumbnail
+                      && (
+                        <div className="settings__row-img">
+                          <p className="settings__row-text">Thumbnail</p>
+                          <div className="settings-img-preview">
+                            <img
+                              src={settings.postData.thumbnail}
+                              alt=""
+                            />
+                          </div>
+                        </div>
+                      )
+                    }
+                    <DropButton
+                      onUploaded={({ url: thumbnail }) => updateCampaign({
+                        postData: {
+                          ...settings.postData,
+                          thumbnail,
+                        },
+                      })}
+                      needSaveAsset={false}
+                      type={mediaConstants.ASSET_TYPES.IMAGE}
+                      multiple={false}
+                      className="settings__add-file"
+                    />
                   </div>
-                  )
-                }
-                <DropButton
-                  onUploaded={({ url: thumbnail }) => updateCampaign({
-                    postData: {
-                      ...settings.postData,
-                      thumbnail,
-                    },
-                  })}
-                  needSaveAsset={false}
-                  type={mediaConstants.ASSET_TYPES.IMAGE}
-                  multiple={false}
-                  className="settings__add-file"
-                />
-              </div>
-            )
-            }
-            <p className="text-resolution">
-              {`*Recommended image resolution ${POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT}`}
-            </p>
+                )
+              }
+              <p className="text-resolution">
+                {`*Recommended image resolution ${POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT}`}
+              </p>
+            </div>
           </div>
+          {
+            settings.postData && settings.userData
+            && (
+              <LinkedinPostPreview
+                className="cell"
+                user={settings.userData}
+                post={settings.postData}
+              />
+            )
+          }
         </div>
-        {
-          settings.postData && settings.userData
-          && (
-          <LinkedinPostPreview
-            className="cell"
-            user={settings.userData}
-            post={settings.postData}
-          />
-          )
-        }
       </div>
     </div>
-  </div>
-);
+  );
+});
 
 LinkedinPost.propTypes = {
   settings: PropTypes.shape({

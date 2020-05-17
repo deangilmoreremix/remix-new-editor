@@ -25,38 +25,33 @@ const CampaignStage = ({
   return (
     <React.Fragment>
       {
-        isLoading ? <div className="spinner">Loading...</div>
-          : (
-            <div>
-              <Stage {...props} />
-              <Progress
-                className="embed-progress mb-3"
-                value={completionPercentage}
-              />
-              <div className="controls">
-                <button
-                  disabled={index === 0}
-                  className={`go-button back ${key === STAGES[0].key ? 'hidden' : ''}`}
-                  onClick={handleBackButtonClick}
-                  type="button"
-                >
+        isLoading ? <div className="spinner">Loading...</div> : <Stage {...props} />
+      }
+      <Progress
+        className="embed-progress mb-3"
+        value={completionPercentage}
+      />
+      <div className="controls">
+        <button
+          disabled={isLoading || index === 0}
+          className={`go-button back ${key === STAGES[0].key ? 'hidden' : ''}`}
+          onClick={handleBackButtonClick}
+          type="button"
+        >
         Back
-                </button>
-                <button
-                  className={
+        </button>
+        <button
+          className={
         `go-button ${`next ${actionButtonClassName || ''}`}`
       }
-                  disabled={!canBypassStage(stage)}
-                  onClick={handleNextButtonClick}
-                  type="button"
-                >
-                  <i className={actionButtonIconClassName || 'hidden'} />
-                  {actionButtonCaption || 'Next'}
-                </button>
-              </div>
-            </div>
-          )
-      }
+          disabled={isLoading || !canBypassStage(stage)}
+          onClick={handleNextButtonClick}
+          type="button"
+        >
+          <i className={actionButtonIconClassName || 'hidden'} />
+          {actionButtonCaption || 'Next'}
+        </button>
+      </div>
     </React.Fragment>
   );
 };
