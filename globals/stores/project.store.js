@@ -70,11 +70,12 @@ export default class ProjectStore extends BaseStore {
   });
 
   setElementOptions = async (item) => {
+    const { track } = item || {};
     const options = {};
     options.start = item.start || (this.time / SANTISECOND);
     options.end = item.end || options.start + DEFAULT_DURATION;
     options.id = `0.${this.generateUid()}`;
-    options.zindex = MAX_ZINDEX;
+    options.zindex = track && track.order ? MAX_ZINDEX - track.order : MAX_ZINDEX;
 
     switch (item.type) {
       case SEQUENCER: {
@@ -778,7 +779,11 @@ export default class ProjectStore extends BaseStore {
     }
     this.popcorn[type]({ id, ...popcornOptions });
     this.projectData.media.forEach((media) => {
-      media.tracks[0].trackEvents.push(trackEvent);
+      media.tracks.forEach(track => {
+        if (track.id === trackEvent.track) {
+          track.trackEvents.push(trackEvent);
+        }
+      });
     });
   };
 
