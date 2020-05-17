@@ -1,11 +1,12 @@
 import React from 'react';
 import classnames from 'classnames';
+import { observer } from 'mobx-react';
 
 import useUIStore from '../../hooks/useUIStore';
 
 import { STICKERS_TABS } from '../../../lib/constants/stickers';
 
-const Tabs = () => {
+const Tabs = observer(() => {
   const { secondaryWindowType: activeTab, openStickers } = useUIStore();
 
   return (
@@ -21,6 +22,6 @@ const Tabs = () => {
       ))}
     </div>
   );
-};
+});
 
 export default Tabs;

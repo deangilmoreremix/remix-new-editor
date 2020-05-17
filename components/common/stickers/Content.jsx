@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
+import { observer } from 'mobx-react';
 
 import mediaConstants from '../../../lib/constants/media';
 import { showError } from '../../../lib/services/alertService';
@@ -19,7 +20,7 @@ import plusIcon from '../../../public/static/svgImages/plus-circle.svg';
 import ContentItem from './ContentItem';
 import LottieItem from '../../../lib/lottie/LottieItem';
 
-const Content = () => {
+const Content = observer(() => {
   const [isLoading, setIsLoading] = useState();
   const [items, setItems] = useState([]);
   const [uploadedItems, setUploadedItems] = useState([]);
@@ -218,6 +219,6 @@ const Content = () => {
       {hasMore && <Waypoint bottomOffset="3%" onEnter={() => fetchItems()} />}
     </div>
   );
-};
+});
 
 export default Content;

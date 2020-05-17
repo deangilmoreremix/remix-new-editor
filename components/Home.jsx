@@ -170,6 +170,7 @@ const Home = observer(() => {
             bottom: '0',
             left: '0',
             right: '0',
+            zIndex: 10000,
           }}
           loading
           color={LOADING_COLOR}
@@ -191,6 +192,7 @@ const Home = observer(() => {
               bottom: '0',
               left: '0',
               right: '0',
+              zIndex: 10000,
             }}
             loading={isLoading}
             color={LOADING_COLOR}
