@@ -12,18 +12,7 @@ export default class UIStore {
           && Object.values(POPCORN_ELEMENT_TYPES).includes(this.projectStore.element.type)) {
           this.secondaryWindowType = WINDOW_TYPES.SETTING;
         } else if (this.projectStore.activeElementId
-          && this.projectStore.retarget
-          && this.projectStore.retarget.showedForm) {
-          this.secondaryWindowType = WINDOW_TYPES.SETTING;
-        } else {
-          this.secondaryWindowType = null;
-        }
-      },
-    );
-    reaction(
-      () => this.projectStore.retarget,
-      () => {
-        if (this.projectStore.retarget.showedForm) {
+          && this.projectStore.retarget) {
           this.secondaryWindowType = WINDOW_TYPES.SETTING;
         } else {
           this.secondaryWindowType = null;
@@ -113,7 +102,7 @@ export default class UIStore {
 
   @action
   setInitialView = () => {
-    this.setLibraryType(null);
+    this.projectStore.releaseElement();
     this.setToolbarItem(TOOLBARS.ELEMENTS);
   };
 }

@@ -7,6 +7,7 @@ import FieldBuilder from '../../../form/FieldBuilder';
 
 import trashIcon from '../../../../public/static/svgImages/common/trash.svg';
 import burgerIcon from '../../../../public/static/svgImages/common/burger.svg';
+import { showInfo } from '../../../../lib/services/alertService';
 
 
 const INPUT_NAME = 'inputValue';
@@ -26,6 +27,8 @@ const FieldsTab = ({ values, fields, onChange }) => {
       };
       newArr.push(newElement);
       onChange({ elements: newArr });
+    } else {
+      showInfo('LEAD GENERATOR CAN\'T HAVE MORE THAN 5 FIELDS.', 'WARNING');
     }
   };
 
@@ -52,10 +55,12 @@ const FieldsTab = ({ values, fields, onChange }) => {
     }
   };
 
+  const isValuePresent = (itemValue) => typeof (itemValue) !== 'undefined';
+
   return (
     <div className="retarget-fields-tab">
       <FieldBuilder
-        value={values.caption || fields.caption.default}
+        value={isValuePresent(values.caption) ? values.caption : fields.caption.default}
         onChange={onChange}
         {...fields.caption}
       />
@@ -76,7 +81,7 @@ const FieldsTab = ({ values, fields, onChange }) => {
             onChange={(v) => handleChangeInput(v, item.id)}
           />
           <FieldBuilder
-            value={values.elements || fields.elements.default}
+            value={isValuePresent(values.elements) ? values.elements : fields.elements.default}
             {...fields.elements}
             onChange={(v) => handleChangeInput(v, item.id)}
           />
@@ -97,7 +102,9 @@ const FieldsTab = ({ values, fields, onChange }) => {
         <button className="addfield-container-button" onClick={() => addField()}>+ Add Field</button>
       </div>
       <FieldBuilder
-        value={values.privacyDisclaimer || fields.privacyDisclaimer.default}
+        value={isValuePresent(values.privacyDisclaimer)
+          ? values.privacyDisclaimer
+          : fields.privacyDisclaimer.default}
         onChange={onChange}
         {...fields.privacyDisclaimer}
         className="input-field-conatainer"
@@ -115,7 +122,7 @@ const FieldsTab = ({ values, fields, onChange }) => {
         className="input-field-conatainer"
       />
       <FieldBuilder
-        value={values.btnText || fields.btnText.default}
+        value={isValuePresent(values.btnText) ? values.btnText : fields.btnText.default}
         onChange={onChange}
         {...fields.btnText}
         className="input-field-conatainer"

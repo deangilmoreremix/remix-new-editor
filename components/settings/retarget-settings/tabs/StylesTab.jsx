@@ -6,21 +6,19 @@ import FieldBuilder from '../../../form/FieldBuilder';
 import DropzoneArea from '../../../media/DropzoneArea';
 import DropButton from '../../../media/DropButton';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
-import useProjectStore from '../../../hooks/useProjectStore';
 import mediaConstants from '../../../../lib/constants/media';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
 import { tabItems } from '../../../../lib/constants/library';
 
 const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
-  const { updateItem } = useProjectStore();
-  const [isDisabledUpload, setIsDisabledUpload] = useState(false);
+  const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
+  const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
 
   const onUploadedImage = (image, extension, option) => {
     Object.keys(tabItems).forEach(tab => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
-          updateItem({ thumbnail: image.url });
           onChange({ [option]: image.url });
         }
       });
@@ -33,7 +31,7 @@ const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
         value={showedForm}
         type="checkbox"
         name="showedUI"
-        label="List Builder Deactivate"
+        label="Advanced Optin Deactivate"
         onChange={onClose}
       />
       <div className="brand-logo-container">
@@ -44,22 +42,20 @@ const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
             onChange={onChange}
           />
           <DropzoneArea
-            onUploaded={onUploadedImage}
+            onUploaded={(item, ext) => onUploadedImage(item, ext, fields.brandLogoSrc.name)}
             type={mediaConstants.ASSET_TYPES.IMAGE}
-            optionName={fields.brandLogoSrc.name}
-            isDisabled={isDisabledUpload}
+            isDisabled={isDisabledUploadLogo}
             value={values.brandLogoSrc}
-            startUpload={() => setIsDisabledUpload(true)}
-            endUpload={() => setIsDisabledUpload(false)}
+            startUpload={() => setIsDisabledUploadLogo(true)}
+            endUpload={() => setIsDisabledUploadLogo(false)}
             multiple={false}
           />
           <DropButton
-            onUploaded={onUploadedImage}
+            onUploaded={(item, ext) => onUploadedImage(item, ext, fields.brandLogoSrc.name)}
             type={mediaConstants.ASSET_TYPES.IMAGE}
-            optionName={fields.brandLogoSrc.name}
-            isDisabled={isDisabledUpload}
-            startUpload={() => setIsDisabledUpload(true)}
-            endUpload={() => setIsDisabledUpload(false)}
+            isDisabled={isDisabledUploadLogo}
+            startUpload={() => setIsDisabledUploadLogo(true)}
+            endUpload={() => setIsDisabledUploadLogo(false)}
             multiple={false}
           />
         </div>
@@ -70,20 +66,21 @@ const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
             onChange={onChange}
           />
           <DropzoneArea
-            onUploaded={onUploadedImage}
+            onUploaded={(item, ext) => onUploadedImage(item, ext, fields.backgroundImage.name)}
             type={mediaConstants.ASSET_TYPES.IMAGE}
-            optionName={fields.backgroundImage.name}
-            startUpload={() => setIsDisabledUpload(true)}
-            endUpload={() => setIsDisabledUpload(false)}
+            isDisabled={isDisabledUploadImage}
+            value={values.backgroundImage}
+            startUpload={() => setIsDisabledUploadImage(true)}
+            endUpload={() => setIsDisabledUploadImage(false)}
             multiple={false}
           />
           <DropButton
-            onUploaded={onUploadedImage}
+            onUploaded={(item, ext) => onUploadedImage(item, ext, fields.backgroundImage.name)}
             type={mediaConstants.ASSET_TYPES.IMAGE}
+            isDisabled={isDisabledUploadImage}
             optionName={fields.backgroundImage.name}
-            isDisabled={isDisabledUpload}
-            startUpload={() => setIsDisabledUpload(true)}
-            endUpload={() => setIsDisabledUpload(false)}
+            startUpload={() => setIsDisabledUploadImage(true)}
+            endUpload={() => setIsDisabledUploadImage(false)}
             multiple={false}
           />
         </div>

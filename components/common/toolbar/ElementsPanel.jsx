@@ -6,6 +6,8 @@ import PropTypes from '../../../lib/PropTypes';
 
 import useUserStore from '../../hooks/useUserStore';
 
+import { LABEL_FEATURES as labelFeature } from '../../../lib/constants/features';
+
 const ElementsPanel = ({ items }) => {
   const { isSuperAdmin } = useUserStore();
 
@@ -13,7 +15,7 @@ const ElementsPanel = ({ items }) => {
     <Container className="elements-panel-container">
       <Row className="elements-panel-inner-row">
         {items.map(({ label, icon, action, disabled }) => {
-          if (label === 'JSON' && !isSuperAdmin) {
+          if (label === labelFeature.JSON && !isSuperAdmin) {
             return;
           }
 

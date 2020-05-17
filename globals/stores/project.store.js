@@ -102,14 +102,17 @@ export default class ProjectStore extends BaseStore {
     const popcornFunctions = window.Popcorn.compositions.retargetForm();
     const manifest = window.Popcorn.manifest.retargetForm;
 
-    const options = this.retarget ? this.retarget.options : DEFAULT_OPTIONS;
+    let options;
+    if (this.retarget && this.retarget.options) {
+      options = { ...this.retarget.options };
+    } else {
+      options = { ...DEFAULT_OPTIONS };
+    }
 
     const retargetOptions = {
       id: `0.${this.generateUid()}`,
       manifest,
       type,
-      showed: true,
-      showedForm: true,
       options,
     };
 
@@ -131,19 +134,17 @@ export default class ProjectStore extends BaseStore {
 
   @action
   addRetargetForm = (retargetForm) => {
-    if (this.retarget) {
-      if (!this.retarget.showedForm && !this.retarget.id) {
-        this.createRetargetForm(retargetForm);
-        this.retarget.start();
-      } else {
-        this.retarget.showedForm = true;
-        this.editElement(this.retarget.id);
-        this.retarget.start();
-      }
-    } else {
+    if (!this.retarget) {
       this.createRetargetForm(retargetForm);
       this.retarget.start();
+    } else if (this.retarget && !this.retarget.id) {
+      this.createRetargetForm(retargetForm);
+      this.retarget.start();
+    } else {
+      this.editElement(this.retarget.id);
+      this.retarget.start();
     }
+    this.modified = true;
   }
 
   @action
@@ -196,8 +197,10 @@ export default class ProjectStore extends BaseStore {
 
   @action
   editElement = (elementId) => {
-    if (this.retarget && this.retarget.showedForm && elementId !== this.retarget.id) {
-      this.retarget.showedForm = false;
+    if (this.activeElementId
+      && this.retarget
+      && this.retarget.id
+      && this.retarget.id !== elementId) {
       this.retarget.end();
     }
     this.activeElementId = elementId;
@@ -210,7 +213,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   findAndUpdate = (elementId, options) => {
-    if (this.retarget && this.retarget.showedForm && elementId === this.retarget.id) {
+    if (this.retarget && elementId === this.retarget.id) {
       this.modified = true;
       this.retarget.options = {
         ...this.retarget.options,
@@ -663,7 +666,7 @@ export default class ProjectStore extends BaseStore {
     }
     let element;
     const resultOptions = {};
-    if (this.retarget && this.retarget.showedForm) {
+    if (this.retarget && this.activeElementId === this.retarget.id) {
       element = this.retarget.manifest;
       const { options } = element;
       Object.keys(options).forEach((fieldName) => {
@@ -726,9 +729,6 @@ export default class ProjectStore extends BaseStore {
     thumbnail: this.item.thumbnail,
     source: this.item.source,
     tags: this.item.tags,
-    retargetForm: {
-      options: this.retarget ? this.retarget.options : DEFAULT_OPTIONS,
-    },
   });
 
   trailisePauseElements = (projectData) => {
@@ -788,11 +788,19 @@ export default class ProjectStore extends BaseStore {
       return;
     }
     this.isLoading = true;
+    const retargetForm = {
+      showed: false,
+    };
     try {
       const path = this.item._id
         ? `/api/users/me/makes/${this.item._id}`
         : '/api/users/me/makes';
-      const serializedData = this.serializeProject();
+      let serializedData = this.serializeProject();
+      if (this.retarget && this.activeElementId === this.retarget.id) {
+        retargetForm.showed = true;
+        retargetForm.options = { ...this.retarget.options };
+      }
+      serializedData = { retargetForm, ...serializedData };
       const result = await this.request(
         path, {
           method: this.item._id ? 'PATCH' : 'POST',
@@ -807,7 +815,6 @@ export default class ProjectStore extends BaseStore {
             thumbnail: serializedData.thumbnail,
             remixedFrom: serializedData.source,
             tags: serializedData.tags,
-            retarget: serializedData.retarget,
           },
         });
       const publishedMake = await this.publish(result._id);

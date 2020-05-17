@@ -35,11 +35,9 @@ export default class UserStore {
       || 'https://stuff.webmaker.org/avatars/webmaker-avatar-200x200.png';
   }
 
-  isfeatureEnabled(feature) {
-    return this.isSuperAdmin || (
-      this.currentUser.features && this.currentUser.features[feature]
-      && this.currentUser.features[feature].state === STATE.ENABLED);
-  }
+  isfeatureEnabled = (feature) => this.isSuperAdmin || (
+    this.currentUser.features && this.currentUser.features[feature]
+    && this.currentUser.features[feature].state === STATE.ENABLED)
 
   @computed
   get optinCodeEnabled() {

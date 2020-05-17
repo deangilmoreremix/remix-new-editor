@@ -18,15 +18,16 @@ const TabMap = {
 };
 
 const RetargetSettings = observer(({ tab = STYLES, element, update, fields }) => {
+  const [showedForm, setShowedForm] = React.useState(true);
   const Tab = TabMap[tab];
-  const { showedForm, options } = element;
+  const { options } = element;
   const { closeSecondaryWindow } = useUIStore();
-  const { retarget } = useProjectStore();
+  const { retarget, releaseElement } = useProjectStore();
 
   const deactivateRetarget = () => {
-    retarget.showed = false;
-    retarget.showedForm = false;
     retarget.end();
+    releaseElement();
+    setShowedForm(!showedForm);
     closeSecondaryWindow();
   };
 

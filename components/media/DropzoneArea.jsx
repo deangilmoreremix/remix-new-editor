@@ -26,7 +26,6 @@ const DropzoneArea = (
     value,
     className,
     isArrows,
-    optionName,
   }) => {
   const [image, setImage] = useState();
   const { uploadMedia, storeAsset } = useMediaStore();
@@ -47,10 +46,10 @@ const DropzoneArea = (
       .then(fileExtension => {
         const extension = fileExtension[fileExtension.length - 1];
         if (!multiple) {
-          onUploaded(elements[0], extension, optionName);
+          onUploaded(elements[0], extension);
           setImage(elements[0].url);
         } else {
-          onUploaded(elements, extension, optionName);
+          onUploaded(elements, extension);
         }
       })
       .catch(() => showError('An error occurred while loading the items.'))

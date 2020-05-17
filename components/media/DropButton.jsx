@@ -19,7 +19,6 @@ const DropButton = (
     isDisabled,
     multiple,
     className,
-    optionName,
     needSaveAsset,
   }) => {
   const { uploadMedia, storeAsset } = useMediaStore();
@@ -43,9 +42,9 @@ const DropButton = (
       .then(fileExtension => {
         const extension = fileExtension[fileExtension.length - 1];
         if (!multiple) {
-          onUploaded(elements[0], extension, optionName);
+          onUploaded(elements[0], extension);
         } else {
-          onUploaded(elements, extension, optionName);
+          onUploaded(elements, extension);
         }
       })
       .catch(() => showError('An error occurred while loading the items.'))
@@ -64,8 +63,8 @@ const DropButton = (
 
   return (
     <div className={classnames('button-add-file', className)}>
-      <input id="settings-file" {...getInputProps()} disabled={isDisabled} multiple={multiple} />
-      <label htmlFor="settings-file" className="button-add-file__label">
+      <label className="button-add-file__label">
+        <input {...getInputProps()} disabled={isDisabled} multiple={multiple} />
         {
           isDisabled ? <LibrarySpinner /> : <span>Upload</span>
         }
@@ -82,7 +81,6 @@ DropButton.propTypes = {
   isDisabled: PropTypes.bool,
   multiple: PropTypes.bool,
   className: PropTypes.string,
-  optionName: PropTypes.string,
   needSaveAsset: PropTypes.bool,
 };
 

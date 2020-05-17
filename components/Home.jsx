@@ -72,12 +72,13 @@ const Home = observer(() => {
     addElement,
     modified,
     addRetargetForm,
+    releaseElement,
     videoUrl,
   } = projectStore;
 
   const userStore = useUserStore();
 
-  const { optinCodeEnabled } = userStore;
+  const { optinCodeEnabled, isSuperAdmin, isfeatureEnabled, recorderEnabled } = userStore;
 
   const SecondaryWindow = React.useMemo(() => {
     switch (secondaryWindowType) {
@@ -129,6 +130,10 @@ const Home = observer(() => {
         optinCodeEnabled,
         videoUrl,
         userStore,
+        releaseElement,
+        isSuperAdmin,
+        isfeatureEnabled,
+        recorderEnabled,
       },
     });
     return items && items.length ? items : [];

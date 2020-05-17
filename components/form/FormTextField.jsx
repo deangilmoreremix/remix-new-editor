@@ -79,7 +79,7 @@ const FormTextField = React.forwardRef(({
               inputRef={ref}
               key="input-key"
               id={name}
-              className={classnames('text-input', inputClassName)}
+              className={classnames(inputClassName, 'text-input', { 'input-disabled': disabled })}
               value={value || (value === 0 && type === 'number') ? value : ''}
               placeholder={placeholder}
               onChange={onEdit}

@@ -48,7 +48,6 @@ const FormColor = ({ label, onChange, value, className, disabled }) => {
           value={colorToRgbaString(color) || value || colorPrimary}
           onChange={updateColor}
           disabled={disabled}
-          inputClassName={classnames({ 'input-disabled': disabled })}
         />
         <button
           onClick={handleClick}
