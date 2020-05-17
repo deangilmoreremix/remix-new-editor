@@ -1,12 +1,17 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
+import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
 import useUIStore from '../../hooks/useUIStore';
 
+import arrowIcon from '../../../public/static/svgImages/common/arrow-back.svg';
+
+import AnimatedWindow from '../AnimatedWindow';
+
 const Toolbar = observer(({ items }) => {
-  const { toolbarItem: { id, options }, setToolbarItem } = useUIStore();
+  const { toolbarItem: { id, options }, setToolbarItem, isExpand, isTimelineOpen } = useUIStore();
 
   React.useEffect(() => {
     if (items && items.length && !id) {
@@ -17,29 +22,34 @@ const Toolbar = observer(({ items }) => {
   const {
     items: tabContent = [],
     renderer: TabRenderer,
-    func,
   } = items.find(i => i.id === id) || {};
-  const onClick = (label) => {
+
+  const onClick = (label, func) => {
+    func();
     setToolbarItem(label);
   };
-  React.useEffect(() => {
-    if (func) {
-      func();
-    }
-  }, [id]);
+
 
   return (
-    <div className="toolbar-container">
+    <div className={classnames('toolbar-container', { 'big-window': !isTimelineOpen })}>
       <div className="toolbar-tabs">
-        {items.map(({ label, icon, id: tabId }) => (
+        {items.map(({ label, icon, id: tabId, func }) => (
           <button
             className="toolbar-tab"
             key={label}
-            onClick={() => onClick(tabId)}
+            onClick={() => onClick(tabId, func)}
             type="button"
           >
             <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
             <span className="toolbar-tab-title">{label}</span>
+            {isExpand && (
+              <AnimatedWindow
+                isOpen={isExpand}
+                style={{ position: 'absolute' }}
+              >
+                <SVGInline className="toolbar-arrow-icon" svg={arrowIcon} cleanup={['title']} />
+              </AnimatedWindow>
+            )}
           </button>
         ))}
       </div>

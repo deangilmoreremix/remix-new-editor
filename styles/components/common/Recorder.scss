@@ -6,6 +6,7 @@
   max-width: 31.75rem;
   height: $toolbarHeight - 5vh;
   background: $light-twinlight;
+  transition: 0.3s all;
 
   &__header {
     @include reset-button;

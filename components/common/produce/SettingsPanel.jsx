@@ -11,16 +11,10 @@ import FieldBuilder from '../../form/FieldBuilder';
 import DropzoneArea from '../../media/DropzoneArea';
 import DropButton from '../../media/DropButton';
 
-const SettingPanel = observer(({ options = {} }) => {
+const SettingPanel = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
 
   const titleRef = React.useRef(null);
-
-  React.useEffect(() => {
-    if (options && options.focusTitle && titleRef && titleRef.current) {
-      titleRef.current.focus();
-    }
-  }, [options, titleRef]);
 
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();

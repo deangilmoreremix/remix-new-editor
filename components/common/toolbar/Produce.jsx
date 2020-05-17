@@ -1,41 +1,67 @@
 import React from 'react';
+import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
 
-const Produce = ({ items, options: { tab, ...options } = {} }) => {
+import useUIStore from '../../hooks/useUIStore';
+
+import AnimatedWindow from '../AnimatedWindow';
+import CloseButton from '../CloseButton';
+
+const Produce = observer(({ items, options: { tab, ...options } = {} }) => {
   const defaultTab = tab || items[0].id;
   const [activeTab, setActiveTab] = React.useState(defaultTab);
+
+  const {
+    radioButtonBottom,
+    checkboxLeft,
+    toggleLeftBlock,
+    toggleIsExpand,
+  } = useUIStore();
 
   const activeTabItem = items.find(i => i.id === activeTab);
   const { renderer: Panel, items: panelItems = [] } = activeTabItem;
 
+  if (!radioButtonBottom) {
+    return null;
+  }
+
+  const onClose = () => {
+    toggleLeftBlock(false);
+    toggleIsExpand();
+  };
+
   return (
-    <div className="produce">
-      <div className="produce__tabs">
-        {items.map(({ label, id }) => (
-          <button
-            key={label}
-            onClick={() => setActiveTab(id)}
-            type="button"
-            className={classnames(
-              'produce__tab',
-              { 'produce__tab-active': activeTabItem && activeTabItem.id === id },
-            )}
-          >
-            <span className="toolbar__tab-title">{label}</span>
-          </button>
-        ))}
+    <AnimatedWindow isOpen={checkboxLeft}>
+      <div className="produce">
+        <div className="produce__tabs">
+          {items.map(({ label, id }) => (
+            <button
+              key={label}
+              onClick={() => setActiveTab(id)}
+              type="button"
+              className={classnames(
+                'produce__tab',
+                { 'produce__tab-active': activeTabItem && activeTabItem.id === id },
+              )}
+            >
+              <span className="toolbar__tab-title">{label}</span>
+            </button>
+          ))}
+        </div>
+        <Panel
+          items={panelItems}
+          setActiveTab={setActiveTab}
+          tab={items[1].id}
+          options={options}
+        />
+
+        <CloseButton onClick={onClose} />
       </div>
-      <Panel
-        items={panelItems}
-        setActiveTab={setActiveTab}
-        tab={items[1].id}
-        options={options}
-      />
-    </div>
+    </AnimatedWindow>
   );
-};
+});
 
 Produce.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({

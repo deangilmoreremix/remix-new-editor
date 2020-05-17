@@ -28,6 +28,7 @@ import { CANVAS_SIZES } from '../lib/constants/media';
 import { DEFAULT_RATIO } from '../lib/constants/project';
 import { LOADING_COLOR, WINDOW_TYPES } from '../lib/constants/ui';
 import { ROUTES } from '../lib/constants/routing';
+import AnimatedWindow from './common/AnimatedWindow';
 
 const Home = observer(() => {
   const { pathname, query: { project, remix }, push } = useRouter();
@@ -56,11 +57,16 @@ const Home = observer(() => {
   const {
     setLibraryType,
     openLowerThird,
-    wideWindow,
-    setWideWindow,
+    changeRadioButton,
     secondaryWindowType,
     openStickers,
     setSecondaryWindowType,
+    checkboxRight,
+    radioButtonBottom,
+    openMediaButton,
+    isTimelineOpen,
+    canvasWidth,
+    toolsWidth,
   } = uiStore;
 
   const {
@@ -119,10 +125,11 @@ const Home = observer(() => {
         setLibraryType,
         openStickers,
         openLowerThird,
-        setWideWindow,
+        changeRadioButton,
         addElement,
         addRetargetForm,
         setSecondaryWindowType,
+        openMediaButton,
       },
       project: {
         allowedSocials,
@@ -141,7 +148,7 @@ const Home = observer(() => {
     openModal,
     closeModal,
     setLibraryType,
-    setWideWindow,
+    changeRadioButton,
     addElement,
     optinCodeEnabled,
     modified,
@@ -189,24 +196,32 @@ const Home = observer(() => {
             color={LOADING_COLOR}
           />
           <Grid container className="controls">
-            <Grid item xs={7}>
+            <Grid item xs={toolsWidth} style={{ minWidth: '105px' }}>
               <Grid container>
-                <Grid item xs={wideWindow ? 12 : 6}>
+
+                <Grid item xs={radioButtonBottom ? 12 : 6} style={{ maxWidth: radioButtonBottom ? '100%' : '23.3em', flexBasis: !radioButtonBottom && 'auto' }}>
                   <Toolbar
                     items={toolbarContent}
                   />
                 </Grid>
-                <Grid item xs={wideWindow ? false : 6} className="home__center">
-                  {SecondaryWindow}
-                </Grid>
+
+                {checkboxRight && !radioButtonBottom && (
+                  <Grid item xs={radioButtonBottom ? false : 6} className="home__center" style={{ flex: 1, maxWidth: 'none' }}>
+                    <AnimatedWindow isOpen={checkboxRight}>
+                      {SecondaryWindow}
+                    </AnimatedWindow>
+                  </Grid>
+                )}
+
               </Grid>
             </Grid>
-            <Grid item xs={5}>
+
+            <Grid item xs={canvasWidth}>
               <Canvas />
             </Grid>
           </Grid>
           <SizeSelector sizes={CANVAS_SIZES} onChange={updateItem} active={{ width, height }} />
-          <Grid container className="timeline">
+          <Grid container className={classnames('timeline', { 'timeline-open': isTimelineOpen })}>
             <Timeline />
           </Grid>
         </div>

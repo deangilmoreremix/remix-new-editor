@@ -2,8 +2,10 @@ import React, { useRef, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import Grid from '@material-ui/core/Grid';
 import SVGInline from 'react-svg-inline';
+import classnames from 'classnames';
 
 import useProjectStore from './hooks/useProjectStore';
+import useUIStore from './hooks/useUIStore';
 
 import FormSlider from './form/FormSlider';
 import Layer from './common/timeline/Layer';
@@ -17,6 +19,7 @@ import rulerIcon from '../public/static/svgImages/common/ruler.svg';
 const Timeline = observer(() => {
   const ref = useRef(null);
   const projectStore = useProjectStore();
+  const uiStore = useUIStore();
   const [width, setWidth] = React.useState(0);
 
   const {
@@ -29,6 +32,8 @@ const Timeline = observer(() => {
     removeLayer,
     moveElements,
   } = projectStore;
+
+  const { isTimelineOpen, toggleTimeLine } = uiStore;
 
   const onSortEnd = ({ oldIndex, newIndex }) => {
     if (oldIndex === newIndex) {
@@ -45,6 +50,11 @@ const Timeline = observer(() => {
 
   return (
     <div className="timeline">
+      <button
+        className={classnames('timeline-arrow', { 'timeline-arrow-open': isTimelineOpen })}
+        onClick={() => toggleTimeLine(!isTimelineOpen)}
+      />
+
       <Grid container>
         <Grid xs={2} item>
           <Grid container alignItems="center" className="timeline__btns">

@@ -195,9 +195,9 @@ export default class Media extends BaseStore {
   };
 
   @action
-  deleteTLPreset = async () => {
+  deleteLTPreset = async () => {
     if (this.presetsTLItemsForDelete.length) {
-      const promiseArr = this.presetsTKItemsForDelete.map(id => (
+      const promiseArr = this.presetsTLItemsForDelete.map(id => (
         this.request(
           `/api/presets/${id}`, {
             method: 'DELETE',

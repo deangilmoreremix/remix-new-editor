@@ -4,6 +4,8 @@
   }
 }
 .home {
+  display: flex;
+  flex-direction: column;
   background: $dark-twinlight;
   min-height: 100vh;
   padding-left: 0;
@@ -11,6 +13,8 @@
   color: $white;
 
   .controls {
+    flex: 1;
+    flex-wrap: nowrap;
     width: 96vw;
   }
 
@@ -33,4 +37,9 @@
 .home__center {
   position: relative;
   padding: 0.5rem;
+  padding-top: 1.3rem;
+}
+
+div.big-window {
+  height: $toolbarHeight-big;
 }

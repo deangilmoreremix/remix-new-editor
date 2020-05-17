@@ -1,12 +1,17 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
+import classnames from 'classnames';
 
 import useModalStore from '../../hooks/useModalStore';
+import useUIStore from '../../hooks/useUIStore';
+
 import recorderItemsGenerator from '../../../lib/generators/recorderItemsGenerator';
+import CloseButton from '../CloseButton';
 
 export default observer(() => {
   const { openModal, closeModal } = useModalStore();
+  const { toggleRightBlock, isTimelineOpen } = useUIStore();
 
   const recorderItems = React.useMemo(() => {
     const items = recorderItemsGenerator({
@@ -22,7 +27,7 @@ export default observer(() => {
   ]);
 
   return (
-    <div className="recorder">
+    <div className={classnames('recorder', { 'big-window': !isTimelineOpen })}>
       <div className="recorder__header">
         <span>Recorder</span>
       </div>
@@ -43,6 +48,8 @@ export default observer(() => {
           </button>
         ))}
       </div>
+
+      <CloseButton onClick={() => toggleRightBlock(false)} />
     </div>
   );
 });

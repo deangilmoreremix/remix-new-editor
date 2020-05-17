@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react';
 import { useWindowSize } from '@react-hook/window-size';
+import classnames from 'classnames';
 
 import useProjectStore from './hooks/useProjectStore';
 import useUIStore from './hooks/useUIStore';
@@ -18,7 +19,16 @@ const Canvas = observer(() => {
   const projectStore = useProjectStore();
   const uiStore = useUIStore();
   const { item: { ratio: { width, height } = DEFAULT_RATIO }, runTextfill } = projectStore;
-  const { hasGuidLines } = uiStore;
+
+  const {
+    hasGuidLines,
+    checkboxLeft,
+    checkboxRight,
+    isExpand,
+    radioButtonBottom,
+    isTimelineOpen,
+  } = uiStore;
+
   const [style, setStyle] = React.useState({});
   const [fontSize, setFontSize] = React.useState(DEFAULT_FONT_SIZE);
   const [windowWidth, windowHeight] = useWindowSize();
@@ -38,7 +48,16 @@ const Canvas = observer(() => {
       setStyle(sideIndent > 0 ? { margin: `${marginTop}px ${sideIndent + marginLeft}px` }
         : { margin: `${((maxHeight - (maxWidth / aspectRatio))) / 2 + marginTop}px ${marginLeft}px` });
     }
-  }, [aspectRatio, windowWidth, windowHeight]);
+  }, [
+    aspectRatio,
+    windowWidth,
+    windowHeight,
+    checkboxLeft,
+    checkboxRight,
+    isExpand,
+    radioButtonBottom,
+    isTimelineOpen,
+  ]);
 
   useEffect(() => {
     if (wrapper.current) {
@@ -58,7 +77,7 @@ const Canvas = observer(() => {
   }, [fontSize, runTextfill]);
 
   return (
-    <div ref={ref} className="stager-wrapper">
+    <div ref={ref} className={classnames('stager-wrapper', { 'stager-wrapper-big': !isTimelineOpen })}>
       <GuidelinesActivation marginLeft={style.margin && style.margin.split(' ')[1]} />
       <div style={{ ...style, fontSize }} className="embed-wrapper">
         {hasGuidLines && <Guidelines />}

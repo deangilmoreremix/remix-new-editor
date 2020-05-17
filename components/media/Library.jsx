@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
+import classnames from 'classnames';
 
 import { CircleLoader } from 'react-spinners';
 import {
@@ -21,6 +22,7 @@ import Tabs from '../common/library/Tabs';
 import ProviderList from '../common/library/ProviderList';
 import LibraryContent from '../common/library/LibraryContent';
 import { LibrarySpinner } from './Loader';
+import CloseButton from '../common/CloseButton';
 
 import useUIStore from '../hooks/useUIStore';
 import useUserStore from '../hooks/useUserStore';
@@ -38,6 +40,8 @@ const Library = observer(() => {
     updateElementInLibrary,
     setUpdateElementInLibrary,
     openSettings,
+    toggleRightBlock,
+    isTimelineOpen,
   } = uiStore;
 
   const {
@@ -272,7 +276,7 @@ const Library = observer(() => {
   };
 
   return (
-    <div className="library">
+    <div className={classnames('library', { 'big-window': !isTimelineOpen })}>
       <Tabs setActiveTab={setActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
@@ -347,6 +351,8 @@ const Library = observer(() => {
             )}
         </div>
       </div>
+
+      <CloseButton onClick={() => toggleRightBlock(false)} />
     </div>
   );
 });

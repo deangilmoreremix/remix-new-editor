@@ -1,6 +1,13 @@
 .timeline {
+  position: relative;
+  height: $timeline-height-closed;
   background-color: $light-twinlight;
   width: 100%;
+  transition: 0.3s all;
+
+  &-open {
+    height: $timeline-height;
+  }
 }
 
 .layers {
@@ -9,7 +16,7 @@
   display: flex;
   position: relative;
   margin: $layer-height auto;
-  height: 130px;
+  height: 142px;
   margin-top: 29px;
 }
 
@@ -74,9 +81,7 @@
 .elements {
   position: relative;
   width: 100%;
-  > div:first-child {
-    border-top: 0.5px solid $third-color;
-  }
+
   .elements-grid {
     z-index: 1;
     position: absolute;
@@ -283,3 +288,35 @@
     fill: $scrollbarColor;
   }
 }
+
+.timeline-arrow {
+  @include reset-button;
+  width: 50px;
+  height: 22px;
+  position: absolute;
+  top: -18px;
+  left: 17px;
+  background: $light-twinlight;
+  border-radius: 4px;
+  overflow: hidden;
+
+  &:before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border: 2px solid #3E3E51;
+    border-top: none;
+    border-left: none;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-135deg);
+    transition: 0.3s all;
+  }
+
+  &-open:before {
+    top: 2px;
+    transform: translateX(-50%) rotate(45deg);
+  }
+}
+

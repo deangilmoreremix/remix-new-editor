@@ -4,8 +4,11 @@ import Router from 'next/router';
 import SVGInline from 'react-svg-inline';
 import { Grid, AppBar, Toolbar } from '@material-ui/core';
 
+import { radioButton } from '../lib/constants/windowsLogics';
+
 // import Menu from './common/Menu';
 import UserBox from './common/user/UserBox';
+import ExpandButton from './common/ExpandButton';
 // import { SAVE_PROJECT_MODAL } from '../lib/constants/modals';
 import { ROUTES } from '../lib/constants/routing';
 import { PRODUCE_TABS } from '../lib/constants/ui';
@@ -34,9 +37,10 @@ const MenuAppBar = observer(() => {
     save,
     modified,
     item,
+    releaseElement,
   } = useProjectStore();
   // const { openModal } = useModalStore();
-  const { showProducePanel, setInitialView } = useUIStore();
+  const { showProducePanel, setInitialView, changeRadioButton, closeAllWindows } = useUIStore();
 
   // const menu = React.useMemo(() => {
   //   const projectAdminMenu = [
@@ -55,13 +59,16 @@ const MenuAppBar = observer(() => {
       if (errors) {
         switch (true) {
           case errors.title: {
-            return showProducePanel({ tab: PRODUCE_TABS.SETTINGS, focusTitle: true });
+            changeRadioButton(radioButton.BOTTOM);
+            return showProducePanel({ tab: PRODUCE_TABS.SETTINGS });
           }
           default: {
             return showError('The project is not valid.');
           }
         }
       } else {
+        closeAllWindows();
+        releaseElement();
         const project = await save();
         if (project && project._id) {
           Router.push(
@@ -155,7 +162,9 @@ const MenuAppBar = observer(() => {
                 </button>
               </div>
             </Grid>
-            <Grid item xs={6} />
+            <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <ExpandButton />
+            </Grid>
             <Grid className="user-menu" item xs={2}>
               <UserBox />
               {/* <Menu */}

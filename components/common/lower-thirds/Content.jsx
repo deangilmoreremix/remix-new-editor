@@ -45,7 +45,7 @@ const Content = () => {
     addPreset,
     presetsTLItemsForDelete,
     setPresetsTLForDelete,
-    deletePreset,
+    deleteLTPreset,
   } = useMediaStore();
 
   const isReady = React.useMemo(() => (
@@ -153,7 +153,7 @@ const Content = () => {
   };
 
   const bulkDeleteItems = (unmount) => {
-    deletePreset()
+    deleteLTPreset()
       .then(() => {
         if (!unmount) {
           setItems([]);
