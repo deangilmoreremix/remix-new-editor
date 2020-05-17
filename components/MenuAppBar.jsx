@@ -37,7 +37,6 @@ const MenuAppBar = observer(() => {
     save,
     modified,
     item,
-    releaseElement,
   } = useProjectStore();
   // const { openModal } = useModalStore();
   const { showProducePanel, setInitialView, changeRadioButton, closeAllWindows } = useUIStore();
@@ -68,7 +67,6 @@ const MenuAppBar = observer(() => {
         }
       } else {
         closeAllWindows();
-        releaseElement();
         const project = await save();
         if (project && project._id) {
           Router.push(
