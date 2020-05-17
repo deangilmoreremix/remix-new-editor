@@ -30,7 +30,7 @@ const CampaignStage = ({
             <div>
               <Stage {...props} />
               <Progress
-                className="embed-progress"
+                className="embed-progress mb-3"
                 value={completionPercentage}
               />
               <div className="controls">

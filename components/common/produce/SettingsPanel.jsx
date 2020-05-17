@@ -106,7 +106,6 @@ const SettingPanel = observer(({ options = {} }) => {
             onChange={updateSocials}
             floatClassName="settings-checkbox"
           />
-          {/* TODO uncommnet it, after implementing linkedin */}
           {/* <FieldBuilder */}
           {/* type="checkbox" */}
           {/* name="linkedin" */}

@@ -21,9 +21,9 @@ const EmbedDataContainer = ({
   return (
     <Fragment>
       <div className={className}>
-        <div className={resizable ? 'resizer' : 'hidden'}>
-          <span>Size</span>
-          <span style={{ float: 'right' }}>
+        <div className={resizable ? 'resizer row mb-2' : 'hidden'}>
+          <div className="col-md-4">Size</div>
+          <div className="col-md-8 d-flex justify-content-between">
             <input
               className="dimension-input"
               type="text"
@@ -31,7 +31,7 @@ const EmbedDataContainer = ({
               value={height}
               onChange={handleInputChange}
             />
-            <span>X</span>
+            <span className="mx-1">X</span>
             <input
               className="dimension-input"
               type="text"
@@ -39,7 +39,7 @@ const EmbedDataContainer = ({
               value={width}
               onChange={handleInputChange}
             />
-          </span>
+          </div>
         </div>
         <textarea
           readOnly

@@ -3,33 +3,37 @@ import * as React from 'react';
 import PropTypes from '../../../../../lib/PropTypes';
 import { isEnoughFans } from '../../../../../lib/utils/social-campaigns';
 
+
 const FacebookPage = ({ settings, updateCampaign, provider }) => (
   <div className="facebook-page">
     <h5 className="embed-title">
       Which one of your Facebook Pages do you want to embed your Video into?
     </h5>
-    <div className="embed-grid">
+    <div className="embed-grid__layout">
       <div className="row embed-group">
-        <label className="cell" htmlFor="facebook-page-select">
+        <label className="col-md-4" htmlFor="facebook-page-select">
           Facebook pages
         </label>
-        <select
-          id="facebook-page-select"
-          className="cell"
-          name="select"
-          value={settings.selectedFbPage || ''}
-          onChange={async ({ target: { value } }) => {
-            const fbPage = settings.facebookPages.find(page => page.id === value);
-            const selectedFbPage = value;
-            const facebookPageTab = await provider
-              .getPageTabs(fbPage.id, fbPage.token);
-            updateCampaign({ selectedFbPage, facebookPageTab });
-          }}
-        >
-          {settings.facebookPages && settings.facebookPages.map(
-            ({ id, name }) => <option key={id} value={id}>{name}</option>,
-          )}
-        </select>
+        <div className="col-md-8">
+          <select
+            id="facebook-page-select"
+            className="cell"
+            name="select"
+            value={settings.selectedFbPage || ''}
+            onChange={async ({ target: { value } }) => {
+              const fbPage = settings.facebookPages.find(page => page.id === value);
+              const selectedFbPage = value;
+              const facebookPageTab = await provider
+                .getPageTabs(fbPage.id, fbPage.token);
+              updateCampaign({ selectedFbPage, facebookPageTab });
+            }}
+          >
+            {settings.facebookPages && settings.facebookPages.map(
+              ({ id, name }) => <option key={id} value={id}>{name}</option>,
+            )}
+          </select>
+        </div>
+
       </div>
       {
         settings.selectedFbPage

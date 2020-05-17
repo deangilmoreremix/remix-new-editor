@@ -13,12 +13,13 @@ import {
   SERVICE_PROVIDER,
 } from '../../../../lib/constants/campaigns/constants';
 
+
 const EmaiCampaign = ({ isLoading }) => {
   const [currentStage, setStage] = React.useState(EMAIL_STAGES[0]);
   const [settings, setSettings] = React.useState({
     embedLocation: EMAIL_EMBED_LOCATIONS[0],
     embedPage: null,
-    emailProvider: null,
+    emailProvider: PROVIDERS[0],
     preload: true,
     error: null,
   });

@@ -1,47 +1,57 @@
 import * as React from 'react';
 
 import PropTypes from '../../../../../lib/PropTypes';
-import { DEFAULT, FACEBOOK_EMBED_LOCATIONS } from '../../../../../lib/constants/campaigns/constants';
+import {
+  DEFAULT,
+  FACEBOOK_EMBED_LOCATIONS,
+} from '../../../../../lib/constants/campaigns/constants';
 import EmbedDataContainer from '../../../EmbedDataContainer';
+import FormSelect from '../../../../form/FormSelect';
 
 const EmbedEngine = ({ settings, project, updateCampaign }) => (
   <div className="embed-engine">
     <h5 className="embed-title">Where do you want to embed your video?</h5>
-    <div className="embed-grid">
-      <div className="row embed-group">
-        <label className="cell" htmlFor="embed-location-select">Embed Location</label>
-        {settings.embedLocation && (
-          <select
-            className="cell"
-            name="select"
-            id="embed-location-select"
-            value={settings.embedLocation.key}
-            onChange={({ target: { value } }) => {
-              const location = FACEBOOK_EMBED_LOCATIONS.find(
-                item => item.key === value,
-              );
-              updateCampaign({ embedLocation: location });
-            }}
-          >
-            {FACEBOOK_EMBED_LOCATIONS.map(
-              ({ key, label }) => <option key={key} value={key}>{label}</option>,
-            )}
-          </select>
-        )}
-      </div>
-      <div className="row embed-group">
-        <label className="cell" htmlFor="preload-check">
-          Preload
+    <div className="embed-grid__layout">
+      <div className="embed-group mb-3">
+
+        <label className="cell row" htmlFor="embed-location-select">
+          <div className="col-md-4">Embed Location</div>
+          <div className="col-md-8">
+            <FormSelect
+              className=""
+              labelClassName=""
+              selectClassName=""
+              value={settings.embedLocation.key}
+              onChange={
+                (value) => updateCampaign({
+                  embedLocation: FACEBOOK_EMBED_LOCATIONS.find(item => item.key === value),
+                })
+              }
+              items={
+                FACEBOOK_EMBED_LOCATIONS.map(
+                  ({ key, label }) => ({ value: key, label }),
+                )
+              }
+            />
+          </div>
         </label>
-        <input
-          className="cell"
-          type="checkbox"
-          id="preload-check"
-          checked={settings.preload}
-          onChange={({ target: { checked } }) => {
-            updateCampaign({ preload: checked });
-          }}
-        />
+      </div>
+      <div className="embed-group mb-3">
+        <label className="cell row mb-2" htmlFor="preload-check">
+          <div className="col-md-4">Preload</div>
+          <div className="col-md-8">
+            <div className="custom-checkbox">
+              <input
+                className="cell"
+                type="checkbox"
+                id="preload-check"
+                checked={settings.preload}
+                onChange={({ target: { checked } }) => updateCampaign({ preload: checked })}
+              />
+              <span className="label" />
+            </div>
+          </div>
+        </label>
       </div>
     </div>
     {settings.embedLocation && (

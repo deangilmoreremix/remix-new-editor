@@ -7,6 +7,8 @@ import {
 } from '../../../../../lib/constants/campaigns/constants';
 import EmbedDataContainer from '../../../EmbedDataContainer';
 import PropTypes from '../../../../../lib/PropTypes';
+import FormSelect from '../../../../form/FormSelect';
+
 
 const EmbedEngine = ({ settings, updateCampaign, project }) => {
   const { embedLocation, preload } = settings;
@@ -15,35 +17,45 @@ const EmbedEngine = ({ settings, updateCampaign, project }) => {
       <h5 className="embed-title">Where do you want to embed your video?</h5>
       <div className="embed-grid">
         {embedLocation && (
-          <div className="row embed-group">
-            <label className="cell" htmlFor="embed-location-select">
-              Embed Location
-              <select
-                className="cell"
-                name="select"
-                id="embed-location-select"
-                value={embedLocation.key}
-                onChange={({ target: { value } }) => updateCampaign({
-                  embedLocation: EMAIL_EMBED_LOCATIONS.find(item => item.key === value),
-                })}
-              >
-                {EMAIL_EMBED_LOCATIONS.map(
-                  ({ key, label }) => <option key={label} value={key}>{label}</option>,
-                )}
-              </select>
+          <div className="embed-group mb-3">
+            <label className="cell row" htmlFor="embed-location-select">
+              <div className="col-md-4">Embed Location</div>
+              <div className="col-md-8">
+                <FormSelect
+                  className=""
+                  labelClassName=""
+                  selectClassName=""
+                  value={embedLocation.key}
+                  onChange={
+                    (value) => updateCampaign({
+                      embedLocation: EMAIL_EMBED_LOCATIONS.find(item => item.key === value),
+                    })
+                  }
+                  items={
+                    EMAIL_EMBED_LOCATIONS.map(
+                      ({ key, label }) => ({ value: key, label }),
+                    )
+                  }
+                />
+              </div>
             </label>
           </div>
         )}
-        <div className="row embed-group">
-          <label className="cell" htmlFor="preload-check">
-            Preload
-            <input
-              className="cell"
-              type="checkbox"
-              id="preload-check"
-              checked={preload}
-              onChange={({ target: { checked } }) => updateCampaign({ preload: checked })}
-            />
+        <div className="embed-group mb-3">
+          <label className="cell row mb-2" htmlFor="preload-check">
+            <div className="col-md-4">Preload</div>
+            <div className="col-md-8">
+              <div className="custom-checkbox">
+                <input
+                  className="cell"
+                  type="checkbox"
+                  id="preload-check"
+                  checked={preload}
+                  onChange={({ target: { checked } }) => updateCampaign({ preload: checked })}
+                />
+                <span className="label" />
+              </div>
+            </div>
           </label>
         </div>
       </div>
@@ -52,7 +64,7 @@ const EmbedEngine = ({ settings, updateCampaign, project }) => {
           {
             embedLocation.key === WORDPRESS
               ? (
-                <span className="embed-line">
+                <span className="embed-line mb-2">
                   Click here to install the
                   <a href="https://cdn.vidcloud.io/wp/vr.zip">wp</a>
                   plugin.

@@ -16,9 +16,9 @@ const FacebookPost = ({ settings, updateCampaign }) => (
     <h5 className="embed-title">
         What do you want the Facebook Share to look like?
     </h5>
-    <div className="embed-grid">
-      <div className="row embed-group">
-        <div className="embed-grid cell facebook-post-details">
+    <div className="embed-grid__layout">
+      <div className="embed-group">
+        <div className="cell facebook-post-details">
           <div className="row embed-group">
             <FieldBuilder
               type="input"
@@ -47,20 +47,20 @@ const FacebookPost = ({ settings, updateCampaign }) => (
                   description,
                 },
               })}
-              value={settings.postData.title}
+              value={settings.postData.description}
               className="settings-input"
               labelClassName="settings-panel-text"
               placeholder="Post Description"
             />
           </div>
           <div className="row embed-group">
-            <label className="cell" htmlFor="facebook-post-image-input">
+            <label className="col-md-4" htmlFor="facebook-post-image-input">
                 Post Image
             </label>
             {
               settings.postData
               && (
-              <div>
+              <div className="col-md-8">
                 {
                   settings.postData.thumbnail
                   && (
@@ -90,7 +90,7 @@ const FacebookPost = ({ settings, updateCampaign }) => (
               </div>
               )
             }
-            <p className="text-resolution">
+            <p className="col-md-12 my-2 text-resolution">
               {`*Recommended image resolution ${POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT}`}
             </p>
           </div>
