@@ -8,12 +8,14 @@ import FieldBuilder from '../../../form/FieldBuilder';
 import trashIcon from '../../../../public/static/svgImages/common/trash.svg';
 import burgerIcon from '../../../../public/static/svgImages/common/burger.svg';
 import { showInfo } from '../../../../lib/services/alertService';
+import useProjectStore from '../../../hooks/useProjectStore';
 
 
 const INPUT_NAME = 'inputValue';
 
 const FieldsTab = ({ values, fields, onChange }) => {
   const inputs = values.elements || fields.elements.default;
+  const { generateUid } = useProjectStore();
 
   const addField = () => {
     if (values.elements.length < 5) {
@@ -22,7 +24,7 @@ const FieldsTab = ({ values, fields, onChange }) => {
         type: 'singleline',
         label: 'Untitled',
         token: 'UNTITLED',
-        id: values.elements.length++,
+        id: `0.${generateUid()}`,
         name: INPUT_NAME,
       };
       newArr.push(newElement);
