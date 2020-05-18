@@ -61,14 +61,6 @@ export default class ProjectStore extends BaseStore {
 
   @observable time = 0;
 
-  deleteItem = emitter.on(emitterActions.DELETE, id => {
-    this.removeElement(id);
-  });
-
-  selectItem = emitter.on(emitterActions.SELECT, id => {
-    this.editElement(id);
-  });
-
   setElementOptions = async (item) => {
     const { track } = item || {};
     const options = {};
@@ -325,6 +317,10 @@ export default class ProjectStore extends BaseStore {
     }
     if (!target) {
       target = this.popcorn && this.popcorn.target;
+    }
+
+    if (this.popcorn && this.popcorn.target) {
+      window.Popcorn.destroy(this.popcorn);
     }
     this.popcorn = window.Popcorn.smart(target,
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
@@ -917,6 +913,14 @@ export default class ProjectStore extends BaseStore {
         });
         this.popcorn.on('play', () => {
           this.isPlayed = true;
+        });
+        emitter.on(emitterActions.SELECT, id => {
+          this.editElement(id);
+          const element = this.getElementById(id);
+          this.updateTime(element.popcornOptions.start * SANTISECOND);
+        });
+        emitter.on(emitterActions.DELETE, id => {
+          this.removeElement(id);
         });
         emitter.on(emitterActions.SEQUENCES_LOADING, () => {
           this.isLoading = true;
