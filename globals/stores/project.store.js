@@ -89,6 +89,7 @@ export default class ProjectStore extends BaseStore {
         options.contentType = videoMeta.contentType;
         options.in = options.start;
         options.out = options.end;
+        options.volume = 100;
         break;
       }
       default:
