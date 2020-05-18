@@ -326,6 +326,10 @@ export default class ProjectStore extends BaseStore {
     if (!target) {
       target = this.popcorn && this.popcorn.target;
     }
+
+    if (this.popcorn.target) {
+      window.Popcorn.destroy(this.popcorn);
+    }
     this.popcorn = window.Popcorn.smart(target,
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
     this.attach(target);
