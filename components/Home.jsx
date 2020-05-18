@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import Grid from '@material-ui/core/Grid';
 import { useAsync } from 'react-async-hook';
 import { CircleLoader } from 'react-spinners';
+// import { withErrorHandler } from 'react-error-handler';
 
 import classnames from 'classnames';
 import Canvas from './Canvas';
@@ -29,6 +30,28 @@ import { DEFAULT_RATIO } from '../lib/constants/project';
 import { LOADING_COLOR, WINDOW_TYPES } from '../lib/constants/ui';
 import { ROUTES } from '../lib/constants/routing';
 import AnimatedWindow from './common/AnimatedWindow';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    console.log("getDerivedStateFromError", error);
+    // Обновить состояние с тем, чтобы следующий рендер показал запасной UI.
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // Можно также сохранить информацию об ошибке в соответствующую службу журнала ошибок
+    console.log("componentDidCatch", error, errorInfo);
+  }
+
+  render() {
+    return this.props.children;
+  }
+}
 
 const Home = observer(() => {
   const { pathname, query: { project, remix }, push } = useRouter();
@@ -158,7 +181,7 @@ const Home = observer(() => {
   ]);
 
   return (
-    <React.Fragment>
+    <ErrorBoundary>
       {(asyncHero.loading) && ( // todo implement loading
         <CircleLoader
           size={100}
@@ -228,7 +251,7 @@ const Home = observer(() => {
           </Grid>
         </div>
       )}
-    </React.Fragment>
+    </ErrorBoundary>
   );
 });
 
