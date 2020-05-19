@@ -138,6 +138,7 @@ export default class ProjectStore extends BaseStore {
       this.editElement(this.retarget.id);
       this.retarget.start();
     }
+    this.retarget.showed = true;
     this.modified = true;
   }
 
@@ -797,19 +798,18 @@ export default class ProjectStore extends BaseStore {
       return;
     }
     this.isLoading = true;
-    const retargetForm = {
-      showed: false,
-    };
     try {
       const path = this.item._id
         ? `/api/users/me/makes/${this.item._id}`
         : '/api/users/me/makes';
       let serializedData = this.serializeProject();
-      if (this.retarget && this.activeElementId === this.retarget.id) {
-        retargetForm.showed = true;
-        retargetForm.options = { ...this.retarget.options };
+      if (this.retarget && this.retarget.id) {
+        const retargetForm = {
+          showed: this.retarget.showed,
+          options: { ...this.retarget.options },
+        };
+        serializedData = { retargetForm, ...serializedData };
       }
-      serializedData = { retargetForm, ...serializedData };
       const result = await this.request(
         path, {
           method: this.item._id ? 'PATCH' : 'POST',
