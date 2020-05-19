@@ -124,7 +124,7 @@ export default class ProjectStore extends BaseStore {
         popcornFunctions.start(retargetOptions);
       }
     };
-  }
+  };
 
   @action
   addRetargetForm = (retargetForm) => {
@@ -140,7 +140,7 @@ export default class ProjectStore extends BaseStore {
     }
     this.retarget.showed = true;
     this.modified = true;
-  }
+  };
 
   @action
   addElement = async (item) => {
