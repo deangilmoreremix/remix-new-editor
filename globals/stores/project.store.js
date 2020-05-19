@@ -629,26 +629,33 @@ export default class ProjectStore extends BaseStore {
 
   @action
   remixOne = async (projectId) => {
+    this.modified = true;
+    this.item = DEFAULT_ITEM;
     if (!projectId) {
-      this.modified = true;
-      this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);
       return this.item;
     }
     const path = `/api/makes/${projectId}/remix`;
     try {
-      this.item = await this.request(
+      const result = await this.request(
         path, {
           method: 'GET',
           headers: {
             'on-behalf': this.currentUser.id,
           },
         });
-      this.modified = true;
-      this.item.title = `Remix of ${this.item.title}`;
-      this.item.remixedFrom = this.item.project._id;
-      this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${this.item._id}`;
-      this.setProjectData(JSON.parse(this.item.project.data));
+      this.item.title = `Remix of ${result.title}`;
+      this.item.thumbnail = result.thumbnail;
+      this.item.description = result.description;
+      this.item.remixedFrom = result.project._id;
+      this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${result._id}`;
+      this.setProjectData(JSON.parse(result.project.data));
+      if (result.project && result.project.retargetForm) {
+        this.retarget = this.item.project.retargetForm;
+      }
+      if (result.project && result.project.allowedSocials) {
+        this.item.allowedSocials = this.item.project.allowedSocials;
+      }
     } catch (e) {
       this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);
