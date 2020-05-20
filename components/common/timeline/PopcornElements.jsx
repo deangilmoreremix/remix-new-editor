@@ -10,7 +10,7 @@ import PropTypes from '../../../lib/PropTypes';
 import useProjectStore from '../../hooks/useProjectStore';
 
 import { SANTISECOND } from '../../../lib/constants/project';
-import { MIN_DURATION, POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
+import { MIN_DURATION, POPCORN_ELEMENT_TYPES, SEQUENCER } from '../../../lib/constants/popcorn';
 import { NONE_CLASS } from '../../../lib/constants/animations';
 import { DEFAULT_SETTINGS } from '../../../lib/constants/settings';
 
@@ -75,6 +75,13 @@ const PopcornElements = observer(({ width }) => {
     const layer = layers.find(item => item.id === element.track);
     const x = start * SANTISECOND;
     const w = (getEnd(end, animation, outDuration) - start) * SANTISECOND;
+
+    let maxW = cols - x;
+
+    if (type === SEQUENCER) {
+      maxW = w;
+    }
+
     return {
       i,
       x,
@@ -86,7 +93,7 @@ const PopcornElements = observer(({ width }) => {
       animation,
       title,
       y: layer.order,
-      maxW: cols - x,
+      maxW,
       minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
       layer,
     };
