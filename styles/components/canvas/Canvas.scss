@@ -8,7 +8,7 @@
   height: $toolbarHeight;
 
   &-big {
-    height: 100%;
+    height: $toolbarHeight-big;
   }
 
   .video-container {
