@@ -37,6 +37,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable isLoading = false;
 
+  @observable isLoadingSequencer = false;
+
   @observable projectData = {};
 
   @observable layers;
@@ -930,10 +932,10 @@ export default class ProjectStore extends BaseStore {
           this.removeElement(id);
         });
         emitter.on(emitterActions.SEQUENCES_LOADING, () => {
-          this.isLoading = true;
+          this.isLoadingSequencer = true;
         });
         emitter.on(emitterActions.SEQUENCES_READY, () => {
-          this.isLoading = false;
+          this.isLoadingSequencer = false;
         });
       },
     );

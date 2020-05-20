@@ -250,6 +250,11 @@
 .timeline-add {
   width: 21px;
   height: 21px;
+  transition: 0.3s all;
+}
+
+.timeline-play:disabled {
+  opacity: 0.5;
 }
 
 .timeline-slider {
