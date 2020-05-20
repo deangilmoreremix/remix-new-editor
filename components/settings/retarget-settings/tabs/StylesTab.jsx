@@ -32,7 +32,7 @@ const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
         type="checkbox"
         name="showedUI"
         label="Advanced Optin Deactivate"
-        onChange={onClose}
+        onChange={() => onClose(!showedForm)}
       />
       <div className="brand-logo-container">
         <div className="upload-container">

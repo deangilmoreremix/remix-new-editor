@@ -14,15 +14,16 @@ import useProjectStore from '../../hooks/useProjectStore';
 
 import { KIND } from '../../../lib/constants/popcorn';
 import { TRANSITION_TIMELINE_OFFSET } from '../../../lib/constants/settings/video-transition';
-import { RATIO_9_TO_16 } from '../../../lib/constants/ui';
 
 import { loadImage } from '../../../lib/requestCreator';
 import { makeTransition, playTransition } from '../../../lib/utils/transition';
+import Loader from '../../common/Loader';
 
 const VideoTransitionSettings = observer(({ element, update, fields, find }) => {
   const { findAndUpdate, setPopcorn } = useProjectStore();
   const { uploadMedia } = useMediaStore();
 
+  const [isLoading, setIsLoading] = React.useState(false);
   const [isCaptured, setIsCaptured] = React.useState(false);
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [transition, setTransition] = React.useState(null);
@@ -43,7 +44,15 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   const { current: from } = imageFrom;
   const { current: to } = imageTo;
 
-  const { kind, start, end, fromUrl, toUrl } = values;
+  const {
+    kind,
+    start,
+    end,
+    fromUrl,
+    toUrl,
+    width,
+    height,
+  } = values;
 
   const duration = React.useMemo(() => end - start, [start, end]);
 
@@ -80,11 +89,13 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   React.useEffect(() => {
     (async () => {
       if (fromUrl && toUrl) {
+        setIsLoading(true);
         await Promise.all([
           imageFrom.current = { dataUri: await loadImage(fromUrl) },
           imageTo.current = { dataUri: await loadImage(toUrl) },
         ]);
         setIsCaptured(true);
+        setIsLoading(false);
       }
     })();
   }, [fromUrl, toUrl]);
@@ -106,6 +117,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
     if (isCaptured) {
       return setIsCaptured(false);
     }
+    setIsLoading(true);
     let fromFrame;
     let toFrame;
 
@@ -128,12 +140,14 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
       };
     }
 
+    setIsLoading(false);
     return setIsCaptured(true);
   }, [fromVideo, isCaptured, toVideo]);
 
   const handleSave = React.useCallback(async () => {
     // 1. upload images
     if (from && to) {
+      setIsLoading(true);
       const [fromImageResponse, toImageResponse] = await Promise.all([
         ...(from.blob ? [uploadMedia({ data: from.blob })] : []),
         ...(to.blob ? [uploadMedia({ data: to.blob })] : []),
@@ -164,6 +178,8 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
         toUrl: newToUrl || toUrl,
         start: transitionStart,
         end: transitionEnd,
+        width,
+        height,
       };
 
       // 4. Prepare to update the second video
@@ -187,6 +203,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
       // 9. Clear time refs
       newFromEnd.current = null;
       newToStart.current = null;
+      setIsLoading(false);
     }
   }, [
     duration,
@@ -194,6 +211,8 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
     fromVideo,
     to,
     toVideo,
+    width,
+    height,
   ]);
 
   const handlePlay = () => {
@@ -210,6 +229,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
 
   return (
     <div className="video-transition-settings">
+      <Loader isLoading={isLoading} />
       {values && (
         <div className="video-transition-form">
           <FieldBuilder
@@ -225,7 +245,12 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
         <div className="video-transition-selected">
           <div className="title">Choose and Preview the Effect</div>
           <div className="canvas-player" ref={canvasContainerRef}>
-            <canvas className="canvas" ref={canvasEl} width={300} height={300 * RATIO_9_TO_16} />
+            <canvas
+              className="canvas"
+              ref={canvasEl}
+              width={width}
+              height={height}
+            />
             {!isPlaying && (
               <button
                 className="video-transition-btn play"
@@ -252,6 +277,8 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
               src={fromVideo && fromVideo.popcornOptions ? fromVideo.popcornOptions.src : ''}
               videoId={fromVideo.id}
               crossOrigin="anonymous"
+              width={width}
+              height={height}
             >
               <ControlBar autoHide={false} />
             </Player>
@@ -263,6 +290,8 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
               src={toVideo && toVideo.popcornOptions ? toVideo.popcornOptions.src : ''}
               videoId={toVideo.id}
               crossOrigin="anonymous"
+              width={width}
+              height={height}
             >
               <ControlBar autoHide={false} />
             </Player>

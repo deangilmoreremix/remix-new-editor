@@ -8,7 +8,6 @@ import { STYLES, FIELDS, INTEGRATIONS } from '../../../lib/constants/popcorn';
 import StylesTab from './tabs/StylesTab';
 import FieldsTab from './tabs/FieldsTab';
 import IntegrationsTab from './tabs/IntegrationsTab';
-import useUIStore from '../../hooks/useUIStore';
 import useProjectStore from '../../hooks/useProjectStore';
 
 const TabMap = {
@@ -21,14 +20,16 @@ const RetargetSettings = observer(({ tab = STYLES, element, update, fields }) =>
   const [showedForm, setShowedForm] = React.useState(true);
   const Tab = TabMap[tab];
   const { options } = element;
-  const { closeSecondaryWindow } = useUIStore();
-  const { retarget, releaseElement } = useProjectStore();
+  const { retarget } = useProjectStore();
 
-  const deactivateRetarget = () => {
-    retarget.end();
-    releaseElement();
+  const toggleDeactivate = (activateState) => {
+    if (activateState) {
+      retarget.start();
+    } else {
+      retarget.end();
+    }
+    retarget.showed = activateState;
     setShowedForm(!showedForm);
-    closeSecondaryWindow();
   };
 
   return (
@@ -39,7 +40,7 @@ const RetargetSettings = observer(({ tab = STYLES, element, update, fields }) =>
           values={options}
           onChange={(field) => update(field)}
           fields={fields}
-          onClose={deactivateRetarget}
+          onClose={toggleDeactivate}
         />
       )}
     </div>

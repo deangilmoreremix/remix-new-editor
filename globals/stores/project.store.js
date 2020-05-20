@@ -6,7 +6,7 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 
-import { SEQUENCER } from '../../lib/constants/popcorn';
+import { SEQUENCER, POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
@@ -36,6 +36,8 @@ export default class ProjectStore extends BaseStore {
   @observable isPlayed = false;
 
   @observable isLoading = false;
+
+  @observable isLoadingSequencer = false;
 
   @observable projectData = {};
 
@@ -124,7 +126,7 @@ export default class ProjectStore extends BaseStore {
         popcornFunctions.start(retargetOptions);
       }
     };
-  }
+  };
 
   @action
   addRetargetForm = (retargetForm) => {
@@ -138,8 +140,9 @@ export default class ProjectStore extends BaseStore {
       this.editElement(this.retarget.id);
       this.retarget.start();
     }
+    this.retarget.showed = true;
     this.modified = true;
-  }
+  };
 
   @action
   addElement = async (item) => {
@@ -629,26 +632,33 @@ export default class ProjectStore extends BaseStore {
 
   @action
   remixOne = async (projectId) => {
+    this.modified = true;
+    this.item = DEFAULT_ITEM;
     if (!projectId) {
-      this.modified = true;
-      this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);
       return this.item;
     }
     const path = `/api/makes/${projectId}/remix`;
     try {
-      this.item = await this.request(
+      const result = await this.request(
         path, {
           method: 'GET',
           headers: {
             'on-behalf': this.currentUser.id,
           },
         });
-      this.modified = true;
-      this.item.title = `Remix of ${this.item.title}`;
-      this.item.remixedFrom = this.item.project._id;
-      this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${this.item._id}`;
-      this.setProjectData(JSON.parse(this.item.project.data));
+      this.item.title = `Remix of ${result.title}`;
+      this.item.thumbnail = result.thumbnail;
+      this.item.description = result.description;
+      this.item.remixedFrom = result.project._id;
+      this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${result._id}`;
+      this.setProjectData(JSON.parse(result.project.data));
+      if (result.project && result.project.retargetForm) {
+        this.retarget = this.item.project.retargetForm;
+      }
+      if (result.project && result.project.allowedSocials) {
+        this.item.allowedSocials = this.item.project.allowedSocials;
+      }
     } catch (e) {
       this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);
@@ -790,19 +800,49 @@ export default class ProjectStore extends BaseStore {
       return;
     }
     this.isLoading = true;
-    const retargetForm = {
-      showed: false,
-    };
+
+    const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
+
+    if (byEnd && byEnd.length && byEnd.length > 1) {
+      const lastEvent = byEnd[byEnd.length - 2];
+      let eventEnd = 0;
+
+      switch (lastEvent.type) {
+        case POPCORN_ELEMENT_TYPES.TEXT:
+          if (lastEvent.animation.out && lastEvent.animation.out.duration) {
+            eventEnd = lastEvent.end + lastEvent.animation.out.duration;
+          } else {
+            eventEnd = lastEvent.end;
+          }
+          break;
+        case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
+          if (lastEvent.outDuration) {
+            eventEnd = lastEvent.end + lastEvent.outDuration;
+          } else {
+            eventEnd = lastEvent.end;
+          }
+          break;
+        default:
+          eventEnd = lastEvent.end;
+      }
+
+      if (lastEvent.end !== this.popcorn.duration()) {
+        this.projectData.media[0].url = `#t=,${eventEnd}`;
+      }
+    }
+
     try {
       const path = this.item._id
         ? `/api/users/me/makes/${this.item._id}`
         : '/api/users/me/makes';
       let serializedData = this.serializeProject();
-      if (this.retarget && this.activeElementId === this.retarget.id) {
-        retargetForm.showed = true;
-        retargetForm.options = { ...this.retarget.options };
+      if (this.retarget && this.retarget.id) {
+        const retargetForm = {
+          showed: this.retarget.showed,
+          options: { ...this.retarget.options },
+        };
+        serializedData = { retargetForm, ...serializedData };
       }
-      serializedData = { retargetForm, ...serializedData };
       const result = await this.request(
         path, {
           method: this.item._id ? 'PATCH' : 'POST',
@@ -923,10 +963,21 @@ export default class ProjectStore extends BaseStore {
           this.removeElement(id);
         });
         emitter.on(emitterActions.SEQUENCES_LOADING, () => {
-          this.isLoading = true;
+          this.isLoadingSequencer = true;
         });
         emitter.on(emitterActions.SEQUENCES_READY, () => {
-          this.isLoading = false;
+          this.isLoadingSequencer = false;
+        });
+        emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
+          this.elements = this.elements.map(el => {
+            if (el.id === id) {
+              return {
+                ...el,
+                dimensions: { width, height },
+              };
+            }
+            return el;
+          });
         });
       },
     );

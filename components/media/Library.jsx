@@ -194,8 +194,18 @@ const Library = observer(() => {
       setIsDisabledUpload(true);
       Promise.all(files.map(async data => {
         const asset = await uploadMedia({ data });
-        const item = await storeAsset(asset, activeTab);
-        const fileExtension = item.url.match(/\.[0-9a-z]{1,5}$/)[0];
+
+        const fileExtension = asset.url.match(/\.[0-9a-z]{1,5}$/)[0];
+        let fileType = activeTab;
+        Object.keys(tabItems).forEach(item => {
+          tabItems[item].formats.forEach(format => {
+            if (format === fileExtension) {
+              fileType = item;
+            }
+          });
+        });
+
+        const item = await storeAsset(asset, fileType);
         elements.push(item);
         elementsIds.push(item._id);
         return fileExtension;

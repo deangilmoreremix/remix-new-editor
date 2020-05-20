@@ -1,13 +1,10 @@
 .video-transition {
-  &-settings { }
-
   &-form {
     margin-bottom: 1.5rem;
   }
 
   &-preview {
     margin-bottom: 1.5rem;
-
   }
 
   &-selected {
@@ -18,6 +15,13 @@
 
     .canvas-player {
       position: relative;
+
+      .canvas {
+        width: 100%;
+        margin: 0 auto;
+        max-width: 500px;
+        height: auto;
+      }
     }
   }
 

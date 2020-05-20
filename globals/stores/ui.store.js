@@ -22,7 +22,8 @@ export default class UIStore {
           }
           this.isExpand = false;
         } else if (this.projectStore.activeElementId
-          && this.projectStore.retarget) {
+          && this.projectStore.retarget
+          && this.projectStore.retarget.id === this.projectStore.activeElementId) {
           this.secondaryWindowType = WINDOW_TYPES.SETTING;
         } else {
           this.toggleRightBlock(false);
