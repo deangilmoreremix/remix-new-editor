@@ -937,6 +937,17 @@ export default class ProjectStore extends BaseStore {
         emitter.on(emitterActions.SEQUENCES_READY, () => {
           this.isLoadingSequencer = false;
         });
+        emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
+          this.elements = this.elements.map(el => {
+            if (el.id === id) {
+              return {
+                ...el,
+                dimensions: { width, height },
+              };
+            }
+            return el;
+          });
+        });
       },
     );
   }

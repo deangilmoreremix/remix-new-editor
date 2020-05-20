@@ -3,9 +3,9 @@ import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import Grid from '@material-ui/core/Grid';
 import { useAsync } from 'react-async-hook';
-import { CircleLoader } from 'react-spinners';
 
 import classnames from 'classnames';
+import Loader from './common/Loader';
 import Canvas from './Canvas';
 import Timeline from './Timeline';
 import Library from './media/Library';
@@ -26,7 +26,7 @@ import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import { CANVAS_SIZES } from '../lib/constants/media';
 import { DEFAULT_RATIO } from '../lib/constants/project';
-import { LOADING_COLOR, WINDOW_TYPES } from '../lib/constants/ui';
+import { WINDOW_TYPES } from '../lib/constants/ui';
 import { ROUTES } from '../lib/constants/routing';
 import AnimatedWindow from './common/AnimatedWindow';
 
@@ -160,21 +160,7 @@ const Home = observer(() => {
   return (
     <React.Fragment>
       {(asyncHero.loading) && ( // todo implement loading
-        <CircleLoader
-          size={100}
-          class="loading"
-          css={{
-            margin: 'auto',
-            position: 'absolute',
-            top: 0,
-            bottom: '0',
-            left: '0',
-            right: '0',
-            zIndex: 10000,
-          }}
-          loading
-          color={LOADING_COLOR}
-        />
+        <Loader isLoading />
       )}
       {asyncHero.error && ( // todo implement err message
         <div>Error</div>
@@ -182,21 +168,7 @@ const Home = observer(() => {
       {(!asyncHero.loading || isLoaded) && (
         <div className={classnames('home', { disabled: isLoading })}>
           { isLoading ? <div className="hover-loading" /> : null }
-          <CircleLoader
-            size={100}
-            class="loading"
-            css={{
-              margin: 'auto',
-              position: 'absolute',
-              top: 0,
-              bottom: '0',
-              left: '0',
-              right: '0',
-              zIndex: 10000,
-            }}
-            loading={isLoading}
-            color={LOADING_COLOR}
-          />
+          <Loader isLoading={isLoading} />
           <Grid container className="controls">
             <Grid item xs={toolsWidth} style={{ minWidth: '105px' }}>
               <Grid container>
