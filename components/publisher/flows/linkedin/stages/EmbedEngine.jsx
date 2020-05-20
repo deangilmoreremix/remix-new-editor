@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import PropTypes from '../../../../../lib/PropTypes';
-import { EMBED_LOCATIONS } from '../../../../../lib/constants/campaigns/constants';
+import { DEFAULT, EMBED_LOCATIONS } from '../../../../../lib/constants/campaigns/constants';
 import EmbedDataContainer from '../../../EmbedDataContainer';
 
 const EmbedEngine = ({ settings, project, updateCampaign }) => (
@@ -47,16 +47,18 @@ const EmbedEngine = ({ settings, project, updateCampaign }) => (
     {settings.embedLocation && (
       <div className={settings.embedLocation.embedGenerator ? 'embed-details' : 'hidden'}>
         <span className="embed-line">{settings.embedLocation.prompt}</span>
-        <EmbedDataContainer
-          className="embed-item"
-          url={[
-            project.url, [
-              !settings.preload ? 'preload=none' : null,
-            ].filter(item => !!item).join('&')]
-            .join('?')}
-          stringGenerator={settings.embedLocation.embedGenerator}
-          resizable
-        />
+        {settings.embedLocation.key === DEFAULT ? null : (
+          <EmbedDataContainer
+            className="embed-item"
+            url={[
+              project.url, [
+                !settings.preload ? 'preload=none' : null,
+              ].filter(item => !!item).join('&')]
+              .join('?')}
+            stringGenerator={settings.embedLocation.embedGenerator}
+            resizable
+          />
+        )}
       </div>
     )}
   </div>

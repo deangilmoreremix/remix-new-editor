@@ -9,13 +9,11 @@ import {
 import FacebookCampaign from './FacebookCampaign';
 
 const FacebookProvider = ({ postResponsiveMessage, appId, ...props }) => {
-  const init = async () => {
-    await postResponsiveMessage({
-      topic: MESSAGE_TOPICS.init,
-      source: FACEBOOK_SOURCE_ID,
-      arguments: appId,
-    });
-  };
+  const init = () => postResponsiveMessage({
+    topic: MESSAGE_TOPICS.init,
+    source: FACEBOOK_SOURCE_ID,
+    arguments: appId,
+  });
 
   const isAuthorized = async (permissions) => {
     const response = await postResponsiveMessage({
@@ -26,13 +24,11 @@ const FacebookProvider = ({ postResponsiveMessage, appId, ...props }) => {
     return response.loggedIn;
   };
 
-  const logIn = async (permissions) => {
-    await postResponsiveMessage({
-      topic: MESSAGE_TOPICS.logIn,
-      source: FACEBOOK_SOURCE_ID,
-      arguments: permissions || FACEBOOK_PERMISSIONS,
-    });
-  };
+  const logIn = (permissions) => postResponsiveMessage({
+    topic: MESSAGE_TOPICS.logIn,
+    source: FACEBOOK_SOURCE_ID,
+    arguments: permissions || FACEBOOK_PERMISSIONS,
+  });
 
   const fetchPagesData = async () => {
     const { result } = await postResponsiveMessage({
@@ -70,13 +66,11 @@ const FacebookProvider = ({ postResponsiveMessage, appId, ...props }) => {
     return tabs;
   };
 
-  const createTab = async (pageId, pageAccessToken, tabName) => {
-    await postResponsiveMessage({
-      topic: MESSAGE_TOPICS.createTab,
-      source: FACEBOOK_SOURCE_ID,
-      arguments: { pageId, pageAccessToken, tabName },
-    });
-  };
+  const createTab = (pageId, pageAccessToken, tabName) => postResponsiveMessage({
+    topic: MESSAGE_TOPICS.createTab,
+    source: FACEBOOK_SOURCE_ID,
+    arguments: { pageId, pageAccessToken, tabName },
+  });
 
   const fetchUserData = async () => {
     const { result } = await postResponsiveMessage({
@@ -89,13 +83,11 @@ const FacebookProvider = ({ postResponsiveMessage, appId, ...props }) => {
     };
   };
 
-  const share = async (options) => {
-    await postResponsiveMessage({
-      topic: MESSAGE_TOPICS.share,
-      source: FACEBOOK_SOURCE_ID,
-      arguments: options,
-    });
-  };
+  const share = (options) => postResponsiveMessage({
+    topic: MESSAGE_TOPICS.share,
+    source: FACEBOOK_SOURCE_ID,
+    arguments: options,
+  });
 
   const campaignProps = {
     init,

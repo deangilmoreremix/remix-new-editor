@@ -1,17 +1,18 @@
-// TODO: should be removed after a new component is created instead this one
 import React from 'react';
 import FormGroup from '@material-ui/core/FormGroup';
 import InputLabel from '@material-ui/core/InputLabel';
 import TextField from '@material-ui/core/TextField';
 import classnames from 'classnames';
 import MaskedFormControl from 'react-bootstrap-maskedinput';
+import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 
 import PropTypes from '../../lib/PropTypes';
 
-export default function FormTextField({
+const FormTextField = React.forwardRef(({
   type,
   mask,
   label,
+  name,
   onChange,
   onEnter,
   disabled,
@@ -20,8 +21,16 @@ export default function FormTextField({
   className,
   placeholder,
   value,
-}) {
+  multiline,
+  rowsMin,
+  rowsMax,
+  readOnly,
+}, ref) => {
   const conditionalProps = {};
+
+  const InputProps = {
+    ...(readOnly ? { readOnly } : {}),
+  };
 
   if (onEnter) {
     conditionalProps.onKeyPress = ({ which, target: { value: v } }) => {
@@ -39,68 +48,97 @@ export default function FormTextField({
     <FormGroup
       className={classnames(className)}
     >
-      <InputLabel key="label-key" className={classnames('form-control-label', labelClassName)}>
-        {label}
-      </InputLabel>
       {
+        label && (
+          <InputLabel key="label-key" className={classnames('form-control-label', labelClassName)}>
+            {label}
+          </InputLabel>
+        )
+      }
+      { type !== 'text' && (
         mask
           ? (
             <MaskedFormControl
+              ref={ref}
               mask={mask}
               key="masked-input-key"
-              id={label}
+              id={name}
               value={value}
               className={classnames(inputClassName)}
               placeholder={placeholder}
               onChange={onEdit}
               type={type}
+              name={name}
               disabled={disabled}
+              InputProps={InputProps}
               {...conditionalProps}
             />
           )
           : (
             <TextField
+              inputRef={ref}
               key="input-key"
-              id={label}
-              className={classnames(inputClassName,
-                type === 'input' && 'text-input',
-                type === 'number' && 'text-input',
-              )}
+              id={name}
+              className={classnames(inputClassName, 'text-input', { 'input-disabled': disabled })}
               value={value || (value === 0 && type === 'number') ? value : ''}
               placeholder={placeholder}
               onChange={onEdit}
               type={type}
               disabled={disabled}
               {...conditionalProps}
+              multiline={multiline}
+              InputProps={InputProps}
             />
-          )
-      }
+          ))}
+      {type === 'text' && (
+        <TextareaAutosize
+          inputRef={ref}
+          key="input-key"
+          id={name}
+          className={classnames('text-input', inputClassName)}
+          value={value || ''}
+          placeholder={placeholder}
+          onChange={onEdit}
+          disabled={disabled}
+          {...conditionalProps}
+          multiline={multiline}
+          rowsMin={rowsMin}
+          rowsMax={rowsMax}
+          InputProps={InputProps}
+        />
+      )}
 
     </FormGroup>
   );
-}
+});
 
 FormTextField.propTypes = {
-  onChange: PropTypes.func,
+  onChange: PropTypes.func.isRequired,
   mask: PropTypes.string,
   label: PropTypes.string,
+  name: PropTypes.string,
   onEnter: PropTypes.func,
   disabled: PropTypes.bool,
-  inputType: PropTypes.string,
   className: PropTypes.string,
   inputClassName: PropTypes.string,
   labelClassName: PropTypes.string,
-  inline: PropTypes.bool,
   placeholder: PropTypes.string,
-  type: PropTypes.oneOf(['input', 'textarea', 'select', 'number']),
+  type: PropTypes.oneOf(['input', 'text', 'number']),
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
+  multiline: PropTypes.bool,
+  rowsMin: PropTypes.number,
+  rowsMax: PropTypes.number,
+  readOnly: PropTypes.bool,
 };
 
 FormTextField.defaultProps = {
   label: '',
   type: 'input',
   disabled: false,
-  onChange: () => {},
-  inputType: 'text',
-  inline: true,
+  inputClassName: '',
+  labelClassName: '',
+  className: '',
+  readOnly: false,
 };
+
+export default FormTextField;

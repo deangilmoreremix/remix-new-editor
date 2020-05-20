@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 
 import CampaignStage from '../CampaignStage';
 import PropTypes from '../../../../lib/PropTypes';
+import useModalStore from '../../../hooks/useModalStore';
 import useProjectStore from '../../../hooks/useProjectStore';
 import { LINKEDIN_STAGES as STAGES } from '../../../../lib/constants/campaigns/stages';
 import {
@@ -11,8 +12,10 @@ import {
   EMBED_LOCATION,
   LINKEDIN_LOGIN,
   LINKEDIN_POST,
-  EMBED_LOCATIONS,
 } from '../../../../lib/constants/campaigns/constants';
+
+import { showError, showInfo } from '../../../../lib/services/alertService';
+import { SOCIAL_CAMPAIGN_MODAL } from '../../../../lib/constants/modals';
 
 const LinkedinCampaign = observer(({
   init,
@@ -27,59 +30,45 @@ const LinkedinCampaign = observer(({
   updateCampaign,
   share,
   uploadFile,
+  setLoading,
 }) => {
   const [currentStageIndex, setCurrentStageIndex] = React.useState(0);
-  const currentStage = STAGES[currentStageIndex];
-
-  // Campaign initialization on first render
-  React.useEffect(() => {
-    updateCampaign({ embedLocation: EMBED_LOCATIONS[0] });
-  }, []);
+  const [currentStage, setCurrentStage] = React.useState(STAGES[currentStageIndex]);
 
   const { embedLocation } = settings;
 
   const {
     item: project,
-    publish,
-    save,
-    updateItem,
   } = useProjectStore();
 
+  const { closeModal } = useModalStore();
+
   const sharePost = async () => {
-    const { postData, embedPage, autoplay, preload } = settings;
-
-    updateItem({
-      name: postData.title,
-      description: postData.description,
-      thumbnail: postData.thumbnail,
-    });
+    setLoading(true);
+    const { postData, embedPage, preload } = settings;
     try {
-      await publish(await save(project));
-
       await share({
         title: postData.title,
         description: postData.description,
         url: [
-          embedLocation.key === 'default' ? project.make.url : embedPage, [
-            autoplay ? 'autoplay=1' : null,
+          embedLocation.key === 'default' ? project.url : embedPage, [
             !preload ? 'preload=none' : null,
             'preferred_source=linkedin',
           ].filter(item => !!item).join('&'),
         ].join('?'),
         thumbnail: postData.thumbnail,
       });
+      closeModal(SOCIAL_CAMPAIGN_MODAL);
+      showInfo('Success');
     } catch (error) {
-      console.error(error);
+      showError(error.message);
     }
+    setLoading(false);
     return project;
   };
 
-  const canBypassStage = (stage) => {
-    const { embedPage, postData, userData } = settings;
-
-    if (isLoading) {
-      return false;
-    }
+  const canBypassStage = React.useCallback((stage) => {
+    const { embedPage, postData, userData, authorized } = settings;
 
     switch (stage.key) {
       case EMBED_ENGINE:
@@ -87,18 +76,16 @@ const LinkedinCampaign = observer(({
       case EMBED_LOCATION:
         return embedPage && embedPage.length > 0;
       case LINKEDIN_LOGIN: {
-        return isAuthorized();
+        return authorized;
       }
       case LINKEDIN_POST:
-        return userData && postData
-          && postData.title && postData.title.length > 0
-          && postData.thumbnail && postData.thumbnail.length > 0;
+        return userData && postData && postData.title && postData.title.length > 0;
       default:
         return false;
     }
-  };
+  }, [settings]);
 
-  const nextStage = () => {
+  const nextStage = React.useCallback(() => {
     if (currentStage.key === STAGES[STAGES.length - 1].key) {
       return this.sharePost();
     }
@@ -109,7 +96,7 @@ const LinkedinCampaign = observer(({
       nextStageIdx += 1;
     }
     setCurrentStageIndex(nextStageIdx);
-  };
+  }, [currentStage.key, currentStageIndex, embedLocation.key]);
 
   const prevStage = () => {
     let prevStageIdx = Math.min(
@@ -132,21 +119,21 @@ const LinkedinCampaign = observer(({
     setCurrentStageIndex(nextStageIdx);
   }, [currentStage]);
 
-  const handleBackButtonClick = async () => {
+  const handleBackButtonClick = () => {
     if (isLoading || currentStageIndex === 0) {
       return;
     }
-    await prevStage();
+    return prevStage();
   };
 
-  const handleNextButtonClick = async () => {
+  const handleNextButtonClick = () => {
     if (!canBypassStage(currentStage)) {
       return;
     }
     if (currentStage.key === STAGES[STAGES.length - 1].key) {
-      await sharePost();
+      return sharePost();
     } else {
-      await nextStage();
+      return nextStage();
     }
   };
 
@@ -160,8 +147,18 @@ const LinkedinCampaign = observer(({
     getPageTabs,
     fetchUserData,
     project,
+    setLoading,
   }), [
+    fetchPagesData,
+    fetchUserData,
+    getPageTabs,
+    init,
+    isAuthorized,
+    nextStage,
     project,
+    setStage,
+    updateCampaign,
+    setLoading,
   ]);
 
   const stageProps = React.useMemo(() => ({
@@ -181,18 +178,41 @@ const LinkedinCampaign = observer(({
     handleBackButtonClick,
     handleNextButtonClick,
     canBypassStage,
+    isLoading,
   }), [
+    isLoading,
     settings,
+    updateCampaign,
     project,
+    logIn,
+    fetchPagesData,
+    getPageTabs,
+    createTab,
+    fetchUserData,
+    setStage,
+    nextStage,
+    uploadFile,
+    handleBackButtonClick,
+    handleNextButtonClick,
+    canBypassStage,
   ]);
 
-  // bootstrap new stage
   React.useEffect(() => {
-    const newStage = STAGES[currentStageIndex];
-    if (newStage && newStage.bootstrap) {
-      currentStage.bootstrap(bootstrapData);
+    setLoading(true);
+    setCurrentStage(STAGES[currentStageIndex]);
+    (async function startBootstrap() {
+      await bootstrap(STAGES[currentStageIndex]);
+      setLoading(false);
+    }());
+  }, [bootstrap, currentStageIndex, setLoading]);
+
+  const bootstrap = React.useCallback((st) => {
+    if (st && st.bootstrap) {
+      return st.bootstrap(bootstrapData);
+    } else {
+      setLoading(false);
     }
-  }, [currentStageIndex]);
+  }, [bootstrapData, setLoading]);
 
   return (
     <CampaignStage
@@ -234,7 +254,6 @@ LinkedinCampaign.propTypes = {
   fetchUserData: PropTypes.func.isRequired,
   share: PropTypes.func.isRequired,
   updateCampaign: PropTypes.func.isRequired,
-  uploadFile: PropTypes.func.isRequired,
 };
 
 

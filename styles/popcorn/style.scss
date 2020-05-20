@@ -86,13 +86,14 @@ body.editor-minimized .stage-wrapper {
 .video-container {
   $baseFontSize: 14px;
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 #video {
   position: relative;
   width: 100%;
-  padding-bottom: 56.25%;
-  height: 0;
+  height: 100%;
   z-index: 1;
   background: $canvas-bg;
   .butter-header-spacing & {

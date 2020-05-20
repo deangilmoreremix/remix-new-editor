@@ -28,6 +28,7 @@ module.exports = {
       },
     ],
     'import/prefer-default-export': 0,
+    "import/no-cycle": 0,
     'react/prop-types': ['error', {
       ignore: [
         'common',

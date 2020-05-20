@@ -1,34 +1,81 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
-import { Popper, Button, Grow, MenuItem, MenuList, ClickAwayListener, Paper } from '@material-ui/core';
+import { Popper, Button, Grow, ClickAwayListener, Paper } from '@material-ui/core';
 
 import togglerIcon from '../../public/static/svgImages/common/toggler.svg';
 
 import PropTypes from '../../lib/PropTypes';
 
-const Menu = observer(({ toggleElement, items, className, needEndIcon, parent, placement }) => {
+const Menu = observer((
+  {
+    toggleElement,
+    items, className,
+    needEndIcon,
+    parent,
+    placement,
+    useButton,
+    onClick,
+  }) => {
   const anchorRef = React.useRef(null);
   const [open, setOpen] = React.useState(false);
 
+  const handleAction = (arg) => {
+    setOpen(false);
+    if (arg && typeof arg === 'function') {
+      arg();
+      return;
+    }
+
+    if (onClick && typeof arg !== 'function') {
+      onClick(arg);
+    }
+  };
+
   return (
     <div className={className || ''}>
-      <Button
-        ref={anchorRef}
-        aria-controls={open ? 'menu-list-grow' : undefined}
-        aria-haspopup="true"
-        onClick={() => { setOpen(!open); }}
-        endIcon={needEndIcon ? (
-          <SVGInline
-            className="toggler-icon"
-            classSuffix=""
-            svg={togglerIcon}
-            cleanup={['title']}
-          />
-        ) : null}
-      >
-        {toggleElement}
-      </Button>
+      {
+        useButton
+          ? (
+            <button
+              className="menu__open"
+              ref={anchorRef}
+              aria-controls={open ? 'menu-list-grow' : undefined}
+              aria-haspopup="true"
+              onClick={() => setOpen(!open)}
+            >
+              {toggleElement}
+              {needEndIcon && (
+                <SVGInline
+                  className="toggler-icon"
+                  classSuffix=""
+                  svg={togglerIcon}
+                  cleanup={['title']}
+                />
+              )}
+            </button>
+          )
+          : (
+
+            <Button
+              className="menu__open"
+              ref={anchorRef}
+              aria-controls={open ? 'menu-list-grow' : undefined}
+              aria-haspopup="true"
+              onClick={() => { setOpen(!open); }}
+              endIcon={needEndIcon ? (
+                <SVGInline
+                  className="toggler-icon"
+                  classSuffix=""
+                  svg={togglerIcon}
+                  cleanup={['title']}
+                />
+              ) : null}
+            >
+              {toggleElement}
+            </Button>
+          )
+      }
       <Popper
         open={open}
         role={undefined}
@@ -45,24 +92,29 @@ const Menu = observer(({ toggleElement, items, className, needEndIcon, parent, p
           >
             <Paper>
               <ClickAwayListener onClickAway={() => { setOpen(false); }}>
-                <MenuList id="menu-list-grow" onKeyDown={() => { setOpen(false); }}>
+                <div
+                  className="menu__list"
+                  id="menu-list-grow"
+                >
                   {items.map((item) => (
-                    <MenuItem
+                    <button
                       key={`menu-${item.title}`}
-                      onClick={() => { setOpen(false); }}
+                      onClick={onClick
+                        ? (() => handleAction(item.value)) : (() => handleAction(item.action))}
+                      className="menu__item"
                     >
                       {item.icon ? (
                         <SVGInline
-                          className="icon"
+                          className="menu__item-icon"
                           classSuffix=""
                           svg={item.icon}
                           cleanup={['title']}
                         />
                       ) : null}
-                      <span className={item.icon ? 'margin-left-5' : ''}>{item.title}</span>
-                    </MenuItem>
+                      {item.title}
+                    </button>
                   ))}
-                </MenuList>
+                </div>
               </ClickAwayListener>
             </Paper>
           </Grow>
@@ -82,6 +134,12 @@ Menu.propTypes = {
     title: PropTypes.string.isRequired,
     icon: PropTypes.string,
   })),
+  useButton: PropTypes.bool,
+  onClick: PropTypes.func,
+};
+
+Menu.defaultProps = {
+  useButton: false,
 };
 
 export default Menu;

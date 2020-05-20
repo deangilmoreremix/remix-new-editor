@@ -3,9 +3,27 @@
 }
 
 .MuiRadio-colorSecondary.Mui-checked {
-  color: $red;
+  color: $secondary-color;
 }
 
 .MuiSvgIcon-root {
   font-size: 1rem;
+}
+
+.radio-button-icon {
+  min-width: 0.7rem;
+}
+
+.radio-button-icon-svg:hover {
+
+}
+
+.icon-svg-checked-svg {
+  border: 1px solid $secondary-color;
+  padding: 5px;
+  border-radius: 4px;
+
+  & path {
+    fill: $btn-gray;
+  }
 }

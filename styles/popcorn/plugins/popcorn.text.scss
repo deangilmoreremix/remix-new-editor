@@ -43,23 +43,25 @@
   .personalized-token {
     white-space: nowrap;
     border: 1px solid white;
-    color: black; border-radius: 3px;
+    color: black;
+    border-radius: 3px;
     background: white;
     display: inline;
     margin: 0 3px;
+    font-size: inherit;
 
     .parameter {
       display: none;
     }
 
     .token-uppercase {
-      //content: url('/static/images/editor/token-uppercase.svg');
+      content: url('/static/svgImages/tokens/uppercase.svg');
       background: white;
       margin: auto 2px -4px 0;
     }
 
     .token-default {
-      //content: url('/static/images/editor/token-default.svg');
+      content: url('/static/svgImages/tokens/default.svg');
       background:  white;
       margin: auto 2px -4px 0;
     }
@@ -156,6 +158,15 @@
       top: 100%;
       height: auto;
       overflow-y: auto;
+    }
+
+    .resize-handle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: $white;
+      border: $secondary-color solid 0.5px;
     }
   }
 }

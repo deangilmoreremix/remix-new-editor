@@ -4,10 +4,42 @@
   }
 }
 .home {
+  display: flex;
+  flex-direction: column;
   background: $dark-twinlight;
   min-height: 100vh;
   padding-left: 0;
   padding-right: 0;
   color: $white;
+
+  .controls {
+    flex: 1;
+    flex-wrap: nowrap;
+    width: 96vw;
+  }
+
+  .hover-loading {
+    position: absolute;
+    z-index: 10001;
+    opacity: 0.6;
+    background: $dark-twinlight;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
 }
 
+.disabled {
+  pointer-events: none;
+}
+
+.home__center {
+  position: relative;
+  padding: 0.5rem;
+  padding-top: 1.3rem;
+}
+
+div.big-window {
+  height: $toolbarHeight-big;
+}

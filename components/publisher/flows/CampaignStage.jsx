@@ -10,6 +10,7 @@ const CampaignStage = ({
   handleBackButtonClick,
   handleNextButtonClick,
   canBypassStage,
+  isLoading,
   ...props
 }) => {
   const {
@@ -23,25 +24,27 @@ const CampaignStage = ({
 
   return (
     <React.Fragment>
-      <Stage {...props} />
+      {
+        isLoading ? <div className="spinner">Loading...</div> : <Stage {...props} />
+      }
       <Progress
-        className="embed-progress"
+        className="embed-progress mb-3"
         value={completionPercentage}
       />
       <div className="controls">
         <button
-          disabled={index === 0}
+          disabled={isLoading || index === 0}
           className={`go-button back ${key === STAGES[0].key ? 'hidden' : ''}`}
           onClick={handleBackButtonClick}
           type="button"
         >
-          Back
+        Back
         </button>
         <button
           className={
-            `go-button ${`next ${actionButtonClassName || ''}`} ${
-              canBypassStage(stage) ? '' : 'inactive'}`
-          }
+        `go-button ${`next ${actionButtonClassName || ''}`}`
+      }
+          disabled={isLoading || !canBypassStage(stage)}
           onClick={handleNextButtonClick}
           type="button"
         >
@@ -67,6 +70,7 @@ CampaignStage.propTypes = {
   handleBackButtonClick: PropTypes.func.isRequired,
   handleNextButtonClick: PropTypes.func.isRequired,
   canBypassStage: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool,
 };
 
 export default CampaignStage;

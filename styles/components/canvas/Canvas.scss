@@ -1,0 +1,23 @@
+.stager-wrapper {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  top: 0;
+  right: 2rem;
+  left: 0;
+  height: $toolbarHeight;
+
+  &-big {
+    height: $toolbarHeight-big;
+  }
+
+  .video-container {
+    overflow: hidden;
+  }
+
+  .embed-wrapper {
+    position: relative;
+    flex-grow: 1;
+    transition: all 0.3s linear;
+  }
+}

@@ -1,0 +1,150 @@
+.text-settings-label {
+  font-size: $small;
+}
+
+.text-container {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &-time {
+    display: flex;
+    justify-content: space-between;
+    width: 40%;
+  }
+
+  &-position {
+    display: flex;
+  }
+
+  .input-time-position {
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+
+    & label {
+      font-size: $small;
+    }
+
+    &:hover input {
+      border: 0.055rem solid $secondary-color;
+    }
+  }
+}
+
+.personalize-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 1em;
+}
+
+.text-form {
+  .link-url-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+
+    .input-url-position {
+      width: 65%;
+    }
+  }
+
+  .email-link-container {
+    margin-top: 2em;
+    margin-bottom: 2em;
+
+    .email-notify, .open-link {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+
+      &-label {
+        line-height: 1.4;
+        width: 40%;
+      }
+
+      &-input {
+        width: 60%;
+      }
+    }
+  }
+
+  .text-transform-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+
+    &-rotation, &-transition {
+      display: flex;
+      width: 10em;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    &-input {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    &-font {
+      margin-top: 1em;
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+
+      & > div {
+        display: flex;
+        width: 12.4em;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+  }
+}
+
+.open-link-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1em;
+
+  .MuiOutlinedInput-root:hover fieldset {
+    border-color: $secondary-color;
+  }
+
+  .open-link {
+    justify-content: flex-start;
+  }
+}
+
+.btn-personalize, .btn-library {
+  @include reset-button;
+  display: inline-block;
+  height: 2.174rem;
+  background: $secondary-color;
+  border-radius: 4px;
+  color: $white;
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  padding: 0 3px;
+}
+
+.text-position-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &-icons {
+    display: flex;
+    align-items: baseline;
+  }
+}

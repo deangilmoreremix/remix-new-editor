@@ -1,0 +1,60 @@
+.recorder {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 31.75rem;
+  height: $toolbarHeight - 5vh;
+  background: $light-twinlight;
+  transition: 0.3s all;
+
+  &__header {
+    @include reset-button;
+    width: 100%;
+    flex: 1;
+    height: 2.1rem;
+    text-transform: uppercase;
+    background: $modal-lightdark-bg;
+    color: $white;
+    font-size: 0.875rem;
+  }
+
+  &-panel {
+    display: flex;
+    flex: 1;
+    height: 100%;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    padding: 1rem;
+
+    &__icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 5.2rem;
+      height: 6.2rem;
+      border: 1px solid $secondary-color;
+      border-radius: 3px;
+      margin-bottom: 1.125rem;
+      svg {
+        width: 100%;
+        max-width: 3.6rem;
+        max-height: 3.3rem;
+      }
+    }
+
+    &__button {
+      @include reset-button;
+      min-width: 7.2rem;
+      flex-direction: column;
+      line-height: 0;
+      color: $white;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+  }
+}

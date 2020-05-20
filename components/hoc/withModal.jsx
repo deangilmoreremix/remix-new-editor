@@ -4,14 +4,14 @@ import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 const withModal = (WrappedComponent) => (props) => {
   const [modal, setModal] = React.useState(null);
 
-  const isOpen = Boolean(modal);
+  const isOpen = React.useMemo(() => Boolean(modal), [modal]);
 
-  const hide = (callback) => {
+  const hide = React.useCallback((callback) => {
     setModal(null);
     if (typeof callback === 'function') {
       callback();
     }
-  };
+  }, []);
 
   const show = (modalContent, callback) => {
     setModal(modalContent);

@@ -1,43 +1,93 @@
-import React from 'react';
+import * as React from 'react';
 import { observer } from 'mobx-react';
+import Router from 'next/router';
 import SVGInline from 'react-svg-inline';
 import { Grid, AppBar, Toolbar } from '@material-ui/core';
 
-import Menu from './common/Menu';
-import UserBox from './common/user/UserBox';
+import { radioButton } from '../lib/constants/windowsLogics';
 
-import outIcon from '../public/static/svgImages/header/out.svg';
+// import Menu from './common/Menu';
+import UserBox from './common/user/UserBox';
+import ExpandButton from './common/ExpandButton';
+// import { SAVE_PROJECT_MODAL } from '../lib/constants/modals';
+import { ROUTES } from '../lib/constants/routing';
+import { PRODUCE_TABS } from '../lib/constants/ui';
+// import { PRODUCE_TABS, USER_MENU_ITEMS, PROJECT_MENU_ITEMS } from '../lib/constants/ui';
+
 import logoIcon from '../public/static/svgImages/header/logo.svg';
-import redoIcon from '../public/static/svgImages/header/redo.svg';
-import undoIcon from '../public/static/svgImages/header/undo.svg';
+// import redoIcon from '../public/static/svgImages/header/redo.svg';
+// import undoIcon from '../public/static/svgImages/header/undo.svg';
 import saveIcon from '../public/static/svgImages/header/save.svg';
-import folderIcon from '../public/static/svgImages/header/folder.svg';
-import hamburgerIcon from '../public/static/svgImages/header/hamburger.svg';
-import collaborateIcon from '../public/static/svgImages/header/collaborate.svg';
+// import hamburgerIcon from '../public/static/svgImages/header/hamburger.svg';
+// import saveAsIcon from '../public/static/svgImages/menu/save-as.svg';
 
 import useProjectStore from './hooks/useProjectStore';
+// import useUserStore from './hooks/useUserStore';
+// import useModalStore from './hooks/useModalStore';
 
+import { showError } from '../lib/services/alertService';
+import useUIStore from './hooks/useUIStore';
+import { validateBeforeSave } from '../lib/utils/project';
 
-const userMenu = [
-  { title: 'My Projects', icon: folderIcon },
-  { title: 'Sign Out', icon: outIcon },
-  { title: 'Collaborate', icon: collaborateIcon },
-];
-
-const projectMenu = [
-  { title: 'New a project...' },
-  { title: 'Make a copy' },
-  { title: 'Rename project' },
-  { title: 'Finish project' },
-  { title: 'Move to trash' },
-  { title: 'Close project' },
-];
 
 const MenuAppBar = observer(() => {
   const anchorRef = React.useRef(null);
-  const projectStore = useProjectStore();
 
-  const { save, modified } = projectStore;
+  const {
+    save,
+    modified,
+    item,
+  } = useProjectStore();
+  // const { openModal } = useModalStore();
+  const { showProducePanel, setInitialView, changeRadioButton, closeAllWindows } = useUIStore();
+
+  // const menu = React.useMemo(() => {
+  //   const projectAdminMenu = [
+  //     { title: 'Save as', icon: saveAsIcon, action: () => openModal(SAVE_PROJECT_MODAL) },
+  //   ];
+  //
+  //   return [
+  //     ...PROJECT_MENU_ITEMS,
+  //     ...(isSuperAdmin ? projectAdminMenu : []),
+  //   ];
+  // }, [isSuperAdmin, openModal]);
+
+  const saveProject = React.useCallback(async () => {
+    try {
+      const errors = validateBeforeSave(item);
+      if (errors) {
+        switch (true) {
+          case errors.title: {
+            changeRadioButton(radioButton.BOTTOM);
+            return showProducePanel({ tab: PRODUCE_TABS.SETTINGS });
+          }
+          default: {
+            return showError('The project is not valid.');
+          }
+        }
+      } else {
+        closeAllWindows();
+        const project = await save();
+        if (project && project._id) {
+          Router.push(
+            {
+              pathname: ROUTES.edit,
+              query: {
+                project: project._id,
+              },
+            },
+            undefined,
+            {
+              shallow: true,
+            },
+          );
+          setInitialView();
+        }
+      }
+    } catch (e) {
+      showError(e.message);
+    }
+  }, [item, save, setInitialView, showProducePanel]);
 
   return (
     <div className="container-header" ref={anchorRef}>
@@ -45,22 +95,22 @@ const MenuAppBar = observer(() => {
         <Toolbar className="container-menu">
           <Grid container>
             <Grid item xs={1} className="flex-vertical-center">
-              <Menu
-                toggleElement={
-                  (
-                    <SVGInline
-                      className="icon icon-button"
-                      classSuffix=""
-                      svg={hamburgerIcon}
-                      cleanup={['title']}
-                    />
-                  )
-                }
-                items={projectMenu}
-                className="project-menu"
-                parent={anchorRef}
-                placement="bottom-start"
-              />
+              {/* <Menu */}
+              {/* toggleElement={ */}
+              {/* ( */}
+              {/* <SVGInline */}
+              {/* className="icon icon-button" */}
+              {/* classSuffix="" */}
+              {/* svg={hamburgerIcon} */}
+              {/* cleanup={['title']} */}
+              {/* /> */}
+              {/* ) */}
+              {/* } */}
+              {/* items={menu} */}
+              {/* className="project-menu" */}
+              {/* parent={anchorRef} */}
+              {/* placement="bottom-start" */}
+              {/* /> */}
             </Grid>
             <Grid item xs={2} className="flex-vertical-center">
               <SVGInline
@@ -72,24 +122,24 @@ const MenuAppBar = observer(() => {
             </Grid>
             <Grid item xs={1} className="flex-vertical-center">
               <div className="auto-margin">
-                <SVGInline
-                  className="auto-margin icon icon-button"
-                  classSuffix=""
-                  svg={undoIcon}
-                  cleanup={['title']}
-                  component="button"
-                />
-                <button className="icon-button">undo</button>
+                {/* <SVGInline */}
+                {/* className="auto-margin icon icon-button" */}
+                {/* classSuffix="" */}
+                {/* svg={undoIcon} */}
+                {/* cleanup={['title']} */}
+                {/* component="button" */}
+                {/* /> */}
+                {/* <button className="icon-button">undo</button> */}
               </div>
               <div className="auto-margin">
-                <SVGInline
-                  className="auto-margin icon icon-button"
-                  classSuffix=""
-                  svg={redoIcon}
-                  cleanup={['title']}
-                  component="button"
-                />
-                <button className="icon-button">redo</button>
+                {/* <SVGInline */}
+                {/* className="auto-margin icon icon-button" */}
+                {/* classSuffix="" */}
+                {/* svg={redoIcon} */}
+                {/* cleanup={['title']} */}
+                {/* component="button" */}
+                {/* /> */}
+                {/* <button className="icon-button">redo</button> */}
               </div>
               <div className="auto-margin">
                 <SVGInline
@@ -98,26 +148,29 @@ const MenuAppBar = observer(() => {
                   svg={saveIcon}
                   cleanup={['title']}
                   component="button"
-                  onClick={() => save()}
+                  onClick={saveProject}
                   disabled={!modified}
                 />
                 <button
                   className={`icon-button ${modified ? 'active-save' : ''}`}
-                  onClick={() => save()}
+                  onClick={saveProject}
                   disabled={!modified}
                 >
                   save
                 </button>
               </div>
             </Grid>
-            <Grid item xs={6} />
-            <Grid item xs={2}>
-              <Menu
-                toggleElement={<UserBox />}
-                items={userMenu}
-                className="user-menu flex-center"
-                needEndIcon
-              />
+            <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <ExpandButton />
+            </Grid>
+            <Grid className="user-menu" item xs={2}>
+              <UserBox />
+              {/* <Menu */}
+              {/* toggleElement={<UserBox />} */}
+              {/* items={USER_MENU_ITEMS} */}
+              {/* className="user-menu flex-center" */}
+              {/* needEndIcon */}
+              {/* /> */}
             </Grid>
           </Grid>
         </Toolbar>

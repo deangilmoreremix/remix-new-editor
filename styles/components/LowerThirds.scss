@@ -1,0 +1,172 @@
+.lower-thirds {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  max-width: 31.75rem;
+  height: $toolbarHeight - 5vh;
+  background: $light-twinlight;
+  box-sizing: border-box;
+  font-family: $font-primary;
+  position: relative;
+  z-index: 1;
+  font-size: 0.875rem;
+  line-height: 1;
+  color: $white;
+  overflow: hidden;
+  padding-bottom: 1rem;
+  transition: 0.3s all;
+
+  button,
+  input {
+    color: $white;
+  }
+
+  &__body {
+    max-height: 100%;
+    flex: 1;
+    padding: 1.43rem 2.6rem 1.68rem 1.75rem;
+  }
+}
+
+.lower-thirds-content {
+  @include tiny-scrollbar;
+  margin-top: 0.64rem;
+  max-height: 90%;
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  overflow-x: hidden;
+
+  &__item, &__lottie {
+    width: calc(50% - 0.64em);
+    height: 7rem;
+    position: relative;
+    overflow: hidden;
+    background: $sidebr-bg;
+    margin-right: 0.64em;
+    margin-bottom: 0.64em;
+
+    &:hover .lower-thirds-content__actions,
+    &:hover .lower-thirds-preview__add {
+      opacity: 1;
+    }
+  }
+
+  &__preview {
+    max-width: 100%;
+    height: auto !important;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  &__lottie {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    canvas {
+      max-width: 100%;
+      height: auto !important;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) !important;
+    }
+  }
+
+  &__img {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    img {
+      max-width: 95%;
+      max-height: 95%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  &__actions {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: 0.3s all;
+  }
+
+  &__delete {
+    @include reset-button;
+    flex: 1;
+    background-color: rgba(235, 80, 84, 0.8);
+  }
+
+  &__append {
+    @include reset-button;
+    flex: 1;
+    background-color: rgba(62, 62, 81, 0.77);
+
+    &--little {
+      position: absolute;
+      background: rgba(62, 62, 81, 0.77);
+    }
+  }
+
+  &__icon {
+    width: 14px;
+    height: 15px;
+  }
+}
+
+.lower-thirds-content__add {
+  background: #3E3E51;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.3s all;
+
+  &--active .lower-thirds-item-plus {
+    width: 50%;
+  }
+
+  &--disabled {
+    opacity: 0.5;
+  }
+}
+
+.lower-thirds-item-plus {
+  width: 40%;
+  transition: 0.3s all;
+}
+
+.lower-third-waypoint {
+  width: 100%;
+  height: 3px;
+}
+
+@media screen and (max-width: 1200px) {
+  .lower-thirds-content__item {
+    width: 100%;
+  }
+}
+

@@ -1,0 +1,195 @@
+.stickers {
+  position: relative;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  max-width: 31.75rem;
+  height: $toolbarHeight - 5vh;
+  background: $light-twinlight;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  font-size: 0.875rem;
+  line-height: 1;
+  color: $white;
+  overflow: hidden;
+  padding: 1.3rem 2.56rem 1.68rem 1.75rem;
+  font-family: $font-primary;
+  transition: 0.3s all;
+}
+
+.stickers-title {
+  font-weight: bold;
+  line-height: 1;
+  margin-bottom: 1rem;
+  color: #fff;
+  text-align: left;
+}
+
+.stickers-tabs {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.stickers-tab {
+  @include reset-button;
+  width: 23%;
+  min-height: 1.61rem;
+  border: 1px solid #EB5054;
+  border-radius: 4px;
+  text-transform: uppercase;
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.5rem;
+  margin-bottom: 1rem;
+
+  &-active {
+    background: $secondary-color;
+  }
+}
+
+.stickers-content {
+  @include tiny-scrollbar;
+  max-height: 78%;
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  overflow-x: hidden;
+
+  &__item, &__lottie {
+    width: calc(33.33% - 0.64em);
+    height: 5rem;
+    position: relative;
+    overflow: hidden;
+    background: $white;
+    margin-right: 0.64em;
+    margin-bottom: 0.64em;
+
+    &:hover .stickers-content__actions,
+    &:hover .animation-preview__add {
+      opacity: 1;
+    }
+  }
+
+  &__lottie {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    canvas {
+      max-width: 100%;
+      height: auto !important;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) !important;
+    }
+  }
+
+  &__img {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    img {
+      max-width: 95%;
+      max-height: 95%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  &__actions {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: 0.3s all;
+  }
+
+  &__delete {
+    @include reset-button;
+    flex: 1;
+    background-color: rgba(235, 80, 84, 0.8);
+  }
+
+  &__append {
+    @include reset-button;
+    flex: 1;
+    background-color: rgba(62, 62, 81, 0.77);
+
+    &--little {
+      position: absolute;
+      background: rgba(62, 62, 81, 0.77);
+    }
+  }
+
+  &__icon {
+    width: 14px;
+    height: 15px;
+  }
+}
+
+.stickers-content__add {
+  background: #3E3E51;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.3s all;
+
+  &--active .stickers-item-plus {
+    width: 50%;
+  }
+
+  &--disabled {
+    opacity: 0.5;
+  }
+}
+
+.stickers-item-plus {
+  width: 40%;
+  transition: 0.3s all;
+}
+
+@media screen and (max-width: 1300px) {
+  .stickers-tab {
+    width: 48%;
+  }
+}
+
+@media screen and (max-width: 1150px) {
+  .stickers-tab {
+    width: 100%;
+    margin-bottom: 0.7rem;
+  }
+}
+
+@media screen and (max-width: 1180px) {
+  .stickers-content__item {
+    width: calc(50% - 0.64em);
+  }
+}
+
+@media screen and (max-width: 940px) {
+  .stickers-content__item {
+    width: 100%;
+  }
+}

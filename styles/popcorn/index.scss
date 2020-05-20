@@ -1,5 +1,8 @@
+@import "common/resize-handle";
+
 @import "./plugins/popcorn.form";
 @import "./plugins/popcorn.image";
+@import "./plugins/popcorn.json-animation";
 @import "./plugins/popcorn.personalizedImage";
 @import "./plugins/popcorn.popup";
 @import "./plugins/popcorn.seethroughtext";
@@ -7,5 +10,7 @@
 @import "./plugins/popcorn.text";
 @import "./plugins/popcorn.twitter";
 @import "./plugins/popcorn.wikipedia";
+@import "./plugins/popcorn.lottie-json";
+@import "./plugins/popcorn.retarget";
 
 @import "style";

@@ -1,16 +1,22 @@
 .timeline {
+  position: relative;
+  height: $timeline-height-closed;
   background-color: $light-twinlight;
   width: 100%;
+  transition: 0.3s all;
+
+  &-open {
+    height: $timeline-height;
+  }
 }
 
 .layers {
-  @include tiny-scrollbar($thumbHeight: 0, $thumbColor: $red, $scrollbarColor: $modal-header-bg);
+  @include tiny-scrollbar;
   width: 100%;
   display: flex;
   position: relative;
   margin: $layer-height auto;
-  overflow-y: auto;
-  height: 130px;
+  height: 142px;
   margin-top: 29px;
 }
 
@@ -41,12 +47,41 @@
   }
 }
 
+.popcorn-element {
+  width: 100%;
+  height: 100%;
+  outline: none;
+
+  &.icon-element {
+    .inner-wrapper {
+      &.video-transition {
+        position: absolute;
+        top: calc(50% - 2px);
+        left: 50%;
+        z-index: 5;
+        transform: translate(-50%, -50%);
+        width: 2.4rem;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+
+    .icon-btn {
+      width: 100%;
+
+      &--inline {
+        width: 100%;
+      }
+    }
+  }
+}
+
 .elements {
   position: relative;
   width: 100%;
-  :first-child {
-    border-top: 0.5px solid $third-color;
-  }
+
   .elements-grid {
     z-index: 1;
     position: absolute;
@@ -65,6 +100,52 @@
     }
   }
 
+  .popcorn-element-name {
+    max-width: 100%;
+    overflow: hidden;
+    position: absolute;
+    bottom: 0;
+    border-top: none;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .popcorn-element {
+    border: none;
+  }
+
+  .popcorn-element-part {
+    display: flex;
+    justify-content: flex-end;
+    align-items: baseline;
+    height: $layer-height - 1px;
+
+    button {
+      line-height: 0.8rem;
+      border: none;
+      margin-right: 2px;
+    }
+  }
+
+  .in-animation-element {
+    background-color: $inColor;
+    border: 1px solid $secondary-color;
+    border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
+  }
+
+  .idle-animation-element {
+    background-color: $idleColor;
+    border: 1px solid $secondary-color;
+  }
+
+  .out-animation-element {
+    background-color: $outColor;
+    border: 1px solid $secondary-color;
+    border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
+  }
+
   .layout {
     position: relative;
     transition: height 200ms ease;
@@ -74,7 +155,13 @@
     transition: all 200ms ease;
     transition-property: left, top;
     border-radius: 5px;
-    background-color: $secondary-color;
+    background-color: $fourth-color;
+    border: 0.5px solid $secondary-color;
+    font-size: $small;
+
+    &.selected {
+      background-color: $secondary-color;
+    }
   }
   .react-grid-item.cssTransforms {
     transition-property: transform;
@@ -112,6 +199,36 @@
     background-origin: content-box;
     box-sizing: border-box;
     cursor: se-resize;
+  }
+
+  .timeline-grid-item {
+    &.video-transition {
+      border-left: 0;
+      border-right: 0;
+      border-radius: 0;
+      z-index: 1;
+
+      &:before,
+      &:after {
+        content: '';
+        position: absolute;
+        z-index: 1;
+        top: 0;
+        bottom: 0;
+        width: 0.2rem;
+        background: $fourth-color;
+        border-top: 1px solid $secondary-color;
+        border-bottom: 1px solid $secondary-color;
+      }
+
+      &:before {
+        right: 100%;
+      }
+
+      &:after {
+        left: 100%;
+      }
+    }
   }
 }
 
@@ -171,3 +288,35 @@
     fill: $scrollbarColor;
   }
 }
+
+.timeline-arrow {
+  @include reset-button;
+  width: 50px;
+  height: 22px;
+  position: absolute;
+  top: -18px;
+  left: 17px;
+  background: $light-twinlight;
+  border-radius: 4px;
+  overflow: hidden;
+
+  &:before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border: 2px solid #3E3E51;
+    border-top: none;
+    border-left: none;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-135deg);
+    transition: 0.3s all;
+  }
+
+  &-open:before {
+    top: 2px;
+    transform: translateX(-50%) rotate(45deg);
+  }
+}
+

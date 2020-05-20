@@ -2,21 +2,21 @@
   &::-webkit-input-placeholder {
     color: $white;
     font: 0.875rem $font-primary;
-    opacity: 1;
+    opacity: $placeholderOpacity;
   }
   &::-moz-placeholder {
     color: $white;
     font: 0.875rem $font-primary;
-    opacity: 1;
+    opacity: $placeholderOpacity;
   }
   &:-ms-input-placeholder {
     color: $white;
     font: 0.875rem $font-primary;
-    opacity: 1;
+    opacity: $placeholderOpacity;
   }
   &:-moz-placeholder {
     color: $white;
     font: 0.875rem $font-primary;
-    opacity: 1;
+    opacity: $placeholderOpacity;
   }
 }

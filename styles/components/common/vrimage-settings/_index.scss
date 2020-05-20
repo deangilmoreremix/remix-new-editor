@@ -1,0 +1,41 @@
+@import "Basic";
+
+@media screen and (max-width: 1300px) {
+  .vrimage-settings__block {
+    flex-direction: column;
+    align-items: self-start;
+  }
+
+  .vrimage-settings__time,
+  .vrimage-settings__time input,
+  .vrimage-settings__cell--first,
+  .vrimage-settings__cell--second,
+  .vrimage-settings__btn--block,
+  .vrimage-settings__rotation,
+  .vrimage-settings__button--little {
+    width: 100%;
+  }
+
+  .vrimage-settings__time,
+  .vrimage-settings__cell--first,
+  .vrimage-settings__btn--block p {
+    margin-right: 0;
+    margin-bottom: 1rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .vrimage-settings__time label,
+  .vrimage-settings__tags .tags-input-title,
+  .vrimage-settings__field label,
+  .vrimage-settings__field p {
+    text-align: center;
+  }
+
+  .vrimage-settings__btn--block {
+    flex-direction: column;
+
+  }
+}

@@ -1,0 +1,42 @@
+button.menu__open {
+  outline: none;
+
+  .menu-arrow {
+    transform: rotate(-90deg);
+  }
+}
+
+.menu__item {
+  @include reset-button;
+  width: 100%;
+  height: 3.8rem;
+  justify-content: flex-start;
+  padding-left: 13.6%;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: $white;
+  border-bottom: 1px solid #1A1A1A;
+
+  &:hover {
+    background: $secondary-color;
+
+    .menu__item-icon path {
+      stroke: $white;
+    }
+  }
+}
+
+.menu__item-icon {
+  width: 0.93rem;
+  height: 0.93rem;
+  display: flex;
+  margin-right: 1.44rem;
+
+  svg {
+    margin-right: 0;
+  }
+
+  path {
+    stroke: $btn-gray;
+  }
+}

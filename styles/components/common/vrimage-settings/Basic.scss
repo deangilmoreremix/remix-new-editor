@@ -1,0 +1,141 @@
+.vrimage-settings__block {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 1.1rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &--time {
+    justify-content: normal;
+  }
+
+  &--rotate {
+    margin: 2rem 0;
+  }
+}
+
+.vrimage-settings__time {
+  margin-right: 2.9rem;
+
+  &:last-child {
+    margin-right: 0;
+  }
+
+  label {
+    display: block;
+    width: 100%;
+    text-align: left;
+    line-height: 1;
+    font-size: 0.875rem;
+  }
+
+  input {
+    width: 4.56rem;
+  }
+}
+
+.vrimage-settings__field {
+  label, p {
+    display: block;
+    width: 100%;
+    text-align: left;
+    line-height: 1;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.vrimage-settings__cell {
+  &--first {
+    width: 58%;
+    margin-right: 4.5%;
+  }
+
+  &--second {
+    width: 37.5%;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.vrimage-settings__button {
+  width: 100%;
+  margin-top: 0;
+
+  button {
+    display: block;
+    width: 100%;
+    font-size: 0.875rem;
+  }
+
+  &--little {
+    @include reset-button;
+    display: block;
+    width: 7.75rem;
+    height: 2.174rem;
+    background: $secondary-color;
+    border-radius: 4px;
+    color: $white;
+    font-size: 0.875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+    padding: 0 3px;
+  }
+}
+
+.vrimage-settings__rotation {
+  display: flex;
+  align-items: center;
+
+  .form-angle-label {
+    margin-bottom: 0;
+    margin-right: 0.8rem;
+  }
+}
+
+.vrimage-settings__btn--block {
+  display: flex;
+  align-items: center;
+
+  p {
+    margin: 0;
+    margin-right: 0.8rem;
+    line-height: 1;
+    font-size: 0.875rem;
+  }
+}
+.vrimage-settings__checkbox {
+  margin-left: -9px;
+
+  button {
+    order: 1;
+
+    label {
+      font-size: 0.8rem;
+    }
+  }
+}
+
+.vrimage-settings__tags {
+  input {
+    display: none;
+  }
+
+  .react-tagsinput-tag {
+    &:before {
+      content: none;
+    }
+  }
+
+  .tags-input-title {
+    text-align: left;
+    margin-bottom: 0.5rem;
+  }
+}

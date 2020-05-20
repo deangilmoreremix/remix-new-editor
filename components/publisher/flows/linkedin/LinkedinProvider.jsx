@@ -9,13 +9,11 @@ import {
 } from '../../../../lib/constants/campaigns/constants';
 
 const LinkedinProvider = ({ postResponsiveMessage, appId, ...props }) => {
-  const init = async () => {
-    await postResponsiveMessage({
-      topic: MESSAGE_TOPICS.init,
-      source: LINKEDIN_SOURCE_ID,
-      arguments: appId,
-    });
-  };
+  const init = () => postResponsiveMessage({
+    topic: MESSAGE_TOPICS.init,
+    source: LINKEDIN_SOURCE_ID,
+    arguments: appId,
+  });
 
   const isAuthorized = async () => {
     const response = await postResponsiveMessage({
@@ -27,13 +25,11 @@ const LinkedinProvider = ({ postResponsiveMessage, appId, ...props }) => {
     return response.loggedIn;
   };
 
-  const logIn = async () => {
-    await postResponsiveMessage({
-      topic: MESSAGE_TOPICS.logIn,
-      source: LINKEDIN_SOURCE_ID,
-      arguments: ACCESS_SCOPES,
-    });
-  };
+  const logIn = () => postResponsiveMessage({
+    topic: MESSAGE_TOPICS.logIn,
+    source: LINKEDIN_SOURCE_ID,
+    arguments: ACCESS_SCOPES,
+  });
 
   const fetchUserData = async () => {
     const { result } = await postResponsiveMessage({
@@ -47,38 +43,36 @@ const LinkedinProvider = ({ postResponsiveMessage, appId, ...props }) => {
     };
   };
 
-  const share = async (options) => {
-    await postResponsiveMessage({
-      topic: MESSAGE_TOPICS.share,
-      source: LINKEDIN_SOURCE_ID,
-      arguments: {
-        lifecycleState: 'PUBLISHED',
-        specificContent: {
-          'com.linkedin.ugc.ShareContent': {
-            shareCommentary: {
-              text: options.description,
-            },
-            shareMediaCategory: 'ARTICLE',
-            media: [
-              {
-                status: 'READY',
-                description: {
-                  text: options.description,
-                },
-                originalUrl: options.url,
-                title: {
-                  text: options.title,
-                },
-              },
-            ],
+  const share = (options) => postResponsiveMessage({
+    topic: MESSAGE_TOPICS.share,
+    source: LINKEDIN_SOURCE_ID,
+    arguments: {
+      lifecycleState: 'PUBLISHED',
+      specificContent: {
+        'com.linkedin.ugc.ShareContent': {
+          shareCommentary: {
+            text: options.description,
           },
-        },
-        visibility: {
-          'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC',
+          shareMediaCategory: 'ARTICLE',
+          media: [
+            {
+              status: 'READY',
+              description: {
+                text: options.description,
+              },
+              originalUrl: options.url,
+              title: {
+                text: options.title,
+              },
+            },
+          ],
         },
       },
-    });
-  };
+      visibility: {
+        'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC',
+      },
+    },
+  });
 
   const campaignProps = {
     init,

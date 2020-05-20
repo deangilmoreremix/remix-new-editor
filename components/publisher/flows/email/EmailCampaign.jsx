@@ -8,20 +8,23 @@ import useProjectStore from '../../../hooks/useProjectStore';
 import {
   EMAIL_EMBED_LOCATIONS,
   EMBED_LOCATION,
-  DEFAULT, SERVICE_PROVIDER,
+  EMAIL_SKIP_TOKENS,
+  DEFAULT,
+  SERVICE_PROVIDER,
 } from '../../../../lib/constants/campaigns/constants';
+
 
 const EmaiCampaign = ({ isLoading }) => {
   const [currentStage, setStage] = React.useState(EMAIL_STAGES[0]);
   const [settings, setSettings] = React.useState({
     embedLocation: EMAIL_EMBED_LOCATIONS[0],
     embedPage: null,
-    emailProvider: null,
+    emailProvider: PROVIDERS[0],
     preload: true,
     error: null,
   });
 
-  const { item: project, personalizations } = useProjectStore();
+  const { item: project, getPersonalization } = useProjectStore();
 
   const updateCampaign = (newSettings) => {
     setSettings({ ...settings, ...newSettings });
@@ -94,8 +97,10 @@ const EmaiCampaign = ({ isLoading }) => {
     const { preload, embedLocation, emailProvider, embedPage } = settings;
     const { token, lookup, format } = emailProvider;
     const basicPath = embedLocation.key === DEFAULT ? project.url : embedPage;
-
-    const queryParams = Array.from(personalizations).map(param => {
+    let personalizations = getPersonalization();
+    personalizations = personalizations
+      .filter((personalization => !EMAIL_SKIP_TOKENS.includes(personalization)));
+    const queryParams = personalizations.map(param => {
       const { open, close } = token;
       let formattedParam;
 

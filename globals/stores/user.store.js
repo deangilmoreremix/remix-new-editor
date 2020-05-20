@@ -1,5 +1,8 @@
 import { observable, computed } from 'mobx';
 
+import { STATE, FEATURES } from '../../lib/constants/features';
+import { DEFAULT_PROVIDERS, LIBRARY_KEYS, libraryProviders } from '../../lib/constants/library';
+
 export default class UserStore {
   @observable currentUser = null;
 
@@ -8,25 +11,78 @@ export default class UserStore {
   }
 
   @computed
+  get isSuperAdmin() {
+    return this.currentUser && this.currentUser.authorityLevel === 0;
+  }
+
+  @computed
   get firstAndLastName() {
-    if (!this.currentUser.fullName) {
-      return null;
-    }
-    return this.currentUser.fullName.split(' ');
+    return this.currentUser && this.currentUser.fullName
+      ? this.currentUser.fullName.split(' ')
+      : [];
   }
 
   @computed
   get firstName() {
-    const fullNameArr = this.firstAndLastName;
-    if (!fullNameArr || !fullNameArr.length) {
-      return '';
-    }
-    return fullNameArr[0];
+    return this.firstAndLastName && this.firstAndLastName.length
+      ? this.firstAndLastName[0]
+      : '';
   }
 
   @computed
   get photo() {
     return this.currentUser.photoUrl || this.currentUser.avatar
       || 'https://stuff.webmaker.org/avatars/webmaker-avatar-200x200.png';
+  }
+
+  isfeatureEnabled = (feature) => this.isSuperAdmin || (
+    this.currentUser.features && this.currentUser.features[feature]
+    && this.currentUser.features[feature].state === STATE.ENABLED)
+
+  @computed
+  get optinCodeEnabled() {
+    return this.isfeatureEnabled(FEATURES.OPTIN_CODE);
+  }
+
+  @computed
+  get videoProviders() {
+    const providers = DEFAULT_PROVIDERS;
+    if (this.isfeatureEnabled(FEATURES.FUSION_INTEGRATION)) {
+      providers[LIBRARY_KEYS.DROPMOCK] = libraryProviders.DROPMOCK;
+    }
+    if (this.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
+      providers[LIBRARY_KEYS.PIXABAY] = libraryProviders.PIXABAY;
+    }
+    if (this.isfeatureEnabled(FEATURES.PEXELS_VIDEO_INTEGRATION)) {
+      providers[LIBRARY_KEYS.PEXELS] = libraryProviders.PEXELS;
+    }
+
+    return providers;
+  }
+
+  @computed
+  get imageProviders() {
+    const providers = { ...DEFAULT_PROVIDERS, [LIBRARY_KEYS.DROPMOCK]: libraryProviders.DROPMOCK };
+    if (this.isfeatureEnabled(FEATURES.PIXABAY_INTEGRATION)) {
+      providers[LIBRARY_KEYS.PIXABAY] = libraryProviders.PIXABAY;
+    }
+    if (this.isfeatureEnabled(FEATURES.UNSPLASH_INTEGRATION)) {
+      providers[LIBRARY_KEYS.UNSPLASH] = libraryProviders.UNSPLASH;
+    }
+    if (this.isfeatureEnabled(FEATURES.PEXELS_INTEGRATION)) {
+      providers[LIBRARY_KEYS.PEXELS] = libraryProviders.PEXELS;
+    }
+
+    return providers;
+  }
+
+  @computed
+  get recorderEnabled() {
+    return this.isfeatureEnabled(FEATURES.RECORDER);
+  }
+
+  @computed
+  get hasPermissions() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION);
   }
 }

@@ -20,7 +20,7 @@ module.exports = {
   access: {
     minAuthLevel: process.env.MIN_AUTH_LEVEL || 5,
     features: {
-      main: process.env.GO_FEATURE_NAME || 'go:editor',
+      main: process.env.REVOLUTION_FEATURE_NAME || 'revolution',
       generator: process.env.GO_TEMPLATE_GENERATOR || 'go:generator',
       cta: process.env.GO_CTA_LIBRARY || 'go:cta',
       leadgen: process.env.GO_LEAD_GENERATOR || 'go:leadgen',
@@ -82,4 +82,29 @@ module.exports = {
   posterframe: process.env.DEFAULT_POSTERFRAME || 'https://cdn.vidcloud.io/resources/go/posterframe_default.jpg',
   facebookAppId: process.env.FACEBOOK_APP_ID || '766265603823913',
   linkedinAppId: process.env.LINKEDIN_APP_ID || '77dc93kxh13kfc',
+  mediaProviders: {
+    PEXELS: {
+      apiUrl: process.env.PEXELS_API_URL || 'https://api.pexels.com',
+      apiKey: process.env.PEXELS_API_KEY || '563492ad6f917000010000016536fdd8a2cd46b7be0af6abf04caf86',
+      imagesApiPath: 'v1',
+      videosApiPath: 'videos',
+    },
+    PIXABAY: {
+      apiUrl: process.env.PIXABAY_API_URL || 'https://pixabay.com',
+      apiKey: process.env.PIXABAY_API_KEY || '13298235-276e448db1c79d704ffc96bc3',
+      imagesApiPath: 'api',
+      videosApiPath: 'api/videos',
+    },
+    UNSPLASH: {
+      apiUrl: process.env.UNSPLASH_API_URL || 'https://api.unsplash.com',
+      apiKey: process.env.UNSPLASH_API_KEY || '089197d4e5af98ac2ae777e512eb6f22bf89d18c48e86ae1093f781dd876dfd9',
+      imagesApiPath: 'photos',
+    },
+    DROPMOCK: {
+      apiUrl: process.env.DROPMOCK_API_URL || 'https://app.dropmock.com',
+      apiKey: process.env.DROPMOCK_API_KEY || 'bTzbENea9u3p35y726pn5xALu7KerQulOWxIPt0F',
+      imagesApiPath: 'api/v1/images',
+      videosApiPath: 'api/v1/fusion/videos',
+    },
+  },
 };

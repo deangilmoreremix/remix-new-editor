@@ -1,4 +1,5 @@
 import React from 'react';
+import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
 import classnames from 'classnames';
@@ -12,9 +13,7 @@ import trashIcon from '../../../public/static/svgImages/trash.svg';
 import addIcon from '../../../public/static/svgImages/add-white.svg';
 import plusIcon from '../../../public/static/svgImages/plus-circle.svg';
 
-import EmptyItemsContainer from './EmptyItemsContainer';
-
-const LibraryContent = (props) => {
+const LibraryContent = observer((props) => {
   const {
     type,
     items,
@@ -34,7 +33,7 @@ const LibraryContent = (props) => {
   });
 
   const uploadNewItems = () => {
-    fetchItems();
+    fetchItems({ source: activeBtn, isScrolling: true });
   };
 
   const Element = (item) => {
@@ -99,20 +98,19 @@ const LibraryContent = (props) => {
                 </button>
               </div>
             </div>
-          )) : (
-            <EmptyItemsContainer
-              count={activeBtn !== USER_ITEMS ? 9 : 8}
-            />
-          )
+          )) : null
       }
       { hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} /> }
     </div>
   );
-};
+});
 
 LibraryContent.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
-    _id: PropTypes.string.isRequired,
+    _id: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
     url: PropTypes.string.isRequired,
     title: PropTypes.string,
   })),

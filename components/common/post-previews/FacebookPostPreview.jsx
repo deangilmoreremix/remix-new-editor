@@ -14,7 +14,7 @@ const FacebookPostPreview = (props) => {
       <div className="post-wrapper">
         <div className="post-header">
           <div className="user-image">
-            <img src={userpic} alt="user avatar" />
+            <img src={userpic} alt="user avatar" style={{ width: '100px' }} />
           </div>
           <div className="top-header">
             <span className="user">{name}</span>

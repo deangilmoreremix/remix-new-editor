@@ -1,0 +1,49 @@
+.popcorn-json-animation {
+  position: absolute;
+
+  & .track-event-editing .clone-container {
+    display: inline-block;
+  }
+
+  .clone-container {
+    display: none;
+    cursor: pointer;
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  &.active {
+    .resize-handle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: $white;
+      border: $secondary-color solid 0.5px;
+    }
+  }
+}
+
+.json-animation-preview {
+  width: 100%;
+  margin: 1.5rem auto;
+  border: 1px solid $third-color;
+  border-radius: 0.218rem;
+  padding: 5px;
+}
+
+.lottie-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  button {
+    margin: 0 0.5rem;
+  }
+
+  .icon-button {
+    width: 25px;
+    height: 25px;
+  }
+}

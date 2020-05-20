@@ -1,0 +1,73 @@
+.container-tokens-textarea .text-area {
+  width: 100%;
+  min-height: 2.17rem;
+  margin: auto;
+  color: $white;
+  font-size: $main;
+  font-family: $font-primary;
+  text-align: initial;
+  overflow-x: hidden;
+
+  @include input-placeholder;
+  border: 0.055rem solid $btn-gray;
+  background-color: $sidebr-bg;
+  padding: 0.2822rem 0.546rem;
+  border-radius: 0.218rem;
+
+  &:focus {
+    border: 0.055rem solid $secondary-color;
+    outline: none;
+    legend {
+      display: none;
+    }
+  }
+  &+fieldset {
+    legend {
+      display: none;
+    }
+  }
+}
+
+.personalized-token {
+  border-radius: 4px;
+  border: 1px solid $red;
+  color: $white;
+  display: inline-block;
+  font-size: 0.875rem;
+  line-height: 1;
+  padding: 2px 7px;
+  position: relative;
+  white-space: nowrap;
+  margin: 0 3px;
+
+  .parameter {
+    display: none;
+  }
+
+  .token-uppercase {
+    content: url('/static/svgImages/tokens/uppercase.svg');
+    margin: auto 4px auto auto;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .token-default {
+    content: url('/static/svgImages/tokens/default.svg');
+    margin: auto 4px auto auto;
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.text-area-label {
+  text-align: left;
+  font-size: $small;
+}
+
+.multiline {
+  @include tiny-scrollbar;
+  height: 5rem;
+  overflow-y: auto;
+  display: inline-block;
+  white-space: pre-wrap;
+}

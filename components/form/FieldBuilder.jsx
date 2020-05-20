@@ -1,45 +1,44 @@
 import React from 'react';
-import { useField } from 'formik';
+import { observer } from 'mobx-react';
+
 import PropTypes from '../../lib/PropTypes';
+import { INPUT, INPUT_ELEMENTS } from '../../lib/constants/forms';
 
-import FormColor from './FormColor';
-import FormRadioButton from './FormRadioButton';
-import FormTextField from './FormTextField';
-import FormSelect from './FormSelect';
-import FormList from './FormList';
-import FormCheckboxField from './FormCheckboxField';
-import FormSlider from './FormSlider';
+const FieldBuilder = React.forwardRef(({ onChange, value, ...props }, ref) => {
+  const { name, type } = props;
 
-const inputs = {
-  input: FormTextField,
-  color: FormColor,
-  radio: FormRadioButton,
-  select: FormSelect,
-  list: FormList,
-  checkbox: FormCheckboxField,
-  slider: FormSlider,
-};
-
-const FieldBuilder = (props) => {
-  const { type, onChange } = props;
-  const [field, meta, helpers] = useField(props);
-
-  const handleChange = value => {
-    helpers.setValue(value);
-    onChange(value);
+  const handleChangeField = (val, options) => {
+    onChange({ [name]: val }, options);
   };
 
-  const InputComponent = inputs[type];
+  const InputComponent = React.useMemo(() => {
+    if (INPUT_ELEMENTS[type]) {
+      return INPUT_ELEMENTS[type];
+    }
+    return INPUT_ELEMENTS[INPUT];
+  }, [type]);
 
   return (
-    <InputComponent {...props} {...field} {...meta} onChange={handleChange} />
+    <InputComponent
+      {...props}
+      value={value}
+      onChange={handleChangeField}
+      ref={ref}
+    />
   );
-};
+});
 
 FieldBuilder.propTypes = {
   type: PropTypes.string,
   onChange: PropTypes.func,
   name: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.bool,
+    PropTypes.array,
+    PropTypes.shape(),
+  ]),
 };
 
-export default FieldBuilder;
+export default observer(FieldBuilder);

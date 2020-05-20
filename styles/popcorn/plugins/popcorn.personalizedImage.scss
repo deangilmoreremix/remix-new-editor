@@ -1,5 +1,6 @@
 .personalized-image {
   position: absolute;
+  outline: none;
 
   & .track-event-editing .clone-container {
     display: inline-block;
@@ -18,13 +19,11 @@
     }
 
     .token-uppercase {
-      //content: url('/static/images/editor/token-uppercase.svg');
       background: white;
       margin: auto 2px -4px 0;
     }
 
     .token-default {
-      //content: url('/static/images/editor/token-default.svg');
       background:  white;
       margin: auto 2px -4px 0;
     }
@@ -97,6 +96,15 @@
   &.active {
     .url-container {
       display: flex;
+    }
+
+    .resize-handle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: $white;
+      border: $secondary-color solid 0.5px;
     }
   }
 }

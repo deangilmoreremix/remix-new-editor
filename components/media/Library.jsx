@@ -1,29 +1,62 @@
 import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
+import classnames from 'classnames';
 
-import { USER_ITEMS, tabItems, perPage } from '../../lib/constants/library';
+import { CircleLoader } from 'react-spinners';
+import {
+  USER_ITEMS,
+  tabItems,
+  perPage,
+  LIBRARY_TABS,
+  LIBRARY_KEYS,
+  DEFAULT_PROVIDERS,
+} from '../../lib/constants/library';
+import { LOADING_COLOR } from '../../lib/constants/ui';
 import mediaConstants from '../../lib/constants/media';
+import { MEDIA_TYPES } from '../../lib/constants/popcorn';
+
 import { showError } from '../../lib/services/alertService';
 
 import Tabs from '../common/library/Tabs';
 import ProviderList from '../common/library/ProviderList';
 import LibraryContent from '../common/library/LibraryContent';
-import { LibrarySpinner, LoaderCircle } from './Loader';
+import { LibrarySpinner } from './Loader';
+import CloseButton from '../common/CloseButton';
 
 import useUIStore from '../hooks/useUIStore';
+import useUserStore from '../hooks/useUserStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
 
 const Library = observer(() => {
   const uiStore = useUIStore();
-  const { libraryType: tab } = uiStore;
+  const projectStore = useProjectStore();
+  const userStore = useUserStore();
+
+  const {
+    secondaryWindowType: activeTab,
+    setLibraryType: setActiveTab,
+    updateElementInLibrary,
+    setUpdateElementInLibrary,
+    openSettings,
+    toggleRightBlock,
+    isTimelineOpen,
+  } = uiStore;
+
+  const {
+    uploadMedia,
+    storeAsset,
+    getAssets,
+    deleteAsset,
+    libraryItemsForDelete,
+    setLibraryItemsForDelete,
+  } = useMediaStore();
 
   // =============== STATE ===============
   const [query, setQuery] = useState('');
 
   const [activeBtn, setActiveBtn] = useState(USER_ITEMS);
-  const [activeTab, setActiveTab] = useState(tab);
   const [hasMore, setHasMore] = useState(true);
 
   const [pageNumber, setPageNumber] = useState(1);
@@ -32,38 +65,57 @@ const Library = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
 
   const [items, setItems] = useState([]);
-  const [deletedItems, setDeletedItems] = useState([]);
   const [uploadedItems, setUploadedItems] = useState([]);
 
   const inputRef = useRef();
   // =============== STATE ===============
 
-  const { uploadMedia, storeAsset, getAssets, deleteAsset } = useMediaStore();
-  const projectStore = useProjectStore();
+  useEffect(() => () => {
+    if (updateElementInLibrary) {
+      setUpdateElementInLibrary();
+    }
+    if (libraryItemsForDelete.length) {
+      bulkDeleteItems(true);
+    }
+  }, []);
 
   useEffect(() => {
     setQuery('');
-    if (deletedItems.length) {
+    if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
-      fetchItems(activeTab);
+      fetchItems({ source: activeBtn, queryStr: '' });
     }
   }, [activeTab]);
 
+  const listProviders = React.useMemo(() => {
+    switch (activeTab) {
+      case LIBRARY_TABS.IMAGE: {
+        return userStore.imageProviders;
+      }
+      case LIBRARY_TABS.VIDEO: {
+        return userStore.videoProviders;
+      }
+      default: {
+        return DEFAULT_PROVIDERS;
+      }
+    }
+  }, [activeTab, userStore]);
+
   const handleButtonClick = element => {
     setActiveBtn(element);
-    if (deletedItems.length) {
+    if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
-      fetchItems(activeTab);
+      fetchItems({ source: element });
     }
   };
 
-  const fetchItems = async (currentTab, queryStr = '') => {
+  const fetchItems = async ({ source = activeBtn, queryStr = query || '', isScrolling = false }) => {
     let currentPage = 0;
     let uploaded = [];
 
-    if (currentTab) {
+    if (!isScrolling) {
       setIsLoading(true);
       setPageNumber(1);
       setUploadedItems([]);
@@ -74,14 +126,22 @@ const Library = observer(() => {
       setPageNumber(pageNumber + 1);
       uploaded = uploadedItems;
     }
+    if (!listProviders[source]) {
+      source = USER_ITEMS;
+      setActiveBtn(source);
+    }
 
     try {
-      const data = await getAssets(
-        tab, currentPage, queryStr, { _id: { $nin: uploaded } },
-      );
+      const data = await getAssets({
+        providerName: source,
+        assetType: activeTab,
+        page: currentPage,
+        query: queryStr,
+        filter: { _id: { $nin: uploaded } },
+      });
 
       if (data.length) {
-        if (currentTab) {
+        if (!isScrolling) {
           setItems(data);
           // Loading new items when scrolling
         } else {
@@ -91,46 +151,76 @@ const Library = observer(() => {
           ]);
         }
       }
-      setIsLoading(false);
       setHasMore(data && data.length === perPage);
     } catch (e) {
       showError('An error occurred while loading items');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // === Drag and Drop ===
   const onDrop = (acceptedFiles) => {
-    setIsDisabledUpload(true);
+    const wrongFormat = [];
+    const files = [];
+
+    acceptedFiles.forEach(file => {
+      const result = Object.keys(tabItems).some(item => (
+        tabItems[item].formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0])
+      ));
+      if (result) {
+        files.push(file);
+      } else {
+        wrongFormat.push(file);
+      }
+    });
+
+    const errorMessage = `
+      Invalid file ${wrongFormat.length > 1 ? 'formats' : 'format'} with ${wrongFormat.length > 1 ? 'names' : 'name'}:
+      ${wrongFormat.map(file => (` ${file.name}`))}. \n
+      Supported Formats:
+      Video: ${tabItems.VIDEO.formats.map(format => (` ${format}`))}.
+      Image: ${tabItems.IMAGE.formats.map(format => (` ${format}`))}.
+    `;
+
+    if (wrongFormat.length) {
+      showError(errorMessage);
+    }
+
     const elements = [];
     const elementsIds = [];
-    Promise.all(acceptedFiles.map(async data => {
-      const asset = await uploadMedia({ data });
-      const item = await storeAsset(asset, tab);
-      const fileExtension = item.url.match(/\.[0-9a-z]{1,5}$/)[0];
-      elements.push(item);
-      elementsIds.push(item._id);
-      return fileExtension;
-    })).then(fileExtension => {
-      const extension = fileExtension[fileExtension.length - 1];
 
-      Object.keys(tabItems).forEach((item, i) => {
-        tabItems[item].formats.forEach(format => {
-          if (format === extension) {
-            setActiveTab(Object.keys(tabItems)[i]);
-          } else {
-            setItems([
-              ...elements,
-              ...items,
-            ]);
-            setUploadedItems([
-              ...uploadedItems,
-              ...elementsIds,
-            ]);
-          }
+    if (files.length) {
+      setIsDisabledUpload(true);
+      Promise.all(files.map(async data => {
+        const asset = await uploadMedia({ data });
+        const item = await storeAsset(asset, activeTab);
+        const fileExtension = item.url.match(/\.[0-9a-z]{1,5}$/)[0];
+        elements.push(item);
+        elementsIds.push(item._id);
+        return fileExtension;
+      })).then(fileExtension => {
+        const extension = fileExtension[fileExtension.length - 1];
+
+        Object.keys(tabItems).forEach((item, i) => {
+          tabItems[item].formats.forEach(format => {
+            if (format === extension) {
+              setActiveTab(Object.keys(tabItems)[i]);
+            } else {
+              setItems([
+                ...elements,
+                ...items,
+              ]);
+              setUploadedItems([
+                ...uploadedItems,
+                ...elementsIds,
+              ]);
+            }
+          });
         });
-      });
-    }).catch(err => showError(err))
-      .finally(() => setIsDisabledUpload(false));
+      }).catch(err => showError(err.message))
+        .finally(() => setIsDisabledUpload(false));
+    }
   };
 
   const { getInputProps } = useDropzone({
@@ -153,38 +243,41 @@ const Library = observer(() => {
   };
 
   const onSelect = async (item) => {
-    setIsLoading(true);
-    await projectStore.addElement(tab, item);
-    setIsLoading(false);
+    item.src = item.src || item.url;
+    item.type = MEDIA_TYPES[activeTab];
+    if (updateElementInLibrary && activeTab === LIBRARY_TABS.IMAGE) {
+      projectStore.findAndUpdate(updateElementInLibrary, item);
+      openSettings();
+      setUpdateElementInLibrary();
+    } else {
+      await projectStore.addElement(item, updateElementInLibrary);
+    }
   };
 
   const onDelete = (id) => {
     const newArr = items.filter(item => item._id !== id);
-    setDeletedItems([...deletedItems, id]);
+    setLibraryItemsForDelete(id);
     setItems(newArr);
   };
 
   const bulkDeleteItems = (unmount, searchText) => {
-    const promiseArr = deletedItems.map(id => deleteAsset(id));
-
-    Promise.all(promiseArr)
+    deleteAsset()
       .then(() => {
         if (!unmount) {
-          setDeletedItems([]);
           setItems([]);
         }
       })
       .then(() => {
         if (!unmount) {
-          fetchItems(activeTab, searchText);
+          fetchItems({ source: activeBtn, queryStr: searchText });
         }
       })
       .catch(e => showError(`Error while deleting items, ${e}`));
   };
 
   return (
-    <div className="library">
-      <Tabs setActiveTab={setActiveTab} />
+    <div className={classnames('library', { 'big-window': !isTimelineOpen })}>
+      <Tabs setActiveTab={setActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
           <div>
@@ -199,7 +292,7 @@ const Library = observer(() => {
           </div>
           <div className="library__block">
             {
-              activeBtn === USER_ITEMS && (
+              activeBtn !== LIBRARY_KEYS.DROPMOCK && (
                 <Fragment>
                   <input
                     className="library__search"
@@ -214,8 +307,8 @@ const Library = observer(() => {
                       className="library__placeholder"
                       onClick={handleSetFocus}
                     >
-                      {activeTab.search.label}
-                      <span>{activeTab.search.subLabel}</span>
+                      {tabItems[activeTab].search.label}
+                      <span>{tabItems[activeTab].search.subLabel}</span>
                     </button>
                   )}
                 </Fragment>
@@ -230,11 +323,17 @@ const Library = observer(() => {
             title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
             userContentTitle={tabItems[activeTab].label}
             handleButtonClick={handleButtonClick}
+            list={listProviders}
           />
           {isLoading
             ? (
               <div className="library__items">
-                <LoaderCircle />
+                <CircleLoader
+                  size={100}
+                  css={{ margin: 'auto' }}
+                  loading
+                  color={LOADING_COLOR}
+                />
               </div>
             )
             : (
@@ -247,11 +346,13 @@ const Library = observer(() => {
                 isDisabledUpload={isDisabledUpload}
                 onDrop={onDrop}
                 hasMore={hasMore}
-                type={tab}
+                type={activeTab}
               />
             )}
         </div>
       </div>
+
+      <CloseButton onClick={() => toggleRightBlock(false)} />
     </div>
   );
 });

@@ -9,6 +9,7 @@ import UserStore from './stores/user.store';
 import ModalStore from './stores/modal.store';
 import MediaStore from './stores/media.store';
 import UIStore from './stores/ui.store';
+import PresetStore from './stores/preset.store';
 import WhiteLabelManager from '../lib/white-label/manager';
 
 let creator = null;
@@ -151,6 +152,13 @@ export async function initCreateStores(isServer, source, req, preloader) {
 
   if (isServer || !creator) {
     creator = new Creator(isServer, source, req);
+    const projectStore = new ProjectStore({
+      request: creator.request,
+      common: creator.common,
+      isServer,
+      currentUser: creator.currentUser,
+    });
+
     stores = {
       common: creator.common,
       mediaStore: new MediaStore({
@@ -159,15 +167,16 @@ export async function initCreateStores(isServer, source, req, preloader) {
         isServer,
         currentUser: creator.currentUser,
       }),
-      projectStore: new ProjectStore({
+      projectStore,
+      modalStore: ModalStore(),
+      uiStore: new UIStore({ projectStore }),
+      userStore: new UserStore(creator.currentUser),
+      presetStore: new PresetStore({
         request: creator.request,
         common: creator.common,
         isServer,
         currentUser: creator.currentUser,
       }),
-      modalStore: ModalStore(),
-      uiStore: new UIStore(),
-      userStore: new UserStore(creator.currentUser),
     };
   }
   if (preloader) {
@@ -184,6 +193,12 @@ export function init(source) {
   if (!creator) {
     const isServer = false;
     creator = new Creator(false, source);
+    const projectStore = new ProjectStore({
+      request: creator.request,
+      common: creator.common,
+      isServer,
+      currentUser: creator.currentUser,
+    });
     stores = {
       common: creator.common,
       modalStore: ModalStore(),
@@ -193,14 +208,15 @@ export function init(source) {
         isServer,
         currentUser: creator.currentUser,
       }),
-      projectStore: new ProjectStore({
+      projectStore,
+      uiStore: new UIStore({ projectStore }),
+      userStore: new UserStore(creator.currentUser),
+      presetStore: new PresetStore({
         request: creator.request,
         common: creator.common,
         isServer,
         currentUser: creator.currentUser,
       }),
-      uiStore: new UIStore(),
-      userStore: new UserStore(creator.currentUser),
     };
   }
   return { creator, stores };

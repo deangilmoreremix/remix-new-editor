@@ -1,0 +1,144 @@
+@import "SettingsPanel";
+@import "ProducePanel";
+
+.produce {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: $sidebr-bg;
+  margin-left: 2.7rem;
+};
+
+.produce-block {
+  @include tiny-scrollbar;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  padding-right: 3.9rem;
+  padding-left: 1.56rem;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+.produce__tabs {
+  display: flex;
+  align-items: center;
+}
+
+.produce__tab {
+  @include reset-button;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  background: $modal-lightdark-bg;
+  color: $red;
+  font-size: $small;
+  text-transform: uppercase;
+
+  &-active {
+    background: $scrollbarColor;
+    color: #fff;
+  }
+}
+
+
+@media screen and (max-width: 1200px) {
+  .settings__row-block:first-child {
+    width: 45%;
+  }
+
+  .settings__inputs {
+    &:first-child {
+      width: 100%;
+      margin-right: 0;
+    }
+  }
+
+  .settings-panel-text {
+    width: 17%;
+  }
+}
+
+@media screen and (max-width: $lg) {
+  .settings-panel-text,
+  label.settings-panel-text,
+  .text-input,
+  .settings-input p {
+    width: 100%;
+  }
+
+  .settings-allow .settings-panel-text {
+    text-align: left;
+  }
+
+  .settings-input {
+    flex-direction: column !important;
+
+    input, textarea {
+      width: 100%;
+    }
+  }
+
+  .settings__row-block {
+    &:first-child {
+      width: 100%;
+      padding-right: 0;
+      margin-bottom: 1.125rem;
+    }
+  }
+
+  div.settings__add-file,
+  .settings-panel-text,
+  .settings-input>:last-child {
+    width: 100%;
+  }
+
+  .settings-panel-text,
+  label.settings-panel-text,
+  .settings-input .tags-input-title {
+    margin-bottom: 1rem;
+    padding-right: 0;
+  }
+
+  .settings-panel-text {
+    margin-bottom: 0.5rem;
+
+    &.text-area-label {
+      margin-bottom: 1rem;
+    }
+  }
+
+  .settings-allow {
+    .settings-panel-text {
+      margin-bottom: 0;
+    }
+  }
+
+  .produce-panel {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .produce-panel__button {
+    width: 100%;
+  }
+
+  .settings-formcolor {
+    flex-direction: column !important;
+
+    .MuiBox-root {
+      width: 100%;
+      margin: 0;
+    }
+
+    label {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 1rem;
+    }
+  }
+}
+
