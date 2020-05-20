@@ -857,6 +857,7 @@ export default class ProjectStore extends BaseStore {
             thumbnail: serializedData.thumbnail,
             remixedFrom: serializedData.source,
             tags: serializedData.tags,
+            editor: 'revolution',
           },
         });
       const publishedMake = await this.publish(result._id);
