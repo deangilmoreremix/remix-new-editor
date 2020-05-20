@@ -84,6 +84,7 @@ export default class ProjectStore extends BaseStore {
         options.in = options.start;
         options.out = options.end;
         options.volume = 100;
+        options.maxWidth = options.end * SANTISECOND;
         break;
       }
       default:

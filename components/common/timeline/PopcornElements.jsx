@@ -69,7 +69,7 @@ const PopcornElements = observer(({ width }) => {
 
   const layouts = React.useMemo(() => elements.map(element => {
     const {
-      popcornOptions: { id: i, start, end, animation, title, outDuration },
+      popcornOptions: { id: i, start, end, animation, title, outDuration, maxWidth },
       type,
     } = element;
     const layer = layers.find(item => item.id === element.track);
@@ -79,7 +79,7 @@ const PopcornElements = observer(({ width }) => {
     let maxW = cols - x;
 
     if (type === SEQUENCER) {
-      maxW = w;
+      maxW = maxWidth;
     }
 
     return {
