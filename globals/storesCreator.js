@@ -200,10 +200,7 @@ export function init(source) {
       currentUser: creator.currentUser,
     });
     stores = {
-      common: {
-        ...creator.common,
-        whiteLabelManager: creator.whiteLabelManager,
-      },
+      common: creator.common,
       modalStore: ModalStore(),
       mediaStore: new MediaStore({
         request: creator.request,
