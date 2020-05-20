@@ -9,7 +9,7 @@ import pauseIcon from '../../../public/static/svgImages/common/pause.svg';
 
 const PlayButton = observer(() => {
   const projectStore = useProjectStore();
-  const { isPlayed } = projectStore;
+  const { isPlayed, isLoadingSequencer } = projectStore;
 
   const icon = React.useMemo(() => (isPlayed ? pauseIcon : playIcon), [isPlayed]);
 
@@ -21,6 +21,7 @@ const PlayButton = observer(() => {
       classSuffix=""
       svg={icon}
       cleanup={['title']}
+      disabled={isLoadingSequencer}
     />
   );
 });

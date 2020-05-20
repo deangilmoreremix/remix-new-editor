@@ -13,7 +13,6 @@ const PopcornElement = observer(({ item }) => {
   const projectStore = useProjectStore();
   const gridElementRef = useRef();
 
-
   const { releaseElement } = projectStore;
 
   let rest = {};

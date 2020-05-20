@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react';
 import { useWindowSize } from '@react-hook/window-size';
 import classnames from 'classnames';
+import { CircleLoader } from 'react-spinners';
 
 import useProjectStore from './hooks/useProjectStore';
 import useUIStore from './hooks/useUIStore';
@@ -12,13 +13,19 @@ import {
   DEFAULT_CONTAINER,
 } from '../lib/constants/project';
 
+import { LOADING_COLOR } from '../lib/constants/ui';
+
 import GuidelinesActivation from './common/GuidelinesActivation';
 import Guidelines from './common/Guidelines';
 
 const Canvas = observer(() => {
   const projectStore = useProjectStore();
   const uiStore = useUIStore();
-  const { item: { ratio: { width, height } = DEFAULT_RATIO }, runTextfill } = projectStore;
+  const {
+    item: { ratio: { width, height } = DEFAULT_RATIO },
+    runTextfill,
+    isLoadingSequencer,
+  } = projectStore;
 
   const {
     hasGuidLines,
@@ -81,6 +88,24 @@ const Canvas = observer(() => {
       <GuidelinesActivation marginLeft={style.margin && style.margin.split(' ')[1]} />
       <div style={{ ...style, fontSize }} className="embed-wrapper">
         {hasGuidLines && <Guidelines />}
+
+        { isLoadingSequencer ? <div className="hover-loading" /> : null }
+        <CircleLoader
+          size={100}
+          class="loading"
+          css={{
+            margin: 'auto',
+            position: 'absolute',
+            top: 0,
+            bottom: '0',
+            left: '0',
+            right: '0',
+            zIndex: 10000,
+          }}
+          loading={isLoadingSequencer}
+          color={LOADING_COLOR}
+        />
+
         <div id={DEFAULT_CONTAINER} ref={wrapper} className="video-container">
           <div
             id="video"
