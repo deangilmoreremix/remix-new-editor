@@ -8,8 +8,9 @@
   overflow: hidden;
 
   &.max-size {
-    width: 80vW;
+    max-width: 80vW;
     height: 85vH;
+    width: 100%;
   }
 }
 
@@ -190,12 +191,20 @@ button.generator-use {
 }
 
 div.generator-scripts {
-  width: 500px;
+  @include tiny-scrollbar;
+
+  min-width: 500px;
+  max-height: 40vh;
   display: flex;
+  flex-flow: column;
   margin-bottom: 0.5rem;
 
   .MuiGrid-grid-xs-3 {
     display: flex;
     justify-content: flex-end;
+  }
+
+  &-item {
+    padding: 1rem;
   }
 }

@@ -38,6 +38,7 @@ export default function NicheScriptsModalContent({ options: { onSelect }, setHea
         setScripts(scripts.concat(results));
         const hasNextPage = results.length === perPage;
         setHasMore(hasNextPage);
+
         if (hasNextPage) {
           setPage(page + 1);
         }

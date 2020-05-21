@@ -6,7 +6,7 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 
-import { SEQUENCER, POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
+import { SEQUENCER } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
@@ -911,9 +911,6 @@ export default class ProjectStore extends BaseStore {
     await this.updateVideo(video);
     this.setProjectData(this.projectData);
     this.setPopcorn();
-    console.info(this.projectData);
-    console.info(this.elements);
-    console.info(this.layer);
   };
 
   @action
