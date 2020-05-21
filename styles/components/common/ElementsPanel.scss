@@ -10,7 +10,8 @@
     margin: 0;
 
     .close-button {
-      top: 9.5em;
+      top: 50%;
+      transform: translateY(-50%);
     }
   }
 
