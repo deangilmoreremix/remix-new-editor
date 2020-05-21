@@ -37,6 +37,7 @@ class Creator {
   @observable
   currentUser = null;
 
+  @observable
   whiteLabelManager = null;
 
   constructor(isServer, source, req) {
@@ -147,6 +148,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       cdnHostname: config.s3.cdn,
       facebookAppId: config.facebookAppId,
       linkedinAppId: config.linkedinAppId,
+      whiteLabel: config.whiteLabel,
     };
   }
 
