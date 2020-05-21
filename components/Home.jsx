@@ -84,7 +84,14 @@ const Home = observer(() => {
 
   const userStore = useUserStore();
 
-  const { optinCodeEnabled, isSuperAdmin, isfeatureEnabled, recorderEnabled } = userStore;
+  const {
+    optinCodeEnabled,
+    isSuperAdmin,
+    isfeatureEnabled,
+    recorderEnabled,
+    stickersEnabled,
+    lowerThirdsEnabled,
+  } = userStore;
 
   const SecondaryWindow = React.useMemo(() => {
     switch (secondaryWindowType) {
@@ -141,6 +148,8 @@ const Home = observer(() => {
         isSuperAdmin,
         isfeatureEnabled,
         recorderEnabled,
+        stickersEnabled,
+        lowerThirdsEnabled,
       },
     });
     return items && items.length ? items : [];
