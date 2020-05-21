@@ -94,6 +94,7 @@
     "qrcode.react": "1.0.0",
     "react": "16.12.0",
     "react-async-hook": "3.6.1",
+    "react-audio-player": "0.13.0",
     "react-avatar-editor": "12.0.0-beta.0",
     "react-bootstrap-maskedinput": "0.4.0",
     "react-color": "2.18.0",

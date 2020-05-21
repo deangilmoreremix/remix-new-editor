@@ -1,0 +1,71 @@
+&--audio {
+  .library__item {
+    width: calc(50% - 0.64em);
+
+    &-delete {
+      position: absolute;
+      width: 1.5rem;
+      height: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      top: 0;
+      right: 0;
+      padding: 0.15rem 0.2rem 0.3rem;
+      border-radius: 0 0 0 0.1rem;
+      background: $modal-dark-bg;
+
+      .library__item-icon * {
+        stroke: $secondary-color !important;
+      }
+    }
+
+    &-play {
+      @include reset-button;
+
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 1.8rem;
+      height: 1.8rem;
+      border-radius: 50%;
+      border: 1px solid $secondary-color;
+
+      .library__item-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+    }
+
+    &-use {
+      @include red-button;
+
+      position: absolute;
+      top: 80%;
+      left: 50%;
+      height: auto;
+      font-size: 0.8rem;
+      transform: translate(-50%, -50%);
+      padding: 0.15rem 1.4rem 0.25rem;
+      border-radius: 1rem;
+    }
+
+    &-audio-preview {
+      position: absolute;
+      z-index: 0;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
+    }
+  }
+}

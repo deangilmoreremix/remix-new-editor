@@ -28,6 +28,7 @@ import useUIStore from '../hooks/useUIStore';
 import useUserStore from '../hooks/useUserStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
+import AudioControls from '../common/library/AudioControls';
 
 const Library = observer(() => {
   const uiStore = useUIStore();
@@ -67,6 +68,9 @@ const Library = observer(() => {
   const [items, setItems] = useState([]);
   const [uploadedItems, setUploadedItems] = useState([]);
 
+  const [volume, setVolume] = useState(72);
+  const [activeItem, setActiveItem] = useState(null);
+
   const inputRef = useRef();
   // =============== STATE ===============
 
@@ -81,6 +85,9 @@ const Library = observer(() => {
 
   useEffect(() => {
     setQuery('');
+    if (activeItem) {
+      setActiveItem(null);
+    }
     if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
@@ -181,6 +188,7 @@ const Library = observer(() => {
       Supported Formats:
       Video: ${tabItems.VIDEO.formats.map(format => (` ${format}`))}.
       Image: ${tabItems.IMAGE.formats.map(format => (` ${format}`))}.
+      Audio: ${tabItems.AUDIO.formats.map(format => (` ${format}`))}.
     `;
 
     if (wrongFormat.length) {
@@ -228,7 +236,9 @@ const Library = observer(() => {
             }
           });
         });
-      }).catch(err => showError(err.message))
+      }).catch(err => {
+        showError(err.message);
+      })
         .finally(() => setIsDisabledUpload(false));
     }
   };
@@ -264,6 +274,10 @@ const Library = observer(() => {
     }
   };
 
+  const onPlay = (item) => {
+    setActiveItem(item);
+  };
+
   const onDelete = (id) => {
     const newArr = items.filter(item => item._id !== id);
     setLibraryItemsForDelete(id);
@@ -284,6 +298,27 @@ const Library = observer(() => {
       })
       .catch(e => showError(`Error while deleting items, ${e}`));
   };
+
+  const renderSidebar = React.useCallback(() => {
+    switch (activeTab) {
+      case LIBRARY_TABS.AUDIO: return (
+        <AudioControls
+          selected={activeItem}
+          volume={volume}
+          setVolume={setVolume}
+        />
+      );
+      default: return (
+        <ProviderList
+          activeItem={activeBtn}
+          title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
+          userContentTitle={tabItems[activeTab].label}
+          handleButtonClick={handleButtonClick}
+          list={listProviders}
+        />
+      );
+    }
+  }, [activeTab, volume]);
 
   return (
     <div className={classnames('library', { 'big-window': !isTimelineOpen })}>
@@ -328,13 +363,7 @@ const Library = observer(() => {
         </div>
 
         <div className="library__row library__row-second">
-          <ProviderList
-            activeItem={activeBtn}
-            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
-            userContentTitle={tabItems[activeTab].label}
-            handleButtonClick={handleButtonClick}
-            list={listProviders}
-          />
+          {renderSidebar()}
           {isLoading
             ? (
               <div className="library__items">
@@ -348,15 +377,19 @@ const Library = observer(() => {
             )
             : (
               <LibraryContent
+                activeItem={activeItem}
                 items={items}
                 onSelect={onSelect}
                 activeBtn={activeBtn}
+                activeTab={activeTab}
                 onDelete={onDelete}
+                onPlay={onPlay}
                 fetchItems={fetchItems}
                 isDisabledUpload={isDisabledUpload}
                 onDrop={onDrop}
                 hasMore={hasMore}
                 type={activeTab}
+                volume={volume}
               />
             )}
         </div>
