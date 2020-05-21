@@ -758,7 +758,7 @@ export default class ProjectStore extends BaseStore {
   recompressProject = (newDuration) => {
     this.projectData.media.forEach((media) => {
       const initialDuration = media.duration;
-      if (initialDuration === newDuration) {
+      if (initialDuration >= newDuration) {
         return;
       }
       media.duration = newDuration;
@@ -895,7 +895,93 @@ export default class ProjectStore extends BaseStore {
       headers: {
         'on-behalf': this.currentUser.id,
       },
-    })
+    });
+
+  fromTemplate = async (makeTemplate = {}, video, isSource) => {
+    this.item.allowedSocials = ['facebook', 'linkedin'];
+    this.item.title = makeTemplate.title;
+    this.item.description = makeTemplate.description;
+    this.modified = true;
+    this.item.thumbnail = makeTemplate.thumbnail;
+    if (isSource) {
+      this.item.source = makeTemplate._id;
+    }
+    this.setProjectData(JSON.parse(makeTemplate.project.data));
+    this.setPopcorn();
+    await this.updateVideo(video);
+    this.setProjectData(this.projectData);
+    this.setPopcorn();
+    console.info(this.projectData);
+    console.info(this.elements);
+    console.info(this.layer);
+  };
+
+  @action
+  updateVideo = async (value, trimming) => {
+    const videoMeta = await this.mediaTypeDetector.getMetadata(value);
+    let sequencerElement = null;
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.type === 'sequencer'
+            && trackEvent.popcornOptions.subtype !== 'audio' && !sequencerElement) {
+            sequencerElement = trackEvent;
+          }
+        });
+      });
+    });
+    if (sequencerElement) {
+      this.findAndUpdate(sequencerElement, {
+        source: [value],
+        type: videoMeta.type,
+        title: videoMeta.title,
+        from: trimming ? trimming.min : 0,
+        end: (trimming ? trimming.max : videoMeta.duration) - (trimming ? trimming.min : 0),
+        duration: videoMeta.duration,
+      });
+    } else {
+      this.projectData.media.forEach((media) => {
+        if (media.tracks.length > 0) {
+          const elementId = this.generateUid();
+          const layerId = this.generateUid();
+          media.tracks.push({
+            name: `${media.tracks.length}`,
+            id: layerId,
+            order: media.tracks.length,
+            trackEvents: [{
+              id: elementId,
+              type: 'sequencer',
+              popcornOptions: {
+                start: 0,
+                source: [value],
+                fallback: '',
+                denied: false,
+                from: trimming ? trimming.min : 0,
+                end: (trimming ? trimming.max : videoMeta.duration) - (trimming ? trimming.min : 0),
+                title: videoMeta.title,
+                duration: videoMeta.duration,
+                type: videoMeta.type,
+                hidden: false,
+                target: 'video-container',
+                mobile: true,
+                width: 100,
+                height: 100,
+                top: 0,
+                left: 0,
+                volume: 100,
+                mute: false,
+                zindex: MAX_ZINDEX - media.tracks.length,
+                id: elementId,
+              },
+              track: layerId,
+              name: elementId,
+            }],
+          });
+        }
+      });
+    }
+    this.recompressProject(trimming ? (trimming.max - trimming.min) : videoMeta.duration);
+  };
 
   @computed
   get element() {
@@ -995,6 +1081,9 @@ export default class ProjectStore extends BaseStore {
 
   @computed
   get videoUrl() {
+    if (!this.projectData) {
+      return null;
+    }
     return openVideoUrl(this.item.url, this.getPersonalization());
   }
 

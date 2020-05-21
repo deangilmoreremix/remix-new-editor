@@ -37,7 +37,7 @@ export default class UserStore {
 
   isfeatureEnabled = (feature) => this.isSuperAdmin || (
     this.currentUser.features && this.currentUser.features[feature]
-    && this.currentUser.features[feature].state === STATE.ENABLED)
+    && this.currentUser.features[feature].state === STATE.ENABLED);
 
   @computed
   get optinCodeEnabled() {
@@ -94,5 +94,10 @@ export default class UserStore {
   @computed
   get lowerThirdsEnabled() {
     return this.isfeatureEnabled(FEATURES.LOWER_THIRDS);
+  }
+
+  @computed
+  get templateGeneratorEnabled() {
+    return this.isfeatureEnabled(FEATURES.TEMPLATE_GENERATOR);
   }
 }
