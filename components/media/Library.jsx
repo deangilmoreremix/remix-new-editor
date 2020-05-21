@@ -318,10 +318,10 @@ const Library = observer(() => {
         />
       );
     }
-  }, [activeTab, volume]);
+  }, [activeTab, volume, activeItem]);
 
   return (
-    <div className={classnames('library', { 'big-window': !isTimelineOpen })}>
+    <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>
       <Tabs setActiveTab={setActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
