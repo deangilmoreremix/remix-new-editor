@@ -160,7 +160,10 @@ export async function initCreateStores(isServer, source, req, preloader) {
     });
 
     stores = {
-      common: creator.common,
+      common: {
+        ...creator.common,
+        whiteLabelManager: creator.whiteLabelManager,
+      },
       mediaStore: new MediaStore({
         request: creator.request,
         common: creator.common,
@@ -200,7 +203,10 @@ export function init(source) {
       currentUser: creator.currentUser,
     });
     stores = {
-      common: creator.common,
+      common: {
+        ...creator.common,
+        whiteLabelManager: creator.whiteLabelManager,
+      },
       modalStore: ModalStore(),
       mediaStore: new MediaStore({
         request: creator.request,
