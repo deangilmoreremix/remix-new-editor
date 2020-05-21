@@ -6,13 +6,12 @@ import { Grid, AppBar, Toolbar } from '@material-ui/core';
 
 import { radioButton } from '../lib/constants/windowsLogics';
 
-// import Menu from './common/Menu';
+import Menu from './common/Menu';
 import UserBox from './common/user/UserBox';
 import ExpandButton from './common/ExpandButton';
 // import { SAVE_PROJECT_MODAL } from '../lib/constants/modals';
 import { ROUTES } from '../lib/constants/routing';
-import { PRODUCE_TABS } from '../lib/constants/ui';
-// import { PRODUCE_TABS, USER_MENU_ITEMS, PROJECT_MENU_ITEMS } from '../lib/constants/ui';
+import { PRODUCE_TABS, USER_MENU_ITEMS } from '../lib/constants/ui';
 
 import logoIcon from '../public/static/svgImages/header/logo.svg';
 // import redoIcon from '../public/static/svgImages/header/redo.svg';
@@ -22,7 +21,7 @@ import saveIcon from '../public/static/svgImages/header/save.svg';
 // import saveAsIcon from '../public/static/svgImages/menu/save-as.svg';
 
 import useProjectStore from './hooks/useProjectStore';
-// import useUserStore from './hooks/useUserStore';
+import useCommonStore from './hooks/useCommonStore';
 // import useModalStore from './hooks/useModalStore';
 
 import { showError } from '../lib/services/alertService';
@@ -39,18 +38,19 @@ const MenuAppBar = observer(() => {
     item,
   } = useProjectStore();
   // const { openModal } = useModalStore();
+  const common = useCommonStore();
   const { showProducePanel, setInitialView, changeRadioButton, closeAllWindows } = useUIStore();
 
   // const menu = React.useMemo(() => {
-  //   const projectAdminMenu = [
-  //     { title: 'Save as', icon: saveAsIcon, action: () => openModal(SAVE_PROJECT_MODAL) },
-  //   ];
-  //
-  //   return [
-  //     ...PROJECT_MENU_ITEMS,
-  //     ...(isSuperAdmin ? projectAdminMenu : []),
-  //   ];
-  // }, [isSuperAdmin, openModal]);
+  // const projectAdminMenu = [
+  //   { title: 'Save as', icon: saveAsIcon, action: () => openModal(SAVE_PROJECT_MODAL) },
+  // ];
+
+  // return [
+  //   ...PROJECT_MENU_ITEMS,
+  // ...(isSuperAdmin ? projectAdminMenu : []),
+  // ];
+  // }, [openModal]);
 
   const saveProject = React.useCallback(async () => {
     try {
@@ -164,13 +164,12 @@ const MenuAppBar = observer(() => {
               <ExpandButton />
             </Grid>
             <Grid className="user-menu" item xs={2}>
-              <UserBox />
-              {/* <Menu */}
-              {/* toggleElement={<UserBox />} */}
-              {/* items={USER_MENU_ITEMS} */}
-              {/* className="user-menu flex-center" */}
-              {/* needEndIcon */}
-              {/* /> */}
+              <Menu
+                toggleElement={<UserBox />}
+                items={USER_MENU_ITEMS(common)}
+                className="user-menu flex-center"
+                needEndIcon
+              />
             </Grid>
           </Grid>
         </Toolbar>
