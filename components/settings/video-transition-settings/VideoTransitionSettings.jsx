@@ -272,29 +272,33 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
         <React.Fragment>
           <div className="video-transition-preview">
             <div className="title">Select the Start Frame</div>
-            <Player
-              ref={fromPlayer}
-              src={fromVideo && fromVideo.popcornOptions ? fromVideo.popcornOptions.src : ''}
-              videoId={fromVideo.id}
-              crossOrigin="anonymous"
-              width={width}
-              height={height}
-            >
-              <ControlBar autoHide={false} />
-            </Player>
+            {fromVideo && (
+              <Player
+                ref={fromPlayer}
+                src={fromVideo && fromVideo.popcornOptions ? fromVideo.popcornOptions.src : ''}
+                videoId={fromVideo.id}
+                crossOrigin="anonymous"
+                width={width}
+                height={height}
+              >
+                <ControlBar autoHide={false} />
+              </Player>
+            )}
           </div>
           <div className="video-transition-preview">
             <div className="title">Select the End Frame</div>
-            <Player
-              ref={toPlayer}
-              src={toVideo && toVideo.popcornOptions ? toVideo.popcornOptions.src : ''}
-              videoId={toVideo.id}
-              crossOrigin="anonymous"
-              width={width}
-              height={height}
-            >
-              <ControlBar autoHide={false} />
-            </Player>
+            {toVideo && (
+              <Player
+                ref={toPlayer}
+                src={toVideo && toVideo.popcornOptions ? toVideo.popcornOptions.src : ''}
+                videoId={toVideo.id}
+                crossOrigin="anonymous"
+                width={width}
+                height={height}
+              >
+                <ControlBar autoHide={false} />
+              </Player>
+            )}
           </div>
         </React.Fragment>
       )}

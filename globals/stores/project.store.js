@@ -955,9 +955,13 @@ export default class ProjectStore extends BaseStore {
           this.isPlayed = true;
         });
         emitter.on(emitterActions.SELECT, id => {
-          this.editElement(id);
+          if (id) {
+            this.editElement(id);
+          }
           const element = this.getElementById(id);
-          this.updateTime(element.popcornOptions.start * SANTISECOND);
+          if (element && element.popcornOptions) {
+            this.updateTime(element.popcornOptions.start * SANTISECOND);
+          }
         });
         emitter.on(emitterActions.DELETE, id => {
           this.removeElement(id);
