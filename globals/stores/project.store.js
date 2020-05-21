@@ -83,7 +83,7 @@ export default class ProjectStore extends BaseStore {
         options.contentType = videoMeta.contentType;
         options.in = options.start;
         options.out = options.end;
-        options.volume = 100;
+        options.volume = item.volume || 100;
         break;
       }
       default:
@@ -801,35 +801,36 @@ export default class ProjectStore extends BaseStore {
     }
     this.isLoading = true;
 
-    const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
-
-    if (byEnd && byEnd.length && byEnd.length > 1) {
-      const lastEvent = byEnd[byEnd.length - 2];
-      let eventEnd = 0;
-
-      switch (lastEvent.type) {
-        case POPCORN_ELEMENT_TYPES.TEXT:
-          if (lastEvent.animation.out && lastEvent.animation.out.duration) {
-            eventEnd = lastEvent.end + lastEvent.animation.out.duration;
-          } else {
-            eventEnd = lastEvent.end;
-          }
-          break;
-        case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
-          if (lastEvent.outDuration) {
-            eventEnd = lastEvent.end + lastEvent.outDuration;
-          } else {
-            eventEnd = lastEvent.end;
-          }
-          break;
-        default:
-          eventEnd = lastEvent.end;
-      }
-
-      if (lastEvent.end !== this.popcorn.duration()) {
-        this.projectData.media[0].url = `#t=,${eventEnd}`;
-      }
-    }
+    // Todo add in future
+    // const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
+    //
+    // if (byEnd && byEnd.length && byEnd.length > 1) {
+    //   const lastEvent = byEnd[byEnd.length - 2];
+    //   let eventEnd = 0;
+    //
+    //   switch (lastEvent.type) {
+    //     case POPCORN_ELEMENT_TYPES.TEXT:
+    //       if (lastEvent.animation.out && lastEvent.animation.out.duration) {
+    //         eventEnd = lastEvent.end + lastEvent.animation.out.duration;
+    //       } else {
+    //         eventEnd = lastEvent.end;
+    //       }
+    //       break;
+    //     case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
+    //       if (lastEvent.outDuration) {
+    //         eventEnd = lastEvent.end + lastEvent.outDuration;
+    //       } else {
+    //         eventEnd = lastEvent.end;
+    //       }
+    //       break;
+    //     default:
+    //       eventEnd = lastEvent.end;
+    //   }
+    //
+    //   if (lastEvent.end !== this.popcorn.duration()) {
+    //     this.projectData.media[0].url = `#t=,${eventEnd}`;
+    //   }
+    // }
 
     try {
       const path = this.item._id
@@ -857,7 +858,6 @@ export default class ProjectStore extends BaseStore {
             thumbnail: serializedData.thumbnail,
             remixedFrom: serializedData.source,
             tags: serializedData.tags,
-            editor: 'revolution',
           },
         });
       const publishedMake = await this.publish(result._id);
@@ -956,9 +956,13 @@ export default class ProjectStore extends BaseStore {
           this.isPlayed = true;
         });
         emitter.on(emitterActions.SELECT, id => {
-          this.editElement(id);
+          if (id) {
+            this.editElement(id);
+          }
           const element = this.getElementById(id);
-          this.updateTime(element.popcornOptions.start * SANTISECOND);
+          if (element && element.popcornOptions) {
+            this.updateTime(element.popcornOptions.start * SANTISECOND);
+          }
         });
         emitter.on(emitterActions.DELETE, id => {
           this.removeElement(id);

@@ -85,4 +85,14 @@ export default class UserStore {
   get hasPermissions() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION);
   }
+
+  @computed
+  get stickersEnabled() {
+    return this.isfeatureEnabled(FEATURES.STICKERS);
+  }
+
+  @computed
+  get lowerThirdsEnabled() {
+    return this.isfeatureEnabled(FEATURES.LOWER_THIRDS);
+  }
 }
