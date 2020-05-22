@@ -44,6 +44,7 @@ const Home = observer(() => {
     stickersEnabled,
     lowerThirdsEnabled,
     templateGeneratorEnabled,
+    linkedinEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -163,6 +164,7 @@ const Home = observer(() => {
         recorderEnabled,
         stickersEnabled,
         lowerThirdsEnabled,
+        linkedinEnabled,
       },
     });
     return items && items.length ? items : [];
@@ -177,6 +179,7 @@ const Home = observer(() => {
     videoUrl,
     userStore,
     allowedSocials,
+    linkedinEnabled,
   ]);
 
   return (
