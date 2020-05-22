@@ -5,7 +5,7 @@ import DropButton from '../../../../media/DropButton';
 import FieldBuilder from '../../../../form/FieldBuilder';
 import LinkedinPostPreview from '../../../../common/post-previews/LinkedinPostPreview';
 
-import mediaConstants from '../../../../../lib/constants/media';
+import { ASSET_TYPES } from '../../../../../lib/constants/media';
 import {
   POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT,
 } from '../../../../../lib/constants/campaigns/constants';
@@ -84,7 +84,7 @@ const LinkedinPost = observer((props) => {
                         },
                       })}
                       needSaveAsset={false}
-                      type={mediaConstants.ASSET_TYPES.IMAGE}
+                      type={ASSET_TYPES.IMAGE}
                       multiple={false}
                       className="settings__add-file"
                     />

@@ -34,12 +34,22 @@ export default () => {
     }
   };
 
+  const updateClassName = (modalId, className) => {
+    if (modalId) {
+      const mutatedModalIndex = modals.findIndex(modal => modal.id === modalId);
+      const originalModal = MODAL_CONFIG.find(modal => modal.id === modalId);
+
+      modals[mutatedModalIndex].className = className || originalModal.className;
+    }
+  };
+
   return {
     modalIds,
     modals,
     openModal: action(openModal),
     closeModal: action(closeModal),
     updateHeader: action(updateHeader),
+    updateClassName: action(updateClassName),
     options,
   };
 };
