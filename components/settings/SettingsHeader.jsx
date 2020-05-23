@@ -4,16 +4,15 @@ import classnames from 'classnames';
 import PropTypes from '../../lib/PropTypes';
 
 const SettingsHeader = ({ className, tabs, setTab, activeTab, title }) => {
-  const handleChange = (newValue) => {
+  const handleChange = React.useCallback((newValue) => {
     if (newValue === activeTab) {
       return;
     }
-
     if (setTab) {
       return setTab(newValue);
     }
     return null;
-  };
+  }, [activeTab]);
 
   return (
     <div className={classnames(className, 'header-tabs')}>

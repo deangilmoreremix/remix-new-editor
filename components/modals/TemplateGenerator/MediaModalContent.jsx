@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { observer } from 'mobx-react';
 
-// import { generatorTabs } from '../../../lib/constants/templateGenerator';
+import { generatorTabs } from '../../../lib/constants/templateGenerator';
 
 import useMediaStore from '../../hooks/useMediaStore';
 import { PROVIDERS } from '../../../lib/constants/library';
@@ -12,24 +12,20 @@ import VideoGallery from '../../media/VideoGallery/VideoGallery';
 
 const perPage = 10;
 
-const MediaModalContent = observer(({ inWindow, useVideo }) => {
+const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
   const mediaStore = useMediaStore();
   const provider = PROVIDERS.USER;
   const assetType = ASSET_TYPES.VIDEO;
   const [page, setPage] = useState(1);
-  const [query] = useState('');
+  const [query, setQuery] = useState('');
   const [hasMore, setHasMore] = useState(true);
   const [videos, setVideos] = useState([]);
-  const [activeTab] = useState(0);
+  const [activeTab, setTab] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-  // useEffect(() => {
-  //   if (isLoading) {
-  //     return;
-  //   }
-  //   setHeader({ activeTab, setTab, tabs: generatorTabs });
-  //   setTab(activeTab);
-  // }, [isLoading, activeTab]);
+  useEffect(() => {
+    setHeader({ activeTab, setTab, tabs: generatorTabs });
+  }, [activeTab]);
 
   const resetParams = () => {
     setPage(1);
@@ -73,6 +69,7 @@ const MediaModalContent = observer(({ inWindow, useVideo }) => {
         }
       } catch (e) {
         console.error(e);
+        setHasMore(false);
         showError(e.message);
       } finally {
         setIsLoading(false);
@@ -85,16 +82,26 @@ const MediaModalContent = observer(({ inWindow, useVideo }) => {
     resetParams();
   }, [activeTab]);
 
+  useEffect(() => {
+    if (page === 1 && hasMore && !videos.length) {
+      getAssets();
+    }
+  }, [page, hasMore, videos, getAssets]);
+
   return (
     <div className="generator-body">
-      {/* <input */}
-      {/* className="generator-search" */}
-      {/* type="text" */}
-      {/* value={query} */}
-      {/* onChange={e => setQuery(e.target.value)} */}
-      {/* onKeyDown={() => getAssets(true)} */}
-      {/* placeholder="Search through your content..." */}
-      {/* /> */}
+      <input
+        className="generator-search"
+        type="text"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        onKeyDown={({ keyCode }) => {
+          if (keyCode === 13) {
+            resetParams();
+          }
+        }}
+        placeholder="Type in the keyword and press ENTER to start search..."
+      />
       <VideoGallery
         hasMore={hasMore}
         className="tg-media-items media-gallery"

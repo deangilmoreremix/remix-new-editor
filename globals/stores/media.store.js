@@ -47,10 +47,6 @@ export default class Media extends BaseStore {
     let response = await this.assetsRequest(
       `/${assetType}/index.json`, {
         method: 'GET',
-        mode: 'no-cors',
-        // headers: {
-        //   'Access-Control-Allow-Origin': '*',
-        // },
       },
     );
     response.reverse();
@@ -60,7 +56,7 @@ export default class Media extends BaseStore {
         item => lookup.test(item.title) || (item.keywords && lookup.test(item.keywords)),
       );
     }
-    return response.slice(count, count + this.perPage);
+    return response.slice(count, count + options.perPage);
   }
 
   getPresets = async (assetType, page = 1, filter = {}) => {
