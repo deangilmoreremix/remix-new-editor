@@ -45,7 +45,7 @@ const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
     if (hasMore) {
       try {
         let results = '';
-        if (activeTab === 0) {
+        if (activeTab === 1) {
           results = await mediaStore.getAssets({
             assetType,
             page,
