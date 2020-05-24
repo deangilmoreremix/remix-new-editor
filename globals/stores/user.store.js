@@ -101,7 +101,7 @@ export default class UserStore {
 
   @computed
   get templateGeneratorEnabled() {
-    return this.isfeatureEnabled(FEATURES.TEMPLATE_GENERATOR);
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_GENERATOR);
   }
 
   @computed
