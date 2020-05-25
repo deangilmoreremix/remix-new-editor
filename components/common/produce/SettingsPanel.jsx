@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../../lib/PropTypes';
-import mediaConstants from '../../../lib/constants/media';
+import { ASSET_TYPES } from '../../../lib/constants/media';
 import { tabItems } from '../../../lib/constants/library';
 
 import useProjectStore from '../../hooks/useProjectStore';
@@ -120,7 +120,7 @@ const SettingPanel = observer(() => {
           <div className="settings__row-block">
             <DropButton
               onUploaded={onUploadedImage}
-              type={mediaConstants.ASSET_TYPES.IMAGE}
+              type={ASSET_TYPES.IMAGE}
               isDisabled={isDisabledUpload}
               startUpload={() => setIsDisabledUpload(true)}
               endUpload={() => setIsDisabledUpload(false)}
@@ -132,7 +132,7 @@ const SettingPanel = observer(() => {
           <div className="settings__row-block">
             <DropzoneArea
               onUploaded={onUploadedImage}
-              type={mediaConstants.ASSET_TYPES.IMAGE}
+              type={ASSET_TYPES.IMAGE}
               isDisabled={isDisabledUpload}
               value={item.thumbnail}
               startUpload={() => setIsDisabledUpload(true)}

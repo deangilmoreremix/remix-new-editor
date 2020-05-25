@@ -5,6 +5,7 @@ import { Waypoint } from 'react-waypoint';
 import classnames from 'classnames';
 import { useDropzone } from 'react-dropzone';
 
+import AudioPreview from './AudioPreview';
 import PropTypes from '../../../lib/PropTypes';
 import { USER_ITEMS, LIBRARY_TABS } from '../../../lib/constants/library';
 import mediaConstants from '../../../lib/constants/media';
@@ -12,6 +13,8 @@ import mediaConstants from '../../../lib/constants/media';
 import trashIcon from '../../../public/static/svgImages/trash.svg';
 import addIcon from '../../../public/static/svgImages/add-white.svg';
 import plusIcon from '../../../public/static/svgImages/plus-circle.svg';
+import playIcon from '../../../public/static/svgImages/common/play-no-border.svg';
+import stopIcon from '../../../public/static/svgImages/common/stop-no-border.svg';
 
 const LibraryContent = observer((props) => {
   const {
@@ -20,10 +23,14 @@ const LibraryContent = observer((props) => {
     onSelect,
     activeBtn,
     onDelete,
+    onPlay,
     fetchItems,
     isDisabledUpload,
     onDrop,
     hasMore,
+    activeTab,
+    volume,
+    activeItem,
   } = props;
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -40,15 +47,80 @@ const LibraryContent = observer((props) => {
     switch (type) {
       case LIBRARY_TABS.VIDEO: {
         return <video src={item.url}><track /></video>;
-      } default: {
+      }
+      case LIBRARY_TABS.AUDIO: {
+        return (
+          <AudioPreview
+            item={item}
+            volume={volume}
+            isActive={activeItem && activeItem._id === item._id}
+          />
+        );
+      }
+      default: {
         return <img src={item.url} alt={item.title} />;
       }
     }
   };
 
+  const renderActions = React.useCallback((item) => {
+    switch (activeTab) {
+      case LIBRARY_TABS.AUDIO: {
+        const isActive = activeItem && activeItem._id === item._id;
+        return (
+          <React.Fragment>
+            <button className="library__item-delete" onClick={() => onDelete(item._id)}>
+              <SVGInline
+                className="library__item-icon"
+                svg={trashIcon}
+              />
+            </button>
+            {isActive ? (
+              <button className="library__item-play" onClick={() => onPlay(null)}>
+                <SVGInline
+                  className="library__item-icon"
+                  svg={stopIcon}
+                />
+              </button>
+            ) : (
+              <button className="library__item-play" onClick={() => onPlay(item)}>
+                <SVGInline
+                  className="library__item-icon"
+                  svg={playIcon}
+                />
+              </button>
+            )}
+            <button className="library__item-use" onClick={() => onSelect({ ...item, volume, mute: false })}>
+              use
+            </button>
+          </React.Fragment>
+        );
+      }
+      default: return (
+        <React.Fragment>
+          {
+            activeBtn === USER_ITEMS && !isDisabledUpload && !isDragActive && (
+              <button className="library__item-delete" onClick={() => onDelete(item._id)}>
+                <SVGInline
+                  className="library__item-icon"
+                  svg={trashIcon}
+                />
+              </button>
+            )
+          }
+          <button className="library__item-add" onClick={() => onSelect(item)}>
+            <SVGInline
+              className="library__item-icon"
+              svg={addIcon}
+            />
+          </button>
+        </React.Fragment>
+      );
+    }
+  }, [activeBtn, activeTab, isDisabledUpload, isDragActive, onDelete, onSelect]);
 
   return (
-    <div className="library__items">
+    <div className={classnames('library__items', `library__items--${activeTab.toLowerCase()}`)}>
       {
         activeBtn === USER_ITEMS && (
           <div
@@ -80,22 +152,7 @@ const LibraryContent = observer((props) => {
             >
               {Element(item)}
               <div className="library__item-actions">
-                {
-                  activeBtn === USER_ITEMS && !isDisabledUpload && !isDragActive && (
-                    <button className="library__item-delete" onClick={() => onDelete(item._id)}>
-                      <SVGInline
-                        className="library__item-icon"
-                        svg={trashIcon}
-                      />
-                    </button>
-                  )
-                }
-                <button className="library__item-add" onClick={() => onSelect(item)}>
-                  <SVGInline
-                    className="library__item-icon"
-                    svg={addIcon}
-                  />
-                </button>
+                {renderActions(item)}
               </div>
             </div>
           )) : null
@@ -116,6 +173,7 @@ LibraryContent.propTypes = {
   })),
   onSelect: PropTypes.func.isRequired,
   activeBtn: PropTypes.string.isRequired,
+  activeTab: PropTypes.string.isRequired,
   onDelete: PropTypes.func.isRequired,
   fetchItems: PropTypes.func.isRequired,
   isDisabledUpload: PropTypes.bool.isRequired,

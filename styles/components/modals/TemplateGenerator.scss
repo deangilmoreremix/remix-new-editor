@@ -1,0 +1,210 @@
+.template-generator-modal {
+  width: 552px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+
+  &.max-size {
+    max-width: 80vW;
+    height: 85vH;
+    width: 100%;
+  }
+}
+
+.template-generator-modal-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+
+  &__text {
+    font-size: 1.125rem;
+    font-weight: bold;
+    margin-bottom: 2.5em;
+    text-align: center;
+  }
+}
+
+.generator-img {
+  width: 133px;
+  height: 86px;
+  margin-bottom: 2.5rem;
+}
+
+.generator-offer {
+  &__btns {
+    display: flex;
+    align-items: center;
+  }
+
+  &__btn {
+    @include reset-button;
+    width: 7.8rem;
+    height: 2.18rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 1rem;
+    font-size: 0.875rem;
+    color: $white;
+    border-radius: 4px;
+  }
+
+  &__yes {
+    background: $secondary-color;
+  }
+
+  &__no {
+    border: 1px solid $third-color;
+  }
+}
+
+.generator-body {
+  @include tiny-scrollbar();
+  width: 100%;
+  height: 100%;
+  padding: 1em;
+}
+
+.generator-search {
+  display: block;
+  background: none;
+  outline: none;
+  border: none;
+  border-bottom: 1px solid $third-color;
+  width: 100%;
+  max-width: 23rem;
+  margin: 0 auto 2rem;
+  color: $third-color;
+  font-size: 0.875rem;
+}
+
+.generator-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  margin: auto;
+
+  .video-tile {
+    position: relative;
+    width: 10rem;
+    height: 10rem;
+
+    video {
+      object-fit: cover;
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      opacity: 0;
+      background: rgba(0, 0, 0, 0.6);
+      width: 100%;
+      height: 100%;
+
+      &:hover {
+        opacity: 1;
+        -webkit-transition: opacity 0.3s;
+        transition: opacity 0.3s;
+      }
+    }
+
+    .buttons-container {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      position: relative;
+      margin: auto;
+      align-items: center;
+      flex-direction: column;
+
+      .title {
+        text-align: center;
+      }
+    }
+  }
+}
+
+.generator-item {
+  width: 200px;
+  height: 200px;
+  background-color: $dark-night;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+
+  div {
+    width: 100%;
+    height: 100% !important;
+  }
+
+  .buttons-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .title {
+    margin: 1rem 0;
+  }
+}
+
+button.generator-use {
+  @include reset-button;
+  width: 4.4rem;
+  height: 1.53rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  background: $secondary-color;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  color: $white;
+  padding: 0;
+}
+
+.btn-preview {
+  @include reset-button;
+  width: 30px;
+  height: 30px;
+  overflow: hidden;
+
+  &__icon {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+div.generator-scripts {
+  @include tiny-scrollbar;
+
+  min-width: 500px;
+  max-height: 40vh;
+  display: flex;
+  flex-flow: column;
+  margin-bottom: 0.5rem;
+
+  .MuiGrid-grid-xs-3 {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  &-item {
+    padding: 1rem;
+  }
+}

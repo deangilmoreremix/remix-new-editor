@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import Grid from '@material-ui/core/Grid';
@@ -29,12 +29,25 @@ import { DEFAULT_RATIO } from '../lib/constants/project';
 import { WINDOW_TYPES } from '../lib/constants/ui';
 import { ROUTES } from '../lib/constants/routing';
 import AnimatedWindow from './common/AnimatedWindow';
+import { TEMPLATE_GENERATOR_MODAL } from '../lib/constants/modals';
 
 const Home = observer(() => {
   const { pathname, query: { project, remix }, push } = useRouter();
   const projectStore = useProjectStore();
+  const userStore = useUserStore();
+
+  const {
+    optinCodeEnabled,
+    isSuperAdmin,
+    isfeatureEnabled,
+    recorderEnabled,
+    stickersEnabled,
+    lowerThirdsEnabled,
+    templateGeneratorEnabled,
+  } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
+  const [shouldShowTGModal, setShouldShowTGModal] = useState(templateGeneratorEnabled);
 
   React.useEffect(() => {
     if (!project && pathname !== ROUTES.edit) {
@@ -43,9 +56,20 @@ const Home = observer(() => {
       },
       undefined,
       { shallow: true },
-      );
+      )
+        .finally(() => {
+          if (shouldShowTGModal) {
+            openModal(TEMPLATE_GENERATOR_MODAL);
+          }
+          setShouldShowTGModal(false);
+        });
+    } else {
+      if (shouldShowTGModal && !project && !remix) {
+        openModal(TEMPLATE_GENERATOR_MODAL);
+      }
+      setShouldShowTGModal(false);
     }
-  }, [pathname, project, push]);
+  }, [shouldShowTGModal, pathname, project, remix, push]);
 
   const asyncHero = useAsync(
     project
@@ -81,10 +105,6 @@ const Home = observer(() => {
     releaseElement,
     videoUrl,
   } = projectStore;
-
-  const userStore = useUserStore();
-
-  const { optinCodeEnabled, isSuperAdmin, isfeatureEnabled, recorderEnabled } = userStore;
 
   const SecondaryWindow = React.useMemo(() => {
     switch (secondaryWindowType) {
@@ -141,6 +161,8 @@ const Home = observer(() => {
         isSuperAdmin,
         isfeatureEnabled,
         recorderEnabled,
+        stickersEnabled,
+        lowerThirdsEnabled,
       },
     });
     return items && items.length ? items : [];
@@ -189,7 +211,6 @@ const Home = observer(() => {
 
               </Grid>
             </Grid>
-
             <Grid item xs={canvasWidth}>
               <Canvas />
             </Grid>

@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import * as React from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
@@ -19,18 +20,32 @@ const Menu = observer((
   }) => {
   const anchorRef = React.useRef(null);
   const [open, setOpen] = React.useState(false);
+  const { push } = useRouter();
 
   const handleAction = (arg) => {
-    setOpen(false);
-    if (arg && typeof arg === 'function') {
-      arg();
-      return;
-    }
-
-    if (onClick && typeof arg !== 'function') {
-      onClick(arg);
+    if (arg === 'logout') {
+      push('/logout');
     }
   };
+
+  const menuButton = buttonItem => (
+    <button
+      key={`menu-${buttonItem.title}`}
+      onClick={onClick
+        ? (() => handleAction(buttonItem.value)) : (() => handleAction(buttonItem.action))}
+      className="menu__item"
+    >
+      {buttonItem.icon ? (
+        <SVGInline
+          className="menu__item-icon"
+          classSuffix=""
+          svg={buttonItem.icon}
+          cleanup={['title']}
+        />
+      ) : null}
+      {buttonItem.title}
+    </button>
+  );
 
   return (
     <div className={className || ''}>
@@ -97,22 +112,14 @@ const Menu = observer((
                   id="menu-list-grow"
                 >
                   {items.map((item) => (
-                    <button
-                      key={`menu-${item.title}`}
-                      onClick={onClick
-                        ? (() => handleAction(item.value)) : (() => handleAction(item.action))}
-                      className="menu__item"
-                    >
-                      {item.icon ? (
-                        <SVGInline
-                          className="menu__item-icon"
-                          classSuffix=""
-                          svg={item.icon}
-                          cleanup={['title']}
-                        />
-                      ) : null}
-                      {item.title}
-                    </button>
+                    item.url
+                      ? (
+                        // eslint-disable-next-line react/jsx-no-target-blank
+                        <a key={item.url} href={`//${item.url}`} target="_blank">
+                          {menuButton(item)}
+                        </a>
+                      )
+                      : (menuButton(item))
                   ))}
                 </div>
               </ClickAwayListener>

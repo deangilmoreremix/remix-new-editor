@@ -6,7 +6,7 @@ import FieldBuilder from '../../../form/FieldBuilder';
 import DropzoneArea from '../../../media/DropzoneArea';
 import DropButton from '../../../media/DropButton';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
-import mediaConstants from '../../../../lib/constants/media';
+import { ASSET_TYPES } from '../../../../lib/constants/media';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
 import { tabItems } from '../../../../lib/constants/library';
@@ -43,7 +43,7 @@ const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
           />
           <DropzoneArea
             onUploaded={(item, ext) => onUploadedImage(item, ext, fields.brandLogoSrc.name)}
-            type={mediaConstants.ASSET_TYPES.IMAGE}
+            type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
             value={values.brandLogoSrc}
             startUpload={() => setIsDisabledUploadLogo(true)}
@@ -52,7 +52,7 @@ const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
           />
           <DropButton
             onUploaded={(item, ext) => onUploadedImage(item, ext, fields.brandLogoSrc.name)}
-            type={mediaConstants.ASSET_TYPES.IMAGE}
+            type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
             startUpload={() => setIsDisabledUploadLogo(true)}
             endUpload={() => setIsDisabledUploadLogo(false)}
@@ -67,7 +67,7 @@ const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
           />
           <DropzoneArea
             onUploaded={(item, ext) => onUploadedImage(item, ext, fields.backgroundImage.name)}
-            type={mediaConstants.ASSET_TYPES.IMAGE}
+            type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadImage}
             value={values.backgroundImage}
             startUpload={() => setIsDisabledUploadImage(true)}
@@ -76,7 +76,7 @@ const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
           />
           <DropButton
             onUploaded={(item, ext) => onUploadedImage(item, ext, fields.backgroundImage.name)}
-            type={mediaConstants.ASSET_TYPES.IMAGE}
+            type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadImage}
             optionName={fields.backgroundImage.name}
             startUpload={() => setIsDisabledUploadImage(true)}

@@ -1,13 +1,13 @@
 import { action, observable } from 'mobx';
 
 import BaseStore from './base.store';
-import mediaConsts from '../../lib/constants/media';
+import { ASSET_TYPES } from '../../lib/constants/media';
 import { providers } from '../../lib/utils/media';
 import { perPage } from '../../lib/constants/library';
 
-const { ASSET_TYPES } = mediaConsts;
-
 export default class Media extends BaseStore {
+  @observable assetsRequest = null;
+
   @observable libraryItemsForDelete = [];
 
   @observable presetsItemsForDelete = [];
@@ -20,10 +20,10 @@ export default class Media extends BaseStore {
     } catch (e) {
       throw new Error(`Unknown provider ${providerName} with asset type ${assetType}`);
     }
-  }
+  };
 
-  getAssets = async ({ providerName, assetType, page = 1, query = '', filter }) => {
-    const provider = this.getProvider(providerName, ASSET_TYPES[assetType]);
+  getAssets = async ({ providerName, assetType, perPage: customPerPage, page = 1, query = '', filter }) => {
+    const provider = this.getProvider(providerName, ASSET_TYPES[assetType] || assetType);
     provider.setRequest(this.request.bind(this));
 
     try {
@@ -31,7 +31,7 @@ export default class Media extends BaseStore {
         page,
         query,
         filter,
-        perPage,
+        perPage: customPerPage || perPage,
         headers: {
           'on-behalf': this.currentUser.id,
         },
@@ -41,6 +41,27 @@ export default class Media extends BaseStore {
       console.error(e);
     }
   };
+
+  getRemoteMedia = async (options) => {
+    const { assetType, query, count } = options;
+    let response = await this.assetsRequest(
+      `/${assetType}/index.json`, {
+        method: 'GET',
+        mode: 'no-cors',
+        // headers: {
+        //   'Access-Control-Allow-Origin': '*',
+        // },
+      },
+    );
+    response.reverse();
+    if (query.length > 0) {
+      const lookup = new RegExp(`.*${query}.*`, 'i');
+      response = response.filter(
+        item => lookup.test(item.title) || (item.keywords && lookup.test(item.keywords)),
+      );
+    }
+    return response.slice(count, count + this.perPage);
+  }
 
   getPresets = async (assetType, page = 1, filter = {}) => {
     if (!filter.type) {
@@ -94,8 +115,8 @@ export default class Media extends BaseStore {
   storeAsset = async (item, type) => {
     let file;
     const extra = {};
-    const kind = mediaConsts.ASSET_TYPES[type];
-    if (kind === mediaConsts.ASSET_TYPES.VIDEO) {
+    const kind = ASSET_TYPES[type];
+    if (kind === ASSET_TYPES.VIDEO) {
       const source = [];
       if (item.hls) {
         source.push(item.hls);
@@ -264,5 +285,10 @@ export default class Media extends BaseStore {
       console.error(e);
     }
     return asset;
+  };
+
+  constructor(props) {
+    super(props);
+    this.assetsRequest = props.assetsRequest;
   }
 }

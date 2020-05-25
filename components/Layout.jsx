@@ -14,6 +14,8 @@ import PopcornProxy from '../lib/PopcornProxy';
 
 import PropTypes from '../lib/PropTypes';
 
+import Intercom from './common/Intercom';
+
 class Layout extends Component {
   static async getInitialProps({ query, req }, preloader) {
     const isServer = !!req;
@@ -47,6 +49,21 @@ class Layout extends Component {
               <div {...this.props} className="main">
                 <ModalContainer />
                 {children}
+                {this.stores.userStore.currentUser && this.stores.common.whiteLabelManager && this.stores.common.whiteLabelManager.domain === 'videoremix.io'
+                  ? (
+                    <Intercom
+                      appID={this.stores.common.intercom.appId}
+                      user={{
+                        email: this.stores.userStore.currentUser.email,
+                        fullName: this.stores.userStore.currentUser.fullName,
+                        hash: this.stores.userStore.currentUser.hash,
+                        createdAt: Math.floor(
+                          Date.parse(this.stores.userStore.currentUser.createdAt) / 1000,
+                        ).toString(),
+                      }}
+                      domain="videoremix.io"
+                    />
+                  ) : null}
               </div>
             </div>
           )

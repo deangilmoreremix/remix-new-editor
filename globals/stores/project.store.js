@@ -6,7 +6,7 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 
-import { SEQUENCER, POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
+import { SEQUENCER } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
@@ -83,7 +83,7 @@ export default class ProjectStore extends BaseStore {
         options.contentType = videoMeta.contentType;
         options.in = options.start;
         options.out = options.end;
-        options.volume = 100;
+        options.volume = item.volume || 100;
         break;
       }
       default:
@@ -758,7 +758,7 @@ export default class ProjectStore extends BaseStore {
   recompressProject = (newDuration) => {
     this.projectData.media.forEach((media) => {
       const initialDuration = media.duration;
-      if (initialDuration === newDuration) {
+      if (initialDuration >= newDuration) {
         return;
       }
       media.duration = newDuration;
@@ -801,35 +801,36 @@ export default class ProjectStore extends BaseStore {
     }
     this.isLoading = true;
 
-    const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
-
-    if (byEnd && byEnd.length && byEnd.length > 1) {
-      const lastEvent = byEnd[byEnd.length - 2];
-      let eventEnd = 0;
-
-      switch (lastEvent.type) {
-        case POPCORN_ELEMENT_TYPES.TEXT:
-          if (lastEvent.animation.out && lastEvent.animation.out.duration) {
-            eventEnd = lastEvent.end + lastEvent.animation.out.duration;
-          } else {
-            eventEnd = lastEvent.end;
-          }
-          break;
-        case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
-          if (lastEvent.outDuration) {
-            eventEnd = lastEvent.end + lastEvent.outDuration;
-          } else {
-            eventEnd = lastEvent.end;
-          }
-          break;
-        default:
-          eventEnd = lastEvent.end;
-      }
-
-      if (lastEvent.end !== this.popcorn.duration()) {
-        this.projectData.media[0].url = `#t=,${eventEnd}`;
-      }
-    }
+    // Todo add in future
+    // const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
+    //
+    // if (byEnd && byEnd.length && byEnd.length > 1) {
+    //   const lastEvent = byEnd[byEnd.length - 2];
+    //   let eventEnd = 0;
+    //
+    //   switch (lastEvent.type) {
+    //     case POPCORN_ELEMENT_TYPES.TEXT:
+    //       if (lastEvent.animation.out && lastEvent.animation.out.duration) {
+    //         eventEnd = lastEvent.end + lastEvent.animation.out.duration;
+    //       } else {
+    //         eventEnd = lastEvent.end;
+    //       }
+    //       break;
+    //     case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
+    //       if (lastEvent.outDuration) {
+    //         eventEnd = lastEvent.end + lastEvent.outDuration;
+    //       } else {
+    //         eventEnd = lastEvent.end;
+    //       }
+    //       break;
+    //     default:
+    //       eventEnd = lastEvent.end;
+    //   }
+    //
+    //   if (lastEvent.end !== this.popcorn.duration()) {
+    //     this.projectData.media[0].url = `#t=,${eventEnd}`;
+    //   }
+    // }
 
     try {
       const path = this.item._id
@@ -894,7 +895,90 @@ export default class ProjectStore extends BaseStore {
       headers: {
         'on-behalf': this.currentUser.id,
       },
-    })
+    });
+
+  fromTemplate = async (makeTemplate = {}, video, isSource) => {
+    this.item.allowedSocials = ['facebook', 'linkedin'];
+    this.item.title = makeTemplate.title;
+    this.item.description = makeTemplate.description;
+    this.modified = true;
+    this.item.thumbnail = makeTemplate.thumbnail;
+    if (isSource) {
+      this.item.source = makeTemplate._id;
+    }
+    this.setProjectData(JSON.parse(makeTemplate.project.data));
+    this.setPopcorn();
+    await this.updateVideo(video);
+    this.setProjectData(this.projectData);
+    this.setPopcorn();
+  };
+
+  @action
+  updateVideo = async (value, trimming) => {
+    const videoMeta = await this.mediaTypeDetector.getMetadata(value);
+    let sequencerElement = null;
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.type === 'sequencer'
+            && trackEvent.popcornOptions.subtype !== 'audio' && !sequencerElement) {
+            sequencerElement = trackEvent;
+          }
+        });
+      });
+    });
+    if (sequencerElement) {
+      this.findAndUpdate(sequencerElement, {
+        source: [value],
+        type: videoMeta.type,
+        title: videoMeta.title,
+        from: trimming ? trimming.min : 0,
+        end: (trimming ? trimming.max : videoMeta.duration) - (trimming ? trimming.min : 0),
+        duration: videoMeta.duration,
+      });
+    } else {
+      this.projectData.media.forEach((media) => {
+        if (media.tracks.length > 0) {
+          const elementId = this.generateUid();
+          const layerId = this.generateUid();
+          media.tracks.push({
+            name: `${media.tracks.length}`,
+            id: layerId,
+            order: media.tracks.length,
+            trackEvents: [{
+              id: elementId,
+              type: 'sequencer',
+              popcornOptions: {
+                start: 0,
+                source: [value],
+                fallback: '',
+                denied: false,
+                from: trimming ? trimming.min : 0,
+                end: (trimming ? trimming.max : videoMeta.duration) - (trimming ? trimming.min : 0),
+                title: videoMeta.title,
+                duration: videoMeta.duration,
+                type: videoMeta.type,
+                hidden: false,
+                target: 'video-container',
+                mobile: true,
+                width: 100,
+                height: 100,
+                top: 0,
+                left: 0,
+                volume: 100,
+                mute: false,
+                zindex: MAX_ZINDEX - media.tracks.length,
+                id: elementId,
+              },
+              track: layerId,
+              name: elementId,
+            }],
+          });
+        }
+      });
+    }
+    this.recompressProject(trimming ? (trimming.max - trimming.min) : videoMeta.duration);
+  };
 
   @computed
   get element() {
@@ -955,9 +1039,13 @@ export default class ProjectStore extends BaseStore {
           this.isPlayed = true;
         });
         emitter.on(emitterActions.SELECT, id => {
-          this.editElement(id);
+          if (id) {
+            this.editElement(id);
+          }
           const element = this.getElementById(id);
-          this.updateTime(element.popcornOptions.start * SANTISECOND);
+          if (element && element.popcornOptions) {
+            this.updateTime(element.popcornOptions.start * SANTISECOND);
+          }
         });
         emitter.on(emitterActions.DELETE, id => {
           this.removeElement(id);
@@ -990,6 +1078,9 @@ export default class ProjectStore extends BaseStore {
 
   @computed
   get videoUrl() {
+    if (!this.projectData) {
+      return null;
+    }
     return openVideoUrl(this.item.url, this.getPersonalization());
   }
 

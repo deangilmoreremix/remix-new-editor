@@ -1,0 +1,98 @@
+.MuiFormGroup-root div.text-input div.MuiInput-root {
+  color: $white ;
+
+  &:hover {
+    border: none ;
+  }
+  &:after {
+    border: none ;
+  }
+  &:before {
+    border: none;
+  }
+}
+
+div {
+  &.medium-long {
+    width: 10.9375rem;
+  }
+
+  &.medium-small {
+    width: 8.75rem;
+  }
+
+  &.medium {
+    width: 9.843rem;
+  }
+
+  &.colorpick {
+    width: 8.75rem;
+  }
+
+  &.small-params {
+    width: 4.103rem;
+  }
+
+  &.time-params {
+    width: 4.103rem;
+  }
+
+  &.medium-one {
+    width: 14.218rem;
+  }
+
+  &.long {
+    width: 15.312rem;
+  }
+
+  &.long-max {
+    width: 23.515rem;
+  }
+
+  &.text-input {
+    height: 2.065rem;
+    padding-left: 0.546rem;
+    background-color: $dark-night;
+    outline: none;
+    color: $white;
+    font-family: $font-primary;
+    border: 0.055rem solid $btn-gray;
+    border-radius: 0.218rem;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 0.765rem;
+    line-height: 0.93rem;
+  }
+
+  &.text-input:focus, &.text-input:hover {
+    border: 0.055rem solid $red;
+  }
+}
+ label {
+   &.label-left, &.label-top {
+     font-family: $font-primary;
+     font-size: 0.765rem;
+     vertical-align: middle;
+     color: $white;
+   }
+ }
+.label-left {
+  display: inline-block;
+  margin-right: 1.093rem;
+}
+
+.label-left + .text-input {
+  display: inline-block;
+}
+
+.label-top {
+  position: relative;
+  display: block;
+  right: 0.109rem;
+  bottom: 0.546rem;
+  margin-top: 1rem;
+}
+
+.label-none {
+  display: none;
+}

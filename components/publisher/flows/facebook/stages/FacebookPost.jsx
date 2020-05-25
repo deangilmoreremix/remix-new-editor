@@ -4,7 +4,7 @@ import DropButton from '../../../../media/DropButton';
 import FieldBuilder from '../../../../form/FieldBuilder';
 import FacebookPostPreview from '../../../../common/post-previews/FacebookPostPreview';
 
-import mediaConstants from '../../../../../lib/constants/media';
+import { ASSET_TYPES } from '../../../../../lib/constants/media';
 import {
   POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT,
 } from '../../../../../lib/constants/campaigns/constants';
@@ -83,7 +83,7 @@ const FacebookPost = ({ settings, updateCampaign }) => (
                     },
                   })}
                   needSaveAsset={false}
-                  type={mediaConstants.ASSET_TYPES.IMAGE}
+                  type={ASSET_TYPES.IMAGE}
                   multiple={false}
                   className="settings__add-file"
                 />
