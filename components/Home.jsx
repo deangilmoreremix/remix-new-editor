@@ -95,7 +95,7 @@ const Home = observer(() => {
   } = uiStore;
 
   const {
-    item: { ratio: { width, height } = DEFAULT_RATIO, allowedSocials },
+    item: { ratio: { width, height } = DEFAULT_RATIO, allowedSocials, url: videoUrl },
     updateItem,
     updateAnimation,
     isLoading,
@@ -104,7 +104,6 @@ const Home = observer(() => {
     modified,
     addRetargetForm,
     releaseElement,
-    videoUrl,
   } = projectStore;
 
   const SecondaryWindow = React.useMemo(() => {
