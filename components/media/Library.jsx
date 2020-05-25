@@ -15,7 +15,7 @@ import {
 import { LOADING_COLOR } from '../../lib/constants/ui';
 import mediaConstants from '../../lib/constants/media';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
-
+import config from '../../config/config';
 import { showError } from '../../lib/services/alertService';
 
 import Tabs from '../common/library/Tabs';
@@ -169,30 +169,50 @@ const Library = observer(() => {
   // === Drag and Drop ===
   const onDrop = (acceptedFiles) => {
     const wrongFormat = [];
+    const wrongSize = [];
     const files = [];
 
     acceptedFiles.forEach(file => {
-      const result = Object.keys(tabItems).some(item => (
+      const validFormat = Object.keys(tabItems).some(item => (
         tabItems[item].formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0])
       ));
-      if (result) {
-        files.push(file);
-      } else {
+      const isImage = tabItems.IMAGE.formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]);
+      const isVideo = tabItems.VIDEO.formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]);
+
+      if (!validFormat) {
         wrongFormat.push(file);
+      } else if (isImage) {
+        if (config.image.maxSize < file.size) {
+          wrongSize.push(file);
+        }
+      } else if (isVideo) {
+        if (config.video.maxSize < file.size) {
+          wrongSize.push(file);
+        }
+      } else {
+        files.push(file);
       }
     });
+    const errorFilesText = (errorFiles, text) => `
+    Invalid file ${errorFiles.length > 1 ? `${text}s` : `${text}`} with ${errorFiles.length > 1 ? 'names' : 'name'}:
+      ${errorFiles.map(file => (` ${file.name}`))}. \\n`;
 
-    const errorMessage = `
-      Invalid file ${wrongFormat.length > 1 ? 'formats' : 'format'} with ${wrongFormat.length > 1 ? 'names' : 'name'}:
-      ${wrongFormat.map(file => (` ${file.name}`))}. \n
+    const invalidFormatMessage = `${errorFilesText(wrongFormat, 'format')}
       Supported Formats:
       Video: ${tabItems.VIDEO.formats.map(format => (` ${format}`))}.
       Image: ${tabItems.IMAGE.formats.map(format => (` ${format}`))}.
       Audio: ${tabItems.AUDIO.formats.map(format => (` ${format}`))}.
     `;
 
+    const invalidSizeMessage = `${errorFilesText(wrongSize, 'size')}
+      Supported Size:
+      Image: ${config.image.maxSize / 1024 / 1024} mb.
+      Video: ${config.video.maxSize / 1024 / 1024} mb.`;
+
     if (wrongFormat.length) {
-      showError(errorMessage);
+      showError(invalidFormatMessage);
+    } else if (wrongSize.length) {
+      showError(invalidSizeMessage);
     }
 
     const elements = [];
