@@ -36,7 +36,7 @@ const VideoGallery = (props) => {
             url={item.url}
             title={item.title}
             preview={item.url}
-            key={`tile${item._id}`}
+            key={`tile${item._id || item.url}`}
             onPreview={
                 () => openModal(VIDEO_PLAYER_MODAL, { url: item.url, title: item.title })
               }
@@ -50,7 +50,7 @@ const VideoGallery = (props) => {
 
 VideoGallery.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
-    _id: PropTypes.string.isRequired,
+    _id: PropTypes.string,
     url: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     preview: PropTypes.string,

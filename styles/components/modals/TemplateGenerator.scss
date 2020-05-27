@@ -9,13 +9,14 @@
 
   &.max-size {
     max-width: 80vW;
+    min-width: 60vw;
     height: 85vH;
-    width: 100%;
   }
 }
 
 .template-generator-modal-content {
   display: flex;
+  flex: 1;
   flex-direction: column;
   justify-content: center;
   align-items: center;
