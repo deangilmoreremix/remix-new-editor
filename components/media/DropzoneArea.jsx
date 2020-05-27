@@ -82,8 +82,8 @@ const DropzoneArea = (
         <input {...getInputProps()} disabled={isDisabled} multiple={multiple} />
 
         {
-          image || value
-            ? <img src={image || value} alt="" />
+          value
+            ? <img src={value} alt="" />
             : (<p className="drag-drop__text">Drag and drop an image here, or click to upload</p>)
         }
         {

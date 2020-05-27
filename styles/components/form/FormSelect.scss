@@ -36,17 +36,20 @@
   }
 
   .select__menu {
-    background-color: $dark-twinlight;
+    background-color: $light-twinlight;
     margin-top: 0;
 
     .select__menu-list {
+      @include tiny-scrollbar;
+      height: 10em;
 
       .select__option {
         color: $white;
         z-index: 1;
 
         &:hover {
-          color: $dark-twinlight;
+          color: $white;
+          background: $secondary-color;
         }
       }
 
