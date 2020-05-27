@@ -58,7 +58,7 @@ const DropzoneArea = (
           endUpload();
         }
       });
-  }, [uploadMedia]);
+  }, [endUpload, multiple, onUploaded, startUpload, storeAsset, type, uploadMedia]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
@@ -87,7 +87,7 @@ const DropzoneArea = (
             : (<p className="drag-drop__text">Drag and drop an image here, or click to upload</p>)
         }
         {
-          (!image || !value) && isArrows && (
+          ((!image && !value) || !value) && isArrows && (
             <Fragment>
               <SVGInline className="drag-arrow drag-arrow-upper-left" svg={arrowIcon} cleanup={['arrow']} />
               <SVGInline className="drag-arrow drag-arrow-upper-right" svg={arrowIcon} cleanup={['arrow']} />
