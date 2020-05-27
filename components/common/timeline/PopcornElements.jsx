@@ -71,7 +71,9 @@ const PopcornElements = observer(({ width }) => {
     const {
       popcornOptions: { id: i, start, end, animation, title, outDuration, maxWidth },
       type,
+      dimensions,
     } = element;
+
     const layer = layers.find(item => item.id === element.track);
     const x = start * SANTISECOND;
     const w = (getEnd(end, animation, outDuration) - start) * SANTISECOND;
@@ -96,9 +98,9 @@ const PopcornElements = observer(({ width }) => {
       maxW,
       minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
       layer,
+      dimensions,
     };
   }), [cols, elements, getEnd, getExtraDuration, layers]);
-
   const components = React.useMemo(() => layouts.map((item, index, items) => {
     const transitionButtons = getTransitionButtons(item, index, items);
 
@@ -118,23 +120,15 @@ const PopcornElements = observer(({ width }) => {
           maxW: cols - item.x,
         }}
       >
-        <PopcornElement
-          item={item}
-        />
+        <PopcornElement item={item} />
         {transitionButtons && transitionButtons.length
-          ? transitionButtons.map(({
-            transition,
-            element,
-            type,
-            key,
-            pair,
-          }) => (
+          ? transitionButtons.map(({ transition, element, type, key, from, to }) => (
             <TransitionButton
               key={key}
               type={type}
               onClick={() => insertTransition({ transition, element })}
-              from={pair.from}
-              to={pair.to}
+              from={from}
+              to={to}
             />
           ))
           : null}

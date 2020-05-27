@@ -9,7 +9,7 @@ import SettingsHeader from '../settings/SettingsHeader';
 
 const ModalContainer = observer(() => {
   const modalStore = useModalStore();
-  const { modalIds, modals, closeModal, updateHeader, options } = modalStore;
+  const { modalIds, modals, closeModal, updateHeader, updateClassName, options } = modalStore;
 
   const modalsToShow = modals.filter(m => modalIds.has(m.id));
 
@@ -18,6 +18,7 @@ const ModalContainer = observer(() => {
     className,
     renderer: ModalComponent,
     header: headerProps,
+    ...props
   }) => {
     const close = () => {
       if (headerProps && headerProps.onClose) {
@@ -28,6 +29,8 @@ const ModalContainer = observer(() => {
 
     const updateModalHeader = (newHeaderProps) => updateHeader(id, newHeaderProps);
 
+    const updateModalClassName = (newHeaderProps) => updateClassName(id, newHeaderProps);
+
     return (
       <Dialog
         key={id}
@@ -37,6 +40,7 @@ const ModalContainer = observer(() => {
         onClose={close}
         aria-labelledby="max-width-dialog-title"
         className="modal-container"
+        {...props}
       >
         <SettingsHeader {...headerProps} />
         <DialogContent className={classnames('modal-container__content', className)}>
@@ -44,6 +48,7 @@ const ModalContainer = observer(() => {
             options={options}
             handleClose={close}
             setHeader={updateModalHeader}
+            setClassName={updateModalClassName}
           />
         </DialogContent>
       </Dialog>

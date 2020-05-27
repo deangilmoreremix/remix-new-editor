@@ -22,6 +22,18 @@
   input {
     color: $white;
   }
+
+  &-audio {
+    .library__row {
+      &-second {
+        flex-flow: column;
+
+        > :first-child {
+          width: 100%;
+        }
+      }
+    }
+  }
 }
 
 .library__tabs {
@@ -209,6 +221,8 @@ button.library__tab {
   flex-wrap: wrap;
   align-content: flex-start;
   overflow-x: hidden;
+
+  @import "/library/AudioLibrary";
 }
 
 .library__item {
@@ -293,6 +307,34 @@ button.library__tab {
   width: 50%;
   height: 50%;
   transition: 0.3s all;
+}
+
+.library__audio-controls {
+  position: relative;
+  margin: 0 auto 1.5rem;
+  padding: 2.5rem 0 0;
+  align-self: stretch;
+  width: 100%;
+
+  .track-name {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    text-align: center;
+  }
+
+  .volume-input {
+    display: flex;
+    align-content: center;
+
+
+    label {
+      margin-right: 0.75rem;
+      display: flex;
+      align-items: center;
+    }
+  }
 }
 
 @media screen and (max-width: 1450px) {

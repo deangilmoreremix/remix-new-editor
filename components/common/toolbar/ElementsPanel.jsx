@@ -42,7 +42,7 @@ const ElementsPanel = observer(({ items }) => {
       <Container className="elements-panel-container">
         <Row className="elements-panel-inner-row">
           {items.map(({ label, icon, action, disabled }) => {
-            if (label === labelFeature.JSON && !isSuperAdmin) {
+            if ((label === labelFeature.JSON && !isSuperAdmin) || disabled) {
               return;
             }
 

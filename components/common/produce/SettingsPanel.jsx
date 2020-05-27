@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../../lib/PropTypes';
-import mediaConstants from '../../../lib/constants/media';
+import { ASSET_TYPES } from '../../../lib/constants/media';
 import { tabItems } from '../../../lib/constants/library';
 
 import useProjectStore from '../../hooks/useProjectStore';
+import useUserStore from '../../hooks/useUserStore';
 
 import FieldBuilder from '../../form/FieldBuilder';
 import DropzoneArea from '../../media/DropzoneArea';
@@ -16,6 +17,7 @@ const SettingPanel = observer(() => {
 
   const titleRef = React.useRef(null);
 
+  const { linkedinEnabled } = useUserStore();
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
 
@@ -100,6 +102,9 @@ const SettingPanel = observer(() => {
             onChange={updateSocials}
             floatClassName="settings-checkbox"
           />
+          {
+            linkedinEnabled
+          && (
           <FieldBuilder
             type="checkbox"
             name="linkedin"
@@ -108,6 +113,8 @@ const SettingPanel = observer(() => {
             onChange={updateSocials}
             floatClassName="settings-checkbox"
           />
+          )
+          }
         </div>
 
         <div className="settings__row">
@@ -120,7 +127,7 @@ const SettingPanel = observer(() => {
           <div className="settings__row-block">
             <DropButton
               onUploaded={onUploadedImage}
-              type={mediaConstants.ASSET_TYPES.IMAGE}
+              type={ASSET_TYPES.IMAGE}
               isDisabled={isDisabledUpload}
               startUpload={() => setIsDisabledUpload(true)}
               endUpload={() => setIsDisabledUpload(false)}
@@ -132,7 +139,7 @@ const SettingPanel = observer(() => {
           <div className="settings__row-block">
             <DropzoneArea
               onUploaded={onUploadedImage}
-              type={mediaConstants.ASSET_TYPES.IMAGE}
+              type={ASSET_TYPES.IMAGE}
               isDisabled={isDisabledUpload}
               value={item.thumbnail}
               startUpload={() => setIsDisabledUpload(true)}

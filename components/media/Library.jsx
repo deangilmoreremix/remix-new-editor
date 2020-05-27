@@ -15,7 +15,7 @@ import {
 import { LOADING_COLOR } from '../../lib/constants/ui';
 import mediaConstants from '../../lib/constants/media';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
-
+import config from '../../config/config';
 import { showError } from '../../lib/services/alertService';
 
 import Tabs from '../common/library/Tabs';
@@ -28,6 +28,7 @@ import useUIStore from '../hooks/useUIStore';
 import useUserStore from '../hooks/useUserStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
+import AudioControls from '../common/library/AudioControls';
 
 const Library = observer(() => {
   const uiStore = useUIStore();
@@ -67,6 +68,9 @@ const Library = observer(() => {
   const [items, setItems] = useState([]);
   const [uploadedItems, setUploadedItems] = useState([]);
 
+  const [volume, setVolume] = useState(72);
+  const [activeItem, setActiveItem] = useState(null);
+
   const inputRef = useRef();
   // =============== STATE ===============
 
@@ -81,6 +85,9 @@ const Library = observer(() => {
 
   useEffect(() => {
     setQuery('');
+    if (activeItem) {
+      setActiveItem(null);
+    }
     if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
@@ -162,29 +169,50 @@ const Library = observer(() => {
   // === Drag and Drop ===
   const onDrop = (acceptedFiles) => {
     const wrongFormat = [];
+    const wrongSize = [];
     const files = [];
 
     acceptedFiles.forEach(file => {
-      const result = Object.keys(tabItems).some(item => (
+      const validFormat = Object.keys(tabItems).some(item => (
         tabItems[item].formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0])
       ));
-      if (result) {
-        files.push(file);
-      } else {
+      const isImage = tabItems.IMAGE.formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]);
+      const isVideo = tabItems.VIDEO.formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]);
+
+      if (!validFormat) {
         wrongFormat.push(file);
+      } else if (isImage) {
+        if (config.image.maxSize < file.size) {
+          wrongSize.push(file);
+        }
+      } else if (isVideo) {
+        if (config.video.maxSize < file.size) {
+          wrongSize.push(file);
+        }
+      } else {
+        files.push(file);
       }
     });
+    const errorFilesText = (errorFiles, text) => `
+    Invalid file ${errorFiles.length > 1 ? `${text}s` : `${text}`} with ${errorFiles.length > 1 ? 'names' : 'name'}:
+      ${errorFiles.map(file => (` ${file.name}`))}. \\n`;
 
-    const errorMessage = `
-      Invalid file ${wrongFormat.length > 1 ? 'formats' : 'format'} with ${wrongFormat.length > 1 ? 'names' : 'name'}:
-      ${wrongFormat.map(file => (` ${file.name}`))}. \n
+    const invalidFormatMessage = `${errorFilesText(wrongFormat, 'format')}
       Supported Formats:
       Video: ${tabItems.VIDEO.formats.map(format => (` ${format}`))}.
       Image: ${tabItems.IMAGE.formats.map(format => (` ${format}`))}.
+      Audio: ${tabItems.AUDIO.formats.map(format => (` ${format}`))}.
     `;
 
+    const invalidSizeMessage = `${errorFilesText(wrongSize, 'size')}
+      Supported Size:
+      Image: ${config.image.maxSize / 1024 / 1024} mb.
+      Video: ${config.video.maxSize / 1024 / 1024} mb.`;
+
     if (wrongFormat.length) {
-      showError(errorMessage);
+      showError(invalidFormatMessage);
+    } else if (wrongSize.length) {
+      showError(invalidSizeMessage);
     }
 
     const elements = [];
@@ -228,7 +256,9 @@ const Library = observer(() => {
             }
           });
         });
-      }).catch(err => showError(err.message))
+      }).catch(err => {
+        showError(err.message);
+      })
         .finally(() => setIsDisabledUpload(false));
     }
   };
@@ -264,6 +294,10 @@ const Library = observer(() => {
     }
   };
 
+  const onPlay = (item) => {
+    setActiveItem(item);
+  };
+
   const onDelete = (id) => {
     const newArr = items.filter(item => item._id !== id);
     setLibraryItemsForDelete(id);
@@ -285,8 +319,29 @@ const Library = observer(() => {
       .catch(e => showError(`Error while deleting items, ${e}`));
   };
 
+  const renderSidebar = React.useCallback(() => {
+    switch (activeTab) {
+      case LIBRARY_TABS.AUDIO: return (
+        <AudioControls
+          selected={activeItem}
+          volume={volume}
+          setVolume={setVolume}
+        />
+      );
+      default: return (
+        <ProviderList
+          activeItem={activeBtn}
+          title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
+          userContentTitle={tabItems[activeTab].label}
+          handleButtonClick={handleButtonClick}
+          list={listProviders}
+        />
+      );
+    }
+  }, [activeTab, volume, activeItem]);
+
   return (
-    <div className={classnames('library', { 'big-window': !isTimelineOpen })}>
+    <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>
       <Tabs setActiveTab={setActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
@@ -328,13 +383,7 @@ const Library = observer(() => {
         </div>
 
         <div className="library__row library__row-second">
-          <ProviderList
-            activeItem={activeBtn}
-            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
-            userContentTitle={tabItems[activeTab].label}
-            handleButtonClick={handleButtonClick}
-            list={listProviders}
-          />
+          {renderSidebar()}
           {isLoading
             ? (
               <div className="library__items">
@@ -348,15 +397,19 @@ const Library = observer(() => {
             )
             : (
               <LibraryContent
+                activeItem={activeItem}
                 items={items}
                 onSelect={onSelect}
                 activeBtn={activeBtn}
+                activeTab={activeTab}
                 onDelete={onDelete}
+                onPlay={onPlay}
                 fetchItems={fetchItems}
                 isDisabledUpload={isDisabledUpload}
                 onDrop={onDrop}
                 hasMore={hasMore}
                 type={activeTab}
+                volume={volume}
               />
             )}
         </div>

@@ -9,6 +9,9 @@ module.exports = {
     clientId: process.env.BACKEND_CLIENT_ID || 'service',
     clientSecret: process.env.BACKEND_CLIENT_SECRET || 'q39Jy70X6ao9dTca',
   },
+  whiteLabel: {
+    devDefault: 'videoremix.io',
+  },
   editor: process.env.EDITOR || 'dev-app.vidcloud.io',
   assetsPath: process.env.ASSETS_PATH || 'dev-cdn.vidcloud.io/resources/go',
   socketProtocol: process.env.SOCKET_PROTOCOL || 'ws',
@@ -78,6 +81,9 @@ module.exports = {
     maxThreads: process.env.MAX_VIDEO_THREADS || 2,
     maxDuration: process.env.MAX_VIDEO_DURATION || 60, // in seconds
     maxSize: process.env.MAX_VIDEO_SIZE || 100 * 1024 * 1024, // in bytes
+  },
+  image: {
+    maxSize: process.env.MAX_IMAGE_SIZE || 5 * 1024 * 1024, // in bytes
   },
   posterframe: process.env.DEFAULT_POSTERFRAME || 'https://cdn.vidcloud.io/resources/go/posterframe_default.jpg',
   facebookAppId: process.env.FACEBOOK_APP_ID || '766265603823913',

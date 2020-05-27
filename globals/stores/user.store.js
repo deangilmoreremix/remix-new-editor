@@ -37,7 +37,7 @@ export default class UserStore {
 
   isfeatureEnabled = (feature) => this.isSuperAdmin || (
     this.currentUser.features && this.currentUser.features[feature]
-    && this.currentUser.features[feature].state === STATE.ENABLED)
+    && this.currentUser.features[feature].state === STATE.ENABLED);
 
   @computed
   get optinCodeEnabled() {
@@ -62,7 +62,10 @@ export default class UserStore {
 
   @computed
   get imageProviders() {
-    const providers = { ...DEFAULT_PROVIDERS, [LIBRARY_KEYS.DROPMOCK]: libraryProviders.DROPMOCK };
+    const providers = DEFAULT_PROVIDERS;
+    if (this.isfeatureEnabled(FEATURES.REVOLUTION_DROPMOCK_IMAGE)) {
+      providers[LIBRARY_KEYS.DROPMOCK] = libraryProviders.DROPMOCK;
+    }
     if (this.isfeatureEnabled(FEATURES.PIXABAY_INTEGRATION)) {
       providers[LIBRARY_KEYS.PIXABAY] = libraryProviders.PIXABAY;
     }
@@ -84,5 +87,25 @@ export default class UserStore {
   @computed
   get hasPermissions() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION);
+  }
+
+  @computed
+  get stickersEnabled() {
+    return this.isfeatureEnabled(FEATURES.STICKERS);
+  }
+
+  @computed
+  get lowerThirdsEnabled() {
+    return this.isfeatureEnabled(FEATURES.LOWER_THIRDS);
+  }
+
+  @computed
+  get templateGeneratorEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_GENERATOR);
+  }
+
+  @computed
+  get linkedinEnabled() {
+    return this.isfeatureEnabled(FEATURES.LINKEDIN);
   }
 }

@@ -19,12 +19,92 @@ import {
   PAUSE_PLUGIN_TIME_MARGIN,
   DEFAULT_LAYER,
   DEFAULT_ITEM,
+  SOCIALS,
 } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-import { getCustomVarsFromMediaArr, openVideoUrl } from '../../lib/utils/tokens-helper';
+import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 
 export default class ProjectStore extends BaseStore {
+  constructor(props) {
+    super(props);
+    this.layers = [];
+    this.elements = [];
+    this.mediaTypeDetector = new MediaTypeDetector();
+    this.userStore = props.userStore;
+    reaction(
+      () => this.popcorn,
+      () => {
+        if (!this.popcorn.on) {
+          return;
+        }
+        this.popcorn.on('canplayall', () => {
+          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
+          this.isLoaded = true;
+        });
+        this.popcorn.on('elementUpdated', (data) => {
+          const { element, options } = data;
+          this.findAndUpdate(element.id, options);
+        });
+        this.popcorn.on('timeupdate', () => {
+          this.time = this.popcorn.currentTime() * SANTISECOND;
+        });
+        this.popcorn.on('ended', () => {
+          this.time = 0;
+          this.updateTime(0);
+        });
+        this.popcorn.on('pause', () => {
+          this.isPlayed = false;
+        });
+        this.popcorn.on('play', () => {
+          this.isPlayed = true;
+        });
+        emitter.on(emitterActions.SELECT, id => {
+          if (id) {
+            this.editElement(id);
+          }
+          const element = this.getElementById(id);
+          if (element && element.popcornOptions) {
+            this.updateTime(element.popcornOptions.start * SANTISECOND);
+          }
+        });
+        emitter.on(emitterActions.DELETE, id => {
+          this.removeElement(id);
+        });
+        emitter.on(emitterActions.SEQUENCES_LOADING, () => {
+          this.isLoadingSequencer = true;
+        });
+        emitter.on(emitterActions.SEQUENCES_READY, () => {
+          this.isLoadingSequencer = false;
+        });
+        emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
+          this.elements = this.elements.map(el => {
+            if (el.id === id) {
+              return {
+                ...el,
+                dimensions: { width, height },
+              };
+            }
+            return el;
+          });
+        });
+      },
+    );
+
+    reaction(
+      () => this.item.allowedSocials
+        && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
+      () => {
+        if (!this.userStore.linkedinEnabled) {
+          this.item.allowedSocials = this.item.allowedSocials
+            .filter(allowedSocial => allowedSocial !== SOCIALS.LINKEDIN);
+        }
+      },
+    );
+  }
+
+  @observable userStore = {};
+
   @observable activeElementId;
 
   @observable assets = [];
@@ -83,7 +163,7 @@ export default class ProjectStore extends BaseStore {
         options.contentType = videoMeta.contentType;
         options.in = options.start;
         options.out = options.end;
-        options.volume = 100;
+        options.volume = item.volume || 100;
         options.maxWidth = options.end * SANTISECOND;
         break;
       }
@@ -759,7 +839,7 @@ export default class ProjectStore extends BaseStore {
   recompressProject = (newDuration) => {
     this.projectData.media.forEach((media) => {
       const initialDuration = media.duration;
-      if (initialDuration === newDuration) {
+      if (initialDuration >= newDuration) {
         return;
       }
       media.duration = newDuration;
@@ -801,6 +881,38 @@ export default class ProjectStore extends BaseStore {
       return;
     }
     this.isLoading = true;
+
+    // Todo add in future
+    // const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
+    //
+    // if (byEnd && byEnd.length && byEnd.length > 1) {
+    //   const lastEvent = byEnd[byEnd.length - 2];
+    //   let eventEnd = 0;
+    //
+    //   switch (lastEvent.type) {
+    //     case POPCORN_ELEMENT_TYPES.TEXT:
+    //       if (lastEvent.animation.out && lastEvent.animation.out.duration) {
+    //         eventEnd = lastEvent.end + lastEvent.animation.out.duration;
+    //       } else {
+    //         eventEnd = lastEvent.end;
+    //       }
+    //       break;
+    //     case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
+    //       if (lastEvent.outDuration) {
+    //         eventEnd = lastEvent.end + lastEvent.outDuration;
+    //       } else {
+    //         eventEnd = lastEvent.end;
+    //       }
+    //       break;
+    //     default:
+    //       eventEnd = lastEvent.end;
+    //   }
+    //
+    //   if (lastEvent.end !== this.popcorn.duration()) {
+    //     this.projectData.media[0].url = `#t=,${eventEnd}`;
+    //   }
+    // }
+
     try {
       const path = this.item._id
         ? `/api/users/me/makes/${this.item._id}`
@@ -864,7 +976,90 @@ export default class ProjectStore extends BaseStore {
       headers: {
         'on-behalf': this.currentUser.id,
       },
-    })
+    });
+
+  fromTemplate = async (makeTemplate = {}, video, isSource) => {
+    this.item.allowedSocials = ['facebook'];
+    this.item.title = makeTemplate.title;
+    this.item.description = makeTemplate.description;
+    this.modified = true;
+    this.item.thumbnail = makeTemplate.thumbnail;
+    if (isSource) {
+      this.item.source = makeTemplate._id;
+    }
+    this.setProjectData(JSON.parse(makeTemplate.project.data));
+    this.setPopcorn();
+    await this.updateVideo(video);
+    this.setProjectData(this.projectData);
+    this.setPopcorn();
+  };
+
+  @action
+  updateVideo = async (value, trimming) => {
+    const videoMeta = await this.mediaTypeDetector.getMetadata(value);
+    let sequencerElement = null;
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.type === 'sequencer'
+            && trackEvent.popcornOptions.subtype !== 'audio' && !sequencerElement) {
+            sequencerElement = trackEvent;
+          }
+        });
+      });
+    });
+    if (sequencerElement) {
+      this.findAndUpdate(sequencerElement, {
+        source: [value],
+        type: videoMeta.type,
+        title: videoMeta.title,
+        from: trimming ? trimming.min : 0,
+        end: (trimming ? trimming.max : videoMeta.duration) - (trimming ? trimming.min : 0),
+        duration: videoMeta.duration,
+      });
+    } else {
+      this.projectData.media.forEach((media) => {
+        if (media.tracks.length > 0) {
+          const elementId = this.generateUid();
+          const layerId = this.generateUid();
+          media.tracks.push({
+            name: `${media.tracks.length}`,
+            id: layerId,
+            order: media.tracks.length,
+            trackEvents: [{
+              id: elementId,
+              type: 'sequencer',
+              popcornOptions: {
+                start: 0,
+                source: [value],
+                fallback: '',
+                denied: false,
+                from: trimming ? trimming.min : 0,
+                end: (trimming ? trimming.max : videoMeta.duration) - (trimming ? trimming.min : 0),
+                title: videoMeta.title,
+                duration: videoMeta.duration,
+                type: videoMeta.type,
+                hidden: false,
+                target: 'video-container',
+                mobile: true,
+                width: 100,
+                height: 100,
+                top: 0,
+                left: 0,
+                volume: 100,
+                mute: false,
+                zindex: MAX_ZINDEX - media.tracks.length,
+                id: elementId,
+              },
+              track: layerId,
+              name: elementId,
+            }],
+          });
+        }
+      });
+    }
+    this.recompressProject(trimming ? (trimming.max - trimming.min) : videoMeta.duration);
+  };
 
   @computed
   get element() {
@@ -892,64 +1087,9 @@ export default class ProjectStore extends BaseStore {
     });
   };
 
-  constructor(props) {
-    super(props);
-    this.layers = [];
-    this.elements = [];
-    this.mediaTypeDetector = new MediaTypeDetector();
-    reaction(
-      () => this.popcorn,
-      () => {
-        if (!this.popcorn.on) {
-          return;
-        }
-        this.popcorn.on('canplayall', () => {
-          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
-          this.isLoaded = true;
-        });
-        this.popcorn.on('elementUpdated', (data) => {
-          const { element, options } = data;
-          this.findAndUpdate(element.id, options);
-        });
-        this.popcorn.on('timeupdate', () => {
-          this.time = this.popcorn.currentTime() * SANTISECOND;
-        });
-        this.popcorn.on('ended', () => {
-          this.time = 0;
-          this.updateTime(0);
-        });
-        this.popcorn.on('pause', () => {
-          this.isPlayed = false;
-        });
-        this.popcorn.on('play', () => {
-          this.isPlayed = true;
-        });
-        emitter.on(emitterActions.SELECT, id => {
-          this.editElement(id);
-          const element = this.getElementById(id);
-          this.updateTime(element.popcornOptions.start * SANTISECOND);
-        });
-        emitter.on(emitterActions.DELETE, id => {
-          this.removeElement(id);
-        });
-        emitter.on(emitterActions.SEQUENCES_LOADING, () => {
-          this.isLoadingSequencer = true;
-        });
-        emitter.on(emitterActions.SEQUENCES_READY, () => {
-          this.isLoadingSequencer = false;
-        });
-      },
-    );
-  }
-
   @computed
   get popcornElements() {
     return this.popcornObject.popcornElements;
-  }
-
-  @computed
-  get videoUrl() {
-    return openVideoUrl(this.item.url, this.getPersonalization());
   }
 
   @action

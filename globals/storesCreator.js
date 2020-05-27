@@ -10,6 +10,7 @@ import ModalStore from './stores/modal.store';
 import MediaStore from './stores/media.store';
 import UIStore from './stores/ui.store';
 import PresetStore from './stores/preset.store';
+import MakeStore from './stores/make.store';
 import WhiteLabelManager from '../lib/white-label/manager';
 
 let creator = null;
@@ -37,6 +38,7 @@ class Creator {
   @observable
   currentUser = null;
 
+  @observable
   whiteLabelManager = null;
 
   constructor(isServer, source, req) {
@@ -88,6 +90,7 @@ class Creator {
       isServer,
       () => this.refreshToken(),
     );
+    this.assetsRequest = requestCreator(common.assetsPath, this.authorization, isServer, () => {});
   }
 
   async refreshToken() {
@@ -147,30 +150,43 @@ export async function initCreateStores(isServer, source, req, preloader) {
       cdnHostname: config.s3.cdn,
       facebookAppId: config.facebookAppId,
       linkedinAppId: config.linkedinAppId,
+      whiteLabel: config.whiteLabel,
     };
   }
 
   if (isServer || !creator) {
     creator = new Creator(isServer, source, req);
+    const userStore = new UserStore(creator.currentUser);
     const projectStore = new ProjectStore({
       request: creator.request,
       common: creator.common,
       isServer,
       currentUser: creator.currentUser,
+      userStore,
     });
 
     stores = {
-      common: creator.common,
+      common: {
+        ...creator.common,
+        whiteLabelManager: creator.whiteLabelManager,
+      },
       mediaStore: new MediaStore({
         request: creator.request,
         common: creator.common,
         isServer,
         currentUser: creator.currentUser,
+        assetsRequest: creator.assetsRequest,
       }),
       projectStore,
       modalStore: ModalStore(),
       uiStore: new UIStore({ projectStore }),
-      userStore: new UserStore(creator.currentUser),
+      userStore,
+      makeStore: new MakeStore({
+        request: creator.request,
+        common: creator.common,
+        isServer,
+        currentUser: creator.currentUser,
+      }),
       presetStore: new PresetStore({
         request: creator.request,
         common: creator.common,
@@ -193,24 +209,36 @@ export function init(source) {
   if (!creator) {
     const isServer = false;
     creator = new Creator(false, source);
+    const userStore = new UserStore(creator.currentUser);
     const projectStore = new ProjectStore({
       request: creator.request,
       common: creator.common,
       isServer,
       currentUser: creator.currentUser,
+      userStore,
     });
     stores = {
-      common: creator.common,
+      common: {
+        ...creator.common,
+        whiteLabelManager: creator.whiteLabelManager,
+      },
       modalStore: ModalStore(),
       mediaStore: new MediaStore({
         request: creator.request,
         common: creator.common,
         isServer,
         currentUser: creator.currentUser,
+        assetsRequest: creator.assetsRequest,
       }),
       projectStore,
       uiStore: new UIStore({ projectStore }),
-      userStore: new UserStore(creator.currentUser),
+      userStore,
+      makeStore: new MakeStore({
+        request: creator.request,
+        common: creator.common,
+        isServer,
+        currentUser: creator.currentUser,
+      }),
       presetStore: new PresetStore({
         request: creator.request,
         common: creator.common,

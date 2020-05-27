@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import Grid from '@material-ui/core/Grid';
 import { useAsync } from 'react-async-hook';
-import { CircleLoader } from 'react-spinners';
 
 import classnames from 'classnames';
+import Loader from './common/Loader';
 import Canvas from './Canvas';
 import Timeline from './Timeline';
 import Library from './media/Library';
@@ -26,15 +26,29 @@ import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import { CANVAS_SIZES } from '../lib/constants/media';
 import { DEFAULT_RATIO } from '../lib/constants/project';
-import { LOADING_COLOR, WINDOW_TYPES } from '../lib/constants/ui';
+import { WINDOW_TYPES } from '../lib/constants/ui';
 import { ROUTES } from '../lib/constants/routing';
 import AnimatedWindow from './common/AnimatedWindow';
+import { TEMPLATE_GENERATOR_MODAL } from '../lib/constants/modals';
 
 const Home = observer(() => {
   const { pathname, query: { project, remix }, push } = useRouter();
   const projectStore = useProjectStore();
+  const userStore = useUserStore();
+
+  const {
+    optinCodeEnabled,
+    isSuperAdmin,
+    isfeatureEnabled,
+    recorderEnabled,
+    stickersEnabled,
+    lowerThirdsEnabled,
+    templateGeneratorEnabled,
+    linkedinEnabled,
+  } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
+  const [shouldShowTGModal, setShouldShowTGModal] = useState(templateGeneratorEnabled);
 
   React.useEffect(() => {
     if (!project && pathname !== ROUTES.edit) {
@@ -43,9 +57,20 @@ const Home = observer(() => {
       },
       undefined,
       { shallow: true },
-      );
+      )
+        .finally(() => {
+          if (shouldShowTGModal) {
+            openModal(TEMPLATE_GENERATOR_MODAL);
+          }
+          setShouldShowTGModal(false);
+        });
+    } else {
+      if (shouldShowTGModal && !project && !remix) {
+        openModal(TEMPLATE_GENERATOR_MODAL);
+      }
+      setShouldShowTGModal(false);
     }
-  }, [pathname, project, push]);
+  }, [shouldShowTGModal, pathname, project, remix, push]);
 
   const asyncHero = useAsync(
     project
@@ -70,7 +95,7 @@ const Home = observer(() => {
   } = uiStore;
 
   const {
-    item: { ratio: { width, height } = DEFAULT_RATIO, allowedSocials },
+    item: { ratio: { width, height } = DEFAULT_RATIO, allowedSocials, url: videoUrl },
     updateItem,
     updateAnimation,
     isLoading,
@@ -79,12 +104,7 @@ const Home = observer(() => {
     modified,
     addRetargetForm,
     releaseElement,
-    videoUrl,
   } = projectStore;
-
-  const userStore = useUserStore();
-
-  const { optinCodeEnabled, isSuperAdmin, isfeatureEnabled, recorderEnabled } = userStore;
 
   const SecondaryWindow = React.useMemo(() => {
     switch (secondaryWindowType) {
@@ -141,6 +161,9 @@ const Home = observer(() => {
         isSuperAdmin,
         isfeatureEnabled,
         recorderEnabled,
+        stickersEnabled,
+        lowerThirdsEnabled,
+        linkedinEnabled,
       },
     });
     return items && items.length ? items : [];
@@ -155,26 +178,13 @@ const Home = observer(() => {
     videoUrl,
     userStore,
     allowedSocials,
+    linkedinEnabled,
   ]);
 
   return (
     <React.Fragment>
       {(asyncHero.loading) && ( // todo implement loading
-        <CircleLoader
-          size={100}
-          class="loading"
-          css={{
-            margin: 'auto',
-            position: 'absolute',
-            top: 0,
-            bottom: '0',
-            left: '0',
-            right: '0',
-            zIndex: 10000,
-          }}
-          loading
-          color={LOADING_COLOR}
-        />
+        <Loader isLoading />
       )}
       {asyncHero.error && ( // todo implement err message
         <div>Error</div>
@@ -182,21 +192,7 @@ const Home = observer(() => {
       {(!asyncHero.loading || isLoaded) && (
         <div className={classnames('home', { disabled: isLoading })}>
           { isLoading ? <div className="hover-loading" /> : null }
-          <CircleLoader
-            size={100}
-            class="loading"
-            css={{
-              margin: 'auto',
-              position: 'absolute',
-              top: 0,
-              bottom: '0',
-              left: '0',
-              right: '0',
-              zIndex: 10000,
-            }}
-            loading={isLoading}
-            color={LOADING_COLOR}
-          />
+          <Loader isLoading={isLoading} />
           <Grid container className="controls">
             <Grid item xs={toolsWidth} style={{ minWidth: '105px' }}>
               <Grid container>
@@ -217,7 +213,6 @@ const Home = observer(() => {
 
               </Grid>
             </Grid>
-
             <Grid item xs={canvasWidth}>
               <Canvas />
             </Grid>
