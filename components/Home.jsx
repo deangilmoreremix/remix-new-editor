@@ -44,6 +44,7 @@ const Home = observer(() => {
     stickersEnabled,
     lowerThirdsEnabled,
     templateGeneratorEnabled,
+    linkedinEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -94,7 +95,7 @@ const Home = observer(() => {
   } = uiStore;
 
   const {
-    item: { ratio: { width, height } = DEFAULT_RATIO, allowedSocials },
+    item: { ratio: { width, height } = DEFAULT_RATIO, allowedSocials, url: videoUrl },
     updateItem,
     updateAnimation,
     isLoading,
@@ -103,7 +104,6 @@ const Home = observer(() => {
     modified,
     addRetargetForm,
     releaseElement,
-    videoUrl,
   } = projectStore;
 
   const SecondaryWindow = React.useMemo(() => {
@@ -163,6 +163,7 @@ const Home = observer(() => {
         recorderEnabled,
         stickersEnabled,
         lowerThirdsEnabled,
+        linkedinEnabled,
       },
     });
     return items && items.length ? items : [];
@@ -177,6 +178,7 @@ const Home = observer(() => {
     videoUrl,
     userStore,
     allowedSocials,
+    linkedinEnabled,
   ]);
 
   return (
