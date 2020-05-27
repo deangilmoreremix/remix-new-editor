@@ -19,12 +19,92 @@ import {
   PAUSE_PLUGIN_TIME_MARGIN,
   DEFAULT_LAYER,
   DEFAULT_ITEM,
+  SOCIALS,
 } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-import { getCustomVarsFromMediaArr, openVideoUrl } from '../../lib/utils/tokens-helper';
+import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 
 export default class ProjectStore extends BaseStore {
+  constructor(props) {
+    super(props);
+    this.layers = [];
+    this.elements = [];
+    this.mediaTypeDetector = new MediaTypeDetector();
+    this.userStore = props.userStore;
+    reaction(
+      () => this.popcorn,
+      () => {
+        if (!this.popcorn.on) {
+          return;
+        }
+        this.popcorn.on('canplayall', () => {
+          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
+          this.isLoaded = true;
+        });
+        this.popcorn.on('elementUpdated', (data) => {
+          const { element, options } = data;
+          this.findAndUpdate(element.id, options);
+        });
+        this.popcorn.on('timeupdate', () => {
+          this.time = this.popcorn.currentTime() * SANTISECOND;
+        });
+        this.popcorn.on('ended', () => {
+          this.time = 0;
+          this.updateTime(0);
+        });
+        this.popcorn.on('pause', () => {
+          this.isPlayed = false;
+        });
+        this.popcorn.on('play', () => {
+          this.isPlayed = true;
+        });
+        emitter.on(emitterActions.SELECT, id => {
+          if (id) {
+            this.editElement(id);
+          }
+          const element = this.getElementById(id);
+          if (element && element.popcornOptions) {
+            this.updateTime(element.popcornOptions.start * SANTISECOND);
+          }
+        });
+        emitter.on(emitterActions.DELETE, id => {
+          this.removeElement(id);
+        });
+        emitter.on(emitterActions.SEQUENCES_LOADING, () => {
+          this.isLoadingSequencer = true;
+        });
+        emitter.on(emitterActions.SEQUENCES_READY, () => {
+          this.isLoadingSequencer = false;
+        });
+        emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
+          this.elements = this.elements.map(el => {
+            if (el.id === id) {
+              return {
+                ...el,
+                dimensions: { width, height },
+              };
+            }
+            return el;
+          });
+        });
+      },
+    );
+
+    reaction(
+      () => this.item.allowedSocials
+        && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
+      () => {
+        if (!this.userStore.linkedinEnabled) {
+          this.item.allowedSocials = this.item.allowedSocials
+            .filter(allowedSocial => allowedSocial !== SOCIALS.LINKEDIN);
+        }
+      },
+    );
+  }
+
+  @observable userStore = {};
+
   @observable activeElementId;
 
   @observable assets = [];
@@ -898,7 +978,7 @@ export default class ProjectStore extends BaseStore {
     });
 
   fromTemplate = async (makeTemplate = {}, video, isSource) => {
-    this.item.allowedSocials = ['facebook', 'linkedin'];
+    this.item.allowedSocials = ['facebook'];
     this.item.title = makeTemplate.title;
     this.item.description = makeTemplate.description;
     this.modified = true;
@@ -1006,82 +1086,9 @@ export default class ProjectStore extends BaseStore {
     });
   };
 
-  constructor(props) {
-    super(props);
-    this.layers = [];
-    this.elements = [];
-    this.mediaTypeDetector = new MediaTypeDetector();
-    reaction(
-      () => this.popcorn,
-      () => {
-        if (!this.popcorn.on) {
-          return;
-        }
-        this.popcorn.on('canplayall', () => {
-          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
-          this.isLoaded = true;
-        });
-        this.popcorn.on('elementUpdated', (data) => {
-          const { element, options } = data;
-          this.findAndUpdate(element.id, options);
-        });
-        this.popcorn.on('timeupdate', () => {
-          this.time = this.popcorn.currentTime() * SANTISECOND;
-        });
-        this.popcorn.on('ended', () => {
-          this.time = 0;
-          this.updateTime(0);
-        });
-        this.popcorn.on('pause', () => {
-          this.isPlayed = false;
-        });
-        this.popcorn.on('play', () => {
-          this.isPlayed = true;
-        });
-        emitter.on(emitterActions.SELECT, id => {
-          if (id) {
-            this.editElement(id);
-          }
-          const element = this.getElementById(id);
-          if (element && element.popcornOptions) {
-            this.updateTime(element.popcornOptions.start * SANTISECOND);
-          }
-        });
-        emitter.on(emitterActions.DELETE, id => {
-          this.removeElement(id);
-        });
-        emitter.on(emitterActions.SEQUENCES_LOADING, () => {
-          this.isLoadingSequencer = true;
-        });
-        emitter.on(emitterActions.SEQUENCES_READY, () => {
-          this.isLoadingSequencer = false;
-        });
-        emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
-          this.elements = this.elements.map(el => {
-            if (el.id === id) {
-              return {
-                ...el,
-                dimensions: { width, height },
-              };
-            }
-            return el;
-          });
-        });
-      },
-    );
-  }
-
   @computed
   get popcornElements() {
     return this.popcornObject.popcornElements;
-  }
-
-  @computed
-  get videoUrl() {
-    if (!this.projectData) {
-      return null;
-    }
-    return openVideoUrl(this.item.url, this.getPersonalization());
   }
 
   @action

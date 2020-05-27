@@ -6,6 +6,7 @@ import { ASSET_TYPES } from '../../../lib/constants/media';
 import { tabItems } from '../../../lib/constants/library';
 
 import useProjectStore from '../../hooks/useProjectStore';
+import useUserStore from '../../hooks/useUserStore';
 
 import FieldBuilder from '../../form/FieldBuilder';
 import DropzoneArea from '../../media/DropzoneArea';
@@ -16,6 +17,7 @@ const SettingPanel = observer(() => {
 
   const titleRef = React.useRef(null);
 
+  const { linkedinEnabled } = useUserStore();
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
 
@@ -100,6 +102,9 @@ const SettingPanel = observer(() => {
             onChange={updateSocials}
             floatClassName="settings-checkbox"
           />
+          {
+            linkedinEnabled
+          && (
           <FieldBuilder
             type="checkbox"
             name="linkedin"
@@ -108,6 +113,8 @@ const SettingPanel = observer(() => {
             onChange={updateSocials}
             floatClassName="settings-checkbox"
           />
+          )
+          }
         </div>
 
         <div className="settings__row">

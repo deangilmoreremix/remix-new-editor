@@ -32,7 +32,7 @@ const Menu = observer((
     <button
       key={`menu-${buttonItem.title}`}
       onClick={onClick
-        ? (() => handleAction(buttonItem.value)) : (() => handleAction(buttonItem.action))}
+        ? (() => onClick(buttonItem.value)) : (() => handleAction(buttonItem.action))}
       className="menu__item"
     >
       {buttonItem.icon ? (

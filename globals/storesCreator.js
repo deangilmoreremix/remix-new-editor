@@ -156,11 +156,13 @@ export async function initCreateStores(isServer, source, req, preloader) {
 
   if (isServer || !creator) {
     creator = new Creator(isServer, source, req);
+    const userStore = new UserStore(creator.currentUser);
     const projectStore = new ProjectStore({
       request: creator.request,
       common: creator.common,
       isServer,
       currentUser: creator.currentUser,
+      userStore,
     });
 
     stores = {
@@ -178,7 +180,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       projectStore,
       modalStore: ModalStore(),
       uiStore: new UIStore({ projectStore }),
-      userStore: new UserStore(creator.currentUser),
+      userStore,
       makeStore: new MakeStore({
         request: creator.request,
         common: creator.common,
@@ -207,11 +209,13 @@ export function init(source) {
   if (!creator) {
     const isServer = false;
     creator = new Creator(false, source);
+    const userStore = new UserStore(creator.currentUser);
     const projectStore = new ProjectStore({
       request: creator.request,
       common: creator.common,
       isServer,
       currentUser: creator.currentUser,
+      userStore,
     });
     stores = {
       common: {
@@ -228,7 +232,7 @@ export function init(source) {
       }),
       projectStore,
       uiStore: new UIStore({ projectStore }),
-      userStore: new UserStore(creator.currentUser),
+      userStore,
       makeStore: new MakeStore({
         request: creator.request,
         common: creator.common,
