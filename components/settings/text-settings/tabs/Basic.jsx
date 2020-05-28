@@ -1,23 +1,24 @@
-import React, { Fragment, useCallback } from 'react';
+import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../../../lib/PropTypes';
 
 import FieldBuilder from '../../../form/FieldBuilder';
 import useUIStore from '../../../hooks/useUIStore';
-import { iconAlignment, iconPosition } from '../../../../lib/constants/settings/vrtext-element';
+import { iconAlignmentHorizontal, iconPositionVertical, padding, TEXT_POSITION } from '../../../../lib/constants/settings/vrtext-element';
 
 import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
 import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 
 const Basic = observer(({ values, fields, onChange, closeModal }) => {
+  const [positionHorizontal, setPositionHorizontal] = useState();
+  const [positionVertical, setPositionVertical] = useState();
+
   const { openAnimation } = useUIStore();
 
   const {
     start,
     end,
-    alignment,
-    position,
     text,
     caretOffset,
     urlCaretOffset,
@@ -27,6 +28,8 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
     linkTarget,
     callNotifyAddress,
     rotation,
+    width,
+    height,
   } = values;
 
   const openLibrary = () => {
@@ -43,6 +46,66 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
     const result = addToken(linkUrl, token, urlCaretOffset);
     onChange({ linkUrl: result, htmlUrl: wrapTokens(result) });
   }, [linkUrl, urlCaretOffset, onChange]);
+
+  useEffect(() => {
+    if (width) {
+      setPositionHorizontal(null);
+    }
+  }, [width]);
+
+  useEffect(() => {
+    if (height) {
+      setPositionVertical(null);
+    }
+  }, [height]);
+
+  const changePositionHorizontal = useCallback(
+    (field) => {
+      const position = field.alignment;
+      const elementWidth = width || fields.width.default;
+
+      setPositionHorizontal(position);
+
+      switch (position) {
+        case TEXT_POSITION.LEFT:
+          onChange({ left: padding });
+          break;
+        case TEXT_POSITION.CENTER:
+          onChange({ left: (100 - elementWidth) / 2 });
+          break;
+        case TEXT_POSITION.RIGHT:
+          onChange({ left: 100 - (elementWidth + padding) });
+          break;
+        default:
+          onChange({ left: padding });
+          break;
+      }
+    }, [width],
+  );
+
+  const changePositionVertical = useCallback(
+    (field) => {
+      const { position } = field;
+      const elementHeight = height || fields.height.default;
+
+      setPositionVertical(position);
+
+      switch (position) {
+        case TEXT_POSITION.TOP:
+          onChange({ top: padding });
+          break;
+        case TEXT_POSITION.MIDDLE:
+          onChange({ top: (100 - (elementHeight + (padding * 2))) / 2 });
+          break;
+        case TEXT_POSITION.BOTTOM:
+          onChange({ top: (100 - (elementHeight + padding)) });
+          break;
+        default:
+          onChange({ top: padding });
+          break;
+      }
+    }, [height],
+  );
 
   return (
     <Fragment>
@@ -68,16 +131,16 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
           <span className="text-position-container-label text-settings-label">Text</span>
           <div className="text-position-container-icons">
             <FieldBuilder
-              value={alignment || fields.alignment.default}
+              value={positionHorizontal || null}
               {...fields.alignment}
-              onChange={onChange}
-              items={iconAlignment}
+              onChange={changePositionHorizontal}
+              items={iconAlignmentHorizontal}
             />
             <FieldBuilder
-              value={position || fields.position.default}
+              value={positionVertical || null}
               {...fields.position}
-              onChange={onChange}
-              items={iconPosition}
+              onChange={changePositionVertical}
+              items={iconPositionVertical}
             />
           </div>
         </div>

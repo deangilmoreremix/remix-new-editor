@@ -82,6 +82,9 @@ module.exports = {
     maxDuration: process.env.MAX_VIDEO_DURATION || 60, // in seconds
     maxSize: process.env.MAX_VIDEO_SIZE || 100 * 1024 * 1024, // in bytes
   },
+  image: {
+    maxSize: process.env.MAX_IMAGE_SIZE || 5 * 1024 * 1024, // in bytes
+  },
   posterframe: process.env.DEFAULT_POSTERFRAME || 'https://cdn.vidcloud.io/resources/go/posterframe_default.jpg',
   facebookAppId: process.env.FACEBOOK_APP_ID || '766265603823913',
   linkedinAppId: process.env.LINKEDIN_APP_ID || '77dc93kxh13kfc',

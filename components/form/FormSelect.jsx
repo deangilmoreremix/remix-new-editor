@@ -6,6 +6,8 @@ import FormGroup from '@material-ui/core/FormGroup';
 import Box from '@material-ui/core/Box';
 import PropTypes from '../../lib/PropTypes';
 
+import { FONT_FAMILY } from '../../lib/constants/popcorn';
+
 const FormSelect = React.forwardRef((props, ref) => {
   const {
     items,
@@ -20,6 +22,13 @@ const FormSelect = React.forwardRef((props, ref) => {
 
   const handleChange = data => {
     onChange(data.value);
+  };
+
+  const fontFamily = {
+    option: (styles, { data }) => ({
+      ...styles,
+      fontFamily: data.value,
+    }),
   };
 
   return (
@@ -42,6 +51,7 @@ const FormSelect = React.forwardRef((props, ref) => {
           onChange={handleChange}
           options={items}
           value={items.find(i => i.value === value)}
+          styles={rest.name === FONT_FAMILY && fontFamily}
           {...rest}
         />
       </Box>
