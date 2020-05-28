@@ -58,6 +58,7 @@ const Advanced = ({ values, fields, onChange }) => {
             name={fields.fontFamily.name}
             {...fields.fontFamily}
             onChange={onChange}
+            className="font-section__input"
           />
           <FieldBuilder
             value={fontSize || fields.fontSize.default}
