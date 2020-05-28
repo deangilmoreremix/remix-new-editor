@@ -82,12 +82,12 @@ const DropzoneArea = (
         <input {...getInputProps()} disabled={isDisabled} multiple={multiple} />
 
         {
-          image || value
-            ? <img src={image || value} alt="" />
+          value
+            ? <img src={value} alt="" />
             : (<p className="drag-drop__text">Drag and drop an image here, or click to upload</p>)
         }
         {
-          !image && !value && isArrows && (
+          ((!image && !value) || !value) && isArrows && (
             <Fragment>
               <SVGInline className="drag-arrow drag-arrow-upper-left" svg={arrowIcon} cleanup={['arrow']} />
               <SVGInline className="drag-arrow drag-arrow-upper-right" svg={arrowIcon} cleanup={['arrow']} />

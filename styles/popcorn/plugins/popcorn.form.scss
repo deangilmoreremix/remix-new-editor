@@ -65,6 +65,7 @@
       justify-content: space-between;
       align-items: center;
       max-width: 32em;
+      height: 2em;
     }
 
     .input-buttons {
@@ -76,6 +77,7 @@
       padding: 1% 0;
       display: inline-flex;
       width: 100%;
+      height: 100%;
 
       textarea, input {
         width: inherit;
