@@ -77,7 +77,7 @@ const Canvas = observer(() => {
       setFontSize(`${DEFAULT_FONT_SIZE * (wrapper.current.offsetWidth / DEFAULT_VIDEO_WIDTH)}px`);
       runTextfill();
     }
-  }, [runTextfill, style]);
+  }, [style]);
 
   useEffect(() => {
     runTextfill();
@@ -86,7 +86,7 @@ const Canvas = observer(() => {
   return (
     <div ref={ref} className={classnames('stager-wrapper', { 'stager-wrapper-big': !isTimelineOpen })}>
       <GuidelinesActivation marginLeft={style.margin && style.margin.split(' ')[1]} />
-      <div style={{ ...style, fontSize }} className="embed-wrapper">
+      <div style={{ ...style }} className="embed-wrapper">
         {hasGuidLines && <Guidelines />}
 
         { isLoadingSequencer ? <div className="hover-loading" /> : null }
@@ -106,7 +106,7 @@ const Canvas = observer(() => {
           color={LOADING_COLOR}
         />
 
-        <div id={DEFAULT_CONTAINER} ref={wrapper} className="video-container">
+        <div id={DEFAULT_CONTAINER} ref={wrapper} className="video-container" style={{ fontSize }}>
           <div
             id="video"
             className="video"

@@ -36,6 +36,18 @@ const Advanced = ({ values, fields, onChange }) => {
     onChange({ [fields.fontDecorations.name]: { ...fontDecorations, ...option } });
   };
 
+  const checkboxBoxShadow = (value) => {
+    onChange({ ...value, shadowColor: shadowColor || fields.shadowColor.default });
+  };
+
+  const checkboxStroke = (value) => {
+    onChange({ ...value, strokeColor: strokeColor || fields.strokeColor.default });
+  };
+
+  const checkboxBackground = (value) => {
+    onChange({ ...value, backgroundColor: backgroundColor || fields.backgroundColor.default });
+  };
+
   return (
     <Fragment>
       <div className="advanced-settings-container">
@@ -46,6 +58,7 @@ const Advanced = ({ values, fields, onChange }) => {
             name={fields.fontFamily.name}
             {...fields.fontFamily}
             onChange={onChange}
+            className="font-section__input"
           />
           <FieldBuilder
             value={fontSize || fields.fontSize.default}
@@ -96,19 +109,19 @@ const Advanced = ({ values, fields, onChange }) => {
               value={shadow || fields.shadow.default}
               name={fields.shadow.name}
               {...fields.shadow}
-              onChange={onChange}
+              onChange={checkboxBoxShadow}
             />
             <FieldBuilder
               value={stroke || fields.stroke.default}
               name={fields.stroke.name}
               {...fields.stroke}
-              onChange={onChange}
+              onChange={checkboxStroke}
             />
             <FieldBuilder
               value={background || fields.background.default}
               name={fields.background.name}
               {...fields.background}
-              onChange={onChange}
+              onChange={checkboxBackground}
             />
           </div>
         </div>

@@ -13,7 +13,7 @@ import ExpandButton from './common/ExpandButton';
 import { ROUTES } from '../lib/constants/routing';
 import { PRODUCE_TABS, USER_MENU_ITEMS } from '../lib/constants/ui';
 
-import logoIcon from '../public/static/svgImages/header/logo.svg';
+// import logoIcon from '../public/static/svgImages/header/logo.svg';
 // import redoIcon from '../public/static/svgImages/header/redo.svg';
 // import undoIcon from '../public/static/svgImages/header/undo.svg';
 import saveIcon from '../public/static/svgImages/header/save.svg';
@@ -113,12 +113,12 @@ const MenuAppBar = observer(() => {
               {/* /> */}
             </Grid>
             <Grid item xs={2} className="flex-vertical-center">
-              <SVGInline
-                className="logo flex"
-                classSuffix=""
-                svg={logoIcon}
-                cleanup={['title']}
-              />
+              {/* <SVGInline */}
+              {/* className="logo flex" */}
+              {/* classSuffix="" */}
+              {/* svg={logoIcon} */}
+              {/* cleanup={['title']} */}
+              {/* /> */}
             </Grid>
             <Grid item xs={1} className="flex-vertical-center">
               <div className="auto-margin">
