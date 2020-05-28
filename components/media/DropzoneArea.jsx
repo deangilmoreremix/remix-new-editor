@@ -58,7 +58,7 @@ const DropzoneArea = (
           endUpload();
         }
       });
-  }, [endUpload, multiple, onUploaded, startUpload, storeAsset, type, uploadMedia]);
+  }, [uploadMedia]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
