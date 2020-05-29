@@ -184,13 +184,15 @@ const Library = observer(() => {
       } else if (isImage) {
         if (config.image.maxSize < file.size) {
           wrongSize.push(file);
+        } else {
+          files.push(file);
         }
       } else if (isVideo) {
         if (config.video.maxSize < file.size) {
           wrongSize.push(file);
+        } else {
+          files.push(file);
         }
-      } else {
-        files.push(file);
       }
     });
     const errorFilesText = (errorFiles, text) => `
