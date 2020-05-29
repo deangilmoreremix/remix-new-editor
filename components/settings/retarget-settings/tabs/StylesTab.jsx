@@ -206,6 +206,7 @@ const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
             value={values.transition || fields.transition.default}
             {...fields.transition}
             onChange={onChange}
+            className="container-transition-list"
           />
         </div>
       </div>

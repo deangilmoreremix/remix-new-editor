@@ -68,8 +68,13 @@
     min-width: 8rem;
   }
   .slider-container {
-    width: 55%;
+    width: 48%;
   }
+}
+
+.font-section__input {
+  width: 48%;
+  z-index: 2;
 }
 
 .font-decoration-section {

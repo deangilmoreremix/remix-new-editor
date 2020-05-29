@@ -40,6 +40,8 @@ const FieldsTab = ({ values, fields, onChange }) => {
         // eslint-disable-next-line no-prototype-builtins
         if (option && !option.hasOwnProperty(INPUT_NAME)) {
           element.type = option.elements;
+          element.label = option.elements;
+          element.value = option.elements;
         } else {
           element.label = option[INPUT_NAME];
           element.token = option[INPUT_NAME].toUpperCase();
@@ -83,7 +85,7 @@ const FieldsTab = ({ values, fields, onChange }) => {
             onChange={(v) => handleChangeInput(v, item.id)}
           />
           <FieldBuilder
-            value={isValuePresent(values.elements) ? values.elements : fields.elements.default}
+            value={item.value}
             {...fields.elements}
             onChange={(v) => handleChangeInput(v, item.id)}
           />
