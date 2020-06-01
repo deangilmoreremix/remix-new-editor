@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
-import { USER_ITEMS } from '../../../lib/constants/library';
+import { LIBRARY_KEYS } from '../../../lib/constants/library';
 
 const ProviderList = (props) => {
   const {
@@ -27,7 +27,7 @@ const ProviderList = (props) => {
                 'library__btn-item',
                 {
                   'library__btn-active': activeItem === element,
-                  'library__btn-user': element === USER_ITEMS,
+                  'library__btn-user': element === LIBRARY_KEYS.USER,
                 },
               )}
               onClick={() => handleButtonClick(element)}
@@ -40,7 +40,9 @@ const ProviderList = (props) => {
                 />
               )}
               <p>
-                {element === USER_ITEMS ? `${list[element].name} ${userContentTitle}` : list[element].name}
+                {element === LIBRARY_KEYS.USER
+                  ? `${list[element].name} ${userContentTitle}`
+                  : list[element].name}
               </p>
             </button>
           ))

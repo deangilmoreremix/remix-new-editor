@@ -5,8 +5,7 @@ import { observer } from 'mobx-react';
 import { generatorTabs } from '../../../lib/constants/templateGenerator';
 
 import useMediaStore from '../../hooks/useMediaStore';
-import { PROVIDERS } from '../../../lib/constants/library';
-import { ASSET_TYPES, REMOTE_ASSET_TYPES } from '../../../lib/constants/media';
+import { ASSET_TYPES } from '../../../lib/constants/media';
 import { showError } from '../../../lib/services/alertService';
 import VideoGallery from '../../media/VideoGallery/VideoGallery';
 
@@ -14,7 +13,8 @@ const perPage = 10;
 
 const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
   const mediaStore = useMediaStore();
-  const provider = PROVIDERS.USER;
+  const provider = mediaStore.providersList.USER;
+  const remoteProvider = mediaStore.providersList.REMOTE;
   const assetType = ASSET_TYPES.VIDEO;
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
@@ -54,12 +54,15 @@ const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
             providerName: provider,
           });
         } else {
-          results = await mediaStore.getRemoteMedia({
-            assetType: REMOTE_ASSET_TYPES.VIDEOS,
-            count: videos.length,
+          const response = await mediaStore.getAssets({
+            assetType,
+            page,
             perPage,
             query,
+            providerName: remoteProvider,
           });
+          const count = videos.length;
+          results = response.slice(count, count + perPage);
         }
         const hasNextPage = results.length === perPage;
         setVideos(videos.concat(results));

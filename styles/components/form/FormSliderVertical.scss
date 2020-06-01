@@ -1,0 +1,34 @@
+.vertical-slider {
+  display: flex;
+  position: relative;
+
+  .MuiSlider-vertical .MuiSlider-thumb {
+    margin-left: -7px;
+  }
+
+  &-label {
+    height: 50%;
+    font-size: 0.8rem;
+    color: $white;
+  }
+
+  &-range {
+    height: 100%;
+  }
+
+  &-input {
+    border: 1px solid $white;
+
+    input {
+      text-align: center;
+      font-size: 0.8rem;
+
+      -moz-appearance: textfield;
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+    }
+  }
+}

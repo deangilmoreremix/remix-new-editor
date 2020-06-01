@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 
-import FormSlider from '../../form/FormSlider';
+import FormSliderVertical from '../../form/FormSliderVertical';
 
 const AudioControls = observer(({ selected, volume, setVolume }) => {
   const track = React.useMemo(() => {
@@ -17,8 +17,11 @@ const AudioControls = observer(({ selected, volume, setVolume }) => {
         {track}
       </div>
       <div className="volume-container">
-        <FormSlider
-          containerClassName="volume-input"
+        <FormSliderVertical
+          containerClassName="volume-control"
+          labelClassName="volume-control-label"
+          inputClassName="volume-control-input"
+          sliderClassName="volume-control-range"
           label="Volume"
           onChange={setVolume}
           minValue={0}

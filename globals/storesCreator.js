@@ -151,6 +151,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       facebookAppId: config.facebookAppId,
       linkedinAppId: config.linkedinAppId,
       whiteLabel: config.whiteLabel,
+      mediaProviders: config.mediaProviders,
     };
   }
 
@@ -176,6 +177,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
         isServer,
         currentUser: creator.currentUser,
         assetsRequest: creator.assetsRequest,
+        userStore,
       }),
       projectStore,
       modalStore: ModalStore(),
@@ -229,6 +231,7 @@ export function init(source) {
         isServer,
         currentUser: creator.currentUser,
         assetsRequest: creator.assetsRequest,
+        userStore,
       }),
       projectStore,
       uiStore: new UIStore({ projectStore }),
