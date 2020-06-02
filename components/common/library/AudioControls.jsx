@@ -13,9 +13,6 @@ const AudioControls = observer(({ selected, volume, setVolume }) => {
 
   return (
     <div className="library__audio-controls">
-      <div className="track-name">
-        {track}
-      </div>
       <div className="volume-container">
         <FormSliderVertical
           containerClassName="volume-control"
@@ -29,6 +26,9 @@ const AudioControls = observer(({ selected, volume, setVolume }) => {
           name="volume"
           value={volume}
         />
+      </div>
+      <div className="track-name">
+        {track}
       </div>
     </div>
   );

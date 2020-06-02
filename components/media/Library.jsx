@@ -155,7 +155,7 @@ const Library = observer(() => {
         filter: { _id: { $nin: uploaded } },
       });
 
-      if (data.length) {
+      if (data) {
         if (!isScrolling) {
           setItems(data);
           // Loading new items when scrolling
