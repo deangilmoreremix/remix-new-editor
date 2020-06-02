@@ -13,7 +13,7 @@ module.exports = {
     devDefault: 'videoremix.io',
   },
   editor: process.env.EDITOR || 'dev-app.vidcloud.io',
-  assetsPath: process.env.ASSETS_PATH || 'dev-cdn.vidcloud.io/resources/go',
+  assetsPath: process.env.ASSETS_PATH || 'https://dev-cdn.vidcloud.io/resources/go',
   socketProtocol: process.env.SOCKET_PROTOCOL || 'ws',
   nakedRun: process.env.NAKED_RUN || false,
   client: {

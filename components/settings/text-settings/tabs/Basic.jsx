@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../../../lib/PropTypes';
@@ -107,6 +107,16 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
     }, [height],
   );
 
+  const textToRender = useMemo(() => {
+    if (htmlText !== undefined) {
+      return htmlText;
+    } else if (htmlText === undefined && text !== undefined) {
+      return wrapTokens(text);
+    } else {
+      return fields.htmlText.default;
+    }
+  }, [htmlText, text, fields]);
+
   return (
     <Fragment>
       <div className="text-container">
@@ -147,7 +157,7 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
         <FieldBuilder
           className="input-textarea-container"
           inputClassName="input-text-area"
-          value={typeof (htmlText) !== 'undefined' ? htmlText : fields.htmlText.default}
+          value={textToRender}
           {...fields.htmlText}
           onChange={onChange}
           updateCaret={(value) => onChange({ caretOffset: value })}

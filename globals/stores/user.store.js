@@ -1,7 +1,6 @@
 import { observable, computed } from 'mobx';
 
 import { STATE, FEATURES } from '../../lib/constants/features';
-import { DEFAULT_PROVIDERS, LIBRARY_KEYS, libraryProviders } from '../../lib/constants/library';
 
 export default class UserStore {
   @observable currentUser = null;
@@ -42,41 +41,6 @@ export default class UserStore {
   @computed
   get optinCodeEnabled() {
     return this.isfeatureEnabled(FEATURES.OPTIN_CODE);
-  }
-
-  @computed
-  get videoProviders() {
-    const providers = DEFAULT_PROVIDERS;
-    if (this.isfeatureEnabled(FEATURES.FUSION_INTEGRATION)) {
-      providers[LIBRARY_KEYS.DROPMOCK] = libraryProviders.DROPMOCK;
-    }
-    if (this.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
-      providers[LIBRARY_KEYS.PIXABAY] = libraryProviders.PIXABAY;
-    }
-    if (this.isfeatureEnabled(FEATURES.PEXELS_VIDEO_INTEGRATION)) {
-      providers[LIBRARY_KEYS.PEXELS] = libraryProviders.PEXELS;
-    }
-
-    return providers;
-  }
-
-  @computed
-  get imageProviders() {
-    const providers = DEFAULT_PROVIDERS;
-    if (this.isfeatureEnabled(FEATURES.REVOLUTION_DROPMOCK_IMAGE)) {
-      providers[LIBRARY_KEYS.DROPMOCK] = libraryProviders.DROPMOCK;
-    }
-    if (this.isfeatureEnabled(FEATURES.PIXABAY_INTEGRATION)) {
-      providers[LIBRARY_KEYS.PIXABAY] = libraryProviders.PIXABAY;
-    }
-    if (this.isfeatureEnabled(FEATURES.UNSPLASH_INTEGRATION)) {
-      providers[LIBRARY_KEYS.UNSPLASH] = libraryProviders.UNSPLASH;
-    }
-    if (this.isfeatureEnabled(FEATURES.PEXELS_INTEGRATION)) {
-      providers[LIBRARY_KEYS.PEXELS] = libraryProviders.PEXELS;
-    }
-
-    return providers;
   }
 
   @computed

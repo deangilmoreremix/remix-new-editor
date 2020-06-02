@@ -16,6 +16,13 @@
     width: 15px;
     height: 15px;
 
+    &.Mui-disabled {
+      background-color: $scrollbarColor;
+      &:after {
+        content: none;
+      }
+    }
+
     &:after {
       background-color: $scrollbarColor;
       top: 2px;

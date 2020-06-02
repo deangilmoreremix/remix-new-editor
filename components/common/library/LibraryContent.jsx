@@ -7,7 +7,7 @@ import { useDropzone } from 'react-dropzone';
 
 import AudioPreview from './AudioPreview';
 import PropTypes from '../../../lib/PropTypes';
-import { USER_ITEMS, LIBRARY_TABS } from '../../../lib/constants/library';
+import { LIBRARY_KEYS, LIBRARY_TABS } from '../../../lib/constants/library';
 import mediaConstants from '../../../lib/constants/media';
 
 import trashIcon from '../../../public/static/svgImages/trash.svg';
@@ -53,7 +53,7 @@ const LibraryContent = observer((props) => {
           <AudioPreview
             item={item}
             volume={volume}
-            isActive={activeItem && activeItem._id === item._id}
+            isActive={activeItem && activeItem.url === item.url}
           />
         );
       }
@@ -66,15 +66,17 @@ const LibraryContent = observer((props) => {
   const renderActions = React.useCallback((item) => {
     switch (activeTab) {
       case LIBRARY_TABS.AUDIO: {
-        const isActive = activeItem && activeItem._id === item._id;
+        const isActive = activeItem && activeItem.url === item.url;
         return (
           <React.Fragment>
-            <button className="library__item-delete" onClick={() => onDelete(item._id)}>
-              <SVGInline
-                className="library__item-icon"
-                svg={trashIcon}
-              />
-            </button>
+            { activeBtn === LIBRARY_KEYS.USER && (
+              <button className="library__item-delete" onClick={() => onDelete(item._id)}>
+                <SVGInline
+                  className="library__item-icon"
+                  svg={trashIcon}
+                />
+              </button>
+            )}
             {isActive ? (
               <button className="library__item-play" onClick={() => onPlay(null)}>
                 <SVGInline
@@ -99,7 +101,7 @@ const LibraryContent = observer((props) => {
       default: return (
         <React.Fragment>
           {
-            activeBtn === USER_ITEMS && !isDisabledUpload && !isDragActive && (
+            activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive && (
               <button className="library__item-delete" onClick={() => onDelete(item._id)}>
                 <SVGInline
                   className="library__item-icon"
@@ -122,7 +124,7 @@ const LibraryContent = observer((props) => {
   return (
     <div className={classnames('library__items', `library__items--${activeTab.toLowerCase()}`)}>
       {
-        activeBtn === USER_ITEMS && (
+        activeBtn === LIBRARY_KEYS.USER && (
           <div
             {...getRootProps()}
             className={classnames(
@@ -147,7 +149,7 @@ const LibraryContent = observer((props) => {
         items.length
           ? items.map(item => (
             <div
-              key={item._id}
+              key={item._id || item.url}
               className="library__item"
             >
               {Element(item)}
@@ -167,7 +169,7 @@ LibraryContent.propTypes = {
     _id: PropTypes.oneOfType([
       PropTypes.string,
       PropTypes.number,
-    ]).isRequired,
+    ]),
     url: PropTypes.string.isRequired,
     title: PropTypes.string,
   })),

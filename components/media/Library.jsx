@@ -5,12 +5,10 @@ import classnames from 'classnames';
 
 import { CircleLoader } from 'react-spinners';
 import {
-  USER_ITEMS,
   tabItems,
   perPage,
   LIBRARY_TABS,
   LIBRARY_KEYS,
-  DEFAULT_PROVIDERS,
 } from '../../lib/constants/library';
 import { LOADING_COLOR } from '../../lib/constants/ui';
 import mediaConstants from '../../lib/constants/media';
@@ -52,12 +50,16 @@ const Library = observer(() => {
     deleteAsset,
     libraryItemsForDelete,
     setLibraryItemsForDelete,
+    videoProvidersInfo,
+    imageProvidersInfo,
+    audioProvidersInfo,
+    defaultProvidersInfo,
   } = useMediaStore();
 
   // =============== STATE ===============
   const [query, setQuery] = useState('');
 
-  const [activeBtn, setActiveBtn] = useState(USER_ITEMS);
+  const [activeBtn, setActiveBtn] = useState(LIBRARY_KEYS.USER);
   const [hasMore, setHasMore] = useState(true);
 
   const [pageNumber, setPageNumber] = useState(1);
@@ -98,25 +100,31 @@ const Library = observer(() => {
   const listProviders = React.useMemo(() => {
     switch (activeTab) {
       case LIBRARY_TABS.IMAGE: {
-        return userStore.imageProviders;
+        return imageProvidersInfo;
       }
       case LIBRARY_TABS.VIDEO: {
-        return userStore.videoProviders;
+        return videoProvidersInfo;
+      }
+      case LIBRARY_TABS.AUDIO: {
+        return audioProvidersInfo;
       }
       default: {
-        return DEFAULT_PROVIDERS;
+        return defaultProvidersInfo;
       }
     }
-  }, [activeTab, userStore]);
+  }, [activeTab, activeBtn, userStore]);
 
   const handleButtonClick = element => {
     setActiveBtn(element);
+  };
+
+  React.useEffect(() => {
     if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
-      fetchItems({ source: element });
+      fetchItems({ source: activeBtn });
     }
-  };
+  }, [activeBtn, activeTab]);
 
   const fetchItems = async ({ source = activeBtn, queryStr = query || '', isScrolling = false }) => {
     let currentPage = 0;
@@ -134,7 +142,7 @@ const Library = observer(() => {
       uploaded = uploadedItems;
     }
     if (!listProviders[source]) {
-      source = USER_ITEMS;
+      source = LIBRARY_KEYS.USER;
       setActiveBtn(source);
     }
 
@@ -147,7 +155,7 @@ const Library = observer(() => {
         filter: { _id: { $nin: uploaded } },
       });
 
-      if (data.length) {
+      if (data) {
         if (!isScrolling) {
           setItems(data);
           // Loading new items when scrolling
@@ -173,11 +181,13 @@ const Library = observer(() => {
     const files = [];
 
     acceptedFiles.forEach(file => {
-      const validFormat = Object.keys(tabItems).some(item => (
-        tabItems[item].formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0])
-      ));
-      const isImage = tabItems.IMAGE.formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]);
-      const isVideo = tabItems.VIDEO.formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]);
+      const validFormat = Object.keys(tabItems).some(item => tabItems[item]
+        .formats
+        .some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]));
+
+      const isImage = tabItems[LIBRARY_TABS.IMAGE].formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]);
+      const isVideo = tabItems[LIBRARY_TABS.VIDEO].formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]);
+      const isAudio = tabItems[LIBRARY_TABS.AUDIO].formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]);
 
       if (!validFormat) {
         wrongFormat.push(file);
@@ -193,6 +203,8 @@ const Library = observer(() => {
         } else {
           files.push(file);
         }
+      } else if (isAudio) {
+        files.push(file);
       }
     });
     const errorFilesText = (errorFiles, text) => `
@@ -201,9 +213,9 @@ const Library = observer(() => {
 
     const invalidFormatMessage = `${errorFilesText(wrongFormat, 'format')}
       Supported Formats:
-      Video: ${tabItems.VIDEO.formats.map(format => (` ${format}`))}.
-      Image: ${tabItems.IMAGE.formats.map(format => (` ${format}`))}.
-      Audio: ${tabItems.AUDIO.formats.map(format => (` ${format}`))}.
+      Video: ${tabItems[LIBRARY_TABS.VIDEO].formats.map(format => (` ${format}`))}.
+      Image: ${tabItems[LIBRARY_TABS.IMAGE].formats.map(format => (` ${format}`))}.
+      Audio: ${tabItems[LIBRARY_TABS.AUDIO].formats.map(format => (` ${format}`))}.
     `;
 
     const invalidSizeMessage = `${errorFilesText(wrongSize, 'size')}
@@ -324,11 +336,20 @@ const Library = observer(() => {
   const renderSidebar = React.useCallback(() => {
     switch (activeTab) {
       case LIBRARY_TABS.AUDIO: return (
-        <AudioControls
-          selected={activeItem}
-          volume={volume}
-          setVolume={setVolume}
-        />
+        <div className="library__audio-toolbar">
+          <ProviderList
+            activeItem={activeBtn}
+            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
+            userContentTitle={tabItems[activeTab].label}
+            handleButtonClick={handleButtonClick}
+            list={listProviders}
+          />
+          <AudioControls
+            selected={activeItem}
+            volume={volume}
+            setVolume={setVolume}
+          />
+        </div>
       );
       default: return (
         <ProviderList
@@ -340,7 +361,7 @@ const Library = observer(() => {
         />
       );
     }
-  }, [activeTab, volume, activeItem]);
+  }, [activeTab, activeBtn, volume, activeItem, listProviders]);
 
   return (
     <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>

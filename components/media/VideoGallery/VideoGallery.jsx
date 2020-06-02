@@ -35,7 +35,7 @@ const VideoGallery = (props) => {
           <VideoTile
             url={item.url}
             title={item.title}
-            preview={item.url}
+            preview={item.preview || item.url}
             key={`tile${item._id || item.url}`}
             onPreview={
                 () => openModal(VIDEO_PLAYER_MODAL, { url: item.url, title: item.title })
