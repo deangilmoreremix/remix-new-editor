@@ -6,7 +6,7 @@ import useUserStore from '../../hooks/useUserStore';
 import PropTypes from '../../../lib/PropTypes';
 import { BASIC, ADVANCED } from '../../../lib/constants/popcorn';
 import LottieEditor from '../../common/LottieEditor';
-import Basic from './tabs/Basic';
+import Basic from '../default-tabs/Basic';
 import Advanced from './tabs/Advanced';
 
 const TabMap = {

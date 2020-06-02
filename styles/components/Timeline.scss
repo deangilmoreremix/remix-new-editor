@@ -66,6 +66,13 @@
         justify-content: center;
         align-items: center;
       }
+
+      &.popcorn-pause-end,
+      &.popcorn-pause {
+        width: 1rem;
+        height: auto;
+        margin: auto 0.2rem;
+      }
     }
 
     .icon-btn {
@@ -76,6 +83,10 @@
       }
     }
   }
+}
+
+.popcorn-pause-element {
+  justify-content: space-between;
 }
 
 .elements {

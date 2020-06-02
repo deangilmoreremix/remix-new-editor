@@ -69,6 +69,7 @@ const PopcornElements = observer(({ width }) => {
 
   const layouts = React.useMemo(() => elements.map(element => {
     const {
+      popcornOptions,
       popcornOptions: { id: i, start, end, animation, title, outDuration, duration },
       type,
       dimensions,
@@ -85,6 +86,7 @@ const PopcornElements = observer(({ width }) => {
     }
 
     return {
+      ...popcornOptions,
       i,
       x,
       w,
@@ -99,6 +101,7 @@ const PopcornElements = observer(({ width }) => {
       minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
       layer,
       dimensions,
+      isResizable: type !== POPCORN_ELEMENT_TYPES.PAUSE,
     };
   }), [cols, elements, getEnd, getExtraDuration, layers]);
   const components = React.useMemo(() => layouts.map((item, index, items) => {
