@@ -76,8 +76,7 @@ const LibraryContent = observer((props) => {
                   svg={trashIcon}
                 />
               </button>
-            )
-            }
+            )}
             {isActive ? (
               <button className="library__item-play" onClick={() => onPlay(null)}>
                 <SVGInline
