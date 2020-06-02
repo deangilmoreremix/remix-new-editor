@@ -45,7 +45,7 @@ const FormSliderVertical = ({
       <Slider
         className={classnames('vertical-slider-range', sliderClassName)}
         orientation="vertical"
-        defaultValue={30}
+        value={value}
         aria-labelledby="vertical-slider"
         onChange={handleSliderChange}
         onBlur={handleBlur}

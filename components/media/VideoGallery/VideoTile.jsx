@@ -22,7 +22,6 @@ const VideoTile = (props) => {
       { preview && (
         <video
           className="video"
-          preload="true"
           ref={previewContainer}
           loop
           muted

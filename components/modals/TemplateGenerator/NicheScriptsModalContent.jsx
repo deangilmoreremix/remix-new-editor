@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { perPage } from '../../../lib/constants/library';
 import useMakeStore from '../../hooks/useMakeStore';
 import { showError } from '../../../lib/services/alertService';
 import NicheScriptsGrid from './NicheScriptsGrid';
+
+// todo update it, Pagination does not work here.
+const perPage = 100;
 
 export default function NicheScriptsModalContent({ options: { onSelect }, setHeader }) {
   const makeStore = useMakeStore();

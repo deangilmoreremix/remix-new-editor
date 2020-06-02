@@ -54,15 +54,13 @@ const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
             providerName: provider,
           });
         } else {
-          const response = await mediaStore.getAssets({
+          results = await mediaStore.getAssets({
             assetType,
             page,
             perPage,
             query,
             providerName: remoteProvider,
           });
-          const count = videos.length;
-          results = response.slice(count, count + perPage);
         }
         const hasNextPage = results.length === perPage;
         setVideos(videos.concat(results));
