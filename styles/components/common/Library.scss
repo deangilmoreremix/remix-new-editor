@@ -95,6 +95,16 @@
 
 .library__block--title {
   text-align: left;
+  color: $white;
+}
+
+a.library__block--title {
+  text-decoration: underline;
+  transition: 0.3s color;
+
+  &:hover {
+    color: $secondary-color;
+  }
 }
 
 button.library__tab {

@@ -358,6 +358,7 @@ const Library = observer(() => {
           userContentTitle={tabItems[activeTab].label}
           handleButtonClick={handleButtonClick}
           list={listProviders}
+          activeTab={activeTab}
         />
       );
     }
