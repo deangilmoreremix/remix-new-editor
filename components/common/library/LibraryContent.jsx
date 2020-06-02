@@ -69,15 +69,14 @@ const LibraryContent = observer((props) => {
         const isActive = activeItem && activeItem.url === item.url;
         return (
           <React.Fragment>
-            { activeBtn === LIBRARY_KEYS.USER
-              && (
+            { activeBtn === LIBRARY_KEYS.USER && (
               <button className="library__item-delete" onClick={() => onDelete(item._id)}>
                 <SVGInline
                   className="library__item-icon"
                   svg={trashIcon}
                 />
               </button>
-              )
+            )
             }
             {isActive ? (
               <button className="library__item-play" onClick={() => onPlay(null)}>
