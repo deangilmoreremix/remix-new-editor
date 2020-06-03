@@ -153,14 +153,22 @@ export default class ProjectStore extends BaseStore {
 
     switch (item.type) {
       case SEQUENCER: {
+        this.isLoadingSequencer = true;
         const source = (item.extra && item.extra.source) || [item.url];
-        const videoMeta = await this.mediaTypeDetector.getMetadata(source[0]);
-        options.end = options.start + videoMeta.duration;
+        let fileMeta;
+        try {
+          fileMeta = await this.mediaTypeDetector.getMetadata(source[0]);
+        } catch (e) {
+          // if there is no error, then loading will hide, after adding the item to the popcorn
+          this.isLoadingSequencer = false;
+          throw e;
+        }
+        options.end = options.start + fileMeta.duration;
         options.source = source;
-        options.title = videoMeta.title;
-        options.duration = videoMeta.duration;
+        options.title = fileMeta.title;
+        options.duration = fileMeta.duration;
         options.from = 0;
-        options.contentType = videoMeta.contentType;
+        options.contentType = fileMeta.contentType;
         options.in = options.start;
         options.out = options.end;
         options.volume = item.volume || 100;
@@ -227,7 +235,6 @@ export default class ProjectStore extends BaseStore {
   @action
   addElement = async (item) => {
     const { type } = item;
-
     if (this.isPlayed) {
       this.playPause();
     }
