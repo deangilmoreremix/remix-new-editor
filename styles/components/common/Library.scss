@@ -24,13 +24,44 @@
   }
 
   &-audio {
-    .library__row {
-      &-second {
-        flex-flow: column;
+    @include max-w(1450px) {
+      .library__audio-toolbar {
+        position: relative;
+        margin-top: 2rem;
+        display: flex;
+        flex-flow: row nowrap;
+      }
 
-        > :first-child {
+      .library__audio-controls {
+        flex: 2;
+        padding-top: 0;
+        position: static;
+
+        .track-name {
           width: 100%;
+          left: 50%;
+          transform: translate(-50%, -1rem);
+          bottom: 100%;
+          top: auto;
         }
+      }
+
+      .library__block {
+        flex: 3;
+      }
+
+      .library__block--title {
+        display: none;
+      }
+
+      .library__btn-container {
+        flex-flow: column nowrap;
+        align-items: stretch;
+        text-align: left;
+      }
+
+      .library__btn-item {
+        width: 100%;
       }
     }
   }
@@ -64,6 +95,16 @@
 
 .library__block--title {
   text-align: left;
+  color: $white;
+}
+
+a.library__block--title {
+  text-decoration: underline;
+  transition: 0.3s color;
+
+  &:hover {
+    color: $secondary-color;
+  }
 }
 
 button.library__tab {
@@ -317,22 +358,35 @@ button.library__tab {
   width: 100%;
 
   .track-name {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translate(-50%, 0);
+    margin: 1rem auto;
     text-align: center;
   }
 
-  .volume-input {
+  .volume-control {
+    min-height: 4.75rem;
+    max-height: 4.75rem;
     display: flex;
-    align-content: center;
+    flex-flow: column wrap;
 
+    &-range {
+      min-height: 70px;
+      order: 0;
+      width: 50%;
+    }
 
-    label {
-      margin-right: 0.75rem;
-      display: flex;
-      align-items: center;
+    &-label {
+      color: $white;
+      order: 1;
+      width: 50%;
+      margin: 0 auto auto;
+    }
+
+    &-input {
+      order: 2;
+      width: 50%;
+      text-align: center;
+      margin: auto auto 0;
+      max-width: 30%;
     }
   }
 }

@@ -56,7 +56,7 @@ const FormSlider = props => {
   };
 
   return (
-    <div className={classnames(classes.root, containerClassName)}>
+    <div className={classnames(classes.root, containerClassName, 'slider-element')}>
       <InputLabel
         className={classnames('form-control-label')}
       >
