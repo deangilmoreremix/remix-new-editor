@@ -27,6 +27,7 @@ const VideoSettings = observer(({ tab = CLIP_EDITOR_TAB, element, update, fields
           values={element.popcornOptions}
           onChange={(field, options) => handleChange(field, options)}
           fields={fields}
+          element={element}
         />
       )}
     </div>
