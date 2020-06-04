@@ -46,7 +46,7 @@ const LibraryContent = observer((props) => {
   const Element = (item) => {
     switch (type) {
       case LIBRARY_TABS.VIDEO: {
-        return <video src={item.url}><track /></video>;
+        return <video src={item.preview || item.url}><track /></video>;
       }
       case LIBRARY_TABS.AUDIO: {
         return (
@@ -58,7 +58,7 @@ const LibraryContent = observer((props) => {
         );
       }
       default: {
-        return <img src={item.url} alt={item.title} />;
+        return <img src={item.preview || item.url} alt={item.title} />;
       }
     }
   };

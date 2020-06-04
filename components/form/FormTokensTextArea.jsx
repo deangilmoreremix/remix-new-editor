@@ -37,6 +37,14 @@ const FormTokensTextArea = observer((props) => {
     onChange(v, { [caretName]: caretOffset, [additionalFieldName]: text });
   };
 
+  const pasteData = (e) => {
+    e.preventDefault();
+    const sanitizingElem = document.createElement('DIV');
+    sanitizingElem.innerHTML = (e.clipboardData || window.clipboardData).getData('text/plain');
+    const pasteString = sanitizingElem.textContent || sanitizingElem.innerText || '';
+    document.execCommand('insertHTML', false, wrapTokens(pasteString));
+  };
+
   const onClick = (e) => {
     const caretOffset = catchCaretCharacterOffsetWithin(e);
     updateCaret({ [caretName]: caretOffset });
@@ -57,6 +65,7 @@ const FormTokensTextArea = observer((props) => {
         html={wrapTokens(value) || ''}
         onChange={onEdit}
         onClick={onClick}
+        onPaste={pasteData}
         onKeyPress={onKeyPress}
         disabled={disabled}
       />

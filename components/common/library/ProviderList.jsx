@@ -1,11 +1,12 @@
 import React from 'react';
+import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 import { LIBRARY_KEYS, LIBRARY_TABS } from '../../../lib/constants/library';
 
-const ProviderList = (props) => {
+const ProviderList = observer((props) => {
   const {
     list,
     activeItem,
@@ -58,7 +59,7 @@ const ProviderList = (props) => {
       </div>
     </div>
   );
-};
+});
 
 ProviderList.propTypes = {
   list: PropTypes.shape({}).isRequired,

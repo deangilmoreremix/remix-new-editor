@@ -5,8 +5,8 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../../lib/PropTypes';
 
 import * as popcornConstants from '../../../../lib/constants/popcorn';
-import { ASSET_TYPES } from '../../../../lib/constants/media';
 
+import useProjectStore from '../../../hooks/useProjectStore';
 
 import FieldBuilder from '../../../form/FieldBuilder';
 // import LineDuration from '../../../media/LineDuration';
@@ -14,7 +14,7 @@ import FieldBuilder from '../../../form/FieldBuilder';
 import videoIcon from '../../../../public/static/images/media/icon-video.svg';
 import audioIcon from '../../../../public/static/images/media/icon-audio-2.svg';
 
-const ClipEditor = observer(({ values, fields, onChange }) => {
+const ClipEditor = observer(({ values, fields, element, onChange }) => {
   const {
     from,
     mute,
@@ -24,9 +24,9 @@ const ClipEditor = observer(({ values, fields, onChange }) => {
     start,
     end,
     duration,
-    kind,
   } = values;
 
+  const { isAudio } = useProjectStore();
   const [videoOut, setVideoOut] = useState(end - start + from);
 
   useEffect(() => {
@@ -122,7 +122,7 @@ const ClipEditor = observer(({ values, fields, onChange }) => {
       </div>
       <div className="video-settings__block">
         <div className="video-settings__block-checkboxes">
-          {kind !== ASSET_TYPES.AUDIO && (
+          {!isAudio(element) && (
             <div className="video-settings__block-element">
               <SVGInline
                 className="video-settings__icon"
