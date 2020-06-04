@@ -43,6 +43,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
 
   const { current: from } = imageFrom;
   const { current: to } = imageTo;
+  const { current: canvas } = canvasEl;
 
   const {
     kind,
@@ -71,14 +72,12 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   }, [values]);
 
   React.useEffect(() => {
-    const { current: canvas } = canvasEl;
     if (from && to && canvas && kind) {
       setTransition(makeTransition({ canvas, kind, from: from.dataUri, to: to.dataUri }));
     }
-  }, [from, to, canvasEl, kind]);
+  }, [from, to, canvas, kind]);
 
   React.useEffect(() => {
-    const { current: canvas } = canvasEl;
     if (isPlaying && transition && canvas && duration) {
       playTransition({ canvas, duration, ...transition, callback: () => setIsPlaying(false) });
     } else {
@@ -216,7 +215,6 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   ]);
 
   const handlePlay = () => {
-    const { current: canvas } = canvasEl;
     if (from && to && canvas && kind) {
       setIsPlaying(true);
     } else {
@@ -275,7 +273,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
             {fromVideo && (
               <Player
                 ref={fromPlayer}
-                src={fromVideo && fromVideo.popcornOptions ? fromVideo.popcornOptions.src : ''}
+                src={fromVideo && fromVideo.popcornOptions ? (fromVideo.popcornOptions.src || fromVideo.popcornOptions.source[0]) : ''}
                 videoId={fromVideo.id}
                 crossOrigin="anonymous"
                 width={width}
@@ -290,7 +288,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
             {toVideo && (
               <Player
                 ref={toPlayer}
-                src={toVideo && toVideo.popcornOptions ? toVideo.popcornOptions.src : ''}
+                src={toVideo && toVideo.popcornOptions ? (toVideo.popcornOptions.src || toVideo.popcornOptions.source[0]) : ''}
                 videoId={toVideo.id}
                 crossOrigin="anonymous"
                 width={width}
