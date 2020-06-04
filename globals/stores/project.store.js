@@ -37,6 +37,11 @@ export default class ProjectStore extends BaseStore {
         if (!this.popcorn.on) {
           return;
         }
+        this.popcorn.on('seeking', () => {
+          if (this.isPlayed) {
+            this.playPause();
+          }
+        });
         this.popcorn.on('canplayall', () => {
           this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
           this.isLoaded = true;
@@ -171,6 +176,8 @@ export default class ProjectStore extends BaseStore {
         options.in = options.start;
         options.out = options.end;
         options.volume = item.volume || 100;
+        options.audioFadeIn = 0;
+        options.audioFadeOut = 0;
         break;
       }
       default:
