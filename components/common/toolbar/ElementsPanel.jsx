@@ -5,16 +5,12 @@ import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 
-import useUserStore from '../../hooks/useUserStore';
 import useUIStore from '../../hooks/useUIStore';
-
-import { LABEL_FEATURES as labelFeature } from '../../../lib/constants/features';
 
 import AnimatedWindow from '../AnimatedWindow';
 import CloseButton from '../CloseButton';
 
 const ElementsPanel = observer(({ items }) => {
-  const { isSuperAdmin } = useUserStore();
   const {
     checkboxLeft,
     toggleRightBlock,
@@ -42,7 +38,7 @@ const ElementsPanel = observer(({ items }) => {
       <Container className="elements-panel-container">
         <Row className="elements-panel-inner-row">
           {items.map(({ label, icon, action, disabled }) => {
-            if ((label === labelFeature.JSON && !isSuperAdmin) || disabled) {
+            if (disabled) {
               return;
             }
 

@@ -1,0 +1,36 @@
+.popcorn-json-button {
+  &:hover {
+    .click-away-button {
+      &:after {
+        opacity: 1;
+      }
+    }
+  }
+
+  .click-away-button {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 2rem;
+    width: 2rem;
+    background: none;
+    border: none;
+    outline: none;
+    padding: 0;
+
+    &:after {
+      color: $white;
+      font-family: FontAwesome;
+      font-weight: normal;
+      font-style: normal;
+      text-decoration: none;
+      -webkit-font-smoothing: antialiased;
+      font-size: 2em;
+      vertical-align: middle;
+      content: "\f064"; /* icon-share-alt */
+      opacity: 0;
+      transition: all 0.25s ease;
+    }
+  }
+}
