@@ -3,7 +3,7 @@ import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
-import { LIBRARY_KEYS } from '../../../lib/constants/library';
+import { LIBRARY_KEYS, LIBRARY_TABS } from '../../../lib/constants/library';
 
 const ProviderList = (props) => {
   const {
@@ -12,11 +12,19 @@ const ProviderList = (props) => {
     title,
     userContentTitle,
     handleButtonClick,
+    activeTab,
   } = props;
 
   return (
     <div className="library__block">
-      <p className="library__block--title">{title}</p>
+      {
+        activeTab === LIBRARY_TABS.VIDEO ? (
+          // eslint-disable-next-line react/jsx-no-target-blank
+          <a href="http://download.vidcloud.io/" className="library__block--title" target="_blank">{title}</a>
+        ) : (
+          <p className="library__block--title">{title}</p>
+        )
+      }
       <div className="library__btn-container">
         {
           list && Object.keys(list).map(element => (
@@ -58,6 +66,7 @@ ProviderList.propTypes = {
   title: PropTypes.string.isRequired,
   userContentTitle: PropTypes.string.isRequired,
   handleButtonClick: PropTypes.func.isRequired,
+  activeTab: PropTypes.string,
 };
 
 export default ProviderList;

@@ -1,0 +1,195 @@
+.video-settings-container {
+  label, label.form-control-label {
+    width: 100%;
+    text-align: left;
+    font-size: 0.875rem;
+    line-height: 1;
+    margin-bottom: 0.93em;
+  }
+}
+
+.video-settings__inputs {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 2.3rem;
+}
+
+.video-settings-input {
+  display: flex;
+  flex-direction: column;
+  width: 42%;
+
+  .input-field {
+    height: 2.06rem;
+    border-color: $third-color;
+    text-align: left;
+    padding: 0 0.68rem;
+    color: $third-color;
+    border-radius: 4px;
+  }
+}
+
+.video-settings__block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 2em;
+
+  &-element {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.video-settings__icon {
+  width: 13px;
+  height: 12px;
+  display: block;
+  position: relative;
+  margin-right: 1.37rem;
+
+  svg {
+    width: 100%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  path {
+    stroke: $secondary-color;
+  }
+}
+
+.video-settings-slider-block {
+  width: 54.5%;
+
+  div.MuiGrid-root {
+    padding-top: 0;
+    padding-bottom: 0;
+
+    .MuiGrid-item:last-child {
+      padding-left: 1rem;
+    }
+  }
+}
+
+.video-settings__block-checkboxes {
+  width: 32.5%;
+
+  .checkbox-element {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+span.video-settings-slider {
+  color: $backgroundSlider;
+  height: 5.4px;
+  padding: 6px 0;
+
+  .MuiSlider-rail, .MuiSlider-track {
+    height: 5.4px;
+    border-radius: 15px;
+  }
+
+  .MuiSlider-thumb {
+    width: 15px;
+    height: 15px;
+    border: 1px solid $secondary-color;
+    background: $white;
+
+    &:before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: $modal-header-bg;
+      border-radius: 50%;
+    }
+  }
+}
+
+.video-settings-slider-input {
+  width: 3.3rem;
+  height: 2rem;
+  border: 1px solid $third-color;
+  border-radius: 3px;
+  padding: 0 3px;
+}
+
+.video-settings__timer {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.video-settings__time {
+  width: 4.56rem;
+
+  &:first-child {
+    margin-right: 2.18rem;
+  }
+
+  .time-input {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 1300px) {
+  .video-settings__block {
+    flex-direction: column;
+  }
+
+  .video-settings__block-checkboxes {
+    margin-bottom: 1rem;
+
+    .checkbox-element {
+      flex: none;
+
+      button {
+        margin-right: 1.37rem;
+      }
+    }
+  }
+
+  .video-settings__block-checkboxes,
+  .video-settings-slider-block {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 980px) {
+  .video-settings__inputs,
+  .video-settings__block {
+    margin-bottom: 1rem;
+  }
+
+  .video-settings-input {
+    width: 100%;
+    margin-bottom: 1rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .video-settings__timer {
+    margin-top: 1rem;
+  }
+
+  .video-settings__time {
+    width: 100%;
+
+    &:first-child {
+      margin-right: 0;
+      margin-bottom: 1rem;
+    }
+  }
+}
