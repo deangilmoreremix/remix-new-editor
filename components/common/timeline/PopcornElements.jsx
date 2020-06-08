@@ -6,6 +6,7 @@ import PopcornElement from './PopcornElement';
 import ResponsiveGrid from '../../form/grids/ResponsiveGrid';
 
 import PropTypes from '../../../lib/PropTypes';
+import { selectItem } from '../../../lib/mitt/emitter';
 
 import useProjectStore from '../../hooks/useProjectStore';
 
@@ -16,7 +17,6 @@ import { DEFAULT_SETTINGS } from '../../../lib/constants/settings';
 
 import { getTransitionButtons } from '../../../lib/utils/timeline';
 import TransitionButton from './TransitionButton';
-
 
 const PopcornElements = observer(({ width }) => {
   const projectStore = useProjectStore();
@@ -130,6 +130,8 @@ const PopcornElements = observer(({ width }) => {
   }), [layouts, cols]);
 
   const onDragStop = (element, oldElement, newElement) => {
+    selectItem({ type: 'click' }, newElement.i);
+
     if (oldElement.y !== newElement.y) {
       setLayer(oldElement.i, newElement.y);
     }

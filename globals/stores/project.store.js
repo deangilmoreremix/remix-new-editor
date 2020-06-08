@@ -60,12 +60,12 @@ export default class ProjectStore extends BaseStore {
           this.isPlayed = true;
         });
         emitter.on(emitterActions.SELECT, id => {
-          if (id) {
+          if (this.activeElementId !== id && id) {
             this.editElement(id);
-          }
-          const element = this.getElementById(id);
-          if (element && element.popcornOptions) {
-            this.updateTime(element.popcornOptions.start * SANTISECOND);
+            const element = this.getElementById(id);
+            if (element && element.popcornOptions) {
+              this.updateTime(element.popcornOptions.start * SANTISECOND);
+            }
           }
         });
         emitter.on(emitterActions.DELETE, id => {
@@ -171,7 +171,8 @@ export default class ProjectStore extends BaseStore {
         options.contentType = fileMeta.contentType;
         options.in = options.start;
         options.out = options.end;
-        options.volume = item.volume || 100;
+        options.volume = item.volume !== undefined ? item.volume : 100;
+        options.mute = item.volume === 0;
         break;
       }
       default:
