@@ -17,4 +17,8 @@
   &.fixed {
     position: fixed;
   }
+
+  &.preloader {
+    background: #000;
+  }
 }
