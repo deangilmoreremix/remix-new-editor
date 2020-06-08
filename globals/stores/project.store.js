@@ -202,7 +202,6 @@ export default class ProjectStore extends BaseStore {
 
     // eslint-disable-next-line no-underscore-dangle
     popcornFunctions._setup(retargetOptions);
-    this.editElement(retargetOptions.id);
     this.retarget = { ...retargetOptions, ...popcornFunctions };
     this.retarget.end = () => {
       if (popcornFunctions.end) {
@@ -218,16 +217,11 @@ export default class ProjectStore extends BaseStore {
 
   @action
   addRetargetForm = (retargetForm) => {
-    if (!this.retarget) {
+    if (!this.retarget || (this.retarget && !this.retarget.id)) {
       this.createRetargetForm(retargetForm);
-      this.retarget.start();
-    } else if (this.retarget && !this.retarget.id) {
-      this.createRetargetForm(retargetForm);
-      this.retarget.start();
-    } else {
-      this.editElement(this.retarget.id);
-      this.retarget.start();
     }
+    this.editElement(this.retarget.id);
+    this.retarget.start();
     this.retarget.showed = true;
     this.modified = true;
   };
@@ -281,8 +275,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   editElement = (elementId) => {
-    if (this.activeElementId
-      && this.retarget
+    if (this.retarget
       && this.retarget.id
       && this.retarget.id !== elementId) {
       this.retarget.end();
@@ -703,7 +696,7 @@ export default class ProjectStore extends BaseStore {
           },
         });
       this.setProjectData(JSON.parse(this.item.project.data));
-      if (this.item.project.retargetForm) {
+      if (this.item.project.retargetForm && !this.retarget) {
         this.retarget = this.item.project.retargetForm;
       }
       if (this.item.project && this.item.project.allowedSocials) {

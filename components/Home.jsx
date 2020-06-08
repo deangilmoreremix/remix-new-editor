@@ -92,6 +92,7 @@ const Home = observer(() => {
     isTimelineOpen,
     canvasWidth,
     toolsWidth,
+    setListBuilder,
   } = uiStore;
 
   const {
@@ -148,6 +149,7 @@ const Home = observer(() => {
         changeRadioButton,
         addElement,
         addRetargetForm,
+        setListBuilder,
         setSecondaryWindowType,
         openMediaButton,
       },
