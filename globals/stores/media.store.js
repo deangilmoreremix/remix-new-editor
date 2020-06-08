@@ -1,11 +1,23 @@
-import { action, observable } from 'mobx';
+import { action, computed, observable } from 'mobx';
 
 import BaseStore from './base.store';
-import { ASSET_TYPES } from '../../lib/constants/media';
-import { providers } from '../../lib/utils/media';
-import { perPage } from '../../lib/constants/library';
+
+import PexelsProvider from '../../lib/utils/media/PexelsProvider';
+import UserProvider from '../../lib/utils/media/UserProvider';
+import PixabayProvider from '../../lib/utils/media/PixabayProvider';
+import UnsplashProvider from '../../lib/utils/media/UnsplashProvider';
+import DropmockProvider from '../../lib/utils/media/DropmockProvider';
+import RemoteMediaProvider from '../../lib/utils/media/RemoteMediaProvider';
+
+import { ASSET_TYPES, REMOTE_ASSET_TYPES } from '../../lib/constants/media';
+import { LIBRARY_KEYS, libraryProviders, perPage } from '../../lib/constants/library';
+import { FEATURES } from '../../lib/constants/features';
 
 export default class Media extends BaseStore {
+  @observable providersConfiguration = null;
+
+  @observable providersList = [];
+
   @observable assetsRequest = null;
 
   @observable libraryItemsForDelete = [];
@@ -16,7 +28,7 @@ export default class Media extends BaseStore {
 
   getProvider = (providerName, assetType) => {
     try {
-      return providers[providerName][assetType];
+      return this.providers[providerName][assetType];
     } catch (e) {
       throw new Error(`Unknown provider ${providerName} with asset type ${assetType}`);
     }
@@ -24,7 +36,6 @@ export default class Media extends BaseStore {
 
   getAssets = async ({ providerName, assetType, perPage: customPerPage, page = 1, query = '', filter }) => {
     const provider = this.getProvider(providerName, ASSET_TYPES[assetType] || assetType);
-    provider.setRequest(this.request.bind(this));
 
     try {
       const data = await provider.getAssets({
@@ -283,8 +294,136 @@ export default class Media extends BaseStore {
     return asset;
   };
 
+  @computed
+  get defaultProvidersInfo() {
+    if (this.providersConfiguration) {
+      return { [LIBRARY_KEYS.USER]: this.providersConfiguration[LIBRARY_KEYS.USER] };
+    }
+    return {};
+  }
+
+  @computed
+  get videoProvidersInfo() {
+    const providersInfo = { ...this.defaultProvidersInfo };
+    if (this.userStore.isfeatureEnabled(FEATURES.FUSION_INTEGRATION)) {
+      providersInfo[LIBRARY_KEYS.DROPMOCK] = this.providersConfiguration[LIBRARY_KEYS.DROPMOCK];
+    }
+    if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
+      providersInfo[LIBRARY_KEYS.PIXABAY] = this.providersConfiguration[LIBRARY_KEYS.PIXABAY];
+    }
+    if (this.userStore.isfeatureEnabled(FEATURES.PEXELS_VIDEO_INTEGRATION)) {
+      providersInfo[LIBRARY_KEYS.PEXELS] = this.providersConfiguration[LIBRARY_KEYS.PEXELS];
+    }
+
+    return providersInfo;
+  }
+
+  @computed
+  get imageProvidersInfo() {
+    const providersInfo = { ...this.defaultProvidersInfo };
+    if (this.userStore.isfeatureEnabled(FEATURES.REVOLUTION_DROPMOCK_IMAGE)) {
+      providersInfo[LIBRARY_KEYS.DROPMOCK] = this.providersConfiguration[LIBRARY_KEYS.DROPMOCK];
+    }
+    if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_INTEGRATION)) {
+      providersInfo[LIBRARY_KEYS.PIXABAY] = this.providersConfiguration[LIBRARY_KEYS.PIXABAY];
+    }
+    if (this.userStore.isfeatureEnabled(FEATURES.UNSPLASH_INTEGRATION)) {
+      providersInfo[LIBRARY_KEYS.UNSPLASH] = this.providersConfiguration[LIBRARY_KEYS.UNSPLASH];
+    }
+    if (this.userStore.isfeatureEnabled(FEATURES.PEXELS_INTEGRATION)) {
+      providersInfo[LIBRARY_KEYS.PEXELS] = this.providersConfiguration[LIBRARY_KEYS.PEXELS];
+    }
+
+    return providersInfo;
+  }
+
+  @computed
+  get audioProvidersInfo() {
+    const providersInfo = { ...this.defaultProvidersInfo };
+
+    providersInfo[LIBRARY_KEYS.REMOTE] = this.providersConfiguration[LIBRARY_KEYS.REMOTE];
+
+    return providersInfo;
+  }
+
   constructor(props) {
     super(props);
     this.assetsRequest = props.assetsRequest;
+
+    const { common } = this;
+    this.userStore = props.userStore;
+    this.providersConfiguration = libraryProviders(common);
+    this.providersList = Object.keys(this.providersConfiguration).reduce((result, name) => {
+      result[name] = name;
+      return result;
+    }, {});
+
+    this.providers = {
+      [LIBRARY_KEYS.USER]: {
+        [ASSET_TYPES.IMAGE]: new UserProvider(
+          ASSET_TYPES.IMAGE,
+          this.providersConfiguration[LIBRARY_KEYS.USER],
+          this.request,
+        ),
+        [ASSET_TYPES.VIDEO]: new UserProvider(
+          ASSET_TYPES.VIDEO,
+          this.providersConfiguration[LIBRARY_KEYS.USER],
+          this.request,
+        ),
+        [ASSET_TYPES.AUDIO]: new UserProvider(
+          ASSET_TYPES.AUDIO,
+          this.providersConfiguration[LIBRARY_KEYS.USER],
+          this.request,
+        ),
+      },
+      [LIBRARY_KEYS.PEXELS]: {
+        [ASSET_TYPES.IMAGE]: new PexelsProvider(
+          ASSET_TYPES.IMAGE,
+          this.providersConfiguration[LIBRARY_KEYS.PEXELS],
+        ),
+        [ASSET_TYPES.VIDEO]: new PexelsProvider(
+          ASSET_TYPES.VIDEO,
+          this.providersConfiguration[LIBRARY_KEYS.PEXELS],
+        ),
+      },
+      [LIBRARY_KEYS.PIXABAY]: {
+        [ASSET_TYPES.IMAGE]: new PixabayProvider(
+          ASSET_TYPES.IMAGE,
+          this.providersConfiguration[LIBRARY_KEYS.PIXABAY],
+        ),
+        [ASSET_TYPES.VIDEO]: new PixabayProvider(
+          ASSET_TYPES.VIDEO,
+          this.providersConfiguration[LIBRARY_KEYS.PIXABAY],
+        ),
+      },
+      [LIBRARY_KEYS.UNSPLASH]: {
+        [ASSET_TYPES.IMAGE]: new UnsplashProvider(
+          ASSET_TYPES.IMAGE,
+          this.providersConfiguration[LIBRARY_KEYS.UNSPLASH],
+        ),
+      },
+      [LIBRARY_KEYS.DROPMOCK]: {
+        [ASSET_TYPES.IMAGE]: new DropmockProvider(
+          ASSET_TYPES.IMAGE,
+          this.providersConfiguration[LIBRARY_KEYS.DROPMOCK],
+        ),
+        [ASSET_TYPES.VIDEO]: new DropmockProvider(
+          ASSET_TYPES.VIDEO,
+          this.providersConfiguration[LIBRARY_KEYS.DROPMOCK],
+        ),
+      },
+      [LIBRARY_KEYS.REMOTE]: {
+        [ASSET_TYPES.AUDIO]: new RemoteMediaProvider(
+          REMOTE_ASSET_TYPES.AUDIOS,
+          this.providersConfiguration[LIBRARY_KEYS.REMOTE],
+          this.assetsRequest,
+        ),
+        [ASSET_TYPES.VIDEO]: new RemoteMediaProvider(
+          REMOTE_ASSET_TYPES.VIDEOS,
+          this.providersConfiguration[LIBRARY_KEYS.REMOTE],
+          this.assetsRequest,
+        ),
+      },
+    };
   }
 }

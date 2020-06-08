@@ -124,4 +124,11 @@
       }
     }
   }
+
+  .container-transition-list {
+    .select__menu {
+      position: absolute;
+      bottom: 100%;
+    }
+  }
 }

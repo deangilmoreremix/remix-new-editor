@@ -14,7 +14,7 @@ import CloseButton from './CloseButton';
 const SettingsEditor = observer(() => {
   const [activeTab, setTab] = useState(0);
 
-  const { element, retarget, activeElementId } = useProjectStore();
+  const { element, retarget, activeElementId, releaseElement } = useProjectStore();
   const { closeSecondaryWindow, toggleRightBlock, isTimelineOpen } = useUIStore();
 
   const currentElement = useMemo(() => {
@@ -44,6 +44,11 @@ const SettingsEditor = observer(() => {
     setTab(0);
   }, [type]);
 
+  const closeWindow = () => {
+    toggleRightBlock(false);
+    releaseElement();
+  };
+
   return (
     <div className={classnames('base-editor', { 'big-window': !isTimelineOpen })}>
       <SettingsHeader tabs={tabs} setTab={setTab} activeTab={activeTab} />
@@ -57,7 +62,7 @@ const SettingsEditor = observer(() => {
         )}
       </div>
 
-      <CloseButton onClick={() => toggleRightBlock(false)} />
+      <CloseButton onClick={closeWindow} />
     </div>
   );
 });

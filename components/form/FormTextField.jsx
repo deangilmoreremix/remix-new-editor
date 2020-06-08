@@ -76,7 +76,7 @@ const FormTextField = React.forwardRef(({
           )
           : (
             <TextField
-              inputRef={ref}
+              ref={ref}
               key="input-key"
               id={name}
               className={classnames(inputClassName, 'text-input', { 'input-disabled': disabled })}
@@ -92,7 +92,7 @@ const FormTextField = React.forwardRef(({
           ))}
       {type === 'text' && (
         <TextareaAutosize
-          inputRef={ref}
+          ref={ref}
           key="input-key"
           id={name}
           className={classnames('text-input', inputClassName)}
@@ -104,7 +104,7 @@ const FormTextField = React.forwardRef(({
           multiline={multiline}
           rowsMin={rowsMin}
           rowsMax={rowsMax}
-          InputProps={InputProps}
+          readOnly={readOnly}
         />
       )}
 
