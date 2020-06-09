@@ -6,6 +6,7 @@ import useUserStore from '../../hooks/useUserStore';
 import PropTypes from '../../../lib/PropTypes';
 import FieldBuilder from '../../form/FieldBuilder';
 import mediaConstants from '../../../lib/constants/media';
+import * as constant from '../../../lib/constants/popcorn';
 import LottiePlayer from '../../../lib/lottie/LottiePlayer';
 import DropButton from '../../media/DropButton';
 
@@ -32,11 +33,12 @@ const JsonButtonSettings = observer(({ element, update, fields }) => {
             return (
               <FieldBuilder
                 onChange={handleChange}
-                label={label}
+                label={key === constant.LINK_URL ? constant.LABEL_CLICK_TO_PHONE : label}
                 type={type}
                 value={element.popcornOptions[key]}
                 key={key}
                 name={key}
+                className="json-button-container"
               />
             );
           })}
