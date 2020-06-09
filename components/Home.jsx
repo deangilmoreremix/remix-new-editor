@@ -16,6 +16,7 @@ import SizeSelector from './canvas/SizeSelector';
 import AnimationList from './media/AnimationList';
 import SettingsEditor from './common/SettingsEditor';
 import Recorder from './common/recorder/Recorder';
+import CallToAction from './media/CallToAction';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
@@ -45,6 +46,7 @@ const Home = observer(() => {
     lowerThirdsEnabled,
     templateGeneratorEnabled,
     linkedinEnabled,
+    ctaEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -92,6 +94,7 @@ const Home = observer(() => {
     isTimelineOpen,
     canvasWidth,
     toolsWidth,
+    openCTA,
   } = uiStore;
 
   const {
@@ -131,6 +134,9 @@ const Home = observer(() => {
       case WINDOW_TYPES.RECORDER: {
         return <Recorder />;
       }
+      case WINDOW_TYPES.CTA: {
+        return <CallToAction />;
+      }
       default: {
         return null;
       }
@@ -150,6 +156,7 @@ const Home = observer(() => {
         addRetargetForm,
         setSecondaryWindowType,
         openMediaButton,
+        openCTA,
       },
       project: {
         allowedSocials,
@@ -164,6 +171,7 @@ const Home = observer(() => {
         stickersEnabled,
         lowerThirdsEnabled,
         linkedinEnabled,
+        ctaEnabled,
       },
     });
     return items && items.length ? items : [];
