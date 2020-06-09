@@ -11,6 +11,7 @@ module.exports = {
   },
   whiteLabel: {
     devDefault: 'videoremix.io',
+    learnDefault: 'learn.vidcloud.io',
   },
   editor: process.env.EDITOR || 'dev-app.vidcloud.io',
   assetsPath: process.env.ASSETS_PATH || 'https://dev-cdn.vidcloud.io/resources/go',
