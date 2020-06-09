@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 
@@ -33,11 +33,14 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
   const [fadeInMax, setFadeInMax] = useState();
   const [fadeOutMax, setFadeOutMax] = useState();
 
-  useEffect(() => {
+  const itemVolume = useMemo(() => {
     if (mute) {
       onChange({ volume: 0 });
+      return 0;
     }
-  }, []);
+
+    return volume !== undefined ? volume : fields[popcornConstants.VOLUME].default;
+  }, [mute, volume]);
 
   useEffect(() => {
     setVideoOut(end - start + from);
@@ -72,7 +75,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     if (field.volume === 0 && !mute) {
       onChange({ mute: true });
     }
-  }, [volume, mute]);
+  }, [volume, mute, element.id]);
 
   const changeFrom = useCallback((field) => {
     const value = field.from;
@@ -190,7 +193,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
         <FieldBuilder
           label={fields[popcornConstants.VOLUME].label}
           type={fields[popcornConstants.VOLUME].type}
-          value={volume !== undefined ? volume : fields[popcornConstants.VOLUME].default}
+          value={itemVolume}
           name={popcornConstants.VOLUME}
           onChange={changeVolume}
           containerClassName="video-settings-slider-block"

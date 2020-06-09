@@ -2,11 +2,10 @@ import * as React from 'react';
 import Grid from '@material-ui/core/Grid/Grid';
 import PropTypes from '../../../../lib/PropTypes';
 
-const DefaultElement = React.forwardRef(({ onSelect, item, ...rest }, ref) => (
+const DefaultElement = React.forwardRef(({ item, ...rest }, ref) => (
   <Grid
     container
     className="popcorn-element"
-    onClick={onSelect}
     ref={ref}
     tabIndex={-1}
     title={item.title || item.htmlText || item.type}
@@ -24,7 +23,6 @@ DefaultElement.propTypes = {
     title: PropTypes.string,
     htmlText: PropTypes.string,
   }).isRequired,
-  onSelect: PropTypes.func.isRequired,
 };
 
 export default DefaultElement;
