@@ -92,6 +92,7 @@ const Home = observer(() => {
     isTimelineOpen,
     canvasWidth,
     toolsWidth,
+    setListBuilder,
   } = uiStore;
 
   const {
@@ -148,6 +149,7 @@ const Home = observer(() => {
         changeRadioButton,
         addElement,
         addRetargetForm,
+        setListBuilder,
         setSecondaryWindowType,
         openMediaButton,
       },
@@ -184,7 +186,7 @@ const Home = observer(() => {
   return (
     <React.Fragment>
       {(asyncHero.loading) && ( // todo implement loading
-        <Loader isLoading />
+        <Loader isLoading preloader />
       )}
       {asyncHero.error && ( // todo implement err message
         <div>Error</div>

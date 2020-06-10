@@ -17,19 +17,17 @@ const PopcornElement = observer(({ item }) => {
 
   let rest = {};
 
-  const selectElement = () => {
+  useEffect(() => {
+    removeDeleteListener(gridElementRef.current, item.i);
     addDeleteListener(gridElementRef.current, item.i);
-  };
-
-  useEffect(() => () => removeDeleteListener(gridElementRef.current, item.i), [item.i]);
+    return () => removeDeleteListener(gridElementRef.current, item.i);
+  }, [item.i]);
 
   rest = {
     onClick: (e) => {
       if (Object.values(POPCORN_ELEMENT_TYPES).includes(item.type)) {
         selectItem(e, item.i);
-        addDeleteListener(gridElementRef.current, item.i);
       } else {
-        addDeleteListener(gridElementRef.current, item.i);
         releaseElement();
       }
     },
@@ -50,7 +48,6 @@ const PopcornElement = observer(({ item }) => {
 
     <Element
       item={item}
-      onSelect={selectElement}
       ref={gridElementRef}
       tabIndex={-1}
       {...rest}

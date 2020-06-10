@@ -64,7 +64,8 @@ const Library = observer(() => {
 
   const [pageNumber, setPageNumber] = useState(1);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
 
   const [items, setItems] = useState([]);
@@ -85,7 +86,15 @@ const Library = observer(() => {
     }
   }, []);
 
+  const updateActiveTab = React.useCallback((tab) => {
+    if (!isLoading) {
+      setActiveTab(tab);
+    }
+  }, [isLoading, setActiveTab]);
   useEffect(() => {
+    async function fetchData() {
+      await fetchItems({ source: activeBtn, queryStr: '' });
+    }
     setQuery('');
     if (activeItem) {
       setActiveItem(null);
@@ -93,7 +102,7 @@ const Library = observer(() => {
     if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
-      fetchItems({ source: activeBtn, queryStr: '' });
+      fetchData();
     }
   }, [activeTab]);
 
@@ -114,9 +123,11 @@ const Library = observer(() => {
     }
   }, [activeTab, activeBtn, userStore]);
 
-  const handleButtonClick = element => {
-    setActiveBtn(element);
-  };
+  const handleButtonClick = React.useCallback((element) => {
+    if (!isLoading) {
+      setActiveBtn(element);
+    }
+  }, [isLoading]);
 
   React.useEffect(() => {
     if (libraryItemsForDelete.length) {
@@ -129,9 +140,13 @@ const Library = observer(() => {
   const fetchItems = async ({ source = activeBtn, queryStr = query || '', isScrolling = false }) => {
     let currentPage = 0;
     let uploaded = [];
+    if (isLoading) {
+      return;
+    }
 
+    setIsLoading(true);
     if (!isScrolling) {
-      setIsLoading(true);
+      setIsInitialLoading(true);
       setPageNumber(1);
       setUploadedItems([]);
       currentPage = 1;
@@ -171,6 +186,7 @@ const Library = observer(() => {
       showError('An error occurred while loading items');
     } finally {
       setIsLoading(false);
+      setIsInitialLoading(false);
     }
   };
 
@@ -297,6 +313,9 @@ const Library = observer(() => {
   };
 
   const onSelect = async (item) => {
+    if (isLoading) {
+      return;
+    }
     item.src = item.src || item.url;
     item.type = MEDIA_TYPES[activeTab];
     if (updateElementInLibrary && activeTab === LIBRARY_TABS.IMAGE) {
@@ -304,7 +323,16 @@ const Library = observer(() => {
       openSettings();
       setUpdateElementInLibrary();
     } else {
-      await projectStore.addElement(item, updateElementInLibrary);
+      setIsLoading(true);
+      setIsInitialLoading(true);
+      try {
+        await projectStore.addElement(item);
+      } catch (e) {
+        showError(e.message);
+      } finally {
+        setIsLoading(false);
+        setIsInitialLoading(false);
+      }
     }
   };
 
@@ -362,11 +390,11 @@ const Library = observer(() => {
         />
       );
     }
-  }, [activeTab, activeBtn, volume, activeItem, listProviders]);
+  }, [activeTab, activeBtn, volume, activeItem, listProviders, isLoading]);
 
   return (
     <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>
-      <Tabs setActiveTab={setActiveTab} activeTab={activeTab} />
+      <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
           <div>
@@ -408,7 +436,7 @@ const Library = observer(() => {
 
         <div className="library__row library__row-second">
           {renderSidebar()}
-          {isLoading
+          {isInitialLoading
             ? (
               <div className="library__items">
                 <CircleLoader
