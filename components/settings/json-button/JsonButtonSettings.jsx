@@ -33,7 +33,7 @@ const JsonButtonSettings = observer(({ element, update, fields }) => {
             return (
               <FieldBuilder
                 onChange={handleChange}
-                label={key === constant.LINK_URL ? constant.LABEL_CLICK_TO_PHONE : label}
+                label={label}
                 type={type}
                 value={element.popcornOptions[key]}
                 key={key}
@@ -45,10 +45,31 @@ const JsonButtonSettings = observer(({ element, update, fields }) => {
         </div>
       )}
       {element && element.popcornOptions && element.popcornOptions.src && (
-        <LottiePlayer
-          url={element.popcornOptions.src}
-          className="button-preview"
-        />
+        <>
+          {!isSuperAdmin && (
+            <div>
+              {fields && Object.keys(fields).map(key => {
+                const { label, type } = fields[key];
+                return (
+                  key === constant.LINK_URL && (
+                    <FieldBuilder
+                      onChange={handleChange}
+                      label={label}
+                      type={type}
+                      value={element.popcornOptions[key]}
+                      key={key}
+                      name={key}
+                      className="json-button-container"
+                    />
+                  ));
+              })}
+            </div>
+          )}
+          <LottiePlayer
+            url={element.popcornOptions.src}
+            className="button-preview"
+          />
+        </>
       )}
     </div>
   );
