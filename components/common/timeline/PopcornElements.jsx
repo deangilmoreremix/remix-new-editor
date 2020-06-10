@@ -32,6 +32,8 @@ const PopcornElements = observer(({ width }) => {
 
   const layersCount = React.useMemo(() => layers.length, [layers.length]);
 
+  const defaultWidth = React.useMemo(() => Math.round(cols / 6), [cols]);
+
   if (!layersCount) {
     return null;
   }
@@ -77,7 +79,8 @@ const PopcornElements = observer(({ width }) => {
 
     const layer = layers.find(item => item.id === element.track);
     const x = start * SANTISECOND;
-    const w = (getEnd(end, animation, outDuration) - start) * SANTISECOND;
+    const w = type === POPCORN_ELEMENT_TYPES.PAUSE ? defaultWidth
+      : (getEnd(end, animation, outDuration) - start) * SANTISECOND;
 
     let maxW = cols - x;
 
