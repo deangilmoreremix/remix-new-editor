@@ -99,6 +99,12 @@ export default class UIStore {
   };
 
   @action
+  setListBuilder = () => {
+    this.toggleRightBlock();
+    this.secondaryWindowType = WINDOW_TYPES.SETTING;
+  };
+
+  @action
   setLibraryType = (type) => {
     this.toggleRightBlock();
     this.secondaryWindowType = type;

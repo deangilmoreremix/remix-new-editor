@@ -6,6 +6,7 @@ import PopcornElement from './PopcornElement';
 import ResponsiveGrid from '../../form/grids/ResponsiveGrid';
 
 import PropTypes from '../../../lib/PropTypes';
+import { selectItem } from '../../../lib/mitt/emitter';
 
 import useProjectStore from '../../hooks/useProjectStore';
 
@@ -16,7 +17,6 @@ import { DEFAULT_SETTINGS } from '../../../lib/constants/settings';
 
 import { getTransitionButtons } from '../../../lib/utils/timeline';
 import TransitionButton from './TransitionButton';
-
 
 const PopcornElements = observer(({ width }) => {
   const projectStore = useProjectStore();
@@ -31,6 +31,8 @@ const PopcornElements = observer(({ width }) => {
   } = projectStore;
 
   const layersCount = React.useMemo(() => layers.length, [layers.length]);
+
+  const defaultWidth = React.useMemo(() => Math.round(cols / 6), [cols]);
 
   if (!layersCount) {
     return null;
@@ -77,7 +79,8 @@ const PopcornElements = observer(({ width }) => {
 
     const layer = layers.find(item => item.id === element.track);
     const x = start * SANTISECOND;
-    const w = (getEnd(end, animation, outDuration) - start) * SANTISECOND;
+    const w = type === POPCORN_ELEMENT_TYPES.PAUSE ? defaultWidth
+      : (getEnd(end, animation, outDuration) - start) * SANTISECOND;
 
     let maxW = cols - x;
 
@@ -140,6 +143,8 @@ const PopcornElements = observer(({ width }) => {
   }), [layouts, cols]);
 
   const onDragStop = (element, oldElement, newElement) => {
+    selectItem({ type: 'click' }, newElement.i);
+
     if (oldElement.y !== newElement.y) {
       setLayer(oldElement.i, newElement.y);
     }

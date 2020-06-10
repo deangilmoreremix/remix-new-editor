@@ -64,12 +64,12 @@ export default class ProjectStore extends BaseStore {
           this.isPlayed = true;
         });
         emitter.on(emitterActions.SELECT, id => {
-          if (id) {
+          if (this.activeElementId !== id && id) {
             this.editElement(id);
-          }
-          const element = this.getElementById(id);
-          if (element && element.popcornOptions) {
-            this.updateTime(element.popcornOptions.start * SANTISECOND);
+            const element = this.getElementById(id);
+            if (element && element.popcornOptions) {
+              this.updateTime(element.popcornOptions.start * SANTISECOND);
+            }
           }
         });
         emitter.on(emitterActions.DELETE, id => {
@@ -175,7 +175,8 @@ export default class ProjectStore extends BaseStore {
         options.contentType = fileMeta.contentType;
         options.in = options.start;
         options.out = options.end;
-        options.volume = item.volume || 100;
+        options.volume = item.volume !== undefined ? item.volume : 100;
+        options.mute = item.volume === 0;
         options.audioFadeIn = 0;
         options.audioFadeOut = 0;
         break;
@@ -208,7 +209,6 @@ export default class ProjectStore extends BaseStore {
 
     // eslint-disable-next-line no-underscore-dangle
     popcornFunctions._setup(retargetOptions);
-    this.editElement(retargetOptions.id);
     this.retarget = { ...retargetOptions, ...popcornFunctions };
     this.retarget.end = () => {
       if (popcornFunctions.end) {
@@ -224,16 +224,11 @@ export default class ProjectStore extends BaseStore {
 
   @action
   addRetargetForm = (retargetForm) => {
-    if (!this.retarget) {
+    if (!this.retarget || (this.retarget && !this.retarget.id)) {
       this.createRetargetForm(retargetForm);
-      this.retarget.start();
-    } else if (this.retarget && !this.retarget.id) {
-      this.createRetargetForm(retargetForm);
-      this.retarget.start();
-    } else {
-      this.editElement(this.retarget.id);
-      this.retarget.start();
     }
+    this.editElement(this.retarget.id);
+    this.retarget.start();
     this.retarget.showed = true;
     this.modified = true;
   };
@@ -287,8 +282,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   editElement = (elementId) => {
-    if (this.activeElementId
-      && this.retarget
+    if (this.retarget
       && this.retarget.id
       && this.retarget.id !== elementId) {
       this.retarget.end();
@@ -708,7 +702,7 @@ export default class ProjectStore extends BaseStore {
           },
         });
       this.setProjectData(JSON.parse(this.item.project.data));
-      if (this.item.project.retargetForm) {
+      if (this.item.project.retargetForm && !this.retarget) {
         this.retarget = this.item.project.retargetForm;
       }
       if (this.item.project && this.item.project.allowedSocials) {
