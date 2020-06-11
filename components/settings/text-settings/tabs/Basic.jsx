@@ -117,6 +117,16 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
     }
   }, [htmlText, text, fields]);
 
+  const urlToRender = useMemo(() => {
+    if (htmlUrl !== undefined) {
+      return htmlUrl;
+    } else if (linkUrl !== undefined) {
+      return wrapTokens(linkUrl);
+    } else {
+      return '';
+    }
+  }, [htmlUrl, linkUrl]);
+
   return (
     <Fragment>
       <div className="text-container">
@@ -167,7 +177,7 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
       <div>
         <div className="link-url-container">
           <FieldBuilder
-            value={htmlUrl || ''}
+            value={urlToRender}
             {...fields.htmlUrl}
             className="input-url-position"
             onChange={onChange}

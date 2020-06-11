@@ -9,7 +9,7 @@ import PersonalizeButton from '../../../common/personalization/PersonalizeButton
 
 const Basic = ({ values, fields, onChange }) => {
   const {
-    linkUrl,
+    linkSrc,
     htmlUrl,
     src,
     htmlSrc,
@@ -31,9 +31,9 @@ const Basic = ({ values, fields, onChange }) => {
   }, [onChange]);
 
   const onAddUrlToken = useCallback((token) => {
-    const result = addToken(linkUrl, token, urlCaretOffset);
-    onChange({ linkUrl: result, htmlUrl: wrapTokens(result) });
-  }, [linkUrl, urlCaretOffset, onChange]);
+    const result = addToken(linkSrc, token, urlCaretOffset);
+    onChange({ linkSrc: result, htmlUrl: wrapTokens(result) });
+  }, [linkSrc, urlCaretOffset, onChange]);
 
   // ToDo Add logic for transition button
   return (
@@ -133,7 +133,7 @@ Basic.propTypes = {
   values: PropTypes.shape({
     start: PropTypes.number,
     end: PropTypes.number,
-    linkUrl: PropTypes.string,
+    linkSrc: PropTypes.string,
     title: PropTypes.string,
     src: PropTypes.string,
     rotation: PropTypes.number,
@@ -168,7 +168,7 @@ Basic.propTypes = {
       label: PropTypes.string.isRequired,
       default: PropTypes.number.isRequired,
     }),
-    linkUrl: PropTypes.shape({
+    linkSrc: PropTypes.shape({
       type: PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
     }),
