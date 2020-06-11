@@ -1121,4 +1121,38 @@ export default class ProjectStore extends BaseStore {
       });
     });
   };
+
+  @action
+  changeDuration = (newDuration) => {
+    const { duration, elements } = this;
+    if (newDuration === duration) {
+      return;
+    }
+    this.modified = true;
+    let lastEnd = newDuration;
+
+    if (lastEnd < duration) {
+      elements.forEach(({ popcornOptions: { end }, type }) => {
+        if (type === SEQUENCER) { // element is image or audio
+          if (lastEnd < end * SANTISECOND) {
+            lastEnd = end * SANTISECOND;
+          }
+        }
+      });
+      elements.forEach(({ popcornOptions: { start, end }, id, type }) => {
+        if (type !== SEQUENCER) {
+          if (start * SANTISECOND < lastEnd && lastEnd < end * SANTISECOND) {
+            this.findAndUpdate(id, { end: lastEnd / SANTISECOND });
+          }
+          if (lastEnd < start * SANTISECOND) {
+            this.removeElement(id);
+          }
+        }
+      });
+      this.duration = lastEnd;
+    }
+    if (lastEnd > duration) {
+      this.duration = lastEnd;
+    }
+  }
 }
