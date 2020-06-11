@@ -1,0 +1,23 @@
+.input-time-start {
+  width: 35%;
+  display: flex;
+  flex-direction: column;
+
+  & label {
+    font-size: $small;
+    text-align: left;
+  }
+
+  &:hover input {
+    border: 0.055rem solid $secondary-color;
+  }
+}
+
+.slider-container {
+  margin-top: 2rem;
+
+  & label {
+    font-size: $small;
+    text-align: left;
+  }
+}
