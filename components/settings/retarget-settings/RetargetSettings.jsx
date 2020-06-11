@@ -49,13 +49,9 @@ const RetargetSettings = observer(({ tab = STYLES, element, update, fields }) =>
 
 RetargetSettings.propTypes = {
   element: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    track: PropTypes.string.isRequired,
-    popcornOptions: PropTypes.shape({
-      url: PropTypes.string,
-    }).isRequired,
+    options: PropTypes.shape({}).isRequired,
   }).isRequired,
+  fields: PropTypes.shape({}).isRequired,
   tab: PropTypes.string,
   update: PropTypes.func.isRequired,
 };
