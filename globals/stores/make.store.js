@@ -4,7 +4,7 @@ export default class PresetStore extends BaseStore {
   getNicheScripts = ({ page = 1, query = '', perPage = 20 }) => {
     try {
       return this.request(
-        `/api/makes/revolution?segment=nicheScripts&perPage=${perPage}&page=${page}&q=${query}`, {
+        `/api/makes/go?segment=nicheScripts&perPage=${perPage}&page=${page}&q=${query}`, {
           method: 'GET',
           headers: {
             'on-behalf': this.currentUser.id,
@@ -18,7 +18,7 @@ export default class PresetStore extends BaseStore {
   getTemplatesCTA = ({ page = 1, query = '', perPage = 20 }) => {
     try {
       return this.request(
-        `/api/makes/go?segment=cta&perPage=${perPage}&page=${page}&q=${query}`, {
+        `/api/makes/revolution?segment=cta&perPage=${perPage}&page=${page}&q=${query}`, {
           method: 'GET',
           headers: {
             'on-behalf': this.currentUser.id,
