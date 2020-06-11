@@ -159,9 +159,10 @@ export default class ProjectStore extends BaseStore {
       case SEQUENCER: {
         this.isLoadingSequencer = true;
         const source = (item.extra && item.extra.source) || [item.url];
+        const fileDuration = (item.extra && item.extra.duration) || null;
         let fileMeta;
         try {
-          fileMeta = await this.mediaTypeDetector.getMetadata(source[0]);
+          fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration);
         } catch (e) {
           // if there is no error, then loading will hide, after adding the item to the popcorn
           this.isLoadingSequencer = false;
