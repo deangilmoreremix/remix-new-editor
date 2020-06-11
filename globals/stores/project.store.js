@@ -974,7 +974,7 @@ export default class ProjectStore extends BaseStore {
       },
     });
 
-  fromTemplate = async (makeTemplate = {}, video, isSource) => {
+  fromTemplate = async (makeTemplate = {}, video = null, isSource) => {
     this.item.allowedSocials = ['facebook'];
     this.item.title = makeTemplate.title;
     this.item.description = makeTemplate.description;
@@ -985,7 +985,9 @@ export default class ProjectStore extends BaseStore {
     }
     this.setProjectData(JSON.parse(makeTemplate.project.data));
     this.setPopcorn();
-    await this.updateVideo(video);
+    if (video) {
+      await this.updateVideo(video);
+    }
     this.setProjectData(this.projectData);
     this.setPopcorn();
   };
