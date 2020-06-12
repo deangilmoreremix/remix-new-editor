@@ -11,7 +11,7 @@ import { selectItem } from '../../../lib/mitt/emitter';
 import useProjectStore from '../../hooks/useProjectStore';
 
 import { SANTISECOND } from '../../../lib/constants/project';
-import { MIN_DURATION, POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
+import { MIN_DURATION, POPCORN_ELEMENT_TYPES, SEQUENCER } from '../../../lib/constants/popcorn';
 import { NONE_CLASS } from '../../../lib/constants/animations';
 import { DEFAULT_SETTINGS } from '../../../lib/constants/settings';
 
@@ -31,6 +31,8 @@ const PopcornElements = observer(({ width }) => {
   } = projectStore;
 
   const layersCount = React.useMemo(() => layers.length, [layers.length]);
+
+  const defaultWidth = React.useMemo(() => Math.round(cols / 6), [cols]);
 
   if (!layersCount) {
     return null;
@@ -69,15 +71,25 @@ const PopcornElements = observer(({ width }) => {
 
   const layouts = React.useMemo(() => elements.map(element => {
     const {
-      popcornOptions: { id: i, start, end, animation, title, outDuration },
+      popcornOptions,
+      popcornOptions: { id: i, start, end, animation, title, outDuration, duration },
       type,
       dimensions,
     } = element;
 
     const layer = layers.find(item => item.id === element.track);
     const x = start * SANTISECOND;
-    const w = (getEnd(end, animation, outDuration) - start) * SANTISECOND;
+    const w = type === POPCORN_ELEMENT_TYPES.PAUSE ? defaultWidth
+      : (getEnd(end, animation, outDuration) - start) * SANTISECOND;
+
+    let maxW = cols - x;
+
+    if (type === SEQUENCER) {
+      maxW = duration * SANTISECOND;
+    }
+
     return {
+      ...popcornOptions,
       i,
       x,
       w,
@@ -88,10 +100,11 @@ const PopcornElements = observer(({ width }) => {
       animation,
       title,
       y: layer.order,
-      maxW: cols - x,
+      maxW,
       minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
       layer,
       dimensions,
+      isResizable: type !== POPCORN_ELEMENT_TYPES.PAUSE,
     };
   }), [cols, elements, getEnd, getExtraDuration, layers]);
   const components = React.useMemo(() => layouts.map((item, index, items) => {

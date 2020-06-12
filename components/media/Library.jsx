@@ -91,6 +91,7 @@ const Library = observer(() => {
       setActiveTab(tab);
     }
   }, [isLoading, setActiveTab]);
+
   useEffect(() => {
     async function fetchData() {
       await fetchItems({ source: activeBtn, queryStr: '' });
@@ -135,7 +136,7 @@ const Library = observer(() => {
     } else {
       fetchItems({ source: activeBtn });
     }
-  }, [activeBtn, activeTab]);
+  }, [activeBtn]);
 
   const fetchItems = async ({ source = activeBtn, queryStr = query || '', isScrolling = false }) => {
     let currentPage = 0;
@@ -358,7 +359,7 @@ const Library = observer(() => {
           fetchItems({ source: activeBtn, queryStr: searchText });
         }
       })
-      .catch(e => showError(`Error while deleting items, ${e}`));
+      .catch(e => showError(`Error while deleting items, ${e.message}`));
   };
 
   const renderSidebar = React.useCallback(() => {

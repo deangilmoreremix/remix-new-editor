@@ -16,7 +16,6 @@ import {
   MAX_ZINDEX,
   DEFAULT_CONTAINER,
   DEFAULT_DURATION,
-  PAUSE_PLUGIN_TIME_MARGIN,
   DEFAULT_LAYER,
   DEFAULT_ITEM,
   SOCIALS,
@@ -38,6 +37,11 @@ export default class ProjectStore extends BaseStore {
         if (!this.popcorn.on) {
           return;
         }
+        this.popcorn.on('seeking', () => {
+          if (this.isPlayed) {
+            this.playPause();
+          }
+        });
         this.popcorn.on('canplayall', () => {
           this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
           this.isLoaded = true;
@@ -173,6 +177,8 @@ export default class ProjectStore extends BaseStore {
         options.out = options.end;
         options.volume = item.volume !== undefined ? item.volume : 100;
         options.mute = item.volume === 0;
+        options.audioFadeIn = 0;
+        options.audioFadeOut = 0;
         break;
       }
       default:
@@ -263,7 +269,7 @@ export default class ProjectStore extends BaseStore {
 
     // update duration
     if (options.end > this.duration / SANTISECOND) {
-      this.recompressProject(options.end);
+      this.recompressProject(options.end, false);
       this.setPopcorn(this.popcorn.target);
       this.duration = options.end * SANTISECOND;
     }
@@ -320,7 +326,7 @@ export default class ProjectStore extends BaseStore {
   updateElement = (elementId, options) => {
     // we need to update the elements, if the user updates the start,
     // end or animation, this is necessary to rerender the elements
-    const { start, end, animation, title } = options;
+    const { start, end, animation, title, duration } = options;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         const newOptions = {};
@@ -329,6 +335,9 @@ export default class ProjectStore extends BaseStore {
         }
         if (end !== undefined && end !== element.popcornOptions.end) {
           newOptions.end = end;
+        }
+        if (duration !== undefined && duration !== element.popcornOptions.duration) {
+          newOptions.duration = duration;
         }
         if (animation) {
           newOptions.animation = animation;
@@ -449,10 +458,6 @@ export default class ProjectStore extends BaseStore {
     projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
-          if (trackEvent.type === 'pausePlugin') {
-            trackEvent.popcornOptions.start = media.duration - PAUSE_PLUGIN_TIME_MARGIN;
-            trackEvent.popcornOptions.end = media.duration;
-          }
           elements.push({
             ...trackEvent,
           });
@@ -820,23 +825,10 @@ export default class ProjectStore extends BaseStore {
     tags: this.item.tags,
   });
 
-  trailisePauseElements = (projectData) => {
-    projectData.media.forEach((media) => {
-      media.tracks.forEach((track) => {
-        track.trackEvents.forEach((trackEvent) => {
-          if (trackEvent.type === 'pausePlugin') {
-            trackEvent.popcornOptions.start = media.duration - PAUSE_PLUGIN_TIME_MARGIN;
-            trackEvent.popcornOptions.end = media.duration;
-          }
-        });
-      });
-    });
-    return projectData;
-  };
-
   // todo implement
   @action
-  recompressProject = (newDuration) => {
+  recompressProject = (newDuration, updateElements = true) => {
+    const elements = [];
     this.projectData.media.forEach((media) => {
       const initialDuration = media.duration;
       if (initialDuration >= newDuration) {
@@ -844,19 +836,23 @@ export default class ProjectStore extends BaseStore {
       }
       media.duration = newDuration;
       media.url = `#t=,${newDuration}`;
-      const recompressRatio = newDuration / initialDuration;
-      media.tracks.forEach((track) => {
-        track.trackEvents.forEach((trackEvent) => {
-          if (trackEvent.type !== 'sequencer') {
-            trackEvent.popcornOptions.start = Math
-              .round(trackEvent.popcornOptions.start * recompressRatio * 100) / 100;
-            trackEvent.popcornOptions.end = Math
-              .round(trackEvent.popcornOptions.end * recompressRatio * 100) / 100;
-          }
+      if (updateElements) {
+        const recompressRatio = newDuration / initialDuration;
+        media.tracks.forEach((track) => {
+          track.trackEvents.forEach((trackEvent) => {
+            if (trackEvent.type !== 'sequencer') {
+              trackEvent.popcornOptions.start = Math
+                .round(trackEvent.popcornOptions.start * recompressRatio * 100) / 100;
+              trackEvent.popcornOptions.end = Math
+                .round(trackEvent.popcornOptions.end * recompressRatio * 100) / 100;
+            }
+            elements.push({
+              ...trackEvent,
+            });
+          });
         });
-      });
+      }
     });
-    this.projectData = this.trailisePauseElements(this.projectData);
   };
 
   @action

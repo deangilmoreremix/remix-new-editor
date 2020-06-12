@@ -24,6 +24,7 @@ const ResponsiveGrid = observer((props) => {
   if (!components || components.length === 0) {
     return null;
   }
+
   return (
     <Responsive
       className={className || ''}

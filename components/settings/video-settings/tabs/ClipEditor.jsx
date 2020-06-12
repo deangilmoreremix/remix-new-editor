@@ -24,10 +24,14 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     start,
     end,
     duration,
+    // audioFadeIn,
+    // audioFadeOut,
   } = values;
 
   const { isAudio } = useProjectStore();
   const [videoOut, setVideoOut] = useState(end - start + from);
+  // const [fadeInMax, setFadeInMax] = useState();
+  // const [fadeOutMax, setFadeOutMax] = useState();
 
   const itemVolume = useMemo(() => {
     if (mute) {
@@ -58,7 +62,12 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
   }, [mute, volume]);
 
   const changeVolume = useCallback((field) => {
-    onChange(field);
+    if (field.volume > 100) {
+      onChange({ volume: 100 });
+    } else {
+      onChange(field);
+    }
+
     if (field.volume > 0 && mute) {
       onChange({ mute: false });
     }
@@ -93,6 +102,28 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
   //   onChange(field);
   //   onChange({ end });
   // }, [end, from]);
+
+  // useEffect(() => {
+  //   const defaultMax = fields[popcornConstants.AUDIO_FADE_IN].max;
+  //   const videoLength = Math.floor(end - start);
+  //
+  //   if ((videoLength - (audioFadeOut || 0)) >= defaultMax) {
+  //     setFadeInMax(defaultMax);
+  //   } else {
+  //     setFadeInMax(videoLength - (audioFadeOut || 0));
+  //   }
+  //
+  //   if ((videoLength - (audioFadeIn || 0)) >= defaultMax) {
+  //     setFadeOutMax(defaultMax);
+  //   } else {
+  //     setFadeOutMax(videoLength - (audioFadeIn || 0));
+  //   }
+  //
+  //   if (((audioFadeIn || 0) + (audioFadeOut || 0)) > videoLength) {
+  //     onChange({ audioFadeIn: Math.floor(videoLength / 2) });
+  //     onChange({ audioFadeOut: Math.floor(videoLength / 2) });
+  //   }
+  // }, [audioFadeIn, audioFadeOut, end]);
 
   return (
     <div className="video-settings-container">
@@ -197,6 +228,50 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
           className="video-settings__time"
         />
       </div>
+
+      {/* <div className="video-settings__fade"> */}
+      {/* <div className="video-settings__fade-block"> */}
+      {/* <div className="video-settings__fade-header"> */}
+      {/* <label>Fade In</label> */}
+      {/* <p> */}
+      {/* {audioFadeIn !== undefined */}
+      {/* ? `${audioFadeIn}s` : `${fields[popcornConstants.AUDIO_FADE_IN].default}s`} */}
+      {/* </p> */}
+      {/* </div> */}
+      {/* <FieldBuilder */}
+      {/* type={fields[popcornConstants.AUDIO_FADE_IN].type} */}
+      {/* value={audioFadeIn !== undefined */}
+      {/* ? audioFadeIn : fields[popcornConstants.AUDIO_FADE_IN].default} */}
+      {/* name={popcornConstants.AUDIO_FADE_IN} */}
+      {/* onChange={onChange} */}
+      {/* containerClassName="video-settings-slider-block" */}
+      {/* sliderClassName="video-settings-slider" */}
+      {/* inputClassName="video-settings-slider-input" */}
+      {/* maxValue={fadeInMax} */}
+      {/* withoutInput */}
+      {/* /> */}
+      {/* </div> */}
+      {/* <div className="video-settings__fade-block"> */}
+      {/* <div className="video-settings__fade-header"> */}
+      {/* <label>Fade Out</label> */}
+      {/* <p> */}
+      {/* {audioFadeOut !== undefined */}
+      {/* ? `${audioFadeOut}s` : `${fields[popcornConstants.AUDIO_FADE_OUT].default}s`} */}
+      {/* </p> */}
+      {/* </div> */}
+      {/* <FieldBuilder */}
+      {/* type={fields[popcornConstants.AUDIO_FADE_OUT].type} */}
+      {/* value={audioFadeOut !== undefined */}
+      {/* ? audioFadeOut : fields[popcornConstants.AUDIO_FADE_OUT].default} */}
+      {/* name={popcornConstants.AUDIO_FADE_OUT} */}
+      {/* onChange={onChange} */}
+      {/* containerClassName="video-settings-slider-block" */}
+      {/* sliderClassName="video-settings-slider" */}
+      {/* maxValue={fadeOutMax} */}
+      {/* withoutInput */}
+      {/* /> */}
+      {/* </div> */}
+      {/* </div> */}
     </div>
   );
 });

@@ -4,6 +4,7 @@
   background-color: $light-twinlight;
   width: 100%;
   transition: 0.3s all;
+  z-index: 15;
 
   &-open {
     height: $timeline-height;
@@ -66,6 +67,13 @@
         justify-content: center;
         align-items: center;
       }
+
+      &.popcorn-pause-end,
+      &.popcorn-pause {
+        width: 1rem;
+        height: auto;
+        margin: auto 0.2rem;
+      }
     }
 
     .icon-btn {
@@ -76,6 +84,10 @@
       }
     }
   }
+}
+
+.popcorn-pause-element {
+  justify-content: space-between;
 }
 
 .elements {
