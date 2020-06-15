@@ -1084,7 +1084,7 @@ export default class ProjectStore extends BaseStore {
     if (!this.activeElementId) {
       return null;
     }
-    return this.popcorn.getTrackEvent(this.activeElementId);
+    return this.popcornElements.find(element => element.id === this.activeElementId);
   }
 
   getElementById(id) {
