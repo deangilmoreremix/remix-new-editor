@@ -993,6 +993,25 @@ export default class ProjectStore extends BaseStore {
     this.setPopcorn();
   };
 
+  addData = (makeTemplate = {}) => {
+    let newData = makeTemplate.project.data;
+    if (!newData) {
+      return;
+    }
+    newData = JSON.parse(newData);
+    newData.media.map((media) => media.tracks
+      .map((track) => track.trackEvents.map((trackEvent) => {
+        trackEvent.track = null;
+        trackEvent.popcornOptions = {
+          ...trackEvent.popcornOptions,
+          start: null,
+          end: null,
+          zindex: null,
+        };
+        return this.addElement(trackEvent);
+      })));
+  }
+
   @action
   updateVideo = async (value, trimming) => {
     const videoMeta = await this.mediaTypeDetector.getMetadata(value);
@@ -1065,7 +1084,7 @@ export default class ProjectStore extends BaseStore {
     if (!this.activeElementId) {
       return null;
     }
-    return this.popcornElements.find(element => element.id === this.activeElementId);
+    return this.popcorn.getTrackEvent(this.activeElementId);
   }
 
   getElementById(id) {

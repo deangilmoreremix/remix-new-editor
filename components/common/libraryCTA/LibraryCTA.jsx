@@ -15,16 +15,16 @@ const LibraryCTA = ({ className, onSelect }) => {
   const [hasMore, setHasMore] = React.useState(true);
 
   const { getTemplatesCTA } = useMakeStore();
-  const { fromTemplate } = useProjectStore();
+  const { addData } = useProjectStore();
 
   const handleSelect = React.useCallback(async (item) => {
     try {
-      await fromTemplate(item, null, false);
+      await addData(item);
       onSelect();
     } catch (e) {
       await showError(e.message);
     }
-  }, [fromTemplate]);
+  }, []);
 
   const resetParams = () => {
     setPage(1);
