@@ -1001,16 +1001,16 @@ export default class ProjectStore extends BaseStore {
     newData = JSON.parse(newData);
     newData.media.map((media) => media.tracks
       .map((track) => track.trackEvents.map((trackEvent) => {
-        trackEvent.track = null;
-        trackEvent.popcornOptions = {
+        const item = {
           ...trackEvent.popcornOptions,
+          track: null,
           start: null,
           end: null,
           zindex: null,
         };
-        return this.addElement(trackEvent);
+        return this.addElement(item);
       })));
-  }
+  };
 
   @action
   updateVideo = async (value, trimming) => {
@@ -1084,7 +1084,18 @@ export default class ProjectStore extends BaseStore {
     if (!this.activeElementId) {
       return null;
     }
-    return this.popcorn.getTrackEvent(this.activeElementId);
+    const currentElement = this.popcornElements
+      .find(element => element.id === this.activeElementId);
+    if (!currentElement) {
+      return null;
+    }
+    const popcornOptions = this.popcorn.getTrackEvent(this.activeElementId);
+
+    console.info(popcornOptions);
+    currentElement.popcornOptions = { ...currentElement.popcornOptions, ...popcornOptions };
+
+    console.info(currentElement);
+    return currentElement;
   }
 
   getElementById(id) {
