@@ -126,6 +126,11 @@ export default class UIStore {
   }
 
   @action
+  openPresets = (type) => {
+    this.secondaryWindowType = type;
+  }
+
+  @action
   openSettings = () => {
     this.secondaryWindowType = WINDOW_TYPES.SETTING;
   };
