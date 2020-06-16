@@ -4,8 +4,8 @@ import { observer } from 'mobx-react';
 
 import useUIStore from '../hooks/useUIStore';
 
-import Content from "../common/lower-thirds/Content";
-import CloseButton from "../common/CloseButton";
+import Content from '../common/presets/Content';
+import CloseButton from '../common/CloseButton';
 
 const Presets = observer(() => {
   const { toggleRightBlock, isTimelineOpen } = useUIStore();
