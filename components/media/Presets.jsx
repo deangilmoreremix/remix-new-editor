@@ -12,7 +12,7 @@ const Presets = observer(() => {
 
   return (
     <div className={classnames('presets', { 'big-window': !isTimelineOpen })}>
-      <div className="presets">
+      <div className="presets__body">
         <Content />
       </div>
 
