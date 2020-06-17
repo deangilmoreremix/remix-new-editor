@@ -6,7 +6,7 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 
-import { SEQUENCER } from '../../lib/constants/popcorn';
+import { NO_SETTINGS_ELEMENT_TYPES, SEQUENCER } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
@@ -65,10 +65,14 @@ export default class ProjectStore extends BaseStore {
         });
         emitter.on(emitterActions.SELECT, id => {
           if (this.activeElementId !== id && id) {
-            this.editElement(id);
             const element = this.getElementById(id);
-            if (element && element.popcornOptions) {
-              this.updateTime(element.popcornOptions.start * SANTISECOND);
+            if (this.isElementWithSettings(element.type)) {
+              this.editElement(id);
+            }
+            const { popcornOptions } = element;
+            const currentTime = this.time / SANTISECOND;
+            if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
+              this.updateTime(popcornOptions.start * SANTISECOND);
             }
           }
         });
@@ -188,6 +192,8 @@ export default class ProjectStore extends BaseStore {
     return options;
   };
 
+  isElementWithSettings = (type) => !NO_SETTINGS_ELEMENT_TYPES.some(e => e === type);
+
   @action
   createRetargetForm = (initialOptions) => {
     const { type } = initialOptions;
@@ -278,7 +284,11 @@ export default class ProjectStore extends BaseStore {
     // update timeline
     this.elements = [element, ...this.elements];
 
-    this.editElement(element.id);
+    if (this.isElementWithSettings(element.type)) {
+      this.editElement(element.id);
+    } else {
+      this.releaseElement();
+    }
   };
 
   @action
@@ -1001,16 +1011,16 @@ export default class ProjectStore extends BaseStore {
     newData = JSON.parse(newData);
     newData.media.map((media) => media.tracks
       .map((track) => track.trackEvents.map((trackEvent) => {
-        trackEvent.track = null;
-        trackEvent.popcornOptions = {
+        const item = {
           ...trackEvent.popcornOptions,
+          track: null,
           start: null,
           end: null,
           zindex: null,
         };
-        return this.addElement(trackEvent);
+        return this.addElement(item);
       })));
-  }
+  };
 
   @action
   updateVideo = async (value, trimming) => {
@@ -1084,7 +1094,18 @@ export default class ProjectStore extends BaseStore {
     if (!this.activeElementId) {
       return null;
     }
-    return this.popcorn.getTrackEvent(this.activeElementId);
+    const currentElement = this.popcornElements
+      .find(element => element.id === this.activeElementId);
+    if (!currentElement) {
+      return null;
+    }
+    const popcornOptions = this.popcorn.getTrackEvent(this.activeElementId);
+
+    console.info(popcornOptions);
+    currentElement.popcornOptions = { ...currentElement.popcornOptions, ...popcornOptions };
+
+    console.info(currentElement);
+    return currentElement;
   }
 
   getElementById(id) {
