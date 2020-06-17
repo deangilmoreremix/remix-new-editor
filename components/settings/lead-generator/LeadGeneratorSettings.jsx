@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 
 import PropTypes from '../../../lib/PropTypes';
 
-import {STYLES, FIELDS, INTEGRATIONS, BASIC} from '../../../lib/constants/popcorn';
+import { STYLES, FIELDS, INTEGRATIONS, BASIC } from '../../../lib/constants/popcorn';
 
 import StylesTab from './tabs/StylesTab';
 import FieldsTab from './tabs/FieldsTab';
