@@ -1,7 +1,7 @@
 import React from 'react';
 import { Waypoint } from 'react-waypoint';
 
-import useMediaStore from '../../hooks/useMediaStore';
+import useMakeStore from '../../hooks/useMakeStore';
 
 import { showError } from '../../../lib/services/alertService';
 
@@ -12,7 +12,7 @@ const Content = () => {
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
 
-  const { getAssets } = useMediaStore();
+  const { getPresets } = useMakeStore();
 
   // const handleSelect = React.useCallback(async (item) => {
   //   try {
@@ -35,7 +35,7 @@ const Content = () => {
 
     if (hasMore) {
       try {
-        const results = await getAssets({
+        const results = await getPresets({
           query: '',
           page,
           perPage,
