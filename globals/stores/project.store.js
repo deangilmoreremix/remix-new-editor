@@ -1102,10 +1102,8 @@ export default class ProjectStore extends BaseStore {
     }
     const popcornOptions = this.popcorn.getTrackEvent(this.activeElementId);
 
-    console.info(popcornOptions);
     currentElement.popcornOptions = { ...currentElement.popcornOptions, ...popcornOptions };
 
-    console.info(currentElement);
     return currentElement;
   }
 

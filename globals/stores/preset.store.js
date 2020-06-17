@@ -1,7 +1,25 @@
-import { action } from "mobx";
+import {action, reaction} from 'mobx';
 import ProjectStore from './project.store';
 
 export default class PresetStore extends ProjectStore {
+  constructor(props) {
+    super(props);
+    reaction(
+      () => this.popcorn,
+      () => {
+        if (!this.popcorn.on) {
+          return;
+        }
+
+        this.popcorn.on('ended', () => {
+          console.log("ended");
+          this.time = 0;
+          this.updateTime(0);
+        });
+      },
+    );
+  }
+
   save = async (type, url, name) => {
     try {
       const data = await this.request(
@@ -28,18 +46,4 @@ export default class PresetStore extends ProjectStore {
   setPreviewData = (data) => {
     this.setProjectData(JSON.parse(data));
   };
-
-  // @action
-  // setPopcorn = (target) => {
-  //   if (!target) {
-  //     return;
-  //   }
-  //
-  //   if (this.popcorn && this.popcorn.target) {
-  //     window.Popcorn.destroy(this.popcorn);
-  //   }
-  //   this.popcorn = window.Popcorn.smart(target,
-  //     this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
-  //   this.attach(target);
-  // };
 }

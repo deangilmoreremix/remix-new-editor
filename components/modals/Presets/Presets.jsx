@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState, useRef } from 'react';
 
 import useMakeStore from '../../hooks/useMakeStore';
 import usePresetStore from '../../hooks/usePresetStore';
@@ -10,18 +10,19 @@ import PresetsPreview from './PresetsPreview';
 const perPage = 12;
 
 const Content = () => {
-  const [items, setItems] = React.useState([]);
-  const [page, setPage] = React.useState(1);
-  const [hasMore, setHasMore] = React.useState(true);
-  const [preview, setPreview] = React.useState('');
+  const [items, setItems] = useState([]);
+  const [activeItem, setActiveItem] = useState();
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [preview, setPreview] = useState('');
 
   const { getPresets } = useMakeStore();
   const { setPreviewData, playPause } = usePresetStore();
 
   const handleSelect = React.useCallback(async (item) => {
+    await setPreviewData(item.project.data);
     setPreview(item.thumbnail);
     playPause();
-    setPreviewData(item.project.data);
   }, []);
 
 
@@ -45,6 +46,9 @@ const Content = () => {
         });
 
         setItems([...items, ...results]);
+        if (!activeItem) {
+          setActiveItem(results[0]);
+        }
         const hasNextPage = results.length === perPage;
         setHasMore(hasNextPage);
 
@@ -79,7 +83,7 @@ const Content = () => {
       />
       <PresetsPreview
         preview={preview}
-        items={items}
+        activeItem={activeItem}
       />
     </div>
   );
