@@ -1,9 +1,11 @@
-import React from 'react';
-import { Waypoint } from 'react-waypoint';
+import React, { useRef } from 'react';
 
 import useMakeStore from '../../hooks/useMakeStore';
+import usePresetStore from '../../hooks/usePresetStore';
 
 import { showError } from '../../../lib/services/alertService';
+import PresetsList from './PresetsList';
+import PresetsPreview from './PresetsPreview';
 
 const perPage = 12;
 
@@ -11,16 +13,17 @@ const Content = () => {
   const [items, setItems] = React.useState([]);
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
+  const [preview, setPreview] = React.useState('');
 
   const { getPresets } = useMakeStore();
+  const { setPreviewData, playPause } = usePresetStore();
 
-  // const handleSelect = React.useCallback(async (item) => {
-  //   try {
-  //
-  //   } catch (e) {
-  //     await showError(e.message);
-  //   }
-  // }, []);
+  const handleSelect = React.useCallback(async (item) => {
+    setPreview(item.thumbnail);
+    playPause();
+    setPreviewData(item.project.data);
+  }, []);
+
 
   const resetParams = () => {
     setPage(1);
@@ -67,8 +70,17 @@ const Content = () => {
   };
 
   return (
-    <div className="presets__content">
-      {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
+    <div className="presets">
+      <PresetsList
+        items={items}
+        hasMore={hasMore}
+        uploadNewItems={uploadNewItems}
+        handleSelect={handleSelect}
+      />
+      <PresetsPreview
+        preview={preview}
+        items={items}
+      />
     </div>
   );
 };

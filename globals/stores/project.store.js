@@ -419,6 +419,7 @@ export default class ProjectStore extends BaseStore {
     if (!this.popcornObject) {
       return;
     }
+
     if (!target) {
       target = this.popcorn && this.popcorn.target;
     }
