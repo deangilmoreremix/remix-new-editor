@@ -67,7 +67,9 @@ const Content = () => {
   };
 
   return (
-    <div>Window</div>
+    <div className="presets__content">
+      {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
+    </div>
   );
 };
 

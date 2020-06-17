@@ -11,7 +11,6 @@ import Timeline from './Timeline';
 import Library from './media/Library';
 import Stickers from './media/Stickers';
 import LowerThirds from './media/LowerThirds';
-import Presets from './media/Presets';
 import Toolbar from './common/toolbar/Toolbar';
 import SizeSelector from './canvas/SizeSelector';
 import AnimationList from './media/AnimationList';
@@ -99,6 +98,7 @@ const Home = observer(() => {
     setListBuilder,
     openCTA,
     openPresets,
+    toggleRightBlock,
   } = uiStore;
 
   const {
@@ -135,9 +135,6 @@ const Home = observer(() => {
       case WINDOW_TYPES.PRESETS.value: {
         return <LowerThirds />;
       }
-      case WINDOW_TYPES.PRESETS: {
-        return <Presets />;
-      }
       case WINDOW_TYPES.RECORDER: {
         return <Recorder />;
       }
@@ -166,6 +163,7 @@ const Home = observer(() => {
         openMediaButton,
         openCTA,
         openPresets,
+        toggleRightBlock,
       },
       project: {
         allowedSocials,
