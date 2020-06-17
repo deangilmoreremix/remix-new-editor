@@ -97,7 +97,6 @@ const Home = observer(() => {
     toolsWidth,
     setListBuilder,
     openCTA,
-    openPresets,
     toggleRightBlock,
   } = uiStore;
 
@@ -162,7 +161,6 @@ const Home = observer(() => {
         setSecondaryWindowType,
         openMediaButton,
         openCTA,
-        openPresets,
         toggleRightBlock,
       },
       project: {
