@@ -185,7 +185,7 @@ const StylesTab = ({ values, fields, onChange }) => {
             {...fields.buttonBorderRadius}
             onChange={onChange}
           />
-          <div>
+          <div className="container-flex">
             <FieldBuilder
               value={values.btnBottomBorder ?? fields.btnBottomBorder.default}
               {...fields.btnBottomBorder}
@@ -196,6 +196,7 @@ const StylesTab = ({ values, fields, onChange }) => {
               {...fields.transition}
               onChange={onChange}
               className="container-transition-list"
+              labelClassName="form-control-label"
             />
           </div>
         </div>

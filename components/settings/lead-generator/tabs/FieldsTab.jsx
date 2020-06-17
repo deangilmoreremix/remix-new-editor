@@ -10,6 +10,8 @@ import burgerIcon from '../../../../public/static/svgImages/common/burger.svg';
 import { showInfo } from '../../../../lib/services/alertService';
 import useProjectStore from '../../../hooks/useProjectStore';
 
+import { FORM_FIELDS_ELEMENT_LG } from '../../../../lib/constants/text-info';
+
 
 const INPUT_NAME = 'inputValue';
 
@@ -30,7 +32,7 @@ const FieldsTab = ({ values, fields, onChange }) => {
       newArr.push(newElement);
       onChange({ elements: newArr });
     } else {
-      showInfo('LEAD GENERATOR CAN\'T HAVE MORE THAN 5 FIELDS.', 'WARNING');
+      showInfo(FORM_FIELDS_ELEMENT_LG.text, FORM_FIELDS_ELEMENT_LG.title);
     }
   };
 
@@ -59,17 +61,19 @@ const FieldsTab = ({ values, fields, onChange }) => {
     }
   };
 
-  // const isValuePresent = (itemValue) => typeof (itemValue) !== 'undefined';
-
   return (
     <div className="retarget-fields-tab">
-      <FieldBuilder
-        value={values.caption ?? fields.caption.default}
-        onChange={onChange}
-        {...fields.caption}
-      />
+      <div>
+        <label className="form-control-label">Caption</label>
+        <FieldBuilder
+          value={values.caption ?? fields.caption.default}
+          onChange={onChange}
+          {...fields.caption}
+        />
+      </div>
+
       {inputs && inputs.map(item => (
-        <div className="item-retarget-container" key={item.id}>
+        <div className="item-retarget-container lead-generator-container" key={item.id}>
           <SVGInline
             className="icon"
             classSuffix=""
@@ -81,6 +85,7 @@ const FieldsTab = ({ values, fields, onChange }) => {
             type={item.type}
             value={item.label}
             name={item.name}
+            className="item-form"
             inputClassName="item-retarget-container-input"
             onChange={(v) => handleChangeInput(v, item.id)}
           />
@@ -105,12 +110,15 @@ const FieldsTab = ({ values, fields, onChange }) => {
       <div className="addfield-container">
         <button className="addfield-container-button" onClick={() => addField()}>+ Add Field</button>
       </div>
-      <FieldBuilder
-        value={values.privacyDisclaimer ?? fields.privacyDisclaimer.default}
-        onChange={onChange}
-        {...fields.privacyDisclaimer}
-        className="input-field-conatainer"
-      />
+      <div>
+        <label className="form-control-label">Privacy Disclaimer</label>
+        <FieldBuilder
+          value={values.privacyDisclaimer ?? fields.privacyDisclaimer.default}
+          onChange={onChange}
+          {...fields.privacyDisclaimer}
+          className="input-field-conatainer"
+        />
+      </div>
       <FieldBuilder
         value={values.privacyPolicyCaption ?? fields.privacyPolicyCaption.default}
         onChange={onChange}

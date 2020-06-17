@@ -1,0 +1,14 @@
+.background-color-container {
+
+  div.container-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+
+    > div {
+      width: 48%;
+    }
+  }
+}
+
