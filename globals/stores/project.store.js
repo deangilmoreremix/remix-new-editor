@@ -141,7 +141,7 @@ export default class ProjectStore extends BaseStore {
 
   getPersonalization = () => getCustomVarsFromMediaArr(this.projectData.media);
 
-  generateUid = () => `${Date.now() / Math.random()}`;
+  generateUid = () => `${Date.now()}/${Math.random()}/${Date.now() * Math.random()}`;
 
   @observable duration = 30 * SANTISECOND;
 
@@ -1016,7 +1016,7 @@ export default class ProjectStore extends BaseStore {
     } else {
       this.projectData.media.forEach((media) => {
         if (media.tracks.length > 0) {
-          const elementId = this.generateUid();
+          const elementId = `0.${this.generateUid()}`;
           const layerId = this.generateUid();
           media.tracks.push({
             name: `${media.tracks.length}`,
