@@ -2,11 +2,13 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import Grid from '@material-ui/core/Grid/Grid';
+import ContentEditable from 'react-contenteditable';
 
 import { ANIMATION_TYPES, NONE_CLASS } from '../../../../lib/constants/animations';
 import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 import PropTypes from '../../../../lib/PropTypes';
 import useProjectStore from '../../../hooks/useProjectStore';
+import { wrapTokens } from '../../../../lib/utils/tokens-helper';
 
 const AnimatableElement = React.forwardRef(({ onSelect, item, ...rest }, ref) => {
   const { updateAnimation } = useProjectStore();
@@ -48,7 +50,14 @@ const AnimatableElement = React.forwardRef(({ onSelect, item, ...rest }, ref) =>
       {...rest}
     >
       <span className="popcorn-element-name">
-        {item.title || item.htmlText || item.type}
+        {item.htmlText ? (
+          <ContentEditable
+            className="popcorn-element-text"
+            tagName="span"
+            html={wrapTokens(item.htmlText)}
+            onChange={() => {}}
+          />
+        ) : item.type}
       </span>
       {getGridItem(ANIMATION_TYPES.IN)}
       {getGridItem(ANIMATION_TYPES.IDLE)}

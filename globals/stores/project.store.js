@@ -326,7 +326,7 @@ export default class ProjectStore extends BaseStore {
   updateElement = (elementId, options) => {
     // we need to update the elements, if the user updates the start,
     // end or animation, this is necessary to rerender the elements
-    const { start, end, animation, title, duration } = options;
+    const { start, end, animation, title, duration, htmlText } = options;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         const newOptions = {};
@@ -344,6 +344,9 @@ export default class ProjectStore extends BaseStore {
         }
         if (title) {
           newOptions.title = title;
+        }
+        if (htmlText !== undefined) {
+          newOptions.htmlText = htmlText;
         }
         if (size(newOptions) > 0) {
           element.popcornOptions = {
