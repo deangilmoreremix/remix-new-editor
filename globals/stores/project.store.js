@@ -657,6 +657,13 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  updateVideoDuration = (value) => {
+    this.recompressProject(value, false);
+    this.setPopcorn(this.popcorn.target);
+    this.duration = value * SANTISECOND;
+  };
+
+  @action
   updateStartEnd = (elementId, start, end) => {
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
