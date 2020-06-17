@@ -73,6 +73,8 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
     }
   }, []);
 
+  useEffect(() => () => player.record().stopStream(), []);
+
   const handleDownload = React.useCallback(() => {
     if (!player) {
       return;
