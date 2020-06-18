@@ -1,34 +1,41 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { observer } from 'mobx-react';
 
 import usePresetStore from '../../hooks/usePresetStore';
 
 import PropTypes from '../../../lib/PropTypes';
 
-const PresetsPreview = ({ preview, activeItem }) => {
+const PresetsPreview = observer(({ preview, activeItem }) => {
   const wrapper = useRef(null);
-  const presetStore = usePresetStore();
+  const { isPlayed, setPopcorn, playPause, destroyPopcorn } = usePresetStore();
 
-  const playPause = async () => {
-    await presetStore.setPopcorn(wrapper.current);
-    await presetStore.playPause();
-  };
+  useEffect(() => {
+    if (wrapper && activeItem) {
+      destroyPopcorn();
+      setPopcorn(wrapper.current);
+    }
+  }, [wrapper, activeItem]);
+
+  const play = useCallback(async () => {
+    await playPause();
+  }, [activeItem]);
 
   return (
     <div className="presets-preview" ref={wrapper}>
-      {preview && <img src={preview} className="presets-preview__img" alt="preview" />}
+      {preview && !isPlayed && <img src={preview} className="presets-preview__img" alt="preview" />}
       {
-        activeItem && (
-          <button
-            className="presets-preview__play"
-            onClick={playPause}
-          >
-            Play
-          </button>
+        activeItem && !isPlayed && (
+          <div className="presets-button-block">
+            <button
+              className="presets-preview__play"
+              onClick={play}
+            />
+          </div>
         )
       }
     </div>
   );
-};
+});
 
 PresetsPreview.propTypes = {
   preview: PropTypes.string,

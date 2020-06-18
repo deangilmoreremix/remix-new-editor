@@ -22,7 +22,7 @@ const PresetsList = ({ items, hasMore, uploadNewItems, handleSelect }) => {
         )
         : null}
 
-      {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
+      {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="preset-waypoint" /></Waypoint>}
     </div>
   );
 };

@@ -1,42 +1,105 @@
+.modal-container__content.presets-modal {
+  padding: 0;
+}
+
+.preset-waypoint {
+  display: block;
+  height: 22px;
+}
+
 .presets {
-  width: 100vw;
+  width: 32rem;
   max-width: 100%;
-  height: 60vh;
-  display: flex;
   z-index: 1;
   overflow: hidden;
+
+  &__header {
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    padding: 0.63rem;
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    color: $white;
+    background: $scrollbarColor;
+    margin-bottom: 0;
+  }
+
+  &__body {
+    display: flex;
+    width: 100%;
+    height: 21.25rem;
+    padding: 2.06rem 1.57rem 1.57rem;
+  }
+}
+
+.presets-list-container {
+  width: 11.1rem;
+  margin-right: 3.15%;
+  border: 1px solid $secondary-color;
+  border-radius: 4px;
+  overflow: hidden;
+  max-height: 100%;
+  padding: 6px 6px 6px 0;
+  position: relative;
+
+  &:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% - 15px);
+    height: 100%;
+    background: $light-twinlight;
+    z-index: 1;
+  }
 }
 
 .presets-list {
   @include tiny-scrollbar();
-  height: 100%;
-  margin-right: 5%;
+  width: 100%;
+  max-height: 100%;
+  padding-right: 4px;
+  position: relative;
+  z-index: 2;
 }
 
 .presets-list__button {
-  @include reset-button;
-  font-size: 0.875rem;
+  @include reset-button();
+  display: block;
   width: 100%;
+  font-size: 0.875rem;
   color: $white;
-  background: $dark-night;
-  line-height: 1;
-  padding: 5px;
-  margin-bottom: 0.5rem;
+  line-height: 1.1;
+  padding: 4.7px 18px 4.7px 18px;
+  text-align: left;
 
   &:last-child {
     margin-bottom: 0;
   }
+
+  &-active {
+    background: $layer-color;
+  }
+}
+
+.presets__control {
+  flex: 1;
 }
 
 .presets-preview {
   position: relative;
-  flex: 1;
-  height: 100%;
+  height: 9rem;
   background: $canvas-bg;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid $third-color;
 
   &__img {
     max-width: 100%;
-    max-height: 100%;
     display: block;
     position: absolute;
     top: 50%;
@@ -45,11 +108,62 @@
   }
 
   &__play {
+    @include reset-button();
+    width: 31px;
+    height: 31px;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    z-index: 1000;
+
+    &:after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 54%;
+      transform: translate(-50%, -50%);
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 6px 0 6px 10px;
+      border-color: transparent transparent transparent $white;
+    }
+
+    &:before {
+      content: "";
+      width: 100%;
+      height: 100%;
+      border: 2px solid rgba(255,255,255,0.3);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+    }
   }
+}
+
+.presets-button-block {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.presets__use {
+  @include reset-button();
+  width: 7.8rem;
+  height: 2.18rem;
+  background: $secondary-color;
+  text-transform: uppercase;
+  border-radius: 4px;
+  margin-top: 1.25rem;
+  color: $white;
+  margin-left: auto;
 }
 
 

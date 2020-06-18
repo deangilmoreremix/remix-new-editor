@@ -1,4 +1,4 @@
-import {action, reaction} from 'mobx';
+import { action, reaction } from 'mobx';
 import ProjectStore from './project.store';
 
 export default class PresetStore extends ProjectStore {
@@ -12,9 +12,12 @@ export default class PresetStore extends ProjectStore {
         }
 
         this.popcorn.on('ended', () => {
-          console.log("ended");
           this.time = 0;
           this.updateTime(0);
+        });
+
+        this.popcorn.on('play', () => {
+          this.isPlayed = true;
         });
       },
     );
@@ -45,5 +48,12 @@ export default class PresetStore extends ProjectStore {
   @action
   setPreviewData = (data) => {
     this.setProjectData(JSON.parse(data));
+  };
+
+  @action
+  destroyPopcorn = () => {
+    if (this.popcorn && this.popcorn.target) {
+      window.Popcorn.destroy(this.popcorn);
+    }
   };
 }
