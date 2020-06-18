@@ -103,6 +103,7 @@ const Presets = ({ handleClose }) => {
             hasMore={hasMore}
             uploadNewItems={uploadNewItems}
             handleSelect={handleSelect}
+            activeItem={activeItem}
           />
         </div>
         <div className="presets__control">

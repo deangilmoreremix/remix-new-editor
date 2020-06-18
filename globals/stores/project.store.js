@@ -65,6 +65,8 @@ export default class ProjectStore extends BaseStore {
         });
         emitter.on(emitterActions.SELECT, id => {
           if (this.activeElementId !== id && id) {
+            console.log("id", id);
+            console.log("this.elements", this.elements);
             const element = this.getElementById(id);
             if (this.isElementWithSettings(element.type)) {
               this.editElement(id);
@@ -242,12 +244,14 @@ export default class ProjectStore extends BaseStore {
 
   @action
   addElement = async (item) => {
+    console.log("item", item);
     const { type } = item;
     if (this.isPlayed) {
       this.playPause();
     }
 
     const options = await this.setElementOptions(item);
+    console.log("options", options);
 
     // get first track
     let track = item.track || this.layers[0];

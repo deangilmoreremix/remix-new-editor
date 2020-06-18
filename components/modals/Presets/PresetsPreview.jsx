@@ -17,6 +17,8 @@ const PresetsPreview = observer(({ preview, activeItem }) => {
     }
   }, [wrapper, activeItem]);
 
+  useEffect(() => () => destroyPopcorn(), []);
+
   const play = useCallback(async () => {
     await playPause();
   }, [activeItem]);
