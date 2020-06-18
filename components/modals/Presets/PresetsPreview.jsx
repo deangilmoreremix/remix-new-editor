@@ -8,7 +8,7 @@ import PropTypes from '../../../lib/PropTypes';
 
 const PresetsPreview = observer(({ preview, activeItem }) => {
   const wrapper = useRef(null);
-  const { isPlayed, setPopcorn, playPause, destroyPopcorn } = usePresetStore();
+  const { isPlayed, setPopcorn, playPreset, destroyPopcorn } = usePresetStore();
 
   useEffect(() => {
     if (wrapper && activeItem) {
@@ -19,23 +19,21 @@ const PresetsPreview = observer(({ preview, activeItem }) => {
 
   useEffect(() => () => destroyPopcorn(), []);
 
-  const play = useCallback(async () => {
-    await playPause();
+  const play = useCallback(() => {
+    playPreset();
   }, [activeItem]);
 
   return (
     <div className="presets-preview" ref={wrapper}>
       {preview && !isPlayed && <img src={preview} className="presets-preview__img" alt="preview" />}
-      {
-        activeItem && !isPlayed && (
-          <div className={classnames('presets-button-block', { 'presets-button-bg': !preview })}>
-            <button
-              className="presets-preview__play"
-              onClick={play}
-            />
-          </div>
-        )
-      }
+      <div className={classnames('presets-button-block', { 'presets-button-bg': !preview && !isPlayed, 'presets-button-active': isPlayed })}>
+        { activeItem && !isPlayed && (
+          <button
+            className="presets-preview__play"
+            onClick={play}
+          />
+        )}
+      </div>
     </div>
   );
 });

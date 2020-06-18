@@ -25,92 +25,94 @@ import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 
 export default class ProjectStore extends BaseStore {
-  constructor(props) {
+  constructor(props, runReaction = true) {
     super(props);
     this.layers = [];
     this.elements = [];
     this.mediaTypeDetector = new MediaTypeDetector();
     this.userStore = props.userStore;
-    reaction(
-      () => this.popcorn,
-      () => {
-        if (!this.popcorn.on) {
-          return;
-        }
-        this.popcorn.on('seeking', () => {
-          if (this.isPlayed) {
-            this.playPause();
+    if (runReaction) {
+      reaction(
+        () => this.popcorn,
+        () => {
+          if (!this.popcorn.on) {
+            return;
           }
-        });
-        this.popcorn.on('canplayall', () => {
-          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
-          this.isLoaded = true;
-        });
-        this.popcorn.on('elementUpdated', (data) => {
-          const { element, options } = data;
-          this.findAndUpdate(element.id, options);
-        });
-        this.popcorn.on('timeupdate', () => {
-          this.time = this.popcorn.currentTime() * SANTISECOND;
-        });
-        this.popcorn.on('ended', () => {
-          this.time = 0;
-          this.updateTime(0);
-        });
-        this.popcorn.on('pause', () => {
-          this.isPlayed = false;
-        });
-        this.popcorn.on('play', () => {
-          this.isPlayed = true;
-        });
-        emitter.on(emitterActions.SELECT, id => {
-          if (this.activeElementId !== id && id) {
-            console.log("id", id);
-            console.log("this.elements", this.elements);
-            const element = this.getElementById(id);
-            if (this.isElementWithSettings(element.type)) {
-              this.editElement(id);
+          this.popcorn.on('seeking', () => {
+            if (this.isPlayed) {
+              this.playPause();
             }
-            const { popcornOptions } = element;
-            const currentTime = this.time / SANTISECOND;
-            if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
-              this.updateTime(popcornOptions.start * SANTISECOND);
-            }
-          }
-        });
-        emitter.on(emitterActions.DELETE, id => {
-          this.removeElement(id);
-        });
-        emitter.on(emitterActions.SEQUENCES_LOADING, () => {
-          this.isLoadingSequencer = true;
-        });
-        emitter.on(emitterActions.SEQUENCES_READY, () => {
-          this.isLoadingSequencer = false;
-        });
-        emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
-          this.elements = this.elements.map(el => {
-            if (el.id === id) {
-              return {
-                ...el,
-                dimensions: { width, height },
-              };
-            }
-            return el;
           });
-        });
-      },
-    );
+          this.popcorn.on('canplayall', () => {
+            this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
+            this.isLoaded = true;
+          });
+          this.popcorn.on('elementUpdated', (data) => {
+            const { element, options } = data;
+            this.findAndUpdate(element.id, options);
+          });
+          this.popcorn.on('timeupdate', () => {
+            this.time = this.popcorn.currentTime() * SANTISECOND;
+          });
+          this.popcorn.on('ended', () => {
+            this.time = 0;
+            this.updateTime(0);
+          });
+          this.popcorn.on('pause', () => {
+            this.isPlayed = false;
+          });
+          this.popcorn.on('play', () => {
+            this.isPlayed = true;
+          });
+          emitter.on(emitterActions.SELECT, id => {
+            if (this.activeElementId !== id && id) {
+              const element = this.getElementById(id);
+              if (element) {
+                if (this.isElementWithSettings(element.type)) {
+                  this.editElement(id);
+                }
+                const { popcornOptions } = element;
+                const currentTime = this.time / SANTISECOND;
+                if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
+                  this.updateTime(popcornOptions.start * SANTISECOND);
+                }
+              }
+            }
+          });
+          emitter.on(emitterActions.DELETE, id => {
+            this.removeElement(id);
+          });
+          emitter.on(emitterActions.SEQUENCES_LOADING, () => {
+            this.isLoadingSequencer = true;
+          });
+          emitter.on(emitterActions.SEQUENCES_READY, () => {
+            this.isLoadingSequencer = false;
+          });
+          emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
+            this.elements = this.elements.map(el => {
+              if (el.id === id) {
+                return {
+                  ...el,
+                  dimensions: { width, height },
+                };
+              }
+              return el;
+            });
+          });
+        },
+      );
 
-    reaction(
-      () => this.item.allowedSocials
-        && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
-      () => {
-        if (!this.userStore.linkedinEnabled) {
-          this.item.allowedSocials = this.item.allowedSocials
-            .filter(allowedSocial => allowedSocial !== SOCIALS.LINKEDIN);
-        }
-      },
-    );
+      reaction(
+        () => this.item.allowedSocials
+          && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
+        () => {
+          if (!this.userStore.linkedinEnabled) {
+            this.item.allowedSocials = this.item.allowedSocials
+              .filter(allowedSocial => allowedSocial !== SOCIALS.LINKEDIN);
+          }
+        },
+      );
+    }
   }
 
   @observable userStore = {};
@@ -244,14 +246,12 @@ export default class ProjectStore extends BaseStore {
 
   @action
   addElement = async (item) => {
-    console.log("item", item);
     const { type } = item;
     if (this.isPlayed) {
       this.playPause();
     }
 
     const options = await this.setElementOptions(item);
-    console.log("options", options);
 
     // get first track
     let track = item.track || this.layers[0];
@@ -517,6 +517,7 @@ export default class ProjectStore extends BaseStore {
     if (!this.isLoaded) {
       return;
     }
+
     if (this.isPlayed) {
       this.popcorn.pause();
     } else {

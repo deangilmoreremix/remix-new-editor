@@ -3,7 +3,7 @@ import ProjectStore from './project.store';
 
 export default class PresetStore extends ProjectStore {
   constructor(props) {
-    super(props);
+    super(props, false);
     reaction(
       () => this.popcorn,
       () => {
@@ -52,8 +52,15 @@ export default class PresetStore extends ProjectStore {
 
   @action
   destroyPopcorn = () => {
+    this.isPlayed = false;
     if (this.popcorn && this.popcorn.target) {
       window.Popcorn.destroy(this.popcorn);
     }
+  };
+
+  @action
+  playPreset = () => {
+    this.isLoaded = true;
+    this.playPause();
   };
 }
