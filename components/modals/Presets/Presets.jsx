@@ -20,13 +20,14 @@ const Presets = ({ handleClose }) => {
   const [preview, setPreview] = useState('');
 
   const { getPresets } = useMakeStore();
-  const { setPreviewData, playPause } = usePresetStore();
+  const { setPreviewData, playPause, updateTime } = usePresetStore();
   const { addData } = useProjectStore();
 
   const handleSelect = React.useCallback(async (item) => {
     await setPreviewData(item.project.data);
     setPreview(item.thumbnail);
     setActiveItem(item);
+    updateTime(0);
     // playPause();
   }, []);
 
@@ -56,7 +57,10 @@ const Presets = ({ handleClose }) => {
 
         setItems([...items, ...results]);
         if (!activeItem) {
-          handleSelect(results[0]);
+          await setPreviewData(results[0].project.data);
+          setPreview(results[0].thumbnail);
+          setActiveItem(results[0]);
+          // handleSelect(results[0]);
         }
         const hasNextPage = results.length === perPage;
         setHasMore(hasNextPage);
