@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 
 import PropTypes from '../../../lib/PropTypes';
 
@@ -20,7 +20,7 @@ const Presets = ({ handleClose }) => {
   const [preview, setPreview] = useState('');
 
   const { getPresets } = useMakeStore();
-  const { setPreviewData, playPause, updateTime } = usePresetStore();
+  const { setPreviewData, updateTime } = usePresetStore();
   const { addData } = useProjectStore();
 
   const handleSelect = React.useCallback(async (item) => {
@@ -28,7 +28,6 @@ const Presets = ({ handleClose }) => {
     setPreview(item.thumbnail);
     setActiveItem(item);
     updateTime(0);
-    // playPause();
   }, []);
 
   const addDataToCanvas = () => {
@@ -60,7 +59,6 @@ const Presets = ({ handleClose }) => {
           await setPreviewData(results[0].project.data);
           setPreview(results[0].thumbnail);
           setActiveItem(results[0]);
-          // handleSelect(results[0]);
         }
         const hasNextPage = results.length === perPage;
         setHasMore(hasNextPage);
