@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
+import classnames from 'classnames';
 
 import usePresetStore from '../../hooks/usePresetStore';
 
@@ -25,7 +26,7 @@ const PresetsPreview = observer(({ preview, activeItem }) => {
       {preview && !isPlayed && <img src={preview} className="presets-preview__img" alt="preview" />}
       {
         activeItem && !isPlayed && (
-          <div className="presets-button-block">
+          <div className={classnames('presets-button-block', { 'presets-button-bg': !preview })}>
             <button
               className="presets-preview__play"
               onClick={play}
