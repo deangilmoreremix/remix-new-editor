@@ -30,9 +30,18 @@ const Presets = ({ handleClose }) => {
     updateTime(0);
   }, []);
 
-  const addDataToCanvas = () => {
-    addData(activeItem);
-    handleClose();
+  const addDataToCanvas = async () => {
+    try {
+      let newData = JSON.parse(activeItem.project.data);
+      newData.media[0].tracks.reverse();
+      newData = JSON.stringify(newData);
+      activeItem.project.data = newData;
+
+      await addData(activeItem);
+      handleClose();
+    } catch (e) {
+      await showError(e.message);
+    }
   };
 
   const resetParams = () => {
