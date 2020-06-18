@@ -25,6 +25,18 @@ const StylesTab = ({ values, fields, onChange }) => {
     });
   };
 
+  const rgb2hex = (rgb) => {
+    rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+    return (rgb && rgb.length === 4) ? `#${
+      (`0${parseInt(rgb[1], 10).toString(16)}`).slice(-2)
+    }${(`0${parseInt(rgb[2], 10).toString(16)}`).slice(-2)
+    }${(`0${parseInt(rgb[3], 10).toString(16)}`).slice(-2)}` : '';
+  };
+
+  const handleChangeColor = (rgbColor) => {
+    onChange({ [Object.keys(rgbColor).join()]: rgb2hex(Object.values(rgbColor).join()) });
+  };
+
   return (
     <div className="retarget-styles-tab">
       <div className="brand-logo-container">
@@ -127,7 +139,7 @@ const StylesTab = ({ values, fields, onChange }) => {
             <FieldBuilder
               value={values.fontColor ?? fields.fontColor.default}
               {...fields.fontColor}
-              onChange={onChange}
+              onChange={handleChangeColor}
             />
             <FieldBuilder
               value={values.fontSize ?? fields.fontSize.default}
@@ -140,7 +152,7 @@ const StylesTab = ({ values, fields, onChange }) => {
             <FieldBuilder
               value={values.innerColor ?? fields.innerColor.default}
               {...fields.innerColor}
-              onChange={onChange}
+              onChange={handleChangeColor}
               className="inner-color"
             />
             <div className="number-container">
@@ -168,17 +180,17 @@ const StylesTab = ({ values, fields, onChange }) => {
           <FieldBuilder
             value={values.backgroundColor ?? fields.backgroundColor.default}
             {...fields.backgroundColor}
-            onChange={onChange}
+            onChange={handleChangeColor}
           />
           <FieldBuilder
             value={values.buttonBackground ?? fields.buttonBackground.default}
             {...fields.buttonBackground}
-            onChange={onChange}
+            onChange={handleChangeColor}
           />
           <FieldBuilder
             value={values.buttonFontColor ?? fields.buttonFontColor.default}
             {...fields.buttonFontColor}
-            onChange={onChange}
+            onChange={handleChangeColor}
           />
           <FieldBuilder
             value={values.buttonBorderRadius ?? fields.buttonBorderRadius.default}
@@ -189,7 +201,7 @@ const StylesTab = ({ values, fields, onChange }) => {
             <FieldBuilder
               value={values.btnBottomBorder ?? fields.btnBottomBorder.default}
               {...fields.btnBottomBorder}
-              onChange={onChange}
+              onChange={handleChangeColor}
             />
             <FieldBuilder
               value={values.transition ?? fields.transition.default}

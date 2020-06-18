@@ -15,7 +15,7 @@ const TabMap = {
   [INTEGRATIONS]: IntegrationsTab,
 };
 
-const LeadGEneratorSettings = observer(({ tab = BASIC, element, update, fields, handleClose }) => {
+const LeadGeneratorSettings = observer(({ tab = BASIC, element, update, fields, handleClose }) => {
   const Tab = TabMap[tab];
 
   const handleChange = (value, options) => {
@@ -27,7 +27,7 @@ const LeadGEneratorSettings = observer(({ tab = BASIC, element, update, fields, 
   };
 
   return (
-    <div className="retarget-form">
+    <div className="lead-form">
       {element && element.popcornOptions && (
         <Tab
           values={element.popcornOptions}
@@ -40,7 +40,7 @@ const LeadGEneratorSettings = observer(({ tab = BASIC, element, update, fields, 
   );
 });
 
-LeadGEneratorSettings.propTypes = {
+LeadGeneratorSettings.propTypes = {
   element: PropTypes.shape({
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
@@ -53,4 +53,4 @@ LeadGEneratorSettings.propTypes = {
   update: PropTypes.func.isRequired,
 };
 
-export default LeadGEneratorSettings;
+export default LeadGeneratorSettings;
