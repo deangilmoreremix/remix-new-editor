@@ -1005,6 +1005,7 @@ export default class ProjectStore extends BaseStore {
   };
 
   addData = (makeTemplate = {}) => {
+    console.log("makeTemplate", makeTemplate);
     let newData = makeTemplate.project.data;
     if (!newData) {
       return;

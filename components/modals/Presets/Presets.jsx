@@ -101,7 +101,7 @@ const Presets = ({ handleClose }) => {
             preview={preview}
             activeItem={activeItem}
           />
-          <button className="presets__use" onClick={() => addDataToCanvas()}>Use</button>
+          <button className="presets__use" onClick={addDataToCanvas}>Use</button>
         </div>
       </div>
     </div>
