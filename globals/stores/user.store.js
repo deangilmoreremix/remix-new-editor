@@ -77,4 +77,9 @@ export default class UserStore {
   get ctaEnabled() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_CTA);
   }
+
+  @computed
+  get blendModeEnabled() {
+    return this.isfeatureEnabled(FEATURES.BLEND_MODE);
+  }
 }

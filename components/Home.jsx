@@ -48,6 +48,7 @@ const Home = observer(() => {
     templateGeneratorEnabled,
     linkedinEnabled,
     ctaEnabled,
+    blendModeEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -180,6 +181,7 @@ const Home = observer(() => {
         lowerThirdsEnabled,
         linkedinEnabled,
         ctaEnabled,
+        blendModeEnabled,
       },
     });
     return items && items.length ? items : [];
