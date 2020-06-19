@@ -1,5 +1,6 @@
 import React from 'react';
 import classnames from 'classnames';
+import { Waypoint } from 'react-waypoint';
 
 import { perPage } from '../../lib/constants/library';
 
@@ -77,7 +78,15 @@ const BlendModeLibrary = ({ handleClose }) => {
     <div className={classnames('blendmode-library', { 'big-window': !isTimelineOpen })}>
         <header className="blendmode-header">Blend mode</header>
         <div className="blendmode-body">
+          {items.map((item) => (
+            <div key={item._id} className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }} />
+              <button className="btn-add" onClick={() => handleSelect(item)}>+</button>
+              <span className="title">{item.title}</span>
+            </div>
+          ))}
 
+          {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
         </div>
     </div>
   );
