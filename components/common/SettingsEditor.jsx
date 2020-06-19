@@ -10,11 +10,13 @@ import useProjectStore from '../hooks/useProjectStore';
 
 import { DEFAULT_TABS, CUSTOM_TABS } from '../../lib/constants/settings';
 import CloseButton from './CloseButton';
+import useUserStore from '../hooks/useUserStore';
 
 const SettingsEditor = observer(() => {
   const [activeTab, setTab] = useState(0);
 
   const { element, retarget, activeElementId, releaseElement } = useProjectStore();
+  const { currentUser, isfeatureEnabled } = useUserStore();
   const { closeSecondaryWindow, toggleRightBlock, isTimelineOpen } = useUIStore();
 
   const currentElement = useMemo(() => {
@@ -38,7 +40,16 @@ const SettingsEditor = observer(() => {
     () => CUSTOM_TABS[type] || DEFAULT_TABS,
     [type],
   );
-  tabs = tabs.filter(tab => !tab.disabled);
+
+  tabs = tabs.filter(tab => {
+    if (tab.disabled) {
+      return false;
+    }
+    if (!tab.requiredFeature) {
+      return true;
+    }
+    return currentUser.features && isfeatureEnabled(tab.requiredFeature);
+  });
 
   React.useEffect(() => {
     setTab(0);

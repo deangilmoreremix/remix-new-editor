@@ -14,6 +14,8 @@ import PropTypes from '../../../../../lib/PropTypes';
 
 const LinkedinPost = observer((props) => {
   const { settings, updateCampaign } = props;
+  const [isDisabledUpload, setIsDisabledUpload] = React.useState(false);
+
   return (
     <div className="linkedin-post">
       <h5 className="embed-title">
@@ -83,6 +85,9 @@ const LinkedinPost = observer((props) => {
                           thumbnail,
                         },
                       })}
+                      startUpload={() => setIsDisabledUpload(true)}
+                      endUpload={() => setIsDisabledUpload(false)}
+                      isDisabled={isDisabledUpload}
                       needSaveAsset={false}
                       type={ASSET_TYPES.IMAGE}
                       multiple={false}
