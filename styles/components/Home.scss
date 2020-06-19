@@ -2,6 +2,11 @@
   .controls {
     padding-top: $menu-height;
   }
+
+  .controls-block {
+    min-width: 105px;
+    z-index: 10;
+  }
 }
 .home {
   display: flex;

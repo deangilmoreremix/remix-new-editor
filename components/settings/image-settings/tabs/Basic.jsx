@@ -7,6 +7,7 @@ import * as popcornConstants from '../../../../lib/constants/popcorn';
 
 import useUIStore from '../../../hooks/useUIStore';
 import useProjectStore from '../../../hooks/useProjectStore';
+import useUserStore from '../../../hooks/useUserStore';
 
 import FieldBuilder from '../../../form/FieldBuilder';
 import DropzoneArea from '../../../media/DropzoneArea';
@@ -14,11 +15,13 @@ import DropzoneArea from '../../../media/DropzoneArea';
 import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 
 import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
+import { FEATURES } from '../../../../lib/constants/features';
 
 const Basic = ({ values, fields, onChange, handleClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { setLibraryType, setUpdateElementInLibrary } = useUIStore();
   const { findAndUpdate, element } = useProjectStore();
+  const { currentUser: user, isfeatureEnabled: checkStateFeature } = useUserStore();
 
   const backToLibrary = () => {
     handleClose();
@@ -84,7 +87,10 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
       <div className="image-settings__block">
         <div className="image-settings__cell--first">
           <FieldBuilder
-            label={fields[popcornConstants.LINKSRC].label}
+            label={user
+            && user.features
+            && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
+              ? popcornConstants.LABEL_CLICK_TO_PHONE : fields[popcornConstants.LINKSRC].label}
             type={fields[popcornConstants.LINKSRC].type}
             value={values[popcornConstants.LINKSRC] || fields[popcornConstants.LINKSRC].default}
             name={popcornConstants.LINKSRC}
