@@ -141,7 +141,7 @@ export default class ProjectStore extends BaseStore {
 
   getPersonalization = () => getCustomVarsFromMediaArr(this.projectData.media);
 
-  generateUid = () => `${Date.now() / Math.random()}`;
+  generateUid = () => `${Date.now()}/${Math.random()}/${Date.now() * Math.random()}`;
 
   @observable duration = 30 * SANTISECOND;
 
@@ -326,7 +326,7 @@ export default class ProjectStore extends BaseStore {
   updateElement = (elementId, options) => {
     // we need to update the elements, if the user updates the start,
     // end or animation, this is necessary to rerender the elements
-    const { start, end, animation, title, duration } = options;
+    const { start, end, animation, title, duration, htmlText } = options;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         const newOptions = {};
@@ -344,6 +344,9 @@ export default class ProjectStore extends BaseStore {
         }
         if (title) {
           newOptions.title = title;
+        }
+        if (htmlText !== undefined) {
+          newOptions.htmlText = htmlText;
         }
         if (size(newOptions) > 0) {
           element.popcornOptions = {
@@ -651,6 +654,13 @@ export default class ProjectStore extends BaseStore {
   updateTime = (value) => {
     this.time = value;
     return this.popcorn.currentTime((value && value / SANTISECOND) || 0);
+  };
+
+  @action
+  updateVideoDuration = (value) => {
+    this.recompressProject(value, false);
+    this.setPopcorn(this.popcorn.target);
+    this.duration = value * SANTISECOND;
   };
 
   @action
@@ -1016,7 +1026,7 @@ export default class ProjectStore extends BaseStore {
     } else {
       this.projectData.media.forEach((media) => {
         if (media.tracks.length > 0) {
-          const elementId = this.generateUid();
+          const elementId = `0.${this.generateUid()}`;
           const layerId = this.generateUid();
           media.tracks.push({
             name: `${media.tracks.length}`,

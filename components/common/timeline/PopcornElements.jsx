@@ -2,6 +2,8 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
+import { TRANSITION_DEFAULT_DURATION } from '../../../lib/constants/settings/video-transition';
+
 import PopcornElement from './PopcornElement';
 import ResponsiveGrid from '../../form/grids/ResponsiveGrid';
 
@@ -28,11 +30,11 @@ const PopcornElements = observer(({ width }) => {
     elements,
     layers,
     addElement,
+    updateVideoDuration,
+    projectData,
   } = projectStore;
 
   const layersCount = React.useMemo(() => layers.length, [layers.length]);
-
-  const defaultWidth = React.useMemo(() => Math.round(cols / 6), [cols]);
 
   if (!layersCount) {
     return null;
@@ -54,6 +56,50 @@ const PopcornElements = observer(({ width }) => {
   }, [getExtraDuration]);
 
   const insertTransition = async ({ transition, element }) => {
+    // let currentLayerId = 0;
+    const elementsForUpdate = [];
+    const elementsEnds = [];
+    let itemStartAfterToVideo = null;
+
+    const currentLayer = elements.filter(item => item.id === element.id);
+
+    projectData.media.forEach((media) => {
+      media.tracks.map((track) => {
+        track.trackEvents.forEach(trackEvent => {
+          if (trackEvent.track === currentLayer[0].track) {
+            elementsEnds.push(trackEvent.popcornOptions.end);
+            if ((element.end - TRANSITION_DEFAULT_DURATION) < trackEvent.popcornOptions.start) {
+              elementsForUpdate.push(trackEvent);
+            }
+          }
+        });
+        return null;
+      });
+    });
+
+    if (elementsForUpdate && elementsForUpdate.length) {
+      elementsForUpdate.forEach(item => {
+        if (item.popcornOptions.start < itemStartAfterToVideo || !itemStartAfterToVideo) {
+          itemStartAfterToVideo = item.popcornOptions.start;
+        }
+      });
+    }
+
+    if (element.end > itemStartAfterToVideo) {
+      if (cols < (Math.max(...elementsEnds) + TRANSITION_DEFAULT_DURATION) * SANTISECOND) {
+        await updateVideoDuration((cols / SANTISECOND) + TRANSITION_DEFAULT_DURATION);
+      }
+
+      if (elementsForUpdate && elementsForUpdate.length) {
+        elementsForUpdate.forEach(item => {
+          updateStartEnd(
+            item.id,
+            item.popcornOptions.start + TRANSITION_DEFAULT_DURATION,
+            item.popcornOptions.end + TRANSITION_DEFAULT_DURATION);
+        });
+      }
+    }
+
     await updateStartEnd(element.id, element.start, element.end);
     await addElement({
       ...DEFAULT_SETTINGS[POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION],
@@ -79,8 +125,7 @@ const PopcornElements = observer(({ width }) => {
 
     const layer = layers.find(item => item.id === element.track);
     const x = start * SANTISECOND;
-    const w = type === POPCORN_ELEMENT_TYPES.PAUSE ? defaultWidth
-      : (getEnd(end, animation, outDuration) - start) * SANTISECOND;
+    const w = (getEnd(end, animation, outDuration) - start) * SANTISECOND;
 
     let maxW = cols - x;
 
@@ -104,9 +149,9 @@ const PopcornElements = observer(({ width }) => {
       minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
       layer,
       dimensions,
-      isResizable: type !== POPCORN_ELEMENT_TYPES.PAUSE,
     };
   }), [cols, elements, getEnd, getExtraDuration, layers]);
+
   const components = React.useMemo(() => layouts.map((item, index, items) => {
     const transitionButtons = getTransitionButtons(item, index, items);
 

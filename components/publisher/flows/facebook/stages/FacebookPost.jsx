@@ -11,53 +11,56 @@ import {
 
 import PropTypes from '../../../../../lib/PropTypes';
 
-const FacebookPost = ({ settings, updateCampaign }) => (
-  <div className="facebook-post">
-    <h5 className="embed-title">
+const FacebookPost = ({ settings, updateCampaign }) => {
+  const [isDisabledUpload, setIsDisabledUpload] = React.useState(false);
+
+  return (
+    <div className="facebook-post">
+      <h5 className="embed-title">
         What do you want the Facebook Share to look like?
-    </h5>
-    <div className="embed-grid__layout">
-      <div className="embed-group">
-        <div className="cell facebook-post-details">
-          <div className="row embed-group">
-            <FieldBuilder
-              type="input"
-              name="title"
-              label="Post Title"
-              onChange={({ title }) => updateCampaign({
-                postData: {
-                  ...settings.postData,
-                  title,
-                },
-              })}
-              value={settings.postData.title}
-              className="settings-input"
-              labelClassName="settings-panel-text"
-              placeholder="Post Title"
-            />
-          </div>
-          <div className="row embed-group">
-            <FieldBuilder
-              type="input"
-              name="description"
-              label="Post Description"
-              onChange={({ description }) => updateCampaign({
-                postData: {
-                  ...settings.postData,
-                  description,
-                },
-              })}
-              value={settings.postData.description}
-              className="settings-input"
-              labelClassName="settings-panel-text"
-              placeholder="Post Description"
-            />
-          </div>
-          <div className="row embed-group">
-            <label className="col-md-4" htmlFor="facebook-post-image-input">
+      </h5>
+      <div className="embed-grid__layout">
+        <div className="embed-group">
+          <div className="cell facebook-post-details">
+            <div className="row embed-group">
+              <FieldBuilder
+                type="input"
+                name="title"
+                label="Post Title"
+                onChange={({ title }) => updateCampaign({
+                  postData: {
+                    ...settings.postData,
+                    title,
+                  },
+                })}
+                value={settings.postData.title}
+                className="settings-input"
+                labelClassName="settings-panel-text"
+                placeholder="Post Title"
+              />
+            </div>
+            <div className="row embed-group">
+              <FieldBuilder
+                type="input"
+                name="description"
+                label="Post Description"
+                onChange={({ description }) => updateCampaign({
+                  postData: {
+                    ...settings.postData,
+                    description,
+                  },
+                })}
+                value={settings.postData.description}
+                className="settings-input"
+                labelClassName="settings-panel-text"
+                placeholder="Post Description"
+              />
+            </div>
+            <div className="row embed-group">
+              <label className="col-md-4" htmlFor="facebook-post-image-input">
                 Post Image
-            </label>
-            {
+              </label>
+              {
               settings.postData
               && (
               <div className="col-md-8">
@@ -83,6 +86,9 @@ const FacebookPost = ({ settings, updateCampaign }) => (
                     },
                   })}
                   needSaveAsset={false}
+                  startUpload={() => setIsDisabledUpload(true)}
+                  endUpload={() => setIsDisabledUpload(false)}
+                  isDisabled={isDisabledUpload}
                   type={ASSET_TYPES.IMAGE}
                   multiple={false}
                   className="settings__add-file"
@@ -90,22 +96,23 @@ const FacebookPost = ({ settings, updateCampaign }) => (
               </div>
               )
             }
-            <p className="col-md-12 my-2 text-resolution">
-              {`*Recommended image resolution ${POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT}`}
-            </p>
+              <p className="col-md-12 my-2 text-resolution">
+                {`*Recommended image resolution ${POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT}`}
+              </p>
+            </div>
           </div>
+          {settings.postData && settings.userData && (
+          <FacebookPostPreview
+            className="cell"
+            user={settings.userData}
+            post={settings.postData}
+          />
+          )}
         </div>
-        {settings.postData && settings.userData && (
-        <FacebookPostPreview
-          className="cell"
-          user={settings.userData}
-          post={settings.postData}
-        />
-        )}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 FacebookPost.propTypes = {
   settings: PropTypes.shape({
