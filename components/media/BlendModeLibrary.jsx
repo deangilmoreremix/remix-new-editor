@@ -76,16 +76,20 @@ const BlendModeLibrary = ({ handleClose }) => {
 
   return (
     <div className={classnames('blendmode-library', { 'big-window': !isTimelineOpen })}>
-        <header className="blendmode-header">Blend mode</header>
-        <div className="blendmode-body">
-          {items.map(item => (
-            <div key={item._id} className="blendmode-library__item">
-              <img src="" alt="img" />
-            </div>
-          ))}
+      <header className="blendmode-header">Blend mode</header>
+      <div className="blendmode-body">
+        {items.map(item => (
+          <div key={item._id} className="blendmode-library__item">
+            <img src="" alt="img" />
+            <button
+              className="animation-preview__add"
+              onClick={() => handleSelect(item)}
+            />
+          </div>
+        ))}
 
-          {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
-        </div>
+        {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
+      </div>
     </div>
   );
 };
