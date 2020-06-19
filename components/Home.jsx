@@ -9,6 +9,7 @@ import Loader from './common/Loader';
 import Canvas from './Canvas';
 import Timeline from './Timeline';
 import Library from './media/Library';
+import BlendModeLibrary from './media/BlendModeLibrary';
 import Stickers from './media/Stickers';
 import LowerThirds from './media/LowerThirds';
 import Toolbar from './common/toolbar/Toolbar';
@@ -96,6 +97,7 @@ const Home = observer(() => {
     toolsWidth,
     setListBuilder,
     openCTA,
+    openBlendMode,
   } = uiStore;
 
   const {
@@ -138,6 +140,9 @@ const Home = observer(() => {
       case WINDOW_TYPES.CTA: {
         return <CallToAction />;
       }
+      case WINDOW_TYPES.BLEND_MODE_LIBRARY: {
+        return <BlendModeLibrary />;
+      }
       default: {
         return null;
       }
@@ -159,6 +164,7 @@ const Home = observer(() => {
         setSecondaryWindowType,
         openMediaButton,
         openCTA,
+        openBlendMode,
       },
       project: {
         allowedSocials,
