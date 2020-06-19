@@ -15,17 +15,11 @@ export default class PresetStore extends BaseStore {
     }
   }
 
-  getTemplatesCTA = ({ page = 1, query = '', perPage = 20 }) => {
-    try {
-      return this.request(
-        `/api/makes/revolution?segment=cta&perPage=${perPage}&page=${page}&q=${query}`, {
-          method: 'GET',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
-    } finally {
-      this.isLoading = false;
-    }
-  }
+  getTemplatesCTA = ({ page = 1, query = '', perPage = 20 }) => (
+    this.getList({ page, query, perPage, params: { segment: 'cta' }, path: '/api/makes/revolution' })
+  );
+
+  getTemplatesBlendMode = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: 'blendMode' }, path: '/api/makes/revolution' })
+  );
 }

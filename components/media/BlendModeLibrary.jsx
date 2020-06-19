@@ -3,14 +3,75 @@ import classnames from 'classnames';
 
 import { perPage } from '../../lib/constants/library';
 
-import useUIStore from '../hooks/useUIStore';
+import PropTypes from '../../lib/PropTypes';
 
-const BlendModeLibrary = () => {
+import useUIStore from '../hooks/useUIStore';
+import useMakeStore from '../hooks/useMakeStore';
+import useProjectStore from '../hooks/useProjectStore';
+
+import { showError } from '../../lib/services/alertService';
+
+const BlendModeLibrary = ({ handleClose }) => {
   const [items, setItems] = React.useState([]);
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
 
   const { isTimelineOpen } = useUIStore();
+  const { getTemplatesBlendMode } = useMakeStore();
+  const { addData } = useProjectStore();
+
+  const handleSelect = React.useCallback(async (item) => {
+    try {
+      await addData(item);
+      handleClose();
+    } catch (e) {
+      await showError(e.message);
+    }
+  }, []);
+
+  const resetParams = () => {
+    setPage(1);
+    setHasMore(true);
+    setItems([]);
+  };
+
+  const getItems = async (reset = false) => {
+    if (reset) {
+      resetParams();
+    }
+
+    if (hasMore) {
+      try {
+        const results = await getTemplatesBlendMode({
+          query: '',
+          page,
+          perPage,
+        });
+
+        setItems([...items, ...results]);
+        const hasNextPage = results.length === perPage;
+        setHasMore(hasNextPage);
+
+        if (hasNextPage) {
+          setPage(page + 1);
+        }
+      } catch (e) {
+        showError(e.message);
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    if (page === 1) {
+      getItems();
+    }
+  }, [page]);
+
+  const uploadNewItems = () => {
+    if (page !== 1) {
+      getItems();
+    }
+  };
 
   return (
     <div className={classnames('blendmode-library', { 'big-window': !isTimelineOpen })}>
@@ -20,6 +81,10 @@ const BlendModeLibrary = () => {
         </div>
     </div>
   );
+};
+
+BlendModeLibrary.propTypes = {
+  handleClose: PropTypes.func.isRequired,
 };
 
 export default BlendModeLibrary;
