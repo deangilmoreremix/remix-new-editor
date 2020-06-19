@@ -12,12 +12,16 @@ export default class PresetStore extends ProjectStore {
         }
 
         this.popcorn.on('ended', () => {
-          this.time = 0;
+          this.isPlayed = false;
           this.updateTime(0);
         });
 
         this.popcorn.on('play', () => {
           this.isPlayed = true;
+        });
+
+        this.popcorn.on('canplayall', () => {
+          this.isLoaded = true;
         });
       },
     );
@@ -60,7 +64,6 @@ export default class PresetStore extends ProjectStore {
 
   @action
   playPreset = () => {
-    this.isLoaded = true;
     this.playPause();
   };
 }
