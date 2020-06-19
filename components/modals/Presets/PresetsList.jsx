@@ -30,7 +30,9 @@ const PresetsList = ({ items, hasMore, uploadNewItems, handleSelect, activeItem 
 );
 
 PresetsList.propTypes = {
-  items: PropTypes.arrayOrObservableArray,
+  items: PropTypes.arrayOrObservableArrayOf(
+    PropTypes.shape(),
+  ),
   hasMore: PropTypes.bool.isRequired,
   uploadNewItems: PropTypes.func.isRequired,
   handleSelect: PropTypes.func.isRequired,
