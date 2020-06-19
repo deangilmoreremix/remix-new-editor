@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, {useCallback, useState} from 'react';
+
+import { perPage } from '../../../lib/constants/library';
 
 import PropTypes from '../../../lib/PropTypes';
 
@@ -9,8 +11,6 @@ import useProjectStore from '../../hooks/useProjectStore';
 import { showError } from '../../../lib/services/alertService';
 import PresetsList from './PresetsList';
 import PresetsPreview from './PresetsPreview';
-
-const perPage = 12;
 
 const Presets = ({ handleClose }) => {
   const [items, setItems] = useState([]);
@@ -30,7 +30,7 @@ const Presets = ({ handleClose }) => {
     updateTime(0);
   }, []);
 
-  const addDataToCanvas = async () => {
+  const addDataToCanvas = useCallback(async () => {
     try {
       let newData = JSON.parse(activeItem.project.data);
       newData.media[0].tracks.reverse();
@@ -42,13 +42,13 @@ const Presets = ({ handleClose }) => {
     } catch (e) {
       await showError(e.message);
     }
-  };
+  }, [activeItem, addData]);
 
-  const resetParams = () => {
+  const resetParams = useCallback(() => {
     setPage(1);
     setHasMore(true);
     setItems([]);
-  };
+  }, []);
 
   const getItems = async (reset = false) => {
     if (reset) {
@@ -119,7 +119,7 @@ const Presets = ({ handleClose }) => {
 };
 
 Presets.propTypes = {
-  handleClose: PropTypes.func,
+  handleClose: PropTypes.func.isRequired,
 };
 
 export default Presets;

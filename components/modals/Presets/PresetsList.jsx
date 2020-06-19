@@ -12,7 +12,10 @@ const PresetsList = ({ items, hasMore, uploadNewItems, handleSelect, activeItem 
           {items.map((item) => (
             <button
               key={item._id}
-              className={classnames('presets-list__button', { 'presets-list__button-active': activeItem && activeItem._id === item._id })}
+              className={classnames(
+                'presets-list__button',
+                { 'presets-list__button-active': activeItem && activeItem._id === item._id },
+              )}
               onClick={() => handleSelect(item)}
             >
               {item.project.name}
@@ -31,7 +34,9 @@ PresetsList.propTypes = {
   hasMore: PropTypes.bool.isRequired,
   uploadNewItems: PropTypes.func.isRequired,
   handleSelect: PropTypes.func.isRequired,
-  activeItem: PropTypes.shape(),
+  activeItem: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+  }),
 };
 
 export default PresetsList;
