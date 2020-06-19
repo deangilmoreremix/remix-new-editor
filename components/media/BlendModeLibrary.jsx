@@ -78,11 +78,9 @@ const BlendModeLibrary = ({ handleClose }) => {
     <div className={classnames('blendmode-library', { 'big-window': !isTimelineOpen })}>
         <header className="blendmode-header">Blend mode</header>
         <div className="blendmode-body">
-          {items.map((item) => (
-            <div key={item._id} className="library-cta-item">
-              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }} />
-              <button className="btn-add" onClick={() => handleSelect(item)}>+</button>
-              <span className="title">{item.title}</span>
+          {items.map(item => (
+            <div key={item._id} className="blendmode-library__item">
+              <img src="" alt="img" />
             </div>
           ))}
 
