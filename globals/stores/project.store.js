@@ -252,8 +252,8 @@ export default class ProjectStore extends BaseStore {
     // get first track
     let track = item.track || this.layers[0];
 
-    if (track.blendMode) {
-      options.blendMode = track.blendMode;
+    if (track.blendMode || item.blendMode) {
+      options.blendMode = track.blendMode || item.blendMode;
     } else {
       options.blendMode = blendModeConstants.normal.value;
     }
@@ -536,11 +536,12 @@ export default class ProjectStore extends BaseStore {
   });
 
   @action
-  addLayer = () => {
+  addLayer = (blendMode) => {
     this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
         track.order += 1;
+        track.blendMode = blendMode || blendModeConstants.normal.value;
         const zindex = MAX_ZINDEX - track.order;
         track.trackEvents.forEach(element => {
           element.popcornOptions.zindex = zindex;
@@ -556,7 +557,12 @@ export default class ProjectStore extends BaseStore {
       track.defaultName = `Layer ${track.order}`;
       return track;
     });
-    this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
+    this.layers.unshift({
+      ...DEFAULT_LAYER,
+      id: `${this.layers.length}`,
+      defaultName: 'Layer 0',
+      blendMode: blendMode || blendModeConstants.normal.value,
+    });
   };
 
   @action
@@ -1019,17 +1025,21 @@ export default class ProjectStore extends BaseStore {
       return;
     }
     newData = JSON.parse(newData);
+
     newData.media.map((media) => media.tracks
-      .map((track) => track.trackEvents.map((trackEvent) => {
-        const item = {
-          ...trackEvent.popcornOptions,
-          track: null,
-          start: null,
-          end: null,
-          zindex: null,
-        };
-        return this.addElement(item);
-      })));
+      .map((track) => {
+        this.addLayer(track.blendMode);
+        return track.trackEvents.map((trackEvent) => {
+          const item = {
+            ...trackEvent.popcornOptions,
+            track: null,
+            start: null,
+            end: null,
+            zindex: null,
+          };
+          return this.addElement(item);
+        });
+      }));
   };
 
   @action

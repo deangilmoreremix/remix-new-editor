@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import classnames from 'classnames';
 import { Waypoint } from 'react-waypoint';
+import { observer } from 'mobx-react';
 
 import { perPage } from '../../lib/constants/library';
 
@@ -12,7 +13,7 @@ import { showError } from '../../lib/services/alertService';
 import CloseButton from '../common/CloseButton';
 import { LibrarySpinner } from './Loader';
 
-const BlendModeLibrary = () => {
+const BlendModeLibrary = observer(() => {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -107,6 +108,6 @@ const BlendModeLibrary = () => {
       </div>
     </div>
   );
-};
+});
 
 export default BlendModeLibrary;
