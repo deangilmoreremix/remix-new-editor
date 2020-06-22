@@ -4,27 +4,25 @@ import { Waypoint } from 'react-waypoint';
 
 import { perPage } from '../../lib/constants/library';
 
-import PropTypes from '../../lib/PropTypes';
-
 import useUIStore from '../hooks/useUIStore';
 import useMakeStore from '../hooks/useMakeStore';
 import useProjectStore from '../hooks/useProjectStore';
 
 import { showError } from '../../lib/services/alertService';
+import CloseButton from '../common/CloseButton';
 
-const BlendModeLibrary = ({ handleClose }) => {
+const BlendModeLibrary = () => {
   const [items, setItems] = React.useState([]);
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
 
-  const { isTimelineOpen } = useUIStore();
+  const { isTimelineOpen, toggleRightBlock } = useUIStore();
   const { getTemplatesBlendMode } = useMakeStore();
   const { addData } = useProjectStore();
 
   const handleSelect = React.useCallback(async (item) => {
     try {
       await addData(item);
-      handleClose();
     } catch (e) {
       await showError(e.message);
     }
@@ -89,13 +87,10 @@ const BlendModeLibrary = ({ handleClose }) => {
         ))}
 
         {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
+        <CloseButton onClick={() => toggleRightBlock(false)} />
       </div>
     </div>
   );
-};
-
-BlendModeLibrary.propTypes = {
-  handleClose: PropTypes.func.isRequired,
 };
 
 export default BlendModeLibrary;
