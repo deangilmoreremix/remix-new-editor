@@ -14,29 +14,33 @@ import PropTypes from '../../../../../lib/PropTypes';
 
 const LinkedinPost = observer((props) => {
   const { settings, updateCampaign } = props;
+  const [isDisabledUpload, setIsDisabledUpload] = React.useState(false);
+
   return (
     <div className="linkedin-post">
       <h5 className="embed-title">
         What do you want the LinkedIn Share to look like?
       </h5>
-      <div className="embed-grid">
-        <div className="row embed-group">
-          <div className="embed-grid cell linkedin-post-details">
-            <FieldBuilder
-              type="input"
-              name="title"
-              label="Post Title"
-              onChange={({ title }) => updateCampaign({
-                postData: {
-                  ...settings.postData,
-                  title,
-                },
-              })}
-              value={settings.postData.title}
-              className="settings-input"
-              labelClassName="settings-panel-text"
-              placeholder="Post Title"
-            />
+      <div className="embed-grid__layout">
+        <div className="embed-groupp">
+          <div className="cell linkedin-post-details">
+            <div className="row embed-group">
+              <FieldBuilder
+                type="input"
+                name="title"
+                label="Post Title"
+                onChange={({ title }) => updateCampaign({
+                  postData: {
+                    ...settings.postData,
+                    title,
+                  },
+                })}
+                value={settings.postData.title}
+                className="settings-input"
+                labelClassName="settings-panel-text"
+                placeholder="Post Title"
+              />
+            </div>
             <div className="row embed-group">
               <FieldBuilder
                 type="input"
@@ -55,13 +59,13 @@ const LinkedinPost = observer((props) => {
               />
             </div>
             <div className="row embed-group">
-              <label className="cell" htmlFor="linkedin-post-image-input">
+              <label className="col-md-4" htmlFor="linkedin-post-image-input">
                 Post Image
               </label>
               {
                 settings.postData
                 && (
-                  <div>
+                  <div className="col-md-8">
                     {
                       settings.postData.thumbnail
                       && (
@@ -83,6 +87,9 @@ const LinkedinPost = observer((props) => {
                           thumbnail,
                         },
                       })}
+                      startUpload={() => setIsDisabledUpload(true)}
+                      endUpload={() => setIsDisabledUpload(false)}
+                      isDisabled={isDisabledUpload}
                       needSaveAsset={false}
                       type={ASSET_TYPES.IMAGE}
                       multiple={false}
@@ -91,7 +98,7 @@ const LinkedinPost = observer((props) => {
                   </div>
                 )
               }
-              <p className="text-resolution">
+              <p className="col-md-12 my-2 text-resolution">
                 {`*Recommended image resolution ${POSTER_FRAME_RECOMMENDED_RESOLUTION_PROMPT}`}
               </p>
             </div>

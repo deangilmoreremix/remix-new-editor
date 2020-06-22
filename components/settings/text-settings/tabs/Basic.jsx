@@ -5,16 +5,21 @@ import PropTypes from '../../../../lib/PropTypes';
 
 import FieldBuilder from '../../../form/FieldBuilder';
 import useUIStore from '../../../hooks/useUIStore';
+import useUserStore from '../../../hooks/useUserStore';
 import { iconAlignmentHorizontal, iconPositionVertical, padding, TEXT_POSITION } from '../../../../lib/constants/settings/vrtext-element';
 
+import { LABEL_CLICK_TO_PHONE } from '../../../../lib/constants/popcorn';
 import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
+
 import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
+import { FEATURES } from '../../../../lib/constants/features';
 
 const Basic = observer(({ values, fields, onChange, closeModal }) => {
   const [positionHorizontal, setPositionHorizontal] = useState();
   const [positionVertical, setPositionVertical] = useState();
 
   const { openAnimation } = useUIStore();
+  const { currentUser: user, isfeatureEnabled: checkStateFeature } = useUserStore();
 
   const {
     start,
@@ -181,6 +186,10 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
             {...fields.htmlUrl}
             className="input-url-position"
             onChange={onChange}
+            label={user
+            && user.features
+            && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
+              ? LABEL_CLICK_TO_PHONE : fields.htmlUrl.label}
             updateCaret={(value) => onChange({ urlCaretOffset: value })}
           />
           <PersonalizeButton onAdd={onAddUrlToken} />

@@ -204,7 +204,7 @@ const Home = observer(() => {
           { isLoading ? <div className="hover-loading" /> : null }
           <Loader isLoading={isLoading} />
           <Grid container className="controls">
-            <Grid item xs={toolsWidth} style={{ minWidth: '105px' }}>
+            <Grid item xs={toolsWidth} className="controls-block">
               <Grid container>
 
                 <Grid item xs={radioButtonBottom ? 12 : 6} style={{ maxWidth: radioButtonBottom ? '100%' : '23.3em', flexBasis: !radioButtonBottom && 'auto' }}>

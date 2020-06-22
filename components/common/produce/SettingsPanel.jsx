@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
 import { observer } from 'mobx-react';
 
+import Button from '@material-ui/core/Button';
 import PropTypes from '../../../lib/PropTypes';
 import { ASSET_TYPES } from '../../../lib/constants/media';
 import { tabItems } from '../../../lib/constants/library';
 
 import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';
+import useModalStore from '../../hooks/useModalStore';
 
 import FieldBuilder from '../../form/FieldBuilder';
 import DropzoneArea from '../../media/DropzoneArea';
 import DropButton from '../../media/DropButton';
+import { CROP_RECOMMENDED_RESOLUTION } from '../../../lib/constants/settings/image';
 
 const SettingPanel = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
@@ -20,6 +23,7 @@ const SettingPanel = observer(() => {
   const { linkedinEnabled } = useUserStore();
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
+  const { openCropper } = useModalStore();
 
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -41,10 +45,14 @@ const SettingPanel = observer(() => {
     Object.keys(tabItems).forEach(tab => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
-          updateItem({ thumbnail: image.url });
+          openCropper(image.url, onImageCropped);
         }
       });
     });
+  };
+
+  const onImageCropped = (thumbnail) => {
+    updateItem({ thumbnail });
   };
 
   return (
@@ -118,9 +126,22 @@ const SettingPanel = observer(() => {
         </div>
 
         <div className="settings__row">
-          <div className="settings__row-img">
-            <p className="settings__row-text">Thumbnail</p>
-            <div className="settings-img-preview"><img src={item.thumbnail} alt="" /></div>
+          <div className="settings__row-block">
+            <div className="settings__row-img">
+              <p className="settings__row-text">Thumbnail</p>
+              <div className="settings-img-preview"><img src={item.thumbnail} alt="" /></div>
+            </div>
+          </div>
+          <div className="settings__row-block">
+            <Button
+              onClick={() => openCropper(item.thumbnail, onImageCropped)}
+              disableRipple
+              disableFocusRipple
+              disableTouchRipple
+              className="settings__edit-file"
+            >
+Use Thumbnails Editor
+            </Button>
           </div>
         </div>
         <div className="settings__row">
@@ -134,7 +155,12 @@ const SettingPanel = observer(() => {
               multiple={false}
               className="settings__add-file"
             />
-            <p className="settings__row-text-2">recommended image resolution 1200x630</p>
+            <p className="settings__row-text-2">
+recommended image resolution
+              {CROP_RECOMMENDED_RESOLUTION.width}
+x
+              {CROP_RECOMMENDED_RESOLUTION.height}
+            </p>
           </div>
           <div className="settings__row-block">
             <DropzoneArea
