@@ -43,6 +43,7 @@ SettingsHeader.propTypes = {
   tabs: PropTypes.arrayOf(PropTypes.shape({
     label: PropTypes.string,
     disabled: PropTypes.bool,
+    requiredFeature: PropTypes.string,
   })),
   title: PropTypes.string,
 };

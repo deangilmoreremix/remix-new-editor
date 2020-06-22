@@ -188,6 +188,26 @@ $arrow-position: 0.5rem;
   }
 }
 
+button.settings__edit-file{
+  @include reset-button;
+  color: $white;
+  font-family: Proxima Nova;
+  font-style: normal;
+  font-weight: normal;
+  text-transform: none;
+  height: 2.18rem;
+  font-size: 1em;
+  background-color: $secondary-color ;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1em;
+  &:hover {
+    background-color: $secondary-color ;
+  }
+}
+
 .settings__row {
   display: flex;
   align-items: center;

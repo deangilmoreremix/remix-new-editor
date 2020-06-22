@@ -18,6 +18,7 @@ const FormSlider = props => {
     inputWidth,
     minValue,
     maxValue,
+    step,
     containerClassName,
     sliderClassName,
     inputClassName,
@@ -72,6 +73,7 @@ const FormSlider = props => {
             max={maxValue}
             min={minValue}
             disabled={disabled}
+            step={step}
           />
         </Grid>
         {
@@ -107,6 +109,7 @@ FormSlider.propTypes = {
   minValue: PropTypes.number,
   withoutInput: PropTypes.bool,
   maxValue: PropTypes.number,
+  step: PropTypes.number,
   containerClassName: PropTypes.string,
   sliderClassName: PropTypes.string,
   inputClassName: PropTypes.string,

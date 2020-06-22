@@ -241,7 +241,7 @@ export default class Media extends BaseStore {
     }
   };
 
-  uploadMedia = async ({ data, preview }) => {
+  uploadMedia = async ({ data, isCrop, preview }) => {
     let asset;
     try {
       const headers = {};
@@ -255,7 +255,7 @@ export default class Media extends BaseStore {
         body = fd;
       }
 
-      if (!(body instanceof FormData) && body === Object(body)) {
+      if (!(body instanceof FormData) && body === Object(body) && !isCrop) {
         body = JSON.stringify(body);
         headers['Content-Type'] = 'application/json; charset=utf-8';
       }

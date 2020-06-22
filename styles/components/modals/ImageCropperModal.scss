@@ -1,0 +1,28 @@
+
+div.image-cropper-modal {
+  overflow: hidden;
+  min-height: 61vh;
+  min-width: 100vh;
+
+}
+
+div.canvas-container {
+ height: 100%;
+  width: 100%;
+  canvas {
+    max-height: 61vh;
+    max-width: 100vh;
+  }
+}
+
+.cropper-buttons{
+  display: flex;
+  flex-flow: row-reverse wrap;
+  button {
+    color: $white;
+    margin-left: 1rem;
+  }
+}
+.cropper-scale {
+  margin-left: 15rem;
+}

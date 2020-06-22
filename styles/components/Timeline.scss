@@ -4,6 +4,7 @@
   background-color: $light-twinlight;
   width: 100%;
   transition: 0.3s all;
+  z-index: 15;
 
   &-open {
     height: $timeline-height;
@@ -119,6 +120,10 @@
     border-top: none;
     white-space: nowrap;
     text-overflow: ellipsis;
+  }
+
+  .popcorn-element-text {
+    outline: none;
   }
 
   .popcorn-element {

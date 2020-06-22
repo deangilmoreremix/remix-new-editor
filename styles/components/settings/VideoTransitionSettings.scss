@@ -51,6 +51,10 @@
 
     &.apply {
       @include red-button;
+
+      &:disabled {
+        opacity: 0.5;
+      }
     }
 
     &.play {

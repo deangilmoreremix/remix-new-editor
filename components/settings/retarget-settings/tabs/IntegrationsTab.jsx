@@ -59,7 +59,7 @@ IntegrationsTab.propTypes = {
     phone: PropTypes.string,
     callNotifyAddress: PropTypes.string,
     emailEnabled: PropTypes.bool,
-    emailAddress: PropTypes.bool,
+    emailAddress: PropTypes.string,
   }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({

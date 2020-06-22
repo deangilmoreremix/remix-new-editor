@@ -1,4 +1,6 @@
 .social-campaign-modal {
+  @include tiny-scrollbar;
+  overflow-x: hidden;
   .embed-grid {
     .form-check-input {
       margin-left: 0;

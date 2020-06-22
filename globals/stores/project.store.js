@@ -6,7 +6,7 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 
-import { NO_SETTINGS_ELEMENT_TYPES, SEQUENCER } from '../../lib/constants/popcorn';
+import { NO_SETTINGS_ELEMENT_TYPES, SEQUENCER, POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
@@ -149,7 +149,7 @@ export default class ProjectStore extends BaseStore {
 
   getPersonalization = () => getCustomVarsFromMediaArr(this.projectData.media);
 
-  generateUid = () => `${Date.now() / Math.random()}`;
+  generateUid = () => `${Date.now()}/${Math.random()}/${Date.now() * Math.random()}`;
 
   @observable duration = 30 * SANTISECOND;
 
@@ -341,7 +341,7 @@ export default class ProjectStore extends BaseStore {
   updateElement = (elementId, options) => {
     // we need to update the elements, if the user updates the start,
     // end or animation, this is necessary to rerender the elements
-    const { start, end, animation, title, duration } = options;
+    const { start, end, animation, title, duration, htmlText } = options;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         const newOptions = {};
@@ -359,6 +359,9 @@ export default class ProjectStore extends BaseStore {
         }
         if (title) {
           newOptions.title = title;
+        }
+        if (htmlText !== undefined) {
+          newOptions.htmlText = htmlText;
         }
         if (size(newOptions) > 0) {
           element.popcornOptions = {
@@ -671,6 +674,13 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  updateVideoDuration = (value) => {
+    this.recompressProject(value, false);
+    this.setPopcorn(this.popcorn.target);
+    this.duration = value * SANTISECOND;
+  };
+
+  @action
   updateStartEnd = (elementId, start, end) => {
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
@@ -895,36 +905,36 @@ export default class ProjectStore extends BaseStore {
     }
     this.isLoading = true;
 
-    // Todo add in future
-    // const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
-    //
-    // if (byEnd && byEnd.length && byEnd.length > 1) {
-    //   const lastEvent = byEnd[byEnd.length - 2];
-    //   let eventEnd = 0;
-    //
-    //   switch (lastEvent.type) {
-    //     case POPCORN_ELEMENT_TYPES.TEXT:
-    //       if (lastEvent.animation.out && lastEvent.animation.out.duration) {
-    //         eventEnd = lastEvent.end + lastEvent.animation.out.duration;
-    //       } else {
-    //         eventEnd = lastEvent.end;
-    //       }
-    //       break;
-    //     case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
-    //       if (lastEvent.outDuration) {
-    //         eventEnd = lastEvent.end + lastEvent.outDuration;
-    //       } else {
-    //         eventEnd = lastEvent.end;
-    //       }
-    //       break;
-    //     default:
-    //       eventEnd = lastEvent.end;
-    //   }
-    //
-    //   if (lastEvent.end !== this.popcorn.duration()) {
-    //     this.projectData.media[0].url = `#t=,${eventEnd}`;
-    //   }
-    // }
+    const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
+
+    if (byEnd && byEnd.length && byEnd.length > 1) {
+      const lastEvent = byEnd[byEnd.length - 2];
+      let eventEnd = 0;
+
+      switch (lastEvent.type) {
+        case POPCORN_ELEMENT_TYPES.TEXT:
+          if (lastEvent.animation && lastEvent.animation.out && lastEvent.animation.out.duration) {
+            eventEnd = lastEvent.end + lastEvent.animation.out.duration;
+          } else {
+            eventEnd = lastEvent.end;
+          }
+          break;
+        case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
+          if (lastEvent.outDuration) {
+            eventEnd = lastEvent.end + lastEvent.outDuration;
+          } else {
+            eventEnd = lastEvent.end;
+          }
+          break;
+        default:
+          eventEnd = lastEvent.end;
+      }
+
+      if (lastEvent.end !== this.popcorn.duration()) {
+        this.projectData.media[0].url = `#t=,${eventEnd}`;
+        this.duration = eventEnd * SANTISECOND;
+      }
+    }
 
     try {
       const path = this.item._id
@@ -1054,7 +1064,7 @@ export default class ProjectStore extends BaseStore {
     } else {
       this.projectData.media.forEach((media) => {
         if (media.tracks.length > 0) {
-          const elementId = this.generateUid();
+          const elementId = `0.${this.generateUid()}`;
           const layerId = this.generateUid();
           media.tracks.push({
             name: `${media.tracks.length}`,
@@ -1107,7 +1117,13 @@ export default class ProjectStore extends BaseStore {
     }
     const popcornOptions = this.popcorn.getTrackEvent(this.activeElementId);
 
-    currentElement.popcornOptions = { ...currentElement.popcornOptions, ...popcornOptions };
+    if (popcornOptions) {
+      currentElement.popcornOptions = {
+        ...currentElement.popcornOptions,
+        src: popcornOptions.src,
+        duration: popcornOptions.duration,
+      };
+    }
 
     return currentElement;
   }
