@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classnames from 'classnames';
 import { Waypoint } from 'react-waypoint';
 
@@ -10,11 +10,13 @@ import useProjectStore from '../hooks/useProjectStore';
 
 import { showError } from '../../lib/services/alertService';
 import CloseButton from '../common/CloseButton';
+import { LibrarySpinner } from './Loader';
 
 const BlendModeLibrary = () => {
-  const [items, setItems] = React.useState([]);
-  const [page, setPage] = React.useState(1);
-  const [hasMore, setHasMore] = React.useState(true);
+  const [items, setItems] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(null);
 
   const { isTimelineOpen, toggleRightBlock } = useUIStore();
   const { getTemplatesBlendMode } = useMakeStore();
@@ -40,6 +42,7 @@ const BlendModeLibrary = () => {
     }
 
     if (hasMore) {
+      setIsLoading(true);
       try {
         const results = await getTemplatesBlendMode({
           query: '',
@@ -54,7 +57,9 @@ const BlendModeLibrary = () => {
         if (hasNextPage) {
           setPage(page + 1);
         }
+        setIsLoading(false);
       } catch (e) {
+        setIsLoading(false);
         showError(e.message);
       }
     }
@@ -95,6 +100,7 @@ const BlendModeLibrary = () => {
             );
           })}
 
+          {isLoading && hasMore && <LibrarySpinner />}
           {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="blendmode-waypoint" /></Waypoint>}
         </div>
         <CloseButton onClick={() => toggleRightBlock(false)} />
