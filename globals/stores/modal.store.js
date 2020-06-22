@@ -1,6 +1,10 @@
 import { set, observable, action } from 'mobx';
 
-import { MODAL_CONFIG } from '../../lib/constants/modals';
+import { IMAGE_CROPPER_MODAL, MODAL_CONFIG } from '../../lib/constants/modals';
+import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
+import { showError } from '../../lib/services/alertService';
+import { checkImageResolution } from '../../lib/utils/cropHelper';
+import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
 
 export default () => {
   const modalIds = observable.set([]);
@@ -43,6 +47,31 @@ export default () => {
     }
   };
 
+  const openCropper = async (src, onImageCropped, resolution, updateField) => {
+    if (!src || !onImageCropped) {
+      return;
+    }
+    const imageMeta = new Image();
+    imageMeta.src = src;
+    const metadata = await new MediaTypeDetector()
+      .getMetadata(src);
+    if (!metadata.contentType.includes('image')) {
+      return showError('Image not found');
+    }
+    checkImageResolution({
+      imageMeta,
+      onFileUploaded: openModal(IMAGE_CROPPER_MODAL,
+        {
+          imageMeta: metadata,
+          onImageCropped,
+          recommendedResolution: resolution || CROP_RECOMMENDED_RESOLUTION,
+          src,
+          updateField,
+        }),
+    });
+  };
+
+
   return {
     modalIds,
     modals,
@@ -50,6 +79,7 @@ export default () => {
     closeModal: action(closeModal),
     updateHeader: action(updateHeader),
     updateClassName: action(updateClassName),
+    openCropper,
     options,
   };
 };

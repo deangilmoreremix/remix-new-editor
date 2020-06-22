@@ -21,3 +21,10 @@ export const isResolutionWrong = (options) => {
   return (recommendedResolution && (recommendedResolution.width !== imageMeta.width
     || recommendedResolution.height !== imageMeta.height));
 };
+
+export function checkImageResolution(options) {
+  const { onFileUploaded } = options;
+  if (isResolutionWrong(options)) {
+    onFileUploaded(options);
+  }
+}
