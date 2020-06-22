@@ -1,4 +1,5 @@
 import BaseStore from './base.store';
+import { makeTypes } from '../../lib/constants/makes';
 
 export default class PresetStore extends BaseStore {
   getNicheScripts = ({ page = 1, query = '', perPage = 20 }) => {
@@ -16,10 +17,10 @@ export default class PresetStore extends BaseStore {
   }
 
   getTemplatesCTA = ({ page = 1, query = '', perPage = 20 }) => (
-    this.getList({ page, query, perPage, params: { segment: 'cta' }, path: '/api/makes/revolution' })
+    this.getList({ page, query, perPage, params: { segment: makeTypes.CTA }, path: '/api/makes/revolution' })
   );
 
   getPresets = ({ page = 1, query = '', perPage = 12 }) => (
-    this.getList({ page, query, perPage, params: { segment: 'presets' }, path: '/api/makes/revolution' })
+    this.getList({ page, query, perPage, params: { segment: makeTypes.PRESETS }, path: '/api/makes/revolution' })
   );
 }
