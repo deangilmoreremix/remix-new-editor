@@ -18,6 +18,7 @@ const Presets = ({ handleClose }) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [preview, setPreview] = useState('');
+  const [isLoading, setIsLoading] = useState(null);
 
   const { getPresets } = useMakeStore();
   const { setPreviewData, updateTime } = usePresetStore();
@@ -56,6 +57,7 @@ const Presets = ({ handleClose }) => {
     }
 
     if (hasMore) {
+      setIsLoading(true);
       try {
         const results = await getPresets({
           query: '',
@@ -75,7 +77,9 @@ const Presets = ({ handleClose }) => {
         if (hasNextPage) {
           setPage(page + 1);
         }
+        setIsLoading(false);
       } catch (e) {
+        setIsLoading(false);
         showError(e.message);
       }
     }
@@ -104,6 +108,7 @@ const Presets = ({ handleClose }) => {
             uploadNewItems={uploadNewItems}
             handleSelect={handleSelect}
             activeItem={activeItem}
+            isLoading={isLoading}
           />
         </div>
         <div className="presets__control">

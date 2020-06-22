@@ -4,7 +4,9 @@ import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
 
-const PresetsList = ({ items, hasMore, uploadNewItems, handleSelect, activeItem }) => (
+import { LibrarySpinner } from '../../media/Loader';
+
+const PresetsList = ({ items, hasMore, uploadNewItems, handleSelect, activeItem, isLoading }) => (
   <div className="presets-list">
     {items && items.length && (
     <Fragment>
@@ -22,7 +24,7 @@ const PresetsList = ({ items, hasMore, uploadNewItems, handleSelect, activeItem 
       ))}
     </Fragment>
     )}
-
+    {isLoading && hasMore && <LibrarySpinner />}
     {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="preset-waypoint" /></Waypoint>}
   </div>
 );
@@ -37,6 +39,7 @@ PresetsList.propTypes = {
   activeItem: PropTypes.shape({
     _id: PropTypes.string.isRequired,
   }),
+  isLoading: PropTypes.bool.isRequired,
 };
 
 export default PresetsList;
