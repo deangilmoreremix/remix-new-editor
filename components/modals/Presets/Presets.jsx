@@ -119,7 +119,7 @@ const Presets = ({ handleClose }) => {
 };
 
 Presets.propTypes = {
-  handleClose: PropTypes.func.isRequired,
+  handleClose: PropTypes.func,
 };
 
 export default Presets;
