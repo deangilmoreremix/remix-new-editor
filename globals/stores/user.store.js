@@ -72,4 +72,9 @@ export default class UserStore {
   get linkedinEnabled() {
     return this.isfeatureEnabled(FEATURES.LINKEDIN);
   }
+
+  @computed
+  get ctaEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_CTA);
+  }
 }

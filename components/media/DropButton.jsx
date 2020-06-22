@@ -12,6 +12,7 @@ import { LibrarySpinner } from './Loader';
 
 const DropButton = (
   {
+    accept,
     onUploaded,
     type,
     startUpload,
@@ -56,7 +57,7 @@ const DropButton = (
   }, [onUploaded, uploadMedia]);
 
   const { getInputProps } = useDropzone({
-    accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
+    accept: accept && accept.length ? accept : mediaConstants.ACCEPTED_MEDIA_TYPES,
     onDrop,
     disabled: false,
   });
@@ -82,6 +83,7 @@ DropButton.propTypes = {
   multiple: PropTypes.bool,
   className: PropTypes.string,
   needSaveAsset: PropTypes.bool,
+  accept: PropTypes.arrayOf(PropTypes.string),
 };
 
 DropButton.defaultProps = {

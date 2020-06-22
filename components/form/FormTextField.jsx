@@ -15,6 +15,7 @@ const FormTextField = React.forwardRef(({
   name,
   onChange,
   onEnter,
+  onBlur,
   disabled,
   inputClassName,
   labelClassName,
@@ -47,6 +48,7 @@ const FormTextField = React.forwardRef(({
   return (
     <FormGroup
       className={classnames(className)}
+      onBlur={onBlur}
     >
       {
         label && (
@@ -118,6 +120,7 @@ FormTextField.propTypes = {
   label: PropTypes.string,
   name: PropTypes.string,
   onEnter: PropTypes.func,
+  onBlur: PropTypes.func,
   disabled: PropTypes.bool,
   className: PropTypes.string,
   inputClassName: PropTypes.string,

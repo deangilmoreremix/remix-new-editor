@@ -12,6 +12,7 @@ import Layer from './common/timeline/Layer';
 import SortableList from './common/SortableList';
 import PlayButton from './common/timeline/PlayButton';
 import PlusButton from './common/timeline/PlusButton';
+import PlayTime from './common/timeline/PlayTime';
 import PopcornElements from './common/timeline/PopcornElements';
 
 import rulerIcon from '../public/static/svgImages/common/ruler.svg';
@@ -64,6 +65,7 @@ const Timeline = observer(() => {
               alt="Add Layer"
               className="timeline-add icon-button"
             />
+            <PlayTime />
           </Grid>
         </Grid>
         <Grid item xs={9}>
