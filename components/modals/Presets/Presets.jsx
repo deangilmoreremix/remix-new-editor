@@ -2,6 +2,8 @@ import React, { useCallback, useState } from 'react';
 
 import { perPage } from '../../../lib/constants/library';
 
+import PropTypes from '../../../lib/PropTypes';
+
 import useMakeStore from '../../hooks/useMakeStore';
 import usePresetStore from '../../hooks/usePresetStore';
 import useProjectStore from '../../hooks/useProjectStore';
@@ -10,8 +12,6 @@ import { showError } from '../../../lib/services/alertService';
 import PresetsList from './PresetsList';
 import PresetsPreview from './PresetsPreview';
 
-
-// eslint-disable-next-line react/prop-types
 const Presets = ({ handleClose }) => {
   const [items, setItems] = useState([]);
   const [activeItem, setActiveItem] = useState();
@@ -116,6 +116,10 @@ const Presets = ({ handleClose }) => {
       </div>
     </div>
   );
+};
+
+Presets.propTypes = {
+  handleClose: PropTypes.func.isRequired,
 };
 
 export default Presets;
