@@ -82,6 +82,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             startUpload={() => setIsDisabledUploadLogo(true)}
             endUpload={() => setIsDisabledUploadLogo(false)}
             multiple={false}
+            className="btn-upload"
           />
         </div>
         <div className="upload-container">
@@ -107,6 +108,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             startUpload={() => setIsDisabledUploadImage(true)}
             endUpload={() => setIsDisabledUploadImage(false)}
             multiple={false}
+            className="btn-upload"
           />
         </div>
       </div>
