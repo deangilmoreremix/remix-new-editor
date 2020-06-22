@@ -1,9 +1,10 @@
 import React from 'react';
 import { observer } from 'mobx-react';
+import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
 
-import { STYLES, FIELDS, INTEGRATIONS } from '../../../lib/constants/popcorn';
+import { STYLES, FIELDS, INTEGRATIONS, BASIC } from '../../../lib/constants/popcorn';
 
 import StylesTab from './tabs/StylesTab';
 import FieldsTab from './tabs/FieldsTab';
@@ -16,11 +17,18 @@ const TabMap = {
   [INTEGRATIONS]: IntegrationsTab,
 };
 
-const RetargetSettings = observer(({ tab = STYLES, element, update, fields }) => {
-  const [showedForm, setShowedForm] = React.useState(true);
+const FormSettings = observer(({ tab = BASIC, element, update, fields, handleClose }) => {
   const Tab = TabMap[tab];
-  const { options } = element;
+  const [showedForm, setShowedForm] = React.useState(true);
   const { retarget } = useProjectStore();
+
+  const handleChange = (value, options) => {
+    let newOptions = { ...value };
+    if (options) {
+      newOptions = { ...newOptions, ...options };
+    }
+    update(newOptions);
+  };
 
   const toggleDeactivate = (activateState) => {
     if (activateState) {
@@ -33,13 +41,15 @@ const RetargetSettings = observer(({ tab = STYLES, element, update, fields }) =>
   };
 
   return (
-    <div className="retarget-form">
-      {element && (
+    <div className={classnames({ 'lead-form': element.type === 'form', 'retarget-form': element.type === 'retargetForm' })}>
+      {element && (element.popcornOptions || element.options) && (
         <Tab
+          type={element.type}
           showedForm={showedForm}
-          values={options}
-          onChange={(field) => update(field)}
+          values={element.popcornOptions ?? element.options}
+          onChange={(field, options) => handleChange(field, options)}
           fields={fields}
+          closeModal={handleClose}
           onClose={toggleDeactivate}
         />
       )}
@@ -47,7 +57,7 @@ const RetargetSettings = observer(({ tab = STYLES, element, update, fields }) =>
   );
 });
 
-RetargetSettings.propTypes = {
+FormSettings.propTypes = {
   element: PropTypes.shape({
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
@@ -60,4 +70,4 @@ RetargetSettings.propTypes = {
   update: PropTypes.func.isRequired,
 };
 
-export default RetargetSettings;
+export default FormSettings;

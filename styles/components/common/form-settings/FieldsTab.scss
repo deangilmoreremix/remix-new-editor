@@ -1,10 +1,42 @@
-.lead-generator-container {
-  @media (max-width: 1377px) {
-    .item-form {
-      width: 45%;
-    }
-    .select-element {
-      min-width: 7rem;
-    }
+.item-retarget-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0.2em;
+  background: $scrollbarColor;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+
+  &-input {
+    height: 100%;
   }
+
+  .retarget-remove {
+    position: relative;
+  }
+    @media (max-width: 1377px) {
+      .item-form {
+        width: 45%;
+      }
+      .select-element {
+        min-width: 7rem;
+      }
+    }
+}
+
+.addfield-container {
+  display: flex;
+  justify-content: flex-end;
+
+  &-button {
+    background: $secondary-color;
+    border: none;
+    border-radius: 3px;
+    padding: 0.1em 0.3em;
+    color: $white;
+  }
+}
+
+.input-field-conatainer {
+  margin-bottom: 1em;
 }

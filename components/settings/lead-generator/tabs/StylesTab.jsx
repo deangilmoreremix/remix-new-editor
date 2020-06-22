@@ -7,11 +7,12 @@ import DropzoneArea from '../../../media/DropzoneArea';
 import DropButton from '../../../media/DropButton';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 import { ASSET_TYPES } from '../../../../lib/constants/media';
+import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
 import { tabItems } from '../../../../lib/constants/library';
 
-const StylesTab = ({ values, fields, onChange }) => {
+const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
 
@@ -39,6 +40,15 @@ const StylesTab = ({ values, fields, onChange }) => {
 
   return (
     <div className="retarget-styles-tab">
+      {type === POPCORN_ELEMENT_TYPES.RETARGET && (
+        <FieldBuilder
+          value={showedForm}
+          type="checkbox"
+          name="showedUI"
+          label="Advanced Optin Deactivate"
+          onChange={() => onClose(!showedForm)}
+        />
+      )}
       <div className="brand-logo-container">
         <div className="upload-container">
           <FieldBuilder
@@ -92,6 +102,13 @@ const StylesTab = ({ values, fields, onChange }) => {
       </div>
       <div>
         <div>
+          {type === POPCORN_ELEMENT_TYPES.RETARGET && (
+            <FieldBuilder
+              value={values.enableSkipButton ?? fields.enableSkipButton.default}
+              {...fields.enableSkipButton}
+              onChange={onChange}
+            />
+          )}
           <div className="select-container">
             <div className="select-container-numbers">
               <FieldBuilder
@@ -218,6 +235,9 @@ const StylesTab = ({ values, fields, onChange }) => {
 };
 
 StylesTab.propTypes = {
+  type: PropTypes.string.isRequired,
+  showedForm: PropTypes.bool,
+  onClose: PropTypes.func,
   values: PropTypes.shape({
     brandLogoSrc: PropTypes.string,
     backgroundImage: PropTypes.string,
@@ -305,6 +325,11 @@ StylesTab.propTypes = {
       default: PropTypes.string,
     }),
   }),
+};
+
+StylesTab.defaultProps = {
+  showedForm: false,
+  onClose: () => {},
 };
 
 export default StylesTab;
