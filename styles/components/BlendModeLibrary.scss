@@ -41,7 +41,7 @@
 }
 
 .blendmode-library__item {
-  width: calc(33.33% - 0.64em);
+  width: calc(50% - 0.64em);
   position: relative;
   overflow: hidden;
   background-color: $block-dark;
@@ -54,6 +54,12 @@
     padding-bottom: 100%;
   }
 
+  &:hover {
+    .animation-preview__add {
+      opacity: 1;
+    }
+  }
+
   img {
     height: 100%;
     position: absolute;
@@ -61,5 +67,15 @@
     left: 50%;
     transform: translate(-50%, -50%);
     object-fit: contain;
+    z-index: 1;
   }
+
+  .animation-preview__add {
+    z-index: 2;
+  }
+}
+
+.blendmode-waypoint {
+  display: block;
+  height: 22px;
 }
