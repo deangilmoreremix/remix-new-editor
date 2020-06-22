@@ -6,7 +6,7 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 
-import { NO_SETTINGS_ELEMENT_TYPES, SEQUENCER } from '../../lib/constants/popcorn';
+import { NO_SETTINGS_ELEMENT_TYPES, SEQUENCER, POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
@@ -899,36 +899,36 @@ export default class ProjectStore extends BaseStore {
     }
     this.isLoading = true;
 
-    // Todo add in future
-    // const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
-    //
-    // if (byEnd && byEnd.length && byEnd.length > 1) {
-    //   const lastEvent = byEnd[byEnd.length - 2];
-    //   let eventEnd = 0;
-    //
-    //   switch (lastEvent.type) {
-    //     case POPCORN_ELEMENT_TYPES.TEXT:
-    //       if (lastEvent.animation.out && lastEvent.animation.out.duration) {
-    //         eventEnd = lastEvent.end + lastEvent.animation.out.duration;
-    //       } else {
-    //         eventEnd = lastEvent.end;
-    //       }
-    //       break;
-    //     case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
-    //       if (lastEvent.outDuration) {
-    //         eventEnd = lastEvent.end + lastEvent.outDuration;
-    //       } else {
-    //         eventEnd = lastEvent.end;
-    //       }
-    //       break;
-    //     default:
-    //       eventEnd = lastEvent.end;
-    //   }
-    //
-    //   if (lastEvent.end !== this.popcorn.duration()) {
-    //     this.projectData.media[0].url = `#t=,${eventEnd}`;
-    //   }
-    // }
+    const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
+
+    if (byEnd && byEnd.length && byEnd.length > 1) {
+      const lastEvent = byEnd[byEnd.length - 2];
+      let eventEnd = 0;
+
+      switch (lastEvent.type) {
+        case POPCORN_ELEMENT_TYPES.TEXT:
+          if (lastEvent.animation && lastEvent.animation.out && lastEvent.animation.out.duration) {
+            eventEnd = lastEvent.end + lastEvent.animation.out.duration;
+          } else {
+            eventEnd = lastEvent.end;
+          }
+          break;
+        case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
+          if (lastEvent.outDuration) {
+            eventEnd = lastEvent.end + lastEvent.outDuration;
+          } else {
+            eventEnd = lastEvent.end;
+          }
+          break;
+        default:
+          eventEnd = lastEvent.end;
+      }
+
+      if (lastEvent.end !== this.popcorn.duration()) {
+        this.projectData.media[0].url = `#t=,${eventEnd}`;
+        this.duration = eventEnd * SANTISECOND;
+      }
+    }
 
     try {
       const path = this.item._id
@@ -1111,10 +1111,14 @@ export default class ProjectStore extends BaseStore {
     }
     const popcornOptions = this.popcorn.getTrackEvent(this.activeElementId);
 
-    console.info(popcornOptions);
-    currentElement.popcornOptions = { ...currentElement.popcornOptions, ...popcornOptions };
+    if (popcornOptions) {
+      currentElement.popcornOptions = {
+        ...currentElement.popcornOptions,
+        src: popcornOptions.src,
+        duration: popcornOptions.duration,
+      };
+    }
 
-    console.info(currentElement);
     return currentElement;
   }
 
