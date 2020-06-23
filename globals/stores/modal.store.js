@@ -1,6 +1,6 @@
 import { set, observable, action } from 'mobx';
 
-import { IMAGE_CROPPER_MODAL, MODAL_CONFIG } from '../../lib/constants/modals';
+import { IMAGE_CROPPER_MODAL, MODAL_CONFIG, TUI_IMAGE_EDITOR_MODAL } from '../../lib/constants/modals';
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { showError } from '../../lib/services/alertService';
 import { checkImageResolution } from '../../lib/utils/cropHelper';
@@ -71,6 +71,25 @@ export default () => {
     });
   };
 
+  const openImageEditor = async (src) => {
+    if (!src) {
+      return;
+    }
+    const imageMeta = new Image();
+    imageMeta.src = src;
+    const metadata = await new MediaTypeDetector()
+      .getMetadata(src);
+    if (!metadata.contentType.includes('image')) {
+      return showError('Image not found');
+    }
+    openModal(TUI_IMAGE_EDITOR_MODAL,
+      {
+        imageMeta: metadata,
+        recommendedResolution: CROP_RECOMMENDED_RESOLUTION,
+        src,
+      });
+  }
+
 
   return {
     modalIds,
@@ -81,5 +100,6 @@ export default () => {
     updateClassName: action(updateClassName),
     openCropper,
     options,
+    openImageEditor,
   };
 };

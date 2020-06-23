@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { observer } from 'mobx-react';
+import { toJS } from 'mobx';
 
 import Button from '@material-ui/core/Button';
 import PropTypes from '../../../lib/PropTypes';
@@ -23,7 +24,7 @@ const SettingPanel = observer(() => {
   const { linkedinEnabled } = useUserStore();
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
-  const { openCropper } = useModalStore();
+  const { openCropper, openImageEditor } = useModalStore();
 
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -141,6 +142,21 @@ const SettingPanel = observer(() => {
               className="settings__edit-file"
             >
 Use Thumbnails Editor
+            </Button>
+          </div>
+          <div className="settings__row-block">
+            <Button
+              onClick={() => {
+                const jsItem = toJS(item);
+                console.log(jsItem)
+                openImageEditor(item.thumbnail, onImageCropped);
+              }}
+              disableRipple
+              disableFocusRipple
+              disableTouchRipple
+              className="settings__edit-file"
+            >
+              Tui Editor
             </Button>
           </div>
         </div>
