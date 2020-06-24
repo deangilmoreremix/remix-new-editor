@@ -5,23 +5,25 @@ import useProjectStore from '../../hooks/useProjectStore';
 import PropTypes from '../../../lib/PropTypes';
 
 const Opacity = ({ layer }) => {
-  const [count, setCount] = useState();
+  const [count, setCount] = useState(layer.opacity ?? 100);
 
   const { setOpacity } = useProjectStore();
 
-  const onChange = e => {
-    // console.log(".", e.key);
-    // const value = e.target.value.replace(/\D/, '');
+  const onChange = event => {
+    // console.log(event);
+    const value = e.target.value.replace(/\D/, '');
     // setCount(e.target.value);
     // setOpacity(layer.id, value);
   };
 
-  const onKeyDown = (e) => {
+  const onKeyUp = (e) => {
     // const value = e.target.value;
     console.log(e.target.value);
-    setCount(e.target.value);
+    // setCount(e.target.value);
     // return null;
   };
+
+  console.log("count", count);
 
   return (
     <button className="opacity">
@@ -29,7 +31,7 @@ const Opacity = ({ layer }) => {
         type="text"
         value={count}
         onChange={onChange}
-        onKeyUp={onKeyDown}
+        onKeyUp={onKeyUp}
       />
     </button>
   );
