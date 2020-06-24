@@ -1,3 +1,4 @@
+@import "variables";
 @import "reset";
 @import "~bootstrap/scss/bootstrap";
 @import "~animate.css/animate.min.css";
@@ -7,7 +8,6 @@
 @import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css');
 @import '~video-react/styles/scss/video-react';
 
-@import "variables";
 @import "mixins/index";
 @import "animations";
 
@@ -55,7 +55,7 @@
 @import "components/common/Guidelines";
 @import "components/common/GuidelinesActivation";
 @import "components/common/image-settings";
-@import "components/common/retarget-settings";
+@import "components/common/form-settings";
 @import "components/common/ThumbnailEditor";
 @import "components/common/thumbnails";
 @import "components/common/produce";
@@ -63,6 +63,7 @@
 @import "components/common/Recorder";
 @import "components/common/ExpandButton";
 @import "components/common/json-button";
+@import "components/common/snack-bars";
 
 @import "components/campaigns/index";
 
