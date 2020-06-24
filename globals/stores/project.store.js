@@ -1184,6 +1184,11 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  setOpacity = (layerId, opacity) => {
+    console.log("opacity", opacity);
+  };
+
+  @action
   changeDuration = (newDuration) => {
     const { duration, elements } = this;
     if (newDuration === duration) {

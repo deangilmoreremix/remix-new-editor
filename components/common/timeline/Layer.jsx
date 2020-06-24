@@ -9,6 +9,7 @@ import penIcon from '../../../public/static/svgImages/common/pen.svg';
 import trashIcon from '../../../public/static/svgImages/common/trash.svg';
 
 import BlendingMode from './BlendingMode';
+import Opacity from './Opacity';
 
 import PropTypes from '../../../lib/PropTypes';
 
@@ -94,7 +95,9 @@ const Layer = observer(({ item, onRemove }) => {
             />
           </Grid>
           <Grid item xs={2} className="without-side-padding">
-            {/* todo implement opacity */}
+            <Opacity
+              layer={item}
+            />
           </Grid>
           <Grid item xs={2} className="without-side-padding">
             {/* todo implement it */}
