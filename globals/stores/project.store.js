@@ -64,15 +64,18 @@ export default class ProjectStore extends BaseStore {
           this.isPlayed = true;
         });
         emitter.on(emitterActions.SELECT, id => {
-          if (this.activeElementId !== id && id) {
+          if (id) {
             const element = this.getElementById(id);
-            if (this.isElementWithSettings(element.type)) {
-              this.editElement(id);
-            }
             const { popcornOptions } = element;
             const currentTime = this.time / SANTISECOND;
             if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
               this.updateTime(popcornOptions.start * SANTISECOND);
+            }
+
+            if (this.activeElementId !== id && element) {
+              if (this.isElementWithSettings(element.type)) {
+                this.editElement(id);
+              }
             }
           }
         });
