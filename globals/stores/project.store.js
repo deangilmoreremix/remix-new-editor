@@ -265,6 +265,10 @@ export default class ProjectStore extends BaseStore {
       options.blendMode = blendModeConstants.normal.value;
     }
 
+    if (track.opacity) {
+      options.opacity = track.opacity;
+    }
+
     const layerElements = this.elements.filter(element => element.track === track.id);
     if (isLayerFulfilled(options, layerElements)) {
       this.addLayer();
@@ -489,6 +493,7 @@ export default class ProjectStore extends BaseStore {
           order: track.order,
           id: track.id,
           blendMode: track.blendMode,
+          opacity: track.opacity,
         };
         layers.push(layer);
       });
@@ -636,11 +641,16 @@ export default class ProjectStore extends BaseStore {
       if (item.id === elementId) {
         item.track = layer.id;
         item.popcornOptions.blendMode = layer.blendMode;
+        item.popcornOptions.opacity = layer.opacity;
         newElement = item;
         if (layer.blendMode) {
           newElement.popcornOptions.blendMode = layer.blendMode;
         } else {
           newElement.popcornOptions.blendMode = blendModeConstants.normal.value;
+        }
+
+        if (layer.opacity) {
+          newElement.popcornOptions.opacity = layer.opacity;
         }
       }
       return item;
@@ -650,7 +660,7 @@ export default class ProjectStore extends BaseStore {
       media.tracks = media.tracks.map(track => {
         if (track.order === newLayerLevel) {
           const zindex = MAX_ZINDEX - track.order;
-          const { blendMode } = newElement.popcornOptions;
+          const { blendMode, opacity } = newElement.popcornOptions;
           element.track = track.id;
           element.popcornOptions.zindex = zindex;
           if (layer.blendMode) {
@@ -658,8 +668,11 @@ export default class ProjectStore extends BaseStore {
           } else {
             element.popcornOptions.blendMode = blendModeConstants.normal.value;
           }
+          if (layer.opacity) {
+            element.popcornOptions.opacity = layer.opacity;
+          }
           track.trackEvents.push(element);
-          this.updatePopcorn(element.id, { zindex, blendMode });
+          this.updatePopcorn(element.id, { zindex, blendMode, opacity });
         } else {
           track.trackEvents = track.trackEvents.filter(item => item.id !== elementId);
         }
