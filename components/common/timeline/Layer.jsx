@@ -94,7 +94,7 @@ const Layer = observer(({ item, onRemove }) => {
               layer={item}
             />
           </Grid>
-          <Grid item xs={2} className="without-side-padding">
+          <Grid item xs={4} className="without-side-padding">
             <Opacity
               layer={item}
             />
