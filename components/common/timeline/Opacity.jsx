@@ -12,7 +12,8 @@ const Opacity = ({ layer }) => {
   const onChange = event => {
     let { value } = event.target;
     if (parseFloat(value) > 100) {
-      return setCount(100);
+      setCount(100);
+      return setOpacity(layer.id, 100);
     }
 
     value = value
