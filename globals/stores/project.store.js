@@ -18,7 +18,8 @@ import {
   DEFAULT_DURATION,
   DEFAULT_LAYER,
   DEFAULT_ITEM,
-  SOCIALS, MAX_VIDEO_DURATION,
+  SOCIALS,
+  MAX_VIDEO_DURATION,
 } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
