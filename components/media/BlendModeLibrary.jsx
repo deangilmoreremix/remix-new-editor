@@ -27,7 +27,7 @@ const BlendModeLibrary = observer(() => {
     try {
       await addData(item);
     } catch (e) {
-      await showError(e.message);
+      showError(e.message);
     }
   }, []);
 
@@ -102,7 +102,7 @@ const BlendModeLibrary = observer(() => {
           })}
 
           {isLoading && hasMore && <LibrarySpinner />}
-          {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="blendmode-waypoint" /></Waypoint>}
+          {!isLoading && hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="blendmode-waypoint" /></Waypoint>}
         </div>
         <CloseButton onClick={() => toggleRightBlock(false)} />
       </div>
