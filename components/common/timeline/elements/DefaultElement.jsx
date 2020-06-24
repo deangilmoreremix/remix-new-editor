@@ -6,7 +6,7 @@ import useProjectStore from '../../../hooks/useProjectStore';
 
 const DefaultElement = React.forwardRef(({ item, ...rest }, ref) => {
   const { isAudio } = useProjectStore();
-  const { contentType, type } = item
+  const { contentType, type } = item;
 
   return (
     <Grid
@@ -18,7 +18,7 @@ const DefaultElement = React.forwardRef(({ item, ...rest }, ref) => {
       {...rest}
     >
       <span className="popcorn-element-name">
-        {POPCORN_ELEMENT_LABELS[item.type] || (isAudio({popcornOptions: {contentType, type}}) ? 'Audio' : 'Video')}
+        {POPCORN_ELEMENT_LABELS[item.type] || (isAudio({ popcornOptions: { contentType, type } }) ? 'Audio' : 'Video')}
       </span>
     </Grid>
   );
