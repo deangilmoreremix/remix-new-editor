@@ -1,4 +1,4 @@
-.retarget-form {
+.retarget-form, .lead-form {
   .form-control-label {
     display: flex;
     font-size: 0.7em;
@@ -20,6 +20,9 @@
       .button-add-file {
         background: $secondary-color;
       }
+    }
+    .btn-upload {
+      font-size: 1rem;
     }
   }
 
@@ -50,6 +53,18 @@
     > div {
       width: 48%;
       margin-bottom: 1em;
+    }
+
+    div.container-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+
+      > div {
+        width: 48%;
+        margin-bottom: 1em;
+      }
     }
   }
 

@@ -23,6 +23,8 @@ import {
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
+import { showInfo } from '../../lib/services/alertService';
+import { FORM_ONE_LG } from '../../lib/constants/text-info';
 
 export default class ProjectStore extends BaseStore {
   constructor(props) {
@@ -245,6 +247,11 @@ export default class ProjectStore extends BaseStore {
     const { type } = item;
     if (this.isPlayed) {
       this.playPause();
+    }
+    if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR
+      && this.elements.some(el => el.type === type)) {
+      this.releaseElement();
+      return showInfo(FORM_ONE_LG.text, FORM_ONE_LG.title);
     }
 
     const options = await this.setElementOptions(item);
