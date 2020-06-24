@@ -25,7 +25,7 @@ const PresetsList = ({ items, hasMore, uploadNewItems, handleSelect, activeItem,
     </Fragment>
     )}
     {isLoading && hasMore && <LibrarySpinner />}
-    {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="preset-waypoint" /></Waypoint>}
+    {!isLoading && hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="preset-waypoint" /></Waypoint>}
   </div>
 );
 
