@@ -18,7 +18,7 @@ import {
   DEFAULT_DURATION,
   DEFAULT_LAYER,
   DEFAULT_ITEM,
-  SOCIALS,
+  SOCIALS, MAX_VIDEO_DURATION,
 } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
@@ -1178,13 +1178,12 @@ export default class ProjectStore extends BaseStore {
 
   @action
   changeDuration = (newDuration) => {
-    const { duration, elements } = this;
-    if (newDuration === duration) {
+    const { duration, elements, time } = this;
+    let lastEnd = newDuration * SANTISECOND;
+    if (lastEnd === duration || lastEnd <= 0 || lastEnd >= MAX_VIDEO_DURATION) {
       return;
     }
     this.modified = true;
-    let lastEnd = newDuration;
-
     if (lastEnd < duration) {
       elements.forEach(({ popcornOptions: { end }, type }) => {
         if (type === SEQUENCER) { // element is image or audio
@@ -1207,6 +1206,15 @@ export default class ProjectStore extends BaseStore {
     }
     if (lastEnd > duration) {
       this.duration = lastEnd;
+    }
+    this.projectData.media.forEach(media => {
+      media.duration = newDuration;
+      media.url = `#t=,${newDuration}`;
+    });
+    this.setPopcorn();
+
+    if (time > lastEnd) {
+      this.updateTime(lastEnd);
     }
   }
 }
