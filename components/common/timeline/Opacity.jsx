@@ -5,7 +5,7 @@ import useProjectStore from '../../hooks/useProjectStore';
 import PropTypes from '../../../lib/PropTypes';
 
 const Opacity = ({ layer }) => {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(layer.opacity ?? 100);
 
   const { setOpacity } = useProjectStore();
 
