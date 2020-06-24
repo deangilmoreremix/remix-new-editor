@@ -1185,7 +1185,33 @@ export default class ProjectStore extends BaseStore {
 
   @action
   setOpacity = (layerId, opacity) => {
-    console.log("opacity", opacity);
+    this.modified = true;
+    const elements = this.popcornElements.filter(element => element.track === layerId);
+    elements.forEach(element => {
+      this.updatePopcorn(element, { opacity });
+    });
+
+    this.layers = this.layers.map(layer => {
+      if (layer.id === layerId) {
+        layer.opacity = opacity;
+      }
+      return layer;
+    });
+
+    this.projectData.media.forEach((media) => {
+      media.tracks = media.tracks.map((track) => {
+        if (track.id === layerId) {
+          track.opacity = opacity;
+        }
+        track.trackEvents.forEach(trackEvent => {
+          if (trackEvent.track === layerId) {
+            trackEvent.popcornOptions.opacity = opacity;
+            this.updatePopcorn(trackEvent, { opacity });
+          }
+        });
+        return track;
+      });
+    });
   };
 
   @action
