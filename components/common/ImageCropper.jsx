@@ -1,109 +1,125 @@
-import React, { Component, Fragment } from 'react';
-import { inject, observer } from 'mobx-react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { observer } from 'mobx-react';
 import ImageEditor from 'react-avatar-editor';
-import { action } from 'mobx';
 
+import { Box, Button } from '@material-ui/core';
 import PropTypes from '../../lib/PropTypes';
 import { showError } from '../../lib/services/alertService';
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-import InfiniteLoading from './InfiniteLoading';
+import Loader from './Loader';
+import useMediaStore from '../hooks/useMediaStore';
+import {
+  CROP_BRAND_LOGO_RESOLUTION,
+  IMAGE_CANT_BE_UPLOADED_ERROR,
+  IMAGE_NOT_FOUND_ERROR,
+  IMAGE_NOT_SUPPORTED_ERROR,
+} from '../../lib/constants/settings/image';
+import { MEDIA_TYPES } from '../../lib/constants/popcorn';
+import FormSlider from '../form/FormSlider';
 
-
-@inject('mediaStore')
-@observer
-class ImageCropper extends Component {
-  constructor(props) {
-    super(props);
-    const {
-      resolution,
-    } = props;
-
-    this.state = {
-      isLoading: false,
-      width: resolution.width,
-      height: resolution.height,
-    };
-  }
-
-  @action
-  onLoadSuccess = async () => {
-    if (this.editor) {
-      await this.uploadFile(this.editor.getImageScaledToCanvas().toDataURL('image/png'));
-    }
-  };
-
-  setEditorRef = editor => {
-    this.editor = editor;
-  };
-
-  uploadFile = async (imageData) => {
-    const { mediaStore, onImageCropped } = this.props;
+const ImageCropper = observer(({
+  resolution,
+  className,
+  imageData,
+  onImageCropped,
+  handleClose,
+}) => {
+  const refEditor = useRef();
+  const [isLoading, setLoading] = useState(false);
+  const { uploadMedia } = useMediaStore();
+  const { width, height } = useMemo(() => resolution, [resolution]);
+  const { source } = useMemo(() => imageData, [imageData]);
+  const [scale, setScale] = useState(1);
+  const onLoadSuccess = useCallback(async () => {
     try {
-      this.setState({ isLoading: true });
-      const newUrl = (await mediaStore.uploadMedia({ data: imageData })).url;
-      const metadata = await new MediaTypeDetector()
-        .getMetadata(newUrl);
-      if (!metadata.contentType.includes('image')) {
-        return showError('Image not found');
-      }
-      onImageCropped(metadata);
+      setLoading(true);
+      await uploadFile(refEditor.current.getImageScaledToCanvas().toDataURL('image/png'));
     } catch (err) {
-      return showError(err.message || 'This image format is not supported.');
+      return showError(err.message || IMAGE_CANT_BE_UPLOADED_ERROR);
     } finally {
-      this.setState({ isLoading: false });
+      setLoading(false);
     }
-  };
+  });
 
-  render() {
-    const {
-      props: { className, imageData },
-      state: { isLoading, width, height },
-    } = this;
-    return (
-      <div className="image-crop-content">
-        {isLoading ? <InfiniteLoading className="auto-margin" />
-          : (
-            <Fragment>
-              <h5 className="crop-title">
-                It seems your image is not fitting required resolution.
-                {' '}
-                <br />
-                Please select desired area and image will be adjusted to required size.
-              </h5>
-              <div className="canvas-container">
-                <ImageEditor
-                  className={className}
-                  ref={this.setEditorRef}
-                  crossOrigin="anonymous"
-                  image={imageData.source}
-                  width={width}
-                  height={height}
-                  border={50}
-                  scale={1}
-                  rotate={0}
-                />
-              </div>
-              <button className="go-button submit-button save-button" onClick={this.onLoadSuccess} type="button">
-                Save
-              </button>
-            </Fragment>
-          )}
-      </div>
-    );
-  }
-}
+  const uploadFile = useCallback(async (imageMeta) => {
+    try {
+      if (imageMeta) {
+        const newUrl = (await uploadMedia({ data: imageMeta, isCrop: true })).url;
+        const metadata = await new MediaTypeDetector()
+          .getMetadata(newUrl);
+        if (!metadata.contentType.includes(MEDIA_TYPES.IMAGE)) {
+          return showError(IMAGE_NOT_FOUND_ERROR);
+        }
+        onImageCropped(metadata);
+      }
+    } catch (err) {
+      return showError(err.message || IMAGE_NOT_SUPPORTED_ERROR);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  return (
+    <div className="image-crop-content">
+      { isLoading ? <Loader isLoading={isLoading} className="image-crop-content" /> : (
+        <Box>
+          <div className="canvas-container">
+            <ImageEditor
+              className={className}
+              ref={refEditor}
+              crossOrigin="anonymous"
+              image={source}
+              width={width}
+              height={height}
+              border={height === CROP_BRAND_LOGO_RESOLUTION.height ? 500 : 50}
+              scale={scale}
+            />
+          </div>
+          <FormSlider
+            onChange={(value) => setScale(value)}
+            value={scale}
+            minValue={0.25}
+            maxValue={10}
+            step={0.05}
+            sliderWidth={200}
+            withoutInput
+            sliderClassName="cropper-scale"
+          />
+          <Box className="cropper-buttons">
+            <Button
+              variant="outlined"
+              color="default"
+              className="done-button"
+              onClick={handleClose}
+            >
+Cancel
+            </Button>
+            <Button
+              variant="outlined"
+              color="default"
+              className="done-button"
+              onClick={onLoadSuccess}
+            >
+Ok
+            </Button>
+          </Box>
+        </Box>
+      ) }
+    </div>
+  );
+});
 
 ImageCropper.propTypes = {
   className: PropTypes.string,
   imageData: PropTypes.shape({
-    source: PropTypes.string.isRequired,
+    source: PropTypes.string,
     width: PropTypes.number,
     height: PropTypes.number,
-  }).isRequired,
+  }),
   resolution: PropTypes.shape({
     width: PropTypes.number,
     height: PropTypes.number,
-  }).isRequired,
+  }),
   onImageCropped: PropTypes.func.isRequired,
 };
 
