@@ -1,24 +1,33 @@
 import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import videojs from 'video.js';
-import 'recordrtc';
 import { ClipLoader } from 'react-spinners';
 import WaveSurfer from 'wavesurfer.js';
-import 'videojs-wavesurfer-dealiased/dist/videojs.wavesurfer';
 import MicrophonePlugin from 'wavesurfer.js/dist/plugin/wavesurfer.microphone';
-import 'videojs-record-dealiased/dist/videojs.record';
-import 'videojs-record-dealiased/dist/plugins/videojs.record.ts-ebml';
+import getBlobDuration from 'get-blob-duration';
+
+import 'recordrtc';
+import 'videojs-wavesurfer-dealiased/dist/videojs.wavesurfer.min';
+import 'videojs-record-dealiased/dist/videojs.record.min';
+import 'videojs-record-dealiased/dist/plugins/videojs.record.ts-ebml.min';
+import 'videojs-record-dealiased/dist/plugins/videojs.record.lamejs';
 
 import useMediaStore from '../hooks/useMediaStore';
 import useUiStore from '../hooks/useUIStore';
 
 import { LIBRARY_TABS } from '../../lib/constants/library';
-import { RECORDER_VIDEOJS_CONFIG } from '../../lib/constants/recorder';
+import { RECORDER_TYPES, RECORDER_VIDEOJS_CONFIG } from '../../lib/constants/recorder';
 import { showError } from '../../lib/services/alertService';
 
 WaveSurfer.microphone = MicrophonePlugin;
 
-export default observer(({ options: { type }, handleClose }) => {
+const EXTENSIONS_MAP = {
+  [RECORDER_TYPES.AUDIO]: 'mp3',
+  [RECORDER_TYPES.CAMERA]: 'webm',
+  [RECORDER_TYPES.SCREEN]: 'webm',
+};
+
+export default observer(({ options: { type, useAudio }, handleClose }) => {
   const {
     uploadMedia,
     storeAsset,
@@ -29,67 +38,90 @@ export default observer(({ options: { type }, handleClose }) => {
   } = useUiStore();
 
   const [saveOptionsVisible, setSaveOptionsVisible] = useState(false);
-  const [recording, setRecording] = useState(null);
-  const [recordData, setRecordData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const playerRef = React.useRef(null);
+  const videoRef = React.useRef(null);
 
-  const handleDownload = () => {
-    if (!recording) {
+  let { current: player } = playerRef;
+
+  const config = React.useMemo(
+    () => RECORDER_VIDEOJS_CONFIG({ type, useAudio, WaveSurfer }),
+    [type, useAudio]);
+
+  useEffect(() => {
+    if (videoRef.current && useAudio !== undefined && type) {
+      player = videojs(videoRef.current, config);
+
+      player.on('finishRecord', () => {
+        setSaveOptionsVisible(true);
+        player.record().stopStream();
+      });
+      player.on('error', (element, error) => {
+        player.record().stopStream();
+        console.log({ element, error });
+        showError(error.message);
+      });
+      player.on('deviceError', () => {
+        showError(`Recording device error, code ${player.deviceErrorCode}`);
+      });
+    }
+  }, [videoRef, useAudio, type, config]);
+
+  React.useEffect(() => () => () => {
+    if (player) {
+      player.dispose();
+    }
+  }, []);
+
+  useEffect(() => () => player.record().stopStream(), []);
+
+  const handleDownload = React.useCallback(() => {
+    if (!player) {
       return;
     }
-    recording.saveAs({ video: `${type}.webm` });
-  };
+    player.record().saveAs({
+      [type === RECORDER_TYPES.AUDIO
+        ? RECORDER_TYPES.AUDIO : RECORDER_TYPES.CAMERA]: `${type}.${EXTENSIONS_MAP[type]}`,
+    });
+  }, [player]);
 
-  const handleUpload = async (blob) => {
-    if (!blob) {
+  const handleUpload = React.useCallback(async () => {
+    if (!player.recordedData) {
       return;
     }
     setIsLoading(true);
     try {
-      const asset = await uploadMedia({ data: blob });
-      await storeAsset(asset, LIBRARY_TABS.VIDEO);
-      setLibraryType(LIBRARY_TABS.VIDEO);
+      const duration = await getBlobDuration(player.recordedData);
+      const videoFile = player.recordedData.type.indexOf('video') === 0;
+      const libraryType = videoFile ? LIBRARY_TABS.VIDEO : LIBRARY_TABS.AUDIO;
+
+      const asset = await uploadMedia({ data: player.recordedData });
+      if (videoFile) {
+        asset.duration = duration;
+      }
+      await storeAsset(asset, libraryType);
+      setLibraryType(libraryType);
       handleClose();
     } catch (e) {
       showError(e.message);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  RECORDER_VIDEOJS_CONFIG.plugins.record[type] = true;
-
-  useEffect(() => {
-    const player = videojs('recorder-modal__player', RECORDER_VIDEOJS_CONFIG);
-    player.on('finishConvert', () => {
-      setSaveOptionsVisible(true);
-      setRecording(player.record());
-      setRecordData(player.convertedData);
-    });
-    player.on('error', (element, error) => {
-      showError(error.message);
-    });
-    player.on('deviceError', () => {
-      showError(`Recording device error, code ${player.deviceErrorCode}`);
-    });
-
-    return () => (player ? player.dispose() : null);
-  }, [type]);
-
+  }, [player]);
 
   return (
-    <React.Fragment>
+    <div className={isLoading && 'recorder-await'}>
       {
         isLoading
           ? (
             <ClipLoader
-              size={300}
+              size={150}
               loading
             />
           ) : (
             <div>
               <div data-vjs-player>
-                <video id="recorder-modal__player" className="video-js vjs-default-skin" playsInline />
+                <video ref={videoRef} className="video-js vjs-default-skin" playsInline />
               </div>
               <div className={`recorder-modal-options ${saveOptionsVisible ? '' : 'recorder-modal-options_hidden'}`}>
                 <button
@@ -100,7 +132,7 @@ export default observer(({ options: { type }, handleClose }) => {
                 </button>
                 <button
                   className="recorder-modal-options__button recorder-modal-options__button_upload"
-                  onClick={() => handleUpload(recordData)}
+                  onClick={handleUpload}
                 >
                   Upload to Lib
                 </button>
@@ -108,6 +140,6 @@ export default observer(({ options: { type }, handleClose }) => {
             </div>
           )
       }
-    </React.Fragment>
+    </div>
   );
 });

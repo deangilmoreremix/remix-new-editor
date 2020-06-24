@@ -137,6 +137,7 @@ export default class Media extends BaseStore {
       if (source.length > 0) {
         // popcorn format
         extra.source = [`${source.join('|')}`];
+        extra.duration = item.duration;
       }
     }
     try {

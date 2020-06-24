@@ -268,6 +268,33 @@
   height: 21px;
   transition: 0.3s all;
 }
+.play-time {
+  display: inline-flex;
+  align-items: center;
+  .time-current, .time-total {
+    font-size: $small;
+  }
+  .time-current {
+    margin-left: 0.5rem;
+  }
+  .time-total {
+    width: 55%;
+    padding: 0;
+    border: none;
+    div {
+      padding: 0;
+      margin-left: 0.5rem;
+      width: 4rem;
+      min-height: 1.5rem;
+      height: 1.5rem;
+    }
+    input {
+      font-size: $small;
+      padding:0;
+      border: none;
+    }
+  }
+}
 
 .timeline-play:disabled {
   opacity: 0.5;
