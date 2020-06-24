@@ -103,14 +103,17 @@ const Library = observer((props) => {
     async function fetchData() {
       await fetchItems({ source: activeBtn, queryStr: '' });
     }
-    setQuery('');
+
     if (activeItem) {
-      setActiveItem(null);
-    }
-    if (libraryItemsForDelete.length) {
-      bulkDeleteItems();
-    } else {
-      fetchData();
+      setQuery('');
+      if (activeItem) {
+        setActiveItem(null);
+      }
+      if (libraryItemsForDelete.length) {
+        bulkDeleteItems();
+      } else {
+        fetchData();
+      }
     }
   }, [activeTab]);
 
@@ -138,10 +141,12 @@ const Library = observer((props) => {
   }, [isLoading]);
 
   React.useEffect(() => {
-    if (libraryItemsForDelete.length) {
-      bulkDeleteItems();
-    } else {
-      fetchItems({ source: activeBtn });
+    if (activeBtn || activeTab) {
+      if (libraryItemsForDelete.length) {
+        bulkDeleteItems();
+      } else {
+        fetchItems({ source: activeBtn });
+      }
     }
   }, [activeBtn]);
 
