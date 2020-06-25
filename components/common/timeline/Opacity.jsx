@@ -5,7 +5,7 @@ import useProjectStore from '../../hooks/useProjectStore';
 import PropTypes from '../../../lib/PropTypes';
 
 const Opacity = ({ layer }) => {
-  const [count, setCout] = useState(layer.opacity ?? 100);
+  const [count, setCount] = useState(layer.opacity ?? 100);
   const { setOpacity } = useProjectStore();
 
   const saveChanges = event => {
@@ -22,7 +22,7 @@ const Opacity = ({ layer }) => {
     if (value > 100) {
       value = 100;
     }
-    setCout(value);
+    setCount(value);
   };
 
   return (
