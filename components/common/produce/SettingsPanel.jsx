@@ -24,7 +24,7 @@ const SettingPanel = observer(() => {
   const { linkedinEnabled } = useUserStore();
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
-  const { openCropper, openImageEditor } = useModalStore();
+  const { openCropper, openImageEditor, finishImageEditing } = useModalStore();
 
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -46,14 +46,18 @@ const SettingPanel = observer(() => {
     Object.keys(tabItems).forEach(tab => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
-          openCropper(image.url, onImageCropped);
+          openImageEditor(image.url, onImageEdited);
         }
       });
     });
   };
 
-  const onImageCropped = (thumbnail) => {
+  const onImageEdited = (thumbnail) => {
     updateItem({ thumbnail });
+
+    finishImageEditing(thumbnail, (croppedImage) => {
+      updateItem({ thumbnail: croppedImage });
+    });
   };
 
   return (
@@ -135,28 +139,15 @@ const SettingPanel = observer(() => {
           </div>
           <div className="settings__row-block">
             <Button
-              onClick={() => openCropper(item.thumbnail, onImageCropped)}
-              disableRipple
-              disableFocusRipple
-              disableTouchRipple
-              className="settings__edit-file"
-            >
-Use Thumbnails Editor
-            </Button>
-          </div>
-          <div className="settings__row-block">
-            <Button
               onClick={() => {
-                const jsItem = toJS(item);
-                console.log(jsItem)
-                openImageEditor(item.thumbnail, onImageCropped);
+                openImageEditor(item.thumbnail, onImageEdited);
               }}
               disableRipple
               disableFocusRipple
               disableTouchRipple
               className="settings__edit-file"
             >
-              Tui Editor
+              Image Editor
             </Button>
           </div>
         </div>

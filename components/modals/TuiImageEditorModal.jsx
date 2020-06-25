@@ -1,28 +1,27 @@
-import React from 'react';
-import '../../styles/components/modals/TuiImageEditorModal.scss';
-import ImageEditor from '@toast-ui/react-image-editor';
+import React, { useMemo } from 'react';
+import { observer } from 'mobx-react';
 
-const TuiImageEditorModal = (image) => (
-  <ImageEditor
-    includeUI={{
+import { Box } from '@material-ui/core';
 
-      // theme: myTheme,
-      menu: ['crop', 'flip', 'rotate', 'shape', 'icon', 'text', 'mask', 'filter'],
-      initMenu: 'crop',
-      uiSize: {
-        width: '700px',
-        height: '500px',
-      },
-      menuBarPosition: 'bottom',
-    }}
-    cssMaxHeight={500}
-    cssMaxWidth={700}
-    selectionStyle={{
-      cornerSize: 20,
-      rotatingPointOffset: 70,
-    }}
-    // usageStatistics={true}
-  />
-);
+import TuiImageEditor from '../common/TuiImageEditor';
+import { TUI_EDITOR_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
+
+const TuiImageEditorModal = observer(({ handleClose, options }) => {
+  const { imageMeta, onImageCropped, updateField } = useMemo(
+    () => options, [options]);
+
+  return (
+    <div className="image-editor-modal">
+      <Box>
+        <TuiImageEditor
+          imageData={imageMeta || {}}
+          resolution={TUI_EDITOR_RECOMMENDED_RESOLUTION}
+          onImageCropped={(value) => onImageCropped(value.source, updateField)}
+          handleClose={handleClose}
+        />
+      </Box>
+    </div>
+  );
+});
 
 export default TuiImageEditorModal;
