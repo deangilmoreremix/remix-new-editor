@@ -103,17 +103,14 @@ const Library = observer((props) => {
     async function fetchData() {
       await fetchItems({ source: activeBtn, queryStr: '' });
     }
-
+    setQuery('');
     if (activeItem) {
-      setQuery('');
-      if (activeItem) {
-        setActiveItem(null);
-      }
-      if (libraryItemsForDelete.length) {
-        bulkDeleteItems();
-      } else {
-        fetchData();
-      }
+      setActiveItem(null);
+    }
+    if (libraryItemsForDelete.length) {
+      bulkDeleteItems();
+    } else {
+      fetchData();
     }
   }, [activeTab]);
 
@@ -436,7 +433,7 @@ const Library = observer((props) => {
                 activeTab === LIBRARY_TABS.VIDEO && (
                 <DropPasteInput
                   onDrop={onDrop}
-                  accept={[{ ALL_VIDEO }]}
+                  accept={[ALL_VIDEO]}
                   onEnter={onEnter}
                 />
                 )
