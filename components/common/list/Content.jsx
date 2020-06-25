@@ -1,11 +1,10 @@
 import React, { Fragment } from 'react';
 import { Waypoint } from 'react-waypoint';
-import classnames from 'classnames';
 import PropTypes from '../../../lib/PropTypes';
 import { LibrarySpinner } from '../../media/Loader';
 
-const Content = ({ items, hasMore, uploadNewItems, isLoading, element: Element, className }) => (
-  <div className="presets-list">
+const Content = ({ items, hasMore, uploadNewItems, isLoading, element: Element }) => (
+  <div className="list-items">
     {items && items.length && (
       <Fragment>
         {items.map((item) => (
@@ -24,10 +23,6 @@ Content.propTypes = {
   ),
   hasMore: PropTypes.bool.isRequired,
   uploadNewItems: PropTypes.func.isRequired,
-  handleSelect: PropTypes.func.isRequired,
-  activeItem: PropTypes.shape({
-    _id: PropTypes.string.isRequired,
-  }),
   isLoading: PropTypes.bool.isRequired,
   element: PropTypes.element,
 };

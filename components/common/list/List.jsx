@@ -5,17 +5,20 @@ import { observer } from 'mobx-react';
 import PropTypes from '../../../lib/PropTypes';
 import { perPage } from '../../../lib/constants/library';
 
+import useUIStore from '../../hooks/useUIStore';
 import useProjectStore from '../../hooks/useProjectStore';
 
 import Content from './Content';
 import { showError } from '../../../lib/services/alertService';
+import CloseButton from '../CloseButton';
 
-const List = observer(({ get, className, element: Element }) => {
+const List = observer(({ get, className, element: Element, showCloseButton }) => {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(null);
 
+  const { toggleRightBlock } = useUIStore();
   const { addData } = useProjectStore();
 
   const handleSelect = React.useCallback(async (item) => {
@@ -74,16 +77,15 @@ const List = observer(({ get, className, element: Element }) => {
     [Element]);
 
   return (
-    <div className="list-body">
-      <div className="list-items">
-        <Content
-          items={items}
-          hasMore={hasMore}
-          uploadNewItems={uploadNewItems}
-          isLoading={isLoading}
-          element={itemElement}
-        />
-      </div>
+    <div className={classnames('list-body', className)}>
+      <Content
+        items={items}
+        hasMore={hasMore}
+        uploadNewItems={uploadNewItems}
+        isLoading={isLoading}
+        element={itemElement}
+      />
+      {showCloseButton && <CloseButton onClick={() => toggleRightBlock(false)} />}
     </div>
   );
 });
@@ -91,6 +93,11 @@ const List = observer(({ get, className, element: Element }) => {
 List.propTypes = {
   element: PropTypes.element.isRequired,
   className: PropTypes.string,
+  showCloseButton: PropTypes.bool,
+};
+
+List.defaultProps = {
+  showCloseButton: true,
 };
 
 export default List;
