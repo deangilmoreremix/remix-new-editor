@@ -186,21 +186,21 @@ export default class ProjectStore extends BaseStore {
         options.audioFadeIn = 0;
         options.audioFadeOut = 0;
 
-        const maxVideoDuration = MAX_DURATION / SANTISECOND;
+        const maxDuration = MAX_DURATION / SANTISECOND;
         if (options.duration * SANTISECOND > MAX_DURATION) {
           options.start = 0;
-          options.end = maxVideoDuration;
+          options.end = maxDuration;
           options.in = 0;
-          options.out = maxVideoDuration;
-          options.duration = maxVideoDuration;
+          options.out = maxDuration;
+          options.duration = maxDuration;
         }
         if (options.end * SANTISECOND > MAX_DURATION) {
           options.start = (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
-          options.end = maxVideoDuration;
+          options.end = maxDuration;
         }
         if (options.out * SANTISECOND > MAX_DURATION) {
           options.in = (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
-          options.out = maxVideoDuration;
+          options.out = maxDuration;
         }
         break;
       }
