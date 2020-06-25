@@ -56,7 +56,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
       <div className="brand-logo-container">
         <div className="upload-container">
           <FieldBuilder
-            value={logoUrl ?? (values.brandLogoSrc || fields.brandLogoSrc.default)}
+            value={logoUrl ?? (values.brandLogoSrc ?? fields.brandLogoSrc.default)}
             {...fields.brandLogoSrc}
             onChange={({ brandLogoSrc }) => {
               setLogoUrl(brandLogoSrc);
@@ -93,7 +93,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
         </div>
         <div className="upload-container">
           <FieldBuilder
-            value={imageUrl ?? (values.backgroundImage || fields.backgroundImage.default)}
+            value={imageUrl ?? (values.backgroundImage ?? fields.backgroundImage.default)}
             {...fields.backgroundImage}
             onChange={({ backgroundImage }) => {
               setImageUrl(backgroundImage);
