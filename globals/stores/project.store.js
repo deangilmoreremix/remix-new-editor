@@ -186,6 +186,7 @@ export default class ProjectStore extends BaseStore {
         options.mute = item.volume === 0;
         options.audioFadeIn = 0;
         options.audioFadeOut = 0;
+        options.opacity = 100;
         break;
       }
       default:
