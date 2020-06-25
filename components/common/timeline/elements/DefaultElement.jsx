@@ -6,7 +6,8 @@ import useProjectStore from '../../../hooks/useProjectStore';
 
 const DefaultElement = React.forwardRef(({ item, ...rest }, ref) => {
   const { isAudio } = useProjectStore();
-  const { contentType, type } = item
+  // eslint-disable-next-line react/prop-types
+  const { contentType, type } = item;
 
   return (
     <Grid
@@ -18,7 +19,7 @@ const DefaultElement = React.forwardRef(({ item, ...rest }, ref) => {
       {...rest}
     >
       <span className="popcorn-element-name">
-        {POPCORN_ELEMENT_LABELS[item.type] || (isAudio({popcornOptions: {contentType, type}}) ? 'Audio' : 'Video')}
+        {POPCORN_ELEMENT_LABELS[item.type] || (isAudio({ popcornOptions: { contentType, type } }) ? 'Audio' : 'Video')}
       </span>
     </Grid>
   );
@@ -29,6 +30,7 @@ DefaultElement.propTypes = {
     type: PropTypes.string.isRequired,
     title: PropTypes.string,
     htmlText: PropTypes.string,
+    contentType: PropTypes.any,
   }).isRequired,
 };
 

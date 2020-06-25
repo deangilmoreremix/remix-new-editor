@@ -35,9 +35,11 @@ const TuiImageEditor = observer(({
       const format = getFormatFromContentType(contentType);
 
       if (format === 'jpeg') {
+        // eslint-disable-next-line no-underscore-dangle
         await uploadFile(createBlob((refEditor).current.imageEditorInst._graphics
           .toDataURL({ format })));
       } else if (format === 'png') {
+        // eslint-disable-next-line no-underscore-dangle
         await uploadFile((refEditor).current.imageEditorInst._graphics.toDataURL({ format }));
       }
     } catch (err) {
