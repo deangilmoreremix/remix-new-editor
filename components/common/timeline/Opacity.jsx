@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 
 import useProjectStore from '../../hooks/useProjectStore';
 
@@ -41,7 +41,7 @@ const Opacity = ({ layer }) => {
 Opacity.propTypes = {
   layer: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    opacity: PropTypes.number,
+    opacity: PropTypes.string,
   }).isRequired,
 };
 
