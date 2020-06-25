@@ -16,12 +16,15 @@ import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 
 import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
 import { FEATURES } from '../../../../lib/constants/features';
+import useModalStore from '../../../hooks/useModalStore';
+import { TUI_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
 
 const Basic = ({ values, fields, onChange, handleClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { setLibraryType, setUpdateElementInLibrary } = useUIStore();
   const { findAndUpdate, element } = useProjectStore();
   const { currentUser: user, isfeatureEnabled: checkStateFeature } = useUserStore();
+  const { openImageEditor, closeModal } = useModalStore();
 
   const backToLibrary = () => {
     handleClose();
@@ -31,6 +34,11 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
 
   const selectImage = (item) => {
     findAndUpdate(element.id, { ...INITIAL_VALUES, ...item, src: item.url });
+  };
+
+  const onImageEdited = (image) => {
+    findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
+    closeModal(TUI_IMAGE_EDITOR_MODAL);
   };
 
   // ToDo add select field "Select the kind of Image you want to add"
@@ -150,6 +158,19 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           onChange={onChange}
           floatClassName="image-settings__checkbox"
         />
+        <div className="image-settings__block">
+          <div className="image-settings__btn--block">
+            <button
+              className="image-settings__btn"
+              onClick={() => {
+                openImageEditor(element.popcornOptions.src, onImageEdited);
+              }}
+              isDisabled={isLoading}
+            >
+              Image Editor
+            </button>
+          </div>
+        </div>
       </div>
     </Fragment>
   );

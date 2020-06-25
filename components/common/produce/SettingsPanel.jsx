@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { observer } from 'mobx-react';
-import { toJS } from 'mobx';
 
 import Button from '@material-ui/core/Button';
 import PropTypes from '../../../lib/PropTypes';
@@ -24,7 +23,7 @@ const SettingPanel = observer(() => {
   const { linkedinEnabled } = useUserStore();
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
-  const { openCropper, openImageEditor, finishImageEditing } = useModalStore();
+  const { openImageEditor, finishImageEditing } = useModalStore();
 
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];

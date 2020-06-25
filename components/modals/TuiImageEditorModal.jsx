@@ -9,7 +9,6 @@ import { TUI_EDITOR_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/
 const TuiImageEditorModal = observer(({ handleClose, options }) => {
   const { imageMeta, onImageCropped, updateField } = useMemo(
     () => options, [options]);
-
   return (
     <div className="image-editor-modal">
       <Box>

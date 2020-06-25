@@ -1,10 +1,10 @@
-import {set, observable, action} from 'mobx';
+import { set, observable, action } from 'mobx';
 
-import {IMAGE_CROPPER_MODAL, MODAL_CONFIG, TUI_IMAGE_EDITOR_MODAL} from '../../lib/constants/modals';
+import { IMAGE_CROPPER_MODAL, MODAL_CONFIG, TUI_IMAGE_EDITOR_MODAL } from '../../lib/constants/modals';
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-import {showError} from '../../lib/services/alertService';
-import {checkImageResolution} from '../../lib/utils/cropHelper';
-import {CROP_RECOMMENDED_RESOLUTION} from '../../lib/constants/settings/image';
+import { showError } from '../../lib/services/alertService';
+import { checkImageResolution } from '../../lib/utils/cropHelper';
+import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
 
 export default () => {
   const modalIds = observable.set([]);
@@ -17,7 +17,7 @@ export default () => {
     if (modalId) {
       modalIds.add(modalId);
       if (modalOptions) {
-        set(options, {...modalOptions});
+        set(options, { ...modalOptions });
       }
     }
   };
@@ -90,7 +90,7 @@ export default () => {
         updateField,
         onImageCropped,
       });
-  }
+  };
 
   const finishImageEditing = async (imageSrc, onImageCropped) => {
     closeModal(TUI_IMAGE_EDITOR_MODAL);
@@ -98,7 +98,7 @@ export default () => {
       onImageCropped(croppedImage);
       closeModal(IMAGE_CROPPER_MODAL);
     });
-  }
+  };
 
 
   return {

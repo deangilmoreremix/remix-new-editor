@@ -15,10 +15,9 @@ import {
 } from '../../lib/constants/settings/image';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import '../../styles/components/modals/TuiImageEditorModal.scss';
+import { createBlob, getFormatFromContentType } from '../../lib/utils/imageEditorHelper';
 
 const TuiImageEditor = observer(({
-  // resolution,
-  // className,
   imageData,
   onImageCropped,
   handleClose,
@@ -26,12 +25,21 @@ const TuiImageEditor = observer(({
   const refEditor = useRef();
   const [isLoading, setLoading] = useState(false);
   const { uploadMedia } = useMediaStore();
-  // const { width, height } = useMemo(() => resolution, [resolution]);
-  const { source } = useMemo(() => imageData, [imageData]);
+
+  const { source, contentType } = useMemo(() => imageData, [imageData]);
+
   const onLoadSuccess = useCallback(async () => {
     try {
       setLoading(true);
-      await uploadFile(refEditor.current.imageEditorInst._graphics.toDataURL('image/png'));
+
+      const format = getFormatFromContentType(contentType);
+
+      if (format === 'jpeg') {
+        await uploadFile(createBlob((refEditor).current.imageEditorInst._graphics
+          .toDataURL({ format })));
+      } else if (format === 'png') {
+        await uploadFile((refEditor).current.imageEditorInst._graphics.toDataURL({ format }));
+      }
     } catch (err) {
       return showError(err.message || IMAGE_CANT_BE_UPLOADED_ERROR);
     } finally {
@@ -59,7 +67,7 @@ const TuiImageEditor = observer(({
 
   return (
     <div className="image-editor-content">
-      { isLoading ? <Loader isLoading={isLoading} className="image-editor-content" /> : (
+      {isLoading ? <Loader isLoading={isLoading} className="image-editor-content" /> : (
         <Box>
           <div className="canvas-container">
             <ImageEditor
@@ -70,7 +78,7 @@ const TuiImageEditor = observer(({
                   name: 'SampleImage',
                 },
                 menu: ['crop', 'flip', 'rotate', 'shape', 'icon', 'text', 'mask', 'filter'],
-                initMenu: 'crop',
+                initMenu: 'filter',
                 uiSize: {
                   width: '700px',
                   height: '500px',
@@ -104,7 +112,7 @@ const TuiImageEditor = observer(({
             </Button>
           </Box>
         </Box>
-      ) }
+      )}
     </div>
   );
 });
