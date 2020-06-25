@@ -13,7 +13,7 @@ const Content = ({ items, hasMore, uploadNewItems, isLoading, element: Element }
       </Fragment>
     )}
     {isLoading && hasMore && <LibrarySpinner />}
-    {!isLoading && hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="preset-waypoint" /></Waypoint>}
+    {!isLoading && hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="list-waypoint" /></Waypoint>}
   </div>
 );
 
