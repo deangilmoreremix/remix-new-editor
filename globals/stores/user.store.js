@@ -64,6 +64,11 @@ export default class UserStore {
   }
 
   @computed
+  get presetsEnabled() {
+    return this.isfeatureEnabled(FEATURES.PRESETS);
+  }
+
+  @computed
   get templateGeneratorEnabled() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_GENERATOR);
   }

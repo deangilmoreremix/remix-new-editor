@@ -30,7 +30,7 @@ DefaultElement.propTypes = {
     type: PropTypes.string.isRequired,
     title: PropTypes.string,
     htmlText: PropTypes.string,
-    contentType: PropTypes.any,
+    contentType: PropTypes.string,
   }).isRequired,
 };
 

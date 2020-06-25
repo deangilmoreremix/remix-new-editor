@@ -54,11 +54,9 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
 
       player.on('finishRecord', () => {
         setSaveOptionsVisible(true);
-        player.record().stopStream();
       });
       player.on('error', (element, error) => {
         player.record().stopStream();
-        console.log({ element, error });
         showError(error.message);
       });
       player.on('deviceError', () => {

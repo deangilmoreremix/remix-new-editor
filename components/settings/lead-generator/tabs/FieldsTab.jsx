@@ -10,16 +10,18 @@ import burgerIcon from '../../../../public/static/svgImages/common/burger.svg';
 import { showInfo } from '../../../../lib/services/alertService';
 import useProjectStore from '../../../hooks/useProjectStore';
 
+import { FORM_FIELDS_ELEMENT_LG } from '../../../../lib/constants/text-info';
+
 
 const INPUT_NAME = 'inputValue';
 
 const FieldsTab = ({ values, fields, onChange }) => {
-  const inputs = values.elements || fields.elements.default;
+  const inputs = values.elements ?? fields.elements.default;
   const { generateUid } = useProjectStore();
 
   const addField = () => {
-    if (values.elements.length < 5) {
-      const newArr = values.elements.slice();
+    if (inputs.length < 5) {
+      const newArr = inputs.slice();
       const newElement = {
         type: 'singleline',
         label: 'Untitled',
@@ -30,12 +32,12 @@ const FieldsTab = ({ values, fields, onChange }) => {
       newArr.push(newElement);
       onChange({ elements: newArr });
     } else {
-      showInfo('LEAD GENERATOR CAN\'T HAVE MORE THAN 5 FIELDS.', 'WARNING');
+      showInfo(FORM_FIELDS_ELEMENT_LG.text, FORM_FIELDS_ELEMENT_LG.title);
     }
   };
 
   const handleChangeInput = (option, id) => {
-    const newArr = values.elements.map(element => {
+    const newArr = inputs.map(element => {
       if (element.id === id) {
         // eslint-disable-next-line no-prototype-builtins
         if (option && !option.hasOwnProperty(INPUT_NAME)) {
@@ -53,23 +55,25 @@ const FieldsTab = ({ values, fields, onChange }) => {
   };
 
   const onRemove = (id) => {
-    const newArrInputs = values.elements.filter(element => element.id !== id);
+    const newArrInputs = inputs.filter(element => element.id !== id);
     if (newArrInputs.length) {
       onChange({ elements: newArrInputs });
     }
   };
 
-  const isValuePresent = (itemValue) => typeof (itemValue) !== 'undefined';
-
   return (
     <div className="retarget-fields-tab">
-      <FieldBuilder
-        value={isValuePresent(values.caption) ? values.caption : fields.caption.default}
-        onChange={onChange}
-        {...fields.caption}
-      />
+      <div>
+        <label className="form-control-label">Caption</label>
+        <FieldBuilder
+          value={values.caption ?? fields.caption.default}
+          onChange={onChange}
+          {...fields.caption}
+        />
+      </div>
+
       {inputs && inputs.map(item => (
-        <div className="item-retarget-container" key={item.id}>
+        <div className="item-retarget-container lead-generator-container" key={item.id}>
           <SVGInline
             className="icon"
             classSuffix=""
@@ -81,6 +85,7 @@ const FieldsTab = ({ values, fields, onChange }) => {
             type={item.type}
             value={item.label}
             name={item.name}
+            className="item-form"
             inputClassName="item-retarget-container-input"
             onChange={(v) => handleChangeInput(v, item.id)}
           />
@@ -105,28 +110,29 @@ const FieldsTab = ({ values, fields, onChange }) => {
       <div className="addfield-container">
         <button className="addfield-container-button" onClick={() => addField()}>+ Add Field</button>
       </div>
+      <div>
+        <label className="form-control-label">Privacy Disclaimer</label>
+        <FieldBuilder
+          value={values.privacyDisclaimer ?? fields.privacyDisclaimer.default}
+          onChange={onChange}
+          {...fields.privacyDisclaimer}
+          className="input-field-conatainer"
+        />
+      </div>
       <FieldBuilder
-        value={isValuePresent(values.privacyDisclaimer)
-          ? values.privacyDisclaimer
-          : fields.privacyDisclaimer.default}
-        onChange={onChange}
-        {...fields.privacyDisclaimer}
-        className="input-field-conatainer"
-      />
-      <FieldBuilder
-        value={values.privacyPolicyCaption || fields.privacyPolicyCaption.default}
+        value={values.privacyPolicyCaption ?? fields.privacyPolicyCaption.default}
         onChange={onChange}
         {...fields.privacyPolicyCaption}
         className="input-field-conatainer"
       />
       <FieldBuilder
-        value={values.privacyPolicyLink || fields.privacyPolicyLink.default}
+        value={values.privacyPolicyLink ?? fields.privacyPolicyLink.default}
         onChange={onChange}
         {...fields.privacyPolicyLink}
         className="input-field-conatainer"
       />
       <FieldBuilder
-        value={isValuePresent(values.btnText) ? values.btnText : fields.btnText.default}
+        value={values.btnText ?? fields.btnText.default}
         onChange={onChange}
         {...fields.btnText}
         className="input-field-conatainer"
