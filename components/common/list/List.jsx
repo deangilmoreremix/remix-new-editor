@@ -16,7 +16,7 @@ const List = observer(({ get, className, element: Element, showCloseButton }) =>
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { toggleRightBlock } = useUIStore();
   const { addData } = useProjectStore();
@@ -91,7 +91,7 @@ const List = observer(({ get, className, element: Element, showCloseButton }) =>
 });
 
 List.propTypes = {
-  element: PropTypes.element.isRequired,
+  element: PropTypes.func.isRequired,
   className: PropTypes.string,
   showCloseButton: PropTypes.bool,
 };

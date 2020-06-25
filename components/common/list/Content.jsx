@@ -8,7 +8,7 @@ const Content = ({ items, hasMore, uploadNewItems, isLoading, element: Element }
     {items && items.length && (
       <Fragment>
         {items.map((item) => (
-          <Element item={item} />
+          <Element item={item} key={item._id} />
         ))}
       </Fragment>
     )}
@@ -24,6 +24,6 @@ Content.propTypes = {
   hasMore: PropTypes.bool.isRequired,
   uploadNewItems: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired,
-  element: PropTypes.element,
+  element: PropTypes.func.isRequired,
 };
 export default Content;
