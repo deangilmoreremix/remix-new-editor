@@ -19,6 +19,8 @@ import { CROP_RECOMMENDED_RESOLUTION, CROP_BRAND_LOGO_RESOLUTION } from '../../.
 const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
+  const [logoUrl, setLogoUrl] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
 
   const { openCropper } = useModalStore();
 
@@ -54,23 +56,33 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
       <div className="brand-logo-container">
         <div className="upload-container">
           <FieldBuilder
-            value={values.brandLogoSrc ?? fields.brandLogoSrc.default}
+            value={logoUrl ?? (values.brandLogoSrc || fields.brandLogoSrc.default)}
             {...fields.brandLogoSrc}
-            onChange={onChange}
+            onChange={({ brandLogoSrc }) => {
+              setLogoUrl(brandLogoSrc);
+              openCropper(brandLogoSrc,
+                onCrop, CROP_BRAND_LOGO_RESOLUTION, fields.brandLogoSrc.name);
+            }}
           />
           <DropzoneArea
-            onUploaded={(item, ext) => onUploadedImage(item, ext,
-              fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION)}
+            onUploaded={(item, ext) => {
+              setLogoUrl(item.url);
+              onUploadedImage(item, ext,
+                fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION);
+            }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
-            value={values?.brandLogoSrc}
+            value={logoUrl ?? values?.brandLogoSrc}
             startUpload={() => setIsDisabledUploadLogo(true)}
             endUpload={() => setIsDisabledUploadLogo(false)}
             multiple={false}
           />
           <DropButton
-            onUploaded={(item, ext) => onUploadedImage(item, ext,
-              fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION)}
+            onUploaded={(item, ext) => {
+              setLogoUrl(item.url);
+              onUploadedImage(item, ext,
+                fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION);
+            }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
             startUpload={() => setIsDisabledUploadLogo(true)}
@@ -81,21 +93,31 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
         </div>
         <div className="upload-container">
           <FieldBuilder
-            value={values.backgroundImage ?? fields.backgroundImage.default}
+            value={imageUrl ?? (values.backgroundImage || fields.backgroundImage.default)}
             {...fields.backgroundImage}
-            onChange={onChange}
+            onChange={({ backgroundImage }) => {
+              setImageUrl(backgroundImage);
+              openCropper(backgroundImage, onCrop,
+                CROP_RECOMMENDED_RESOLUTION, fields.backgroundImage.name);
+            }}
           />
           <DropzoneArea
-            onUploaded={(item, ext) => onUploadedImage(item, ext, fields.backgroundImage.name)}
+            onUploaded={(item, ext) => {
+              setImageUrl(item.url);
+              onUploadedImage(item, ext, fields.backgroundImage.name);
+            }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadImage}
-            value={values?.backgroundImage}
+            value={imageUrl ?? values?.backgroundImage}
             startUpload={() => setIsDisabledUploadImage(true)}
             endUpload={() => setIsDisabledUploadImage(false)}
             multiple={false}
           />
           <DropButton
-            onUploaded={(item, ext) => onUploadedImage(item, ext, fields.backgroundImage.name)}
+            onUploaded={(item, ext) => {
+              setImageUrl(item.url);
+              onUploadedImage(item, ext, fields.backgroundImage.name);
+            }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadImage}
             optionName={fields.backgroundImage.name}
