@@ -8,9 +8,17 @@ const Opacity = ({ layer }) => {
   const [count, setCount] = useState(layer.opacity ?? 100);
   const { setOpacity } = useProjectStore();
 
-  const saveChanges = event => {
+  const handlePressKey = event => {
     if (event.key === 'Enter') {
       setOpacity(layer.id, count);
+    }
+
+    if (event.key === 'ArrowUp' && count < 100) {
+      setCount(count + 1);
+    }
+
+    if (event.key === 'ArrowDown' && count > 0) {
+      setCount(count - 1);
     }
   };
 
@@ -31,7 +39,7 @@ const Opacity = ({ layer }) => {
         type="text"
         value={count}
         onChange={handleChange}
-        onKeyUp={saveChanges}
+        onKeyUp={handlePressKey}
         className="opacity-input"
       />
     </button>
