@@ -19,7 +19,7 @@ import {
   DEFAULT_LAYER,
   DEFAULT_ITEM,
   SOCIALS,
-  MAX_VIDEO_DURATION,
+  MAX_DURATION,
 } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
@@ -185,6 +185,23 @@ export default class ProjectStore extends BaseStore {
         options.mute = item.volume === 0;
         options.audioFadeIn = 0;
         options.audioFadeOut = 0;
+
+        const maxVideoDuration = MAX_DURATION / SANTISECOND;
+        if (options.duration * SANTISECOND > MAX_DURATION) {
+          options.start = 0;
+          options.end = maxVideoDuration;
+          options.in = 0;
+          options.out = maxVideoDuration;
+          options.duration = maxVideoDuration;
+        }
+        if (options.end * SANTISECOND > MAX_DURATION) {
+          options.start = (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
+          options.end = maxVideoDuration;
+        }
+        if (options.out * SANTISECOND > MAX_DURATION) {
+          options.in = (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
+          options.out = maxVideoDuration;
+        }
         break;
       }
       default:
@@ -1181,7 +1198,7 @@ export default class ProjectStore extends BaseStore {
   changeDuration = (newDuration) => {
     const { duration, elements, time } = this;
     let lastEnd = newDuration * SANTISECOND;
-    if (lastEnd === duration || lastEnd <= 0 || lastEnd >= MAX_VIDEO_DURATION) {
+    if (lastEnd === duration || lastEnd <= 0 || lastEnd > MAX_DURATION) {
       return;
     }
     this.modified = true;
@@ -1214,8 +1231,8 @@ export default class ProjectStore extends BaseStore {
     });
     this.setPopcorn();
 
-    if (time > lastEnd) {
-      this.updateTime(lastEnd);
+    if (time >= lastEnd) {
+      this.updateTime(0);
     }
   }
 }

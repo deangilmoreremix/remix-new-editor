@@ -12,7 +12,7 @@ const PlayTime = observer(() => {
   const [newDuration, setDuration] = useState(null);
   const projectStore = useProjectStore();
   const { time, duration: currentDuration, changeDuration } = projectStore;
-  const currentTime = useMemo(() => toTimecode(toSeconds(time) / SANTISECOND, 2), [time]);
+  const currentTime = useMemo(() => toTimecode(time / SANTISECOND, 2), [time]);
 
   const onDurationChange = (value, elem) => {
     const caretPoint = elem.selectionStart === 0 ? 1 : elem.selectionStart;
