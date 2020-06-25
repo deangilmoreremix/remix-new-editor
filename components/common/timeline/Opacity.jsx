@@ -10,16 +10,14 @@ const Opacity = ({ layer }) => {
   const { setOpacity } = useProjectStore();
 
   const onChange = event => {
-    let { value } = event.target;
-    if (parseFloat(value) > 100) {
-      setCount(100);
-      return setOpacity(layer.id, 100);
-    }
+    let value = event.target.value.replace(/\D/, '');
 
-    value = value
-      .replace(/^.*?((\d+\.?|\.)\d{0,2}).*|.+/, '$1')
-      .replace(/^0*(?!\.|$)/, '')
-      .replace(/^\.$|^(\.)/, '0$1');
+    if (value.length >= 2 && Number(value[0]) === 0) {
+      value = Number(value.slice(1));
+    }
+    if (value > 100) {
+      value = 100;
+    }
 
     setCount(value);
     setOpacity(layer.id, parseFloat(value));
