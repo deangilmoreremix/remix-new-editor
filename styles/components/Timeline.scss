@@ -69,7 +69,9 @@
       }
 
       &.popcorn-pause-end,
-      &.popcorn-pause {
+      &.popcorn-pause,
+      &.popcorn-loop,
+      &.popcorn-loop-end {
         width: 1rem;
         height: auto;
         margin: auto 0.2rem;
@@ -86,7 +88,7 @@
   }
 }
 
-.popcorn-pause-element {
+.popcorn-pause-element, .popcorn-loop-element {
   justify-content: space-between;
 }
 

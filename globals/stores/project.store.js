@@ -346,9 +346,10 @@ export default class ProjectStore extends BaseStore {
 
   @action
   updateElement = (elementId, options) => {
+    console.log(elementId, options);
     // we need to update the elements, if the user updates the start,
     // end or animation, this is necessary to rerender the elements
-    const { start, end, animation, title, duration, htmlText } = options;
+    const { start, end, animation, title, duration, htmlText, loop } = options;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         const newOptions = {};
@@ -360,6 +361,9 @@ export default class ProjectStore extends BaseStore {
         }
         if (duration !== undefined && duration !== element.popcornOptions.duration) {
           newOptions.duration = duration;
+        }
+        if (loop !== undefined && loop !== element.popcornOptions.loop) {
+          newOptions.loop = loop;
         }
         if (animation) {
           newOptions.animation = animation;
