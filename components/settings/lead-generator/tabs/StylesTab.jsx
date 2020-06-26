@@ -25,7 +25,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
   const { openCropper } = useModalStore();
 
   const onCrop = (image, option) => {
-    onChange({ [option]: image.url });
+    onChange({ [option]: image ?? image.url });
   };
 
   const onUploadedImage = (image, extension, option, resolution) => {
