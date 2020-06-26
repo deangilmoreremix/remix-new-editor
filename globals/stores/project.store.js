@@ -260,6 +260,12 @@ export default class ProjectStore extends BaseStore {
     // get first track
     let track = item.track || this.layers[0];
 
+    const layerElements = this.elements.filter(element => element.track === track.id);
+    if (isLayerFulfilled(options, layerElements)) {
+      this.addLayer();
+      [track] = this.layers;
+    }
+
     if (track.blendMode) {
       options.blendMode = track.blendMode;
     } else {
@@ -268,12 +274,6 @@ export default class ProjectStore extends BaseStore {
 
     if (track.opacity) {
       options.opacity = track.opacity;
-    }
-
-    const layerElements = this.elements.filter(element => element.track === track.id);
-    if (isLayerFulfilled(options, layerElements)) {
-      this.addLayer();
-      [track] = this.layers;
     }
 
     const element = {
