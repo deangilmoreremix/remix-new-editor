@@ -8,7 +8,7 @@ import { tabItems } from '../../../lib/constants/library';
 
 import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';
-import useModalStore from '../../hooks/useModalStore';
+// import useModalStore from '../../hooks/useModalStore';
 
 import FieldBuilder from '../../form/FieldBuilder';
 import DropzoneArea from '../../media/DropzoneArea';
@@ -23,7 +23,7 @@ const SettingPanel = observer(() => {
   const { linkedinEnabled } = useUserStore();
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
-  const { openCropper } = useModalStore();
+  // const { openCropper } = useModalStore();
 
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -45,15 +45,15 @@ const SettingPanel = observer(() => {
     Object.keys(tabItems).forEach(tab => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
-          openCropper(image.url, onImageCropped);
+          updateItem({ thumbnail: image.url });
         }
       });
     });
   };
 
-  const onImageCropped = (thumbnail) => {
-    updateItem({ thumbnail });
-  };
+  // const onImageCropped = (thumbnail) => {
+  //   updateItem({ thumbnail });
+  // };
 
   return (
     <div className="produce-block settings-panel">
