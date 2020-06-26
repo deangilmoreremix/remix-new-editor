@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { observer } from 'mobx-react';
 
-import Button from '@material-ui/core/Button';
+// import Button from '@material-ui/core/Button';
 import PropTypes from '../../../lib/PropTypes';
 import { ASSET_TYPES } from '../../../lib/constants/media';
 import { tabItems } from '../../../lib/constants/library';
@@ -133,15 +133,15 @@ const SettingPanel = observer(() => {
             </div>
           </div>
           <div className="settings__row-block">
-            <Button
-              onClick={() => openCropper(item.thumbnail, onImageCropped)}
-              disableRipple
-              disableFocusRipple
-              disableTouchRipple
-              className="settings__edit-file"
-            >
-Use Thumbnails Editor
-            </Button>
+            {/* <Button */}
+            {/* onClick={() => openCropper(item.thumbnail, onImageCropped)} */}
+            {/* disableRipple */}
+            {/* disableFocusRipple */}
+            {/* disableTouchRipple */}
+            {/* className="settings__edit-file" */}
+            {/* > */}
+            {/* Use Thumbnails Editor */}
+            {/* </Button> */}
           </div>
         </div>
         <div className="settings__row">

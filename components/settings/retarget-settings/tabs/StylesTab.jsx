@@ -10,24 +10,30 @@ import { ASSET_TYPES } from '../../../../lib/constants/media';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
 import { tabItems } from '../../../../lib/constants/library';
-import useModalStore from '../../../hooks/useModalStore';
-import { CROP_RECOMMENDED_RESOLUTION, CROP_BRAND_LOGO_RESOLUTION } from '../../../../lib/constants/settings/image';
+// import useModalStore from '../../../hooks/useModalStore';
+// import {
+// CROP_RECOMMENDED_RESOLUTION,
+// CROP_BRAND_LOGO_RESOLUTIONб
+// } from '../../../../lib/constants/settings/image';
+import { CROP_BRAND_LOGO_RESOLUTION } from '../../../../lib/constants/settings/image';
 
 const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
 
-  const { openCropper } = useModalStore();
+  // const { openCropper } = useModalStore();
 
-  const onCrop = (image, option) => {
-    onChange({ [option]: image.url });
-  };
+  // const onCrop = (image, option) => {
+  //   onChange({ [option]: image.url });
+  // };
 
-  const onUploadedImage = (image, extension, option, resolution) => {
+  // const onUploadedImage = (image, extension, option, resolution) => {
+  const onUploadedImage = (image, extension, option) => {
     Object.keys(tabItems).forEach(tab => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
-          openCropper(image.url, onCrop, resolution || CROP_RECOMMENDED_RESOLUTION, option);
+          // openCropper(image.url, onCrop, resolution || CROP_RECOMMENDED_RESOLUTION, option);
+          onChange({ [option]: image.url });
         }
       });
     });
