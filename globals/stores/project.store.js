@@ -914,6 +914,7 @@ export default class ProjectStore extends BaseStore {
 
     const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
 
+    // crop video
     if (byEnd && byEnd.length && byEnd.length > 1) {
       const lastEvent = byEnd[byEnd.length - 2];
       let eventEnd = 0;
@@ -940,6 +941,7 @@ export default class ProjectStore extends BaseStore {
       if (lastEvent.end !== this.popcorn.duration()) {
         this.projectData.media[0].url = `#t=,${eventEnd}`;
         this.duration = eventEnd * SANTISECOND;
+        this.setPopcorn();
       }
     }
 
