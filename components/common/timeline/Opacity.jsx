@@ -49,7 +49,10 @@ const Opacity = ({ layer }) => {
 Opacity.propTypes = {
   layer: PropTypes.shape({
     id: PropTypes.string.isRequired,
-    opacity: PropTypes.string,
+    opacity: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]),
   }).isRequired,
 };
 
