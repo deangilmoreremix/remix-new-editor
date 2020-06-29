@@ -4,6 +4,7 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../../lib/PropTypes';
 import { LIBRARY_TABS } from '../../../../lib/constants/library';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
+import { IMAGE_TYPE } from '../../../../lib/constants/imageEditor/tuiEditor';
 
 import useUIStore from '../../../hooks/useUIStore';
 import useProjectStore from '../../../hooks/useProjectStore';
@@ -25,6 +26,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
   const { findAndUpdate, element } = useProjectStore();
   const { currentUser: user, isfeatureEnabled: checkStateFeature } = useUserStore();
   const { openImageEditor, closeModal } = useModalStore();
+  const modalType = IMAGE_TYPE.IMAGE;
 
   const backToLibrary = () => {
     handleClose();
@@ -163,7 +165,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
             <button
               className="image-settings__btn"
               onClick={() => {
-                openImageEditor(element.popcornOptions.src, onImageEdited);
+                openImageEditor(element.popcornOptions.src, onImageEdited, modalType);
               }}
               isDisabled={isLoading}
             >

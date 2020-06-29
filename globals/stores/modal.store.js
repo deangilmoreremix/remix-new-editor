@@ -4,7 +4,9 @@ import { IMAGE_CROPPER_MODAL, MODAL_CONFIG, TUI_IMAGE_EDITOR_MODAL } from '../..
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { showError } from '../../lib/services/alertService';
 import { checkImageResolution } from '../../lib/utils/cropHelper';
-import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
+import { CROP_RECOMMENDED_RESOLUTION, TUI_EDITOR_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
+import { IMAGE_TYPE } from '../../lib/constants/imageEditor/tuiEditor';
+
 
 export default () => {
   const modalIds = observable.set([]);
@@ -71,7 +73,7 @@ export default () => {
     });
   };
 
-  const openImageEditor = async (src, onImageCropped, updateField) => {
+  const openImageEditor = async (src, onImageCropped, modalType, resolution, updateField) => {
     if (!src) {
       return;
     }
@@ -82,10 +84,14 @@ export default () => {
     if (!metadata.contentType.includes('image')) {
       return showError('Image not found');
     }
+    const recommendedResolution = modalType === IMAGE_TYPE.THUMBNAIL
+      ? (resolution || TUI_EDITOR_RECOMMENDED_RESOLUTION)
+      : null;
+
     openModal(TUI_IMAGE_EDITOR_MODAL,
       {
         imageMeta: metadata,
-        recommendedResolution: CROP_RECOMMENDED_RESOLUTION,
+        recommendedResolution,
         src,
         updateField,
         onImageCropped,

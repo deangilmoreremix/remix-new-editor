@@ -6,7 +6,6 @@ import useProjectStore from '../../../hooks/useProjectStore';
 
 const DefaultElement = React.forwardRef(({ item, ...rest }, ref) => {
   const { isAudio } = useProjectStore();
-  // eslint-disable-next-line react/prop-types
   const { contentType, type } = item;
 
   return (

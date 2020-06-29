@@ -1,10 +1,10 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
-import ImageEditor from '@toast-ui/react-image-editor';
 
+import ImageEditor from '@toast-ui/react-image-editor';
 import { Box, Button } from '@material-ui/core';
 import PropTypes from '../../lib/PropTypes';
-import { showError } from '../../lib/services/alertService';
+import { showError, showInfo } from '../../lib/services/alertService';
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import Loader from './Loader';
 import useMediaStore from '../hooks/useMediaStore';
@@ -12,13 +12,15 @@ import {
   IMAGE_CANT_BE_UPLOADED_ERROR,
   IMAGE_NOT_FOUND_ERROR,
   IMAGE_NOT_SUPPORTED_ERROR,
+  IMAGE_TO_PNG_FORMAT,
 } from '../../lib/constants/settings/image';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import { DEFAULT_IMAGE_NAME, BAR_POSITION, MENU, SIZE } from '../../lib/constants/imageEditor/tuiEditor';
+import { IMAGE_FORMATS } from '../../lib/constants/media';
 
 
 import '../../styles/components/modals/TuiImageEditorModal.scss';
-import { createBlob, getFormatFromContentType } from '../../lib/utils/imageEditorHelper';
+import { getFormatFromContentType } from '../../lib/utils/imageEditorHelper';
 
 const TuiImageEditor = observer(({
   imageData,
@@ -26,31 +28,32 @@ const TuiImageEditor = observer(({
   handleClose,
 }) => {
   const { CROP, FLIP, ROTATE, SHAPE, ICON, MASK, DRAW, FILTER } = MENU;
+  const { SVG, SVG_XML, GIF } = IMAGE_FORMATS;
   const refEditor = useRef();
   const [isLoading, setLoading] = useState(false);
   const { uploadMedia } = useMediaStore();
 
   const { source, contentType } = useMemo(() => imageData, [imageData]);
 
-  const onLoadSuccess = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      const format = getFormatFromContentType(contentType);
-      console.log(format);
-
-      if (format === ('jpeg' || 'gif' || 'svg')) {
-        // eslint-disable-next-line no-underscore-dangle
-        await uploadFile(createBlob((refEditor).current.imageEditorInst._graphics
-          .toDataURL({ format })));
-      } else if (format === 'png') {
-        // eslint-disable-next-line no-underscore-dangle
-        await uploadFile((refEditor).current.imageEditorInst._graphics.toDataURL({ format }));
+  const onLoadImage = useCallback(async () => {
+    const format = getFormatFromContentType(contentType);
+    if (Object.values(IMAGE_FORMATS).includes(format)) {
+      if (format === GIF) {
+        return showError(`${IMAGE_NOT_SUPPORTED_ERROR}Current format: "${format}" .`);
       }
-    } catch (err) {
-      return showError(err.message || IMAGE_CANT_BE_UPLOADED_ERROR);
-    } finally {
-      setLoading(false);
+      if ([SVG_XML, SVG].includes(format)) {
+        showInfo(`${IMAGE_TO_PNG_FORMAT}Current format: "${format}" .`);
+      }
+      try {
+        setLoading(true);
+        // eslint-disable-next-line no-underscore-dangle
+        return uploadFile((refEditor).current.imageEditorInst._graphics
+          .toDataURL({ format }));
+      } catch (err) {
+        return showError(err.message || IMAGE_CANT_BE_UPLOADED_ERROR);
+      } finally {
+        setLoading(false);
+      }
     }
   });
 
@@ -110,7 +113,7 @@ const TuiImageEditor = observer(({
               variant="outlined"
               color="default"
               className="done-button"
-              onClick={onLoadSuccess}
+              onClick={onLoadImage}
             >
               Ok
             </Button>
@@ -127,7 +130,7 @@ TuiImageEditor.propTypes = {
     source: PropTypes.string,
     width: PropTypes.number,
     height: PropTypes.number,
-  }),
+  }).isRequired,
   resolution: PropTypes.shape({
     width: PropTypes.number,
     height: PropTypes.number,

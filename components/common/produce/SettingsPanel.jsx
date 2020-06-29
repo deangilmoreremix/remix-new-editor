@@ -5,6 +5,7 @@ import Button from '@material-ui/core/Button';
 import PropTypes from '../../../lib/PropTypes';
 import { ASSET_TYPES } from '../../../lib/constants/media';
 import { tabItems } from '../../../lib/constants/library';
+import { IMAGE_TYPE } from '../../../lib/constants/imageEditor/tuiEditor';
 
 import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';
@@ -24,6 +25,7 @@ const SettingPanel = observer(() => {
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
   const { openImageEditor, finishImageEditing } = useModalStore();
+  const modalType = IMAGE_TYPE.THUMBNAIL;
 
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -45,7 +47,7 @@ const SettingPanel = observer(() => {
     Object.keys(tabItems).forEach(tab => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
-          openImageEditor(image.url, onImageEdited);
+          openImageEditor(image.url, onImageEdited, modalType);
         }
       });
     });
@@ -139,7 +141,7 @@ const SettingPanel = observer(() => {
           <div className="settings__row-block">
             <Button
               onClick={() => {
-                openImageEditor(item.thumbnail, onImageEdited);
+                openImageEditor(item.thumbnail, onImageEdited, modalType);
               }}
               disableRipple
               disableFocusRipple
