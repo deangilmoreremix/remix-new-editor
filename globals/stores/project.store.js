@@ -1033,13 +1033,53 @@ export default class ProjectStore extends BaseStore {
     if (!newData) {
       return;
     }
+
+    let ltOldStart = null;
+
     newData = JSON.parse(newData);
     newData.media.map((media) => media.tracks
       .map((track) => track.trackEvents.map((trackEvent) => {
+        if (trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION) {
+          let newStart = null;
+          let newEnd = null;
+          if ((this.time / SANTISECOND) === 0) {
+            newStart = null;
+          } else {
+            newStart = this.time / SANTISECOND;
+          }
+          ltOldStart = trackEvent.popcornOptions.start;
+          newEnd = (trackEvent.popcornOptions.end - trackEvent.popcornOptions.start) + newStart;
+          const item = {
+            ...trackEvent.popcornOptions,
+            track: null,
+            zindex: null,
+            start: newStart,
+            end: newEnd,
+          };
+          return this.addElement(item);
+        }
+
+        if (trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT && ltOldStart !== undefined) {
+          const textDuration = trackEvent.popcornOptions.end - trackEvent.popcornOptions.start;
+          const newStart = (this.time / SANTISECOND)
+            + (trackEvent.popcornOptions.start - ltOldStart);
+          const newEnd = newStart + textDuration;
+          const item = {
+            ...trackEvent.popcornOptions,
+            track: null,
+            zindex: null,
+            start: newStart,
+            end: newEnd,
+          };
+          return this.addElement(item);
+        }
+
         const item = {
           ...trackEvent.popcornOptions,
           track: null,
           zindex: null,
+          start: null,
+          end: null,
         };
         return this.addElement(item);
       })));
