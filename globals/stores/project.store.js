@@ -256,16 +256,16 @@ export default class ProjectStore extends BaseStore {
     // get first track
     let track = item.track || this.layers[0];
 
-    if (track.blendMode) {
-      options.blendMode = track.blendMode;
-    } else {
-      options.blendMode = blendModeConstants.normal.value;
-    }
-
     const layerElements = this.elements.filter(element => element.track === track.id);
     if (isLayerFulfilled(options, layerElements)) {
       this.addLayer();
       [track] = this.layers;
+    }
+
+    if (track.blendMode) {
+      options.blendMode = track.blendMode;
+    } else {
+      options.blendMode = blendModeConstants.normal.value;
     }
 
     const element = {
@@ -1030,8 +1030,6 @@ export default class ProjectStore extends BaseStore {
         const item = {
           ...trackEvent.popcornOptions,
           track: null,
-          start: null,
-          end: null,
           zindex: null,
         };
         return this.addElement(item);
