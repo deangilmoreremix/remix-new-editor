@@ -6,7 +6,7 @@ import useUIStore from '../hooks/useUIStore';
 import useMakeStore from '../hooks/useMakeStore';
 
 import List from '../common/list/List';
-import ImageElement from '../common/list/ImageElement';
+import ImageElement from '../common/libraryElements/ImageElement';
 
 const BlendModeLibrary = observer(() => {
   const { isTimelineOpen } = useUIStore();

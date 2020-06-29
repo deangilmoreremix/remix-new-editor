@@ -1035,7 +1035,9 @@ export default class ProjectStore extends BaseStore {
 
     newData.media.map((media) => media.tracks
       .map((track) => {
-        this.addLayer(track.blendMode);
+        if (track.blendMode) {
+          this.addLayer(track.blendMode);
+        }
         return track.trackEvents.map((trackEvent) => {
           const item = {
             ...trackEvent.popcornOptions,
