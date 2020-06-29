@@ -14,6 +14,9 @@ import {
   IMAGE_NOT_SUPPORTED_ERROR,
 } from '../../lib/constants/settings/image';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
+import { DEFAULT_IMAGE_NAME, BAR_POSITION, MENU, SIZE } from '../../lib/constants/imageEditor/tuiEditor';
+
+
 import '../../styles/components/modals/TuiImageEditorModal.scss';
 import { createBlob, getFormatFromContentType } from '../../lib/utils/imageEditorHelper';
 
@@ -22,6 +25,7 @@ const TuiImageEditor = observer(({
   onImageCropped,
   handleClose,
 }) => {
+  const { CROP, FLIP, ROTATE, SHAPE, ICON, MASK, DRAW, FILTER } = MENU;
   const refEditor = useRef();
   const [isLoading, setLoading] = useState(false);
   const { uploadMedia } = useMediaStore();
@@ -33,8 +37,9 @@ const TuiImageEditor = observer(({
       setLoading(true);
 
       const format = getFormatFromContentType(contentType);
+      console.log(format);
 
-      if (format === 'jpeg') {
+      if (format === ('jpeg' || 'gif' || 'svg')) {
         // eslint-disable-next-line no-underscore-dangle
         await uploadFile(createBlob((refEditor).current.imageEditorInst._graphics
           .toDataURL({ format })));
@@ -77,15 +82,12 @@ const TuiImageEditor = observer(({
               includeUI={{
                 loadImage: {
                   path: source,
-                  name: 'SampleImage',
+                  name: DEFAULT_IMAGE_NAME,
                 },
-                menu: ['crop', 'flip', 'rotate', 'shape', 'icon', 'text', 'mask', 'filter'],
-                initMenu: 'filter',
-                uiSize: {
-                  width: '700px',
-                  height: '500px',
-                },
-                menuBarPosition: 'bottom',
+                menu: [CROP, FLIP, ROTATE, SHAPE, ICON, MASK, DRAW, FILTER],
+                initMenu: MENU.FILTER,
+                uiSize: SIZE,
+                menuBarPosition: BAR_POSITION.BOTTOM,
               }}
               cssMaxHeight={500}
               cssMaxWidth={700}
