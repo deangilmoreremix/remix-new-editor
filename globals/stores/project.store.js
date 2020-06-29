@@ -1039,6 +1039,14 @@ export default class ProjectStore extends BaseStore {
     newData = JSON.parse(newData);
     newData.media.map((media) => media.tracks
       .map((track) => track.trackEvents.map((trackEvent) => {
+        const item = {
+          ...trackEvent.popcornOptions,
+          track: null,
+          zindex: null,
+          start: null,
+          end: null,
+        };
+
         if (trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION) {
           let newStart = null;
           let newEnd = null;
@@ -1049,13 +1057,8 @@ export default class ProjectStore extends BaseStore {
           }
           ltOldStart = trackEvent.popcornOptions.start;
           newEnd = (trackEvent.popcornOptions.end - trackEvent.popcornOptions.start) + newStart;
-          const item = {
-            ...trackEvent.popcornOptions,
-            track: null,
-            zindex: null,
-            start: newStart,
-            end: newEnd,
-          };
+          item.start = newStart;
+          item.end = newEnd;
           return this.addElement(item);
         }
 
@@ -1064,23 +1067,10 @@ export default class ProjectStore extends BaseStore {
           const newStart = (this.time / SANTISECOND)
             + (trackEvent.popcornOptions.start - ltOldStart);
           const newEnd = newStart + textDuration;
-          const item = {
-            ...trackEvent.popcornOptions,
-            track: null,
-            zindex: null,
-            start: newStart,
-            end: newEnd,
-          };
-          return this.addElement(item);
+          item.start = newStart;
+          item.end = newEnd;
         }
 
-        const item = {
-          ...trackEvent.popcornOptions,
-          track: null,
-          zindex: null,
-          start: null,
-          end: null,
-        };
         return this.addElement(item);
       })));
   };
