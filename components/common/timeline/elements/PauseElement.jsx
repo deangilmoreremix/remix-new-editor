@@ -7,6 +7,7 @@ import PropTypes from '../../../../lib/PropTypes';
 
 import svgPauseIcon from '../../../../public/static/svgImages/popcorn/pause.svg';
 import svgInfiniteIcon from '../../../../public/static/svgImages/popcorn/infinite.svg';
+import { POPCORN_ELEMENT_LABELS } from '../../../../lib/constants/popcorn';
 
 const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => (
   <Grid
@@ -25,6 +26,9 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => (
         svg={svgPauseIcon}
         cleanup={['title']}
       />
+    </div>
+    <div>
+      {POPCORN_ELEMENT_LABELS[item.type]}
     </div>
     {
       item.duration === 0

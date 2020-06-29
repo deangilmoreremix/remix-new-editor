@@ -13,6 +13,9 @@ import {
 import { LOADING_COLOR } from '../../lib/constants/ui';
 import mediaConstants from '../../lib/constants/media';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
+import { URL_RULE } from '../../lib/constants/regExps';
+import { TYPES } from '../../lib/constants/validator';
+import { ALL_VIDEO } from '../../lib/constants/formats';
 import config from '../../config/config';
 import { showError } from '../../lib/services/alertService';
 
@@ -27,8 +30,12 @@ import useUserStore from '../hooks/useUserStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
 import AudioControls from '../common/library/AudioControls';
+import DropPasteInput from './DropPasteInput';
 
-const Library = observer(() => {
+import withModal from '../hoc/withValidation';
+
+const Library = observer((props) => {
+  const { checkValue, setError } = props;
   const uiStore = useUIStore();
   const projectStore = useProjectStore();
   const userStore = useUserStore();
@@ -294,6 +301,16 @@ const Library = observer(() => {
     }
   };
 
+  const onEnter = (url) => {
+    if (url && !URL_RULE.test(url)) {
+      url = `${window.location.protocol}//${url}`;
+    }
+    const err = checkValue(url, { type: TYPES.URL, isRequired: true });
+    if (!err) {
+      return onSelect({ url });
+    }
+  };
+
   const { getInputProps } = useDropzone({
     accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
     onDrop,
@@ -329,7 +346,7 @@ const Library = observer(() => {
       try {
         await projectStore.addElement(item);
       } catch (e) {
-        showError(e.message);
+        setError(e.message);
       } finally {
         setIsLoading(false);
         setIsInitialLoading(false);
@@ -398,7 +415,7 @@ const Library = observer(() => {
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
-          <div>
+          <div className="library__add-file__container">
             <div className="library__add-file">
               <input id="add-file" {...getInputProps()} disabled={isDisabledUpload} />
               <label htmlFor="add-file" className="library__add">
@@ -408,8 +425,20 @@ const Library = observer(() => {
               </label>
             </div>
           </div>
-          <div className="library__block">
-            {
+          <div>
+            <div className="library__block">
+              {
+                activeTab === LIBRARY_TABS.VIDEO && (
+                <DropPasteInput
+                  onDrop={onDrop}
+                  accept={[{ ALL_VIDEO }]}
+                  onEnter={onEnter}
+                />
+                )
+            }
+            </div>
+            <div className="library__block">
+              {
               activeBtn !== LIBRARY_KEYS.DROPMOCK && (
                 <Fragment>
                   <input
@@ -432,6 +461,7 @@ const Library = observer(() => {
                 </Fragment>
               )
             }
+            </div>
           </div>
         </div>
 
@@ -474,4 +504,4 @@ const Library = observer(() => {
 });
 
 
-export default Library;
+export default withModal(Library);

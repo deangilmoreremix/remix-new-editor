@@ -23,6 +23,8 @@ import {
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
+import { showInfo } from '../../lib/services/alertService';
+import { FORM_ONE_LG } from '../../lib/constants/text-info';
 
 export default class ProjectStore extends BaseStore {
   constructor(props, runReaction = true) {
@@ -249,6 +251,11 @@ export default class ProjectStore extends BaseStore {
     const { type } = item;
     if (this.isPlayed) {
       this.playPause();
+    }
+    if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR
+      && this.elements.some(el => el.type === type)) {
+      this.releaseElement();
+      return showInfo(FORM_ONE_LG.text, FORM_ONE_LG.title);
     }
 
     const options = await this.setElementOptions(item);
@@ -907,6 +914,7 @@ export default class ProjectStore extends BaseStore {
 
     const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
 
+    // crop video
     if (byEnd && byEnd.length && byEnd.length > 1) {
       const lastEvent = byEnd[byEnd.length - 2];
       let eventEnd = 0;
@@ -933,6 +941,7 @@ export default class ProjectStore extends BaseStore {
       if (lastEvent.end !== this.popcorn.duration()) {
         this.projectData.media[0].url = `#t=,${eventEnd}`;
         this.duration = eventEnd * SANTISECOND;
+        this.setPopcorn();
       }
     }
 
