@@ -1,4 +1,5 @@
 import BaseStore from './base.store';
+import { makeTypes } from '../../lib/constants/makes';
 import { TEMPLATES_SEGMENTS } from '../../lib/constants/templateSegments';
 
 export default class PresetStore extends BaseStore {
@@ -22,5 +23,9 @@ export default class PresetStore extends BaseStore {
 
   getTemplatesBlendMode = ({ page = 1, query = '', perPage = 12 }) => (
     this.getList({ page, query, perPage, params: { segment: TEMPLATES_SEGMENTS.BLEND_MODE }, path: '/api/makes/revolution' })
+  );
+
+  getPresets = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.PRESETS }, path: '/api/makes/revolution' })
   );
 }
