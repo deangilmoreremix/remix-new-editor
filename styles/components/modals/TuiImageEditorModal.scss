@@ -4,10 +4,6 @@
  * @author NHN FE Development Lab <dl_javascript@nhn.com>
  * @license MIT
  */
-//body > textarea {
-//  position: fixed !important;
-//
-//}
 
 .tui-image-editor-container {
   margin: 0;
@@ -442,7 +438,7 @@
 }
 
 .tui-image-editor-container .tui-image-editor-checkbox-wrap {
-  display: inline-block !important;
+  display: inline-block;
   text-align: left;
 
 }
