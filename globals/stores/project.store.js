@@ -1035,7 +1035,6 @@ export default class ProjectStore extends BaseStore {
     }
 
     let ltOldStart = null;
-
     newData = JSON.parse(newData);
     newData.media.map((media) => media.tracks
       .map((track) => track.trackEvents.map((trackEvent) => {
