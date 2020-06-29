@@ -18,7 +18,7 @@ const Presets = ({ handleClose }) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [preview, setPreview] = useState('');
-  const [isLoading, setIsLoading] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { getPresets } = useMakeStore();
   const { setPreviewData, updateTime } = usePresetStore();
