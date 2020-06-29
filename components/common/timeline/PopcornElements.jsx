@@ -25,8 +25,7 @@ const PopcornElements = observer(({ width }) => {
 
   const {
     duration: cols,
-    setLayer,
-    updateStartEnd,
+    updateElementFromTimeline,
     elements,
     layers,
     addElement,
@@ -92,7 +91,7 @@ const PopcornElements = observer(({ width }) => {
 
       if (elementsForUpdate && elementsForUpdate.length) {
         elementsForUpdate.forEach(item => {
-          updateStartEnd(
+          updateElementFromTimeline(
             item.id,
             item.popcornOptions.start + TRANSITION_DEFAULT_DURATION,
             item.popcornOptions.end + TRANSITION_DEFAULT_DURATION);
@@ -100,7 +99,7 @@ const PopcornElements = observer(({ width }) => {
       }
     }
 
-    await updateStartEnd(element.id, element.start, element.end);
+    await updateElementFromTimeline(element.id, element.start, element.end);
     await addElement({
       ...DEFAULT_SETTINGS[POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION],
       ...transition,
@@ -189,21 +188,30 @@ const PopcornElements = observer(({ width }) => {
 
   const onDragStop = (element, oldElement, newElement) => {
     selectItem({ type: 'click' }, newElement.i);
-
-    if (oldElement.y !== newElement.y) {
-      setLayer(oldElement.i, newElement.y);
+    const needUpdateLayer = oldElement.y !== newElement.y;
+    const needUpdateStartEnd = oldElement.x !== newElement.x;
+    let start;
+    let end;
+    if (needUpdateStartEnd) {
+      start = newElement.x / SANTISECOND;
+      end = start + (newElement.w - newElement.minW) / SANTISECOND + MIN_DURATION;
     }
-    if (oldElement.x !== newElement.x) {
-      const start = newElement.x / SANTISECOND;
-      const end = start + (newElement.w - newElement.minW) / SANTISECOND + MIN_DURATION;
-      updateStartEnd(oldElement.i, start, end);
+    if (needUpdateStartEnd || needUpdateLayer) {
+      updateElementFromTimeline({
+        end,
+        start,
+        needUpdateLayer,
+        needUpdateStartEnd,
+        elementId: oldElement.i,
+        layerLevel: newElement.y,
+      });
     }
   };
   const onResizeStop = (element, oldElement, newElement) => {
     if (oldElement.x !== newElement.x || oldElement.w !== newElement.w) {
       const start = newElement.x / SANTISECOND;
       const end = start + (newElement.w - newElement.minW) / SANTISECOND + MIN_DURATION;
-      updateStartEnd(oldElement.i, start, end);
+      updateElementFromTimeline({ needUpdateStartEnd: true, elementId: oldElement.i, start, end });
     }
   };
 
