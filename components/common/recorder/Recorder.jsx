@@ -36,28 +36,30 @@ export default observer(() => {
       <div className="recorder__header">
         <span>Recorder</span>
       </div>
-      <div className="recorder-panel">
-        {recorderItems.map(({ label, action, id, icon }) => (
-          <button
-            className="recorder-panel__button"
-            type="button"
-            key={id}
-            onClick={action}
-          >
-            <SVGInline
-              className="recorder-panel__icon"
-              svg={icon}
-              cleanup={['title']}
+      <div className="recorder__body">
+        <div className="recorder-panel">
+          {recorderItems.map(({ label, action, id, icon }) => (
+            <button
+              className="recorder-panel__button"
+              type="button"
+              key={id}
+              onClick={action}
+            >
+              <SVGInline
+                className="recorder-panel__icon"
+                svg={icon}
+                cleanup={['title']}
+              />
+              {label}
+            </button>
+          ))}
+          <div className="mute-btn">
+            <Toggler
+              onChange={() => setUseAudio(!useAudio)}
+              checked={useAudio}
+              label="Microphone"
             />
-            {label}
-          </button>
-        ))}
-        <div className="mute-btn">
-          <Toggler
-            onChange={() => setUseAudio(!useAudio)}
-            checked={useAudio}
-            label="Microphone"
-          />
+          </div>
         </div>
       </div>
 

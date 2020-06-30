@@ -46,6 +46,7 @@ const Home = observer(() => {
     recorderEnabled,
     stickersEnabled,
     lowerThirdsEnabled,
+    presetsEnabled,
     templateGeneratorEnabled,
     linkedinEnabled,
     ctaEnabled,
@@ -98,6 +99,7 @@ const Home = observer(() => {
     toolsWidth,
     setListBuilder,
     openCTA,
+    toggleRightBlock,
   } = uiStore;
 
   const {
@@ -163,6 +165,7 @@ const Home = observer(() => {
         setSecondaryWindowType,
         openMediaButton,
         openCTA,
+        toggleRightBlock,
       },
       project: {
         allowedSocials,
@@ -176,6 +179,7 @@ const Home = observer(() => {
         recorderEnabled,
         stickersEnabled,
         lowerThirdsEnabled,
+        presetsEnabled,
         linkedinEnabled,
         ctaEnabled,
       },
