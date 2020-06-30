@@ -985,6 +985,28 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  downloadOptinStatistic = async (projectId) => {
+    const path = `/api/projects/${projectId}/events?
+    orderBy=${JSON.stringify('createdAt: -1')}&filter=${JSON.stringify('opt-ins')}`;
+    let optinDatas;
+    try {
+      const result = await this.request(
+        path, {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        },
+      );
+      optinDatas = result.slice();
+    } catch (e) {
+      optinDatas = [];
+      console.error(e);
+    }
+    return optinDatas;
+  };
+
+  @action
   invalidateFbCache = (url) => this.request(
     '/api/makes/update-fb-cache', {
       method: 'POST',

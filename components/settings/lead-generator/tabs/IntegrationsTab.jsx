@@ -9,10 +9,18 @@ import useProjectStore from '../../../hooks/useProjectStore';
 import { BUTTON_DISABLED_HINT as buttonText } from '../../../../lib/constants/text-info';
 
 const IntegrationsTab = ({ values, fields, onChange }) => {
-  const { item: { project } } = useProjectStore();
+  const { item: { project }, downloadOptinStatistic } = useProjectStore();
 
-  const toDownloadOptin = () => {
-    window.open(`/api/analytics/${project._id}/opt-ins?output=csv`);
+  const toDownloadOptin = async (projectId) => {
+    const getForCSV = await downloadOptinStatistic(projectId);
+    const link = document.createElement('a');
+    const blob = new Blob([getForCSV], {
+      type: 'text/csv;charset=utf-8;',
+    });
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', 'optin.csv');
+    link.click();
   };
 
   return (
@@ -62,7 +70,7 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
       <div className="download-optin-container">
         <button
           className={classnames('btn-custom', { 'button-disabled': !project._id })}
-          onClick={toDownloadOptin}
+          onClick={() => toDownloadOptin(project._id)}
           disabled={!project._id}
           title={!project._id ? buttonText.title : ''}
         >
