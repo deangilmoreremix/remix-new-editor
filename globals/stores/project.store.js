@@ -1365,11 +1365,9 @@ export default class ProjectStore extends BaseStore {
       track.defaultName = `Layer ${track.order}`;
       return track;
     });
-
-    const newLayerId = `${this.layers.length}`;
     this.layers.unshift({
       ...DEFAULT_LAYER,
-      id: newLayerId,
+      id: `${this.layers.length}`,
       defaultName: 'Layer 0',
       blendMode,
       opacity,
