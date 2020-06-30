@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 
 import { ENTER_KEY, ARROW_UP, ARROW_DOWN } from '../../../lib/constants/keyCodes';
-import { WARNING_OPACITY } from '../../../lib/constants/text-info';
 
 import useProjectStore from '../../hooks/useProjectStore';
 
@@ -9,13 +8,15 @@ import PropTypes from '../../../lib/PropTypes';
 
 const Opacity = ({ layer }) => {
   const [count, setCount] = useState(layer.opacity ?? 100);
-  const { setOpacity, showWarning } = useProjectStore();
+  const { setLayerStyle } = useProjectStore();
   const step = 1;
 
   const handlePressKey = event => {
     if (event.keyCode === ENTER_KEY) {
-      showWarning(WARNING_OPACITY.title);
-      setOpacity(layer.id, count);
+      setLayerStyle(layer.id, {
+        name: 'opacity',
+        value: count,
+      });
     }
 
     if (event.keyCode === ARROW_UP && count < 100) {

@@ -9,10 +9,13 @@ import blendModeConstants from '../../../lib/constants/blendMode';
 import Menu from '../Menu';
 
 const BlendingMode = ({ layer }) => {
-  const { setBlendMode } = useProjectStore();
+  const { setLayerStyle } = useProjectStore();
 
   const onChange = value => {
-    setBlendMode(layer.id, value);
+    setLayerStyle(layer.id, {
+      name: 'blendMode',
+      value,
+    });
   };
 
   return (

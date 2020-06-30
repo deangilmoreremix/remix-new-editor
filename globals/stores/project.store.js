@@ -30,7 +30,7 @@ import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
 import { showInfo } from '../../lib/services/alertService';
-import { FORM_ONE_LG } from '../../lib/constants/text-info';
+import { FORM_ONE_LG, WARNING_OPACITY } from '../../lib/constants/text-info';
 
 const caretNames = Object.values(CARET_NAMES);
 
@@ -1226,16 +1226,18 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  setBlendMode = (layerId, blendMode) => {
+  setLayerStyle = (layerId, style) => {
+    const { name, value } = style;
+
     this.setUndo();
     this.modified = true;
     const elements = this.popcornElements.filter(element => element.track === layerId);
     elements.forEach(element => {
-      this.updatePopcorn(element, { blendMode });
+      this.updatePopcorn(element, { [name]: value });
     });
     this.layers = this.layers.map(layer => {
       if (layer.id === layerId) {
-        layer.blendMode = blendMode;
+        layer[name] = value;
       }
       return layer;
     });
@@ -1243,43 +1245,15 @@ export default class ProjectStore extends BaseStore {
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map((track) => {
         if (track.id === layerId) {
-          track.blendMode = blendMode;
+          track[name] = value;
         }
         track.trackEvents.forEach(trackEvent => {
           if (trackEvent.track === layerId) {
-            trackEvent.popcornOptions.blendMode = blendMode;
-            this.updatePopcorn(trackEvent, { blendMode });
-          }
-        });
-        return track;
-      });
-    });
-  };
-
-  @action
-  setOpacity = (layerId, opacity) => {
-    this.modified = true;
-    const elements = this.popcornElements.filter(element => element.track === layerId);
-    elements.forEach(element => {
-      this.updatePopcorn(element, { opacity });
-    });
-
-    this.layers = this.layers.map(layer => {
-      if (layer.id === layerId) {
-        layer.opacity = opacity;
-      }
-      return layer;
-    });
-
-    this.projectData.media.forEach((media) => {
-      media.tracks = media.tracks.map((track) => {
-        if (track.id === layerId) {
-          track.opacity = opacity;
-        }
-        track.trackEvents.forEach(trackEvent => {
-          if (trackEvent.track === layerId) {
-            trackEvent.popcornOptions.opacity = opacity;
-            this.updatePopcorn(trackEvent, { opacity });
+            if (trackEvent.popcornOptions.animation) {
+              this.showWarning(WARNING_OPACITY.title);
+            }
+            trackEvent.popcornOptions[name] = value;
+            this.updatePopcorn(trackEvent, { [name]: value });
           }
         });
         return track;
