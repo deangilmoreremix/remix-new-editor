@@ -65,7 +65,7 @@ DropPasteInput.propTypes = {
 };
 
 DropPasteInput.defaultProps = {
-  placeholder: 'Drop your file here to start uploading it. Paste the URL/Link to external video hosting (Youtube, Vimeo, ect)',
+  placeholder: 'Drop your file here to start uploading it. Paste the URL/Link to external video hosting (Youtube, Vimeo, etc)',
 };
 
 export default DropPasteInput;
