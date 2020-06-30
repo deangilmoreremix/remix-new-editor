@@ -927,9 +927,16 @@ export default class ProjectStore extends BaseStore {
           eventEnd = lastEvent.end;
       }
 
-      if (lastEvent.end !== this.popcorn.duration()) {
+      if (lastEvent.end !== this.popcorn.duration() && byEnd.length !== 2) {
         this.projectData.media[0].url = `#t=,${eventEnd}`;
         this.duration = eventEnd * SANTISECOND;
+        this.setPopcorn();
+      }
+
+      if (byEnd.length === 2) {
+        this.projectData.media[0].url = `#t=,${30}`;
+        this.duration = 30 * SANTISECOND;
+        this.setPopcorn();
       }
     }
 
