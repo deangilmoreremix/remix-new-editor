@@ -1206,10 +1206,14 @@ export default class ProjectStore extends BaseStore {
           }
         }
       });
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
       this.duration = lastEnd;
+      this.setPopcorn();
     }
     if (lastEnd > duration) {
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
       this.duration = lastEnd;
+      this.setPopcorn();
     }
   }
 }
