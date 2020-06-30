@@ -812,6 +812,7 @@ export default class ProjectStore extends BaseStore {
             item.start = this.time / SANTISECOND;
           }
         } else {
+          // eslint-disable-next-line no-alert,no-lonely-if
           if ((trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
             || (trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT
               && trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.in)
