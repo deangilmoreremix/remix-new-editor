@@ -38,7 +38,7 @@ const Presets = ({ handleClose }) => {
       newData = JSON.stringify(newData);
       activeItem.project.data = newData;
 
-      await addData(activeItem);
+      await addData(activeItem, true);
       handleClose();
     } catch (e) {
       await showError(e.message);

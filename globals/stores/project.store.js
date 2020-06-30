@@ -752,13 +752,17 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addData = (makeTemplate = {}) => {
+  addData = (makeTemplate = {}, isPreset) => {
     let newData = makeTemplate.project.data;
     if (!newData) {
       return;
     }
     this.setUndo();
     newData = JSON.parse(newData);
+    if (isPreset) {
+      return this.addPreset(newData);
+    }
+
     newData.media.map((media) => media.tracks
       .map((track) => track.trackEvents.map((trackEvent) => {
         const item = {
@@ -771,6 +775,62 @@ export default class ProjectStore extends BaseStore {
         return this.createNewElement(item);
       })));
   };
+
+  addPreset = data => {
+    let firstElementStart = null;
+
+    data.media.forEach((media) => media.tracks
+      .forEach((track) => track.trackEvents.forEach((trackEvent) => {
+        if (!firstElementStart) {
+          firstElementStart = trackEvent.popcornOptions.start;
+        }
+
+        if (parseFloat(trackEvent.popcornOptions.start) < firstElementStart) {
+          firstElementStart = trackEvent.popcornOptions.start;
+        }
+      })));
+
+    data.media.forEach((media) => media.tracks
+      .forEach((track) => track.trackEvents.forEach((trackEvent) => {
+        const item = {
+          ...trackEvent.popcornOptions,
+          track: null,
+          zindex: null,
+          start: null,
+          end: null,
+        };
+
+        if (trackEvent.popcornOptions.start === firstElementStart) {
+          if ((trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
+            || (trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT
+              && trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.in)
+            || (trackEvent.type === POPCORN_ELEMENT_TYPES.IMAGE
+              && trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.in))
+            && (this.time / SANTISECOND) === 0) {
+            item.start = 0.01;
+          } else {
+            item.start = this.time / SANTISECOND;
+          }
+        } else {
+          if ((trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
+            || (trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT
+              && trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.in)
+            || (trackEvent.type === POPCORN_ELEMENT_TYPES.IMAGE
+              && trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.in))
+            && ((this.time / SANTISECOND) === 0)
+            && (trackEvent.popcornOptions.start - firstElementStart === 0)) {
+            item.start = 0.01;
+          } else {
+            item.start = (this.time / SANTISECOND)
+              + (trackEvent.popcornOptions.start - firstElementStart);
+          }
+        }
+
+        item.end = (trackEvent.popcornOptions.end - trackEvent.popcornOptions.start) + item.start;
+
+        return this.addElement(item);
+      })));
+  }
 
   @action
   updateStartEnd = (elementId, start, end) => {
@@ -1084,52 +1144,6 @@ export default class ProjectStore extends BaseStore {
     }
     this.setProjectData(this.projectData);
     this.setPopcorn();
-  };
-
-  addData = (makeTemplate = {}) => {
-    let newData = makeTemplate.project.data;
-    if (!newData) {
-      return;
-    }
-
-    let ltOldStart = null;
-    newData = JSON.parse(newData);
-    newData.media.map((media) => media.tracks
-      .map((track) => track.trackEvents.map((trackEvent) => {
-        const item = {
-          ...trackEvent.popcornOptions,
-          track: null,
-          zindex: null,
-          start: null,
-          end: null,
-        };
-
-        if (trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION) {
-          let newStart = null;
-          let newEnd = null;
-          if ((this.time / SANTISECOND) === 0) {
-            newStart = null;
-          } else {
-            newStart = this.time / SANTISECOND;
-          }
-          ltOldStart = trackEvent.popcornOptions.start;
-          newEnd = (trackEvent.popcornOptions.end - trackEvent.popcornOptions.start) + newStart;
-          item.start = newStart;
-          item.end = newEnd;
-          return this.addElement(item);
-        }
-
-        if (trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT && ltOldStart !== undefined) {
-          const textDuration = trackEvent.popcornOptions.end - trackEvent.popcornOptions.start;
-          const newStart = (this.time / SANTISECOND)
-            + (trackEvent.popcornOptions.start - ltOldStart);
-          const newEnd = newStart + textDuration;
-          item.start = newStart;
-          item.end = newEnd;
-        }
-
-        return this.addElement(item);
-      })));
   };
 
   @action
