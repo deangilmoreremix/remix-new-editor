@@ -1242,6 +1242,8 @@ export default class ProjectStore extends BaseStore {
       return layer;
     });
 
+    let itemOnLayerWithAnimation = false;
+
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map((track) => {
         if (track.id === layerId) {
@@ -1250,7 +1252,7 @@ export default class ProjectStore extends BaseStore {
         track.trackEvents.forEach(trackEvent => {
           if (trackEvent.track === layerId) {
             if (trackEvent.popcornOptions.animation) {
-              this.showWarning(WARNING_OPACITY.title);
+              itemOnLayerWithAnimation = true;
             }
             trackEvent.popcornOptions[name] = value;
             this.updatePopcorn(trackEvent, { [name]: value });
@@ -1259,6 +1261,10 @@ export default class ProjectStore extends BaseStore {
         return track;
       });
     });
+
+    if (itemOnLayerWithAnimation) {
+      this.showWarning(WARNING_OPACITY.title);
+    }
   };
 
   @action
