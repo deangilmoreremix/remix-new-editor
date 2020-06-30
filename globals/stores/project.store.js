@@ -346,7 +346,6 @@ export default class ProjectStore extends BaseStore {
 
   @action
   updateElement = (elementId, options) => {
-    console.log(elementId, options);
     // we need to update the elements, if the user updates the start,
     // end or animation, this is necessary to rerender the elements
     const { start, end, animation, title, duration, htmlText, loop } = options;

@@ -30,20 +30,20 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => (
     </div>
     <div>
       {POPCORN_ELEMENT_LABELS[item.type]}
+:
     </div>
-    {
-      item.loop === 0
-      && (
-        <div className={classnames('inner-wrapper', 'popcorn-loop-end')}>
-          <SVGInline
-            className="icon-btn"
-            classSuffix="--inline"
-            svg={svgInfiniteIcon}
-            cleanup={['title']}
-          />
-        </div>
-      )
-    }
+    <div className={classnames('inner-wrapper', 'popcorn-loop-end')}>
+      {
+            +item.loop === 0 ? (
+              <SVGInline
+                className="icon-btn"
+                classSuffix="--inline"
+                svg={svgInfiniteIcon}
+                cleanup={['title']}
+              />
+            ) : item.loop
+          }
+    </div>
   </Grid>
 ));
 
