@@ -153,6 +153,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable time = 0;
 
+  @observable isWarning = '';
+
   setElementOptions = async (item) => {
     const { track } = item || {};
     const options = {};
@@ -1164,6 +1166,11 @@ export default class ProjectStore extends BaseStore {
   get popcornElements() {
     return this.popcornObject.popcornElements;
   }
+
+  @action
+  showWarning = (message) => {
+    this.isWarning = message;
+  };
 
   @action
   setBlendMode = (layerId, blendMode) => {

@@ -25,6 +25,8 @@ import useUserStore from './hooks/useUserStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
+import Warning from './common/snackBars/Warning';
+
 import { CANVAS_SIZES } from '../lib/constants/media';
 import { DEFAULT_RATIO } from '../lib/constants/project';
 import { WINDOW_TYPES } from '../lib/constants/ui';
@@ -108,6 +110,8 @@ const Home = observer(() => {
     modified,
     addRetargetForm,
     releaseElement,
+    isWarning,
+    showWarning,
   } = projectStore;
 
   const SecondaryWindow = React.useMemo(() => {
@@ -233,6 +237,7 @@ const Home = observer(() => {
           </Grid>
         </div>
       )}
+      <Warning message={isWarning} handleClose={() => showWarning('')} />
     </React.Fragment>
   );
 });
