@@ -318,9 +318,9 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addLayer = () => {
+  addLayer = (style) => {
     this.setUndo();
-    this.createNewLayer();
+    this.createNewLayer(style);
   };
 
   @action
@@ -766,10 +766,10 @@ export default class ProjectStore extends BaseStore {
     newData.media.map((media) => media.tracks
       .map((track) => {
         if (track.blendMode) {
-          this.addLayer(track.blendMode);
+          this.addLayer({ blendMode: track.blendMode });
         }
         if (track.opacity) {
-          this.addLayer(track.opacity);
+          this.addLayer({ opacity: track.opacity });
         }
         return track.trackEvents.map((trackEvent) => {
           const item = {
@@ -790,10 +790,10 @@ export default class ProjectStore extends BaseStore {
     data.media.forEach((media) => media.tracks
       .forEach((track) => {
         if (track.blendMode) {
-          this.addLayer(track.blendMode);
+          this.addLayer({ blendMode: track.blendMode });
         }
         if (track.opacity) {
-          this.addLayer(track.opacity);
+          this.addLayer({ opacity: track.opacity });
         }
         return track.trackEvents.forEach((trackEvent) => {
           if (!firstElementStart) {
@@ -809,10 +809,10 @@ export default class ProjectStore extends BaseStore {
     data.media.forEach((media) => media.tracks
       .forEach((track) => {
         if (track.blendMode) {
-          this.addLayer(track.blendMode);
+          this.addLayer({ blendMode: track.blendMode });
         }
         if (track.opacity) {
-          this.addLayer(track.opacity);
+          this.addLayer({ opacity: track.opacity });
         }
         return track.trackEvents.forEach((trackEvent) => {
           const item = {
@@ -1421,7 +1421,10 @@ export default class ProjectStore extends BaseStore {
 
   // analog for addLayer
   @action
-  createNewLayer = () => {
+  createNewLayer = (style) => {
+    const blendMode = style && style.blendMode ? style.blendMode : blendModeConstants.normal.value;
+    const opacity = style && style.opacity ? style.opacity : 100;
+
     this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
@@ -1433,7 +1436,7 @@ export default class ProjectStore extends BaseStore {
         });
         return track;
       });
-      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}` });
+      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}`, blendMode, opacity });
     });
 
     this.layers = this.layers.map(track => {
@@ -1441,6 +1444,12 @@ export default class ProjectStore extends BaseStore {
       track.defaultName = `Layer ${track.order}`;
       return track;
     });
-    this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
+    this.layers.unshift({
+      ...DEFAULT_LAYER,
+      id: `${this.layers.length}`,
+      defaultName: 'Layer 0',
+      blendMode,
+      opacity,
+    });
   };
 }
