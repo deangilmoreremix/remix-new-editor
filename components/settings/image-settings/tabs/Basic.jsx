@@ -19,7 +19,7 @@ import { FEATURES } from '../../../../lib/constants/features';
 
 const Basic = ({ values, fields, onChange, handleClose }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { setLibraryType, setUpdateElementInLibrary } = useUIStore();
+  const { setLibraryType, setUpdateElementInLibrary, openAnimation } = useUIStore();
   const { findAndUpdate, element } = useProjectStore();
   const { currentUser: user, isfeatureEnabled: checkStateFeature } = useUserStore();
 
@@ -33,8 +33,13 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
     findAndUpdate(element.id, { ...INITIAL_VALUES, ...item, src: item.url });
   };
 
+  const openLibrary = () => {
+    handleClose();
+    openAnimation();
+  };
+
   // ToDo add select field "Select the kind of Image you want to add"
-  // ToDo add handle click on buttons "Personalize" and "Open Library" (Transition)
+  // ToDo add handle click on buttons "Personalize"
   // ToDo add button "Default"
   return (
     <Fragment>
@@ -124,11 +129,15 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           onChange={onChange}
           className="image-settings__time"
         />
-        {/* TODO: uncomment this when image animation is supported */}
-        {/* <div className="image-settings__btn--block image-settings__btn--transition"> */}
-        {/*  <p>Transition</p> */}
-        {/*  <button className="image-settings__btn">Open Library</button> */}
-        {/* </div> */}
+        <div className="image-settings__btn--block image-settings__btn--transition">
+          <p>Transition</p>
+          <button
+            className="image-settings__btn"
+            onClick={openLibrary}
+          >
+            Open Library
+          </button>
+        </div>
       </div>
 
       <div className="image-settings__block">

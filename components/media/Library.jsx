@@ -138,10 +138,12 @@ const Library = observer((props) => {
   }, [isLoading]);
 
   React.useEffect(() => {
-    if (libraryItemsForDelete.length) {
-      bulkDeleteItems();
-    } else {
-      fetchItems({ source: activeBtn });
+    if (activeBtn || activeTab) {
+      if (libraryItemsForDelete.length) {
+        bulkDeleteItems();
+      } else {
+        fetchItems({ source: activeBtn });
+      }
     }
   }, [activeBtn]);
 
@@ -431,7 +433,7 @@ const Library = observer((props) => {
                 activeTab === LIBRARY_TABS.VIDEO && (
                 <DropPasteInput
                   onDrop={onDrop}
-                  accept={[{ ALL_VIDEO }]}
+                  accept={[ALL_VIDEO]}
                   onEnter={onEnter}
                 />
                 )
