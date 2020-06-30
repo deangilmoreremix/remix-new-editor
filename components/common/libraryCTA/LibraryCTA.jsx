@@ -19,7 +19,7 @@ const LibraryCTA = ({ className, onSelect }) => {
 
   const handleSelect = React.useCallback(async (item) => {
     try {
-      await addData(item, true);
+      await addData(item);
       onSelect();
     } catch (e) {
       await showError(e.message);

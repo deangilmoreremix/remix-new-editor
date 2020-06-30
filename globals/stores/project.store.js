@@ -752,15 +752,15 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addData = (makeTemplate = {}, isPreset) => {
+  addData = (makeTemplate = {}, useTime) => {
     let newData = makeTemplate.project.data;
     if (!newData) {
       return;
     }
     this.setUndo();
     newData = JSON.parse(newData);
-    if (isPreset) {
-      return this.addPreset(newData);
+    if (useTime) {
+      return this.addRelativeElements(newData);
     }
 
     newData.media.map((media) => media.tracks
@@ -776,7 +776,7 @@ export default class ProjectStore extends BaseStore {
       })));
   };
 
-  addPreset = data => {
+  addRelativeElements = data => {
     let firstElementStart = null;
 
     data.media.forEach((media) => media.tracks
