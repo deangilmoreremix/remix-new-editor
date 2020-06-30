@@ -57,8 +57,11 @@ export default class ProjectStore extends BaseStore {
             this.time = this.popcorn.currentTime() * SANTISECOND;
           });
           this.popcorn.on('ended', () => {
-            this.time = 0;
-            this.updateTime(0);
+            if (!this.isLooped) {
+              this.time = 0;
+              this.updateTime(0);
+            }
+            this.isLooped = false;
           });
           this.popcorn.on('pause', () => {
             this.isPlayed = false;
@@ -101,6 +104,9 @@ export default class ProjectStore extends BaseStore {
               return el;
             });
           });
+          emitter.on(emitterActions.VIDEO_LOOPED, () => {
+            this.isLooped = true;
+          });
         },
       );
 
@@ -128,6 +134,8 @@ export default class ProjectStore extends BaseStore {
   @observable isLoaded = false;
 
   @observable isPlayed = false;
+
+  @observable isLooped = false;
 
   @observable isLoading = false;
 
