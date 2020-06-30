@@ -54,11 +54,9 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
 
       player.on('finishRecord', () => {
         setSaveOptionsVisible(true);
-        player.record().stopStream();
       });
       player.on('error', (element, error) => {
         player.record().stopStream();
-        console.log({ element, error });
         showError(error.message);
       });
       player.on('deviceError', () => {
@@ -134,7 +132,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
                   className="recorder-modal-options__button recorder-modal-options__button_upload"
                   onClick={handleUpload}
                 >
-                  Upload to Lib
+                  Add in media
                 </button>
               </div>
             </div>

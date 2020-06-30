@@ -1,7 +1,7 @@
 .menu-app-bar {
   height: $menu-height;
   position: fixed;
-  z-index: 1301;
+  z-index: 1003;
   top: 0;
   left: 0;
   width: 100%;
@@ -124,9 +124,12 @@
       margin: auto;
       color: $third-color;
 
+      &.active,
       &.active-save {
         color: $secondary-color;
          // svg styles
+        .redo-0,
+        .undo-0,
         .save-0 {
           fill: $secondary-color;
         }

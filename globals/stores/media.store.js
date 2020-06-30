@@ -12,6 +12,7 @@ import RemoteMediaProvider from '../../lib/utils/media/RemoteMediaProvider';
 import { ASSET_TYPES, REMOTE_ASSET_TYPES } from '../../lib/constants/media';
 import { LIBRARY_KEYS, libraryProviders, perPage } from '../../lib/constants/library';
 import { FEATURES } from '../../lib/constants/features';
+import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 
 export default class Media extends BaseStore {
   @observable providersConfiguration = null;
@@ -25,6 +26,8 @@ export default class Media extends BaseStore {
   @observable presetsItemsForDelete = [];
 
   @observable presetsTLItemsForDelete = [];
+
+  @observable mediaTypeDetector;
 
   getProvider = (providerName, assetType) => {
     try {
@@ -350,6 +353,7 @@ export default class Media extends BaseStore {
   constructor(props) {
     super(props);
     this.assetsRequest = props.assetsRequest;
+    this.mediaTypeDetector = new MediaTypeDetector();
 
     const { common } = this;
     this.userStore = props.userStore;

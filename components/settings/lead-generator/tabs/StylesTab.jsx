@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 
 import PropTypes from '../../../../lib/PropTypes';
 
+import { rgba2hex } from '../../../../lib/lottie/utils';
+
 import FieldBuilder from '../../../form/FieldBuilder';
 import DropzoneArea from '../../../media/DropzoneArea';
 import DropButton from '../../../media/DropButton';
@@ -11,39 +13,37 @@ import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
 import { tabItems } from '../../../../lib/constants/library';
-import useModalStore from '../../../hooks/useModalStore';
-import { CROP_RECOMMENDED_RESOLUTION, CROP_BRAND_LOGO_RESOLUTION } from '../../../../lib/constants/settings/image';
+// import useModalStore from '../../../hooks/useModalStore';
+// import {
+// CROP_RECOMMENDED_RESOLUTION,
+// CROP_BRAND_LOGO_RESOLUTIONб
+// } from '../../../../lib/constants/settings/image';
+import { CROP_BRAND_LOGO_RESOLUTION } from '../../../../lib/constants/settings/image';
 
 const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
 
-  const { openCropper } = useModalStore();
+  // const { openCropper } = useModalStore();
 
-  const onCrop = (image, option) => {
-    onChange({ [option]: image.url });
-  };
+  // const onCrop = (image, option) => {
+  //   onChange({ [option]: image.url });
+  // };
 
-  const onUploadedImage = (image, extension, option, resolution) => {
+  // const onUploadedImage = (image, extension, option, resolution) => {
+  const onUploadedImage = (image, extension, option) => {
     Object.keys(tabItems).forEach(tab => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
-          openCropper(image.url, onCrop, resolution || CROP_RECOMMENDED_RESOLUTION, option);
+          // openCropper(image.url, onCrop, resolution || CROP_RECOMMENDED_RESOLUTION, option);
+          onChange({ [option]: image.url });
         }
       });
     });
   };
 
-  const rgb2hex = (rgb) => {
-    rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
-    return (rgb && rgb.length === 4) ? `#${
-      (`0${parseInt(rgb[1], 10).toString(16)}`).slice(-2)
-    }${(`0${parseInt(rgb[2], 10).toString(16)}`).slice(-2)
-    }${(`0${parseInt(rgb[3], 10).toString(16)}`).slice(-2)}` : '';
-  };
-
   const handleChangeColor = (rgbColor) => {
-    onChange({ [Object.keys(rgbColor).join()]: rgb2hex(Object.values(rgbColor).join()) });
+    onChange({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
   };
 
   return (
