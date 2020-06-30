@@ -1,5 +1,4 @@
-/* eslint-disable no-trailing-spaces */
-import { observable, action, computed, reaction, runInAction, spy, toJS } from 'mobx';
+import { observable, action, computed, reaction, runInAction, toJS } from 'mobx';
 import arrayMove from 'array-move';
 import size from 'lodash/size';
 
@@ -7,7 +6,12 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 
-import { NO_SETTINGS_ELEMENT_TYPES, SEQUENCER, POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
+import {
+  NO_SETTINGS_ELEMENT_TYPES,
+  SEQUENCER,
+  POPCORN_ELEMENT_TYPES,
+  CARET_NAMES,
+} from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
@@ -24,9 +28,11 @@ import {
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
-import { TRACKED_ACTIONS, NUMBER_OF_STEPS, TRACKED_EXCEPTIONS } from '../../lib/constants/actions';
+import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
 import { showInfo } from '../../lib/services/alertService';
 import { FORM_ONE_LG } from '../../lib/constants/text-info';
+
+const caretNames = Object.values(CARET_NAMES);
 
 export default class ProjectStore extends BaseStore {
   constructor(props, runReaction = true) {
@@ -116,30 +122,19 @@ export default class ProjectStore extends BaseStore {
           }
         },
       );
-      spy(event => {
-        if (event.type === 'action' && this.popcorn.getTrackEvents) {
-          if (this.includesAction(event.name)) {
-            console.info(event.name);
-            const exception = TRACKED_EXCEPTIONS[event.name];
-            if (exception && event.arguments[exception.argumentIndex] && exception.checkObject) {
-              const keys = Object.keys(event.arguments[exception.argumentIndex]);
-              if (keys.every(key => exception.notObserverFields.includes(key))) {
-                return;
-              }
-            }
-            const snapshot = toJS(this.projectData);
-            this.redoStore = [];
-            this.setUndoRedoAction({
-              projectData: snapshot,
-              duration: this.duration,
-              retarget: { ...this.retarget },
-              activeElementId: this.activeElementId,
-            });
-          }
-        }
-      });
     }
   }
+
+  setUndo = () => {
+    const snapshot = toJS(this.projectData);
+    this.redoStore = [];
+    this.setUndoRedoAction({
+      projectData: snapshot,
+      duration: this.duration,
+      retarget: { ...this.retarget },
+      activeElementId: this.activeElementId,
+    });
+  };
 
   @observable userStore = {};
 
@@ -278,6 +273,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   createRetargetForm = () => {
+    this.setUndo();
     const popcornFunctions = window.Popcorn.compositions.retargetForm();
     const manifest = window.Popcorn.manifest.retargetForm;
     let options;
@@ -321,7 +317,10 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addLayer = () => this.createNewLayer();
+  addLayer = () => {
+    this.setUndo();
+    this.createNewLayer();
+  };
 
   @action
   editElement = (elementId) => {
@@ -339,7 +338,11 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  findAndUpdate = (elementId, options) => {
+  findAndUpdate = (elementId, options = {}) => {
+    const newValues = Object.keys(options);
+    if (newValues && newValues.length && !newValues.every(key => caretNames.includes(key))) {
+      this.setUndo();
+    }
     if (this.retarget && elementId === this.retarget.id) {
       this.modified = true;
       this.retarget.options = {
@@ -469,6 +472,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   updateElementFromTimeline = (options) => {
+    this.setUndo();
     const { needUpdateLayer, needUpdateStartEnd, elementId, start, end, layerLevel } = options;
     if (needUpdateLayer) {
       this.setLayer(elementId, layerLevel);
@@ -545,6 +549,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   moveElements = (oldIndex, newIndex) => {
+    this.setUndo();
     this.projectData.media.forEach((media) => {
       const tracks = arrayMove(media.tracks, oldIndex, newIndex);
       media.tracks = this.orderItems(tracks, true);
@@ -620,6 +625,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   removeElement = (id) => {
+    this.setUndo();
     this.modified = true;
     this.releaseElement();
     if (this.projectData.media) {
@@ -629,7 +635,10 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addElement = (item) => this.createNewElement(item);
+  addElement = (item) => {
+    this.setUndo();
+    return this.createNewElement(item);
+  };
 
   removeTrackEvent = (id) => {
     this.projectData.media.forEach((media) => {
@@ -645,6 +654,7 @@ export default class ProjectStore extends BaseStore {
     if (this.layers.length <= 1) {
       return;
     }
+    this.setUndo();
     this.modified = true;
     this.projectData.media.forEach((media) => {
       const removedTrack = media.tracks.find(track => track.id === id);
@@ -668,6 +678,7 @@ export default class ProjectStore extends BaseStore {
   @action
   editLayer = (id, options) => {
     this.modified = true;
+    this.setUndo();
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
         if (track.id === id) {
@@ -745,6 +756,7 @@ export default class ProjectStore extends BaseStore {
     if (!newData) {
       return;
     }
+    this.setUndo();
     newData = JSON.parse(newData);
     newData.media.map((media) => media.tracks
       .map((track) => track.trackEvents.map((trackEvent) => {
@@ -1073,11 +1085,6 @@ export default class ProjectStore extends BaseStore {
     this.setPopcorn();
   };
 
-  includesAction = (actionName) => {
-    const observedActions = Object.values(TRACKED_ACTIONS);
-    return observedActions.includes(actionName);
-  };
-
   @action
   updateVideo = async (value, trimming) => {
     const videoMeta = await this.mediaTypeDetector.getMetadata(value);
@@ -1203,6 +1210,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   setBlendMode = (layerId, blendMode) => {
+    this.setUndo();
     this.modified = true;
     const elements = this.popcornElements.filter(element => element.track === layerId);
     elements.forEach(element => {
@@ -1237,6 +1245,7 @@ export default class ProjectStore extends BaseStore {
     if (newDuration === duration) {
       return;
     }
+    this.setUndo();
     this.modified = true;
     let lastEnd = newDuration;
 
