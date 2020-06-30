@@ -1,6 +1,7 @@
 import React from 'react';
 
 import useProjectStore from '../../hooks/useProjectStore';
+import { BLEND_MODE } from '../../../lib/constants/popcorn';
 
 import PropTypes from '../../../lib/PropTypes';
 
@@ -13,7 +14,7 @@ const BlendingMode = ({ layer }) => {
 
   const onChange = value => {
     setLayerStyle(layer.id, {
-      name: 'blendMode',
+      name: BLEND_MODE,
       value,
     });
   };
