@@ -979,6 +979,7 @@ export default class ProjectStore extends BaseStore {
 
       switch (lastEvent.type) {
         case POPCORN_ELEMENT_TYPES.TEXT:
+        case POPCORN_ELEMENT_TYPES.IMAGE:
           if (lastEvent.animation && lastEvent.animation.out && lastEvent.animation.out.duration) {
             eventEnd = lastEvent.end + lastEvent.animation.out.duration;
           } else {
