@@ -19,7 +19,7 @@ import { DEFAULT_IMAGE_NAME, BAR_POSITION, MENU, SIZE } from '../../lib/constant
 import { IMAGE_FORMATS } from '../../lib/constants/media';
 
 
-import '../../styles/components/modals/TuiImageEditorModal.scss';
+import '../../styles/index.scss';
 import { getFormatFromContentType } from '../../lib/utils/imageEditorHelper';
 
 const TuiImageEditor = observer(({
@@ -39,10 +39,10 @@ const TuiImageEditor = observer(({
     const format = getFormatFromContentType(contentType);
     if (Object.values(IMAGE_FORMATS).includes(format)) {
       if (format === GIF) {
-        return showError(`${IMAGE_NOT_SUPPORTED_ERROR}Current format: "${format}" .`);
+        return showError(`${IMAGE_NOT_SUPPORTED_ERROR}Current format: "${format}" . `);
       }
       if ([SVG_XML, SVG].includes(format)) {
-        showInfo(`${IMAGE_TO_PNG_FORMAT}Current format: "${format}" .`);
+        showInfo(`${IMAGE_TO_PNG_FORMAT}Current format: "${format}" . `);
       }
       try {
         setLoading(true);
