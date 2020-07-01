@@ -26,7 +26,7 @@ const PlayTime = observer(() => {
   };
 
   useEffect(() => {
-    onDurationChange(toTimecode(currentDuration / SANTISECOND, 2));
+    onDurationChange(toTimecode(currentDuration / SANTISECOND, 2), inputRef.current);
   }, [currentDuration]);
 
   return (
