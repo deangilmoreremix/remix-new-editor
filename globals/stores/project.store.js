@@ -1052,9 +1052,11 @@ export default class ProjectStore extends BaseStore {
 
   @action
   downloadOptinStatistic = async (projectId) => {
-    const path = `/api/projects/${projectId}/events?
-    orderBy=${JSON.stringify('createdAt: -1')}&filter=${JSON.stringify('opt-ins')}`;
-    let optinDatas;
+    const page = 1;
+    const limit = 100000;
+    const path = `/api/projects/${projectId}/events?per_page=
+    ${limit}&page=${page}&orderBy=${JSON.stringify({ createdAt: -1 })}&filter=${JSON.stringify({ action: 'video_opted_in' })}`;
+    const data = [];
     try {
       const result = await this.request(
         path, {
@@ -1064,12 +1066,26 @@ export default class ProjectStore extends BaseStore {
           },
         },
       );
-      optinDatas = result.slice();
+      if (result.length > 0) {
+        const keys = [];
+        result.forEach((item) => {
+          Object.keys((item.extra && item.extra.data) || item.extra || {}).forEach((key) => {
+            if (keys.indexOf(key) === -1) {
+              keys.push(key);
+            }
+          });
+        });
+        data.push(['Date', 'Time', 'Source', ...keys]);
+        result.forEach((optin) => {
+          data.push([new Date(optin.createdAt).toLocaleString(), optin.extra && optin.extra.source,
+            ...keys.map((key) => (optin.extra.data && optin.extra.data[key])
+              || (optin.extra && optin.extra[key]))]);
+        });
+      }
     } catch (e) {
-      optinDatas = [];
       console.error(e);
     }
-    return optinDatas;
+    return data;
   };
 
   @action

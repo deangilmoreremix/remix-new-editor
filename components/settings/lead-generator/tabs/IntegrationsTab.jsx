@@ -13,13 +13,14 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
 
   const toDownloadOptin = async (projectId) => {
     const getForCSV = await downloadOptinStatistic(projectId);
-    const link = document.createElement('a');
-    const blob = new Blob([getForCSV], {
-      type: 'text/csv;charset=utf-8;',
+    let csvContent = 'data:text/csv;charset=utf-8,';
+    getForCSV.forEach((rowArray) => {
+      const row = rowArray.join(',');
+      csvContent += `${row}\n`;
     });
-    const url = URL.createObjectURL(blob);
-    link.href = url;
-    link.setAttribute('download', 'optin.csv');
+    const link = window.document.createElement('a');
+    link.setAttribute('href', encodeURI(csvContent));
+    link.setAttribute('download', 'upload_data.csv');
     link.click();
   };
 
