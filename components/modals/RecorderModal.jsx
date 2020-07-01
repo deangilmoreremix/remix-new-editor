@@ -132,7 +132,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
                   className="recorder-modal-options__button recorder-modal-options__button_upload"
                   onClick={handleUpload}
                 >
-                  Upload to Lib
+                  Add in media
                 </button>
               </div>
             </div>

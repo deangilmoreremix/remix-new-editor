@@ -4,10 +4,14 @@ import { observer } from 'mobx-react';
 import PropTypes from '../../lib/PropTypes';
 import { animations, ANIMATION_TYPES } from '../../lib/constants/animations';
 
+import useUIStore from '../hooks/useUIStore';
+
 import AnimationPreview from '../common/AnimationPreview';
 import CloseButton from '../common/CloseButton';
 
 const AnimationList = observer(({ onSelect }) => {
+  const { toggleRightBlock } = useUIStore();
+
   const block = React.useCallback((type) => (
     <div key={type} className="animation-block">
       {
@@ -30,8 +34,7 @@ const AnimationList = observer(({ onSelect }) => {
       <div className="animation-blocks">
         {Object.values(ANIMATION_TYPES).map((type => block(type)))}
       </div>
-      {/* ToDo Need to remove the close button */}
-      <CloseButton onClick={() => console.log('click')} />
+      <CloseButton onClick={() => toggleRightBlock(false)} />
     </div>
   );
 },

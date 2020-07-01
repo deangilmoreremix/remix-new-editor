@@ -14,7 +14,10 @@ import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext
 import fonts from '../../../../lib/constants/fonts';
 import { tabItems } from '../../../../lib/constants/library';
 import useModalStore from '../../../hooks/useModalStore';
-import { CROP_RECOMMENDED_RESOLUTION, CROP_BRAND_LOGO_RESOLUTION } from '../../../../lib/constants/settings/image';
+import {
+  CROP_RECOMMENDED_RESOLUTION,
+  CROP_BRAND_LOGO_RESOLUTION,
+} from '../../../../lib/constants/settings/image';
 
 const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
@@ -33,6 +36,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
           openCropper(image.url, onCrop, resolution || CROP_RECOMMENDED_RESOLUTION, option);
+          onChange({ [option]: image.url });
         }
       });
     });
