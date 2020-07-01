@@ -13,7 +13,7 @@ const ImageElement = ({ handleSelect, item, className }) => {
   return (
     <div className={classnames('list-item', className)}>
       <div style={{ mixBlendMode: blendMode || blendModeConstants.normal.value }}>
-        <img src={url || ''} alt="img" />
+        {url && <img src={url} alt="img" />}
       </div>
       <button
         className="animation-preview__add"
