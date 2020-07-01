@@ -1,0 +1,16 @@
+
+.input-loop-start, .input-loop-end {
+  width: 50%;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: end;
+
+  & label {
+    font-size: $small;
+    text-align: left;
+  }
+
+  &:hover input {
+    border: 0.055rem solid $secondary-color;
+  }
+}
