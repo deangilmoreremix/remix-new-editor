@@ -38,6 +38,10 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
       });
     });
   };
+  const onUploadBrandLogo = (item, ext) => {
+    onUploadedImage(item, ext,
+      fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION);
+  };
 
   const handleChangeColor = (rgbColor) => {
     onChange({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
@@ -65,10 +69,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             }}
           />
           <DropzoneArea
-            onUploaded={(item, ext) => {
-              onUploadedImage(item, ext,
-                fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION);
-            }}
+            onUploaded={(item, ext) => { onUploadBrandLogo(item, ext); }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
             value={values?.brandLogoSrc}
@@ -77,10 +78,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             multiple={false}
           />
           <DropButton
-            onUploaded={(item, ext) => {
-              onUploadedImage(item, ext,
-                fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION);
-            }}
+            onUploaded={(item, ext) => { onUploadBrandLogo(item, ext); }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
             startUpload={() => setIsDisabledUploadLogo(true)}
@@ -94,14 +92,11 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             value={values.backgroundImage ?? fields.backgroundImage.default}
             {...fields.backgroundImage}
             onChange={({ backgroundImage: newUrl }) => {
-              openCropper(newUrl, onCrop,
-                CROP_RECOMMENDED_RESOLUTION, fields.backgroundImage.name);
+              openCropper(newUrl, onCrop, CROP_RECOMMENDED_RESOLUTION, fields.backgroundImage.name);
             }}
           />
           <DropzoneArea
-            onUploaded={(item, ext) => {
-              onUploadedImage(item, ext, fields.backgroundImage.name);
-            }}
+            onUploaded={(item, ext) => { onUploadedImage(item, ext, fields.backgroundImage.name); }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadImage}
             value={values?.backgroundImage}
