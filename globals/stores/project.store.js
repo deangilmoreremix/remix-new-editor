@@ -118,7 +118,7 @@ export default class ProjectStore extends BaseStore {
 
       reaction(
         () => this.item.allowedSocials
-        && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
+          && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
         () => {
           if (!this.userStore.linkedinEnabled) {
             this.item.allowedSocials = this.item.allowedSocials
@@ -1303,7 +1303,7 @@ export default class ProjectStore extends BaseStore {
       this.duration = lastEnd;
       this.setPopcorn();
     }
-    
+
     this.projectData.media.forEach(media => {
       media.duration = newDuration;
       media.url = `#t=,${newDuration}`;
@@ -1313,90 +1313,89 @@ export default class ProjectStore extends BaseStore {
     if (time >= lastEnd) {
       this.updateTime(0);
     }
+  };
+
+// untraceable methods for undo redo
+// analog for addElement
+@action
+createNewElement = async (item) => {
+  const { type } = item;
+  this.modified = true;
+  if (this.isPlayed) {
+    this.playPause();
   }
+  if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR
+    && this.elements.some(el => el.type === type)) {
+    this.releaseElement();
+    return showInfo(FORM_ONE_LG.text, FORM_ONE_LG.title);
+  }
+
+  const options = await this.setElementOptions(item);
+
+  // get first track
+  let track = item.track || this.layers[0];
+
+  if (track.blendMode) {
+    options.blendMode = track.blendMode;
+  } else {
+    options.blendMode = blendModeConstants.normal.value;
+  }
+
+  const layerElements = this.elements.filter(element => element.track === track.id);
+  if (isLayerFulfilled(options, layerElements)) {
+    this.createNewLayer();
+    [track] = this.layers;
+  }
+
+  const element = {
+    id: options.id,
+    type,
+    track: track.id,
+    name: options.id,
+    popcornOptions: { ...item, ...options },
   };
 
-  // untraceable methods for undo redo
-  // analog for addElement
-  @action
-  createNewElement = async (item) => {
-    const { type } = item;
-    this.modified = true;
-    if (this.isPlayed) {
-      this.playPause();
-    }
-    if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR
-      && this.elements.some(el => el.type === type)) {
-      this.releaseElement();
-      return showInfo(FORM_ONE_LG.text, FORM_ONE_LG.title);
-    }
+  this.addElementToProject(element);
 
-    const options = await this.setElementOptions(item);
+  // update duration
+  if (options.end > this.duration / SANTISECOND) {
+    this.recompressProject(options.end, false);
+    this.setPopcorn(this.popcorn.target);
+    this.duration = options.end * SANTISECOND;
+  }
 
-    // get first track
-    let track = item.track || this.layers[0];
+  // update timeline
+  this.elements = [element, ...this.elements];
 
-    if (track.blendMode) {
-      options.blendMode = track.blendMode;
-    } else {
-      options.blendMode = blendModeConstants.normal.value;
-    }
+  if (this.isElementWithSettings(element.type)) {
+    this.editElement(element.id);
+  } else {
+    this.releaseElement();
+  }
+};
 
-    const layerElements = this.elements.filter(element => element.track === track.id);
-    if (isLayerFulfilled(options, layerElements)) {
-      this.createNewLayer();
-      [track] = this.layers;
-    }
-
-    const element = {
-      id: options.id,
-      type,
-      track: track.id,
-      name: options.id,
-      popcornOptions: { ...item, ...options },
-    };
-
-    this.addElementToProject(element);
-
-    // update duration
-    if (options.end > this.duration / SANTISECOND) {
-      this.recompressProject(options.end, false);
-      this.setPopcorn(this.popcorn.target);
-      this.duration = options.end * SANTISECOND;
-    }
-
-    // update timeline
-    this.elements = [element, ...this.elements];
-
-    if (this.isElementWithSettings(element.type)) {
-      this.editElement(element.id);
-    } else {
-      this.releaseElement();
-    }
-  };
-
-  // analog for addLayer
-  @action
-  createNewLayer = () => {
-    this.modified = true;
-    this.projectData.media.forEach((media) => {
-      media.tracks = media.tracks.map(track => {
-        track.order += 1;
-        const zindex = MAX_ZINDEX - track.order;
-        track.trackEvents.forEach(element => {
-          element.popcornOptions.zindex = zindex;
-          this.updatePopcorn(element, { zindex });
-        });
-        return track;
-      });
-      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}` });
-    });
-
-    this.layers = this.layers.map(track => {
+// analog for addLayer
+@action
+createNewLayer = () => {
+  this.modified = true;
+  this.projectData.media.forEach((media) => {
+    media.tracks = media.tracks.map(track => {
       track.order += 1;
-      track.defaultName = `Layer ${track.order}`;
+      const zindex = MAX_ZINDEX - track.order;
+      track.trackEvents.forEach(element => {
+        element.popcornOptions.zindex = zindex;
+        this.updatePopcorn(element, { zindex });
+      });
       return track;
     });
-    this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
-  };
+    media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}` });
+  });
+
+  this.layers = this.layers.map(track => {
+    track.order += 1;
+    track.defaultName = `Layer ${track.order}`;
+    return track;
+  });
+  this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
+};
 }
