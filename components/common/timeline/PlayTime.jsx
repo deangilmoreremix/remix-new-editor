@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { observer } from 'mobx-react';
 
 import useProjectStore from '../../hooks/useProjectStore';
@@ -13,6 +13,10 @@ const PlayTime = observer(() => {
   const { time, duration: currentDuration, changeDuration } = projectStore;
   const currentTime = useMemo(() => toTimecode(time / SANTISECOND, 2), [time]);
 
+  useEffect(() => {
+    onDurationChange(toTimecode(currentDuration / SANTISECOND, 2));
+  }, [currentDuration]);
+
   return (
     <div className="play-time">
       <div className="time-current">
@@ -22,7 +26,7 @@ const PlayTime = observer(() => {
         className="time-total"
         onChange={(v) => onDurationChange(v)}
         onEnter={(v) => { changeDuration(toSeconds(v) * SANTISECOND); }}
-        value={newDuration || toTimecode(currentDuration / SANTISECOND, 2)}
+        value={newDuration}
         onBlur={() => (newDuration ? changeDuration(toSeconds(newDuration) * SANTISECOND)
           : changeDuration(toSeconds(currentDuration)))}
       />

@@ -41,89 +41,90 @@ export default class ProjectStore extends BaseStore {
     this.elements = [];
     this.mediaTypeDetector = new MediaTypeDetector();
     this.userStore = props.userStore;
-    if (runReaction) {
-      reaction(
-        () => this.popcorn,
-        () => {
-          if (!this.popcorn.on) {
-            return;
+    ///todo add if
+    reaction(
+      () => this.popcorn,
+      () => {
+        if (!this.popcorn.on) {
+          return;
+        }
+        this.popcorn.on('seeking', () => {
+          if (this.isPlayed) {
+            this.playPause();
           }
-          this.popcorn.on('seeking', () => {
-            if (this.isPlayed) {
-              this.playPause();
-            }
-          });
-          this.popcorn.on('canplayall', () => {
-            this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
-            this.isLoaded = true;
-          });
-          this.popcorn.on('elementUpdated', (data) => {
-            const { element, options } = data;
-            this.findAndUpdate(element.id, options);
-          });
-          this.popcorn.on('timeupdate', () => {
-            this.time = this.popcorn.currentTime() * SANTISECOND;
-          });
-          this.popcorn.on('ended', () => {
-            this.time = 0;
-            this.updateTime(0);
-          });
-          this.popcorn.on('pause', () => {
-            this.isPlayed = false;
-          });
-          this.popcorn.on('play', () => {
-            this.isPlayed = true;
-          });
-          emitter.on(emitterActions.SELECT, id => {
-            if (id) {
-              const element = this.getElementById(id);
+        });
+        this.popcorn.on('canplayall', () => {
+          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
+          this.isLoaded = true;
+        });
+        this.popcorn.on('elementUpdated', (data) => {
+          const { element, options } = data;
+          this.findAndUpdate(element.id, options);
+        });
+        this.popcorn.on('timeupdate', () => {
+          this.time = this.popcorn.currentTime() * SANTISECOND;
+        });
+        this.popcorn.on('ended', () => {
+          this.time = 0;
+          this.updateTime(0);
+        });
+        this.popcorn.on('pause', () => {
+          this.isPlayed = false;
+        });
+        this.popcorn.on('play', () => {
+          this.isPlayed = true;
+        });
+        emitter.on(emitterActions.SELECT, id => {
+          if (id) {
+            const element = this.getElementById(id);
+            if (element) {
               const { popcornOptions } = element;
               const currentTime = this.time / SANTISECOND;
               if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
                 this.updateTime(popcornOptions.start * SANTISECOND);
               }
 
-              if (this.activeElementId !== id && element) {
+              if (this.activeElementId !== id) {
                 if (this.isElementWithSettings(element.type)) {
                   this.editElement(id);
                 }
               }
             }
-          });
-          emitter.on(emitterActions.DELETE, id => {
-            this.removeElement(id);
-          });
-          emitter.on(emitterActions.SEQUENCES_LOADING, () => {
-            this.isLoadingSequencer = true;
-          });
-          emitter.on(emitterActions.SEQUENCES_READY, () => {
-            this.isLoadingSequencer = false;
-          });
-          emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
-            this.elements = this.elements.map(el => {
-              if (el.id === id) {
-                return {
-                  ...el,
-                  dimensions: { width, height },
-                };
-              }
-              return el;
-            });
-          });
-        },
-      );
-
-      reaction(
-        () => this.item.allowedSocials
-        && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
-        () => {
-          if (!this.userStore.linkedinEnabled) {
-            this.item.allowedSocials = this.item.allowedSocials
-              .filter(allowedSocial => allowedSocial !== SOCIALS.LINKEDIN);
           }
-        },
-      );
-    }
+        });
+        emitter.on(emitterActions.DELETE, id => {
+          this.removeElement(id);
+        });
+        emitter.on(emitterActions.SEQUENCES_LOADING, () => {
+          this.isLoadingSequencer = true;
+        });
+        emitter.on(emitterActions.SEQUENCES_READY, () => {
+          this.isLoadingSequencer = false;
+        });
+        emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
+          this.elements = this.elements.map(el => {
+            if (el.id === id) {
+              return {
+                ...el,
+                dimensions: { width, height },
+              };
+            }
+            return el;
+          });
+        });
+      },
+    );
+
+    reaction(
+      () => this.item.allowedSocials
+        && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
+      () => {
+        if (!this.userStore.linkedinEnabled) {
+          this.item.allowedSocials = this.item.allowedSocials
+            .filter(allowedSocial => allowedSocial !== SOCIALS.LINKEDIN);
+        }
+      },
+    );
   }
 
   setUndo = () => {
@@ -918,7 +919,6 @@ export default class ProjectStore extends BaseStore {
 
   @action
   recompressProject = (newDuration, updateElements = true) => {
-    const elements = [];
     this.projectData.media.forEach((media) => {
       const initialDuration = media.duration;
       if (initialDuration >= newDuration) {
@@ -936,9 +936,6 @@ export default class ProjectStore extends BaseStore {
               trackEvent.popcornOptions.end = Math
                 .round(trackEvent.popcornOptions.end * recompressRatio * 100) / 100;
             }
-            elements.push({
-              ...trackEvent,
-            });
           });
         });
       }
@@ -997,9 +994,17 @@ export default class ProjectStore extends BaseStore {
           eventEnd = lastEvent.end;
       }
 
-      if (lastEvent.end !== this.popcorn.duration()) {
+      if (lastEvent.end !== this.popcorn.duration() && byEnd.length !== 2) {
         this.projectData.media[0].url = `#t=,${eventEnd}`;
+        this.projectData.media[0].duration = eventEnd;
         this.duration = eventEnd * SANTISECOND;
+        this.setPopcorn();
+      }
+
+      if (byEnd.length === 2) {
+        this.projectData.media[0].url = `#t=,${30}`;
+        this.projectData.media[0].duration = 30;
+        this.duration = 30 * SANTISECOND;
         this.setPopcorn();
       }
     }
@@ -1269,10 +1274,16 @@ export default class ProjectStore extends BaseStore {
           }
         }
       });
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
+      this.projectData.media[0].duration = lastEnd / SANTISECOND;
       this.duration = lastEnd;
+      this.setPopcorn();
     }
     if (lastEnd > duration) {
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
+      this.projectData.media[0].duration = lastEnd / SANTISECOND;
       this.duration = lastEnd;
+      this.setPopcorn();
     }
   };
 
