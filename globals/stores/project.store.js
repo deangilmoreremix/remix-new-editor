@@ -320,9 +320,9 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addLayer = (style) => {
+  addLayer = (options) => {
     this.setUndo();
-    this.createNewLayer(style);
+    this.createNewLayer(options);
   };
 
   @action
@@ -1414,9 +1414,10 @@ export default class ProjectStore extends BaseStore {
 
   // analog for addLayer
   @action
-  createNewLayer = (style) => {
-    const blendMode = style && style.blendMode ? style.blendMode : blendModeConstants.normal.value;
-    const opacity = style && style.opacity ? style.opacity : 100;
+  createNewLayer = (options) => {
+    const blendMode = options && options.blendMode
+      ? options.blendMode : blendModeConstants.normal.value;
+    const opacity = options && options.opacity ? options.opacity : 100;
 
     this.modified = true;
     this.projectData.media.forEach((media) => {
