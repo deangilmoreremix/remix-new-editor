@@ -199,8 +199,9 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
       let toVideoNewEnd = transitionOptions.end + TRANSITION_TIMELINE_OFFSET
         + (toVideo.popcornOptions.end - toVideo.popcornOptions.start)
         - newFrom + toVideo.popcornOptions.from;
-      if ((toVideo.popcornOptions.duration - newFrom)
-        < (toVideo.popcornOptions.end - toVideo.popcornOptions.start)) {
+
+      if (newFrom
+        > (toVideo.popcornOptions.end - toVideo.popcornOptions.start)) {
         toVideoNewEnd = +((toVideo.popcornOptions.duration - newFrom).toFixed(2))
           + transitionOptions.end + TRANSITION_TIMELINE_OFFSET;
       }
