@@ -27,6 +27,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
     elements,
     projectData,
     duration: clipDuration,
+    updateElementFromTimeline,
   } = useProjectStore();
   const { uploadMedia } = useMediaStore();
 
@@ -252,7 +253,9 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
 
         if (elementsForUpdate && elementsForUpdate.length && difference > 0) {
           elementsForUpdate.forEach(item => {
-            findAndUpdate(item.id, {
+            updateElementFromTimeline({
+              needUpdateStartEnd: true,
+              elementId: item.id,
               start: item.popcornOptions.start + difference,
               end: item.popcornOptions.end + difference,
             });

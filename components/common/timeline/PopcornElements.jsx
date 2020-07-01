@@ -67,7 +67,7 @@ const PopcornElements = observer(({ width }) => {
         track.trackEvents.forEach(trackEvent => {
           if (trackEvent.track === currentLayer[0].track) {
             elementsEnds.push(trackEvent.popcornOptions.end);
-            if ((element.end - TRANSITION_DEFAULT_DURATION) < trackEvent.popcornOptions.start) {
+            if ((element.end - TRANSITION_DEFAULT_DURATION) <= trackEvent.popcornOptions.start) {
               elementsForUpdate.push(trackEvent);
             }
           }
@@ -78,7 +78,7 @@ const PopcornElements = observer(({ width }) => {
 
     if (elementsForUpdate && elementsForUpdate.length) {
       elementsForUpdate.forEach(item => {
-        if (item.popcornOptions.start < itemStartAfterToVideo || !itemStartAfterToVideo) {
+        if (item.popcornOptions.start <= itemStartAfterToVideo || !itemStartAfterToVideo) {
           itemStartAfterToVideo = item.popcornOptions.start;
         }
       });
@@ -100,7 +100,6 @@ const PopcornElements = observer(({ width }) => {
       }
     }
 
-    // await updateElementFromTimeline(element.id, element.start, element.end);
     await updateElementFromTimeline({
       needUpdateStartEnd: true,
       elementId: element.id,
