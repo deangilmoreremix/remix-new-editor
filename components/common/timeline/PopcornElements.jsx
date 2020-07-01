@@ -90,16 +90,23 @@ const PopcornElements = observer(({ width }) => {
       }
 
       if (elementsForUpdate && elementsForUpdate.length) {
-        elementsForUpdate.forEach(item => {
-          updateElementFromTimeline(
-            item.id,
-            item.popcornOptions.start + TRANSITION_DEFAULT_DURATION,
-            item.popcornOptions.end + TRANSITION_DEFAULT_DURATION);
-        });
+        elementsForUpdate.forEach(item => (
+          updateElementFromTimeline({
+            needUpdateStartEnd: true,
+            elementId: item.id,
+            start: item.popcornOptions.start + TRANSITION_DEFAULT_DURATION,
+            end: item.popcornOptions.end + TRANSITION_DEFAULT_DURATION,
+          })));
       }
     }
 
-    await updateElementFromTimeline(element.id, element.start, element.end);
+    // await updateElementFromTimeline(element.id, element.start, element.end);
+    await updateElementFromTimeline({
+      needUpdateStartEnd: true,
+      elementId: element.id,
+      start: element.start,
+      end: element.end,
+    });
     await addElement({
       ...DEFAULT_SETTINGS[POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION],
       ...transition,
