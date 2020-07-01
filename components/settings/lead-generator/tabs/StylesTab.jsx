@@ -22,8 +22,6 @@ import {
 const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
-  const [logoUrl, setLogoUrl] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
 
   const { openCropper } = useModalStore();
 
@@ -60,30 +58,27 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
       <div className="brand-logo-container">
         <div className="upload-container">
           <FieldBuilder
-            value={logoUrl ?? (values.brandLogoSrc ?? fields.brandLogoSrc.default)}
+            value={values.brandLogoSrc ?? fields.brandLogoSrc.default}
             {...fields.brandLogoSrc}
             onChange={({ brandLogoSrc }) => {
-              setLogoUrl(brandLogoSrc);
               openCropper(brandLogoSrc,
                 onCrop, CROP_BRAND_LOGO_RESOLUTION, fields.brandLogoSrc.name);
             }}
           />
           <DropzoneArea
             onUploaded={(item, ext) => {
-              setLogoUrl(item.url);
               onUploadedImage(item, ext,
                 fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION);
             }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
-            value={logoUrl ?? values?.brandLogoSrc}
+            value={values?.brandLogoSrc}
             startUpload={() => setIsDisabledUploadLogo(true)}
             endUpload={() => setIsDisabledUploadLogo(false)}
             multiple={false}
           />
           <DropButton
             onUploaded={(item, ext) => {
-              setLogoUrl(item.url);
               onUploadedImage(item, ext,
                 fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION);
             }}
@@ -97,29 +92,26 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
         </div>
         <div className="upload-container">
           <FieldBuilder
-            value={imageUrl ?? (values.backgroundImage ?? fields.backgroundImage.default)}
+            value={values.backgroundImage ?? fields.backgroundImage.default}
             {...fields.backgroundImage}
-            onChange={({ backgroundImage }) => {
-              setImageUrl(backgroundImage);
-              openCropper(backgroundImage, onCrop,
+            onChange={({ backgroundImage: newUrl }) => {
+              openCropper(newUrl, onCrop,
                 CROP_RECOMMENDED_RESOLUTION, fields.backgroundImage.name);
             }}
           />
           <DropzoneArea
             onUploaded={(item, ext) => {
-              setImageUrl(item.url);
               onUploadedImage(item, ext, fields.backgroundImage.name);
             }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadImage}
-            value={imageUrl ?? values?.backgroundImage}
+            value={values?.backgroundImage}
             startUpload={() => setIsDisabledUploadImage(true)}
             endUpload={() => setIsDisabledUploadImage(false)}
             multiple={false}
           />
           <DropButton
             onUploaded={(item, ext) => {
-              setImageUrl(item.url);
               onUploadedImage(item, ext, fields.backgroundImage.name);
             }}
             type={ASSET_TYPES.IMAGE}
