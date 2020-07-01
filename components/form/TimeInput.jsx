@@ -33,7 +33,10 @@ const TimeInput = ({
   const onEdit = ({ formattedValue }) => {
     const time = moment(formattedValue, TIME_DISPLAY_FORMAT);
     const diffTime = moment({ minutes: 0, seconds: 0 });
-    onChange(moment.duration(time.diff(diffTime)).asSeconds());
+    const newValue = moment.duration(time.diff(diffTime)).asSeconds();
+    if (value !== newValue) {
+      onChange(newValue);
+    }
   };
 
   const formattedValue = seconds => {

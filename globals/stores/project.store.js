@@ -6,7 +6,7 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 
-import { NO_SETTINGS_ELEMENT_TYPES, SEQUENCER } from '../../lib/constants/popcorn';
+import { NO_SETTINGS_ELEMENT_TYPES, SEQUENCER, POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
@@ -64,15 +64,18 @@ export default class ProjectStore extends BaseStore {
           this.isPlayed = true;
         });
         emitter.on(emitterActions.SELECT, id => {
-          if (this.activeElementId !== id && id) {
+          if (id) {
             const element = this.getElementById(id);
-            if (this.isElementWithSettings(element.type)) {
-              this.editElement(id);
-            }
             const { popcornOptions } = element;
             const currentTime = this.time / SANTISECOND;
             if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
               this.updateTime(popcornOptions.start * SANTISECOND);
+            }
+
+            if (this.activeElementId !== id && element) {
+              if (this.isElementWithSettings(element.type)) {
+                this.editElement(id);
+              }
             }
           }
         });
@@ -899,36 +902,43 @@ export default class ProjectStore extends BaseStore {
     }
     this.isLoading = true;
 
-    // Todo add in future
-    // const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
-    //
-    // if (byEnd && byEnd.length && byEnd.length > 1) {
-    //   const lastEvent = byEnd[byEnd.length - 2];
-    //   let eventEnd = 0;
-    //
-    //   switch (lastEvent.type) {
-    //     case POPCORN_ELEMENT_TYPES.TEXT:
-    //       if (lastEvent.animation.out && lastEvent.animation.out.duration) {
-    //         eventEnd = lastEvent.end + lastEvent.animation.out.duration;
-    //       } else {
-    //         eventEnd = lastEvent.end;
-    //       }
-    //       break;
-    //     case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
-    //       if (lastEvent.outDuration) {
-    //         eventEnd = lastEvent.end + lastEvent.outDuration;
-    //       } else {
-    //         eventEnd = lastEvent.end;
-    //       }
-    //       break;
-    //     default:
-    //       eventEnd = lastEvent.end;
-    //   }
-    //
-    //   if (lastEvent.end !== this.popcorn.duration()) {
-    //     this.projectData.media[0].url = `#t=,${eventEnd}`;
-    //   }
-    // }
+    const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
+
+    if (byEnd && byEnd.length && byEnd.length > 1) {
+      const lastEvent = byEnd[byEnd.length - 2];
+      let eventEnd = 0;
+
+      switch (lastEvent.type) {
+        case POPCORN_ELEMENT_TYPES.TEXT:
+          if (lastEvent.animation && lastEvent.animation.out && lastEvent.animation.out.duration) {
+            eventEnd = lastEvent.end + lastEvent.animation.out.duration;
+          } else {
+            eventEnd = lastEvent.end;
+          }
+          break;
+        case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
+          if (lastEvent.outDuration) {
+            eventEnd = lastEvent.end + lastEvent.outDuration;
+          } else {
+            eventEnd = lastEvent.end;
+          }
+          break;
+        default:
+          eventEnd = lastEvent.end;
+      }
+
+      if (lastEvent.end !== this.popcorn.duration() && byEnd.length !== 2) {
+        this.projectData.media[0].url = `#t=,${eventEnd}`;
+        this.duration = eventEnd * SANTISECOND;
+        this.setPopcorn();
+      }
+
+      if (byEnd.length === 2) {
+        this.projectData.media[0].url = `#t=,${30}`;
+        this.duration = 30 * SANTISECOND;
+        this.setPopcorn();
+      }
+    }
 
     try {
       const path = this.item._id
@@ -1203,10 +1213,14 @@ export default class ProjectStore extends BaseStore {
           }
         }
       });
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
       this.duration = lastEnd;
+      this.setPopcorn();
     }
     if (lastEnd > duration) {
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
       this.duration = lastEnd;
+      this.setPopcorn();
     }
   }
 }

@@ -1,9 +1,12 @@
 import React from 'react';
+import PropTypes from '../../lib/PropTypes';
 
-const InfiniteLoading = () => (
-  <div>Loading...</div>
+const InfiniteLoading = ({ className }) => (
+  <div className={className}>Loading...</div>
 );
 
-InfiniteLoading.propTypes = {};
+InfiniteLoading.propTypes = {
+  className: PropTypes.string,
+};
 
 export default InfiniteLoading;
