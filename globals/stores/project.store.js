@@ -826,30 +826,10 @@ export default class ProjectStore extends BaseStore {
           };
 
           if (trackEvent.popcornOptions.start === firstElementStart) {
-            if ((trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
-              || (trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT
-                && trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.in)
-              || (trackEvent.type === POPCORN_ELEMENT_TYPES.IMAGE
-                && trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.in))
-              && (this.time / SANTISECOND) === 0) {
-              item.start = 0.01;
-            } else {
-              item.start = this.time / SANTISECOND;
-            }
+            item.start = this.time / SANTISECOND;
           } else {
-            // eslint-disable-next-line no-alert,no-lonely-if
-            if ((trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
-              || (trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT
-                && trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.in)
-              || (trackEvent.type === POPCORN_ELEMENT_TYPES.IMAGE
-                && trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.in))
-              && ((this.time / SANTISECOND) === 0)
-              && (trackEvent.popcornOptions.start - firstElementStart === 0)) {
-              item.start = 0.01;
-            } else {
-              item.start = (this.time / SANTISECOND)
-                + (trackEvent.popcornOptions.start - firstElementStart);
-            }
+            item.start = (this.time / SANTISECOND)
+              + (trackEvent.popcornOptions.start - firstElementStart);
           }
 
           item.end = (trackEvent.popcornOptions.end - trackEvent.popcornOptions.start) + item.start;
