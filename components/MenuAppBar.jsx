@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 import Router from 'next/router';
+import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 import { Grid, AppBar, Toolbar } from '@material-ui/core';
 
@@ -14,8 +15,8 @@ import { ROUTES } from '../lib/constants/routing';
 import { PRODUCE_TABS, USER_MENU_ITEMS } from '../lib/constants/ui';
 
 // import logoIcon from '../public/static/svgImages/header/logo.svg';
-// import redoIcon from '../public/static/svgImages/header/redo.svg';
-// import undoIcon from '../public/static/svgImages/header/undo.svg';
+import redoIcon from '../public/static/svgImages/header/redo.svg';
+import undoIcon from '../public/static/svgImages/header/undo.svg';
 import saveIcon from '../public/static/svgImages/header/save.svg';
 // import hamburgerIcon from '../public/static/svgImages/header/hamburger.svg';
 // import saveAsIcon from '../public/static/svgImages/menu/save-as.svg';
@@ -36,6 +37,9 @@ const MenuAppBar = observer(() => {
     save,
     modified,
     item,
+    undoRedoAction,
+    canUndo,
+    canRedo,
   } = useProjectStore();
   // const { openModal } = useModalStore();
   const common = useCommonStore();
@@ -122,24 +126,40 @@ const MenuAppBar = observer(() => {
             </Grid>
             <Grid item xs={1} className="flex-vertical-center">
               <div className="auto-margin">
-                {/* <SVGInline */}
-                {/* className="auto-margin icon icon-button" */}
-                {/* classSuffix="" */}
-                {/* svg={undoIcon} */}
-                {/* cleanup={['title']} */}
-                {/* component="button" */}
-                {/* /> */}
-                {/* <button className="icon-button">undo</button> */}
+                <SVGInline
+                  className={classnames('auto-margin icon icon-button', { active: canUndo })}
+                  classSuffix=""
+                  svg={undoIcon}
+                  cleanup={['title']}
+                  component="button"
+                  disabled={!canUndo}
+                  onClick={() => undoRedoAction(true)}
+                />
+                <button
+                  className={classnames('icon-button', { active: canUndo })}
+                  disabled={!canUndo}
+                  onClick={() => undoRedoAction(true)}
+                >
+                  undo
+                </button>
               </div>
               <div className="auto-margin">
-                {/* <SVGInline */}
-                {/* className="auto-margin icon icon-button" */}
-                {/* classSuffix="" */}
-                {/* svg={redoIcon} */}
-                {/* cleanup={['title']} */}
-                {/* component="button" */}
-                {/* /> */}
-                {/* <button className="icon-button">redo</button> */}
+                <SVGInline
+                  className={classnames('auto-margin icon icon-button', { active: canRedo })}
+                  classSuffix=""
+                  svg={redoIcon}
+                  cleanup={['title']}
+                  component="button"
+                  disabled={!canRedo}
+                  onClick={() => undoRedoAction(false)}
+                />
+                <button
+                  className={classnames('icon-button', { active: canRedo })}
+                  disabled={!canRedo}
+                  onClick={() => undoRedoAction(false)}
+                >
+                  redo
+                </button>
               </div>
               <div className="auto-margin">
                 <SVGInline

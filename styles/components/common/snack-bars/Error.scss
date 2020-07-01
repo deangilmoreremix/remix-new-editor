@@ -1,0 +1,18 @@
+.MuiSnackbar-anchorOriginBottomCenter {
+  &.error-snackbar {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+
+    .error-snackbar-content {
+      background-color: rgba(235, 80, 84, 0.8);
+      width: 100%;
+    }
+
+    .icon-button-svg {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+}

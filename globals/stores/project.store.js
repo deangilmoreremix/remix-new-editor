@@ -1,4 +1,4 @@
-import { observable, action, computed, reaction, runInAction } from 'mobx';
+import { observable, action, computed, reaction, runInAction, toJS } from 'mobx';
 import arrayMove from 'array-move';
 import size from 'lodash/size';
 
@@ -6,7 +6,12 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 
-import { NO_SETTINGS_ELEMENT_TYPES, SEQUENCER } from '../../lib/constants/popcorn';
+import {
+  NO_SETTINGS_ELEMENT_TYPES,
+  SEQUENCER,
+  POPCORN_ELEMENT_TYPES,
+  CARET_NAMES,
+} from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
@@ -24,93 +29,116 @@ import {
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
+import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
+import { showInfo } from '../../lib/services/alertService';
+import { FORM_ONE_LG } from '../../lib/constants/text-info';
+
+const caretNames = Object.values(CARET_NAMES);
 
 export default class ProjectStore extends BaseStore {
-  constructor(props) {
+  constructor(props, runReaction = true) {
     super(props);
     this.layers = [];
     this.elements = [];
     this.mediaTypeDetector = new MediaTypeDetector();
     this.userStore = props.userStore;
-    reaction(
-      () => this.popcorn,
-      () => {
-        if (!this.popcorn.on) {
-          return;
-        }
-        this.popcorn.on('seeking', () => {
-          if (this.isPlayed) {
-            this.playPause();
+    if (runReaction) {
+      reaction(
+        () => this.popcorn,
+        () => {
+          if (!this.popcorn.on) {
+            return;
           }
-        });
-        this.popcorn.on('canplayall', () => {
-          this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
-          this.isLoaded = true;
-        });
-        this.popcorn.on('elementUpdated', (data) => {
-          const { element, options } = data;
-          this.findAndUpdate(element.id, options);
-        });
-        this.popcorn.on('timeupdate', () => {
-          this.time = this.popcorn.currentTime() * SANTISECOND;
-        });
-        this.popcorn.on('ended', () => {
-          this.time = 0;
-          this.updateTime(0);
-        });
-        this.popcorn.on('pause', () => {
-          this.isPlayed = false;
-        });
-        this.popcorn.on('play', () => {
-          this.isPlayed = true;
-        });
-        emitter.on(emitterActions.SELECT, id => {
-          if (this.activeElementId !== id && id) {
-            const element = this.getElementById(id);
-            if (this.isElementWithSettings(element.type)) {
-              this.editElement(id);
+          this.popcorn.on('seeking', () => {
+            if (this.isPlayed) {
+              this.playPause();
             }
-            const { popcornOptions } = element;
-            const currentTime = this.time / SANTISECOND;
-            if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
-              this.updateTime(popcornOptions.start * SANTISECOND);
-            }
-          }
-        });
-        emitter.on(emitterActions.DELETE, id => {
-          this.removeElement(id);
-        });
-        emitter.on(emitterActions.SEQUENCES_LOADING, () => {
-          this.isLoadingSequencer = true;
-        });
-        emitter.on(emitterActions.SEQUENCES_READY, () => {
-          this.isLoadingSequencer = false;
-        });
-        emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
-          this.elements = this.elements.map(el => {
-            if (el.id === id) {
-              return {
-                ...el,
-                dimensions: { width, height },
-              };
-            }
-            return el;
           });
-        });
-      },
-    );
+          this.popcorn.on('canplayall', () => {
+            this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
+            this.isLoaded = true;
+          });
+          this.popcorn.on('elementUpdated', (data) => {
+            const { element, options } = data;
+            this.findAndUpdate(element.id, options);
+          });
+          this.popcorn.on('timeupdate', () => {
+            this.time = this.popcorn.currentTime() * SANTISECOND;
+          });
+          this.popcorn.on('ended', () => {
+            this.time = 0;
+            this.updateTime(0);
+          });
+          this.popcorn.on('pause', () => {
+            this.isPlayed = false;
+          });
+          this.popcorn.on('play', () => {
+            this.isPlayed = true;
+          });
+          emitter.on(emitterActions.SELECT, id => {
+            if (id) {
+              const element = this.getElementById(id);
+              if (element) {
+                const { popcornOptions } = element;
+                const currentTime = this.time / SANTISECOND;
+                if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
+                  this.updateTime(popcornOptions.start * SANTISECOND);
+                }
 
-    reaction(
-      () => this.item.allowedSocials
+                if (this.activeElementId !== id) {
+                  if (this.isElementWithSettings(element.type)) {
+                    this.editElement(id);
+                  }
+                }
+              }
+            }
+          });
+          emitter.on(emitterActions.DELETE, id => {
+            this.removeElement(id);
+          });
+          emitter.on(emitterActions.SEQUENCES_LOADING, () => {
+            this.isLoadingSequencer = true;
+          });
+          emitter.on(emitterActions.SEQUENCES_READY, () => {
+            this.isLoadingSequencer = false;
+          });
+          emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
+            this.elements = this.elements.map(el => {
+              if (el.id === id) {
+                return {
+                  ...el,
+                  dimensions: { width, height },
+                };
+              }
+              return el;
+            });
+          });
+        },
+      );
+
+      reaction(
+        () => this.item.allowedSocials
         && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
-      () => {
-        if (!this.userStore.linkedinEnabled) {
-          this.item.allowedSocials = this.item.allowedSocials
-            .filter(allowedSocial => allowedSocial !== SOCIALS.LINKEDIN);
-        }
-      },
-    );
+        () => {
+          if (!this.userStore.linkedinEnabled) {
+            this.item.allowedSocials = this.item.allowedSocials
+              .filter(allowedSocial => allowedSocial !== SOCIALS.LINKEDIN);
+          }
+        },
+      );
+    }
   }
+
+  setUndo = () => {
+    const snapshot = toJS(this.projectData);
+    this.redoStore = [];
+    this.setUndoRedoAction({
+      projectData: snapshot,
+      duration: this.duration,
+      retarget: { ...this.retarget },
+      activeElementId: this.activeElementId,
+    });
+  };
 
   @observable userStore = {};
 
@@ -129,6 +157,10 @@ export default class ProjectStore extends BaseStore {
   @observable isLoadingSequencer = false;
 
   @observable projectData = {};
+
+  @observable undoStore = [];
+
+  @observable redoStore = [];
 
   @observable layers;
 
@@ -151,6 +183,54 @@ export default class ProjectStore extends BaseStore {
   @observable duration = 30 * SANTISECOND;
 
   @observable time = 0;
+
+  @action
+  undoRedoAction = (undo = true) => {
+    const targetData = undo ? this.undoStore : this.redoStore;
+    const targetDataLength = targetData.length;
+    if (!targetDataLength) {
+      return;
+    }
+
+    this.modified = true;
+    const { projectData, duration, retarget, activeElementId } = targetData[targetDataLength - 1];
+    const snapshot = toJS(this.projectData);
+    targetData.pop();
+
+    this.setUndoRedoAction({
+      projectData: snapshot,
+      duration: this.duration,
+      retarget: { ...this.retarget },
+      activeElementId: this.activeElementId,
+    }, !undo);
+
+    if (this.activeElementId !== activeElementId) {
+      this.releaseElement();
+    }
+    this.elements.map(event => this.popcorn.removeTrackEvent(event.id));
+    this.setProjectData(projectData);
+    this.attach(this.popcorn.target);
+
+    if (this.retarget && this.retarget.end) {
+      this.retarget.end();
+    }
+    this.retarget = retarget;
+    this.editElement(activeElementId);
+    if (this.retarget && this.retarget.id === activeElementId) {
+      // eslint-disable-next-line no-underscore-dangle
+      if (this.retarget._update) {
+        // eslint-disable-next-line no-underscore-dangle
+        this.retarget._update(this.retarget, this.retarget.options);
+      }
+      if (this.retarget.start) {
+        this.retarget.start();
+      }
+    }
+    this.duration = duration;
+    if (this.time * SANTISECOND > this.duration) {
+      this.updateTime(0);
+    }
+  };
 
   setElementOptions = async (item) => {
     const { track } = item || {};
@@ -213,11 +293,10 @@ export default class ProjectStore extends BaseStore {
   isElementWithSettings = (type) => !NO_SETTINGS_ELEMENT_TYPES.some(e => e === type);
 
   @action
-  createRetargetForm = (initialOptions) => {
-    const { type } = initialOptions;
+  createRetargetForm = () => {
+    this.setUndo();
     const popcornFunctions = window.Popcorn.compositions.retargetForm();
     const manifest = window.Popcorn.manifest.retargetForm;
-
     let options;
     if (this.retarget && this.retarget.options) {
       options = { ...this.retarget.options };
@@ -228,7 +307,7 @@ export default class ProjectStore extends BaseStore {
     const retargetOptions = {
       id: `0.${this.generateUid()}`,
       manifest,
-      type,
+      type: POPCORN_ELEMENT_TYPES.RETARGET,
       options,
     };
 
@@ -248,9 +327,9 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addRetargetForm = (retargetForm) => {
+  addRetargetForm = () => {
     if (!this.retarget || (this.retarget && !this.retarget.id)) {
-      this.createRetargetForm(retargetForm);
+      this.createRetargetForm();
     }
     this.editElement(this.retarget.id);
     this.retarget.start();
@@ -259,54 +338,9 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addElement = async (item) => {
-    const { type } = item;
-    if (this.isPlayed) {
-      this.playPause();
-    }
-
-    const options = await this.setElementOptions(item);
-
-    // get first track
-    let track = item.track || this.layers[0];
-
-    if (track.blendMode) {
-      options.blendMode = track.blendMode;
-    } else {
-      options.blendMode = blendModeConstants.normal.value;
-    }
-
-    const layerElements = this.elements.filter(element => element.track === track.id);
-    if (isLayerFulfilled(options, layerElements)) {
-      this.addLayer();
-      [track] = this.layers;
-    }
-
-    const element = {
-      id: options.id,
-      type,
-      track: track.id,
-      name: options.id,
-      popcornOptions: { ...item, ...options },
-    };
-
-    this.addElementToProject(element);
-
-    // update duration
-    if (options.end > this.duration / SANTISECOND) {
-      this.recompressProject(options.end, false);
-      this.setPopcorn(this.popcorn.target);
-      this.duration = options.end * SANTISECOND;
-    }
-
-    // update timeline
-    this.elements = [element, ...this.elements];
-
-    if (this.isElementWithSettings(element.type)) {
-      this.editElement(element.id);
-    } else {
-      this.releaseElement();
-    }
+  addLayer = () => {
+    this.setUndo();
+    this.createNewLayer();
   };
 
   @action
@@ -325,7 +359,11 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  findAndUpdate = (elementId, options) => {
+  findAndUpdate = (elementId, options = {}) => {
+    const newValues = Object.keys(options);
+    if (newValues && newValues.length && !newValues.every(key => caretNames.includes(key))) {
+      this.setUndo();
+    }
     if (this.retarget && elementId === this.retarget.id) {
       this.modified = true;
       this.retarget.options = {
@@ -440,6 +478,7 @@ export default class ProjectStore extends BaseStore {
     if (!this.popcornObject) {
       return;
     }
+
     if (!target) {
       target = this.popcorn && this.popcorn.target;
     }
@@ -451,6 +490,19 @@ export default class ProjectStore extends BaseStore {
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
     this.attach(target);
   };
+
+  @action
+  updateElementFromTimeline = (options) => {
+    this.setUndo();
+    const { needUpdateLayer, needUpdateStartEnd, elementId, start, end, layerLevel } = options;
+    if (needUpdateLayer) {
+      this.setLayer(elementId, layerLevel);
+    }
+    if (needUpdateStartEnd) {
+      this.updateStartEnd(elementId, start, end);
+    }
+  };
+
 
   generatePopcornObject = () => {
     let popcornObject = {};
@@ -503,9 +555,9 @@ export default class ProjectStore extends BaseStore {
         };
         layers.push(layer);
       });
-      media.tracks = media.tracks.sort((a, b) => a.order - b.order);
+      media.tracks = media.tracks.slice().sort((a, b) => a.order - b.order);
     });
-    layers = layers.sort((a, b) => a.order - b.order);
+    layers = layers.slice().sort((a, b) => a.order - b.order);
     this.layers = layers;
     this.elements = elements;
     this.projectData = projectData;
@@ -518,6 +570,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   moveElements = (oldIndex, newIndex) => {
+    this.setUndo();
     this.projectData.media.forEach((media) => {
       const tracks = arrayMove(media.tracks, oldIndex, newIndex);
       media.tracks = this.orderItems(tracks, true);
@@ -554,43 +607,67 @@ export default class ProjectStore extends BaseStore {
   });
 
   @action
-  addLayer = () => {
+  remixOne = async (projectId) => {
     this.modified = true;
-    this.projectData.media.forEach((media) => {
-      media.tracks = media.tracks.map(track => {
-        track.order += 1;
-        const zindex = MAX_ZINDEX - track.order;
-        track.trackEvents.forEach(element => {
-          element.popcornOptions.zindex = zindex;
-          this.updatePopcorn(element, { zindex });
+    this.item = DEFAULT_ITEM;
+    if (!projectId) {
+      this.setProjectData(this.item.project.data);
+      return this.item;
+    }
+    const path = `/api/makes/${projectId}/remix`;
+    try {
+      const result = await this.request(
+        path, {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
         });
-        return track;
-      });
-      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}` });
-    });
-
-    this.layers = this.layers.map(track => {
-      track.order += 1;
-      track.defaultName = `Layer ${track.order}`;
-      return track;
-    });
-    this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
+      this.item.title = `Remix of ${result.title}`;
+      this.item.thumbnail = result.thumbnail;
+      this.item.description = result.description;
+      this.item.remixedFrom = result.project._id;
+      this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${result._id}`;
+      // eslint-disable-next-line no-underscore-dangle
+      this.setProjectData(JSON.parse(result.project.data));
+      if (result.project && result.project.retargetForm) {
+        this.retarget = this.item.project.retargetForm;
+      }
+      if (result.project && result.project.allowedSocials) {
+        this.item.allowedSocials = this.item.project.allowedSocials;
+      }
+    } catch (e) {
+      this.item = DEFAULT_ITEM;
+      this.setProjectData(this.item.project.data);
+      throw e;
+    }
+    return this.item;
   };
 
   @action
   removeElement = (id) => {
+    this.setUndo();
     this.modified = true;
     this.releaseElement();
     if (this.projectData.media) {
-      this.projectData.media.forEach((media) => {
-        media.tracks.forEach((track) => {
-          track.trackEvents = track.trackEvents.filter(trackEvent => trackEvent.id !== id);
-          this.popcorn.removeTrackEvent(id);
-        });
-      });
-
+      this.removeTrackEvent(id);
       this.elements = this.elements.filter(element => element.id !== id);
     }
+  };
+
+  @action
+  addElement = (item) => {
+    this.setUndo();
+    return this.createNewElement(item);
+  };
+
+  removeTrackEvent = (id) => {
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents = track.trackEvents.filter(trackEvent => trackEvent.id !== id);
+        this.popcorn.removeTrackEvent(id);
+      });
+    });
   };
 
   @action
@@ -598,6 +675,7 @@ export default class ProjectStore extends BaseStore {
     if (this.layers.length <= 1) {
       return;
     }
+    this.setUndo();
     this.modified = true;
     this.projectData.media.forEach((media) => {
       const removedTrack = media.tracks.find(track => track.id === id);
@@ -621,6 +699,7 @@ export default class ProjectStore extends BaseStore {
   @action
   editLayer = (id, options) => {
     this.modified = true;
+    this.setUndo();
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
         if (track.id === id) {
@@ -693,6 +772,27 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  addData = (makeTemplate = {}) => {
+    let newData = makeTemplate.project.data;
+    if (!newData) {
+      return;
+    }
+    this.setUndo();
+    newData = JSON.parse(newData);
+    newData.media.map((media) => media.tracks
+      .map((track) => track.trackEvents.map((trackEvent) => {
+        const item = {
+          ...trackEvent.popcornOptions,
+          track: null,
+          start: null,
+          end: null,
+          zindex: null,
+        };
+        return this.createNewElement(item);
+      })));
+  };
+
+  @action
   updateStartEnd = (elementId, start, end) => {
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
@@ -756,40 +856,12 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  remixOne = async (projectId) => {
-    this.modified = true;
-    this.item = DEFAULT_ITEM;
-    if (!projectId) {
-      this.setProjectData(this.item.project.data);
-      return this.item;
+  setUndoRedoAction = (projectData, undo = true) => {
+    const targetData = undo ? this.undoStore : this.redoStore;
+    targetData.push(projectData);
+    if (targetData.length >= NUMBER_OF_STEPS) {
+      targetData.shift();
     }
-    const path = `/api/makes/${projectId}/remix`;
-    try {
-      const result = await this.request(
-        path, {
-          method: 'GET',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
-      this.item.title = `Remix of ${result.title}`;
-      this.item.thumbnail = result.thumbnail;
-      this.item.description = result.description;
-      this.item.remixedFrom = result.project._id;
-      this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${result._id}`;
-      this.setProjectData(JSON.parse(result.project.data));
-      if (result.project && result.project.retargetForm) {
-        this.retarget = this.item.project.retargetForm;
-      }
-      if (result.project && result.project.allowedSocials) {
-        this.item.allowedSocials = this.item.project.allowedSocials;
-      }
-    } catch (e) {
-      this.item = DEFAULT_ITEM;
-      this.setProjectData(this.item.project.data);
-      throw e;
-    }
-    return this.item;
   };
 
   @computed
@@ -864,10 +936,8 @@ export default class ProjectStore extends BaseStore {
     tags: this.item.tags,
   });
 
-  // todo implement
   @action
   recompressProject = (newDuration, updateElements = true) => {
-    const elements = [];
     this.projectData.media.forEach((media) => {
       const initialDuration = media.duration;
       if (initialDuration >= newDuration) {
@@ -885,9 +955,6 @@ export default class ProjectStore extends BaseStore {
               trackEvent.popcornOptions.end = Math
                 .round(trackEvent.popcornOptions.end * recompressRatio * 100) / 100;
             }
-            elements.push({
-              ...trackEvent,
-            });
           });
         });
       }
@@ -915,38 +982,51 @@ export default class ProjectStore extends BaseStore {
     if (!this.modified) {
       return;
     }
+    this.undoStore = [];
+    this.redoStore = [];
     this.isLoading = true;
 
-    // Todo add in future
-    // const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
-    //
-    // if (byEnd && byEnd.length && byEnd.length > 1) {
-    //   const lastEvent = byEnd[byEnd.length - 2];
-    //   let eventEnd = 0;
-    //
-    //   switch (lastEvent.type) {
-    //     case POPCORN_ELEMENT_TYPES.TEXT:
-    //       if (lastEvent.animation.out && lastEvent.animation.out.duration) {
-    //         eventEnd = lastEvent.end + lastEvent.animation.out.duration;
-    //       } else {
-    //         eventEnd = lastEvent.end;
-    //       }
-    //       break;
-    //     case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
-    //       if (lastEvent.outDuration) {
-    //         eventEnd = lastEvent.end + lastEvent.outDuration;
-    //       } else {
-    //         eventEnd = lastEvent.end;
-    //       }
-    //       break;
-    //     default:
-    //       eventEnd = lastEvent.end;
-    //   }
-    //
-    //   if (lastEvent.end !== this.popcorn.duration()) {
-    //     this.projectData.media[0].url = `#t=,${eventEnd}`;
-    //   }
-    // }
+    const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
+
+    // crop video
+    if (byEnd && byEnd.length && byEnd.length > 1) {
+      const lastEvent = byEnd[byEnd.length - 2];
+      let eventEnd = 0;
+
+      switch (lastEvent.type) {
+        case POPCORN_ELEMENT_TYPES.TEXT:
+        case POPCORN_ELEMENT_TYPES.IMAGE:
+          if (lastEvent.animation && lastEvent.animation.out && lastEvent.animation.out.duration) {
+            eventEnd = lastEvent.end + lastEvent.animation.out.duration;
+          } else {
+            eventEnd = lastEvent.end;
+          }
+          break;
+        case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
+          if (lastEvent.outDuration) {
+            eventEnd = lastEvent.end + lastEvent.outDuration;
+          } else {
+            eventEnd = lastEvent.end;
+          }
+          break;
+        default:
+          eventEnd = lastEvent.end;
+      }
+
+      if (lastEvent.end !== this.popcorn.duration() && byEnd.length !== 2) {
+        this.projectData.media[0].url = `#t=,${eventEnd}`;
+        this.projectData.media[0].duration = eventEnd;
+        this.duration = eventEnd * SANTISECOND;
+        this.setPopcorn();
+      }
+
+      if (byEnd.length === 2) {
+        this.projectData.media[0].url = `#t=,${30}`;
+        this.projectData.media[0].duration = 30;
+        this.duration = 30 * SANTISECOND;
+        this.setPopcorn();
+      }
+    }
 
     try {
       const path = this.item._id
@@ -1029,25 +1109,6 @@ export default class ProjectStore extends BaseStore {
     }
     this.setProjectData(this.projectData);
     this.setPopcorn();
-  };
-
-  addData = (makeTemplate = {}) => {
-    let newData = makeTemplate.project.data;
-    if (!newData) {
-      return;
-    }
-    newData = JSON.parse(newData);
-    newData.media.map((media) => media.tracks
-      .map((track) => track.trackEvents.map((trackEvent) => {
-        const item = {
-          ...trackEvent.popcornOptions,
-          track: null,
-          start: null,
-          end: null,
-          zindex: null,
-        };
-        return this.addElement(item);
-      })));
   };
 
   @action
@@ -1144,6 +1205,16 @@ export default class ProjectStore extends BaseStore {
     return this.popcornElements.find(element => element.id === id);
   }
 
+  @computed
+  get canUndo() {
+    return this.undoStore.length;
+  }
+
+  @computed
+  get canRedo() {
+    return this.redoStore.length;
+  }
+
   @action
   runTextfill = () => {
     this.popcornElements.forEach(element => {
@@ -1160,17 +1231,17 @@ export default class ProjectStore extends BaseStore {
 
   @computed
   get popcornElements() {
-    return this.popcornObject.popcornElements;
+    return this.popcornObject.popcornElements || [];
   }
 
   @action
   setBlendMode = (layerId, blendMode) => {
+    this.setUndo();
     this.modified = true;
     const elements = this.popcornElements.filter(element => element.track === layerId);
     elements.forEach(element => {
       this.updatePopcorn(element, { blendMode });
     });
-
     this.layers = this.layers.map(layer => {
       if (layer.id === layerId) {
         layer.blendMode = blendMode;
@@ -1201,6 +1272,7 @@ export default class ProjectStore extends BaseStore {
     if (lastEnd === duration || lastEnd <= 0 || lastEnd > MAX_DURATION) {
       return;
     }
+    this.setUndo();
     this.modified = true;
     if (lastEnd < duration) {
       elements.forEach(({ popcornOptions: { end }, type }) => {
@@ -1220,11 +1292,18 @@ export default class ProjectStore extends BaseStore {
           }
         }
       });
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
+      this.projectData.media[0].duration = lastEnd / SANTISECOND;
       this.duration = lastEnd;
+      this.setPopcorn();
     }
     if (lastEnd > duration) {
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
+      this.projectData.media[0].duration = lastEnd / SANTISECOND;
       this.duration = lastEnd;
+      this.setPopcorn();
     }
+    
     this.projectData.media.forEach(media => {
       media.duration = newDuration;
       media.url = `#t=,${newDuration}`;
@@ -1235,4 +1314,89 @@ export default class ProjectStore extends BaseStore {
       this.updateTime(0);
     }
   }
+  };
+
+  // untraceable methods for undo redo
+  // analog for addElement
+  @action
+  createNewElement = async (item) => {
+    const { type } = item;
+    this.modified = true;
+    if (this.isPlayed) {
+      this.playPause();
+    }
+    if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR
+      && this.elements.some(el => el.type === type)) {
+      this.releaseElement();
+      return showInfo(FORM_ONE_LG.text, FORM_ONE_LG.title);
+    }
+
+    const options = await this.setElementOptions(item);
+
+    // get first track
+    let track = item.track || this.layers[0];
+
+    if (track.blendMode) {
+      options.blendMode = track.blendMode;
+    } else {
+      options.blendMode = blendModeConstants.normal.value;
+    }
+
+    const layerElements = this.elements.filter(element => element.track === track.id);
+    if (isLayerFulfilled(options, layerElements)) {
+      this.createNewLayer();
+      [track] = this.layers;
+    }
+
+    const element = {
+      id: options.id,
+      type,
+      track: track.id,
+      name: options.id,
+      popcornOptions: { ...item, ...options },
+    };
+
+    this.addElementToProject(element);
+
+    // update duration
+    if (options.end > this.duration / SANTISECOND) {
+      this.recompressProject(options.end, false);
+      this.setPopcorn(this.popcorn.target);
+      this.duration = options.end * SANTISECOND;
+    }
+
+    // update timeline
+    this.elements = [element, ...this.elements];
+
+    if (this.isElementWithSettings(element.type)) {
+      this.editElement(element.id);
+    } else {
+      this.releaseElement();
+    }
+  };
+
+  // analog for addLayer
+  @action
+  createNewLayer = () => {
+    this.modified = true;
+    this.projectData.media.forEach((media) => {
+      media.tracks = media.tracks.map(track => {
+        track.order += 1;
+        const zindex = MAX_ZINDEX - track.order;
+        track.trackEvents.forEach(element => {
+          element.popcornOptions.zindex = zindex;
+          this.updatePopcorn(element, { zindex });
+        });
+        return track;
+      });
+      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}` });
+    });
+
+    this.layers = this.layers.map(track => {
+      track.order += 1;
+      track.defaultName = `Layer ${track.order}`;
+      return track;
+    });
+    this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
+  };
 }

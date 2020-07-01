@@ -123,7 +123,10 @@
   }
 }
 
-.btn-personalize, .btn-library {
+.btn-personalize,
+.btn-library,
+.btn-upload,
+.btn-custom {
   @include reset-button;
   display: inline-block;
   height: 2.174rem;

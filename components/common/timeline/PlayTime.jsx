@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+
 import { observer } from 'mobx-react';
 
 import useProjectStore from '../../hooks/useProjectStore';
@@ -22,6 +23,10 @@ const PlayTime = observer(() => {
       setDuration(value);
     }
   };
+
+  useEffect(() => {
+    onDurationChange(toTimecode(currentDuration / SANTISECOND, 2));
+  }, [currentDuration]);
 
   return (
     <div className="play-time">
