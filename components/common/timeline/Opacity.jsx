@@ -8,25 +8,31 @@ import useProjectStore from '../../hooks/useProjectStore';
 import PropTypes from '../../../lib/PropTypes';
 
 const step = 1;
+const maxValue = 100;
+const minValue = 10;
 
 const Opacity = ({ layer }) => {
-  const [count, setCount] = useState(layer.opacity ?? 100);
+  const [count, setCount] = useState(layer.opacity ?? maxValue);
   const { setLayerStyle } = useProjectStore();
 
   const handlePressKey = event => {
     if (event.keyCode === ENTER_KEY) {
       setLayerStyle(layer.id, {
         name: OPACITY,
-        value: count,
+        value: count >= minValue ? count : minValue,
       });
     }
 
-    if (event.keyCode === ARROW_UP && count < 100) {
-      setCount(count + step);
+    if (event.keyCode === ARROW_UP && Number(count) < maxValue) {
+      if (count < minValue) {
+        setCount(minValue);
+      } else {
+        setCount(Number(count) + step);
+      }
     }
 
-    if (event.keyCode === ARROW_DOWN && count > 0) {
-      setCount(count - step);
+    if (event.keyCode === ARROW_DOWN && Number(count) > minValue) {
+      setCount(Number(count) - step);
     }
   };
 
@@ -35,8 +41,8 @@ const Opacity = ({ layer }) => {
     if (value.length >= 2 && Number(value[0]) === 0) {
       value = Number(value.slice(1));
     }
-    if (value > 100) {
-      value = 100;
+    if (value > maxValue) {
+      value = maxValue;
     }
     setCount(value);
   };
