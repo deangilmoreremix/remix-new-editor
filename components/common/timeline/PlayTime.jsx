@@ -7,6 +7,7 @@ import useProjectStore from '../../hooks/useProjectStore';
 import FormTextField from '../../form/FormTextField';
 import { toSeconds, toTimecode } from '../../../lib/utils/time';
 import { SANTISECOND } from '../../../lib/constants/project';
+import { isTimelineString } from '../../../lib/constants/timeline';
 
 const PlayTime = observer(() => {
   const inputRef = useRef();
@@ -19,7 +20,7 @@ const PlayTime = observer(() => {
     const caretPoint = elem.selectionStart === 0 ? 1 : elem.selectionStart;
     const inputedValue = value.slice(caretPoint - 1, caretPoint);
 
-    if (/\d|:|\./.test(inputedValue)) {
+    if (isTimelineString(inputedValue)) {
       setDuration(value);
     }
   };
