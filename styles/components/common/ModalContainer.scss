@@ -1,6 +1,10 @@
 .modal-container {
   top: 0;
   border-radius: 0;
+
+  .MuiPaper-root {
+    background: none;
+  }
 }
 
 div.modal-container__content {
