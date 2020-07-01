@@ -34,7 +34,6 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
           openCropper(image.url, onCrop, resolution || CROP_RECOMMENDED_RESOLUTION, option);
-          onChange({ [option]: image.url });
         }
       });
     });
