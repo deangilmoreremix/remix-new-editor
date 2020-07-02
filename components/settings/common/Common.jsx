@@ -9,7 +9,7 @@ const TabMap = {
   [BASIC]: Basic,
 };
 
-const Loop = observer(({ tab = BASIC, element, update, fields }) => {
+const Common = observer(({ tab = BASIC, element, update, fields }) => {
   const Tab = TabMap[tab];
   const handleChange = (field) => {
     update(field);
@@ -22,7 +22,7 @@ const Loop = observer(({ tab = BASIC, element, update, fields }) => {
   );
 });
 
-Loop.propTypes = {
+Common.propTypes = {
   element: PropTypes.shape({
     id: PropTypes.string,
     popcornOptions: PropTypes.shape({
@@ -34,4 +34,4 @@ Loop.propTypes = {
   fields: PropTypes.shape({}),
 };
 
-export default Loop;
+export default Common;
