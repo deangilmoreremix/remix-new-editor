@@ -110,7 +110,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
 
   React.useEffect(() => {
     if (fromPlayer && fromPlayer.current && !isCaptured) {
-      fromPlayer.current.video.seek(fromVideo.popcornOptions.end);
+      fromPlayer.current.video.seek(fromVideo.popcornOptions.end - fromVideo.popcornOptions.start);
     }
   }, [fromVideo, isCaptured]);
 
