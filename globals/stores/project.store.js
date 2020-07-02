@@ -476,6 +476,7 @@ export default class ProjectStore extends BaseStore {
   @action
   updateElementFromTimeline = (options) => {
     this.setUndo();
+    this.modified = true;
     const { needUpdateLayer, needUpdateStartEnd, elementId, start, end, layerLevel } = options;
     if (needUpdateLayer) {
       this.setLayer(elementId, layerLevel);
@@ -776,6 +777,8 @@ export default class ProjectStore extends BaseStore {
 
   @action
   updateStartEnd = (elementId, start, end) => {
+    start = Math.ceil(start * SANTISECOND) / SANTISECOND;
+    end = Math.ceil(end * SANTISECOND) / SANTISECOND;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         element.popcornOptions.start = start;
