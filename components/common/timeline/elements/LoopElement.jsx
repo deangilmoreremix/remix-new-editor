@@ -5,7 +5,7 @@ import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../../lib/PropTypes';
 
-import svgLoopIcon from '../../../../public/static/images/toolbar/loop.svg';
+import svgLoopIcon from '../../../../public/static/svgImages/popcorn/loop.svg';
 import svgInfiniteIcon from '../../../../public/static/svgImages/popcorn/infinite.svg';
 import { POPCORN_ELEMENT_LABELS } from '../../../../lib/constants/popcorn';
 
