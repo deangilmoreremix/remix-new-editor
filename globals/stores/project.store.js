@@ -1304,98 +1304,92 @@ export default class ProjectStore extends BaseStore {
       this.setPopcorn();
     }
 
-    this.projectData.media.forEach(media => {
-      media.duration = newDuration;
-      media.url = `#t=,${newDuration}`;
-    });
-    this.setPopcorn();
-
     if (time >= lastEnd) {
       this.updateTime(0);
     }
   };
 
-// untraceable methods for undo redo
-// analog for addElement
-@action
-createNewElement = async (item) => {
-  const { type } = item;
-  this.modified = true;
-  if (this.isPlayed) {
-    this.playPause();
-  }
-  if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR
-    && this.elements.some(el => el.type === type)) {
-    this.releaseElement();
-    return showInfo(FORM_ONE_LG.text, FORM_ONE_LG.title);
-  }
+  // untraceable methods for undo redo
+  // analog for addElement
+  @action
+  createNewElement = async (item) => {
+    const { type } = item;
+    this.modified = true;
+    if (this.isPlayed) {
+      this.playPause();
+    }
+    if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR
+      && this.elements.some(el => el.type === type)) {
+      this.releaseElement();
+      return showInfo(FORM_ONE_LG.text, FORM_ONE_LG.title);
+    }
 
-  const options = await this.setElementOptions(item);
+    const options = await this.setElementOptions(item);
 
-  // get first track
-  let track = item.track || this.layers[0];
+    // get first track
+    let track = item.track || this.layers[0];
 
-  if (track.blendMode) {
-    options.blendMode = track.blendMode;
-  } else {
-    options.blendMode = blendModeConstants.normal.value;
-  }
+    if (track.blendMode) {
+      options.blendMode = track.blendMode;
+    } else {
+      options.blendMode = blendModeConstants.normal.value;
+    }
 
-  const layerElements = this.elements.filter(element => element.track === track.id);
-  if (isLayerFulfilled(options, layerElements)) {
-    this.createNewLayer();
-    [track] = this.layers;
-  }
+    const layerElements = this.elements.filter(element => element.track === track.id);
+    if (isLayerFulfilled(options, layerElements)) {
+      this.createNewLayer();
+      [track] = this.layers;
+    }
 
-  const element = {
-    id: options.id,
-    type,
-    track: track.id,
-    name: options.id,
-    popcornOptions: { ...item, ...options },
+    const element = {
+      id: options.id,
+      type,
+      track: track.id,
+      name: options.id,
+      popcornOptions: { ...item, ...options },
+    };
+
+    this.addElementToProject(element);
+
+    // update duration
+    if (options.end > this.duration / SANTISECOND) {
+      this.recompressProject(options.end, false);
+      this.setPopcorn(this.popcorn.target);
+      this.duration = options.end * SANTISECOND;
+    }
+
+    // update timeline
+    this.elements = [element, ...this.elements];
+
+    if (this.isElementWithSettings(element.type)) {
+      this.editElement(element.id);
+    } else {
+      this.releaseElement();
+    }
   };
 
-  this.addElementToProject(element);
-
-  // update duration
-  if (options.end > this.duration / SANTISECOND) {
-    this.recompressProject(options.end, false);
-    this.setPopcorn(this.popcorn.target);
-    this.duration = options.end * SANTISECOND;
-  }
-
-  // update timeline
-  this.elements = [element, ...this.elements];
-
-  if (this.isElementWithSettings(element.type)) {
-    this.editElement(element.id);
-  } else {
-    this.releaseElement();
-  }
-};
-
-// analog for addLayer
-@action
-createNewLayer = () => {
-  this.modified = true;
-  this.projectData.media.forEach((media) => {
-    media.tracks = media.tracks.map(track => {
-      track.order += 1;
-      const zindex = MAX_ZINDEX - track.order;
-      track.trackEvents.forEach(element => {
-        element.popcornOptions.zindex = zindex;
-        this.updatePopcorn(element, { zindex });
+  // analog for addLayer
+  @action
+  createNewLayer = () => {
+    this.modified = true;
+    this.projectData.media.forEach((media) => {
+      media.tracks = media.tracks.map(track => {
+        track.order += 1;
+        const zindex = MAX_ZINDEX - track.order;
+        track.trackEvents.forEach(element => {
+          element.popcornOptions.zindex = zindex;
+          this.updatePopcorn(element, { zindex });
+        });
+        return track;
       });
+      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}` });
+    });
+
+    this.layers = this.layers.map(track => {
+      track.order += 1;
+      track.defaultName = `Layer ${track.order}`;
       return track;
     });
-    media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}` });
-  });
-
-  this.layers = this.layers.map(track => {
-    track.order += 1;
-    track.defaultName = `Layer ${track.order}`;
-    return track;
-  });
-  this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
-};
+    this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
+  };
 }
