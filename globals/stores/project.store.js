@@ -77,15 +77,17 @@ export default class ProjectStore extends BaseStore {
           emitter.on(emitterActions.SELECT, id => {
             if (id) {
               const element = this.getElementById(id);
-              const { popcornOptions } = element;
-              const currentTime = this.time / SANTISECOND;
-              if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
-                this.updateTime(popcornOptions.start * SANTISECOND);
-              }
+              if (element) {
+                const { popcornOptions } = element;
+                const currentTime = this.time / SANTISECOND;
+                if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
+                  this.updateTime(popcornOptions.start * SANTISECOND);
+                }
 
-              if (this.activeElementId !== id && element) {
-                if (this.isElementWithSettings(element.type)) {
-                  this.editElement(id);
+                if (this.activeElementId !== id) {
+                  if (this.isElementWithSettings(element.type)) {
+                    this.editElement(id);
+                  }
                 }
               }
             }
@@ -321,9 +323,9 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addLayer = () => {
+  addLayer = (options) => {
     this.setUndo();
-    this.createNewLayer();
+    this.createNewLayer(options);
   };
 
   @action
@@ -771,16 +773,21 @@ export default class ProjectStore extends BaseStore {
     this.setUndo();
     newData = JSON.parse(newData);
     newData.media.map((media) => media.tracks
-      .map((track) => track.trackEvents.map((trackEvent) => {
-        const item = {
-          ...trackEvent.popcornOptions,
-          track: null,
-          start: null,
-          end: null,
-          zindex: null,
-        };
-        return this.createNewElement(item);
-      })));
+      .map((track) => {
+        if (track.blendMode) {
+          this.addLayer({ blendMode: track.blendMode });
+        }
+        return track.trackEvents.map((trackEvent) => {
+          const item = {
+            ...trackEvent.popcornOptions,
+            track: null,
+            start: null,
+            end: null,
+            zindex: null,
+          };
+          return this.createNewElement(item);
+        });
+      }));
   };
 
   @action
@@ -929,7 +936,6 @@ export default class ProjectStore extends BaseStore {
 
   @action
   recompressProject = (newDuration, updateElements = true) => {
-    const elements = [];
     this.projectData.media.forEach((media) => {
       const initialDuration = media.duration;
       if (initialDuration >= newDuration) {
@@ -947,9 +953,6 @@ export default class ProjectStore extends BaseStore {
               trackEvent.popcornOptions.end = Math
                 .round(trackEvent.popcornOptions.end * recompressRatio * 100) / 100;
             }
-            elements.push({
-              ...trackEvent,
-            });
           });
         });
       }
@@ -990,6 +993,7 @@ export default class ProjectStore extends BaseStore {
 
       switch (lastEvent.type) {
         case POPCORN_ELEMENT_TYPES.TEXT:
+        case POPCORN_ELEMENT_TYPES.IMAGE:
           if (lastEvent.animation && lastEvent.animation.out && lastEvent.animation.out.duration) {
             eventEnd = lastEvent.end + lastEvent.animation.out.duration;
           } else {
@@ -1007,9 +1011,17 @@ export default class ProjectStore extends BaseStore {
           eventEnd = lastEvent.end;
       }
 
-      if (lastEvent.end !== this.popcorn.duration()) {
+      if (lastEvent.end !== this.popcorn.duration() && byEnd.length !== 2) {
         this.projectData.media[0].url = `#t=,${eventEnd}`;
+        this.projectData.media[0].duration = eventEnd;
         this.duration = eventEnd * SANTISECOND;
+        this.setPopcorn();
+      }
+
+      if (byEnd.length === 2) {
+        this.projectData.media[0].url = `#t=,${30}`;
+        this.projectData.media[0].duration = 30;
+        this.duration = 30 * SANTISECOND;
         this.setPopcorn();
       }
     }
@@ -1295,10 +1307,16 @@ export default class ProjectStore extends BaseStore {
           }
         }
       });
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
+      this.projectData.media[0].duration = lastEnd / SANTISECOND;
       this.duration = lastEnd;
+      this.setPopcorn();
     }
     if (lastEnd > duration) {
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
+      this.projectData.media[0].duration = lastEnd / SANTISECOND;
       this.duration = lastEnd;
+      this.setPopcorn();
     }
   };
 
@@ -1328,8 +1346,8 @@ export default class ProjectStore extends BaseStore {
       [track] = this.layers;
     }
 
-    if (track.blendMode) {
-      options.blendMode = track.blendMode;
+    if (track.blendMode || item.blendMode) {
+      options.blendMode = track.blendMode || item.blendMode;
     } else {
       options.blendMode = blendModeConstants.normal.value;
     }
@@ -1367,7 +1385,11 @@ export default class ProjectStore extends BaseStore {
 
   // analog for addLayer
   @action
-  createNewLayer = () => {
+  createNewLayer = (options) => {
+    const blendMode = options && options.blendMode
+      ? options.blendMode : blendModeConstants.normal.value;
+    const opacity = options && options.opacity ? options.opacity : 100;
+
     this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
@@ -1379,7 +1401,7 @@ export default class ProjectStore extends BaseStore {
         });
         return track;
       });
-      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}` });
+      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}`, blendMode, opacity });
     });
 
     this.layers = this.layers.map(track => {
@@ -1387,6 +1409,12 @@ export default class ProjectStore extends BaseStore {
       track.defaultName = `Layer ${track.order}`;
       return track;
     });
-    this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
+    this.layers.unshift({
+      ...DEFAULT_LAYER,
+      id: `${this.layers.length}`,
+      defaultName: 'Layer 0',
+      blendMode,
+      opacity,
+    });
   };
 }

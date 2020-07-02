@@ -9,6 +9,7 @@ import Loader from './common/Loader';
 import Canvas from './Canvas';
 import Timeline from './Timeline';
 import Library from './media/Library';
+import BlendModeLibrary from './media/BlendModeLibrary';
 import Stickers from './media/Stickers';
 import LowerThirds from './media/LowerThirds';
 import Toolbar from './common/toolbar/Toolbar';
@@ -50,6 +51,7 @@ const Home = observer(() => {
     templateGeneratorEnabled,
     linkedinEnabled,
     ctaEnabled,
+    blendModeEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -100,6 +102,7 @@ const Home = observer(() => {
     setListBuilder,
     openCTA,
     toggleRightBlock,
+    openBlendMode,
   } = uiStore;
 
   const {
@@ -144,6 +147,9 @@ const Home = observer(() => {
       case WINDOW_TYPES.CTA: {
         return <CallToAction />;
       }
+      case WINDOW_TYPES.BLEND_MODE_LIBRARY: {
+        return <BlendModeLibrary />;
+      }
       default: {
         return null;
       }
@@ -166,6 +172,7 @@ const Home = observer(() => {
         openMediaButton,
         openCTA,
         toggleRightBlock,
+        openBlendMode,
       },
       project: {
         allowedSocials,
@@ -182,6 +189,7 @@ const Home = observer(() => {
         presetsEnabled,
         linkedinEnabled,
         ctaEnabled,
+        blendModeEnabled,
       },
     });
     return items && items.length ? items : [];
