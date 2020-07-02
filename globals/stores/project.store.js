@@ -320,9 +320,9 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addLayer = () => {
+  addLayer = (options) => {
     this.setUndo();
-    this.createNewLayer();
+    this.createNewLayer(options);
   };
 
   @action
@@ -762,16 +762,21 @@ export default class ProjectStore extends BaseStore {
     this.setUndo();
     newData = JSON.parse(newData);
     newData.media.map((media) => media.tracks
-      .map((track) => track.trackEvents.map((trackEvent) => {
-        const item = {
-          ...trackEvent.popcornOptions,
-          track: null,
-          start: null,
-          end: null,
-          zindex: null,
-        };
-        return this.createNewElement(item);
-      })));
+      .map((track) => {
+        if (track.blendMode) {
+          this.addLayer({ blendMode: track.blendMode });
+        }
+        return track.trackEvents.map((trackEvent) => {
+          const item = {
+            ...trackEvent.popcornOptions,
+            track: null,
+            start: null,
+            end: null,
+            zindex: null,
+          };
+          return this.createNewElement(item);
+        });
+      }));
   };
 
   @action
@@ -1308,16 +1313,16 @@ export default class ProjectStore extends BaseStore {
     // get first track
     let track = item.track || this.layers[0];
 
-    if (track.blendMode) {
-      options.blendMode = track.blendMode;
-    } else {
-      options.blendMode = blendModeConstants.normal.value;
-    }
-
     const layerElements = this.elements.filter(element => element.track === track.id);
     if (isLayerFulfilled(options, layerElements)) {
       this.createNewLayer();
       [track] = this.layers;
+    }
+
+    if (track.blendMode || item.blendMode) {
+      options.blendMode = track.blendMode || item.blendMode;
+    } else {
+      options.blendMode = blendModeConstants.normal.value;
     }
 
     const element = {
@@ -1349,7 +1354,11 @@ export default class ProjectStore extends BaseStore {
 
   // analog for addLayer
   @action
-  createNewLayer = () => {
+  createNewLayer = (options) => {
+    const blendMode = options && options.blendMode
+      ? options.blendMode : blendModeConstants.normal.value;
+    const opacity = options && options.opacity ? options.opacity : 100;
+
     this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
@@ -1361,7 +1370,7 @@ export default class ProjectStore extends BaseStore {
         });
         return track;
       });
-      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}` });
+      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}`, blendMode, opacity });
     });
 
     this.layers = this.layers.map(track => {
@@ -1369,6 +1378,12 @@ export default class ProjectStore extends BaseStore {
       track.defaultName = `Layer ${track.order}`;
       return track;
     });
-    this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
+    this.layers.unshift({
+      ...DEFAULT_LAYER,
+      id: `${this.layers.length}`,
+      defaultName: 'Layer 0',
+      blendMode,
+      opacity,
+    });
   };
 }
