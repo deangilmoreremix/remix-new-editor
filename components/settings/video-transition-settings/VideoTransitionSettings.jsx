@@ -216,6 +216,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
       // Update start and end in elements after second video with animation
       const elementsForUpdate = [];
       const elementsEnds = [];
+      let animationOut = 0;
       elementsEnds.push(fromVideoNewOptions.end);
       elementsEnds.push(toVideoNewOptions.end);
       let itemStartAfterToVideo = null;
@@ -232,6 +233,10 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
               if (toVideo.popcornOptions.end < trackEvent.popcornOptions.start) {
                 elementsForUpdate.push(trackEvent);
                 elementsEnds.push(trackEvent.popcornOptions.end + difference);
+                if (trackEvent.popcornOptions.animation
+                  && trackEvent.popcornOptions.animation.out) {
+                  animationOut += trackEvent.popcornOptions.animation.out.duration;
+                }
               }
             }
           });
@@ -248,8 +253,8 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
       }
 
       if (toVideoNewOptions.end > itemStartAfterToVideo) {
-        if (clipDuration < (Math.max(...elementsEnds) * SANTISECOND)) {
-          updateVideoDuration(Math.max(...elementsEnds));
+        if (clipDuration < ((Math.max(...elementsEnds) + animationOut) * SANTISECOND)) {
+          updateVideoDuration(Math.max(...elementsEnds) + animationOut);
         }
 
         if (elementsForUpdate && elementsForUpdate.length && difference > 0) {

@@ -2,8 +2,6 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
-import { TRANSITION_DEFAULT_DURATION } from '../../../lib/constants/settings/video-transition';
-
 import PopcornElement from './PopcornElement';
 import ResponsiveGrid from '../../form/grids/ResponsiveGrid';
 
@@ -55,7 +53,7 @@ const PopcornElements = observer(({ width }) => {
   }, [getExtraDuration]);
 
   const insertTransition = async ({ transition, element }) => {
-    // let currentLayerId = 0;
+    const transitionDuration = +((transition.end - transition.start).toFixed(2));
     const elementsForUpdate = [];
     const elementsEnds = [];
     let animationOut = 0;
@@ -68,11 +66,11 @@ const PopcornElements = observer(({ width }) => {
         track.trackEvents.forEach(trackEvent => {
           if (trackEvent.track === currentLayer[0].track) {
             elementsEnds.push(trackEvent.popcornOptions.end);
-            if (trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.out) {
-              animationOut += trackEvent.popcornOptions.animation.out.duration;
-            }
-            if ((element.end - TRANSITION_DEFAULT_DURATION) <= trackEvent.popcornOptions.start) {
+            if ((element.end - transitionDuration) <= trackEvent.popcornOptions.start) {
               elementsForUpdate.push(trackEvent);
+              if (trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.out) {
+                animationOut += trackEvent.popcornOptions.animation.out.duration;
+              }
             }
           }
         });
@@ -90,8 +88,8 @@ const PopcornElements = observer(({ width }) => {
 
     if (element.end > itemStartAfterToVideo) {
       if (cols < (Math.max(...elementsEnds)
-        + TRANSITION_DEFAULT_DURATION + animationOut) * SANTISECOND) {
-        await updateVideoDuration((cols / SANTISECOND) + TRANSITION_DEFAULT_DURATION);
+        + transitionDuration + animationOut) * SANTISECOND) {
+        await updateVideoDuration((cols / SANTISECOND) + transitionDuration);
       }
 
       if (elementsForUpdate && elementsForUpdate.length) {
@@ -99,8 +97,8 @@ const PopcornElements = observer(({ width }) => {
           updateElementFromTimeline({
             needUpdateStartEnd: true,
             elementId: item.id,
-            start: item.popcornOptions.start + TRANSITION_DEFAULT_DURATION,
-            end: item.popcornOptions.end + TRANSITION_DEFAULT_DURATION,
+            start: item.popcornOptions.start + transitionDuration,
+            end: item.popcornOptions.end + transitionDuration,
           })));
       }
     }
