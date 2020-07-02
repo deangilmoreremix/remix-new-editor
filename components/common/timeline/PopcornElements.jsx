@@ -58,6 +58,7 @@ const PopcornElements = observer(({ width }) => {
     // let currentLayerId = 0;
     const elementsForUpdate = [];
     const elementsEnds = [];
+    let animationOut = 0;
     let itemStartAfterToVideo = null;
 
     const currentLayer = elements.filter(item => item.id === element.id);
@@ -67,6 +68,9 @@ const PopcornElements = observer(({ width }) => {
         track.trackEvents.forEach(trackEvent => {
           if (trackEvent.track === currentLayer[0].track) {
             elementsEnds.push(trackEvent.popcornOptions.end);
+            if (trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.out) {
+              animationOut += trackEvent.popcornOptions.animation.out.duration;
+            }
             if ((element.end - TRANSITION_DEFAULT_DURATION) <= trackEvent.popcornOptions.start) {
               elementsForUpdate.push(trackEvent);
             }
@@ -85,7 +89,8 @@ const PopcornElements = observer(({ width }) => {
     }
 
     if (element.end > itemStartAfterToVideo) {
-      if (cols < (Math.max(...elementsEnds) + TRANSITION_DEFAULT_DURATION) * SANTISECOND) {
+      if (cols < (Math.max(...elementsEnds)
+        + TRANSITION_DEFAULT_DURATION + animationOut) * SANTISECOND) {
         await updateVideoDuration((cols / SANTISECOND) + TRANSITION_DEFAULT_DURATION);
       }
 
