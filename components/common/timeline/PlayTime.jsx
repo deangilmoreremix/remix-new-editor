@@ -34,6 +34,7 @@ const PlayTime = observer(() => {
       <div className="time-current">
         {currentTime}
       </div>
+      <div className="time-separator"> / </div>
       <FormTextField
         className="time-total"
         onChange={(v) => onDurationChange(v, inputRef.current)}
