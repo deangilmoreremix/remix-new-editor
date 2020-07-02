@@ -4,25 +4,14 @@ import classnames from 'classnames';
 import PropTypes from '../../../../lib/PropTypes';
 
 import FieldBuilder from '../../../form/FieldBuilder';
+import useMakeStore from '../../../hooks/useMakeStore';
 import useProjectStore from '../../../hooks/useProjectStore';
 
 import { BUTTON_DISABLED_HINT as buttonText } from '../../../../lib/constants/text-info';
 
 const IntegrationsTab = ({ values, fields, onChange }) => {
-  const { item: { project }, downloadOptinStatistic } = useProjectStore();
-
-  const toDownloadOptin = async (projectId) => {
-    const getForCSV = await downloadOptinStatistic(projectId);
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    getForCSV.forEach((rowArray) => {
-      const row = rowArray.join(',');
-      csvContent += `${row}\n`;
-    });
-    const link = window.document.createElement('a');
-    link.setAttribute('href', encodeURI(csvContent));
-    link.setAttribute('download', 'upload_data.csv');
-    link.click();
-  };
+  const { item: { project } } = useProjectStore();
+  const { downloadOptinStatistic } = useMakeStore();
 
   return (
     <div className="intergrations-container">
@@ -71,7 +60,7 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
       <div className="download-optin-container">
         <button
           className={classnames('btn-custom', { 'button-disabled': !project._id })}
-          onClick={() => toDownloadOptin(project._id)}
+          onClick={() => downloadOptinStatistic(project._id)}
           disabled={!project._id}
           title={!project._id ? buttonText.title : ''}
         >
