@@ -9,7 +9,7 @@ import PropTypes from '../../../lib/PropTypes';
 
 const step = 1;
 const maxValue = 100;
-const minValue = 10;
+const minValue = 1;
 
 const Opacity = ({ layer }) => {
   const [count, setCount] = useState(layer.opacity ?? maxValue);
@@ -43,6 +43,9 @@ const Opacity = ({ layer }) => {
     }
     if (value > maxValue) {
       value = maxValue;
+    }
+    if (value < minValue) {
+      value = minValue;
     }
     setCount(value);
   };

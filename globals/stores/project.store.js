@@ -183,7 +183,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable time = 0;
 
-  @observable isWarning = '';
+  @observable warning = '';
 
   @action
   undoRedoAction = (undo = true) => {
@@ -1234,7 +1234,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   showWarning = (message) => {
-    this.isWarning = message;
+    this.warning = message;
   };
 
   @action

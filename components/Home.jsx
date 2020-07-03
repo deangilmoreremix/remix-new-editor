@@ -115,7 +115,7 @@ const Home = observer(() => {
     modified,
     addRetargetForm,
     releaseElement,
-    isWarning,
+    warning,
     showWarning,
   } = projectStore;
 
@@ -249,7 +249,7 @@ const Home = observer(() => {
           </Grid>
         </div>
       )}
-      <Warning message={isWarning} handleClose={() => showWarning('')} />
+      <Warning message={warning} handleClose={() => showWarning('')} />
     </React.Fragment>
   );
 });
