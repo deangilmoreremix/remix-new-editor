@@ -17,6 +17,50 @@ export default class PresetStore extends BaseStore {
     }
   }
 
+  downloadOptinStatistic = async (projectId) => {
+    const perPage = 100000;
+    let csvContent = 'data:text/csv;charset=utf-8,';
+    const link = window.document.createElement('a');
+    const orderBy = JSON.stringify({ createdAt: -1 });
+    const filter = JSON.stringify({ action: 'video_opted_in' });
+    const path = `/api/projects/${projectId}/events`;
+    const data = [];
+    try {
+      const result = await this.getList(
+        {
+          perPage,
+          path,
+          orderBy,
+          filter,
+        });
+      if (result.length > 0) {
+        const keys = [];
+        result.forEach((item) => {
+          Object.keys((item.extra && item.extra.data) || item.extra || {}).forEach((key) => {
+            if (keys.indexOf(key) === -1) {
+              keys.push(key);
+            }
+          });
+        });
+        data.push(['Date', 'Time', 'Source', ...keys]);
+        result.forEach((optin) => {
+          data.push([new Date(optin.createdAt).toLocaleString(), optin.extra && optin.extra.source,
+            ...keys.map((key) => (optin.extra.data && optin.extra.data[key])
+              || (optin.extra && optin.extra[key]))]);
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    data.forEach((rowArray) => {
+      const row = rowArray.join(',');
+      csvContent += `${row}\n`;
+    });
+    link.setAttribute('href', encodeURI(csvContent));
+    link.setAttribute('download', 'upload_data.csv');
+    link.click();
+  };
+
   getTemplatesCTA = ({ page = 1, query = '', perPage = 20 }) => (
     this.getList({ page, query, perPage, params: { segment: TEMPLATES_SEGMENTS.CTA }, path: '/api/makes/revolution' })
   );
