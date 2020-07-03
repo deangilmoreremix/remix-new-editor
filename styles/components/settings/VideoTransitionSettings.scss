@@ -25,6 +25,18 @@
     }
   }
 
+  &-warning {
+    color: $secondary-color;
+    text-align: left;
+    line-height: 1.2;
+    font-size: 0.765rem;
+    margin-bottom: 0.7em;
+  }
+
+  &-var {
+    text-decoration: underline;
+  }
+
   &-controls {
     margin-top: 1.5rem;
     display: flex;

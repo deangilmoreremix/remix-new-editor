@@ -110,7 +110,8 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
 
   React.useEffect(() => {
     if (fromPlayer && fromPlayer.current && !isCaptured) {
-      fromPlayer.current.video.seek(fromVideo.popcornOptions.end - fromVideo.popcornOptions.start);
+      fromPlayer.current.video.seek(fromVideo.popcornOptions.end - fromVideo.popcornOptions.start
+        + fromVideo.popcornOptions.from);
     }
   }, [fromVideo, isCaptured]);
 
@@ -131,9 +132,17 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
     let toFrame;
 
     if (fromVideo) {
-      fromFrame = captureVideoFrame(fromVideo.id, 'png');
       const { player } = fromPlayer.current.getState();
-      newFromEnd.current = player.currentTime;
+      let currentTime = (+(player.currentTime.toFixed(2)))
+        - (+(fromVideo.popcornOptions.from.toFixed(2)));
+      if (fromVideo.popcornOptions.from + 1 > currentTime) {
+        currentTime = 1.01;
+        await fromPlayer.current.video.seek(fromVideo.popcornOptions.from + 1.01);
+      }
+
+      fromFrame = captureVideoFrame(fromVideo.id, 'png');
+
+      newFromEnd.current = currentTime;
       imageFrom.current = {
         ...fromFrame,
         dataUri: await loadImage(fromFrame.dataUri),
@@ -357,6 +366,21 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
         <React.Fragment>
           <div className="video-transition-preview">
             <div className="title">Select the Start Frame</div>
+            {
+              fromVideo.popcornOptions && fromVideo.popcornOptions.from > 0 && (
+                <div className="video-transition-warning">
+                  Warning: Since the video has a
+                  {' '}
+                  <span className="video-transition-var">IN</span>
+                  {' '}
+                  value of
+                  {' '}
+                  <span>
+                    {`${fromVideo.popcornOptions.from} seconds, the minimum frame will be set is ${fromVideo.popcornOptions.from + 1} seconds.`}
+                  </span>
+                </div>
+              )
+            }
             {fromVideo && (
               <Player
                 ref={fromPlayer}
