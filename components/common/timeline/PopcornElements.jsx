@@ -4,6 +4,7 @@ import classnames from 'classnames';
 
 import PopcornElement from './PopcornElement';
 import ResponsiveGrid from '../../form/grids/ResponsiveGrid';
+import { TRANSITION_TIMELINE_OFFSET } from '../../../lib/constants/settings/video-transition';
 
 import PropTypes from '../../../lib/PropTypes';
 import { selectItem } from '../../../lib/mitt/emitter';
@@ -54,6 +55,9 @@ const PopcornElements = observer(({ width }) => {
 
   const insertTransition = async ({ transition, element }) => {
     const transitionDuration = +((transition.end - transition.start).toFixed(2));
+    transition.start = +(transition.start.toFixed(2)) + TRANSITION_TIMELINE_OFFSET;
+    transition.end = +(transition.end.toFixed(2)) + TRANSITION_TIMELINE_OFFSET;
+
     const elementsForUpdate = [];
     const elementsEnds = [];
     let animationOut = 0;
@@ -106,8 +110,8 @@ const PopcornElements = observer(({ width }) => {
     await updateElementFromTimeline({
       needUpdateStartEnd: true,
       elementId: element.id,
-      start: element.start,
-      end: element.end,
+      start: transition.end + TRANSITION_TIMELINE_OFFSET,
+      end: (element.end - element.start) + transition.end,
     });
     await addElement({
       ...DEFAULT_SETTINGS[POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION],
