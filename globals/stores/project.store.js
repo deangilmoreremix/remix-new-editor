@@ -202,10 +202,6 @@ export default class ProjectStore extends BaseStore {
       retarget: { ...this.retarget },
       activeElementId: this.activeElementId,
     }, !undo);
-    this.duration = duration;
-    if (this.time > this.duration) {
-      this.updateTime(0);
-    }
     if (this.activeElementId !== activeElementId) {
       this.releaseElement();
     }
@@ -226,6 +222,12 @@ export default class ProjectStore extends BaseStore {
       if (this.retarget.start) {
         this.retarget.start();
       }
+    }
+    if (this.duration !== duration) {
+      this.updateVideoDuration(duration / SANTISECOND);
+    }
+    if (this.time > this.duration) {
+      this.updateTime(0);
     }
   };
 
@@ -749,7 +751,7 @@ export default class ProjectStore extends BaseStore {
   updateVideoDuration = (value) => {
     this.recompressProject(value, false);
     this.setPopcorn(this.popcorn.target);
-    this.duration = value * SANTISECOND;
+    this.duration = Math.ceil(value * SANTISECOND);
   };
 
   @action

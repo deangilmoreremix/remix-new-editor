@@ -55,7 +55,6 @@ const PopcornElements = observer(({ width }) => {
   }, [getExtraDuration]);
 
   const insertTransition = async ({ transition, element }) => {
-    // let currentLayerId = 0;
     const elementsForUpdate = [];
     const elementsEnds = [];
     let itemStartAfterToVideo = null;
