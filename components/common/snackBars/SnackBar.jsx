@@ -5,29 +5,37 @@ import { Button, Snackbar } from '@material-ui/core';
 
 import PropTypes from '../../../lib/PropTypes';
 
-
 import closeIcon from '../../../public/static/svgImages/close.svg';
 
-const SnackBar = ({ message, handleClose, className, contentClassName, autoHideDuration }) => (
-  <Snackbar
-    open={!!message}
-    autoHideDuration={autoHideDuration}
-    ContentProps={{
-      'aria-describedby': 'snackbar-fab-message-id',
-      className: classnames('snackbar-content', contentClassName),
-    }}
-    action={(
-      <Button color="inherit" size="small" onClick={handleClose}>
-        <SVGInline
-          className="icon-button"
-          svg={closeIcon}
-          cleanup={['title']}
-        />
-      </Button>
+const SnackBar = (
+  {
+    message,
+    handleClose,
+    className,
+    contentClassName,
+    autoHideDuration,
+    autoClose,
+  }) => (
+    <Snackbar
+      open={!!message}
+      autoHideDuration={autoHideDuration}
+      onClose={autoClose && handleClose}
+      ContentProps={{
+        'aria-describedby': 'snackbar-fab-message-id',
+        className: classnames('snackbar-content', contentClassName),
+      }}
+      action={(
+        <Button color="inherit" size="small" onClick={handleClose}>
+          <SVGInline
+            className="icon-button"
+            svg={closeIcon}
+            cleanup={['title']}
+          />
+        </Button>
       )}
-    message={<span id="snackbar-fab-message-id">{message}</span>}
-    className={classnames('snackbar', className)}
-  />
+      message={<span id="snackbar-fab-message-id">{message}</span>}
+      className={classnames('snackbar', className)}
+    />
 );
 
 SnackBar.propTypes = {
@@ -36,10 +44,12 @@ SnackBar.propTypes = {
   className: PropTypes.string,
   contentClassName: PropTypes.string,
   autoHideDuration: PropTypes.num,
+  autoClose: PropTypes.bool,
 };
 
 SnackBar.defaultProps = {
   autoHideDuration: 10000,
+  autoClose: false,
 };
 
 export default SnackBar;

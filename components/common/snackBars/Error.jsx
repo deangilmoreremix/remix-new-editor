@@ -12,6 +12,7 @@ const Error = ({ handleClose, message }) => {
     <SnackBar
       message={message}
       handleClose={handleClose}
+      autoClose
     />
   );
 };
