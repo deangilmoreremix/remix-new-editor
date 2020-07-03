@@ -55,7 +55,6 @@ const PopcornElements = observer(({ width }) => {
   }, [getExtraDuration]);
 
   const insertTransition = async ({ transition, element }) => {
-    // let currentLayerId = 0;
     const elementsForUpdate = [];
     const elementsEnds = [];
     let itemStartAfterToVideo = null;
@@ -167,7 +166,7 @@ const PopcornElements = observer(({ width }) => {
           y: item.y,
           w: item.w,
           minW: item.minW,
-          maxW: cols - item.x,
+          maxW: item.maxW,
         }}
       >
         <PopcornElement item={item} />
@@ -184,7 +183,7 @@ const PopcornElements = observer(({ width }) => {
           : null}
       </div>
     );
-  }), [layouts, cols]);
+  }), [layouts]);
 
   const onDragStop = (element, oldElement, newElement) => {
     selectItem({ type: 'click' }, newElement.i);

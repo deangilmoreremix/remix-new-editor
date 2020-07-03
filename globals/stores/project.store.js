@@ -202,14 +202,12 @@ export default class ProjectStore extends BaseStore {
       retarget: { ...this.retarget },
       activeElementId: this.activeElementId,
     }, !undo);
-
     if (this.activeElementId !== activeElementId) {
       this.releaseElement();
     }
     this.elements.map(event => this.popcorn.removeTrackEvent(event.id));
     this.setProjectData(projectData);
     this.attach(this.popcorn.target);
-
     if (this.retarget && this.retarget.end) {
       this.retarget.end();
     }
@@ -225,8 +223,10 @@ export default class ProjectStore extends BaseStore {
         this.retarget.start();
       }
     }
-    this.duration = duration;
-    if (this.time * SANTISECOND > this.duration) {
+    if (this.duration !== duration) {
+      this.updateVideoDuration(duration / SANTISECOND);
+    }
+    if (this.time > this.duration) {
       this.updateTime(0);
     }
   };
@@ -234,7 +234,7 @@ export default class ProjectStore extends BaseStore {
   setElementOptions = async (item) => {
     const { track } = item || {};
     const options = {};
-    options.start = item.start || (this.time / SANTISECOND);
+    options.start = item.start || (Math.ceil(this.time) / SANTISECOND);
     options.end = item.end || options.start + DEFAULT_DURATION;
     options.id = `0.${this.generateUid()}`;
     options.zindex = track && track.order ? MAX_ZINDEX - track.order : MAX_ZINDEX;
@@ -751,7 +751,7 @@ export default class ProjectStore extends BaseStore {
   updateVideoDuration = (value) => {
     this.recompressProject(value, false);
     this.setPopcorn(this.popcorn.target);
-    this.duration = value * SANTISECOND;
+    this.duration = Math.ceil(value * SANTISECOND);
   };
 
   @action
@@ -909,7 +909,7 @@ export default class ProjectStore extends BaseStore {
   setUndoRedoAction = (projectData, undo = true) => {
     const targetData = undo ? this.undoStore : this.redoStore;
     targetData.push(projectData);
-    if (targetData.length >= NUMBER_OF_STEPS) {
+    if (targetData.length > NUMBER_OF_STEPS) {
       targetData.shift();
     }
   };
@@ -1402,7 +1402,7 @@ export default class ProjectStore extends BaseStore {
     if (options.end > this.duration / SANTISECOND) {
       this.recompressProject(options.end, false);
       this.setPopcorn(this.popcorn.target);
-      this.duration = options.end * SANTISECOND;
+      this.duration = Math.ceil(options.end * SANTISECOND);
     }
 
     // update timeline
