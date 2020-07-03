@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
-
 import { Box } from '@material-ui/core';
 
 import TuiImageEditor from '../common/TuiImageEditor';

@@ -77,13 +77,15 @@ export default () => {
     if (!src) {
       return;
     }
+    debugger
     const imageMeta = new Image();
     imageMeta.src = src;
-    const metadata = await new MediaTypeDetector()
-      .getMetadata(src);
-    if (!metadata.contentType.includes('image')) {
-      return showError('Image not found');
-    }
+    // const metadata = await new MediaTypeDetector()
+    //   .getMetadata(src);
+    // if (!metadata.contentType.includes('image')) {
+    //   return showError('Image not found');
+    // }
+    const metadata = { source: src };
     const recommendedResolution = modalType === IMAGE_TYPE.THUMBNAIL
       ? (resolution || TUI_EDITOR_RECOMMENDED_RESOLUTION)
       : null;
@@ -101,6 +103,7 @@ export default () => {
   const finishImageEditing = async (imageSrc, onImageCropped) => {
     closeModal(TUI_IMAGE_EDITOR_MODAL);
     await openCropper(imageSrc, (croppedImage) => {
+      debugger
       onImageCropped(croppedImage);
       closeModal(IMAGE_CROPPER_MODAL);
     });

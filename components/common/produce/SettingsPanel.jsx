@@ -4,7 +4,7 @@ import { observer } from 'mobx-react';
 import Button from '@material-ui/core/Button';
 import PropTypes from '../../../lib/PropTypes';
 import { ASSET_TYPES } from '../../../lib/constants/media';
-import { tabItems } from '../../../lib/constants/library';
+import { LIBRARY_TABS, tabItems } from '../../../lib/constants/library';
 import { IMAGE_TYPE } from '../../../lib/constants/imageEditor/tuiEditor';
 
 import useProjectStore from '../../hooks/useProjectStore';
@@ -15,6 +15,7 @@ import FieldBuilder from '../../form/FieldBuilder';
 import DropzoneArea from '../../media/DropzoneArea';
 import DropButton from '../../media/DropButton';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../../lib/constants/settings/image';
+import { ALL_IMAGES } from '../../../lib/constants/formats';
 
 const SettingPanel = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
@@ -44,19 +45,13 @@ const SettingPanel = observer(() => {
   };
 
   const onUploadedImage = (image, extension) => {
-    Object.keys(tabItems).forEach(tab => {
-      tabItems[tab].formats.forEach(format => {
-        if (format === extension) {
-          openImageEditor(image.url, onImageEdited, modalType);
-        }
-      });
-    });
+    debugger
+    image.url = URL.createObjectURL(image);
+    openImageEditor(image.url, onImageEdited, modalType, CROP_RECOMMENDED_RESOLUTION);
   };
-
   const onImageEdited = (thumbnail) => {
-    updateItem({ thumbnail });
-
     finishImageEditing(thumbnail, (croppedImage) => {
+      debugger;
       updateItem({ thumbnail: croppedImage });
     });
   };
@@ -141,7 +136,7 @@ const SettingPanel = observer(() => {
           <div className="settings__row-block">
             <Button
               onClick={() => {
-                openImageEditor(item.thumbnail, onImageEdited, modalType);
+                openImageEditor(item.thumbnail, onImageEdited, modalType, CROP_RECOMMENDED_RESOLUTION);
               }}
               disableRipple
               disableFocusRipple
@@ -161,12 +156,14 @@ const SettingPanel = observer(() => {
               startUpload={() => setIsDisabledUpload(true)}
               endUpload={() => setIsDisabledUpload(false)}
               multiple={false}
+              accept={ALL_IMAGES}
               className="settings__add-file"
+              needUpload={false}
             />
             <p className="settings__row-text-2">
-recommended image resolution
+              recommended image resolution
               {CROP_RECOMMENDED_RESOLUTION.width}
-x
+              x
               {CROP_RECOMMENDED_RESOLUTION.height}
             </p>
           </div>

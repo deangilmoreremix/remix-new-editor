@@ -21,16 +21,22 @@ const DropButton = (
     multiple,
     className,
     needSaveAsset,
+    needUpload,
   }) => {
   const { uploadMedia, storeAsset } = useMediaStore();
 
-  const onDrop = React.useCallback(acceptedFiles => {
+  const onDrop = React.useCallback((acceptedFiles, rejectedFiles) => {
     const elements = [];
+    // todo check acceptedLength
+    if (!needUpload) {
+      return multiple ? onUploaded(acceptedFiles) : onUploaded(acceptedFiles[0]);
+    }
     if (startUpload) {
       startUpload();
     }
+    // todo check rejectedFiles
 
-    Promise.all(acceptedFiles.map(async data => {
+    return Promise.all(acceptedFiles.map(async data => {
       const asset = await uploadMedia({ data });
       if (needSaveAsset) {
         const element = await storeAsset(asset, type.toUpperCase());
@@ -83,6 +89,7 @@ DropButton.propTypes = {
   multiple: PropTypes.bool,
   className: PropTypes.string,
   needSaveAsset: PropTypes.bool,
+  needUpload: PropTypes.bool,
   accept: PropTypes.arrayOf(PropTypes.string),
 };
 
@@ -90,6 +97,7 @@ DropButton.defaultProps = {
   isDisabled: false,
   multiple: true,
   needSaveAsset: true,
+  needUpload: true,
 };
 
 export default DropButton;

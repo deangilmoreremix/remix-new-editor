@@ -27,34 +27,43 @@ const TuiImageEditor = observer(({
   onImageCropped,
   handleClose,
 }) => {
+  debugger;
   const { CROP, FLIP, ROTATE, SHAPE, ICON, MASK, DRAW, FILTER } = MENU;
   const { SVG, SVG_XML, GIF } = IMAGE_FORMATS;
   const refEditor = useRef();
   const [isLoading, setLoading] = useState(false);
+  const [preview, setPreview] = useState(false);
   const { uploadMedia } = useMediaStore();
 
   const { source, contentType } = useMemo(() => imageData, [imageData]);
 
   const onLoadImage = useCallback(async () => {
-    const format = getFormatFromContentType(contentType);
-    if (Object.values(IMAGE_FORMATS).includes(format)) {
-      if (format === GIF) {
-        return showError(`${IMAGE_NOT_SUPPORTED_ERROR}Current format: "${format}" . `);
-      }
-      if ([SVG_XML, SVG].includes(format)) {
-        showInfo(`${IMAGE_TO_PNG_FORMAT}Current format: "${format}" . `);
-      }
-      try {
-        setLoading(true);
-        // eslint-disable-next-line no-underscore-dangle
-        return uploadFile((refEditor).current.imageEditorInst._graphics
-          .toDataURL({ format }));
-      } catch (err) {
-        return showError(err.message || IMAGE_CANT_BE_UPLOADED_ERROR);
-      } finally {
-        setLoading(false);
-      }
+    if (refEditor) {
+      debugger;
+      const editorInstance = refEditor.current.getInstance();
+      editorInstance.ui._actions.crop.modeChange('crop');
+      editorInstance.setCropzoneRect(1.5);
     }
+    // todo message about gif
+    // const format = getFormatFromContentType(contentType);
+    // if (Object.values(IMAGE_FORMATS).includes(format)) {
+    //   if (format === GIF) {
+    //     return showError(`${IMAGE_NOT_SUPPORTED_ERROR}Current format: "${format}" . `);
+    //   }
+    //   if ([SVG_XML, SVG].includes(format)) {
+    //     showInfo(`${IMAGE_TO_PNG_FORMAT}Current format: "${format}" . `);
+    //   }
+    //   try {
+    //     setLoading(true);
+    //     // eslint-disable-next-line no-underscore-dangle
+    //     return uploadFile((refEditor).current.imageEditorInst._graphics
+    //       .toDataURL({ format }));
+    //   } catch (err) {
+    //     return showError(err.message || IMAGE_CANT_BE_UPLOADED_ERROR);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // }
   });
 
   const uploadFile = useCallback(async (imageMeta) => {
@@ -75,31 +84,53 @@ const TuiImageEditor = observer(({
     }
   });
 
+  React.useEffect(() => {
+    // debugger
+    // if (refEditor && refEditor.current.imageEditorInst && refEditor.current.imageEditorInst._graphics.canvasImage) {
+    //   refEditor.current.imageEditorInst.setCropzoneRect(1.5);
+    // }
+  }, [refEditor]);
+
   return (
     <div className="image-editor-content">
       {isLoading ? <Loader isLoading={isLoading} className="image-editor-content" /> : (
         <Box>
-          <div className="canvas-container">
-            <ImageEditor
-              ref={refEditor}
-              includeUI={{
-                loadImage: {
-                  path: source,
-                  name: DEFAULT_IMAGE_NAME,
-                },
-                menu: [CROP, FLIP, ROTATE, SHAPE, ICON, MASK, DRAW, FILTER],
-                initMenu: MENU.FILTER,
-                uiSize: SIZE,
-                menuBarPosition: BAR_POSITION.BOTTOM,
-              }}
-              cssMaxHeight={500}
-              cssMaxWidth={700}
-              selectionStyle={{
-                cornerSize: 20,
-                rotatingPointOffset: 70,
-              }}
-            />
-          </div>
+          {preview
+            ? (
+              <div className="canvas-container">
+                <img
+                  src={source}
+                  width={1300}
+                  height={600}
+                />
+              </div>
+            )
+            : (
+              <div className="canvas-container">
+                <ImageEditor
+                  ref={refEditor}
+                  includeUI={{
+                    loadImage: {
+                      path: source,
+                      name: DEFAULT_IMAGE_NAME,
+                    },
+                    menu: [CROP, FLIP, ROTATE, SHAPE, ICON, MASK, DRAW, FILTER],
+                    initMenu: MENU.FILTER,
+                    uiSize: SIZE,
+                    imageSize: { newWidth: '1300px', newHeight: '600px' },
+                    menuBarPosition: BAR_POSITION.BOTTOM,
+                  }}
+                  cssMaxHeight={500}
+                  cssMaxWidth={700}
+                  usageStatistics={false}
+                  selectionStyle={{
+                    cornerSize: 20,
+                    rotatingPointOffset: 70,
+                  }}
+                />
+              </div>
+            )
+          }
           <Box className="editor-buttons">
             <Button
               variant="outlined"
@@ -116,6 +147,14 @@ const TuiImageEditor = observer(({
               onClick={onLoadImage}
             >
               Ok
+            </Button>
+            <Button
+              variant="outlined"
+              color="default"
+              className="done-button"
+              onClick={() => setPreview(!preview)}
+            >
+              Preview
             </Button>
           </Box>
         </Box>
