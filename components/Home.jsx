@@ -116,7 +116,6 @@ const Home = observer(() => {
     addRetargetForm,
     releaseElement,
     warning,
-    showWarning,
   } = projectStore;
 
   const SecondaryWindow = React.useMemo(() => {
@@ -249,7 +248,7 @@ const Home = observer(() => {
           </Grid>
         </div>
       )}
-      <Warning message={warning} handleClose={() => showWarning('')} />
+      <Warning message={warning} />
     </React.Fragment>
   );
 });

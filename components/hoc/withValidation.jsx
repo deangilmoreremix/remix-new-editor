@@ -8,7 +8,6 @@ const required = VALIDATORS.required();
 
 const withValidation = (WrappedComponent) => (props) => {
   const [error, setError] = React.useState(null);
-  const [open, setOpen] = React.useState(false);
 
   const checkValue = (value, options = {}) => {
     const { type = null, isRequired = false } = options;
@@ -27,12 +26,6 @@ const withValidation = (WrappedComponent) => (props) => {
     }
   };
 
-  React.useEffect(() => {
-    if (error) {
-      setOpen(true);
-    }
-  }, [error]);
-
   return (
     <React.Fragment>
       <WrappedComponent
@@ -42,7 +35,7 @@ const withValidation = (WrappedComponent) => (props) => {
           setError(err);
         }}
       />
-      <Error open={open} message={error} handleClose={() => setError(null)} />
+      <Error message={error} handleClose={() => setError(null)} />
     </React.Fragment>
   );
 };

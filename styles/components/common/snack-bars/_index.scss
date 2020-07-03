@@ -1,2 +1,31 @@
 @import "Error";
 @import "Warning";
+
+.MuiSnackbar-anchorOriginBottomCenter {
+  &.snackbar {
+    bottom: 5px;
+    right: 5px;
+    left: auto;
+    transform: none;
+    justify-content: start;
+
+    .snackbar-content {
+      background-color: rgba(235, 80, 84, 0.8);
+      width: auto;
+    }
+
+    .icon-button-svg {
+      width: 1rem;
+      height: 1rem;
+
+      path {
+        stroke: none;
+      }
+    }
+
+    button {
+      outline: none;
+    }
+  }
+}
+

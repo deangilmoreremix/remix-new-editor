@@ -1,27 +1,7 @@
 .MuiSnackbar-anchorOriginBottomCenter {
-  &.warning-snackbar {
-    bottom: 5px;
-    right: 5px;
-    left: auto;
-    transform: none;
-    justify-content: start;
-
-    .error-snackbar-content {
-      background: #ff9800;
-      width: auto;
-    }
-
-    .icon-button-svg {
-      width: 1rem;
-      height: 1rem;
-
-      path {
-        stroke: none;
-      }
-    }
-
-    button {
-      outline: none;
+  &.snackbar {
+    .warning-snackbar-content {
+      background: #ff9800 !important;
     }
   }
 }
