@@ -10,15 +10,29 @@ import { ASSET_TYPES } from '../../../../lib/constants/media';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
 import { tabItems } from '../../../../lib/constants/library';
+// import useModalStore from '../../../hooks/useModalStore';
+// import {
+// CROP_RECOMMENDED_RESOLUTION,
+// CROP_BRAND_LOGO_RESOLUTIONб
+// } from '../../../../lib/constants/settings/image';
+import { CROP_BRAND_LOGO_RESOLUTION } from '../../../../lib/constants/settings/image';
 
 const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
 
+  // const { openCropper } = useModalStore();
+
+  // const onCrop = (image, option) => {
+  //   onChange({ [option]: image.url });
+  // };
+
+  // const onUploadedImage = (image, extension, option, resolution) => {
   const onUploadedImage = (image, extension, option) => {
     Object.keys(tabItems).forEach(tab => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
+          // openCropper(image.url, onCrop, resolution || CROP_RECOMMENDED_RESOLUTION, option);
           onChange({ [option]: image.url });
         }
       });
@@ -42,7 +56,8 @@ const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
             onChange={onChange}
           />
           <DropzoneArea
-            onUploaded={(item, ext) => onUploadedImage(item, ext, fields.brandLogoSrc.name)}
+            onUploaded={(item, ext) => onUploadedImage(item, ext,
+              fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION)}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
             value={values.brandLogoSrc}
@@ -51,7 +66,8 @@ const StylesTab = ({ showedForm, values, fields, onChange, onClose }) => {
             multiple={false}
           />
           <DropButton
-            onUploaded={(item, ext) => onUploadedImage(item, ext, fields.brandLogoSrc.name)}
+            onUploaded={(item, ext) => onUploadedImage(item, ext,
+              fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION)}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
             startUpload={() => setIsDisabledUploadLogo(true)}

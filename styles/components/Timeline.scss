@@ -4,6 +4,7 @@
   background-color: $light-twinlight;
   width: 100%;
   transition: 0.3s all;
+  z-index: 15;
 
   &-open {
     height: $timeline-height;
@@ -66,6 +67,13 @@
         justify-content: center;
         align-items: center;
       }
+
+      &.popcorn-pause-end,
+      &.popcorn-pause {
+        width: 1rem;
+        height: auto;
+        margin: auto 0.2rem;
+      }
     }
 
     .icon-btn {
@@ -76,6 +84,10 @@
       }
     }
   }
+}
+
+.popcorn-pause-element {
+  justify-content: space-between;
 }
 
 .elements {
@@ -104,14 +116,22 @@
     max-width: 100%;
     overflow: hidden;
     position: absolute;
-    bottom: 0;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+    top: 50%;
     border-top: none;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
 
+  .popcorn-element-text {
+    outline: none;
+  }
+
   .popcorn-element {
     border: none;
+    align-items: center;
   }
 
   .popcorn-element-part {
@@ -251,6 +271,33 @@
   width: 21px;
   height: 21px;
   transition: 0.3s all;
+}
+.play-time {
+  display: inline-flex;
+  align-items: center;
+  .time-current, .time-total {
+    font-size: $small;
+  }
+  .time-current {
+    margin-left: 0.5rem;
+  }
+  .time-total {
+    width: 55%;
+    padding: 0;
+    border: none;
+    div {
+      padding: 0;
+      margin-left: 0.5rem;
+      width: 4rem;
+      min-height: 1.5rem;
+      height: 1.5rem;
+    }
+    input {
+      font-size: $small;
+      padding:0;
+      border: none;
+    }
+  }
 }
 
 .timeline-play:disabled {

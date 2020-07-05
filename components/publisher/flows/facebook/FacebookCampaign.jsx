@@ -10,6 +10,7 @@ import {
   EMBED_ENGINE,
   EMBED_LOCATION,
   FACEBOOK_LOGIN,
+
   FACEBOOK_PAGE,
   FACEBOOK_POST,
   DEFAULT,
@@ -57,6 +58,7 @@ const FacebookCampaign = observer(({
     invalidateFbCache,
     linkToFbPage,
     updateItem,
+    save,
   } = useProjectStore();
 
   const { closeModal } = useModalStore();
@@ -85,12 +87,13 @@ const FacebookCampaign = observer(({
     shareOptions.backendUrl = BACKEND_URL;
 
     updateItem({
-      name: postData.title,
+      title: postData.title,
       description: postData.description,
       thumbnail: postData.thumbnail,
     });
 
     try {
+      await save();
       await invalidateFbCache(shareOptions.projectUrl);
 
       expandConductor();
@@ -99,7 +102,7 @@ const FacebookCampaign = observer(({
       collapseConductor();
 
       if (result.error_code) {
-        showError(result.error_message);
+        return showError(result.error_message);
       }
 
       if (embedLocation.key === FACEBOOK_PAGE) {
@@ -343,6 +346,7 @@ FacebookCampaign.propTypes = {
     preload: PropTypes.bool,
     postData: PropTypes.shape({
       title: PropTypes.string,
+      description: PropTypes.string,
       thumbnail: PropTypes.string,
     }),
   }).isRequired,

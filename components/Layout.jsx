@@ -42,6 +42,14 @@ class Layout extends Component {
         <div className="layout-container">
           <Head>
             <title>New Video Editor</title>
+            <link
+              rel="shortcut icon"
+              href={
+                this.stores.common.whiteLabelManager.shouldOverride
+                  ? `//cdn.vidcloud.io/wl/${this.stores.common.whiteLabelManager.domain}/resources/vc_favicon`
+                  : '//cdn.vidcloud.io/resources/revolution/favicon.png'
+              }
+            />
           </Head>
           {this.hasPermissions ? (
             <div>

@@ -1,3 +1,4 @@
+@import "variables";
 @import "reset";
 @import "~bootstrap/scss/bootstrap";
 @import "~animate.css/animate.min.css";
@@ -7,7 +8,6 @@
 @import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css');
 @import '~video-react/styles/scss/video-react';
 
-@import "variables";
 @import "mixins/index";
 @import "animations";
 
@@ -30,6 +30,7 @@
 @import "components/Stickers";
 @import "components/LowerThirds";
 @import "components/LineDuration";
+@import "components/CallToAction";
 
 
 @import "components/modals/index";
@@ -60,6 +61,8 @@
 @import "components/common/vrimage-settings";
 @import "components/common/Recorder";
 @import "components/common/ExpandButton";
+@import "components/common/json-button";
+@import "components/common/snack-bars";
 
 @import "components/campaigns/index";
 

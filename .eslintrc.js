@@ -38,7 +38,7 @@ module.exports = {
     }],
     'react/require-default-props': 0,
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/exhaustive-deps": 0,
     "react/jsx-props-no-spreading": 0,
     "react/jsx-fragments": 0,
     semi: ['error', 'always'],

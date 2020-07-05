@@ -99,6 +99,12 @@ export default class UIStore {
   };
 
   @action
+  setListBuilder = () => {
+    this.toggleRightBlock();
+    this.secondaryWindowType = WINDOW_TYPES.SETTING;
+  };
+
+  @action
   setLibraryType = (type) => {
     this.toggleRightBlock();
     this.secondaryWindowType = type;
@@ -106,11 +112,18 @@ export default class UIStore {
 
   @action
   openStickers = (type) => {
+    this.toggleRightBlock();
+    this.secondaryWindowType = type;
+  };
+
+  @action
+  openCTA = (type) => {
     this.secondaryWindowType = type;
   };
 
   @action
   openLowerThird = (tab = WINDOW_TYPES.LOWER_THIRDS) => {
+    this.toggleRightBlock();
     this.secondaryWindowType = tab;
   }
 
@@ -161,6 +174,7 @@ export default class UIStore {
       this.checkboxLeft = true;
       this.setPrevStateProduce(false);
     } else {
+      this.projectStore.releaseElement();
       this.checkboxLeft = true;
       this.checkboxRight = false;
       this.radioButtonBottom = true;

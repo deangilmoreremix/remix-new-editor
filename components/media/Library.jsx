@@ -13,6 +13,9 @@ import {
 import { LOADING_COLOR } from '../../lib/constants/ui';
 import mediaConstants from '../../lib/constants/media';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
+import { URL_RULE } from '../../lib/constants/regExps';
+import { TYPES } from '../../lib/constants/validator';
+import { ALL_VIDEO } from '../../lib/constants/formats';
 import config from '../../config/config';
 import { showError } from '../../lib/services/alertService';
 
@@ -27,8 +30,12 @@ import useUserStore from '../hooks/useUserStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
 import AudioControls from '../common/library/AudioControls';
+import DropPasteInput from './DropPasteInput';
 
-const Library = observer(() => {
+import withModal from '../hoc/withValidation';
+
+const Library = observer((props) => {
+  const { checkValue, setError } = props;
   const uiStore = useUIStore();
   const projectStore = useProjectStore();
   const userStore = useUserStore();
@@ -64,7 +71,8 @@ const Library = observer(() => {
 
   const [pageNumber, setPageNumber] = useState(1);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
 
   const [items, setItems] = useState([]);
@@ -85,7 +93,16 @@ const Library = observer(() => {
     }
   }, []);
 
+  const updateActiveTab = React.useCallback((tab) => {
+    if (!isLoading) {
+      setActiveTab(tab);
+    }
+  }, [isLoading, setActiveTab]);
+
   useEffect(() => {
+    async function fetchData() {
+      await fetchItems({ source: activeBtn, queryStr: '' });
+    }
     setQuery('');
     if (activeItem) {
       setActiveItem(null);
@@ -93,7 +110,7 @@ const Library = observer(() => {
     if (libraryItemsForDelete.length) {
       bulkDeleteItems();
     } else {
-      fetchItems({ source: activeBtn, queryStr: '' });
+      fetchData();
     }
   }, [activeTab]);
 
@@ -114,24 +131,32 @@ const Library = observer(() => {
     }
   }, [activeTab, activeBtn, userStore]);
 
-  const handleButtonClick = element => {
-    setActiveBtn(element);
-  };
+  const handleButtonClick = React.useCallback((element) => {
+    if (!isLoading) {
+      setActiveBtn(element);
+    }
+  }, [isLoading]);
 
   React.useEffect(() => {
-    if (libraryItemsForDelete.length) {
-      bulkDeleteItems();
-    } else {
-      fetchItems({ source: activeBtn });
+    if (activeBtn || activeTab) {
+      if (libraryItemsForDelete.length) {
+        bulkDeleteItems();
+      } else {
+        fetchItems({ source: activeBtn });
+      }
     }
-  }, [activeBtn, activeTab]);
+  }, [activeBtn]);
 
   const fetchItems = async ({ source = activeBtn, queryStr = query || '', isScrolling = false }) => {
     let currentPage = 0;
     let uploaded = [];
+    if (isLoading) {
+      return;
+    }
 
+    setIsLoading(true);
     if (!isScrolling) {
-      setIsLoading(true);
+      setIsInitialLoading(true);
       setPageNumber(1);
       setUploadedItems([]);
       currentPage = 1;
@@ -171,6 +196,7 @@ const Library = observer(() => {
       showError('An error occurred while loading items');
     } finally {
       setIsLoading(false);
+      setIsInitialLoading(false);
     }
   };
 
@@ -277,6 +303,16 @@ const Library = observer(() => {
     }
   };
 
+  const onEnter = (url) => {
+    if (url && !URL_RULE.test(url)) {
+      url = `${window.location.protocol}//${url}`;
+    }
+    const err = checkValue(url, { type: TYPES.URL, isRequired: true });
+    if (!err) {
+      return onSelect({ url });
+    }
+  };
+
   const { getInputProps } = useDropzone({
     accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
     onDrop,
@@ -297,6 +333,9 @@ const Library = observer(() => {
   };
 
   const onSelect = async (item) => {
+    if (isLoading) {
+      return;
+    }
     item.src = item.src || item.url;
     item.type = MEDIA_TYPES[activeTab];
     if (updateElementInLibrary && activeTab === LIBRARY_TABS.IMAGE) {
@@ -304,7 +343,16 @@ const Library = observer(() => {
       openSettings();
       setUpdateElementInLibrary();
     } else {
-      await projectStore.addElement(item, updateElementInLibrary);
+      setIsLoading(true);
+      setIsInitialLoading(true);
+      try {
+        await projectStore.addElement(item);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setIsLoading(false);
+        setIsInitialLoading(false);
+      }
     }
   };
 
@@ -330,7 +378,7 @@ const Library = observer(() => {
           fetchItems({ source: activeBtn, queryStr: searchText });
         }
       })
-      .catch(e => showError(`Error while deleting items, ${e}`));
+      .catch(e => showError(`Error while deleting items, ${e.message}`));
   };
 
   const renderSidebar = React.useCallback(() => {
@@ -362,14 +410,14 @@ const Library = observer(() => {
         />
       );
     }
-  }, [activeTab, activeBtn, volume, activeItem, listProviders]);
+  }, [activeTab, activeBtn, volume, activeItem, listProviders, isLoading]);
 
   return (
     <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>
-      <Tabs setActiveTab={setActiveTab} activeTab={activeTab} />
+      <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
-          <div>
+          <div className="library__add-file__container">
             <div className="library__add-file">
               <input id="add-file" {...getInputProps()} disabled={isDisabledUpload} />
               <label htmlFor="add-file" className="library__add">
@@ -379,8 +427,20 @@ const Library = observer(() => {
               </label>
             </div>
           </div>
-          <div className="library__block">
-            {
+          <div>
+            <div className="library__block">
+              {
+                activeTab === LIBRARY_TABS.VIDEO && (
+                <DropPasteInput
+                  onDrop={onDrop}
+                  accept={[ALL_VIDEO]}
+                  onEnter={onEnter}
+                />
+                )
+            }
+            </div>
+            <div className="library__block">
+              {
               activeBtn !== LIBRARY_KEYS.DROPMOCK && (
                 <Fragment>
                   <input
@@ -403,12 +463,13 @@ const Library = observer(() => {
                 </Fragment>
               )
             }
+            </div>
           </div>
         </div>
 
         <div className="library__row library__row-second">
           {renderSidebar()}
-          {isLoading
+          {isInitialLoading
             ? (
               <div className="library__items">
                 <CircleLoader
@@ -445,4 +506,4 @@ const Library = observer(() => {
 });
 
 
-export default Library;
+export default withModal(Library);

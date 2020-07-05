@@ -16,6 +16,7 @@ import SizeSelector from './canvas/SizeSelector';
 import AnimationList from './media/AnimationList';
 import SettingsEditor from './common/SettingsEditor';
 import Recorder from './common/recorder/Recorder';
+import CallToAction from './media/CallToAction';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
@@ -45,6 +46,7 @@ const Home = observer(() => {
     lowerThirdsEnabled,
     templateGeneratorEnabled,
     linkedinEnabled,
+    ctaEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -92,6 +94,8 @@ const Home = observer(() => {
     isTimelineOpen,
     canvasWidth,
     toolsWidth,
+    setListBuilder,
+    openCTA,
   } = uiStore;
 
   const {
@@ -131,6 +135,9 @@ const Home = observer(() => {
       case WINDOW_TYPES.RECORDER: {
         return <Recorder />;
       }
+      case WINDOW_TYPES.CTA: {
+        return <CallToAction />;
+      }
       default: {
         return null;
       }
@@ -148,8 +155,10 @@ const Home = observer(() => {
         changeRadioButton,
         addElement,
         addRetargetForm,
+        setListBuilder,
         setSecondaryWindowType,
         openMediaButton,
+        openCTA,
       },
       project: {
         allowedSocials,
@@ -164,6 +173,7 @@ const Home = observer(() => {
         stickersEnabled,
         lowerThirdsEnabled,
         linkedinEnabled,
+        ctaEnabled,
       },
     });
     return items && items.length ? items : [];
@@ -184,7 +194,7 @@ const Home = observer(() => {
   return (
     <React.Fragment>
       {(asyncHero.loading) && ( // todo implement loading
-        <Loader isLoading />
+        <Loader isLoading preloader />
       )}
       {asyncHero.error && ( // todo implement err message
         <div>Error</div>
@@ -194,7 +204,7 @@ const Home = observer(() => {
           { isLoading ? <div className="hover-loading" /> : null }
           <Loader isLoading={isLoading} />
           <Grid container className="controls">
-            <Grid item xs={toolsWidth} style={{ minWidth: '105px' }}>
+            <Grid item xs={toolsWidth} className="controls-block">
               <Grid container>
 
                 <Grid item xs={radioButtonBottom ? 12 : 6} style={{ maxWidth: radioButtonBottom ? '100%' : '23.3em', flexBasis: !radioButtonBottom && 'auto' }}>

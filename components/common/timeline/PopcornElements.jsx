@@ -2,21 +2,23 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
+import { TRANSITION_DEFAULT_DURATION } from '../../../lib/constants/settings/video-transition';
+
 import PopcornElement from './PopcornElement';
 import ResponsiveGrid from '../../form/grids/ResponsiveGrid';
 
 import PropTypes from '../../../lib/PropTypes';
+import { selectItem } from '../../../lib/mitt/emitter';
 
 import useProjectStore from '../../hooks/useProjectStore';
 
 import { SANTISECOND } from '../../../lib/constants/project';
-import { MIN_DURATION, POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
+import { MIN_DURATION, POPCORN_ELEMENT_TYPES, SEQUENCER } from '../../../lib/constants/popcorn';
 import { NONE_CLASS } from '../../../lib/constants/animations';
 import { DEFAULT_SETTINGS } from '../../../lib/constants/settings';
 
 import { getTransitionButtons } from '../../../lib/utils/timeline';
 import TransitionButton from './TransitionButton';
-
 
 const PopcornElements = observer(({ width }) => {
   const projectStore = useProjectStore();
@@ -28,6 +30,8 @@ const PopcornElements = observer(({ width }) => {
     elements,
     layers,
     addElement,
+    updateVideoDuration,
+    projectData,
   } = projectStore;
 
   const layersCount = React.useMemo(() => layers.length, [layers.length]);
@@ -52,6 +56,50 @@ const PopcornElements = observer(({ width }) => {
   }, [getExtraDuration]);
 
   const insertTransition = async ({ transition, element }) => {
+    // let currentLayerId = 0;
+    const elementsForUpdate = [];
+    const elementsEnds = [];
+    let itemStartAfterToVideo = null;
+
+    const currentLayer = elements.filter(item => item.id === element.id);
+
+    projectData.media.forEach((media) => {
+      media.tracks.map((track) => {
+        track.trackEvents.forEach(trackEvent => {
+          if (trackEvent.track === currentLayer[0].track) {
+            elementsEnds.push(trackEvent.popcornOptions.end);
+            if ((element.end - TRANSITION_DEFAULT_DURATION) < trackEvent.popcornOptions.start) {
+              elementsForUpdate.push(trackEvent);
+            }
+          }
+        });
+        return null;
+      });
+    });
+
+    if (elementsForUpdate && elementsForUpdate.length) {
+      elementsForUpdate.forEach(item => {
+        if (item.popcornOptions.start < itemStartAfterToVideo || !itemStartAfterToVideo) {
+          itemStartAfterToVideo = item.popcornOptions.start;
+        }
+      });
+    }
+
+    if (element.end > itemStartAfterToVideo) {
+      if (cols < (Math.max(...elementsEnds) + TRANSITION_DEFAULT_DURATION) * SANTISECOND) {
+        await updateVideoDuration((cols / SANTISECOND) + TRANSITION_DEFAULT_DURATION);
+      }
+
+      if (elementsForUpdate && elementsForUpdate.length) {
+        elementsForUpdate.forEach(item => {
+          updateStartEnd(
+            item.id,
+            item.popcornOptions.start + TRANSITION_DEFAULT_DURATION,
+            item.popcornOptions.end + TRANSITION_DEFAULT_DURATION);
+        });
+      }
+    }
+
     await updateStartEnd(element.id, element.start, element.end);
     await addElement({
       ...DEFAULT_SETTINGS[POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION],
@@ -69,7 +117,8 @@ const PopcornElements = observer(({ width }) => {
 
   const layouts = React.useMemo(() => elements.map(element => {
     const {
-      popcornOptions: { id: i, start, end, animation, title, outDuration },
+      popcornOptions,
+      popcornOptions: { id: i, start, end, animation, title, outDuration, duration },
       type,
       dimensions,
     } = element;
@@ -77,7 +126,15 @@ const PopcornElements = observer(({ width }) => {
     const layer = layers.find(item => item.id === element.track);
     const x = start * SANTISECOND;
     const w = (getEnd(end, animation, outDuration) - start) * SANTISECOND;
+
+    let maxW = cols - x;
+
+    if (type === SEQUENCER) {
+      maxW = duration * SANTISECOND;
+    }
+
     return {
+      ...popcornOptions,
       i,
       x,
       w,
@@ -88,12 +145,13 @@ const PopcornElements = observer(({ width }) => {
       animation,
       title,
       y: layer.order,
-      maxW: cols - x,
+      maxW,
       minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
       layer,
       dimensions,
     };
   }), [cols, elements, getEnd, getExtraDuration, layers]);
+
   const components = React.useMemo(() => layouts.map((item, index, items) => {
     const transitionButtons = getTransitionButtons(item, index, items);
 
@@ -130,6 +188,8 @@ const PopcornElements = observer(({ width }) => {
   }), [layouts, cols]);
 
   const onDragStop = (element, oldElement, newElement) => {
+    selectItem({ type: 'click' }, newElement.i);
+
     if (oldElement.y !== newElement.y) {
       setLayer(oldElement.i, newElement.y);
     }

@@ -5,8 +5,8 @@ import { LOADING_COLOR } from '../../lib/constants/ui';
 
 import PropTypes from '../../lib/PropTypes';
 
-const Loader = ({ className, isLoading, size = 100, color, fixed = false }) => (
-  <div className={classnames('loading-spinner', className, { fixed, active: isLoading })}>
+const Loader = ({ className, isLoading, size = 100, color, fixed = false, preloader = false }) => (
+  <div className={classnames('loading-spinner', className, { fixed, active: isLoading, preloader })}>
     <CircleLoader
       size={size}
       css={{
@@ -27,6 +27,7 @@ const Loader = ({ className, isLoading, size = 100, color, fixed = false }) => (
 Loader.propTypes = {
   isLoading: PropTypes.bool.isRequired,
   fixed: PropTypes.bool,
+  preloader: PropTypes.bool,
   size: PropTypes.number,
   className: PropTypes.string,
   color: PropTypes.string,

@@ -28,9 +28,13 @@ const FacebookPostPreview = (props) => {
           </div>
         </div>
         <div className="post-body">
-          <div className="post-image">
-            <img src={thumbnail} alt="watermark" />
-          </div>
+          {
+            thumbnail && (
+            <div className="post-image">
+              <img src={thumbnail} alt="watermark" />
+            </div>
+            )
+          }
 
           <div className="post-description">
             <div className="post-description-wrapper">

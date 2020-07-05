@@ -11,6 +11,7 @@ module.exports = {
   },
   whiteLabel: {
     devDefault: 'videoremix.io',
+    learnDefault: 'learn.vidcloud.io',
   },
   editor: process.env.EDITOR || 'dev-app.vidcloud.io',
   assetsPath: process.env.ASSETS_PATH || 'https://dev-cdn.vidcloud.io/resources/go',
@@ -96,10 +97,10 @@ module.exports = {
       videosApiPath: 'videos',
     },
     PIXABAY: {
-      apiUrl: process.env.PIXABAY_API_URL || 'https://pixabay.com',
+      apiUrl: process.env.PIXABAY_API_URL || 'https://pixabay.com/api',
       apiKey: process.env.PIXABAY_API_KEY || '13298235-276e448db1c79d704ffc96bc3',
-      imagesApiPath: 'api',
-      videosApiPath: 'api/videos',
+      imagesApiPath: '',
+      videosApiPath: '/videos',
     },
     UNSPLASH: {
       apiUrl: process.env.UNSPLASH_API_URL || 'https://api.unsplash.com',

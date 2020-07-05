@@ -14,13 +14,20 @@ import useProjectStore from '../../hooks/useProjectStore';
 
 import { KIND } from '../../../lib/constants/popcorn';
 import { TRANSITION_TIMELINE_OFFSET } from '../../../lib/constants/settings/video-transition';
+import { SANTISECOND } from '../../../lib/constants/project';
 
 import { loadImage } from '../../../lib/requestCreator';
 import { makeTransition, playTransition } from '../../../lib/utils/transition';
 import Loader from '../../common/Loader';
 
 const VideoTransitionSettings = observer(({ element, update, fields, find }) => {
-  const { findAndUpdate, setPopcorn } = useProjectStore();
+  const {
+    findAndUpdate,
+    updateVideoDuration,
+    elements,
+    projectData,
+    duration: clipDuration,
+  } = useProjectStore();
   const { uploadMedia } = useMediaStore();
 
   const [isLoading, setIsLoading] = React.useState(false);
@@ -38,11 +45,13 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   const toPlayer = React.useRef(null);
   const canvasEl = React.useRef(null);
   const canvasContainerRef = React.useRef(null);
+  const animationRef = React.useRef(null);
 
   const { popcornOptions: values } = element || {};
 
   const { current: from } = imageFrom;
   const { current: to } = imageTo;
+  const { current: canvas } = canvasEl;
 
   const {
     kind,
@@ -54,7 +63,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
     height,
   } = values;
 
-  const duration = React.useMemo(() => end - start, [start, end]);
+  const duration = React.useMemo(() => +((end - start).toFixed(2)), [start, end]);
 
   const fromVideo = React.useMemo(() => {
     if (values) {
@@ -71,14 +80,12 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   }, [values]);
 
   React.useEffect(() => {
-    const { current: canvas } = canvasEl;
     if (from && to && canvas && kind) {
       setTransition(makeTransition({ canvas, kind, from: from.dataUri, to: to.dataUri }));
     }
-  }, [from, to, canvasEl, kind]);
+  }, [from, to, canvas, kind]);
 
   React.useEffect(() => {
-    const { current: canvas } = canvasEl;
     if (isPlaying && transition && canvas && duration) {
       playTransition({ canvas, duration, ...transition, callback: () => setIsPlaying(false) });
     } else {
@@ -101,20 +108,21 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   }, [fromUrl, toUrl]);
 
   React.useEffect(() => {
-    if (fromPlayer && fromPlayer.current) {
-      fromPlayer.current.video.seek(duration - 0.5);
+    if (fromPlayer && fromPlayer.current && !isCaptured) {
+      fromPlayer.current.video.seek(end - duration);
     }
-  }, [duration, fromVideo]);
+  }, [fromVideo, isCaptured]);
 
   React.useEffect(() => {
-    if (toPlayer && toPlayer.current) {
-      toPlayer.current.video.seek(0.5);
+    if (toPlayer && toPlayer.current && !isCaptured) {
+      toPlayer.current.video.seek(toVideo.popcornOptions.from);
     }
-  }, [toVideo]);
+  }, [toVideo, isCaptured]);
 
   const handleCaptureClick = React.useCallback(async () => {
     setIsPlaying(false);
     if (isCaptured) {
+      animationRef.current = null;
       return setIsCaptured(false);
     }
     setIsLoading(true);
@@ -163,13 +171,14 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
       const { from: toVideoFrom } = toVideo.popcornOptions;
 
       // 2. Prepare to update the first video
-      const fromVideoNewOptions = {
-        end: newFromEnd.current
-          ? (fromVideoStart + newFromEnd.current - TRANSITION_TIMELINE_OFFSET)
-          : fromVideoEnd,
-      };
+      const newEnd = newFromEnd.current
+        ? (+((fromVideoStart + newFromEnd.current - TRANSITION_TIMELINE_OFFSET).toFixed(2)))
+        : fromVideoEnd;
 
-      const transitionStart = fromVideoNewOptions.end + TRANSITION_TIMELINE_OFFSET;
+      const fromVideoNewOptions = {
+        end: newEnd,
+      };
+      const transitionStart = +((fromVideoNewOptions.end + TRANSITION_TIMELINE_OFFSET).toFixed(2));
       const transitionEnd = transitionStart + duration;
 
       // 3. Prepare to update transition
@@ -183,24 +192,87 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
       };
 
       // 4. Prepare to update the second video
+      const newFrom = newToStart.current
+        ? +((newToStart.current + TRANSITION_TIMELINE_OFFSET).toFixed(2)) : toVideoFrom;
+
+      let toVideoNewEnd = transitionOptions.end + TRANSITION_TIMELINE_OFFSET
+        + (toVideo.popcornOptions.end - toVideo.popcornOptions.start)
+        - newFrom + toVideo.popcornOptions.from;
+      if ((toVideo.popcornOptions.duration - newFrom)
+        < (toVideo.popcornOptions.end - toVideo.popcornOptions.start)) {
+        toVideoNewEnd = +((toVideo.popcornOptions.duration - newFrom).toFixed(2))
+          + transitionOptions.end + TRANSITION_TIMELINE_OFFSET;
+      }
+
       const toVideoNewOptions = {
-        from: newToStart.current ? newToStart.current + TRANSITION_TIMELINE_OFFSET : toVideoFrom,
-        start: transitionOptions.end + TRANSITION_TIMELINE_OFFSET,
+        from: newFrom,
+        start: transitionOptions.end + 0.001,
+        end: toVideoNewEnd,
       };
 
-      // 5. update From video end
+      // 5. Update clip duration and
+      // Update start and end in elements after second video with animation
+      const elementsForUpdate = [];
+      const elementsEnds = [];
+      elementsEnds.push(fromVideoNewOptions.end);
+      elementsEnds.push(toVideoNewOptions.end);
+      let itemStartAfterToVideo = null;
+
+      const difference = +((toVideoNewOptions.end - toVideo.popcornOptions.end)
+        .toFixed(2));
+
+      const currentLayer = elements.filter(item => item.id === element.id);
+
+      projectData.media.forEach((media) => {
+        media.tracks.map((track) => {
+          track.trackEvents.forEach(trackEvent => {
+            if (trackEvent.track === currentLayer[0].track) {
+              if (toVideo.popcornOptions.end < trackEvent.popcornOptions.start) {
+                elementsForUpdate.push(trackEvent);
+                elementsEnds.push(trackEvent.popcornOptions.end + difference);
+              }
+            }
+          });
+          return null;
+        });
+      });
+
+      if (elementsForUpdate && elementsForUpdate.length) {
+        elementsForUpdate.forEach(item => {
+          if (item.popcornOptions.start < itemStartAfterToVideo || !itemStartAfterToVideo) {
+            itemStartAfterToVideo = item.popcornOptions.start;
+          }
+        });
+      }
+
+      if (toVideoNewOptions.end > itemStartAfterToVideo) {
+        if (clipDuration < (Math.max(...elementsEnds) * SANTISECOND)) {
+          updateVideoDuration(Math.max(...elementsEnds));
+        }
+
+        if (elementsForUpdate && elementsForUpdate.length && difference > 0) {
+          elementsForUpdate.forEach(item => {
+            findAndUpdate(item.id, {
+              start: item.popcornOptions.start + difference,
+              end: item.popcornOptions.end + difference,
+            });
+          });
+        }
+      }
+
+      // 6. update From video end
       findAndUpdate(fromVideo.id, fromVideoNewOptions);
 
-      // 6. update transition element
+      // 7. update transition element
       update(transitionOptions);
 
-      // 7. update To video start
+      // 8. update To video start
       findAndUpdate(toVideo.id, toVideoNewOptions);
 
-      // 8. Set popcorn
-      setPopcorn();
+      // 9. Set popcorn
+      // setPopcorn();
 
-      // 9. Clear time refs
+      // 10. Clear time refs
       newFromEnd.current = null;
       newToStart.current = null;
       setIsLoading(false);
@@ -216,7 +288,6 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   ]);
 
   const handlePlay = () => {
-    const { current: canvas } = canvasEl;
     if (from && to && canvas && kind) {
       setIsPlaying(true);
     } else {
@@ -227,16 +298,21 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
     }
   };
 
+  const updateAnimation = (value) => {
+    animationRef.current = value.kind;
+    update(value);
+  };
+
   return (
     <div className="video-transition-settings">
       <Loader isLoading={isLoading} />
-      {values && (
+      {values && isCaptured && (
         <div className="video-transition-form">
           <FieldBuilder
             ref={selectRef}
             name={KIND}
             value={values.kind}
-            onChange={update}
+            onChange={updateAnimation}
             {...fields[KIND]}
           />
         </div>
@@ -275,7 +351,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
             {fromVideo && (
               <Player
                 ref={fromPlayer}
-                src={fromVideo && fromVideo.popcornOptions ? fromVideo.popcornOptions.src : ''}
+                src={fromVideo && fromVideo.popcornOptions ? (fromVideo.popcornOptions.src || fromVideo.popcornOptions.source[0]) : ''}
                 videoId={fromVideo.id}
                 crossOrigin="anonymous"
                 width={width}
@@ -290,7 +366,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
             {toVideo && (
               <Player
                 ref={toPlayer}
-                src={toVideo && toVideo.popcornOptions ? toVideo.popcornOptions.src : ''}
+                src={toVideo && toVideo.popcornOptions ? (toVideo.popcornOptions.src || toVideo.popcornOptions.source[0]) : ''}
                 videoId={toVideo.id}
                 crossOrigin="anonymous"
                 width={width}
@@ -315,7 +391,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
             className="video-transition-btn apply"
             type="button"
             onClick={handleSave}
-            disabled={!(from && to)}
+            disabled={!(from && to) || !animationRef.current}
           >
             Apply
           </button>

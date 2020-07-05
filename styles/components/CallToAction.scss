@@ -1,0 +1,123 @@
+.library-cta {
+  position: relative;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  max-width: 31.75rem;
+  height: $toolbarHeight - 5vh;
+  background: $light-twinlight;
+  box-sizing: border-box;
+  z-index: 1;
+  font-size: 0.875rem;
+  line-height: 1;
+  color: $white;
+  overflow: hidden;
+  padding: 1.3rem 2.56rem 1.68rem 1.75rem;
+  font-family: $font-primary;
+  transition: 0.3s all;
+
+  &-title {
+    font-weight: bold;
+    line-height: 1;
+    margin-bottom: 1rem;
+    color: #fff;
+    text-align: left;
+  }
+
+  &-items {
+    @include tiny-scrollbar();
+    max-height: calc(100% - 2rem);
+    overflow-x: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    flex-flow: row wrap;
+    justify-content: flex-start;
+    margin: 0 -1.03%;
+    padding-right: 0.5rem;
+  }
+
+  &-item {
+    position: relative;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+    width: 31.26%;
+    height: 4.93rem;
+    margin: 1.03%;
+
+    .inner-wrapper {
+      flex: 1;
+      align-self: stretch;
+      background-color: $dropzone-bg;
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center center;
+      border-radius: 2px;
+      border: 1px solid transparent;
+      transition: 0.25s ease;
+    }
+
+    &:hover {
+      .inner-wrapper {
+        border-color: $secondary-color;
+      }
+
+      .btn-add {
+        transform: scale(1);
+      }
+
+      .title {
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    .btn-add {
+      position: absolute;
+      top: 1px;
+      right: 1px;
+      transform: scale(0);
+      transform-origin: right top;
+      transition: 0.25s ease;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: $modal-header-bg;
+      color: $white;
+      font-size: 1.5rem;
+      border: none;
+      width: 1.8rem;
+      height: 1.8rem;
+      outline: none;
+    }
+
+    .title {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, 10%) scale(0);
+      transform-origin: center bottom;
+      transition: 0.25s ease;
+    }
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .library-cta-item {
+    width: 47.94%;
+  }
+}
+
+@media screen and (max-width: 1000px) {
+  .library-cta-items {
+    margin: 0;
+  }
+
+  .library-cta-item {
+    width: 100%;
+    margin: 0 0 0.5rem;
+  }
+}

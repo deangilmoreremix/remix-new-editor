@@ -6,7 +6,7 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 
-import { SEQUENCER } from '../../lib/constants/popcorn';
+import { NO_SETTINGS_ELEMENT_TYPES, SEQUENCER, POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
@@ -16,7 +16,6 @@ import {
   MAX_ZINDEX,
   DEFAULT_CONTAINER,
   DEFAULT_DURATION,
-  PAUSE_PLUGIN_TIME_MARGIN,
   DEFAULT_LAYER,
   DEFAULT_ITEM,
   SOCIALS,
@@ -38,6 +37,11 @@ export default class ProjectStore extends BaseStore {
         if (!this.popcorn.on) {
           return;
         }
+        this.popcorn.on('seeking', () => {
+          if (this.isPlayed) {
+            this.playPause();
+          }
+        });
         this.popcorn.on('canplayall', () => {
           this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
           this.isLoaded = true;
@@ -61,11 +65,20 @@ export default class ProjectStore extends BaseStore {
         });
         emitter.on(emitterActions.SELECT, id => {
           if (id) {
-            this.editElement(id);
-          }
-          const element = this.getElementById(id);
-          if (element && element.popcornOptions) {
-            this.updateTime(element.popcornOptions.start * SANTISECOND);
+            const element = this.getElementById(id);
+            if (element) {
+              const { popcornOptions } = element;
+              const currentTime = this.time / SANTISECOND;
+              if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
+                this.updateTime(popcornOptions.start * SANTISECOND);
+              }
+
+              if (this.activeElementId !== id) {
+                if (this.isElementWithSettings(element.type)) {
+                  this.editElement(id);
+                }
+              }
+            }
           }
         });
         emitter.on(emitterActions.DELETE, id => {
@@ -137,7 +150,7 @@ export default class ProjectStore extends BaseStore {
 
   getPersonalization = () => getCustomVarsFromMediaArr(this.projectData.media);
 
-  generateUid = () => `${Date.now() / Math.random()}`;
+  generateUid = () => `${Date.now()}/${Math.random()}/${Date.now() * Math.random()}`;
 
   @observable duration = 30 * SANTISECOND;
 
@@ -153,17 +166,29 @@ export default class ProjectStore extends BaseStore {
 
     switch (item.type) {
       case SEQUENCER: {
+        this.isLoadingSequencer = true;
         const source = (item.extra && item.extra.source) || [item.url];
-        const videoMeta = await this.mediaTypeDetector.getMetadata(source[0]);
-        options.end = options.start + videoMeta.duration;
+        const fileDuration = (item.extra && item.extra.duration) || null;
+        let fileMeta;
+        try {
+          fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration);
+        } catch (e) {
+          // if there is no error, then loading will hide, after adding the item to the popcorn
+          this.isLoadingSequencer = false;
+          throw e;
+        }
+        options.end = options.start + fileMeta.duration;
         options.source = source;
-        options.title = videoMeta.title;
-        options.duration = videoMeta.duration;
+        options.title = fileMeta.title;
+        options.duration = fileMeta.duration;
         options.from = 0;
-        options.contentType = videoMeta.contentType;
+        options.contentType = fileMeta.contentType;
         options.in = options.start;
         options.out = options.end;
-        options.volume = item.volume || 100;
+        options.volume = item.volume !== undefined ? item.volume : 100;
+        options.mute = item.volume === 0;
+        options.audioFadeIn = 0;
+        options.audioFadeOut = 0;
         break;
       }
       default:
@@ -171,6 +196,8 @@ export default class ProjectStore extends BaseStore {
     }
     return options;
   };
+
+  isElementWithSettings = (type) => !NO_SETTINGS_ELEMENT_TYPES.some(e => e === type);
 
   @action
   createRetargetForm = (initialOptions) => {
@@ -194,7 +221,6 @@ export default class ProjectStore extends BaseStore {
 
     // eslint-disable-next-line no-underscore-dangle
     popcornFunctions._setup(retargetOptions);
-    this.editElement(retargetOptions.id);
     this.retarget = { ...retargetOptions, ...popcornFunctions };
     this.retarget.end = () => {
       if (popcornFunctions.end) {
@@ -210,16 +236,11 @@ export default class ProjectStore extends BaseStore {
 
   @action
   addRetargetForm = (retargetForm) => {
-    if (!this.retarget) {
+    if (!this.retarget || (this.retarget && !this.retarget.id)) {
       this.createRetargetForm(retargetForm);
-      this.retarget.start();
-    } else if (this.retarget && !this.retarget.id) {
-      this.createRetargetForm(retargetForm);
-      this.retarget.start();
-    } else {
-      this.editElement(this.retarget.id);
-      this.retarget.start();
     }
+    this.editElement(this.retarget.id);
+    this.retarget.start();
     this.retarget.showed = true;
     this.modified = true;
   };
@@ -227,7 +248,6 @@ export default class ProjectStore extends BaseStore {
   @action
   addElement = async (item) => {
     const { type } = item;
-
     if (this.isPlayed) {
       this.playPause();
     }
@@ -261,7 +281,7 @@ export default class ProjectStore extends BaseStore {
 
     // update duration
     if (options.end > this.duration / SANTISECOND) {
-      this.recompressProject(options.end);
+      this.recompressProject(options.end, false);
       this.setPopcorn(this.popcorn.target);
       this.duration = options.end * SANTISECOND;
     }
@@ -269,13 +289,16 @@ export default class ProjectStore extends BaseStore {
     // update timeline
     this.elements = [element, ...this.elements];
 
-    this.editElement(element.id);
+    if (this.isElementWithSettings(element.type)) {
+      this.editElement(element.id);
+    } else {
+      this.releaseElement();
+    }
   };
 
   @action
   editElement = (elementId) => {
-    if (this.activeElementId
-      && this.retarget
+    if (this.retarget
       && this.retarget.id
       && this.retarget.id !== elementId) {
       this.retarget.end();
@@ -319,7 +342,7 @@ export default class ProjectStore extends BaseStore {
   updateElement = (elementId, options) => {
     // we need to update the elements, if the user updates the start,
     // end or animation, this is necessary to rerender the elements
-    const { start, end, animation, title } = options;
+    const { start, end, animation, title, duration, htmlText } = options;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         const newOptions = {};
@@ -329,11 +352,17 @@ export default class ProjectStore extends BaseStore {
         if (end !== undefined && end !== element.popcornOptions.end) {
           newOptions.end = end;
         }
+        if (duration !== undefined && duration !== element.popcornOptions.duration) {
+          newOptions.duration = duration;
+        }
         if (animation) {
           newOptions.animation = animation;
         }
         if (title) {
           newOptions.title = title;
+        }
+        if (htmlText !== undefined) {
+          newOptions.htmlText = htmlText;
         }
         if (size(newOptions) > 0) {
           element.popcornOptions = {
@@ -448,10 +477,6 @@ export default class ProjectStore extends BaseStore {
     projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
-          if (trackEvent.type === 'pausePlugin') {
-            trackEvent.popcornOptions.start = media.duration - PAUSE_PLUGIN_TIME_MARGIN;
-            trackEvent.popcornOptions.end = media.duration;
-          }
           elements.push({
             ...trackEvent,
           });
@@ -648,6 +673,13 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  updateVideoDuration = (value) => {
+    this.recompressProject(value, false);
+    this.setPopcorn(this.popcorn.target);
+    this.duration = value * SANTISECOND;
+  };
+
+  @action
   updateStartEnd = (elementId, start, end) => {
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
@@ -696,7 +728,7 @@ export default class ProjectStore extends BaseStore {
           },
         });
       this.setProjectData(JSON.parse(this.item.project.data));
-      if (this.item.project.retargetForm) {
+      if (this.item.project.retargetForm && !this.retarget) {
         this.retarget = this.item.project.retargetForm;
       }
       if (this.item.project && this.item.project.allowedSocials) {
@@ -819,23 +851,9 @@ export default class ProjectStore extends BaseStore {
     tags: this.item.tags,
   });
 
-  trailisePauseElements = (projectData) => {
-    projectData.media.forEach((media) => {
-      media.tracks.forEach((track) => {
-        track.trackEvents.forEach((trackEvent) => {
-          if (trackEvent.type === 'pausePlugin') {
-            trackEvent.popcornOptions.start = media.duration - PAUSE_PLUGIN_TIME_MARGIN;
-            trackEvent.popcornOptions.end = media.duration;
-          }
-        });
-      });
-    });
-    return projectData;
-  };
-
   // todo implement
   @action
-  recompressProject = (newDuration) => {
+  recompressProject = (newDuration, updateElements = true) => {
     this.projectData.media.forEach((media) => {
       const initialDuration = media.duration;
       if (initialDuration >= newDuration) {
@@ -843,19 +861,20 @@ export default class ProjectStore extends BaseStore {
       }
       media.duration = newDuration;
       media.url = `#t=,${newDuration}`;
-      const recompressRatio = newDuration / initialDuration;
-      media.tracks.forEach((track) => {
-        track.trackEvents.forEach((trackEvent) => {
-          if (trackEvent.type !== 'sequencer') {
-            trackEvent.popcornOptions.start = Math
-              .round(trackEvent.popcornOptions.start * recompressRatio * 100) / 100;
-            trackEvent.popcornOptions.end = Math
-              .round(trackEvent.popcornOptions.end * recompressRatio * 100) / 100;
-          }
+      if (updateElements) {
+        const recompressRatio = newDuration / initialDuration;
+        media.tracks.forEach((track) => {
+          track.trackEvents.forEach((trackEvent) => {
+            if (trackEvent.type !== 'sequencer') {
+              trackEvent.popcornOptions.start = Math
+                .round(trackEvent.popcornOptions.start * recompressRatio * 100) / 100;
+              trackEvent.popcornOptions.end = Math
+                .round(trackEvent.popcornOptions.end * recompressRatio * 100) / 100;
+            }
+          });
         });
-      });
+      }
     });
-    this.projectData = this.trailisePauseElements(this.projectData);
   };
 
   @action
@@ -881,36 +900,45 @@ export default class ProjectStore extends BaseStore {
     }
     this.isLoading = true;
 
-    // Todo add in future
-    // const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
-    //
-    // if (byEnd && byEnd.length && byEnd.length > 1) {
-    //   const lastEvent = byEnd[byEnd.length - 2];
-    //   let eventEnd = 0;
-    //
-    //   switch (lastEvent.type) {
-    //     case POPCORN_ELEMENT_TYPES.TEXT:
-    //       if (lastEvent.animation.out && lastEvent.animation.out.duration) {
-    //         eventEnd = lastEvent.end + lastEvent.animation.out.duration;
-    //       } else {
-    //         eventEnd = lastEvent.end;
-    //       }
-    //       break;
-    //     case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
-    //       if (lastEvent.outDuration) {
-    //         eventEnd = lastEvent.end + lastEvent.outDuration;
-    //       } else {
-    //         eventEnd = lastEvent.end;
-    //       }
-    //       break;
-    //     default:
-    //       eventEnd = lastEvent.end;
-    //   }
-    //
-    //   if (lastEvent.end !== this.popcorn.duration()) {
-    //     this.projectData.media[0].url = `#t=,${eventEnd}`;
-    //   }
-    // }
+    const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
+
+    if (byEnd && byEnd.length && byEnd.length > 1) {
+      const lastEvent = byEnd[byEnd.length - 2];
+      let eventEnd = 0;
+
+      switch (lastEvent.type) {
+        case POPCORN_ELEMENT_TYPES.TEXT:
+          if (lastEvent.animation && lastEvent.animation.out && lastEvent.animation.out.duration) {
+            eventEnd = lastEvent.end + lastEvent.animation.out.duration;
+          } else {
+            eventEnd = lastEvent.end;
+          }
+          break;
+        case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
+          if (lastEvent.outDuration) {
+            eventEnd = lastEvent.end + lastEvent.outDuration;
+          } else {
+            eventEnd = lastEvent.end;
+          }
+          break;
+        default:
+          eventEnd = lastEvent.end;
+      }
+
+      if (lastEvent.end !== this.popcorn.duration() && byEnd.length !== 2) {
+        this.projectData.media[0].url = `#t=,${eventEnd}`;
+        this.projectData.media[0].duration = eventEnd;
+        this.duration = eventEnd * SANTISECOND;
+        this.setPopcorn();
+      }
+
+      if (byEnd.length === 2) {
+        this.projectData.media[0].url = `#t=,${30}`;
+        this.projectData.media[0].duration = 30;
+        this.duration = 30 * SANTISECOND;
+        this.setPopcorn();
+      }
+    }
 
     try {
       const path = this.item._id
@@ -977,7 +1005,7 @@ export default class ProjectStore extends BaseStore {
       },
     });
 
-  fromTemplate = async (makeTemplate = {}, video, isSource) => {
+  fromTemplate = async (makeTemplate = {}, video = null, isSource) => {
     this.item.allowedSocials = ['facebook'];
     this.item.title = makeTemplate.title;
     this.item.description = makeTemplate.description;
@@ -988,9 +1016,30 @@ export default class ProjectStore extends BaseStore {
     }
     this.setProjectData(JSON.parse(makeTemplate.project.data));
     this.setPopcorn();
-    await this.updateVideo(video);
+    if (video) {
+      await this.updateVideo(video);
+    }
     this.setProjectData(this.projectData);
     this.setPopcorn();
+  };
+
+  addData = (makeTemplate = {}) => {
+    let newData = makeTemplate.project.data;
+    if (!newData) {
+      return;
+    }
+    newData = JSON.parse(newData);
+    newData.media.map((media) => media.tracks
+      .map((track) => track.trackEvents.map((trackEvent) => {
+        const item = {
+          ...trackEvent.popcornOptions,
+          track: null,
+          start: null,
+          end: null,
+          zindex: null,
+        };
+        return this.addElement(item);
+      })));
   };
 
   @action
@@ -1019,7 +1068,7 @@ export default class ProjectStore extends BaseStore {
     } else {
       this.projectData.media.forEach((media) => {
         if (media.tracks.length > 0) {
-          const elementId = this.generateUid();
+          const elementId = `0.${this.generateUid()}`;
           const layerId = this.generateUid();
           media.tracks.push({
             name: `${media.tracks.length}`,
@@ -1065,7 +1114,22 @@ export default class ProjectStore extends BaseStore {
     if (!this.activeElementId) {
       return null;
     }
-    return this.popcornElements.find(element => element.id === this.activeElementId);
+    const currentElement = this.popcornElements
+      .find(element => element.id === this.activeElementId);
+    if (!currentElement) {
+      return null;
+    }
+    const popcornOptions = this.popcorn.getTrackEvent(this.activeElementId);
+
+    if (popcornOptions) {
+      currentElement.popcornOptions = {
+        ...currentElement.popcornOptions,
+        src: popcornOptions.src,
+        duration: popcornOptions.duration,
+      };
+    }
+
+    return currentElement;
   }
 
   getElementById(id) {
@@ -1121,4 +1185,44 @@ export default class ProjectStore extends BaseStore {
       });
     });
   };
+
+  @action
+  changeDuration = (newDuration) => {
+    const { duration, elements } = this;
+    if (newDuration === duration) {
+      return;
+    }
+    this.modified = true;
+    let lastEnd = newDuration;
+
+    if (lastEnd < duration) {
+      elements.forEach(({ popcornOptions: { end }, type }) => {
+        if (type === SEQUENCER) { // element is image or audio
+          if (lastEnd < end * SANTISECOND) {
+            lastEnd = end * SANTISECOND;
+          }
+        }
+      });
+      elements.forEach(({ popcornOptions: { start, end }, id, type }) => {
+        if (type !== SEQUENCER) {
+          if (start * SANTISECOND < lastEnd && lastEnd < end * SANTISECOND) {
+            this.findAndUpdate(id, { end: lastEnd / SANTISECOND });
+          }
+          if (lastEnd < start * SANTISECOND) {
+            this.removeElement(id);
+          }
+        }
+      });
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
+      this.projectData.media[0].duration = lastEnd / SANTISECOND;
+      this.duration = lastEnd;
+      this.setPopcorn();
+    }
+    if (lastEnd > duration) {
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
+      this.projectData.media[0].duration = lastEnd / SANTISECOND;
+      this.duration = lastEnd;
+      this.setPopcorn();
+    }
+  }
 }
