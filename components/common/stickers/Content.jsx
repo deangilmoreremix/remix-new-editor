@@ -216,11 +216,7 @@ const Content = observer(() => {
           />
         ))
       }
-      {hasMore && (
-        <Waypoint bottomOffset="3%" onEnter={() => fetchItems()}>
-          {isSuperAdmin && <span className="stickers-waypoint" />}
-        </Waypoint>
-      )}
+      {hasMore && <Waypoint bottomOffset="3%" onEnter={() => fetchItems()} />}
     </div>
   );
 });
