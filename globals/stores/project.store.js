@@ -203,14 +203,12 @@ export default class ProjectStore extends BaseStore {
       retarget: { ...this.retarget },
       activeElementId: this.activeElementId,
     }, !undo);
-
     if (this.activeElementId !== activeElementId) {
       this.releaseElement();
     }
     this.elements.map(event => this.popcorn.removeTrackEvent(event.id));
     this.setProjectData(projectData);
     this.attach(this.popcorn.target);
-
     if (this.retarget && this.retarget.end) {
       this.retarget.end();
     }
@@ -226,8 +224,10 @@ export default class ProjectStore extends BaseStore {
         this.retarget.start();
       }
     }
-    this.duration = duration;
-    if (this.time * SANTISECOND > this.duration) {
+    if (this.duration !== duration) {
+      this.updateVideoDuration(duration / SANTISECOND);
+    }
+    if (this.time > this.duration) {
       this.updateTime(0);
     }
   };
@@ -235,7 +235,7 @@ export default class ProjectStore extends BaseStore {
   setElementOptions = async (item) => {
     const { track } = item || {};
     const options = {};
-    options.start = item.start || (this.time / SANTISECOND);
+    options.start = item.start || (Math.ceil(this.time) / SANTISECOND);
     options.end = item.end || options.start + DEFAULT_DURATION;
     options.id = `0.${this.generateUid()}`;
     options.zindex = track && track.order ? MAX_ZINDEX - track.order : MAX_ZINDEX;
@@ -338,9 +338,9 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addLayer = () => {
+  addLayer = (options) => {
     this.setUndo();
-    this.createNewLayer();
+    this.createNewLayer(options);
   };
 
   @action
@@ -494,6 +494,7 @@ export default class ProjectStore extends BaseStore {
   @action
   updateElementFromTimeline = (options) => {
     this.setUndo();
+    this.modified = true;
     const { needUpdateLayer, needUpdateStartEnd, elementId, start, end, layerLevel } = options;
     if (needUpdateLayer) {
       this.setLayer(elementId, layerLevel);
@@ -768,32 +769,99 @@ export default class ProjectStore extends BaseStore {
   updateVideoDuration = (value) => {
     this.recompressProject(value, false);
     this.setPopcorn(this.popcorn.target);
-    this.duration = value * SANTISECOND;
+    this.duration = Math.ceil(value * SANTISECOND);
   };
 
   @action
-  addData = (makeTemplate = {}) => {
+  addData = (makeTemplate = {}, useTime) => {
     let newData = makeTemplate.project.data;
     if (!newData) {
       return;
     }
     this.setUndo();
     newData = JSON.parse(newData);
+    if (useTime) {
+      return this.addRelativeElements(newData);
+    }
+
     newData.media.map((media) => media.tracks
-      .map((track) => track.trackEvents.map((trackEvent) => {
-        const item = {
-          ...trackEvent.popcornOptions,
-          track: null,
-          start: null,
-          end: null,
-          zindex: null,
-        };
-        return this.createNewElement(item);
-      })));
+      .map((track) => {
+        if (track.blendMode) {
+          this.addLayer({ blendMode: track.blendMode });
+        }
+        if (track.opacity) {
+          this.addLayer({ opacity: track.opacity });
+        }
+        return track.trackEvents.map((trackEvent) => {
+          const item = {
+            ...trackEvent.popcornOptions,
+            track: null,
+            start: null,
+            end: null,
+            zindex: null,
+          };
+          return this.createNewElement(item);
+        });
+      }));
   };
+
+  addRelativeElements = data => {
+    let firstElementStart = null;
+
+    data.media.forEach((media) => media.tracks
+      .forEach((track) => {
+        if (track.blendMode) {
+          this.addLayer({ blendMode: track.blendMode });
+        }
+        if (track.opacity) {
+          this.addLayer({ opacity: track.opacity });
+        }
+        return track.trackEvents.forEach((trackEvent) => {
+          if (!firstElementStart) {
+            firstElementStart = trackEvent.popcornOptions.start;
+          }
+
+          if (parseFloat(trackEvent.popcornOptions.start) < firstElementStart) {
+            firstElementStart = trackEvent.popcornOptions.start;
+          }
+        });
+      }));
+
+    data.media.forEach((media) => media.tracks
+      .forEach((track) => {
+        if (track.blendMode) {
+          this.addLayer({ blendMode: track.blendMode });
+        }
+        if (track.opacity) {
+          this.addLayer({ opacity: track.opacity });
+        }
+        return track.trackEvents.forEach((trackEvent) => {
+          const item = {
+            ...trackEvent.popcornOptions,
+            track: null,
+            zindex: null,
+            start: null,
+            end: null,
+          };
+
+          if (trackEvent.popcornOptions.start === firstElementStart) {
+            item.start = this.time / SANTISECOND;
+          } else {
+            item.start = (this.time / SANTISECOND)
+              + (trackEvent.popcornOptions.start - firstElementStart);
+          }
+
+          item.end = (trackEvent.popcornOptions.end - trackEvent.popcornOptions.start) + item.start;
+
+          return this.addElement(item);
+        });
+      }));
+  }
 
   @action
   updateStartEnd = (elementId, start, end) => {
+    start = Math.ceil(start * SANTISECOND) / SANTISECOND;
+    end = Math.ceil(end * SANTISECOND) / SANTISECOND;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         element.popcornOptions.start = start;
@@ -859,7 +927,7 @@ export default class ProjectStore extends BaseStore {
   setUndoRedoAction = (projectData, undo = true) => {
     const targetData = undo ? this.undoStore : this.redoStore;
     targetData.push(projectData);
-    if (targetData.length >= NUMBER_OF_STEPS) {
+    if (targetData.length > NUMBER_OF_STEPS) {
       targetData.shift();
     }
   };
@@ -1355,7 +1423,7 @@ export default class ProjectStore extends BaseStore {
     if (options.end > this.duration / SANTISECOND) {
       this.recompressProject(options.end, false);
       this.setPopcorn(this.popcorn.target);
-      this.duration = options.end * SANTISECOND;
+      this.duration = Math.ceil(options.end * SANTISECOND);
     }
 
     // update timeline
@@ -1370,7 +1438,11 @@ export default class ProjectStore extends BaseStore {
 
   // analog for addLayer
   @action
-  createNewLayer = () => {
+  createNewLayer = (options) => {
+    const blendMode = options && options.blendMode
+      ? options.blendMode : blendModeConstants.normal.value;
+    const opacity = options && options.opacity ? options.opacity : 100;
+
     this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
@@ -1382,7 +1454,7 @@ export default class ProjectStore extends BaseStore {
         });
         return track;
       });
-      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}` });
+      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}`, blendMode, opacity });
     });
 
     this.layers = this.layers.map(track => {
@@ -1390,6 +1462,12 @@ export default class ProjectStore extends BaseStore {
       track.defaultName = `Layer ${track.order}`;
       return track;
     });
-    this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
+    this.layers.unshift({
+      ...DEFAULT_LAYER,
+      id: `${this.layers.length}`,
+      defaultName: 'Layer 0',
+      blendMode,
+      opacity,
+    });
   };
 }
