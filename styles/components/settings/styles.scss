@@ -1,7 +1,8 @@
-.input-time-start {
-  width: 35%;
-  display: flex;
+.input-time-start .input-loop-start, .input-loop-end {
+  width: 50%;
+  display: inline-flex;
   flex-direction: column;
+  align-items: end;
 
   & label {
     font-size: $small;
@@ -20,4 +21,8 @@
     font-size: $small;
     text-align: left;
   }
+}
+
+.select-loop {
+  margin-top: 2rem;
 }
