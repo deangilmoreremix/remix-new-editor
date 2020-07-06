@@ -68,10 +68,10 @@
         align-items: center;
       }
 
-      &.popcorn-pause-end,
-      &.popcorn-pause,
-      &.popcorn-loop,
-      &.popcorn-loop-end {
+      &.popcorn-pausePlugin-end,
+      &.popcorn-pausePlugin,
+      &.popcorn-loopPlugin,
+      &.popcorn-loopPlugin-end {
         width: 1rem;
         height: auto;
         margin: auto 0.2rem;
@@ -88,7 +88,7 @@
   }
 }
 
-.popcorn-pause-element, .popcorn-loop-element {
+.popcorn-pausePlugin-element, .popcorn-loopPlugin-element {
   justify-content: space-between;
 }
 
