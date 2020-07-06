@@ -26,7 +26,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
   const { openCropper } = useModalStore();
 
   const onCrop = (image, option) => {
-    onChange({ [option]: image.url });
+    onChange({ [option]: image ?? image.url });
   };
 
   const onUploadedImage = (image, extension, option, resolution) => {
@@ -37,6 +37,10 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
         }
       });
     });
+  };
+  const onUploadBrandLogo = (item, ext) => {
+    onUploadedImage(item, ext,
+      fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION);
   };
 
   const handleChangeColor = (rgbColor) => {
@@ -59,11 +63,13 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
           <FieldBuilder
             value={values.brandLogoSrc ?? fields.brandLogoSrc.default}
             {...fields.brandLogoSrc}
-            onChange={onChange}
+            onChange={({ brandLogoSrc }) => {
+              openCropper(brandLogoSrc,
+                onCrop, CROP_BRAND_LOGO_RESOLUTION, fields.brandLogoSrc.name);
+            }}
           />
           <DropzoneArea
-            onUploaded={(item, ext) => onUploadedImage(item, ext,
-              fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION)}
+            onUploaded={(item, ext) => { onUploadBrandLogo(item, ext); }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
             value={values?.brandLogoSrc}
@@ -72,8 +78,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             multiple={false}
           />
           <DropButton
-            onUploaded={(item, ext) => onUploadedImage(item, ext,
-              fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION)}
+            onUploaded={(item, ext) => { onUploadBrandLogo(item, ext); }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
             startUpload={() => setIsDisabledUploadLogo(true)}
@@ -86,10 +91,12 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
           <FieldBuilder
             value={values.backgroundImage ?? fields.backgroundImage.default}
             {...fields.backgroundImage}
-            onChange={onChange}
+            onChange={({ backgroundImage: newUrl }) => {
+              openCropper(newUrl, onCrop, CROP_RECOMMENDED_RESOLUTION, fields.backgroundImage.name);
+            }}
           />
           <DropzoneArea
-            onUploaded={(item, ext) => onUploadedImage(item, ext, fields.backgroundImage.name)}
+            onUploaded={(item, ext) => { onUploadedImage(item, ext, fields.backgroundImage.name); }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadImage}
             value={values?.backgroundImage}
@@ -98,7 +105,9 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             multiple={false}
           />
           <DropButton
-            onUploaded={(item, ext) => onUploadedImage(item, ext, fields.backgroundImage.name)}
+            onUploaded={(item, ext) => {
+              onUploadedImage(item, ext, fields.backgroundImage.name);
+            }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadImage}
             optionName={fields.backgroundImage.name}
