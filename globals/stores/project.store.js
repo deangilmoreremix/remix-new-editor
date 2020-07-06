@@ -769,10 +769,17 @@ export default class ProjectStore extends BaseStore {
     newData.media.map((media) => media.tracks
       .map((track) => {
         if (track.blendMode || track.opacity) {
-          this.addLayer({
-            blendMode: track.blendMode || blendModeConstants.normal.value,
-            opacity: track.opacity || 100,
-          });
+          if (track.blendMode !== blendModeConstants.normal.value) {
+            this.addLayer({
+              blendMode: track.blendMode || blendModeConstants.normal.value,
+              opacity: track.opacity || 100,
+            });
+          } else if (track.opacity !== 100) {
+            this.addLayer({
+              blendMode: track.blendMode || blendModeConstants.normal.value,
+              opacity: track.opacity || 100,
+            });
+          }
         }
 
         return track.trackEvents.map((trackEvent) => {
@@ -805,13 +812,17 @@ export default class ProjectStore extends BaseStore {
     data.media.forEach((media) => media.tracks
       .forEach((track) => {
         if (track.blendMode || track.opacity) {
-          console.log('blendMode', track.blendMode);
-          console.log('opacity', track.opacity);
-          console.log('We have blendmode || opacity');
-          this.addLayer({
-            blendMode: track.blendMode || blendModeConstants.normal.value,
-            opacity: track.opacity || 100,
-          });
+          if (track.blendMode !== blendModeConstants.normal.value) {
+            this.addLayer({
+              blendMode: track.blendMode || blendModeConstants.normal.value,
+              opacity: track.opacity || 100,
+            });
+          } else if (track.opacity !== 100) {
+            this.addLayer({
+              blendMode: track.blendMode || blendModeConstants.normal.value,
+              opacity: track.opacity || 100,
+            });
+          }
         }
 
         return track.trackEvents.forEach((trackEvent) => {
