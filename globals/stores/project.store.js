@@ -771,13 +771,13 @@ export default class ProjectStore extends BaseStore {
         if (track.blendMode || track.opacity) {
           if (track.blendMode !== blendModeConstants.normal.value) {
             this.addLayer({
-              blendMode: track.blendMode || blendModeConstants.normal.value,
+              blendMode: track.blendMode,
               opacity: track.opacity || 100,
             });
           } else if (track.opacity !== 100) {
             this.addLayer({
               blendMode: track.blendMode || blendModeConstants.normal.value,
-              opacity: track.opacity || 100,
+              opacity: track.opacity,
             });
           }
         }
@@ -814,13 +814,13 @@ export default class ProjectStore extends BaseStore {
         if (track.blendMode || track.opacity) {
           if (track.blendMode !== blendModeConstants.normal.value) {
             this.addLayer({
-              blendMode: track.blendMode || blendModeConstants.normal.value,
+              blendMode: track.blendMode,
               opacity: track.opacity || 100,
             });
           } else if (track.opacity !== 100) {
             this.addLayer({
               blendMode: track.blendMode || blendModeConstants.normal.value,
-              opacity: track.opacity || 100,
+              opacity: track.opacity,
             });
           }
         }
