@@ -7,6 +7,7 @@ import ImageCropper from '../common/ImageCropper';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
 
 const ImageCropperModal = observer(({ handleClose, options }) => {
+  debugger
   const { imageMeta, recommendedResolution, onImageCropped, updateField } = useMemo(
     () => options, [options]);
   return (

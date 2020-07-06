@@ -50,6 +50,7 @@ export default () => {
   };
 
   const openCropper = async (src, onImageCropped, resolution, updateField) => {
+    debugger
     if (!src || !onImageCropped) {
       return;
     }
@@ -100,9 +101,9 @@ export default () => {
       });
   };
 
-  const finishImageEditing = async (imageSrc, onImageCropped) => {
+  const finishImageEditing = async (image, onImageCropped) => {
     closeModal(TUI_IMAGE_EDITOR_MODAL);
-    await openCropper(imageSrc, (croppedImage) => {
+    await openCropper(image.src, (croppedImage) => {
       debugger
       onImageCropped(croppedImage);
       closeModal(IMAGE_CROPPER_MODAL);

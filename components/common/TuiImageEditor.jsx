@@ -39,10 +39,6 @@ const TuiImageEditor = observer(({
 
   const onLoadImage = useCallback(async () => {
     if (refEditor) {
-      debugger;
-      const editorInstance = refEditor.current.getInstance();
-      editorInstance.ui._actions.crop.modeChange('crop');
-      editorInstance.setCropzoneRect(1.5);
     }
     // todo message about gif
     // const format = getFormatFromContentType(contentType);
@@ -86,9 +82,13 @@ const TuiImageEditor = observer(({
 
   React.useEffect(() => {
     // debugger
-    // if (refEditor && refEditor.current.imageEditorInst && refEditor.current.imageEditorInst._graphics.canvasImage) {
-    //   refEditor.current.imageEditorInst.setCropzoneRect(1.5);
-    // }
+    if (refEditor) {
+      const editorInstance = refEditor.current.getInstance();
+      editorInstance.ui._actions.crop.modeChange('crop');
+      editorInstance.setCropzoneRect(1300 / 600);
+      const t = editorInstance._graphics;
+      debugger;
+    }
   }, [refEditor]);
 
   return (

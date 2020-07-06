@@ -23,6 +23,7 @@ export const isResolutionWrong = (options) => {
 };
 
 export function checkImageResolution(options) {
+  debugger
   const { onFileUploaded } = options;
   if (isResolutionWrong(options)) {
     onFileUploaded(options);

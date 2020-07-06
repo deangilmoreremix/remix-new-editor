@@ -47,7 +47,7 @@ const SettingPanel = observer(() => {
   const onUploadedImage = (image, extension) => {
     debugger
     image.url = URL.createObjectURL(image);
-    openImageEditor(image.url, onImageEdited, modalType, CROP_RECOMMENDED_RESOLUTION);
+    finishImageEditing(image, onImageEdited, modalType);
   };
   const onImageEdited = (thumbnail) => {
     finishImageEditing(thumbnail, (croppedImage) => {
