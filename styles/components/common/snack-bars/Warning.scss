@@ -1,7 +1,7 @@
 .MuiSnackbar-anchorOriginBottomCenter {
   &.snackbar {
-    .warning-snackbar-content {
-      background: #ff9800 !important;
+    div.warning-snackbar-content {
+      background: #ff9800;
     }
   }
 }

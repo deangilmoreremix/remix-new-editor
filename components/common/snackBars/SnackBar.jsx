@@ -48,7 +48,7 @@ SnackBar.propTypes = {
 };
 
 SnackBar.defaultProps = {
-  autoHideDuration: 10000,
+  autoHideDuration: 4000,
   autoClose: false,
 };
 
