@@ -1426,7 +1426,6 @@ export default class ProjectStore extends BaseStore {
   // analog for addLayer
   @action
   createNewLayer = (options) => {
-    console.log('We create new layer');
     const blendMode = options && options.blendMode
       ? options.blendMode : blendModeConstants.normal.value;
     const opacity = options && options.opacity ? options.opacity : 100;
