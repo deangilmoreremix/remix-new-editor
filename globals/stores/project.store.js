@@ -805,6 +805,8 @@ export default class ProjectStore extends BaseStore {
     data.media.forEach((media) => media.tracks
       .forEach((track) => {
         if (track.blendMode || track.opacity) {
+          console.log('blendMode', track.blendMode);
+          console.log('opacity', track.opacity);
           console.log('We have blendmode || opacity');
           this.addLayer({
             blendMode: track.blendMode || blendModeConstants.normal.value,
