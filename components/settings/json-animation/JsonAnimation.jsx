@@ -29,7 +29,12 @@ const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
   return (
     <div className="json-animation-form">
       {(element && element.popcornOptions) && isSuperAdmin && (
-        <Tab options={element.popcornOptions} onChange={handleChange} fields={fields} />
+        <Tab
+          options={element.popcornOptions}
+          onChange={handleChange}
+          fields={fields}
+          update={update}
+        />
       )}
       {element && element.popcornOptions && element.popcornOptions.url && (
         <LottieEditor

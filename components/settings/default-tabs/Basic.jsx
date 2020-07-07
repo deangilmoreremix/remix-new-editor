@@ -1,29 +1,55 @@
 import * as React from 'react';
 
+import mediaConstants from '../../../lib/constants/media';
+import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
+
 import PropTypes from '../../../lib/PropTypes';
 import FieldBuilder from '../../form/FieldBuilder';
+import DropButton from '../../media/DropButton';
 
-const Basic = ({ options, fields, ...props }) => (
-  <div>
-    {fields && Object.keys(fields).map(key => {
-      const { label, type, ...fieldProps } = fields[key];
-      return (
-        <FieldBuilder
-          {...fieldProps}
-          {...props}
-          label={label}
-          type={type}
-          value={options[key]}
-          key={key}
-          name={key}
+const Basic = ({ options, update, fields, ...props }) => {
+  const onUploaded = ({ url, duration }) => {
+    if (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION && duration) {
+      return update({ url, end: options.start + duration });
+    }
+    update({ url });
+  };
+
+  return (
+    <div>
+      {update && (
+        <DropButton
+          accept={[mediaConstants.JSON_CONTENT_TYPE]}
+          type={mediaConstants.JSON_CONTENT_TYPE}
+          onUploaded={onUploaded}
+          multiple={false}
+          needSaveAsset={false}
+          getDuration
         />
-      );
-    })}
-  </div>
-);
+      )}
+      {fields && Object.keys(fields).map(key => {
+        const { label, type, ...fieldProps } = fields[key];
+        return (
+          <FieldBuilder
+            {...fieldProps}
+            {...props}
+            label={label}
+            type={type}
+            value={options[key]}
+            key={key}
+            name={key}
+          />
+        );
+      })}
+    </div>
+  );
+};
 
 Basic.propTypes = {
-  options: PropTypes.shape({}),
+  options: PropTypes.shape({
+    type: PropTypes.string,
+    start: PropTypes.number,
+  }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.objectOf(
     PropTypes.shape({
@@ -31,6 +57,7 @@ Basic.propTypes = {
       label: PropTypes.string,
     }),
   ),
+  update: PropTypes.func,
 };
 
 export default Basic;

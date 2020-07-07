@@ -38,6 +38,7 @@ const ResponsiveGrid = observer((props) => {
       onDragStop={onDragStop}
       preventCollision={preventCollision}
       maxRows={maxRows || Infinity}
+      isResizable={false}
     >
       {components}
     </Responsive>

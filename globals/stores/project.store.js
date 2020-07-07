@@ -385,6 +385,7 @@ export default class ProjectStore extends BaseStore {
         if (end !== undefined && end !== element.popcornOptions.end) {
           newOptions.end = end;
         }
+
         if (duration !== undefined && duration !== element.popcornOptions.duration) {
           newOptions.duration = duration;
         }

@@ -207,6 +207,7 @@ const PopcornElements = observer(({ width }) => {
       });
     }
   };
+
   const onResizeStop = (element, oldElement, newElement) => {
     if (oldElement.x !== newElement.x || oldElement.w !== newElement.w) {
       const start = newElement.x / SANTISECOND;

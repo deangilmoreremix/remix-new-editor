@@ -101,6 +101,7 @@ const Home = observer(() => {
     openCTA,
     toggleRightBlock,
     openBlendMode,
+    openUploadTransition,
   } = uiStore;
 
   const {
@@ -169,6 +170,7 @@ const Home = observer(() => {
         openCTA,
         toggleRightBlock,
         openBlendMode,
+        openUploadTransition,
       },
       project: {
         allowedSocials,
