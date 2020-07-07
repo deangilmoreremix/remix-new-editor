@@ -4,8 +4,7 @@ import { observer } from 'mobx-react';
 import Button from '@material-ui/core/Button';
 import PropTypes from '../../../lib/PropTypes';
 import { ASSET_TYPES } from '../../../lib/constants/media';
-import { LIBRARY_TABS, tabItems } from '../../../lib/constants/library';
-import { IMAGE_TYPE } from '../../../lib/constants/imageEditor/tuiEditor';
+import { tabItems } from '../../../lib/constants/library';
 
 import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';
@@ -15,7 +14,6 @@ import FieldBuilder from '../../form/FieldBuilder';
 import DropzoneArea from '../../media/DropzoneArea';
 import DropButton from '../../media/DropButton';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../../lib/constants/settings/image';
-import { ALL_IMAGES } from '../../../lib/constants/formats';
 
 const SettingPanel = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
@@ -25,8 +23,7 @@ const SettingPanel = observer(() => {
   const { linkedinEnabled } = useUserStore();
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
-  const { openImageEditor, finishImageEditing } = useModalStore();
-  const modalType = IMAGE_TYPE.THUMBNAIL;
+  const { openCropper } = useModalStore();
 
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -45,15 +42,19 @@ const SettingPanel = observer(() => {
   };
 
   const onUploadedImage = (image, extension) => {
-    debugger
     image.url = URL.createObjectURL(image);
-    finishImageEditing(image, onImageEdited, modalType);
+    openCropper(image.url, onImageCropped);
+    // Object.keys(tabItems).forEach(tab => {
+    //   tabItems[tab].formats.forEach(format => {
+    //     if (format === extension) {
+    //
+    //     }
+    //   });
+    // });
   };
-  const onImageEdited = (thumbnail) => {
-    finishImageEditing(thumbnail, (croppedImage) => {
-      debugger;
-      updateItem({ thumbnail: croppedImage });
-    });
+
+  const onImageCropped = (thumbnail) => {
+    updateItem({ thumbnail });
   };
 
   return (
@@ -135,15 +136,13 @@ const SettingPanel = observer(() => {
           </div>
           <div className="settings__row-block">
             <Button
-              onClick={() => {
-                openImageEditor(item.thumbnail, onImageEdited, modalType, CROP_RECOMMENDED_RESOLUTION);
-              }}
+              onClick={() => openCropper(item.thumbnail, onImageCropped)}
               disableRipple
               disableFocusRipple
               disableTouchRipple
               className="settings__edit-file"
             >
-              Image Editor
+Use Thumbnails Editor
             </Button>
           </div>
         </div>
@@ -156,14 +155,13 @@ const SettingPanel = observer(() => {
               startUpload={() => setIsDisabledUpload(true)}
               endUpload={() => setIsDisabledUpload(false)}
               multiple={false}
-              accept={ALL_IMAGES}
               className="settings__add-file"
               needUpload={false}
             />
             <p className="settings__row-text-2">
-              recommended image resolution
+recommended image resolution
               {CROP_RECOMMENDED_RESOLUTION.width}
-              x
+x
               {CROP_RECOMMENDED_RESOLUTION.height}
             </p>
           </div>

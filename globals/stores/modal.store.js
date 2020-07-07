@@ -54,13 +54,13 @@ export default () => {
     if (!src || !onImageCropped) {
       return;
     }
-    const imageMeta = new Image();
-    imageMeta.src = src;
-    const metadata = await new MediaTypeDetector()
-      .getMetadata(src);
-    if (!metadata.contentType.includes('image')) {
-      return showError('Image not found');
-    }
+    // const imageMeta = new Image();
+    // imageMeta.src = src;
+    // const metadata = await new MediaTypeDetector()
+    //   .getMetadata(src);
+    // if (!metadata.contentType.includes('image')) {
+    //   return showError('Image not found');
+    // }
     checkImageResolution({
       imageMeta,
       onFileUploaded: openModal(IMAGE_CROPPER_MODAL,
