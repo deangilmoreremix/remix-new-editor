@@ -1,8 +1,7 @@
 .input-time-start, .input-loop-start, .input-loop-end {
-  width: 50%;
-  display: inline-flex;
+  width: 35%;
+  display: flex;
   flex-direction: column;
-  align-items: end;
 
   & label {
     font-size: $small;
