@@ -183,7 +183,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable time = 0;
 
-  @observable warning = '';
+  @observable warning = null;
 
   @action
   undoRedoAction = (undo = true) => {

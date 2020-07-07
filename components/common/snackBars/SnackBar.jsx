@@ -17,7 +17,7 @@ const SnackBar = (
     autoClose,
   }) => (
     <Snackbar
-      open={!!message}
+      open
       autoHideDuration={autoHideDuration}
       onClose={autoClose && handleClose}
       ContentProps={{
@@ -43,7 +43,7 @@ SnackBar.propTypes = {
   message: PropTypes.string.isRequired,
   className: PropTypes.string,
   contentClassName: PropTypes.string,
-  autoHideDuration: PropTypes.num,
+  autoHideDuration: PropTypes.number,
   autoClose: PropTypes.bool,
 };
 

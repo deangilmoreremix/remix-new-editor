@@ -17,7 +17,7 @@ const Warning = observer(({ message }) => {
   return (
     <SnackBar
       message={message}
-      handleClose={() => showWarning('')}
+      handleClose={() => showWarning()}
       contentClassName="warning-snackbar-content"
     />
   );
