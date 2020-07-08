@@ -30,7 +30,7 @@ const DropButton = (
   const onDrop = React.useCallback(acceptedFiles => {
     const elements = [];
     if (startUpload) {
-      startUpload(acceptedFiles);
+      startUpload();
     }
 
     Promise.all(acceptedFiles.map(async data => {
