@@ -811,18 +811,12 @@ export default class ProjectStore extends BaseStore {
 
     data.media.forEach((media) => media.tracks
       .forEach((track) => {
-        if (track.blendMode || track.opacity) {
-          if (track.blendMode !== blendModeConstants.normal.value) {
-            this.addLayer({
-              blendMode: track.blendMode,
-              opacity: track.opacity || 100,
-            });
-          } else if (track.opacity !== 100) {
-            this.addLayer({
-              blendMode: track.blendMode || blendModeConstants.normal.value,
-              opacity: track.opacity,
-            });
-          }
+        if ((track.blendMode && track.blendMode !== blendModeConstants.normal.value)
+          || (track.opacity && track.opacity !== 100)) {
+          this.addLayer({
+            blendMode: track.blendMode || blendModeConstants.normal.value,
+            opacity: track.opacity || 100,
+          });
         }
 
         return track.trackEvents.forEach((trackEvent) => {
