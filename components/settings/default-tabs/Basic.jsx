@@ -1,20 +1,34 @@
 import React, { useState } from 'react';
+import lottie from 'lottie-web';
 
 import mediaConstants from '../../../lib/constants/media';
 import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
+import { loadUrl } from '../../../lib/requestCreator';
 
 import PropTypes from '../../../lib/PropTypes';
 import FieldBuilder from '../../form/FieldBuilder';
 import DropButton from '../../media/DropButton';
 
-const Basic = ({ options, update, fields, ...props }) => {
+const Basic = ({ options, update, fields, onChange, ...props }) => {
   const [isDisabled, setIsDisabled] = useState(false);
 
-  const onUploaded = ({ url, duration }) => {
+  const onUploaded = async ({ url, duration }) => {
     if (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION && duration) {
       return update({ url, end: options.start + duration });
     }
     update({ url });
+  };
+
+  const handleChange = async ({ url }) => {
+    if (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION && url) {
+      const animationData = await loadUrl(url);
+      const animation = await lottie.loadAnimation({ animationData });
+      return onChange({
+        url,
+        end: options.start + (animation.totalFrames / animation.animationData.fr),
+      });
+    }
+    onChange({ url });
   };
 
   const startUpload = () => {
@@ -52,6 +66,7 @@ const Basic = ({ options, update, fields, ...props }) => {
             key={key}
             name={key}
             disabled={isDisabled}
+            onChange={handleChange}
           />
         );
       })}
