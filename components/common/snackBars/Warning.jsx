@@ -10,10 +10,6 @@ import SnackBar from './SnackBar';
 const Warning = observer(({ message }) => {
   const { showWarning } = useProjectStore();
 
-  if (!message) {
-    return null;
-  }
-
   return (
     <SnackBar
       message={message}

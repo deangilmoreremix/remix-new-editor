@@ -248,7 +248,7 @@ const Home = observer(() => {
           </Grid>
         </div>
       )}
-      <Warning message={warning} />
+      {warning && <Warning message={warning} />}
     </React.Fragment>
   );
 });
