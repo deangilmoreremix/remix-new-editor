@@ -148,6 +148,7 @@ const PopcornElements = observer(({ width }) => {
       minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
       layer,
       dimensions,
+      isResizable: type !== POPCORN_ELEMENT_TYPES.JSON_TRANSITION,
     };
   }), [cols, elements, getEnd, getExtraDuration, layers]);
 
