@@ -34,7 +34,7 @@ const TimeInput = ({
     const time = moment(formattedValue, TIME_DISPLAY_FORMAT);
     const diffTime = moment({ minutes: 0, seconds: 0 });
     const newValue = moment.duration(time.diff(diffTime)).asSeconds();
-    if (value !== newValue) {
+    if ((Math.ceil(value * 100) / 100) !== newValue) {
       onChange(newValue);
     }
   };
