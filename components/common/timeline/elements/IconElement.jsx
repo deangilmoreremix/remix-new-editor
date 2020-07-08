@@ -36,7 +36,8 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
           />
         </div>
       )}
-      {POPCORN_ELEMENT_LABELS[item.type]}
+      {defaultIcon && POPCORN_ELEMENT_LABELS[item.type]}
+      {defaultIcon && (
       <div className={classnames('inner-wrapper', `popcorn-${item.type}-end`)}>
         {
         item[DEFAULT_FIELD[item.type]] === DEFAULT_SETTINGS[item.type][DEFAULT_FIELD[item.type]]
@@ -50,6 +51,7 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
           ) : item[DEFAULT_FIELD[item.type]]
       }
       </div>
+      ) }
     </Grid>
   );
 });
