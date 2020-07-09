@@ -442,7 +442,7 @@ export default class ProjectStore extends BaseStore {
     }
   };
 
-  updateAnimation = (type, animationName = NONE_CLASS) => {
+  updateAnimation = async (type, animationName = NONE_CLASS) => {
     const oldAnimation = this.element && this.element.popcornOptions.animation;
 
     const animation = {
@@ -454,29 +454,57 @@ export default class ProjectStore extends BaseStore {
       },
     };
 
-    // if (type === ANIMATION_TYPES.OUT
-    //   && this.element.popcornOptions.animation && !this.element.popcornOptions.animation.out) {
-    //
-    // }
-    //
-    // const elementsForUpdate = [];
-    // const elementsEnds = [];
-    // let animationOut = 0;
-    // let itemStartAfterAnimation = null;
-    // const currentLayer = this.element.track;
-    //
-    // this.projectData.media.forEach((media) => {
-    //   media.tracks = media.tracks.map((track) => {
-    //     track.trackEvents.forEach(trackEvent => {
-    //       if (trackEvent.track === this.element.track) {
-    //         trackEvent.popcornOptions.blendMode = blendMode;
-    //         this.updatePopcorn(trackEvent, { blendMode });
-    //       }
-    //     });
-    //     return track;
-    //   });
-    // });
-    // this.findAndUpdate(this.activeElementId, { animation });
+    if (type === ANIMATION_TYPES.OUT) {
+      const elementsForUpdate = [];
+      const elementsEnds = [];
+      let animationOut = 0;
+      let itemStartAfterAnimation = null;
+      const currentLayer = this.element.track;
+
+      this.projectData.media.forEach((media) => {
+        media.tracks.forEach((track) => {
+          track.trackEvents.forEach(trackEvent => {
+            if (trackEvent.track === currentLayer) {
+              elementsEnds.push(trackEvent.popcornOptions.end);
+              if ((this.element.popcornOptions.end) <= trackEvent.popcornOptions.start) {
+                elementsForUpdate.push(trackEvent);
+                if (trackEvent.popcornOptions.animation
+                  && trackEvent.popcornOptions.animation.out) {
+                  animationOut += trackEvent.popcornOptions.animation.out.duration;
+                }
+              }
+            }
+          });
+        });
+      });
+
+      if (elementsForUpdate && elementsForUpdate.length) {
+        elementsForUpdate.forEach(item => {
+          if (item.popcornOptions.start <= itemStartAfterAnimation || !itemStartAfterAnimation) {
+            itemStartAfterAnimation = item.popcornOptions.start;
+          }
+        });
+      }
+
+      if ((this.element.popcornOptions.end + 1) > itemStartAfterAnimation) {
+        if (this.duration < (Math.max(...elementsEnds)
+          + 1 + animationOut) * SANTISECOND) {
+          await this.updateVideoDuration((this.duration / SANTISECOND) + 1);
+        }
+
+        if (elementsForUpdate && elementsForUpdate.length) {
+          elementsForUpdate.forEach(item => (
+            this.updateElementFromTimeline({
+              needUpdateStartEnd: true,
+              elementId: item.id,
+              start: item.popcornOptions.start + 1,
+              end: item.popcornOptions.end + 1,
+            })));
+        }
+      }
+    }
+
+    this.findAndUpdate(this.activeElementId, { animation });
   };
 
   @action
