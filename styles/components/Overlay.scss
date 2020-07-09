@@ -1,0 +1,60 @@
+.overlay {
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  max-width: 31.75rem;
+  height: $toolbarHeight - 5vh;
+  background: $light-twinlight;
+  box-sizing: border-box;
+  font-family: $font-primary;
+  position: relative;
+  z-index: 1;
+  font-size: 0.875rem;
+  line-height: 1;
+  color: $white;
+  overflow: hidden;
+  padding-bottom: 1rem;
+  transition: 0.3s all;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 2.1rem;
+    text-transform: uppercase;
+    background: $modal-lightdark-bg;
+    color: $secondary-color;
+    font-size: 0.875rem;
+  }
+
+  &__body {
+    max-height: 100%;
+    flex: 1;
+    padding: 1.43rem 2.6rem 1.68rem 1.75rem;
+  }
+}
+
+.overlay__tabs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.overlay__tab {
+  @include reset-button;
+  flex: 1;
+  height: 2.1rem;
+  text-transform: uppercase;
+  background: $modal-lightdark-bg;
+  color: $white;
+
+  &-active {
+    background: $scrollbarColor;
+    color: $secondary-color;
+  }
+}

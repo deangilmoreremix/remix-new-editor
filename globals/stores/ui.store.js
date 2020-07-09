@@ -127,6 +127,11 @@ export default class UIStore {
   };
 
   @action
+  openOverlay = (type) => {
+    this.secondaryWindowType = type;
+  };
+
+  @action
   openLowerThird = (tab = WINDOW_TYPES.LOWER_THIRDS) => {
     this.toggleRightBlock();
     this.secondaryWindowType = tab;

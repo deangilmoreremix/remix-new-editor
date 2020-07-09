@@ -72,4 +72,8 @@ export default class PresetStore extends BaseStore {
   getPresets = ({ page = 1, query = '', perPage = 12 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.PRESETS }, path: '/api/makes/revolution' })
   );
+
+  getJsonTransitions = ({ page = 1, query = '', perPage = 12, filter = {} }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.TRANSITIONS }, path: '/api/makes/revolution', filter: JSON.stringify(filter) })
+  );
 }

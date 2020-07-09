@@ -87,4 +87,9 @@ export default class UserStore {
   get blendModeEnabled() {
     return this.isfeatureEnabled(FEATURES.BLEND_MODE);
   }
+
+  @computed
+  get jsonTransitionEnabled() {
+    return this.isfeatureEnabled(FEATURES.SVG_TRANSITIONS);
+  }
 }

@@ -12,6 +12,7 @@ import Library from './media/Library';
 import BlendModeLibrary from './media/BlendModeLibrary';
 import Stickers from './media/Stickers';
 import LowerThirds from './media/LowerThirds';
+import Overlay from './media/Overlay';
 import Toolbar from './common/toolbar/Toolbar';
 import SizeSelector from './canvas/SizeSelector';
 import AnimationList from './media/AnimationList';
@@ -52,6 +53,7 @@ const Home = observer(() => {
     linkedinEnabled,
     ctaEnabled,
     blendModeEnabled,
+    jsonTransitionEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -104,6 +106,7 @@ const Home = observer(() => {
     toggleRightBlock,
     openBlendMode,
     openUploadTransition,
+    openOverlay,
   } = uiStore;
 
   const {
@@ -141,6 +144,12 @@ const Home = observer(() => {
       case WINDOW_TYPES.PRESETS.value: {
         return <LowerThirds />;
       }
+      case WINDOW_TYPES['16:9'].value:
+      case WINDOW_TYPES['9:16'].value:
+      case WINDOW_TYPES['4:5'].value:
+      case WINDOW_TYPES['1:1'].value: {
+        return <Overlay />;
+      }
       case WINDOW_TYPES.RECORDER: {
         return <Recorder />;
       }
@@ -174,6 +183,7 @@ const Home = observer(() => {
         toggleRightBlock,
         openBlendMode,
         openUploadTransition,
+        openOverlay,
       },
       project: {
         allowedSocials,
@@ -191,6 +201,7 @@ const Home = observer(() => {
         linkedinEnabled,
         ctaEnabled,
         blendModeEnabled,
+        jsonTransitionEnabled,
       },
     });
     return items && items.length ? items : [];
