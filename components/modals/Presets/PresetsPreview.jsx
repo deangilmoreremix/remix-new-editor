@@ -6,7 +6,7 @@ import usePresetStore from '../../hooks/usePresetStore';
 
 import PropTypes from '../../../lib/PropTypes';
 
-const PresetsPreview = observer(({ preview, activeItem }) => {
+const PresetsPreview = observer(({ preview, activeItem, className }) => {
   const wrapper = useRef(null);
   const { isPlayed, setPopcorn, playPreset, destroyPopcorn } = usePresetStore();
 
@@ -24,7 +24,7 @@ const PresetsPreview = observer(({ preview, activeItem }) => {
   }, [activeItem]);
 
   return (
-    <div className="presets-preview" ref={wrapper}>
+    <div className={classnames('presets-preview', className)} ref={wrapper}>
       {preview && !isPlayed && <img src={preview} className="presets-preview__img" alt="preview" />}
       <div className={classnames(
         'presets-button-block',
@@ -45,6 +45,7 @@ const PresetsPreview = observer(({ preview, activeItem }) => {
 PresetsPreview.propTypes = {
   preview: PropTypes.string,
   activeItem: PropTypes.shape(),
+  className: PropTypes.string,
 };
 
 export default PresetsPreview;

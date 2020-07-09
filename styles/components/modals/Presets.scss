@@ -104,6 +104,19 @@
   overflow: hidden;
   border: 1px solid $third-color;
 
+  &-1 {
+    padding-top: 100%;
+  }
+  &-16 {
+    padding-top: 56.25%;
+  }
+  &-9 {
+    padding-top: 177.77%;
+  }
+  &-4 {
+    padding-top: 125%;
+  }
+
   &__img {
     max-width: 100%;
     display: block;

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 
@@ -35,6 +35,11 @@ const JsonTransition = observer(() => {
     secondaryWindowType: activeTab,
     setLibraryType: setActiveTab,
   } = useUIStore();
+
+  const previewClass = useMemo(() => {
+    const index = activeTab.indexOf(':');
+    return `presets-preview-${activeTab.substr(0, index)}`;
+  }, [activeTab]);
 
   const handleSelect = React.useCallback(async (item) => {
     await setPreviewData(item.project.data);
@@ -142,6 +147,7 @@ const JsonTransition = observer(() => {
           <PresetsPreview
             preview={preview}
             activeItem={activeItem}
+            className={previewClass}
           />
           <button className="presets__use" onClick={addDataToCanvas}>Use</button>
         </div>
