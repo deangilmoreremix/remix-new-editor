@@ -12,7 +12,7 @@ import DropButton from '../../media/DropButton';
 const Basic = ({ options, update, fields, onChange, ...props }) => {
   const [isDisabled, setIsDisabled] = useState(false);
 
-  const onUploaded = async ({ url, duration }) => {
+  const onUploaded = ({ url, duration }) => {
     if (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION && duration) {
       return update({ url, end: options.start + duration });
     }
@@ -39,9 +39,11 @@ const Basic = ({ options, update, fields, onChange, ...props }) => {
     setIsDisabled(false);
   };
 
+  // ToDo move dropzone to manifest.
   return (
     <div>
-      {update && (
+      {update && (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION
+        || options.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION) && (
         <DropButton
           accept={[mediaConstants.JSON_CONTENT_TYPE]}
           type={mediaConstants.JSON_CONTENT_TYPE}
