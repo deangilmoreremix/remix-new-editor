@@ -459,7 +459,7 @@ export default class ProjectStore extends BaseStore {
       const elementsEnds = [];
       let animationOut = 0;
       let itemStartAfterAnimation = null;
-      const currentLayer = this.element.track;
+      const currentLayer = this.element && this.element.track ? this.element.track : 0;
 
       this.projectData.media.forEach((media) => {
         media.tracks.forEach((track) => {
