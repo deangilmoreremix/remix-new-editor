@@ -5,7 +5,7 @@ import PropTypes from '../../../lib/PropTypes';
 import { BASIC } from '../../../lib/constants/popcorn';
 import Basic from '../default-tabs/Basic';
 
-const Custom = observer(({ tab = BASIC, element, update, fields }) => {
+const DefaultSettings = observer(({ tab = BASIC, element, update, fields }) => {
   const TabMap = {
     [tab]: Basic,
   };
@@ -21,7 +21,7 @@ const Custom = observer(({ tab = BASIC, element, update, fields }) => {
   );
 });
 
-Custom.propTypes = {
+DefaultSettings.propTypes = {
   element: PropTypes.shape({
     id: PropTypes.string,
     popcornOptions: PropTypes.shape({
@@ -33,4 +33,4 @@ Custom.propTypes = {
   fields: PropTypes.shape({}),
 };
 
-export default Custom;
+export default DefaultSettings;
