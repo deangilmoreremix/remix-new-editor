@@ -82,7 +82,7 @@ const JsonTransition = observer(() => {
       }
     });
 
-    if (hasMore) {
+    if (hasMore || page === 1) {
       setIsLoading(true);
       try {
         const results = await getJsonTransitions({
