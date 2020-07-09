@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 
@@ -7,20 +7,26 @@ import { JSON_TRANSITION_TABS } from '../../lib/constants/jsonTransition';
 import useUIStore from '../hooks/useUIStore';
 import useMakeStore from '../hooks/useMakeStore';
 import useProjectStore from '../hooks/useProjectStore';
+import usePresetStore from '../hooks/usePresetStore';
 
 import Tabs from '../common/overlay/Tabs';
 import CloseButton from '../common/CloseButton';
 import { showError } from '../../lib/services/alertService';
+import PresetsList from '../modals/Presets/PresetsList';
+import PresetsPreview from '../modals/Presets/PresetsPreview';
 
 const perPage = 12;
 
 const JsonTransition = observer(() => {
   const [items, setItems] = React.useState([]);
+  const [activeItem, setActiveItem] = useState();
+  const [preview, setPreview] = useState('');
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   const { getJsonTransitions } = useMakeStore();
+  const { setPreviewData, updateTime } = usePresetStore();
   const { addData } = useProjectStore();
 
   const {
@@ -29,6 +35,27 @@ const JsonTransition = observer(() => {
     secondaryWindowType: activeTab,
     setLibraryType: setActiveTab,
   } = useUIStore();
+
+  const handleSelect = React.useCallback(async (item) => {
+    await setPreviewData(item.project.data);
+    setPreview(item.thumbnail);
+    setActiveItem(item);
+    updateTime(0);
+  }, []);
+
+  const addDataToCanvas = useCallback(async () => {
+    try {
+      let newData = JSON.parse(activeItem.project.data);
+      newData.media[0].tracks.reverse();
+      newData = JSON.stringify(newData);
+      activeItem.project.data = newData;
+
+      await addData(activeItem);
+      toggleRightBlock(false);
+    } catch (e) {
+      await showError(e.message);
+    }
+  }, [activeItem, addData]);
 
   const updateActiveTab = useCallback(async (tab) => {
     if (!isLoading) {
@@ -56,6 +83,7 @@ const JsonTransition = observer(() => {
     });
 
     if (hasMore) {
+      setIsLoading(true);
       try {
         const results = await getJsonTransitions({
           query: '',
@@ -65,13 +93,20 @@ const JsonTransition = observer(() => {
         });
 
         setItems([...items, ...results]);
+        if (!activeItem) {
+          await setPreviewData(results[0].project.data);
+          setPreview(results[0].thumbnail);
+          setActiveItem(results[0]);
+        }
         const hasNextPage = results.length === perPage;
         setHasMore(hasNextPage);
 
         if (hasNextPage) {
           setPage(page + 1);
         }
+        setIsLoading(false);
       } catch (e) {
+        setIsLoading(false);
         showError(e.message);
       }
     }
@@ -94,7 +129,21 @@ const JsonTransition = observer(() => {
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
       <div className="overlay__body">
         <div className="overlay-container">
-
+          <PresetsList
+            items={items}
+            hasMore={hasMore}
+            uploadNewItems={uploadNewItems}
+            handleSelect={handleSelect}
+            activeItem={activeItem}
+            isLoading={isLoading}
+          />
+        </div>
+        <div className="presets__control">
+          <PresetsPreview
+            preview={preview}
+            activeItem={activeItem}
+          />
+          <button className="presets__use" onClick={addDataToCanvas}>Use</button>
         </div>
       </div>
       <CloseButton onClick={() => toggleRightBlock(false)} />
