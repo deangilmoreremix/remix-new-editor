@@ -30,7 +30,9 @@ const FormColor = ({ label, onChange, value, className, disabled }) => {
   };
 
   const handleClose = () => {
-    changeColor(colorToRgbaString(color));
+    if (!(/^#[0-9A-F]{6}$/i.test(color))) {
+      changeColor(colorToRgbaString(color));
+    }
     setAnchorEl(null);
   };
 

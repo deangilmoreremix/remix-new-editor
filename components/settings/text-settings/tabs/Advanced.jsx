@@ -5,6 +5,8 @@ import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 
 import PropTypes from '../../../../lib/PropTypes';
 
+import { rgba2hex } from '../../../../lib/lottie/utils';
+
 import { showInfo } from '../../../../lib/services/alertService';
 import FieldBuilder from '../../../form/FieldBuilder';
 import fonts from '../../../../lib/constants/fonts';
@@ -46,6 +48,10 @@ const Advanced = ({ values, fields, onChange }) => {
 
   const checkboxBackground = (value) => {
     onChange({ ...value, backgroundColor: backgroundColor || fields.backgroundColor.default });
+  };
+
+  const handleChangeColor = (rgbColor) => {
+    onChange({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
   };
 
   return (
@@ -101,7 +107,7 @@ const Advanced = ({ values, fields, onChange }) => {
             value={fontColor || fields.fontColor.default}
             name={fields.fontColor.name}
             {...fields.fontColor}
-            onChange={onChange}
+            onChange={handleChangeColor}
             className="font-color-container-input"
           />
           <div className="font-style-container">
@@ -133,7 +139,7 @@ const Advanced = ({ values, fields, onChange }) => {
           disabled={!values.shadow}
           name={fields.shadowColor.name}
           {...fields.shadowColor}
-          onChange={onChange}
+          onChange={handleChangeColor}
           className="font-color-container-input"
         />
         <FieldBuilder
@@ -141,7 +147,7 @@ const Advanced = ({ values, fields, onChange }) => {
           disabled={!values.stroke}
           name={fields.strokeColor.name}
           {...fields.strokeColor}
-          onChange={onChange}
+          onChange={handleChangeColor}
           className="font-color-container-input"
         />
         <FieldBuilder
@@ -149,7 +155,7 @@ const Advanced = ({ values, fields, onChange }) => {
           disabled={!values.background}
           name={fields.backgroundColor.name}
           {...fields.backgroundColor}
-          onChange={onChange}
+          onChange={handleChangeColor}
           className="font-color-container-input"
         />
         <FieldBuilder

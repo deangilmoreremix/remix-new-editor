@@ -786,12 +786,14 @@ export default class ProjectStore extends BaseStore {
 
     newData.media.map((media) => media.tracks
       .map((track) => {
-        if (track.blendMode) {
-          this.addLayer({ blendMode: track.blendMode });
+        if ((track.blendMode && track.blendMode !== blendModeConstants.normal.value)
+          || (track.opacity && track.opacity !== 100)) {
+          this.addLayer({
+            blendMode: track.blendMode || blendModeConstants.normal.value,
+            opacity: track.opacity || 100,
+          });
         }
-        if (track.opacity) {
-          this.addLayer({ opacity: track.opacity });
-        }
+
         return track.trackEvents.map((trackEvent) => {
           const item = {
             ...trackEvent.popcornOptions,
@@ -809,32 +811,26 @@ export default class ProjectStore extends BaseStore {
     let firstElementStart = null;
 
     data.media.forEach((media) => media.tracks
-      .forEach((track) => {
-        if (track.blendMode) {
-          this.addLayer({ blendMode: track.blendMode });
+      .forEach((track) => track.trackEvents.forEach((trackEvent) => {
+        if (!firstElementStart) {
+          firstElementStart = trackEvent.popcornOptions.start;
         }
-        if (track.opacity) {
-          this.addLayer({ opacity: track.opacity });
-        }
-        return track.trackEvents.forEach((trackEvent) => {
-          if (!firstElementStart) {
-            firstElementStart = trackEvent.popcornOptions.start;
-          }
 
-          if (parseFloat(trackEvent.popcornOptions.start) < firstElementStart) {
-            firstElementStart = trackEvent.popcornOptions.start;
-          }
-        });
-      }));
+        if (parseFloat(trackEvent.popcornOptions.start) < firstElementStart) {
+          firstElementStart = trackEvent.popcornOptions.start;
+        }
+      })));
 
     data.media.forEach((media) => media.tracks
       .forEach((track) => {
-        if (track.blendMode) {
-          this.addLayer({ blendMode: track.blendMode });
+        if ((track.blendMode && track.blendMode !== blendModeConstants.normal.value)
+          || (track.opacity && track.opacity !== 100)) {
+          this.addLayer({
+            blendMode: track.blendMode || blendModeConstants.normal.value,
+            opacity: track.opacity || 100,
+          });
         }
-        if (track.opacity) {
-          this.addLayer({ opacity: track.opacity });
-        }
+
         return track.trackEvents.forEach((trackEvent) => {
           const item = {
             ...trackEvent.popcornOptions,
@@ -1397,16 +1393,16 @@ export default class ProjectStore extends BaseStore {
     // get first track
     let track = item.track || this.layers[0];
 
-    if (track.blendMode) {
-      options.blendMode = track.blendMode;
-    } else {
-      options.blendMode = blendModeConstants.normal.value;
-    }
-
     const layerElements = this.elements.filter(element => element.track === track.id);
     if (isLayerFulfilled(options, layerElements)) {
       this.createNewLayer();
       [track] = this.layers;
+    }
+
+    if (track.blendMode) {
+      options.blendMode = track.blendMode;
+    } else {
+      options.blendMode = blendModeConstants.normal.value;
     }
 
     const element = {
