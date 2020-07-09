@@ -9,7 +9,7 @@ import DropzoneArea from '../../../media/DropzoneArea';
 import DropButton from '../../../media/DropButton';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 import { ASSET_TYPES } from '../../../../lib/constants/media';
-import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
+import { BACKGROUND_COLOR, POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
 import { tabItems } from '../../../../lib/constants/library';
@@ -44,7 +44,11 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
   };
 
   const handleChangeColor = (rgbColor) => {
-    onChange({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
+    if (Object.keys(rgbColor).join() === BACKGROUND_COLOR && values.backgroundImage) {
+      onChange({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()), backgroundImage: '' });
+    } else {
+      onChange({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
+    }
   };
 
   return (
