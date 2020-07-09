@@ -13,7 +13,7 @@ import {
   CARET_NAMES,
 } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
-import { NONE_CLASS } from '../../lib/constants/animations';
+import { NONE_CLASS, ANIMATION_TYPES } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
 
 import {
@@ -444,6 +444,7 @@ export default class ProjectStore extends BaseStore {
 
   updateAnimation = (type, animationName = NONE_CLASS) => {
     const oldAnimation = this.element && this.element.popcornOptions.animation;
+
     const animation = {
       ...(oldAnimation ? { ...oldAnimation } : {}),
       [type]: {
@@ -452,7 +453,30 @@ export default class ProjectStore extends BaseStore {
         duration: 1,
       },
     };
-    this.findAndUpdate(this.activeElementId, { animation });
+
+    // if (type === ANIMATION_TYPES.OUT
+    //   && this.element.popcornOptions.animation && !this.element.popcornOptions.animation.out) {
+    //
+    // }
+    //
+    // const elementsForUpdate = [];
+    // const elementsEnds = [];
+    // let animationOut = 0;
+    // let itemStartAfterAnimation = null;
+    // const currentLayer = this.element.track;
+    //
+    // this.projectData.media.forEach((media) => {
+    //   media.tracks = media.tracks.map((track) => {
+    //     track.trackEvents.forEach(trackEvent => {
+    //       if (trackEvent.track === this.element.track) {
+    //         trackEvent.popcornOptions.blendMode = blendMode;
+    //         this.updatePopcorn(trackEvent, { blendMode });
+    //       }
+    //     });
+    //     return track;
+    //   });
+    // });
+    // this.findAndUpdate(this.activeElementId, { animation });
   };
 
   @action
