@@ -74,6 +74,12 @@
         height: auto;
         margin: auto 0.2rem;
       }
+      &.popcorn-overlay {
+        width: 1rem;
+        min-width: 1rem;
+        height: auto;
+        margin: auto 0.2rem;
+      }
     }
 
     .icon-btn {
@@ -84,6 +90,15 @@
       }
     }
   }
+}
+
+div.popcorn-element-overlay {
+  flex-wrap: nowrap;
+}
+
+.popcorn-overlay-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .popcorn-pause-element {

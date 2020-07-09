@@ -50,7 +50,7 @@ const Basic = ({ options, update, fields, onChange, ...props }) => {
           endUpload={endUpload}
           multiple={false}
           needSaveAsset={false}
-          getDuration
+          getDuration={options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION}
           isDisabled={isDisabled}
         />
       )}

@@ -11,14 +11,14 @@ import { POPCORN_ELEMENT_LABELS } from '../../../../lib/constants/popcorn';
 const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => (
   <Grid
     container
-    className="popcorn-element icon-element"
+    className="popcorn-element popcorn-element-overlay icon-element"
     onClick={onSelect}
     ref={ref}
     title={item.type}
     tabIndex={-1}
     {...rest}
   >
-    <div className={classnames('inner-wrapper', 'popcorn-pause')}>
+    <div className={classnames('inner-wrapper', 'popcorn-overlay')}>
       <SVGInline
         className="icon-btn"
         classSuffix="--inline"
@@ -26,7 +26,7 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => (
         cleanup={['title']}
       />
     </div>
-    <div>
+    <div className="popcorn-overlay-title">
       {POPCORN_ELEMENT_LABELS[item.type]}
     </div>
   </Grid>
