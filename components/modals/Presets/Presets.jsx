@@ -65,7 +65,7 @@ const Presets = ({ handleClose }) => {
           perPage,
         });
 
-        setItems([...items, ...results]);
+        setItems(elements => [...elements, ...results]);
         if (!activeItem) {
           await setPreviewData(results[0].project.data);
           setPreview(results[0].thumbnail);
