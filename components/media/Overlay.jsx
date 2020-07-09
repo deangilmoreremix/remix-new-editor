@@ -92,6 +92,11 @@ const JsonTransition = observer(() => {
   return (
     <div className={classnames('overlay', { 'big-window': !isTimelineOpen })}>
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
+      <div className="overlay__body">
+        <div className="overlay-container">
+
+        </div>
+      </div>
       <CloseButton onClick={() => toggleRightBlock(false)} />
     </div>
   );
