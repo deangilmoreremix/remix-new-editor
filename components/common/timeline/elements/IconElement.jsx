@@ -27,7 +27,7 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
       {...rest}
     >
       {icon && (
-        <div className={classnames('inner-wrapper', `${item.type}`, `popcorn-${item.type}`)}>
+        <div className={classnames('inner-wrapper', `popcorn-${item.type}`)}>
           <SVGInline
             className="icon-btn"
             classSuffix="--inline"
@@ -37,10 +37,10 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
         </div>
       )}
       { POPCORN_ELEMENT_LABELS[item.type]}
-      {defaultIcon && (
+
       <div className={classnames('inner-wrapper', `popcorn-${item.type}-end`)}>
-        {
-        item[DEFAULT_FIELD[item.type]] === DEFAULT_SETTINGS[item.type][DEFAULT_FIELD[item.type]]
+        { defaultIcon
+        && item[DEFAULT_FIELD[item.type]] === DEFAULT_SETTINGS[item.type][DEFAULT_FIELD[item.type]]
           ? (
             <SVGInline
               className="icon-btn"
@@ -48,10 +48,8 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
               svg={defaultIcon}
               cleanup={['title']}
             />
-          ) : item[DEFAULT_FIELD[item.type]]
-      }
+          ) : item[DEFAULT_FIELD[item.type]]}
       </div>
-      ) }
     </Grid>
   );
 });

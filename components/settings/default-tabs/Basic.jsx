@@ -4,8 +4,9 @@ import PropTypes from '../../../lib/PropTypes';
 import FieldBuilder from '../../form/FieldBuilder';
 
 const Basic = ({ options, fields, ...props }) => (
-  <div>
+  <div className={`inputs-${options.type}-wrapper`}>
     {fields && Object.keys(fields).map(key => {
+      console.log(options.type, 24);
       const { label, type, ...fieldProps } = fields[key];
       return (
         <FieldBuilder
