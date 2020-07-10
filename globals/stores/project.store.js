@@ -824,6 +824,12 @@ export default class ProjectStore extends BaseStore {
 
           if (trackEvent.popcornOptions.start === firstElementStart) {
             item.start = this.time / SANTISECOND;
+          } else if (trackEvent.popcornOptions.start < firstElementStart) {
+            item.start = (this.time / SANTISECOND)
+              - (firstElementStart - trackEvent.popcornOptions.start);
+            if (item.start < 0) {
+              item.start = 0;
+            }
           } else {
             item.start = (this.time / SANTISECOND)
               + (trackEvent.popcornOptions.start - firstElementStart);
