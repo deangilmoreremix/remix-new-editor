@@ -41,7 +41,7 @@ class Layout extends Component {
       <Provider {...this.stores}>
         <div className="layout-container">
           <Head>
-            <title>New Video Editor</title>
+            <title>Revolution Editor</title>
             <link
               rel="shortcut icon"
               href={
