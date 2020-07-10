@@ -13,7 +13,7 @@ import {
   CARET_NAMES,
 } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
-import { NONE_CLASS } from '../../lib/constants/animations';
+import { NONE_CLASS, ANIMATION_TYPES } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
 
 import {
@@ -442,16 +442,43 @@ export default class ProjectStore extends BaseStore {
     }
   };
 
-  updateAnimation = (type, animationName = NONE_CLASS) => {
+  updateAnimation = async (type, animationName = NONE_CLASS) => {
     const oldAnimation = this.element && this.element.popcornOptions.animation;
+    const durationOut = 1;
+
     const animation = {
       ...(oldAnimation ? { ...oldAnimation } : {}),
       [type]: {
         type: animationName,
         // The animated class has a default speed of 1s
-        duration: 1,
+        duration: durationOut,
       },
     };
+
+    if (type === ANIMATION_TYPES.OUT) {
+      const layerElements = this.elements.filter(el => el.track === this.element.track
+        && el.popcornOptions.start > this.element.popcornOptions.end);
+
+      const needUpdateDuration = [this.element, ...layerElements].some(el => {
+        const animationOut = el.popcornOptions.animation && el.popcornOptions.animation.out
+          ? el.popcornOptions.animation.out.duration : 0;
+        return (
+          (el.popcornOptions.end + durationOut + animationOut) > (this.duration / SANTISECOND)
+        );
+      });
+
+      if (needUpdateDuration) {
+        await this.updateVideoDuration((this.duration / SANTISECOND) + durationOut);
+      }
+
+      layerElements.map(item => this.updateElementFromTimeline({
+        needUpdateStartEnd: true,
+        elementId: item.id,
+        start: item.popcornOptions.start + durationOut,
+        end: item.popcornOptions.end + durationOut,
+      }));
+    }
+
     this.findAndUpdate(this.activeElementId, { animation });
   };
 
