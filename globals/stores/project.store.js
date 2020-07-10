@@ -457,6 +457,7 @@ export default class ProjectStore extends BaseStore {
     if (type === ANIMATION_TYPES.OUT) {
       const layerElements = this.elements.filter(el => el.track === this.element.track
         && el.popcornOptions.start > this.element.popcornOptions.end);
+
       const needUpdateDuration = [this.element, ...layerElements].some(el => {
         const animationOut = el.popcornOptions.animation && el.popcornOptions.animation.out
           ? el.popcornOptions.animation.out.duration : 0;
