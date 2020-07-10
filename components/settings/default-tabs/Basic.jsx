@@ -4,6 +4,7 @@ import PropTypes from '../../../lib/PropTypes';
 import FieldBuilder from '../../form/FieldBuilder';
 
 const Basic = ({ options, fields, ...props }) => (
+  // eslint-disable-next-line react/prop-types
   <div className={`inputs-${options.type}-wrapper`}>
     {fields && Object.keys(fields).map(key => {
       console.log(options.type, 24);
