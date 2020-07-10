@@ -455,53 +455,26 @@ export default class ProjectStore extends BaseStore {
     };
 
     if (type === ANIMATION_TYPES.OUT) {
-      const elementsForUpdate = [];
-      const elementsEnds = [];
-      let animationOut = 0;
-      let itemStartAfterAnimation = null;
-      const currentLayer = this.element && this.element.track ? this.element.track : 0;
-
-      this.projectData.media.forEach((media) => {
-        media.tracks.forEach((track) => {
-          track.trackEvents.forEach(trackEvent => {
-            if (trackEvent.track === currentLayer) {
-              elementsEnds.push(trackEvent.popcornOptions.end);
-              if ((this.element.popcornOptions.end) <= trackEvent.popcornOptions.start) {
-                elementsForUpdate.push(trackEvent);
-                if (trackEvent.popcornOptions.animation
-                  && trackEvent.popcornOptions.animation.out) {
-                  animationOut += trackEvent.popcornOptions.animation.out.duration;
-                }
-              }
-            }
-          });
-        });
+      const layerElements = this.elements.filter(el => el.track === this.element.track
+        && el.popcornOptions.start > this.element.popcornOptions.end);
+      const needUpdateDuration = [this.element, ...layerElements].some(el => {
+        const animationOut = el.popcornOptions.animation && el.popcornOptions.animation.out
+          ? el.popcornOptions.animation.out.duration : 0;
+        return (
+          (el.popcornOptions.end + 1 + animationOut) > (this.duration / SANTISECOND)
+        );
       });
 
-      if (elementsForUpdate && elementsForUpdate.length) {
-        elementsForUpdate.forEach(item => {
-          if (item.popcornOptions.start <= itemStartAfterAnimation || !itemStartAfterAnimation) {
-            itemStartAfterAnimation = item.popcornOptions.start;
-          }
-        });
+      if (needUpdateDuration) {
+        await this.updateVideoDuration((this.duration / SANTISECOND) + 1);
       }
 
-      if ((this.element.popcornOptions.end + 1) > itemStartAfterAnimation) {
-        if (this.duration < (Math.max(...elementsEnds)
-          + 1 + animationOut) * SANTISECOND) {
-          await this.updateVideoDuration((this.duration / SANTISECOND) + 1);
-        }
-
-        if (elementsForUpdate && elementsForUpdate.length) {
-          elementsForUpdate.forEach(item => (
-            this.updateElementFromTimeline({
-              needUpdateStartEnd: true,
-              elementId: item.id,
-              start: item.popcornOptions.start + 1,
-              end: item.popcornOptions.end + 1,
-            })));
-        }
-      }
+      layerElements.map(item => this.updateElementFromTimeline({
+        needUpdateStartEnd: true,
+        elementId: item.id,
+        start: item.popcornOptions.start + 1,
+        end: item.popcornOptions.end + 1,
+      }));
     }
 
     this.findAndUpdate(this.activeElementId, { animation });
