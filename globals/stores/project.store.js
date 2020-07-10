@@ -455,7 +455,7 @@ export default class ProjectStore extends BaseStore {
       },
     };
 
-    if (type === ANIMATION_TYPES.OUT) {
+    if (type === ANIMATION_TYPES.OUT && animationName !== NONE_CLASS) {
       const layerElements = this.elements.filter(el => el.track === this.element.track
         && el.popcornOptions.start > this.element.popcornOptions.end);
 
