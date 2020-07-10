@@ -237,7 +237,8 @@ export default class ProjectStore extends BaseStore {
     const { track } = item || {};
     const options = {};
     options.start = item.start || (this.time / SANTISECOND);
-    options.end = item.end || options.start + DEFAULT_DURATION;
+    const duration = item.duration || DEFAULT_DURATION;
+    options.end = item.end || (options.start + duration);
     options.id = `0.${this.generateUid()}`;
     options.zindex = track && track.order ? MAX_ZINDEX - track.order : MAX_ZINDEX;
     options.opacity = 100;
@@ -784,6 +785,7 @@ export default class ProjectStore extends BaseStore {
             start: null,
             end: null,
             zindex: null,
+            duration: trackEvent.popcornOptions.end - trackEvent.popcornOptions.start,
           };
           return this.createNewElement(item);
         });
