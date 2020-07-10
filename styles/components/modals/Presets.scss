@@ -185,7 +185,8 @@
 
 .presets__use {
   @include reset-button();
-  width: 7.8rem;
+  width: 100%;
+  max-width: 7.8rem;
   height: 2.18rem;
   background: $secondary-color;
   text-transform: uppercase;
