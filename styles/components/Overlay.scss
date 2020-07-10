@@ -54,11 +54,15 @@
   height: 2.1rem;
   text-transform: uppercase;
   background: $modal-lightdark-bg;
-  color: $white;
+  color: rgba(255,255,255,0.1);
+  cursor: not-allowed;
 
   &-active {
-    background: $scrollbarColor;
     color: $secondary-color;
+  }
+
+  &:disabled {
+    background: $modal-dark-bg;
   }
 }
 

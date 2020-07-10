@@ -6,7 +6,7 @@ import usePresetStore from '../../hooks/usePresetStore';
 
 import PropTypes from '../../../lib/PropTypes';
 
-const PresetsPreview = observer(({ preview, activeItem, className }) => {
+const Preview = observer(({ preview, activeItem, className }) => {
   const wrapper = useRef(null);
   const { isPlayed, setPopcorn, playPreset, destroyPopcorn } = usePresetStore();
 
@@ -42,10 +42,10 @@ const PresetsPreview = observer(({ preview, activeItem, className }) => {
   );
 });
 
-PresetsPreview.propTypes = {
+Preview.propTypes = {
   preview: PropTypes.string,
   activeItem: PropTypes.shape(),
   className: PropTypes.string,
 };
 
-export default PresetsPreview;
+export default Preview;

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 
@@ -12,8 +12,8 @@ import usePresetStore from '../hooks/usePresetStore';
 import Tabs from '../common/overlay/Tabs';
 import CloseButton from '../common/CloseButton';
 import { showError } from '../../lib/services/alertService';
-import PresetsList from '../modals/Presets/PresetsList';
-import PresetsPreview from '../modals/Presets/PresetsPreview';
+import List from '../common/projectDataList/List';
+import Preview from '../common/projectDataList/Preview';
 
 const perPage = 12;
 
@@ -27,7 +27,7 @@ const JsonTransition = observer(() => {
 
   const { getJsonTransitions } = useMakeStore();
   const { setPreviewData, updateTime } = usePresetStore();
-  const { addData } = useProjectStore();
+  const { addData, item: { ratio } } = useProjectStore();
 
   const {
     toggleRightBlock,
@@ -35,6 +35,15 @@ const JsonTransition = observer(() => {
     secondaryWindowType: activeTab,
     setLibraryType: setActiveTab,
   } = useUIStore();
+
+  useEffect(() => {
+    const { width, height } = ratio;
+    const newTab = `${width}:${height}`;
+    if (newTab === activeTab) {
+      return;
+    }
+    setActiveTab(newTab);
+  }, [ratio]);
 
   const previewClass = useMemo(() => {
     const index = activeTab.indexOf(':');
@@ -134,7 +143,7 @@ const JsonTransition = observer(() => {
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
       <div className="overlay__body">
         <div className="overlay-container">
-          <PresetsList
+          <List
             items={items}
             hasMore={hasMore}
             uploadNewItems={uploadNewItems}
@@ -144,7 +153,7 @@ const JsonTransition = observer(() => {
           />
         </div>
         <div className="presets__control">
-          <PresetsPreview
+          <Preview
             preview={preview}
             activeItem={activeItem}
             className={previewClass}

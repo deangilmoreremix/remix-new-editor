@@ -202,6 +202,8 @@ const Home = observer(() => {
         ctaEnabled,
         blendModeEnabled,
         jsonTransitionEnabled,
+        width,
+        height,
       },
     });
     return items && items.length ? items : [];
@@ -217,6 +219,8 @@ const Home = observer(() => {
     userStore,
     allowedSocials,
     linkedinEnabled,
+    width,
+    height,
   ]);
 
   return (

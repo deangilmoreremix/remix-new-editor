@@ -1,16 +1,16 @@
 import React, { useCallback, useState } from 'react';
 
-import { perPage } from '../../../lib/constants/library';
+import { perPage } from '../../lib/constants/library';
 
-import PropTypes from '../../../lib/PropTypes';
+import PropTypes from '../../lib/PropTypes';
 
-import useMakeStore from '../../hooks/useMakeStore';
-import usePresetStore from '../../hooks/usePresetStore';
-import useProjectStore from '../../hooks/useProjectStore';
+import useMakeStore from '../hooks/useMakeStore';
+import usePresetStore from '../hooks/usePresetStore';
+import useProjectStore from '../hooks/useProjectStore';
 
-import { showError } from '../../../lib/services/alertService';
-import PresetsList from './PresetsList';
-import PresetsPreview from './PresetsPreview';
+import { showError } from '../../lib/services/alertService';
+import List from '../common/projectDataList/List';
+import Preview from '../common/projectDataList/Preview';
 
 const Presets = ({ handleClose }) => {
   const [items, setItems] = useState([]);
@@ -102,7 +102,7 @@ const Presets = ({ handleClose }) => {
       <p className="presets__header">LOWER THIRDS PRESETS</p>
       <div className="presets__body">
         <div className="presets-list-container">
-          <PresetsList
+          <List
             items={items}
             hasMore={hasMore}
             uploadNewItems={uploadNewItems}
@@ -112,7 +112,7 @@ const Presets = ({ handleClose }) => {
           />
         </div>
         <div className="presets__control">
-          <PresetsPreview
+          <Preview
             preview={preview}
             activeItem={activeItem}
           />
