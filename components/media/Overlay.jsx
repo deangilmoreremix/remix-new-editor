@@ -43,6 +43,7 @@ const JsonTransition = observer(() => {
       return;
     }
     setActiveTab(newTab);
+    getItems(newTab, true);
   }, [ratio]);
 
   const previewClass = useMemo(() => {
@@ -71,13 +72,6 @@ const JsonTransition = observer(() => {
     }
   }, [activeItem, addData]);
 
-  const updateActiveTab = useCallback(async (tab) => {
-    if (!isLoading) {
-      await setActiveTab(tab);
-      getItems(tab, true);
-    }
-  }, [isLoading, setActiveTab]);
-
   const resetParams = () => {
     setPage(1);
     setHasMore(true);
@@ -98,6 +92,7 @@ const JsonTransition = observer(() => {
 
     if (hasMore || page === 1) {
       setIsLoading(true);
+
       try {
         const results = await getJsonTransitions({
           query: '',
@@ -106,7 +101,12 @@ const JsonTransition = observer(() => {
           filter,
         });
 
-        setItems(elements => [...elements, ...results]);
+        if (page === 1) {
+          setItems(results);
+        } else {
+          setItems(elements => [...elements, ...results]);
+        }
+
         if (!activeItem) {
           await setPreviewData(results[0].project.data);
           setPreview(results[0].thumbnail);
@@ -140,7 +140,7 @@ const JsonTransition = observer(() => {
 
   return (
     <div className={classnames('overlay', { 'big-window': !isTimelineOpen })}>
-      <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
+      <Tabs activeTab={activeTab} />
       <div className="overlay__body">
         <div className="overlay-container">
           <List
