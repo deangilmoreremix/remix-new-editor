@@ -30,7 +30,7 @@ import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
 import { showInfo } from '../../lib/services/alertService';
-import { FORM_ONE_LG } from '../../lib/constants/text-info';
+import { FORM_ONE_LG, WARNING_OPACITY } from '../../lib/constants/text-info';
 
 const caretNames = Object.values(CARET_NAMES);
 
@@ -77,15 +77,17 @@ export default class ProjectStore extends BaseStore {
           emitter.on(emitterActions.SELECT, id => {
             if (id) {
               const element = this.getElementById(id);
-              const { popcornOptions } = element;
-              const currentTime = this.time / SANTISECOND;
-              if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
-                this.updateTime(popcornOptions.start * SANTISECOND);
-              }
+              if (element) {
+                const { popcornOptions } = element;
+                const currentTime = this.time / SANTISECOND;
+                if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
+                  this.updateTime(popcornOptions.start * SANTISECOND);
+                }
 
-              if (this.activeElementId !== id && element) {
-                if (this.isElementWithSettings(element.type)) {
-                  this.editElement(id);
+                if (this.activeElementId !== id) {
+                  if (this.isElementWithSettings(element.type)) {
+                    this.editElement(id);
+                  }
                 }
               }
             }
@@ -181,6 +183,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable time = 0;
 
+  @observable warning = null;
+
   @action
   undoRedoAction = (undo = true) => {
     const targetData = undo ? this.undoStore : this.redoStore;
@@ -236,6 +240,7 @@ export default class ProjectStore extends BaseStore {
     options.end = item.end || options.start + DEFAULT_DURATION;
     options.id = `0.${this.generateUid()}`;
     options.zindex = track && track.order ? MAX_ZINDEX - track.order : MAX_ZINDEX;
+    options.opacity = 100;
 
     switch (item.type) {
       case SEQUENCER: {
@@ -318,9 +323,9 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addLayer = () => {
+  addLayer = (options) => {
     this.setUndo();
-    this.createNewLayer();
+    this.createNewLayer(options);
   };
 
   @action
@@ -532,6 +537,7 @@ export default class ProjectStore extends BaseStore {
           order: track.order,
           id: track.id,
           blendMode: track.blendMode,
+          opacity: track.opacity,
         };
         layers.push(layer);
       });
@@ -706,11 +712,15 @@ export default class ProjectStore extends BaseStore {
       if (item.id === elementId) {
         item.track = layer.id;
         item.popcornOptions.blendMode = layer.blendMode;
+        item.popcornOptions.opacity = layer.opacity;
         newElement = item;
         if (layer.blendMode) {
           newElement.popcornOptions.blendMode = layer.blendMode;
         } else {
           newElement.popcornOptions.blendMode = blendModeConstants.normal.value;
+        }
+        if (layer.opacity) {
+          newElement.popcornOptions.opacity = layer.opacity;
         }
       }
       return item;
@@ -720,7 +730,7 @@ export default class ProjectStore extends BaseStore {
       media.tracks = media.tracks.map(track => {
         if (track.order === newLayerLevel) {
           const zindex = MAX_ZINDEX - track.order;
-          const { blendMode } = newElement.popcornOptions;
+          const { blendMode, opacity } = newElement.popcornOptions;
           element.track = track.id;
           element.popcornOptions.zindex = zindex;
           if (layer.blendMode) {
@@ -728,8 +738,11 @@ export default class ProjectStore extends BaseStore {
           } else {
             element.popcornOptions.blendMode = blendModeConstants.normal.value;
           }
+          if (layer.opacity) {
+            element.popcornOptions.opacity = layer.opacity;
+          }
           track.trackEvents.push(element);
-          this.updatePopcorn(element.id, { zindex, blendMode });
+          this.updatePopcorn(element.id, { zindex, blendMode, opacity });
         } else {
           track.trackEvents = track.trackEvents.filter(item => item.id !== elementId);
         }
@@ -760,16 +773,21 @@ export default class ProjectStore extends BaseStore {
     this.setUndo();
     newData = JSON.parse(newData);
     newData.media.map((media) => media.tracks
-      .map((track) => track.trackEvents.map((trackEvent) => {
-        const item = {
-          ...trackEvent.popcornOptions,
-          track: null,
-          start: null,
-          end: null,
-          zindex: null,
-        };
-        return this.createNewElement(item);
-      })));
+      .map((track) => {
+        if (track.blendMode) {
+          this.addLayer({ blendMode: track.blendMode });
+        }
+        return track.trackEvents.map((trackEvent) => {
+          const item = {
+            ...trackEvent.popcornOptions,
+            track: null,
+            start: null,
+            end: null,
+            zindex: null,
+          };
+          return this.createNewElement(item);
+        });
+      }));
   };
 
   @action
@@ -918,7 +936,6 @@ export default class ProjectStore extends BaseStore {
 
   @action
   recompressProject = (newDuration, updateElements = true) => {
-    const elements = [];
     this.projectData.media.forEach((media) => {
       const initialDuration = media.duration;
       if (initialDuration >= newDuration) {
@@ -936,9 +953,6 @@ export default class ProjectStore extends BaseStore {
               trackEvent.popcornOptions.end = Math
                 .round(trackEvent.popcornOptions.end * recompressRatio * 100) / 100;
             }
-            elements.push({
-              ...trackEvent,
-            });
           });
         });
       }
@@ -997,9 +1011,17 @@ export default class ProjectStore extends BaseStore {
           eventEnd = lastEvent.end;
       }
 
-      if (lastEvent.end !== this.popcorn.duration()) {
+      if (lastEvent.end !== this.popcorn.duration() && byEnd.length !== 2) {
         this.projectData.media[0].url = `#t=,${eventEnd}`;
+        this.projectData.media[0].duration = eventEnd;
         this.duration = eventEnd * SANTISECOND;
+        this.setPopcorn();
+      }
+
+      if (byEnd.length === 2) {
+        this.projectData.media[0].url = `#t=,${30}`;
+        this.projectData.media[0].duration = 30;
+        this.duration = 30 * SANTISECOND;
         this.setPopcorn();
       }
     }
@@ -1211,34 +1233,50 @@ export default class ProjectStore extends BaseStore {
   }
 
   @action
-  setBlendMode = (layerId, blendMode) => {
+  showWarning = (message) => {
+    this.warning = message;
+  };
+
+  @action
+  setLayerStyle = (layerId, style) => {
+    const { name, value } = style;
+
     this.setUndo();
     this.modified = true;
     const elements = this.popcornElements.filter(element => element.track === layerId);
     elements.forEach(element => {
-      this.updatePopcorn(element, { blendMode });
+      this.updatePopcorn(element, { [name]: value });
     });
     this.layers = this.layers.map(layer => {
       if (layer.id === layerId) {
-        layer.blendMode = blendMode;
+        layer[name] = value;
       }
       return layer;
     });
 
+    let itemOnLayerWithAnimation = false;
+
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map((track) => {
         if (track.id === layerId) {
-          track.blendMode = blendMode;
+          track[name] = value;
         }
         track.trackEvents.forEach(trackEvent => {
           if (trackEvent.track === layerId) {
-            trackEvent.popcornOptions.blendMode = blendMode;
-            this.updatePopcorn(trackEvent, { blendMode });
+            if (trackEvent.popcornOptions.animation) {
+              itemOnLayerWithAnimation = true;
+            }
+            trackEvent.popcornOptions[name] = value;
+            this.updatePopcorn(trackEvent, { [name]: value });
           }
         });
         return track;
       });
     });
+
+    if (itemOnLayerWithAnimation) {
+      this.showWarning(WARNING_OPACITY.title);
+    }
   };
 
   @action
@@ -1269,10 +1307,16 @@ export default class ProjectStore extends BaseStore {
           }
         }
       });
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
+      this.projectData.media[0].duration = lastEnd / SANTISECOND;
       this.duration = lastEnd;
+      this.setPopcorn();
     }
     if (lastEnd > duration) {
+      this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
+      this.projectData.media[0].duration = lastEnd / SANTISECOND;
       this.duration = lastEnd;
+      this.setPopcorn();
     }
   };
 
@@ -1296,16 +1340,20 @@ export default class ProjectStore extends BaseStore {
     // get first track
     let track = item.track || this.layers[0];
 
-    if (track.blendMode) {
-      options.blendMode = track.blendMode;
-    } else {
-      options.blendMode = blendModeConstants.normal.value;
-    }
-
     const layerElements = this.elements.filter(element => element.track === track.id);
     if (isLayerFulfilled(options, layerElements)) {
       this.createNewLayer();
       [track] = this.layers;
+    }
+
+    if (track.blendMode || item.blendMode) {
+      options.blendMode = track.blendMode || item.blendMode;
+    } else {
+      options.blendMode = blendModeConstants.normal.value;
+    }
+
+    if (track.opacity) {
+      options.opacity = track.opacity;
     }
 
     const element = {
@@ -1337,7 +1385,11 @@ export default class ProjectStore extends BaseStore {
 
   // analog for addLayer
   @action
-  createNewLayer = () => {
+  createNewLayer = (options) => {
+    const blendMode = options && options.blendMode
+      ? options.blendMode : blendModeConstants.normal.value;
+    const opacity = options && options.opacity ? options.opacity : 100;
+
     this.modified = true;
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
@@ -1349,7 +1401,7 @@ export default class ProjectStore extends BaseStore {
         });
         return track;
       });
-      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}` });
+      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}`, blendMode, opacity });
     });
 
     this.layers = this.layers.map(track => {
@@ -1357,6 +1409,12 @@ export default class ProjectStore extends BaseStore {
       track.defaultName = `Layer ${track.order}`;
       return track;
     });
-    this.layers.unshift({ ...DEFAULT_LAYER, id: `${this.layers.length}`, defaultName: 'Layer 0' });
+    this.layers.unshift({
+      ...DEFAULT_LAYER,
+      id: `${this.layers.length}`,
+      defaultName: 'Layer 0',
+      blendMode,
+      opacity,
+    });
   };
 }
