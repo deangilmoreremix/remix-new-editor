@@ -312,6 +312,24 @@ img {
   display: flex;
   justify-content: flex-end;
 
+  &.black {
+    background-color: #000;
+    opacity: 0.5;
+    margin-bottom: 1rem;
+  }
+
+
+  .border-button {
+    border: $default-border;
+    color: white;
+  }
+
+  .base-button {
+    background-color: $secondary-color;
+    margin-left: 1rem;
+    color: white;
+  }
+
   .input-settings {
     display: flex;
     justify-content: space-between;

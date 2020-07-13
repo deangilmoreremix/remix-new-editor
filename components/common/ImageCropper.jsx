@@ -1,8 +1,10 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import Cropper from 'react-cropper';
+import { Box } from '@material-ui/core';
 
-import { Box, Button } from '@material-ui/core';
+import ImageButtons from '../imageEditor/ImageButtons';
+
 import PropTypes from '../../lib/PropTypes';
 import { showError } from '../../lib/services/alertService';
 import useMediaStore from '../hooks/useMediaStore';
@@ -114,24 +116,7 @@ const ImageCropper = observer(({
             }}
           />
         </div>
-        {/* todo add Grid */}
-        <div className="img-size-settings">
-          <FieldBuilder
-            label="Width"
-            value={width}
-            readOnly={isAuto}
-            disabled={isAuto}
-            onChange={(e) => setWidth(e)}
-            className="input-settings"
-          />
-          <FieldBuilder
-            label="Height"
-            value={height}
-            readOnly={isAuto}
-            disabled={isAuto}
-            onChange={(e) => setHeight(e)}
-            className="input-settings"
-          />
+        <div className="img-size-settings black">
           <FieldBuilder
             className="input-settings"
             type={CHECKBOX}
@@ -140,24 +125,7 @@ const ImageCropper = observer(({
             onChange={() => setIsAuto(!isAuto)}
           />
         </div>
-        <Box className="cropper-buttons">
-          <Button
-            variant="outlined"
-            color="default"
-            className="done-button"
-            onClick={handleClose}
-          >
-              Cancel
-          </Button>
-          <Button
-            variant="outlined"
-            color="default"
-            className="done-button"
-            onClick={uploadFile}
-          >
-              Ok
-          </Button>
-        </Box>
+        <ImageButtons uploadFile={uploadFile} handleClose={handleClose} />
       </Box>
     </div>
   );

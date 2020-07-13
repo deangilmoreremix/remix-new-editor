@@ -3,7 +3,6 @@ import { observer } from 'mobx-react';
 
 import Button from '@material-ui/core/Button';
 import PropTypes from '../../../lib/PropTypes';
-import { ASSET_TYPES, IMAGE_FORMATS } from '../../../lib/constants/media';
 
 import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';

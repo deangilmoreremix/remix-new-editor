@@ -50,7 +50,6 @@ export default () => {
   const openCropper = async (scope) => {
     const { image, onImageCropped, recommendedResolution, cancelCropper } = scope;
 
-    debugger
     if (!image.src || !onImageCropped) {
       return;
     }

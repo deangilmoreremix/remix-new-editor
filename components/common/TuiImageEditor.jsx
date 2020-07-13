@@ -2,14 +2,13 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { observer } from 'mobx-react';
 
 import ImageEditor from '@toast-ui/react-image-editor';
-import { Box, Button } from '@material-ui/core';
+import { Box } from '@material-ui/core';
 import PropTypes from '../../lib/PropTypes';
 import { showError } from '../../lib/services/alertService';
 import useMediaStore from '../hooks/useMediaStore';
+import ImageButtons from '../imageEditor/ImageButtons';
 import { DEFAULT_IMAGE_NAME, BAR_POSITION, BASE_MENU, SIZE } from '../../lib/constants/imageEditor/tuiEditor';
 
-
-import '../../styles/index.scss';
 
 const TuiImageEditor = observer(({
   imageData,
@@ -73,24 +72,7 @@ const TuiImageEditor = observer(({
             }}
           />
         </div>
-        <Box className="editor-buttons">
-          <Button
-            variant="outlined"
-            color="default"
-            className="done-button"
-            onClick={handleClose}
-          >
-              Cancel
-          </Button>
-          <Button
-            variant="outlined"
-            color="default"
-            className="done-button"
-            onClick={onLoadImage}
-          >
-              Ok
-          </Button>
-        </Box>
+        <ImageButtons uploadFile={onLoadImage} handleClose={handleClose} />
       </Box>
     </div>
   );
