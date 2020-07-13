@@ -56,16 +56,12 @@
       margin-right: 4px;
     }
 
-    input {
-      padding: 3% 5%;
-    }
-
     .input-wrapper-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      max-width: 32em;
-      height: 2em;
+      width: 100%;
+      margin-bottom: 2%;
     }
 
     .input-buttons {
@@ -74,15 +70,6 @@
     }
 
     .input-wrapper {
-      padding: 1% 0;
-      display: inline-flex;
-      width: 100%;
-      height: 100%;
-
-      textarea, input {
-        width: inherit;
-      }
-
       .drag-button {
         margin: auto 5px;
         //background: url('/static/images/editor/elements/form/element-drag.svg') no-repeat;
@@ -103,8 +90,7 @@
         outline: none;
         -webkit-appearance: none;
         vertical-align: top;
-        padding: 0;
-        width: 80%;
+        width: 100%;
         min-width: 10%;
       }
       input[type="email"] {

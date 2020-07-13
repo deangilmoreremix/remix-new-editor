@@ -35,7 +35,12 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
     rotation,
     width,
     height,
+    left,
+    top,
   } = values;
+
+  const elementWidth = React.useMemo(() => width || fields.width.default, [width]);
+  const elementHeight = React.useMemo(() => height || fields.height.default, [width]);
 
   const openLibrary = () => {
     closeModal();
@@ -59,6 +64,40 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
   }, [width]);
 
   useEffect(() => {
+    switch (left) {
+      case padding:
+        setPositionHorizontal(TEXT_POSITION.LEFT);
+        break;
+      case (100 - elementWidth) / 2:
+        setPositionHorizontal(TEXT_POSITION.CENTER);
+        break;
+      case 100 - (elementWidth + padding):
+        setPositionHorizontal(TEXT_POSITION.RIGHT);
+        break;
+      default:
+        setPositionHorizontal(null);
+        break;
+    }
+  }, [left, elementWidth]);
+
+  useEffect(() => {
+    switch (top) {
+      case padding:
+        setPositionVertical(TEXT_POSITION.TOP);
+        break;
+      case (100 - (elementHeight + (padding * 2))) / 2:
+        setPositionVertical(TEXT_POSITION.MIDDLE);
+        break;
+      case (100 - (elementHeight + padding)):
+        setPositionVertical(TEXT_POSITION.BOTTOM);
+        break;
+      default:
+        setPositionVertical(null);
+        break;
+    }
+  }, [top, elementHeight]);
+
+  useEffect(() => {
     if (height) {
       setPositionVertical(null);
     }
@@ -67,9 +106,6 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
   const changePositionHorizontal = useCallback(
     (field) => {
       const position = field.alignment;
-      const elementWidth = width || fields.width.default;
-
-      setPositionHorizontal(position);
 
       switch (position) {
         case TEXT_POSITION.LEFT:
@@ -85,15 +121,12 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
           onChange({ left: padding });
           break;
       }
-    }, [width],
+    }, [elementWidth],
   );
 
   const changePositionVertical = useCallback(
     (field) => {
       const { position } = field;
-      const elementHeight = height || fields.height.default;
-
-      setPositionVertical(position);
 
       switch (position) {
         case TEXT_POSITION.TOP:
@@ -109,7 +142,7 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
           onChange({ top: padding });
           break;
       }
-    }, [height],
+    }, [elementHeight],
   );
 
   const textToRender = useMemo(() => {

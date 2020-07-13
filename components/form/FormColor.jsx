@@ -9,17 +9,19 @@ import classnames from 'classnames';
 import PropTypes from '../../lib/PropTypes';
 import FormTextField from './FormTextField';
 import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
+import { rgba2hex, fade } from '../../lib/lottie/utils';
 
 const FormColor = ({ label, onChange, value, className, disabled }) => {
   const colorPrimary = 'rgb(235, 80, 84, 1)';
   const [anchorEl, setAnchorEl] = useState(null);
-  const [color, setColor] = useState(parseRgbaString(value || colorPrimary));
+  const [color, setColor] = useState(value || colorPrimary);
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
 
   const changeColor = (newColor) => {
     if (newColor) {
       onChange(newColor);
+      setColor(rgba2hex(newColor));
     }
   };
 
@@ -28,13 +30,20 @@ const FormColor = ({ label, onChange, value, className, disabled }) => {
   };
 
   const handleClose = () => {
-    changeColor(colorToRgbaString(color));
+    if (!(/^#[0-9A-F]{6}$/i.test(color))) {
+      changeColor(colorToRgbaString(color));
+    }
     setAnchorEl(null);
   };
 
   const updateColor = (newColor) => {
-    const parsedColor = parseRgbaString(newColor);
-    setColor(parsedColor || parsedColor.rgb);
+    if (/^#[0-9A-F]{6}$/i.test(newColor)) {
+      setColor(newColor);
+      onChange(fade(newColor, 1));
+    } else {
+      const parsedColor = parseRgbaString(colorToRgbaString(newColor.rgb));
+      setColor(parsedColor || parsedColor.rgb);
+    }
   };
 
   return (
@@ -70,7 +79,7 @@ const FormColor = ({ label, onChange, value, className, disabled }) => {
           }}
         >
           <ChromePicker
-            onChange={(r) => updateColor(colorToRgbaString(r.rgb))}
+            onChange={(r) => updateColor(r)}
             color={color}
           />
         </Popover>
