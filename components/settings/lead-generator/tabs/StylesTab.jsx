@@ -13,34 +13,35 @@ import { BACKGROUND_COLOR, POPCORN_ELEMENT_TYPES } from '../../../../lib/constan
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
 import { tabItems } from '../../../../lib/constants/library';
-import useModalStore from '../../../hooks/useModalStore';
-import {
-  CROP_RECOMMENDED_RESOLUTION,
-  CROP_BRAND_LOGO_RESOLUTION,
-} from '../../../../lib/constants/settings/image';
+// import useModalStore from '../../../hooks/useModalStore';
+// import {
+//   CROP_RECOMMENDED_RESOLUTION,
+//   CROP_BRAND_LOGO_RESOLUTION,
+// } from '../../../../lib/constants/settings/image';
 
 const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
 
-  const { openCropper } = useModalStore();
+  // const { openCropper } = useModalStore();
+  //
+  // const onCrop = (image, option) => {
+  //   onChange({ [option]: image ?? image.url });
+  // };
 
-  const onCrop = (image, option) => {
-    onChange({ [option]: image ?? image.url });
-  };
-
-  const onUploadedImage = (image, extension, option, resolution) => {
+  const onUploadedImage = (image, extension, option) => {
     Object.keys(tabItems).forEach(tab => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
-          openCropper(image.url, onCrop, resolution || CROP_RECOMMENDED_RESOLUTION, option);
+          onChange({ [option]: image.url });
+          // openCropper(image.url, onCrop, resolution || CROP_RECOMMENDED_RESOLUTION, option);
         }
       });
     });
   };
   const onUploadBrandLogo = (item, ext) => {
     onUploadedImage(item, ext,
-      fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION);
+      fields.brandLogoSrc.name);
   };
 
   const handleChangeColor = (rgbColor) => {
@@ -67,10 +68,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
           <FieldBuilder
             value={values.brandLogoSrc ?? fields.brandLogoSrc.default}
             {...fields.brandLogoSrc}
-            onChange={({ brandLogoSrc }) => {
-              openCropper(brandLogoSrc,
-                onCrop, CROP_BRAND_LOGO_RESOLUTION, fields.brandLogoSrc.name);
-            }}
+            onChange={onChange}
           />
           <DropzoneArea
             onUploaded={(item, ext) => { onUploadBrandLogo(item, ext); }}
@@ -95,9 +93,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
           <FieldBuilder
             value={values.backgroundImage ?? fields.backgroundImage.default}
             {...fields.backgroundImage}
-            onChange={({ backgroundImage: newUrl }) => {
-              openCropper(newUrl, onCrop, CROP_RECOMMENDED_RESOLUTION, fields.backgroundImage.name);
-            }}
+            onChange={onChange}
           />
           <DropzoneArea
             onUploaded={(item, ext) => { onUploadedImage(item, ext, fields.backgroundImage.name); }}
