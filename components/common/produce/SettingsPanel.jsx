@@ -3,17 +3,16 @@ import { observer } from 'mobx-react';
 
 import Button from '@material-ui/core/Button';
 import PropTypes from '../../../lib/PropTypes';
-import { ASSET_TYPES } from '../../../lib/constants/media';
-import { tabItems } from '../../../lib/constants/library';
+import { ASSET_TYPES, IMAGE_FORMATS } from '../../../lib/constants/media';
 
 import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';
 import useModalStore from '../../hooks/useModalStore';
 
 import FieldBuilder from '../../form/FieldBuilder';
-import DropzoneArea from '../../media/DropzoneArea';
-import DropButton from '../../media/DropButton';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../../lib/constants/settings/image';
+import { IMAGE_CROPPER_MODAL } from '../../../lib/constants/modals';
+import DropAndEditButton from '../../media/DropAndEditButton';
 
 const SettingPanel = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
@@ -23,7 +22,7 @@ const SettingPanel = observer(() => {
   const { linkedinEnabled } = useUserStore();
   const { item, updateItem } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
-  const { openCropper } = useModalStore();
+  const { openImageEditor, closeModal } = useModalStore();
 
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -41,20 +40,22 @@ const SettingPanel = observer(() => {
     updateItem({ allowedSocials });
   };
 
-  const onUploadedImage = (image, extension) => {
-    image.url = URL.createObjectURL(image);
-    openCropper(image.url, onImageCropped);
-    // Object.keys(tabItems).forEach(tab => {
-    //   tabItems[tab].formats.forEach(format => {
-    //     if (format === extension) {
-    //
-    //     }
-    //   });
-    // });
+  const onUploadedImage = (image) => {
+    openEditor(image.url);
   };
 
-  const onImageCropped = (thumbnail) => {
+  const onImageEdited = (thumbnail) => {
     updateItem({ thumbnail });
+  };
+
+  const openEditor = (image) => {
+    closeModal(IMAGE_CROPPER_MODAL);
+    openImageEditor({
+      src: image,
+      onImageEdited,
+      startUpload: () => setIsDisabledUpload(true),
+      endUpload: () => setIsDisabledUpload(false),
+    });
   };
 
   return (
@@ -135,45 +136,47 @@ const SettingPanel = observer(() => {
             </div>
           </div>
           <div className="settings__row-block">
+            {item.thumbnail
+            && (
             <Button
-              onClick={() => openCropper(item.thumbnail, onImageCropped)}
+              onClick={() => openEditor(item.thumbnail)}
               disableRipple
               disableFocusRipple
               disableTouchRipple
               className="settings__edit-file"
             >
-Use Thumbnails Editor
+              Image Editor
             </Button>
+            )
+            }
           </div>
         </div>
         <div className="settings__row">
           <div className="settings__row-block">
-            <DropButton
+            <DropAndEditButton
               onUploaded={onUploadedImage}
-              type={ASSET_TYPES.IMAGE}
               isDisabled={isDisabledUpload}
               startUpload={() => setIsDisabledUpload(true)}
               endUpload={() => setIsDisabledUpload(false)}
-              multiple={false}
               className="settings__add-file"
-              needUpload={false}
+              needSaveAsset={false}
             />
             <p className="settings__row-text-2">
-recommended image resolution
+              recommended image resolution
               {CROP_RECOMMENDED_RESOLUTION.width}
-x
+              x
               {CROP_RECOMMENDED_RESOLUTION.height}
             </p>
           </div>
           <div className="settings__row-block">
-            <DropzoneArea
+            <DropAndEditButton
+              isArea
               onUploaded={onUploadedImage}
-              type={ASSET_TYPES.IMAGE}
               isDisabled={isDisabledUpload}
               value={item.thumbnail}
               startUpload={() => setIsDisabledUpload(true)}
               endUpload={() => setIsDisabledUpload(false)}
-              multiple={false}
+              needSaveAsset={false}
             />
           </div>
         </div>

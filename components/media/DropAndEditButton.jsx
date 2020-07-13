@@ -1,92 +1,107 @@
 import React from 'react';
-import { useDropzone } from 'react-dropzone';
 import classnames from 'classnames';
 
-import mediaConstants, { ASSET_TYPES } from '../../lib/constants/media';
+import { ASSET_TYPES, IMAGE_FORMATS } from '../../lib/constants/media';
 import { showError } from '../../lib/services/alertService';
 import PropTypes from '../../lib/PropTypes';
 
 import useMediaStore from '../hooks/useMediaStore';
 
-import { LibrarySpinner } from './Loader';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
-import { IMAGE_TYPE } from '../../lib/constants/imageEditor/tuiEditor';
+import DropZone from './DropZone';
 import useModalStore from '../hooks/useModalStore';
+import DropzoneArea from './DropzoneArea';
 
-const DropButton = (
+const DropAndEditButton = (
   {
-    accept,
+    isArea,
     onUploaded,
-    type,
     startUpload,
     endUpload,
-    isDisabled,
-    multiple,
     className,
     needSaveAsset,
+    recommendedResolution,
+    ...rest
   }) => {
-  const { uploadMedia, storeAsset } = useMediaStore();
+  const { uploadMedia, saveFile } = useMediaStore();
 
-  const { openImageEditor, finishImageEditing } = useModalStore();
+  const { openCropper } = useModalStore();
 
-  const onDrop = React.useCallback((image) => {
-    image.url = URL.createObjectURL(image);
-    openImageEditor(image.url, () => {}, IMAGE_TYPE.THUMBNAIL, CROP_RECOMMENDED_RESOLUTION);
+  const props = React.useMemo(() => ({
+    multiple: false,
+    accept: IMAGE_FORMATS,
+  }), []);
 
-    // todo uncomment it
-    // Promise.all(acceptedFiles.map(async data => {
-    //   const asset = await uploadMedia({ data });
-    //   if (needSaveAsset) {
-    //     const element = await storeAsset(asset, type.toUpperCase());
-    //     elements.push(element);
-    //   } else {
-    //     elements.push(asset);
-    //   }
-    //   return asset.url.match(/\.[0-9a-z]{1,5}$/)[0];
-    // }))
-    //   .then(fileExtension => {
-    //     const extension = fileExtension[fileExtension.length - 1];
-    //     if (!multiple) {
-    //       onUploaded(elements[0], extension);
-    //     } else {
-    //       onUploaded(elements, extension);
-    //     }
-    //   })
-    //   .catch(() => showError('An error occurred while loading the items.'))
-    //   .finally(() => {
-    //     if (endUpload) {
-    //       endUpload();
-    //     }
-    //   });
-  }, [onUploaded, uploadMedia]);
+  const onDrop = React.useCallback(async (acceptedFiles, rejectedFiles) => {
+    if (!acceptedFiles.length) {
+      if (rejectedFiles.length > 0) {
+        return showError('Wrong Format!');
+      }
+      return;
+    }
 
-  const { getInputProps } = useDropzone({
-    accept: accept && accept.length ? accept : mediaConstants.ACCEPTED_MEDIA_TYPES,
-    onDrop,
-    disabled: false,
-  });
+    const image = acceptedFiles[0];
+    image.src = URL.createObjectURL(image);
+    return openCropper({
+      image,
+      onImageCropped: save,
+      recommendedResolution: recommendedResolution || CROP_RECOMMENDED_RESOLUTION,
+      cancelCropper: () => save(image),
+      startUpload,
+      endUpload,
+    });
+  }, [uploadMedia]);
+
+  const save = React.useCallback(async (src) => {
+    if (startUpload) {
+      startUpload();
+    }
+    const result = await saveFile(src, needSaveAsset, ASSET_TYPES.IMAGE);
+    onUploaded(result);
+    if (endUpload) {
+      endUpload();
+    }
+  }, [onUploaded]);
 
   return (
-    <DropButton type={ASSET_TYPES.IMAGE} onUploaded={onDrop} />
+    <div className="drop-area">
+      {
+      isArea ? (
+        <DropzoneArea
+          onDrop={onDrop}
+          {...props}
+          {...rest}
+        />
+      ) : (
+        <DropZone
+          onDrop={onDrop}
+          className={classnames('button-add-file', className)}
+          {...props}
+          {...rest}
+        />
+      )
+    }
+    </div>
   );
 };
 
-DropButton.propTypes = {
+DropAndEditButton.propTypes = {
   onUploaded: PropTypes.func.isRequired,
-  type: PropTypes.string.isRequired,
   startUpload: PropTypes.func,
   endUpload: PropTypes.func,
   isDisabled: PropTypes.bool,
-  multiple: PropTypes.bool,
   className: PropTypes.string,
   needSaveAsset: PropTypes.bool,
-  accept: PropTypes.arrayOf(PropTypes.string),
+  isArea: PropTypes.bool,
+  recommendedResolution: PropTypes.shape({
+    width: PropTypes.number.isRequired,
+    height: PropTypes.number.isRequired,
+  }),
 };
 
-DropButton.defaultProps = {
+DropAndEditButton.defaultProps = {
   isDisabled: false,
-  multiple: true,
   needSaveAsset: true,
 };
 
-export default DropButton;
+export default DropAndEditButton;

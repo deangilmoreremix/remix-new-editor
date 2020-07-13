@@ -1,110 +1,164 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
-import ImageEditor from 'react-avatar-editor';
+import Cropper from 'react-cropper';
 
 import { Box, Button } from '@material-ui/core';
 import PropTypes from '../../lib/PropTypes';
 import { showError } from '../../lib/services/alertService';
-import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-import Loader from './Loader';
 import useMediaStore from '../hooks/useMediaStore';
-import {
-  CROP_BRAND_LOGO_RESOLUTION,
-  IMAGE_CANT_BE_UPLOADED_ERROR,
-  IMAGE_NOT_FOUND_ERROR,
-  IMAGE_NOT_SUPPORTED_ERROR,
-} from '../../lib/constants/settings/image';
-import { MEDIA_TYPES } from '../../lib/constants/popcorn';
-import FormSlider from '../form/FormSlider';
+import FieldBuilder from '../form/FieldBuilder';
+import { CHECKBOX } from '../../lib/constants/forms';
+import { setMinMax } from '../../lib/utils/cropHelper';
 
 const ImageCropper = observer(({
   resolution,
-  className,
   imageData,
+  needSave,
   onImageCropped,
   handleClose,
+  startUpload,
+  endUpload,
+  needClose = true,
 }) => {
   const refEditor = useRef();
-  const [isLoading, setLoading] = useState(false);
   const { uploadMedia } = useMediaStore();
-  const { width, height } = useMemo(() => resolution, [resolution]);
-  const { source } = useMemo(() => imageData, [imageData]);
-  const [scale, setScale] = useState(1);
-  const onLoadSuccess = useCallback(async () => {
-    try {
-      setLoading(true);
-      await uploadFile(refEditor.current.getImageScaledToCanvas().toDataURL('image/png'));
-    } catch (err) {
-      return showError(err.message || IMAGE_CANT_BE_UPLOADED_ERROR);
-    } finally {
-      setLoading(false);
-    }
-  });
+  const [isAuto, setIsAuto] = useState(true);
+  const [width, setWidth] = useState(resolution.width);
+  const [height, setHeight] = useState(resolution.height);
 
-  const uploadFile = useCallback(async (imageMeta) => {
-    try {
-      if (imageMeta) {
-        const newUrl = (await uploadMedia({ data: imageMeta, isCrop: true })).url;
-        const metadata = await new MediaTypeDetector()
-          .getMetadata(newUrl);
-        if (!metadata.contentType.includes(MEDIA_TYPES.IMAGE)) {
-          return showError(IMAGE_NOT_FOUND_ERROR);
+  const { source, width: imageWidth, height: imageHeight } = useMemo(() => imageData,
+    [imageData]);
+  const { width: recommendedWidth, height: recommendedHeight } = useMemo(() => resolution,
+    [resolution]);
+  const widthProportion = useMemo(() => recommendedWidth / imageWidth,
+    [recommendedWidth, imageWidth]);
+  const heightProportion = useMemo(() => recommendedHeight / imageHeight,
+    [recommendedHeight, imageHeight]);
+  const proportion = useMemo(() => Math.min(1, Math.max(widthProportion, heightProportion)),
+    [widthProportion, heightProportion]);
+  const ratio = useMemo(() => recommendedWidth / recommendedHeight,
+    [recommendedWidth, recommendedHeight]);
+
+  const uploadFile = useCallback(async () => {
+    let image = refEditor.current.cropper
+      .getCroppedCanvas({ width: recommendedWidth, height: recommendedHeight }).toDataURL();
+    let media;
+    let hasError;
+    if (needSave) {
+      try {
+        if (startUpload) {
+          startUpload();
         }
-        onImageCropped(metadata);
+        media = await uploadMedia({ data: image, isCrop: true });
+      } catch (e) {
+        hasError = true;
+        showError(e.message);
+      } finally {
+        image = media && media.url;
+        if (endUpload) {
+          endUpload();
+        }
+        if (!hasError) {
+          onImageCropped(image);
+        }
+        if (needClose) {
+          handleClose();
+        }
       }
-    } catch (err) {
-      return showError(err.message || IMAGE_NOT_SUPPORTED_ERROR);
-    } finally {
-      setLoading(false);
+    } else {
+      onImageCropped(image);
+      if (needClose) {
+        handleClose();
+      }
     }
-  });
+  }, [refEditor]);
+
+  React.useEffect(() => {
+    if (!refEditor || !refEditor.current.cropper.cropBoxData) {
+      return;
+    }
+    setMinMax(refEditor, isAuto);
+    if (isAuto) {
+      const { cropper } = refEditor.current;
+      cropper.cropBoxData.width = cropper.initialCropBoxData.width;
+      cropper.cropBoxData.height = cropper.initialCropBoxData.height;
+      refEditor.current.setCropBoxData(cropper.cropBoxData);
+    }
+  }, [isAuto]);
 
   return (
     <div className="image-crop-content">
-      { isLoading ? <Loader isLoading={isLoading} className="image-crop-content" /> : (
-        <Box>
-          <div className="canvas-container">
-            <ImageEditor
-              className={className}
-              ref={refEditor}
-              crossOrigin="anonymous"
-              image={source}
-              width={width}
-              height={height}
-              border={height === CROP_BRAND_LOGO_RESOLUTION.height ? 500 : 50}
-              scale={scale}
-            />
-          </div>
-          <FormSlider
-            onChange={(value) => setScale(value)}
-            value={scale}
-            minValue={0.25}
-            maxValue={10}
-            step={0.05}
-            sliderWidth={200}
-            withoutInput
-            sliderClassName="cropper-scale"
+      <Box>
+        <div className="canvas-container">
+          <Cropper
+            ref={refEditor}
+            src={source}
+            style={{ height: '70vh', width: '70vw' }}
+            cropBoxResizable
+            aspectRatio={ratio}
+            guides={false}
+            toggleDragModeOnDblclick={false}
+            zoomable={false}
+            zoomOnTouch={false}
+            zoomOnWheel={false}
+            viewMode={1}
+            background={false}
+            autoCropArea={proportion}
+              // todo use consts
+            dragMode={isAuto ? 'none' : 'crop'}
+            disable
+            ready={() => {
+              if (isAuto) {
+                setMinMax(refEditor, isAuto);
+              }
+            }}
           />
-          <Box className="cropper-buttons">
-            <Button
-              variant="outlined"
-              color="default"
-              className="done-button"
-              onClick={handleClose}
-            >
-Cancel
-            </Button>
-            <Button
-              variant="outlined"
-              color="default"
-              className="done-button"
-              onClick={onLoadSuccess}
-            >
-Ok
-            </Button>
-          </Box>
+        </div>
+        {/* todo add Grid */}
+        <div className="img-size-settings">
+          <FieldBuilder
+            label="Width"
+            value={width}
+            readOnly={isAuto}
+            disabled={isAuto}
+            onChange={(e) => setWidth(e)}
+            className="input-settings"
+          />
+          <FieldBuilder
+            label="Height"
+            value={height}
+            readOnly={isAuto}
+            disabled={isAuto}
+            onChange={(e) => setHeight(e)}
+            className="input-settings"
+          />
+          <FieldBuilder
+            className="input-settings"
+            type={CHECKBOX}
+            label="Automatically"
+            value={isAuto}
+            onChange={() => setIsAuto(!isAuto)}
+          />
+        </div>
+        <Box className="cropper-buttons">
+          <Button
+            variant="outlined"
+            color="default"
+            className="done-button"
+            onClick={handleClose}
+          >
+              Cancel
+          </Button>
+          <Button
+            variant="outlined"
+            color="default"
+            className="done-button"
+            onClick={uploadFile}
+          >
+              Ok
+          </Button>
         </Box>
-      ) }
+      </Box>
     </div>
   );
 });
@@ -115,12 +169,16 @@ ImageCropper.propTypes = {
     source: PropTypes.string,
     width: PropTypes.number,
     height: PropTypes.number,
-  }),
+  }).isRequired,
   resolution: PropTypes.shape({
     width: PropTypes.number,
     height: PropTypes.number,
-  }),
+  }).isRequired,
   onImageCropped: PropTypes.func.isRequired,
+  startUpload: PropTypes.func,
+  endUpload: PropTypes.func,
+  needSave: PropTypes.bool,
+  needClose: PropTypes.bool,
 };
 
 export default ImageCropper;

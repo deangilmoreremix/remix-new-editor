@@ -17,15 +17,34 @@ export const modalContent = (options) => {
   };
 };
 export const isResolutionWrong = (options) => {
-  const { recommendedResolution, imageMeta = {} } = options;
+  const { recommendedResolution, imageMeta } = options;
+  if (!imageMeta) {
+    return false;
+  }
   return (recommendedResolution && (recommendedResolution.width !== imageMeta.width
     || recommendedResolution.height !== imageMeta.height));
 };
 
+const fields = [
+  { editableField: 'minWidth', value: 'width' },
+  { editableField: 'maxWidth', value: 'width' },
+  { editableField: 'minHeight', value: 'height' },
+  { editableField: 'maxHeight', value: 'height' },
+];
+
+export const setMinMax = (refEditor, auto) => {
+  const { cropper } = refEditor.current;
+  fields.forEach(fieldProps => {
+    const fieldName = auto ? fieldProps.value : fieldProps.editableField;
+    cropper.cropBoxData[fieldProps.editableField] = cropper.initialCropBoxData[fieldName];
+  });
+};
+
 export function checkImageResolution(options) {
-  debugger
-  const { onFileUploaded } = options;
-  if (isResolutionWrong(options)) {
-    onFileUploaded(options);
+  const { openCropper, cancelCropper } = options;
+  if (isResolutionWrong(options) && options.imageMeta && options.imageMeta.source) {
+    openCropper(options);
+  } else {
+    cancelCropper(options);
   }
 }

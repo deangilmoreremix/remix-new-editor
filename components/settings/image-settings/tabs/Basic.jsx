@@ -4,7 +4,7 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../../lib/PropTypes';
 import { LIBRARY_TABS } from '../../../../lib/constants/library';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
-import { IMAGE_TYPE } from '../../../../lib/constants/imageEditor/tuiEditor';
+import { EXTRA_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
 
 import useUIStore from '../../../hooks/useUIStore';
 import useProjectStore from '../../../hooks/useProjectStore';
@@ -19,6 +19,7 @@ import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
 import { FEATURES } from '../../../../lib/constants/features';
 import useModalStore from '../../../hooks/useModalStore';
 import { TUI_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
+import DropButton from '../../../media/DropButton';
 
 const Basic = ({ values, fields, onChange, handleClose }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +27,6 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
   const { findAndUpdate, element } = useProjectStore();
   const { currentUser: user, isfeatureEnabled: checkStateFeature } = useUserStore();
   const { openImageEditor, closeModal } = useModalStore();
-  const modalType = IMAGE_TYPE.IMAGE;
 
   const backToLibrary = () => {
     handleClose();
@@ -86,7 +86,8 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
             />
             <span>Back to Library</span>
           </button>
-          <DropzoneArea
+          <DropButton
+            isArea
             onUploaded={selectImage}
             type={LIBRARY_TABS.IMAGE}
             multiple={false}
@@ -174,7 +175,13 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
             <button
               className="image-settings__btn"
               onClick={() => {
-                openImageEditor(element.popcornOptions.src, onImageEdited, modalType);
+                openImageEditor({
+                  src: element.popcornOptions.src,
+                  onImageEdited,
+                  startUpload: () => setIsLoading(true),
+                  endUpload: () => setIsLoading(false),
+                  menu: EXTRA_MENU,
+                });
               }}
               isDisabled={isLoading}
             >

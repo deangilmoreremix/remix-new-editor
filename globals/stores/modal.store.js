@@ -1,11 +1,8 @@
-import { set, observable, action } from 'mobx';
+import { set, remove, observable, action } from 'mobx';
 
 import { IMAGE_CROPPER_MODAL, MODAL_CONFIG, TUI_IMAGE_EDITOR_MODAL } from '../../lib/constants/modals';
-import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-import { showError } from '../../lib/services/alertService';
 import { checkImageResolution } from '../../lib/utils/cropHelper';
-import { CROP_RECOMMENDED_RESOLUTION, TUI_EDITOR_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
-import { IMAGE_TYPE } from '../../lib/constants/imageEditor/tuiEditor';
+import { getImageSize } from '../../lib/utils/imageEditorHelper';
 
 
 export default () => {
@@ -27,7 +24,8 @@ export default () => {
   const closeModal = (modalId) => {
     if (modalId) {
       modalIds.delete(modalId);
-      set(options, {});
+      const keys = Object.keys(options);
+      keys.forEach(key => remove(options, key));
     }
   };
 
@@ -49,65 +47,41 @@ export default () => {
     }
   };
 
-  const openCropper = async (src, onImageCropped, resolution, updateField) => {
+  const openCropper = async (scope) => {
+    const { image, onImageCropped, recommendedResolution, cancelCropper } = scope;
+
     debugger
-    if (!src || !onImageCropped) {
+    if (!image.src || !onImageCropped) {
       return;
     }
-    // const imageMeta = new Image();
-    // imageMeta.src = src;
-    // const metadata = await new MediaTypeDetector()
-    //   .getMetadata(src);
-    // if (!metadata.contentType.includes('image')) {
-    //   return showError('Image not found');
-    // }
+    // todo check small img
+    const imageMeta = await getImageSize(image);
+    imageMeta.source = image.src;
     checkImageResolution({
       imageMeta,
-      onFileUploaded: openModal(IMAGE_CROPPER_MODAL,
+      recommendedResolution,
+      cancelCropper,
+      openCropper: () => openModal(IMAGE_CROPPER_MODAL,
         {
-          imageMeta: metadata,
-          onImageCropped,
-          recommendedResolution: resolution || CROP_RECOMMENDED_RESOLUTION,
-          src,
-          updateField,
+          ...scope,
+          src: image.src,
+          imageMeta,
         }),
     });
   };
 
-  const openImageEditor = async (src, onImageCropped, modalType, resolution, updateField) => {
+  const openImageEditor = async (scope) => {
+    const { src } = scope;
     if (!src) {
       return;
     }
-    debugger
-    const imageMeta = new Image();
-    imageMeta.src = src;
-    // const metadata = await new MediaTypeDetector()
-    //   .getMetadata(src);
-    // if (!metadata.contentType.includes('image')) {
-    //   return showError('Image not found');
-    // }
     const metadata = { source: src };
-    const recommendedResolution = modalType === IMAGE_TYPE.THUMBNAIL
-      ? (resolution || TUI_EDITOR_RECOMMENDED_RESOLUTION)
-      : null;
 
     openModal(TUI_IMAGE_EDITOR_MODAL,
       {
+        ...scope,
         imageMeta: metadata,
-        recommendedResolution,
-        src,
-        updateField,
-        onImageCropped,
       });
-  };
-
-  const finishImageEditing = async (image, onImageCropped) => {
-    closeModal(TUI_IMAGE_EDITOR_MODAL);
-    await openCropper(image.src, (croppedImage) => {
-      debugger
-      onImageCropped(croppedImage);
-      closeModal(IMAGE_CROPPER_MODAL);
-    });
   };
 
 
@@ -121,6 +95,5 @@ export default () => {
     openCropper,
     options,
     openImageEditor,
-    finishImageEditing,
   };
 };

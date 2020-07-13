@@ -13,6 +13,7 @@ import { ASSET_TYPES, REMOTE_ASSET_TYPES } from '../../lib/constants/media';
 import { LIBRARY_KEYS, libraryProviders, perPage } from '../../lib/constants/library';
 import { FEATURES } from '../../lib/constants/features';
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
+import { showError } from '../../lib/services/alertService';
 
 export default class Media extends BaseStore {
   @observable providersConfiguration = null;
@@ -294,6 +295,39 @@ export default class Media extends BaseStore {
       );
     } catch (e) {
       console.error(e);
+    }
+    return asset;
+  };
+
+  saveFiles = async (files, needSave, type, multiple) => {
+    files = multiple ? files : files[0];
+    let result;
+    try {
+      if (multiple) {
+        result = await Promise.all(files
+          .map(async data => this.saveFile(data, needSave, type)))
+          .catch((e) => {
+            throw e;
+          });
+      } else {
+        result = await this.saveFile(files[0], needSave, type);
+      }
+    } catch (e) {
+      throw e;
+    }
+
+    return result;
+  };
+
+  saveFile = async (data, needSave, type) => {
+    let asset;
+    try {
+      asset = await this.uploadMedia({ data, isCrop: true });
+      if (needSave) {
+        asset = await this.storeAsset(asset, type);
+      }
+    } catch (e) {
+      throw e;
     }
     return asset;
   };

@@ -5,17 +5,20 @@ import { Box } from '@material-ui/core';
 import TuiImageEditor from '../common/TuiImageEditor';
 
 const TuiImageEditorModal = observer(({ handleClose, options }) => {
-  const { imageMeta, recommendedResolution, onImageCropped, updateField } = useMemo(
+  const { imageMeta, ...rest } = useMemo(
     () => options, [options]);
+
+  if (!imageMeta) {
+    return null;
+  }
 
   return (
     <div className="image-editor-modal">
       <Box>
         <TuiImageEditor
-          imageData={imageMeta || {}}
-          resolution={recommendedResolution}
-          onImageCropped={(value) => onImageCropped(value.source, updateField)}
+          imageData={imageMeta}
           handleClose={handleClose}
+          {...rest}
         />
       </Box>
     </div>
