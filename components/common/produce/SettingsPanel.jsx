@@ -135,7 +135,8 @@ const SettingPanel = observer(() => {
             </div>
           </div>
           <div className="settings__row-block">
-            {item.thumbnail
+            {
+              item.thumbnail
             && (
             <Button
               onClick={() => openEditor(item.thumbnail)}

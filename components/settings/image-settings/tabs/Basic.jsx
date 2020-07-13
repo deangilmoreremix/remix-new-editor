@@ -11,7 +11,6 @@ import useProjectStore from '../../../hooks/useProjectStore';
 import useUserStore from '../../../hooks/useUserStore';
 
 import FieldBuilder from '../../../form/FieldBuilder';
-import DropzoneArea from '../../../media/DropzoneArea';
 
 import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 

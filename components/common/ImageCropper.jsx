@@ -11,6 +11,7 @@ import useMediaStore from '../hooks/useMediaStore';
 import FieldBuilder from '../form/FieldBuilder';
 import { CHECKBOX } from '../../lib/constants/forms';
 import { setMinMax } from '../../lib/utils/cropHelper';
+import { DRAG_MODES } from '../../lib/constants/imageEditor/tuiEditor';
 
 const ImageCropper = observer(({
   resolution,
@@ -25,8 +26,6 @@ const ImageCropper = observer(({
   const refEditor = useRef();
   const { uploadMedia } = useMediaStore();
   const [isAuto, setIsAuto] = useState(true);
-  const [width, setWidth] = useState(resolution.width);
-  const [height, setHeight] = useState(resolution.height);
 
   const { source, width: imageWidth, height: imageHeight } = useMemo(() => imageData,
     [imageData]);
@@ -106,8 +105,7 @@ const ImageCropper = observer(({
             viewMode={1}
             background={false}
             autoCropArea={proportion}
-              // todo use consts
-            dragMode={isAuto ? 'none' : 'crop'}
+            dragMode={isAuto ? DRAG_MODES.NONE : DRAG_MODES.CROP}
             disable
             ready={() => {
               if (isAuto) {

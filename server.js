@@ -30,7 +30,6 @@ app.prepare().then(() => {
       callback();
     }
   });
-  // todo implement auth
   require('./lib/express/webmaker')(server);
   server.use(express.json({ limit: '10mb' }));
   server.use(express.urlencoded({ extended: true }));

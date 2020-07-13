@@ -87,6 +87,7 @@ DropButton.propTypes = {
   endUpload: PropTypes.func,
   isDisabled: PropTypes.bool,
   multiple: PropTypes.bool,
+  isArea: PropTypes.bool,
   className: PropTypes.string,
   needSaveAsset: PropTypes.bool,
   accept: PropTypes.arrayOf(PropTypes.string),

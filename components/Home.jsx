@@ -197,10 +197,10 @@ const Home = observer(() => {
 
   return (
     <React.Fragment>
-      {(asyncHero.loading) && ( // todo implement loading
+      {(asyncHero.loading) && (
         <Loader isLoading preloader />
       )}
-      {asyncHero.error && ( // todo implement err message
+      {asyncHero.error && (
         <div>Error</div>
       )}
       {(!asyncHero.loading || isLoaded) && (
