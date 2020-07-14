@@ -8,7 +8,7 @@ import PropTypes from '../../../../lib/PropTypes';
 import svgOverlayIcon from '../../../../public/static/images/toolbar/overlay.svg';
 import { POPCORN_ELEMENT_LABELS } from '../../../../lib/constants/popcorn';
 
-const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => (
+const OverlayElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => (
   <Grid
     container
     className="popcorn-element popcorn-element-overlay icon-element"
@@ -32,14 +32,18 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => (
   </Grid>
 ));
 
-IconElement.propTypes = {
+OverlayElement.propTypes = {
   item: PropTypes.shape({
     type: PropTypes.string.isRequired,
     title: PropTypes.string,
     htmlText: PropTypes.string,
     duration: PropTypes.number,
   }).isRequired,
-  onSelect: PropTypes.func.isRequired,
+  onSelect: PropTypes.func,
 };
 
-export default IconElement;
+OverlayElement.defaultProps = {
+  onSelect: () => {},
+};
+
+export default OverlayElement;

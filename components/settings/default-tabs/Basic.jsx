@@ -12,8 +12,11 @@ import DropButton from '../../media/DropButton';
 const Basic = ({ options, update, fields, onChange, ...props }) => {
   const [isDisabled, setIsDisabled] = useState(false);
 
-  const onUploaded = ({ url, duration }) => {
-    if (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION && duration) {
+  const onUploaded = async ({ url }) => {
+    if (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION) {
+      const animationData = await loadUrl(url);
+      const animation = await lottie.loadAnimation({ animationData });
+      const duration = animation.totalFrames / animation.animationData.fr;
       return update({ url, end: options.start + duration });
     }
     update({ url });
@@ -31,12 +34,8 @@ const Basic = ({ options, update, fields, onChange, ...props }) => {
     onChange({ url });
   };
 
-  const startUpload = () => {
-    setIsDisabled(true);
-  };
-
-  const endUpload = () => {
-    setIsDisabled(false);
+  const processUpload = (processFileUpload) => {
+    setIsDisabled(processFileUpload);
   };
 
   // ToDo move dropzone to manifest.
@@ -48,11 +47,10 @@ const Basic = ({ options, update, fields, onChange, ...props }) => {
           accept={[mediaConstants.JSON_CONTENT_TYPE]}
           type={mediaConstants.JSON_CONTENT_TYPE}
           onUploaded={onUploaded}
-          startUpload={startUpload}
-          endUpload={endUpload}
+          startUpload={() => processUpload(true)}
+          endUpload={() => processUpload(false)}
           multiple={false}
           needSaveAsset={false}
-          getDuration={options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION}
           isDisabled={isDisabled}
         />
       )}
