@@ -36,7 +36,7 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
           />
         </div>
       )}
-      { POPCORN_ELEMENT_LABELS[item.type]}
+      <div>{ POPCORN_ELEMENT_LABELS[item.type]}</div>
 
       <div className={classnames('inner-wrapper', `popcorn-${item.type}-end`)}>
         { defaultIcon
