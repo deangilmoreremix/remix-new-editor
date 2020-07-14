@@ -117,17 +117,7 @@ export default class UIStore {
   };
 
   @action
-  openCTA = (type) => {
-    this.secondaryWindowType = type;
-  };
-
-  @action
-  openBlendMode = (type) => {
-    this.secondaryWindowType = type;
-  };
-
-  @action
-  openOverlay = (type) => {
+  openToolbarElement = (type) => {
     this.secondaryWindowType = type;
   };
 

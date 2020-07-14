@@ -17,7 +17,7 @@ import Preview from '../common/projectDataList/Preview';
 
 const perPage = 12;
 
-const JsonTransition = observer(() => {
+const OverlayListTransitions = observer(() => {
   const [items, setItems] = React.useState([]);
   const [activeItem, setActiveItem] = useState();
   const [preview, setPreview] = useState('');
@@ -68,7 +68,7 @@ const JsonTransition = observer(() => {
       await addData(activeItem);
       toggleRightBlock(false);
     } catch (e) {
-      await showError(e.message);
+      showError(e.message);
     }
   }, [activeItem, addData]);
 
@@ -166,4 +166,4 @@ const JsonTransition = observer(() => {
   );
 });
 
-export default JsonTransition;
+export default OverlayListTransitions;
