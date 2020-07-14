@@ -12,6 +12,7 @@ import FieldBuilder from '../../form/FieldBuilder';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../../lib/constants/settings/image';
 import { IMAGE_CROPPER_MODAL } from '../../../lib/constants/modals';
 import DropAndEditButton from '../../media/DropAndEditButton';
+import { rgba2hex } from '../../../lib/lottie/utils';
 
 const SettingPanel = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
@@ -56,6 +57,9 @@ const SettingPanel = observer(() => {
       endUpload: () => setIsDisabledUpload(false),
     });
   };
+  const handleChangeColor = (rgbColor) => {
+    updateItem({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
+  };
 
   return (
     <div className="produce-block settings-panel">
@@ -86,7 +90,7 @@ const SettingPanel = observer(() => {
         <FieldBuilder
           type="color"
           name="background"
-          onChange={updateItem}
+          onChange={handleChangeColor}
           value={item.background}
           label="Background Color"
           className="settings-formcolor"
