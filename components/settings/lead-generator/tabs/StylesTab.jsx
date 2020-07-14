@@ -7,7 +7,6 @@ import { rgba2hex } from '../../../../lib/lottie/utils';
 import FieldBuilder from '../../../form/FieldBuilder';
 import DropAndEditButton from '../../../media/DropAndEditButton';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
-import { ASSET_TYPES } from '../../../../lib/constants/media';
 import { BACKGROUND_COLOR, POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
@@ -19,10 +18,6 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
 
   const onUploadedImage = (image, option) => {
     onChange({ [option]: image.url });
-  };
-  const onUploadBrandLogo = (item, ext) => {
-    onUploadedImage(item, ext,
-      fields.brandLogoSrc.name);
   };
 
   const handleChangeColor = (rgbColor) => {
