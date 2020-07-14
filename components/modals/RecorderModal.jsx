@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import videojs from 'video.js';
 import { ClipLoader } from 'react-spinners';
@@ -28,6 +28,8 @@ const EXTENSIONS_MAP = {
 };
 
 export default observer(({ options: { type, useAudio }, handleClose }) => {
+  const mute = useRef(false);
+
   const {
     uploadMedia,
     storeAsset,
@@ -52,13 +54,28 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
     if (videoRef.current && useAudio !== undefined && type) {
       player = videojs(videoRef.current, config);
 
+      player.on('volumechange', () => {
+        if (player.volume() === 0 || player.muted()) {
+          mute.current = true;
+          player.muted(true);
+        } else {
+          mute.current = false;
+          player.muted(false);
+        }
+      });
+
       player.on('finishRecord', () => {
+        if (mute.current) {
+          player.volume(0);
+        }
         setSaveOptionsVisible(true);
       });
+
       player.on('error', (element, error) => {
         player.record().stopStream();
         showError(error.message);
       });
+
       player.on('deviceError', () => {
         showError(`Recording device error, code ${player.deviceErrorCode}`);
       });
@@ -108,7 +125,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   }, [player]);
 
   return (
-    <div className={isLoading && 'recorder-await'}>
+    <div className={isLoading ? 'recorder-await' : ''}>
       {
         isLoading
           ? (

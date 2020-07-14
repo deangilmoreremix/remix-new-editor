@@ -104,6 +104,7 @@ const Content = observer(() => {
       return;
     }
 
+    setIsFirstFetch(false);
     let currentPage = 0;
     let uploaded = [];
 
@@ -121,16 +122,7 @@ const Content = observer(() => {
       const data = await getPresets(activeTab, currentPage, { _id: { $nin: uploaded } });
 
       if (data.length) {
-        if (currentTab) {
-          setItems(data);
-          setIsFirstFetch(false);
-          // Loading new items when scrolling
-        } else {
-          setItems([
-            ...items,
-            ...data,
-          ]);
-        }
+        setItems(elements => [...elements, ...data]);
       }
       setHasMore(data && data.length === perPage);
     } catch (e) {
@@ -216,7 +208,9 @@ const Content = observer(() => {
           />
         ))
       }
-      {hasMore && <Waypoint bottomOffset="3%" onEnter={() => fetchItems()} />}
+      {hasMore && (
+        <Waypoint bottomOffset="3%" onEnter={() => fetchItems()} />
+      )}
     </div>
   );
 });

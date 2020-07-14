@@ -27,6 +27,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
     elements,
     projectData,
     duration: clipDuration,
+    updateElementFromTimeline,
   } = useProjectStore();
   const { uploadMedia } = useMediaStore();
 
@@ -109,7 +110,8 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
 
   React.useEffect(() => {
     if (fromPlayer && fromPlayer.current && !isCaptured) {
-      fromPlayer.current.video.seek(end - duration);
+      fromPlayer.current.video.seek(fromVideo.popcornOptions.end - fromVideo.popcornOptions.start
+        + fromVideo.popcornOptions.from);
     }
   }, [fromVideo, isCaptured]);
 
@@ -130,9 +132,17 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
     let toFrame;
 
     if (fromVideo) {
-      fromFrame = captureVideoFrame(fromVideo.id, 'png');
       const { player } = fromPlayer.current.getState();
-      newFromEnd.current = player.currentTime;
+      let currentTime = (+(player.currentTime.toFixed(2)))
+        - (+(fromVideo.popcornOptions.from.toFixed(2)));
+      if (fromVideo.popcornOptions.from + 1 > currentTime) {
+        currentTime = 1.01;
+        await fromPlayer.current.video.seek(fromVideo.popcornOptions.from + 1.01);
+      }
+
+      fromFrame = captureVideoFrame(fromVideo.id, 'png');
+
+      newFromEnd.current = currentTime;
       imageFrom.current = {
         ...fromFrame,
         dataUri: await loadImage(fromFrame.dataUri),
@@ -198,8 +208,9 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
       let toVideoNewEnd = transitionOptions.end + TRANSITION_TIMELINE_OFFSET
         + (toVideo.popcornOptions.end - toVideo.popcornOptions.start)
         - newFrom + toVideo.popcornOptions.from;
-      if ((toVideo.popcornOptions.duration - newFrom)
-        < (toVideo.popcornOptions.end - toVideo.popcornOptions.start)) {
+
+      if (newFrom
+        > (toVideo.popcornOptions.end - toVideo.popcornOptions.start)) {
         toVideoNewEnd = +((toVideo.popcornOptions.duration - newFrom).toFixed(2))
           + transitionOptions.end + TRANSITION_TIMELINE_OFFSET;
       }
@@ -214,6 +225,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
       // Update start and end in elements after second video with animation
       const elementsForUpdate = [];
       const elementsEnds = [];
+      let animationOut = 0;
       elementsEnds.push(fromVideoNewOptions.end);
       elementsEnds.push(toVideoNewOptions.end);
       let itemStartAfterToVideo = null;
@@ -230,6 +242,10 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
               if (toVideo.popcornOptions.end < trackEvent.popcornOptions.start) {
                 elementsForUpdate.push(trackEvent);
                 elementsEnds.push(trackEvent.popcornOptions.end + difference);
+                if (trackEvent.popcornOptions.animation
+                  && trackEvent.popcornOptions.animation.out) {
+                  animationOut += trackEvent.popcornOptions.animation.out.duration;
+                }
               }
             }
           });
@@ -246,13 +262,15 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
       }
 
       if (toVideoNewOptions.end > itemStartAfterToVideo) {
-        if (clipDuration < (Math.max(...elementsEnds) * SANTISECOND)) {
-          updateVideoDuration(Math.max(...elementsEnds));
+        if (clipDuration < ((Math.max(...elementsEnds) + animationOut) * SANTISECOND)) {
+          updateVideoDuration(Math.max(...elementsEnds) + animationOut);
         }
 
         if (elementsForUpdate && elementsForUpdate.length && difference > 0) {
           elementsForUpdate.forEach(item => {
-            findAndUpdate(item.id, {
+            updateElementFromTimeline({
+              needUpdateStartEnd: true,
+              elementId: item.id,
               start: item.popcornOptions.start + difference,
               end: item.popcornOptions.end + difference,
             });
@@ -348,6 +366,21 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
         <React.Fragment>
           <div className="video-transition-preview">
             <div className="title">Select the Start Frame</div>
+            {
+              fromVideo.popcornOptions && fromVideo.popcornOptions.from > 0 && (
+                <div className="video-transition-warning">
+                  Warning: Since the video has a
+                  {' '}
+                  <span className="video-transition-var">IN</span>
+                  {' '}
+                  value of
+                  {' '}
+                  <span>
+                    {`${fromVideo.popcornOptions.from} seconds, the minimum frame will be set is ${fromVideo.popcornOptions.from + 1} seconds.`}
+                  </span>
+                </div>
+              )
+            }
             {fromVideo && (
               <Player
                 ref={fromPlayer}
