@@ -5,10 +5,11 @@ import PropTypes from '../../../lib/PropTypes';
 import { BASIC } from '../../../lib/constants/popcorn';
 import Basic from '../default-tabs/Basic';
 
+const TabMap = {
+  [BASIC]: Basic,
+};
+
 const DefaultSettings = observer(({ tab = BASIC, element, update, fields }) => {
-  const TabMap = {
-    [tab]: Basic,
-  };
   const Tab = TabMap[tab];
   const handleChange = (field) => {
     update(field);
