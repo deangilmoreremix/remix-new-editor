@@ -24,6 +24,7 @@ import {
   DEFAULT_LAYER,
   DEFAULT_ITEM,
   SOCIALS,
+  MAX_DURATION,
 } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
@@ -117,7 +118,7 @@ export default class ProjectStore extends BaseStore {
 
       reaction(
         () => this.item.allowedSocials
-        && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
+          && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
         () => {
           if (!this.userStore.linkedinEnabled) {
             this.item.allowedSocials = this.item.allowedSocials
@@ -267,6 +268,23 @@ export default class ProjectStore extends BaseStore {
         options.mute = item.volume === 0;
         options.audioFadeIn = 0;
         options.audioFadeOut = 0;
+
+        const maxDuration = MAX_DURATION / SANTISECOND;
+        if (options.duration * SANTISECOND > MAX_DURATION) {
+          options.start = 0;
+          options.end = maxDuration;
+          options.in = 0;
+          options.out = maxDuration;
+          options.duration = maxDuration;
+        }
+        if (options.end * SANTISECOND > MAX_DURATION) {
+          options.start = (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
+          options.end = maxDuration;
+        }
+        if (options.out * SANTISECOND > MAX_DURATION) {
+          options.in = (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
+          options.out = maxDuration;
+        }
         break;
       }
       default:
@@ -1373,14 +1391,13 @@ export default class ProjectStore extends BaseStore {
 
   @action
   changeDuration = (newDuration) => {
-    const { duration, elements } = this;
-    if (newDuration === duration) {
+    const { duration, elements, time } = this;
+    let lastEnd = newDuration * SANTISECOND;
+    if (lastEnd === duration || lastEnd <= 0 || lastEnd > MAX_DURATION) {
       return;
     }
     this.setUndo();
     this.modified = true;
-    let lastEnd = newDuration;
-
     if (lastEnd < duration) {
       elements.forEach(({ popcornOptions: { end }, type }) => {
         if (type === SEQUENCER) { // element is image or audio
@@ -1409,6 +1426,10 @@ export default class ProjectStore extends BaseStore {
       this.projectData.media[0].duration = lastEnd / SANTISECOND;
       this.duration = lastEnd;
       this.setPopcorn();
+    }
+
+    if (time >= lastEnd) {
+      this.updateTime(0);
     }
   };
 
