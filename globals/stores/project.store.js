@@ -129,7 +129,6 @@ export default class ProjectStore extends BaseStore {
   }
 
   setUndo = () => {
-    console.info('undo')
     const snapshot = toJS(this.projectData);
     this.redoStore = [];
     this.setUndoRedoAction({
@@ -343,7 +342,6 @@ export default class ProjectStore extends BaseStore {
 
   @action
   findAndUpdate = (elementId, options = {}) => {
-    console.info('find')
     const newValues = Object.keys(options);
     if (newValues && newValues.length && !newValues.every(key => caretNames.includes(key))) {
       this.setUndo();
