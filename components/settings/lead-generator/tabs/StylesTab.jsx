@@ -5,43 +5,19 @@ import PropTypes from '../../../../lib/PropTypes';
 import { rgba2hex } from '../../../../lib/lottie/utils';
 
 import FieldBuilder from '../../../form/FieldBuilder';
-import DropzoneArea from '../../../media/DropzoneArea';
-import DropButton from '../../../media/DropButton';
+import DropAndEditButton from '../../../media/DropAndEditButton';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
-import { ASSET_TYPES } from '../../../../lib/constants/media';
 import { BACKGROUND_COLOR, POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
-import { tabItems } from '../../../../lib/constants/library';
-// import useModalStore from '../../../hooks/useModalStore';
-// import {
-//   CROP_RECOMMENDED_RESOLUTION,
-//   CROP_BRAND_LOGO_RESOLUTION,
-// } from '../../../../lib/constants/settings/image';
+import { CROP_BRAND_LOGO_RESOLUTION } from '../../../../lib/constants/settings/image';
 
 const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
 
-  // const { openCropper } = useModalStore();
-  //
-  // const onCrop = (image, option) => {
-  //   onChange({ [option]: image ?? image.url });
-  // };
-
-  const onUploadedImage = (image, extension, option) => {
-    Object.keys(tabItems).forEach(tab => {
-      tabItems[tab].formats.forEach(format => {
-        if (format === extension) {
-          onChange({ [option]: image.url });
-          // openCropper(image.url, onCrop, resolution || CROP_RECOMMENDED_RESOLUTION, option);
-        }
-      });
-    });
-  };
-  const onUploadBrandLogo = (item, ext) => {
-    onUploadedImage(item, ext,
-      fields.brandLogoSrc.name);
+  const onUploadedImage = (image, option) => {
+    onChange({ [option]: image.url });
   };
 
   const handleChangeColor = (rgbColor) => {
@@ -70,23 +46,24 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             {...fields.brandLogoSrc}
             onChange={onChange}
           />
-          <DropzoneArea
-            onUploaded={(item, ext) => { onUploadBrandLogo(item, ext); }}
-            type={ASSET_TYPES.IMAGE}
+          <DropAndEditButton
+            isArea
+            onUploaded={(item) => onUploadedImage(item, fields.brandLogoSrc.name)}
             isDisabled={isDisabledUploadLogo}
             value={values?.brandLogoSrc}
             startUpload={() => setIsDisabledUploadLogo(true)}
             endUpload={() => setIsDisabledUploadLogo(false)}
-            multiple={false}
+            recommendedResolution={CROP_BRAND_LOGO_RESOLUTION}
+            needSaveAsset={false}
           />
-          <DropButton
-            onUploaded={(item, ext) => { onUploadBrandLogo(item, ext); }}
-            type={ASSET_TYPES.IMAGE}
+          <DropAndEditButton
+            onUploaded={(item) => onUploadedImage(item, fields.brandLogoSrc.name)}
             isDisabled={isDisabledUploadLogo}
             startUpload={() => setIsDisabledUploadLogo(true)}
             endUpload={() => setIsDisabledUploadLogo(false)}
-            multiple={false}
             className="btn-upload"
+            recommendedResolution={CROP_BRAND_LOGO_RESOLUTION}
+            needSaveAsset={false}
           />
         </div>
         <div className="upload-container">
@@ -95,26 +72,23 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             {...fields.backgroundImage}
             onChange={onChange}
           />
-          <DropzoneArea
-            onUploaded={(item, ext) => { onUploadedImage(item, ext, fields.backgroundImage.name); }}
-            type={ASSET_TYPES.IMAGE}
+          <DropAndEditButton
+            isArea
+            onUploaded={(item) => onUploadedImage(item, fields.backgroundImage.name)}
             isDisabled={isDisabledUploadImage}
             value={values?.backgroundImage}
             startUpload={() => setIsDisabledUploadImage(true)}
             endUpload={() => setIsDisabledUploadImage(false)}
-            multiple={false}
+            needSaveAsset={false}
           />
-          <DropButton
-            onUploaded={(item, ext) => {
-              onUploadedImage(item, ext, fields.backgroundImage.name);
-            }}
-            type={ASSET_TYPES.IMAGE}
+          <DropAndEditButton
+            onUploaded={(item) => onUploadedImage(item,
+              fields.backgroundImage.name)}
             isDisabled={isDisabledUploadImage}
-            optionName={fields.backgroundImage.name}
             startUpload={() => setIsDisabledUploadImage(true)}
             endUpload={() => setIsDisabledUploadImage(false)}
-            multiple={false}
             className="btn-upload"
+            needSaveAsset={false}
           />
         </div>
       </div>
