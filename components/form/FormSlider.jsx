@@ -36,7 +36,9 @@ const FormSlider = props => {
   const classes = useStyles(sliderWidth, inputWidth);
 
   const handleSliderChange = (event, newValue) => {
-    onChange(newValue);
+    if (newValue !== value) {
+      onChange(newValue);
+    }
   };
 
   const handleInputChange = event => {
