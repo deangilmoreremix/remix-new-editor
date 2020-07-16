@@ -68,10 +68,12 @@
         align-items: center;
       }
 
+      &.popcorn-json-transition-end,
+      &.popcorn-json-transition,
       &.popcorn-pausePlugin-end,
       &.popcorn-pausePlugin,
       &.popcorn-loopPlugin,
-      &.popcorn-loopPlugin-end {
+      &.popcorn-loopPlugin-end, {
         width: 1rem;
         height: auto;
         margin: auto 0.2rem;
@@ -94,20 +96,7 @@
   }
 }
 
-div.popcorn-element-overlay {
-  flex-wrap: nowrap;
-}
-
-.popcorn-overlay-title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.popcorn-pause-element {
-  justify-content: space-between;
-}
-
-.popcorn-pausePlugin-element, .popcorn-loopPlugin-element {
+.popcorn-pausePlugin-element, .popcorn-loopPlugin-element, .popcorn-json-transition-element {
   justify-content: space-between;
 }
 
