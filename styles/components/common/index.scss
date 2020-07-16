@@ -24,6 +24,10 @@
 
 .auto-margin {
   margin: auto;
+
+  & + & {
+    margin-left: 0.7rem;
+  }
 }
 
 .margin-left-5 {
