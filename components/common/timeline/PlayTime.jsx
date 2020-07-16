@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+
 import { observer } from 'mobx-react';
 
 import useProjectStore from '../../hooks/useProjectStore';
@@ -6,15 +7,26 @@ import useProjectStore from '../../hooks/useProjectStore';
 import FormTextField from '../../form/FormTextField';
 import { toSeconds, toTimecode } from '../../../lib/utils/time';
 import { SANTISECOND } from '../../../lib/constants/project';
+import { isTimelineString } from '../../../lib/constants/timeline';
 
 const PlayTime = observer(() => {
-  const [newDuration, onDurationChange] = useState(null);
+  const inputRef = useRef();
+  const [newDuration, setDuration] = useState(null);
   const projectStore = useProjectStore();
   const { time, duration: currentDuration, changeDuration } = projectStore;
   const currentTime = useMemo(() => toTimecode(time / SANTISECOND, 2), [time]);
 
+  const onDurationChange = (value, elem) => {
+    const caretPoint = elem.selectionStart === 0 ? 1 : elem.selectionStart;
+    const inputedValue = value.slice(caretPoint - 1, caretPoint);
+
+    if (isTimelineString(inputedValue)) {
+      setDuration(value);
+    }
+  };
+
   useEffect(() => {
-    onDurationChange(toTimecode(currentDuration / SANTISECOND, 2));
+    onDurationChange(toTimecode(currentDuration / SANTISECOND, 2), inputRef.current);
   }, [currentDuration]);
 
   return (
@@ -22,13 +34,15 @@ const PlayTime = observer(() => {
       <div className="time-current">
         {currentTime}
       </div>
+      <div className="time-separator"> / </div>
       <FormTextField
         className="time-total"
-        onChange={(v) => onDurationChange(v)}
-        onEnter={(v) => { changeDuration(toSeconds(v) * SANTISECOND); }}
-        value={newDuration}
-        onBlur={() => (newDuration ? changeDuration(toSeconds(newDuration) * SANTISECOND)
+        onChange={(v) => onDurationChange(v, inputRef.current)}
+        onEnter={(v) => { changeDuration(toSeconds(v)); }}
+        value={newDuration || toTimecode(currentDuration / SANTISECOND, 2)}
+        onBlur={() => (newDuration ? changeDuration(toSeconds(newDuration))
           : changeDuration(toSeconds(currentDuration)))}
+        ref={inputRef}
       />
     </div>
   );

@@ -9,41 +9,47 @@ import DropzoneArea from '../../../media/DropzoneArea';
 import DropButton from '../../../media/DropButton';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 import { ASSET_TYPES } from '../../../../lib/constants/media';
-import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
+import { BACKGROUND_COLOR, POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
 import { tabItems } from '../../../../lib/constants/library';
 // import useModalStore from '../../../hooks/useModalStore';
 // import {
-// CROP_RECOMMENDED_RESOLUTION,
-// CROP_BRAND_LOGO_RESOLUTIONб
+//   CROP_RECOMMENDED_RESOLUTION,
+//   CROP_BRAND_LOGO_RESOLUTION,
 // } from '../../../../lib/constants/settings/image';
-import { CROP_BRAND_LOGO_RESOLUTION } from '../../../../lib/constants/settings/image';
 
 const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
 
   // const { openCropper } = useModalStore();
-
+  //
   // const onCrop = (image, option) => {
-  //   onChange({ [option]: image.url });
+  //   onChange({ [option]: image ?? image.url });
   // };
 
-  // const onUploadedImage = (image, extension, option, resolution) => {
   const onUploadedImage = (image, extension, option) => {
     Object.keys(tabItems).forEach(tab => {
       tabItems[tab].formats.forEach(format => {
         if (format === extension) {
-          // openCropper(image.url, onCrop, resolution || CROP_RECOMMENDED_RESOLUTION, option);
           onChange({ [option]: image.url });
+          // openCropper(image.url, onCrop, resolution || CROP_RECOMMENDED_RESOLUTION, option);
         }
       });
     });
   };
+  const onUploadBrandLogo = (item, ext) => {
+    onUploadedImage(item, ext,
+      fields.brandLogoSrc.name);
+  };
 
   const handleChangeColor = (rgbColor) => {
-    onChange({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
+    if (Object.keys(rgbColor).join() === BACKGROUND_COLOR && values.backgroundImage) {
+      onChange({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()), backgroundImage: '' });
+    } else {
+      onChange({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
+    }
   };
 
   return (
@@ -65,8 +71,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             onChange={onChange}
           />
           <DropzoneArea
-            onUploaded={(item, ext) => onUploadedImage(item, ext,
-              fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION)}
+            onUploaded={(item, ext) => { onUploadBrandLogo(item, ext); }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
             value={values?.brandLogoSrc}
@@ -75,8 +80,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             multiple={false}
           />
           <DropButton
-            onUploaded={(item, ext) => onUploadedImage(item, ext,
-              fields.brandLogoSrc.name, CROP_BRAND_LOGO_RESOLUTION)}
+            onUploaded={(item, ext) => { onUploadBrandLogo(item, ext); }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadLogo}
             startUpload={() => setIsDisabledUploadLogo(true)}
@@ -92,7 +96,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             onChange={onChange}
           />
           <DropzoneArea
-            onUploaded={(item, ext) => onUploadedImage(item, ext, fields.backgroundImage.name)}
+            onUploaded={(item, ext) => { onUploadedImage(item, ext, fields.backgroundImage.name); }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadImage}
             value={values?.backgroundImage}
@@ -101,7 +105,9 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
             multiple={false}
           />
           <DropButton
-            onUploaded={(item, ext) => onUploadedImage(item, ext, fields.backgroundImage.name)}
+            onUploaded={(item, ext) => {
+              onUploadedImage(item, ext, fields.backgroundImage.name);
+            }}
             type={ASSET_TYPES.IMAGE}
             isDisabled={isDisabledUploadImage}
             optionName={fields.backgroundImage.name}

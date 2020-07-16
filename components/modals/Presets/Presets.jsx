@@ -18,7 +18,7 @@ const Presets = ({ handleClose }) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [preview, setPreview] = useState('');
-  const [isLoading, setIsLoading] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { getPresets } = useMakeStore();
   const { setPreviewData, updateTime } = usePresetStore();
@@ -38,7 +38,7 @@ const Presets = ({ handleClose }) => {
       newData = JSON.stringify(newData);
       activeItem.project.data = newData;
 
-      await addData(activeItem);
+      await addData(activeItem, true);
       handleClose();
     } catch (e) {
       await showError(e.message);
@@ -65,7 +65,7 @@ const Presets = ({ handleClose }) => {
           perPage,
         });
 
-        setItems([...items, ...results]);
+        setItems(elements => [...elements, ...results]);
         if (!activeItem) {
           await setPreviewData(results[0].project.data);
           setPreview(results[0].thumbnail);

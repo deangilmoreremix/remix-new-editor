@@ -11,7 +11,7 @@ const UserBox = () => {
       <div>
         <img className="userpic" src={photo} />
       </div>
-      { `Hi, ${firstName}` }
+      <div>{`Hi, ${firstName}`}</div>
     </Fragment>
   );
 };

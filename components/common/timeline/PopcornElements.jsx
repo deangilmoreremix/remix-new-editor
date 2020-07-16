@@ -2,10 +2,9 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
-import { TRANSITION_DEFAULT_DURATION } from '../../../lib/constants/settings/video-transition';
-
 import PopcornElement from './PopcornElement';
 import ResponsiveGrid from '../../form/grids/ResponsiveGrid';
+import { TRANSITION_TIMELINE_OFFSET } from '../../../lib/constants/settings/video-transition';
 
 import PropTypes from '../../../lib/PropTypes';
 import { selectItem } from '../../../lib/mitt/emitter';
@@ -55,9 +54,13 @@ const PopcornElements = observer(({ width }) => {
   }, [getExtraDuration]);
 
   const insertTransition = async ({ transition, element }) => {
-    // let currentLayerId = 0;
+    const transitionDuration = +((transition.end - transition.start).toFixed(2));
+    transition.start = +(transition.start.toFixed(2)) + TRANSITION_TIMELINE_OFFSET;
+    transition.end = +(transition.end.toFixed(2)) + TRANSITION_TIMELINE_OFFSET;
+
     const elementsForUpdate = [];
     const elementsEnds = [];
+    let animationOut = 0;
     let itemStartAfterToVideo = null;
 
     const currentLayer = elements.filter(item => item.id === element.id);
@@ -67,8 +70,11 @@ const PopcornElements = observer(({ width }) => {
         track.trackEvents.forEach(trackEvent => {
           if (trackEvent.track === currentLayer[0].track) {
             elementsEnds.push(trackEvent.popcornOptions.end);
-            if ((element.end - TRANSITION_DEFAULT_DURATION) < trackEvent.popcornOptions.start) {
+            if ((element.end - transitionDuration) <= trackEvent.popcornOptions.start) {
               elementsForUpdate.push(trackEvent);
+              if (trackEvent.popcornOptions.animation && trackEvent.popcornOptions.animation.out) {
+                animationOut += trackEvent.popcornOptions.animation.out.duration;
+              }
             }
           }
         });
@@ -78,28 +84,35 @@ const PopcornElements = observer(({ width }) => {
 
     if (elementsForUpdate && elementsForUpdate.length) {
       elementsForUpdate.forEach(item => {
-        if (item.popcornOptions.start < itemStartAfterToVideo || !itemStartAfterToVideo) {
+        if (item.popcornOptions.start <= itemStartAfterToVideo || !itemStartAfterToVideo) {
           itemStartAfterToVideo = item.popcornOptions.start;
         }
       });
     }
 
     if (element.end > itemStartAfterToVideo) {
-      if (cols < (Math.max(...elementsEnds) + TRANSITION_DEFAULT_DURATION) * SANTISECOND) {
-        await updateVideoDuration((cols / SANTISECOND) + TRANSITION_DEFAULT_DURATION);
+      if (cols < (Math.max(...elementsEnds)
+        + transitionDuration + animationOut) * SANTISECOND) {
+        await updateVideoDuration((cols / SANTISECOND) + transitionDuration);
       }
 
       if (elementsForUpdate && elementsForUpdate.length) {
-        elementsForUpdate.forEach(item => {
-          updateElementFromTimeline(
-            item.id,
-            item.popcornOptions.start + TRANSITION_DEFAULT_DURATION,
-            item.popcornOptions.end + TRANSITION_DEFAULT_DURATION);
-        });
+        elementsForUpdate.forEach(item => (
+          updateElementFromTimeline({
+            needUpdateStartEnd: true,
+            elementId: item.id,
+            start: item.popcornOptions.start + transitionDuration,
+            end: item.popcornOptions.end + transitionDuration,
+          })));
       }
     }
 
-    await updateElementFromTimeline(element.id, element.start, element.end);
+    await updateElementFromTimeline({
+      needUpdateStartEnd: true,
+      elementId: element.id,
+      start: transition.end + TRANSITION_TIMELINE_OFFSET,
+      end: (element.end - element.start) + transition.end,
+    });
     await addElement({
       ...DEFAULT_SETTINGS[POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION],
       ...transition,
@@ -168,7 +181,7 @@ const PopcornElements = observer(({ width }) => {
           y: item.y,
           w: item.w,
           minW: item.minW,
-          maxW: cols - item.x,
+          maxW: item.maxW,
         }}
       >
         <PopcornElement item={item} />
@@ -185,7 +198,7 @@ const PopcornElements = observer(({ width }) => {
           : null}
       </div>
     );
-  }), [layouts, cols]);
+  }), [layouts]);
 
   const onDragStop = (element, oldElement, newElement) => {
     selectItem({ type: 'click' }, newElement.i);
