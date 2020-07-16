@@ -53,11 +53,9 @@ export default observer(({ options: { type, useAudio, toggleAudio, volume }, han
   useEffect(() => {
     if (videoRef.current && useAudio !== undefined && type) {
       player = videojs(videoRef.current, config);
-
       if (volume) {
         player.volume(volume);
       }
-
       player.on('volumechange', () => {
         if (player.volume() === 0 || player.muted()) {
           handleClose();
