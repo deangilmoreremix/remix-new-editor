@@ -1,5 +1,4 @@
 import React from 'react';
-import { useDropzone } from 'react-dropzone';
 import classnames from 'classnames';
 
 import mediaConstants from '../../lib/constants/media';
@@ -8,10 +7,12 @@ import PropTypes from '../../lib/PropTypes';
 
 import useMediaStore from '../hooks/useMediaStore';
 
-import { LibrarySpinner } from './Loader';
+import DropZone from './DropZone';
+import DropzoneArea from './DropzoneArea';
 
 const DropButton = (
   {
+    isArea,
     accept,
     onUploaded,
     type,
@@ -21,55 +22,60 @@ const DropButton = (
     multiple,
     className,
     needSaveAsset,
+    ...rest
   }) => {
-  const { uploadMedia, storeAsset } = useMediaStore();
+  const { uploadMedia, saveFiles } = useMediaStore();
 
-  const onDrop = React.useCallback(acceptedFiles => {
-    const elements = [];
+  const acceptFormats = React.useMemo(() => (accept && accept.length ? accept
+    : mediaConstants.ACCEPTED_MEDIA_TYPES), [accept]);
+
+  const onDrop = React.useCallback(async (acceptedFiles, rejectedFiles) => {
+    let result;
+    if (!acceptedFiles.length) {
+      if (rejectedFiles.length > 0) {
+        return showError('Wrong Format!');
+      }
+      return;
+    }
+
     if (startUpload) {
       startUpload();
     }
 
-    Promise.all(acceptedFiles.map(async data => {
-      const asset = await uploadMedia({ data });
-      if (needSaveAsset) {
-        const element = await storeAsset(asset, type.toUpperCase());
-        elements.push(element);
-      } else {
-        elements.push(asset);
+    try {
+      result = await saveFiles(acceptedFiles, needSaveAsset, type.toUpperCase(), multiple);
+      onUploaded(result);
+    } catch (e) {
+      showError(e.message);
+    } finally {
+      if (endUpload) {
+        endUpload();
       }
-      return asset.url.match(/\.[0-9a-z]{1,5}$/)[0];
-    }))
-      .then(fileExtension => {
-        const extension = fileExtension[fileExtension.length - 1];
-        if (!multiple) {
-          onUploaded(elements[0], extension);
-        } else {
-          onUploaded(elements, extension);
-        }
-      })
-      .catch(() => showError('An error occurred while loading the items.'))
-      .finally(() => {
-        if (endUpload) {
-          endUpload();
-        }
-      });
+    }
   }, [onUploaded, uploadMedia]);
 
-  const { getInputProps } = useDropzone({
-    accept: accept && accept.length ? accept : mediaConstants.ACCEPTED_MEDIA_TYPES,
-    onDrop,
-    disabled: false,
-  });
-
   return (
-    <div className={classnames('button-add-file', className)}>
-      <label className="button-add-file__label">
-        <input {...getInputProps()} disabled={isDisabled} multiple={multiple} />
-        {
-          isDisabled ? <LibrarySpinner /> : <span>Upload</span>
-        }
-      </label>
+    <div className="drop-area">
+      {
+        isArea ? (
+          <DropzoneArea
+            onDrop={onDrop}
+            multiple={multiple}
+            isDisabled={isDisabled}
+            accept={acceptFormats}
+            {...rest}
+          />
+        ) : (
+          <DropZone
+            onDrop={onDrop}
+            className={classnames('button-add-file', className)}
+            multiple={multiple}
+            isDisabled={isDisabled}
+            accept={acceptFormats}
+            {...rest}
+          />
+        )
+      }
     </div>
   );
 };
@@ -81,6 +87,7 @@ DropButton.propTypes = {
   endUpload: PropTypes.func,
   isDisabled: PropTypes.bool,
   multiple: PropTypes.bool,
+  isArea: PropTypes.bool,
   className: PropTypes.string,
   needSaveAsset: PropTypes.bool,
   accept: PropTypes.arrayOf(PropTypes.string),

@@ -1,13 +1,23 @@
 import React, { useState } from 'react';
 import classnames from 'classnames';
 
+import { WARNING_ANIMATION } from '../../lib/constants/text-info';
+
+import useProjectStore from '../hooks/useProjectStore';
+
 import PropTypes from '../../lib/PropTypes';
 
 const AnimationPreview = ({ animation, onSelect, className }) => {
   const [isActive, setIsActive] = useState(false);
+  const { showWarning } = useProjectStore();
 
   const onHover = () => {
     setIsActive(!isActive);
+  };
+
+  const handleClick = () => {
+    showWarning(WARNING_ANIMATION.title);
+    onSelect();
   };
 
   return (
@@ -22,7 +32,7 @@ const AnimationPreview = ({ animation, onSelect, className }) => {
       <button
         type="button"
         className="animation-preview__add"
-        onClick={onSelect}
+        onClick={handleClick}
       />
     </div>
   );
