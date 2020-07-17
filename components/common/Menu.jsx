@@ -28,6 +28,8 @@ const Menu = observer((
         window.HelpCrunch('logout', () => {
           push('/logout');
         });
+      } else {
+        push('/logout');
       }
     }
   };
