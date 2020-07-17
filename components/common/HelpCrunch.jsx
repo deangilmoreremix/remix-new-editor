@@ -9,31 +9,25 @@ const canUseDOM = !!(
 
 export default class HelpCrunch extends Component {
   static propTypes = {
-    appID: PropTypes.string.isRequired,
+    applicationId: PropTypes.string.isRequired,
+    applicationSecret: PropTypes.string.isRequired,
     user: PropTypes.shape({
       fullName: PropTypes.string.isRequired,
       email: PropTypes.string.isRequired,
       hash: PropTypes.string.isRequired,
-      createdAt: PropTypes.string.isRequired,
     }),
-    domain: PropTypes.string.isRequired,
   };
 
   static displayName = 'HelpCrunch';
-//last loggin
   constructor(props) {
     super(props);
-    const { appID, user, domain } = props;
+    const { applicationId, applicationSecret, user } = props;
 
-    // if (!appID || !canUseDOM) {
-    //   return;
-    // }
-    if (!canUseDOM) {
+    if (!applicationId || !applicationSecret || !canUseDOM) {
       return;
     }
 
     if (!window.HelpCrunch) {
-      debugger
       (function () {
         var w = window;
         var ic = w.HelpCrunch;
@@ -68,14 +62,17 @@ export default class HelpCrunch extends Component {
 
     if (window.HelpCrunch) {
       window.HelpCrunch('init', 'videoremix', {
-        applicationId: 1,
-        applicationSecret: 'Jo2+/wkeh+c/eWCksMl2jSOtDynf5QtuoWJNKfWQpylz50Ydivy7L5CN44CYjVtoBZ/JfnURGrkf8LGfNh69+w==',
+        applicationId,
+        applicationSecret,
         user: {
           email: user.email,
           name: user.fullName,
           user_id: user.hash,
-          // security_hash: user.hash,
         }
+      });
+
+      window.HelpCrunch('onReady', function() {
+        window.HelpCrunch('showChatWidget');
       });
     }
 
@@ -83,27 +80,26 @@ export default class HelpCrunch extends Component {
       email: user.email,
       name: user.fullName,
       user_id: user.hash,
-      // security_hash: user.hash,
     };
   }
 
   componentWillReceiveProps(nextProps) {
-    const { appID, user, domain } = nextProps;
+    const { user } = nextProps;
 
-    if (!canUseDOM) return;
+    if (!canUseDOM) {
+      return;
+    }
 
     window.helpCrunchSettings = {
       email: user.email,
       name: user.fullName,
       user_id: user.hash,
-      // security_hash: user.hash,
     };
 
     if (window.HelpCrunch) {
       window.HelpCrunch('updateUser', {
         email: user.email,
         name: user.fullName,
-        // user_id: user._id,
         user_id: user.hash,
       });
     }

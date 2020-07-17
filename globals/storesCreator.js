@@ -31,6 +31,7 @@ class Creator {
     hostname: null,
     cdnHostname: config.s3.cdn,
     clientSecret: null,
+    helpCrunch: {},
   };
 
   clientAuthHeader = null;
@@ -152,6 +153,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       linkedinAppId: config.linkedinAppId,
       whiteLabel: config.whiteLabel,
       mediaProviders: config.mediaProviders,
+      helpCrunch: config.helpCrunch,
     };
   }
 

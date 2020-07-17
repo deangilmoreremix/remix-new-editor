@@ -62,7 +62,11 @@ class Layout extends Component {
                 {children}
                 {this.stores.userStore.currentUser && this.stores.common.whiteLabelManager && this.stores.common.whiteLabelManager.domain === 'videoremix.io'
                   ? (
-                    <HelpCrunch user={this.stores.userStore.currentUser} />
+                    <HelpCrunch
+                      user={this.stores.userStore.currentUser}
+                      applicationId={this.stores.common.helpCrunch.applicationId}
+                      applicationSecret={this.stores.common.helpCrunch.applicationSecret}
+                    />
                   ) : null}
               </div>
             </div>
