@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Head from 'next/head';
-import { Provider } from 'mobx-react';
+import { Provider, observer } from 'mobx-react';
 
 import 'styles/index.scss';
 
@@ -14,11 +14,11 @@ import PopcornProxy from '../lib/PopcornProxy';
 
 import PropTypes from '../lib/PropTypes';
 
-import Intercom from './common/Intercom';
 import HelpCrunch from './common/HelpCrunch';
 
 import { DEFAULT_TITLE } from '../lib/constants/project';
 
+@observer
 class Layout extends Component {
   static async getInitialProps({ query, req }, preloader) {
     const isServer = !!req;
@@ -63,7 +63,7 @@ class Layout extends Component {
                 {this.stores.userStore.currentUser && this.stores.common.whiteLabelManager && this.stores.common.whiteLabelManager.domain === 'videoremix.io'
                   ? (
                     <HelpCrunch
-                      user={this.stores.userStore.currentUser}
+                      userStore={this.stores.userStore}
                       applicationId={this.stores.common.helpCrunch.applicationId}
                       applicationSecret={this.stores.common.helpCrunch.applicationSecret}
                     />

@@ -11,18 +11,20 @@ export default class HelpCrunch extends Component {
   static propTypes = {
     applicationId: PropTypes.string.isRequired,
     applicationSecret: PropTypes.string.isRequired,
-    user: PropTypes.shape({
-      fullName: PropTypes.string.isRequired,
-      email: PropTypes.string.isRequired,
-      hash: PropTypes.string.isRequired,
+    userStore: PropTypes.shape({
+      roleNames: PropTypes.string,
+      currentUser: PropTypes.shape({
+        hash: PropTypes.string.isRequired,
+        email: PropTypes.string.isRequired,
+        fullName: PropTypes.string.isRequired,
+      }).isRequired,
     }),
   };
 
   static displayName = 'HelpCrunch';
   constructor(props) {
     super(props);
-    const { applicationId, applicationSecret, user } = props;
-
+    const { applicationId, applicationSecret, userStore: { currentUser: user } } = props;
     if (!applicationId || !applicationSecret || !canUseDOM) {
       return;
     }
@@ -70,10 +72,6 @@ export default class HelpCrunch extends Component {
           user_id: user.hash,
         }
       });
-
-      window.HelpCrunch('onReady', function() {
-        window.HelpCrunch('showChatWidget');
-      });
     }
 
     window.helpCrunchSettings = {
@@ -83,17 +81,36 @@ export default class HelpCrunch extends Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
-    const { user } = nextProps;
+  async componentDidMount() {
+    if (!canUseDOM) {
+      return;
+    }
+    const { userStore } = this.props;
+    await userStore.setRoles();
+
+    const { roles } = userStore;
+    window.HelpCrunch('onReady', () => {
+      window.HelpCrunch('showChatWidget');
+      window.HelpCrunch('updateUserData', {
+        active_roles: roles.map(({ name }) => name).join(', '),
+      });
+    });
+  }
+
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    const { userStore: { currentUser: user, roles } } = nextProps;
 
     if (!canUseDOM) {
       return;
     }
 
+    const roleNames = roles.map(({ name }) => name).join(', ');
+
     window.helpCrunchSettings = {
       email: user.email,
       name: user.fullName,
       user_id: user.hash,
+      active_roles: roleNames,
     };
 
     if (window.HelpCrunch) {
@@ -101,6 +118,9 @@ export default class HelpCrunch extends Component {
         email: user.email,
         name: user.fullName,
         user_id: user.hash,
+        custom_data: {
+          active_roles: roleNames,
+        },
       });
     }
   }
