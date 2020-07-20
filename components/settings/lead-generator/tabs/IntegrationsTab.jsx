@@ -65,7 +65,7 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
           disabled={!project._id}
           title={!project._id ? buttonText.title : ''}
         >
-          Download all opt-ins
+          Download leads
         </button>
       </div>
     </div>
