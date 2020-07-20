@@ -17,19 +17,13 @@ export default class BaseStore {
     this.currentUser = currentUser;
   }
 
-  getList = ({ page = 1, query = '', perPage, params, path, orderBy, filter }) => {
+  getList = ({ page = 1, query = '', perPage, params, path }) => {
     const urlParams = new URLSearchParams({
       page,
       perPage,
     });
     if (query) {
       urlParams.append('q', query);
-    }
-    if (orderBy) {
-      urlParams.append('orderBy', orderBy);
-    }
-    if (filter) {
-      urlParams.append('filter', filter);
     }
     if (params) {
       Object.keys(params).forEach((key) => {

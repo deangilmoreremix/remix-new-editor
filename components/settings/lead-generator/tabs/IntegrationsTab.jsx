@@ -4,7 +4,6 @@ import classnames from 'classnames';
 import PropTypes from '../../../../lib/PropTypes';
 
 import FieldBuilder from '../../../form/FieldBuilder';
-import useMakeStore from '../../../hooks/useMakeStore';
 import useProjectStore from '../../../hooks/useProjectStore';
 
 import { BUTTON_DISABLED_HINT as buttonText } from '../../../../lib/constants/text-info';
@@ -12,7 +11,9 @@ import { BUTTON_DISABLED_HINT as buttonText } from '../../../../lib/constants/te
 const IntegrationsTab = ({ values, fields, onChange }) => {
   const { item: { project } } = useProjectStore();
 
-  const { downloadOptinStatistic } = useMakeStore();
+  const toDownloadOptin = () => {
+    window.open(`/api/analytics/${project._id}/opt-ins?output=csv`);
+  };
 
   return (
     <div className="intergrations-container">
@@ -61,7 +62,7 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
       <div className="download-optin-container">
         <button
           className={classnames('btn-custom', { 'button-disabled': !project._id })}
-          onClick={() => downloadOptinStatistic(project._id)}
+          onClick={toDownloadOptin}
           disabled={!project._id}
           title={!project._id ? buttonText.title : ''}
         >
