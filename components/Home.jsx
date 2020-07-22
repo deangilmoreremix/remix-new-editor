@@ -18,6 +18,8 @@ import AnimationList from './media/AnimationList';
 import SettingsEditor from './common/SettingsEditor';
 import Recorder from './common/recorder/Recorder';
 import CallToAction from './media/CallToAction';
+import Gif from './media/Gif';
+import Sticker from './media/Sticker';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
@@ -103,6 +105,8 @@ const Home = observer(() => {
     openCTA,
     toggleRightBlock,
     openBlendMode,
+    openGif,
+    openSticker,
   } = uiStore;
 
   const {
@@ -149,6 +153,12 @@ const Home = observer(() => {
       case WINDOW_TYPES.BLEND_MODE_LIBRARY: {
         return <BlendModeLibrary />;
       }
+      case WINDOW_TYPES.GIF: {
+        return <Gif />;
+      }
+      case WINDOW_TYPES.STICKER: {
+        return <Sticker />;
+      }
       default: {
         return null;
       }
@@ -172,6 +182,8 @@ const Home = observer(() => {
         openCTA,
         toggleRightBlock,
         openBlendMode,
+        openGif,
+        openSticker,
       },
       project: {
         allowedSocials,

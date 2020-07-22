@@ -251,4 +251,14 @@ export default class UIStore {
     this.projectStore.releaseElement();
     this.setToolbarItem(TOOLBARS.ELEMENTS);
   };
+
+  @action
+  openGif = (type) => {
+    this.secondaryWindowType = type;
+  };
+
+  @action
+  openSticker = (type) => {
+    this.secondaryWindowType = type;
+  };
 }
