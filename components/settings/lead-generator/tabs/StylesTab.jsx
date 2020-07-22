@@ -10,6 +10,7 @@ import DropButton from '../../../media/DropButton';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 import { ASSET_TYPES } from '../../../../lib/constants/media';
 import { BACKGROUND_COLOR, POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
+import { DEACTIVATE_LB } from '../../../../lib/constants/text-info';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
 import { tabItems } from '../../../../lib/constants/library';
@@ -19,7 +20,7 @@ import { tabItems } from '../../../../lib/constants/library';
 //   CROP_BRAND_LOGO_RESOLUTION,
 // } from '../../../../lib/constants/settings/image';
 
-const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
+const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, onClose }) => {
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
 
@@ -59,7 +60,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
           value={showedForm}
           type="checkbox"
           name="showedUI"
-          label="Advanced Optin Deactivate"
+          label={DEACTIVATE_LB[kindRetarget]}
           onChange={() => onClose(!showedForm)}
         />
       )}
@@ -253,6 +254,7 @@ const StylesTab = ({ values, fields, onChange, type, showedForm, onClose }) => {
 };
 
 StylesTab.propTypes = {
+  kindRetarget: PropTypes.string,
   type: PropTypes.string.isRequired,
   showedForm: PropTypes.bool,
   onClose: PropTypes.func,

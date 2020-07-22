@@ -31,7 +31,10 @@ import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
 import { showInfo } from '../../lib/services/alertService';
-import { FORM_ONE_LG, WARNING_OPACITY } from '../../lib/constants/text-info';
+import {
+  FORM_ONE_LG,
+  WARNING_OPACITY,
+} from '../../lib/constants/text-info';
 
 const caretNames = Object.values(CARET_NAMES);
 
@@ -149,6 +152,8 @@ export default class ProjectStore extends BaseStore {
   @observable userStore = {};
 
   @observable activeElementId;
+
+  @observable kindRetarget;
 
   @observable assets = [];
 
@@ -320,6 +325,7 @@ export default class ProjectStore extends BaseStore {
       manifest,
       type: POPCORN_ELEMENT_TYPES.RETARGET,
       options,
+      kind: this?.retarget?.kind || null,
     };
 
     // eslint-disable-next-line no-underscore-dangle
@@ -338,10 +344,12 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addRetargetForm = () => {
+  addRetargetForm = ({ kind }) => {
     if (!this.retarget || (this.retarget && !this.retarget.id)) {
       this.createRetargetForm();
     }
+    this.kindRetarget = kind;
+    this.retarget.kindRetarget = this.kindRetarget;
     this.editElement(this.retarget.id);
     this.retarget.start();
     this.retarget.showed = true;
@@ -360,6 +368,7 @@ export default class ProjectStore extends BaseStore {
       && this.retarget.id
       && this.retarget.id !== elementId) {
       this.retarget.end();
+      this.releaseKindRetarget();
     }
     this.activeElementId = elementId;
   };
@@ -367,6 +376,11 @@ export default class ProjectStore extends BaseStore {
   @action
   releaseElement = () => {
     this.activeElementId = null;
+  };
+
+  @action
+  releaseKindRetarget = () => {
+    this.kindRetarget = null;
   };
 
   @action
@@ -604,6 +618,7 @@ export default class ProjectStore extends BaseStore {
     this.layers = layers;
     this.elements = elements;
     this.projectData = projectData;
+    this.retarget = { ...this.retarget, ...this.item.project.retargetForm };
   };
 
   @computed
@@ -960,9 +975,6 @@ export default class ProjectStore extends BaseStore {
           },
         });
       this.setProjectData(JSON.parse(this.item.project.data));
-      if (this.item.project.retargetForm && !this.retarget) {
-        this.retarget = this.item.project.retargetForm;
-      }
       if (this.item.project && this.item.project.allowedSocials) {
         this.item.allowedSocials = this.item.project.allowedSocials;
       }
@@ -1156,6 +1168,7 @@ export default class ProjectStore extends BaseStore {
         const retargetForm = {
           showed: this.retarget.showed,
           options: { ...this.retarget.options },
+          kind: this.retarget.kindRetarget,
         };
         serializedData = { retargetForm, ...serializedData };
       }
