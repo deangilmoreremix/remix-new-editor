@@ -34,11 +34,16 @@ const SettingsEditor = observer(() => {
     return null;
   }
 
-  const { type } = currentElement;
+  const { kindRetarget, type } = currentElement;
+
+  const calcCurrentType = React.useMemo(
+    () => kindRetarget ?? type,
+    [kindRetarget, type],
+  );
 
   let tabs = React.useMemo(
-    () => CUSTOM_TABS[type] || DEFAULT_TABS,
-    [type],
+    () => CUSTOM_TABS[calcCurrentType] || DEFAULT_TABS,
+    [calcCurrentType],
   );
 
   tabs = tabs.filter(tab => {
@@ -53,7 +58,7 @@ const SettingsEditor = observer(() => {
 
   React.useEffect(() => {
     setTab(0);
-  }, [type]);
+  }, [calcCurrentType]);
 
   const closeWindow = () => {
     toggleRightBlock(false);
