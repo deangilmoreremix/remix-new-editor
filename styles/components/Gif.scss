@@ -1,3 +1,13 @@
+.gif-items {
+  @include tiny-scrollbar;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  overflow-x: hidden;
+
+  @import "/common/library/AudioLibrary";
+}
+
 .gif-library {
   position: relative;
   top: 0;
@@ -10,6 +20,64 @@
   color: $white;
   overflow: hidden;
   transition: 0.3s all;
+
+  &-wrapper {
+    padding-right: 2rem;
+    padding-left: 1rem;
+  }
+
+  &-search {
+    width: 85%;
+    display: block;
+    background: none;
+    border: none;
+    outline: none;
+    border-bottom: 1px solid $secondary-color;
+    padding: 0.3rem 0;
+    color: $white;
+    margin-left: 1rem;
+    margin-bottom: 0.7rem;
+
+    &:focus ~ .library__placeholder {
+      display: none;
+    }
+  }
+
+  &-items {
+    @include tiny-scrollbar;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    //@import "/common/library/AudioLibrary";
+  }
+
+  .text-input {
+    width: 15rem;
+    height: 3.5rem;
+    font-size: 0.9em;
+    font-family: $font-primary;
+
+
+    &::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+      font-family: $font-primary;
+      font-size: 0.9em;
+    }
+    &::-moz-placeholder { /* Firefox 19+ */
+      font-family: $font-primary;
+      font-size: 0.9em;
+    }
+    &:-ms-input-placeholder { /* IE 10+ */
+      font-family: $font-primary;
+      font-size: 0.9em;
+    }
+    &:-moz-placeholder { /* Firefox 18- */
+      font-family: $font-primary;
+      font-size: 0.9em;
+    }
+  }
 
 
   &-header {
