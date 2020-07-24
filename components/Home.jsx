@@ -18,8 +18,7 @@ import AnimationList from './media/AnimationList';
 import SettingsEditor from './common/SettingsEditor';
 import Recorder from './common/recorder/Recorder';
 import CallToAction from './media/CallToAction';
-import Gif from './media/Gif';
-import Sticker from './media/Sticker';
+import Giphy from './media/Gif';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
@@ -154,10 +153,10 @@ const Home = observer(() => {
         return <BlendModeLibrary />;
       }
       case WINDOW_TYPES.GIF: {
-        return <Gif />;
+        return <Giphy type="gifs" />;
       }
       case WINDOW_TYPES.STICKER: {
-        return <Sticker />;
+        return <Giphy type="stickers" />;
       }
       default: {
         return null;

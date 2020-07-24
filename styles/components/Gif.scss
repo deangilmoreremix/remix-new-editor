@@ -8,6 +8,22 @@
   @import "/common/library/AudioLibrary";
 }
 
+.gif-library-placeholder {
+  position: absolute;
+  background: $light-twinlight;
+  left: 0;
+  font-size: 0.7em;
+  outline: none;
+  color: $white;
+  border:none;
+
+  span {
+    margin-left: 0.3em;
+    font-size: 1em;
+    color: $secondary-color;
+  }
+}
+
 .gif-library {
   position: relative;
   top: 0;
@@ -51,7 +67,6 @@
     overflow-x: hidden;
     overflow-y: auto;
 
-    //@import "/common/library/AudioLibrary";
   }
 
   .text-input {
