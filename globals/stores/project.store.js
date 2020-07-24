@@ -332,7 +332,7 @@ export default class ProjectStore extends BaseStore {
   editElement = (elementId) => {
     if (this.retarget
       && this.retarget.id
-      && this.retarget.id !== elementId) {
+      && this.retarget.id !== elementId && this.retarget.end) {
       this.retarget.end();
     }
     this.activeElementId = elementId;
@@ -351,10 +351,12 @@ export default class ProjectStore extends BaseStore {
     }
     if (this.retarget && elementId === this.retarget.id) {
       this.modified = true;
-      this.retarget.options = {
-        ...this.retarget.options,
-        ...options,
-      };
+      if (!options.animation) {
+        this.retarget.options = {
+          ...this.retarget.options,
+          ...options,
+        };
+      }
       // eslint-disable-next-line no-underscore-dangle
       this.retarget._update(this.retarget, options);
     } else {
@@ -445,9 +447,14 @@ export default class ProjectStore extends BaseStore {
     }
   };
 
+  @action
   updateAnimation = async (type, animationName = NONE_CLASS) => {
-    const oldAnimation = this.element && this.element.popcornOptions.animation;
-    const durationOut = 1;
+    const isRetarget = this.retarget && this.retarget.id
+      && this.retarget.id === this.activeElementId;
+    const oldAnimation = isRetarget ? this.retarget.options.animation
+      : (this.element && this.element.popcornOptions.animation);
+    const durationOut = isRetarget
+    || (this.element && this.element.type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR) ? 2 : 1;
 
     const animation = {
       ...(oldAnimation ? { ...oldAnimation } : {}),
@@ -458,9 +465,10 @@ export default class ProjectStore extends BaseStore {
       },
     };
 
-    if (type === ANIMATION_TYPES.OUT && animationName !== NONE_CLASS) {
+    if (type === ANIMATION_TYPES.OUT && animationName !== NONE_CLASS
+      && !isRetarget && (!oldAnimation || !oldAnimation.out || !oldAnimation.out.type)) {
       const layerElements = this.elements.filter(el => el.track === this.element.track
-        && el.popcornOptions.start > this.element.popcornOptions.end);
+        && el.popcornOptions.start >= this.element.popcornOptions.end);
 
       const needUpdateDuration = [this.element, ...layerElements].some(el => {
         const animationOut = el.popcornOptions.animation && el.popcornOptions.animation.out

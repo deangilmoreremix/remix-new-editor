@@ -33,7 +33,7 @@ const FormSettings = observer(({ tab = BASIC, element, update, fields, handleClo
   const toggleDeactivate = (activateState) => {
     if (activateState) {
       retarget.start();
-    } else {
+    } else if (retarget && retarget.end) {
       retarget.end();
     }
     retarget.showed = activateState;

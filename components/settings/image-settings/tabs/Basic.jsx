@@ -42,11 +42,6 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
     closeModal(TUI_IMAGE_EDITOR_MODAL);
   };
 
-  const openLibrary = () => {
-    handleClose();
-    openAnimation();
-  };
-
   // ToDo add select field "Select the kind of Image you want to add"
   // ToDo add handle click on buttons "Personalize"
   // ToDo add button "Default"
@@ -143,7 +138,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           <p>Transition</p>
           <button
             className="image-settings__btn"
-            onClick={openLibrary}
+            onClick={openAnimation()}
           >
             Open Library
           </button>
