@@ -1,10 +1,10 @@
 .animation-container {
   position: relative;
-  top: 0;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   max-width: 31.75rem;
-  height: $toolbarHeight - 5vh;
+  height: 24rem;
   display: flex;
   flex-direction: column;
   background: $light-twinlight;
