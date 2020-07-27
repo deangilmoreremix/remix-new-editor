@@ -1,12 +1,10 @@
 import React from 'react';
 import { useDropzone } from 'react-dropzone';
 import classnames from 'classnames';
-import lottie from 'lottie-web';
 
 import mediaConstants from '../../lib/constants/media';
 import { showError } from '../../lib/services/alertService';
 import PropTypes from '../../lib/PropTypes';
-import { loadUrl } from '../../lib/requestCreator';
 
 import useMediaStore from '../hooks/useMediaStore';
 
@@ -23,7 +21,6 @@ const DropButton = (
     multiple,
     className,
     needSaveAsset,
-    getDuration,
   }) => {
   const { uploadMedia, storeAsset } = useMediaStore();
 
@@ -43,16 +40,9 @@ const DropButton = (
       }
       return asset.url.match(/\.[0-9a-z]{1,5}$/)[0];
     }))
-      .then(async fileExtension => {
+      .then(fileExtension => {
         const extension = fileExtension[fileExtension.length - 1];
         if (!multiple) {
-          let duration = null;
-          if (getDuration) {
-            const animationData = await loadUrl(elements[0].url);
-            const animation = await lottie.loadAnimation({ animationData });
-            duration = animation.totalFrames / animation.animationData.fr;
-            elements[0].duration = duration;
-          }
           onUploaded(elements[0], extension);
         } else {
           onUploaded(elements, extension);
@@ -94,7 +84,6 @@ DropButton.propTypes = {
   className: PropTypes.string,
   needSaveAsset: PropTypes.bool,
   accept: PropTypes.arrayOf(PropTypes.string),
-  getDuration: PropTypes.bool,
 };
 
 DropButton.defaultProps = {

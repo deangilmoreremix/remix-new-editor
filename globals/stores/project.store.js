@@ -13,7 +13,7 @@ import {
   CARET_NAMES,
 } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
-import { NONE_CLASS } from '../../lib/constants/animations';
+import { NONE_CLASS, ANIMATION_TYPES } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
 
 import {
@@ -24,13 +24,17 @@ import {
   DEFAULT_LAYER,
   DEFAULT_ITEM,
   SOCIALS,
+  MAX_DURATION,
 } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
 import { showInfo } from '../../lib/services/alertService';
-import { FORM_ONE_LG, WARNING_OPACITY } from '../../lib/constants/text-info';
+import {
+  FORM_ONE_LG,
+  WARNING_OPACITY,
+} from '../../lib/constants/text-info';
 
 const caretNames = Object.values(CARET_NAMES);
 
@@ -65,8 +69,11 @@ export default class ProjectStore extends BaseStore {
             this.time = this.popcorn.currentTime() * SANTISECOND;
           });
           this.popcorn.on('ended', () => {
-            this.time = 0;
-            this.updateTime(0);
+            if (!this.isLooped) {
+              this.time = 0;
+              this.updateTime(0);
+            }
+            this.isLooped = false;
           });
           this.popcorn.on('pause', () => {
             this.isPlayed = false;
@@ -112,12 +119,15 @@ export default class ProjectStore extends BaseStore {
               return el;
             });
           });
+          emitter.on(emitterActions.VIDEO_LOOPED, () => {
+            this.isLooped = true;
+          });
         },
       );
 
       reaction(
         () => this.item.allowedSocials
-        && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
+          && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
         () => {
           if (!this.userStore.linkedinEnabled) {
             this.item.allowedSocials = this.item.allowedSocials
@@ -143,6 +153,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable activeElementId;
 
+  @observable kindRetarget;
+
   @observable assets = [];
 
   @observable item = {};
@@ -150,6 +162,8 @@ export default class ProjectStore extends BaseStore {
   @observable isLoaded = false;
 
   @observable isPlayed = false;
+
+  @observable isLooped = false;
 
   @observable isLoading = false;
 
@@ -204,14 +218,12 @@ export default class ProjectStore extends BaseStore {
       retarget: { ...this.retarget },
       activeElementId: this.activeElementId,
     }, !undo);
-
     if (this.activeElementId !== activeElementId) {
       this.releaseElement();
     }
     this.elements.map(event => this.popcorn.removeTrackEvent(event.id));
     this.setProjectData(projectData);
     this.attach(this.popcorn.target);
-
     if (this.retarget && this.retarget.end) {
       this.retarget.end();
     }
@@ -227,8 +239,10 @@ export default class ProjectStore extends BaseStore {
         this.retarget.start();
       }
     }
-    this.duration = duration;
-    if (this.time * SANTISECOND > this.duration) {
+    if (this.duration !== duration) {
+      this.updateVideoDuration(duration / SANTISECOND);
+    }
+    if (this.time > this.duration) {
       this.updateTime(0);
     }
   };
@@ -236,7 +250,7 @@ export default class ProjectStore extends BaseStore {
   setElementOptions = async (item) => {
     const { track } = item || {};
     const options = {};
-    options.start = item.start || (this.time / SANTISECOND);
+    options.start = item.start || (Math.ceil(this.time) / SANTISECOND);
     const duration = item.duration || DEFAULT_DURATION;
     options.end = item.end || (options.start + duration);
     options.id = `0.${this.generateUid()}`;
@@ -268,6 +282,23 @@ export default class ProjectStore extends BaseStore {
         options.mute = item.volume === 0;
         options.audioFadeIn = 0;
         options.audioFadeOut = 0;
+
+        const maxDuration = MAX_DURATION / SANTISECOND;
+        if (options.duration * SANTISECOND > MAX_DURATION) {
+          options.start = 0;
+          options.end = maxDuration;
+          options.in = 0;
+          options.out = maxDuration;
+          options.duration = maxDuration;
+        }
+        if (options.end * SANTISECOND > MAX_DURATION) {
+          options.start = (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
+          options.end = maxDuration;
+        }
+        if (options.out * SANTISECOND > MAX_DURATION) {
+          options.in = (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
+          options.out = maxDuration;
+        }
         break;
       }
       default:
@@ -295,6 +326,7 @@ export default class ProjectStore extends BaseStore {
       manifest,
       type: POPCORN_ELEMENT_TYPES.RETARGET,
       options,
+      kind: this?.retarget?.kind || null,
     };
 
     // eslint-disable-next-line no-underscore-dangle
@@ -313,10 +345,12 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addRetargetForm = () => {
+  addRetargetForm = ({ kind }) => {
     if (!this.retarget || (this.retarget && !this.retarget.id)) {
       this.createRetargetForm();
     }
+    this.kindRetarget = kind;
+    this.retarget.kindRetarget = this.kindRetarget;
     this.editElement(this.retarget.id);
     this.retarget.start();
     this.retarget.showed = true;
@@ -335,6 +369,7 @@ export default class ProjectStore extends BaseStore {
       && this.retarget.id
       && this.retarget.id !== elementId) {
       this.retarget.end();
+      this.releaseKindRetarget();
     }
     this.activeElementId = elementId;
   };
@@ -342,6 +377,11 @@ export default class ProjectStore extends BaseStore {
   @action
   releaseElement = () => {
     this.activeElementId = null;
+  };
+
+  @action
+  releaseKindRetarget = () => {
+    this.kindRetarget = null;
   };
 
   @action
@@ -379,7 +419,7 @@ export default class ProjectStore extends BaseStore {
   updateElement = (elementId, options) => {
     // we need to update the elements, if the user updates the start,
     // end or animation, this is necessary to rerender the elements
-    const { start, end, animation, title, duration, htmlText } = options;
+    const { start, end, animation, title, duration, htmlText, loop } = options;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         const newOptions = {};
@@ -391,6 +431,9 @@ export default class ProjectStore extends BaseStore {
         }
         if (duration !== undefined && duration !== element.popcornOptions.duration) {
           newOptions.duration = duration;
+        }
+        if (loop !== undefined && loop !== element.popcornOptions.loop) {
+          newOptions.loop = loop;
         }
         if (animation) {
           newOptions.animation = animation;
@@ -446,16 +489,43 @@ export default class ProjectStore extends BaseStore {
     }
   };
 
-  updateAnimation = (type, animationName = NONE_CLASS) => {
+  updateAnimation = async (type, animationName = NONE_CLASS) => {
     const oldAnimation = this.element && this.element.popcornOptions.animation;
+    const durationOut = 1;
+
     const animation = {
       ...(oldAnimation ? { ...oldAnimation } : {}),
       [type]: {
         type: animationName,
         // The animated class has a default speed of 1s
-        duration: 1,
+        duration: durationOut,
       },
     };
+
+    if (type === ANIMATION_TYPES.OUT && animationName !== NONE_CLASS) {
+      const layerElements = this.elements.filter(el => el.track === this.element.track
+        && el.popcornOptions.start > this.element.popcornOptions.end);
+
+      const needUpdateDuration = [this.element, ...layerElements].some(el => {
+        const animationOut = el.popcornOptions.animation && el.popcornOptions.animation.out
+          ? el.popcornOptions.animation.out.duration : 0;
+        return (
+          (el.popcornOptions.end + durationOut + animationOut) > (this.duration / SANTISECOND)
+        );
+      });
+
+      if (needUpdateDuration) {
+        await this.updateVideoDuration((this.duration / SANTISECOND) + durationOut);
+      }
+
+      layerElements.map(item => this.updateElementFromTimeline({
+        needUpdateStartEnd: true,
+        elementId: item.id,
+        start: item.popcornOptions.start + durationOut,
+        end: item.popcornOptions.end + durationOut,
+      }));
+    }
+
     this.findAndUpdate(this.activeElementId, { animation });
   };
 
@@ -480,6 +550,7 @@ export default class ProjectStore extends BaseStore {
   @action
   updateElementFromTimeline = (options) => {
     this.setUndo();
+    this.modified = true;
     const { needUpdateLayer, needUpdateStartEnd, elementId, start, end, layerLevel } = options;
     if (needUpdateLayer) {
       this.setLayer(elementId, layerLevel);
@@ -548,6 +619,7 @@ export default class ProjectStore extends BaseStore {
     this.layers = layers;
     this.elements = elements;
     this.projectData = projectData;
+    this.retarget = { ...this.retarget, ...this.item.project.retargetForm };
   };
 
   @computed
@@ -762,22 +834,31 @@ export default class ProjectStore extends BaseStore {
   updateVideoDuration = (value) => {
     this.recompressProject(value, false);
     this.setPopcorn(this.popcorn.target);
-    this.duration = value * SANTISECOND;
+    this.duration = Math.ceil(value * SANTISECOND);
   };
 
   @action
-  addData = (makeTemplate = {}) => {
+  addData = (makeTemplate = {}, useTime) => {
     let newData = makeTemplate.project.data;
     if (!newData) {
       return;
     }
     this.setUndo();
     newData = JSON.parse(newData);
+    if (useTime) {
+      return this.addRelativeElements(newData);
+    }
+
     newData.media.map((media) => media.tracks
       .map((track) => {
-        if (track.blendMode) {
-          this.addLayer({ blendMode: track.blendMode });
+        if ((track.blendMode && track.blendMode !== blendModeConstants.normal.value)
+          || (track.opacity && track.opacity !== 100)) {
+          this.addLayer({
+            blendMode: track.blendMode || blendModeConstants.normal.value,
+            opacity: track.opacity || 100,
+          });
         }
+
         return track.trackEvents.map((trackEvent) => {
           const item = {
             ...trackEvent.popcornOptions,
@@ -792,8 +873,63 @@ export default class ProjectStore extends BaseStore {
       }));
   };
 
+  addRelativeElements = data => {
+    let firstElementStart = null;
+
+    data.media.forEach((media) => media.tracks
+      .forEach((track) => track.trackEvents.forEach((trackEvent) => {
+        if (!firstElementStart) {
+          firstElementStart = trackEvent.popcornOptions.start;
+        }
+
+        if (parseFloat(trackEvent.popcornOptions.start) < firstElementStart) {
+          firstElementStart = trackEvent.popcornOptions.start;
+        }
+      })));
+
+    data.media.forEach((media) => media.tracks
+      .forEach((track) => {
+        if ((track.blendMode && track.blendMode !== blendModeConstants.normal.value)
+          || (track.opacity && track.opacity !== 100)) {
+          this.addLayer({
+            blendMode: track.blendMode || blendModeConstants.normal.value,
+            opacity: track.opacity || 100,
+          });
+        }
+
+        return track.trackEvents.forEach((trackEvent) => {
+          const item = {
+            ...trackEvent.popcornOptions,
+            track: null,
+            zindex: null,
+            start: null,
+            end: null,
+          };
+
+          if (trackEvent.popcornOptions.start === firstElementStart) {
+            item.start = this.time / SANTISECOND;
+          } else if (trackEvent.popcornOptions.start < firstElementStart) {
+            item.start = (this.time / SANTISECOND)
+              - (firstElementStart - trackEvent.popcornOptions.start);
+            if (item.start < 0) {
+              item.start = 0;
+            }
+          } else {
+            item.start = (this.time / SANTISECOND)
+              + (trackEvent.popcornOptions.start - firstElementStart);
+          }
+
+          item.end = (trackEvent.popcornOptions.end - trackEvent.popcornOptions.start) + item.start;
+
+          return this.addElement(item);
+        });
+      }));
+  }
+
   @action
   updateStartEnd = (elementId, start, end) => {
+    start = Math.ceil(start * SANTISECOND) / SANTISECOND;
+    end = Math.ceil(end * SANTISECOND) / SANTISECOND;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         element.popcornOptions.start = start;
@@ -841,9 +977,6 @@ export default class ProjectStore extends BaseStore {
           },
         });
       this.setProjectData(JSON.parse(this.item.project.data));
-      if (this.item.project.retargetForm && !this.retarget) {
-        this.retarget = this.item.project.retargetForm;
-      }
       if (this.item.project && this.item.project.allowedSocials) {
         this.item.allowedSocials = this.item.project.allowedSocials;
       }
@@ -859,7 +992,7 @@ export default class ProjectStore extends BaseStore {
   setUndoRedoAction = (projectData, undo = true) => {
     const targetData = undo ? this.undoStore : this.redoStore;
     targetData.push(projectData);
-    if (targetData.length >= NUMBER_OF_STEPS) {
+    if (targetData.length > NUMBER_OF_STEPS) {
       targetData.shift();
     }
   };
@@ -1037,6 +1170,7 @@ export default class ProjectStore extends BaseStore {
         const retargetForm = {
           showed: this.retarget.showed,
           options: { ...this.retarget.options },
+          kind: this.retarget.kindRetarget,
         };
         serializedData = { retargetForm, ...serializedData };
       }
@@ -1283,14 +1417,13 @@ export default class ProjectStore extends BaseStore {
 
   @action
   changeDuration = (newDuration) => {
-    const { duration, elements } = this;
-    if (newDuration === duration) {
+    const { duration, elements, time } = this;
+    let lastEnd = newDuration * SANTISECOND;
+    if (lastEnd === duration || lastEnd <= 0 || lastEnd > MAX_DURATION) {
       return;
     }
     this.setUndo();
     this.modified = true;
-    let lastEnd = newDuration;
-
     if (lastEnd < duration) {
       elements.forEach(({ popcornOptions: { end }, type }) => {
         if (type === SEQUENCER) { // element is image or audio
@@ -1319,6 +1452,10 @@ export default class ProjectStore extends BaseStore {
       this.projectData.media[0].duration = lastEnd / SANTISECOND;
       this.duration = lastEnd;
       this.setPopcorn();
+    }
+
+    if (time >= lastEnd) {
+      this.updateTime(0);
     }
   };
 
@@ -1372,7 +1509,7 @@ export default class ProjectStore extends BaseStore {
     if (options.end > this.duration / SANTISECOND) {
       this.recompressProject(options.end, false);
       this.setPopcorn(this.popcorn.target);
-      this.duration = options.end * SANTISECOND;
+      this.duration = Math.ceil(options.end * SANTISECOND);
     }
 
     // update timeline

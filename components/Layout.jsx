@@ -16,6 +16,8 @@ import PropTypes from '../lib/PropTypes';
 
 import Intercom from './common/Intercom';
 
+import { DEFAULT_TITLE } from '../lib/constants/project';
+
 class Layout extends Component {
   static async getInitialProps({ query, req }, preloader) {
     const isServer = !!req;
@@ -41,7 +43,7 @@ class Layout extends Component {
       <Provider {...this.stores}>
         <div className="layout-container">
           <Head>
-            <title>New Video Editor</title>
+            <title>{DEFAULT_TITLE}</title>
             <link
               rel="shortcut icon"
               href={
