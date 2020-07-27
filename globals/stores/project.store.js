@@ -618,7 +618,7 @@ export default class ProjectStore extends BaseStore {
     this.layers = layers;
     this.elements = elements;
     this.projectData = projectData;
-    this.retarget = { ...this.retarget, ...this.item.project.retargetForm };
+    this.retarget = { ...this.retarget, ...this.item.project?.retargetForm };
   };
 
   @computed
