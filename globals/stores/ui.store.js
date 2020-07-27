@@ -254,11 +254,11 @@ export default class UIStore {
 
   @action
   openGif = (type) => {
-    this.secondaryWindowType = type;
+    this.setSecondaryWindowType(type);
   };
 
   @action
   openSticker = (type) => {
-    this.secondaryWindowType = type;
+    this.setSecondaryWindowType(type);
   };
 }
