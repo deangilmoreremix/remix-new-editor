@@ -104,6 +104,7 @@ const Home = observer(() => {
     openCTA,
     toggleRightBlock,
     openBlendMode,
+    openUploadTransition,
     openGif,
     openSticker,
   } = uiStore;
@@ -181,6 +182,7 @@ const Home = observer(() => {
         openCTA,
         toggleRightBlock,
         openBlendMode,
+        openUploadTransition,
         openGif,
         openSticker,
       },

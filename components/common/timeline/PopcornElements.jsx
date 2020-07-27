@@ -161,6 +161,7 @@ const PopcornElements = observer(({ width }) => {
       minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
       layer,
       dimensions,
+      isResizable: type !== POPCORN_ELEMENT_TYPES.JSON_TRANSITION,
     };
   }), [cols, elements, getEnd, getExtraDuration, layers]);
 
@@ -220,6 +221,7 @@ const PopcornElements = observer(({ width }) => {
       });
     }
   };
+
   const onResizeStop = (element, oldElement, newElement) => {
     if (oldElement.x !== newElement.x || oldElement.w !== newElement.w) {
       const start = newElement.x / SANTISECOND;
