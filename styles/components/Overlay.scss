@@ -1,8 +1,8 @@
 .overlay {
   position: relative;
-  top: 50%;
+  top: 0;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   max-width: 31.75rem;
@@ -10,7 +10,6 @@
   background: $light-twinlight;
   box-sizing: border-box;
   font-family: $font-primary;
-  position: relative;
   z-index: 1;
   font-size: 0.875rem;
   line-height: 1;
