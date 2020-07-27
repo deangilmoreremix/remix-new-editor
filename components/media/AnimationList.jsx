@@ -11,7 +11,7 @@ import AnimationPreview from '../common/AnimationPreview';
 import CloseButton from '../common/CloseButton';
 
 const AnimationList = observer(({ onSelect, element }) => {
-  const { closeAnimationLibrary } = useUIStore();
+  const { closeAnimationLibrary, isTimelineOpen } = useUIStore();
 
   const animationGroups = React.useMemo(() => ANIMATION_GROUPS[element.type]
     || Object.values(ANIMATION_TYPES), [element]);
@@ -42,7 +42,7 @@ const AnimationList = observer(({ onSelect, element }) => {
   ), [onSelect, selected]);
 
   return (
-    <div className="animation-container">
+    <div className={classnames('animation-container', { 'big-window': !isTimelineOpen })}>
       <p className="animation-container__title">Add Animation</p>
       <div className="animation-blocks">
         {animationGroups.map((type => block(type)))}
