@@ -22,13 +22,26 @@ const Basic = ({ options, update, fields, onChange, ...props }) => {
     update({ url });
   };
 
-  const handleChange = async ({ url }) => {
+  const handleChange = async ({ url, start, end, duration, loop }) => {
     if (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION && url) {
       const animationData = await loadUrl(url);
       const animation = await lottie.loadAnimation({ animationData });
       return onChange({
         url,
         end: options.start + (animation.totalFrames / animation.animationData.fr),
+      });
+    }
+    if (options.type === POPCORN_ELEMENT_TYPES.PAUSE) {
+      return onChange({
+        start: start ?? options.start,
+        duration: duration ?? options.duration,
+      });
+    }
+    if (options.type === POPCORN_ELEMENT_TYPES.LOOP) {
+      return onChange({
+        start: start ?? options.start,
+        end: end ?? options.end,
+        loop: loop ?? options.loop,
       });
     }
     onChange({ url });
@@ -78,6 +91,9 @@ Basic.propTypes = {
   options: PropTypes.shape({
     type: PropTypes.string,
     start: PropTypes.number,
+    end: PropTypes.number,
+    duration: PropTypes.number,
+    loop: PropTypes.number,
   }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.objectOf(
