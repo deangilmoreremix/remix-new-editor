@@ -14,6 +14,7 @@ import FieldBuilder from '../../form/FieldBuilder';
 import DropzoneArea from '../../media/DropzoneArea';
 import DropButton from '../../media/DropButton';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../../lib/constants/settings/image';
+import { rgba2hex } from '../../../lib/lottie/utils';
 
 const SettingPanel = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
@@ -51,6 +52,10 @@ const SettingPanel = observer(() => {
     });
   };
 
+  const handleChangeColor = (rgbColor) => {
+    updateItem({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
+  };
+
   // const onImageCropped = (thumbnail) => {
   //   updateItem({ thumbnail });
   // };
@@ -84,7 +89,7 @@ const SettingPanel = observer(() => {
         <FieldBuilder
           type="color"
           name="background"
-          onChange={updateItem}
+          onChange={handleChangeColor}
           value={item.background}
           label="Background Color"
           className="settings-formcolor"
