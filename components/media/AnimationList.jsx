@@ -1,5 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react';
+import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
 import { animations, ANIMATION_TYPES } from '../../lib/constants/animations';
@@ -10,7 +11,7 @@ import AnimationPreview from '../common/AnimationPreview';
 import CloseButton from '../common/CloseButton';
 
 const AnimationList = observer(({ onSelect }) => {
-  const { toggleRightBlock } = useUIStore();
+  const { toggleRightBlock, isTimelineOpen } = useUIStore();
 
   const block = React.useCallback((type) => (
     <div key={type} className="animation-block">
@@ -29,7 +30,7 @@ const AnimationList = observer(({ onSelect }) => {
   ), [onSelect]);
 
   return (
-    <div className="animation-container">
+    <div className={classnames('animation-container', { 'big-window': !isTimelineOpen })}>
       <p className="animation-container__title">Add Animation</p>
       <div className="animation-blocks">
         {Object.values(ANIMATION_TYPES).map((type => block(type)))}
