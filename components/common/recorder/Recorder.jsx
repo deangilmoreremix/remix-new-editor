@@ -9,12 +9,17 @@ import useUIStore from '../../hooks/useUIStore';
 import recorderItemsGenerator from '../../../lib/generators/recorderItemsGenerator';
 import CloseButton from '../CloseButton';
 import Toggler from '../../form/Toggler';
+import { RECORDER_MODAL } from '../../../lib/constants/modals';
 
 export default observer(() => {
   const [useAudio, setUseAudio] = React.useState(true);
 
   const { openModal, closeModal } = useModalStore();
   const { toggleRightBlock, isTimelineOpen } = useUIStore();
+  const toggleAudio = (audio, modalId, volume = 0) => {
+    setUseAudio(audio);
+    openModal(RECORDER_MODAL, { type: modalId, useAudio: audio, toggleAudio, volume });
+  };
 
   const recorderItems = React.useMemo(() => {
     const items = recorderItemsGenerator({
@@ -23,12 +28,14 @@ export default observer(() => {
         closeModal,
       },
       useAudio,
+      toggleAudio,
     });
     return items && items.length ? items : [];
   }, [
     openModal,
     closeModal,
     useAudio,
+    toggleAudio,
   ]);
 
   return (

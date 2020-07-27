@@ -27,7 +27,7 @@ const EXTENSIONS_MAP = {
   [RECORDER_TYPES.SCREEN]: 'webm',
 };
 
-export default observer(({ options: { type, useAudio }, handleClose }) => {
+export default observer(({ options: { type, useAudio, toggleAudio, volume }, handleClose }) => {
   const mute = useRef(false);
 
   const {
@@ -53,12 +53,20 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   useEffect(() => {
     if (videoRef.current && useAudio !== undefined && type) {
       player = videojs(videoRef.current, config);
-
+      if (volume) {
+        player.volume(volume);
+      }
       player.on('volumechange', () => {
         if (player.volume() === 0 || player.muted()) {
+          handleClose();
+          toggleAudio(false, type);
           mute.current = true;
           player.muted(true);
         } else {
+          if (!useAudio) {
+            handleClose();
+          }
+          toggleAudio(true, type, player.volume());
           mute.current = false;
           player.muted(false);
         }
