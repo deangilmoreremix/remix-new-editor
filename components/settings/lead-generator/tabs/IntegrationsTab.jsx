@@ -11,6 +11,7 @@ import { BUTTON_DISABLED_HINT as buttonText } from '../../../../lib/constants/te
 
 const IntegrationsTab = ({ values, fields, onChange }) => {
   const { item: { project } } = useProjectStore();
+
   const { downloadOptinStatistic } = useMakeStore();
 
   return (
@@ -64,7 +65,7 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
           disabled={!project._id}
           title={!project._id ? buttonText.title : ''}
         >
-          Download all opt-ins
+          Download leads
         </button>
       </div>
     </div>

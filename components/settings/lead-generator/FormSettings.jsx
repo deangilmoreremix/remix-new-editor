@@ -20,7 +20,7 @@ const TabMap = {
 const FormSettings = observer(({ tab = BASIC, element, update, fields, handleClose }) => {
   const Tab = TabMap[tab];
   const [showedForm, setShowedForm] = React.useState(true);
-  const { retarget } = useProjectStore();
+  const { retarget, kindRetarget } = useProjectStore();
 
   const handleChange = (value, options) => {
     let newOptions = { ...value };
@@ -44,6 +44,7 @@ const FormSettings = observer(({ tab = BASIC, element, update, fields, handleClo
     <div className={classnames({ 'lead-form': element.type === 'form', 'retarget-form': element.type === 'retargetForm' })}>
       {element && (element.popcornOptions || element.options) && (
         <Tab
+          kindRetarget={kindRetarget}
           type={element.type}
           showedForm={showedForm}
           values={element.popcornOptions ?? element.options}
