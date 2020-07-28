@@ -98,7 +98,7 @@ const OverlayListTransitions = observer(() => {
           query: '',
           page,
           perPage,
-          filter,
+          filter: filter || JSON_TRANSITION_TABS['16:9'].data,
         });
 
         if (page === 1) {
