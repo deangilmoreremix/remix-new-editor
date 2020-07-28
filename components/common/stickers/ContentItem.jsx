@@ -47,8 +47,12 @@ ContentItem.propTypes = {
     _id: PropTypes.string.isRequired,
     preview: PropTypes.string.isRequired,
   }).isRequired,
-  onDelete: PropTypes.func.isRequired,
+  onDelete: PropTypes.func,
   onSelect: PropTypes.func.isRequired,
+};
+
+ContentItem.defaultProps = {
+  onDelete: () => {},
 };
 
 export default ContentItem;

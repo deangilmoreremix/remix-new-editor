@@ -1,17 +1,15 @@
 import React, { useEffect, Fragment, useCallback, useState, useRef } from 'react';
-import { GiphyFetch } from '@giphy/js-fetch-api';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 
 import useUIStore from '../hooks/useUIStore';
 import useProjectStore from '../hooks/useProjectStore';
+import useMediaStore from '../hooks/useMediaStore';
 import CloseButton from '../common/CloseButton';
 import ContentItem from '../common/stickers/ContentItem';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
-import config from '../../config/config';
 import { search } from '../../lib/constants/library';
-
-const giphyFetch = new GiphyFetch(config.mediaProviders.GIPHY.apiKey);
+import { ENTER_KEY } from '../../lib/constants/keyCodes';
 
 const GiphyGifs = observer((props) => {
   const inputRef = useRef();
@@ -20,6 +18,7 @@ const GiphyGifs = observer((props) => {
   const [gifs, setGifs] = useState(['']);
   const { addElement } = useProjectStore();
   const { type } = props;
+  const { getGiphyData } = useMediaStore();
 
   useEffect(() => {
     setGifs(['']);
@@ -38,34 +37,29 @@ const GiphyGifs = observer((props) => {
     }
   };
 
-  const onChangeValue = useCallback((event) => {
+  const handleKeyUp = (event) => {
     const { value } = event.target;
     setSearchValue(value);
+    if (event.keyCode === ENTER_KEY) {
+      onChangeValue(event);
+    }
+  };
+
+  const onChangeValue = useCallback((event) => {
+    const { value } = event.target;
     getGifs(value);
   }, [type]);
 
   const getGifs = useCallback((value) => {
-    giphyFetch.search(value, { type }).then(res => {
-      if (res.meta.status !== 200) {
-        throw new Error('Something wrong: An error while fetching data');
-      }
-      const result = res.data.map((gif) => {
-        const item = {
-          data: gif.images.original.url,
-          preview: gif.images.preview_gif.url,
-          _id: gif.id,
-        };
-
-        return (
-          <ContentItem
-            key={item._id}
-            item={item}
-            onSelect={onSelect}
-            onDelete={() => {}}
-          />
-        );
-      });
-      setGifs(result);
+    getGiphyData(value, type).then((gifsData) => {
+      const wrappedGifs = gifsData.map((gif) => (
+        <ContentItem
+          key={gif._id}
+          item={gif}
+          onSelect={onSelect}
+        />
+      ));
+      setGifs(wrappedGifs);
     });
   }, [type]);
 
@@ -81,9 +75,10 @@ const GiphyGifs = observer((props) => {
             type="text"
             ref={inputRef}
             value={searchValue}
-            onChange={onChangeValue}
+            onChange={e => setSearchValue(e.target.value)}
+            onKeyUp={handleKeyUp}
           />
-          {!searchValue && (
+          {!searchValue && gifs.length <= 1 && (
             <button
               className="gif-library-placeholder"
               onClick={handleSetFocus}
@@ -93,7 +88,7 @@ const GiphyGifs = observer((props) => {
             </button>
           )}
         </Fragment>
-        <div className={classnames('library__items')} overflow-y="auto">
+        <div className={classnames('library__items')}>
           {gifs.length !== 0 && gifs}
         </div>
         <CloseButton onClick={() => toggleRightBlock(false)} />
