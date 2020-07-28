@@ -42,6 +42,7 @@ const OverlayListTransitions = observer(() => {
     if (newTab === activeTab) {
       return;
     }
+    setActiveItem(null);
     setActiveTab(newTab);
     getItems(newTab, true);
   }, [ratio]);
@@ -103,15 +104,13 @@ const OverlayListTransitions = observer(() => {
 
         if (page === 1) {
           setItems(results);
+          await setPreviewData(results[0].project.data);
+          setPreview(results[0].thumbnail);
+          setActiveItem(results[0]);
         } else {
           setItems(elements => [...elements, ...results]);
         }
 
-        if (!activeItem) {
-          await setPreviewData(results[0].project.data);
-          setPreview(results[0].thumbnail);
-          setActiveItem(results[0]);
-        }
         const hasNextPage = results.length === perPage;
         setHasMore(hasNextPage);
 
