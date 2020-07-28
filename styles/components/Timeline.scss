@@ -68,13 +68,9 @@
         align-items: center;
       }
 
-      &.popcorn-json-transition-end,
-      &.popcorn-json-transition,
-      &.popcorn-pausePlugin-end,
-      &.popcorn-pausePlugin,
-      &.popcorn-loopPlugin,
-      &.popcorn-loopPlugin-end, {
+      &.popcorn-timeline-icon {
         width: 1rem;
+        min-width: 1rem;
         height: auto;
         margin: auto 0.2rem;
       }
@@ -94,9 +90,17 @@
       }
     }
   }
+
+  &-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
-.popcorn-pausePlugin-element, .popcorn-loopPlugin-element, .popcorn-json-transition-element {
+.popcorn-pausePlugin-element,
+.popcorn-loopPlugin-element,
+.popcorn-skip-element,
+.popcorn-json-transition-element {
   justify-content: space-between;
 }
 
@@ -142,6 +146,7 @@
   .popcorn-element {
     border: none;
     align-items: center;
+    flex-wrap: nowrap;
   }
 
   .popcorn-element-part {
