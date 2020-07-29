@@ -41,16 +41,17 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
       </div>
       <div className={classnames('inner-wrapper', 'popcorn-timeline-icon')}>
         {
-          quantityIcon &&
-            item[DEFAULT_FIELD[item.type]] === DEFAULT_SETTINGS[item.type][DEFAULT_FIELD[item.type]]
-              ? (
-                <SVGInline
-                  className="icon-btn"
-                  classSuffix="--inline"
-                  svg={quantityIcon}
-                  cleanup={['title']}
-                />
-              ) : item[DEFAULT_FIELD[item.type]]
+          quantityIcon
+          && item[DEFAULT_FIELD[item.type]]
+          === DEFAULT_SETTINGS[item.type][DEFAULT_FIELD[item.type]]
+            ? (
+              <SVGInline
+                className="icon-btn"
+                classSuffix="--inline"
+                svg={quantityIcon}
+                cleanup={['title']}
+              />
+            ) : item[DEFAULT_FIELD[item.type]]
         }
       </div>
     </Grid>
