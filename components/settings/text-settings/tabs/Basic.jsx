@@ -14,7 +14,7 @@ import PersonalizeButton from '../../../common/personalization/PersonalizeButton
 import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 import { FEATURES } from '../../../../lib/constants/features';
 
-const Basic = observer(({ values, fields, onChange, closeModal }) => {
+const Basic = observer(({ values, fields, onChange }) => {
   const [positionHorizontal, setPositionHorizontal] = useState();
   const [positionVertical, setPositionVertical] = useState();
 
@@ -41,11 +41,6 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
 
   const elementWidth = React.useMemo(() => width || fields.width.default, [width]);
   const elementHeight = React.useMemo(() => height || fields.height.default, [width]);
-
-  const openLibrary = () => {
-    closeModal();
-    openAnimation();
-  };
 
   const onAddTextToken = useCallback((token) => {
     const result = addToken(text, token, caretOffset);
@@ -257,7 +252,7 @@ const Basic = observer(({ values, fields, onChange, closeModal }) => {
           </div>
           <div className="text-transform-container-transition">
             <span className="text-settings-label">Animations</span>
-            <button className="btn-library" onClick={() => openLibrary()}>Open Library</button>
+            <button className="btn-library" onClick={() => openAnimation()}>Open Library</button>
           </div>
           {/* <div className="text-transform-container-font"> */}
           {/* <div> */}

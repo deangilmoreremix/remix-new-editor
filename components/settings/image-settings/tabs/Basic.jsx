@@ -4,24 +4,28 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../../lib/PropTypes';
 import { LIBRARY_TABS } from '../../../../lib/constants/library';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
+import { EXTRA_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
 
 import useUIStore from '../../../hooks/useUIStore';
 import useProjectStore from '../../../hooks/useProjectStore';
 import useUserStore from '../../../hooks/useUserStore';
 
 import FieldBuilder from '../../../form/FieldBuilder';
-import DropzoneArea from '../../../media/DropzoneArea';
 
 import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 
 import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
 import { FEATURES } from '../../../../lib/constants/features';
+import useModalStore from '../../../hooks/useModalStore';
+import { TUI_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
+import DropButton from '../../../media/DropButton';
 
 const Basic = ({ values, fields, onChange, handleClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { setLibraryType, setUpdateElementInLibrary, openAnimation } = useUIStore();
   const { findAndUpdate, element } = useProjectStore();
   const { currentUser: user, isfeatureEnabled: checkStateFeature } = useUserStore();
+  const { openImageEditor, closeModal } = useModalStore();
 
   const backToLibrary = () => {
     handleClose();
@@ -33,9 +37,9 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
     findAndUpdate(element.id, { ...INITIAL_VALUES, ...item, src: item.url });
   };
 
-  const openLibrary = () => {
-    handleClose();
-    openAnimation();
+  const onImageEdited = (image) => {
+    findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
+    closeModal(TUI_IMAGE_EDITOR_MODAL);
   };
 
   // ToDo add select field "Select the kind of Image you want to add"
@@ -76,7 +80,8 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
             />
             <span>Back to Library</span>
           </button>
-          <DropzoneArea
+          <DropButton
+            isArea
             onUploaded={selectImage}
             type={LIBRARY_TABS.IMAGE}
             multiple={false}
@@ -133,7 +138,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           <p>Transition</p>
           <button
             className="image-settings__btn"
-            onClick={openLibrary}
+            onClick={openAnimation}
           >
             Open Library
           </button>
@@ -159,6 +164,25 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           onChange={onChange}
           floatClassName="image-settings__checkbox"
         />
+        <div className="image-settings__block">
+          <div className="image-settings__btn--block">
+            <button
+              className="image-settings__btn"
+              onClick={() => {
+                openImageEditor({
+                  src: element.popcornOptions.src,
+                  onImageEdited,
+                  startUpload: () => setIsLoading(true),
+                  endUpload: () => setIsLoading(false),
+                  menu: EXTRA_MENU,
+                });
+              }}
+              isDisabled={isLoading}
+            >
+              Image Editor
+            </button>
+          </div>
+        </div>
       </div>
     </Fragment>
   );

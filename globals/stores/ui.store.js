@@ -125,7 +125,7 @@ export default class UIStore {
   openLowerThird = (tab = WINDOW_TYPES.LOWER_THIRDS) => {
     this.toggleRightBlock();
     this.secondaryWindowType = tab;
-  }
+  };
 
   @action
   openSettings = () => {
@@ -157,6 +157,15 @@ export default class UIStore {
     }
     this.closeSecondaryWindow();
     this.checkboxRight = isOpen;
+  };
+
+  @action
+  closeAnimationLibrary = () => {
+    if (this.projectStore.activeElementId) {
+      this.openSettings();
+    } else {
+      this.toggleRightBlock(false);
+    }
   };
 
   @action

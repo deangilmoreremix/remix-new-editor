@@ -44,6 +44,7 @@ const FieldsTab = ({ values, fields, onChange }) => {
           element.type = option.elements;
           element.label = option.elements;
           element.value = option.elements;
+          element.token = option.elements.toUpperCase();
         } else {
           element.label = option[INPUT_NAME];
           element.token = option[INPUT_NAME].toUpperCase();
@@ -82,7 +83,7 @@ const FieldsTab = ({ values, fields, onChange }) => {
             alt="humburger"
           />
           <FieldBuilder
-            type={item.type}
+            type="input"
             value={item.label}
             name={item.name}
             className="item-form"

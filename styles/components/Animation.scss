@@ -34,7 +34,6 @@
   align-content: start;
   margin-bottom: 2rem;
   padding-right: 2.25rem;
-  margin: 0 -1%;
 }
 
 .animation-preview {
@@ -68,6 +67,10 @@
 
 .out {
   background-color: $outColor;
+}
+
+.selected {
+  border: 2px solid $secondary-color;
 }
 
 .animation-preview__text {
