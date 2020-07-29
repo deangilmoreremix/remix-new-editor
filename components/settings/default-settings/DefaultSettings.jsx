@@ -2,10 +2,8 @@ import * as React from 'react';
 import { observer } from 'mobx-react';
 
 import PropTypes from '../../../lib/PropTypes';
-import {BASIC, POPCORN_ELEMENT_TYPES} from '../../../lib/constants/popcorn';
+import { BASIC } from '../../../lib/constants/popcorn';
 import Basic from '../default-tabs/Basic';
-import {loadUrl} from "../../../lib/requestCreator";
-import lottie from "lottie-web";
 
 const TabMap = {
   [BASIC]: Basic,
