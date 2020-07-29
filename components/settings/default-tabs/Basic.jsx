@@ -40,7 +40,7 @@ const Basic = ({ options, update, fields, onChange, ...props }) => {
 
   // ToDo move dropzone to manifest.
   return (
-    <div>
+    <div className={`inputs-${options.type}-wrapper`}>
       {update && (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION
         || options.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION) && (
         <DropButton
