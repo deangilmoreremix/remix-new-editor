@@ -82,6 +82,7 @@ const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [],
 
       return c;
     });
+    setColor(newColors);
     storeColors(newColors);
   };
 
@@ -97,12 +98,6 @@ const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [],
     },
     [animation, colors],
   );
-
-  React.useEffect(() => {
-    if (colors && colors.length) {
-      setColor(colors);
-    }
-  }, [colors]);
 
   const showColors = React.useMemo(() => {
     const result = new Set();

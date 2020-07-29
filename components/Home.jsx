@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import Grid from '@material-ui/core/Grid';
@@ -117,7 +117,21 @@ const Home = observer(() => {
     addRetargetForm,
     releaseElement,
     warning,
+    element,
+    retarget,
+    activeElementId,
   } = projectStore;
+
+  const currentElement = useMemo(() => {
+    if (retarget) {
+      if (retarget.id !== activeElementId) {
+        return element;
+      } else {
+        return { ...retarget, popcornOptions: retarget.options };
+      }
+    }
+    return element;
+  }, [element, retarget, activeElementId]);
 
   const SecondaryWindow = React.useMemo(() => {
     switch (secondaryWindowType) {
@@ -125,7 +139,12 @@ const Home = observer(() => {
         return <SettingsEditor />;
       }
       case WINDOW_TYPES.ANIMATION: {
-        return <AnimationList onSelect={(item, type) => updateAnimation(type, item)} />;
+        return (
+          <AnimationList
+            onSelect={(item, type) => updateAnimation(type, item)}
+            element={currentElement}
+          />
+        );
       }
       case WINDOW_TYPES.VIDEO:
       case WINDOW_TYPES.AUDIO:
@@ -154,7 +173,7 @@ const Home = observer(() => {
         return null;
       }
     }
-  }, [secondaryWindowType, updateAnimation]);
+  }, [secondaryWindowType, updateAnimation, currentElement]);
 
   const toolbarContent = React.useMemo(() => {
     const items = toolbarItems({
@@ -210,10 +229,10 @@ const Home = observer(() => {
 
   return (
     <React.Fragment>
-      {(asyncHero.loading) && ( // todo implement loading
+      {(asyncHero.loading) && (
         <Loader isLoading preloader />
       )}
-      {asyncHero.error && ( // todo implement err message
+      {asyncHero.error && (
         <div>Error</div>
       )}
       {(!asyncHero.loading || isLoaded) && (
