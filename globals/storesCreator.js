@@ -31,7 +31,6 @@ class Creator {
     hostname: null,
     cdnHostname: config.s3.cdn,
     clientSecret: null,
-    helpCrunch: {},
   };
 
   clientAuthHeader = null;
@@ -44,10 +43,10 @@ class Creator {
 
   constructor(isServer, source, req) {
     if (isServer) {
-      const getUserHash = (email) => {
+      const getIntercomUserHash = (email) => {
         // eslint-disable-next-line global-require
         const crypto = require('crypto');
-        const hmac = crypto.createHmac('sha256', source.common.helpCrunch.applicationSecret);
+        const hmac = crypto.createHmac('sha256', source.common.intercom.secret);
         hmac.update(email);
         return hmac.digest('hex');
       };
@@ -59,7 +58,7 @@ class Creator {
         `${source.common.cdnHostname}`,
       );
       if (this.currentUser) {
-        this.currentUser.hash = getUserHash(this.currentUser.email);
+        this.currentUser.hash = getIntercomUserHash(this.currentUser.email);
       }
     }
     Object.assign(this, source);
@@ -153,13 +152,12 @@ export async function initCreateStores(isServer, source, req, preloader) {
       linkedinAppId: config.linkedinAppId,
       whiteLabel: config.whiteLabel,
       mediaProviders: config.mediaProviders,
-      helpCrunch: config.helpCrunch,
     };
   }
 
   if (isServer || !creator) {
     creator = new Creator(isServer, source, req);
-    const userStore = new UserStore(creator.currentUser, creator.request);
+    const userStore = new UserStore(creator.currentUser);
     const projectStore = new ProjectStore({
       request: creator.request,
       common: creator.common,
@@ -213,7 +211,7 @@ export function init(source) {
   if (!creator) {
     const isServer = false;
     creator = new Creator(false, source);
-    const userStore = new UserStore(creator.currentUser, creator.request);
+    const userStore = new UserStore(creator.currentUser);
     const projectStore = new ProjectStore({
       request: creator.request,
       common: creator.common,
