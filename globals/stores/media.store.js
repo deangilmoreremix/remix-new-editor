@@ -160,7 +160,7 @@ export default class Media extends BaseStore {
         });
     } catch (e) {
       console.error(e);
-      return e;
+      throw e;
     }
     return file;
   };
@@ -311,6 +311,42 @@ export default class Media extends BaseStore {
       );
     } catch (e) {
       console.error(e);
+    }
+    return asset;
+  };
+
+  saveFiles = async (files, needSave, type, multiple) => {
+    files = multiple ? files : files[0];
+    let result;
+    try {
+      if (multiple) {
+        result = await Promise.all(files
+          .map(async data => this.saveFile(data, needSave, type)))
+          .catch((e) => {
+            console.error(e);
+            throw e;
+          });
+      } else {
+        result = await this.saveFile(files, needSave, type);
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+
+    return result;
+  };
+
+  saveFile = async (data, needSave, type) => {
+    let asset;
+    try {
+      asset = await this.uploadMedia({ data, isCrop: true });
+      if (needSave) {
+        asset = await this.storeAsset(asset, type);
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
     }
     return asset;
   };

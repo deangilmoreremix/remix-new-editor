@@ -1,13 +1,10 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment } from 'react';
 import SVGInline from 'react-svg-inline';
 import classnames from 'classnames';
 import { useDropzone } from 'react-dropzone';
 
 import PropTypes from '../../lib/PropTypes';
 import mediaConstants from '../../lib/constants/media';
-import { showError } from '../../lib/services/alertService';
-
-import useMediaStore from '../hooks/useMediaStore';
 
 import svgAudio from '../../public/static/images/media/icon-audio.svg';
 import svgVideo from '../../public/static/images/media/icon-video.svg';
@@ -16,54 +13,19 @@ import arrowIcon from '../../public/static/svgImages/arrow-upper-left.svg';
 
 const DropzoneArea = (
   {
-    onUploaded,
-    startUpload,
-    endUpload,
-    type,
+    accept,
     isDisabled,
     inline,
     multiple,
     value,
     className,
     isArrows,
-  }) => {
-  const [image, setImage] = useState();
-  const { uploadMedia, storeAsset } = useMediaStore();
-
-  const onDrop = React.useCallback(acceptedFiles => {
-    const elements = [];
-    if (startUpload) {
-      startUpload();
-    }
-
-    Promise.all(acceptedFiles.map(async data => {
-      const asset = await uploadMedia({ data });
-      const element = await storeAsset(asset, type.toUpperCase());
-      const fileExtension = element.url.match(/\.[0-9a-z]{1,5}$/)[0];
-      elements.push(element);
-      return fileExtension;
-    }))
-      .then(fileExtension => {
-        const extension = fileExtension[fileExtension.length - 1];
-        if (!multiple) {
-          onUploaded(elements[0], extension);
-          setImage(elements[0].url);
-        } else {
-          onUploaded(elements, extension);
-        }
-      })
-      .catch(() => showError('An error occurred while loading the items.'))
-      .finally(() => {
-        if (endUpload) {
-          endUpload();
-        }
-      });
-  }, [uploadMedia]);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
     onDrop,
-    disabled: false,
+  }) => {
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: accept && accept.length ? accept : mediaConstants.ACCEPTED_MEDIA_TYPES,
+    onDrop,
+    disabled: isDisabled,
   });
 
   if (inline) {
@@ -87,14 +49,16 @@ const DropzoneArea = (
             : (<p className="drag-drop__text">Drag and drop an image here, or click to upload</p>)
         }
         {
-          ((!image && !value) || !value) && isArrows && (
+          !value && isArrows
+            && (
             <Fragment>
               <SVGInline className="drag-arrow drag-arrow-upper-left" svg={arrowIcon} cleanup={['arrow']} />
               <SVGInline className="drag-arrow drag-arrow-upper-right" svg={arrowIcon} cleanup={['arrow']} />
               <SVGInline className="drag-arrow drag-arrow-bottom-left" svg={arrowIcon} cleanup={['arrow']} />
               <SVGInline className="drag-arrow drag-arrow-bottom-right" svg={arrowIcon} cleanup={['arrow']} />
             </Fragment>
-          )
+            )
+
         }
       </div>
     );
@@ -132,17 +96,14 @@ const DropzoneArea = (
 };
 
 DropzoneArea.propTypes = {
-  inline: PropTypes.bool,
-  onUploaded: PropTypes.func,
-  type: PropTypes.string.isRequired,
-  startUpload: PropTypes.func,
-  endUpload: PropTypes.func,
-  isDisabled: PropTypes.bool,
-  multiple: PropTypes.bool,
-  value: PropTypes.string,
   className: PropTypes.string,
   isArrows: PropTypes.bool,
-  optionName: PropTypes.string,
+  multiple: PropTypes.bool,
+  value: PropTypes.string,
+  inline: PropTypes.bool,
+  isDisabled: PropTypes.bool,
+  accept: PropTypes.arrayOf(PropTypes.string),
+  onDrop: PropTypes.func.isRequired,
 };
 
 DropzoneArea.defaultProps = {
