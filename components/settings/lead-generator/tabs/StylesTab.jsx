@@ -216,10 +216,10 @@ const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, o
               {...fields.btnBottomBorder}
               onChange={handleChangeColor}
             />
-            <div className="container-transition">
-              <span className="form-control-label">Animations</span>
-              <button className="btn-library" onClick={() => openAnimation()}>Open Library</button>
-            </div>
+            {/*<div className="container-transition">*/}
+              {/*<span className="form-control-label">Animations</span>*/}
+              {/*<button className="btn-library" onClick={() => openAnimation()}>Open Library</button>*/}
+            {/*</div>*/}
           </div>
         </div>
       </div>

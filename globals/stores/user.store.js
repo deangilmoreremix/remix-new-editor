@@ -5,32 +5,14 @@ import { STATE, FEATURES } from '../../lib/constants/features';
 export default class UserStore {
   @observable currentUser = null;
 
-  constructor(currentUser = {}, request) {
+  constructor(currentUser = {}) {
     this.currentUser = currentUser;
-    this.roles = null;
-    this.request = request;
   }
 
   @computed
   get isSuperAdmin() {
     return this.currentUser && this.currentUser.authorityLevel === 0;
   }
-
-  setRoles = async () => {
-    let user;
-    try {
-      user = await this.request('/api/users/me?serialized=true', {
-        method: 'GET',
-        headers: {
-          'on-behalf': this.currentUser.id,
-        },
-      });
-      this.roles = user.roles;
-    } catch (e) {
-      console.log(e);
-      throw e;
-    }
-  };
 
   @computed
   get firstAndLastName() {
