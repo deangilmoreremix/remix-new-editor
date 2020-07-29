@@ -138,7 +138,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           <p>Transition</p>
           <button
             className="image-settings__btn"
-            onClick={openAnimation()}
+            onClick={openAnimation}
           >
             Open Library
           </button>

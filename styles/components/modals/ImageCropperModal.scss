@@ -303,9 +303,11 @@
 }
 
 
-img {
-  max-width: 70%;
-  display: block;
+.image-cropper-modal {
+  img {
+    max-width: 70%;
+    display: block;
+  }
 }
 
 .img-size-settings {
