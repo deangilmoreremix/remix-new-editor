@@ -53,8 +53,8 @@ module.exports = {
     secret: process.env.INTERCOM_SECRET,
   },
   helpCrunch: {
-    applicationId: process.env.HELP_CRUNCH_APP_ID,
-    applicationSecret: process.env.HELP_CRUNCH_SECRET,
+    applicationId: process.env.HELP_CRUNCH_APP_ID || '1',
+    applicationSecret: process.env.HELP_CRUNCH_SECRET || '1',
   },
   newRelic: {
     enabled: process.env.NEW_RELIC_ENABLED || false,
