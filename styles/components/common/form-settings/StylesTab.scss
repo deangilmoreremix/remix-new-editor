@@ -140,10 +140,11 @@
     }
   }
 
-  .container-transition-list {
-    .select__menu {
-      position: absolute;
-      bottom: 100%;
+  .container-transition {
+    .form-control-label {
+      margin-bottom: 0.2rem;
     }
+    display: flex;
+    flex-direction: column;
   }
 }

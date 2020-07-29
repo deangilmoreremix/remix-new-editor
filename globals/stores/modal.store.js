@@ -1,10 +1,9 @@
-import { set, observable, action } from 'mobx';
+import { set, remove, observable, action } from 'mobx';
 
-import { IMAGE_CROPPER_MODAL, MODAL_CONFIG } from '../../lib/constants/modals';
-import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
-import { showError } from '../../lib/services/alertService';
+import { IMAGE_CROPPER_MODAL, MODAL_CONFIG, TUI_IMAGE_EDITOR_MODAL } from '../../lib/constants/modals';
 import { checkImageResolution } from '../../lib/utils/cropHelper';
-import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
+import { getImageSize } from '../../lib/utils/imageEditorHelper';
+
 
 export default () => {
   const modalIds = observable.set([]);
@@ -25,7 +24,8 @@ export default () => {
   const closeModal = (modalId) => {
     if (modalId) {
       modalIds.delete(modalId);
-      set(options, {});
+      const keys = Object.keys(options);
+      keys.forEach(key => remove(options, key));
     }
   };
 
@@ -47,28 +47,40 @@ export default () => {
     }
   };
 
-  const openCropper = async (src, onImageCropped, resolution, updateField) => {
-    if (!src || !onImageCropped) {
+  const openCropper = async (scope) => {
+    const { image, onImageCropped, recommendedResolution, cancelCropper } = scope;
+
+    if (!image.src || !onImageCropped) {
       return;
     }
-    const imageMeta = new Image();
-    imageMeta.src = src;
-    const metadata = await new MediaTypeDetector()
-      .getMetadata(src);
-    if (!metadata.contentType.includes('image')) {
-      return showError('Image not found');
-    }
+    // todo check small img
+    const imageMeta = await getImageSize(image);
+    imageMeta.source = image.src;
     checkImageResolution({
       imageMeta,
-      onFileUploaded: openModal(IMAGE_CROPPER_MODAL,
+      recommendedResolution,
+      cancelCropper,
+      openCropper: () => openModal(IMAGE_CROPPER_MODAL,
         {
-          imageMeta: metadata,
-          onImageCropped,
-          recommendedResolution: resolution || CROP_RECOMMENDED_RESOLUTION,
-          src,
-          updateField,
+          ...scope,
+          src: image.src,
+          imageMeta,
         }),
     });
+  };
+
+  const openImageEditor = async (scope) => {
+    const { src } = scope;
+    if (!src) {
+      return;
+    }
+    const metadata = { source: src };
+
+    openModal(TUI_IMAGE_EDITOR_MODAL,
+      {
+        ...scope,
+        imageMeta: metadata,
+      });
   };
 
 
@@ -81,5 +93,6 @@ export default () => {
     updateClassName: action(updateClassName),
     openCropper,
     options,
+    openImageEditor,
   };
 };
