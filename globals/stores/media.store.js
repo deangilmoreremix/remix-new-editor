@@ -165,9 +165,9 @@ export default class Media extends BaseStore {
     return file;
   };
 
-   getGiphyData = async (value, type) => {
+   getGiphyData = async (value, type, offset = 0) => {
      const giphyFetch = new GiphyFetch(config.mediaProviders.GIPHY.apiKey);
-     const res = await giphyFetch.search(value, { type });
+     const res = await giphyFetch.search(value, { type, offset });
      if (res.meta.status !== 200) {
        throw new Error('Something wrong: An error while fetching data');
      }

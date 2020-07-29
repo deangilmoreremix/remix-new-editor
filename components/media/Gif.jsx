@@ -1,7 +1,9 @@
 import React, { useEffect, Fragment, useCallback, useState, useRef } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
+import { Waypoint } from 'react-waypoint';
 
+import { CircleLoader } from 'react-spinners';
 import useUIStore from '../hooks/useUIStore';
 import useProjectStore from '../hooks/useProjectStore';
 import useMediaStore from '../hooks/useMediaStore';
@@ -10,6 +12,8 @@ import ContentItem from '../common/stickers/ContentItem';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import { search } from '../../lib/constants/library';
 import { ENTER_KEY } from '../../lib/constants/keyCodes';
+import { OFFSET_GIPHY } from '../../lib/constants/settings/giphy';
+import { LOADING_COLOR } from '../../lib/constants/ui';
 
 const GiphyGifs = observer((props) => {
   const inputRef = useRef();
@@ -19,10 +23,19 @@ const GiphyGifs = observer((props) => {
   const { addElement } = useProjectStore();
   const { type } = props;
   const { getGiphyData } = useMediaStore();
+  const [wrappedGiphy, setWrappedGiphy] = useState([]);
+  const [offset, setOffset] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setGifs(wrappedGiphy);
+  }, [wrappedGiphy]);
 
   useEffect(() => {
     setGifs(['']);
     setSearchValue('');
+    setWrappedGiphy([]);
+    setOffset(0);
   }, [type]);
 
   const onSelect = item => {
@@ -47,21 +60,42 @@ const GiphyGifs = observer((props) => {
 
   const onChangeValue = useCallback((event) => {
     const { value } = event.target;
-    getGifs(value);
+    getGiphy(value);
   }, [type]);
 
-  const getGifs = useCallback((value) => {
-    getGiphyData(value, type).then((gifsData) => {
-      const wrappedGifs = gifsData.map((gif) => (
-        <ContentItem
-          key={gif._id}
-          item={gif}
-          onSelect={onSelect}
-        />
-      ));
-      setGifs(wrappedGifs);
-    });
+  const getGiphy = useCallback(async (value) => {
+    let giphyData;
+    try {
+      setIsLoading(true);
+      giphyData = await getGiphyData(value, type, offset);
+      setIsLoading(false);
+    } catch (error) {
+      setIsLoading(false);
+      throw error;
+    }
+    const wrappedGiphyItems = giphyData.map((gif, idx) => (
+      <ContentItem
+          /* eslint-disable-next-line react/no-array-index-key */
+        key={`${gif._id}-${idx}`}
+        item={gif}
+        onSelect={onSelect}
+      />
+    ));
+    setWrappedGiphy(wrappedGiphyItems);
   }, [type]);
+
+  const handleScroll = async () => {
+    setOffset(offset + OFFSET_GIPHY);
+    const onScrollGiphyData = await getGiphyData(searchValue, type, offset);
+    const onScrollWrappedGiphyItems = onScrollGiphyData.map((gif) => (
+      <ContentItem
+        key={gif._id}
+        item={gif}
+        onSelect={onSelect}
+      />
+    ));
+    setWrappedGiphy([...wrappedGiphy, ...onScrollWrappedGiphyItems]);
+  };
 
   return (
     <div className={classnames('gif-library', { 'big-window': !isTimelineOpen })}>
@@ -88,9 +122,24 @@ const GiphyGifs = observer((props) => {
             </button>
           )}
         </Fragment>
-        <div className={classnames('library__items')}>
-          {gifs.length !== 0 && gifs}
-        </div>
+        {isLoading
+          ? (
+            <CircleLoader
+              size={100}
+              css={{ margin: 'auto' }}
+              loading
+              color={LOADING_COLOR}
+            />
+          )
+          : (
+            <div className={classnames('library__items')}>
+
+              {gifs.length !== 0 && gifs}
+              <Waypoint
+                onEnter={handleScroll}
+              />
+            </div>
+          )}
         <CloseButton onClick={() => toggleRightBlock(false)} />
       </div>
     </div>
