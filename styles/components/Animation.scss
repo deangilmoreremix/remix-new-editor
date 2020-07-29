@@ -1,10 +1,10 @@
 .animation-container {
   position: relative;
-  top: 50%;
+  top: 0;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   max-width: 31.75rem;
-  height: 24rem;
+  height: $toolbarHeight - 5vh;
   display: flex;
   flex-direction: column;
   background: $light-twinlight;
@@ -34,7 +34,6 @@
   align-content: start;
   margin-bottom: 2rem;
   padding-right: 2.25rem;
-  margin: 0 -1%;
 }
 
 .animation-preview {
@@ -68,6 +67,10 @@
 
 .out {
   background-color: $outColor;
+}
+
+.selected {
+  border: 2px solid $secondary-color;
 }
 
 .animation-preview__text {

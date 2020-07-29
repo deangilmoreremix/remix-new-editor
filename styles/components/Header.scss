@@ -29,7 +29,12 @@
       .MuiButton-label {
         color: $white;
         font-family: $font-primary;
-        border: 1px solid $secondary-color;
+        font-size: 0.5rem;
+
+        .MuiButton-endIcon {
+          margin-left: 12px;
+          margin-right: 0;
+        }
       }
 
       .MuiPaper-root {
@@ -58,7 +63,7 @@
       .menu-popper,
       button {
         padding: 0;
-        width: 10rem;
+        width: 100%;
       }
       .menu__list {
         width: 10rem;

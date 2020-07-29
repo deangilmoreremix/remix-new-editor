@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import Grid from '@material-ui/core/Grid';
@@ -9,6 +9,7 @@ import Loader from './common/Loader';
 import Canvas from './Canvas';
 import Timeline from './Timeline';
 import Library from './media/Library';
+import BlendModeLibrary from './media/BlendModeLibrary';
 import Stickers from './media/Stickers';
 import LowerThirds from './media/LowerThirds';
 import Toolbar from './common/toolbar/Toolbar';
@@ -24,6 +25,8 @@ import useUIStore from './hooks/useUIStore';
 import useUserStore from './hooks/useUserStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
+
+import Warning from './common/snackBars/Warning';
 
 import { CANVAS_SIZES } from '../lib/constants/media';
 import { DEFAULT_RATIO } from '../lib/constants/project';
@@ -48,6 +51,7 @@ const Home = observer(() => {
     templateGeneratorEnabled,
     linkedinEnabled,
     ctaEnabled,
+    blendModeEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -98,6 +102,7 @@ const Home = observer(() => {
     setListBuilder,
     openCTA,
     toggleRightBlock,
+    openBlendMode,
   } = uiStore;
 
   const {
@@ -110,7 +115,22 @@ const Home = observer(() => {
     modified,
     addRetargetForm,
     releaseElement,
+    warning,
+    element,
+    retarget,
+    activeElementId,
   } = projectStore;
+
+  const currentElement = useMemo(() => {
+    if (retarget) {
+      if (retarget.id !== activeElementId) {
+        return element;
+      } else {
+        return { ...retarget, popcornOptions: retarget.options };
+      }
+    }
+    return element;
+  }, [element, retarget, activeElementId]);
 
   const SecondaryWindow = React.useMemo(() => {
     switch (secondaryWindowType) {
@@ -118,7 +138,12 @@ const Home = observer(() => {
         return <SettingsEditor />;
       }
       case WINDOW_TYPES.ANIMATION: {
-        return <AnimationList onSelect={(item, type) => updateAnimation(type, item)} />;
+        return (
+          <AnimationList
+            onSelect={(item, type) => updateAnimation(type, item)}
+            element={currentElement}
+          />
+        );
       }
       case WINDOW_TYPES.VIDEO:
       case WINDOW_TYPES.AUDIO:
@@ -140,11 +165,14 @@ const Home = observer(() => {
       case WINDOW_TYPES.CTA: {
         return <CallToAction />;
       }
+      case WINDOW_TYPES.BLEND_MODE_LIBRARY: {
+        return <BlendModeLibrary />;
+      }
       default: {
         return null;
       }
     }
-  }, [secondaryWindowType, updateAnimation]);
+  }, [secondaryWindowType, updateAnimation, currentElement]);
 
   const toolbarContent = React.useMemo(() => {
     const items = toolbarItems({
@@ -162,6 +190,7 @@ const Home = observer(() => {
         openMediaButton,
         openCTA,
         toggleRightBlock,
+        openBlendMode,
       },
       project: {
         allowedSocials,
@@ -178,6 +207,7 @@ const Home = observer(() => {
         presetsEnabled,
         linkedinEnabled,
         ctaEnabled,
+        blendModeEnabled,
       },
     });
     return items && items.length ? items : [];
@@ -197,10 +227,10 @@ const Home = observer(() => {
 
   return (
     <React.Fragment>
-      {(asyncHero.loading) && ( // todo implement loading
+      {(asyncHero.loading) && (
         <Loader isLoading preloader />
       )}
-      {asyncHero.error && ( // todo implement err message
+      {asyncHero.error && (
         <div>Error</div>
       )}
       {(!asyncHero.loading || isLoaded) && (
@@ -237,6 +267,7 @@ const Home = observer(() => {
           </Grid>
         </div>
       )}
+      {warning && <Warning message={warning} />}
     </React.Fragment>
   );
 });

@@ -15,6 +15,7 @@ const AnimatableElement = React.forwardRef(({ onSelect, item, ...rest }, ref) =>
 
   const getGridItem = React.useCallback((animationType) => {
     switch (item.type) {
+      case POPCORN_ELEMENT_TYPES.LEAD_GENERATOR:
       case POPCORN_ELEMENT_TYPES.TEXT:
       case POPCORN_ELEMENT_TYPES.IMAGE: {
         const animated = item.animation && item.animation[animationType]

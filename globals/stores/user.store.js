@@ -5,14 +5,32 @@ import { STATE, FEATURES } from '../../lib/constants/features';
 export default class UserStore {
   @observable currentUser = null;
 
-  constructor(currentUser = {}) {
+  constructor(currentUser = {}, request) {
     this.currentUser = currentUser;
+    this.roles = null;
+    this.request = request;
   }
 
   @computed
   get isSuperAdmin() {
     return this.currentUser && this.currentUser.authorityLevel === 0;
   }
+
+  setRoles = async () => {
+    let user;
+    try {
+      user = await this.request('/api/users/me?serialized=true', {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      this.roles = user.roles;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
 
   @computed
   get firstAndLastName() {
@@ -81,5 +99,10 @@ export default class UserStore {
   @computed
   get ctaEnabled() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_CTA);
+  }
+
+  @computed
+  get blendModeEnabled() {
+    return this.isfeatureEnabled(FEATURES.BLEND_MODE);
   }
 }
