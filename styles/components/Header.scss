@@ -140,6 +140,21 @@
         }
       }
     }
+
+    &__actions {
+      width: 150px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    &__button-text {
+      text-transform: uppercase;
+      font-weight: bold;
+      font-size: 0.75rem;
+      line-height: 1;
+      padding-top: 7px !important;
+    }
   }
 }
 
