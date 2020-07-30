@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import lottie from 'lottie-web';
 
-import mediaConstants from '../../../lib/constants/media';
 import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
 import { loadUrl } from '../../../lib/requestCreator';
 
 import PropTypes from '../../../lib/PropTypes';
 import FieldBuilder from '../../form/FieldBuilder';
-import DropButton from '../../media/DropButton';
 
 const Basic = ({ options, update, fields, ...props }) => {
   const [isDisabled, setIsDisabled] = useState(false);
@@ -29,19 +27,6 @@ const Basic = ({ options, update, fields, ...props }) => {
   // ToDo move dropzone to manifest.
   return (
     <div className={`inputs-${options.type}-wrapper`}>
-      {update && (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION
-        || options.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION) && (
-        <DropButton
-          accept={[mediaConstants.JSON_CONTENT_TYPE]}
-          type={mediaConstants.JSON_CONTENT_TYPE}
-          onUploaded={onUploaded}
-          startUpload={() => processUpload(true)}
-          endUpload={() => processUpload(false)}
-          multiple={false}
-          needSaveAsset={false}
-          isDisabled={isDisabled}
-        />
-      )}
       {fields && Object.keys(fields).map(key => {
         const { label, type, ...fieldProps } = fields[key];
         return (
@@ -54,6 +39,10 @@ const Basic = ({ options, update, fields, ...props }) => {
             key={key}
             name={key}
             disabled={isDisabled}
+            onUploaded={onUploaded}
+            startUpload={() => processUpload(true)}
+            endUpload={() => processUpload(false)}
+            isDisabled={isDisabled}
           />
         );
       })}
