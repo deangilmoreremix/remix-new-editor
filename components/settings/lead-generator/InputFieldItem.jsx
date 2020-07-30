@@ -9,7 +9,6 @@ import FieldBuilder from '../../form/FieldBuilder';
 
 const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput }) => {
   const ref = useRef(null);
-  const refList = useRef(null);
 
   const [inputValue, setInputValue] = React.useState(item.label || '');
   const [isEdit, setIsEdit] = useState(false);
@@ -53,7 +52,6 @@ const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput }) 
       <FieldBuilder
         value={item.value}
         {...fields.elements}
-        ref={refList}
         onChange={(v) => handleChangeInput(v, item.id)}
       />
       <div className="flex-center retarget-remove">
