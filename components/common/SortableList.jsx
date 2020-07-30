@@ -18,13 +18,13 @@ const SortableList = observer((props) => {
     () => SortableElement(({ item }) => <Component item={item} {...rest} />), [rest]);
   const List = React.useMemo(() => SortableContainer(() => (
     <ul className={className}>
-      {items.map((item) => (
+      {items.map((item, index) => (
         <Item
           withRef
           sortIndex={item[idField]}
           className="layer"
           key={`item-${item[idField]}`}
-          index={item[idField]}
+          index={index}
           item={item}
         />
       ))}
@@ -32,7 +32,7 @@ const SortableList = observer((props) => {
   )), [className, idField, items]);
 
   return (
-    <List onSortEnd={onSortEnd} className={className || ''} items={items} />
+    <List onSortEnd={onSortEnd} distance={1} className={className || ''} items={items} />
   );
 },
 );
