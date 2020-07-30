@@ -12,6 +12,7 @@ import Library from './media/Library';
 import BlendModeLibrary from './media/BlendModeLibrary';
 import Stickers from './media/Stickers';
 import LowerThirds from './media/LowerThirds';
+import Overlay from './media/OverlayListTransitions';
 import Toolbar from './common/toolbar/Toolbar';
 import SizeSelector from './canvas/SizeSelector';
 import AnimationList from './media/AnimationList';
@@ -30,7 +31,7 @@ import Warning from './common/snackBars/Warning';
 
 import { CANVAS_SIZES } from '../lib/constants/media';
 import { DEFAULT_RATIO } from '../lib/constants/project';
-import { WINDOW_TYPES } from '../lib/constants/ui';
+import { WINDOW_TYPES, SCREEN_RATIO } from '../lib/constants/ui';
 import { ROUTES } from '../lib/constants/routing';
 import AnimatedWindow from './common/AnimatedWindow';
 import { TEMPLATE_GENERATOR_MODAL } from '../lib/constants/modals';
@@ -52,6 +53,7 @@ const Home = observer(() => {
     linkedinEnabled,
     ctaEnabled,
     blendModeEnabled,
+    jsonTransitionEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -100,10 +102,9 @@ const Home = observer(() => {
     canvasWidth,
     toolsWidth,
     setListBuilder,
-    openCTA,
     toggleRightBlock,
-    openBlendMode,
     openUploadTransition,
+    openToolbarElement,
   } = uiStore;
 
   const {
@@ -160,6 +161,12 @@ const Home = observer(() => {
       case WINDOW_TYPES.PRESETS.value: {
         return <LowerThirds />;
       }
+      case SCREEN_RATIO['16:9'].value:
+      case SCREEN_RATIO['9:16'].value:
+      case SCREEN_RATIO['4:5'].value:
+      case SCREEN_RATIO['1:1'].value: {
+        return <Overlay />;
+      }
       case WINDOW_TYPES.RECORDER: {
         return <Recorder />;
       }
@@ -189,10 +196,9 @@ const Home = observer(() => {
         setListBuilder,
         setSecondaryWindowType,
         openMediaButton,
-        openCTA,
         toggleRightBlock,
-        openBlendMode,
         openUploadTransition,
+        openToolbarElement,
       },
       project: {
         allowedSocials,
@@ -210,6 +216,9 @@ const Home = observer(() => {
         linkedinEnabled,
         ctaEnabled,
         blendModeEnabled,
+        jsonTransitionEnabled,
+        width,
+        height,
       },
     });
     return items && items.length ? items : [];
@@ -225,6 +234,8 @@ const Home = observer(() => {
     userStore,
     allowedSocials,
     linkedinEnabled,
+    width,
+    height,
   ]);
 
   return (

@@ -1,13 +1,15 @@
 import * as React from 'react';
 import { observer } from 'mobx-react';
 
+import lottie from 'lottie-web';
 import useUserStore from '../../hooks/useUserStore';
 
 import PropTypes from '../../../lib/PropTypes';
-import { BASIC, ADVANCED } from '../../../lib/constants/popcorn';
+import { BASIC, ADVANCED, POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
 import LottieEditor from '../../common/LottieEditor';
 import Basic from '../default-tabs/Basic';
 import Advanced from './tabs/Advanced';
+import { loadUrl } from '../../../lib/requestCreator';
 
 const TabMap = {
   [BASIC]: Basic,
@@ -18,7 +20,17 @@ const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
   const { isSuperAdmin } = useUserStore();
 
   const Tab = TabMap[tab];
-  const handleChange = (field) => {
+
+  const handleChange = async (field) => {
+    const { url } = field;
+    if (element && element.popcornOptions.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION && url) {
+      const animationData = await loadUrl(url);
+      const animation = await lottie.loadAnimation({ animationData });
+      return update({
+        url,
+        end: element.popcornOptions.start + (animation.totalFrames / animation.animationData.fr),
+      });
+    }
     update(field);
   };
 
