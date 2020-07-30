@@ -10,10 +10,10 @@ import useMediaStore from '../hooks/useMediaStore';
 import CloseButton from '../common/CloseButton';
 import ContentItem from '../common/stickers/ContentItem';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
-import { search } from '../../lib/constants/library';
+import { search, perPage } from '../../lib/constants/library';
 import { ENTER_KEY } from '../../lib/constants/keyCodes';
-import { OFFSET_GIPHY } from '../../lib/constants/settings/giphy';
 import { LOADING_COLOR } from '../../lib/constants/ui';
+import { showError } from '../../lib/services/alertService';
 
 const GiphyGifs = observer((props) => {
   const inputRef = useRef();
@@ -71,7 +71,7 @@ const GiphyGifs = observer((props) => {
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
-      throw error;
+      await showError('An error occurred while loading items');
     }
     const wrappedGiphyItems = giphyData.map((gif, idx) => (
       <ContentItem
@@ -85,7 +85,7 @@ const GiphyGifs = observer((props) => {
   }, [type]);
 
   const handleScroll = async () => {
-    setOffset(offset + OFFSET_GIPHY);
+    setOffset(offset + perPage);
     const onScrollGiphyData = await getGiphyData(searchValue, type, offset);
     const onScrollWrappedGiphyItems = onScrollGiphyData.map((gif) => (
       <ContentItem
