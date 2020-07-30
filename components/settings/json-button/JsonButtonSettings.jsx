@@ -23,7 +23,7 @@ const JsonButtonSettings = observer(({ element, update, fields }) => {
         <div>
           <DropButton
             accept={[mediaConstants.JSON_CONTENT_TYPE]}
-            type={mediaConstants.JSON_CONTENT_TYPE}
+            mediaType={mediaConstants.JSON_CONTENT_TYPE}
             onUploaded={({ url: src }) => update({ src })}
             multiple={false}
             needSaveAsset={false}

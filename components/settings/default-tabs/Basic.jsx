@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import lottie from 'lottie-web';
 
-import mediaConstants from '../../../lib/constants/media';
 import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
 import { loadUrl } from '../../../lib/requestCreator';
 
 import PropTypes from '../../../lib/PropTypes';
 import FieldBuilder from '../../form/FieldBuilder';
-import DropButton from '../../media/DropButton';
 
-const Basic = ({ options, update, fields, onChange, ...props }) => {
+const Basic = ({ options, update, fields, ...props }) => {
   const [isDisabled, setIsDisabled] = useState(false);
 
   const onUploaded = async ({ url }) => {
@@ -22,18 +20,6 @@ const Basic = ({ options, update, fields, onChange, ...props }) => {
     update({ url });
   };
 
-  const handleChange = async ({ url }) => {
-    if (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION && url) {
-      const animationData = await loadUrl(url);
-      const animation = await lottie.loadAnimation({ animationData });
-      return onChange({
-        url,
-        end: options.start + (animation.totalFrames / animation.animationData.fr),
-      });
-    }
-    onChange({ url });
-  };
-
   const processUpload = (processFileUpload) => {
     setIsDisabled(processFileUpload);
   };
@@ -41,19 +27,6 @@ const Basic = ({ options, update, fields, onChange, ...props }) => {
   // ToDo move dropzone to manifest.
   return (
     <div className={`inputs-${options.type}-wrapper`}>
-      {update && (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION
-        || options.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION) && (
-        <DropButton
-          accept={[mediaConstants.JSON_CONTENT_TYPE]}
-          type={mediaConstants.JSON_CONTENT_TYPE}
-          onUploaded={onUploaded}
-          startUpload={() => processUpload(true)}
-          endUpload={() => processUpload(false)}
-          multiple={false}
-          needSaveAsset={false}
-          isDisabled={isDisabled}
-        />
-      )}
       {fields && Object.keys(fields).map(key => {
         const { label, type, ...fieldProps } = fields[key];
         return (
@@ -66,7 +39,10 @@ const Basic = ({ options, update, fields, onChange, ...props }) => {
             key={key}
             name={key}
             disabled={isDisabled}
-            onChange={handleChange}
+            onUploaded={onUploaded}
+            startUpload={() => processUpload(true)}
+            endUpload={() => processUpload(false)}
+            isDisabled={isDisabled}
           />
         );
       })}
@@ -78,6 +54,9 @@ Basic.propTypes = {
   options: PropTypes.shape({
     type: PropTypes.string,
     start: PropTypes.number,
+    end: PropTypes.number,
+    duration: PropTypes.number,
+    loop: PropTypes.number,
   }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.objectOf(

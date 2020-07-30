@@ -83,7 +83,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           <DropButton
             isArea
             onUploaded={selectImage}
-            type={LIBRARY_TABS.IMAGE}
+            mediaType={LIBRARY_TABS.IMAGE}
             multiple={false}
             startUpload={() => setIsLoading(true)}
             endUpload={() => setIsLoading(false)}
