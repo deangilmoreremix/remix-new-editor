@@ -42,7 +42,7 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
       <div className={classnames('inner-wrapper', 'popcorn-timeline-icon')}>
         {
           quantityIcon
-            && item[DEFAULT_FIELD[item.type]]
+          && item[DEFAULT_FIELD[item.type]]
           === DEFAULT_SETTINGS[item.type][DEFAULT_FIELD[item.type]]
             ? (
               <SVGInline
