@@ -89,7 +89,7 @@ const FacebookPost = ({ settings, updateCampaign }) => {
                   startUpload={() => setIsDisabledUpload(true)}
                   endUpload={() => setIsDisabledUpload(false)}
                   isDisabled={isDisabledUpload}
-                  type={ASSET_TYPES.IMAGE}
+                  mediaType={ASSET_TYPES.IMAGE}
                   multiple={false}
                   className="settings__add-file"
                 />

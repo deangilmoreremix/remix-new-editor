@@ -4,15 +4,22 @@ import Grid from '@material-ui/core/Grid/Grid';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../../lib/PropTypes';
-import { TIMELINE_ELEMENT_ICONS } from '../../../../lib/constants/timeline';
+import {
+  TIMELINE_ELEMENT_DEFAULT_FIELD as DEFAULT_FIELD,
+  TIMELINE_ELEMENT_DEFAULT_ICONS,
+  TIMELINE_ELEMENT_ICONS,
+} from '../../../../lib/constants/timeline';
+import { DEFAULT_SETTINGS } from '../../../../lib/constants/settings';
+import { POPCORN_ELEMENT_LABELS } from '../../../../lib/constants/popcorn';
 
 const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
   const icon = React.useMemo(() => TIMELINE_ELEMENT_ICONS[item.type], [item]);
+  const quantityIcon = React.useMemo(() => TIMELINE_ELEMENT_DEFAULT_ICONS[item.type], [item]);
 
   return (
     <Grid
       container
-      className="popcorn-element icon-element"
+      className={classnames('popcorn-element', 'icon-element', `popcorn-${item.type}-element`)}
       onClick={onSelect}
       ref={ref}
       title={item.title || item.htmlText || item.type}
@@ -20,7 +27,7 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
       {...rest}
     >
       {icon && (
-        <div className={classnames('inner-wrapper', `${item.type}`)}>
+        <div className={classnames('inner-wrapper', 'popcorn-timeline-icon')}>
           <SVGInline
             className="icon-btn"
             classSuffix="--inline"
@@ -29,6 +36,24 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
           />
         </div>
       )}
+      <div className="popcorn-element-title">
+        {POPCORN_ELEMENT_LABELS[item.type]}
+      </div>
+      <div className={classnames('inner-wrapper', 'popcorn-timeline-icon')}>
+        {
+          quantityIcon
+          && item[DEFAULT_FIELD[item.type]]
+          === DEFAULT_SETTINGS[item.type][DEFAULT_FIELD[item.type]]
+            ? (
+              <SVGInline
+                className="icon-btn"
+                classSuffix="--inline"
+                svg={quantityIcon}
+                cleanup={['title']}
+              />
+            ) : item[DEFAULT_FIELD[item.type]]
+        }
+      </div>
     </Grid>
   );
 });

@@ -1,29 +1,63 @@
-import * as React from 'react';
+import React, { useState } from 'react';
+import lottie from 'lottie-web';
+
+import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
+import { loadUrl } from '../../../lib/requestCreator';
 
 import PropTypes from '../../../lib/PropTypes';
 import FieldBuilder from '../../form/FieldBuilder';
 
-const Basic = ({ options, fields, ...props }) => (
-  <div>
-    {fields && Object.keys(fields).map(key => {
-      const { label, type, ...fieldProps } = fields[key];
-      return (
-        <FieldBuilder
-          {...fieldProps}
-          {...props}
-          label={label}
-          type={type}
-          value={options[key]}
-          key={key}
-          name={key}
-        />
-      );
-    })}
-  </div>
-);
+const Basic = ({ options, update, fields, ...props }) => {
+  const [isDisabled, setIsDisabled] = useState(false);
+
+  const onUploaded = async ({ url }) => {
+    if (options.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION) {
+      const animationData = await loadUrl(url);
+      const animation = await lottie.loadAnimation({ animationData });
+      const duration = animation.totalFrames / animation.animationData.fr;
+      return update({ url, end: options.start + duration });
+    }
+    update({ url });
+  };
+
+  const processUpload = (processFileUpload) => {
+    setIsDisabled(processFileUpload);
+  };
+
+  // ToDo move dropzone to manifest.
+  return (
+    <div className={`inputs-${options.type}-wrapper`}>
+      {fields && Object.keys(fields).map(key => {
+        const { label, type, ...fieldProps } = fields[key];
+        return (
+          <FieldBuilder
+            {...fieldProps}
+            {...props}
+            label={label}
+            type={type}
+            value={options[key]}
+            key={key}
+            name={key}
+            disabled={isDisabled}
+            onUploaded={onUploaded}
+            startUpload={() => processUpload(true)}
+            endUpload={() => processUpload(false)}
+            isDisabled={isDisabled}
+          />
+        );
+      })}
+    </div>
+  );
+};
 
 Basic.propTypes = {
-  options: PropTypes.shape({}),
+  options: PropTypes.shape({
+    type: PropTypes.string,
+    start: PropTypes.number,
+    end: PropTypes.number,
+    duration: PropTypes.number,
+    loop: PropTypes.number,
+  }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.objectOf(
     PropTypes.shape({
@@ -31,6 +65,7 @@ Basic.propTypes = {
       label: PropTypes.string,
     }),
   ),
+  update: PropTypes.func,
 };
 
 export default Basic;

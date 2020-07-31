@@ -9,7 +9,7 @@ const TabMap = {
   [BASIC]: Basic,
 };
 
-const Pause = observer(({ tab = BASIC, element, update, fields }) => {
+const DefaultSettings = observer(({ tab = BASIC, element, update, fields }) => {
   const Tab = TabMap[tab];
   const handleChange = (field) => {
     update(field);
@@ -22,7 +22,7 @@ const Pause = observer(({ tab = BASIC, element, update, fields }) => {
   );
 });
 
-Pause.propTypes = {
+DefaultSettings.propTypes = {
   element: PropTypes.shape({
     id: PropTypes.string,
     popcornOptions: PropTypes.shape({
@@ -34,4 +34,4 @@ Pause.propTypes = {
   fields: PropTypes.shape({}),
 };
 
-export default Pause;
+export default DefaultSettings;
