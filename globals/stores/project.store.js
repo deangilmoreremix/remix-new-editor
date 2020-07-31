@@ -618,23 +618,23 @@ export default class ProjectStore extends BaseStore {
   @action
   moveFormFields = (oldIndex, newIndex, type) => {
     this.setUndo();
-    let newArrForm;
+    let newElementFields;
     if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR) {
       this.projectData.media.forEach((media) => {
         media.tracks.forEach(track => {
           track.trackEvents.forEach(elem => {
             if (elem.type === type) {
-              newArrForm = [...elem.popcornOptions.elements];
-              newArrForm = arrayMove(newArrForm, oldIndex, newIndex);
+              newElementFields = [...elem.popcornOptions.elements];
+              newElementFields = arrayMove(newElementFields, oldIndex, newIndex);
             }
           });
         });
       });
     } else {
-      newArrForm = [...this.retarget.options.elements];
-      newArrForm = arrayMove(newArrForm, oldIndex, newIndex);
+      newElementFields = [...this.retarget.options.elements];
+      newElementFields = arrayMove(newElementFields, oldIndex, newIndex);
     }
-    this.findAndUpdate(this.activeElementId, { elements: newArrForm });
+    this.findAndUpdate(this.activeElementId, { elements: newElementFields });
   };
 
   @action
