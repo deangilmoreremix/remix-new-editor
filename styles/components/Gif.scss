@@ -1,30 +1,6 @@
-.gif-items {
-  @include tiny-scrollbar;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  overflow-x: hidden;
-
-  @import "/common/library/AudioLibrary";
-}
-
-.gif-library-placeholder {
-  position: absolute;
-  background: $light-twinlight;
-  left: 0;
-  font-size: 0.7em;
-  outline: none;
-  color: $white;
-  border:none;
-
-  span {
-    margin-left: 0.3em;
-    font-size: 1em;
-    color: $secondary-color;
-  }
-}
-
 .gif-library {
+  display: flex;
+  flex-direction: column;
   position: relative;
   top: 0;
   left: 50%;
@@ -37,65 +13,7 @@
   overflow: hidden;
   transition: 0.3s all;
 
-  &-wrapper {
-    padding-right: 2rem;
-    padding-left: 1rem;
-  }
-
-  &-search {
-    width: 85%;
-    display: block;
-    background: none;
-    border: none;
-    outline: none;
-    border-bottom: 1px solid $secondary-color;
-    padding: 0.3rem 0;
-    color: $white;
-    margin-left: 1rem;
-    margin-bottom: 0.7rem;
-
-    &:focus ~ .library__placeholder {
-      display: none;
-    }
-  }
-
-  &-items {
-    @include tiny-scrollbar;
-    display: flex;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    overflow-x: hidden;
-    overflow-y: auto;
-
-  }
-
-  .text-input {
-    width: 15rem;
-    height: 3.5rem;
-    font-size: 0.9em;
-    font-family: $font-primary;
-
-
-    &::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-      font-family: $font-primary;
-      font-size: 0.9em;
-    }
-    &::-moz-placeholder { /* Firefox 19+ */
-      font-family: $font-primary;
-      font-size: 0.9em;
-    }
-    &:-ms-input-placeholder { /* IE 10+ */
-      font-family: $font-primary;
-      font-size: 0.9em;
-    }
-    &:-moz-placeholder { /* Firefox 18- */
-      font-family: $font-primary;
-      font-size: 0.9em;
-    }
-  }
-
-
-  &-header {
+  &__header {
     width: 100%;
     height: 2.1rem;
     display: flex;
@@ -107,9 +25,69 @@
     padding: 0 10px;
   }
 
+  &__body {
+    flex: 1;
+    padding: 1rem 2.62rem 1.4rem 1.56rem;
+    overflow: hidden;
+  }
+
+  &__search {
+    position: relative;
+  }
+
+  &__input {
+    width: 100%;
+    display: block;
+    background: none;
+    border: none;
+    outline: none;
+    border-bottom: 1px solid $secondary-color;
+    padding: 0.3rem 0;
+    color: $white;
+    margin-bottom: 0.7rem;
+
+    &:focus ~ .gif-library__placeholder {
+      display: none;
+    }
+  }
+
+  &__placeholder {
+    @include reset-button;
+    position: absolute;
+    bottom: 0.3rem;
+    left: 0;
+    font-size: 0.7em;
+    outline: none;
+    color: $white;
+
+    span {
+      margin-left: 0.3em;
+      font-size: 1em;
+      color: $secondary-color;
+    }
+  }
+
+  &__items {
+    @include tiny-scrollbar;
+    height: calc(100% - 50px);
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+  }
+
   &-grid-body {
     height: calc(100% - 2.1rem);
     overflow: hidden;
     max-width: 70%;
   }
+}
+
+.gif-items {
+  @include tiny-scrollbar;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  overflow-x: hidden;
+
+  @import "/common/library/AudioLibrary";
 }

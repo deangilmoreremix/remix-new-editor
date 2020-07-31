@@ -1,9 +1,8 @@
-import React, { useEffect, Fragment, useCallback, useState, useRef } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 import { Waypoint } from 'react-waypoint';
 
-import { CircleLoader } from 'react-spinners';
 import useUIStore from '../hooks/useUIStore';
 import useProjectStore from '../hooks/useProjectStore';
 import useMediaStore from '../hooks/useMediaStore';
@@ -12,8 +11,8 @@ import ContentItem from '../common/stickers/ContentItem';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import { search, perPage } from '../../lib/constants/library';
 import { ENTER_KEY } from '../../lib/constants/keyCodes';
-import { LOADING_COLOR } from '../../lib/constants/ui';
 import { showError } from '../../lib/services/alertService';
+import { LibrarySpinner } from './Loader';
 
 const GiphyGifs = observer((props) => {
   const inputRef = useRef();
@@ -99,45 +98,36 @@ const GiphyGifs = observer((props) => {
 
   return (
     <div className={classnames('gif-library', { 'big-window': !isTimelineOpen })}>
-      <header className="gif-library-header">
-        {type.toUpperCase()}
+      <header className="gif-library__header">
+        {type}
       </header>
-      <div className={classnames('gif-library-wrapper')}>
-        <Fragment>
+      <div className={classnames('gif-library__body')}>
+        <div className="gif-library__search">
           <input
-            className="gif-library-search"
+            className="gif-library__input"
             type="text"
             ref={inputRef}
             value={searchValue}
             onChange={e => setSearchValue(e.target.value)}
             onKeyUp={handleKeyUp}
           />
-          {!searchValue && gifs.length <= 1 && (
+          {!searchValue && (
             <button
-              className="gif-library-placeholder"
+              className="gif-library__placeholder"
               onClick={handleSetFocus}
             >
               {search.label}
               <span>{search.subLabel}</span>
             </button>
           )}
-        </Fragment>
+        </div>
         {isLoading
-          ? (
-            <CircleLoader
-              size={100}
-              css={{ margin: 'auto' }}
-              loading
-              color={LOADING_COLOR}
-            />
-          )
+          ? (<LibrarySpinner />)
           : (
-            <div className={classnames('library__items')}>
+            <div className={classnames('gif-library__items')}>
 
               {gifs.length !== 0 && gifs}
-              <Waypoint
-                onEnter={handleScroll}
-              />
+              <Waypoint onEnter={handleScroll} />
             </div>
           )}
         <CloseButton onClick={() => toggleRightBlock(false)} />
