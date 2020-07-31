@@ -91,7 +91,7 @@ const LinkedinPost = observer((props) => {
                       endUpload={() => setIsDisabledUpload(false)}
                       isDisabled={isDisabledUpload}
                       needSaveAsset={false}
-                      type={ASSET_TYPES.IMAGE}
+                      mediaType={ASSET_TYPES.IMAGE}
                       multiple={false}
                       className="settings__add-file"
                     />

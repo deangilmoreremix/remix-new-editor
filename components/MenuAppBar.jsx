@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 import Router from 'next/router';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
-import { Grid, AppBar, Toolbar } from '@material-ui/core';
+import { AppBar, Toolbar } from '@material-ui/core';
 
 import { radioButton } from '../lib/constants/windowsLogics';
 
@@ -97,101 +97,98 @@ const MenuAppBar = observer(() => {
     <div className="container-header" ref={anchorRef}>
       <AppBar position="static" className="app-bar">
         <Toolbar className="container-menu">
-          <Grid container>
-            <Grid item xs={1} className="flex-vertical-center">
-              {/* <Menu */}
-              {/* toggleElement={ */}
-              {/* ( */}
-              {/* <SVGInline */}
-              {/* className="icon icon-button" */}
-              {/* classSuffix="" */}
-              {/* svg={hamburgerIcon} */}
-              {/* cleanup={['title']} */}
-              {/* /> */}
-              {/* ) */}
-              {/* } */}
-              {/* items={menu} */}
-              {/* className="project-menu" */}
-              {/* parent={anchorRef} */}
-              {/* placement="bottom-start" */}
-              {/* /> */}
-            </Grid>
-            <Grid item xs={2} className="flex-vertical-center">
-              {/* <SVGInline */}
-              {/* className="logo flex" */}
-              {/* classSuffix="" */}
-              {/* svg={logoIcon} */}
-              {/* cleanup={['title']} */}
-              {/* /> */}
-            </Grid>
-            <Grid item xs={1} className="flex-vertical-center">
-              <div className="auto-margin">
-                <SVGInline
-                  className={classnames('auto-margin icon icon-button', { active: canUndo })}
-                  classSuffix=""
-                  svg={undoIcon}
-                  cleanup={['title']}
-                  component="button"
-                  disabled={!canUndo}
-                  onClick={() => undoRedoAction(true)}
-                />
-                <button
-                  className={classnames('icon-button', { active: canUndo })}
-                  disabled={!canUndo}
-                  onClick={() => undoRedoAction(true)}
-                >
-                  undo
-                </button>
-              </div>
-              <div className="auto-margin">
-                <SVGInline
-                  className={classnames('auto-margin icon icon-button', { active: canRedo })}
-                  classSuffix=""
-                  svg={redoIcon}
-                  cleanup={['title']}
-                  component="button"
-                  disabled={!canRedo}
-                  onClick={() => undoRedoAction(false)}
-                />
-                <button
-                  className={classnames('icon-button', { active: canRedo })}
-                  disabled={!canRedo}
-                  onClick={() => undoRedoAction(false)}
-                >
-                  redo
-                </button>
-              </div>
-              <div className="auto-margin">
-                <SVGInline
-                  className={`auto-margin icon icon-button ${modified ? 'active-save' : ''}`}
-                  classSuffix=""
-                  svg={saveIcon}
-                  cleanup={['title']}
-                  component="button"
-                  onClick={saveProject}
-                  disabled={!modified}
-                />
-                <button
-                  className={`icon-button ${modified ? 'active-save' : ''}`}
-                  onClick={saveProject}
-                  disabled={!modified}
-                >
-                  save
-                </button>
-              </div>
-            </Grid>
-            <Grid item xs={6} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <ExpandButton />
-            </Grid>
-            <Grid className="user-menu" item xs={2}>
-              <Menu
-                toggleElement={<UserBox />}
-                items={USER_MENU_ITEMS(common)}
-                className="user-menu flex-center"
-                needEndIcon
+          {/* <Grid item xs={1} className="flex-vertical-center"> */}
+          {/*   <Menu */}
+          {/*   toggleElement={ */}
+          {/*   ( */}
+          {/*   <SVGInline */}
+          {/*   className="icon icon-button" */}
+          {/*   classSuffix="" */}
+          {/*   svg={hamburgerIcon} */}
+          {/*   cleanup={['title']} */}
+          {/*   /> */}
+          {/*   ) */}
+          {/*   } */}
+          {/*   items={menu} */}
+          {/*   className="project-menu" */}
+          {/*   parent={anchorRef} */}
+          {/*   placement="bottom-start" */}
+          {/*   /> */}
+          {/* </Grid> */}
+          {/* <Grid item xs={2} className="flex-vertical-center"> */}
+          {/*   <SVGInline */}
+          {/*   className="logo flex" */}
+          {/*   classSuffix="" */}
+          {/*   svg={logoIcon} */}
+          {/*   cleanup={['title']} */}
+          {/*   /> */}
+          {/* </Grid> */}
+
+          <div className="container-menu__actions">
+            <div>
+              <SVGInline
+                className={classnames('icon icon-button', { active: canUndo })}
+                classSuffix=""
+                svg={undoIcon}
+                cleanup={['title']}
+                component="button"
+                disabled={!canUndo}
+                onClick={() => undoRedoAction(true)}
               />
-            </Grid>
-          </Grid>
+              <button
+                className={classnames('icon-button container-menu__button-text', { active: canUndo })}
+                disabled={!canUndo}
+                onClick={() => undoRedoAction(true)}
+              >
+                undo
+              </button>
+            </div>
+            <div>
+              <SVGInline
+                className={classnames('icon icon-button', { active: canRedo })}
+                classSuffix=""
+                svg={redoIcon}
+                cleanup={['title']}
+                component="button"
+                disabled={!canRedo}
+                onClick={() => undoRedoAction(false)}
+              />
+              <button
+                className={classnames('icon-button container-menu__button-text', { active: canRedo })}
+                disabled={!canRedo}
+                onClick={() => undoRedoAction(false)}
+              >
+                redo
+              </button>
+            </div>
+            <div>
+              <SVGInline
+                className={`icon icon-button ${modified ? 'active-save' : ''}`}
+                classSuffix=""
+                svg={saveIcon}
+                cleanup={['title']}
+                component="button"
+                onClick={saveProject}
+                disabled={!modified}
+              />
+              <button
+                className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
+                onClick={saveProject}
+                disabled={!modified}
+              >
+                save
+              </button>
+            </div>
+          </div>
+
+          <ExpandButton />
+
+          <Menu
+            toggleElement={<UserBox />}
+            items={USER_MENU_ITEMS(common)}
+            className="user-menu flex-center"
+            needEndIcon
+          />
         </Toolbar>
       </AppBar>
     </div>
