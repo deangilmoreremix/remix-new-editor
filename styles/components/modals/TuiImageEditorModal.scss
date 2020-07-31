@@ -1282,13 +1282,13 @@
   height: 16px;
 }
 
-.tui-image-editor-container .color-picker-control {
-  width: auto!important;
+.tui-image-editor-selectlist {
+  color: black;
 }
 
-.tui-image-editor-container.top.tui-image-editor-top-optimization .tui-image-editor-controls ul {
-  text-align: right;
-
+.tui-image-editor-container .tui-colorpicker-clearfix {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .tui-image-editor-container.top.tui-image-editor-top-optimization .tui-image-editor-controls-logo {
