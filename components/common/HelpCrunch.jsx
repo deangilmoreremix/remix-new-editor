@@ -85,16 +85,16 @@ export default class HelpCrunch extends Component {
     if (!canUseDOM) {
       return;
     }
-    // const { userStore } = this.props;
-    // await userStore.setRoles();
-    //
-    // const { roles } = userStore;
-    // window.HelpCrunch('onReady', () => {
-    //   window.HelpCrunch('showChatWidget');
-    //   window.HelpCrunch('updateUserData', {
-    //     active_roles: roles.map(({ name }) => name).join(', '),
-    //   });
-    // });
+    const { userStore } = this.props;
+    await userStore.setRoles();
+
+    const { roles } = userStore;
+    window.HelpCrunch('onReady', () => {
+      window.HelpCrunch('showChatWidget');
+      window.HelpCrunch('updateUserData', {
+        active_roles: roles.map(({ name }) => name).join(', '),
+      });
+    });
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
