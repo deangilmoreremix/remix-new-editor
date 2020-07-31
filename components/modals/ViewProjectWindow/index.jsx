@@ -11,7 +11,7 @@ import { showError } from '../../../lib/services/alertService';
 import List from '../../common/projectDataList/List';
 import Preview from '../../common/projectDataList/Preview';
 
-const Presets = ({ handleClose, fetchItems, title }) => {
+const ViewProjectWindow = ({ handleClose, fetchItems, title }) => {
   const [items, setItems] = useState([]);
   const [activeItem, setActiveItem] = useState();
   const [page, setPage] = useState(1);
@@ -96,10 +96,10 @@ const Presets = ({ handleClose, fetchItems, title }) => {
   };
 
   return (
-    <div className="presets">
-      <p className="presets__header">{title}</p>
-      <div className="presets__body">
-        <div className="presets-list-container">
+    <div className="view-project-window">
+      <p className="view-project-window__header">{title}</p>
+      <div className="view-project-window__body">
+        <div className="view-project-window__container">
           <List
             items={items}
             hasMore={hasMore}
@@ -109,22 +109,22 @@ const Presets = ({ handleClose, fetchItems, title }) => {
             isLoading={isLoading}
           />
         </div>
-        <div className="presets__control">
+        <div className="view-project-window__control">
           <Preview
             preview={preview}
             activeItem={activeItem}
           />
-          <button className="presets__use" onClick={addDataToCanvas}>Use</button>
+          <button className="view-project-window__use" onClick={addDataToCanvas}>Use</button>
         </div>
       </div>
     </div>
   );
 };
 
-Presets.propTypes = {
+ViewProjectWindow.propTypes = {
   handleClose: PropTypes.func.isRequired,
   fetchItems: PropTypes.func.isRequired,
   title: PropTypes.string,
 };
 
-export default Presets;
+export default ViewProjectWindow;

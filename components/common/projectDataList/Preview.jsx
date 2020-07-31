@@ -24,16 +24,16 @@ const Preview = observer(({ preview, activeItem, className }) => {
   }, [activeItem]);
 
   return (
-    <div className={classnames('presets-preview', className)} ref={wrapper}>
-      {preview && !isPlayed && <img src={preview} className="presets-preview__img" alt="preview" />}
+    <div className={classnames('project-data-preview', className)} ref={wrapper}>
+      {preview && !isPlayed && <img src={preview} className="project-data-preview__img" alt="preview" />}
       <div className={classnames(
-        'presets-button-block',
-        { 'presets-button-bg': !preview && !isPlayed, 'presets-button-active': isPlayed },
+        'project-data-preview__button-block',
+        { 'project-data-preview__button-bg': !preview && !isPlayed, 'project-data-preview__button-active': isPlayed },
       )}
       >
         { activeItem && !isPlayed && (
           <button
-            className="presets-preview__play"
+            className="project-data-preview__play"
             onClick={play}
           />
         )}

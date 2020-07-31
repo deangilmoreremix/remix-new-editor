@@ -7,15 +7,15 @@ import PropTypes from '../../../lib/PropTypes';
 import { LibrarySpinner } from '../../media/Loader';
 
 const List = ({ items, hasMore, uploadNewItems, handleSelect, activeItem, isLoading }) => (
-  <div className="presets-list">
+  <div className="project-data-list">
     {items && items.length ? (
       <Fragment>
         {items.map((item) => (
           <button
             key={item._id}
             className={classnames(
-              'presets-list__button',
-              { 'presets-list__button-active': activeItem && activeItem._id === item._id },
+              'project-data-list__button',
+              { 'project-data-list__button-active': activeItem && activeItem._id === item._id },
             )}
             onClick={() => handleSelect(item)}
           >
@@ -25,7 +25,7 @@ const List = ({ items, hasMore, uploadNewItems, handleSelect, activeItem, isLoad
       </Fragment>
     ) : null}
     {isLoading && hasMore && <LibrarySpinner />}
-    {!isLoading && hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="preset-waypoint" /></Waypoint>}
+    {!isLoading && hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="project-data-list-waypoint" /></Waypoint>}
   </div>
 );
 
