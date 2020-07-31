@@ -12,13 +12,13 @@ import { DEACTIVATE_LB } from '../../../../lib/constants/text-info';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
 import { CROP_BRAND_LOGO_RESOLUTION } from '../../../../lib/constants/settings/image';
-// import useUIStore from '../../../hooks/useUIStore';
+import useUIStore from '../../../hooks/useUIStore';
 
 const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, onClose }) => {
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
 
-  // const { openAnimation } = useUIStore();
+  const { openAnimation } = useUIStore();
 
   const onUploadedImage = (image, option) => {
     onChange({ [option]: image.url });
@@ -216,11 +216,10 @@ const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, o
               {...fields.btnBottomBorder}
               onChange={handleChangeColor}
             />
-            {/* <div className="container-transition"> */}
-            {/* <span className="form-control-label">Animations</span> */}
-            {/* <button className="btn-library" onClick={() => openAnimation()}> */}
-            {/* Open Library</button> */}
-            {/* </div> */}
+            <div className="container-transition">
+              <span className="form-control-label">Animations</span>
+              <button className="btn-library" onClick={() => openAnimation()}>Open Library</button>
+            </div>
           </div>
         </div>
       </div>

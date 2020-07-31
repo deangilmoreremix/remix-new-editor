@@ -1040,6 +1040,7 @@
 .tui-image-editor-container .tui-colorpicker-palette-hex[value='#ffffff'] + .tui-colorpicker-palette-preview,
 .tui-image-editor-container .tui-colorpicker-palette-hex[value=''] + .tui-colorpicker-palette-preview {
   border: 1px solid #ccc;
+
 }
 
 .tui-image-editor-container .tui-colorpicker-palette-hex[value=''] + .tui-colorpicker-palette-preview {
@@ -1279,16 +1280,10 @@
   font-size: 4px !important;
   border-radius: 50% !important;
   height: 16px;
-  width: 16px;
 }
 
-.tui-image-editor-selectlist {
-  color: black;
-}
-
-.tui-image-editor-container .tui-colorpicker-clearfix {
-  display: flex;
-  flex-wrap: wrap;
+.tui-image-editor-container .color-picker-control {
+  width: auto!important;
 }
 
 .tui-image-editor-container.top.tui-image-editor-top-optimization .tui-image-editor-controls ul {
