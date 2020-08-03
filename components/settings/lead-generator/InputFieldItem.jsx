@@ -66,7 +66,11 @@ const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput }) 
 
 
 InputFieldItem.propTypes = {
-  item: PropTypes.shape({}).isRequired,
+  item: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+  }).isRequired,
   fields: PropTypes.shape({
     elements: PropTypes.shape({}),
   }).isRequired,
