@@ -74,6 +74,7 @@ const GiphyGifs = observer(({ type }) => {
           searchValue={searchValue}
           startSearch={startSearch}
           setStartSearch={setStartSearch}
+          searchPage
         />
         <CloseButton onClick={() => toggleRightBlock(false)} />
       </div>

@@ -22,6 +22,7 @@ const List = observer((
     searchValue,
     startSearch,
     setStartSearch,
+    searchPage,
   }) => {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
@@ -56,7 +57,7 @@ const List = observer((
       getItems(true);
     }
 
-    if (setStartSearch && !startSearch && !searchValue) {
+    if (setStartSearch && !startSearch && !searchValue && searchPage) {
       getItems(true);
     }
   }, [startSearch, searchValue]);
@@ -66,7 +67,7 @@ const List = observer((
       resetParams();
     }
 
-    if (hasMore || reset) {
+    if ((hasMore || reset) && ((searchPage && searchValue) || !searchPage)) {
       setIsLoading(true);
       try {
         const results = await get({
@@ -94,7 +95,7 @@ const List = observer((
   };
 
   React.useEffect(() => {
-    if (page === 1) {
+    if (page === 1 && !searchPage) {
       getItems();
     }
   }, [page]);
@@ -130,6 +131,7 @@ List.propTypes = {
   searchValue: PropTypes.string,
   startSearch: PropTypes.bool,
   setStartSearch: PropTypes.func,
+  searchPage: PropTypes.bool,
 };
 
 List.defaultProps = {
@@ -138,6 +140,7 @@ List.defaultProps = {
   type: MEDIA_TYPES.IMAGE,
   startSearch: false,
   searchValue: null,
+  searchPage: false,
 };
 
 export default List;
