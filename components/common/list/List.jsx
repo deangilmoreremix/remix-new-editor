@@ -65,7 +65,8 @@ const List = observer((
     if (reset) {
       resetParams();
     }
-    if (hasMore || startSearch) {
+
+    if (hasMore || reset) {
       setIsLoading(true);
       try {
         const results = await get({
@@ -81,11 +82,8 @@ const List = observer((
         }
         const hasNextPage = results.length === perPage;
         setHasMore(hasNextPage);
-        if (hasNextPage && !reset) {
-          setPage(page + 1);
-        }
-        if (reset) {
-          setPage(1);
+        if (hasNextPage) {
+          setPage(value => value + 1);
         }
         setIsLoading(false);
       } catch (e) {
