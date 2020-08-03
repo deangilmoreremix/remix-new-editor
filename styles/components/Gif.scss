@@ -82,6 +82,10 @@
   }
 }
 
+div.gif-library__height {
+  height: calc(100% - 3.1rem);
+}
+
 .gif-items {
   @include tiny-scrollbar;
   display: flex;

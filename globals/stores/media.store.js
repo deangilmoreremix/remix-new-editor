@@ -165,7 +165,8 @@ export default class Media extends BaseStore {
     return file;
   };
 
-   getGiphyData = async (value, type, offset = 0) => {
+   getGiphyData = async ({ type, page, query: value }) => {
+     const offset = perPage * page;
      const giphyFetch = new GiphyFetch(config.mediaProviders.GIPHY.apiKey);
      const res = await giphyFetch.search(value, { type, offset, limit: perPage });
      if (res.meta.status !== 200) {
