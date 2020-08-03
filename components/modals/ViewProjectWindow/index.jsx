@@ -23,10 +23,14 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title }) => {
   const { addData } = useProjectStore();
 
   const handleSelect = React.useCallback(async (item) => {
-    await setPreviewData(item.project.data);
-    setPreview(item.thumbnail);
-    setActiveItem(item);
-    updateTime(0);
+    try {
+      await setPreviewData(item.project.data);
+      setPreview(item.thumbnail);
+      setActiveItem(item);
+      updateTime(0);
+    } catch (e) {
+      showError(e.message);
+    }
   }, []);
 
   const addDataToCanvas = useCallback(async () => {
@@ -39,7 +43,7 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title }) => {
       await addData(activeItem, true);
       handleClose();
     } catch (e) {
-      await showError(e.message);
+      showError(e.message);
     }
   }, [activeItem, addData]);
 
