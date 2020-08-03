@@ -34,6 +34,10 @@ const GiphyGifs = observer(({ type }) => {
     }
   };
 
+  useEffect(() => {
+    setSearchValue('');
+  }, [type]);
+
   return (
     <div className={classnames('gif-library', { 'big-window': !isTimelineOpen })}>
       <header className="gif-library__header">

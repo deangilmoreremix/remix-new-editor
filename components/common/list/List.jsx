@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 
@@ -51,17 +51,15 @@ const List = observer((
   };
 
   useEffect(() => {
-    if (setStartSearch) {
+    if (setStartSearch && startSearch && searchValue) {
       setStartSearch(false);
       getItems(true);
     }
-  }, [startSearch]);
 
-  // useEffect(() => {
-  //   if (fetchAttr && fetchAttr.type) {
-  //     getItems(true);
-  //   }
-  // }, [fetchAttr]);
+    if (setStartSearch && !startSearch && !searchValue) {
+      getItems(true);
+    }
+  }, [startSearch, searchValue]);
 
   const getItems = async (reset = false) => {
     if (reset) {
@@ -141,6 +139,7 @@ List.defaultProps = {
   projectElement: false,
   type: MEDIA_TYPES.IMAGE,
   startSearch: false,
+  searchValue: null,
 };
 
 export default List;
