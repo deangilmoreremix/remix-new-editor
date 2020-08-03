@@ -16,13 +16,13 @@ const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput }) 
 
   useEffect(() => {
     if (ref.current) {
-      if (item.label === inputValue) {
+      if (item.label === '') {
         ref.current.focus();
       } else {
         ref.current.blur();
       }
     }
-  }, [inputValue]);
+  }, [item.label]);
 
   return (
     <div className="item-retarget-container lead-generator-container" key={item.id}>
@@ -34,7 +34,7 @@ const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput }) 
         alt="humburger"
       />
       <FieldBuilder
-        type="input"
+        type="text"
         ref={ref}
         value={inputValue}
         name={item.name}
@@ -66,11 +66,7 @@ const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput }) 
 
 
 InputFieldItem.propTypes = {
-  item: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
-  }).isRequired,
+  item: PropTypes.shape({}).isRequired,
   fields: PropTypes.shape({
     elements: PropTypes.shape({}),
   }).isRequired,
