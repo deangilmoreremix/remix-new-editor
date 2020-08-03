@@ -6,13 +6,17 @@ import { Waypoint } from 'react-waypoint';
 import useUIStore from '../hooks/useUIStore';
 import useProjectStore from '../hooks/useProjectStore';
 import useMediaStore from '../hooks/useMediaStore';
-import CloseButton from '../common/CloseButton';
-import ContentItem from '../common/stickers/ContentItem';
+
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import { search, perPage } from '../../lib/constants/library';
 import { ENTER_KEY } from '../../lib/constants/keyCodes';
+
+import CloseButton from '../common/CloseButton';
+import ContentItem from '../common/stickers/ContentItem';
 import { showError } from '../../lib/services/alertService';
 import { LibrarySpinner } from './Loader';
+import List from '../common/list/List';
+import ImageElement from '../common/libraryElements/ImageElement';
 
 const GiphyGifs = observer((props) => {
   const inputRef = useRef();
@@ -121,15 +125,18 @@ const GiphyGifs = observer((props) => {
             </button>
           )}
         </div>
-        {isLoading
-          ? (<LibrarySpinner />)
-          : (
+
             <div className={classnames('gif-library__items')}>
 
               {gifs.length !== 0 && gifs}
               <Waypoint onEnter={handleScroll} />
             </div>
-          )}
+
+        {/*<List*/}
+        {/*  get={getGiphyData}*/}
+        {/*  className="blendmode-body"*/}
+        {/*  element={ImageElement}*/}
+        {/*/>*/}
         <CloseButton onClick={() => toggleRightBlock(false)} />
       </div>
     </div>
