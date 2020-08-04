@@ -15,7 +15,7 @@ const DropButton = (
     isArea,
     accept,
     onUploaded,
-    type,
+    mediaType,
     startUpload,
     endUpload,
     isDisabled,
@@ -43,7 +43,7 @@ const DropButton = (
     }
 
     try {
-      result = await saveFiles(acceptedFiles, needSaveAsset, type.toUpperCase(), multiple);
+      result = await saveFiles(acceptedFiles, needSaveAsset, mediaType.toUpperCase(), multiple);
       onUploaded(result);
     } catch (e) {
       showError(e.message);
@@ -82,7 +82,7 @@ const DropButton = (
 
 DropButton.propTypes = {
   onUploaded: PropTypes.func.isRequired,
-  type: PropTypes.string.isRequired,
+  mediaType: PropTypes.string.isRequired,
   startUpload: PropTypes.func,
   endUpload: PropTypes.func,
   isDisabled: PropTypes.bool,

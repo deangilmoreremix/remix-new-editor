@@ -26,13 +26,19 @@ const fetchAnimation = async (url) => new Promise((resolve, reject) => {
 const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [], className }) => {
   const [isStopped, setIsStopped] = React.useState(false);
   const [isPaused, setIsPaused] = React.useState(false);
-  const [colors, storeColors] = React.useState(value);
+  const [colors, storeColors] = React.useState();
 
   const animationElement = React.useRef(null);
 
   const { result: animation } = useAsync(fetchAnimation, [file]);
 
   const icon = React.useMemo(() => (!isStopped ? stopIcon : playIcon), [isStopped]);
+
+  React.useEffect(() => {
+    if (value && value.length) {
+      storeColors(value);
+    }
+  }, [value]);
 
   // TODO: left here for the future segments playback
   const load = () => {
