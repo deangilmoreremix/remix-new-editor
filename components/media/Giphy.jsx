@@ -68,7 +68,7 @@ const GiphyGifs = observer(({ type }) => {
           get={getGiphyData}
           className="gif-library__height"
           element={ImageElement}
-          fetchAttr={{
+          fetchAttributes={{
             type,
           }}
           searchValue={searchValue}

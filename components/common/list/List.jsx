@@ -16,7 +16,7 @@ const List = observer((
     get,
     className,
     element: Element,
-    fetchAttr,
+    fetchAttributes,
     projectElement,
     type,
     searchValue,
@@ -74,7 +74,7 @@ const List = observer((
           query: searchValue,
           page,
           perPage,
-          ...fetchAttr,
+          ...fetchAttributes,
         });
         if (reset) {
           setItems(results);
@@ -125,7 +125,7 @@ const List = observer((
 List.propTypes = {
   element: PropTypes.func.isRequired,
   className: PropTypes.string,
-  fetchAttr: PropTypes.shape(),
+  fetchAttributes: PropTypes.shape(),
   projectElement: PropTypes.bool,
   type: PropTypes.string,
   searchValue: PropTypes.string,
