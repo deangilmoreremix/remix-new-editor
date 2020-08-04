@@ -23,8 +23,16 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title }) => {
   const { addData } = useProjectStore();
 
   const handleSelect = React.useCallback(async (item) => {
+    let zIndex = 0;
     try {
-      await setPreviewData(item.project.data);
+      let newData = JSON.parse(item.project.data);
+      newData.media[0].tracks.reverse();
+      newData.media[0].tracks.forEach(element => {
+        element.trackEvents[0].popcornOptions.zindex = ++zIndex;
+      });
+      newData = JSON.stringify(newData);
+
+      await setPreviewData(newData);
       setPreview(item.thumbnail);
       setActiveItem(item);
       updateTime(0);
