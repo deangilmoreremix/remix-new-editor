@@ -87,3 +87,20 @@
     z-index: 1;
   }
 }
+
+.overlay__control {
+  flex: 1;
+}
+
+.overlay__use {
+  @include reset-button();
+  width: 100%;
+  max-width: 7.8rem;
+  height: 2.18rem;
+  background: $secondary-color;
+  text-transform: uppercase;
+  border-radius: 4px;
+  margin-top: 1.25rem;
+  color: $white;
+  margin-left: auto;
+}
