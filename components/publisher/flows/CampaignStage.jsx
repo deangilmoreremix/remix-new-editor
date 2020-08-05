@@ -49,7 +49,7 @@ const CampaignStage = ({
           type="button"
         >
           <i className={actionButtonIconClassName || 'hidden'} />
-          {actionButtonCaption || 'Next'}
+          {actionButtonCaption || (index === 2 && 'Close') || 'Next'}
         </button>
       </div>
     </React.Fragment>
