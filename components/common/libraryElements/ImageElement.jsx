@@ -3,16 +3,12 @@ import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
 
-import blendModeConstants from '../../../lib/constants/blendMode';
-
 const ImageElement = ({ handleSelect, item, className }) => {
-  const element = JSON.parse(item.project.data);
-  const { blendMode } = element.media[0].tracks[0];
-  const { url } = element.media[0].tracks[0].trackEvents[0].popcornOptions;
+  const url = item.data || item.preview || item.url;
 
   return (
     <div className={classnames('list-item', className)}>
-      <div style={{ mixBlendMode: blendMode || blendModeConstants.normal.value }}>
+      <div>
         {url && <img src={url} alt="img" />}
       </div>
       <button
@@ -24,7 +20,11 @@ const ImageElement = ({ handleSelect, item, className }) => {
 };
 
 ImageElement.propTypes = {
-  item: PropTypes.shape(),
+  item: PropTypes.shape({
+    data: PropTypes.string,
+    preview: PropTypes.string,
+    url: PropTypes.string,
+  }),
   handleSelect: PropTypes.func.isRequired,
   className: PropTypes.string,
 };
