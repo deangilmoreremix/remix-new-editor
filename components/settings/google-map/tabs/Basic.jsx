@@ -1,9 +1,7 @@
 import React from 'react';
 
-const Basic = () => {
-  return (
-    <div>Google map</div>
-  );
-};
+const Basic = () => (
+  <div>Google map</div>
+);
 
 export default Basic;
