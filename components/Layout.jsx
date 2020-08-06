@@ -14,6 +14,7 @@ import PopcornProxy from '../lib/PopcornProxy';
 
 import PropTypes from '../lib/PropTypes';
 
+import Intercom from './common/Intercom';
 import HelpCrunch from './common/HelpCrunch';
 
 import { DEFAULT_TITLE } from '../lib/constants/project';
@@ -66,6 +67,21 @@ class Layout extends Component {
                       userStore={this.stores.userStore}
                       applicationId={this.stores.common.helpCrunch.applicationId}
                       applicationSecret={this.stores.common.helpCrunch.applicationSecret}
+                    />
+                  ) : null}
+                {this.stores.userStore.currentUser && this.stores.common.whiteLabelManager && this.stores.common.whiteLabelManager.domain === 'videoremix.io'
+                  ? (
+                    <Intercom
+                      appID={this.stores.common.intercom.appId}
+                      user={{
+                        email: this.stores.userStore.currentUser.email,
+                        fullName: this.stores.userStore.currentUser.fullName,
+                        hash: this.stores.userStore.currentUser.hash,
+                        createdAt: Math.floor(
+                          Date.parse(this.stores.userStore.currentUser.createdAt) / 1000,
+                        ).toString(),
+                      }}
+                      domain="videoremix.io"
                     />
                   ) : null}
               </div>
