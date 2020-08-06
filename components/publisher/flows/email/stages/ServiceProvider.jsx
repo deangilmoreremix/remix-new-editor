@@ -1,13 +1,19 @@
-import * as React from 'react';
+import React, { useRef, useState, useEffect, Fragment } from 'react';
 import classnames from 'classnames';
 
 import PropTypes from '../../../../../lib/PropTypes';
 import PROVIDERS from '../../../../../lib/constants/campaigns/email-providers';
 
-const ServiceProvider = ({ settings, updateCampaign, generatePersonalizedLink }) => {
+const ServiceProvider = ({ settings, updateCampaign, generatePersonalizedLink, setLink }) => {
   const { emailProvider } = settings;
-  const linkElement = React.useRef(null);
-  const [tooltip, showTooltip] = React.useState(false);
+  const linkElement = useRef(null);
+  const [tooltip, showTooltip] = useState(false);
+
+  useEffect(() => {
+    if (linkElement && linkElement.current) {
+      setLink(linkElement.current);
+    }
+  }, [linkElement]);
 
   const handleCopyLink = (e) => {
     e.preventDefault();
@@ -48,7 +54,7 @@ const ServiceProvider = ({ settings, updateCampaign, generatePersonalizedLink })
           </ul>
         </div>
         {emailProvider && (
-          <React.Fragment>
+          <Fragment>
             <div className="service-provider-section personalized-link-section">
               <span>Copy & Paste this PersonalizedLink™ into your email campaign</span>
               <input
@@ -67,7 +73,7 @@ const ServiceProvider = ({ settings, updateCampaign, generatePersonalizedLink })
             <div className="service-provider-section">
               <span>Send your Personalized email campaign</span>
             </div>
-          </React.Fragment>
+          </Fragment>
         )}
       </div>
     </div>
@@ -82,6 +88,7 @@ ServiceProvider.propTypes = {
   }).isRequired,
   updateCampaign: PropTypes.func.isRequired,
   generatePersonalizedLink: PropTypes.func.isRequired,
+  setLink: PropTypes.func.isRequired,
 };
 
 export default ServiceProvider;
