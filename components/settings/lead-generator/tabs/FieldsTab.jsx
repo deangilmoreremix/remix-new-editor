@@ -11,11 +11,12 @@ import { showInfo } from '../../../../lib/services/alertService';
 import useProjectStore from '../../../hooks/useProjectStore';
 
 import { FORM_FIELDS_ELEMENT_LG } from '../../../../lib/constants/text-info';
+import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 
 
 const INPUT_NAME = 'inputValue';
 
-const FieldsTab = ({ values, fields, onChange }) => {
+const FieldsTab = ({ kindRetarget, values, fields, onChange }) => {
   const inputs = values.elements ?? fields.elements.default;
   const { generateUid } = useProjectStore();
 
@@ -111,27 +112,31 @@ const FieldsTab = ({ values, fields, onChange }) => {
       <div className="addfield-container">
         <button className="addfield-container-button" onClick={() => addField()}>+ Add Field</button>
       </div>
-      <div>
-        <label className="form-control-label">Privacy Disclaimer</label>
-        <FieldBuilder
-          value={values.privacyDisclaimer ?? fields.privacyDisclaimer.default}
-          onChange={onChange}
-          {...fields.privacyDisclaimer}
-          className="input-field-conatainer"
-        />
-      </div>
-      <FieldBuilder
-        value={values.privacyPolicyCaption ?? fields.privacyPolicyCaption.default}
-        onChange={onChange}
-        {...fields.privacyPolicyCaption}
-        className="input-field-conatainer"
-      />
-      <FieldBuilder
-        value={values.privacyPolicyLink ?? fields.privacyPolicyLink.default}
-        onChange={onChange}
-        {...fields.privacyPolicyLink}
-        className="input-field-conatainer"
-      />
+      {kindRetarget !== POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN && (
+        <React.Fragment>
+          <div>
+            <label className="form-control-label">Privacy Disclaimer</label>
+            <FieldBuilder
+              value={values.privacyDisclaimer ?? fields.privacyDisclaimer.default}
+              onChange={onChange}
+              {...fields.privacyDisclaimer}
+              className="input-field-conatainer"
+            />
+          </div>
+          <FieldBuilder
+            value={values.privacyPolicyCaption ?? fields.privacyPolicyCaption.default}
+            onChange={onChange}
+            {...fields.privacyPolicyCaption}
+            className="input-field-conatainer"
+          />
+          <FieldBuilder
+            value={values.privacyPolicyLink ?? fields.privacyPolicyLink.default}
+            onChange={onChange}
+            {...fields.privacyPolicyLink}
+            className="input-field-conatainer"
+          />
+        </React.Fragment>
+      )}
       <FieldBuilder
         value={values.btnText ?? fields.btnText.default}
         onChange={onChange}
@@ -151,6 +156,7 @@ FieldsTab.propTypes = {
     privacyPolicyLink: PropTypes.string,
     btnText: PropTypes.string,
   }),
+  kindRetarget: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({
     elements: PropTypes.shape({

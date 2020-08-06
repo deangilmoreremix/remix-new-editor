@@ -78,7 +78,7 @@ const FormTextField = React.forwardRef(({
           )
           : (
             <TextField
-              ref={ref}
+              inputRef={ref}
               key="input-key"
               id={name}
               className={classnames(inputClassName, 'text-input', { 'input-disabled': disabled })}

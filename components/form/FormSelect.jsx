@@ -61,7 +61,10 @@ const FormSelect = React.forwardRef((props, ref) => {
 
 FormSelect.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
-    value: PropTypes.string.isRequired,
+    value: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
   })).isRequired,
   labelClassName: PropTypes.string,
   selectClassName: PropTypes.string,
