@@ -20,7 +20,7 @@ const Error = ({ handleClose, message, autoClose }) => {
 Error.propTypes = {
   handleClose: PropTypes.func.isRequired,
   message: PropTypes.string,
-  autoClose: PropTypes.string,
+  autoClose: PropTypes.bool,
 };
 
 Error.defaultProps = {
