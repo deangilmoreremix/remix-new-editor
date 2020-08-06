@@ -5,24 +5,35 @@ import { observer } from 'mobx-react';
 import PropTypes from '../../../lib/PropTypes';
 
 import FieldBuilder from '../../form/FieldBuilder';
+import withValidation from '../../hoc/withValidation';
 
 import trashIcon from '../../../public/static/svgImages/common/trash.svg';
 import burgerIcon from '../../../public/static/svgImages/common/burger.svg';
 
-const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput }) => {
+const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput, checkValue, setError }) => {
   const ref = useRef(null);
 
-  const [inputValue, setInputValue] = React.useState(item.label || '');
+  const [inputValue, setInputValue] = React.useState(item.label);
+  const [valueFocus, setValueFocus] = React.useState();
 
   useEffect(() => {
     if (ref.current) {
-      if (item.label === '') {
+      if (valueFocus === '') {
         ref.current.focus();
       } else {
         ref.current.blur();
       }
     }
-  }, [item.label]);
+  }, [valueFocus]);
+
+  const handleChange = (value) => {
+    const valueStr = value.toString();
+    if (valueStr) {
+      return handleChangeInput(value, item.id);
+    }
+    checkValue(value.toString(), { isRequired: true });
+    setValueFocus(valueStr);
+  };
 
   return (
     <div className="item-retarget-container lead-generator-container" key={item.id}>
@@ -34,15 +45,15 @@ const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput }) 
         alt="humburger"
       />
       <FieldBuilder
-        type="text"
+        type="input"
         ref={ref}
         value={inputValue}
         name={item.name}
         className="item-form"
         inputClassName="item-retarget-container-input"
         onChange={(v) => setInputValue(Object.values(v))}
-        onBlur={() => handleChangeInput(inputValue, item.id)}
-        onEnter={() => handleChangeInput(inputValue, item.id)}
+        onBlur={() => handleChange(inputValue)}
+        onEnter={() => handleChange(inputValue)}
       />
       <FieldBuilder
         value={item.value}
@@ -74,4 +85,4 @@ InputFieldItem.propTypes = {
   handleChangeInput: PropTypes.func.isRequired,
 };
 
-export default InputFieldItem;
+export default withValidation(InputFieldItem);

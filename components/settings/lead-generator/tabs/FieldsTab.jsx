@@ -40,10 +40,10 @@ const FieldsTab = ({ values, fields, onChange, type }) => {
       if (element.id === id) {
         if (Array.isArray(editElem)) {
           const [val] = editElem;
-          element.label = val;
-          element.token = editElem[0].toUpperCase();
+          element.label = val || 'Untitled';
+          element.token = val.toUpperCase() || 'UNTITLED';
         } else {
-          element.label = element.label ?? editElem.elements;
+          element.label = editElem.elements ?? element.label;
           element.type = editElem.elements ?? element.type;
           element.value = editElem.elements ?? element.value;
           element.token = editElem?.elements?.toUpperCase() ?? element.token;
