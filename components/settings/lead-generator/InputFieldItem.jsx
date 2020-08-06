@@ -10,7 +10,7 @@ import withValidation from '../../hoc/withValidation';
 import trashIcon from '../../../public/static/svgImages/common/trash.svg';
 import burgerIcon from '../../../public/static/svgImages/common/burger.svg';
 
-const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput, checkValue, setError }) => {
+const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput, checkValue }) => {
   const ref = useRef(null);
 
   const [inputValue, setInputValue] = React.useState(item.label);
