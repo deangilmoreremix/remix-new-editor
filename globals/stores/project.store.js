@@ -301,6 +301,13 @@ export default class ProjectStore extends BaseStore {
         }
         break;
       }
+      case POPCORN_ELEMENT_TYPES.GOOGLE_MAP: {
+        options.width = '70';
+        options.height = '70';
+        options.top = '15';
+        options.left = '15';
+        break;
+      }
       default:
         break;
     }
