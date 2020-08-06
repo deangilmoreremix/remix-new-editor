@@ -76,7 +76,7 @@ class Layout extends Component {
                       user={{
                         email: this.stores.userStore.currentUser.email,
                         fullName: this.stores.userStore.currentUser.fullName,
-                        hash: this.stores.userStore.currentUser.hash,
+                        hash: this.stores.userStore.currentUser.intercomHash,
                         createdAt: Math.floor(
                           Date.parse(this.stores.userStore.currentUser.createdAt) / 1000,
                         ).toString(),
