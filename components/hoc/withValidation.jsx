@@ -35,7 +35,7 @@ const withValidation = (WrappedComponent) => (props) => {
           setError(err);
         }}
       />
-      <Error message={error} handleClose={() => setError(null)} />
+      <Error {...props} message={error} handleClose={() => setError(null)} />
     </React.Fragment>
   );
 };

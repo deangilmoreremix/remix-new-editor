@@ -14,11 +14,11 @@ const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput, ch
   const ref = useRef(null);
 
   const [inputValue, setInputValue] = React.useState(item.label);
-  const [valueFocus, setValueFocus] = React.useState();
+  const [valueFocus, setValueFocus] = React.useState(null);
 
   useEffect(() => {
     if (ref.current) {
-      if (valueFocus === '') {
+      if (!valueFocus) {
         ref.current.focus();
       } else {
         ref.current.blur();
@@ -31,7 +31,7 @@ const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput, ch
     if (valueStr) {
       return handleChangeInput(value, item.id);
     }
-    checkValue(value.toString(), { isRequired: true });
+    checkValue(valueStr, { isRequired: true });
     setValueFocus(valueStr);
   };
 
