@@ -3,7 +3,7 @@ import { set, remove, observable, action } from 'mobx';
 import { IMAGE_CROPPER_MODAL, MODAL_CONFIG, TUI_IMAGE_EDITOR_MODAL } from '../../lib/constants/modals';
 import { checkImageResolution } from '../../lib/utils/cropHelper';
 import { getImageSize } from '../../lib/utils/imageEditorHelper';
-import {CROP_RECOMMENDED_RESOLUTION} from "../../lib/constants/settings/image";
+import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
 
 
 export default () => {
