@@ -15,8 +15,7 @@ import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 
 const INPUT_NAME = 'inputValue';
 
-const FieldsTab = ({ values, fields, onChange, type }) => {
-const FieldsTab = ({ kindRetarget, values, fields, onChange }) => {
+const FieldsTab = ({ kindRetarget, values, fields, onChange, type }) => {
   const inputs = values.elements ?? fields.elements.default;
   const { generateUid, moveFormFields } = useProjectStore();
 

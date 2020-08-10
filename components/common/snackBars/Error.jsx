@@ -4,7 +4,7 @@ import PropTypes from '../../../lib/PropTypes';
 
 import SnackBar from './SnackBar';
 
-const Error = ({ handleClose, message, autoClose }) => {
+const Error = ({ handleClose, message }) => {
   if (!message) {
     return null;
   }
@@ -12,7 +12,7 @@ const Error = ({ handleClose, message, autoClose }) => {
     <SnackBar
       message={message}
       handleClose={handleClose}
-      autoClose={autoClose}
+      autoClose
     />
   );
 };
@@ -20,11 +20,6 @@ const Error = ({ handleClose, message, autoClose }) => {
 Error.propTypes = {
   handleClose: PropTypes.func.isRequired,
   message: PropTypes.string,
-  autoClose: PropTypes.bool,
-};
-
-Error.defaultProps = {
-  autoClose: true,
 };
 
 export default Error;

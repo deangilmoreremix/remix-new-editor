@@ -15,6 +15,7 @@ const Warning = observer(({ message }) => {
       message={message}
       handleClose={() => showWarning()}
       contentClassName="warning-snackbar-content"
+      className="warning-snackbar"
     />
   );
 });
