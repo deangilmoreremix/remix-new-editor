@@ -88,7 +88,7 @@ const FieldsTab = ({ kindRetarget, values, fields, onChange, type }) => {
         handleChangeInput={handleChangeInput}
         sortById="id"
         valueDistance={1}
-        autoClose={false}
+        autoClose
       />
       <div className="addfield-container">
         <button className="addfield-container-button" onClick={() => addField()}>+ Add Field</button>

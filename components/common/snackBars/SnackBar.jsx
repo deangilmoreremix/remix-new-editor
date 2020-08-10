@@ -22,6 +22,7 @@ const SnackBar = (
       ClickAwayListenerProps={{ mouseEvent: false }}
       autoHideDuration={autoHideDuration}
       onClose={autoClose && handleClose}
+      ClickAwayListenerProps={{ mouseEvent: false }}
       ContentProps={{
         'aria-describedby': 'snackbar-fab-message-id',
         className: classnames('snackbar-content', contentClassName),
