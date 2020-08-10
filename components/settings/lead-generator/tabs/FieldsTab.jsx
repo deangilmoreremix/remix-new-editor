@@ -1,24 +1,23 @@
 import React from 'react';
-import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../../lib/PropTypes';
 
 import FieldBuilder from '../../../form/FieldBuilder';
 
-import trashIcon from '../../../../public/static/svgImages/common/trash.svg';
-import burgerIcon from '../../../../public/static/svgImages/common/burger.svg';
 import { showInfo } from '../../../../lib/services/alertService';
 import useProjectStore from '../../../hooks/useProjectStore';
 
 import { FORM_FIELDS_ELEMENT_LG } from '../../../../lib/constants/text-info';
+import InputFieldItem from '../InputFieldItem';
+import SortableList from '../../../common/SortableList';
 import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 
 
 const INPUT_NAME = 'inputValue';
 
-const FieldsTab = ({ kindRetarget, values, fields, onChange }) => {
+const FieldsTab = ({ kindRetarget, values, fields, onChange, type }) => {
   const inputs = values.elements ?? fields.elements.default;
-  const { generateUid } = useProjectStore();
+  const { generateUid, moveFormFields } = useProjectStore();
 
   const addField = () => {
     if (inputs.length < 5) {
@@ -37,18 +36,18 @@ const FieldsTab = ({ kindRetarget, values, fields, onChange }) => {
     }
   };
 
-  const handleChangeInput = (option, id) => {
+  const handleChangeInput = (editElem, id) => {
     const newArr = inputs.map(element => {
       if (element.id === id) {
-        // eslint-disable-next-line no-prototype-builtins
-        if (option && !option.hasOwnProperty(INPUT_NAME)) {
-          element.type = option.elements;
-          element.label = option.elements;
-          element.value = option.elements;
-          element.token = option.elements.toUpperCase();
+        if (Array.isArray(editElem)) {
+          const [val] = editElem;
+          element.label = val || 'Untitled';
+          element.token = val.toUpperCase() || 'UNTITLED';
         } else {
-          element.label = option[INPUT_NAME];
-          element.token = option[INPUT_NAME].toUpperCase();
+          element.label = editElem.elements ?? element.label;
+          element.type = editElem.elements ?? element.type;
+          element.value = editElem.elements ?? element.value;
+          element.token = editElem?.elements?.toUpperCase() ?? element.token;
         }
       }
       return element;
@@ -63,6 +62,13 @@ const FieldsTab = ({ kindRetarget, values, fields, onChange }) => {
     }
   };
 
+  const onSortEnd = ({ oldIndex, newIndex }) => {
+    if (oldIndex === newIndex) {
+      return;
+    }
+    moveFormFields(oldIndex, newIndex, type);
+  };
+
   return (
     <div className="retarget-fields-tab">
       <div>
@@ -73,42 +79,17 @@ const FieldsTab = ({ kindRetarget, values, fields, onChange }) => {
           {...fields.caption}
         />
       </div>
-
-      {inputs && inputs.map(item => (
-        <div className="item-retarget-container lead-generator-container" key={item.id}>
-          <SVGInline
-            className="icon"
-            classSuffix=""
-            svg={burgerIcon}
-            cleanup={['title']}
-            alt="humburger"
-          />
-          <FieldBuilder
-            type="input"
-            value={item.label}
-            name={item.name}
-            className="item-form"
-            inputClassName="item-retarget-container-input"
-            onChange={(v) => handleChangeInput(v, item.id)}
-          />
-          <FieldBuilder
-            value={item.value}
-            {...fields.elements}
-            onChange={(v) => handleChangeInput(v, item.id)}
-          />
-          <div className="flex-center retarget-remove">
-            <SVGInline
-              className="icon"
-              classSuffix=""
-              svg={trashIcon}
-              cleanup={['title']}
-              alt="Remove item"
-              data-tip="Remove item"
-            />
-            <button onClick={() => onRemove(item.id)} className="icon icon-button svg-fix" type="button" />
-          </div>
-        </div>
-      ))}
+      <SortableList
+        items={inputs}
+        onSortEnd={onSortEnd}
+        component={InputFieldItem}
+        onRemove={onRemove}
+        fields={fields}
+        handleChangeInput={handleChangeInput}
+        sortById="id"
+        valueDistance={1}
+        autoClose
+      />
       <div className="addfield-container">
         <button className="addfield-container-button" onClick={() => addField()}>+ Add Field</button>
       </div>
@@ -158,6 +139,7 @@ FieldsTab.propTypes = {
   }),
   kindRetarget: PropTypes.string,
   onChange: PropTypes.func.isRequired,
+  type: PropTypes.string,
   fields: PropTypes.shape({
     elements: PropTypes.shape({
       default: PropTypes.arrayOf(PropTypes.shape({})),
