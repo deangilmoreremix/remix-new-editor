@@ -10,7 +10,6 @@ import StylesTab from './tabs/StylesTab';
 import FieldsTab from './tabs/FieldsTab';
 import IntegrationsTab from './tabs/IntegrationsTab';
 import useProjectStore from '../../hooks/useProjectStore';
-import withValidation from '../../hoc/withValidation';
 
 const TabMap = {
   [STYLES]: StylesTab,

@@ -9,7 +9,7 @@ const FormEnterBlurField = ({ value, onChange, ...rest }) => {
 
   React.useEffect(() => {
     setSrc(value);
-  }, [value])
+  }, [value]);
 
   const onSave = () => {
     if (src !== value) {

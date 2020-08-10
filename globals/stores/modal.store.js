@@ -49,7 +49,14 @@ export default () => {
   };
 
   const openCropper = async (scope) => {
-    const { image, onImageCropped, recommendedResolution, cancelCropper, setError, saveFile } = scope;
+    const {
+      image,
+      onImageCropped,
+      recommendedResolution,
+      cancelCropper,
+      setError,
+      saveFile,
+    } = scope;
     let imageMeta;
     if (!image.src || !onImageCropped) {
       return;
