@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import { ENTER_KEY, ARROW_UP, ARROW_DOWN } from '../../../lib/constants/keyCodes';
 import { OPACITY } from '../../../lib/constants/popcorn';
+import { WARNING_OPACITY } from '../../../lib/constants/text-info';
 
 import useProjectStore from '../../hooks/useProjectStore';
 
@@ -13,7 +14,7 @@ const minValue = 1;
 
 const Opacity = ({ layer }) => {
   const [count, setCount] = useState(layer.opacity ?? maxValue);
-  const { setLayerStyle } = useProjectStore();
+  const { setLayerStyle, showWarning } = useProjectStore();
 
   const handlePressKey = event => {
     if (event.keyCode === ENTER_KEY) {
@@ -21,6 +22,7 @@ const Opacity = ({ layer }) => {
         name: OPACITY,
         value: count >= minValue ? count : minValue,
       });
+      showWarning(WARNING_OPACITY.title);
     }
 
     if (event.keyCode === ARROW_UP && Number(count) < maxValue) {
