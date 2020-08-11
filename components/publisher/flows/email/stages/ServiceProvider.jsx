@@ -69,6 +69,7 @@ const ServiceProvider = ({ settings, updateCampaign, generatePersonalizedLink, s
                 style={{ width: '100%' }}
               />
               {tooltip && <span className="tooltip-copied">Copied!</span>}
+              <p className="personalized-link-copy">Double-click to copy</p>
             </div>
             <div className="service-provider-section">
               <span>Send your Personalized email campaign</span>
