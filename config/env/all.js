@@ -118,4 +118,5 @@ module.exports = {
       videosApiPath: 'api/v1/fusion/videos',
     },
   },
+  scriptStatistic: process.env.SCRIPT_STATISTIC || '',
 };

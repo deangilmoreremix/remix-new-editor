@@ -156,6 +156,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       whiteLabel: config.whiteLabel,
       mediaProviders: config.mediaProviders,
       helpCrunch: config.helpCrunch,
+      scriptStatistic: config.scriptStatistic,
     };
   }
 
