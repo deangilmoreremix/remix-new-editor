@@ -91,7 +91,7 @@ const FieldsTab = ({ kindRetarget, values, fields, onChange, type }) => {
         autoClose
       />
       <div className="addfield-container">
-        <button className="addfield-container-button" onClick={() => addField()}>+ Add Field</button>
+        <button className="addfield-container-button" onClick={addField}>+ Add Field</button>
       </div>
       {kindRetarget !== POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN && (
         <React.Fragment>

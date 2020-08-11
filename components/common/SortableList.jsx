@@ -17,6 +17,7 @@ const SortableList = observer((props) => {
   } = props;
   const Item = React.useMemo(
     () => SortableElement(({ item }) => <Component item={item} {...rest} />), [rest]);
+
   const List = React.useMemo(() => SortableContainer(() => (
     <ul className={className}>
       {items.map((item, index) => (
@@ -35,8 +36,7 @@ const SortableList = observer((props) => {
   return (
     <List onSortEnd={onSortEnd} distance={valueDistance} className={className || ''} items={items} />
   );
-},
-);
+});
 
 SortableList.propTypes = {
   valueDistance: PropTypes.number,

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import SVGInline from 'react-svg-inline';
 import { observer } from 'mobx-react';
 
@@ -14,17 +14,6 @@ const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput, ch
   const ref = useRef(null);
 
   const [inputValue, setInputValue] = React.useState(item.label);
-  const [valueFocus, setValueFocus] = React.useState(null);
-
-  useEffect(() => {
-    if (ref.current) {
-      if (!valueFocus) {
-        ref.current.focus();
-      } else {
-        ref.current.blur();
-      }
-    }
-  }, [valueFocus]);
 
   const handleChange = (value) => {
     const valueStr = value.toString();
@@ -32,7 +21,6 @@ const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput, ch
       return handleChangeInput(value, item.id);
     }
     checkValue(valueStr, { isRequired: true });
-    setValueFocus(valueStr);
   };
 
   return (
