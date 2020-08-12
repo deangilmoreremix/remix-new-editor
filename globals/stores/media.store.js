@@ -1,5 +1,6 @@
 import { action, computed, observable } from 'mobx';
 
+import { GiphyFetch } from '@giphy/js-fetch-api';
 import BaseStore from './base.store';
 
 import PexelsProvider from '../../lib/utils/media/PexelsProvider';
@@ -13,6 +14,7 @@ import { ASSET_TYPES, REMOTE_ASSET_TYPES } from '../../lib/constants/media';
 import { LIBRARY_KEYS, libraryProviders, perPage } from '../../lib/constants/library';
 import { FEATURES } from '../../lib/constants/features';
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
+import config from '../../config/config';
 
 export default class Media extends BaseStore {
   @observable providersConfiguration = null;
@@ -162,6 +164,22 @@ export default class Media extends BaseStore {
     }
     return file;
   };
+
+   getGiphyData = async ({ type, page, query: value }) => {
+     const offset = perPage * page;
+     const giphyFetch = new GiphyFetch(config.mediaProviders.GIPHY.apiKey);
+     const res = await giphyFetch.search(value, { type, offset, limit: perPage });
+     if (res.meta.status !== 200) {
+       throw new Error('Something wrong: An error while fetching data');
+     }
+
+     return res.data.map((gif) => ({
+       data: gif.images.original.url,
+       preview: gif.images.preview_gif.url,
+       _id: gif.id,
+     }));
+   };
+
 
   @action
   setLibraryItemsForDelete = (id) => {

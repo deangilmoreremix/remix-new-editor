@@ -1,20 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 18.9 18.9" style="enable-background:new 0 0 18.9 18.9;" xml:space="preserve">
-<style type="text/css">
-	.stickers_st0{fill:#999999;}
-</style>
-<g>
-	<g>
-		<path class="stickers_st0" d="M9.4,18.9C4.2,18.9,0,14.6,0,9.4S4.2,0,9.4,0s9.4,4.2,9.4,9.4S14.6,18.9,9.4,18.9z M9.4,1C4.8,1,1,4.8,1,9.4
-			s3.8,8.4,8.4,8.4s8.4-3.8,8.4-8.4S14.1,1,9.4,1z"/>
-		<path class="stickers_st0" d="M9,16.2C8.9,16.2,8.9,16.2,9,16.2C5.4,16,2.6,13,2.6,9.4l0.5-0.1l0.5,0.1c0,3,2.4,5.6,5.4,5.8
-			c0.3,0,0.5,0.3,0.5,0.5C9.4,16,9.2,16.2,9,16.2z M15.8,10c-0.3,0-0.5-0.2-0.5-0.5c0,0,0,0,0-0.1c0-3-2.3-5.5-5.3-5.8
-			c-0.3,0-0.5-0.3-0.5-0.5c0-0.3,0.3-0.5,0.5-0.5c3.5,0.3,6.2,3.3,6.2,6.8C16.3,9.7,16,10,15.8,10z"/>
-		<path class="stickers_st0" d="M7.3,9.9H6.2c-0.3,0-0.5-0.2-0.5-0.5c0-0.3,0.2-0.5,0.5-0.5h1.1c0.3,0,0.5,0.2,0.5,0.5
-			C7.8,9.7,7.6,9.9,7.3,9.9z"/>
-		<path class="stickers_st0" d="M12.7,9.9h-1.1c-0.3,0-0.5-0.2-0.5-0.5c0-0.3,0.2-0.5,0.5-0.5h1.1c0.3,0,0.5,0.2,0.5,0.5
-			C13.2,9.7,12.9,9.9,12.7,9.9z"/>
-	</g>
-</g>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 23.5C18.3513 23.5 23.5 18.3513 23.5 12C23.5 5.64874 18.3513 0.500015 12 0.500015C5.64873 0.500015 0.5 5.64874 0.5 12C0.5 18.3513 5.64873 23.5 12 23.5Z" stroke="#999999" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M9.10001 8.20002C8.90001 8.00002 8.30001 7.50002 7.30001 7.40002C6.60001 7.30002 6.00001 7.40002 5.70001 7.50002" stroke="#999999" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M18.2 7.50002C17.9 7.40002 17.3 7.20002 16.5 7.30002C15.6 7.50002 15 8.00002 14.8 8.20002" stroke="#999999" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M7.29999 11.6H9.09999" stroke="#999999" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.8 11.6H16.6" stroke="#999999" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M7.29999 16.2C9.89999 18.8 14.1 18.8 16.7 16.2" stroke="#999999" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

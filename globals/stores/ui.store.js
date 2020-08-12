@@ -255,4 +255,14 @@ export default class UIStore {
     this.projectStore.releaseElement();
     this.setToolbarItem(TOOLBARS.ELEMENTS);
   };
+
+  @action
+  openGif = (type) => {
+    this.setSecondaryWindowType(type);
+  };
+
+  @action
+  openSticker = (type) => {
+    this.setSecondaryWindowType(type);
+  };
 }

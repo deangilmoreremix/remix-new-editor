@@ -117,6 +117,9 @@ module.exports = {
       imagesApiPath: 'api/v1/images',
       videosApiPath: 'api/v1/fusion/videos',
     },
+    GIPHY: {
+      apiKey: process.env.GIPHY_API_KEY || 'sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh',
+    },
   },
   scriptStatistic: process.env.SCRIPT_STATISTIC || '',
 };
