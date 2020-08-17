@@ -52,7 +52,7 @@ const StylesTab = (options) => {
     setLoader(false);
   }, []);
 
-  const onChangeSrc = (image, fieldName, setLoader) => {
+  const onChangeSrc = (image, fieldName, setLoader, zoomable) => {
     if (!image) {
       onChange({ [fieldName]: '' });
       return;
@@ -60,6 +60,7 @@ const StylesTab = (options) => {
     const err = checkValue(image, { type: TYPES.URL });
     if (!err) {
       openCropper({
+        zoomable,
         image: { src: image },
         onImageCropped: (item) => saveImage(item, fieldName, setLoader),
         startUpload: () => setLoader(true),
@@ -102,7 +103,8 @@ const StylesTab = (options) => {
             {...fields.brandLogoSrc}
             onChange={({
               brandLogoSrc,
-            }) => onChangeSrc(brandLogoSrc, fields.brandLogoSrc.name, setIsDisabledUploadLogo)}
+            }) => onChangeSrc(brandLogoSrc, fields.brandLogoSrc.name,
+              setIsDisabledUploadLogo, true)}
           />
           <DropAndEditButton
             isArea
@@ -113,6 +115,7 @@ const StylesTab = (options) => {
             endUpload={() => setIsDisabledUploadLogo(false)}
             recommendedResolution={CROP_BRAND_LOGO_RESOLUTION}
             needSaveAsset={false}
+            zoomable
           />
           <DropAndEditButton
             onUploaded={(item) => onUploadedImage(item, fields.brandLogoSrc.name)}
@@ -122,6 +125,7 @@ const StylesTab = (options) => {
             className="btn-upload"
             recommendedResolution={CROP_BRAND_LOGO_RESOLUTION}
             needSaveAsset={false}
+            zoomable
           />
         </div>
         <div className="upload-container">

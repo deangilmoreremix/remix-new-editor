@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import Cropper from 'react-cropper';
-import { Box } from '@material-ui/core';
+import { Box, Icon, IconButton } from '@material-ui/core';
 
 import ImageButtons from '../imageEditor/ImageButtons';
 
@@ -21,6 +21,7 @@ const ImageCropper = observer(({
   handleClose,
   startUpload,
   endUpload,
+  zoomable,
   needClose = true,
 }) => {
   const refEditor = useRef();
@@ -99,10 +100,10 @@ const ImageCropper = observer(({
             aspectRatio={ratio}
             guides={false}
             toggleDragModeOnDblclick={false}
-            zoomable={false}
-            zoomOnTouch={false}
-            zoomOnWheel={false}
-            viewMode={1}
+            zoomable={zoomable || false}
+            zoomOnTouch={zoomable || false}
+            zoomOnWheel={zoomable || false}
+            viewMode={zoomable ? 0 : 1}
             background={false}
             autoCropArea={proportion}
             dragMode={isAuto ? DRAG_MODES.NONE : DRAG_MODES.CROP}
@@ -111,10 +112,31 @@ const ImageCropper = observer(({
               if (isAuto) {
                 setMinMax(refEditor, isAuto);
               }
+              if (zoomable) {
+                refEditor.current.cropper.zoom(-proportion);
+              }
             }}
           />
         </div>
         <div className="img-size-settings black">
+          { zoomable && (
+            <>
+              <IconButton
+                aria-label="zoom"
+                onClick={() => refEditor.current.cropper.zoom(-0.1)}
+                className="zoom-icon"
+              >
+                <Icon className="fa fa-search-minus" />
+              </IconButton>
+              <IconButton
+                aria-label="reduce"
+                onClick={() => refEditor.current.cropper.zoom(0.1)}
+                className="zoom-icon"
+              >
+                <Icon className="fa fa-search-plus" />
+              </IconButton>
+            </>
+          )}
           <FieldBuilder
             className="input-settings"
             type={CHECKBOX}
@@ -145,6 +167,7 @@ ImageCropper.propTypes = {
   endUpload: PropTypes.func,
   needSave: PropTypes.bool,
   needClose: PropTypes.bool,
+  zoomable: PropTypes.bool,
 };
 
 export default ImageCropper;

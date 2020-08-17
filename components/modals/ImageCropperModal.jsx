@@ -6,7 +6,14 @@ import ImageCropper from '../common/ImageCropper';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
 
 const ImageCropperModal = observer(({ handleClose, options }) => {
-  const { imageMeta, recommendedResolution, onImageCropped, updateField, needClose } = useMemo(
+  const {
+    imageMeta,
+    recommendedResolution,
+    onImageCropped,
+    updateField,
+    needClose,
+    zoomable,
+  } = useMemo(
     () => options, [options]);
   if (!options.imageMeta) {
     return null;
@@ -22,6 +29,7 @@ const ImageCropperModal = observer(({ handleClose, options }) => {
           }}
           handleClose={handleClose}
           needClose={needClose}
+          zoomable={zoomable}
         />
       </Box>
     </div>

@@ -21,6 +21,7 @@ const DropAndEditButton = (
     className,
     needSaveAsset,
     recommendedResolution,
+    zoomable,
     ...rest
   }) => {
   const { uploadMedia, saveFile } = useMediaStore();
@@ -49,6 +50,7 @@ const DropAndEditButton = (
       cancelCropper: () => save(image),
       startUpload,
       endUpload,
+      zoomable,
     });
   }, [uploadMedia]);
 
@@ -93,6 +95,7 @@ DropAndEditButton.propTypes = {
   className: PropTypes.string,
   needSaveAsset: PropTypes.bool,
   isArea: PropTypes.bool,
+  zoomable: PropTypes.bool,
   recommendedResolution: PropTypes.shape({
     width: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
