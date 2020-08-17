@@ -1508,7 +1508,7 @@ export default class ProjectStore extends BaseStore {
       type,
       track: track.id,
       name: options.id,
-      popcornOptions: { ...item, ...options },
+      popcornOptions: { ...item, ...options, type: undefined },
     };
 
     this.addElementToProject(element);

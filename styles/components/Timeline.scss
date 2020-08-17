@@ -95,12 +95,14 @@
   &-title {
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
 .popcorn-pausePlugin-element,
 .popcorn-loopPlugin-element,
 .popcorn-skip-element,
+.popcorn-googlemap-element,
 .popcorn-json-transition-element {
   justify-content: space-between;
 }

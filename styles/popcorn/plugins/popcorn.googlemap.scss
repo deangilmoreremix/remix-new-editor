@@ -1,0 +1,100 @@
+.popcorn-googlemap {
+  display: flex;
+
+  &.active {
+    .resize-handle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: $white;
+      border: $secondary-color solid 0.5px;
+    }
+  }
+}
+
+.popcorn-googlemap .map {
+  width: 100%;
+  height: 100%;
+}
+
+.popcorn-googlemap .streetview {
+  width: 0;
+  height: 100%;
+}
+
+.popcorn-googlemap.streetview .map {
+  width: 0;
+}
+
+.popcorn-googlemap.streetview .streetview {
+  width: 100%;
+}
+
+.popcorn-googlemap.sidebyside .map {
+  width: 50%;
+}
+
+.popcorn-googlemap.sidebyside .streetview {
+  width: 50%;
+}
+
+@media screen and (max-width: 1350px) {
+  .map-settings {
+    display: flex;
+    flex-direction: column;
+
+    .select__menu {
+      z-index: 10;
+    }
+  }
+
+  .map-settings__transition {
+    order: -2;
+  }
+
+  .map-settings__type {
+    order: -1;
+  }
+
+  div.map-settings__block {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 0;
+
+    &>div:first-child,
+    .map-settings__time,
+    .map-settings-slider-block,
+    .map-settings-select {
+      flex: none;
+      width: 100%;
+    }
+
+    .map-settings__time,
+    .map-settings-slider-block,
+    .map-settings-select {
+      margin-bottom: 1rem;
+    }
+
+    .map-settings__block-child {
+      margin-bottom: 0.93rem;
+    }
+
+    div.map-settings-checkbox {
+      margin-left: auto;
+      margin-bottom: 0.6rem;
+    }
+  }
+
+  div.map-settings__numbers {
+    &>div:first-child,
+    &>div:last-child {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+
+    .map-setting-number {
+      width: 100%;
+    }
+  }
+}

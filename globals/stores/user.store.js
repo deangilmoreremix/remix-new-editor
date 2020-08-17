@@ -110,4 +110,9 @@ export default class UserStore {
   get jsonTransitionEnabled() {
     return this.isfeatureEnabled(FEATURES.SVG_TRANSITIONS);
   }
+
+  @computed
+  get googleMapsEnabled() {
+    return this.isfeatureEnabled(FEATURES.GOOGLE_MAPS);
+  }
 }

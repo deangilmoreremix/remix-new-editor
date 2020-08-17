@@ -55,6 +55,7 @@ const Home = observer(() => {
     ctaEnabled,
     blendModeEnabled,
     jsonTransitionEnabled,
+    googleMapsEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -230,6 +231,7 @@ const Home = observer(() => {
         jsonTransitionEnabled,
         width,
         height,
+        googleMapsEnabled,
       },
     });
     return items && items.length ? items : [];
