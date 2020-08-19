@@ -3,6 +3,7 @@ import { set, remove, observable, action } from 'mobx';
 import { IMAGE_CROPPER_MODAL, MODAL_CONFIG, TUI_IMAGE_EDITOR_MODAL } from '../../lib/constants/modals';
 import { checkImageResolution } from '../../lib/utils/cropHelper';
 import { getImageSize } from '../../lib/utils/imageEditorHelper';
+import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
 
 
 export default () => {
@@ -48,17 +49,42 @@ export default () => {
   };
 
   const openCropper = async (scope) => {
-    const { image, onImageCropped, recommendedResolution, cancelCropper } = scope;
-
+    const {
+      image,
+      onImageCropped,
+      recommendedResolution,
+      cancelCropper,
+      setError,
+      saveFile,
+    } = scope;
+    let imageMeta;
     if (!image.src || !onImageCropped) {
       return;
     }
     // todo check small img
-    const imageMeta = await getImageSize(image);
+    try {
+      imageMeta = await getImageSize(image);
+    } catch (e) {
+      if (setError) {
+        setError(e.message);
+      }
+      return;
+    }
+    // for cross origin
+    if (saveFile) {
+      try {
+        image.src = await saveFile(image.src);
+      } catch (e) {
+        if (setError) {
+          setError(e.message);
+        }
+        return;
+      }
+    }
     imageMeta.source = image.src;
     checkImageResolution({
       imageMeta,
-      recommendedResolution,
+      recommendedResolution: recommendedResolution || CROP_RECOMMENDED_RESOLUTION,
       cancelCropper,
       openCropper: () => openModal(IMAGE_CROPPER_MODAL,
         {

@@ -7,13 +7,13 @@ import useMakeStore from '../hooks/useMakeStore';
 import ViewProjectWindow from './ViewProjectWindow';
 
 const Presets = ({ handleClose }) => {
-  const { getPresets } = useMakeStore();
+  const { getConnect } = useMakeStore();
 
   return (
     <ViewProjectWindow
       handleClose={handleClose}
-      fetchItems={getPresets}
-      title="lower thirds presets"
+      fetchItems={getConnect}
+      title="connect form"
     />
   );
 };

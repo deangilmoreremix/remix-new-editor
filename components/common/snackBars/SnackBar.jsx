@@ -18,6 +18,7 @@ const SnackBar = (
   }) => (
     <Snackbar
       open={!!message}
+      disableWindowBlurListener
       autoHideDuration={autoHideDuration}
       onClose={autoClose && handleClose}
       ClickAwayListenerProps={{ mouseEvent: false }}

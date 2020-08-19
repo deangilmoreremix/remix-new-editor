@@ -142,6 +142,7 @@ FormTextField.defaultProps = {
   labelClassName: '',
   className: '',
   readOnly: false,
+  onBlur: () => {},
 };
 
 export default FormTextField;

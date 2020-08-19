@@ -11,17 +11,70 @@ import { BACKGROUND_COLOR, POPCORN_ELEMENT_TYPES } from '../../../../lib/constan
 import { DEACTIVATE_LB } from '../../../../lib/constants/text-info';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
-import { CROP_BRAND_LOGO_RESOLUTION } from '../../../../lib/constants/settings/image';
+import {
+  CROP_BRAND_LOGO_RESOLUTION,
+} from '../../../../lib/constants/settings/image';
 import useUIStore from '../../../hooks/useUIStore';
+import useModalStore from '../../../hooks/useModalStore';
+import { TYPES } from '../../../../lib/constants/validator';
+import withValidation from '../../../hoc/withValidation';
+import { ASSET_TYPES } from '../../../../lib/constants/media';
+import useMediaStore from '../../../hooks/useMediaStore';
 
-const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, onClose }) => {
+const StylesTab = (options) => {
+  const {
+    kindRetarget,
+    values,
+    fields,
+    onChange,
+    type,
+    showedForm,
+    onClose,
+    checkValue,
+    setError,
+  } = options;
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
 
   const { openAnimation } = useUIStore();
+  const { openCropper } = useModalStore();
 
   const onUploadedImage = (image, option) => {
-    onChange({ [option]: image.url });
+    onChange({ [option]: image.url || image });
+  };
+
+  const { saveFile } = useMediaStore();
+
+  const saveImage = React.useCallback(async (src, fieldName, setLoader) => {
+    setLoader(true);
+    const result = await saveFile(src, false, ASSET_TYPES.IMAGE);
+    onUploadedImage(result, fieldName);
+    setLoader(false);
+  }, []);
+
+  const onChangeSrc = (image, fieldName, setLoader, zoomable) => {
+    if (!image) {
+      onChange({ [fieldName]: '' });
+      return;
+    }
+    const err = checkValue(image, { type: TYPES.URL });
+    if (!err) {
+      openCropper({
+        zoomable,
+        image: { src: image },
+        onImageCropped: (item) => saveImage(item, fieldName, setLoader),
+        startUpload: () => setLoader(true),
+        endUpload: () => setLoader(false),
+        saveFile: async (e) => {
+          setLoader(true);
+          const result = await saveFile(e, false, ASSET_TYPES.IMAGE);
+          setLoader(false);
+          return result.url;
+        },
+        setError,
+        cancelCropper: () => onUploadedImage(image, fieldName),
+      });
+    }
   };
 
   const handleChangeColor = (rgbColor) => {
@@ -48,7 +101,10 @@ const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, o
           <FieldBuilder
             value={values.brandLogoSrc ?? fields.brandLogoSrc.default}
             {...fields.brandLogoSrc}
-            onChange={onChange}
+            onChange={({
+              brandLogoSrc,
+            }) => onChangeSrc(brandLogoSrc, fields.brandLogoSrc.name,
+              setIsDisabledUploadLogo, true)}
           />
           <DropAndEditButton
             isArea
@@ -59,6 +115,7 @@ const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, o
             endUpload={() => setIsDisabledUploadLogo(false)}
             recommendedResolution={CROP_BRAND_LOGO_RESOLUTION}
             needSaveAsset={false}
+            zoomable
           />
           <DropAndEditButton
             onUploaded={(item) => onUploadedImage(item, fields.brandLogoSrc.name)}
@@ -68,13 +125,17 @@ const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, o
             className="btn-upload"
             recommendedResolution={CROP_BRAND_LOGO_RESOLUTION}
             needSaveAsset={false}
+            zoomable
           />
         </div>
         <div className="upload-container">
           <FieldBuilder
             value={values.backgroundImage ?? fields.backgroundImage.default}
             {...fields.backgroundImage}
-            onChange={onChange}
+            onChange={({
+              backgroundImage,
+            }) => onChangeSrc(backgroundImage, fields.backgroundImage.name,
+              setIsDisabledUploadImage)}
           />
           <DropAndEditButton
             isArea
@@ -331,4 +392,4 @@ StylesTab.defaultProps = {
   onClose: () => {},
 };
 
-export default StylesTab;
+export default withValidation(StylesTab);

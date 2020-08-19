@@ -5,13 +5,13 @@ import { LibrarySpinner } from '../../media/Loader';
 
 const Content = ({ items, hasMore, uploadNewItems, isLoading, element: Element }) => (
   <div className="list-items">
-    {items && items.length && (
+    {items && items.length ? (
       <Fragment>
         {items.map((item) => (
           <Element item={item} key={item._id} />
         ))}
       </Fragment>
-    )}
+    ) : null}
     {isLoading && hasMore && <LibrarySpinner />}
     {
       !isLoading && hasMore && (

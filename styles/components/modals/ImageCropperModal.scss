@@ -320,6 +320,14 @@
     margin-bottom: 1rem;
   }
 
+  .zoom-icon {
+    color: $secondary-color;
+
+    .material-icons {
+      font-size: 1rem;
+    }
+  }
+
 
   .border-button {
     border: $default-border;

@@ -49,7 +49,7 @@ const OverlayListTransitions = observer(() => {
 
   const previewClass = useMemo(() => {
     const index = activeTab.indexOf(':');
-    return `presets-preview-${activeTab.substr(0, index)}`;
+    return `project-data-preview-${activeTab.substr(0, index)}`;
   }, [activeTab]);
 
   const handleSelect = React.useCallback(async (item) => {
@@ -151,13 +151,13 @@ const OverlayListTransitions = observer(() => {
             isLoading={isLoading}
           />
         </div>
-        <div className="presets__control">
+        <div className="overlay__control">
           <Preview
             preview={preview}
             activeItem={activeItem}
             className={previewClass}
           />
-          <button className="presets__use" onClick={addDataToCanvas}>Use</button>
+          <button className="overlay__use" onClick={addDataToCanvas}>Use</button>
         </div>
       </div>
       <CloseButton onClick={() => toggleRightBlock(false)} />
