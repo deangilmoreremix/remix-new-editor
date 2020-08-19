@@ -7,7 +7,12 @@ import { rgba2hex } from '../../../../lib/lottie/utils';
 import FieldBuilder from '../../../form/FieldBuilder';
 import DropAndEditButton from '../../../media/DropAndEditButton';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
-import { BACKGROUND_COLOR, POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
+import {
+  BACKGROUND_COLOR,
+  POPCORN_ELEMENT_TYPES,
+  START,
+  END,
+} from '../../../../lib/constants/popcorn';
 import { DEACTIVATE_LB } from '../../../../lib/constants/text-info';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
@@ -283,6 +288,26 @@ const StylesTab = (options) => {
             </div>
           </div>
         </div>
+        {type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR && (
+        <div className="form-settings__timer">
+          <FieldBuilder
+            value={values.start ?? fields.start.default}
+            {...fields.start}
+            type={fields[START].type}
+            name={START}
+            className="form-settings__time"
+            onChange={onChange}
+          />
+          <FieldBuilder
+            value={values.end || fields.end.default}
+            {...fields.end}
+            type={fields[END].type}
+            name={END}
+            className="form-settings__time"
+            onChange={onChange}
+          />
+        </div>
+        ) }
       </div>
     </div>
   );
@@ -314,6 +339,8 @@ StylesTab.propTypes = {
     buttonBorderRadius: PropTypes.string,
     btnBottomBorder: PropTypes.string,
     transition: PropTypes.string,
+    start: PropTypes.string,
+    end: PropTypes.string,
   }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({
@@ -378,6 +405,12 @@ StylesTab.propTypes = {
     }),
     transition: PropTypes.shape({
       default: PropTypes.string,
+    }),
+    start: PropTypes.shape({
+      default: PropTypes.number,
+    }),
+    end: PropTypes.shape({
+      default: PropTypes.number,
     }),
   }),
 };
