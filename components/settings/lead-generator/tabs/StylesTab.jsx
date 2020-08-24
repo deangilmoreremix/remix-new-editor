@@ -92,6 +92,26 @@ const StylesTab = (options) => {
 
   return (
     <div className="retarget-styles-tab">
+      {type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR && (
+        <div className="form-settings__timer">
+          <FieldBuilder
+            value={values.start ?? fields.start.default}
+            {...fields.start}
+            type={fields[START].type}
+            name={START}
+            className="form-settings__time"
+            onChange={onChange}
+          />
+          <FieldBuilder
+            value={values.end || fields.end.default}
+            {...fields.end}
+            type={fields[END].type}
+            name={END}
+            className="form-settings__time"
+            onChange={onChange}
+          />
+        </div>
+      ) }
       {type === POPCORN_ELEMENT_TYPES.RETARGET && (
         <FieldBuilder
           value={showedForm}
@@ -288,26 +308,6 @@ const StylesTab = (options) => {
             </div>
           </div>
         </div>
-        {type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR && (
-        <div className="form-settings__timer">
-          <FieldBuilder
-            value={values.start ?? fields.start.default}
-            {...fields.start}
-            type={fields[START].type}
-            name={START}
-            className="form-settings__time"
-            onChange={onChange}
-          />
-          <FieldBuilder
-            value={values.end || fields.end.default}
-            {...fields.end}
-            type={fields[END].type}
-            name={END}
-            className="form-settings__time"
-            onChange={onChange}
-          />
-        </div>
-        ) }
       </div>
     </div>
   );

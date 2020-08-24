@@ -2,14 +2,12 @@
 .form-settings__timer {
   display: flex;
   flex-wrap: wrap;
+  justify-content: space-around;
   margin-top: -1rem;
 }
 
 .form-settings__time {
   width: 45%;
-  &:first-child {
-    margin-right: 2.18rem;
-  }
 
   .time-input {
     width: 100%;
