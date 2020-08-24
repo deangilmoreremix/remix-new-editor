@@ -14,6 +14,7 @@ const Presets = ({ handleClose }) => {
       handleClose={handleClose}
       fetchItems={getConnect}
       title="connect form"
+      instantStart
     />
   );
 };
