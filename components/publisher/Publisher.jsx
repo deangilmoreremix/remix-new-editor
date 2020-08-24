@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 import PropTypes from '../../lib/PropTypes';
-import useCommonStore from '../hooks/useCommonStore';
 
 import { INITIAL_LOAD, MESSAGE_TOPICS } from '../../lib/constants/campaigns/constants';
 
@@ -80,8 +79,6 @@ const Publisher = ({ children, withIframe }) => {
     conductor.style.left = 0;
   };
 
-  const { cdnHostname } = useCommonStore();
-
   return (
     <div className="social-campaign">
       {
@@ -96,7 +93,7 @@ const Publisher = ({ children, withIframe }) => {
       {withIframe && (
         <iframe
           title="Iframe social conductor"
-          src={`${cdnHostname}/social-campaign/social-campaign.html`}
+          src="https://cdn.videoremix.io/social-campaign/social-campaign.html"
           frameBorder="0"
           className="conductor-iframe"
           id="conductor-iframe"
