@@ -35,7 +35,8 @@ const GiphyGifs = observer(({ type }) => {
   };
 
   useEffect(() => {
-    setSearchValue('');
+    setSearchValue(type);
+    setStartSearch(true);
   }, [type]);
 
   return (
