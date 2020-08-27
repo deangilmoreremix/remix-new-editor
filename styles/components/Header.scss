@@ -67,6 +67,10 @@
       }
       .menu__list {
         width: 10rem;
+
+        a:hover {
+          text-decoration: none;
+        }
       }
 
       .menu__item-icon {

@@ -2,6 +2,7 @@ import { observable, action, computed, reaction, runInAction, toJS } from 'mobx'
 import arrayMove from 'array-move';
 import size from 'lodash/size';
 
+import Router from 'next/router';
 import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
@@ -13,7 +14,7 @@ import {
   CARET_NAMES,
   SOCIAL_TYPES,
 } from '../../lib/constants/popcorn';
-import { isLayerFulfilled } from '../../lib/utils/project';
+import { isLayerFulfilled, validateBeforeSave } from '../../lib/utils/project';
 import { NONE_CLASS, ANIMATION_TYPES } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
 import { FB_PLUGINS } from '../../lib/constants/settings/social';
@@ -32,11 +33,14 @@ import {
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
-import { showInfo } from '../../lib/services/alertService';
+import { showError, showInfo } from '../../lib/services/alertService';
 import {
   FORM_ONE_LG,
   WARNING_OPACITY,
 } from '../../lib/constants/text-info';
+import { radioButton } from '../../lib/constants/windowsLogics';
+import { ACTION_MAKE_COPY, ACTION_WATCH_VIDEO, PRODUCE_TABS } from '../../lib/constants/ui';
+import { ROUTES } from '../../lib/constants/routing';
 
 const caretNames = Object.values(CARET_NAMES);
 
@@ -1226,6 +1230,59 @@ export default class ProjectStore extends BaseStore {
     }
     return this.item;
   };
+
+  @action
+  checkAndSave = async ({
+    changeRadioButton,
+    showProducePanel,
+    closeAllWindows,
+    setInitialView,
+    actionType,
+    afterSave,
+  }) => {
+    try {
+      const errors = validateBeforeSave(this.item);
+      if (errors) {
+        switch (true) {
+          case errors.title: {
+            changeRadioButton(radioButton.BOTTOM);
+            return showProducePanel({ tab: PRODUCE_TABS.SETTINGS });
+          }
+          default: {
+            return showError('The project is not valid.');
+          }
+        }
+      } else {
+        closeAllWindows();
+        const project = await this.save();
+        if (!this.modified) {
+          if (actionType === ACTION_MAKE_COPY) {
+            afterSave(`/edit?remix=${this.item._id}`);
+          }
+          if (actionType === ACTION_WATCH_VIDEO) {
+            afterSave(this.item.url);
+          }
+        }
+        if (project && project._id) {
+          Router.push(
+            {
+              pathname: ROUTES.edit,
+              query: {
+                project: project._id,
+              },
+            },
+            undefined,
+            {
+              shallow: true,
+            },
+          );
+          setInitialView();
+        }
+      }
+    } catch (e) {
+      showError(e.message);
+    }
+  }
 
   @action
   invalidateFbCache = (url) => this.request(
