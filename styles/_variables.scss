@@ -17,7 +17,7 @@ $dark-white: #E4E4EC;
 $red: #EB5054;
 $btn-gray: #999999;
 $btn-gray-disabled: #49494C;
-$border-grey: #888898;
+$border-grey: #999999;
 $grey: #ccc;
 $btn-bg-img: #404349;
 
@@ -42,8 +42,9 @@ $sm: 540px;
 $md: 720px;
 $lg: 960px;
 $xl: 1140px;
+$xxl: 1366px;
 $mock: 1920px;
-$xxl: 2560px;
+$xxxl: 2560px;
 
 //animations
 $inColor: #A627B1;
@@ -54,8 +55,9 @@ $outColor: #01AACD;
 $font-primary: 'Proxima Nova', sans-serif;
 
 //font sizes
-$small: 0.8em;
-$main: 1em;
+$defaultFontSize: 0.875rem;
+$smallFontSize: 0.75rem;
+$xsmallFontSize: 0.625rem;
 
 //timeline
 $layer-height: 35px;
@@ -70,3 +72,12 @@ $toolbarHeight-big: 77vh;
 $placeholderOpacity: 0.3;
 
 $default-border: 1px solid $secondary-color;
+
+//line-height
+$defaultLineHeight: 1.0625rem;
+$smallLineHeight: 0.9375rem;
+$xsmallLineHeight: 0.75rem;
+
+//buttons
+$defaultHeightBtn: 2.18rem;
+

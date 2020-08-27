@@ -62,8 +62,10 @@ const GiphyGifs = observer(({ type }) => {
               className="gif-library__placeholder"
               onClick={handleSetFocus}
             >
-              {search.label}
-              <span>{search.subLabel}</span>
+              <div>
+                {search.label}
+                <span>{search.subLabel}</span>
+              </div>
             </button>
           )}
           <SVGInline

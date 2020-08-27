@@ -14,7 +14,7 @@
     text-transform: uppercase;
     background: $modal-lightdark-bg;
     color: $secondary-color;
-    font-size: 0.875rem;
+    font-size: $defaultFontSize;
   }
 
   &__body {
@@ -60,7 +60,7 @@
       flex-direction: column;
       line-height: 0;
       color: $white;
-      font-size: 0.625rem;
+      font-size: $xsmallFontSize;
       margin: 0.5rem;
       background: $modal-header-bg;
       border-radius: 7px;

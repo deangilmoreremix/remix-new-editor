@@ -1,22 +1,22 @@
 @mixin input-placeholder() {
   &::-webkit-input-placeholder {
     color: $white;
-    font: 0.875rem $font-primary;
+    font: $defaultFontSize $font-primary;
     opacity: $placeholderOpacity;
   }
   &::-moz-placeholder {
     color: $white;
-    font: 0.875rem $font-primary;
+    font: $defaultFontSize $font-primary;
     opacity: $placeholderOpacity;
   }
   &:-ms-input-placeholder {
     color: $white;
-    font: 0.875rem $font-primary;
+    font: $defaultFontSize $font-primary;
     opacity: $placeholderOpacity;
   }
   &:-moz-placeholder {
     color: $white;
-    font: 0.875rem $font-primary;
+    font: $defaultFontSize $font-primary;
     opacity: $placeholderOpacity;
   }
 }

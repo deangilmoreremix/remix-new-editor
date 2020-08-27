@@ -12,6 +12,7 @@
   color: $white;
   overflow: hidden;
   transition: 0.3s all;
+  font-size: $defaultFontSize;
 
   &__header {
     width: 100%;
@@ -57,13 +58,20 @@
     position: absolute;
     bottom: 0.3rem;
     left: 0;
-    font-size: 0.7em;
+    font-size: $xsmallFontSize;
     outline: none;
     color: $white;
+    text-align: left;
+    max-width: 100%;
+
+    div {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
 
     span {
       margin-left: 0.3em;
-      font-size: 1em;
       color: $secondary-color;
     }
   }

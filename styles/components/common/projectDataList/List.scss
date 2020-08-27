@@ -21,7 +21,7 @@
     @include reset-button();
     display: block;
     width: 100%;
-    font-size: 0.875rem;
+    font-size: $defaultFontSize;
     color: $white;
     line-height: 1.1;
     padding: 4.7px 18px 4.7px 18px;

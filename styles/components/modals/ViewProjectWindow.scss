@@ -17,7 +17,7 @@
     line-height: 1;
     text-align: center;
     text-transform: uppercase;
-    font-size: 0.875rem;
+    font-size: $defaultFontSize;
     color: $secondary-color;
     background: $scrollbarColor;
     margin-bottom: 0;
@@ -67,5 +67,6 @@
     margin-top: 1.25rem;
     color: $white;
     margin-left: auto;
+    font-size: $defaultFontSize;
   }
 }
