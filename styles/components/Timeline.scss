@@ -69,6 +69,11 @@
         align-items: center;
       }
 
+      &.popcorn-social,
+      &.popcorn-pausePlugin-end,
+      &.popcorn-pausePlugin,
+      &.popcorn-loopPlugin,
+      &.popcorn-loopPlugin-end,
       &.popcorn-timeline-icon {
         width: 1rem;
         min-width: 1rem;
@@ -103,7 +108,8 @@
 .popcorn-loopPlugin-element,
 .popcorn-skip-element,
 .popcorn-googlemap-element,
-.popcorn-json-transition-element {
+.popcorn-json-transition-element,
+.popcorn-social-element {
   justify-content: space-between;
 }
 

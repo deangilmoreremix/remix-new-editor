@@ -9,3 +9,14 @@ button.color-element {
   cursor: pointer;
   outline: none;
 }
+
+.color-reset-button {
+  @include reset-button;
+  width: 100%;
+  height: 2.17rem;
+  background: $secondary-color;
+  font-size: 0.875rem;
+  color: $white;
+  border-radius: 0.218rem;
+  margin-top: 1rem;
+}

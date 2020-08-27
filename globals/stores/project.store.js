@@ -11,10 +11,12 @@ import {
   SEQUENCER,
   POPCORN_ELEMENT_TYPES,
   CARET_NAMES,
+  SOCIAL_TYPES,
 } from '../../lib/constants/popcorn';
 import { isLayerFulfilled } from '../../lib/utils/project';
 import { NONE_CLASS, ANIMATION_TYPES } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
+import { FB_PLUGINS } from '../../lib/constants/settings/social';
 
 import {
   SANTISECOND,
@@ -421,7 +423,7 @@ export default class ProjectStore extends BaseStore {
   updateElement = (elementId, options) => {
     // we need to update the elements, if the user updates the start,
     // end or animation, this is necessary to rerender the elements
-    const { start, end, animation, title, duration, htmlText, loop } = options;
+    const { start, end, animation, title, duration, htmlText, loop, type } = options;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         const newOptions = {};
@@ -445,6 +447,14 @@ export default class ProjectStore extends BaseStore {
         }
         if (htmlText !== undefined) {
           newOptions.htmlText = htmlText;
+        }
+        if (type !== undefined && type !== element.popcornOptions.type) {
+          newOptions.type = type;
+          Object.values(SOCIAL_TYPES).forEach(item => {
+            if (item === type) {
+              newOptions.title = FB_PLUGINS[item].title;
+            }
+          });
         }
         if (size(newOptions) > 0) {
           element.popcornOptions = {
@@ -477,7 +487,8 @@ export default class ProjectStore extends BaseStore {
     const elementId = (element && element.id) || element;
     element = typeof element === 'string' ? this.getElementById(elementId) : element;
 
-    if (options.start !== undefined || options.end !== undefined) {
+    if (options.start !== undefined || options.end !== undefined
+      || Object.values(SOCIAL_TYPES).some(t => t === element.popcornOptions.type)) {
       this.popcorn.removeTrackEvent(elementId);
       element.popcornOptions = { ...element.popcornOptions, ...options };
       this.popcorn[element.type](element.popcornOptions);
@@ -567,7 +578,6 @@ export default class ProjectStore extends BaseStore {
       this.updateStartEnd(elementId, start, end);
     }
   };
-
 
   generatePopcornObject = () => {
     let popcornObject = {};

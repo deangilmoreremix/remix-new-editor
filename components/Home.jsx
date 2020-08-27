@@ -56,6 +56,7 @@ const Home = observer(() => {
     blendModeEnabled,
     jsonTransitionEnabled,
     googleMapsEnabled,
+    socialFbEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -232,6 +233,7 @@ const Home = observer(() => {
         width,
         height,
         googleMapsEnabled,
+        socialFbEnabled,
       },
     });
     return items && items.length ? items : [];
