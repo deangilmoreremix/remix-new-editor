@@ -55,6 +55,7 @@ const Home = observer(() => {
     ctaEnabled,
     blendModeEnabled,
     jsonTransitionEnabled,
+    leadGeneratorEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -227,6 +228,7 @@ const Home = observer(() => {
         linkedinEnabled,
         ctaEnabled,
         blendModeEnabled,
+        leadGeneratorEnabled,
         jsonTransitionEnabled,
         width,
         height,

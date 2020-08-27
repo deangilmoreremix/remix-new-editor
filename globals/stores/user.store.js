@@ -57,6 +57,11 @@ export default class UserStore {
     && this.currentUser.features[feature].state === STATE.ENABLED);
 
   @computed
+  get leadGeneratorEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_LEAD_GENERATOR);
+  }
+
+  @computed
   get optinCodeEnabled() {
     return this.isfeatureEnabled(FEATURES.OPTIN_CODE);
   }

@@ -32,22 +32,24 @@ const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput, ch
         cleanup={['title']}
         alt="humburger"
       />
-      <FieldBuilder
-        type="input"
-        ref={ref}
-        value={inputValue}
-        name={item.name}
-        className="item-form"
-        inputClassName="item-retarget-container-input"
-        onChange={(v) => setInputValue(Object.values(v))}
-        onBlur={() => handleChange(inputValue)}
-        onEnter={() => handleChange(inputValue)}
-      />
-      <FieldBuilder
-        value={item.value}
-        {...fields.elements}
-        onChange={(v) => handleChangeInput(v, item.id)}
-      />
+      <div className="elements-container">
+        <FieldBuilder
+          type="input"
+          ref={ref}
+          value={inputValue}
+          name={item.name}
+          className="item-form"
+          inputClassName="item-retarget-container-input"
+          onChange={(v) => setInputValue(Object.values(v))}
+          onBlur={() => handleChange(inputValue)}
+          onEnter={() => handleChange(inputValue)}
+        />
+        <FieldBuilder
+          value={item.value}
+          {...fields.elements}
+          onChange={(v) => handleChangeInput(v, item.id)}
+        />
+      </div>
       <div className="flex-center retarget-remove">
         <SVGInline
           className="icon"
