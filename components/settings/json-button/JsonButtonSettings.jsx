@@ -39,6 +39,7 @@ const JsonButtonSettings = observer(({ element, update, fields }) => {
                 key={key}
                 name={key}
                 className="json-button-container"
+                element={element.popcornOptions}
               />
             );
           })}

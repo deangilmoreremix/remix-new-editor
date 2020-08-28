@@ -1,41 +1,54 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import classnames from 'classnames';
 import moment from 'moment';
 import NumberFormat from 'react-number-format';
 
+import { ENTER_KEY } from '../../lib/constants/keyCodes';
 import PropTypes from '../../lib/PropTypes';
 import { TIME_DISPLAY_FORMAT } from '../../lib/constants/formats';
+import { MAX_DURATION } from '../../lib/constants/project';
 
-const DEFAULT_TIME_VALUE = '0:00:00';
+const DEFAULT_TIME_VALUE = '00:00:00';
 
 const TimeInput = ({
   name,
   label,
   onChange,
-  onEnter,
   disabled,
   inputClassName,
   labelClassName,
   className,
   placeholder,
   value,
+  min,
+  max,
 }) => {
   const conditionalProps = {};
+  const [newValue, setValue] = useState(value);
 
-  if (onEnter) {
-    conditionalProps.onKeyPress = ({ which, target: { value: v } }) => {
-      if (which === 13) {
-        onEnter(v);
-      }
-    };
-  }
+  useEffect(() => {
+    setValue(value);
+  }, [value]);
+
+  conditionalProps.onKeyPress = ({ which }) => {
+    if (which === ENTER_KEY) {
+      onChange(newValue);
+    }
+  };
 
   const onEdit = ({ formattedValue }) => {
-    const time = moment(formattedValue, TIME_DISPLAY_FORMAT);
+    const validValue = `${formattedValue
+      .substring(0, 1).replace(/[6-9]/, 5)
+    + formattedValue.substring(1, 2)}:${
+      +formattedValue.substring(3, 4).replace(/[6-9]/, 5)
+    }${formattedValue.substring(4, 8)}`;
+
+    const time = moment(validValue, TIME_DISPLAY_FORMAT);
     const diffTime = moment({ minutes: 0, seconds: 0 });
-    const newValue = moment.duration(time.diff(diffTime)).asSeconds();
-    if ((Math.ceil(value * 100) / 100) !== newValue) {
-      onChange(newValue);
+    const seconds = moment.duration(time.diff(diffTime)).asSeconds();
+
+    if ((Math.ceil(value * 100) / 100) !== seconds && seconds >= min && seconds <= max) {
+      setValue(seconds);
     }
   };
 
@@ -54,15 +67,17 @@ const TimeInput = ({
       <NumberFormat
         placeholder={placeholder}
         disabled={disabled}
-        format="#:##.##"
+        format="##:##.##"
         displayType="input"
         name={name}
         id={name}
         onValueChange={onEdit}
         className={classnames('time-input input-field', inputClassName)}
-        value={formattedValue(value)}
+        value={formattedValue(newValue)}
         type="tel"
         allowNegative={false}
+        onBlur={() => onChange(newValue)}
+        {...conditionalProps}
       />
     </div>
   );
@@ -70,21 +85,23 @@ const TimeInput = ({
 
 TimeInput.propTypes = {
   name: PropTypes.string.isRequired,
-  onChange: PropTypes.func,
   label: PropTypes.string,
-  onEnter: PropTypes.func,
   disabled: PropTypes.bool,
   className: PropTypes.string,
   inputClassName: PropTypes.string,
   labelClassName: PropTypes.string,
   placeholder: PropTypes.string,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
+  min: PropTypes.number,
+  max: PropTypes.number,
+  onChange: PropTypes.func.isRequired,
 };
 
 TimeInput.defaultProps = {
   label: '',
   disabled: false,
-  onChange: () => {},
+  min: 0,
+  max: MAX_DURATION,
 };
 
 export default TimeInput;

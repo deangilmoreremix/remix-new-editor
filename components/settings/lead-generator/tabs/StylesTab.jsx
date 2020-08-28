@@ -101,6 +101,7 @@ const StylesTab = (options) => {
             name={START}
             className="form-settings__time"
             onChange={onChange}
+            element={values}
           />
           <FieldBuilder
             value={values.end || fields.end.default}
@@ -109,6 +110,7 @@ const StylesTab = (options) => {
             name={END}
             className="form-settings__time"
             onChange={onChange}
+            element={values}
           />
         </div>
       ) }
@@ -339,8 +341,8 @@ StylesTab.propTypes = {
     buttonBorderRadius: PropTypes.string,
     btnBottomBorder: PropTypes.string,
     transition: PropTypes.string,
-    start: PropTypes.string,
-    end: PropTypes.string,
+    start: PropTypes.number,
+    end: PropTypes.number,
   }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({

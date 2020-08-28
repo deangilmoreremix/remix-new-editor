@@ -28,7 +28,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     audioFadeOut,
   } = values;
 
-  const { isAudio } = useProjectStore();
+  const { isAudio, duration: timelineDuration, updateVideoDuration } = useProjectStore();
   const [videoOut, setVideoOut] = useState(end - start + from);
   const [fadeInMax, setFadeInMax] = useState();
   const [fadeOutMax, setFadeOutMax] = useState();
@@ -78,22 +78,36 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
   }, [volume, mute, element.id]);
 
   const changeFrom = useCallback((field) => {
-    const value = field.from;
+    let value;
+    if (typeof field === 'number') {
+      value = field;
+    } else {
+      value = field.from;
+    }
     if (value < (end - start + from)) {
-      onChange(field);
+      onChange({ from: value });
       onChange({ end: +(end - value + from).toFixed(2) });
     } else {
-      onChange({ from });
-      onChange({ end });
+      onChange({ from: videoOut - 1 });
+      onChange({ end: start + 1 });
     }
   }, [start, end, from]);
 
-  const changeOut = useCallback((field) => {
-    const value = field.out;
-    if (value < duration && value > from) {
-      onChange({ end: +(start + value - from).toFixed(2) });
+  const changeOut = useCallback(async (field) => {
+    let value;
+    if (typeof field === 'number') {
+      value = field;
     } else {
-      onChange({ end });
+      value = field.out;
+    }
+    if (value < duration && value > from) {
+      const newEnd = +(start + value - from).toFixed(2);
+      if (newEnd * 100 > timelineDuration) {
+        await updateVideoDuration(newEnd);
+      }
+      onChange({ end: newEnd });
+    } else {
+      onChange({ end: start + 1 });
     }
   }, [start, end, duration]);
 
@@ -147,7 +161,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
         />
         <FieldBuilder
           label="Out"
-          type={fields[popcornConstants.END].type}
+          type={fields[popcornConstants.DURATION].type}
           value={videoOut}
           name="out"
           onChange={changeOut}
@@ -217,7 +231,9 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
           value={start || fields[popcornConstants.START].default}
           name={popcornConstants.START}
           onChange={onChange}
+          onEnter={onChange}
           className="video-settings__time"
+          element={values}
         />
         <FieldBuilder
           label={fields[popcornConstants.END].label}
@@ -225,7 +241,9 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
           value={end}
           name={popcornConstants.END}
           onChange={onChange}
+          onEnter={onChange}
           className="video-settings__time"
+          element={values}
         />
       </div>
 

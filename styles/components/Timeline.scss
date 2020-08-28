@@ -353,6 +353,22 @@
     &:hover {
       box-shadow: none;
     }
+
+    &:before {
+      content: '';
+      width: 2px;
+      height: 12rem;
+      background-color: $red;
+      position: absolute;
+      top: 13px;
+      z-index: 3;
+    }
+  }
+
+  &-hidden .MuiSlider-thumb {
+    &:before {
+      content: none;
+    }
   }
 }
 

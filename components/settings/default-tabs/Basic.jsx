@@ -43,6 +43,7 @@ const Basic = ({ options, update, fields, ...props }) => {
             startUpload={() => processUpload(true)}
             endUpload={() => processUpload(false)}
             isDisabled={isDisabled}
+            element={options}
           />
         );
       })}
