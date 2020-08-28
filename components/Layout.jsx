@@ -29,6 +29,12 @@ class Layout extends Component {
     return { ...data };
   }
 
+  theme = createMuiTheme({
+    typography: {
+      fontFamily: '"Proxima Nova", sans-serif',
+    },
+  });
+
   constructor(props) {
     super(props);
     const data = init(props.creator);
@@ -37,12 +43,6 @@ class Layout extends Component {
     const { userStore: { hasPermissions } } = this.stores;
     this.hasPermissions = hasPermissions;
   }
-
-  theme = createMuiTheme({
-    typography: {
-      fontFamily: '"Proxima Nova", sans-serif',
-    },
-  });
 
   render() {
     if (process.browser) {
