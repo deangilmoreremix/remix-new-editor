@@ -48,13 +48,25 @@ const Basic = ({ values, fields, onChange }) => {
         fields={{
           [TYPE]: { ...fields[TYPE] },
           [HREF]: { ...fields[HREF] },
-          [BACKGROUND]: { ...fields[BACKGROUND] },
         }}
         options={values}
         onChange={onChange}
-        allowReset={removeBackground}
-        resetText="Remove background"
       />
+
+      {
+        pluginType !== SOCIAL_TYPES.FB_PAGE && pluginType !== SOCIAL_TYPES.FB_POST && (
+          <FieldBuilder
+            type={fields[BACKGROUND].type}
+            label={fields[BACKGROUND].label}
+            value={values[BACKGROUND] || fields[BACKGROUND].default}
+            name={BACKGROUND}
+            onChange={onChange}
+            allowReset={removeBackground}
+            resetText="Remove background"
+            {...fields[BACKGROUND]}
+          />
+        )
+      }
 
       {
         (pluginType !== SOCIAL_TYPES.FB_LIKE) && (
