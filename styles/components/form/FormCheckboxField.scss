@@ -41,12 +41,11 @@
     font-family: $font-primary;
     font-style: normal;
     font-weight: normal;
-    font-size: 0.765rem;
-    line-height: 0.93rem;
+    font-size: $defaultFontSize;
+    line-height: $defaultLineHeight;
     color: $white;
 
     span.MuiButton-label label.MuiInputLabel-root {
-      color: $white;
       text-transform: none;
     }
 

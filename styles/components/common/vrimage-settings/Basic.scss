@@ -30,8 +30,8 @@
     display: block;
     width: 100%;
     text-align: left;
-    line-height: 1;
-    font-size: 0.875rem;
+    line-height: $defaultLineHeight;
+    font-size: $defaultFontSize;
   }
 
   input {
@@ -44,8 +44,6 @@
     display: block;
     width: 100%;
     text-align: left;
-    line-height: 1;
-    font-size: 0.875rem;
     margin-bottom: 0.5rem;
   }
 }
@@ -70,7 +68,6 @@
   button {
     display: block;
     width: 100%;
-    font-size: 0.875rem;
   }
 
   &--little {
@@ -81,7 +78,6 @@
     background: $secondary-color;
     border-radius: 4px;
     color: $white;
-    font-size: 0.875rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -107,8 +103,8 @@
   p {
     margin: 0;
     margin-right: 0.8rem;
-    line-height: 1;
-    font-size: 0.875rem;
+    line-height: $defaultLineHeight;
+    font-size: $defaultFontSize;
   }
 }
 .vrimage-settings__checkbox {

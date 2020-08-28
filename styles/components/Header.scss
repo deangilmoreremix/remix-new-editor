@@ -29,7 +29,7 @@
       .MuiButton-label {
         color: $white;
         font-family: $font-primary;
-        font-size: 0.5rem;
+        font-size: $xsmallFontSize;
 
         .MuiButton-endIcon {
           margin-left: 12px;
@@ -97,7 +97,7 @@
 
         .MuiListItem-root {
           margin: auto;
-          font-size: $small;
+          font-size: $defaultFontSize;
           font-family: $font-primary;
         }
       }
@@ -155,7 +155,7 @@
     &__button-text {
       text-transform: uppercase;
       font-weight: bold;
-      font-size: 0.75rem;
+      font-size: $smallFontSize;
       line-height: 1;
       padding-top: 7px !important;
     }

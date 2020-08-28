@@ -10,7 +10,7 @@
   background: $light-twinlight;
   box-sizing: border-box;
   z-index: 1;
-  font-size: 0.875rem;
+  font-size: $defaultFontSize;
   line-height: 1;
   color: $white;
   overflow: hidden;

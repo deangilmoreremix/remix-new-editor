@@ -45,6 +45,7 @@ const Basic = ({ values, fields, onChange }) => {
           name={popcornConstants.START}
           onChange={onChange}
           className="vrimage-settings__time"
+          element={values}
         />
         <FieldBuilder
           {...fields.end}
@@ -52,6 +53,7 @@ const Basic = ({ values, fields, onChange }) => {
           name={popcornConstants.END}
           onChange={onChange}
           className="vrimage-settings__time"
+          element={values}
         />
       </div>
 

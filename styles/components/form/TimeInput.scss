@@ -4,8 +4,8 @@
   border: 0.055rem solid $secondary-color;
   border-radius: 5px;
   padding: 2px 2px;
-  line-height: 1.4;
+  line-height: $defaultLineHeight;
   text-align: center;
   outline: none;
-  font-size: $small;
+  font-size: $defaultFontSize;
 }

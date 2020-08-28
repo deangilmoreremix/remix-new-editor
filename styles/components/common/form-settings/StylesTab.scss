@@ -1,13 +1,22 @@
 .retarget-form, .lead-form {
   .form-control-label {
     display: flex;
-    font-size: 0.7em;
+    font-size: $defaultFontSize;
+    line-height: $defaultLineHeight;
   }
+
+  .checkbox-element {
+    span.MuiButtonBase-root {
+      margin-left: 1rem;
+    }
+  }
+
   .brand-logo-container {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     margin-bottom: 1em;
     margin-top: 1em;
+    text-align: center;
 
     .upload-container {
       display: flex;
@@ -31,6 +40,11 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1em;
+    margin-top: 1rem;
+
+    & > .MuiFormGroup-root {
+      width: 48%;
+    }
 
     &-numbers {
       display: flex;
@@ -87,10 +101,6 @@
       .radio-button-icon {
         min-width: 1.2rem;
       }
-
-      .radio-container {
-        margin-top: -0.6em;
-      }
     }
 
     &-slider {
@@ -142,9 +152,106 @@
 
   .container-transition {
     .form-control-label {
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.5rem;
     }
     display: flex;
     flex-direction: column;
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .retarget-form, .lead-form {
+    .checkbox-element {
+      justify-content: space-between;
+      text-align: left;
+
+      .MuiButtonBase-root {
+        padding-right: 0;
+        text-align: left;
+      }
+    }
+
+    .brand-logo-container {
+      flex-direction: column;
+
+      .upload-container {
+        width: 100%;
+
+        & + .upload-container {
+          margin-top: 1rem;
+        }
+
+        .MuiFormGroup-root {
+          width: 100%;
+        }
+      }
+    }
+
+    .select-container, .caption-container, .color-container-font, .color-container-inner {
+      flex-direction: column;
+    }
+
+    .select-container {
+      & > .MuiFormGroup-root {
+        width: 100%;
+      }
+    }
+
+    .select-container-numbers {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+
+    .caption-container-slider, .caption-container-radio {
+      width: 100%;
+    }
+
+    .color-container-font {
+      .MuiFormGroup-root, .slider-element {
+        width: 100%;
+      }
+
+      .slider-element {
+        margin-top: 1rem;
+      }
+    }
+
+    .color-container {
+      margin-top: 1rem;
+
+      .inner-color {
+        width: 100%;
+      }
+
+      .number-container {
+        width: 100%;
+        margin-top: 1rem;
+      }
+
+      .inner-slider-container {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    .background-color-container {
+      flex-direction: column;
+
+      & > div {
+        width: 100%;
+      }
+
+      div.container-flex {
+        flex-direction: column;
+
+        & > div {
+          width: 100%;
+        }
+      }
+    }
+  }
+
+  .btn-library {
+    width: 100%;
   }
 }

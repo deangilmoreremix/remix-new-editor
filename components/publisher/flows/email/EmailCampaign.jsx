@@ -14,7 +14,7 @@ import {
 } from '../../../../lib/constants/campaigns/constants';
 
 
-const EmaiCampaign = ({ isLoading }) => {
+const EmaiCampaign = ({ isLoading, handleClose }) => {
   const [currentStage, setStage] = React.useState(EMAIL_STAGES[0]);
   const [settings, setSettings] = React.useState({
     embedLocation: EMAIL_EMBED_LOCATIONS[0],
@@ -138,12 +138,14 @@ const EmaiCampaign = ({ isLoading }) => {
       {...stageProps}
       handleBackButtonClick={handleBackButtonClick}
       handleNextButtonClick={handleNextButtonClick}
+      handleClose={handleClose}
     />
   );
 };
 
 EmaiCampaign.propTypes = {
   isLoading: PropTypes.bool.isRequired,
+  handleClose: PropTypes.bool.isRequired,
 };
 
 export default EmaiCampaign;

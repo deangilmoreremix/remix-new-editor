@@ -113,24 +113,28 @@ const Advanced = ({ values, fields, onChange }) => {
             />
           </div>
           <div className="font-style-container">
-            <FieldBuilder
-              value={shadow || fields.shadow.default}
-              name={fields.shadow.name}
-              {...fields.shadow}
-              onChange={checkboxBoxShadow}
-            />
-            <FieldBuilder
-              value={stroke || fields.stroke.default}
-              name={fields.stroke.name}
-              {...fields.stroke}
-              onChange={checkboxStroke}
-            />
-            <FieldBuilder
-              value={background || fields.background.default}
-              name={fields.background.name}
-              {...fields.background}
-              onChange={checkboxBackground}
-            />
+            <div className="font-style-group">
+              <FieldBuilder
+                value={shadow || fields.shadow.default}
+                name={fields.shadow.name}
+                {...fields.shadow}
+                onChange={checkboxBoxShadow}
+              />
+              <FieldBuilder
+                value={stroke || fields.stroke.default}
+                name={fields.stroke.name}
+                {...fields.stroke}
+                onChange={checkboxStroke}
+              />
+            </div>
+            <div className="font-style-group">
+              <FieldBuilder
+                value={background || fields.background.default}
+                name={fields.background.name}
+                {...fields.background}
+                onChange={checkboxBackground}
+              />
+            </div>
           </div>
         </div>
 

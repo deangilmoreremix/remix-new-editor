@@ -125,6 +125,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           name={popcornConstants.START}
           onChange={onChange}
           className="image-settings__time"
+          element={values}
         />
         <FieldBuilder
           label={fields[popcornConstants.END].label}
@@ -133,6 +134,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           name={popcornConstants.END}
           onChange={onChange}
           className="image-settings__time"
+          element={values}
         />
         <div className="image-settings__btn--block image-settings__btn--transition">
           <p>Transition</p>

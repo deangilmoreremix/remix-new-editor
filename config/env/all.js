@@ -122,4 +122,5 @@ module.exports = {
       apiKey: process.env.GIPHY_API_KEY || 'sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh',
     },
   },
+  scriptStatistic: process.env.SCRIPT_STATISTIC || '',
 };

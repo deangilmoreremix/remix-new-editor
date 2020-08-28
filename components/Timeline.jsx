@@ -78,7 +78,7 @@ const Timeline = observer(() => {
               maxValue={duration}
               sliderWidth={width}
               onChange={(value) => updateTime(value)}
-              sliderClassName="timeline-slider"
+              sliderClassName={classnames('timeline-slider', { 'timeline-slider-hidden': !isTimelineOpen })}
             />
             )
           }

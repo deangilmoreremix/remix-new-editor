@@ -663,6 +663,28 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  moveFormFields = (oldIndex, newIndex, type) => {
+    this.setUndo();
+    let newElementFields;
+    if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR) {
+      this.projectData.media.forEach((media) => {
+        media.tracks.forEach(track => {
+          track.trackEvents.forEach(elem => {
+            if (elem.type === type) {
+              newElementFields = [...elem.popcornOptions.elements];
+              newElementFields = arrayMove(newElementFields, oldIndex, newIndex);
+            }
+          });
+        });
+      });
+    } else {
+      newElementFields = [...this.retarget.options.elements];
+      newElementFields = arrayMove(newElementFields, oldIndex, newIndex);
+    }
+    this.findAndUpdate(this.activeElementId, { elements: newElementFields });
+  };
+
+  @action
   playPause = () => {
     if (!this.isLoaded) {
       return;

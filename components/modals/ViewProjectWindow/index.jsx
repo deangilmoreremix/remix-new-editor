@@ -11,7 +11,7 @@ import { showError } from '../../../lib/services/alertService';
 import List from '../../common/projectDataList/List';
 import Preview from '../../common/projectDataList/Preview';
 
-const ViewProjectWindow = ({ handleClose, fetchItems, title }) => {
+const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart }) => {
   const [items, setItems] = useState([]);
   const [activeItem, setActiveItem] = useState();
   const [page, setPage] = useState(1);
@@ -28,7 +28,9 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title }) => {
       let newData = JSON.parse(item.project.data);
       newData.media[0].tracks.reverse();
       newData.media[0].tracks.forEach(element => {
-        element.trackEvents[0].popcornOptions.zindex = ++zIndex;
+        if (element.trackEvents.length) {
+          element.trackEvents[0].popcornOptions.zindex = ++zIndex;
+        }
       });
       newData = JSON.stringify(newData);
 
@@ -125,6 +127,7 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title }) => {
           <Preview
             preview={preview}
             activeItem={activeItem}
+            instantStart={instantStart}
           />
           <button className="view-project-window__use" onClick={addDataToCanvas}>Use</button>
         </div>
@@ -137,6 +140,7 @@ ViewProjectWindow.propTypes = {
   handleClose: PropTypes.func.isRequired,
   fetchItems: PropTypes.func.isRequired,
   title: PropTypes.string,
+  instantStart: PropTypes.bool,
 };
 
 export default ViewProjectWindow;

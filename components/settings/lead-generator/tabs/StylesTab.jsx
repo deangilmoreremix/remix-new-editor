@@ -7,21 +7,79 @@ import { rgba2hex } from '../../../../lib/lottie/utils';
 import FieldBuilder from '../../../form/FieldBuilder';
 import DropAndEditButton from '../../../media/DropAndEditButton';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
-import { BACKGROUND_COLOR, POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
+import {
+  BACKGROUND_COLOR,
+  POPCORN_ELEMENT_TYPES,
+  START,
+  END,
+} from '../../../../lib/constants/popcorn';
 import { DEACTIVATE_LB } from '../../../../lib/constants/text-info';
 import { iconAlignmentAdvanced } from '../../../../lib/constants/settings/vrtext-element';
 import fonts from '../../../../lib/constants/fonts';
-import { CROP_BRAND_LOGO_RESOLUTION } from '../../../../lib/constants/settings/image';
+import {
+  CROP_BRAND_LOGO_RESOLUTION,
+} from '../../../../lib/constants/settings/image';
 import useUIStore from '../../../hooks/useUIStore';
+import useModalStore from '../../../hooks/useModalStore';
+import { TYPES } from '../../../../lib/constants/validator';
+import withValidation from '../../../hoc/withValidation';
+import { ASSET_TYPES } from '../../../../lib/constants/media';
+import useMediaStore from '../../../hooks/useMediaStore';
 
-const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, onClose }) => {
+const StylesTab = (options) => {
+  const {
+    kindRetarget,
+    values,
+    fields,
+    onChange,
+    type,
+    showedForm,
+    onClose,
+    checkValue,
+    setError,
+  } = options;
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
 
   const { openAnimation } = useUIStore();
+  const { openCropper } = useModalStore();
 
   const onUploadedImage = (image, option) => {
-    onChange({ [option]: image.url });
+    onChange({ [option]: image.url || image });
+  };
+
+  const { saveFile } = useMediaStore();
+
+  const saveImage = React.useCallback(async (src, fieldName, setLoader) => {
+    setLoader(true);
+    const result = await saveFile(src, false, ASSET_TYPES.IMAGE);
+    onUploadedImage(result, fieldName);
+    setLoader(false);
+  }, []);
+
+  const onChangeSrc = (image, fieldName, setLoader, zoomable) => {
+    if (!image) {
+      onChange({ [fieldName]: '' });
+      return;
+    }
+    const err = checkValue(image, { type: TYPES.URL });
+    if (!err) {
+      openCropper({
+        zoomable,
+        image: { src: image },
+        onImageCropped: (item) => saveImage(item, fieldName, setLoader),
+        startUpload: () => setLoader(true),
+        endUpload: () => setLoader(false),
+        saveFile: async (e) => {
+          setLoader(true);
+          const result = await saveFile(e, false, ASSET_TYPES.IMAGE);
+          setLoader(false);
+          return result.url;
+        },
+        setError,
+        cancelCropper: () => onUploadedImage(image, fieldName),
+      });
+    }
   };
 
   const handleChangeColor = (rgbColor) => {
@@ -34,6 +92,28 @@ const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, o
 
   return (
     <div className="retarget-styles-tab">
+      {type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR && (
+        <div className="form-settings__timer">
+          <FieldBuilder
+            value={values.start ?? fields.start.default}
+            {...fields.start}
+            type={fields[START].type}
+            name={START}
+            className="form-settings__time"
+            onChange={onChange}
+            element={values}
+          />
+          <FieldBuilder
+            value={values.end || fields.end.default}
+            {...fields.end}
+            type={fields[END].type}
+            name={END}
+            className="form-settings__time"
+            onChange={onChange}
+            element={values}
+          />
+        </div>
+      ) }
       {type === POPCORN_ELEMENT_TYPES.RETARGET && (
         <FieldBuilder
           value={showedForm}
@@ -48,7 +128,10 @@ const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, o
           <FieldBuilder
             value={values.brandLogoSrc ?? fields.brandLogoSrc.default}
             {...fields.brandLogoSrc}
-            onChange={onChange}
+            onChange={({
+              brandLogoSrc,
+            }) => onChangeSrc(brandLogoSrc, fields.brandLogoSrc.name,
+              setIsDisabledUploadLogo, true)}
           />
           <DropAndEditButton
             isArea
@@ -59,6 +142,7 @@ const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, o
             endUpload={() => setIsDisabledUploadLogo(false)}
             recommendedResolution={CROP_BRAND_LOGO_RESOLUTION}
             needSaveAsset={false}
+            zoomable
           />
           <DropAndEditButton
             onUploaded={(item) => onUploadedImage(item, fields.brandLogoSrc.name)}
@@ -68,13 +152,17 @@ const StylesTab = ({ kindRetarget, values, fields, onChange, type, showedForm, o
             className="btn-upload"
             recommendedResolution={CROP_BRAND_LOGO_RESOLUTION}
             needSaveAsset={false}
+            zoomable
           />
         </div>
         <div className="upload-container">
           <FieldBuilder
             value={values.backgroundImage ?? fields.backgroundImage.default}
             {...fields.backgroundImage}
-            onChange={onChange}
+            onChange={({
+              backgroundImage,
+            }) => onChangeSrc(backgroundImage, fields.backgroundImage.name,
+              setIsDisabledUploadImage)}
           />
           <DropAndEditButton
             isArea
@@ -253,6 +341,8 @@ StylesTab.propTypes = {
     buttonBorderRadius: PropTypes.string,
     btnBottomBorder: PropTypes.string,
     transition: PropTypes.string,
+    start: PropTypes.number,
+    end: PropTypes.number,
   }),
   onChange: PropTypes.func.isRequired,
   fields: PropTypes.shape({
@@ -318,6 +408,12 @@ StylesTab.propTypes = {
     transition: PropTypes.shape({
       default: PropTypes.string,
     }),
+    start: PropTypes.shape({
+      default: PropTypes.number,
+    }),
+    end: PropTypes.shape({
+      default: PropTypes.number,
+    }),
   }),
 };
 
@@ -326,4 +422,4 @@ StylesTab.defaultProps = {
   onClose: () => {},
 };
 
-export default StylesTab;
+export default withValidation(StylesTab);

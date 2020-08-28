@@ -1,7 +1,8 @@
 .form-angle-label {
-  font-size: $small;
+  font-size: $defaultFontSize;
   color: $white;
   margin-bottom: 0.5rem;
+  line-height: $defaultLineHeight;
 }
 
 .form-angle {
@@ -57,7 +58,7 @@
   }
 
   input {
-    font-size: 0.875rem;
+    font-size: $defaultFontSize;
     height: auto;
   }
 }

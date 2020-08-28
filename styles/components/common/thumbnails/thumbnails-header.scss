@@ -22,7 +22,7 @@
   p {
     margin-bottom: 0;
     color: $white;
-    font-size: 0.875rem;
+    font-size: $defaultFontSize;
   }
 }
 
@@ -64,7 +64,7 @@
   }
 
   p {
-    font-size: 0.75rem;
+    font-size: $smallFontSize;
     margin-left: 1em;
   }
 }

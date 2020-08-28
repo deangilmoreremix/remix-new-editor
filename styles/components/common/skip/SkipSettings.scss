@@ -9,8 +9,8 @@
   justify-content: flex-start;
 
   label {
-    line-height: 1;
-    font-size: 0.875rem;
+    line-height: $defaultLineHeight;
+    font-size: $defaultFontSize;
   }
 }
 
@@ -18,7 +18,7 @@
   margin-left: 1rem;
 }
 
-@media screen and (max-width: 991px) {
+@media screen and (max-width: $lg) {
   .inputs-skip-wrapper {
     flex-direction: column;
     text-align: left;

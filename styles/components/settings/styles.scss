@@ -1,13 +1,14 @@
 .input-time-start,
 .input-loop-start,
 .input-loop-end {
-  width: 35%;
+  width: 30%;
   display: flex;
   flex-direction: column;
 
   & label {
-    font-size: $small;
+    font-size: $defaultFontSize;
     text-align: left;
+    line-height: $defaultLineHeight;
   }
 
   &:hover input {
@@ -17,14 +18,16 @@
 
 .input-loop-start,
 .input-loop-end {
-  width: 100%;
+  display: inline-flex;
+}
+
+.input-loop-end {
+  margin-left: 2rem;
 }
 
 .slider-container {
-  margin-top: 2rem;
-
   & label {
-    font-size: $small;
+    font-size: $defaultFontSize;
     text-align: left;
   }
 }
@@ -33,3 +36,17 @@
 .styles-field {
   margin-top: 2rem;
 }
+
+@media screen and (max-width: $lg) {
+  .input-time-start,
+  .input-loop-start,
+  .input-loop-end {
+    width: 100%;
+  }
+
+  .input-loop-end {
+    margin-top: 1rem;
+    margin-left: 0;
+  }
+}
+

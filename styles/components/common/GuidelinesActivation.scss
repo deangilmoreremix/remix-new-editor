@@ -26,7 +26,8 @@
     color: $btn-gray;
   }
 
-  label {
+  label.form-control-label {
     color: $btn-gray;
+    font-size: $smallFontSize;
   }
 }

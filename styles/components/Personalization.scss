@@ -7,7 +7,7 @@
   transform: translateY(-50%) translateX(-50%);
   z-index: 100;
   background: rgba(0, 0, 0, 0.7);
-  font: 0.875rem $font-primary;
+  font: $defaultFontSize $font-primary;
   color: #343a40;
 
   button, input {

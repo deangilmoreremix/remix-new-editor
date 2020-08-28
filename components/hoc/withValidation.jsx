@@ -15,13 +15,14 @@ const withValidation = (WrappedComponent) => (props) => {
       const e = required(value);
       if (e) {
         setError(e);
-        return;
+        return e;
       }
     }
     if (type) {
       const e = VALIDATORS.default[type]({ value });
       if (e) {
         setError(e);
+        return e;
       }
     }
   };
@@ -35,7 +36,7 @@ const withValidation = (WrappedComponent) => (props) => {
           setError(err);
         }}
       />
-      <Error message={error} handleClose={() => setError(null)} />
+      <Error {...props} message={error} handleClose={() => setError(null)} />
     </React.Fragment>
   );
 };

@@ -5,10 +5,21 @@
   padding: 0.2em;
   background: $scrollbarColor;
   margin-top: 1em;
-  margin-bottom: 0.5em;
+  margin-bottom: 1em;
+  z-index: 100;
+  cursor: grab;
 
   &-input {
     height: 100%;
+  }
+
+  .elements-container {
+    display: flex;
+    margin: 3px 0;
+
+    .item-form {
+      margin-right: 5px;
+    }
   }
 
   .retarget-remove {
@@ -27,6 +38,7 @@
 .addfield-container {
   display: flex;
   justify-content: flex-end;
+  margin-bottom: 1rem;
 
   &-button {
     background: $secondary-color;
@@ -34,9 +46,31 @@
     border-radius: 3px;
     padding: 0.1em 0.3em;
     color: $white;
+    font-size: $defaultFontSize;
+    height: 2.174rem;
+    padding: 0 24px;
   }
 }
 
 .input-field-conatainer {
   margin-bottom: 1em;
+}
+
+@media screen and (max-width: $xxl) {
+  .item-retarget-container {
+    flex-direction: column;
+    align-items: flex-start;
+
+    & > * + * {
+      margin-top: .5rem;
+    }
+
+    .item-form {
+      width: 100%;
+    }
+  }
+
+  .addfield-container-button {
+    width: 100%;
+  }
 }

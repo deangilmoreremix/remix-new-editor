@@ -1,16 +1,14 @@
-@import "Warning";
-
 .MuiSnackbar-anchorOriginBottomCenter {
   &.snackbar {
-    bottom: 5px;
-    right: 5px;
-    left: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
     transform: none;
-    justify-content: start;
+    justify-content: center;
 
     .snackbar-content {
       background: rgba(235, 80, 84, 0.8);
-      width: auto;
+      width: 100%;
     }
 
     .icon-button-svg {
@@ -27,4 +25,6 @@
     }
   }
 }
+
+@import "Warning";
 

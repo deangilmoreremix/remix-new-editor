@@ -11,7 +11,7 @@
   box-sizing: border-box;
   font-family: $font-primary;
   z-index: 1;
-  font-size: 0.875rem;
+  font-size: $defaultFontSize;
   line-height: 1;
   color: $white;
   overflow: hidden;
@@ -64,6 +64,14 @@
         width: 100%;
       }
     }
+
+    .volume-container {
+      padding-right: 3rem;
+    }
+
+    .volume-control-label {
+      font-size: $defaultFontSize;
+    }
   }
 }
 
@@ -89,6 +97,7 @@
 
   p {
     margin-bottom: 0;
+    margin-top: .2rem;
   }
 
   .text-input {
@@ -174,6 +183,8 @@ button.library__tab {
   display: flex;
   flex-wrap: wrap;
   cursor: text !important;
+  justify-content: flex-start;
+  max-width: 100%;
 }
 
 .library__add-file__container {
@@ -189,8 +200,8 @@ button.library__tab {
 
 .library__add {
   @include reset-button;
-  width: 8.88em;
-  height: 2.45em;
+  height: $defaultHeightBtn;
+  padding: 0 24px;
   border: 1px solid $secondary-color;
   border-radius: 4px;
 }
@@ -217,12 +228,19 @@ button.library__tab {
   position: absolute;
   bottom: 0.3rem;
   left: 0;
-  font-size: 0.7em;
+  font-size: $xsmallFontSize;
+  line-height: $xsmallLineHeight;
   outline: none;
+  text-align: left;
+
+  div {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
 
   span {
     margin-left: 0.3em;
-    font-size: 1em;
     color: $secondary-color;
   }
 }
@@ -265,6 +283,7 @@ button.library__tab {
 
   &-user {
     margin-bottom: 2.3rem;
+    font-size: $smallFontSize;
 
     .library__icon-btn {
       width: 17px;
@@ -399,6 +418,7 @@ button.library__tab {
     max-height: 4.75rem;
     display: flex;
     flex-flow: column wrap;
+    text-align: right;
 
     &-range {
       min-height: 70px;
@@ -419,7 +439,14 @@ button.library__tab {
       text-align: center;
       margin: auto auto 0;
       max-width: 30%;
+      margin-top: 1.5rem;
     }
+  }
+
+  .volume-control-label,
+  .volume-control-input {
+    margin-right: 0;
+    margin-bottom: 0;
   }
 }
 
@@ -480,15 +507,25 @@ button.library__tab {
     max-width: 100%;
     margin-bottom: 1rem;
   }
+
+  .library__audio-controls {
+    .volume-container {
+      padding-right: 0;
+    }
+  }
 }
 
 @media screen and (max-width: 1450px) {
   .library__item {
     width: calc(33.33% - 0.64em);
   }
+
+  .library__block {
+    margin-top: .5rem;
+  }
 }
 
-@media screen and (max-width: 1000px) {
+@media screen and (max-width: $lg) {
   .library__row-second {
     max-height: 50rem;
   }
@@ -498,18 +535,28 @@ button.library__tab {
     width: 100%;
   }
 
-  .library__btn-item {
+  .library__btn-item, .library__add-file {
     width: 100%;
   }
-}
 
-@media screen and (max-width: 950px) {
+  .library__placeholder {
+    span {
+      margin-left: 0;
+    }
+  }
+
+  .library-audio {
+    .library__audio-toolbar {
+      flex-direction: column;
+    }
+  }
+
   .library__item {
     width: calc(50% - 0.64em);
   }
 }
 
-@media screen and (max-width: 700px) {
+@media screen and (max-width: $md) {
   .library__item {
     width: 100%;
   }
