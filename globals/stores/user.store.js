@@ -115,4 +115,14 @@ export default class UserStore {
   get jsonTransitionEnabled() {
     return this.isfeatureEnabled(FEATURES.SVG_TRANSITIONS);
   }
+
+  @computed
+  get gifsEnabled() {
+    return this.isfeatureEnabled(FEATURES.GIFS);
+  }
+
+  @computed
+  get libraryStickerEnabled() {
+    return this.isfeatureEnabled(FEATURES.STICKER_LIBRARY);
+  }
 }

@@ -54,6 +54,8 @@ const Home = observer(() => {
     linkedinEnabled,
     ctaEnabled,
     blendModeEnabled,
+    gifsEnabled,
+    libraryStickerEnabled,
     jsonTransitionEnabled,
     leadGeneratorEnabled,
   } = userStore;
@@ -228,6 +230,8 @@ const Home = observer(() => {
         linkedinEnabled,
         ctaEnabled,
         blendModeEnabled,
+        gifsEnabled,
+        libraryStickerEnabled,
         leadGeneratorEnabled,
         jsonTransitionEnabled,
         width,
