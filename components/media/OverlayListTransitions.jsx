@@ -79,7 +79,7 @@ const OverlayListTransitions = observer(() => {
     setItems([]);
   };
 
-  const getItems = async (tab, reset = false) => {
+  const getItems = async (tab = activeTab, reset = false) => {
     if (reset) {
       resetParams();
     }
@@ -99,7 +99,7 @@ const OverlayListTransitions = observer(() => {
           query: '',
           page,
           perPage,
-          filter: filter || JSON_TRANSITION_TABS['16:9'].data,
+          filter,
         });
 
         if (page === 1) {
@@ -127,7 +127,7 @@ const OverlayListTransitions = observer(() => {
 
   React.useEffect(() => {
     if (page === 1) {
-      getItems(activeTab);
+      getItems();
     }
   }, [page]);
 
