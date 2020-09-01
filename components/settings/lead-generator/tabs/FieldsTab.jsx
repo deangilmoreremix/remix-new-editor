@@ -19,19 +19,20 @@ const INPUT_VALUE = 'value';
 const FieldsTab = ({ kindRetarget, values, fields, onChange, type }) => {
   const { generateUid, moveFormFields } = useProjectStore();
 
-  const inputs = useMemo(()=> {
+  const inputs = useMemo(() => {
     if (values.elements) {
       const itemFields = values.elements.map(el => {
-        if(!el.hasOwnProperty(INPUT_VALUE)) {
+        // eslint-disable-next-line no-prototype-builtins
+        if (!el.hasOwnProperty(INPUT_VALUE)) {
           el.value = el.type;
         }
         return el;
-      })
+      });
       return itemFields;
     } else {
       return fields.elements.default;
     }
-  }, [values, fields])
+  }, [values, fields]);
 
   const addField = () => {
     if (inputs.length < 5) {
