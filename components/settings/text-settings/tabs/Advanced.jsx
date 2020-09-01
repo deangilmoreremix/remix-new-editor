@@ -99,19 +99,18 @@ const Advanced = ({ values, fields, onChange }) => {
               onChange={onChange}
               containerClass="text-radio-container"
               items={iconAlignmentAdvanced}
+              row
             />
           </div>
         </div>
         <div className="font-style-section">
-          <div>
-            <FieldBuilder
-              value={fontColor || fields.fontColor.default}
-              name={fields.fontColor.name}
-              {...fields.fontColor}
-              onChange={handleChangeColor}
-              className="font-color-container-input"
-            />
-          </div>
+          <FieldBuilder
+            value={fontColor || fields.fontColor.default}
+            name={fields.fontColor.name}
+            {...fields.fontColor}
+            onChange={handleChangeColor}
+            className="font-color-container-input"
+          />
           <div className="font-style-container">
             <div className="font-style-group">
               <FieldBuilder

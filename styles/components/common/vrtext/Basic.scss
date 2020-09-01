@@ -158,6 +158,11 @@
   padding: 0 24px;
 }
 
+.btn-custom-disabled {
+  opacity: 0.5;
+  cursor: auto;
+}
+
 .text-position-container {
   display: flex;
   align-items: center;

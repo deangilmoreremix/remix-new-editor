@@ -205,6 +205,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable warning = null;
 
+  @observable success = null;
+
   @action
   undoRedoAction = (undo = true) => {
     const targetData = undo ? this.undoStore : this.redoStore;
@@ -1468,6 +1470,11 @@ export default class ProjectStore extends BaseStore {
   @action
   showWarning = (message) => {
     this.warning = message;
+  };
+
+  @action
+  showSuccess = (message) => {
+    this.success = message;
   };
 
   @action

@@ -236,16 +236,6 @@
       justify-content: space-between;
     }
   }
-
-  .MuiFormGroup-root {
-
-    .MuiFormControlLabel-root:first-child {
-
-      & > span {
-        padding-left: 0;
-      }
-    }
-  }
 }
 
 @media screen and (max-width: $lg) {

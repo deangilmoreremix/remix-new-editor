@@ -190,12 +190,14 @@ const Basic = observer(({ values, fields, onChange }) => {
               {...fields.alignment}
               onChange={changePositionHorizontal}
               items={iconAlignmentHorizontal}
+              row
             />
             <FieldBuilder
               value={positionVertical || null}
               {...fields.position}
               onChange={changePositionVertical}
               items={iconPositionVertical}
+              row
             />
           </div>
         </div>

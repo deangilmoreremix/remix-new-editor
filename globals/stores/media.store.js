@@ -95,6 +95,22 @@ export default class Media extends BaseStore {
     }
   };
 
+  postTextToSpeech = async (engine, language, text, voice, kind) => {
+    try {
+      await this.request(
+        '/api/users/me/media-assets/get-voice', {
+          method: 'POST',
+          body: { engine, language, text, voice, kind },
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
   mergeMedia = async (videoSrc, audioSrc) => {
     try {
       await this.selfRequest(
@@ -404,6 +420,11 @@ export default class Media extends BaseStore {
     return providersInfo;
   }
 
+  @computed
+  get voiceProvidersInfo() {
+    return this.defaultProvidersInfo;
+  }
+
   constructor(props) {
     super(props);
     this.assetsRequest = props.assetsRequest;
@@ -431,6 +452,11 @@ export default class Media extends BaseStore {
         ),
         [ASSET_TYPES.AUDIO]: new UserProvider(
           ASSET_TYPES.AUDIO,
+          this.providersConfiguration[LIBRARY_KEYS.USER],
+          this.request,
+        ),
+        [ASSET_TYPES.VOICE]: new UserProvider(
+          ASSET_TYPES.VOICE,
           this.providersConfiguration[LIBRARY_KEYS.USER],
           this.request,
         ),

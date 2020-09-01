@@ -60,6 +60,7 @@ const Library = observer((props) => {
     videoProvidersInfo,
     imageProvidersInfo,
     audioProvidersInfo,
+    voiceProvidersInfo,
     defaultProvidersInfo,
   } = useMediaStore();
 
@@ -124,6 +125,9 @@ const Library = observer((props) => {
       }
       case LIBRARY_TABS.AUDIO: {
         return audioProvidersInfo;
+      }
+      case LIBRARY_TABS.VOICE: {
+        return voiceProvidersInfo;
       }
       default: {
         return defaultProvidersInfo;
@@ -268,7 +272,11 @@ const Library = observer((props) => {
         Object.keys(tabItems).forEach(item => {
           tabItems[item].formats.forEach(format => {
             if (format === fileExtension) {
-              fileType = item;
+              if (item === LIBRARY_TABS.VOICE) {
+                fileType = LIBRARY_TABS.AUDIO;
+              } else {
+                fileType = item;
+              }
             }
           });
         });
@@ -282,7 +290,7 @@ const Library = observer((props) => {
 
         Object.keys(tabItems).forEach((item, i) => {
           tabItems[item].formats.forEach(format => {
-            if (format === extension) {
+            if (format === extension && item !== LIBRARY_TABS.VOICE) {
               setActiveTab(Object.keys(tabItems)[i]);
             } else {
               setItems([
@@ -337,7 +345,11 @@ const Library = observer((props) => {
       return;
     }
     item.src = item.src || item.url;
-    item.type = MEDIA_TYPES[activeTab];
+    if (activeTab === LIBRARY_TABS.VOICE) {
+      item.type = MEDIA_TYPES.AUDIO;
+    } else {
+      item.type = MEDIA_TYPES[activeTab];
+    }
     if (updateElementInLibrary && activeTab === LIBRARY_TABS.IMAGE) {
       projectStore.findAndUpdate(updateElementInLibrary, item);
       openSettings();
@@ -383,7 +395,8 @@ const Library = observer((props) => {
 
   const renderSidebar = React.useCallback(() => {
     switch (activeTab) {
-      case LIBRARY_TABS.AUDIO: return (
+      case LIBRARY_TABS.AUDIO:
+      case LIBRARY_TABS.VOICE: return (
         <div className="library__audio-toolbar">
           <ProviderList
             activeItem={activeBtn}
@@ -418,14 +431,26 @@ const Library = observer((props) => {
       <div className="library__body">
         <div className="library__row library__row-first">
           <div className="library__add-file__container">
-            <div className="library__add-file">
-              <input id="add-file" {...getInputProps()} disabled={isDisabledUpload} />
-              <label htmlFor="add-file" className="library__add">
-                {
-                  isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
-                }
-              </label>
-            </div>
+            {activeTab === LIBRARY_TABS.VOICE
+              // todo Open Voice Modal
+              ? (
+                <div className="library__add-file">
+                  <input id="add-file" />
+                  <label htmlFor="add-file" className="library__add">
+                    Add Voice
+                  </label>
+                </div>
+              )
+              : (
+                <div className="library__add-file">
+                  <input id="add-file" {...getInputProps()} disabled={isDisabledUpload} />
+                  <label htmlFor="add-file" className="library__add">
+                    {
+                      isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
+                    }
+                  </label>
+                </div>
+              )}
           </div>
           <div>
             <div className="library__block">

@@ -125,4 +125,14 @@ export default class UserStore {
   get socialFbEnabled() {
     return this.isfeatureEnabled(FEATURES.SOCIAL_FB_ELEMENT);
   }
+
+  @computed
+  get textToSpeechStandardEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_TEXT_TO_SPEECH_STANDARD);
+  }
+
+  @computed
+  get textToSpeechNeuralEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_TEXT_TO_SPEECH_NEURAL);
+  }
 }

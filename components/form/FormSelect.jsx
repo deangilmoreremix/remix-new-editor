@@ -69,10 +69,10 @@ FormSelect.propTypes = {
   labelClassName: PropTypes.string,
   selectClassName: PropTypes.string,
   className: PropTypes.string,
-  value: PropTypes.shape({
-    value: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
-  }),
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ]),
   label: PropTypes.string,
   onChange: PropTypes.func.isRequired,
 };

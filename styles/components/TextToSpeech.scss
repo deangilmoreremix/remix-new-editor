@@ -1,0 +1,233 @@
+.text-to-speech {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 31.75rem;
+  height: $toolbarHeight - 5vh;
+  background: $light-twinlight;
+  transition: 0.3s all;
+
+  button {
+    font-size: $defaultFontSize;
+  }
+
+  .btn-custom {
+    width: 100%;
+
+    &.btn-open-library {
+      background: none;
+      border: 1px solid $secondary-color;
+    }
+  }
+
+  label {
+    margin: 0;
+  }
+
+  &__title {
+    font-weight: normal;
+    font-size: $defaultFontSize;
+    line-height: .941em;
+    color: $white;
+  }
+
+  &__title-wrapper {
+    display: flex;
+    background-color: #3E3E51;
+    height: 33px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__content {
+    @include tiny-scrollbar;
+    height: 100%;
+    padding: 1rem 2.62rem 1rem 1rem;
+  }
+
+  &__input {
+    width: 100%;
+    padding: 0 1.5rem;
+
+    input {
+      color: #999;
+    }
+  }
+
+  &__input-wrapper {
+    position: relative;
+  }
+
+  &__input-icon-left {
+    position: absolute;
+    top: 30%;
+    left: .3rem;
+  }
+
+  &__input-icon-right {
+    position: absolute;
+    top: 30%;
+    right: .3rem;
+  }
+
+  &__options {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+  }
+
+  &__right {
+    width: 50%;
+  }
+
+  &__left {
+    width: 40%;
+
+    .btn-custom {
+      margin-top: 1rem;
+    }
+  }
+
+  &__select {
+    width: 100%;
+    text-align: left;
+
+    & + & {
+      margin-top: 1rem;
+    }
+
+    .select-label-top {
+      margin-bottom: 1rem;
+      font-size: $defaultFontSize;
+    }
+
+    .select-element {
+      min-width: 0;
+    }
+  }
+
+  &__text-wrapper {
+    text-align: left;
+  }
+
+  &__text {
+    display: block;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  &__radio-container {
+    width: 100%;
+
+    &.MuiFormControl-root {
+      margin-top: 1rem;
+    }
+  }
+
+  &__radio {
+    label {
+      justify-content: space-between;
+    }
+
+    .MuiRadio-root {
+      padding-right: 0;
+    }
+  }
+
+  &__check {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__loader-btn-group-wrapper {
+    margin-top: 1rem;
+    display: flex;
+  }
+
+  &__loader, &__btn-group {
+    width: 50%;
+  }
+
+  &__btn-group {
+    width: 100%;
+    .btn-custom + .btn-custom {
+      margin-top: 1rem;
+    }
+  }
+
+  .MuiIconButton-label {
+    &:hover {
+      .radio-button-icon {
+        border-color: $secondary-color;
+      }
+    }
+  }
+
+  .MuiFormControlLabel-label {
+    font-size: .875em;
+  }
+
+  .radio-button-icon {
+    width: 1.07rem;
+    height: 1.07rem;
+    background-color: #131319;
+    display: inline-block;
+    border: 0.055rem solid $border-grey;
+    border-radius: 0.175rem;
+
+    &:after {
+      content: "";
+      width: 0.205rem;
+      height: 0.205rem;
+      display: inline-block;
+      border-radius: 50%;
+      background-color: #ffffff;
+      z-index: 1;
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+    }
+
+    &.icon-svg-checked {
+      border-color: $secondary-color;
+
+      &:after {
+        background-color: $secondary-color;
+      }
+    }
+  }
+
+  button.btn-speech-get {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  @media screen and (max-width: 1200px) {
+    &__options {
+      flex-direction: column;
+    }
+
+    &__right, &__left {
+      width: 100%;
+    }
+
+    &__right {
+      margin-top: 1rem;
+    }
+
+    &__loader, &__btn-group {
+      width: 100%;
+    }
+
+    &__loader-btn-group-wrapper {
+      flex-direction: column;
+    }
+  }
+}

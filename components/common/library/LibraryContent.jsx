@@ -48,7 +48,8 @@ const LibraryContent = observer((props) => {
       case LIBRARY_TABS.VIDEO: {
         return <video src={item.preview || item.url}><track /></video>;
       }
-      case LIBRARY_TABS.AUDIO: {
+      case LIBRARY_TABS.AUDIO:
+      case LIBRARY_TABS.VOICE: {
         return (
           <AudioPreview
             item={item}
@@ -65,7 +66,8 @@ const LibraryContent = observer((props) => {
 
   const renderActions = React.useCallback((item) => {
     switch (activeTab) {
-      case LIBRARY_TABS.AUDIO: {
+      case LIBRARY_TABS.AUDIO:
+      case LIBRARY_TABS.VOICE: {
         const isActive = activeItem && activeItem.url === item.url;
         return (
           <React.Fragment>
@@ -124,7 +126,7 @@ const LibraryContent = observer((props) => {
   return (
     <div className={classnames('library__items', `library__items--${activeTab.toLowerCase()}`)}>
       {
-        activeBtn === LIBRARY_KEYS.USER && (
+        activeBtn === LIBRARY_KEYS.USER && activeTab !== LIBRARY_TABS.VOICE && (
           <div
             {...getRootProps()}
             className={classnames(

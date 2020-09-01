@@ -29,16 +29,6 @@ label.form-control-label {
   border-bottom: none!important;
 }
 
-.MuiFormGroup-root {
-
-  .MuiFormControlLabel-root:first-child {
-
-    & > span {
-      padding-left: 0;
-    }
-  }
-}
-
 .MuiInputBase-root {
   font-size: $defaultFontSize!important;
 }
