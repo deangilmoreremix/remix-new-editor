@@ -306,7 +306,12 @@ const StylesTab = (options) => {
             />
             <div className="container-transition">
               <span className="form-control-label">Animations</span>
-              <button className="btn-library" onClick={() => openAnimation()}>Open Library</button>
+              <button
+                className="btn-library"
+                onClick={() => openAnimation()}
+              >
+Open Library
+              </button>
             </div>
           </div>
         </div>

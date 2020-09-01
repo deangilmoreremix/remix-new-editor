@@ -66,6 +66,9 @@ export default class ProjectStore extends BaseStore {
           this.popcorn.on('canplayall', () => {
             this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
             this.isLoaded = true;
+            if (this.retarget && this.retarget.showed) {
+              this.addRetargetForm({ kind: POPCORN_ELEMENT_TYPES.LIST_BUILDER, noUndo: true });
+            }
           });
           this.popcorn.on('elementUpdated', (data) => {
             const { element, options } = data;
@@ -316,8 +319,10 @@ export default class ProjectStore extends BaseStore {
   isElementWithSettings = (type) => !NO_SETTINGS_ELEMENT_TYPES.some(e => e === type);
 
   @action
-  createRetargetForm = () => {
-    this.setUndo();
+  createRetargetForm = (noUndo) => {
+    if (!noUndo) {
+      this.setUndo();
+    }
     const popcornFunctions = window.Popcorn.compositions.retargetForm();
     const manifest = window.Popcorn.manifest.retargetForm;
     let options;
@@ -351,16 +356,18 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addRetargetForm = ({ kind }) => {
+  addRetargetForm = ({ kind, noUndo }) => {
     if (!this.retarget || (this.retarget && !this.retarget.id)) {
-      this.createRetargetForm();
+      this.createRetargetForm(noUndo);
     }
     this.kindRetarget = kind;
     this.retarget.kindRetarget = this.kindRetarget;
     this.editElement(this.retarget.id);
     this.retarget.start();
     this.retarget.showed = true;
-    this.modified = true;
+    if (!noUndo) {
+      this.modified = true;
+    }
   };
 
   @action
@@ -731,10 +738,9 @@ export default class ProjectStore extends BaseStore {
       this.item.description = result.description;
       this.item.remixedFrom = result.project._id;
       this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${result._id}`;
-      // eslint-disable-next-line no-underscore-dangle
       this.setProjectData(JSON.parse(result.project.data));
       if (result.project && result.project.retargetForm) {
-        this.retarget = this.item.project.retargetForm;
+        this.retarget = this.item.project.retargetForm || result.project.retargetForm;
       }
       if (result.project && result.project.allowedSocials) {
         this.item.allowedSocials = this.item.project.allowedSocials;
