@@ -117,6 +117,16 @@ export default class UserStore {
   }
 
   @computed
+  get gifsEnabled() {
+    return this.isfeatureEnabled(FEATURES.GIFS);
+  }
+
+  @computed
+  get libraryStickerEnabled() {
+    return this.isfeatureEnabled(FEATURES.STICKER_LIBRARY);
+  }
+
+  @computed
   get googleMapsEnabled() {
     return this.isfeatureEnabled(FEATURES.GOOGLE_MAPS);
   }
