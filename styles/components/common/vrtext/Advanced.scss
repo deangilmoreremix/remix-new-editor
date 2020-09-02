@@ -80,9 +80,16 @@
 .font-decoration-section {
   display: flex;
   justify-content: space-between;
+  margin-top: .5rem;
 
   .font-decoration-container {
     display: flex;
+
+    .checkbox-element {
+      & + .checkbox-element {
+        margin-left: 1rem;
+      }
+    }
   }
 
   .icon-edit-text {
@@ -102,7 +109,21 @@
   flex-wrap: wrap;
   max-width: 45%;
   justify-content: flex-end;
-  padding-top: 1.1em;
+  padding-top: 2em;
+}
+
+.font-style-group {
+  display: flex;
+
+  & + & {
+    margin-top: 1rem;
+  }
+
+  .checkbox-element {
+    & + .checkbox-element {
+      margin-left: 1rem;
+    }
+  }
 }
 
 .container-icon-arrow {
@@ -133,10 +154,119 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  text-align: left;
+  margin-top: 1rem;
 
   &-input {
     width: 48%;
   }
+
+  & > &-input {
+    margin-bottom: 1rem;
+  }
+
+  .checkbox-element {
+    padding-top: 1rem;
+
+    .MuiButtonBase-root {
+      padding-right: 0;
+    }
+
+    .MuiButton-text {
+      margin-right: 1rem;
+    }
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .font-section {
+    flex-direction: column;
+
+    .slider-container {
+      margin-top: 1rem;
+      width: 100%;
+    }
+  }
+
+  .font-decoration-section {
+    flex-direction: column;
+
+    .icon-edit-text {
+      justify-content: flex-start;
+    }
+  }
+
+  .font-style-section {
+    flex-direction: column;
+    text-align: left;
+  }
+
+  .font-style-container {
+    max-width: 100%;
+    flex-direction: column;
+    padding-top: 1rem;
+
+    .checkbox-element {
+      justify-content: space-between;
+
+      .MuiButtonBase-root {
+        padding-right: 0;
+      }
+    }
+  }
+
+  .font-style-group {
+    flex-direction: column;
+
+    & + & {
+      margin-top: 0;
+    }
+
+    .checkbox-element {
+      & + .checkbox-element {
+        margin-left: 0;
+      }
+    }
+  }
+
+  .font-color-container {
+
+    .checkbox-element {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  .MuiFormGroup-root {
+
+    .MuiFormControlLabel-root:first-child {
+
+      & > span {
+        padding-left: 0;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: $lg) {
+  .font-decoration-section {
+    .font-decoration-container {
+      flex-direction: column;
+
+      .checkbox-element {
+        justify-content: space-between;
+
+        & + .checkbox-element {
+          margin-left: 0;
+        }
+      }
+
+      .MuiButtonBase-root {
+        padding-right: 0;
+      }
+    }
+  }
+
 }
 
 

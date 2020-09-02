@@ -15,7 +15,7 @@
   text-transform: uppercase;
   background: $modal-lightdark-bg;
   color: $white;
-  font-size: 0.875rem;
+  font-size: $defaultFontSize;
 
   &--active {
     background: $scrollbarColor;

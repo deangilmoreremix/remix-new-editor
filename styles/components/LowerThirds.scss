@@ -12,7 +12,7 @@
   font-family: $font-primary;
   position: relative;
   z-index: 1;
-  font-size: 0.875rem;
+  font-size: $defaultFontSize;
   line-height: 1;
   color: $white;
   overflow: hidden;
@@ -167,6 +167,7 @@
 @media screen and (max-width: 1200px) {
   .lower-thirds-content__item {
     width: 100%;
+    margin: 0;
   }
 }
 

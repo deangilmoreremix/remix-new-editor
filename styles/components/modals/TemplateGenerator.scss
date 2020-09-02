@@ -50,7 +50,7 @@
     justify-content: center;
     align-items: center;
     margin: 0 1rem;
-    font-size: 0.875rem;
+    font-size: $defaultFontSize;
     color: $white;
     border-radius: 4px;
   }
@@ -81,7 +81,7 @@
   max-width: 23rem;
   margin: 0 auto 2rem;
   color: $third-color;
-  font-size: 0.875rem;
+  font-size: $defaultFontSize;
 }
 
 .generator-gallery {
@@ -174,7 +174,7 @@ button.generator-use {
   overflow: hidden;
   background: $secondary-color;
   border-radius: 15px;
-  font-size: 0.75rem;
+  font-size: $smallFontSize;
   color: $white;
   padding: 0;
 }

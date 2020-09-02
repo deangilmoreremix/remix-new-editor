@@ -1,5 +1,6 @@
 .text-settings-label {
-  font-size: $small;
+  font-size: $defaultFontSize;
+  line-height: $defaultLineHeight;
 }
 
 .text-container {
@@ -7,7 +8,7 @@
   margin-bottom: 1em;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
 
   &-time {
     display: flex;
@@ -23,9 +24,11 @@
     width: 45%;
     display: flex;
     flex-direction: column;
+    text-align: left;
 
     & label {
-      font-size: $small;
+      font-size: $defaultFontSize;
+      line-height: $defaultLineHeight;
     }
 
     &:hover input {
@@ -46,6 +49,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
+    margin-top: 1rem;
 
     .input-url-position {
       width: 65%;
@@ -60,10 +64,12 @@
       flex-direction: row;
       align-items: center;
       justify-content: space-between;
+      text-align: left;
 
       &-label {
         line-height: 1.4;
         width: 40%;
+        margin: 0;
       }
 
       &-input {
@@ -80,9 +86,12 @@
 
     &-rotation, &-transition {
       display: flex;
-      width: 10em;
       justify-content: space-between;
       align-items: center;
+
+      .btn-library {
+        margin-left: .5rem;
+      }
     }
 
     &-input {
@@ -90,6 +99,10 @@
       align-items: flex-end;
       justify-content: space-between;
       width: 100%;
+
+      .form-angle {
+        margin-left: .5rem;
+      }
     }
 
     &-font {
@@ -114,6 +127,10 @@
   align-items: center;
   margin-top: 1em;
 
+  .MuiFormGroup-root {
+    width: 60%;
+  }
+
   .MuiOutlinedInput-root:hover fieldset {
     border-color: $secondary-color;
   }
@@ -133,12 +150,12 @@
   background: $secondary-color;
   border-radius: 4px;
   color: $white;
-  font-size: 0.8rem;
+  font-size: $defaultFontSize;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
-  padding: 0 3px;
+  padding: 0 24px;
 }
 
 .text-position-container {
@@ -149,5 +166,161 @@
   &-icons {
     display: flex;
     align-items: baseline;
+  }
+
+  .MuiFormGroup-root {
+    .MuiFormControlLabel-root:first-child > .MuiIconButton-root {
+      padding-left: 9px;
+    }
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .text-form {
+    .MuiFormGroup-root {
+      width: 100%;
+    }
+
+    .text-container {
+      flex-direction: column;
+      align-items: flex-start;
+      margin-bottom: 0;
+
+      .text-settings-label {
+        margin-top: 1rem;
+      }
+    }
+
+    .text-container-time {
+      flex-direction: column;
+      width: 100%;
+      line-height: 1;
+
+      .input-time-position {
+        width: 100%;
+
+        & + .input-time-position {
+          margin-top: 1rem;
+        }
+      }
+    }
+
+    .text-position-container {
+      flex-direction: column-reverse;
+      align-items: flex-start;
+
+      .MuiFormControl-root:first-child {
+        .MuiFormGroup-root {
+          .MuiFormControlLabel-root:first-child {
+            & > span:first-child {
+              padding-left: 0;
+            }
+          }
+        }
+      }
+
+      .MuiFormGroup-root {
+        .MuiFormControlLabel-root {
+          & > span {
+            padding-top: 0;
+          }
+        }
+      }
+    }
+
+    .personalize-container, .btn-personalize {
+      width: 100%;
+    }
+
+    .link-url-container {
+      flex-direction: column;
+    }
+
+    .link-url-container .input-url-position {
+      width: 100%;
+      margin-top: 1rem;
+
+      .text-area-label {
+        margin-bottom: .5rem;
+      }
+    }
+
+    .email-link-container {
+
+      .email-notify {
+        flex-direction: column;
+      }
+
+      .email-notify-label, .email-notify-input {
+        width: 100%;
+        margin-bottom: .5rem;
+      }
+    }
+
+    .open-link-container {
+      flex-direction: column;
+      text-align: left;
+
+      .text-settings-label {
+        width: 100%;
+      }
+    }
+
+    .text-transform-container-rotation {
+      width: 100%;
+    }
+
+    .text-transform-container-input {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .form-angle {
+        width: 100%;
+        justify-content: space-between;
+        margin-left: 0;
+      }
+    }
+
+    .text-transform-container-transition {
+      width: 100%;
+      margin-top: 1rem;
+      flex-direction: column;
+      align-items: flex-start;
+
+      .btn-library {
+        width: 100%;
+        margin-left: 0;
+      }
+    }
+  }
+
+  .text-settings-label {
+    margin-bottom: .5rem;
+
+  }
+
+  .btn-personalize,
+  .btn-library,
+  .btn-upload,
+  .btn-custom {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: $lg) {
+  .text-form {
+    .text-position-container-icons {
+      flex-direction: column;
+
+      .MuiFormControl-root:last-child {
+        .MuiFormGroup-root {
+          .MuiFormControlLabel-root:first-child {
+            & > span:first-child {
+              padding-left: 0;
+            }
+          }
+        }
+      }
+    }
   }
 }

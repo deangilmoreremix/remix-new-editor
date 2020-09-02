@@ -1,10 +1,13 @@
 .select-element {
-  min-width: 10rem;
+  min-width: 7rem;
 
   .select__control {
     background-color: $sidebr-bg;
     border: 0.055rem solid $btn-gray;
     box-shadow: none;
+    font-size: $defaultFontSize;
+    line-height: $smallLineHeight;
+    min-height: 35px;
 
     &:hover {
       border: 0.055rem solid $red;
@@ -33,6 +36,10 @@
         width: 1rem;
       }
     }
+
+    .select__indicator {
+      padding: 0 8px;
+    }
   }
 
   .select__menu {
@@ -42,10 +49,13 @@
     .select__menu-list {
       @include tiny-scrollbar;
       height: 10em;
+      text-align: center;
 
       .select__option {
         color: $white;
         z-index: 1;
+        height: 2em;
+        padding-top: 0;
 
         &:hover {
           color: $white;

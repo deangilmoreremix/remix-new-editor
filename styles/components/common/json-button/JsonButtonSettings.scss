@@ -1,5 +1,12 @@
 .json-button-form {
   .json-button-container {
-    margin-top: 1em;
+    margin-top: 1rem;
+  }
+}
+
+.json-animation-form, .json-button-form {
+  .drop-area {
+    justify-content: left;
+    margin-bottom: 1rem;
   }
 }

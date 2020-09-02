@@ -456,8 +456,10 @@ const Library = observer((props) => {
                       className="library__placeholder"
                       onClick={handleSetFocus}
                     >
-                      {tabItems[activeTab].search.label}
-                      <span>{tabItems[activeTab].search.subLabel}</span>
+                      <div>
+                        {tabItems[activeTab].search.label}
+                        <span>{tabItems[activeTab].search.subLabel}</span>
+                      </div>
                     </button>
                   )}
                 </Fragment>

@@ -54,7 +54,10 @@ const Home = observer(() => {
     linkedinEnabled,
     ctaEnabled,
     blendModeEnabled,
+    gifsEnabled,
+    libraryStickerEnabled,
     jsonTransitionEnabled,
+    leadGeneratorEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -227,6 +230,9 @@ const Home = observer(() => {
         linkedinEnabled,
         ctaEnabled,
         blendModeEnabled,
+        gifsEnabled,
+        libraryStickerEnabled,
+        leadGeneratorEnabled,
         jsonTransitionEnabled,
         width,
         height,

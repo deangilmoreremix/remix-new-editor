@@ -9,7 +9,7 @@
   background: $red;
   border-radius: 5px;
   color: $white;
-  font-size: 0.875rem;
+  font-size: $defaultFontSize;
   transition: 0.3s all;
 
   &:disabled {

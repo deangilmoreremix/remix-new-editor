@@ -11,7 +11,7 @@
   box-sizing: border-box;
   position: relative;
   z-index: 1;
-  font-size: 0.875rem;
+  font-size: $defaultFontSize;
   line-height: 1;
   color: $white;
   overflow: hidden;
@@ -42,7 +42,7 @@
   border-radius: 4px;
   text-transform: uppercase;
   color: #fff;
-  font-size: 0.75rem;
+  font-size: $smallFontSize;
   padding: 0.3rem 0.5rem;
   margin-bottom: 1rem;
 
@@ -202,5 +202,6 @@
 @media screen and (max-width: 940px) {
   .stickers-content__item {
     width: 100%;
+    margin: 0;
   }
 }

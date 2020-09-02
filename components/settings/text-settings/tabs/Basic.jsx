@@ -169,12 +169,14 @@ const Basic = observer(({ values, fields, onChange }) => {
             {...fields.start}
             className="input-time-position"
             onChange={onChange}
+            element={values}
           />
           <FieldBuilder
             value={end || fields.end.default}
             {...fields.end}
             className="input-time-position"
             onChange={onChange}
+            element={values}
           />
         </div>
         <span className="text-settings-label">Text Position</span>

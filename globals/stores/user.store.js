@@ -57,6 +57,11 @@ export default class UserStore {
     && this.currentUser.features[feature].state === STATE.ENABLED);
 
   @computed
+  get leadGeneratorEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_LEAD_GENERATOR);
+  }
+
+  @computed
   get optinCodeEnabled() {
     return this.isfeatureEnabled(FEATURES.OPTIN_CODE);
   }
@@ -109,5 +114,15 @@ export default class UserStore {
   @computed
   get jsonTransitionEnabled() {
     return this.isfeatureEnabled(FEATURES.SVG_TRANSITIONS);
+  }
+
+  @computed
+  get gifsEnabled() {
+    return this.isfeatureEnabled(FEATURES.GIFS);
+  }
+
+  @computed
+  get libraryStickerEnabled() {
+    return this.isfeatureEnabled(FEATURES.STICKER_LIBRARY);
   }
 }

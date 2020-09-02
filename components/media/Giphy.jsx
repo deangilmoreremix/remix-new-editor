@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
+import SVGInline from 'react-svg-inline';
 
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
@@ -11,6 +12,8 @@ import { ENTER_KEY } from '../../lib/constants/keyCodes';
 import List from '../common/list/List';
 import ImageElement from '../common/libraryElements/ImageElement';
 import CloseButton from '../common/CloseButton';
+
+import searchIcon from '../../public/static/images/search.svg';
 
 const GiphyGifs = observer(({ type }) => {
   const inputRef = useRef();
@@ -35,7 +38,8 @@ const GiphyGifs = observer(({ type }) => {
   };
 
   useEffect(() => {
-    setSearchValue('');
+    setSearchValue(type);
+    setStartSearch(true);
   }, [type]);
 
   return (
@@ -58,10 +62,16 @@ const GiphyGifs = observer(({ type }) => {
               className="gif-library__placeholder"
               onClick={handleSetFocus}
             >
-              {search.label}
-              <span>{search.subLabel}</span>
+              <div>
+                {search.label}
+                <span>{search.subLabel}</span>
+              </div>
             </button>
           )}
+          <SVGInline
+            className="gif-library__icon"
+            svg={searchIcon}
+          />
         </div>
 
         <List

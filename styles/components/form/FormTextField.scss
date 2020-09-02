@@ -61,12 +61,12 @@ input, div, textarea {
     font-style: normal;
     font-weight: normal;
     background: $sidebr-bg;
-    font-size: 0.875rem;
+    font-size: $defaultFontSize;
     line-height: 1;
 
     input {
       padding: 0;
-      font-size: 0.875rem;
+      font-size: $defaultFontSize;
       min-height: 2.065rem;
     }
   }
@@ -92,9 +92,11 @@ label {
   &.select-label-left,
   &.select-label-top {
     font-family: $font-primary;
-    font-size: 0.765rem;
+    font-size: $defaultFontSize;
     vertical-align: middle;
     color: $white;
+    line-height: $defaultLineHeight;
+    text-align: left;
   }
 }
 .label-left {
@@ -132,6 +134,7 @@ label {
 
     fieldset {
       border-color: $btn-gray;
+      top: 0;
     }
 
     .MuiOutlinedInput-root:hover fieldset, .MuiOutlinedInput-root.Mui-focused fieldset {

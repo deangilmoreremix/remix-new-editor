@@ -12,6 +12,7 @@
   color: $white;
   overflow: hidden;
   transition: 0.3s all;
+  font-size: $defaultFontSize;
 
   &__header {
     width: 100%;
@@ -45,6 +46,7 @@
     padding: 0.3rem 0;
     color: $white;
     margin-bottom: 0.7rem;
+    padding-right: 1.4rem;
 
     &:focus ~ .gif-library__placeholder {
       display: none;
@@ -56,13 +58,20 @@
     position: absolute;
     bottom: 0.3rem;
     left: 0;
-    font-size: 0.7em;
+    font-size: $xsmallFontSize;
     outline: none;
     color: $white;
+    text-align: left;
+    max-width: 100%;
+
+    div {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
 
     span {
       margin-left: 0.3em;
-      font-size: 1em;
       color: $secondary-color;
     }
   }
@@ -79,6 +88,27 @@
     height: calc(100% - 2.1rem);
     overflow: hidden;
     max-width: 70%;
+  }
+
+  &__icon {
+    width: 1rem;
+    height: 1rem;
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+
+    svg {
+      width: 100%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    path {
+      stroke: $secondary-color;
+    }
   }
 }
 

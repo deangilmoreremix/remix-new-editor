@@ -15,7 +15,7 @@
   display: flex;
   flex: 1;
   flex-wrap: wrap;
-  padding-right: 3.9rem;
+  padding-right: 2.62rem;
   padding-left: 1.56rem;
   overflow: hidden;
   overflow-y: auto;
@@ -38,13 +38,13 @@
   align-items: center;
   flex: 1;
   background: $modal-lightdark-bg;
-  color: $red;
-  font-size: $small;
+  color: #fff;
+  font-size: $defaultFontSize;
   text-transform: uppercase;
 
   &-active {
     background: $scrollbarColor;
-    color: #fff;
+    color: $secondary-color;
   }
 }
 
@@ -78,6 +78,19 @@
     text-align: left;
   }
 
+  .settings-allow {
+    flex-direction: column;
+
+    .checkbox-element {
+      width: 100%;
+      justify-content: space-between;
+
+      .MuiIconButton-root {
+        padding-right: 0;
+      }
+    }
+  }
+
   .settings-input {
     flex-direction: column !important;
 
@@ -103,7 +116,7 @@
   .settings-panel-text,
   label.settings-panel-text,
   .settings-input .tags-input-title {
-    margin-bottom: 1rem;
+    margin-bottom: .5rem;
     padding-right: 0;
   }
 
@@ -111,13 +124,13 @@
     margin-bottom: 0.5rem;
 
     &.text-area-label {
-      margin-bottom: 1rem;
+      margin-bottom: .5rem;
     }
   }
 
   .settings-allow {
     .settings-panel-text {
-      margin-bottom: 0;
+      margin-bottom: .5rem;
     }
   }
 
@@ -141,7 +154,7 @@
     label {
       width: 100%;
       text-align: left;
-      margin-bottom: 1rem;
+      margin-bottom: .5rem;
     }
   }
 }
