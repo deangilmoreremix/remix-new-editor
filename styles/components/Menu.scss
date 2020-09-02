@@ -24,6 +24,13 @@ button.menu__open {
       stroke: $white;
     }
   }
+  &.inactive:hover {
+      background: $btn-gray;
+  }
+}
+
+.menu__item + a {
+  text-decoration: none;
 }
 
 .menu__item-icon {

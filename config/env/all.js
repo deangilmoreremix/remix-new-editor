@@ -92,6 +92,7 @@ module.exports = {
   },
   posterframe: process.env.DEFAULT_POSTERFRAME || 'https://cdn.vidcloud.io/resources/go/posterframe_default.jpg',
   facebookAppId: process.env.FACEBOOK_APP_ID || '766265603823913',
+  facebookSocialId: process.env.SOCIALIZER_APP_ID || '701751126630371',
   linkedinAppId: process.env.LINKEDIN_APP_ID || '77dc93kxh13kfc',
   mediaProviders: {
     PEXELS: {

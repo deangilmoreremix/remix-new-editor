@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import lottie from 'lottie-web';
+import classnames from 'classnames';
 
 import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
 import { loadUrl } from '../../../lib/requestCreator';
@@ -7,7 +8,7 @@ import { loadUrl } from '../../../lib/requestCreator';
 import PropTypes from '../../../lib/PropTypes';
 import FieldBuilder from '../../form/FieldBuilder';
 
-const Basic = ({ options, update, fields, ...props }) => {
+const Basic = ({ options, update, fields, containerClass, ...props }) => {
   const [isDisabled, setIsDisabled] = useState(false);
 
   const onUploaded = async ({ url }) => {
@@ -26,7 +27,7 @@ const Basic = ({ options, update, fields, ...props }) => {
 
   // ToDo move dropzone to manifest.
   return (
-    <div className={`inputs-${options.type}-wrapper`}>
+    <div className={classnames(`inputs-${options.type}-wrapper`, containerClass)}>
       {fields && Object.keys(fields).map(key => {
         const { label, type, ...fieldProps } = fields[key];
         return (
@@ -35,7 +36,7 @@ const Basic = ({ options, update, fields, ...props }) => {
             {...props}
             label={label}
             type={type}
-            value={options[key]}
+            value={options[key] || fields[key].default}
             key={key}
             name={key}
             disabled={isDisabled}
@@ -64,9 +65,11 @@ Basic.propTypes = {
     PropTypes.shape({
       type: PropTypes.string.isRequired,
       label: PropTypes.string,
+      default: PropTypes.any,
     }),
   ),
   update: PropTypes.func,
+  containerClass: PropTypes.string,
 };
 
 export default Basic;

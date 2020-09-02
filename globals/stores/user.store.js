@@ -125,4 +125,14 @@ export default class UserStore {
   get libraryStickerEnabled() {
     return this.isfeatureEnabled(FEATURES.STICKER_LIBRARY);
   }
+
+  @computed
+  get googleMapsEnabled() {
+    return this.isfeatureEnabled(FEATURES.GOOGLE_MAPS);
+  }
+
+  @computed
+  get socialFbEnabled() {
+    return this.isfeatureEnabled(FEATURES.SOCIAL_FB_ELEMENT);
+  }
 }

@@ -160,7 +160,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           label={fields[popcornConstants.CORNER_RADIUS].label}
           type={fields[popcornConstants.CORNER_RADIUS].type}
           value={
-            values[popcornConstants.CORNER_RADIUS] || fields[popcornConstants.CORNER_RADIUS].default
+            values[popcornConstants.CORNER_RADIUS] ?? fields[popcornConstants.CORNER_RADIUS].default
           }
           name={popcornConstants.CORNER_RADIUS}
           onChange={onChange}
@@ -186,6 +186,14 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           </div>
         </div>
       </div>
+      <FieldBuilder
+        label={fields[popcornConstants.FILL].label}
+        type={fields[popcornConstants.FILL].type}
+        value={values[popcornConstants.FILL]}
+        name={popcornConstants.FILL}
+        onChange={onChange}
+        floatClassName="image-settings__checkbox"
+      />
     </Fragment>
   );
 };

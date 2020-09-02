@@ -58,6 +58,8 @@ const Home = observer(() => {
     libraryStickerEnabled,
     jsonTransitionEnabled,
     leadGeneratorEnabled,
+    googleMapsEnabled,
+    socialFbEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -236,6 +238,8 @@ const Home = observer(() => {
         jsonTransitionEnabled,
         width,
         height,
+        googleMapsEnabled,
+        socialFbEnabled,
       },
     });
     return items && items.length ? items : [];

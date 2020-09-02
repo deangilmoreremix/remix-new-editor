@@ -22,6 +22,7 @@ const FormSlider = props => {
     containerClassName,
     sliderClassName,
     inputClassName,
+    labelClassName,
     disabled,
   } = props;
 
@@ -61,7 +62,7 @@ const FormSlider = props => {
   return (
     <div className={classnames(classes.root, containerClassName, 'slider-element')}>
       <InputLabel
-        className={classnames('form-control-label')}
+        className={classnames('form-control-label', labelClassName)}
       >
         {label}
       </InputLabel>
@@ -115,6 +116,7 @@ FormSlider.propTypes = {
   containerClassName: PropTypes.string,
   sliderClassName: PropTypes.string,
   inputClassName: PropTypes.string,
+  labelClassName: PropTypes.string,
   disabled: PropTypes.bool,
 };
 

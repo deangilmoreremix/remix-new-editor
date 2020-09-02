@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, Fragment } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 
@@ -13,6 +13,7 @@ import FieldBuilder from '../../../form/FieldBuilder';
 
 import videoIcon from '../../../../public/static/images/media/icon-video.svg';
 import audioIcon from '../../../../public/static/images/media/icon-audio-2.svg';
+import fillIcon from '../../../../public/static/images/fill.svg';
 
 const ClipEditor = observer(({ values, fields, element, onChange }) => {
   const {
@@ -171,21 +172,37 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
       <div className="video-settings__block">
         <div className="video-settings__block-checkboxes">
           {!isAudio(element) && (
-            <div className="video-settings__block-element">
-              <SVGInline
-                className="video-settings__icon"
-                svg={videoIcon}
-                cleanup={['title']}
-              />
-              <FieldBuilder
-                label={fields[popcornConstants.HIDDEN].label}
-                type={fields[popcornConstants.HIDDEN].type}
-                value={hidden !== undefined
-                  ? !hidden : !fields[popcornConstants.HIDDEN].default}
-                name={popcornConstants.HIDDEN}
-                onChange={changeHidden}
-              />
-            </div>
+            <Fragment>
+              <div className="video-settings__block-element">
+                <SVGInline
+                  className="video-settings__icon"
+                  svg={videoIcon}
+                  cleanup={['title']}
+                />
+                <FieldBuilder
+                  label={fields[popcornConstants.HIDDEN].label}
+                  type={fields[popcornConstants.HIDDEN].type}
+                  value={hidden !== undefined
+                    ? !hidden : !fields[popcornConstants.HIDDEN].default}
+                  name={popcornConstants.HIDDEN}
+                  onChange={changeHidden}
+                />
+              </div>
+              <div className="video-settings__block-element">
+                <SVGInline
+                  className="video-settings__icon"
+                  svg={fillIcon}
+                  cleanup={['title']}
+                />
+                <FieldBuilder
+                  label={fields[popcornConstants.FILL].label}
+                  type={fields[popcornConstants.FILL].type}
+                  value={values[popcornConstants.FILL]}
+                  name={popcornConstants.FILL}
+                  onChange={onChange}
+                />
+              </div>
+            </Fragment>
           )}
           <div className="video-settings__block-element">
             <SVGInline
