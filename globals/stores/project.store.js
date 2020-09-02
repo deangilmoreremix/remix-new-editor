@@ -33,7 +33,7 @@ import {
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
-import { showError, showInfo } from '../../lib/services/alertService';
+import { showConfirmation, showError, showInfo } from '../../lib/services/alertService';
 import {
   FORM_ONE_LG,
   WARNING_OPACITY,
@@ -1280,7 +1280,7 @@ export default class ProjectStore extends BaseStore {
             return showError('The project is not valid.');
           }
         }
-      } else {
+      } else if (await showConfirmation('Project will be saved')) {
         closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
