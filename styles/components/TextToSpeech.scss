@@ -15,6 +15,10 @@
     font-size: $defaultFontSize;
   }
 
+  .btn-personalize {
+    width: 100%;
+  }
+
   .btn-custom {
     width: 100%;
 
@@ -24,8 +28,29 @@
     }
   }
 
-  label {
+  label, &__label {
     margin: 0;
+    margin-bottom: 1rem;
+    font-size: $defaultFontSize;
+    line-height: $defaultLineHeight;
+  }
+
+  &__info {
+    font-size: $defaultFontSize;
+    color: $secondary-color;
+    margin: 0.2rem 0 1rem;
+    line-height: 1;
+  }
+
+  &__textarea.multiline {
+    height: 9.3125rem;
+    margin-bottom: 0;
+  }
+
+  &__textarea {
+    &-input {
+      background: $sidebr-bg;
+    }
   }
 
   &__title {
@@ -47,15 +72,6 @@
     @include tiny-scrollbar;
     height: 100%;
     padding: 1rem 2.62rem 1rem 1rem;
-  }
-
-  &__input {
-    width: 100%;
-    padding: 0 1.5rem;
-
-    input {
-      color: #999;
-    }
   }
 
   &__input-wrapper {

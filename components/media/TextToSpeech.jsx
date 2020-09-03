@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, Fragment } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
@@ -6,17 +6,20 @@ import { TEXT_TO_SPEECH_SUCCESS, TEXT_TO_SPEECH_ERROR } from '../../lib/constant
 import { ASSET_TYPES } from '../../lib/constants/media';
 import { LIBRARY_TABS } from '../../lib/constants/library';
 import { VOICES, LANGUAGES, engineType } from '../../lib/constants/textToSpeech';
+import { addToken, wrapTokens, unwrapTokens } from '../../lib/utils/tokens-helper';
 
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
 
-import FormTextArea from '../form/FormTextArea';
 import FormSelect from '../form/FormSelect';
 import FormRadioButton from '../form/FormRadioButton';
 import { showError } from '../../lib/services/alertService';
 import CloseButton from '../common/CloseButton';
 import { LibrarySpinner } from './Loader';
+import PersonalizeButton from '../common/personalization/PersonalizeButton';
+import FormTokensTextArea from '../form/FormTokensTextArea';
+import FormTextArea from '../form/FormTextArea';
 // import SVGInline from 'react-svg-inline';
 // import trashIcon from '../../public/static/svgImages/common/trash.svg';
 // import svgVoice from '../../public/static/svgImages/common/voice.svg';
@@ -28,11 +31,13 @@ const TextToSpeech = observer(() => {
   const { showSuccess } = useProjectStore();
 
   const [loading, setLoading] = useState(false);
-  const [valueTextarea, setValueTextarea] = useState(null);
+  const [valueTextarea, setValueTextarea] = useState('');
+  const [fallbackValue, setFallbackValue] = useState('');
   const [voiceSelect, setVoiceSelect] = useState();
   const [languageSelect, setLanguageSelect] = useState(LANGUAGES[0].value);
   const [selectVoices, setSelectVoices] = useState(VOICES['en-US']);
   const [valueRadio, setValueRadio] = useState(engineType[0].value);
+  const [caret, setCaret] = useState();
 
   // toDo: Code commented below should be used for upper(white) input
   // const [valueSelect, setValueSelect] = useState(2);
@@ -57,9 +62,10 @@ const TextToSpeech = observer(() => {
     postTextToSpeech(
       valueRadio,
       languageSelect,
-      valueTextarea,
+      isPersonalizeText ? unwrapTokens(valueTextarea) : valueTextarea,
       voiceSelect,
-      ASSET_TYPES.VOICE,
+      isPersonalizeText ? ASSET_TYPES.PERSONALIZED_VOICE : ASSET_TYPES.VOICE,
+      isPersonalizeText ? fallbackValue : null,
     )
       .then(() => showSuccess(TEXT_TO_SPEECH_SUCCESS.title))
       .catch(() => showError(TEXT_TO_SPEECH_ERROR.title))
@@ -84,6 +90,26 @@ const TextToSpeech = observer(() => {
     const item = LANGUAGES.filter(language => language.value === v);
     setLanguageSelect(item[0].value);
   };
+
+  const onAddTextToken = useCallback((token) => {
+    const result = addToken(unwrapTokens(valueTextarea), token, caret);
+    setValueTextarea(wrapTokens(result));
+  }, [valueTextarea, caret]);
+
+  const handleChange = useCallback((text, data) => {
+    setValueTextarea(text);
+    setCaret(data.caretOffset);
+  }, []);
+
+  const isPersonalizeText = useMemo(() => valueTextarea && unwrapTokens(valueTextarea).indexOf('{{') !== -1, [valueTextarea]);
+
+  const isDisabledButton = useMemo(() => {
+    if (isPersonalizeText) {
+      return !fallbackValue;
+    } else {
+      return !valueTextarea;
+    }
+  }, [valueTextarea, fallbackValue, isPersonalizeText]);
 
   return (
     <div className={classnames('text-to-speech', { 'big-window': !isTimelineOpen })}>
@@ -147,16 +173,33 @@ const TextToSpeech = observer(() => {
               radioClassName="text-to-speech__radio"
               onChange={setValueRadio}
             />
-            <button className="btn-custom">Personalize Voice</button>
+            <PersonalizeButton onAdd={onAddTextToken} text="Personalize Voice" />
           </div>
           <div className="text-to-speech__right">
             <div className="text-to-speech__text-wrapper">
-              <FormTextArea
-                label="Text"
-                text
+              {isPersonalizeText && (
+                <Fragment>
+                  <FormTextArea
+                    label="Fallback Value"
+                    value={fallbackValue}
+                    onChange={setFallbackValue}
+                    className="text-to-speech__textarea"
+                    inputClassName="text-to-speech__textarea-input"
+                    rows={6}
+                    text
+                  />
+                  <p className="text-to-speech__info">Required field</p>
+                </Fragment>
+              )}
+              <p className="text-to-speech__label">Text</p>
+              <FormTokensTextArea
+                inputClassName="text-to-speech__textarea"
                 value={valueTextarea}
-                onChange={setValueTextarea}
-                rows={6}
+                onChange={handleChange}
+                additionalFieldName="text"
+                caretName="caretOffset"
+                variant="multiline"
+                updateCaret={(value) => setCaret(value.caretOffset)}
               />
             </div>
             <div className="text-to-speech__loader-btn-group-wrapper">
@@ -164,8 +207,8 @@ const TextToSpeech = observer(() => {
               <div className="text-to-speech__btn-group">
                 <button
                   onClick={getVoice}
-                  className={classnames('btn-custom btn-speech-get', { 'btn-custom-disabled': !valueTextarea || loading })}
-                  disabled={!valueTextarea}
+                  className={classnames('btn-custom btn-speech-get', { 'btn-custom-disabled': isDisabledButton || loading })}
+                  disabled={isDisabledButton}
                 >
                   {loading ? <LibrarySpinner /> : <span>GET VOICE</span>}
                 </button>

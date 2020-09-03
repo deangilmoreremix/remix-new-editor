@@ -95,12 +95,25 @@ export default class Media extends BaseStore {
     }
   };
 
-  postTextToSpeech = async (engine, language, text, voice, kind) => {
+  postTextToSpeech = async (engine, language, text, voice, kind, fallbackValue) => {
+    let url;
+    let body;
+    if (kind === ASSET_TYPES.PERSONALIZED_VOICE) {
+      url = '/api/users/me/media-assets/get-voice-template';
+      body = {
+        kind,
+        extra: { text, voice, engine, fallbackValue, language },
+      };
+    } else {
+      url = '/api/users/me/media-assets/get-voice';
+      body = { engine, language, text, voice, kind };
+    }
+
     try {
       await this.request(
-        '/api/users/me/media-assets/get-voice', {
+        url, {
           method: 'POST',
-          body: { engine, language, text, voice, kind },
+          body,
           headers: {
             'on-behalf': this.currentUser.id,
           },
@@ -457,6 +470,11 @@ export default class Media extends BaseStore {
         ),
         [ASSET_TYPES.VOICE]: new UserProvider(
           ASSET_TYPES.VOICE,
+          this.providersConfiguration[LIBRARY_KEYS.USER],
+          this.request,
+        ),
+        [ASSET_TYPES.PERSONALIZED_VOICE]: new UserProvider(
+          ASSET_TYPES.PERSONALIZED_VOICE,
           this.providersConfiguration[LIBRARY_KEYS.USER],
           this.request,
         ),
