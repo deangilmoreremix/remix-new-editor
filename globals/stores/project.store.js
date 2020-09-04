@@ -6,6 +6,7 @@ import Router from 'next/router';
 import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
+import { ASSET_TYPES } from '../../lib/constants/media';
 
 import {
   NO_SETTINGS_ELEMENT_TYPES,
@@ -41,6 +42,7 @@ import {
 import { radioButton } from '../../lib/constants/windowsLogics';
 import { ACTION_MAKE_COPY, ACTION_WATCH_VIDEO, PRODUCE_TABS } from '../../lib/constants/ui';
 import { ROUTES } from '../../lib/constants/routing';
+
 
 const caretNames = Object.values(CARET_NAMES);
 
@@ -293,6 +295,10 @@ export default class ProjectStore extends BaseStore {
         options.mute = item.volume === 0;
         options.audioFadeIn = 0;
         options.audioFadeOut = 0;
+
+        if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
+          options.templateId = item._id;
+        }
 
         const maxDuration = MAX_DURATION / SANTISECOND;
         if (options.duration * SANTISECOND > MAX_DURATION) {
