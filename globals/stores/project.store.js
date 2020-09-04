@@ -917,6 +917,7 @@ export default class ProjectStore extends BaseStore {
             end: null,
             zindex: null,
             duration: trackEvent.popcornOptions.end - trackEvent.popcornOptions.start,
+            kind: makeTemplate.kind || trackEvent.popcornOptions.kind,
           };
           return this.createNewElement(item);
         });
