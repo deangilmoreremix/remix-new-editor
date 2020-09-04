@@ -4,7 +4,7 @@ import config from '../config/config';
 
 export const socket = {};
 export const initializeSockets = (authToken, user) => {
-  const socketInstance = io(config.loginServer.url, {
+  const socketInstance = io(`${config.loginServer.url}/editor`, {
     query: { authorization: `${authToken}`, userId: user.id },
     transports: ['websocket'],
   });

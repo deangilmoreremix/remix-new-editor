@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../../lib/PropTypes';
+import { ASSET_TYPES } from '../../../../lib/constants/media';
 
 import * as popcornConstants from '../../../../lib/constants/popcorn';
 
@@ -151,24 +152,28 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
       {/*  changeOut={changeOut} */}
       {/*  changeFromOut={changeFromOut} */}
       {/* /> */}
-      <div className="video-settings__inputs">
-        <FieldBuilder
-          label={fields[popcornConstants.FROM].label}
-          type={fields[popcornConstants.FROM].type}
-          value={from || fields[popcornConstants.FROM].default}
-          name={popcornConstants.FROM}
-          onChange={changeFrom}
-          className="video-settings-input"
-        />
-        <FieldBuilder
-          label="Out"
-          type={fields[popcornConstants.DURATION].type}
-          value={videoOut}
-          name="out"
-          onChange={changeOut}
-          className="video-settings-input"
-        />
-      </div>
+      {
+        element.popcornOptions.kind !== ASSET_TYPES.PERSONALIZED_VOICE && (
+          <div className="video-settings__inputs">
+            <FieldBuilder
+              label={fields[popcornConstants.FROM].label}
+              type={fields[popcornConstants.FROM].type}
+              value={from || fields[popcornConstants.FROM].default}
+              name={popcornConstants.FROM}
+              onChange={changeFrom}
+              className="video-settings-input"
+            />
+            <FieldBuilder
+              label="Out"
+              type={fields[popcornConstants.DURATION].type}
+              value={videoOut}
+              name="out"
+              onChange={changeOut}
+              className="video-settings-input"
+            />
+          </div>
+        )
+      }
       <div className="video-settings__block">
         <div className="video-settings__block-checkboxes">
           {!isAudio(element) && (
@@ -252,16 +257,20 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
           className="video-settings__time"
           element={values}
         />
-        <FieldBuilder
-          label={fields[popcornConstants.END].label}
-          type={fields[popcornConstants.END].type}
-          value={end}
-          name={popcornConstants.END}
-          onChange={onChange}
-          onEnter={onChange}
-          className="video-settings__time"
-          element={values}
-        />
+        {
+          element.popcornOptions.kind !== ASSET_TYPES.PERSONALIZED_VOICE && (
+            <FieldBuilder
+              label={fields[popcornConstants.END].label}
+              type={fields[popcornConstants.END].type}
+              value={end}
+              name={popcornConstants.END}
+              onChange={onChange}
+              onEnter={onChange}
+              className="video-settings__time"
+              element={values}
+            />
+          )
+        }
       </div>
 
       <div className="video-settings__fade">

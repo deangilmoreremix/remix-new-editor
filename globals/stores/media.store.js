@@ -435,7 +435,11 @@ export default class Media extends BaseStore {
 
   @computed
   get voiceProvidersInfo() {
-    return this.defaultProvidersInfo;
+    return {
+      [LIBRARY_KEYS.VOICE]: this.providersConfiguration[LIBRARY_KEYS.VOICE],
+      [LIBRARY_KEYS.PERSONALIZED_VOICE]:
+        this.providersConfiguration[LIBRARY_KEYS.PERSONALIZED_VOICE],
+    };
   }
 
   constructor(props) {
@@ -476,6 +480,20 @@ export default class Media extends BaseStore {
         [ASSET_TYPES.PERSONALIZED_VOICE]: new UserProvider(
           ASSET_TYPES.PERSONALIZED_VOICE,
           this.providersConfiguration[LIBRARY_KEYS.USER],
+          this.request,
+        ),
+      },
+      [LIBRARY_KEYS.VOICE]: {
+        [ASSET_TYPES.VOICE]: new UserProvider(
+          ASSET_TYPES.VOICE,
+          this.providersConfiguration[LIBRARY_KEYS.VOICE],
+          this.request,
+        ),
+      },
+      [LIBRARY_KEYS.PERSONALIZED_VOICE]: {
+        [ASSET_TYPES.PERSONALIZED_VOICE]: new UserProvider(
+          ASSET_TYPES.PERSONALIZED_VOICE,
+          this.providersConfiguration[LIBRARY_KEYS.PERSONALIZED_VOICE],
           this.request,
         ),
       },

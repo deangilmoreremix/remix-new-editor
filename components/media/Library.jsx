@@ -178,7 +178,8 @@ const Library = observer((props) => {
     try {
       const data = await getAssets({
         providerName: source,
-        assetType: activeTab,
+        assetType: source === LIBRARY_KEYS.PERSONALIZED_VOICE
+          ? LIBRARY_KEYS.PERSONALIZED_VOICE : activeTab,
         page: currentPage,
         query: queryStr,
         filter: { _id: { $nin: uploaded } },
@@ -396,22 +397,30 @@ const Library = observer((props) => {
   const renderSidebar = React.useCallback(() => {
     switch (activeTab) {
       case LIBRARY_TABS.AUDIO:
-      case LIBRARY_TABS.VOICE: return (
-        <div className="library__audio-toolbar">
-          <ProviderList
-            activeItem={activeBtn}
-            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
-            userContentTitle={tabItems[activeTab].label}
-            handleButtonClick={handleButtonClick}
-            list={listProviders}
-          />
-          <AudioControls
-            selected={activeItem}
-            volume={volume}
-            setVolume={setVolume}
-          />
-        </div>
-      );
+      case LIBRARY_TABS.VOICE: {
+        let audioActiveItem = '';
+        if (activeTab === LIBRARY_TABS.VOICE && activeBtn === LIBRARY_KEYS.USER) {
+          audioActiveItem = LIBRARY_TABS.VOICE;
+        } else {
+          audioActiveItem = activeBtn;
+        }
+        return (
+          <div className="library__audio-toolbar">
+            <ProviderList
+              activeItem={audioActiveItem}
+              title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
+              userContentTitle={tabItems[activeTab].label}
+              handleButtonClick={handleButtonClick}
+              list={listProviders}
+            />
+            <AudioControls
+              selected={audioActiveItem}
+              volume={volume}
+              setVolume={setVolume}
+            />
+          </div>
+        );
+      }
       default: return (
         <ProviderList
           activeItem={activeBtn}

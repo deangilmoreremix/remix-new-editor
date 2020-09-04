@@ -3,6 +3,7 @@ import classnames from 'classnames';
 import Grid from '@material-ui/core/Grid/Grid';
 import SVGInline from 'react-svg-inline';
 
+import { ASSET_TYPES } from '../../../../lib/constants/media';
 import { POPCORN_ELEMENT_LABELS, POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 import { DEFAULT_SETTINGS } from '../../../../lib/constants/settings';
 import PropTypes from '../../../../lib/PropTypes';
@@ -12,11 +13,27 @@ import {
   TIMELINE_ELEMENT_ICONS,
 } from '../../../../lib/constants/timeline';
 
+import svgAudioIcon from '../../../../public/static/images/media/icon-audio.svg';
+
 const IconElement = React.forwardRef(({ item, ...rest }, ref) => {
-  const icon = useMemo(() => TIMELINE_ELEMENT_ICONS[item.type], [item]);
+  const icon = useMemo(() => {
+    // ToDO add icons for voice and personalized voice
+    if (item.kind === ASSET_TYPES.AUDIO) {
+      return svgAudioIcon;
+    }
+    return TIMELINE_ELEMENT_ICONS[item.type];
+  }, [item]);
   const quantityIcon = useMemo(() => TIMELINE_ELEMENT_DEFAULT_ICONS[item.type], [item]);
 
   const itemTitle = useMemo(() => {
+    if (item.kind === ASSET_TYPES.VOICE
+      || item.kind === ASSET_TYPES.VIDEO
+      || item.kind === ASSET_TYPES.AUDIO) {
+      let title = item.kind;
+      title = item.kind[0].toUpperCase() + item.kind.slice(1);
+      return title;
+    }
+
     if (item.type === POPCORN_ELEMENT_TYPES.SOCIAL) {
       return item.title;
     }
@@ -69,6 +86,7 @@ IconElement.propTypes = {
     type: PropTypes.string.isRequired,
     title: PropTypes.string,
     htmlText: PropTypes.string,
+    kind: PropTypes.string,
   }).isRequired,
 };
 
