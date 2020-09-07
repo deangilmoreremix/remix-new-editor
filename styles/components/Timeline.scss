@@ -107,6 +107,10 @@
 
 .popcorn-element-personalized-voice {
   justify-content: center !important;
+
+  &+.react-resizable-handle {
+    display: none;
+  }
 }
 
 .popcorn-pausePlugin-element,
