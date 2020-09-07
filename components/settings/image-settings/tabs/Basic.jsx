@@ -170,24 +170,25 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           onChange={onChange}
           floatClassName="image-settings__checkbox"
         />
-        <div className="image-settings__block">
-          <div className="image-settings__btn--block">
-            <button
-              className="image-settings__btn"
-              onClick={() => {
-                openImageEditor({
-                  src: element.popcornOptions.src,
-                  onImageEdited,
-                  startUpload: () => setIsLoading(true),
-                  endUpload: () => setIsLoading(false),
-                  menu: EXTRA_MENU,
-                });
-              }}
-              isDisabled={isLoading}
-            >
-              Image Editor
-            </button>
-          </div>
+      </div>
+
+      <div className="image-settings__block">
+        <div className="image-settings__btn--block">
+          <button
+            className="image-settings__btn"
+            onClick={() => {
+              openImageEditor({
+                src: element.popcornOptions.src,
+                onImageEdited,
+                startUpload: () => setIsLoading(true),
+                endUpload: () => setIsLoading(false),
+                menu: EXTRA_MENU,
+              });
+            }}
+            isDisabled={isLoading}
+          >
+            Image Editor
+          </button>
         </div>
       </div>
       <FieldBuilder

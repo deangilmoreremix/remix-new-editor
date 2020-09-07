@@ -30,6 +30,14 @@
       margin-bottom: 0;
     }
   }
+
+  .MuiIconButton-root {
+    margin-right: -9px;
+  }
+
+  &:last-child {
+    justify-content: flex-end;
+  }
 }
 
 .image-settings__cell {
@@ -91,7 +99,7 @@
 .image-settings__btn {
   @include red-button;
   width: 7.75rem;
-  padding: 0;
+  padding: 0 0.5rem;
 }
 
 .image-settings__information {

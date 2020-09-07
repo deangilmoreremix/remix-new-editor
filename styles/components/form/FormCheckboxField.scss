@@ -14,8 +14,16 @@
   }
 }
 
+.layout-container {
+  .MuiCheckbox-colorSecondary {
+    &.Mui-checked:hover, &:hover {
+      background-color: rgba(245, 0, 87, 0.1);
+    }
+  }
+}
+
 .MuiBox-root:not(:first-child) {
-  height: 2.065rem;
+  height: 2.19rem;
 }
 
 .checkbox-element {

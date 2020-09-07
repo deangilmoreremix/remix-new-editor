@@ -24,12 +24,22 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    min-height: unset;
 
     .user-menu {
+      background-color: #3E3E51;
+      position: relative;
+      border-radius: 3px;
+      width: 14rem;
+
+      .menu__open {
+        padding: 0.31rem  0.94rem 0.31rem 0.63rem;
+      }
+
       .MuiButton-label {
         color: $white;
         font-family: $font-primary;
-        font-size: $xsmallFontSize;
+        font-size: $defaultFontSize;
 
         .MuiButton-endIcon {
           margin-left: 12px;
@@ -39,8 +49,6 @@
 
       .MuiPaper-root {
         border-radius: 0;
-        outline: 1px solid $secondary-color;
-        background-color: $menu-panel;
 
         .MuiList-root {
           border-radius: 0;
@@ -66,19 +74,61 @@
         width: 100%;
       }
       .menu__list {
-        width: 10rem;
+        background-color: #4B4B61;
+        border-bottom-left-radius: 3px;
+        border-bottom-right-radius: 3px;
 
         a:hover {
           text-decoration: none;
         }
+
+        a:last-child {
+          .menu__item:hover {
+            border-bottom-left-radius: 3px;
+            border-bottom-right-radius: 3px;
+          }
+        }
+
+        .menu__item {
+          font-size: $defaultFontSize;
+          text-transform: uppercase;
+          text-align: left;
+          height: unset;
+          padding: .9rem .9rem .9rem 0;
+        }
+      }
+
+      span.menu__item-icon {
+        height: $defaultLineHeight;
       }
 
       .menu__item-icon {
         margin: inherit;
         width: auto;
+
         svg {
           margin: auto 1rem;
         }
+      }
+
+      .menu__item-title {
+        line-height: $defaultLineHeight;
+      }
+
+      .popover {
+        border: none;
+        border-radius: 3px;
+        width: 100%;
+        margin-left: 0;
+        background-color: #4B4B61;
+        top: -3px !important;
+        z-index: -1;
+      }
+
+      .user-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
 
@@ -170,5 +220,19 @@
   ul li:hover {
     border-top: 1px solid $secondary-color;
     border-bottom: 1px solid $secondary-color;
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .menu-app-bar {
+    .container-menu {
+      .user-menu {
+        width: 12.5rem;
+
+        .popover {
+          margin-left: 1px;
+        }
+      }
+    }
   }
 }
