@@ -135,4 +135,9 @@ export default class UserStore {
   get socialFbEnabled() {
     return this.isfeatureEnabled(FEATURES.SOCIAL_FB_ELEMENT);
   }
+
+  @computed
+  get connectEnabled() {
+    return this.isfeatureEnabled(FEATURES.CONNECT);
+  }
 }
