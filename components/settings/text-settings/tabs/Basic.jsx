@@ -1,18 +1,26 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 
-import PropTypes from '../../../../lib/PropTypes';
-
 import FieldBuilder from '../../../form/FieldBuilder';
-import useUIStore from '../../../hooks/useUIStore';
-import useUserStore from '../../../hooks/useUserStore';
-import { iconAlignmentHorizontal, iconPositionVertical, padding, TEXT_POSITION } from '../../../../lib/constants/settings/vrtext-element';
-
-import { LABEL_CLICK_TO_PHONE } from '../../../../lib/constants/popcorn';
+import SetAsDefaultCheckbox from '../../default-settings/SetAsDefaultCheckbox';
 import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
 
-import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
+
+import useUIStore from '../../../hooks/useUIStore';
+import useUserStore from '../../../hooks/useUserStore';
+
+import {
+  padding,
+  TEXT_POSITION,
+  iconPositionVertical,
+  iconAlignmentHorizontal,
+} from '../../../../lib/constants/settings/vrtext-element';
 import { FEATURES } from '../../../../lib/constants/features';
+import { LABEL_CLICK_TO_PHONE } from '../../../../lib/constants/popcorn';
+
+import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
+
+import PropTypes from '../../../../lib/PropTypes';
 
 const Basic = observer(({ values, fields, onChange }) => {
   const [positionHorizontal, setPositionHorizontal] = useState();
@@ -255,6 +263,9 @@ const Basic = observer(({ values, fields, onChange }) => {
           <div className="text-transform-container-transition">
             <span className="text-settings-label">Animations</span>
             <button className="btn-library" onClick={() => openAnimation()}>Open Library</button>
+          </div>
+          <div className="open-link-container">
+            <SetAsDefaultCheckbox />
           </div>
           {/* <div className="text-transform-container-font"> */}
           {/* <div> */}

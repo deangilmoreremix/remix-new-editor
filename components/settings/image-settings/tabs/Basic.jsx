@@ -1,24 +1,26 @@
 import React, { Fragment, useState } from 'react';
 import SVGInline from 'react-svg-inline';
 
-import PropTypes from '../../../../lib/PropTypes';
-import { LIBRARY_TABS } from '../../../../lib/constants/library';
-import * as popcornConstants from '../../../../lib/constants/popcorn';
-import { EXTRA_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
+import DropButton from '../../../media/DropButton';
+import FieldBuilder from '../../../form/FieldBuilder';
+import SetAsDefaultCheckbox from '../../default-settings/SetAsDefaultCheckbox';
 
 import useUIStore from '../../../hooks/useUIStore';
-import useProjectStore from '../../../hooks/useProjectStore';
 import useUserStore from '../../../hooks/useUserStore';
+import useModalStore from '../../../hooks/useModalStore';
+import useProjectStore from '../../../hooks/useProjectStore';
 
-import FieldBuilder from '../../../form/FieldBuilder';
+import { FEATURES } from '../../../../lib/constants/features';
+import { LIBRARY_TABS } from '../../../../lib/constants/library';
+import * as popcornConstants from '../../../../lib/constants/popcorn';
+import { TUI_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
+import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
+import { EXTRA_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
 
 import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 
-import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
-import { FEATURES } from '../../../../lib/constants/features';
-import useModalStore from '../../../hooks/useModalStore';
-import { TUI_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
-import DropButton from '../../../media/DropButton';
+import PropTypes from '../../../../lib/PropTypes';
+
 
 const Basic = ({ values, fields, onChange, handleClose }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -194,6 +196,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
         onChange={onChange}
         floatClassName="image-settings__checkbox"
       />
+      <SetAsDefaultCheckbox />
     </Fragment>
   );
 };

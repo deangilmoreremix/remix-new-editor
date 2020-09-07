@@ -28,6 +28,7 @@ import {
   DEFAULT_ITEM,
   SOCIALS,
   MAX_DURATION,
+  ALLOWED_SAVE_AS,
 } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
@@ -198,6 +199,11 @@ export default class ProjectStore extends BaseStore {
 
   @observable retarget = null;
 
+  @observable pluginDefaults = {
+    [POPCORN_ELEMENT_TYPES.TEXT]: {},
+    [POPCORN_ELEMENT_TYPES.IMAGE]: {},
+  };
+
   getPersonalization = () => getCustomVarsFromMediaArr(this.projectData.media);
 
   generateUid = () => `${Date.now()}/${Math.random()}/${Date.now() * Math.random()}`;
@@ -257,8 +263,9 @@ export default class ProjectStore extends BaseStore {
   };
 
   setElementOptions = async (item) => {
-    const { track } = item || {};
-    const options = {};
+    const { track, type } = item || {};
+    const options = this.pluginDefaults && this.pluginDefaults[type]
+      ? this.pluginDefaults[type].popcornOptions || {} : {};
     options.start = item.start || (Math.ceil(this.time) / SANTISECOND);
     const duration = item.duration || DEFAULT_DURATION;
     options.end = item.end || (options.start + duration);
@@ -266,7 +273,7 @@ export default class ProjectStore extends BaseStore {
     options.zindex = track && track.order ? MAX_ZINDEX - track.order : MAX_ZINDEX;
     options.opacity = 100;
 
-    switch (item.type) {
+    switch (type) {
       case SEQUENCER: {
         this.isLoadingSequencer = true;
         const source = (item.extra && item.extra.source) || [item.url];
@@ -308,6 +315,10 @@ export default class ProjectStore extends BaseStore {
           options.in = (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
           options.out = maxDuration;
         }
+        break;
+      }
+      case POPCORN_ELEMENT_TYPES.IMAGE: {
+        options.src = item.src;
         break;
       }
       default:
@@ -398,6 +409,22 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  updateDefaultsPlugin = (options) => {
+    if (!this.element || !ALLOWED_SAVE_AS.some(type => type === this.element.type)) {
+      return;
+    }
+    const { type } = this.element;
+
+    if (this.pluginDefaults[type].id === this.activeElementId) {
+      this.pluginDefaults[type].popcornOptions = {
+        ...this.pluginDefaults[type].popcornOptions,
+        ...options,
+        id: null,
+      };
+    }
+  }
+
+  @action
   findAndUpdate = (elementId, options = {}) => {
     const newValues = Object.keys(options);
     if (newValues && newValues.length && !newValues.every(key => caretNames.includes(key))) {
@@ -427,6 +454,7 @@ export default class ProjectStore extends BaseStore {
       });
       this.updateElement(elementId, options);
       this.updatePopcorn(elementId, options);
+      this.updateDefaultsPlugin(options);
     }
   };
 
@@ -1437,6 +1465,21 @@ export default class ProjectStore extends BaseStore {
 
     return currentElement;
   }
+
+  @action
+  setAsDefault = (reset) => {
+    if (!this.element || !ALLOWED_SAVE_AS.some(type => type === this.element.type)) {
+      return;
+    }
+    if (reset) {
+      this.pluginDefaults[this.element.type] = {};
+      return;
+    }
+    this.pluginDefaults[this.element.type] = {
+      id: this.activeElementId,
+      popcornOptions: { ...this.element.popcornOptions, id: null, src: null },
+    };
+  };
 
   getElementById(id) {
     return this.popcornElements.find(element => element.id === id);
