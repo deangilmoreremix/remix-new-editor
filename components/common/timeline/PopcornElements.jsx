@@ -20,7 +20,7 @@ import { ASSET_TYPES } from '../../../lib/constants/media';
 import { getTransitionButtons } from '../../../lib/utils/timeline';
 import TransitionButton from './TransitionButton';
 
-const fractionalNumber = 3000;
+const fractionalNumber = 2000;
 
 const PopcornElements = observer(({ width }) => {
   const projectStore = useProjectStore();

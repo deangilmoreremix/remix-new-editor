@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { Fragment, useMemo } from 'react';
 import classnames from 'classnames';
 import Grid from '@material-ui/core/Grid/Grid';
 import SVGInline from 'react-svg-inline';
@@ -43,7 +43,12 @@ const IconElement = React.forwardRef(({ item, ...rest }, ref) => {
   return (
     <Grid
       container
-      className={classnames('popcorn-element', 'icon-element', `popcorn-${item.type}-element`)}
+      className={classnames(
+        'popcorn-element',
+        'icon-element',
+        `popcorn-${item.type}-element`,
+        { 'popcorn-element-personalized-voice': item.kind === ASSET_TYPES.PERSONALIZED_VOICE },
+      )}
       ref={ref}
       title={item.title || item.htmlText || item.type}
       tabIndex={-1}
@@ -59,24 +64,30 @@ const IconElement = React.forwardRef(({ item, ...rest }, ref) => {
           />
         </div>
       )}
-      <div className="popcorn-element-title">
-        {itemTitle}
-      </div>
-      <div className={classnames('inner-wrapper', 'popcorn-timeline-icon')}>
-        {
-          quantityIcon
-          && item[DEFAULT_FIELD[item.type]]
-          === DEFAULT_SETTINGS[item.type][DEFAULT_FIELD[item.type]]
-            ? (
-              <SVGInline
-                className="icon-btn"
-                classSuffix="--inline"
-                svg={quantityIcon}
-                cleanup={['title']}
-              />
-            ) : item[DEFAULT_FIELD[item.type]]
-        }
-      </div>
+      {
+        item.kind !== ASSET_TYPES.PERSONALIZED_VOICE && (
+          <Fragment>
+            <div className="popcorn-element-title">
+              {itemTitle}
+            </div>
+            <div className={classnames('inner-wrapper', 'popcorn-timeline-icon')}>
+              {
+                quantityIcon
+                && item[DEFAULT_FIELD[item.type]]
+                === DEFAULT_SETTINGS[item.type][DEFAULT_FIELD[item.type]]
+                  ? (
+                    <SVGInline
+                      className="icon-btn"
+                      classSuffix="--inline"
+                      svg={quantityIcon}
+                      cleanup={['title']}
+                    />
+                  ) : item[DEFAULT_FIELD[item.type]]
+              }
+            </div>
+          </Fragment>
+        )
+      }
     </Grid>
   );
 });
