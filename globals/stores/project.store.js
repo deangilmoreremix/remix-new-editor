@@ -420,6 +420,11 @@ export default class ProjectStore extends BaseStore {
         ...this.pluginDefaults[type].popcornOptions,
         ...options,
         id: null,
+        src: null,
+        opacity: null,
+        blendMode: null,
+        track: null,
+        zIndex: null,
       };
     }
   }
@@ -1477,7 +1482,15 @@ export default class ProjectStore extends BaseStore {
     }
     this.pluginDefaults[this.element.type] = {
       id: this.activeElementId,
-      popcornOptions: { ...this.element.popcornOptions, id: null, src: null },
+      popcornOptions: {
+        ...this.element.popcornOptions,
+        id: null,
+        src: null,
+        opacity: null,
+        blendMode: null,
+        track: null,
+        zIndex: null,
+      },
     };
   };
 
