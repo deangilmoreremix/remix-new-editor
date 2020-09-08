@@ -743,7 +743,7 @@ export default class ProjectStore extends BaseStore {
         this.retarget = this.item.project.retargetForm || result.project.retargetForm;
       }
       if (result.project && result.project.allowedSocials) {
-        this.item.allowedSocials = this.item.project.allowedSocials;
+        this.item.allowedSocials = result.project.allowedSocials;
       }
     } catch (e) {
       this.item = DEFAULT_ITEM;
