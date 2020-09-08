@@ -139,6 +139,7 @@ const OverlayListTransitions = observer(() => {
 
   return (
     <div className={classnames('overlay', { 'big-window': !isTimelineOpen })}>
+      <header className="overlay__header">Overlays</header>
       <Tabs activeTab={activeTab} />
       <div className="overlay__body">
         <div className="overlay-container">
