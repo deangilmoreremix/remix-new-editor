@@ -22,7 +22,6 @@ import CallToAction from './media/CallToAction';
 import Giphy from './media/Giphy';
 
 import { twoKeysEvent } from '../lib/utils/twoKeysEvent';
-import { CTRL, S, Y, Z } from '../lib/constants/keyCodes';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
@@ -90,17 +89,14 @@ const Home = observer(() => {
     }
   }, [shouldShowTGModal, pathname, project, remix, push]);
 
-  const saveProject = () => checkAndSave({
-    changeRadioButton, showProducePanel, closeAllWindows, setInitialView,
-  });
-
-  const undo = () => undoRedoAction(true);
-  const redo = () => undoRedoAction(false);
-
   React.useEffect(() => {
-    twoKeysEvent({ callBack: saveProject, codes: [CTRL, S] });
-    twoKeysEvent({ callBack: undo, codes: [CTRL, Z] });
-    twoKeysEvent({ callBack: redo, codes: [CTRL, Y] });
+    twoKeysEvent({
+      undo: () => undoRedoAction(true),
+      redo: () => undoRedoAction(false),
+      saveProject: () => checkAndSave({
+        changeRadioButton, showProducePanel, closeAllWindows, setInitialView,
+      }),
+    });
   }, []);
 
   const asyncHero = useAsync(
