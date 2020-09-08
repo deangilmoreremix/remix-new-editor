@@ -33,6 +33,7 @@ import AudioControls from '../common/library/AudioControls';
 import DropPasteInput from './DropPasteInput';
 
 import withModal from '../hoc/withValidation';
+import Is360 from '../settings/video-settings/components/Is360';
 
 const Library = observer((props) => {
   const { checkValue, setError } = props;
@@ -63,6 +64,8 @@ const Library = observer((props) => {
     defaultProvidersInfo,
   } = useMediaStore();
 
+  const { video360Enabled } = userStore;
+
   // =============== STATE ===============
   const [query, setQuery] = useState('');
 
@@ -74,6 +77,7 @@ const Library = observer((props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
+  const [is360, set360] = useState(false);
 
   const [items, setItems] = useState([]);
   const [uploadedItems, setUploadedItems] = useState([]);
@@ -92,6 +96,8 @@ const Library = observer((props) => {
       bulkDeleteItems(true);
     }
   }, []);
+
+  const isVideoTab = React.useMemo(() => activeTab === LIBRARY_TABS.VIDEO, [activeTab]);
 
   const updateActiveTab = React.useCallback((tab) => {
     if (!isLoading) {
@@ -309,7 +315,7 @@ const Library = observer((props) => {
     }
     const err = checkValue(url, { type: TYPES.URL, isRequired: true });
     if (!err) {
-      return onSelect({ url });
+      return onSelect({ url, is360 });
     }
   };
 
@@ -337,6 +343,7 @@ const Library = observer((props) => {
       return;
     }
     item.src = item.src || item.url;
+    item.is360 = is360;
     item.type = MEDIA_TYPES[activeTab];
     if (updateElementInLibrary && activeTab === LIBRARY_TABS.IMAGE) {
       projectStore.findAndUpdate(updateElementInLibrary, item);
@@ -426,16 +433,25 @@ const Library = observer((props) => {
                 }
               </label>
             </div>
+            {video360Enabled && isVideoTab
+            && (
+              <Is360
+                value={is360}
+                onChange={() => set360(!is360)}
+                className="flex-end is-360"
+                showHint
+              />
+            )}
           </div>
-          <div>
+          <div className="library__block-wrapper">
             <div className="library__block">
               {
-                activeTab === LIBRARY_TABS.VIDEO && (
-                <DropPasteInput
-                  onDrop={onDrop}
-                  accept={[ALL_VIDEO]}
-                  onEnter={onEnter}
-                />
+                isVideoTab && (
+                  <DropPasteInput
+                    onDrop={onDrop}
+                    accept={[ALL_VIDEO]}
+                    onEnter={onEnter}
+                  />
                 )
             }
             </div>

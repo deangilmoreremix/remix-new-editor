@@ -76,7 +76,7 @@ module.exports = {
     streamingCdn: process.env.STREAMING_CDN_HOSTNAME || '',
     key: process.env.S3_KEY || 'AKIAIAQ6WDZIWRHJTGVA',
     bucket: process.env.S3_BUCKET || 'videoremix',
-    mediaBucket: process.env.S3_MEDIA_BUCKET || '',
+    mediaBucket: process.env.S3_MEDIA_BUCKET || 'stream-video-preparations-source-1tdj0kjvmp354',
     secret: process.env.S3_SECRET || 'rVsDp2sM1AyaebUqY3WY9vDefDIE/s6WbqePUVYz',
     domain: process.env.S3_DOMAIN || 'http://videoremix.s3-website-us-west-1.amazonaws.com',
     emulation: process.env.S3_EMULATION || false,
@@ -94,6 +94,7 @@ module.exports = {
   facebookAppId: process.env.FACEBOOK_APP_ID || '766265603823913',
   facebookSocialId: process.env.SOCIALIZER_APP_ID || '701751126630371',
   linkedinAppId: process.env.LINKEDIN_APP_ID || '77dc93kxh13kfc',
+  vrviewPath: process.env.VRVIEW_PATH || 'https://cdn.videoremix.io/external/vrview/dist/vrview.min.js',
   mediaProviders: {
     PEXELS: {
       apiUrl: process.env.PEXELS_API_URL || 'https://api.pexels.com',

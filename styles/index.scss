@@ -88,3 +88,8 @@
 
 @import "components/canvas/Canvas";
 @import "components/canvas/SizeSelector";
+
+.flex-end {
+  width: 100%;
+  justify-content: flex-end;
+}

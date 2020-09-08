@@ -5,8 +5,10 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../../lib/PropTypes';
 
 import * as popcornConstants from '../../../../lib/constants/popcorn';
+import { regexpVideo360, video360prefix } from '../../../../lib/constants/settings/video';
 
 import useProjectStore from '../../../hooks/useProjectStore';
+import useUserStore from '../../../hooks/useUserStore';
 
 import FieldBuilder from '../../../form/FieldBuilder';
 // import LineDuration from '../../../media/LineDuration';
@@ -14,6 +16,7 @@ import FieldBuilder from '../../../form/FieldBuilder';
 import videoIcon from '../../../../public/static/images/media/icon-video.svg';
 import audioIcon from '../../../../public/static/images/media/icon-audio-2.svg';
 import fillIcon from '../../../../public/static/images/fill.svg';
+import Is360 from '../components/Is360';
 
 const ClipEditor = observer(({ values, fields, element, onChange }) => {
   const {
@@ -27,12 +30,22 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     duration,
     audioFadeIn,
     audioFadeOut,
+    source,
+    contentType,
   } = values;
 
-  const { isAudio, duration: timelineDuration, updateVideoDuration } = useProjectStore();
+  const { isAudio, isVideo, duration: timelineDuration, updateVideoDuration } = useProjectStore();
+  const { video360Enabled } = useUserStore();
   const [videoOut, setVideoOut] = useState(end - start + from);
   const [fadeInMax, setFadeInMax] = useState();
   const [fadeOutMax, setFadeOutMax] = useState();
+
+  const is360 = React.useMemo(() => source && source.length
+    && regexpVideo360.test(source[0]), [source]);
+
+  const is360allowed = React.useMemo(() => isVideo({ popcornOptions: { contentType } })
+    && video360Enabled,
+  [contentType, video360Enabled]);
 
   const itemVolume = useMemo(() => {
     if (mute) {
@@ -50,6 +63,17 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
   const changeHidden = useCallback((field) => {
     onChange({ hidden: !field.hidden });
   }, [hidden]);
+
+  const changeIs360 = useCallback(() => {
+    let newSource = source[0];
+    const newIs360 = !is360;
+    if (newIs360) {
+      newSource = `${video360prefix}${newSource}`;
+    } else {
+      [, newSource] = newSource.split(video360prefix);
+    }
+    onChange({ source: [newSource] });
+  }, [is360]);
 
   const changeMute = useCallback((field) => {
     if (volume === 0 && field.mute) {
@@ -231,6 +255,14 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
           sliderClassName="video-settings-slider"
           inputClassName="video-settings-slider-input"
         />
+        {is360allowed
+        && (
+        <Is360
+          value={is360}
+          className="flex-end is-360"
+          onChange={() => changeIs360()}
+        />
+        )}
       </div>
 
       <FieldBuilder

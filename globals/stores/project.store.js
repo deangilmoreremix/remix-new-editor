@@ -42,6 +42,7 @@ import {
 import { radioButton } from '../../lib/constants/windowsLogics';
 import { ACTION_MAKE_COPY, ACTION_WATCH_VIDEO, PRODUCE_TABS } from '../../lib/constants/ui';
 import { ROUTES } from '../../lib/constants/routing';
+import { video360prefix } from '../../lib/constants/settings/video';
 
 const caretNames = Object.values(CARET_NAMES);
 
@@ -276,11 +277,19 @@ export default class ProjectStore extends BaseStore {
     switch (type) {
       case SEQUENCER: {
         this.isLoadingSequencer = true;
+        if (item.is360 && this.userStore.video360Enabled) {
+          if (item.extra && item.extra.source && item.extra.source.length) {
+            item.extra.source[0] = `${video360prefix}${item.extra.source[0]}`;
+          } else {
+            item.url = `${video360prefix}${item.url}`;
+          }
+        }
         const source = (item.extra && item.extra.source) || [item.url];
         const fileDuration = (item.extra && item.extra.duration) || null;
         let fileMeta;
         try {
-          fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration);
+          fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration,
+            this.userStore.video360Enabled);
         } catch (e) {
           // if there is no error, then loading will hide, after adding the item to the popcorn
           this.isLoadingSequencer = false;
@@ -1115,16 +1124,9 @@ export default class ProjectStore extends BaseStore {
 
   @action
   attach = (target) => {
-    this.popcornObject.popcornElements.forEach((element) => {
-      if (element.type === 'sequencer' && element.popcornOptions.source[0].split('|').length > 1) {
-        element.popcornOptions.source = [this.findMediaSource(
-          element.popcornOptions.source[0].split('|'), ['mp4', 'webm', 'ogv'],
-        )];
-      }
-      this.popcorn[element.type](target
-        ? { ...element.popcornOptions, target }
-        : element.popcornOptions);
-    });
+    this.popcornObject.popcornElements.forEach((element) => this.popcorn[element.type](target
+      ? { ...element.popcornOptions, target }
+      : element.popcornOptions));
     this.popcorn.target = target;
     return this.popcorn;
   };
