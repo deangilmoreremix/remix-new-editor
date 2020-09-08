@@ -58,12 +58,20 @@ const JsonButtonSettings = observer(({ element, update, fields }) => {
           {!isSuperAdmin && (
             <div>
               {fields && Object.keys(fields).map(key => {
-                const { label, type } = fields[key];
+                const { label, type, featureLabels } = fields[key];
+                let newLabel = null;
+                if (featureLabels) {
+                  const labelKey = Object.keys(featureLabels)
+                    .find(feature => isfeatureEnabled(feature));
+                  if (labelKey) {
+                    newLabel = featureLabels[labelKey];
+                  }
+                }
                 return (
                   key === constant.LINK_URL && (
                     <FieldBuilder
                       onChange={handleChange}
-                      label={label}
+                      label={newLabel || label}
                       type={type}
                       value={element.popcornOptions[key]}
                       key={key}
