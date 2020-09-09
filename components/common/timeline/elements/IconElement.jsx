@@ -1,26 +1,32 @@
-import * as React from 'react';
+import React, { useMemo } from 'react';
 import classnames from 'classnames';
 import Grid from '@material-ui/core/Grid/Grid';
 import SVGInline from 'react-svg-inline';
 
+import { POPCORN_ELEMENT_LABELS, POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
+import { DEFAULT_SETTINGS } from '../../../../lib/constants/settings';
 import PropTypes from '../../../../lib/PropTypes';
 import {
   TIMELINE_ELEMENT_DEFAULT_FIELD as DEFAULT_FIELD,
   TIMELINE_ELEMENT_DEFAULT_ICONS,
   TIMELINE_ELEMENT_ICONS,
 } from '../../../../lib/constants/timeline';
-import { DEFAULT_SETTINGS } from '../../../../lib/constants/settings';
-import { POPCORN_ELEMENT_LABELS } from '../../../../lib/constants/popcorn';
 
-const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
-  const icon = React.useMemo(() => TIMELINE_ELEMENT_ICONS[item.type], [item]);
-  const quantityIcon = React.useMemo(() => TIMELINE_ELEMENT_DEFAULT_ICONS[item.type], [item]);
+const IconElement = React.forwardRef(({ item, ...rest }, ref) => {
+  const icon = useMemo(() => TIMELINE_ELEMENT_ICONS[item.type], [item]);
+  const quantityIcon = useMemo(() => TIMELINE_ELEMENT_DEFAULT_ICONS[item.type], [item]);
+
+  const itemTitle = useMemo(() => {
+    if (item.type === POPCORN_ELEMENT_TYPES.SOCIAL) {
+      return item.title;
+    }
+    return POPCORN_ELEMENT_LABELS[item.type];
+  }, [item.type, item.title]);
 
   return (
     <Grid
       container
       className={classnames('popcorn-element', 'icon-element', `popcorn-${item.type}-element`)}
-      onClick={onSelect}
       ref={ref}
       title={item.title || item.htmlText || item.type}
       tabIndex={-1}
@@ -37,7 +43,7 @@ const IconElement = React.forwardRef(({ item, onSelect, ...rest }, ref) => {
         </div>
       )}
       <div className="popcorn-element-title">
-        {POPCORN_ELEMENT_LABELS[item.type]}
+        {itemTitle}
       </div>
       <div className={classnames('inner-wrapper', 'popcorn-timeline-icon')}>
         {
@@ -64,7 +70,6 @@ IconElement.propTypes = {
     title: PropTypes.string,
     htmlText: PropTypes.string,
   }).isRequired,
-  onSelect: PropTypes.func.isRequired,
 };
 
 export default IconElement;

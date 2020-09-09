@@ -7,11 +7,13 @@ import { Popper, Button, Grow, ClickAwayListener, Paper } from '@material-ui/cor
 import togglerIcon from '../../public/static/svgImages/common/toggler.svg';
 
 import PropTypes from '../../lib/PropTypes';
+import { ACTION_LOGOUT } from '../../lib/constants/ui';
 
 const Menu = observer((
   {
     toggleElement,
-    items, className,
+    items,
+    className,
     needEndIcon,
     parent,
     placement,
@@ -23,9 +25,9 @@ const Menu = observer((
   const { push } = useRouter();
 
   const handleAction = (arg) => {
-    if (arg === 'logout') {
+    if (arg === ACTION_LOGOUT) {
       if (window.HelpCrunch) {
-        window.HelpCrunch('logout', () => {
+        window.HelpCrunch(arg, () => {
           push('/logout');
         });
       } else {
@@ -49,7 +51,7 @@ const Menu = observer((
           cleanup={['title']}
         />
       ) : null}
-      {buttonItem.title}
+      <span className="menu__item-title">{buttonItem.title}</span>
     </button>
   );
 

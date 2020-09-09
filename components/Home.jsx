@@ -54,10 +54,13 @@ const Home = observer(() => {
     linkedinEnabled,
     ctaEnabled,
     blendModeEnabled,
+    connectEnabled,
     gifsEnabled,
     libraryStickerEnabled,
     jsonTransitionEnabled,
     leadGeneratorEnabled,
+    googleMapsEnabled,
+    socialFbEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -230,12 +233,15 @@ const Home = observer(() => {
         linkedinEnabled,
         ctaEnabled,
         blendModeEnabled,
+        connectEnabled,
         gifsEnabled,
         libraryStickerEnabled,
         leadGeneratorEnabled,
         jsonTransitionEnabled,
         width,
         height,
+        googleMapsEnabled,
+        socialFbEnabled,
       },
     });
     return items && items.length ? items : [];

@@ -11,7 +11,7 @@ import FormTextField from './FormTextField';
 import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 import { rgba2hex, fade } from '../../lib/lottie/utils';
 
-const FormColor = ({ label, onChange, value, className, disabled }) => {
+const FormColor = ({ label, onChange, value, className, disabled, allowReset, resetText }) => {
   const colorPrimary = 'rgb(235, 80, 84, 1)';
   const [anchorEl, setAnchorEl] = useState(null);
   const [color, setColor] = useState(value || colorPrimary);
@@ -47,44 +47,56 @@ const FormColor = ({ label, onChange, value, className, disabled }) => {
   };
 
   return (
-    <FormGroup className={className}>
-      <Box>
-        <FormLabel key="label-key" className="form-control-label">{label}</FormLabel>
-      </Box>
-      <Box tabIndex={-1}>
-        <FormTextField
-          labelClass="label-left"
-          value={colorToRgbaString(color) || value || colorPrimary}
-          onChange={updateColor}
-          disabled={disabled}
-        />
-        <button
-          onClick={handleClick}
-          className={classnames('color-element', { 'button-disabled': disabled })}
-          style={{ backgroundColor: value || colorPrimary }}
-          disabled={disabled}
-        />
-        <Popover
-          id={id}
-          open={open}
-          anchorEl={anchorEl}
-          onClose={handleClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-        >
-          <ChromePicker
-            onChange={(r) => updateColor(r)}
-            color={color}
+    <div className={className}>
+      <FormGroup>
+        <Box>
+          <FormLabel key="label-key" className="form-control-label">{label}</FormLabel>
+        </Box>
+        <Box tabIndex={-1}>
+          <FormTextField
+            labelClass="label-left"
+            value={colorToRgbaString(color) || value || colorPrimary}
+            onChange={updateColor}
+            disabled={disabled}
           />
-        </Popover>
-      </Box>
-    </FormGroup>
+          <button
+            onClick={handleClick}
+            className={classnames('color-element', { 'button-disabled': disabled })}
+            style={{ backgroundColor: value || colorPrimary }}
+            disabled={disabled}
+          />
+          <Popover
+            id={id}
+            open={open}
+            anchorEl={anchorEl}
+            onClose={handleClose}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+          >
+            <ChromePicker
+              onChange={(r) => updateColor(r)}
+              color={color}
+            />
+          </Popover>
+        </Box>
+        {
+          allowReset && (
+            <button
+              onClick={allowReset}
+              className="color-reset-button"
+            >
+              {resetText}
+            </button>
+          )
+        }
+      </FormGroup>
+    </div>
   );
 };
 FormColor.propTypes = {
@@ -93,10 +105,13 @@ FormColor.propTypes = {
   value: PropTypes.string,
   disabled: PropTypes.bool,
   className: PropTypes.string,
+  allowReset: PropTypes.func,
+  resetText: PropTypes.string,
 };
 
 FormColor.defaultProps = {
   disabled: false,
+  resetText: 'Default color',
 };
 
 export default FormColor;

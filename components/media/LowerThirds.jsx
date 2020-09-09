@@ -12,6 +12,7 @@ const LowerThirds = observer(() => {
 
   return (
     <div className={classnames('lower-thirds', { 'big-window': !isTimelineOpen })}>
+      <header className="lower-thirds__header">Lower Thirds</header>
       <div className="lower-thirds__body">
         <Content />
       </div>

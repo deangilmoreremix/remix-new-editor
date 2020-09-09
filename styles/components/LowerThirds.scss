@@ -16,7 +16,6 @@
   line-height: 1;
   color: $white;
   overflow: hidden;
-  padding-bottom: 1rem;
   transition: 0.3s all;
 
   button,
@@ -24,10 +23,21 @@
     color: $white;
   }
 
+  &__header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 2.1rem;
+    background: $scrollbarColor;
+    color: $secondary-color;
+    text-transform: uppercase;
+    padding: 0 10px;
+  }
+
   &__body {
-    max-height: 100%;
     flex: 1;
-    padding: 1.43rem 2.6rem 1.68rem 1.75rem;
+    overflow: hidden;
+    padding: 1rem 2.62rem 1.4rem 1.56rem;
   }
 }
 
@@ -167,7 +177,6 @@
 @media screen and (max-width: 1200px) {
   .lower-thirds-content__item {
     width: 100%;
-    margin: 0;
   }
 }
 

@@ -58,18 +58,20 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
             labelClassName="image-settings__label--input"
             className="image-settings__field"
           />
-          <FieldBuilder
-            label={fields[popcornConstants.CALL_NOTIFY_ADDRESS].label}
-            type={fields[popcornConstants.CALL_NOTIFY_ADDRESS].type}
-            value={
-              values[popcornConstants.CALL_NOTIFY_ADDRESS]
-              || fields[popcornConstants.CALL_NOTIFY_ADDRESS].default
-            }
-            name={popcornConstants.CALL_NOTIFY_ADDRESS}
-            onChange={onChange}
-            labelClassName="image-settings__label--input"
-            className="image-settings__field"
-          />
+          {values.kind !== popcornConstants.BLEND_MODE && (
+            <FieldBuilder
+              label={fields[popcornConstants.CALL_NOTIFY_ADDRESS].label}
+              type={fields[popcornConstants.CALL_NOTIFY_ADDRESS].type}
+              value={
+                values[popcornConstants.CALL_NOTIFY_ADDRESS]
+                || fields[popcornConstants.CALL_NOTIFY_ADDRESS].default
+              }
+              name={popcornConstants.CALL_NOTIFY_ADDRESS}
+              onChange={onChange}
+              labelClassName="image-settings__label--input"
+              className="image-settings__field"
+            />
+          )}
         </div>
         <div className="image-settings__cell--second">
           <button className="image-settings__back" onClick={backToLibrary}>
@@ -94,28 +96,30 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
         </div>
       </div>
 
-      <div className="image-settings__block">
-        <div className="image-settings__cell--first">
-          <FieldBuilder
-            label={user
-            && user.features
-            && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
-              ? popcornConstants.LABEL_CLICK_TO_PHONE : fields[popcornConstants.LINKSRC].label}
-            type={fields[popcornConstants.LINKSRC].type}
-            value={values[popcornConstants.LINKSRC] || fields[popcornConstants.LINKSRC].default}
-            name={popcornConstants.LINKSRC}
-            onChange={onChange}
-            labelClassName="image-settings__label--input"
-            className="image-settings__field"
-          />
-        </div>
-        <div className="image-settings__cell--second">
-          <div className="image-settings__btn--block">
-            <a href="#" className="image-settings__information">i</a>
-            <button className="image-settings__btn">Personalize</button>
+      {values.kind !== popcornConstants.BLEND_MODE && (
+        <div className="image-settings__block">
+          <div className="image-settings__cell--first">
+            <FieldBuilder
+              label={user
+              && user.features
+              && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
+                ? popcornConstants.LABEL_CLICK_TO_PHONE : fields[popcornConstants.LINKSRC].label}
+              type={fields[popcornConstants.LINKSRC].type}
+              value={values[popcornConstants.LINKSRC] || fields[popcornConstants.LINKSRC].default}
+              name={popcornConstants.LINKSRC}
+              onChange={onChange}
+              labelClassName="image-settings__label--input"
+              className="image-settings__field"
+            />
+          </div>
+          <div className="image-settings__cell--second">
+            <div className="image-settings__btn--block">
+              <a href="#" className="image-settings__information">i</a>
+              <button className="image-settings__btn">Personalize</button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="image-settings__block">
         <FieldBuilder
@@ -160,32 +164,41 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           label={fields[popcornConstants.CORNER_RADIUS].label}
           type={fields[popcornConstants.CORNER_RADIUS].type}
           value={
-            values[popcornConstants.CORNER_RADIUS] || fields[popcornConstants.CORNER_RADIUS].default
+            values[popcornConstants.CORNER_RADIUS] ?? fields[popcornConstants.CORNER_RADIUS].default
           }
           name={popcornConstants.CORNER_RADIUS}
           onChange={onChange}
           floatClassName="image-settings__checkbox"
         />
-        <div className="image-settings__block">
-          <div className="image-settings__btn--block">
-            <button
-              className="image-settings__btn"
-              onClick={() => {
-                openImageEditor({
-                  src: element.popcornOptions.src,
-                  onImageEdited,
-                  startUpload: () => setIsLoading(true),
-                  endUpload: () => setIsLoading(false),
-                  menu: EXTRA_MENU,
-                });
-              }}
-              isDisabled={isLoading}
-            >
-              Image Editor
-            </button>
-          </div>
+      </div>
+
+      <div className="image-settings__block">
+        <div className="image-settings__btn--block">
+          <button
+            className="image-settings__btn"
+            onClick={() => {
+              openImageEditor({
+                src: element.popcornOptions.src,
+                onImageEdited,
+                startUpload: () => setIsLoading(true),
+                endUpload: () => setIsLoading(false),
+                menu: EXTRA_MENU,
+              });
+            }}
+            isDisabled={isLoading}
+          >
+            Image Editor
+          </button>
         </div>
       </div>
+      <FieldBuilder
+        label={fields[popcornConstants.FILL].label}
+        type={fields[popcornConstants.FILL].type}
+        value={values[popcornConstants.FILL]}
+        name={popcornConstants.FILL}
+        onChange={onChange}
+        floatClassName="image-settings__checkbox"
+      />
     </Fragment>
   );
 };
@@ -199,6 +212,7 @@ Basic.propTypes = {
     [popcornConstants.CALL_NOTIFY_ADDRESS]: PropTypes.string,
     [popcornConstants.ROTATION]: PropTypes.number,
     [popcornConstants.CORNER_RADIUS]: PropTypes.bool,
+    kind: PropTypes.string,
   }),
   onChange: PropTypes.func.isRequired,
   handleClose: PropTypes.func.isRequired,

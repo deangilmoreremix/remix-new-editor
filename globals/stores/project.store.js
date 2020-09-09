@@ -2,6 +2,7 @@ import { observable, action, computed, reaction, runInAction, toJS } from 'mobx'
 import arrayMove from 'array-move';
 import size from 'lodash/size';
 
+import Router from 'next/router';
 import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
@@ -11,10 +12,12 @@ import {
   SEQUENCER,
   POPCORN_ELEMENT_TYPES,
   CARET_NAMES,
+  SOCIAL_TYPES,
 } from '../../lib/constants/popcorn';
-import { isLayerFulfilled } from '../../lib/utils/project';
+import { isLayerFulfilled, validateBeforeSave } from '../../lib/utils/project';
 import { NONE_CLASS, ANIMATION_TYPES } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
+import { FB_PLUGINS } from '../../lib/constants/settings/social';
 
 import {
   SANTISECOND,
@@ -30,11 +33,14 @@ import {
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
-import { showInfo } from '../../lib/services/alertService';
+import { showConfirmation, showError, showInfo } from '../../lib/services/alertService';
 import {
   FORM_ONE_LG,
   WARNING_OPACITY,
 } from '../../lib/constants/text-info';
+import { radioButton } from '../../lib/constants/windowsLogics';
+import { ACTION_MAKE_COPY, ACTION_WATCH_VIDEO, PRODUCE_TABS } from '../../lib/constants/ui';
+import { ROUTES } from '../../lib/constants/routing';
 
 const caretNames = Object.values(CARET_NAMES);
 
@@ -428,7 +434,7 @@ export default class ProjectStore extends BaseStore {
   updateElement = (elementId, options) => {
     // we need to update the elements, if the user updates the start,
     // end or animation, this is necessary to rerender the elements
-    const { start, end, animation, title, duration, htmlText, loop } = options;
+    const { start, end, animation, title, duration, htmlText, loop, type } = options;
     this.elements = this.elements.map(element => {
       if (element.id === elementId) {
         const newOptions = {};
@@ -452,6 +458,14 @@ export default class ProjectStore extends BaseStore {
         }
         if (htmlText !== undefined) {
           newOptions.htmlText = htmlText;
+        }
+        if (type !== undefined && type !== element.popcornOptions.type) {
+          newOptions.type = type;
+          Object.values(SOCIAL_TYPES).forEach(item => {
+            if (item === type) {
+              newOptions.title = FB_PLUGINS[item].title;
+            }
+          });
         }
         if (size(newOptions) > 0) {
           element.popcornOptions = {
@@ -484,7 +498,8 @@ export default class ProjectStore extends BaseStore {
     const elementId = (element && element.id) || element;
     element = typeof element === 'string' ? this.getElementById(elementId) : element;
 
-    if (options.start !== undefined || options.end !== undefined) {
+    if (options.start !== undefined || options.end !== undefined
+      || Object.values(SOCIAL_TYPES).some(t => t === element.popcornOptions.type)) {
       this.popcorn.removeTrackEvent(elementId);
       element.popcornOptions = { ...element.popcornOptions, ...options };
       this.popcorn[element.type](element.popcornOptions);
@@ -574,7 +589,6 @@ export default class ProjectStore extends BaseStore {
       this.updateStartEnd(elementId, start, end);
     }
   };
-
 
   generatePopcornObject = () => {
     let popcornObject = {};
@@ -729,7 +743,7 @@ export default class ProjectStore extends BaseStore {
         this.retarget = this.item.project.retargetForm || result.project.retargetForm;
       }
       if (result.project && result.project.allowedSocials) {
-        this.item.allowedSocials = this.item.project.allowedSocials;
+        this.item.allowedSocials = result.project.allowedSocials;
       }
     } catch (e) {
       this.item = DEFAULT_ITEM;
@@ -903,6 +917,7 @@ export default class ProjectStore extends BaseStore {
             end: null,
             zindex: null,
             duration: trackEvent.popcornOptions.end - trackEvent.popcornOptions.start,
+            kind: makeTemplate.kind || trackEvent.popcornOptions.kind,
           };
           return this.createNewElement(item);
         });
@@ -1246,6 +1261,59 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  checkAndSave = async ({
+    changeRadioButton,
+    showProducePanel,
+    closeAllWindows,
+    setInitialView,
+    actionType,
+    afterSave,
+  }) => {
+    try {
+      const errors = validateBeforeSave(this.item);
+      if (errors) {
+        switch (true) {
+          case errors.title: {
+            changeRadioButton(radioButton.BOTTOM);
+            return showProducePanel({ tab: PRODUCE_TABS.SETTINGS });
+          }
+          default: {
+            return showError('The project is not valid.');
+          }
+        }
+      } else if (await showConfirmation('Project will be saved')) {
+        closeAllWindows();
+        const project = await this.save();
+        if (!this.modified) {
+          if (actionType === ACTION_MAKE_COPY) {
+            afterSave(`/edit?remix=${this.item._id}`);
+          }
+          if (actionType === ACTION_WATCH_VIDEO) {
+            afterSave(this.item.url);
+          }
+        }
+        if (project && project._id) {
+          Router.push(
+            {
+              pathname: ROUTES.edit,
+              query: {
+                project: project._id,
+              },
+            },
+            undefined,
+            {
+              shallow: true,
+            },
+          );
+          setInitialView();
+        }
+      }
+    } catch (e) {
+      showError(e.message);
+    }
+  }
+
+  @action
   invalidateFbCache = (url) => this.request(
     '/api/makes/update-fb-cache', {
       method: 'POST',
@@ -1536,7 +1604,7 @@ export default class ProjectStore extends BaseStore {
       type,
       track: track.id,
       name: options.id,
-      popcornOptions: { ...item, ...options },
+      popcornOptions: { ...item, ...options, type: undefined },
     };
 
     this.addElementToProject(element);

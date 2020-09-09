@@ -103,13 +103,15 @@ const Advanced = ({ values, fields, onChange }) => {
           </div>
         </div>
         <div className="font-style-section">
-          <FieldBuilder
-            value={fontColor || fields.fontColor.default}
-            name={fields.fontColor.name}
-            {...fields.fontColor}
-            onChange={handleChangeColor}
-            className="font-color-container-input"
-          />
+          <div>
+            <FieldBuilder
+              value={fontColor || fields.fontColor.default}
+              name={fields.fontColor.name}
+              {...fields.fontColor}
+              onChange={handleChangeColor}
+              className="font-color-container-input"
+            />
+          </div>
           <div className="font-style-container">
             <div className="font-style-group">
               <FieldBuilder
