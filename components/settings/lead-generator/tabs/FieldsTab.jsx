@@ -15,7 +15,7 @@ import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 
 const INPUT_NAME = 'inputValue';
 
-const FieldsTab = ({ kindRetarget, values, fields, onChange, type }) => {
+const FieldsTab = ({ kind, values, fields, onChange, type }) => {
   const inputs = values.elements ?? fields.elements.default;
   const { generateUid, moveFormFields } = useProjectStore();
 
@@ -93,7 +93,7 @@ const FieldsTab = ({ kindRetarget, values, fields, onChange, type }) => {
       <div className="addfield-container">
         <button className="addfield-container-button" onClick={addField}>+ Add Field</button>
       </div>
-      {kindRetarget !== POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN && (
+      {kind !== POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN && (
         <React.Fragment>
           <div>
             <label className="form-control-label">Privacy Disclaimer</label>
@@ -137,7 +137,7 @@ FieldsTab.propTypes = {
     privacyPolicyLink: PropTypes.string,
     btnText: PropTypes.string,
   }),
-  kindRetarget: PropTypes.string,
+  kind: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   type: PropTypes.string,
   fields: PropTypes.shape({

@@ -68,9 +68,6 @@ export default class ProjectStore extends BaseStore {
           this.popcorn.on('canplayall', () => {
             this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
             this.isLoaded = true;
-            if (this.retarget && this.retarget.showed) {
-              this.addRetargetForm({ kind: POPCORN_ELEMENT_TYPES.LIST_BUILDER, noUndo: true });
-            }
           });
           this.popcorn.on('elementUpdated', (data) => {
             const { element, options } = data;
@@ -164,8 +161,6 @@ export default class ProjectStore extends BaseStore {
 
   @observable activeElementId;
 
-  @observable kindRetarget;
-
   @observable assets = [];
 
   @observable item = {};
@@ -198,7 +193,9 @@ export default class ProjectStore extends BaseStore {
 
   @observable modified = false;
 
-  @observable retarget = null;
+  @observable retarget;
+
+  @observable showedRetarget = false;
 
   @observable pluginDefaults = {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
@@ -240,9 +237,6 @@ export default class ProjectStore extends BaseStore {
     this.elements.map(event => this.popcorn.removeTrackEvent(event.id));
     this.setProjectData(projectData);
     this.attach(this.popcorn.target);
-    if (this.retarget && this.retarget.end) {
-      this.retarget.end();
-    }
     this.retarget = retarget;
     this.editElement(activeElementId);
     if (this.retarget && this.retarget.id === activeElementId) {
@@ -251,8 +245,10 @@ export default class ProjectStore extends BaseStore {
         // eslint-disable-next-line no-underscore-dangle
         this.retarget._update(this.retarget, this.retarget.options);
       }
-      if (this.retarget.start) {
+      if (this.retarget.showed) {
         this.retarget.start();
+      } else {
+        this.retarget.end();
       }
     }
     if (this.duration !== duration) {
@@ -339,7 +335,7 @@ export default class ProjectStore extends BaseStore {
   isElementWithSettings = (type) => !NO_SETTINGS_ELEMENT_TYPES.some(e => e === type);
 
   @action
-  createRetargetForm = (noUndo) => {
+  createRetargetForm = (noUndo, kind) => {
     if (!noUndo) {
       this.setUndo();
     }
@@ -357,18 +353,20 @@ export default class ProjectStore extends BaseStore {
       manifest,
       type: POPCORN_ELEMENT_TYPES.RETARGET,
       options,
-      kind: this?.retarget?.kind || null,
+      kind,
     };
 
     // eslint-disable-next-line no-underscore-dangle
     popcornFunctions._setup(retargetOptions);
     this.retarget = { ...retargetOptions, ...popcornFunctions };
     this.retarget.end = () => {
+      this.showedRetarget = false;
       if (popcornFunctions.end) {
         popcornFunctions.end(this.retarget);
       }
     };
     this.retarget.start = () => {
+      this.showedRetarget = true;
       if (popcornFunctions.start) {
         popcornFunctions.start(retargetOptions);
       }
@@ -376,15 +374,16 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addRetargetForm = ({ kind, noUndo }) => {
-    if (!this.retarget || (this.retarget && !this.retarget.id)) {
-      this.createRetargetForm(noUndo);
+  addRetargetForm = ({ kind, showed, noUndo }) => {
+    if (!this.retarget || (this.retarget && !this.retarget.id) || !showed) {
+      this.createRetargetForm(noUndo, kind);
     }
-    this.kindRetarget = kind;
-    this.retarget.kindRetarget = this.kindRetarget;
+    this.retarget.kind = kind;
     this.editElement(this.retarget.id);
-    this.retarget.start();
-    this.retarget.showed = true;
+    if (showed) {
+      this.retarget.start();
+    }
+    this.retarget.showed = showed;
     if (!noUndo) {
       this.modified = true;
     }
@@ -402,7 +401,6 @@ export default class ProjectStore extends BaseStore {
       && this.retarget.id
       && this.retarget.id !== elementId && this.retarget.end) {
       this.retarget.end();
-      this.releaseKindRetarget();
     }
     this.activeElementId = elementId;
   };
@@ -410,11 +408,6 @@ export default class ProjectStore extends BaseStore {
   @action
   releaseElement = () => {
     this.activeElementId = null;
-  };
-
-  @action
-  releaseKindRetarget = () => {
-    this.kindRetarget = null;
   };
 
   @action
@@ -690,7 +683,9 @@ export default class ProjectStore extends BaseStore {
     this.layers = layers;
     this.elements = elements;
     this.projectData = projectData;
-    this.retarget = { ...this.retarget, ...this.item.project?.retargetForm };
+    if (this.retarget || this.item.project?.retargetForm) {
+      this.retarget = { ...this.retarget, ...this.item.project?.retargetForm };
+    }
   };
 
   @computed
@@ -1255,7 +1250,7 @@ export default class ProjectStore extends BaseStore {
         const retargetForm = {
           showed: this.retarget.showed,
           options: { ...this.retarget.options },
-          kind: this.retarget.kindRetarget,
+          kind: this.retarget.kind,
         };
         serializedData = { retargetForm, ...serializedData };
       }
@@ -1717,4 +1712,22 @@ export default class ProjectStore extends BaseStore {
       opacity,
     });
   };
+
+  @action
+  togglePersonalizer = (showed) => {
+    this.modified = true;
+    this.setUndo();
+    this.retarget.showed = showed;
+
+    this.toggleViewPersonalizer(showed);
+  };
+
+  @action
+  toggleViewPersonalizer = (showed) => {
+    if (showed) {
+      this.retarget.start();
+    } else {
+      this.retarget.end();
+    }
+  }
 }

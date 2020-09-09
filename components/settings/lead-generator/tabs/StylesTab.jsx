@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { observer } from 'mobx-react';
 
 import PropTypes from '../../../../lib/PropTypes';
 
@@ -25,16 +26,14 @@ import { TYPES } from '../../../../lib/constants/validator';
 import withValidation from '../../../hoc/withValidation';
 import { ASSET_TYPES } from '../../../../lib/constants/media';
 import useMediaStore from '../../../hooks/useMediaStore';
+import useProjectStore from '../../../hooks/useProjectStore';
 
-const StylesTab = (options) => {
+const StylesTab = observer((options) => {
   const {
-    kindRetarget,
     values,
     fields,
     onChange,
     type,
-    showedForm,
-    onClose,
     checkValue,
     setError,
   } = options;
@@ -43,6 +42,9 @@ const StylesTab = (options) => {
 
   const { openAnimation } = useUIStore();
   const { openCropper } = useModalStore();
+  const { retarget, togglePersonalizer } = useProjectStore();
+
+  const showed = React.useMemo(() => retarget.showed, [retarget.showed]);
 
   const onUploadedImage = (image, option) => {
     onChange({ [option]: image.url || image });
@@ -116,11 +118,11 @@ const StylesTab = (options) => {
       ) }
       {type === POPCORN_ELEMENT_TYPES.RETARGET && (
         <FieldBuilder
-          value={showedForm}
+          value={!showed}
           type="checkbox"
           name="showedUI"
-          label={DEACTIVATE_LB[kindRetarget]}
-          onChange={() => onClose(!showedForm)}
+          label={DEACTIVATE_LB[retarget.kind]}
+          onChange={() => togglePersonalizer(!showed)}
         />
       )}
       <div className="brand-logo-container">
@@ -318,12 +320,10 @@ Open Library
       </div>
     </div>
   );
-};
+});
 
 StylesTab.propTypes = {
-  kindRetarget: PropTypes.string,
   type: PropTypes.string.isRequired,
-  showedForm: PropTypes.bool,
   onClose: PropTypes.func,
   values: PropTypes.shape({
     brandLogoSrc: PropTypes.string,
@@ -420,11 +420,6 @@ StylesTab.propTypes = {
       default: PropTypes.number,
     }),
   }),
-};
-
-StylesTab.defaultProps = {
-  showedForm: false,
-  onClose: () => {},
 };
 
 export default withValidation(StylesTab);

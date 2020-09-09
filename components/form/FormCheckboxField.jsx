@@ -23,7 +23,6 @@ const FormCheckboxField = (props) => {
       <Checkbox
         disabled={disabled}
         checked={value}
-        onChange={onClick}
         onClick={onClick}
         disableripple="true"
         classes={{ root: classnames('checkmark', value ? 'checked' : 'unchecked') }}
