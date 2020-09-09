@@ -32,6 +32,7 @@ class Creator {
     cdnHostname: config.s3.cdn,
     clientSecret: null,
     helpCrunch: {},
+    cdnSocialWeb: config.s3.cdnSocialWeb,
   };
 
   clientAuthHeader = null;

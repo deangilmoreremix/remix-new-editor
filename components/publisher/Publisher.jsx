@@ -80,7 +80,7 @@ const Publisher = ({ children, withIframe }) => {
     conductor.style.left = 0;
   };
 
-  const { cdnHostname } = useCommonStore();
+  const { cdnSocialWeb } = useCommonStore();
 
   return (
     <div className="social-campaign">
@@ -96,7 +96,7 @@ const Publisher = ({ children, withIframe }) => {
       {withIframe && (
         <iframe
           title="Iframe social conductor"
-          src={`${cdnHostname}/social-campaign/social-campaign.html`}
+          src={`${cdnSocialWeb}/social-campaign/social-campaign.html`}
           frameBorder="0"
           className="conductor-iframe"
           id="conductor-iframe"

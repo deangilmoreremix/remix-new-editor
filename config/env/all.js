@@ -72,6 +72,7 @@ module.exports = {
   },
   s3: {
     cdn: process.env.CDN_HOSTNAME || '',
+    cdnSocialWeb: process.env.CDN_SOCIAL_HOSTNAME || 'https://cdn.vidcloud.io',
     mediaCdn: process.env.MEDIA_CDN_HOSTNAME || '',
     streamingCdn: process.env.STREAMING_CDN_HOSTNAME || '',
     key: process.env.S3_KEY || 'AKIAIAQ6WDZIWRHJTGVA',
