@@ -14,12 +14,20 @@ import {
 } from '../../../../lib/constants/timeline';
 
 import svgAudioIcon from '../../../../public/static/images/media/icon-audio.svg';
+import personalizedVoiceIcon from '../../../../public/static/images/media/personalized-voice.svg';
+import voiceIcon from '../../../../public/static/images/media/voice.svg';
 
 const IconElement = React.forwardRef(({ item, ...rest }, ref) => {
   const icon = useMemo(() => {
     // ToDO add icons for voice and personalized voice
     if (item.kind === ASSET_TYPES.AUDIO) {
       return svgAudioIcon;
+    }
+    if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
+      return personalizedVoiceIcon;
+    }
+    if (item.kind === ASSET_TYPES.VOICE) {
+      return voiceIcon;
     }
     return TIMELINE_ELEMENT_ICONS[item.type];
   }, [item]);

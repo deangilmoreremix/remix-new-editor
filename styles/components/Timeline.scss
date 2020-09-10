@@ -87,6 +87,11 @@
         height: auto;
         margin: auto 0.2rem;
       }
+      &.popcorn-timeline-icon {
+        path {
+          stroke: none;
+        }
+      }
     }
 
     .icon-btn {
