@@ -113,7 +113,7 @@
 .popcorn-element-personalized-voice {
   justify-content: center !important;
 
-  &+.react-resizable-handle {
+  & + .react-resizable-handle {
     display: none;
   }
 }
