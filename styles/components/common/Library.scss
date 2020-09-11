@@ -280,8 +280,8 @@ button.library__tab {
   }
 
   &-active {
-    path {
-      fill: $secondary-color !important;
+    svg path {
+      fill: $secondary-color;
     }
 
     p {

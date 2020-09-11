@@ -110,8 +110,8 @@
   }
 }
 
-.popcorn-element-personalized-voice {
-  justify-content: center !important;
+div.popcorn-element-personalized-voice {
+  justify-content: center;
 
   & + .react-resizable-handle {
     display: none;
