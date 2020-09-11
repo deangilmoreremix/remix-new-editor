@@ -43,7 +43,6 @@ import { radioButton } from '../../lib/constants/windowsLogics';
 import { ACTION_MAKE_COPY, ACTION_WATCH_VIDEO, PRODUCE_TABS } from '../../lib/constants/ui';
 import { ROUTES } from '../../lib/constants/routing';
 
-
 const caretNames = Object.values(CARET_NAMES);
 
 export default class ProjectStore extends BaseStore {
