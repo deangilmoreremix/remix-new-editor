@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, Fragment } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
@@ -178,15 +178,18 @@ const TextToSpeech = observer(() => {
           <div className="text-to-speech__right">
             <div className="text-to-speech__text-wrapper">
               {isPersonalizeText && (
-                <FormTextArea
-                  label="Fallback Value"
-                  value={fallbackValue}
-                  onChange={setFallbackValue}
-                  className="text-to-speech__textarea"
-                  inputClassName="text-to-speech__textarea-input"
-                  rows={6}
-                  text
-                />
+                <Fragment>
+                  <FormTextArea
+                    label="Fallback Value"
+                    value={fallbackValue}
+                    onChange={setFallbackValue}
+                    className="text-to-speech__textarea"
+                    inputClassName="text-to-speech__textarea-input"
+                    rows={6}
+                    text
+                  />
+                  <p className="text-to-speech__info">Required field</p>
+                </Fragment>
               )}
               <p className="text-to-speech__label">Text</p>
               <FormTokensTextArea

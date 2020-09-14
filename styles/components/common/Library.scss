@@ -23,6 +23,12 @@
     color: $white;
   }
 
+  .library__btn-item {
+    p {
+      margin-top: 0;
+    }
+  }
+
   &-audio,
   &-voice {
     @include max-w(1450px) {
@@ -274,7 +280,7 @@ button.library__tab {
   }
 
   &-active {
-    path {
+    svg path {
       fill: $secondary-color;
     }
 
@@ -288,15 +294,19 @@ button.library__tab {
     font-size: $smallFontSize;
 
     .library__icon-btn {
-      width: 17px;
-      height: 17px;
+      width: 1.0625rem;
+      height: 1.0625rem;
+      min-width: 1.0625rem;
+      min-height: 1.0625rem;
     }
   }
 }
 
 .library__icon-btn {
-  width: 1.18em;
-  height: 0.88em;
+  width: 17px;
+  height: 17px;
+  min-width: 17px;
+  min-height: 17px;
   position: relative;
   margin-right: 0.6rem;
 
@@ -306,6 +316,11 @@ button.library__tab {
     left: 0;
     max-width: 100%;
     max-height: 100%;
+  }
+
+  path {
+    stroke: none;
+    fill: $btn-gray;
   }
 }
 

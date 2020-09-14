@@ -106,7 +106,10 @@ export default class Media extends BaseStore {
       };
     } else {
       url = '/api/users/me/media-assets/get-voice';
-      body = { engine, language, text, voice, kind };
+      body = {
+        kind,
+        extra: { engine, language, text, voice },
+      };
     }
 
     try {

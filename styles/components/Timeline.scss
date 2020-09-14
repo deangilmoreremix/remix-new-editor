@@ -81,11 +81,18 @@
         height: auto;
         margin: auto 0.2rem;
       }
+
       &.popcorn-overlay {
         width: 1rem;
         min-width: 1rem;
         height: auto;
         margin: auto 0.2rem;
+      }
+
+      &.popcorn-timeline-icon {
+        path {
+          stroke: none;
+        }
       }
     }
 
@@ -102,6 +109,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+}
+
+div.popcorn-element-personalized-voice {
+  justify-content: center;
+
+  & + .react-resizable-handle {
+    display: none;
   }
 }
 

@@ -11,7 +11,7 @@ import { selectItem } from '../../../lib/mitt/emitter';
 
 import useProjectStore from '../../hooks/useProjectStore';
 
-import { SANTISECOND } from '../../../lib/constants/project';
+import { SANTISECOND, FRACTIONAL_NUMBER } from '../../../lib/constants/project';
 import { MIN_DURATION, POPCORN_ELEMENT_TYPES, SEQUENCER } from '../../../lib/constants/popcorn';
 import { NONE_CLASS } from '../../../lib/constants/animations';
 import { DEFAULT_SETTINGS } from '../../../lib/constants/settings';
@@ -19,8 +19,6 @@ import { ASSET_TYPES } from '../../../lib/constants/media';
 
 import { getTransitionButtons } from '../../../lib/utils/timeline';
 import TransitionButton from './TransitionButton';
-
-const fractionalNumber = 3000;
 
 const PopcornElements = observer(({ width }) => {
   const projectStore = useProjectStore();
@@ -141,7 +139,7 @@ const PopcornElements = observer(({ width }) => {
     let { popcornOptions: { end } } = element;
 
     if (kind === ASSET_TYPES.PERSONALIZED_VOICE) {
-      end = start + (cols / fractionalNumber > 1 ? cols / fractionalNumber : 1);
+      end = start + (cols / FRACTIONAL_NUMBER > 1 ? cols / FRACTIONAL_NUMBER : 1);
     }
 
     const layer = layers.find(item => item.id === element.track);
@@ -170,7 +168,8 @@ const PopcornElements = observer(({ width }) => {
       minW: (MIN_DURATION + getExtraDuration(animation, outDuration)) * SANTISECOND,
       layer,
       dimensions,
-      isResizable: type !== POPCORN_ELEMENT_TYPES.JSON_TRANSITION,
+      isResizable: type !== POPCORN_ELEMENT_TYPES.JSON_TRANSITION
+        && kind !== ASSET_TYPES.PERSONALIZED_VOICE,
     };
   }), [cols, elements, getEnd, getExtraDuration, layers]);
 

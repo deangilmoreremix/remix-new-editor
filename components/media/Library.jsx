@@ -182,7 +182,8 @@ const Library = observer((props) => {
           ? LIBRARY_KEYS.PERSONALIZED_VOICE : activeTab,
         page: currentPage,
         query: queryStr,
-        filter: { _id: { $nin: uploaded } },
+        filter: source === LIBRARY_KEYS.PERSONALIZED_VOICE
+          ? { 'extra.fallbackValue': { $exists: true } } : { _id: { $nin: uploaded } },
       });
 
       if (data) {
