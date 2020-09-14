@@ -46,3 +46,8 @@ table {
   border-spacing: 0; }
 
 button:not(:disabled), a { cursor: pointer; }
+
+.popover {
+  font-family: $font-primary;
+}
+

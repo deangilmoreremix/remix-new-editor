@@ -141,13 +141,15 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           element={values}
         />
         <div className="image-settings__btn--block image-settings__btn--transition">
-          <p>Transition</p>
-          <button
-            className="image-settings__btn"
-            onClick={openAnimation}
-          >
-            Open Library
-          </button>
+          <div className="image-settings__btn--wrapper">
+            <p>Transition</p>
+            <button
+              className="image-settings__btn"
+              onClick={openAnimation}
+            >
+              Open Library
+            </button>
+          </div>
         </div>
       </div>
 
