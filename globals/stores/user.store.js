@@ -145,4 +145,10 @@ export default class UserStore {
   get wrapperFeatureEnabled() {
     return this.isfeatureEnabled(FEATURES.WRAPPER);
   }
+
+  @computed
+  get video360Enabled() {
+    return [FEATURES.OP_360, FEATURES.OWP_360, FEATURES.VIDEO_360]
+      .some(feature => this.isfeatureEnabled(feature));
+  }
 }
