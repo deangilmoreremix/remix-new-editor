@@ -15,6 +15,7 @@ import {
 
 import { LOADING_COLOR } from '../lib/constants/ui';
 
+import PersonalizerActivation from './common/PersonalizerActivation';
 import GuidelinesActivation from './common/GuidelinesActivation';
 import Guidelines from './common/Guidelines';
 
@@ -25,6 +26,8 @@ const Canvas = observer(() => {
     item: { ratio: { width, height } = DEFAULT_RATIO },
     runTextfill,
     isLoadingSequencer,
+    retarget,
+    toggleViewPersonalizer,
   } = projectStore;
 
   const {
@@ -86,6 +89,13 @@ const Canvas = observer(() => {
   return (
     <div ref={ref} className={classnames('stager-wrapper', { 'stager-wrapper-big': !isTimelineOpen })}>
       <GuidelinesActivation marginLeft={style.margin && style.margin.split(' ')[1]} />
+      { retarget && retarget.showed ? (
+        <PersonalizerActivation
+          marginLeft={style.margin && style.margin.split(' ')[1]}
+          retarget={retarget}
+          togglePersonalizer={toggleViewPersonalizer}
+        />
+      ) : null}
       <div style={{ ...style }} className="embed-wrapper">
         {hasGuidLines && <Guidelines />}
 

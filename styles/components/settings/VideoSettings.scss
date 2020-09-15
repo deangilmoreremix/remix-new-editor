@@ -8,6 +8,22 @@
   }
 }
 
+.hint-360 {
+  // todo use variables after merge https://github.com/strategic-limited/remix-new-editor/pull/354/files
+  font-size: 0.625rem;
+  text-align: right;
+  line-height: .937rem;
+}
+.is-360 {
+  .checkmark {
+    padding-right: 0;
+  }
+}
+
+.is-360-wrapper {
+  width: 58%;
+}
+
 .video-settings__inputs {
   display: flex;
   justify-content: space-between;
@@ -119,8 +135,6 @@ span.video-settings-slider {
 .video-settings-slider-input {
   width: 3.3rem;
   height: 2rem;
-  border: 1px solid $third-color;
-  border-radius: 3px;
   padding: 0 3px;
 }
 
@@ -241,3 +255,4 @@ span.video-settings-slider {
     }
   }
 }
+

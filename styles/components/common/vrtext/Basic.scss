@@ -4,7 +4,6 @@
 }
 
 .text-container {
-  margin-top: 1em;
   margin-bottom: 1em;
   display: flex;
   justify-content: space-between;
@@ -171,6 +170,17 @@
   &-icons {
     display: flex;
     align-items: baseline;
+    margin-bottom: 0.5rem;
+
+    .MuiFormControl-root:last-child {
+      .MuiFormGroup-root {
+        .MuiFormControlLabel-root:last-child {
+          & > span:last-child {
+            margin-right: -9px;
+          }
+        }
+      }
+    }
   }
 
   .MuiFormGroup-root {
@@ -214,11 +224,11 @@
       flex-direction: column-reverse;
       align-items: flex-start;
 
-      .MuiFormControl-root:first-child {
+      .MuiFormControl-root:last-child {
         .MuiFormGroup-root {
           .MuiFormControlLabel-root:first-child {
             & > span:first-child {
-              padding-left: 0;
+              margin-left: 0;
             }
           }
         }
@@ -227,7 +237,7 @@
       .MuiFormGroup-root {
         .MuiFormControlLabel-root {
           & > span {
-            padding-top: 0;
+            //padding-top: 0;
           }
         }
       }
@@ -321,7 +331,8 @@
         .MuiFormGroup-root {
           .MuiFormControlLabel-root:first-child {
             & > span:first-child {
-              padding-left: 0;
+              //padding-left: 0;
+              margin-left: -9px;
             }
           }
         }

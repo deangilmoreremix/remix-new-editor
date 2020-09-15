@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import PropTypes from '../../../../lib/PropTypes';
 
@@ -14,10 +14,25 @@ import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 
 
 const INPUT_NAME = 'inputValue';
+const INPUT_VALUE = 'value';
 
-const FieldsTab = ({ kindRetarget, values, fields, onChange, type }) => {
-  const inputs = values.elements ?? fields.elements.default;
+const FieldsTab = ({ kind, values, fields, onChange, type }) => {
   const { generateUid, moveFormFields } = useProjectStore();
+
+  const inputs = useMemo(() => {
+    if (values.elements) {
+      const itemFields = values.elements.map(el => {
+        // eslint-disable-next-line no-prototype-builtins
+        if (!el.hasOwnProperty(INPUT_VALUE)) {
+          el.value = el.type;
+        }
+        return el;
+      });
+      return itemFields;
+    } else {
+      return fields.elements.default;
+    }
+  }, [values, fields]);
 
   const addField = () => {
     if (inputs.length < 5) {
@@ -44,7 +59,7 @@ const FieldsTab = ({ kindRetarget, values, fields, onChange, type }) => {
           element.label = val || 'Untitled';
           element.token = val.toUpperCase() || 'UNTITLED';
         } else {
-          element.label = editElem.elements ?? element.label;
+          element.label = element.label ?? editElem.elements;
           element.type = editElem.elements ?? element.type;
           element.value = editElem.elements ?? element.value;
           element.token = editElem?.elements?.toUpperCase() ?? element.token;
@@ -93,7 +108,7 @@ const FieldsTab = ({ kindRetarget, values, fields, onChange, type }) => {
       <div className="addfield-container">
         <button className="addfield-container-button" onClick={addField}>+ Add Field</button>
       </div>
-      {kindRetarget !== POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN && (
+      {kind !== POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN && (
         <React.Fragment>
           <div>
             <label className="form-control-label">Privacy Disclaimer</label>
@@ -137,7 +152,7 @@ FieldsTab.propTypes = {
     privacyPolicyLink: PropTypes.string,
     btnText: PropTypes.string,
   }),
-  kindRetarget: PropTypes.string,
+  kind: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   type: PropTypes.string,
   fields: PropTypes.shape({

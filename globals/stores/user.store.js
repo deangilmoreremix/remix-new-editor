@@ -117,8 +117,18 @@ export default class UserStore {
   }
 
   @computed
+  get gifsEnabled() {
+    return this.isfeatureEnabled(FEATURES.GIFS);
+  }
+
+  @computed
+  get libraryStickerEnabled() {
+    return this.isfeatureEnabled(FEATURES.STICKER_LIBRARY);
+  }
+
+  @computed
   get googleMapsEnabled() {
-    return this.isfeatureEnabled(FEATURES.GOOGLE_MAPS);
+    return false;
   }
 
   @computed
@@ -134,5 +144,21 @@ export default class UserStore {
   @computed
   get textToSpeechNeuralEnabled() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_TEXT_TO_SPEECH_NEURAL);
+  }
+
+  @computed
+  get connectEnabled() {
+    return this.isfeatureEnabled(FEATURES.CONNECT);
+  }
+
+  @computed
+  get wrapperFeatureEnabled() {
+    return this.isfeatureEnabled(FEATURES.WRAPPER);
+  }
+
+  @computed
+  get video360Enabled() {
+    return [FEATURES.OP_360, FEATURES.OWP_360, FEATURES.VIDEO_360]
+      .some(feature => this.isfeatureEnabled(feature));
   }
 }

@@ -72,7 +72,7 @@ const FormColor = ({ label, onChange, value, className, disabled, allowReset, re
             onClose={handleClose}
             anchorOrigin={{
               vertical: 'bottom',
-              horizontal: 'center',
+              horizontal: 'right',
             }}
             transformOrigin={{
               vertical: 'top',
@@ -85,7 +85,6 @@ const FormColor = ({ label, onChange, value, className, disabled, allowReset, re
             />
           </Popover>
         </Box>
-
         {
           allowReset && (
             <button

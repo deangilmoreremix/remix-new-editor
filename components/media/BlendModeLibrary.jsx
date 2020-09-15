@@ -21,6 +21,7 @@ const BlendModeLibrary = observer(() => {
           get={getTemplatesBlendMode}
           element={ProjectImageElement}
           projectElement
+          blendModeImage
         />
         <CloseButton onClick={() => toggleRightBlock(false)} />
       </div>

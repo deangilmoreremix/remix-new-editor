@@ -11,10 +11,9 @@ import {
   ACTION_NEW_PROJECT,
   ACTION_RENAME_PROJECT,
   ACTION_SAVE_PROJECT,
-  ACTION_TO_TRASH,
+  ACTION_ARCHIVE,
   ACTION_WATCH_VIDEO,
   PRODUCE_TABS,
-  PROJECT_ADMIN_MENU,
   SIDEBAR_MENU_ITEMS,
 } from '../lib/constants/ui';
 import { SAVE_PROJECT_MODAL } from '../lib/constants/modals';
@@ -47,8 +46,7 @@ const Sidebar = observer(() => {
   } = useUIStore();
   const { isSuperAdmin } = useUserStore();
   const elements = useMemo(() => [
-    ...SIDEBAR_MENU_ITEMS(modified, common),
-    ...(isSuperAdmin ? PROJECT_ADMIN_MENU : []),
+    ...SIDEBAR_MENU_ITEMS(modified, common, isSuperAdmin),
   ], [modified]);
 
   const openUrl = useCallback((url) => { window.open(url); }, []);
@@ -89,7 +87,7 @@ const Sidebar = observer(() => {
       case ACTION_WATCH_VIDEO:
         saveProject(arg);
         break;
-      case ACTION_TO_TRASH:
+      case ACTION_ARCHIVE:
         if (options.disabled) {
           showInfo('Project not saved');
         }
@@ -103,6 +101,8 @@ const Sidebar = observer(() => {
   };
 
   const menuButton = buttonItem => (
+    buttonItem.display !== false
+    && (
     <button
       key={`menu-${buttonItem.title}`}
       onClick={() => handleAction(buttonItem.action, buttonItem)}
@@ -119,6 +119,7 @@ const Sidebar = observer(() => {
       ) : null}
       {buttonItem.title}
     </button>
+    )
   );
 
   return (

@@ -10,13 +10,11 @@ import useProjectStore from '../hooks/useProjectStore';
 
 import { DEFAULT_TABS, CUSTOM_TABS } from '../../lib/constants/settings';
 import CloseButton from './CloseButton';
-import useUserStore from '../hooks/useUserStore';
 
 const SettingsEditor = observer(() => {
   const [activeTab, setTab] = useState(0);
 
   const { element, retarget, activeElementId, releaseElement } = useProjectStore();
-  const { currentUser, isfeatureEnabled } = useUserStore();
   const { closeSecondaryWindow, toggleRightBlock, isTimelineOpen } = useUIStore();
 
   const currentElement = useMemo(() => {
@@ -24,41 +22,24 @@ const SettingsEditor = observer(() => {
       if (retarget.id !== activeElementId) {
         return element;
       } else {
+        retarget.additionalType = retarget.kind;
         return retarget;
       }
     }
     return element;
-  }, [element, retarget, activeElementId]);
+  }, [element, retarget, retarget?.kind, activeElementId]);
 
   if (!currentElement) {
     return null;
   }
 
-  const { kindRetarget, type } = currentElement;
-
-  const calcCurrentType = React.useMemo(
-    () => kindRetarget ?? type,
-    [kindRetarget, type],
-  );
+  const { additionalType, type } = currentElement;
 
   let tabs = React.useMemo(
-    () => CUSTOM_TABS[calcCurrentType] || DEFAULT_TABS,
-    [calcCurrentType],
+    () => CUSTOM_TABS[additionalType || type] || DEFAULT_TABS,
+    [type, additionalType],
   );
-
-  tabs = tabs.filter(tab => {
-    if (tab.disabled) {
-      return false;
-    }
-    if (!tab.requiredFeature) {
-      return true;
-    }
-    return currentUser.features && isfeatureEnabled(tab.requiredFeature);
-  });
-
-  React.useEffect(() => {
-    setTab(0);
-  }, [calcCurrentType]);
+  tabs = tabs.filter(tab => !tab.disabled);
 
   const closeWindow = () => {
     toggleRightBlock(false);

@@ -22,6 +22,8 @@ import CallToAction from './media/CallToAction';
 import Giphy from './media/Giphy';
 import TextToSpeech from './media/TextToSpeech';
 
+import { twoKeysEvent } from '../lib/utils/twoKeysEvent';
+
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
 import useUIStore from './hooks/useUIStore';
@@ -58,12 +60,16 @@ const Home = observer(() => {
     linkedinEnabled,
     ctaEnabled,
     blendModeEnabled,
+    connectEnabled,
+    gifsEnabled,
+    libraryStickerEnabled,
     jsonTransitionEnabled,
     textToSpeechStandardEnabled,
     textToSpeechNeuralEnabled,
     leadGeneratorEnabled,
     googleMapsEnabled,
     socialFbEnabled,
+    wrapperFeatureEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -98,6 +104,16 @@ const Home = observer(() => {
     }
   }, [shouldShowTGModal, pathname, project, remix, push]);
 
+  React.useEffect(() => {
+    twoKeysEvent({
+      undo: () => undoRedoAction(true),
+      redo: () => undoRedoAction(false),
+      saveProject: () => checkAndSave({
+        changeRadioButton, showProducePanel, closeAllWindows, setInitialView,
+      }),
+    });
+  }, []);
+
   const asyncHero = useAsync(
     project
       ? projectStore.getOne
@@ -126,6 +142,9 @@ const Home = observer(() => {
     openToolbarElement,
     openGif,
     openSticker,
+    showProducePanel,
+    closeAllWindows,
+    setInitialView,
   } = uiStore;
 
   const {
@@ -143,6 +162,8 @@ const Home = observer(() => {
     element,
     retarget,
     activeElementId,
+    checkAndSave,
+    undoRedoAction,
   } = projectStore;
 
   const currentElement = useMemo(() => {
@@ -252,6 +273,9 @@ const Home = observer(() => {
         linkedinEnabled,
         ctaEnabled,
         blendModeEnabled,
+        connectEnabled,
+        gifsEnabled,
+        libraryStickerEnabled,
         leadGeneratorEnabled,
         jsonTransitionEnabled,
         width,
@@ -260,6 +284,7 @@ const Home = observer(() => {
         textToSpeechNeuralEnabled,
         googleMapsEnabled,
         socialFbEnabled,
+        wrapperFeatureEnabled,
       },
     });
     return items && items.length ? items : [];

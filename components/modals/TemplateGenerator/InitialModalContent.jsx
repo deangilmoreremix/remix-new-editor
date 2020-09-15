@@ -7,7 +7,7 @@ import generatorImg from '../../../public/static/images/generator.svg';
 export default function InitialModalContent({ accept, decline }) {
   return (
     <>
-      <p className="template-generator-offer__text">Do you want to use the template Generator?</p>
+      <p className="template-generator-offer__text">Do you want to use the Template Generator?</p>
       <SVGInline
         className="generator-img"
         svg={generatorImg}

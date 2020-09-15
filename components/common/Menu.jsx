@@ -51,7 +51,7 @@ const Menu = observer((
           cleanup={['title']}
         />
       ) : null}
-      {buttonItem.title}
+      <span className="menu__item-title">{buttonItem.title}</span>
     </button>
   );
 

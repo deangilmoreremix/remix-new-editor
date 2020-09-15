@@ -151,6 +151,16 @@ a.library__block--title {
   }
 }
 
+.library__block-wrapper {
+  width: 100%;
+
+  .container-textarea {
+    p.label {
+      margin-top: .5rem;
+    }
+  }
+}
+
 button.library__tab {
   @include reset-button;
   flex: 1;
@@ -168,21 +178,27 @@ button.library__tab {
   display: flex;
 
   &-first {
-    align-items: flex-end;
     margin-bottom: 1.18em;
+    justify-content: space-between;
+    flex-direction: column;
   }
 
   &-second {
     max-height: calc(100% - 6vh);
     flex: 1;
-  }
+    justify-content: space-between;
 
-  &>div:first-child {
-    width: 10.8em
-  }
+    & > .library__block {
+      width: 30%;
+    }
 
-  &>div:last-child {
-    flex: 1
+    .library__items {
+      width: 65%;
+    }
+
+    .library__audio-toolbar {
+      width: 30%;
+    }
   }
 }
 
@@ -197,10 +213,15 @@ button.library__tab {
 
 .library__add-file__container {
   display: flex;
-  align-self: flex-start;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  width: 100%;
 }
 
 .library__add-file {
+  width: 38%;
+
   input {
     display: none;
   }
@@ -291,7 +312,7 @@ button.library__tab {
 
   &-user {
     margin-bottom: 2.3rem;
-    font-size: $smallFontSize;
+    font-size: $defaultFontSize;
 
     .library__icon-btn {
       width: 1.0625rem;
@@ -473,10 +494,6 @@ button.library__tab {
     padding-right: 2rem;
   }
 
-  .library__row-first {
-    margin-bottom: 1rem;
-  }
-
   .library__row {
     flex-direction: column;
 
@@ -489,10 +506,10 @@ button.library__tab {
     .library__block--title {
       text-align: center;
     }
-  }
 
-  .library__add {
-    margin-bottom: 1rem;
+    &-second {
+      justify-content: unset;
+    }
   }
 
   .library__btn-container {
@@ -501,6 +518,8 @@ button.library__tab {
     flex-wrap: wrap;
     margin-top: 0.4rem;
     padding: 3px 0;
+    max-width: 100%;
+    margin-bottom: 1rem;
   }
 
   .library__btn-item {
@@ -570,6 +589,29 @@ button.library__tab {
 
   .library__item {
     width: calc(50% - 0.64em);
+  }
+
+  .library__add-file__container {
+    flex-direction: column;
+  }
+
+  .library__add-file, .is-360-wrapper {
+    width: 100%;
+  }
+
+  .library__add {
+    margin-bottom: .5rem;
+  }
+
+  .is-360-wrapper {
+    .is-360 {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+
+  .hint-360 {
+    text-align: left;
   }
 }
 

@@ -57,6 +57,7 @@
 @import "components/common/UnathorizedView";
 @import "components/common/Guidelines";
 @import "components/common/GuidelinesActivation";
+@import "components/common/PersonalizerActivation";
 @import "components/common/image-settings";
 @import "components/common/form-settings";
 @import "components/common/ThumbnailEditor";
@@ -89,3 +90,14 @@
 
 @import "components/canvas/Canvas";
 @import "components/canvas/SizeSelector";
+
+@font-face {
+  font-family: "Proxima Nova";
+  src: url("/static/fonts/ProximaNova/ProximaNova-Regular.ttf");
+  src: url("/static/fonts/ProximaNova/ProximaNova-Regular.woff");
+}
+
+.flex-end {
+  width: 100%;
+  justify-content: flex-end;
+}
