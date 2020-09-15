@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import Grid from '@material-ui/core/Grid';
@@ -20,6 +20,7 @@ import SettingsEditor from './common/SettingsEditor';
 import Recorder from './common/recorder/Recorder';
 import CallToAction from './media/CallToAction';
 import Giphy from './media/Giphy';
+import TextToSpeech from './media/TextToSpeech';
 
 import { twoKeysEvent } from '../lib/utils/twoKeysEvent';
 
@@ -27,12 +28,14 @@ import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
 import useUIStore from './hooks/useUIStore';
 import useUserStore from './hooks/useUserStore';
+import useSocketStore from './hooks/useSocketStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import Warning from './common/snackBars/Warning';
+import Success from './common/snackBars/Success';
 
-import { CANVAS_SIZES } from '../lib/constants/media';
+import { CANVAS_SIZES, ASSET_TYPES } from '../lib/constants/media';
 import { DEFAULT_RATIO } from '../lib/constants/project';
 import { WINDOW_TYPES, SCREEN_RATIO } from '../lib/constants/ui';
 import { ROUTES } from '../lib/constants/routing';
@@ -43,6 +46,7 @@ const Home = observer(() => {
   const { pathname, query: { project, remix }, push } = useRouter();
   const projectStore = useProjectStore();
   const userStore = useUserStore();
+  const { subscribeToSocketEvent, unsubscribeToSocketEvent } = useSocketStore();
 
   const {
     optinCodeEnabled,
@@ -60,6 +64,8 @@ const Home = observer(() => {
     gifsEnabled,
     libraryStickerEnabled,
     jsonTransitionEnabled,
+    textToSpeechStandardEnabled,
+    textToSpeechNeuralEnabled,
     leadGeneratorEnabled,
     googleMapsEnabled,
     socialFbEnabled,
@@ -69,7 +75,14 @@ const Home = observer(() => {
   const { openModal, closeModal } = useModalStore();
   const [shouldShowTGModal, setShouldShowTGModal] = useState(templateGeneratorEnabled);
 
-  React.useEffect(() => {
+  const socketHandler = () => openModal(ASSET_TYPES.VOICE);
+
+  useEffect(() => {
+    subscribeToSocketEvent('text-to-speech-ready', socketHandler);
+    return () => unsubscribeToSocketEvent('text-to-speech-ready', socketHandler);
+  }, []);
+
+  useEffect(() => {
     if (!project && pathname !== ROUTES.edit) {
       push({
         pathname: ROUTES.edit,
@@ -122,6 +135,8 @@ const Home = observer(() => {
     canvasWidth,
     toolsWidth,
     setListBuilder,
+    openCTA,
+    openSecondaryModal,
     toggleRightBlock,
     openUploadTransition,
     openToolbarElement,
@@ -143,6 +158,7 @@ const Home = observer(() => {
     addRetargetForm,
     releaseElement,
     warning,
+    success,
     element,
     retarget,
     activeElementId,
@@ -176,7 +192,8 @@ const Home = observer(() => {
       }
       case WINDOW_TYPES.VIDEO:
       case WINDOW_TYPES.AUDIO:
-      case WINDOW_TYPES.IMAGE: {
+      case WINDOW_TYPES.IMAGE:
+      case WINDOW_TYPES.VOICE: {
         return <Library />;
       }
       case WINDOW_TYPES.STICKERS.value:
@@ -209,6 +226,9 @@ const Home = observer(() => {
       case WINDOW_TYPES.STICKER: {
         return <Giphy type="stickers" />;
       }
+      case WINDOW_TYPES.TEXT_TO_SPEECH: {
+        return <TextToSpeech />;
+      }
       default: {
         return null;
       }
@@ -229,6 +249,8 @@ const Home = observer(() => {
         setListBuilder,
         setSecondaryWindowType,
         openMediaButton,
+        openCTA,
+        openSecondaryModal,
         toggleRightBlock,
         openUploadTransition,
         openToolbarElement,
@@ -258,6 +280,8 @@ const Home = observer(() => {
         jsonTransitionEnabled,
         width,
         height,
+        textToSpeechStandardEnabled,
+        textToSpeechNeuralEnabled,
         googleMapsEnabled,
         socialFbEnabled,
         wrapperFeatureEnabled,
@@ -323,6 +347,7 @@ const Home = observer(() => {
         </div>
       )}
       {warning && <Warning message={warning} />}
+      {success && <Success message={success} />}
     </React.Fragment>
   );
 });

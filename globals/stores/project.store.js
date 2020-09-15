@@ -6,6 +6,7 @@ import Router from 'next/router';
 import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
+import { ASSET_TYPES } from '../../lib/constants/media';
 
 import {
   NO_SETTINGS_ELEMENT_TYPES,
@@ -212,6 +213,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable warning = null;
 
+  @observable success = null;
+
   @action
   undoRedoAction = (undo = true) => {
     const targetData = undo ? this.undoStore : this.redoStore;
@@ -303,6 +306,10 @@ export default class ProjectStore extends BaseStore {
         options.mute = item.volume === 0;
         options.audioFadeIn = 0;
         options.audioFadeOut = 0;
+
+        if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
+          options.templateId = item._id;
+        }
 
         const maxDuration = MAX_DURATION / SANTISECOND;
         if (options.duration * SANTISECOND > MAX_DURATION) {
@@ -1528,6 +1535,11 @@ export default class ProjectStore extends BaseStore {
   @action
   showWarning = (message) => {
     this.warning = message;
+  };
+
+  @action
+  showSuccess = (message) => {
+    this.success = message;
   };
 
   @action

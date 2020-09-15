@@ -40,8 +40,9 @@ class Layout extends Component {
     const data = init(props.creator);
     this.stores = data.stores;
 
-    const { userStore: { hasPermissions } } = this.stores;
+    const { userStore: { hasPermissions, currentUser } } = this.stores;
     this.hasPermissions = hasPermissions;
+    this.currentUser = currentUser;
   }
 
   render() {
@@ -127,7 +128,7 @@ class Layout extends Component {
                 <div {...this.props} className="main">
                   <ModalContainer />
                   {children}
-                  {this.stores.userStore.currentUser && this.stores.common.whiteLabelManager && this.stores.common.whiteLabelManager.domain === 'videoremix.io'
+                  {this.currentUser && this.stores.common.whiteLabelManager && this.stores.common.whiteLabelManager.domain === 'videoremix.io'
                     ? (
                       <HelpCrunch
                         userStore={this.stores.userStore}
@@ -135,16 +136,16 @@ class Layout extends Component {
                         applicationSecret={this.stores.common.helpCrunch.applicationSecret}
                       />
                     ) : null}
-                  {this.stores.userStore.currentUser && this.stores.common.whiteLabelManager && this.stores.common.whiteLabelManager.domain === 'videoremix.io'
+                  {this.currentUser && this.stores.common.whiteLabelManager && this.stores.common.whiteLabelManager.domain === 'videoremix.io'
                     ? (
                       <Intercom
                         appID={this.stores.common.intercom.appId}
                         user={{
-                          email: this.stores.userStore.currentUser.email,
-                          fullName: this.stores.userStore.currentUser.fullName,
-                          hash: this.stores.userStore.currentUser.intercomHash,
+                          email: this.currentUser.email,
+                          fullName: this.currentUser.fullName,
+                          hash: this.currentUser.intercomHash,
                           createdAt: Math.floor(
-                            Date.parse(this.stores.userStore.currentUser.createdAt) / 1000,
+                            Date.parse(this.currentUser.createdAt) / 1000,
                           ).toString(),
                         }}
                         domain="videoremix.io"

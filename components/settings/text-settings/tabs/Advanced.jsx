@@ -99,6 +99,7 @@ const Advanced = ({ values, fields, onChange }) => {
               onChange={onChange}
               containerClass="text-radio-container"
               items={iconAlignmentAdvanced}
+              row
             />
           </div>
         </div>

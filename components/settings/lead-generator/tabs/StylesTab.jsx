@@ -226,6 +226,7 @@ const StylesTab = observer((options) => {
                 radioClassName="radio-container"
                 containerClassName="text-radio-container"
                 items={iconAlignmentAdvanced}
+                row
               />
             </div>
             <FieldBuilder

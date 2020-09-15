@@ -11,7 +11,9 @@ import MediaStore from './stores/media.store';
 import UIStore from './stores/ui.store';
 import PresetStore from './stores/preset.store';
 import MakeStore from './stores/make.store';
+import SocketStore from './stores/socket.store';
 import WhiteLabelManager from '../lib/white-label/manager';
+import { initializeSockets } from './socket-io';
 
 let creator = null;
 let stores = null;
@@ -68,7 +70,7 @@ class Creator {
     Object.assign(this, source);
     this.clientAuthHeader = `Basic ${btoa(`${this.common.clientId}:${this.common.clientSecret}`)}`;
     const accessToken = this.getCookies(AUTH_DATA_CONFIG.accessToken);
-    this.setupNetworkServices(accessToken, isServer);
+    this.setupNetworkServices(accessToken, isServer, this.currentUser);
   }
 
   getCookies(key) {
@@ -81,7 +83,7 @@ class Creator {
     }
   }
 
-  setupNetworkServices(accessToken, isServer) {
+  setupNetworkServices(accessToken, isServer = false, user) {
     const { common } = this;
     if (accessToken) {
       this.authorization = `Bearer ${accessToken}`;
@@ -95,6 +97,7 @@ class Creator {
       () => this.refreshToken(),
     );
     this.assetsRequest = requestCreator(common.assetsPath, this.authorization, isServer, () => {});
+    initializeSockets(this.authorization, user);
   }
 
   async refreshToken() {
@@ -165,6 +168,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
   if (isServer || !creator) {
     creator = new Creator(isServer, source, req);
     const userStore = new UserStore(creator.currentUser, creator.request);
+    const socketStore = new SocketStore();
     const projectStore = new ProjectStore({
       request: creator.request,
       common: creator.common,
@@ -190,6 +194,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       modalStore: ModalStore(),
       uiStore: new UIStore({ projectStore }),
       userStore,
+      socketStore,
       makeStore: new MakeStore({
         request: creator.request,
         common: creator.common,
@@ -219,6 +224,7 @@ export function init(source) {
     const isServer = false;
     creator = new Creator(false, source);
     const userStore = new UserStore(creator.currentUser, creator.request);
+    const socketStore = new SocketStore();
     const projectStore = new ProjectStore({
       request: creator.request,
       common: creator.common,
@@ -240,6 +246,7 @@ export function init(source) {
         assetsRequest: creator.assetsRequest,
         userStore,
       }),
+      socketStore,
       projectStore,
       uiStore: new UIStore({ projectStore }),
       userStore,

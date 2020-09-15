@@ -137,6 +137,16 @@ export default class UserStore {
   }
 
   @computed
+  get textToSpeechStandardEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_TEXT_TO_SPEECH_STANDARD);
+  }
+
+  @computed
+  get textToSpeechNeuralEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_TEXT_TO_SPEECH_NEURAL);
+  }
+
+  @computed
   get connectEnabled() {
     return this.isfeatureEnabled(FEATURES.CONNECT);
   }
