@@ -98,9 +98,9 @@
         margin: 0;
       }
 
-      .radio-button-icon {
-        min-width: 1.2rem;
-      }
+      //.radio-button-icon {
+      //  min-width: 1.2rem;
+      //}
     }
 
     &-slider {
@@ -166,8 +166,8 @@
       text-align: left;
 
       .MuiButtonBase-root {
-        padding-right: 0;
         text-align: left;
+        margin-right: -9px;
       }
     }
 
@@ -204,6 +204,10 @@
 
     .caption-container-slider, .caption-container-radio {
       width: 100%;
+    }
+
+    .caption-container-slider {
+      margin-top: 0.5rem;
     }
 
     .color-container-font {

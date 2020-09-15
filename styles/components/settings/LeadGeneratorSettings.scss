@@ -2,8 +2,7 @@
 .form-settings__timer {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-around;
-  margin-top: -1rem;
+  justify-content: space-between;
 }
 
 .form-settings__time {
@@ -13,26 +12,25 @@
     width: 100%;
   }
   label {
-    margin-bottom: 0;
-    font-size: 0.7em;
+    margin-bottom: 0.5rem;
+    font-size: $defaultFontSize;
+    line-height: $defaultLineHeight;
   }
   input {
     margin-top: 0;
   }
 }
 
-@media screen and (max-width: 980px) {
+@media screen and (max-width: $lg) {
   .form-settings__time {
     width: 100%;
 
     &:first-child {
       margin-right: 0;
     }
-  }
-}
 
-@media screen and (min-width: 980px) and (max-width: 1337px) {
-  .form-settings__time {
-    width: 40%;
+    & + & {
+      margin-top: 0.5rem;
+    }
   }
 }

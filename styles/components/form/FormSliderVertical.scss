@@ -17,12 +17,7 @@
   }
 
   &-input {
-    border: 1px solid $white;
-
     input {
-      text-align: center;
-      font-size: 0.8rem;
-
       -moz-appearance: textfield;
       &::-webkit-outer-spin-button,
       &::-webkit-inner-spin-button {

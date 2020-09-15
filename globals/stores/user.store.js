@@ -128,12 +128,22 @@ export default class UserStore {
 
   @computed
   get googleMapsEnabled() {
-    return this.isfeatureEnabled(FEATURES.GOOGLE_MAPS);
+    return false;
   }
 
   @computed
   get socialFbEnabled() {
     return this.isfeatureEnabled(FEATURES.SOCIAL_FB_ELEMENT);
+  }
+
+  @computed
+  get connectEnabled() {
+    return this.isfeatureEnabled(FEATURES.CONNECT);
+  }
+
+  @computed
+  get wrapperFeatureEnabled() {
+    return this.isfeatureEnabled(FEATURES.WRAPPER);
   }
 
   @computed

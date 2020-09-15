@@ -1,9 +1,26 @@
 .MuiRadio-root {
   color: $white;
+
+  .MuiIconButton-label {
+    width: 0.6em;
+    height: 0.6em;
+  }
+}
+
+.layout-container {
+  .MuiRadio-colorSecondary {
+    &.Mui-checked:hover, &:hover {
+      background-color: rgba(245, 0, 87, 0.1);
+    }
+  }
 }
 
 .MuiRadio-colorSecondary.Mui-checked {
   color: $secondary-color;
+
+  &:hover {
+    background-color: rgba(245, 0, 87, 0.1);
+  }
 }
 
 .MuiSvgIcon-root {
@@ -12,6 +29,7 @@
 
 .radio-button-icon {
   min-width: 0.7rem;
+  width: 100%;
 }
 
 .radio-button-icon-svg:hover {
@@ -19,11 +37,17 @@
 }
 
 .icon-svg-checked-svg {
-  border: 1px solid $secondary-color;
-  padding: 5px;
-  border-radius: 4px;
-
   & path {
-    fill: $btn-gray;
+    fill: $secondary-color;
+  }
+}
+
+.MuiFormControl-root:first-child {
+  .MuiFormGroup-root {
+    .MuiFormControlLabel-root:first-child {
+      & > .MuiRadio-root {
+        margin-left: -9px;
+      }
+    }
   }
 }

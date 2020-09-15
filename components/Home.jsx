@@ -56,12 +56,14 @@ const Home = observer(() => {
     linkedinEnabled,
     ctaEnabled,
     blendModeEnabled,
+    connectEnabled,
     gifsEnabled,
     libraryStickerEnabled,
     jsonTransitionEnabled,
     leadGeneratorEnabled,
     googleMapsEnabled,
     socialFbEnabled,
+    wrapperFeatureEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -249,6 +251,7 @@ const Home = observer(() => {
         linkedinEnabled,
         ctaEnabled,
         blendModeEnabled,
+        connectEnabled,
         gifsEnabled,
         libraryStickerEnabled,
         leadGeneratorEnabled,
@@ -257,6 +260,7 @@ const Home = observer(() => {
         height,
         googleMapsEnabled,
         socialFbEnabled,
+        wrapperFeatureEnabled,
       },
     });
     return items && items.length ? items : [];

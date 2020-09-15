@@ -34,7 +34,7 @@ import {
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
-import { showError, showInfo } from '../../lib/services/alertService';
+import { showConfirmation, showError, showInfo } from '../../lib/services/alertService';
 import {
   FORM_ONE_LG,
   WARNING_OPACITY,
@@ -780,7 +780,7 @@ export default class ProjectStore extends BaseStore {
         this.retarget = this.item.project.retargetForm || result.project.retargetForm;
       }
       if (result.project && result.project.allowedSocials) {
-        this.item.allowedSocials = this.item.project.allowedSocials;
+        this.item.allowedSocials = result.project.allowedSocials;
       }
     } catch (e) {
       this.item = DEFAULT_ITEM;
@@ -954,6 +954,7 @@ export default class ProjectStore extends BaseStore {
             end: null,
             zindex: null,
             duration: trackEvent.popcornOptions.end - trackEvent.popcornOptions.start,
+            kind: makeTemplate.kind || trackEvent.popcornOptions.kind,
           };
           return this.createNewElement(item);
         });
@@ -1310,7 +1311,7 @@ export default class ProjectStore extends BaseStore {
             return showError('The project is not valid.');
           }
         }
-      } else {
+      } else if (await showConfirmation('Project will be saved')) {
         closeAllWindows();
         const project = await this.save();
         if (!this.modified) {

@@ -90,6 +90,12 @@
 @import "components/canvas/Canvas";
 @import "components/canvas/SizeSelector";
 
+@font-face {
+  font-family: "Proxima Nova";
+  src: url("/static/fonts/ProximaNova/ProximaNova-Regular.ttf");
+  src: url("/static/fonts/ProximaNova/ProximaNova-Regular.woff");
+}
+
 .flex-end {
   width: 100%;
   justify-content: flex-end;

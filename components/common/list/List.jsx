@@ -4,7 +4,7 @@ import { observer } from 'mobx-react';
 
 import PropTypes from '../../../lib/PropTypes';
 import { perPage } from '../../../lib/constants/library';
-import { MEDIA_TYPES } from '../../../lib/constants/popcorn';
+import { MEDIA_TYPES, POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
 
 import useProjectStore from '../../hooks/useProjectStore';
 
@@ -23,6 +23,7 @@ const List = observer((
     startSearch,
     setStartSearch,
     searchPage,
+    blendModeImage,
   }) => {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
@@ -34,6 +35,9 @@ const List = observer((
   const handleSelect = React.useCallback(async (item) => {
     try {
       if (projectElement) {
+        if (blendModeImage) {
+          item.kind = POPCORN_ELEMENT_TYPES.BLEND_MODE;
+        }
         await addData(item);
       } else {
         item.src = item.data;
@@ -132,6 +136,7 @@ List.propTypes = {
   startSearch: PropTypes.bool,
   setStartSearch: PropTypes.func,
   searchPage: PropTypes.bool,
+  blendModeImage: PropTypes.bool,
 };
 
 List.defaultProps = {
@@ -141,6 +146,7 @@ List.defaultProps = {
   startSearch: false,
   searchValue: null,
   searchPage: false,
+  blendModeImage: false,
 };
 
 export default List;
