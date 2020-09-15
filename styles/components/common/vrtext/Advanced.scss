@@ -255,6 +255,7 @@
   }
 
   .font-color-container {
+    flex-direction: column;
 
     .checkbox-element {
       width: 100%;
@@ -262,7 +263,9 @@
     }
   }
 
-
+  .font-color-container-input {
+    width: 100%;
+  }
 }
 
 @media screen and (max-width: $lg) {

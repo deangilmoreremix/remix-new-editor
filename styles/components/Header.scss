@@ -173,6 +173,11 @@
           justify-content: space-between;
         }
       }
+
+      .menu__open {
+        min-width: unset;
+        margin-left: 0.375rem;
+      }
     }
 
     .logo {

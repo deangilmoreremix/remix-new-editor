@@ -140,4 +140,9 @@ export default class UserStore {
   get connectEnabled() {
     return this.isfeatureEnabled(FEATURES.CONNECT);
   }
+
+  @computed
+  get wrapperFeatureEnabled() {
+    return this.isfeatureEnabled(FEATURES.WRAPPER);
+  }
 }

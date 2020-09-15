@@ -61,6 +61,7 @@ const Home = observer(() => {
     leadGeneratorEnabled,
     googleMapsEnabled,
     socialFbEnabled,
+    wrapperFeatureEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -242,6 +243,7 @@ const Home = observer(() => {
         height,
         googleMapsEnabled,
         socialFbEnabled,
+        wrapperFeatureEnabled,
       },
     });
     return items && items.length ? items : [];
