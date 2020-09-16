@@ -69,6 +69,7 @@
     "gl-transitions": "1.43.0",
     "glob": "7.1.6",
     "he": "1.2.0",
+    "hotkeys-js": "3.8.1",
     "husky": "3.1.0",
     "interactjs": "1.9.10",
     "isomorphic-fetch": "2.2.1",

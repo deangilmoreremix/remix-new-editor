@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import Grid from '@material-ui/core/Grid';
 import { useAsync } from 'react-async-hook';
 import classnames from 'classnames';
+import hotkeys from 'hotkeys-js';
 
 import Loader from './common/Loader';
 import Canvas from './Canvas';
@@ -20,9 +21,8 @@ import SettingsEditor from './common/SettingsEditor';
 import Recorder from './common/recorder/Recorder';
 import CallToAction from './media/CallToAction';
 import Giphy from './media/Giphy';
+import { twoKeys } from '../lib/constants/keyCodes';
 import TextToSpeech from './media/TextToSpeech';
-
-import { twoKeysEvent } from '../lib/utils/twoKeysEvent';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
@@ -104,16 +104,6 @@ const Home = observer(() => {
     }
   }, [shouldShowTGModal, pathname, project, remix, push]);
 
-  React.useEffect(() => {
-    twoKeysEvent({
-      undo: () => undoRedoAction(true),
-      redo: () => undoRedoAction(false),
-      saveProject: () => checkAndSave({
-        changeRadioButton, showProducePanel, closeAllWindows, setInitialView,
-      }),
-    });
-  }, []);
-
   const asyncHero = useAsync(
     project
       ? projectStore.getOne
@@ -164,7 +154,64 @@ const Home = observer(() => {
     activeElementId,
     checkAndSave,
     undoRedoAction,
+    projectData,
   } = projectStore;
+
+  hotkeys.filter = () => true;
+  const keys = [twoKeys.ctrlS, twoKeys.ctrlZ, twoKeys.ctrlY, twoKeys.ctrlC,
+    twoKeys.commandS, twoKeys.commandZ, twoKeys.commandY, twoKeys.commandC];
+
+  React.useEffect(() => {
+    hotkeys.unbind(keys.join(), hotkeys.getScope());
+    hotkeys(keys.join(), (event, handler) => {
+      switch (handler.key) {
+        case twoKeys.ctrlS:
+        case twoKeys.commandS:
+          event.preventDefault();
+          checkAndSave({
+            changeRadioButton, showProducePanel, closeAllWindows, setInitialView,
+          });
+          break;
+        case twoKeys.ctrlZ:
+        case twoKeys.commandZ:
+          event.preventDefault();
+          undoRedoAction(true);
+          break;
+        case twoKeys.ctrlY:
+        case twoKeys.commandY:
+          event.preventDefault();
+          undoRedoAction(false);
+          break;
+        case twoKeys.ctrlC:
+        case twoKeys.commandC: {
+          if (!event.target.classList.contains('popcorn-element')) {
+            return null;
+          }
+          event.preventDefault();
+          if (projectData.media && projectData.media.length && activeElementId) {
+            projectData.media.forEach((media) => {
+              media.tracks.forEach((track) => {
+                track.trackEvents.forEach(trackEvent => {
+                  if (trackEvent.id === activeElementId) {
+                    addElement({
+                      ...trackEvent.popcornOptions,
+                      type: trackEvent.type,
+                      track: null,
+                      blendMode: null,
+                      opacity: null,
+                      id: null,
+                    });
+                  }
+                });
+              });
+            });
+          }
+          break;
+        }
+        default: return null;
+      }
+    });
+  }, [activeElementId]);
 
   const currentElement = useMemo(() => {
     if (retarget) {
