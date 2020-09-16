@@ -95,6 +95,14 @@ const SettingPanel = observer(() => {
           label="Background Color"
           className="settings-formcolor"
         />
+        <FieldBuilder
+          type="checkbox"
+          name="disabledPlaybar"
+          label="Show playbar"
+          value={!item.disabledPlaybar}
+          onChange={() => updateItem({ disabledPlaybar: !item.disabledPlaybar })}
+          floatClassName="settings-checkbox settings-checkbox-playbar"
+        />
       </div>
       <div className="settings__inputs">
         <FieldBuilder

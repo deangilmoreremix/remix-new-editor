@@ -1155,6 +1155,7 @@ export default class ProjectStore extends BaseStore {
     thumbnail: this.item.thumbnail,
     source: this.item.source,
     tags: this.item.tags,
+    disabledPlaybar: this.item.disabledPlaybar,
   });
 
   @action
@@ -1276,6 +1277,7 @@ export default class ProjectStore extends BaseStore {
             thumbnail: serializedData.thumbnail,
             remixedFrom: serializedData.source,
             tags: serializedData.tags,
+            disabledPlaybar: serializedData.disabledPlaybar,
           },
         });
       const publishedMake = await this.publish(result._id);

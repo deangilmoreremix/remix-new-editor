@@ -215,6 +215,10 @@ button.settings__edit-file{
   flex-wrap: wrap;
   margin-bottom: 1.125rem;
 
+  .drop-area {
+    justify-content: flex-start;
+  }
+
   &:last-of-type {
     margin-bottom: 0;
   }
@@ -260,6 +264,10 @@ button.settings__edit-file{
 .settings-checkbox {
   display: flex;
   align-items: center;
+
+  &-playbar {
+    margin-bottom: 1.4rem;
+  }
 
   label {
     font-size: $defaultFontSize;
