@@ -1687,6 +1687,9 @@ export default class ProjectStore extends BaseStore {
     const opacity = options && options.opacity ? options.opacity : 100;
 
     this.modified = true;
+
+    const newId = this.generateUid();
+
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
         track.order += 1;
@@ -1697,7 +1700,7 @@ export default class ProjectStore extends BaseStore {
         });
         return track;
       });
-      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}`, blendMode, opacity });
+      media.tracks.unshift({ ...DEFAULT_LAYER, id: newId, blendMode, opacity });
     });
 
     this.layers = this.layers.map(track => {
@@ -1705,9 +1708,10 @@ export default class ProjectStore extends BaseStore {
       track.defaultName = `Layer ${track.order}`;
       return track;
     });
+
     this.layers.unshift({
       ...DEFAULT_LAYER,
-      id: `${this.layers.length}`,
+      id: newId,
       defaultName: 'Layer 0',
       blendMode,
       opacity,
