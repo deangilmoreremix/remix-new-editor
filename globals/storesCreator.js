@@ -264,6 +264,8 @@ export function init(source) {
       }),
     };
   }
+  initializeSockets(creator.authorization, creator.currentUser);
+
   return { creator, stores };
 }
 

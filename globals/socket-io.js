@@ -2,11 +2,13 @@ import io from 'socket.io-client';
 
 import config from '../config/config';
 
+let socketInit = false;
 export const socket = {};
 export const initializeSockets = (authToken, user) => {
-  if (!user) {
+  if (!user || socketInit) {
     return;
   }
+  socketInit = true;
   const socketInstance = io(`${config.loginServer.url}/editor`, {
     query: { authorization: `${authToken}`, userId: user.id },
     transports: ['websocket'],
