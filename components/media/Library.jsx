@@ -449,14 +449,26 @@ const Library = observer((props) => {
       <div className="library__body">
         <div className="library__row library__row-first">
           <div className="library__add-file__container">
-            <div className="library__add-file">
-              <input id="add-file" {...getInputProps()} disabled={isDisabledUpload} />
-              <label htmlFor="add-file" className="library__add">
-                {
-                  isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
-                }
-              </label>
-            </div>
+            {
+              activeTab !== LIBRARY_TABS.VOICE ? (
+                <div className="library__add-file">
+                  <input id="add-file" {...getInputProps()} disabled={isDisabledUpload} />
+                  <label htmlFor="add-file" className="library__add">
+                    {
+                      isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
+                    }
+                  </label>
+                </div>
+              ) : (
+                // todo Open Voice Modal
+                <div className="library__add-file">
+                  <input id="add-file" />
+                  <label htmlFor="add-file" className="library__add">
+                    Add Voice
+                  </label>
+                </div>
+              )
+            }
             {video360Enabled && isVideoTab
             && (
               <Is360
@@ -466,26 +478,6 @@ const Library = observer((props) => {
                 showHint
               />
             )}
-            {activeTab === LIBRARY_TABS.VOICE
-              // todo Open Voice Modal
-              ? (
-                <div className="library__add-file">
-                  <input id="add-file" />
-                  <label htmlFor="add-file" className="library__add">
-                    Add Voice
-                  </label>
-                </div>
-              )
-              : (
-                <div className="library__add-file">
-                  <input id="add-file" {...getInputProps()} disabled={isDisabledUpload} />
-                  <label htmlFor="add-file" className="library__add">
-                    {
-                      isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
-                    }
-                  </label>
-                </div>
-              )}
           </div>
           <div className="library__block-wrapper">
             <div className="library__block">
