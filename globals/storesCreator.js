@@ -90,14 +90,15 @@ class Creator {
     } else {
       this.authorization = this.clientAuthHeader;
     }
+    this.hostname = `${common.prefixes.api}.${(common.whiteLabel && common.whiteLabel.domain) || 'videoremix.io'}`;
     this.request = requestCreator(
-      `${common.prefixes.api}.${(common.whiteLabel && common.whiteLabel.domain) || 'videoremix.io'}`,
+      this.hostname,
       this.authorization,
       isServer,
       () => this.refreshToken(),
     );
     this.assetsRequest = requestCreator(common.assetsPath, this.authorization, isServer, () => {});
-    initializeSockets(this.authorization, user);
+    initializeSockets(this.authorization, user, this.hostname);
   }
 
   async refreshToken() {
@@ -264,7 +265,7 @@ export function init(source) {
       }),
     };
   }
-  initializeSockets(creator.authorization, creator.currentUser);
+  initializeSockets(creator.authorization, creator.currentUser, creator.hostname);
 
   return { creator, stores };
 }

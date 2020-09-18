@@ -4,12 +4,12 @@ import config from '../config/config';
 
 let socketInit = false;
 export const socket = {};
-export const initializeSockets = (authToken, user) => {
+export const initializeSockets = (authToken, user, hostname) => {
   if (!user || socketInit) {
     return;
   }
   socketInit = true;
-  const socketInstance = io(`${config.loginServer.url}/editor`, {
+  const socketInstance = io(`${hostname}${config.backend.socketPort}/editor`, {
     query: { authorization: `${authToken}`, userId: user.id },
     transports: ['websocket'],
   });
