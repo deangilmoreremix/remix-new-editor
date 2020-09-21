@@ -27,9 +27,6 @@ const FormTokensTextArea = observer((props) => {
     inputClassName,
     additionalFieldName,
     disabled,
-    labelHint,
-    onFocus,
-    onBlur,
   } = props;
 
   const onEdit = (e) => {
@@ -62,7 +59,6 @@ const FormTokensTextArea = observer((props) => {
   return (
     <div className={classnames('container-tokens-textarea', className)}>
       {label && <p className={classnames('text-area-label', textClassName)}>{label}</p>}
-      {labelHint && <span className="label-input-hint">{labelHint}</span>}
       <ContentEditable
         className={classnames(inputClassName, 'text-area', variant)}
         tagName="pre"
@@ -70,8 +66,6 @@ const FormTokensTextArea = observer((props) => {
         onChange={onEdit}
         onClick={onClick}
         onPaste={pasteData}
-        onFocus={onFocus}
-        onBlur={onBlur}
         onKeyPress={onKeyPress}
         disabled={disabled}
       />
@@ -90,15 +84,6 @@ FormTokensTextArea.propTypes = {
   updateCaret: PropTypes.func.isRequired,
   caretName: PropTypes.string,
   disabled: PropTypes.bool,
-  labelHint: PropTypes.string,
-  onBlur: PropTypes.func,
-  onFocus: PropTypes.func,
-};
-
-FormTokensTextArea.defaultProps = {
-  onBlur: () => {},
-  onFocus: () => {},
-  labelHint: '',
 };
 
 export default FormTokensTextArea;

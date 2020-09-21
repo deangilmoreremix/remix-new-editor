@@ -44,7 +44,7 @@ const StylesTab = observer((options) => {
   const { openCropper } = useModalStore();
   const { retarget, togglePersonalizer } = useProjectStore();
 
-  const showed = React.useMemo(() => retarget?.showed, [retarget?.showed]);
+  const showed = React.useMemo(() => retarget.showed, [retarget.showed]);
 
   const onUploadedImage = (image, option) => {
     onChange({ [option]: image.url || image });

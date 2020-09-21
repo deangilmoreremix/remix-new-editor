@@ -22,19 +22,12 @@ import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 
 import PropTypes from '../../../../lib/PropTypes';
 
-import { HINT } from '../../../../lib/constants/text-info';
-
 const Basic = observer(({ values, fields, onChange }) => {
   const [positionHorizontal, setPositionHorizontal] = useState();
   const [positionVertical, setPositionVertical] = useState();
-  const [isEdit, setIsEdit] = useState(false);
 
   const { openAnimation } = useUIStore();
-  const {
-    currentUser: user,
-    isfeatureEnabled: checkStateFeature,
-    clickToPhoneCall,
-  } = useUserStore();
+  const { currentUser: user, isfeatureEnabled: checkStateFeature } = useUserStore();
 
   const {
     start,
@@ -175,13 +168,6 @@ const Basic = observer(({ values, fields, onChange }) => {
     }
   }, [htmlUrl, linkUrl]);
 
-  const onFocusHint = () => {
-    setIsEdit(true);
-  };
-  const onBlurHint = () => {
-    setIsEdit(false);
-  };
-
   return (
     <Fragment>
       <div className="text-container">
@@ -235,13 +221,9 @@ const Basic = observer(({ values, fields, onChange }) => {
         <div className="link-url-container">
           <FieldBuilder
             value={urlToRender}
-            /* eslint-disable-next-line no-nested-ternary */
-            labelHint={isEdit ? clickToPhoneCall ? HINT.LINK_URL_PHONE : HINT.LINK_URL : ''}
             {...fields.htmlUrl}
             className="input-url-position"
             onChange={onChange}
-            onFocus={onFocusHint}
-            onBlur={onBlurHint}
             label={user
             && user.features
             && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)

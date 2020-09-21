@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import React, { Fragment, useCallback, useEffect } from 'react';
 
 import PropTypes from '../../../../lib/PropTypes';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
@@ -6,8 +6,6 @@ import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 
 import FieldBuilder from '../../../form/FieldBuilder';
 import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
-import { HINT } from '../../../../lib/constants/text-info';
-import useUserStore from '../../../hooks/useUserStore';
 
 const Basic = ({ values, fields, onChange }) => {
   const {
@@ -21,9 +19,6 @@ const Basic = ({ values, fields, onChange }) => {
     title,
     rotation,
   } = values;
-
-  const [isEdit, setIsEdit] = useState(false);
-  const { clickToPhoneCall } = useUserStore();
 
   useEffect(() => {
     if (!src) {
@@ -39,13 +34,6 @@ const Basic = ({ values, fields, onChange }) => {
     const result = addToken(linkSrc, token, urlCaretOffset);
     onChange({ linkSrc: result, htmlUrl: wrapTokens(result) });
   }, [linkSrc, urlCaretOffset, onChange]);
-
-  const onFocusHint = () => {
-    setIsEdit(true);
-  };
-  const onBlurHint = () => {
-    setIsEdit(false);
-  };
 
   // ToDo Add logic for transition button
   return (
@@ -106,13 +94,9 @@ const Basic = ({ values, fields, onChange }) => {
       <div className="vrimage-settings__block">
         <div className="vrimage-settings__cell--first">
           <FieldBuilder
-            /* eslint-disable-next-line no-nested-ternary */
-            labelHint={isEdit ? clickToPhoneCall ? HINT.LINK_URL_PHONE : HINT.LINK_URL : ''}
             value={htmlUrl || ''}
             {...fields.htmlUrl}
             onChange={onChange}
-            onFocus={onFocusHint}
-            onBlur={onBlurHint}
             updateCaret={(value) => onChange({ urlCaretOffset: value })}
             className="vrimage-settings__field"
           />

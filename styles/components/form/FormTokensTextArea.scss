@@ -65,12 +65,6 @@
   line-height: $defaultLineHeight;
 }
 
-.label-input-hint {
-  font-size: 12px;
-  font-style: italic;
-  color: $grey;
-}
-
 .multiline {
   @include tiny-scrollbar;
   height: 5rem;
