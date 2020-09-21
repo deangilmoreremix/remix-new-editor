@@ -11,7 +11,6 @@ const TabMap = {
 
 const VideoSettings = observer(({ tab = CLIP_EDITOR_TAB, element, update, fields }) => {
   const Tab = TabMap[tab];
-
   const handleChange = (value, options) => {
     let newOptions = { ...value };
     if (options) {

@@ -32,6 +32,7 @@ class Creator {
     cdnHostname: config.s3.cdn,
     clientSecret: null,
     helpCrunch: {},
+    cdnSocialWeb: config.s3.cdnSocialWeb,
   };
 
   clientAuthHeader = null;
@@ -157,6 +158,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       mediaProviders: config.mediaProviders,
       helpCrunch: config.helpCrunch,
       scriptStatistic: config.scriptStatistic,
+      vrviewPath: config.vrviewPath,
     };
   }
 

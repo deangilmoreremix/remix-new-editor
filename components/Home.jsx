@@ -3,8 +3,8 @@ import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import Grid from '@material-ui/core/Grid';
 import { useAsync } from 'react-async-hook';
-
 import classnames from 'classnames';
+
 import Loader from './common/Loader';
 import Canvas from './Canvas';
 import Timeline from './Timeline';
@@ -20,6 +20,8 @@ import SettingsEditor from './common/SettingsEditor';
 import Recorder from './common/recorder/Recorder';
 import CallToAction from './media/CallToAction';
 import Giphy from './media/Giphy';
+
+import { twoKeysEvent } from '../lib/utils/twoKeysEvent';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
@@ -89,6 +91,16 @@ const Home = observer(() => {
     }
   }, [shouldShowTGModal, pathname, project, remix, push]);
 
+  React.useEffect(() => {
+    twoKeysEvent({
+      undo: () => undoRedoAction(true),
+      redo: () => undoRedoAction(false),
+      saveProject: () => checkAndSave({
+        changeRadioButton, showProducePanel, closeAllWindows, setInitialView,
+      }),
+    });
+  }, []);
+
   const asyncHero = useAsync(
     project
       ? projectStore.getOne
@@ -115,6 +127,9 @@ const Home = observer(() => {
     openToolbarElement,
     openGif,
     openSticker,
+    showProducePanel,
+    closeAllWindows,
+    setInitialView,
   } = uiStore;
 
   const {
@@ -131,6 +146,8 @@ const Home = observer(() => {
     element,
     retarget,
     activeElementId,
+    checkAndSave,
+    undoRedoAction,
   } = projectStore;
 
   const currentElement = useMemo(() => {

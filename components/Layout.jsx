@@ -119,6 +119,7 @@ class Layout extends Component {
                 </>
               )}
               {/* End Facebook Pixel Code */}
+              <script src={this.stores.common.vrviewPath} />
             </Head>
             {this.hasPermissions ? (
               <div>

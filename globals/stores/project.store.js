@@ -13,10 +13,11 @@ import {
   POPCORN_ELEMENT_TYPES,
   CARET_NAMES,
   SOCIAL_TYPES,
+  ELEMENTS,
 } from '../../lib/constants/popcorn';
 import { isLayerFulfilled, validateBeforeSave } from '../../lib/utils/project';
 import { NONE_CLASS, ANIMATION_TYPES } from '../../lib/constants/animations';
-import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
+import { DEFAULT_OPTIONS, DEFAULT_OPTIONS_OPTIN } from '../../lib/constants/settings/retarget-settings';
 import { FB_PLUGINS } from '../../lib/constants/settings/social';
 
 import {
@@ -28,6 +29,7 @@ import {
   DEFAULT_ITEM,
   SOCIALS,
   MAX_DURATION,
+  ALLOWED_SAVE_AS,
 } from '../../lib/constants/project';
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
@@ -41,6 +43,7 @@ import {
 import { radioButton } from '../../lib/constants/windowsLogics';
 import { ACTION_MAKE_COPY, ACTION_WATCH_VIDEO, PRODUCE_TABS } from '../../lib/constants/ui';
 import { ROUTES } from '../../lib/constants/routing';
+import { video360prefix } from '../../lib/constants/settings/video';
 
 const caretNames = Object.values(CARET_NAMES);
 
@@ -66,9 +69,6 @@ export default class ProjectStore extends BaseStore {
           this.popcorn.on('canplayall', () => {
             this.duration = (this.popcorn.duration() || 30) * SANTISECOND;
             this.isLoaded = true;
-            if (this.retarget && this.retarget.showed) {
-              this.addRetargetForm({ kind: POPCORN_ELEMENT_TYPES.LIST_BUILDER, noUndo: true });
-            }
           });
           this.popcorn.on('elementUpdated', (data) => {
             const { element, options } = data;
@@ -162,8 +162,6 @@ export default class ProjectStore extends BaseStore {
 
   @observable activeElementId;
 
-  @observable kindRetarget;
-
   @observable assets = [];
 
   @observable item = {};
@@ -196,7 +194,14 @@ export default class ProjectStore extends BaseStore {
 
   @observable modified = false;
 
-  @observable retarget = null;
+  @observable retarget;
+
+  @observable showedRetarget = false;
+
+  @observable pluginDefaults = {
+    [POPCORN_ELEMENT_TYPES.TEXT]: {},
+    [POPCORN_ELEMENT_TYPES.IMAGE]: {},
+  };
 
   getPersonalization = () => getCustomVarsFromMediaArr(this.projectData.media);
 
@@ -233,9 +238,6 @@ export default class ProjectStore extends BaseStore {
     this.elements.map(event => this.popcorn.removeTrackEvent(event.id));
     this.setProjectData(projectData);
     this.attach(this.popcorn.target);
-    if (this.retarget && this.retarget.end) {
-      this.retarget.end();
-    }
     this.retarget = retarget;
     this.editElement(activeElementId);
     if (this.retarget && this.retarget.id === activeElementId) {
@@ -244,8 +246,10 @@ export default class ProjectStore extends BaseStore {
         // eslint-disable-next-line no-underscore-dangle
         this.retarget._update(this.retarget, this.retarget.options);
       }
-      if (this.retarget.start) {
+      if (this.retarget.showed) {
         this.retarget.start();
+      } else {
+        this.retarget.end();
       }
     }
     if (this.duration !== duration) {
@@ -257,8 +261,9 @@ export default class ProjectStore extends BaseStore {
   };
 
   setElementOptions = async (item) => {
-    const { track } = item || {};
-    const options = {};
+    const { track, type } = item || {};
+    const options = this.pluginDefaults && this.pluginDefaults[type]
+      ? this.pluginDefaults[type].popcornOptions || {} : {};
     options.start = item.start || (Math.ceil(this.time) / SANTISECOND);
     const duration = item.duration || DEFAULT_DURATION;
     options.end = item.end || (options.start + duration);
@@ -266,14 +271,22 @@ export default class ProjectStore extends BaseStore {
     options.zindex = track && track.order ? MAX_ZINDEX - track.order : MAX_ZINDEX;
     options.opacity = 100;
 
-    switch (item.type) {
+    switch (type) {
       case SEQUENCER: {
         this.isLoadingSequencer = true;
+        if (item.is360 && this.userStore.video360Enabled) {
+          if (item.extra && item.extra.source && item.extra.source.length) {
+            item.extra.source[0] = `${video360prefix}${item.extra.source[0]}`;
+          } else {
+            item.url = `${video360prefix}${item.url}`;
+          }
+        }
         const source = (item.extra && item.extra.source) || [item.url];
         const fileDuration = (item.extra && item.extra.duration) || null;
         let fileMeta;
         try {
-          fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration);
+          fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration,
+            this.userStore.video360Enabled);
         } catch (e) {
           // if there is no error, then loading will hide, after adding the item to the popcorn
           this.isLoadingSequencer = false;
@@ -310,6 +323,10 @@ export default class ProjectStore extends BaseStore {
         }
         break;
       }
+      case POPCORN_ELEMENT_TYPES.IMAGE: {
+        options.src = item.src;
+        break;
+      }
       default:
         break;
     }
@@ -319,7 +336,7 @@ export default class ProjectStore extends BaseStore {
   isElementWithSettings = (type) => !NO_SETTINGS_ELEMENT_TYPES.some(e => e === type);
 
   @action
-  createRetargetForm = (noUndo) => {
+  createRetargetForm = (noUndo, kind) => {
     if (!noUndo) {
       this.setUndo();
     }
@@ -329,7 +346,9 @@ export default class ProjectStore extends BaseStore {
     if (this.retarget && this.retarget.options) {
       options = { ...this.retarget.options };
     } else {
-      options = { ...DEFAULT_OPTIONS };
+      options = (kind === POPCORN_ELEMENT_TYPES.RETARGET
+        ? { ...DEFAULT_OPTIONS }
+        : { ...DEFAULT_OPTIONS_OPTIN });
     }
 
     const retargetOptions = {
@@ -337,18 +356,20 @@ export default class ProjectStore extends BaseStore {
       manifest,
       type: POPCORN_ELEMENT_TYPES.RETARGET,
       options,
-      kind: this?.retarget?.kind || null,
+      kind,
     };
 
     // eslint-disable-next-line no-underscore-dangle
     popcornFunctions._setup(retargetOptions);
     this.retarget = { ...retargetOptions, ...popcornFunctions };
     this.retarget.end = () => {
+      this.showedRetarget = false;
       if (popcornFunctions.end) {
         popcornFunctions.end(this.retarget);
       }
     };
     this.retarget.start = () => {
+      this.showedRetarget = true;
       if (popcornFunctions.start) {
         popcornFunctions.start(retargetOptions);
       }
@@ -356,15 +377,49 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  addRetargetForm = ({ kind, noUndo }) => {
-    if (!this.retarget || (this.retarget && !this.retarget.id)) {
-      this.createRetargetForm(noUndo);
+  isDefaultRetargetElement = ({ key, currentValue, defaultValue, isAdvancedOptin }) => {
+    let result;
+    if (!isAdvancedOptin) {
+      result = key === ELEMENTS
+        ? JSON.stringify(currentValue) === JSON.stringify(DEFAULT_OPTIONS_OPTIN[key])
+        : currentValue === DEFAULT_OPTIONS_OPTIN[key];
+    } else {
+      result = key === ELEMENTS
+        ? JSON.stringify(currentValue) === JSON.stringify(defaultValue)
+        : currentValue === defaultValue;
     }
-    this.kindRetarget = kind;
-    this.retarget.kindRetarget = this.kindRetarget;
+    return result;
+  }
+
+
+  @action
+  addRetargetForm = ({ kind, showed, noUndo }) => {
+    if (this.retarget && this.retarget.options && this.retarget.id) {
+      const isAdvancedOptin = kind === POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN;
+      Object.keys(DEFAULT_OPTIONS_OPTIN).forEach(key => {
+        const defaultValue = this.retarget.manifest.options[key].default;
+        let currentValue = this.retarget.options[key];
+        // eslint-disable-next-line no-prototype-builtins
+        if (this.retarget.options.hasOwnProperty(key)) {
+          if (this.isDefaultRetargetElement({ key, currentValue, defaultValue, isAdvancedOptin })) {
+            currentValue = isAdvancedOptin ? DEFAULT_OPTIONS_OPTIN[key] : defaultValue;
+            this.retarget.options[key] = currentValue;
+          }
+        }
+      });
+      // eslint-disable-next-line no-underscore-dangle
+      this.retarget._update({ ...this.retarget }, { ...this.retarget.options });
+      this.releaseElement();
+    }
+    if (!this.retarget || (this.retarget && !this.retarget.id) || !showed) {
+      this.createRetargetForm(noUndo, kind);
+    }
+    this.retarget.kind = kind;
     this.editElement(this.retarget.id);
-    this.retarget.start();
-    this.retarget.showed = true;
+    if (showed) {
+      this.retarget.start();
+    }
+    this.retarget.showed = showed;
     if (!noUndo) {
       this.modified = true;
     }
@@ -382,7 +437,6 @@ export default class ProjectStore extends BaseStore {
       && this.retarget.id
       && this.retarget.id !== elementId && this.retarget.end) {
       this.retarget.end();
-      this.releaseKindRetarget();
     }
     this.activeElementId = elementId;
   };
@@ -393,9 +447,25 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  releaseKindRetarget = () => {
-    this.kindRetarget = null;
-  };
+  updateDefaultsPlugin = (options) => {
+    if (!this.element || !ALLOWED_SAVE_AS.some(type => type === this.element.type)) {
+      return;
+    }
+    const { type } = this.element;
+
+    if (this.pluginDefaults[type].id === this.activeElementId) {
+      this.pluginDefaults[type].popcornOptions = {
+        ...this.pluginDefaults[type].popcornOptions,
+        ...options,
+        id: null,
+        src: null,
+        opacity: null,
+        blendMode: null,
+        track: null,
+        zIndex: null,
+      };
+    }
+  }
 
   @action
   findAndUpdate = (elementId, options = {}) => {
@@ -427,6 +497,7 @@ export default class ProjectStore extends BaseStore {
       });
       this.updateElement(elementId, options);
       this.updatePopcorn(elementId, options);
+      this.updateDefaultsPlugin(options);
     }
   };
 
@@ -648,7 +719,9 @@ export default class ProjectStore extends BaseStore {
     this.layers = layers;
     this.elements = elements;
     this.projectData = projectData;
-    this.retarget = { ...this.retarget, ...this.item.project?.retargetForm };
+    if (this.retarget || this.item.project?.retargetForm) {
+      this.retarget = { ...this.retarget, ...this.item.project?.retargetForm };
+    }
   };
 
   @computed
@@ -1083,16 +1156,9 @@ export default class ProjectStore extends BaseStore {
 
   @action
   attach = (target) => {
-    this.popcornObject.popcornElements.forEach((element) => {
-      if (element.type === 'sequencer' && element.popcornOptions.source[0].split('|').length > 1) {
-        element.popcornOptions.source = [this.findMediaSource(
-          element.popcornOptions.source[0].split('|'), ['mp4', 'webm', 'ogv'],
-        )];
-      }
-      this.popcorn[element.type](target
-        ? { ...element.popcornOptions, target }
-        : element.popcornOptions);
-    });
+    this.popcornObject.popcornElements.forEach((element) => this.popcorn[element.type](target
+      ? { ...element.popcornOptions, target }
+      : element.popcornOptions));
     this.popcorn.target = target;
     return this.popcorn;
   };
@@ -1221,7 +1287,7 @@ export default class ProjectStore extends BaseStore {
         const retargetForm = {
           showed: this.retarget.showed,
           options: { ...this.retarget.options },
-          kind: this.retarget.kindRetarget,
+          kind: this.retarget.kind,
         };
         serializedData = { retargetForm, ...serializedData };
       }
@@ -1439,6 +1505,29 @@ export default class ProjectStore extends BaseStore {
     return currentElement;
   }
 
+  @action
+  setAsDefault = (reset) => {
+    if (!this.element || !ALLOWED_SAVE_AS.some(type => type === this.element.type)) {
+      return;
+    }
+    if (reset) {
+      this.pluginDefaults[this.element.type] = {};
+      return;
+    }
+    this.pluginDefaults[this.element.type] = {
+      id: this.activeElementId,
+      popcornOptions: {
+        ...this.element.popcornOptions,
+        id: null,
+        src: null,
+        opacity: null,
+        blendMode: null,
+        track: null,
+        zIndex: null,
+      },
+    };
+  };
+
   getElementById(id) {
     return this.popcornElements.find(element => element.id === id);
   }
@@ -1634,6 +1723,9 @@ export default class ProjectStore extends BaseStore {
     const opacity = options && options.opacity ? options.opacity : 100;
 
     this.modified = true;
+
+    const newId = this.generateUid();
+
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
         track.order += 1;
@@ -1644,7 +1736,7 @@ export default class ProjectStore extends BaseStore {
         });
         return track;
       });
-      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}`, blendMode, opacity });
+      media.tracks.unshift({ ...DEFAULT_LAYER, id: newId, blendMode, opacity });
     });
 
     this.layers = this.layers.map(track => {
@@ -1652,12 +1744,31 @@ export default class ProjectStore extends BaseStore {
       track.defaultName = `Layer ${track.order}`;
       return track;
     });
+
     this.layers.unshift({
       ...DEFAULT_LAYER,
-      id: `${this.layers.length}`,
+      id: newId,
       defaultName: 'Layer 0',
       blendMode,
       opacity,
     });
   };
+
+  @action
+  togglePersonalizer = (showed) => {
+    this.modified = true;
+    this.setUndo();
+    this.retarget.showed = showed;
+
+    this.toggleViewPersonalizer(showed);
+  };
+
+  @action
+  toggleViewPersonalizer = (showed) => {
+    if (showed) {
+      this.retarget.start();
+    } else {
+      this.retarget.end();
+    }
+  }
 }

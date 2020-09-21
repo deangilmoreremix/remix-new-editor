@@ -9,29 +9,38 @@
   height: $toolbarHeight - 5vh;
   background: $light-twinlight;
   box-sizing: border-box;
-  position: relative;
   z-index: 1;
   font-size: $defaultFontSize;
   line-height: 1;
   color: $white;
   overflow: hidden;
-  padding: 1.3rem 2.56rem 1.68rem 1.75rem;
   font-family: $font-primary;
   transition: 0.3s all;
-}
 
-.stickers-title {
-  font-weight: bold;
-  line-height: 1;
-  margin-bottom: 1rem;
-  color: #fff;
-  text-align: left;
+  &__header {
+    width: 100%;
+    height: 2.1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-transform: uppercase;
+    background: $modal-header-bg;
+    color: $secondary-color;
+    padding: 0 10px;
+  }
+
+  &__body {
+    flex: 1;
+    overflow: hidden;
+    padding: 0 2.62rem 1.4rem 1.56rem;
+  }
 }
 
 .stickers-tabs {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
+  padding: 1rem 2.62rem 0 1.56rem;
 }
 
 .stickers-tab {
@@ -53,7 +62,7 @@
 
 .stickers-content {
   @include tiny-scrollbar;
-  max-height: 78%;
+  max-height: 100%;
   overflow-y: auto;
   display: flex;
   flex-wrap: wrap;
