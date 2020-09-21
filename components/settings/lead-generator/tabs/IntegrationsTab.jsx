@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classnames from 'classnames';
 
 import PropTypes from '../../../../lib/PropTypes';
@@ -6,13 +6,23 @@ import PropTypes from '../../../../lib/PropTypes';
 import FieldBuilder from '../../../form/FieldBuilder';
 import useMakeStore from '../../../hooks/useMakeStore';
 import useProjectStore from '../../../hooks/useProjectStore';
+import useUserStore from '../../../hooks/useUserStore';
 
-import { BUTTON_DISABLED_HINT as buttonText } from '../../../../lib/constants/text-info';
+import { BUTTON_DISABLED_HINT as buttonText, HINT } from '../../../../lib/constants/text-info';
 
 const IntegrationsTab = ({ values, fields, onChange }) => {
   const { item: { project } } = useProjectStore();
+  const [isEdit, setIsEdit] = useState(false);
+  const { clickToPhoneCall } = useUserStore();
 
   const { downloadOptinStatistic } = useMakeStore();
+
+  const onFocusHint = () => {
+    setIsEdit(true);
+  };
+  const onBlurHint = () => {
+    setIsEdit(false);
+  };
 
   return (
     <div className="intergrations-container">
@@ -34,6 +44,9 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
         {...fields.dialEnabled}
       />
       <FieldBuilder
+        labelHint={isEdit && clickToPhoneCall ? HINT.LINK_URL_PHONE_FORM : ''}
+        onFocus={onFocusHint}
+        onBlur={onBlurHint}
         value={values.phone ?? fields.phone.default}
         onChange={onChange}
         disabled={!values.dialEnabled}

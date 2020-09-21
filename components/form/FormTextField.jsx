@@ -26,6 +26,8 @@ const FormTextField = React.forwardRef(({
   rowsMin,
   rowsMax,
   readOnly,
+  onFocus,
+  labelHint,
 }, ref) => {
   const conditionalProps = {};
 
@@ -57,6 +59,7 @@ const FormTextField = React.forwardRef(({
           </InputLabel>
         )
       }
+      {labelHint && (<span className="label-input-hint">{labelHint}</span>)}
       { type !== 'text' && (
         mask
           ? (
@@ -90,6 +93,8 @@ const FormTextField = React.forwardRef(({
               {...conditionalProps}
               multiline={multiline}
               InputProps={InputProps}
+              onFocus={onFocus}
+              onBlur={onBlur}
             />
           ))}
       {type === 'text' && (
@@ -118,9 +123,11 @@ FormTextField.propTypes = {
   onChange: PropTypes.func.isRequired,
   mask: PropTypes.string,
   label: PropTypes.string,
+  labelHint: PropTypes.string,
   name: PropTypes.string,
   onEnter: PropTypes.func,
   onBlur: PropTypes.func,
+  onFocus: PropTypes.func,
   disabled: PropTypes.bool,
   className: PropTypes.string,
   inputClassName: PropTypes.string,
@@ -143,6 +150,8 @@ FormTextField.defaultProps = {
   className: '',
   readOnly: false,
   onBlur: () => {},
+  onFocus: () => {},
+  labelHint: '',
 };
 
 export default FormTextField;
