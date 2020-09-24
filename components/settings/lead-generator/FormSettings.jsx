@@ -36,6 +36,7 @@ const FormSettings = observer(({ tab = STYLES, element, update, fields, handleCl
           onChange={(field, options) => handleChange(field, options)}
           fields={fields}
           closeModal={handleClose}
+          kind={element?.kind || ''}
         />
       )}
     </div>
@@ -45,6 +46,8 @@ const FormSettings = observer(({ tab = STYLES, element, update, fields, handleCl
 FormSettings.propTypes = {
   element: PropTypes.shape({
     options: PropTypes.shape({}).isRequired,
+    popcornOptions: PropTypes.shape({}),
+    kind: PropTypes.string,
   }).isRequired,
   fields: PropTypes.shape({}).isRequired,
   tab: PropTypes.string,
