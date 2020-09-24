@@ -14,10 +14,11 @@ import {
   POPCORN_ELEMENT_TYPES,
   CARET_NAMES,
   SOCIAL_TYPES,
+  ELEMENTS,
 } from '../../lib/constants/popcorn';
 import { isLayerFulfilled, validateBeforeSave } from '../../lib/utils/project';
 import { NONE_CLASS, ANIMATION_TYPES } from '../../lib/constants/animations';
-import { DEFAULT_OPTIONS } from '../../lib/constants/settings/retarget-settings';
+import { DEFAULT_OPTIONS, DEFAULT_OPTIONS_OPTIN } from '../../lib/constants/settings/retarget-settings';
 import { FB_PLUGINS } from '../../lib/constants/settings/social';
 
 import {
@@ -352,7 +353,9 @@ export default class ProjectStore extends BaseStore {
     if (this.retarget && this.retarget.options) {
       options = { ...this.retarget.options };
     } else {
-      options = { ...DEFAULT_OPTIONS };
+      options = (kind === POPCORN_ELEMENT_TYPES.RETARGET
+        ? { ...DEFAULT_OPTIONS }
+        : { ...DEFAULT_OPTIONS_OPTIN });
     }
 
     const retargetOptions = {
@@ -381,7 +384,40 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  isDefaultRetargetElement = ({ key, currentValue, defaultValue, isAdvancedOptin }) => {
+    let result;
+    if (!isAdvancedOptin) {
+      result = key === ELEMENTS
+        ? JSON.stringify(currentValue) === JSON.stringify(DEFAULT_OPTIONS_OPTIN[key])
+        : currentValue === DEFAULT_OPTIONS_OPTIN[key];
+    } else {
+      result = key === ELEMENTS
+        ? JSON.stringify(currentValue) === JSON.stringify(defaultValue)
+        : currentValue === defaultValue;
+    }
+    return result;
+  }
+
+
+  @action
   addRetargetForm = ({ kind, showed, noUndo }) => {
+    if (this.retarget && this.retarget.options && this.retarget.id) {
+      const isAdvancedOptin = kind === POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN;
+      Object.keys(DEFAULT_OPTIONS_OPTIN).forEach(key => {
+        const defaultValue = this.retarget.manifest.options[key].default;
+        let currentValue = this.retarget.options[key];
+        // eslint-disable-next-line no-prototype-builtins
+        if (this.retarget.options.hasOwnProperty(key)) {
+          if (this.isDefaultRetargetElement({ key, currentValue, defaultValue, isAdvancedOptin })) {
+            currentValue = isAdvancedOptin ? DEFAULT_OPTIONS_OPTIN[key] : defaultValue;
+            this.retarget.options[key] = currentValue;
+          }
+        }
+      });
+      // eslint-disable-next-line no-underscore-dangle
+      this.retarget._update({ ...this.retarget }, { ...this.retarget.options });
+      this.releaseElement();
+    }
     if (!this.retarget || (this.retarget && !this.retarget.id) || !showed) {
       this.createRetargetForm(noUndo, kind);
     }
@@ -1701,6 +1737,9 @@ export default class ProjectStore extends BaseStore {
     const opacity = options && options.opacity ? options.opacity : 100;
 
     this.modified = true;
+
+    const newId = this.generateUid();
+
     this.projectData.media.forEach((media) => {
       media.tracks = media.tracks.map(track => {
         track.order += 1;
@@ -1711,7 +1750,7 @@ export default class ProjectStore extends BaseStore {
         });
         return track;
       });
-      media.tracks.unshift({ ...DEFAULT_LAYER, id: `${media.tracks.length}`, blendMode, opacity });
+      media.tracks.unshift({ ...DEFAULT_LAYER, id: newId, blendMode, opacity });
     });
 
     this.layers = this.layers.map(track => {
@@ -1719,9 +1758,10 @@ export default class ProjectStore extends BaseStore {
       track.defaultName = `Layer ${track.order}`;
       return track;
     });
+
     this.layers.unshift({
       ...DEFAULT_LAYER,
-      id: `${this.layers.length}`,
+      id: newId,
       defaultName: 'Layer 0',
       blendMode,
       opacity,

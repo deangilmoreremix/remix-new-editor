@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import videojs from 'video.js';
 import { ClipLoader } from 'react-spinners';
@@ -27,6 +27,8 @@ const EXTENSIONS_MAP = {
   [RECORDER_TYPES.SCREEN]: 'webm',
 };
 
+const timeOut = 3000;
+
 export default observer(({ options: { type, useAudio }, handleClose }) => {
   const mute = useRef(false);
 
@@ -40,6 +42,8 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   } = useUiStore();
 
   const [saveOptionsVisible, setSaveOptionsVisible] = useState(false);
+  const [showHiddenButton, setShowHiddenButton] = useState(false);
+  const [time, setTime] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const playerRef = React.useRef(null);
   const videoRef = React.useRef(null);
@@ -53,6 +57,17 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   useEffect(() => {
     if (videoRef.current && useAudio !== undefined && type) {
       player = videojs(videoRef.current, config);
+
+      player.on('deviceReady', () => {
+        setShowHiddenButton(true);
+      });
+
+      player.recordToggle.on('click', () => {
+        const recorder = player.record();
+        if (!recorder.isRecording() && !showHiddenButton) {
+          setShowHiddenButton(true);
+        }
+      });
 
       player.on('volumechange', () => {
         if (player.volume() === 0 || player.muted()) {
@@ -124,6 +139,26 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
     }
   }, [player]);
 
+  const handleClick = useCallback(() => {
+    const recorder = player.record();
+    const { title } = document;
+    setTime(timeOut / 1000);
+    document.title = `${title} (record ${timeOut / 1000})`;
+
+    const interval = setInterval(() => {
+      setTime(value => {
+        if (value < 2) {
+          document.title = title;
+          recorder.start();
+          setShowHiddenButton(false);
+          return clearInterval(interval);
+        }
+        document.title = `${title} (record ${value - 1})`;
+        return value - 1;
+      });
+    }, [1000]);
+  }, [player]);
+
   return (
     <div className={isLoading ? 'recorder-await' : ''}>
       {
@@ -137,6 +172,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
             <div>
               <div data-vjs-player>
                 <video ref={videoRef} className="video-js vjs-default-skin" playsInline />
+                {showHiddenButton && <button className="recorder-button-hidden" onClick={handleClick} />}
               </div>
               <div className={`recorder-modal-options ${saveOptionsVisible ? '' : 'recorder-modal-options_hidden'}`}>
                 <button
@@ -152,6 +188,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
                   Add in media
                 </button>
               </div>
+              {time ? <div className="recorder-hidden-block">{time}</div> : null}
             </div>
           )
       }

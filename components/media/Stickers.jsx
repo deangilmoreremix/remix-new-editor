@@ -13,9 +13,11 @@ const Stickers = observer(() => {
 
   return (
     <div className={classnames('stickers', { 'big-window': !isTimelineOpen })}>
-      <p className="stickers-title">Add stickers</p>
+      <header className="stickers__header">Stickers</header>
       <Tabs />
-      <Content />
+      <div className="stickers__body">
+        <Content />
+      </div>
 
       <CloseButton onClick={() => toggleRightBlock(false)} />
     </div>
