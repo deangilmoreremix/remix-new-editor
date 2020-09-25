@@ -6,6 +6,12 @@ button.menu__open {
   }
 }
 
+.item-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .menu__item {
   @include reset-button;
   width: 100%;

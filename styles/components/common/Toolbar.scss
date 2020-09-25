@@ -11,13 +11,17 @@
     margin-right: 0;
   }
 
+  &-tab-box {
+    margin-left: 1.5em;
+  }
+
   &-tab {
     @include reset-button;
     @include make-fluid("width", 90px, 90px, $xl + 1, $mock, 90px, px);
     @include make-fluid("height", 85px, 85px, $xl + 1, $mock, 67px, px);
     position: relative;
     display: flex;
-    flex-flow: column;
+    flex-flow: row;
     align-items: center;
     justify-content: center;
     background: $light-twinlight;

@@ -27,6 +27,8 @@ import useUIStore from './hooks/useUIStore';
 import useUserStore from './hooks/useUserStore';
 
 import { showInfo } from '../lib/services/alertService';
+import { headerTooltips } from '../lib/constants/tooltips';
+import HelpIconComponent from './common/HelpIcon';
 
 const Sidebar = observer(() => {
   const anchorRef = React.useRef(null);
@@ -138,6 +140,7 @@ const Sidebar = observer(() => {
             svg={hamburgerIcon}
             cleanup={['title']}
           />
+          <HelpIconComponent message={headerTooltips.menu} />
         </Button>
         <Popper
           open={open}

@@ -14,13 +14,27 @@ label.settings-panel-text {
   text-align: left;
 }
 
+.settings-input-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.4rem;
+}
+
+.settings__first-row-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  margin-bottom: 0.875rem;
+}
+
 .settings-input,
 .settings-formcolor {
   display: flex;
   justify-content: space-between;
   flex-direction: row !important;
   align-items: center;
-  margin-bottom: 1.4rem;
 
   label,
   p {
@@ -55,10 +69,6 @@ label.settings-panel-text {
   &:last-child {
     flex: 1;
   }
-}
-
-.settings__add-file {
-  margin-bottom: 0.875rem;
 }
 
 .drag-drop-container {
@@ -259,6 +269,13 @@ button.settings__edit-file{
   display: flex;
   align-items: center;
   margin-bottom: 0.5rem;
+
+  &__label-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+  }
 }
 
 .settings-checkbox {

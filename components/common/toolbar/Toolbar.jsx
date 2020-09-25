@@ -9,6 +9,7 @@ import useUIStore from '../../hooks/useUIStore';
 import arrowIcon from '../../../public/static/svgImages/common/arrow-back.svg';
 
 import AnimatedWindow from '../AnimatedWindow';
+import HelpIconComponent from '../HelpIcon';
 
 const Toolbar = observer(({ items }) => {
   const { toolbarItem: { id, options }, setToolbarItem, isExpand, isTimelineOpen } = useUIStore();
@@ -29,19 +30,21 @@ const Toolbar = observer(({ items }) => {
     setToolbarItem(label);
   };
 
-
   return (
     <div className={classnames('toolbar-container', { 'big-window': !isTimelineOpen })}>
       <div className="toolbar-tabs">
-        {items.map(({ label, icon, id: tabId, func }) => (
+        {items.map(({ label, icon, id: tabId, func, tooltip }) => (
           <button
             className="toolbar-tab"
             key={label}
             onClick={() => onClick(tabId, func)}
             type="button"
           >
-            <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
-            <span className="toolbar-tab-title">{label}</span>
+            <div className="toolbar-tab-box">
+              <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
+              <span className="toolbar-tab-title">{label}</span>
+            </div>
+            <HelpIconComponent message={tooltip} />
             {isExpand && (
               <AnimatedWindow
                 isOpen={isExpand}

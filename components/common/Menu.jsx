@@ -9,6 +9,8 @@ import togglerIcon from '../../public/static/svgImages/common/toggler.svg';
 import PropTypes from '../../lib/PropTypes';
 import { ACTION_LOGOUT } from '../../lib/constants/ui';
 
+import HelpIconComponent from './HelpIcon';
+
 const Menu = observer((
   {
     toggleElement,
@@ -49,6 +51,9 @@ const Menu = observer((
         />
       ) : null}
       <span className="menu__item-title">{buttonItem.title}</span>
+      {buttonItem.title !== 'Sign Out' && (
+        <HelpIconComponent whiteIcon isLeft mouseEntered message={buttonItem.tooltip} />
+      )}
     </button>
   );
 

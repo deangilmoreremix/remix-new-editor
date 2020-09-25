@@ -25,7 +25,6 @@
   &__text {
     font-size: 1.125rem;
     font-weight: bold;
-    margin-bottom: 2.5em;
     text-align: center;
   }
 }
@@ -37,9 +36,21 @@
 }
 
 .generator-offer {
+  &__text-box {
+    display: flex;
+    justify-content: center;
+    z-index: 98;
+    align-items: center;
+    margin-bottom: 1em;
+  }
+
   &__btns {
     display: flex;
     align-items: center;
+  }
+
+  &__text {
+    margin-bottom: 0 !important;
   }
 
   &__btn {

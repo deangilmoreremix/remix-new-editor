@@ -14,8 +14,10 @@ import PlayButton from './common/timeline/PlayButton';
 import PlusButton from './common/timeline/PlusButton';
 import PlayTime from './common/timeline/PlayTime';
 import PopcornElements from './common/timeline/PopcornElements';
+import HelpIconComponent from './common/HelpIcon';
 
 import rulerIcon from '../public/static/svgImages/common/ruler.svg';
+import { mainTooltips } from '../lib/constants/tooltips';
 
 const Timeline = observer(() => {
   const ref = useRef(null);
@@ -66,6 +68,10 @@ const Timeline = observer(() => {
               className="timeline-add icon-button"
             />
             <PlayTime />
+            <HelpIconComponent
+              message={mainTooltips.timeline}
+              isTop
+            />
           </Grid>
         </Grid>
         <Grid item xs={9}>

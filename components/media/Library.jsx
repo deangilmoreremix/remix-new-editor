@@ -34,6 +34,7 @@ import DropPasteInput from './DropPasteInput';
 
 import withModal from '../hoc/withValidation';
 import Is360 from '../settings/video-settings/components/Is360';
+import HelpIconComponent from '../common/HelpIcon';
 
 const Library = observer((props) => {
   const { checkValue, setError } = props;
@@ -458,6 +459,7 @@ const Library = observer((props) => {
                       isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
                     }
                   </label>
+                  <HelpIconComponent message={tabItems[activeTab].tooltip} />
                 </div>
               ) : (
                 // todo Open Voice Modal
