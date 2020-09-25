@@ -47,7 +47,7 @@ const JsonButtonSettings = observer(({ element, update, fields }) => {
                 key={key}
                 name={key}
                 className="json-button-container"
-                element={element.popcornOptions}
+                element={element}
               />
             );
           })}
@@ -94,12 +94,14 @@ const JsonButtonSettings = observer(({ element, update, fields }) => {
 
 JsonButtonSettings.propTypes = {
   element: PropTypes.shape({
-    id: PropTypes.string,
-    popcornOptions: PropTypes.shape({
-      linkUrl: PropTypes.string,
-      src: PropTypes.string,
-    }),
-  }),
+    id: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    popcornOptions: PropTypes.shape().isRequired,
+    track: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
+  }).isRequired,
   tab: PropTypes.string.isRequired,
   update: PropTypes.func.isRequired,
   fields: PropTypes.shape({}),

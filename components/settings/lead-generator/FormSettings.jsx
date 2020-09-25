@@ -32,6 +32,7 @@ const FormSettings = observer(({ tab = STYLES, element, update, fields, handleCl
       {element && (element.popcornOptions || element.options) && (
         <Tab
           type={element.type}
+          element={element}
           values={element.popcornOptions ?? element.options}
           onChange={(field, options) => handleChange(field, options)}
           fields={fields}

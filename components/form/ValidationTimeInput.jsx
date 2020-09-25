@@ -30,7 +30,13 @@ const ValidationTimeInput = observer(({
   value,
   element,
 }) => {
-  const { duration, updateVideoDuration, updateStartEnd } = useProjectStore();
+  const {
+    duration,
+    updateVideoDuration,
+    updateStartEnd,
+    projectData,
+    updateLayerElements,
+  } = useProjectStore();
 
   /* eslint max-len: ["error", { "ignoreComments": true }] */
   // Description:
@@ -62,16 +68,121 @@ const ValidationTimeInput = observer(({
   //    If the new start value is less than 0, then it will be equal to 0.
   //    2.2 If the end is less than the start, we change the beginning and the new value for the start will be: newEnd - 1s. If the new start is less than 0, then it will be equal to 0.
 
+  const updateNewEnd = useCallback((newEnd) => {
+    if (newEnd < element.popcornOptions.end) {
+      return newEnd;
+    }
+    const differenceLength = newEnd - element.popcornOptions.end;
+    const elementsEnds = [];
+    let animationOut = 0;
+    const maxDuration = MAX_DURATION / SANTISECOND;
+
+    projectData.media.forEach((media) => {
+      media.tracks.map((track) => {
+        track.trackEvents.forEach(trackEvent => {
+          if (trackEvent.track === element.track) {
+            elementsEnds.push(trackEvent.popcornOptions.end);
+            if (element.popcornOptions.end <= trackEvent.popcornOptions.start) {
+              if (trackEvent.popcornOptions.animation
+                && trackEvent.popcornOptions.animation.out) {
+                // eslint-disable-next-line max-len
+                animationOut += trackEvent.popcornOptions.animation.out.duration;
+              }
+            }
+          }
+        });
+        return null;
+      });
+    });
+
+    const lastEnd = Math.max(...elementsEnds) + differenceLength + animationOut;
+    if (lastEnd > maxDuration && !elementsEnds) {
+      const difference = lastEnd - maxDuration;
+      return newEnd - difference;
+    } else if (lastEnd > maxDuration && elementsEnds && elementsEnds.length) {
+      return maxDuration;
+    } else {
+      return newEnd;
+    }
+  }, [element]);
+
+  const newLastEndOnLayer = useCallback((newEnd) => {
+    const differenceLength = newEnd - element.popcornOptions.end;
+    const elementsEnds = [];
+    let animationOut = 0;
+
+    projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach(trackEvent => {
+          if (trackEvent.track === element.track) {
+            elementsEnds.push(trackEvent.popcornOptions.end);
+            if (element.popcornOptions.end <= trackEvent.popcornOptions.start) {
+              if (trackEvent.popcornOptions.animation
+                && trackEvent.popcornOptions.animation.out) {
+                // eslint-disable-next-line max-len
+                animationOut += trackEvent.popcornOptions.animation.out.duration;
+              }
+            }
+          }
+        });
+      });
+    });
+
+    const lastNewEnd = Math.max(...elementsEnds)
+      + differenceLength + animationOut;
+
+    if (differenceLength > 0) {
+      return lastNewEnd;
+    }
+
+    return 0;
+  }, [element]);
+
+  const updateNewStart = useCallback((newStart) => {
+    // const differenceLength = newEnd - element.popcornOptions.end;
+    const elementsEnds = [];
+    let animationOut = 0;
+
+    projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach(trackEvent => {
+          if (trackEvent.track === element.track) {
+            // eslint-disable-next-line max-len
+            if (element.popcornOptions.start >= trackEvent.popcornOptions.end) {
+              elementsEnds.push(trackEvent.popcornOptions.end);
+              if (trackEvent.popcornOptions.animation
+                && trackEvent.popcornOptions.animation.out) {
+                // eslint-disable-next-line max-len
+                animationOut += trackEvent.popcornOptions.animation.out.duration;
+              }
+            }
+          }
+        });
+      });
+    });
+
+    const minStartForElement = Math.max(...elementsEnds) + animationOut;
+
+    if (newStart < minStartForElement) {
+      return minStartForElement + 0.01;
+    } else {
+      return newStart;
+    }
+  }, [element]);
+
   const onEdit = useCallback(async (newValue) => {
     if (value !== newValue) {
-      const { type, start, end } = element;
+      const { type, popcornOptions: { start, end } } = element;
       const currentDuration = duration / SANTISECOND;
       const maxDuration = MAX_DURATION / SANTISECOND;
       const isStart = label.toLowerCase() === START;
       const isEnd = label.toLowerCase() === END;
+
       switch (type) {
         case POPCORN_ELEMENT_TYPES.PAUSE: {
           const newPauseEnd = newValue + (end - start);
+
+          updateLayerElements(newPauseEnd, element);
           if (newPauseEnd > currentDuration && newPauseEnd < maxDuration) {
             await updateVideoDuration(newPauseEnd);
             updateStartEnd(element.id, newValue, newPauseEnd);
@@ -90,69 +201,107 @@ const ValidationTimeInput = observer(({
         case POPCORN_ELEMENT_TYPES.SEQUENCER: {
           if (isStart) {
             const elementDuration = end - start;
-            const newEnd = +(newValue + elementDuration).toFixed(2);
+            if (newValue < start) {
+              if (newValue !== updateNewStart(newValue)) {
+                newValue = updateNewStart(newValue);
+              }
+            }
+            let newEnd = +(newValue + elementDuration).toFixed(2);
+            newEnd = updateNewEnd(newEnd);
 
-            if (newEnd < currentDuration) {
+            updateLayerElements(newEnd, element);
+
+            if (newLastEndOnLayer(newEnd) < currentDuration) {
               updateStartEnd(element.id, newValue, newEnd);
-            } else if (newEnd > currentDuration && newEnd < maxDuration) {
+            } else if (newLastEndOnLayer(newEnd) > currentDuration
+              && newLastEndOnLayer(newEnd) < maxDuration) {
               await updateVideoDuration(newEnd);
               updateStartEnd(element.id, newValue, newEnd);
             } else {
               await updateVideoDuration(maxDuration);
               const maximumStart = newValue <= maxDuration
                 - START_END_DIFFERENCE
-                ? newValue : maxDuration - START_END_DIFFERENCE;
-              updateStartEnd(element.id, maximumStart, maxDuration);
+                ? newValue : newEnd - START_END_DIFFERENCE;
+              updateStartEnd(element.id, maximumStart, newEnd);
             }
           }
           if (isEnd) {
             if (newValue > start) {
-              if (newValue > maxDuration) {
+              if (newLastEndOnLayer(newValue) > maxDuration) {
                 await updateVideoDuration(maxDuration);
-                onChange(maxDuration);
-              } else if (newValue > (start + element.duration)) {
-                onChange(start + element.duration);
-                if ((start + element.duration) > currentDuration) {
-                  await updateVideoDuration(start + element.duration);
+                updateLayerElements(updateNewEnd(newValue), element);
+                onChange(updateNewEnd(newValue));
+              } else if (newValue > (start + element.popcornOptions.duration)) {
+                const newEnd = start + element.popcornOptions.duration;
+                // eslint-disable-next-line max-len
+                if ((start + element.popcornOptions.duration) > currentDuration) {
+                  await updateVideoDuration(newEnd);
                 }
+                updateLayerElements(newEnd, element);
+                onChange(newEnd);
               } else {
+                updateLayerElements(newValue, element);
                 onChange(newValue);
               }
             } else {
+              const elementDuration = end - start;
               let newStart = start - (end - newValue);
               if (newStart < 0) {
                 newStart = 0;
               }
+              if (newValue < 1) {
+                newValue = 1;
+              }
+
+              if (newStart !== updateNewStart(newStart)) {
+                newStart = updateNewStart(newStart);
+                newValue = +(newStart + elementDuration).toFixed(2);
+              }
+
               updateStartEnd(element.id, newStart, newValue);
             }
           }
           break;
         }
         default: {
-          if (newValue > currentDuration) {
-            updateVideoDuration(newValue);
+          if (newValue > currentDuration && newValue < maxDuration) {
+            await updateVideoDuration(newValue);
           }
+
           if (isStart) {
             if (newValue === end) {
-              updateStartEnd(element.id, newValue, (end - start + newValue));
+              let newEnd = end - start + newValue;
+              if (newEnd !== updateNewEnd(newEnd)) {
+                newEnd = updateNewEnd(newEnd);
+                newValue = newEnd - 1;
+              }
+              updateLayerElements(newEnd, element);
+              updateStartEnd(element.id, newValue, newEnd);
             } else if (newValue > end) {
-              const newEnd = newValue + DEFAULT_DIFFERENCE;
+              let newEnd = newValue + DEFAULT_DIFFERENCE;
               if (newEnd > currentDuration) {
-                if (newEnd > maxDuration) {
+                if (newLastEndOnLayer(newEnd) > maxDuration) {
                   await updateVideoDuration(maxDuration);
+                  newEnd = updateNewEnd(newEnd);
+                  updateLayerElements(newEnd, element);
                   updateStartEnd(
                     element.id,
                     maxDuration - DEFAULT_DIFFERENCE,
-                    maxDuration,
+                    newEnd,
                   );
                 } else {
                   await updateVideoDuration(newEnd);
+                  updateLayerElements(newEnd, element);
                   updateStartEnd(element.id, newValue, newEnd);
                 }
               } else {
+                updateLayerElements(newEnd, element);
                 updateStartEnd(element.id, newValue, newEnd);
               }
             } else {
+              if (newValue !== updateNewStart(newValue)) {
+                newValue = updateNewStart(newValue);
+              }
               onChange(newValue);
             }
           }
@@ -164,13 +313,22 @@ const ValidationTimeInput = observer(({
               }
               updateStartEnd(element.id, newStart, newValue);
             } else if (newValue < start) {
-              const newStart = newValue - DEFAULT_DIFFERENCE;
+              let newStart = newValue - DEFAULT_DIFFERENCE;
               if (newStart < 0) {
-                updateStartEnd(element.id, 0, newValue);
-              } else {
-                updateStartEnd(element.id, newStart, newValue);
+                newStart = 0;
               }
+              if (newValue === 0) {
+                newValue = DEFAULT_DIFFERENCE;
+              }
+              if (newStart !== updateNewStart(newStart)) {
+                newStart = updateNewStart(newStart);
+                newValue = newStart + DEFAULT_DIFFERENCE;
+              }
+
+              updateStartEnd(element.id, newStart, newValue);
             } else {
+              newValue = updateNewEnd(newValue);
+              updateLayerElements(newValue, element);
               onChange(newValue);
             }
           }
@@ -210,11 +368,15 @@ ValidationTimeInput.propTypes = {
     PropTypes.number,
     PropTypes.shape(),
   ]),
-  element: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number,
-    PropTypes.shape(),
-  ]).isRequired,
+  element: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    popcornOptions: PropTypes.shape().isRequired,
+    track: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
+  }).isRequired,
 };
 
 ValidationTimeInput.defaultProps = {

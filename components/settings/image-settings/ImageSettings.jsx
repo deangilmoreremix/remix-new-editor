@@ -18,6 +18,7 @@ const ImageSettings = observer((props) => {
       {element && element.popcornOptions && (
         <Tab
           values={element.popcornOptions}
+          element={element}
           onChange={(field) => update(field)}
           fields={fields}
           handleClose={handleClose}

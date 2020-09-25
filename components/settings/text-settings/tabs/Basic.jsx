@@ -22,7 +22,7 @@ import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 
 import PropTypes from '../../../../lib/PropTypes';
 
-const Basic = observer(({ values, fields, onChange }) => {
+const Basic = observer(({ values, fields, element, onChange }) => {
   const [positionHorizontal, setPositionHorizontal] = useState();
   const [positionVertical, setPositionVertical] = useState();
 
@@ -177,14 +177,14 @@ const Basic = observer(({ values, fields, onChange }) => {
             {...fields.start}
             className="input-time-position"
             onChange={onChange}
-            element={values}
+            element={element}
           />
           <FieldBuilder
             value={end || fields.end.default}
             {...fields.end}
             className="input-time-position"
             onChange={onChange}
-            element={values}
+            element={element}
           />
         </div>
         <span className="text-settings-label">Text Position</span>
@@ -281,6 +281,15 @@ const Basic = observer(({ values, fields, onChange }) => {
 });
 
 Basic.propTypes = {
+  element: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    popcornOptions: PropTypes.shape().isRequired,
+    track: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
+  }).isRequired,
   values: PropTypes.shape({
     start: PropTypes.number,
     end: PropTypes.number,

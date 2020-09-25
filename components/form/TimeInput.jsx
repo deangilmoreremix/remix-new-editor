@@ -6,7 +6,7 @@ import NumberFormat from 'react-number-format';
 import { ENTER_KEY } from '../../lib/constants/keyCodes';
 import PropTypes from '../../lib/PropTypes';
 import { TIME_DISPLAY_FORMAT } from '../../lib/constants/formats';
-import { MAX_DURATION } from '../../lib/constants/project';
+import { MAX_DURATION, SANTISECOND } from '../../lib/constants/project';
 
 const DEFAULT_TIME_VALUE = '00:00:00';
 
@@ -101,7 +101,7 @@ TimeInput.defaultProps = {
   label: '',
   disabled: false,
   min: 0,
-  max: MAX_DURATION,
+  max: MAX_DURATION / SANTISECOND,
 };
 
 export default TimeInput;
