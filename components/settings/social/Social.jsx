@@ -16,6 +16,7 @@ const Social = observer(({ tab = BASIC, element, update, fields }) => {
     <div className="social-settings">
       <Tab
         values={element.popcornOptions}
+        element={element}
         onChange={update}
         fields={fields}
       />

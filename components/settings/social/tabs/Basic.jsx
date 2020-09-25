@@ -16,7 +16,7 @@ import PropTypes from '../../../../lib/PropTypes';
 import FieldBuilder from '../../../form/FieldBuilder';
 import DefaultBasic from '../../default-tabs/Basic';
 
-const Basic = ({ values, fields, onChange }) => {
+const Basic = ({ values, fields, element, onChange }) => {
   const pluginType = useMemo(() => values.type || SOCIAL_TYPES.FB_LIKE, [values]);
 
   const pluginTitle = useMemo(() => (
@@ -38,6 +38,7 @@ const Basic = ({ values, fields, onChange }) => {
         options={values}
         onChange={onChange}
         containerClass="social-settings__block"
+        element={element}
       />
 
       <p className="social-settings__warning">
@@ -116,6 +117,15 @@ const Basic = ({ values, fields, onChange }) => {
 };
 
 Basic.propTypes = {
+  element: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    popcornOptions: PropTypes.shape().isRequired,
+    track: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
+  }).isRequired,
   values: PropTypes.shape({
     start: PropTypes.number,
     end: PropTypes.number,

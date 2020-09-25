@@ -36,6 +36,7 @@ const StylesTab = observer((options) => {
     type,
     checkValue,
     setError,
+    element,
   } = options;
   const [isDisabledUploadLogo, setIsDisabledUploadLogo] = useState(false);
   const [isDisabledUploadImage, setIsDisabledUploadImage] = useState(false);
@@ -103,7 +104,7 @@ const StylesTab = observer((options) => {
             name={START}
             className="form-settings__time"
             onChange={onChange}
-            element={values}
+            element={element}
           />
           <FieldBuilder
             value={values.end || fields.end.default}
@@ -112,7 +113,7 @@ const StylesTab = observer((options) => {
             name={END}
             className="form-settings__time"
             onChange={onChange}
-            element={values}
+            element={element}
           />
         </div>
       ) }
@@ -420,6 +421,15 @@ StylesTab.propTypes = {
       default: PropTypes.number,
     }),
   }),
+  element: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    popcornOptions: PropTypes.shape().isRequired,
+    track: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
+  }).isRequired,
 };
 
 export default withValidation(StylesTab);

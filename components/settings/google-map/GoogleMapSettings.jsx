@@ -20,6 +20,7 @@ const GoogleMapSettings = observer((props) => {
       {element && element.popcornOptions && (
         <Tab
           values={element.popcornOptions}
+          element={element}
           onChange={(field, options) => handleChange(field, options)}
           fields={fields}
           closeModal={handleClose}
