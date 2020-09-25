@@ -16,12 +16,18 @@
 }
 .is-360 {
   .checkmark {
-    padding-right: 0;
+    margin-right: -9px;
   }
 }
 
 .is-360-wrapper {
-  width: 58%;
+  width: 100%;
+
+  .is-360 {
+    > button {
+      margin-right: 1rem;
+    }
+  }
 }
 
 .video-settings__inputs {
@@ -135,7 +141,6 @@ span.video-settings-slider {
 .video-settings-slider-input {
   width: 3.3rem;
   height: 2rem;
-  padding: 0 3px;
 }
 
 .video-settings__timer {
@@ -195,9 +200,17 @@ span.video-settings-slider {
   }
 }
 
-@media screen and (max-width: 1300px) {
+@media screen and (max-width: $xxl) {
   .video-settings__block {
     flex-direction: column;
+
+    .is-360-wrapper {
+      margin-top: 1rem;
+
+      .is-360 {
+        justify-content: space-between;
+      }
+    }
   }
 
   .video-settings__block-checkboxes {
@@ -227,7 +240,7 @@ span.video-settings-slider {
   }
 }
 
-@media screen and (max-width: 980px) {
+@media screen and (max-width: $lg) {
   .video-settings__inputs,
   .video-settings__block {
     margin-bottom: 1rem;

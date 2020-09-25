@@ -249,7 +249,6 @@ const Basic = observer(({ values, fields, element, onChange }) => {
               onChange={onChange}
             />
           </div>
-
         </div>
         <div className="text-transform-container">
           <div className="text-transform-container-rotation">
@@ -264,9 +263,6 @@ const Basic = observer(({ values, fields, element, onChange }) => {
             <span className="text-settings-label">Animations</span>
             <button className="btn-library" onClick={() => openAnimation()}>Open Library</button>
           </div>
-          <div className="open-link-container">
-            <SetAsDefaultCheckbox />
-          </div>
           {/* <div className="text-transform-container-font"> */}
           {/* <div> */}
           {/* <span className="text-settings-label">Font Combination</span> */}
@@ -274,7 +270,9 @@ const Basic = observer(({ values, fields, element, onChange }) => {
           {/* </div> */}
           {/* </div> */}
         </div>
-
+      </div>
+      <div className="set-as-default">
+        <SetAsDefaultCheckbox />
       </div>
     </Fragment>
   );

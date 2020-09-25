@@ -244,6 +244,7 @@ const StylesTab = observer((options) => {
               value={values.fontColor ?? fields.fontColor.default}
               {...fields.fontColor}
               onChange={handleChangeColor}
+              className="color-container-font-input"
             />
             <FieldBuilder
               value={values.fontSize ?? fields.fontSize.default}

@@ -54,7 +54,7 @@ const Basic = ({ values, fields, onChange, element }) => {
   return (
     <Fragment>
       <div className="map-settings__block">
-        <div>
+        <div className="map-settings__time-wrapper">
           <FieldBuilder
             label={fields[popcornConstants.START].label}
             type={fields[popcornConstants.START].type}
@@ -64,16 +64,16 @@ const Basic = ({ values, fields, onChange, element }) => {
             className="map-settings__time"
             element={element}
           />
+          <FieldBuilder
+            label={fields[popcornConstants.END].label}
+            type={fields[popcornConstants.END].type}
+            value={values[popcornConstants.END] || fields[popcornConstants.END].default}
+            name={popcornConstants.END}
+            onChange={onChange}
+            className="map-settings__time"
+            element={element}
+          />
         </div>
-        <FieldBuilder
-          label={fields[popcornConstants.END].label}
-          type={fields[popcornConstants.END].type}
-          value={values[popcornConstants.END] || fields[popcornConstants.END].default}
-          name={popcornConstants.END}
-          onChange={onChange}
-          className="map-settings__time"
-          element={element}
-        />
         <FieldBuilder
           label={fields[popcornConstants.ZOOM].label}
           type={fields[popcornConstants.ZOOM].type}
