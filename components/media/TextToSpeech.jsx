@@ -5,7 +5,7 @@ import classnames from 'classnames';
 import { TEXT_TO_SPEECH_SUCCESS, TEXT_TO_SPEECH_ERROR } from '../../lib/constants/text-info';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import { LIBRARY_TABS } from '../../lib/constants/library';
-import { VOICES, LANGUAGES, engineType } from '../../lib/constants/textToSpeech';
+import { VOICES, LANGUAGES, engineType, LANGUAGES_PRO } from '../../lib/constants/textToSpeech';
 import { addToken, wrapTokens, unwrapTokens } from '../../lib/utils/tokens-helper';
 
 import useUIStore from '../hooks/useUIStore';
@@ -79,6 +79,13 @@ const TextToSpeech = observer(() => {
       setSelectVoices(currentVoice);
       setVoiceSelect(currentVoice[0].value);
     }
+  }, [languageSelect]);
+
+  const itemsRadio = useMemo(() => {
+    const modifiedEngineType = engineType.slice();
+    // eslint-disable-next-line max-len
+    modifiedEngineType[1].disabled = !LANGUAGES_PRO.some(({ value: language }) => language === languageSelect);
+    return modifiedEngineType;
   }, [languageSelect]);
 
   const onVoiceSelect = v => {
@@ -166,7 +173,7 @@ const TextToSpeech = observer(() => {
               onChange={onVoiceSelect}
             />
             <FormRadioButton
-              items={engineType}
+              items={itemsRadio}
               groupName="groupName"
               value={valueRadio}
               containerClassName="text-to-speech__radio-container"

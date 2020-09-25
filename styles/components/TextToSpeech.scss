@@ -142,6 +142,9 @@
     &.MuiFormControl-root {
       margin-top: 1rem;
     }
+    .MuiFormControlLabel-label.Mui-disabled {
+      color: $btn-gray-disabled;
+    }
   }
 
   &__radio {

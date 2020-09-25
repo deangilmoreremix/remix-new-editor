@@ -40,6 +40,7 @@ const FormRadioButton = (props) => {
             value={item.value}
             label={item.label}
             labelPlacement={item.position}
+            disabled={item.disabled || false}
             control={(
               <Radio
                 disableRipple
