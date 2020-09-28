@@ -17,7 +17,12 @@ const DefaultSettings = observer(({ tab = BASIC, element, update, fields }) => {
 
   return (
     <div className="json-animation-form">
-      <Tab options={element.popcornOptions} onChange={handleChange} fields={fields} />
+      <Tab
+        options={element.popcornOptions}
+        element={element}
+        onChange={handleChange}
+        fields={fields}
+      />
     </div>
   );
 });

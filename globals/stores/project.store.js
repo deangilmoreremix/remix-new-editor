@@ -307,6 +307,7 @@ export default class ProjectStore extends BaseStore {
         options.mute = item.volume === 0;
         options.audioFadeIn = 0;
         options.audioFadeOut = 0;
+        options.fill = false;
 
         if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
           options.templateId = item._id;
@@ -332,6 +333,7 @@ export default class ProjectStore extends BaseStore {
       }
       case POPCORN_ELEMENT_TYPES.IMAGE: {
         options.src = item.src;
+        options.fill = false;
         break;
       }
       default:
@@ -1785,4 +1787,60 @@ export default class ProjectStore extends BaseStore {
       this.retarget.end();
     }
   }
+
+  @action
+  updateLayerElements = async (newEnd, element) => {
+    if (newEnd < element.popcornOptions.end) {
+      return null;
+    }
+    const differenceLength = newEnd - element.popcornOptions.end;
+    const elementsForUpdate = [];
+    const elementsEnds = [];
+    let animationOut = 0;
+    let itemStartAfterToVideo = null;
+
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach(trackEvent => {
+          if (trackEvent.track === element.track) {
+            elementsEnds.push(trackEvent.popcornOptions.end);
+            if (element.popcornOptions.end <= trackEvent.popcornOptions.start) {
+              elementsForUpdate.push(trackEvent);
+              if (trackEvent.popcornOptions.animation
+                && trackEvent.popcornOptions.animation.out) {
+                // eslint-disable-next-line max-len
+                animationOut += trackEvent.popcornOptions.animation.out.duration;
+              }
+            }
+          }
+        });
+      });
+    });
+
+    if (elementsForUpdate && elementsForUpdate.length) {
+      elementsForUpdate.forEach(item => {
+        if (item.popcornOptions.start
+          <= itemStartAfterToVideo || !itemStartAfterToVideo) {
+          itemStartAfterToVideo = item.popcornOptions.start;
+        }
+      });
+    }
+
+    if (newEnd > itemStartAfterToVideo) {
+      if (this.duration < (Math.max(...elementsEnds)
+        + differenceLength + animationOut) * SANTISECOND) {
+        await this.updateVideoDuration((this.duration / SANTISECOND) + differenceLength);
+      }
+
+      if (elementsForUpdate && elementsForUpdate.length) {
+        elementsForUpdate.forEach(item => (
+          this.updateElementFromTimeline({
+            needUpdateStartEnd: true,
+            elementId: item.id,
+            start: item.popcornOptions.start + differenceLength,
+            end: item.popcornOptions.end + differenceLength,
+          })));
+      }
+    }
+  };
 }

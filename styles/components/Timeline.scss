@@ -9,6 +9,12 @@
   &-open {
     height: $timeline-height;
   }
+
+  .timeline-slider {
+    .MuiSlider-track, .MuiSlider-rail {
+      height: 3px;
+    }
+  }
 }
 
 .layers {
@@ -380,7 +386,7 @@ div.popcorn-element-personalized-voice {
 
     &:before {
       content: '';
-      width: 2px;
+      width: 1px;
       height: 12rem;
       background-color: $red;
       position: absolute;

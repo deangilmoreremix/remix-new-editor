@@ -8,7 +8,7 @@ import { loadUrl } from '../../../lib/requestCreator';
 import PropTypes from '../../../lib/PropTypes';
 import FieldBuilder from '../../form/FieldBuilder';
 
-const Basic = ({ options, update, fields, containerClass, ...props }) => {
+const Basic = ({ options, update, fields, element, containerClass, ...props }) => {
   const [isDisabled, setIsDisabled] = useState(false);
 
   const onUploaded = async ({ url }) => {
@@ -27,7 +27,7 @@ const Basic = ({ options, update, fields, containerClass, ...props }) => {
 
   // ToDo move dropzone to manifest.
   return (
-    <div className={classnames(`inputs-${options.type}-wrapper`, containerClass)}>
+    <div className={classnames(`inputs-${element.type}-wrapper`, containerClass)}>
       {fields && Object.keys(fields).map(key => {
         const { label, type, ...fieldProps } = fields[key];
         return (
@@ -44,7 +44,7 @@ const Basic = ({ options, update, fields, containerClass, ...props }) => {
             startUpload={() => processUpload(true)}
             endUpload={() => processUpload(false)}
             isDisabled={isDisabled}
-            element={options}
+            element={element}
           />
         );
       })}
@@ -53,6 +53,15 @@ const Basic = ({ options, update, fields, containerClass, ...props }) => {
 };
 
 Basic.propTypes = {
+  element: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    popcornOptions: PropTypes.shape().isRequired,
+    track: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
+  }).isRequired,
   options: PropTypes.shape({
     type: PropTypes.string,
     start: PropTypes.number,

@@ -22,7 +22,7 @@ import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 import PropTypes from '../../../../lib/PropTypes';
 
 
-const Basic = ({ values, fields, onChange, handleClose }) => {
+const Basic = ({ values, fields, onChange, handleClose, element: elementData }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { setLibraryType, setUpdateElementInLibrary, openAnimation } = useUIStore();
   const { findAndUpdate, element } = useProjectStore();
@@ -131,7 +131,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           name={popcornConstants.START}
           onChange={onChange}
           className="image-settings__time"
-          element={values}
+          element={elementData}
         />
         <FieldBuilder
           label={fields[popcornConstants.END].label}
@@ -140,7 +140,7 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
           name={popcornConstants.END}
           onChange={onChange}
           className="image-settings__time"
-          element={values}
+          element={elementData}
         />
         <div className="image-settings__btn--block image-settings__btn--transition">
           <div className="image-settings__btn--wrapper">
@@ -209,6 +209,15 @@ const Basic = ({ values, fields, onChange, handleClose }) => {
 };
 
 Basic.propTypes = {
+  element: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    popcornOptions: PropTypes.shape().isRequired,
+    track: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
+  }).isRequired,
   values: PropTypes.shape({
     [popcornConstants.START]: PropTypes.number,
     [popcornConstants.END]: PropTypes.number,

@@ -7,7 +7,7 @@ import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 import FieldBuilder from '../../../form/FieldBuilder';
 import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
 
-const Basic = ({ values, fields, onChange }) => {
+const Basic = ({ values, fields, element, onChange }) => {
   const {
     linkSrc,
     htmlUrl,
@@ -45,7 +45,7 @@ const Basic = ({ values, fields, onChange }) => {
           name={popcornConstants.START}
           onChange={onChange}
           className="vrimage-settings__time"
-          element={values}
+          element={element}
         />
         <FieldBuilder
           {...fields.end}
@@ -53,7 +53,7 @@ const Basic = ({ values, fields, onChange }) => {
           name={popcornConstants.END}
           onChange={onChange}
           className="vrimage-settings__time"
-          element={values}
+          element={element}
         />
       </div>
 
@@ -132,6 +132,15 @@ const Basic = ({ values, fields, onChange }) => {
 };
 
 Basic.propTypes = {
+  element: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    popcornOptions: PropTypes.shape().isRequired,
+    track: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
+  }).isRequired,
   values: PropTypes.shape({
     start: PropTypes.number,
     end: PropTypes.number,

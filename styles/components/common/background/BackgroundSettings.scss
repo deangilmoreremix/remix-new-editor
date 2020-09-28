@@ -1,0 +1,13 @@
+.inputs-background-wrapper {
+  .background-color {
+    margin-top: 1rem;
+  }
+}
+
+@media screen and (max-width: $lg) {
+  .input-background-time {
+    & + .input-background-time {
+      margin-top: 1rem;
+    }
+  }
+}

@@ -41,6 +41,7 @@
   align-items: center;
   justify-content: flex-end;
   margin-top: 1em;
+  margin-left: 0.5rem;
 }
 
 .text-form {
@@ -89,7 +90,7 @@
       align-items: center;
 
       .btn-library {
-        margin-left: .5rem;
+        margin-left: 0.5rem;
       }
     }
 
@@ -100,7 +101,7 @@
       width: 100%;
 
       .form-angle {
-        margin-left: .5rem;
+        margin-left: 0.5rem;
       }
     }
 
@@ -190,6 +191,19 @@
   }
 }
 
+@media screen and (max-width: 1480px) {
+  .text-form {
+    .text-transform-container {
+      flex-direction: column;
+      align-items: normal;
+
+      .text-transform-container-transition {
+        margin-top: 1rem;
+      }
+    }
+  }
+}
+
 @media screen and (max-width: $xxl) {
   .text-form {
     .MuiFormGroup-root {
@@ -237,7 +251,6 @@
       .MuiFormGroup-root {
         .MuiFormControlLabel-root {
           & > span {
-            //padding-top: 0;
           }
         }
       }
@@ -245,6 +258,7 @@
 
     .personalize-container, .btn-personalize {
       width: 100%;
+      margin-left: 0;
     }
 
     .link-url-container {
@@ -256,7 +270,7 @@
       margin-top: 1rem;
 
       .text-area-label {
-        margin-bottom: .5rem;
+        margin-bottom: 0.5rem;
       }
     }
 
@@ -268,7 +282,7 @@
 
       .email-notify-label, .email-notify-input {
         width: 100%;
-        margin-bottom: .5rem;
+        margin-bottom: 0.5rem;
       }
     }
 
@@ -310,8 +324,7 @@
   }
 
   .text-settings-label {
-    margin-bottom: .5rem;
-
+    margin-bottom: 0.5rem;
   }
 
   .btn-personalize,
@@ -331,7 +344,6 @@
         .MuiFormGroup-root {
           .MuiFormControlLabel-root:first-child {
             & > span:first-child {
-              //padding-left: 0;
               margin-left: -9px;
             }
           }

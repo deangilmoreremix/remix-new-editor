@@ -3,7 +3,7 @@ import * as React from 'react';
 import PropTypes from '../../../../lib/PropTypes';
 import FieldBuilder from '../../../form/FieldBuilder';
 
-const Basic = ({ options, fields, ...props }) => (
+const Basic = ({ options, fields, element, ...props }) => (
   <div>
     {fields && Object.keys(fields).map(key => {
       const { label, type } = fields[key];
@@ -15,6 +15,7 @@ const Basic = ({ options, fields, ...props }) => (
           value={options[key]}
           key={key}
           name={key}
+          element={element}
         />
       );
     })}
@@ -30,6 +31,15 @@ Basic.propTypes = {
       label: PropTypes.string,
     }),
   ),
+  element: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    popcornOptions: PropTypes.shape().isRequired,
+    track: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
+  }).isRequired,
 };
 
 export default Basic;

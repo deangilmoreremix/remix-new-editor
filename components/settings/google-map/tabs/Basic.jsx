@@ -6,7 +6,7 @@ import PropTypes from '../../../../lib/PropTypes';
 
 import FieldBuilder from '../../../form/FieldBuilder';
 
-const Basic = ({ values, fields, onChange }) => {
+const Basic = ({ values, fields, onChange, element }) => {
   const [locationValue, setLocationValue] = useState();
 
   useEffect(() => {
@@ -54,7 +54,7 @@ const Basic = ({ values, fields, onChange }) => {
   return (
     <Fragment>
       <div className="map-settings__block">
-        <div>
+        <div className="map-settings__time-wrapper">
           <FieldBuilder
             label={fields[popcornConstants.START].label}
             type={fields[popcornConstants.START].type}
@@ -62,16 +62,18 @@ const Basic = ({ values, fields, onChange }) => {
             name={popcornConstants.START}
             onChange={onChange}
             className="map-settings__time"
+            element={element}
+          />
+          <FieldBuilder
+            label={fields[popcornConstants.END].label}
+            type={fields[popcornConstants.END].type}
+            value={values[popcornConstants.END] || fields[popcornConstants.END].default}
+            name={popcornConstants.END}
+            onChange={onChange}
+            className="map-settings__time"
+            element={element}
           />
         </div>
-        <FieldBuilder
-          label={fields[popcornConstants.END].label}
-          type={fields[popcornConstants.END].type}
-          value={values[popcornConstants.END] || fields[popcornConstants.END].default}
-          name={popcornConstants.END}
-          onChange={onChange}
-          className="map-settings__time"
-        />
         <FieldBuilder
           label={fields[popcornConstants.ZOOM].label}
           type={fields[popcornConstants.ZOOM].type}
@@ -169,6 +171,15 @@ const Basic = ({ values, fields, onChange }) => {
 };
 
 Basic.propTypes = {
+  element: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    popcornOptions: PropTypes.shape().isRequired,
+    track: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
+  }).isRequired,
   values: PropTypes.shape({
     start: PropTypes.number,
     end: PropTypes.number,
