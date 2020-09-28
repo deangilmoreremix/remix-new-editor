@@ -101,6 +101,9 @@ const Library = observer((props) => {
 
   const isVideoTab = React.useMemo(() => activeTab === LIBRARY_TABS.VIDEO, [activeTab]);
 
+  const showed360 = React.useMemo(() => video360Enabled && isVideoTab,
+    [video360Enabled, isVideoTab]);
+
   const updateActiveTab = React.useCallback((tab) => {
     if (!isLoading) {
       setActiveTab(tab);
@@ -445,7 +448,7 @@ const Library = observer((props) => {
                 }
               </label>
             </div>
-            {video360Enabled && isVideoTab
+            {showed360
             && (
               <Is360
                 value={is360}
