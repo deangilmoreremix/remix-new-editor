@@ -1,18 +1,18 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 
 import PropTypes from '../../lib/PropTypes';
 
 import { LibrarySpinner } from './Loader';
 
-const DropZone = (
+const DropZone = forwardRef((
   {
     accept,
     onDrop,
     isDisabled,
     multiple,
     className,
-  }) => {
+  }, ref) => {
   const { getInputProps } = useDropzone({
     accept,
     onDrop,
@@ -22,14 +22,14 @@ const DropZone = (
   return (
     <div className={className}>
       <label className="button-add-file__label">
-        <input {...getInputProps()} disabled={isDisabled} multiple={multiple} />
+        <input {...getInputProps()} ref={ref} disabled={isDisabled} multiple={multiple} />
         {
           isDisabled ? <LibrarySpinner /> : <span>Upload</span>
         }
       </label>
     </div>
   );
-};
+});
 
 DropZone.propTypes = {
   isDisabled: PropTypes.bool,

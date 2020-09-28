@@ -13,8 +13,8 @@
   }
 
   label.map-settings-zoom-label {
-    line-height: 1.6;
-    margin-bottom: 0.375rem;
+    line-height: 1;
+    margin-bottom: 0.45rem;
   }
 }
 
@@ -28,8 +28,17 @@
   }
 
   &>div:first-child {
-    width: 108px;
-    min-width: 108px;
+    width: 100px;
+    min-width: 100px;
+  }
+
+  div.map-settings__time-wrapper {
+    display: flex;
+    width: 52%;
+
+    .map-settings__time:last-child {
+      margin-left: 1.7rem;
+    }
   }
 }
 
@@ -51,6 +60,12 @@
 .map-settings-slider-block {
   width: 46%;
   margin-left: auto;
+
+  .MuiGrid-container {
+    .MuiGrid-item {
+      padding-bottom: 0;
+    }
+  }
 }
 
 .map-settings-select {

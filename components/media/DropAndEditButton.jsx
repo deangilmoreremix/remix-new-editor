@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import classnames from 'classnames';
 
 import { ASSET_TYPES, IMAGE_FORMATS } from '../../lib/constants/media';
@@ -25,8 +25,9 @@ const DropAndEditButton = (
     ...rest
   }) => {
   const { uploadMedia, saveFile } = useMediaStore();
-
   const { openCropper } = useModalStore();
+
+  const uploadButtonRef = useRef();
 
   const props = React.useMemo(() => ({
     multiple: false,
@@ -39,6 +40,10 @@ const DropAndEditButton = (
         return showError('Wrong Format!');
       }
       return;
+    }
+
+    if (uploadButtonRef.current) {
+      uploadButtonRef.current.value = '';
     }
 
     const image = acceptedFiles[0];
@@ -77,6 +82,7 @@ const DropAndEditButton = (
       ) : (
         <DropZone
           onDrop={onDrop}
+          ref={uploadButtonRef}
           className={classnames('button-add-file', className)}
           {...props}
           {...rest}

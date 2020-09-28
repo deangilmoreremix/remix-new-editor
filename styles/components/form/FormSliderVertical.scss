@@ -2,8 +2,10 @@
   display: flex;
   position: relative;
 
-  .MuiSlider-vertical .MuiSlider-thumb {
-    margin-left: -7px;
+  .MuiSlider-vertical {
+    .MuiSlider-track, .MuiSlider-rail {
+      width: 5px;
+    }
   }
 
   &-label {

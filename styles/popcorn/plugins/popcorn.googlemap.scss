@@ -39,7 +39,7 @@
   width: 50%;
 }
 
-@media screen and (max-width: 1350px) {
+@media screen and (max-width: $xxl) {
   .map-settings {
     display: flex;
     flex-direction: column;
@@ -81,8 +81,23 @@
     }
 
     div.map-settings-checkbox {
-      margin-left: auto;
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-left: 0;
       margin-bottom: 0.6rem;
+
+      & > .checkmark {
+        margin-left: -9px;
+      }
+    }
+
+    div.map-settings__time-wrapper {
+      flex-direction: column;
+
+      .map-settings__time:last-child {
+        margin-left: 0;
+      }
     }
   }
 

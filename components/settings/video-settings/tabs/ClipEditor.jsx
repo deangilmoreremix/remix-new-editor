@@ -5,7 +5,7 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../../lib/PropTypes';
 
 import * as popcornConstants from '../../../../lib/constants/popcorn';
-import { regexpVideo360, video360prefix } from '../../../../lib/constants/settings/video';
+import { regexpVideo360, video360prefix, REGEX_MAP } from '../../../../lib/constants/settings/video';
 
 import useProjectStore from '../../../hooks/useProjectStore';
 import useUserStore from '../../../hooks/useUserStore';
@@ -48,12 +48,14 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
   const [fadeInMax, setFadeInMax] = useState();
   const [fadeOutMax, setFadeOutMax] = useState();
 
-  const is360 = React.useMemo(() => source && source.length
-    && regexpVideo360.test(source[0]), [source]);
+  const src = React.useMemo(() => (source && typeof source === 'string' ? source : source[0]),
+    [source]);
+
+  const is360 = React.useMemo(() => regexpVideo360.test(src), [src]);
 
   const is360allowed = React.useMemo(() => isVideo({ popcornOptions: { contentType } })
-    && video360Enabled,
-  [contentType, video360Enabled]);
+    && video360Enabled && (is360 || REGEX_MAP.Adaptive.test(src)),
+  [contentType, video360Enabled, is360, src]);
 
   const itemVolume = useMemo(() => {
     if (mute) {

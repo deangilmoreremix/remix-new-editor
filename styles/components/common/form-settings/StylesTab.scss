@@ -126,7 +126,7 @@
       }
     }
     &-font {
-      > div {
+      &-input, .slider-element {
         width: 48%;
       }
     }
@@ -145,7 +145,11 @@
       justify-content: space-between;
 
       label {
-        width: 60%;
+        width: 48%;
+      }
+
+      .MuiGrid-container {
+        width: 52%;
       }
     }
   }
@@ -235,6 +239,15 @@
       .inner-slider-container {
         flex-direction: column;
         align-items: flex-start;
+
+        label, .MuiGrid-container {
+          width: 100%;
+        }
+
+        .MuiGrid-container {
+          width: calc(100% + 16px);
+          margin: -8px;
+        }
       }
     }
 
@@ -252,6 +265,10 @@
           width: 100%;
         }
       }
+    }
+
+    .color-container-font-input {
+      width: 100%;
     }
   }
 
