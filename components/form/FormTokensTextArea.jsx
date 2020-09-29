@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 import ContentEditable from 'react-contenteditable';
@@ -27,7 +27,10 @@ const FormTokensTextArea = observer((props) => {
     inputClassName,
     additionalFieldName,
     disabled,
+    labelHint,
   } = props;
+
+  const [isHint, setIsHint] = useState(false);
 
   const onEdit = (e) => {
     let { target: { value: v } } = e;
@@ -56,9 +59,16 @@ const FormTokensTextArea = observer((props) => {
     }
   };
 
+  const handleShowHint = () => {
+    if (labelHint) {
+      setIsHint((prevIsHint) => !prevIsHint);
+    }
+  };
+
   return (
     <div className={classnames('container-tokens-textarea', className)}>
       {label && <p className={classnames('text-area-label', textClassName)}>{label}</p>}
+      {labelHint && isHint && <span className="label-input-hint">{labelHint}</span>}
       <ContentEditable
         className={classnames(inputClassName, 'text-area', variant)}
         tagName="pre"
@@ -66,6 +76,8 @@ const FormTokensTextArea = observer((props) => {
         onChange={onEdit}
         onClick={onClick}
         onPaste={pasteData}
+        onFocus={handleShowHint}
+        onBlur={handleShowHint}
         onKeyPress={onKeyPress}
         disabled={disabled}
       />
@@ -84,6 +96,11 @@ FormTokensTextArea.propTypes = {
   updateCaret: PropTypes.func.isRequired,
   caretName: PropTypes.string,
   disabled: PropTypes.bool,
+  labelHint: PropTypes.string,
+};
+
+FormTokensTextArea.defaultProps = {
+  labelHint: '',
 };
 
 export default FormTokensTextArea;

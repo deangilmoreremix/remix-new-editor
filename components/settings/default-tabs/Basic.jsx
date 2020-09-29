@@ -27,7 +27,7 @@ const Basic = ({ options, update, fields, element, containerClass, ...props }) =
 
   // ToDo move dropzone to manifest.
   return (
-    <div className={classnames(`inputs-${element.type}-wrapper`, containerClass)}>
+    <div className={classnames(element && element.type && `inputs-${element.type}-wrapper`, containerClass)}>
       {fields && Object.keys(fields).map(key => {
         const { label, type, ...fieldProps } = fields[key];
         return (

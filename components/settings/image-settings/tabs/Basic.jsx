@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useState, useMemo } from 'react';
 import SVGInline from 'react-svg-inline';
 
 import DropButton from '../../../media/DropButton';
@@ -21,12 +21,17 @@ import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 
 import PropTypes from '../../../../lib/PropTypes';
 
+import { HINTS } from '../../../../lib/constants/text-info';
 
 const Basic = ({ values, fields, onChange, handleClose, element: elementData }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { setLibraryType, setUpdateElementInLibrary, openAnimation } = useUIStore();
   const { findAndUpdate, element } = useProjectStore();
-  const { currentUser: user, isfeatureEnabled: checkStateFeature } = useUserStore();
+  const {
+    currentUser: user,
+    isfeatureEnabled: checkStateFeature,
+    clickToPhoneCall,
+  } = useUserStore();
   const { openImageEditor, closeModal } = useModalStore();
 
   const backToLibrary = () => {
@@ -43,6 +48,8 @@ const Basic = ({ values, fields, onChange, handleClose, element: elementData }) 
     findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
     closeModal(TUI_IMAGE_EDITOR_MODAL);
   };
+
+  const hint = useMemo(() => (clickToPhoneCall ? HINTS.LINK_URL_PHONE : HINTS.LINK_URL));
 
   // ToDo add select field "Select the kind of Image you want to add"
   // ToDo add handle click on buttons "Personalize"
@@ -102,6 +109,7 @@ const Basic = ({ values, fields, onChange, handleClose, element: elementData }) 
         <div className="image-settings__block">
           <div className="image-settings__cell--first">
             <FieldBuilder
+              labelHint={hint}
               label={user
               && user.features
               && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
