@@ -151,4 +151,9 @@ export default class UserStore {
     return [FEATURES.OP_360, FEATURES.OWP_360, FEATURES.VIDEO_360]
       .some(feature => this.isfeatureEnabled(feature));
   }
+
+  @computed
+  get clickToPhoneCall() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL);
+  }
 }
