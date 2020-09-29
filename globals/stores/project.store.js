@@ -397,7 +397,8 @@ export default class ProjectStore extends BaseStore {
     if (this.retarget && this.retarget.options && this.retarget.id) {
       const isAdvancedOptin = kind === POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN;
       Object.keys(DEFAULT_OPTIONS_OPTIN).forEach(key => {
-        const defaultValue = this.retarget.manifest.options[key].default;
+        const defaultValue = this.retarget.manifest.options[key].default
+          ?? this.retarget.options[key];
         let currentValue = this.retarget.options[key];
         // eslint-disable-next-line no-prototype-builtins
         if (this.retarget.options.hasOwnProperty(key)) {
