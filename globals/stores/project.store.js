@@ -353,7 +353,7 @@ export default class ProjectStore extends BaseStore {
     const manifest = window.Popcorn.manifest.retargetForm;
     let options;
     if (this.retarget && this.retarget.options) {
-      options = { ...this.retarget.options };
+      options = { ...this.retarget.options, ...DEFAULT_OPTIONS };
     } else {
       options = (kind === POPCORN_ELEMENT_TYPES.RETARGET
         ? { ...DEFAULT_OPTIONS }
