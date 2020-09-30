@@ -996,6 +996,7 @@ export default class ProjectStore extends BaseStore {
             ...trackEvent.popcornOptions,
             track: null,
             start: null,
+            type: trackEvent.type,
             end: null,
             zindex: null,
             duration: trackEvent.popcornOptions.end - trackEvent.popcornOptions.start,

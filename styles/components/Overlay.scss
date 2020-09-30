@@ -104,3 +104,9 @@
   color: $white;
   margin-left: auto;
 }
+
+.input-time-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
