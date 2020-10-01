@@ -34,6 +34,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     audioFadeOut,
     source,
     contentType,
+    kind,
   } = values;
 
   const {
@@ -232,6 +233,10 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     }
   }, [audioFadeIn, audioFadeOut, end]);
 
+  const isVoice = useMemo(() => (
+    kind && (kind === ASSET_TYPES.VOICE || kind === ASSET_TYPES.PERSONALIZED_VOICE)
+  ), [kind]);
+
   return (
     <div className="video-settings-container">
       {/* ToDo implement in next PR */}
@@ -254,14 +259,16 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
               onChange={changeFrom}
               className="video-settings-input"
             />
-            <FieldBuilder
-              label="Out"
-              type={fields[popcornConstants.DURATION].type}
-              value={videoOut}
-              name="out"
-              onChange={changeOut}
-              className="video-settings-input"
-            />
+            {kind !== ASSET_TYPES.PERSONALIZED_VOICE && (
+              <FieldBuilder
+                label="Out"
+                type={fields[popcornConstants.DURATION].type}
+                value={videoOut}
+                name="out"
+                onChange={changeOut}
+                className="video-settings-input"
+              />
+            )}
           </div>
         )
       }
@@ -343,6 +350,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
         value={title || fields[popcornConstants.TITLE].default}
         name={popcornConstants.TITLE}
         onChange={onChange}
+        readOnly={isVoice}
       />
 
       <div className="video-settings__timer">

@@ -5,7 +5,16 @@ import classnames from 'classnames';
 import { TEXT_TO_SPEECH_SUCCESS, TEXT_TO_SPEECH_ERROR, ERROR_TEXT_SYMBOLS } from '../../lib/constants/text-info';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import { LIBRARY_TABS } from '../../lib/constants/library';
-import { VOICES, LANGUAGES, engineType, LANGUAGES_PRO, maxSymbols } from '../../lib/constants/textToSpeech';
+import {
+  VOICES,
+  LANGUAGES,
+  engineType,
+  LANGUAGES_PRO,
+  ENGINE_TYPE_VALUES,
+  LANGUAGES_VALUES,
+  DEFAULT_VOICES,
+  maxSymbols,
+} from '../../lib/constants/textToSpeech';
 import { addToken, wrapTokens, unwrapTokens } from '../../lib/utils/tokens-helper';
 import { tokenModes } from '../../lib/constants/tokens';
 
@@ -36,10 +45,10 @@ const TextToSpeech = observer(() => {
   const [loading, setLoading] = useState(false);
   const [valueTextarea, setValueTextarea] = useState('');
   const [fallbackValue, setFallbackValue] = useState('');
-  const [voiceSelect, setVoiceSelect] = useState();
-  const [languageSelect, setLanguageSelect] = useState(LANGUAGES[0].value);
-  const [selectVoices, setSelectVoices] = useState(VOICES['en-US']);
-  const [valueRadio, setValueRadio] = useState(engineType[0].value);
+  const [voice, setVoice] = useState();
+  const [language, setLanguage] = useState(LANGUAGES[0].value);
+  const [selectVoices, setSelectVoices] = useState(VOICES[LANGUAGES_VALUES.ENUS_STANDART]);
+  const [voiceType, setVoiceType] = useState(engineType[0].value);
   const [caret, setCaret] = useState();
   const [symbols, setSymbols] = useState(null);
 
@@ -79,10 +88,10 @@ const TextToSpeech = observer(() => {
   const getVoice = () => {
     setLoading(true);
     postTextToSpeech(
-      valueRadio,
-      languageSelect,
+      voiceType,
+      language,
       isPersonalizeText ? unwrapTokens(valueTextarea) : valueTextarea,
-      voiceSelect,
+      voice,
       isPersonalizeText ? ASSET_TYPES.PERSONALIZED_VOICE : ASSET_TYPES.VOICE,
       isPersonalizeText ? fallbackValue : null,
     )
@@ -95,29 +104,55 @@ const TextToSpeech = observer(() => {
   useEffect(() => quantify(), []);
 
   useEffect(() => {
-    const item = LANGUAGES.filter(language => language.value === languageSelect);
-    const currentVoice = VOICES[item[0].value];
-    if (currentVoice.length) {
-      setSelectVoices(currentVoice);
-      setVoiceSelect(currentVoice[0].value);
+    const item = LANGUAGES.find(languageItem => languageItem.value === language).value;
+    const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
+    const currentVoice = item === LANGUAGES_VALUES.ENUS
+      ? DEFAULT_VOICES[currentVoiceType] : VOICES[item];
+
+    if (currentVoice) {
+      setVoiceType(ENGINE_TYPE_VALUES.STANDART);
     }
-  }, [languageSelect]);
+  }, [language]);
+
+  useEffect(() => {
+    const item = LANGUAGES.find(languageItem => languageItem.value === language).value;
+    const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
+    const currentVoice = item === LANGUAGES_VALUES.ENUS
+      ? DEFAULT_VOICES[currentVoiceType] : VOICES[item];
+
+    if (currentVoice) {
+      setSelectVoices(currentVoice);
+      setVoice(currentVoice[0].value);
+    }
+  }, [voiceType]);
 
   const itemsRadio = useMemo(() => {
     const modifiedEngineType = engineType.slice();
-    // eslint-disable-next-line max-len
-    modifiedEngineType[1].disabled = !LANGUAGES_PRO.some(({ value: language }) => language === languageSelect);
+
+    if (language) {
+      modifiedEngineType.forEach(item => {
+        item.disabled = false;
+      });
+      modifiedEngineType[1].disabled = !LANGUAGES_PRO.some(({ value: languageItem }) => (
+        languageItem === language
+      ));
+    } else {
+      modifiedEngineType.forEach(item => {
+        item.disabled = true;
+      });
+    }
+
     return modifiedEngineType;
-  }, [languageSelect]);
+  }, [language]);
 
   const onVoiceSelect = v => {
-    const item = selectVoices.filter(voice => voice.value === v);
-    setVoiceSelect(item[0].value);
+    const item = selectVoices.find(voiceItem => voiceItem.value === v).value;
+    setVoice(item);
   };
 
   const onLanguageSelect = v => {
-    const item = LANGUAGES.filter(language => language.value === v);
-    setLanguageSelect(item[0].value);
+    const item = LANGUAGES.find(languageItem => languageItem.value === v).value;
+    setLanguage(item);
   };
 
   const isPersonalizeText = useMemo(() => valueTextarea && unwrapTokens(valueTextarea).indexOf('{{') !== -1, [valueTextarea]);
@@ -208,23 +243,23 @@ const TextToSpeech = observer(() => {
               label="Language"
               items={LANGUAGES}
               className="text-to-speech__select"
-              value={languageSelect}
+              value={language}
               onChange={onLanguageSelect}
             />
             <FormSelect
               label="Voice"
               items={selectVoices}
               className="text-to-speech__select"
-              value={voiceSelect}
+              value={voice}
               onChange={onVoiceSelect}
             />
             <FormRadioButton
               items={itemsRadio}
               groupName="groupName"
-              value={valueRadio}
+              value={voiceType}
               containerClassName="text-to-speech__radio-container"
               radioClassName="text-to-speech__radio"
-              onChange={setValueRadio}
+              onChange={setVoiceType}
             />
             <PersonalizeButton
               onAdd={onAddTextToken}

@@ -10,8 +10,8 @@ import {
   LIBRARY_TABS,
   LIBRARY_KEYS,
 } from '../../lib/constants/library';
-import { LOADING_COLOR } from '../../lib/constants/ui';
-import mediaConstants from '../../lib/constants/media';
+import { LOADING_COLOR, WINDOW_TYPES } from '../../lib/constants/ui';
+import mediaConstants, { ASSET_TYPES } from '../../lib/constants/media';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import { URL_RULE } from '../../lib/constants/regExps';
 import { TYPES } from '../../lib/constants/validator';
@@ -19,6 +19,7 @@ import { ALL_VIDEO } from '../../lib/constants/formats';
 import config from '../../config/config';
 import { showError } from '../../lib/services/alertService';
 
+import { TEXT_TO_SPEECH_WARNING } from '../../lib/constants/text-info';
 import Tabs from '../common/library/Tabs';
 import ProviderList from '../common/library/ProviderList';
 import LibraryContent from '../common/library/LibraryContent';
@@ -35,6 +36,7 @@ import DropPasteInput from './DropPasteInput';
 import withModal from '../hoc/withValidation';
 import Is360 from '../settings/video-settings/components/Is360';
 import HelpIconComponent from '../common/HelpIcon';
+import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
 
 const Library = observer((props) => {
   const { checkValue, setError } = props;
@@ -50,6 +52,7 @@ const Library = observer((props) => {
     openSettings,
     toggleRightBlock,
     isTimelineOpen,
+    openSecondaryModal,
   } = uiStore;
 
   const {
@@ -89,6 +92,12 @@ const Library = observer((props) => {
 
   const inputRef = useRef();
   // =============== STATE ===============
+
+  // ============ VOICE FILTER ===========
+  const [voice, setVoice] = useState(null);
+  const [language, setLanguage] = useState(null);
+  const [voiceType, setVoiceType] = useState(null);
+  // ============ VOICE FILTER ===========
 
   useEffect(() => () => {
     if (updateElementInLibrary) {
@@ -182,6 +191,21 @@ const Library = observer((props) => {
       setActiveBtn(source);
     }
 
+    let filter;
+
+    if (activeTab === LIBRARY_KEYS.VOICE) {
+      filter = source === LIBRARY_KEYS.PERSONALIZED_VOICE
+        ? { 'extra.fallbackValue': { $exists: true } }
+        : { _id: { $nin: uploaded } };
+      if (language) {
+        filter['extra.language'] = language;
+        filter['extra.voice'] = voice;
+        filter['extra.engine'] = voiceType;
+      }
+    } else {
+      filter = { _id: { $nin: uploaded } };
+    }
+
     try {
       const data = await getAssets({
         providerName: source,
@@ -189,8 +213,7 @@ const Library = observer((props) => {
           ? LIBRARY_KEYS.PERSONALIZED_VOICE : activeTab,
         page: currentPage,
         query: queryStr,
-        filter: source === LIBRARY_KEYS.PERSONALIZED_VOICE
-          ? { 'extra.fallbackValue': { $exists: true } } : { _id: { $nin: uploaded } },
+        filter,
       });
 
       if (data) {
@@ -361,6 +384,11 @@ const Library = observer((props) => {
     } else {
       item.type = MEDIA_TYPES[activeTab];
     }
+
+    if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
+      projectStore.showWarning(TEXT_TO_SPEECH_WARNING.title);
+    }
+
     if (updateElementInLibrary && activeTab === LIBRARY_TABS.IMAGE) {
       projectStore.findAndUpdate(updateElementInLibrary, item);
       openSettings();
@@ -444,6 +472,10 @@ const Library = observer((props) => {
     }
   }, [activeTab, activeBtn, volume, activeItem, listProviders, isLoading]);
 
+  const openVoiceWindow = () => {
+    openSecondaryModal(WINDOW_TYPES.TEXT_TO_SPEECH);
+  };
+
   return (
     <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
@@ -463,12 +495,12 @@ const Library = observer((props) => {
                 </div>
               ) : (
                 // todo Open Voice Modal
-                <div className="library__add-file">
+                <button className="library__add-file library__open-window" onClick={openVoiceWindow}>
                   <input id="add-file" />
                   <label htmlFor="add-file" className="library__add">
                     Add Voice
                   </label>
-                </div>
+                </button>
               )
             }
             {video360Enabled && isVideoTab
@@ -520,6 +552,18 @@ const Library = observer((props) => {
               )
             }
             </div>
+            {(activeTab === LIBRARY_KEYS.PERSONALIZED_VOICE || activeTab === LIBRARY_KEYS.VOICE)
+            && (
+              <LibraryVoiceFilter
+                language={language}
+                setLanguage={setLanguage}
+                voice={voice}
+                setVoice={setVoice}
+                voiceType={voiceType}
+                setVoiceType={setVoiceType}
+                fetchItems={fetchItems}
+              />
+            )}
           </div>
         </div>
 
