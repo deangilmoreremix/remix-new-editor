@@ -22,6 +22,7 @@ import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 
 import PropTypes from '../../../../lib/PropTypes';
 
+
 const Basic = observer(({ values, fields, element, onChange }) => {
   const [positionHorizontal, setPositionHorizontal] = useState();
   const [positionVertical, setPositionVertical] = useState();

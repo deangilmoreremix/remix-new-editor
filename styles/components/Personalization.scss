@@ -93,6 +93,11 @@
   display: flex;
   padding: 5px;
 
+  .radio-button-icon {
+    width: unset;
+    min-width: 0.75rem;
+  }
+
   .personalization__svg__active {
     svg {
       path {

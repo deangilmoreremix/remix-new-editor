@@ -159,6 +159,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       helpCrunch: config.helpCrunch,
       scriptStatistic: config.scriptStatistic,
       vrviewPath: config.vrviewPath,
+      cdnSocialWeb: config.s3.cdnSocialWeb,
     };
   }
 
