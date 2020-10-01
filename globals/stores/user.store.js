@@ -1,4 +1,4 @@
-import { observable, computed } from 'mobx';
+import { observable, computed, action } from 'mobx';
 
 import { STATE, FEATURES } from '../../lib/constants/features';
 
@@ -26,6 +26,23 @@ export default class UserStore {
         },
       });
       this.roles = user.roles;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
+  getTextSpeechSymbols = async () => {
+    let user;
+    try {
+      user = await this.request('/api/users/me?getVoice=true', {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      return user.ttsAmountOfAvailableCharacters;
     } catch (e) {
       console.log(e);
       throw e;

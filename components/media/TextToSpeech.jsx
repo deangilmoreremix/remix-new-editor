@@ -2,15 +2,17 @@ import React, { useCallback, useEffect, useMemo, useState, Fragment } from 'reac
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
-import { TEXT_TO_SPEECH_SUCCESS, TEXT_TO_SPEECH_ERROR } from '../../lib/constants/text-info';
+import { TEXT_TO_SPEECH_SUCCESS, TEXT_TO_SPEECH_ERROR, ERROR_TEXT_SYMBOLS } from '../../lib/constants/text-info';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import { LIBRARY_TABS } from '../../lib/constants/library';
-import { VOICES, LANGUAGES, engineType, LANGUAGES_PRO } from '../../lib/constants/textToSpeech';
+import { VOICES, LANGUAGES, engineType, LANGUAGES_PRO, maxSymbols } from '../../lib/constants/textToSpeech';
 import { addToken, wrapTokens, unwrapTokens } from '../../lib/utils/tokens-helper';
+import { tokenModes } from '../../lib/constants/tokens';
 
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
+import useUserStore from '../hooks/useUserStore';
 
 import FormSelect from '../form/FormSelect';
 import FormRadioButton from '../form/FormRadioButton';
@@ -29,6 +31,7 @@ const TextToSpeech = observer(() => {
   const { toggleRightBlock, isTimelineOpen, setLibraryType } = useUIStore();
   const { postTextToSpeech } = useMediaStore();
   const { showSuccess } = useProjectStore();
+  const { getTextSpeechSymbols } = useUserStore();
 
   const [loading, setLoading] = useState(false);
   const [valueTextarea, setValueTextarea] = useState('');
@@ -38,6 +41,7 @@ const TextToSpeech = observer(() => {
   const [selectVoices, setSelectVoices] = useState(VOICES['en-US']);
   const [valueRadio, setValueRadio] = useState(engineType[0].value);
   const [caret, setCaret] = useState();
+  const [symbols, setSymbols] = useState(null);
 
   // toDo: Code commented below should be used for upper(white) input
   // const [valueSelect, setValueSelect] = useState(2);
@@ -52,6 +56,21 @@ const TextToSpeech = observer(() => {
   //   const item = selectItems.filter(item => item.value === v);
   //   setValueSelect(item.value);
   // };
+
+  const quantify = () => {
+    getTextSpeechSymbols()
+      .then(value => setSymbols(+value))
+      .catch(() => showError(ERROR_TEXT_SYMBOLS.title));
+  };
+
+  const getValueLength = (value) => unwrapTokens(value).replace(/{{\w+}}/g, '').length;
+
+  const maxCount = (value) => {
+    if (!symbols) {
+      return 0;
+    }
+    return symbols > value ? value : symbols;
+  };
 
   const backToLibrary = () => {
     setLibraryType(LIBRARY_TABS.VOICE);
@@ -69,8 +88,11 @@ const TextToSpeech = observer(() => {
     )
       .then(() => showSuccess(TEXT_TO_SPEECH_SUCCESS.title))
       .catch(() => showError(TEXT_TO_SPEECH_ERROR.title))
+      .then(() => quantify())
       .finally(() => setLoading(false));
   };
+
+  useEffect(() => quantify(), []);
 
   useEffect(() => {
     const item = LANGUAGES.filter(language => language.value === languageSelect);
@@ -98,16 +120,6 @@ const TextToSpeech = observer(() => {
     setLanguageSelect(item[0].value);
   };
 
-  const onAddTextToken = useCallback((token) => {
-    const result = addToken(unwrapTokens(valueTextarea), token, caret);
-    setValueTextarea(wrapTokens(result));
-  }, [valueTextarea, caret]);
-
-  const handleChange = useCallback((text, data) => {
-    setValueTextarea(text);
-    setCaret(data.caretOffset);
-  }, []);
-
   const isPersonalizeText = useMemo(() => valueTextarea && unwrapTokens(valueTextarea).indexOf('{{') !== -1, [valueTextarea]);
 
   const isDisabledButton = useMemo(() => {
@@ -117,6 +129,40 @@ const TextToSpeech = observer(() => {
       return !valueTextarea;
     }
   }, [valueTextarea, fallbackValue, isPersonalizeText]);
+
+  const maxTextSymbols = useMemo(() => {
+    const value = isPersonalizeText ? maxSymbols.personalized : maxSymbols.text;
+    return maxCount(value);
+  }, [symbols, isPersonalizeText]);
+
+  const maxFallbackSymbols = useMemo(() => (
+    maxCount(maxSymbols.text)
+  ), [symbols]);
+
+  const textValueAreaLength = useMemo(() => (
+    getValueLength(valueTextarea)
+  ), [valueTextarea]);
+
+  const handleChange = useCallback((text, data) => {
+    setValueTextarea(text);
+    setCaret(data.caretOffset);
+  }, [maxTextSymbols]);
+
+  const handleChangeFallback = useCallback((text) => {
+    setFallbackValue(text);
+  }, [maxFallbackSymbols]);
+
+  const disabledPersonalizedVoice = useMemo(() => (
+    getValueLength(valueTextarea) >= maxTextSymbols
+  ), [valueTextarea, maxTextSymbols]);
+
+  const onAddTextToken = useCallback((token) => {
+    if (disabledPersonalizedVoice) {
+      return;
+    }
+    const result = addToken(unwrapTokens(valueTextarea), token, caret);
+    setValueTextarea(wrapTokens(result));
+  }, [valueTextarea, caret, maxTextSymbols]);
 
   return (
     <div className={classnames('text-to-speech', { 'big-window': !isTimelineOpen })}>
@@ -180,7 +226,15 @@ const TextToSpeech = observer(() => {
               radioClassName="text-to-speech__radio"
               onChange={setValueRadio}
             />
-            <PersonalizeButton onAdd={onAddTextToken} text="Personalize Voice" />
+            <PersonalizeButton
+              onAdd={onAddTextToken}
+              text="Personalize Voice"
+              disabled={disabledPersonalizedVoice}
+              elementType={ASSET_TYPES.PERSONALIZED_VOICE}
+              tokenModes={{
+                plain: tokenModes.plain,
+              }}
+            />
           </div>
           <div className="text-to-speech__right">
             <div className="text-to-speech__text-wrapper">
@@ -189,17 +243,18 @@ const TextToSpeech = observer(() => {
                   <FormTextArea
                     label="Fallback Value"
                     value={fallbackValue}
-                    onChange={setFallbackValue}
+                    onChange={handleChangeFallback}
                     className="text-to-speech__textarea"
                     inputClassName="text-to-speech__textarea-input"
                     rows={6}
                     text
+                    maxTextSymbols={maxFallbackSymbols}
                   />
                   <p className="text-to-speech__info">Required field</p>
                 </Fragment>
               )}
-              <p className="text-to-speech__label">Text</p>
               <FormTokensTextArea
+                label="Text"
                 inputClassName="text-to-speech__textarea"
                 value={valueTextarea}
                 onChange={handleChange}
@@ -207,6 +262,8 @@ const TextToSpeech = observer(() => {
                 caretName="caretOffset"
                 variant="multiline"
                 updateCaret={(value) => setCaret(value.caretOffset)}
+                maxTextSymbols={maxTextSymbols}
+                symbolsCount={textValueAreaLength}
               />
             </div>
             <div className="text-to-speech__loader-btn-group-wrapper">
@@ -224,6 +281,21 @@ const TextToSpeech = observer(() => {
               </div>
             </div>
           </div>
+        </div>
+        <div className="text-to-speech__notification">
+          {symbols && (
+            <p>
+              The number of characters remaining is
+              <span>{` ${symbols.toLocaleString('en')}`}</span>
+              .
+            </p>
+          )}
+          {isPersonalizeText && (
+            <p>
+              Each time you watch your video in the player,
+              the number of available symbols will decrease.
+            </p>
+          )}
         </div>
       </div>
       <CloseButton onClick={() => toggleRightBlock(false)} />

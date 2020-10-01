@@ -27,14 +27,23 @@ const FormTokensTextArea = observer((props) => {
     inputClassName,
     additionalFieldName,
     disabled,
+    maxTextSymbols,
+    symbolsCount,
   } = props;
 
-  const onEdit = (e) => {
+  const onEdit = async (e) => {
     let { target: { value: v } } = e;
     const text = unwrapTokens(v);
+    const textLength = text.replace(/{{\w+}}/g, '').length;
     v = wrapTokens(v);
     const caretOffset = catchCaretCharacterOffsetWithin(e);
-    onChange(v, { [caretName]: caretOffset, [additionalFieldName]: text });
+    if ((maxTextSymbols && textLength <= maxTextSymbols) || !maxTextSymbols) {
+      onChange(v, { [caretName]: caretOffset, [additionalFieldName]: text });
+    } else {
+      const length = v.length - textLength + maxTextSymbols;
+      await onChange(v, { [caretName]: caretOffset, [additionalFieldName]: text });
+      onChange(v.slice(0, length), { [caretName]: caretOffset, [additionalFieldName]: text });
+    }
   };
 
   const pasteData = (e) => {
@@ -58,7 +67,11 @@ const FormTokensTextArea = observer((props) => {
 
   return (
     <div className={classnames('container-tokens-textarea', className)}>
-      {label && <p className={classnames('text-area-label', textClassName)}>{label}</p>}
+      <div className={classnames(textClassName, { 'tokens-textarea-head': label || symbolsCount !== undefined })}>
+        {label && <p>{label}</p>}
+        {maxTextSymbols !== undefined && symbolsCount !== undefined ? (<p>{`${symbolsCount} / ${maxTextSymbols}`}</p>) : null}
+        {!maxTextSymbols && symbolsCount !== undefined ? (<p>{symbolsCount}</p>) : null}
+      </div>
       <ContentEditable
         className={classnames(inputClassName, 'text-area', variant)}
         tagName="pre"
@@ -84,6 +97,8 @@ FormTokensTextArea.propTypes = {
   updateCaret: PropTypes.func.isRequired,
   caretName: PropTypes.string,
   disabled: PropTypes.bool,
+  maxTextSymbols: PropTypes.number,
+  symbolsCount: PropTypes.number,
 };
 
 export default FormTokensTextArea;

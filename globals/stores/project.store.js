@@ -994,6 +994,7 @@ export default class ProjectStore extends BaseStore {
         return track.trackEvents.map((trackEvent) => {
           const item = {
             ...trackEvent.popcornOptions,
+            type: trackEvent.type,
             track: null,
             start: null,
             type: trackEvent.type,

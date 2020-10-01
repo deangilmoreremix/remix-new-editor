@@ -11,6 +11,14 @@
   background: $light-twinlight;
   transition: 0.3s all;
 
+  &__notification {
+    margin-top: 1.5rem;
+
+    span {
+      color: $secondary-color;
+    }
+  }
+
   button {
     font-size: $defaultFontSize;
   }

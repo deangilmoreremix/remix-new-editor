@@ -37,3 +37,17 @@
     padding: 0.5rem 0.546rem;
   }
 }
+
+.container-textarea-head {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: $defaultFontSize;
+  line-height: $defaultLineHeight;
+
+  p {
+    margin: 0;
+  }
+}

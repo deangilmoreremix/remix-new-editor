@@ -28,6 +28,20 @@
   }
 }
 
+.tokens-textarea-head {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: $defaultFontSize;
+  line-height: $defaultLineHeight;
+
+  p {
+    margin: 0;
+  }
+}
+
 .personalized-token {
   border-radius: 4px;
   border: 1px solid $red;

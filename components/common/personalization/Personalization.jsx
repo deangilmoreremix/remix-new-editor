@@ -4,14 +4,14 @@ import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 
-import { tokenModes, INPUT_PLACEHOLDER, CUSTOM } from '../../../lib/constants/tokens';
+import { tokenModes as modes, INPUT_PLACEHOLDER, CUSTOM } from '../../../lib/constants/tokens';
 import FormTextField from '../../form/FormTextField';
 
 import svgCogWheel from '../../../public/static/images/cogwheel.svg';
 import { formatToken } from '../../../lib/utils/tokens-helper';
 
 
-const Personalization = ({ closeModal, tokenList, onAdd }) => {
+const Personalization = ({ closeModal, tokenList, onAdd, tokenModes }) => {
   const [token, setToken] = useState(tokenList[0]);
   const [customToken, setCustomToken] = useState(CUSTOM);
   const [tokenState, setTokenState] = useState(tokenModes.plain);
@@ -102,6 +102,7 @@ const Personalization = ({ closeModal, tokenList, onAdd }) => {
                     />
                   )
               }
+
               <div className="personalization__item__right">
                 {
                   Object.keys(tokenModes).map((item) => (
@@ -132,6 +133,7 @@ const Personalization = ({ closeModal, tokenList, onAdd }) => {
                   ))
                 }
               </div>
+
             </div>
             <button className="personalization__add" type="button" onClick={addToken}>+ add</button>
           </div>
@@ -145,6 +147,15 @@ Personalization.propTypes = {
   closeModal: PropTypes.func.isRequired,
   onAdd: PropTypes.func.isRequired,
   tokenList: PropTypes.arrayOf(PropTypes.string),
+  tokenModes: PropTypes.shape({
+    plain: PropTypes.string,
+    fallbackValue: PropTypes.string,
+    uppercase: PropTypes.string,
+  }),
+};
+
+Personalization.defaultProps = {
+  tokenModes: modes,
 };
 
 export default Personalization;

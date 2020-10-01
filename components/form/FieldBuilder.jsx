@@ -20,17 +20,26 @@ const FieldBuilder = React.forwardRef(({ onChange, value, ...props }, ref) => {
   }, [type]);
 
   return (
-    <div className="settings-input-box">
-      {isTooltip && (
-        <HelpIconComponent height={tooltipHeight} message={tooltipMessage} />
+    <>
+      {isTooltip ? (
+        <div className="settings-input-box">
+          <HelpIconComponent height={tooltipHeight} message={tooltipMessage} />
+          <InputComponent
+            {...props}
+            value={value}
+            onChange={handleChangeField}
+            ref={ref}
+          />
+        </div>
+      ) : (
+        <InputComponent
+          {...props}
+          value={value}
+          onChange={handleChangeField}
+          ref={ref}
+        />
       )}
-      <InputComponent
-        {...props}
-        value={value}
-        onChange={handleChangeField}
-        ref={ref}
-      />
-    </div>
+    </>
   );
 });
 
