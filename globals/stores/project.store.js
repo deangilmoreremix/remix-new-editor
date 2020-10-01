@@ -1787,7 +1787,7 @@ export default class ProjectStore extends BaseStore {
     if (newEnd < element.popcornOptions.end) {
       return null;
     }
-    const elementAnimationOut = element.popcornOptions.animation.out?.duration || 0;
+    const elementAnimationOut = element.popcornOptions.animation?.out?.duration || 0;
     const differenceLength = +((newEnd - element.popcornOptions.end).toFixed(2));
     const elementsForUpdate = [];
     const elementsEnds = [];
