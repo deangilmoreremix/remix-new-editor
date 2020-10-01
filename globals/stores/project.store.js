@@ -1793,11 +1793,15 @@ export default class ProjectStore extends BaseStore {
     const elementsEnds = [];
     let animationOut = 0;
     let itemStartAfterToVideo = null;
+    let animationOutInLastItem = 0;
 
-    this.projectData.media.forEach((media) => {
-      media.tracks.forEach((track) => {
+    this.projectData.media.forEach(media => {
+      media.tracks.forEach(track => {
         track.trackEvents.forEach(trackEvent => {
           if (trackEvent.track === element.track) {
+            if (trackEvent.popcornOptions.end > Math.max(...elementsEnds)) {
+              animationOutInLastItem = trackEvent.popcornOptions.animation?.out?.duration || 0;
+            }
             elementsEnds.push(trackEvent.popcornOptions.end);
             if (element.popcornOptions.end <= trackEvent.popcornOptions.start) {
               elementsForUpdate.push(trackEvent);
@@ -1824,7 +1828,9 @@ export default class ProjectStore extends BaseStore {
     if (newEnd + elementAnimationOut > itemStartAfterToVideo) {
       if (this.duration < (Math.max(...elementsEnds)
         + differenceLength + animationOut) * SANTISECOND) {
-        await this.updateVideoDuration((this.duration / SANTISECOND) + differenceLength);
+        await this.updateVideoDuration(
+          Math.max(...elementsEnds) + animationOutInLastItem + differenceLength,
+        );
       }
 
       if (elementsForUpdate && elementsForUpdate.length) {
