@@ -128,7 +128,7 @@ export default class UserStore {
 
   @computed
   get googleMapsEnabled() {
-    return false;
+    return this.isfeatureEnabled(FEATURES.GOOGLE_MAPS);
   }
 
   @computed
