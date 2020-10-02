@@ -40,11 +40,12 @@ import { showConfirmation, showError, showInfo } from '../../lib/services/alertS
 import {
   FORM_ONE_LG,
   WARNING_OPACITY,
+  WARNINGS,
 } from '../../lib/constants/text-info';
 import { radioButton } from '../../lib/constants/windowsLogics';
 import { ACTION_MAKE_COPY, ACTION_WATCH_VIDEO, PRODUCE_TABS } from '../../lib/constants/ui';
 import { ROUTES } from '../../lib/constants/routing';
-import { video360prefix } from '../../lib/constants/settings/video';
+import { video360prefix, REGEX_MAP } from '../../lib/constants/settings/video';
 
 const caretNames = Object.values(CARET_NAMES);
 
@@ -279,9 +280,15 @@ export default class ProjectStore extends BaseStore {
         this.isLoadingSequencer = true;
         if (item.is360 && this.userStore.video360Enabled) {
           if (item.extra && item.extra.source && item.extra.source.length) {
-            item.extra.source[0] = `${video360prefix}${item.extra.source[0]}`;
-          } else {
+            if (REGEX_MAP.Adaptive.test(item.extra.source[0])) {
+              item.extra.source[0] = `${video360prefix}${item.extra.source[0]}`;
+            } else {
+              this.warning = WARNINGS.wrongFormat360;
+            }
+          } else if (REGEX_MAP.Adaptive.test(item.url)) {
             item.url = `${video360prefix}${item.url}`;
+          } else {
+            this.warning = WARNINGS.wrongFormat360;
           }
         }
         const source = (item.extra && item.extra.source) || [item.url];
@@ -353,7 +360,7 @@ export default class ProjectStore extends BaseStore {
     const manifest = window.Popcorn.manifest.retargetForm;
     let options;
     if (this.retarget && this.retarget.options) {
-      options = { ...this.retarget.options };
+      options = { ...this.retarget.options, ...DEFAULT_OPTIONS };
     } else {
       options = (kind === POPCORN_ELEMENT_TYPES.RETARGET
         ? { ...DEFAULT_OPTIONS }
@@ -406,7 +413,8 @@ export default class ProjectStore extends BaseStore {
     if (this.retarget && this.retarget.options && this.retarget.id) {
       const isAdvancedOptin = kind === POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN;
       Object.keys(DEFAULT_OPTIONS_OPTIN).forEach(key => {
-        const defaultValue = this.retarget.manifest.options[key].default;
+        const defaultValue = this.retarget.manifest.options[key].default
+          ?? this.retarget.options[key];
         let currentValue = this.retarget.options[key];
         // eslint-disable-next-line no-prototype-builtins
         if (this.retarget.options.hasOwnProperty(key)) {

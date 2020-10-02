@@ -145,7 +145,7 @@ export default class UserStore {
 
   @computed
   get googleMapsEnabled() {
-    return false;
+    return this.isfeatureEnabled(FEATURES.GOOGLE_MAPS);
   }
 
   @computed
@@ -177,5 +177,10 @@ export default class UserStore {
   get video360Enabled() {
     return [FEATURES.OP_360, FEATURES.OWP_360, FEATURES.VIDEO_360]
       .some(feature => this.isfeatureEnabled(feature));
+  }
+
+  @computed
+  get clickToPhoneCall() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL);
   }
 }

@@ -740,6 +740,29 @@ button.library__tab {
   .library__item {
     width: calc(50% - 0.64em);
   }
+
+  .library__add-file__container {
+    flex-direction: column;
+  }
+
+  .library__add-file, .is-360-wrapper {
+    width: 100%;
+  }
+
+  .library__add {
+    margin-bottom: .5rem;
+  }
+
+  .is-360-wrapper {
+    .is-360 {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+
+  .hint-360 {
+    text-align: left;
+  }
 }
 
 @media screen and (max-width: $md) {

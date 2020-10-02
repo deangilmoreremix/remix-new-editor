@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 import ContentEditable from 'react-contenteditable';
@@ -27,10 +27,14 @@ const FormTokensTextArea = observer((props) => {
     inputClassName,
     additionalFieldName,
     disabled,
+    labelHint,
     maxTextSymbols,
     symbolsCount,
   } = props;
 
+  const [isHint, setIsHint] = useState(false);
+
+  const onEdit = (e) => {
   const onEdit = async (e) => {
     let { target: { value: v } } = e;
     const text = unwrapTokens(v);
@@ -65,10 +69,17 @@ const FormTokensTextArea = observer((props) => {
     }
   };
 
+  const handleShowHint = () => {
+    if (labelHint) {
+      setIsHint((prevIsHint) => !prevIsHint);
+    }
+  };
+
   return (
     <div className={classnames('container-tokens-textarea', className)}>
       <div className={classnames(textClassName, { 'tokens-textarea-head': label || symbolsCount !== undefined })}>
         {label && <p>{label}</p>}
+        {labelHint && isHint && <span className="label-input-hint">{labelHint}</span>}
         {maxTextSymbols !== undefined && symbolsCount !== undefined ? (<p>{`${symbolsCount} / ${maxTextSymbols}`}</p>) : null}
         {!maxTextSymbols && symbolsCount !== undefined ? (<p>{symbolsCount}</p>) : null}
       </div>
@@ -79,6 +90,8 @@ const FormTokensTextArea = observer((props) => {
         onChange={onEdit}
         onClick={onClick}
         onPaste={pasteData}
+        onFocus={handleShowHint}
+        onBlur={handleShowHint}
         onKeyPress={onKeyPress}
         disabled={disabled}
       />
@@ -97,6 +110,11 @@ FormTokensTextArea.propTypes = {
   updateCaret: PropTypes.func.isRequired,
   caretName: PropTypes.string,
   disabled: PropTypes.bool,
+  labelHint: PropTypes.string,
+};
+
+FormTokensTextArea.defaultProps = {
+  labelHint: '',
   maxTextSymbols: PropTypes.number,
   symbolsCount: PropTypes.number,
 };

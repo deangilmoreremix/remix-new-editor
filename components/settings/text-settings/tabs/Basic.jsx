@@ -22,12 +22,18 @@ import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 
 import PropTypes from '../../../../lib/PropTypes';
 
+import { HINTS } from '../../../../lib/constants/text-info';
+
 const Basic = observer(({ values, fields, element, onChange }) => {
   const [positionHorizontal, setPositionHorizontal] = useState();
   const [positionVertical, setPositionVertical] = useState();
 
   const { openAnimation } = useUIStore();
-  const { currentUser: user, isfeatureEnabled: checkStateFeature } = useUserStore();
+  const {
+    currentUser: user,
+    isfeatureEnabled: checkStateFeature,
+    clickToPhoneCall,
+  } = useUserStore();
 
   const {
     start,
@@ -168,6 +174,8 @@ const Basic = observer(({ values, fields, element, onChange }) => {
     }
   }, [htmlUrl, linkUrl]);
 
+  const hint = useMemo(() => (clickToPhoneCall ? HINTS.LINK_URL_PHONE : HINTS.LINK_URL));
+
   return (
     <Fragment>
       <div className="text-container">
@@ -223,6 +231,7 @@ const Basic = observer(({ values, fields, element, onChange }) => {
         <div className="link-url-container">
           <FieldBuilder
             value={urlToRender}
+            labelHint={hint}
             {...fields.htmlUrl}
             className="input-url-position"
             onChange={onChange}

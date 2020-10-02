@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import FormGroup from '@material-ui/core/FormGroup';
 import InputLabel from '@material-ui/core/InputLabel';
 import TextField from '@material-ui/core/TextField';
@@ -26,8 +26,11 @@ const FormTextField = React.forwardRef(({
   rowsMin,
   rowsMax,
   readOnly,
+  labelHint,
 }, ref) => {
   const conditionalProps = {};
+
+  const [isHint, setIsHint] = useState(false);
 
   const InputProps = {
     ...(readOnly ? { readOnly } : {}),
@@ -45,6 +48,12 @@ const FormTextField = React.forwardRef(({
     onChange(v);
   };
 
+  const handleShowHint = () => {
+    if (labelHint) {
+      setIsHint((prevIsHint) => !prevIsHint);
+    }
+  };
+
   return (
     <FormGroup
       className={classnames(className)}
@@ -57,6 +66,7 @@ const FormTextField = React.forwardRef(({
           </InputLabel>
         )
       }
+      {labelHint && isHint && <span className="label-input-hint">{labelHint}</span>}
       { type !== 'text' && (
         mask
           ? (
@@ -90,6 +100,8 @@ const FormTextField = React.forwardRef(({
               {...conditionalProps}
               multiline={multiline}
               InputProps={InputProps}
+              onFocus={handleShowHint}
+              onBlur={handleShowHint}
             />
           ))}
       {type === 'text' && (
@@ -118,9 +130,11 @@ FormTextField.propTypes = {
   onChange: PropTypes.func.isRequired,
   mask: PropTypes.string,
   label: PropTypes.string,
+  labelHint: PropTypes.string,
   name: PropTypes.string,
   onEnter: PropTypes.func,
   onBlur: PropTypes.func,
+  onFocus: PropTypes.func,
   disabled: PropTypes.bool,
   className: PropTypes.string,
   inputClassName: PropTypes.string,
@@ -143,6 +157,7 @@ FormTextField.defaultProps = {
   className: '',
   readOnly: false,
   onBlur: () => {},
+  labelHint: '',
 };
 
 export default FormTextField;
