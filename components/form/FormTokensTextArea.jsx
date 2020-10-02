@@ -34,7 +34,6 @@ const FormTokensTextArea = observer((props) => {
 
   const [isHint, setIsHint] = useState(false);
 
-  const onEdit = (e) => {
   const onEdit = async (e) => {
     let { target: { value: v } } = e;
     const text = unwrapTokens(v);
@@ -98,6 +97,7 @@ const FormTokensTextArea = observer((props) => {
     </div>
   );
 });
+
 FormTokensTextArea.propTypes = {
   label: PropTypes.string,
   value: PropTypes.string,
