@@ -28,6 +28,7 @@ const Canvas = observer(() => {
     isLoadingSequencer,
     retarget,
     toggleViewPersonalizer,
+    runMapResize,
   } = projectStore;
 
   const {
@@ -84,6 +85,7 @@ const Canvas = observer(() => {
 
   useEffect(() => {
     runTextfill();
+    runMapResize();
   }, [fontSize, runTextfill]);
 
   return (

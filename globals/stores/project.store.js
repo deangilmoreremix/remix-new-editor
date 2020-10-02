@@ -1576,6 +1576,15 @@ export default class ProjectStore extends BaseStore {
     });
   };
 
+  @action
+  runMapResize = () => {
+    this.popcornElements.forEach(element => {
+      if (element.type === POPCORN_ELEMENT_TYPES.GOOGLE_MAP) {
+        this.updatePopcorn(element, { runResize: true });
+      }
+    });
+  };
+
   @computed
   get popcornElements() {
     return this.popcornObject.popcornElements || [];
