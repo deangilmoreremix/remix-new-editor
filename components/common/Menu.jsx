@@ -27,12 +27,9 @@ const Menu = observer((
   const handleAction = (arg) => {
     if (arg === ACTION_LOGOUT) {
       if (window.HelpCrunch) {
-        window.HelpCrunch(arg, () => {
-          push('/logout');
-        });
-      } else {
-        push('/logout');
+        window.HelpCrunch(arg);
       }
+      push('/logout');
     }
   };
 

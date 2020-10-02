@@ -7,7 +7,7 @@ import FieldBuilder from '../../../form/FieldBuilder';
 import useMakeStore from '../../../hooks/useMakeStore';
 import useProjectStore from '../../../hooks/useProjectStore';
 
-import { BUTTON_DISABLED_HINT as buttonText } from '../../../../lib/constants/text-info';
+import { BUTTON_DISABLED_HINT as buttonText, HINTS } from '../../../../lib/constants/text-info';
 
 const IntegrationsTab = ({ values, fields, onChange }) => {
   const { item: { project } } = useProjectStore();
@@ -34,6 +34,7 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
         {...fields.dialEnabled}
       />
       <FieldBuilder
+        labelHint={HINTS.PHONE_FORM}
         value={values.phone ?? fields.phone.default}
         onChange={onChange}
         disabled={!values.dialEnabled}

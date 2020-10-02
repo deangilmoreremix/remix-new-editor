@@ -67,6 +67,7 @@
 
     .volume-container {
       padding-right: 3rem;
+      margin-left: -13px;
     }
 
     .volume-control-label {
@@ -222,7 +223,7 @@ button.library__tab {
 .library__add {
   @include reset-button;
   height: $defaultHeightBtn;
-  padding: 0 24px;
+  padding: 0 0.5rem;
   border: 1px solid $secondary-color;
   border-radius: 4px;
 }
@@ -541,6 +542,31 @@ button.library__tab {
 
   .library__block {
     margin-top: .5rem;
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .library__add-file__container {
+    flex-direction: column;
+  }
+
+  .library__add-file, .is-360-wrapper {
+    width: 100%;
+  }
+
+  .library__add {
+    margin-bottom: .5rem;
+  }
+
+  .is-360-wrapper {
+    .is-360 {
+      display: flex;
+      justify-content: space-between;
+    }
+  }
+
+  .hint-360 {
+    text-align: left;
   }
 }
 

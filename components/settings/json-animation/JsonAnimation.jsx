@@ -43,6 +43,7 @@ const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
       {(element && element.popcornOptions) && isSuperAdmin && (
         <Tab
           options={element.popcornOptions}
+          element={element}
           onChange={handleChange}
           fields={fields}
           update={update}

@@ -79,14 +79,31 @@
         left: 0;
         width: 100%;
         text-align: center;
-        padding: 1.8em 0.5em 0;
-
+        padding: 1.2em 0.5em 0;
       }
 
       &-icon {
         width: 2.5rem;
         height: 2.5rem;
       }
+    }
+  }
+}
+
+@media screen and (max-width: 1100px) {
+  .library__item-audio-preview {
+    .library__item-audio-preview-title {
+      font-size: 0.575rem;
+      padding: 1em 0.3em 0;
+    }
+  }
+}
+
+@media screen and (max-width: 1368px) {
+  .library__item-audio-preview {
+    .library__item-audio-preview-title {
+      font-size: 0.775rem;
+      padding: 0.8em 0.4em 0;
     }
   }
 }

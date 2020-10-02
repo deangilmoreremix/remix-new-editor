@@ -86,6 +86,8 @@ const Library = observer((props) => {
   const [activeItem, setActiveItem] = useState(null);
 
   const inputRef = useRef();
+  const addFileInputRef = useRef();
+
   // =============== STATE ===============
 
   useEffect(() => () => {
@@ -98,6 +100,9 @@ const Library = observer((props) => {
   }, []);
 
   const isVideoTab = React.useMemo(() => activeTab === LIBRARY_TABS.VIDEO, [activeTab]);
+
+  const showed360 = React.useMemo(() => video360Enabled && isVideoTab,
+    [video360Enabled, isVideoTab]);
 
   const updateActiveTab = React.useCallback((tab) => {
     if (!isLoading) {
@@ -143,7 +148,7 @@ const Library = observer((props) => {
     }
   }, [isLoading]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (activeBtn || activeTab) {
       if (libraryItemsForDelete.length) {
         bulkDeleteItems();
@@ -211,6 +216,10 @@ const Library = observer((props) => {
     const wrongFormat = [];
     const wrongSize = [];
     const files = [];
+
+    if (addFileInputRef.current) {
+      addFileInputRef.current.value = '';
+    }
 
     acceptedFiles.forEach(file => {
       const validFormat = Object.keys(tabItems).some(item => tabItems[item]
@@ -324,6 +333,7 @@ const Library = observer((props) => {
     onDrop,
     disabled: false,
   });
+
   // === Drag and Drop ===
 
   const handleSearch = (e) => {
@@ -426,14 +436,19 @@ const Library = observer((props) => {
         <div className="library__row library__row-first">
           <div className="library__add-file__container">
             <div className="library__add-file">
-              <input id="add-file" {...getInputProps()} disabled={isDisabledUpload} />
+              <input
+                {...getInputProps()}
+                id="add-file"
+                disabled={isDisabledUpload}
+                ref={addFileInputRef}
+              />
               <label htmlFor="add-file" className="library__add">
                 {
                   isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
                 }
               </label>
             </div>
-            {video360Enabled && isVideoTab
+            {showed360
             && (
               <Is360
                 value={is360}

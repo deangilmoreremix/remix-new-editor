@@ -5,7 +5,7 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../../lib/PropTypes';
 
 import * as popcornConstants from '../../../../lib/constants/popcorn';
-import { regexpVideo360, video360prefix } from '../../../../lib/constants/settings/video';
+import { regexpVideo360, video360prefix, REGEX_MAP } from '../../../../lib/constants/settings/video';
 
 import useProjectStore from '../../../hooks/useProjectStore';
 import useUserStore from '../../../hooks/useUserStore';
@@ -17,6 +17,7 @@ import videoIcon from '../../../../public/static/images/media/icon-video.svg';
 import audioIcon from '../../../../public/static/images/media/icon-audio-2.svg';
 import fillIcon from '../../../../public/static/images/fill.svg';
 import Is360 from '../components/Is360';
+import { SANTISECOND } from '../../../../lib/constants/project';
 
 const ClipEditor = observer(({ values, fields, element, onChange }) => {
   const {
@@ -34,18 +35,27 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     contentType,
   } = values;
 
-  const { isAudio, isVideo, duration: timelineDuration, updateVideoDuration } = useProjectStore();
+  const {
+    isAudio,
+    isVideo,
+    duration: timelineDuration,
+    updateVideoDuration,
+    projectData,
+    updateElementFromTimeline,
+  } = useProjectStore();
   const { video360Enabled } = useUserStore();
   const [videoOut, setVideoOut] = useState(end - start + from);
   const [fadeInMax, setFadeInMax] = useState();
   const [fadeOutMax, setFadeOutMax] = useState();
 
-  const is360 = React.useMemo(() => source && source.length
-    && regexpVideo360.test(source[0]), [source]);
+  const src = React.useMemo(() => (source && typeof source === 'string' ? source : source[0]),
+    [source]);
+
+  const is360 = React.useMemo(() => regexpVideo360.test(src), [src]);
 
   const is360allowed = React.useMemo(() => isVideo({ popcornOptions: { contentType } })
-    && video360Enabled,
-  [contentType, video360Enabled]);
+    && video360Enabled && (is360 || REGEX_MAP.Adaptive.test(src)),
+  [contentType, video360Enabled, is360, src]);
 
   const itemVolume = useMemo(() => {
     if (mute) {
@@ -102,6 +112,62 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     }
   }, [volume, mute, element.id]);
 
+  const updateLayerElements = async (newEnd) => {
+    if (newEnd < element.popcornOptions.end) {
+      return null;
+    }
+
+    const differenceLength = newEnd - element.popcornOptions.end;
+    const elementsForUpdate = [];
+    const elementsEnds = [];
+    let animationOut = 0;
+    let itemStartAfterToVideo = null;
+
+    projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach(trackEvent => {
+          if (trackEvent.track === element.track) {
+            elementsEnds.push(trackEvent.popcornOptions.end);
+            if (element.popcornOptions.end <= trackEvent.popcornOptions.start) {
+              elementsForUpdate.push(trackEvent);
+              if (trackEvent.popcornOptions.animation
+                && trackEvent.popcornOptions.animation.out) {
+                // eslint-disable-next-line max-len
+                animationOut += trackEvent.popcornOptions.animation.out.duration;
+              }
+            }
+          }
+        });
+      });
+    });
+
+    if (elementsForUpdate && elementsForUpdate.length) {
+      elementsForUpdate.forEach(item => {
+        if (item.popcornOptions.start
+          <= itemStartAfterToVideo || !itemStartAfterToVideo) {
+          itemStartAfterToVideo = item.popcornOptions.start;
+        }
+      });
+    }
+
+    if (newEnd > itemStartAfterToVideo) {
+      if (timelineDuration < (Math.max(...elementsEnds)
+        + differenceLength + animationOut) * SANTISECOND) {
+        await updateVideoDuration((timelineDuration / SANTISECOND) + differenceLength);
+      }
+
+      if (elementsForUpdate && elementsForUpdate.length) {
+        elementsForUpdate.forEach(item => (
+          updateElementFromTimeline({
+            needUpdateStartEnd: true,
+            elementId: item.id,
+            start: item.popcornOptions.start + differenceLength,
+            end: item.popcornOptions.end + differenceLength,
+          })));
+      }
+    }
+  };
+
   const changeFrom = useCallback((field) => {
     let value;
     if (typeof field === 'number') {
@@ -110,8 +176,10 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
       value = field.from;
     }
     if (value < (end - start + from)) {
+      const newEnd = +(end - value + from).toFixed(2);
+      updateLayerElements(newEnd);
       onChange({ from: value });
-      onChange({ end: +(end - value + from).toFixed(2) });
+      onChange({ end: newEnd });
     } else {
       onChange({ from: videoOut - 1 });
       onChange({ end: start + 1 });
@@ -130,6 +198,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
       if (newEnd * 100 > timelineDuration) {
         await updateVideoDuration(newEnd);
       }
+      updateLayerElements(newEnd);
       onChange({ end: newEnd });
     } else {
       onChange({ end: start + 1 });
@@ -282,7 +351,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
           onChange={onChange}
           onEnter={onChange}
           className="video-settings__time"
-          element={values}
+          element={element}
         />
         <FieldBuilder
           label={fields[popcornConstants.END].label}
@@ -292,7 +361,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
           onChange={onChange}
           onEnter={onChange}
           className="video-settings__time"
-          element={values}
+          element={element}
         />
       </div>
 
@@ -353,6 +422,15 @@ ClipEditor.propTypes = {
     start: PropTypes.shape({}),
     end: PropTypes.shape({}),
   }),
+  element: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    popcornOptions: PropTypes.shape().isRequired,
+    track: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]).isRequired,
+  }).isRequired,
 };
 
 export default ClipEditor;
