@@ -52,7 +52,7 @@ const InputFieldItem = observer(({ item, onRemove, fields, handleChangeInput, ch
       </div>
       <div className="flex-center retarget-remove">
         <SVGInline
-          className="icon"
+          className="icon trash"
           classSuffix=""
           svg={trashIcon}
           cleanup={['title']}
