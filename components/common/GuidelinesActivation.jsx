@@ -7,8 +7,10 @@ import PropTypes from '../../lib/PropTypes';
 import useUIStore from '../hooks/useUIStore';
 
 import FieldBuilder from '../form/FieldBuilder';
+import HelpIconComponent from './HelpIcon';
 
 import guidelinesIcon from '../../public/static/svgImages/guidlines.svg';
+import { mainTooltips } from '../../lib/constants/tooltips';
 
 const GuidelinesActivation = observer(({ marginLeft }) => {
   const { hasGuidLines, setGuideLines } = useUIStore();
@@ -18,6 +20,7 @@ const GuidelinesActivation = observer(({ marginLeft }) => {
       className="guidelines-activation"
       style={marginLeft && { marginLeft }}
     >
+      <HelpIconComponent height={50} message={mainTooltips.guideline} />
       <SVGInline
         svg={guidelinesIcon}
         cleanup={['guidelines']}

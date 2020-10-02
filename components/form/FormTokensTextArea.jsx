@@ -28,16 +28,25 @@ const FormTokensTextArea = observer((props) => {
     additionalFieldName,
     disabled,
     labelHint,
+    maxTextSymbols,
+    symbolsCount,
   } = props;
 
   const [isHint, setIsHint] = useState(false);
 
-  const onEdit = (e) => {
+  const onEdit = async (e) => {
     let { target: { value: v } } = e;
     const text = unwrapTokens(v);
+    const textLength = text.replace(/{{\w+}}/g, '').length;
     v = wrapTokens(v);
     const caretOffset = catchCaretCharacterOffsetWithin(e);
-    onChange(v, { [caretName]: caretOffset, [additionalFieldName]: text });
+    if ((maxTextSymbols && textLength <= maxTextSymbols) || !maxTextSymbols) {
+      onChange(v, { [caretName]: caretOffset, [additionalFieldName]: text });
+    } else {
+      const length = v.length - textLength + maxTextSymbols;
+      await onChange(v, { [caretName]: caretOffset, [additionalFieldName]: text });
+      onChange(v.slice(0, length), { [caretName]: caretOffset, [additionalFieldName]: text });
+    }
   };
 
   const pasteData = (e) => {
@@ -67,8 +76,12 @@ const FormTokensTextArea = observer((props) => {
 
   return (
     <div className={classnames('container-tokens-textarea', className)}>
-      {label && <p className={classnames('text-area-label', textClassName)}>{label}</p>}
-      {labelHint && isHint && <span className="label-input-hint">{labelHint}</span>}
+      <div className={classnames(textClassName, { 'tokens-textarea-head': label || symbolsCount !== undefined })}>
+        {label && <p>{label}</p>}
+        {labelHint && isHint && <span className="label-input-hint">{labelHint}</span>}
+        {maxTextSymbols !== undefined && symbolsCount !== undefined ? (<p>{`${symbolsCount} / ${maxTextSymbols}`}</p>) : null}
+        {!maxTextSymbols && symbolsCount !== undefined ? (<p>{symbolsCount}</p>) : null}
+      </div>
       <ContentEditable
         className={classnames(inputClassName, 'text-area', variant)}
         tagName="pre"
@@ -84,6 +97,7 @@ const FormTokensTextArea = observer((props) => {
     </div>
   );
 });
+
 FormTokensTextArea.propTypes = {
   label: PropTypes.string,
   value: PropTypes.string,
@@ -101,6 +115,8 @@ FormTokensTextArea.propTypes = {
 
 FormTokensTextArea.defaultProps = {
   labelHint: '',
+  maxTextSymbols: PropTypes.number,
+  symbolsCount: PropTypes.number,
 };
 
 export default FormTokensTextArea;

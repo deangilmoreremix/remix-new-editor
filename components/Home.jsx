@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import Grid from '@material-ui/core/Grid';
 import { useAsync } from 'react-async-hook';
 import classnames from 'classnames';
+import hotkeys from 'hotkeys-js';
 
 import Loader from './common/Loader';
 import Canvas from './Canvas';
@@ -20,19 +21,21 @@ import SettingsEditor from './common/SettingsEditor';
 import Recorder from './common/recorder/Recorder';
 import CallToAction from './media/CallToAction';
 import Giphy from './media/Giphy';
-
-import { twoKeysEvent } from '../lib/utils/twoKeysEvent';
+import { twoKeys } from '../lib/constants/keyCodes';
+import TextToSpeech from './media/TextToSpeech';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
 import useUIStore from './hooks/useUIStore';
 import useUserStore from './hooks/useUserStore';
+import useSocketStore from './hooks/useSocketStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import Warning from './common/snackBars/Warning';
+import Success from './common/snackBars/Success';
 
-import { CANVAS_SIZES } from '../lib/constants/media';
+import { CANVAS_SIZES, ASSET_TYPES } from '../lib/constants/media';
 import { DEFAULT_RATIO } from '../lib/constants/project';
 import { WINDOW_TYPES, SCREEN_RATIO } from '../lib/constants/ui';
 import { ROUTES } from '../lib/constants/routing';
@@ -43,6 +46,7 @@ const Home = observer(() => {
   const { pathname, query: { project, remix }, push } = useRouter();
   const projectStore = useProjectStore();
   const userStore = useUserStore();
+  const { subscribeToSocketEvent, unsubscribeToSocketEvent } = useSocketStore();
 
   const {
     optinCodeEnabled,
@@ -60,6 +64,8 @@ const Home = observer(() => {
     gifsEnabled,
     libraryStickerEnabled,
     jsonTransitionEnabled,
+    textToSpeechStandardEnabled,
+    textToSpeechNeuralEnabled,
     leadGeneratorEnabled,
     googleMapsEnabled,
     socialFbEnabled,
@@ -69,7 +75,14 @@ const Home = observer(() => {
   const { openModal, closeModal } = useModalStore();
   const [shouldShowTGModal, setShouldShowTGModal] = useState(templateGeneratorEnabled);
 
-  React.useEffect(() => {
+  const socketHandler = () => openModal(ASSET_TYPES.VOICE);
+
+  useEffect(() => {
+    subscribeToSocketEvent('text-to-speech-ready', socketHandler);
+    return () => unsubscribeToSocketEvent('text-to-speech-ready', socketHandler);
+  }, []);
+
+  useEffect(() => {
     if (!project && pathname !== ROUTES.edit) {
       push({
         pathname: ROUTES.edit,
@@ -90,16 +103,6 @@ const Home = observer(() => {
       setShouldShowTGModal(false);
     }
   }, [shouldShowTGModal, pathname, project, remix, push]);
-
-  React.useEffect(() => {
-    twoKeysEvent({
-      undo: () => undoRedoAction(true),
-      redo: () => undoRedoAction(false),
-      saveProject: () => checkAndSave({
-        changeRadioButton, showProducePanel, closeAllWindows, setInitialView,
-      }),
-    });
-  }, []);
 
   const asyncHero = useAsync(
     project
@@ -122,6 +125,8 @@ const Home = observer(() => {
     canvasWidth,
     toolsWidth,
     setListBuilder,
+    openCTA,
+    openSecondaryModal,
     toggleRightBlock,
     openUploadTransition,
     openToolbarElement,
@@ -143,12 +148,70 @@ const Home = observer(() => {
     addRetargetForm,
     releaseElement,
     warning,
+    success,
     element,
     retarget,
     activeElementId,
     checkAndSave,
     undoRedoAction,
+    projectData,
   } = projectStore;
+
+  hotkeys.filter = () => true;
+  const keys = [twoKeys.ctrlS, twoKeys.ctrlZ, twoKeys.ctrlY, twoKeys.ctrlC,
+    twoKeys.commandS, twoKeys.commandZ, twoKeys.commandY, twoKeys.commandC];
+
+  React.useEffect(() => {
+    hotkeys.unbind(keys.join(), hotkeys.getScope());
+    hotkeys(keys.join(), (event, handler) => {
+      switch (handler.key) {
+        case twoKeys.ctrlS:
+        case twoKeys.commandS:
+          event.preventDefault();
+          checkAndSave({
+            changeRadioButton, showProducePanel, closeAllWindows, setInitialView,
+          });
+          break;
+        case twoKeys.ctrlZ:
+        case twoKeys.commandZ:
+          event.preventDefault();
+          undoRedoAction(true);
+          break;
+        case twoKeys.ctrlY:
+        case twoKeys.commandY:
+          event.preventDefault();
+          undoRedoAction(false);
+          break;
+        case twoKeys.ctrlC:
+        case twoKeys.commandC: {
+          if (!event.target.classList.contains('popcorn-element')) {
+            return null;
+          }
+          event.preventDefault();
+          if (projectData.media && projectData.media.length && activeElementId) {
+            projectData.media.forEach((media) => {
+              media.tracks.forEach((track) => {
+                track.trackEvents.forEach(trackEvent => {
+                  if (trackEvent.id === activeElementId) {
+                    addElement({
+                      ...trackEvent.popcornOptions,
+                      type: trackEvent.type,
+                      track: null,
+                      blendMode: null,
+                      opacity: null,
+                      id: null,
+                    });
+                  }
+                });
+              });
+            });
+          }
+          break;
+        }
+        default: return null;
+      }
+    });
+  }, [activeElementId]);
 
   const currentElement = useMemo(() => {
     if (retarget) {
@@ -176,7 +239,8 @@ const Home = observer(() => {
       }
       case WINDOW_TYPES.VIDEO:
       case WINDOW_TYPES.AUDIO:
-      case WINDOW_TYPES.IMAGE: {
+      case WINDOW_TYPES.IMAGE:
+      case WINDOW_TYPES.VOICE: {
         return <Library />;
       }
       case WINDOW_TYPES.STICKERS.value:
@@ -209,6 +273,9 @@ const Home = observer(() => {
       case WINDOW_TYPES.STICKER: {
         return <Giphy type="stickers" />;
       }
+      case WINDOW_TYPES.TEXT_TO_SPEECH: {
+        return <TextToSpeech />;
+      }
       default: {
         return null;
       }
@@ -229,6 +296,8 @@ const Home = observer(() => {
         setListBuilder,
         setSecondaryWindowType,
         openMediaButton,
+        openCTA,
+        openSecondaryModal,
         toggleRightBlock,
         openUploadTransition,
         openToolbarElement,
@@ -258,6 +327,8 @@ const Home = observer(() => {
         jsonTransitionEnabled,
         width,
         height,
+        textToSpeechStandardEnabled,
+        textToSpeechNeuralEnabled,
         googleMapsEnabled,
         socialFbEnabled,
         wrapperFeatureEnabled,
@@ -323,6 +394,7 @@ const Home = observer(() => {
         </div>
       )}
       {warning && <Warning message={warning} />}
+      {success && <Success message={success} />}
     </React.Fragment>
   );
 });

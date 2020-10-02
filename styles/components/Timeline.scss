@@ -87,11 +87,18 @@
         height: auto;
         margin: auto 0.2rem;
       }
+
       &.popcorn-overlay {
         width: 1rem;
         min-width: 1rem;
         height: auto;
         margin: auto 0.2rem;
+      }
+
+      &.popcorn-timeline-icon {
+        path {
+          stroke: none;
+        }
       }
     }
 
@@ -111,12 +118,21 @@
   }
 }
 
+div.popcorn-element-personalized-voice {
+  justify-content: center;
+
+  & + .react-resizable-handle {
+    display: none;
+  }
+}
+
 .popcorn-pausePlugin-element,
 .popcorn-loopPlugin-element,
 .popcorn-skip-element,
 .popcorn-googlemap-element,
 .popcorn-json-transition-element,
-.popcorn-social-element {
+.popcorn-social-element,
+.popcorn-sequencer-element {
   justify-content: space-between;
 }
 

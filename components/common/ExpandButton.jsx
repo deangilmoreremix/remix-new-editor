@@ -7,6 +7,8 @@ import useUIStore from '../hooks/useUIStore';
 import useProjectStore from '../hooks/useProjectStore';
 
 import expandIcon from '../../public/static/svgImages/header/expand.svg';
+import HelpIconComponent from './HelpIcon';
+import { headerTooltips } from '../../lib/constants/tooltips';
 
 const ExpandButton = observer(() => {
   const {
@@ -26,12 +28,15 @@ const ExpandButton = observer(() => {
       className={classnames('expandButton', { 'expandButton-active': isExpand })}
       onClick={onCLick}
     >
-      <SVGInline
-        className="expandButton-icon"
-        svg={expandIcon}
-        cleanup={['expand']}
-      />
-      <p>Expand</p>
+      <div className="expandButton-content">
+        <SVGInline
+          className="expandButton-icon"
+          svg={expandIcon}
+          cleanup={['expand']}
+        />
+        <p>Expand</p>
+      </div>
+      <HelpIconComponent noPadding message={headerTooltips.expand} />
     </button>
   );
 });

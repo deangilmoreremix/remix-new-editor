@@ -69,10 +69,19 @@ input, div, textarea {
       font-size: $defaultFontSize;
       min-height: 2.065rem;
     }
+
+    &-disabled {
+      opacity: 0.5;
+
+    }
   }
 
   &.text-input:focus, &.text-input:hover {
     border: 0.055rem solid $secondary-color;
+  }
+
+  &.text-input-disabled:focus, &.text-input-disabled:hover {
+    border: 0.055rem solid $btn-gray;
   }
 
   &.input-disabled:hover {
@@ -155,4 +164,3 @@ label {
 .button-disabled:hover {
   cursor: not-allowed;
 }
-

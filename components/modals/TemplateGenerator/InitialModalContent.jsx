@@ -3,11 +3,16 @@ import PropTypes from 'prop-types';
 import SVGInline from 'react-svg-inline';
 
 import generatorImg from '../../../public/static/images/generator.svg';
+import HelpIconComponent from '../../common/HelpIcon';
+import { mainTooltips } from '../../../lib/constants/tooltips';
 
 export default function InitialModalContent({ accept, decline }) {
   return (
     <>
-      <p className="template-generator-offer__text">Do you want to use the Template Generator?</p>
+      <div className="generator-offer__text-box">
+        <p className="generator-offer__text">Do you want to use the Template Generator?</p>
+        <HelpIconComponent isLeft message={mainTooltips.templateGenerator} />
+      </div>
       <SVGInline
         className="generator-img"
         svg={generatorImg}

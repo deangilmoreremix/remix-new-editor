@@ -9,7 +9,7 @@ import classnames from 'classnames';
 import PropTypes from '../../lib/PropTypes';
 import FormTextField from './FormTextField';
 import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
-import { rgba2hex, fade } from '../../lib/lottie/utils';
+import { rgba2hex, fade, rgbToHex } from '../../lib/lottie/utils';
 
 const FormColor = ({ label, onChange, value, className, disabled, allowReset, resetText }) => {
   const colorPrimary = 'rgb(235, 80, 84, 1)';
@@ -55,7 +55,10 @@ const FormColor = ({ label, onChange, value, className, disabled, allowReset, re
         <Box tabIndex={-1}>
           <FormTextField
             labelClass="label-left"
-            value={colorToRgbaString(color) || value || colorPrimary}
+            value={(typeof color === 'object'
+              ? rgbToHex(color.r, color.g, color.b)
+              : rgba2hex(color) || color)
+              || value || colorPrimary}
             onChange={updateColor}
             disabled={disabled}
           />

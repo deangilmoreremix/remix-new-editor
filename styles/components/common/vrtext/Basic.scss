@@ -41,10 +41,16 @@
   align-items: center;
   justify-content: flex-end;
   margin-top: 1em;
-  margin-left: 0.5rem;
 }
 
 .text-form {
+  .MuiRadio-root {
+    .MuiIconButton-label {
+      width: 0.6em;
+      height: 0.6em;
+    }
+  }
+
   .link-url-container {
     display: flex;
     justify-content: space-between;
@@ -156,6 +162,16 @@
   white-space: nowrap;
   text-align: center;
   padding: 0 24px;
+}
+
+.btn-personalize-disabled {
+  opacity: 0.5;
+  cursor: auto;
+}
+
+.btn-custom-disabled {
+  opacity: 0.5;
+  cursor: auto;
 }
 
 .text-position-container {

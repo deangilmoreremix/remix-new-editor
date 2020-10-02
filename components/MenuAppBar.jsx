@@ -8,6 +8,8 @@ import Menu from './common/Menu';
 import UserBox from './common/user/UserBox';
 import ExpandButton from './common/ExpandButton';
 import { USER_MENU_ITEMS } from '../lib/constants/ui';
+import { headerTooltips } from '../lib/constants/tooltips';
+import HelpIconComponent from './common/HelpIcon';
 
 // import logoIcon from '../public/static/svgImages/header/logo.svg';
 import redoIcon from '../public/static/svgImages/header/redo.svg';
@@ -57,6 +59,7 @@ const MenuAppBar = observer(() => {
           {/* </div> */}
 
           <div className="container-menu__actions">
+            <HelpIconComponent noPadding message={headerTooltips.undo} />
             <div>
               <SVGInline
                 className={classnames('icon icon-button', { active: canUndo })}
@@ -75,6 +78,7 @@ const MenuAppBar = observer(() => {
                 undo
               </button>
             </div>
+            <HelpIconComponent noPadding message={headerTooltips.redo} />
             <div>
               <SVGInline
                 className={classnames('icon icon-button', { active: canRedo })}
@@ -93,6 +97,7 @@ const MenuAppBar = observer(() => {
                 redo
               </button>
             </div>
+            <HelpIconComponent noPadding message={headerTooltips.save} />
             <div>
               <SVGInline
                 className={`icon icon-button ${modified ? 'active-save' : ''}`}
@@ -112,9 +117,7 @@ const MenuAppBar = observer(() => {
               </button>
             </div>
           </div>
-
           <ExpandButton />
-
           <Menu
             toggleElement={<UserBox />}
             items={USER_MENU_ITEMS(common)}
