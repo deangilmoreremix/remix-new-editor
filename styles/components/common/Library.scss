@@ -229,14 +229,10 @@ button.library__tab {
   }
 }
 
-.library__open-window {
-  @include reset-button;
-  width: auto;
-}
-
 .library__add {
   @include reset-button;
   height: $defaultHeightBtn;
+  width: 100%;
   padding: 0 0.5rem;
   border: 1px solid $secondary-color;
   border-radius: 4px;
@@ -607,8 +603,7 @@ button.library__tab {
     flex-direction: column;
 
     &>div:first-child,
-    &>div:last-child,
-    .library__add {
+    &>div:last-child {
       width: 100%;
     }
 

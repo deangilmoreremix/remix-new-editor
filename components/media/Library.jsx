@@ -509,13 +509,11 @@ const Library = observer((props) => {
                   <HelpIconComponent message={tabItems[activeTab].tooltip} />
                 </div>
               ) : (
-                // todo Open Voice Modal
-                <button className="library__add-file library__open-window" onClick={openVoiceWindow}>
-                  <input id="add-file" />
-                  <label htmlFor="add-file" className="library__add">
+                <div className="library__add-file">
+                  <button className="library__add" onClick={openVoiceWindow}>
                     Add Voice
-                  </label>
-                </button>
+                  </button>
+                </div>
               )
             }
             {showed360
