@@ -111,12 +111,12 @@ FormTokensTextArea.propTypes = {
   caretName: PropTypes.string,
   disabled: PropTypes.bool,
   labelHint: PropTypes.string,
+  maxTextSymbols: PropTypes.number,
+  symbolsCount: PropTypes.number,
 };
 
 FormTokensTextArea.defaultProps = {
   labelHint: '',
-  maxTextSymbols: PropTypes.number,
-  symbolsCount: PropTypes.number,
 };
 
 export default FormTokensTextArea;
