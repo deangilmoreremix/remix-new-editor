@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState, Fragment } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
+import SVGInline from 'react-svg-inline';
+import AudioPlayer from 'react-audio-player';
 
 import { TEXT_TO_SPEECH_SUCCESS, TEXT_TO_SPEECH_ERROR, ERROR_TEXT_SYMBOLS } from '../../lib/constants/text-info';
 import { ASSET_TYPES } from '../../lib/constants/media';
@@ -14,9 +16,12 @@ import {
   LANGUAGES_VALUES,
   DEFAULT_VOICES,
   maxSymbols,
+  PREVIEW,
+  VOICES_PRO,
 } from '../../lib/constants/textToSpeech';
 import { addToken, wrapTokens, unwrapTokens } from '../../lib/utils/tokens-helper';
 import { tokenModes } from '../../lib/constants/tokens';
+import { VALIDATION_ENG_LANGUAGE } from '../../lib/constants/regExps';
 
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
@@ -31,6 +36,12 @@ import { LibrarySpinner } from './Loader';
 import PersonalizeButton from '../common/personalization/PersonalizeButton';
 import FormTokensTextArea from '../form/FormTokensTextArea';
 import FormTextArea from '../form/FormTextArea';
+
+import playIcon from '../../public/static/svgImages/common/play.svg';
+import stopIcon from '../../public/static/svgImages/common/stop.svg';
+import soundOnIcon from '../../public/static/svgImages/common/soundOn.svg';
+import soundOffIcon from '../../public/static/svgImages/common/soundOff.svg';
+
 // import SVGInline from 'react-svg-inline';
 // import trashIcon from '../../public/static/svgImages/common/trash.svg';
 // import svgVoice from '../../public/static/svgImages/common/voice.svg';
@@ -47,10 +58,40 @@ const TextToSpeech = observer(() => {
   const [fallbackValue, setFallbackValue] = useState('');
   const [voice, setVoice] = useState();
   const [language, setLanguage] = useState(LANGUAGES[0].value);
-  const [selectVoices, setSelectVoices] = useState(VOICES[LANGUAGES_VALUES.ENUS_STANDART]);
+  const [selectedVoices, setSelectedVoices] = useState(VOICES[LANGUAGES_VALUES.ENUS_STANDART]);
   const [voiceType, setVoiceType] = useState(engineType[0].value);
   const [caret, setCaret] = useState();
   const [symbols, setSymbols] = useState(null);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMute, setIsMute] = useState(false);
+  const [isActivePreview, setIsActivePreview] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [isDisplayingControls, setIsDisplayingControls] = useState(true);
+
+  const isPlayingIcon = useMemo(() => (isPlaying ? stopIcon : playIcon), [isPlaying]);
+  const isMuteIcon = useMemo(() => (isMute ? soundOffIcon : soundOnIcon), [isMute]);
+
+  const changePlaying = () => {
+    setIsPlaying(value => {
+      setIsActivePreview(!value);
+      return !value;
+    });
+  };
+
+  const changeAndPlay = (languageItem, voiceItem, voiceTypeItem) => {
+    const url = PREVIEW[languageItem][voiceItem][voiceTypeItem];
+    setPreviewUrl(url);
+    if (url) {
+      setIsActivePreview(true);
+      setIsPlaying(true);
+      if (!isDisplayingControls) {
+        setIsDisplayingControls(true);
+      }
+    } else {
+      setIsDisplayingControls(false);
+    }
+  };
 
   // toDo: Code commented below should be used for upper(white) input
   // const [valueSelect, setValueSelect] = useState(2);
@@ -110,7 +151,10 @@ const TextToSpeech = observer(() => {
       ? DEFAULT_VOICES[currentVoiceType] : VOICES[item];
 
     if (currentVoice) {
+      setSelectedVoices(currentVoice);
       setVoiceType(ENGINE_TYPE_VALUES.STANDART);
+      setVoice(currentVoice[0].value);
+      setPreviewUrl(PREVIEW[language][currentVoice[0].value][voiceType]);
     }
   }, [language]);
 
@@ -121,8 +165,7 @@ const TextToSpeech = observer(() => {
       ? DEFAULT_VOICES[currentVoiceType] : VOICES[item];
 
     if (currentVoice) {
-      setSelectVoices(currentVoice);
-      setVoice(currentVoice[0].value);
+      setSelectedVoices(currentVoice);
     }
   }, [voiceType]);
 
@@ -146,13 +189,30 @@ const TextToSpeech = observer(() => {
   }, [language]);
 
   const onVoiceSelect = v => {
-    const item = selectVoices.find(voiceItem => voiceItem.value === v).value;
+    const item = selectedVoices.find(voiceItem => voiceItem.value === v).value;
     setVoice(item);
+    changeAndPlay(language, item, voiceType);
   };
 
   const onLanguageSelect = v => {
     const item = LANGUAGES.find(languageItem => languageItem.value === v).value;
     setLanguage(item);
+    const currentVoice = item === LANGUAGES_VALUES.ENUS
+      ? DEFAULT_VOICES[voiceType] : VOICES[item];
+    changeAndPlay(item, currentVoice[0].value, ENGINE_TYPE_VALUES.STANDART);
+  };
+
+  const onRadioSelect = v => {
+    const voices = language === LANGUAGES_VALUES.ENUS
+      ? DEFAULT_VOICES[voiceType] : VOICES[language];
+    let currentVoice = voices[0].value;
+    if (v === ENGINE_TYPE_VALUES.STANDART && voice === VOICES_PRO[0].value) {
+      setVoice(currentVoice);
+    } else {
+      currentVoice = voice;
+    }
+    setVoiceType(v);
+    changeAndPlay(language, currentVoice, v);
   };
 
   const isPersonalizeText = useMemo(() => valueTextarea && unwrapTokens(valueTextarea).indexOf('{{') !== -1, [valueTextarea]);
@@ -248,18 +308,42 @@ const TextToSpeech = observer(() => {
             />
             <FormSelect
               label="Voice"
-              items={selectVoices}
+              items={selectedVoices}
               className="text-to-speech__select"
               value={voice}
               onChange={onVoiceSelect}
             />
+            {isDisplayingControls && (
+              <div className="text-to-speech__controls">
+                <button className="text-to-speech__button" onClick={changePlaying}>
+                  <SVGInline
+                    className="library__item-icon"
+                    svg={isPlayingIcon}
+                  />
+                </button>
+                <button className="text-to-speech__button" onClick={() => setIsMute(!isMute)}>
+                  <SVGInline
+                    className="library__item-icon"
+                    svg={isMuteIcon}
+                  />
+                </button>
+                {isActivePreview && (
+                  <AudioPlayer
+                    src={previewUrl}
+                    muted={isMute}
+                    onEnded={() => changePlaying(false)}
+                    autoPlay
+                  />
+                )}
+              </div>
+            )}
             <FormRadioButton
               items={itemsRadio}
               groupName="groupName"
               value={voiceType}
               containerClassName="text-to-speech__radio-container"
               radioClassName="text-to-speech__radio"
-              onChange={setVoiceType}
+              onChange={onRadioSelect}
             />
             <PersonalizeButton
               onAdd={onAddTextToken}
@@ -284,6 +368,7 @@ const TextToSpeech = observer(() => {
                     rows={6}
                     text
                     maxTextSymbols={maxFallbackSymbols}
+                    languageValidator={VALIDATION_ENG_LANGUAGE}
                   />
                   <p className="text-to-speech__info">Required field</p>
                 </Fragment>
@@ -299,6 +384,7 @@ const TextToSpeech = observer(() => {
                 updateCaret={(value) => setCaret(value.caretOffset)}
                 maxTextSymbols={maxTextSymbols}
                 symbolsCount={textValueAreaLength}
+                languageValidator={VALIDATION_ENG_LANGUAGE}
               />
             </div>
             <div className="text-to-speech__loader-btn-group-wrapper">

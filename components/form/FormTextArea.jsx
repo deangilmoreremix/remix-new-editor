@@ -18,11 +18,16 @@ const FormTextArea = (props) => {
     variant,
     inputRef,
     maxTextSymbols,
+    languageValidator,
   } = props;
 
   const [symbolsCount, setSymbolsCount] = useState(0);
 
   const onEdit = ({ target: { value: v } }) => {
+    if (languageValidator) {
+      v = v.replace(languageValidator, '');
+    }
+
     if ((maxTextSymbols && v.length <= maxTextSymbols) || !maxTextSymbols) {
       setSymbolsCount(v.length);
       onChange(v);
@@ -70,6 +75,7 @@ FormTextArea.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   inputRef: PropTypes.shape({}),
   maxTextSymbols: PropTypes.number,
+  languageValidator: PropTypes.string,
 };
 FormTextArea.defaultProps = {
   label: '',

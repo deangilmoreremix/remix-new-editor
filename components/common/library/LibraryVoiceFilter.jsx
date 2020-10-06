@@ -32,7 +32,7 @@ const LibraryVoiceFilter = React.memo((props) => {
     ...LANGUAGES,
   ];
 
-  const [selectVoices, setSelectVoices] = useState(VOICES[LANGUAGES_VALUES.ENUS_STANDART]);
+  const [selectedVoices, setSelectedVoices] = useState(VOICES[LANGUAGES_VALUES.ENUS_STANDART]);
 
   useEffect(() => {
     const item = languagesList.find(languageItem => languageItem.value === language).value;
@@ -57,7 +57,7 @@ const LibraryVoiceFilter = React.memo((props) => {
 
     if (currentVoice) {
       setIsDisabledInput(false);
-      setSelectVoices(currentVoice);
+      setSelectedVoices(currentVoice);
       setVoice(currentVoice[0].value);
     }
   }, [voiceType]);
@@ -68,7 +68,7 @@ const LibraryVoiceFilter = React.memo((props) => {
   };
 
   const onVoiceSelect = v => {
-    const item = selectVoices.find(voiceItem => voiceItem.value === v).value;
+    const item = selectedVoices.find(voiceItem => voiceItem.value === v).value;
     setVoice(item);
   };
 
@@ -106,7 +106,7 @@ const LibraryVoiceFilter = React.memo((props) => {
         <div className="library-voice-filter__cell">
           <FormSelect
             label="Voice"
-            items={selectVoices}
+            items={selectedVoices}
             className="text-to-speech__select"
             value={voice}
             onChange={onVoiceSelect}

@@ -665,6 +665,22 @@ button.library__tab {
   }
 }
 
+@media screen and (max-width: $xl) {
+  .library-voice-filter__cell {
+    width: 100%;
+
+    &:first-of-type {
+      margin-bottom: 1rem;
+    }
+  }
+
+  .library-voice-filter__types {
+    label {
+      width: 100%;
+    }
+  }
+}
+
 @media screen and (max-width: $xxl) {
   .library__add-file__container {
     flex-direction: column;
