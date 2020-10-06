@@ -61,7 +61,7 @@ const TextToSpeech = observer(() => {
   const [selectedVoices, setSelectedVoices] = useState(VOICES[LANGUAGES_VALUES.ENUS_STANDART]);
   const [voiceType, setVoiceType] = useState(engineType[0].value);
   const [caret, setCaret] = useState();
-  const [symbols, setSymbols] = useState(null);
+  const [symbols, setSymbols] = useState();
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMute, setIsMute] = useState(false);
@@ -116,8 +116,11 @@ const TextToSpeech = observer(() => {
   const getValueLength = (value) => unwrapTokens(value).replace(/{{\w+}}/g, '').length;
 
   const maxCount = (value) => {
-    if (!symbols) {
+    if (!symbols && isPersonalizeText) {
       return 0;
+    }
+    if (!isPersonalizeText) {
+      return value;
     }
     return symbols > value ? value : symbols;
   };
@@ -247,9 +250,12 @@ const TextToSpeech = observer(() => {
     setFallbackValue(text);
   }, [maxFallbackSymbols]);
 
-  const disabledPersonalizedVoice = useMemo(() => (
-    getValueLength(valueTextarea) >= maxTextSymbols
-  ), [valueTextarea, maxTextSymbols]);
+  const disabledPersonalizedVoice = useMemo(() => {
+    if (!symbols) {
+      return true;
+    }
+    return getValueLength(valueTextarea) >= maxTextSymbols;
+  }, [valueTextarea, maxTextSymbols, symbols]);
 
   const onAddTextToken = useCallback((token) => {
     if (disabledPersonalizedVoice) {
@@ -404,7 +410,7 @@ const TextToSpeech = observer(() => {
           </div>
         </div>
         <div className="text-to-speech__notification">
-          {symbols && (
+          {symbols !== undefined && (
             <p>
               The number of characters remaining is
               <span>{` ${symbols.toLocaleString('en')}`}</span>

@@ -86,7 +86,6 @@ const FormTokensTextArea = observer((props) => {
         {label && <p>{label}</p>}
         {labelHint && isHint && <span className="label-input-hint">{labelHint}</span>}
         {maxTextSymbols !== undefined && symbolsCount !== undefined ? (<p>{`${symbolsCount} / ${maxTextSymbols}`}</p>) : null}
-        {!maxTextSymbols && symbolsCount !== undefined ? (<p>{symbolsCount}</p>) : null}
       </div>
       <ContentEditable
         className={classnames(inputClassName, 'text-area', variant)}
@@ -119,7 +118,7 @@ FormTokensTextArea.propTypes = {
   labelHint: PropTypes.string,
   maxTextSymbols: PropTypes.number,
   symbolsCount: PropTypes.number,
-  languageValidator: PropTypes.bool,
+  languageValidator: PropTypes.instanceOf(RegExp),
 };
 
 FormTokensTextArea.defaultProps = {
