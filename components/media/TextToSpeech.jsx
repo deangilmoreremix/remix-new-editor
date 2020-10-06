@@ -116,11 +116,8 @@ const TextToSpeech = observer(() => {
   const getValueLength = (value) => unwrapTokens(value).replace(/{{\w+}}/g, '').length;
 
   const maxCount = (value) => {
-    if (!symbols && isPersonalizeText) {
+    if (!symbols) {
       return 0;
-    }
-    if (!isPersonalizeText) {
-      return value;
     }
     return symbols > value ? value : symbols;
   };
