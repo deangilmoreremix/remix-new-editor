@@ -22,21 +22,20 @@
   }
 
   &__window {
-    width: 15em;
+    width: 17em;
     max-width: 20em;
     min-width: 5em;
     overflow: auto;
-    padding: .7em;
+    padding: 0.5em;
     position: absolute;
     height: auto;
-    color: $dark-white !important;
-    background-color: $modal-lightdark-bg;
-    border: 1px solid $secondary-color;
-    opacity: 1 !important;
+    color: white !important;
+    background-color: rgba(0, 0, 0, 0.75);
     border-radius: 5px;
     font-size: 12px;
     z-index: 80;
     text-transform: none !important;
+    white-space: pre-wrap;
 
     &-left {
       left: 100%;
@@ -46,12 +45,17 @@
       right: 100%;
     }
 
-    &-top {
+    &-normal {
       top: 0;
     }
 
-    &-bottom {
+    &-top {
       bottom: 0;
+    }
+
+    &-bottom {
+      top: unset;
+      left: -100px;
     }
   }
 }

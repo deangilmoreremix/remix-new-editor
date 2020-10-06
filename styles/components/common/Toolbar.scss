@@ -11,10 +11,6 @@
     margin-right: 0;
   }
 
-  &-tab-box {
-    margin-left: 1.5em;
-  }
-
   &-tab {
     @include reset-button;
     @include make-fluid("width", 90px, 90px, $xl + 1, $mock, 90px, px);
