@@ -138,7 +138,7 @@ const PopcornElements = observer(({ width }) => {
 
     let { popcornOptions: { end } } = element;
 
-    if (kind === ASSET_TYPES.PERSONALIZED_VOICE) {
+    if (kind === ASSET_TYPES.PERSONALIZED_VOICE && duration < 1) {
       end = start + (cols / FRACTIONAL_NUMBER > 1 ? cols / FRACTIONAL_NUMBER : 1);
     }
 
