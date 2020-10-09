@@ -1,0 +1,61 @@
+.help-icon {
+  padding: 5px;
+  height: 100%;
+  position: relative;
+
+  &__icon {
+    width: .5em !important;
+    height: auto !important;
+    vertical-align: top;
+    cursor: pointer;
+    position: relative;
+    opacity: 0.7;
+    z-index: 0;
+
+    &-red {
+      color: $secondary-color;
+    }
+
+    &-white {
+      color: $white;
+    }
+  }
+
+  &__window {
+    width: 17em;
+    max-width: 20em;
+    min-width: 5em;
+    overflow: auto;
+    padding: 0.5em;
+    position: absolute;
+    height: auto;
+    color: white !important;
+    background-color: rgba(0, 0, 0, 0.75);
+    border-radius: 5px;
+    font-size: 12px;
+    z-index: 80;
+    text-transform: none !important;
+    white-space: pre-wrap;
+
+    &-left {
+      left: 100%;
+    }
+
+    &-right {
+      right: 100%;
+    }
+
+    &-normal {
+      top: 0;
+    }
+
+    &-top {
+      bottom: 0;
+    }
+
+    &-bottom {
+      top: unset;
+      left: -100px;
+    }
+  }
+}

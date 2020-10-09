@@ -5,6 +5,7 @@ module.exports = {
     prefix: process.env.APP_PREFIX || 'go',
   },
   backend: {
+    socketPort: process.env.NEXT_PUBLIC_SOCKET_PORT || '',
     url: process.env.BACKEND || 'dev-api.vidcloud.io',
     clientId: process.env.BACKEND_CLIENT_ID || 'service',
     clientSecret: process.env.BACKEND_CLIENT_SECRET || 'q39Jy70X6ao9dTca',

@@ -6,6 +6,7 @@ import classnames from 'classnames';
 import PropTypes from '../../../lib/PropTypes';
 
 import { showInfo } from '../../../lib/services/alertService';
+import HelpIconComponent from '../HelpIcon';
 
 const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const onCLick = (action, isActive, errorMessage, url) => {
@@ -23,7 +24,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
     }
   };
 
-  const svgButton = (label, action, isActive, errorMessage, icon, url) => (
+  const svgButton = (label, action, isActive, errorMessage, icon, tooltip, url) => (
     <button
       type="button"
       key={label}
@@ -43,14 +44,20 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
 
   return (
     <div className="produce-block produce-panel">
-      {items.map(({ label, action, icon, isActive, errorMessage, url }) => (
-        isActive && url ? (
-        // eslint-disable-next-line react/jsx-no-target-blank
-          <a key={`${label}-href`} href={url} target="_blank">
-            {svgButton(label, action, isActive, errorMessage, icon, url)}
-          </a>
-        )
-          : svgButton(label, action, isActive, errorMessage, icon)
+      {items.map(({ label, action, icon, tooltip, isActive, errorMessage, url }) => (
+        <div className="produce-panel__box">
+          {isActive && url ? (
+            /* eslint-disable-next-line react/jsx-no-target-blank */
+            <a key={`${label}-href`} href={url} target="_blank">
+              {svgButton(label, action, isActive, errorMessage, icon, tooltip, url)}
+            </a>
+          ) : svgButton(label, action, isActive, errorMessage, icon, tooltip)}
+          <HelpIconComponent
+            isLeft={label === 'Watch the video'}
+            message={tooltip}
+            height={170}
+          />
+        </div>
       ))}
     </div>
   );
@@ -61,6 +68,7 @@ ProducePanel.propTypes = {
     label: PropTypes.string.isRequired,
     action: PropTypes.func.isRequired,
     icon: PropTypes.string.isRequired,
+    tooltip: PropTypes.string,
     url: PropTypes.string,
   })).isRequired,
   tab: PropTypes.string.isRequired,

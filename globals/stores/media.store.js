@@ -95,6 +95,38 @@ export default class Media extends BaseStore {
     }
   };
 
+  postTextToSpeech = async (engine, language, text, voice, kind, fallbackValue) => {
+    let url;
+    let body;
+    if (kind === ASSET_TYPES.PERSONALIZED_VOICE) {
+      url = '/api/users/me/media-assets/get-voice-template';
+      body = {
+        kind,
+        extra: { text, voice, engine, fallbackValue, language },
+      };
+    } else {
+      url = '/api/users/me/media-assets/get-voice';
+      body = {
+        kind,
+        extra: { engine, language, text, voice },
+      };
+    }
+
+    try {
+      await this.request(
+        url, {
+          method: 'POST',
+          body,
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
   mergeMedia = async (videoSrc, audioSrc) => {
     try {
       await this.selfRequest(
@@ -404,6 +436,15 @@ export default class Media extends BaseStore {
     return providersInfo;
   }
 
+  @computed
+  get voiceProvidersInfo() {
+    return {
+      [LIBRARY_KEYS.VOICE]: this.providersConfiguration[LIBRARY_KEYS.VOICE],
+      [LIBRARY_KEYS.PERSONALIZED_VOICE]:
+        this.providersConfiguration[LIBRARY_KEYS.PERSONALIZED_VOICE],
+    };
+  }
+
   constructor(props) {
     super(props);
     this.assetsRequest = props.assetsRequest;
@@ -432,6 +473,30 @@ export default class Media extends BaseStore {
         [ASSET_TYPES.AUDIO]: new UserProvider(
           ASSET_TYPES.AUDIO,
           this.providersConfiguration[LIBRARY_KEYS.USER],
+          this.request,
+        ),
+        [ASSET_TYPES.VOICE]: new UserProvider(
+          ASSET_TYPES.VOICE,
+          this.providersConfiguration[LIBRARY_KEYS.USER],
+          this.request,
+        ),
+        [ASSET_TYPES.PERSONALIZED_VOICE]: new UserProvider(
+          ASSET_TYPES.PERSONALIZED_VOICE,
+          this.providersConfiguration[LIBRARY_KEYS.USER],
+          this.request,
+        ),
+      },
+      [LIBRARY_KEYS.VOICE]: {
+        [ASSET_TYPES.VOICE]: new UserProvider(
+          ASSET_TYPES.VOICE,
+          this.providersConfiguration[LIBRARY_KEYS.VOICE],
+          this.request,
+        ),
+      },
+      [LIBRARY_KEYS.PERSONALIZED_VOICE]: {
+        [ASSET_TYPES.PERSONALIZED_VOICE]: new UserProvider(
+          ASSET_TYPES.PERSONALIZED_VOICE,
+          this.providersConfiguration[LIBRARY_KEYS.PERSONALIZED_VOICE],
           this.request,
         ),
       },

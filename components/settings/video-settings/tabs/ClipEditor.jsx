@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../../lib/PropTypes';
+import { ASSET_TYPES } from '../../../../lib/constants/media';
 
 import * as popcornConstants from '../../../../lib/constants/popcorn';
 import { regexpVideo360, video360prefix, REGEX_MAP } from '../../../../lib/constants/settings/video';
@@ -33,6 +34,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     audioFadeOut,
     source,
     contentType,
+    kind,
   } = values;
 
   const {
@@ -233,6 +235,10 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     }
   }, [audioFadeIn, audioFadeOut, end]);
 
+  const isVoice = useMemo(() => (
+    kind && (kind === ASSET_TYPES.VOICE || kind === ASSET_TYPES.PERSONALIZED_VOICE)
+  ), [kind]);
+
   return (
     <div className="video-settings-container">
       {/* ToDo implement in next PR */}
@@ -244,24 +250,30 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
       {/*  changeOut={changeOut} */}
       {/*  changeFromOut={changeFromOut} */}
       {/* /> */}
-      <div className="video-settings__inputs">
-        <FieldBuilder
-          label={fields[popcornConstants.FROM].label}
-          type={fields[popcornConstants.FROM].type}
-          value={from || fields[popcornConstants.FROM].default}
-          name={popcornConstants.FROM}
-          onChange={changeFrom}
-          className="video-settings-input"
-        />
-        <FieldBuilder
-          label="Out"
-          type={fields[popcornConstants.DURATION].type}
-          value={videoOut}
-          name="out"
-          onChange={changeOut}
-          className="video-settings-input"
-        />
-      </div>
+      {
+        element.popcornOptions.kind !== ASSET_TYPES.PERSONALIZED_VOICE && (
+          <div className="video-settings__inputs">
+            <FieldBuilder
+              label={fields[popcornConstants.FROM].label}
+              type={fields[popcornConstants.FROM].type}
+              value={from || fields[popcornConstants.FROM].default}
+              name={popcornConstants.FROM}
+              onChange={changeFrom}
+              className="video-settings-input"
+            />
+            {kind !== ASSET_TYPES.PERSONALIZED_VOICE && (
+              <FieldBuilder
+                label="Out"
+                type={fields[popcornConstants.DURATION].type}
+                value={videoOut}
+                name="out"
+                onChange={changeOut}
+                className="video-settings-input"
+              />
+            )}
+          </div>
+        )
+      }
       <div className="video-settings__block">
         <div className="video-settings__block-checkboxes">
           {!isAudio(element) && (
@@ -340,6 +352,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
         value={title || fields[popcornConstants.TITLE].default}
         name={popcornConstants.TITLE}
         onChange={onChange}
+        readOnly={isVoice}
       />
 
       <div className="video-settings__timer">
@@ -353,61 +366,67 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
           className="video-settings__time"
           element={element}
         />
-        <FieldBuilder
-          label={fields[popcornConstants.END].label}
-          type={fields[popcornConstants.END].type}
-          value={end}
-          name={popcornConstants.END}
-          onChange={onChange}
-          onEnter={onChange}
-          className="video-settings__time"
-          element={element}
-        />
+        {
+          element.popcornOptions.kind !== ASSET_TYPES.PERSONALIZED_VOICE && (
+            <FieldBuilder
+              label={fields[popcornConstants.END].label}
+              type={fields[popcornConstants.END].type}
+              value={end}
+              name={popcornConstants.END}
+              onChange={onChange}
+              onEnter={onChange}
+              className="video-settings__time"
+              element={element}
+            />
+          )
+        }
       </div>
 
-      <div className="video-settings__fade">
-        <div className="video-settings__fade-block">
-          <div className="video-settings__fade-header">
-            <label>Fade In</label>
-            <p>
-              {audioFadeIn !== undefined
-                ? `${audioFadeIn}s` : `${fields[popcornConstants.AUDIO_FADE_IN].default}s`}
-            </p>
+      {kind !== ASSET_TYPES.PERSONALIZED_VOICE && (
+        <div className="video-settings__fade">
+          <div className="video-settings__fade-block">
+            <div className="video-settings__fade-header">
+              <label>Fade In</label>
+              <p>
+                {audioFadeIn !== undefined
+                  ? `${audioFadeIn}s` : `${fields[popcornConstants.AUDIO_FADE_IN].default}s`}
+              </p>
+            </div>
+            <FieldBuilder
+              type={fields[popcornConstants.AUDIO_FADE_IN].type}
+              value={audioFadeIn !== undefined
+                ? audioFadeIn : fields[popcornConstants.AUDIO_FADE_IN].default}
+              name={popcornConstants.AUDIO_FADE_IN}
+              onChange={onChange}
+              containerClassName="video-settings-slider-block"
+              sliderClassName="video-settings-slider"
+              inputClassName="video-settings-slider-input"
+              maxValue={fadeInMax}
+              withoutInput
+            />
           </div>
-          <FieldBuilder
-            type={fields[popcornConstants.AUDIO_FADE_IN].type}
-            value={audioFadeIn !== undefined
-              ? audioFadeIn : fields[popcornConstants.AUDIO_FADE_IN].default}
-            name={popcornConstants.AUDIO_FADE_IN}
-            onChange={onChange}
-            containerClassName="video-settings-slider-block"
-            sliderClassName="video-settings-slider"
-            inputClassName="video-settings-slider-input"
-            maxValue={fadeInMax}
-            withoutInput
-          />
-        </div>
-        <div className="video-settings__fade-block">
-          <div className="video-settings__fade-header">
-            <label>Fade Out</label>
-            <p>
-              {audioFadeOut !== undefined
-                ? `${audioFadeOut}s` : `${fields[popcornConstants.AUDIO_FADE_OUT].default}s`}
-            </p>
+          <div className="video-settings__fade-block">
+            <div className="video-settings__fade-header">
+              <label>Fade Out</label>
+              <p>
+                {audioFadeOut !== undefined
+                  ? `${audioFadeOut}s` : `${fields[popcornConstants.AUDIO_FADE_OUT].default}s`}
+              </p>
+            </div>
+            <FieldBuilder
+              type={fields[popcornConstants.AUDIO_FADE_OUT].type}
+              value={audioFadeOut !== undefined
+                ? audioFadeOut : fields[popcornConstants.AUDIO_FADE_OUT].default}
+              name={popcornConstants.AUDIO_FADE_OUT}
+              onChange={onChange}
+              containerClassName="video-settings-slider-block"
+              sliderClassName="video-settings-slider"
+              maxValue={fadeOutMax}
+              withoutInput
+            />
           </div>
-          <FieldBuilder
-            type={fields[popcornConstants.AUDIO_FADE_OUT].type}
-            value={audioFadeOut !== undefined
-              ? audioFadeOut : fields[popcornConstants.AUDIO_FADE_OUT].default}
-            name={popcornConstants.AUDIO_FADE_OUT}
-            onChange={onChange}
-            containerClassName="video-settings-slider-block"
-            sliderClassName="video-settings-slider"
-            maxValue={fadeOutMax}
-            withoutInput
-          />
         </div>
-      </div>
+      )}
     </div>
   );
 });

@@ -11,8 +11,10 @@ import useModalStore from '../../hooks/useModalStore';
 import FieldBuilder from '../../form/FieldBuilder';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../../lib/constants/settings/image';
 import { IMAGE_CROPPER_MODAL } from '../../../lib/constants/modals';
-import DropAndEditButton from '../../media/DropAndEditButton';
 import { rgba2hex } from '../../../lib/lottie/utils';
+import { produceTooltips } from '../../../lib/constants/tooltips';
+import DropAndEditButton from '../../media/DropAndEditButton';
+import HelpIconComponent from '../HelpIcon';
 
 const SettingPanel = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
@@ -74,6 +76,8 @@ const SettingPanel = observer(() => {
           className="settings-input"
           labelClassName="settings-panel-text"
           placeholder="My Perfect Videos"
+          tooltipMessage={produceTooltips.title}
+          isTooltip
         />
         <FieldBuilder
           type="textarea"
@@ -86,6 +90,8 @@ const SettingPanel = observer(() => {
           textClassName="settings-panel-text"
           placeholder="A project about"
           rows={5}
+          tooltipMessage={produceTooltips.description}
+          isTooltip
         />
         <FieldBuilder
           type="color"
@@ -94,6 +100,17 @@ const SettingPanel = observer(() => {
           value={item.background}
           label="Background Color"
           className="settings-formcolor"
+          tooltipMessage={produceTooltips.backgroundColor}
+          tooltipHeight={80}
+          isTooltip
+        />
+        <FieldBuilder
+          type="checkbox"
+          name="disabledPlaybar"
+          label="Show playbar"
+          value={!item.disabledPlaybar}
+          onChange={() => updateItem({ disabledPlaybar: !item.disabledPlaybar })}
+          floatClassName="settings-checkbox settings-checkbox-playbar"
         />
       </div>
       <div className="settings__inputs">
@@ -105,9 +122,14 @@ const SettingPanel = observer(() => {
           label="Tags"
           className="settings-input"
           titleClass="settings-panel-text"
+          tooltipMessage={produceTooltips.tags}
+          isTooltip
         />
         <div className="settings-allow">
-          <p className="settings-panel-text">Allow</p>
+          <div className="settings-allow__label-box">
+            <HelpIconComponent message={produceTooltips.allow} />
+            <p className="settings-panel-text">Allow</p>
+          </div>
           <FieldBuilder
             type="checkbox"
             name="facebook"
@@ -157,14 +179,19 @@ const SettingPanel = observer(() => {
         </div>
         <div className="settings__row">
           <div className="settings__row-block">
-            <DropAndEditButton
-              onUploaded={onUploadedImage}
-              isDisabled={isDisabledUpload}
-              startUpload={() => setIsDisabledUpload(true)}
-              endUpload={() => setIsDisabledUpload(false)}
-              className="settings__add-file"
-              needSaveAsset={false}
-            />
+            <div className="settings__first-row-block">
+              <HelpIconComponent
+                height={45}
+                message={produceTooltips.thumbnailUpload}
+              />
+              <DropAndEditButton
+                onUploaded={onUploadedImage}
+                isDisabled={isDisabledUpload}
+                startUpload={() => setIsDisabledUpload(true)}
+                endUpload={() => setIsDisabledUpload(false)}
+                needSaveAsset={false}
+              />
+            </div>
             <p className="settings__row-text-2">
               recommended image resolution
               {CROP_RECOMMENDED_RESOLUTION.width}

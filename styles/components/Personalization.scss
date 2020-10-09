@@ -34,11 +34,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 1.3em;
-  padding: 9px 15px;
+  font-size: 0.875rem;
+  padding: 0.63rem;
   text-transform: uppercase;
   line-height: 1;
-  color: $white;
+  color: $secondary-color;
   background: $modal-lightdark-bg;
 
   &__title {
@@ -46,8 +46,6 @@
     width: 100%;
     justify-content: center;
     align-items: center;
-    padding-bottom: 0.3em;
-    padding-top: 0.3em;
     margin: 0;
   }
 }
@@ -93,12 +91,22 @@
   display: flex;
   padding: 5px;
 
+  .radio-button-icon {
+    width: unset;
+    min-width: 0.75rem;
+  }
+
   .personalization__svg__active {
     svg {
       path {
         fill: $secondary-color;
       }
     }
+  }
+
+  .radio-button-icon {
+    min-width: auto;
+    max-width: 0.75rem;
   }
 
   &:hover {

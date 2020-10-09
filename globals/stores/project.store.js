@@ -6,6 +6,7 @@ import Router from 'next/router';
 import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
+import { ASSET_TYPES } from '../../lib/constants/media';
 
 import {
   NO_SETTINGS_ELEMENT_TYPES,
@@ -214,6 +215,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable warning = null;
 
+  @observable success = null;
+
   @action
   undoRedoAction = (undo = true) => {
     const targetData = undo ? this.undoStore : this.redoStore;
@@ -312,6 +315,10 @@ export default class ProjectStore extends BaseStore {
         options.audioFadeIn = 0;
         options.audioFadeOut = 0;
         options.fill = false;
+
+        if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
+          options.templateId = item._id;
+        }
 
         const maxDuration = MAX_DURATION / SANTISECOND;
         if (options.duration * SANTISECOND > MAX_DURATION) {
@@ -608,7 +615,7 @@ export default class ProjectStore extends BaseStore {
       [type]: {
         type: animationName,
         // The animated class has a default speed of 1s
-        duration: durationOut,
+        duration: animationName === NONE_CLASS ? 0 : durationOut,
       },
     };
 
@@ -995,6 +1002,7 @@ export default class ProjectStore extends BaseStore {
         return track.trackEvents.map((trackEvent) => {
           const item = {
             ...trackEvent.popcornOptions,
+            type: trackEvent.type,
             track: null,
             start: null,
             end: null,
@@ -1194,6 +1202,7 @@ export default class ProjectStore extends BaseStore {
     thumbnail: this.item.thumbnail,
     source: this.item.source,
     tags: this.item.tags,
+    disabledPlaybar: this.item.disabledPlaybar,
   });
 
   @action
@@ -1315,6 +1324,7 @@ export default class ProjectStore extends BaseStore {
             thumbnail: serializedData.thumbnail,
             remixedFrom: serializedData.source,
             tags: serializedData.tags,
+            disabledPlaybar: serializedData.disabledPlaybar,
           },
         });
       const publishedMake = await this.publish(result._id);
@@ -1566,6 +1576,15 @@ export default class ProjectStore extends BaseStore {
     });
   };
 
+  @action
+  runMapResize = () => {
+    this.popcornElements.forEach(element => {
+      if (element.type === POPCORN_ELEMENT_TYPES.GOOGLE_MAP) {
+        this.updatePopcorn(element, { runResize: true });
+      }
+    });
+  };
+
   @computed
   get popcornElements() {
     return this.popcornObject.popcornElements || [];
@@ -1574,6 +1593,11 @@ export default class ProjectStore extends BaseStore {
   @action
   showWarning = (message) => {
     this.warning = message;
+  };
+
+  @action
+  showSuccess = (message) => {
+    this.success = message;
   };
 
   @action
@@ -1787,16 +1811,21 @@ export default class ProjectStore extends BaseStore {
     if (newEnd < element.popcornOptions.end) {
       return null;
     }
-    const differenceLength = newEnd - element.popcornOptions.end;
+    const elementAnimationOut = element.popcornOptions.animation?.out?.duration || 0;
+    const differenceLength = +((newEnd - element.popcornOptions.end).toFixed(2));
     const elementsForUpdate = [];
     const elementsEnds = [];
     let animationOut = 0;
     let itemStartAfterToVideo = null;
+    let animationOutInLastItem = 0;
 
-    this.projectData.media.forEach((media) => {
-      media.tracks.forEach((track) => {
+    this.projectData.media.forEach(media => {
+      media.tracks.forEach(track => {
         track.trackEvents.forEach(trackEvent => {
           if (trackEvent.track === element.track) {
+            if (trackEvent.popcornOptions.end > Math.max(...elementsEnds)) {
+              animationOutInLastItem = trackEvent.popcornOptions.animation?.out?.duration || 0;
+            }
             elementsEnds.push(trackEvent.popcornOptions.end);
             if (element.popcornOptions.end <= trackEvent.popcornOptions.start) {
               elementsForUpdate.push(trackEvent);
@@ -1820,10 +1849,12 @@ export default class ProjectStore extends BaseStore {
       });
     }
 
-    if (newEnd > itemStartAfterToVideo) {
+    if (newEnd + elementAnimationOut > itemStartAfterToVideo) {
       if (this.duration < (Math.max(...elementsEnds)
         + differenceLength + animationOut) * SANTISECOND) {
-        await this.updateVideoDuration((this.duration / SANTISECOND) + differenceLength);
+        await this.updateVideoDuration(
+          Math.max(...elementsEnds) + animationOutInLastItem + differenceLength,
+        );
       }
 
       if (elementsForUpdate && elementsForUpdate.length) {

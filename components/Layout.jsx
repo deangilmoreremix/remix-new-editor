@@ -19,7 +19,7 @@ import PropTypes from '../lib/PropTypes';
 import Intercom from './common/Intercom';
 import HelpCrunch from './common/HelpCrunch';
 
-import { DEFAULT_TITLE } from '../lib/constants/project';
+import { DEFAULT_TITLE, DOMAIN_VIDEOREMIX } from '../lib/constants/project';
 
 @observer
 class Layout extends Component {
@@ -40,8 +40,9 @@ class Layout extends Component {
     const data = init(props.creator);
     this.stores = data.stores;
 
-    const { userStore: { hasPermissions } } = this.stores;
+    const { userStore: { hasPermissions, currentUser } } = this.stores;
     this.hasPermissions = hasPermissions;
+    this.currentUser = currentUser;
   }
 
   render() {
@@ -49,10 +50,11 @@ class Layout extends Component {
       PopcornProxy.init(window);
     }
     const { children } = this.props;
+    const { common: { whiteLabelManager } } = this.stores;
     return (
       <ThemeProvider theme={this.theme}>
         <Provider {...this.stores}>
-          {this.stores.common.whiteLabelManager.domain === 'videoremix.io'
+          {whiteLabelManager.domain === DOMAIN_VIDEOREMIX
           && this.stores.common.scriptStatistic && (
             <>
               <noscript dangerouslySetInnerHTML={{
@@ -68,19 +70,26 @@ class Layout extends Component {
               />
             </>
           )}
-          <div className="layout-container">
+          <div className={`theme-${whiteLabelManager.key} layout-container`}>
             <Head>
               <title>{DEFAULT_TITLE}</title>
               <link
                 rel="shortcut icon"
                 href={
-                  this.stores.common.whiteLabelManager.shouldOverride
-                    ? `//cdn.vidcloud.io/wl/${this.stores.common.whiteLabelManager.domain}/resources/vc_favicon`
+                  whiteLabelManager.shouldOverride
+                    ? `//cdn.vidcloud.io/wl/${whiteLabelManager.domain}/resources/vc_favicon`
                     : '//cdn.vidcloud.io/resources/revolution/favicon.png'
                 }
               />
+              {whiteLabelManager.shouldOverride
+              && (
+                <style dangerouslySetInnerHTML={
+                  { __html: whiteLabelManager.css }
+                }
+                />
+              )}
               {/* Google Tag Manager */}
-              {this.stores.common.whiteLabelManager.domain === 'videoremix.io'
+              {whiteLabelManager.domain === DOMAIN_VIDEOREMIX
               && this.stores.common.scriptStatistic && (
                 <>
                   <script dangerouslySetInnerHTML={{
@@ -123,11 +132,12 @@ class Layout extends Component {
             </Head>
             {this.hasPermissions ? (
               <div>
-                <Header {...this.props} />
-                <div {...this.props} className="main">
-                  <ModalContainer />
+                <Header {...this.props} className={`theme-${whiteLabelManager.key}`} />
+                <div {...this.props} className={`main theme-${whiteLabelManager.key}`}>
+                  <ModalContainer classNameWL={`theme-${whiteLabelManager.key}`} />
                   {children}
-                  {this.stores.userStore.currentUser && this.stores.common.whiteLabelManager && this.stores.common.whiteLabelManager.domain === 'videoremix.io'
+                  {this.stores.userStore.currentUser
+                  && whiteLabelManager && whiteLabelManager.domain === DOMAIN_VIDEOREMIX
                     ? (
                       <HelpCrunch
                         userStore={this.stores.userStore}
@@ -135,19 +145,20 @@ class Layout extends Component {
                         applicationSecret={this.stores.common.helpCrunch.applicationSecret}
                       />
                     ) : null}
-                  {this.stores.userStore.currentUser && this.stores.common.whiteLabelManager && this.stores.common.whiteLabelManager.domain === 'videoremix.io'
+                  {this.stores.userStore.currentUser
+                  && whiteLabelManager && whiteLabelManager.domain === DOMAIN_VIDEOREMIX
                     ? (
                       <Intercom
                         appID={this.stores.common.intercom.appId}
                         user={{
-                          email: this.stores.userStore.currentUser.email,
-                          fullName: this.stores.userStore.currentUser.fullName,
-                          hash: this.stores.userStore.currentUser.intercomHash,
+                          email: this.currentUser.email,
+                          fullName: this.currentUser.fullName,
+                          hash: this.currentUser.intercomHash,
                           createdAt: Math.floor(
-                            Date.parse(this.stores.userStore.currentUser.createdAt) / 1000,
+                            Date.parse(this.currentUser.createdAt) / 1000,
                           ).toString(),
                         }}
-                        domain="videoremix.io"
+                        domain={DOMAIN_VIDEOREMIX}
                       />
                     ) : null}
                 </div>

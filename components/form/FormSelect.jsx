@@ -17,6 +17,7 @@ const FormSelect = React.forwardRef((props, ref) => {
     className,
     labelClassName,
     selectClassName,
+    disabled,
     ...rest
   } = props;
 
@@ -32,7 +33,7 @@ const FormSelect = React.forwardRef((props, ref) => {
   };
 
   return (
-    <FormGroup className={className}>
+    <FormGroup className={classnames(className, { 'select-element-disabled': disabled })}>
       <Box>
         {
           label && (
@@ -52,6 +53,7 @@ const FormSelect = React.forwardRef((props, ref) => {
           options={items}
           value={items.find(i => i.value === value)}
           styles={rest.name === FONT_FAMILY && fontFamily}
+          isDisabled={disabled}
           {...rest}
         />
       </Box>
@@ -69,12 +71,13 @@ FormSelect.propTypes = {
   labelClassName: PropTypes.string,
   selectClassName: PropTypes.string,
   className: PropTypes.string,
-  value: PropTypes.shape({
-    value: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
-  }),
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ]),
   label: PropTypes.string,
   onChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
 };
 
 FormSelect.defaultProps = {

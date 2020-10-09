@@ -52,7 +52,7 @@ const Layer = observer(({ item, onRemove }) => {
               layersCount > 1 ? (
                 <div className="flex-center">
                   <SVGInline
-                    className="icon"
+                    className="icon trash"
                     classSuffix=""
                     svg={trashIcon}
                     cleanup={['title']}
