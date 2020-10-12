@@ -25,7 +25,7 @@ button.menu__open {
   &:hover {
     background: $secondary-color;
 
-    .menu__item-icon path {
+    .menu__item-icon path, .menu__item-icon polyline {
       stroke: $white;
     }
   }
