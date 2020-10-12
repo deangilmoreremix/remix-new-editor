@@ -37,6 +37,7 @@ import withModal from '../hoc/withValidation';
 import Is360 from '../settings/video-settings/components/Is360';
 import HelpIconComponent from '../common/HelpIcon';
 import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
+import FormTextField from '../form/FormTextField';
 
 const Library = observer((props) => {
   const { checkValue, setError } = props;
@@ -69,9 +70,13 @@ const Library = observer((props) => {
     defaultProvidersInfo,
   } = useMediaStore();
 
-  const { video360Enabled } = userStore;
+  const { video360Enabled, isSuperAdmin } = userStore;
 
   // =============== STATE ===============
+  const [isDropMockTab, setDropMockTab] = useState(false);
+  const [dropMockKey, setDropMockKey] = useState();
+  const [preKeyDropMock, setPreKeyDropMock] = useState();
+
   const [query, setQuery] = useState('');
 
   const [activeBtn, setActiveBtn] = useState(LIBRARY_KEYS.USER);
@@ -121,6 +126,9 @@ const Library = observer((props) => {
     }
   }, [isLoading, setActiveTab]);
 
+  const activeDropMockTab = React.useMemo(
+    () => !!((isDropMockTab && preKeyDropMock) || !isDropMockTab), [isDropMockTab, preKeyDropMock]);
+
   useEffect(() => {
     async function fetchData() {
       await fetchItems({ source: activeBtn, queryStr: '' });
@@ -156,7 +164,16 @@ const Library = observer((props) => {
     }
   }, [activeTab, activeBtn, userStore]);
 
-  const handleButtonClick = React.useCallback((element) => {
+  const handleButtonClick = React.useCallback(async (element) => {
+    if (element === LIBRARY_KEYS.DROPMOCK) {
+      setDropMockTab(true);
+      if (isSuperAdmin) {
+        setDropMockKey(listProviders.DROPMOCK.apiKey);
+        await onKeyEnter(listProviders.DROPMOCK.apiKey);
+      }
+    } else {
+      setDropMockTab(false);
+    }
     if (!isLoading) {
       setActiveBtn(element);
     }
@@ -178,7 +195,9 @@ const Library = observer((props) => {
     if (isLoading) {
       return;
     }
-
+    if (isDropMockTab && !dropMockKey) {
+      return;
+    }
     setIsLoading(true);
     if (!isScrolling) {
       setIsInitialLoading(true);
@@ -362,6 +381,12 @@ const Library = observer((props) => {
     }
   };
 
+  const onKeyEnter = async (key) => {
+    listProviders.DROPMOCK.apiKey = key || dropMockKey;
+    setPreKeyDropMock(key || dropMockKey);
+    await fetchItems({ source: activeBtn });
+  };
+
   const { getInputProps } = useDropzone({
     accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
     onDrop,
@@ -540,6 +565,14 @@ const Library = observer((props) => {
                 )
             }
             </div>
+            {isDropMockTab && (
+            <FormTextField
+              value={dropMockKey}
+              onEnter={onKeyEnter}
+              onChange={setDropMockKey}
+              placeholder="Enter your DropMock Fusion key here and press return"
+            />
+            )}
             <div className="library__block">
               {
               activeBtn !== LIBRARY_KEYS.DROPMOCK && (
@@ -584,7 +617,7 @@ const Library = observer((props) => {
 
         <div className="library__row library__row-second">
           {renderSidebar()}
-          {isInitialLoading
+          { isInitialLoading
             ? (
               <div className="library__items">
                 <CircleLoader
@@ -595,7 +628,7 @@ const Library = observer((props) => {
                 />
               </div>
             )
-            : (
+            : (activeDropMockTab && (
               <LibraryContent
                 activeItem={activeItem}
                 items={items}
@@ -611,7 +644,7 @@ const Library = observer((props) => {
                 type={activeTab}
                 volume={volume}
               />
-            )}
+            ))}
         </div>
       </div>
 
