@@ -232,9 +232,8 @@ const ValidationTimeInput = observer(({
                 updateLayerElements(updateNewEnd(newValue), element);
                 onChange(updateNewEnd(newValue));
               } else if (newValue > (start + element.popcornOptions.duration)) {
-                const newEnd = start + element.popcornOptions.duration;
-                // eslint-disable-next-line max-len
-                if ((start + element.popcornOptions.duration) > currentDuration) {
+                const newEnd = start + element.popcornOptions.duration - 0.01;
+                if (newEnd > currentDuration) {
                   await updateVideoDuration(newEnd);
                 }
                 updateLayerElements(newEnd, element);
