@@ -115,8 +115,6 @@ FormTokensTextArea.propTypes = {
 
 FormTokensTextArea.defaultProps = {
   labelHint: '',
-  maxTextSymbols: PropTypes.number,
-  symbolsCount: PropTypes.number,
 };
 
 export default FormTokensTextArea;

@@ -1573,6 +1573,9 @@ export default class ProjectStore extends BaseStore {
         // we need to recount the fontsize. This is done in the update method.
         this.updatePopcorn(element, { fontDecorations: element.popcornOptions.fontDecorations });
       }
+      if (isCurrentElement && element.type === POPCORN_ELEMENT_TYPES.TEXT_MASK) {
+        this.updatePopcorn(element, { newSize: true });
+      }
     });
   };
 

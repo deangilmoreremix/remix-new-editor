@@ -183,4 +183,9 @@ export default class UserStore {
   get clickToPhoneCall() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL);
   }
+
+  @computed
+  get textMaskEnabled() {
+    return this.isfeatureEnabled(FEATURES.TEXT_MASK);
+  }
 }
