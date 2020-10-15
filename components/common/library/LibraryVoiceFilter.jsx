@@ -11,6 +11,8 @@ import {
   DEFAULT_VOICES,
 } from '../../../lib/constants/textToSpeech';
 
+import useUserStore from '../../hooks/useUserStore';
+
 import FormSelect from '../../form/FormSelect';
 import FormRadioButton from '../../form/FormRadioButton';
 
@@ -33,6 +35,8 @@ const LibraryVoiceFilter = React.memo((props) => {
   ];
 
   const [selectedVoices, setSelectedVoices] = useState(VOICES[LANGUAGES_VALUES.ENUS_STANDART]);
+
+  const { textToSpeechNeuralEnabled } = useUserStore();
 
   useEffect(() => {
     const item = languagesList.find(languageItem => languageItem.value === language).value;
@@ -116,12 +120,14 @@ const LibraryVoiceFilter = React.memo((props) => {
       </div>
 
       <div className="library-voice-filter__types">
-        <FormRadioButton
-          items={itemsRadio}
-          groupName="groupName"
-          value={voiceType}
-          onChange={setVoiceType}
-        />
+        {textToSpeechNeuralEnabled && (
+          <FormRadioButton
+            items={itemsRadio}
+            groupName="groupName"
+            value={voiceType}
+            onChange={setVoiceType}
+          />
+        )}
       </div>
 
       <button className="library-voice-filter__btn" onClick={fetchItems}>Filter</button>

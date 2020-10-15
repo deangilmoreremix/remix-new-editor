@@ -51,7 +51,7 @@ const TextToSpeech = observer(() => {
   const { toggleRightBlock, isTimelineOpen, setLibraryType } = useUIStore();
   const { postTextToSpeech } = useMediaStore();
   const { showSuccess } = useProjectStore();
-  const { getTextSpeechSymbols } = useUserStore();
+  const { getTextSpeechSymbols, textToSpeechNeuralEnabled } = useUserStore();
 
   const [loading, setLoading] = useState(false);
   const [valueTextarea, setValueTextarea] = useState('');
@@ -340,14 +340,16 @@ const TextToSpeech = observer(() => {
                 )}
               </div>
             )}
-            <FormRadioButton
-              items={itemsRadio}
-              groupName="groupName"
-              value={voiceType}
-              containerClassName="text-to-speech__radio-container"
-              radioClassName="text-to-speech__radio"
-              onChange={onRadioSelect}
-            />
+            {textToSpeechNeuralEnabled && (
+              <FormRadioButton
+                items={itemsRadio}
+                groupName="groupName"
+                value={voiceType}
+                containerClassName="text-to-speech__radio-container"
+                radioClassName="text-to-speech__radio"
+                onChange={onRadioSelect}
+              />
+            )}
             <PersonalizeButton
               onAdd={onAddTextToken}
               text="Personalize Voice"

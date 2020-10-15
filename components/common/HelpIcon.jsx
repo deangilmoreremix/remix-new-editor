@@ -4,6 +4,8 @@ import HelpIcon from '@material-ui/icons/Help';
 import PropTypes from '../../lib/PropTypes';
 
 const HelpIconComponent = memo((props) => {
+  let tooltipTime;
+
   const {
     message,
     noPadding,
@@ -15,6 +17,12 @@ const HelpIconComponent = memo((props) => {
     noIcon,
     onParentMouseEntered,
     isBottom,
+    isTimeline,
+    isText,
+    padding,
+    isInput,
+    isProduce,
+    isLibrary,
   } = props;
 
   const [openCloud, setOpenCloud] = useState(false);
@@ -24,13 +32,29 @@ const HelpIconComponent = memo((props) => {
     setOpenCloud(!openCloud);
   };
 
+  const handleTooltipMouseEnter = (event) => {
+    event.stopPropagation();
+    tooltipTime = setTimeout(
+      () => setOpenCloud(true), 1000,
+    );
+  };
+
+  const handleTooltipMouseLeave = () => {
+    clearTimeout(tooltipTime);
+    setOpenCloud(false);
+  };
+
   const messageCloud = (msg) => (
     <div
       className={`
-                help-icon__window help-icon__window-${isLeft ? 'right' : 'left'}
-                help-icon__window-${isTop ? 'top' : 'normal'}
-                help-icon__window-${isBottom && 'bottom'}
-              `}
+        ${!isLibrary && `help-icon__window help-icon__window-${isLeft ? 'right' : 'left'}`}
+        help-icon__window help-icon__window-${isTimeline && 'timeline'}
+        help-icon__window-${isTop ? 'top' : 'normal'}
+        ${isLibrary && 'help-icon__window-library'}
+        ${isBottom && 'help-icon__window-bottom'}
+        ${isText && 'help-icon__window-text'}
+        ${isProduce && 'help-icon__window-produce'}
+      `}
     >
       {msg}
     </div>
@@ -42,19 +66,21 @@ const HelpIconComponent = memo((props) => {
         <div className="help-icon" style={{ padding: noPadding ? 0 : undefined }}>
           <ClickOutsideListener onClickOutside={() => setOpenCloud(false)}>
             <div
+              className={isInput && 'help-icon__input'}
               style={{
                 height: noPadding ? '35px' : `${height}px`,
+                padding,
               }}
             >
               {mouseEntered ? (
                 <HelpIcon
-                  className={`help-icon__icon help-icon__icon-${whiteIcon ? 'white' : 'red'}`}
-                  onMouseEnter={handleClickOnIcon}
-                  onMouseLeave={() => setOpenCloud(false)}
+                  className={`help-icon__icon help-icon__icon-${whiteIcon ? 'white' : 'gray'}`}
+                  onMouseEnter={handleTooltipMouseEnter}
+                  onMouseLeave={handleTooltipMouseLeave}
                 />
               ) : (
                 <HelpIcon
-                  className={`help-icon__icon help-icon__icon-${whiteIcon ? 'white' : 'red'}`}
+                  className={`help-icon__icon help-icon__icon-${whiteIcon ? 'white' : 'gray'}`}
                   onClick={handleClickOnIcon}
                 />
               )}
@@ -82,6 +108,12 @@ HelpIconComponent.propTypes = {
   noIcon: PropTypes.bool,
   onParentMouseEntered: PropTypes.bool,
   isBottom: PropTypes.bool,
+  isTimeline: PropTypes.bool,
+  isText: PropTypes.bool,
+  padding: PropTypes.string,
+  isInput: PropTypes.bool,
+  isProduce: PropTypes.bool,
+  isLibrary: PropTypes.bool,
 };
 
 export default HelpIconComponent;

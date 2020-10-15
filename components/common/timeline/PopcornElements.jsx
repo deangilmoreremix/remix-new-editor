@@ -169,7 +169,8 @@ const PopcornElements = observer(({ width }) => {
       layer,
       dimensions,
       isResizable: type !== POPCORN_ELEMENT_TYPES.JSON_TRANSITION
-        && kind !== ASSET_TYPES.PERSONALIZED_VOICE,
+        && kind !== ASSET_TYPES.PERSONALIZED_VOICE
+        && type !== POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION,
     };
   }), [cols, elements, getEnd, getExtraDuration, layers]);
 

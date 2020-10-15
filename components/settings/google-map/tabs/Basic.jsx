@@ -1,7 +1,7 @@
 import React, { Fragment, useEffect, useMemo, useState } from 'react';
 
 import * as popcornConstants from '../../../../lib/constants/popcorn';
-import { GOOGLE_MAP_VALUES } from '../../../../lib/constants/googleMap';
+import { GOOGLE_MAP_VALUES, GOOGLE_MAP_CONSTANTS } from '../../../../lib/constants/googleMap';
 import PropTypes from '../../../../lib/PropTypes';
 
 import FieldBuilder from '../../../form/FieldBuilder';
@@ -51,6 +51,27 @@ const Basic = ({ values, fields, onChange, element }) => {
     return valueType;
   }, [values[popcornConstants.TRANSITION]]);
 
+  const zoomValue = useMemo(() => {
+    const zoomIsExist = values.zoom !== undefined;
+    if (values.type !== GOOGLE_MAP_VALUES.STREETVIEW) {
+      return zoomIsExist ? values.zoom : fields.zoom.default;
+    }
+    if (zoomIsExist && values.zoom <= GOOGLE_MAP_CONSTANTS.MAX_STREETVIEW_ZOOM_VALUE) {
+      return values.zoom;
+    }
+
+    const zValue = zoomIsExist
+      ? GOOGLE_MAP_CONSTANTS.MAX_STREETVIEW_ZOOM_VALUE
+      : GOOGLE_MAP_CONSTANTS.DEFAULT_STREETVIEW_ZOOM_VALUE;
+    onChange({ zoom: zValue, type: GOOGLE_MAP_VALUES.STREETVIEW });
+    return zValue;
+  }, [values.zoom, values.type]);
+
+  const zoomMaxValue = useMemo(() => (
+    values.type === GOOGLE_MAP_VALUES.STREETVIEW
+      ? fields.zoom.maxStreetViewValue : fields.zoom.maxValue
+  ), [values.type]);
+
   return (
     <Fragment>
       <div className="map-settings__block">
@@ -77,11 +98,10 @@ const Basic = ({ values, fields, onChange, element }) => {
         <FieldBuilder
           label={fields[popcornConstants.ZOOM].label}
           type={fields[popcornConstants.ZOOM].type}
-          value={values[popcornConstants.ZOOM]
-            !== undefined ? values[popcornConstants.ZOOM] : fields[popcornConstants.ZOOM].default}
+          value={zoomValue}
           name={popcornConstants.ZOOM}
           onChange={onChange}
-          maxValue={fields[popcornConstants.ZOOM].maxValue}
+          maxValue={zoomMaxValue}
           containerClassName="map-settings-slider-block"
           sliderClassName="video-settings-slider"
           inputClassName="video-settings-slider-input"
@@ -205,6 +225,7 @@ Basic.propTypes = {
     }),
     zoom: PropTypes.shape({
       default: PropTypes.number,
+      maxStreetViewValue: PropTypes.number,
       label: PropTypes.string,
       maxValue: PropTypes.number,
       step: PropTypes.oneOfType([

@@ -619,11 +619,16 @@ export default class ProjectStore extends BaseStore {
       },
     };
 
-    if (type === ANIMATION_TYPES.OUT && animationName !== NONE_CLASS
-      && !isRetarget && (!oldAnimation || !oldAnimation.out || !oldAnimation.out.type)) {
-      const layerElements = this.elements.filter(el => el.track === this.element.track
-        && el.popcornOptions.start >= this.element.popcornOptions.end);
+    const layerElements = this.elements.filter(el => el.track === this.element.track
+      && el.popcornOptions.start >= this.element.popcornOptions.end);
 
+    layerElements.sort((a, b) => a.popcornOptions.start - b.popcornOptions.start);
+
+    const isFreeSpace = !(layerElements
+      && layerElements[0].popcornOptions.start - durationOut
+      < this.element.popcornOptions.end);
+
+    if (type === ANIMATION_TYPES.OUT && animationName !== NONE_CLASS && !isRetarget) {
       const needUpdateDuration = [this.element, ...layerElements].some(el => {
         const animationOut = el.popcornOptions.animation && el.popcornOptions.animation.out
           ? el.popcornOptions.animation.out.duration : 0;
@@ -636,12 +641,14 @@ export default class ProjectStore extends BaseStore {
         await this.updateVideoDuration((this.duration / SANTISECOND) + durationOut);
       }
 
-      layerElements.map(item => this.updateElementFromTimeline({
-        needUpdateStartEnd: true,
-        elementId: item.id,
-        start: item.popcornOptions.start + durationOut,
-        end: item.popcornOptions.end + durationOut,
-      }));
+      if (!isFreeSpace) {
+        layerElements.map(item => this.updateElementFromTimeline({
+          needUpdateStartEnd: true,
+          elementId: item.id,
+          start: item.popcornOptions.start + durationOut,
+          end: item.popcornOptions.end + durationOut,
+        }));
+      }
     }
 
     this.findAndUpdate(this.activeElementId, { animation });

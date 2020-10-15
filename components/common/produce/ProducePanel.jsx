@@ -6,7 +6,7 @@ import classnames from 'classnames';
 import PropTypes from '../../../lib/PropTypes';
 
 import { showInfo } from '../../../lib/services/alertService';
-import HelpIconComponent from '../HelpIcon';
+import TimeoutTooltip from '../TimeoutTooltip';
 
 const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const onCLick = (action, isActive, errorMessage, url) => {
@@ -33,31 +33,26 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
         'produce-panel__button--active': isActive,
       })}
     >
-      <SVGInline
-        className="produce-panel__icon"
-        svg={icon}
-        cleanup={['title']}
-      />
-      {label}
+      <TimeoutTooltip className="produce-panel__box" message={tooltip} isProduce>
+        <SVGInline
+          className="produce-panel__icon"
+          svg={icon}
+          cleanup={['title']}
+        />
+        {label}
+      </TimeoutTooltip>
     </button>
   );
 
   return (
     <div className="produce-block produce-panel">
       {items.map(({ label, action, icon, tooltip, isActive, errorMessage, url }) => (
-        <div className="produce-panel__box">
-          {isActive && url ? (
-            /* eslint-disable-next-line react/jsx-no-target-blank */
-            <a key={`${label}-href`} href={url} target="_blank">
-              {svgButton(label, action, isActive, errorMessage, icon, tooltip, url)}
-            </a>
-          ) : svgButton(label, action, isActive, errorMessage, icon, tooltip)}
-          <HelpIconComponent
-            isLeft={label === 'Watch the video'}
-            message={tooltip}
-            height={170}
-          />
-        </div>
+        isActive && url ? (
+          /* eslint-disable-next-line react/jsx-no-target-blank */
+          <a key={`${label}-href`} href={url} target="_blank">
+            {svgButton(label, action, isActive, errorMessage, icon, tooltip, url)}
+          </a>
+        ) : svgButton(label, action, isActive, errorMessage, icon, tooltip)
       ))}
     </div>
   );
