@@ -1874,5 +1874,7 @@ export default class ProjectStore extends BaseStore {
           })));
       }
     }
+
+    return elementsForUpdate;
   };
 }
