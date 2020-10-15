@@ -209,16 +209,23 @@ const ValidationTimeInput = observer(({
             let newEnd = +(newValue + elementDuration).toFixed(2);
             newEnd = updateNewEnd(newEnd);
 
-            updateLayerElements(newEnd, element);
+            const elementsForUpdate = await updateLayerElements(
+              newEnd,
+              element,
+            );
 
             if (newLastEndOnLayer(newEnd) < currentDuration) {
               updateStartEnd(element.id, newValue, newEnd);
             } else if (newLastEndOnLayer(newEnd) > currentDuration
               && newLastEndOnLayer(newEnd) < maxDuration) {
-              await updateVideoDuration(newEnd);
+              if (!elementsForUpdate.length) {
+                await updateVideoDuration(newEnd);
+              }
               updateStartEnd(element.id, newValue, newEnd);
             } else {
-              await updateVideoDuration(maxDuration);
+              if (!elementsForUpdate.length) {
+                await updateVideoDuration(maxDuration);
+              }
               const maximumStart = newValue <= maxDuration
                 - START_END_DIFFERENCE
                 ? newValue : newEnd - START_END_DIFFERENCE;
