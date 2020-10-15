@@ -3,13 +3,23 @@ import TagsInput from 'react-tagsinput';
 import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
+import HelpIconComponent from '../common/HelpIcon';
 
-const TagsFormInput = ({ value = [], onChange, className, placeholder, label, labelClassName = '', disabled }) => (
+const TagsFormInput = ({ value = [], onChange, className, placeholder, label, labelClassName = '', disabled, isTooltip, tooltipMessage }) => (
   <div className={classnames('tags-input-block', className)}>
     {label && (
-    <p className={classnames('tags-input-title', labelClassName)}>
-      {label}
-    </p>
+      <>
+        <p className={classnames('tags-input-title', labelClassName)}>
+          {label}
+        </p>
+        {isTooltip && (
+          <HelpIconComponent
+            isInput
+            mouseEntered
+            message={tooltipMessage}
+          />
+        )}
+      </>
     )}
     <TagsInput
       value={value}
@@ -30,6 +40,8 @@ TagsFormInput.propTypes = {
   label: PropTypes.string,
   labelClassName: PropTypes.string,
   disabled: PropTypes.bool,
+  isTooltip: PropTypes.bool,
+  tooltipMessage: PropTypes.string,
 };
 
 export default TagsFormInput;

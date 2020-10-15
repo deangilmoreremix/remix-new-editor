@@ -2,8 +2,19 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import HelpIconComponent from './HelpIcon';
 
-const TimeoutTooltip = ({ children, message }) => {
+const TimeoutTooltip = (props) => {
   let tooltipTime;
+
+  const {
+    children,
+    message,
+    className,
+    isLeft,
+    isBottom,
+    isTop,
+    isTimeline,
+    isProduce,
+  } = props;
 
   const [tooltip, setTooltip] = useState(false);
 
@@ -22,10 +33,16 @@ const TimeoutTooltip = ({ children, message }) => {
     <div
       onMouseEnter={handleTooltipMouseEntered}
       onMouseLeave={handleTooltipMouseLeave}
+      className={className}
     >
       {children}
       <HelpIconComponent
         noIcon
+        isProduce={isProduce}
+        isTop={isTop}
+        isLeft={isLeft}
+        isBottom={isBottom}
+        isTimeline={isTimeline}
         message={message}
         onParentMouseEntered={tooltip}
       />
@@ -39,6 +56,12 @@ TimeoutTooltip.propTypes = {
     PropTypes.node,
   ]).isRequired,
   message: PropTypes.string.isRequired,
+  className: PropTypes.string,
+  isLeft: PropTypes.bool,
+  isBottom: PropTypes.bool,
+  isTop: PropTypes.bool,
+  isTimeline: PropTypes.bool,
+  isProduce: PropTypes.bool,
 };
 
 export default TimeoutTooltip;

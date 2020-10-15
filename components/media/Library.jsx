@@ -506,7 +506,7 @@ const Library = observer((props) => {
                       isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
                     }
                   </label>
-                  <HelpIconComponent isLeft message={tabItems[activeTab].tooltip} />
+                  <HelpIconComponent mouseEntered isLibrary message={tabItems[activeTab].tooltip} />
                 </div>
               ) : (
                 <div className="library__add-file">

@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import classnames from 'classnames';
 
 import { ASSET_TYPES, IMAGE_FORMATS } from '../../lib/constants/media';
+import { produceTooltips } from '../../lib/constants/tooltips';
 import { showError } from '../../lib/services/alertService';
 import PropTypes from '../../lib/PropTypes';
 
@@ -11,6 +12,7 @@ import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image'
 import DropZone from './DropZone';
 import useModalStore from '../hooks/useModalStore';
 import DropzoneArea from './DropzoneArea';
+import HelpIconComponent from '../common/HelpIcon';
 
 const DropAndEditButton = (
   {
@@ -21,6 +23,7 @@ const DropAndEditButton = (
     className,
     needSaveAsset,
     recommendedResolution,
+    tooltipMessage,
     zoomable,
     ...rest
   }) => {
@@ -80,13 +83,20 @@ const DropAndEditButton = (
           {...rest}
         />
       ) : (
-        <DropZone
-          onDrop={onDrop}
-          ref={uploadButtonRef}
-          className={classnames('button-add-file', className)}
-          {...props}
-          {...rest}
-        />
+        <>
+          <DropZone
+            onDrop={onDrop}
+            ref={uploadButtonRef}
+            className={classnames('button-add-file', className)}
+            {...props}
+            {...rest}
+          />
+          <HelpIconComponent
+            mouseEntered
+            isText
+            message={produceTooltips.thumbnailUpload}
+          />
+        </>
       )
     }
     </div>
@@ -102,6 +112,7 @@ DropAndEditButton.propTypes = {
   needSaveAsset: PropTypes.bool,
   isArea: PropTypes.bool,
   zoomable: PropTypes.bool,
+  tooltipMessage: PropTypes.string,
   recommendedResolution: PropTypes.shape({
     width: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
