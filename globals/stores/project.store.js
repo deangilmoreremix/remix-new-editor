@@ -7,6 +7,7 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 import { ASSET_TYPES } from '../../lib/constants/media';
+import { GOOGLE_MAP_VALUES } from '../../lib/constants/googleMap';
 
 import {
   NO_SETTINGS_ELEMENT_TYPES,
@@ -1586,7 +1587,9 @@ export default class ProjectStore extends BaseStore {
   @action
   runMapResize = () => {
     this.popcornElements.forEach(element => {
-      if (element.type === POPCORN_ELEMENT_TYPES.GOOGLE_MAP) {
+      if (element.type === POPCORN_ELEMENT_TYPES.GOOGLE_MAP
+        && (element.popcornOptions.type === GOOGLE_MAP_VALUES.STREETVIEW
+          || element.popcornOptions.type === GOOGLE_MAP_VALUES.SIDEBYSIDE)) {
         this.updatePopcorn(element, { runResize: true });
       }
     });
