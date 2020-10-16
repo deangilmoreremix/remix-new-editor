@@ -624,7 +624,7 @@ export default class ProjectStore extends BaseStore {
 
     layerElements.sort((a, b) => a.popcornOptions.start - b.popcornOptions.start);
 
-    const isFreeSpace = !(layerElements
+    const isFreeSpace = !(layerElements.length
       && layerElements[0].popcornOptions.start - durationOut
       < this.element.popcornOptions.end);
 
@@ -1874,5 +1874,7 @@ export default class ProjectStore extends BaseStore {
           })));
       }
     }
+
+    return elementsForUpdate;
   };
 }
