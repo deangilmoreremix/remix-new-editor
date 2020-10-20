@@ -124,6 +124,12 @@ module.exports = {
     GIPHY: {
       apiKey: process.env.GIPHY_API_KEY || 'sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh',
     },
+    TXTVIDEO: {
+      apiUrl: process.env.TXTVIDEO_API_URL || 'https://app.txtvideo.com',
+      apiToken: process.env.TXTVIDEO_API_TOKEN || 'soA6FfAiDGcMCx016HjRt0cs4qqzzh3C',
+      apiKey: process.env.TXTVIDEO_API_KEY || '40aJDpabv6XMC8XDJYLNY03Xl6XB3rayWJlxBYJW',
+      videosApiPath: 'api/videos',
+    },
   },
   scriptStatistic: process.env.SCRIPT_STATISTIC || '',
 };

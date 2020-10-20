@@ -1,6 +1,7 @@
-import { observable, computed, action } from 'mobx';
+import { action, computed, observable } from 'mobx';
 
-import { STATE, FEATURES } from '../../lib/constants/features';
+import { FEATURES, STATE } from '../../lib/constants/features';
+import { LIBRARY_KEYS } from '../../lib/constants/library';
 
 export default class UserStore {
   @observable currentUser = null;
@@ -43,6 +44,33 @@ export default class UserStore {
         },
       });
       return user.ttsAmountOfAvailableCharacters;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
+  getUserKey = (activeBtn) => {
+    const { txtVideoKey, dropMockKey } = this.currentUser;
+    return (activeBtn === LIBRARY_KEYS.DROPMOCK)
+      ? dropMockKey
+      : txtVideoKey;
+  };
+
+  @action
+  updateUserKeys = async (activeBnt, key) => {
+    const fragment = { [activeBnt === LIBRARY_KEYS.DROPMOCK ? 'dropMockKey' : 'txtVideoKey']: key };
+    try {
+      await this.request(`/api/users/${this.currentUser.id}/update-user-key`,
+        {
+          method: 'PATCH',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+          body: fragment,
+        },
+      );
     } catch (e) {
       console.log(e);
       throw e;

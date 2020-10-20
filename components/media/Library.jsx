@@ -2,13 +2,16 @@ import React, { useState, useRef, useEffect, Fragment } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
+import Bb from 'bluebird';
 
 import { CircleLoader } from 'react-spinners';
+import SVGInline from 'react-svg-inline';
 import {
   tabItems,
   perPage,
   LIBRARY_TABS,
   LIBRARY_KEYS,
+  resourcesWithValidation,
 } from '../../lib/constants/library';
 import { LOADING_COLOR, WINDOW_TYPES } from '../../lib/constants/ui';
 import mediaConstants, { ASSET_TYPES } from '../../lib/constants/media';
@@ -38,6 +41,7 @@ import Is360 from '../settings/video-settings/components/Is360';
 import HelpIconComponent from '../common/HelpIcon';
 import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
 import FormTextField from '../form/FormTextField';
+import doubleArrowIcon from '../../public/static/svgImages/common/arrow-down.svg';
 
 const Library = observer((props) => {
   const { checkValue, setError } = props;
@@ -68,14 +72,15 @@ const Library = observer((props) => {
     audioProvidersInfo,
     voiceProvidersInfo,
     defaultProvidersInfo,
+    checkToken,
   } = useMediaStore();
 
-  const { video360Enabled, isSuperAdmin } = userStore;
+  const { video360Enabled, isSuperAdmin, getUserKey, updateUserKeys } = userStore;
 
   // =============== STATE ===============
-  const [isDropMockTab, setDropMockTab] = useState(false);
-  const [dropMockKey, setDropMockKey] = useState();
-  const [preKeyDropMock, setPreKeyDropMock] = useState();
+  const [isValidationInputHidden, setValidationInputHidden] = useState(true);
+  const [userValidationKey, setUserValidationKey] = useState();
+  const [preKeySecure, setPreKeySecure] = useState();
 
   const [query, setQuery] = useState('');
 
@@ -126,9 +131,6 @@ const Library = observer((props) => {
     }
   }, [isLoading, setActiveTab]);
 
-  const activeDropMockTab = React.useMemo(
-    () => !!((isDropMockTab && preKeyDropMock) || !isDropMockTab), [isDropMockTab, preKeyDropMock]);
-
   useEffect(() => {
     async function fetchData() {
       await fetchItems({ source: activeBtn, queryStr: '' });
@@ -164,16 +166,34 @@ const Library = observer((props) => {
     }
   }, [activeTab, activeBtn, userStore]);
 
-  const handleButtonClick = React.useCallback(async (element) => {
-    if (element === LIBRARY_KEYS.DROPMOCK) {
-      setDropMockTab(true);
+  const needValidation = React.useMemo(
+    () => resourcesWithValidation.some(element => element === activeBtn)
+      && activeTab === LIBRARY_TABS.VIDEO,
+    [activeTab, activeBtn]);
+
+  const activeSecureTab = React.useMemo(
+    () => !!((needValidation && preKeySecure) || !needValidation),
+    [needValidation, preKeySecure]);
+
+  useEffect(() => {
+    let validationKey = getUserKey(activeBtn);
+    if (needValidation) {
       if (isSuperAdmin) {
-        setDropMockKey(listProviders.DROPMOCK.apiKey);
-        await onKeyEnter(listProviders.DROPMOCK.apiKey);
+        setUserValidationKey(listProviders[activeBtn].apiKey);
+        onKeyEnter(listProviders[activeBtn].apiKey);
+      } else if (validationKey) {
+        setValidationInputHidden(true);
+        validationKey = getUserKey(activeBtn);
+        setUserValidationKey(validationKey);
+        onKeyEnter(validationKey);
+      } else {
+        setValidationInputHidden(false);
+        setUserValidationKey('');
       }
-    } else {
-      setDropMockTab(false);
     }
+  }, [needValidation, activeBtn]);
+
+  const handleButtonClick = React.useCallback(async (element) => {
     if (!isLoading) {
       setActiveBtn(element);
     }
@@ -193,9 +213,6 @@ const Library = observer((props) => {
     let currentPage = 0;
     let uploaded = [];
     if (isLoading) {
-      return;
-    }
-    if (isDropMockTab && !dropMockKey) {
       return;
     }
     setIsLoading(true);
@@ -381,10 +398,26 @@ const Library = observer((props) => {
     }
   };
 
-  const onKeyEnter = async (key) => {
-    listProviders.DROPMOCK.apiKey = key || dropMockKey;
-    setPreKeyDropMock(key || dropMockKey);
+  const onKeyEnter = async (key = '') => {
+    listProviders[activeBtn].apiKey = key || userValidationKey;
+    setPreKeySecure(key || userValidationKey);
     await fetchItems({ source: activeBtn });
+  };
+
+  const verifyKey = async (key = '') => {
+    listProviders[activeBtn].apiKey = key || userValidationKey;
+    setPreKeySecure(key || userValidationKey);
+    if (await checkToken(activeBtn)) {
+      await Bb.all([
+        fetchItems({ source: activeBtn }),
+        updateUserKeys(activeBtn, key || userValidationKey),
+      ]);
+      setValidationInputHidden(true);
+    } else {
+      await showError(`WRONG CREDENTIALS: ${activeBtn === LIBRARY_KEYS.DROPMOCK
+        ? 'Looks like Your DropMock Fusion key is invalid'
+        : 'Looks like Your TxtVideo key is invalid'}`);
+    }
   };
 
   const { getInputProps } = useDropzone({
@@ -565,17 +598,36 @@ const Library = observer((props) => {
                 )
             }
             </div>
-            {isDropMockTab && (
-            <FormTextField
-              value={dropMockKey}
-              onEnter={onKeyEnter}
-              onChange={setDropMockKey}
-              placeholder="Enter your DropMock Fusion key here and press return"
-            />
+            {needValidation
+            && (isValidationInputHidden
+              ? (
+                <SVGInline
+                  className="verify-key-button"
+                  svg={doubleArrowIcon}
+                  component="button"
+                  onClick={() => setValidationInputHidden(false)}
+                />
+              )
+              : (
+                <div>
+                  <FormTextField
+                    value={userValidationKey}
+                    onEnter={onKeyEnter}
+                    onChange={setUserValidationKey}
+                    placeholder={`Enter your ${activeBtn === LIBRARY_KEYS.DROPMOCK ? 'DropMock Fusion' : 'TxtVideo'} key here and press return`}
+                  />
+                  <button
+                    className="library-voice-filter__btn"
+                    onClick={() => verifyKey(userValidationKey)}
+                  >
+                      verify
+                  </button>
+                </div>
+              )
             )}
             <div className="library__block">
               {
-              activeBtn !== LIBRARY_KEYS.DROPMOCK && (
+                !needValidation && (
                 <Fragment>
                   <input
                     className="library__search"
@@ -597,7 +649,7 @@ const Library = observer((props) => {
                     </button>
                   )}
                 </Fragment>
-              )
+                )
             }
             </div>
             {(activeTab === LIBRARY_KEYS.PERSONALIZED_VOICE || activeTab === LIBRARY_KEYS.VOICE)
@@ -628,7 +680,7 @@ const Library = observer((props) => {
                 />
               </div>
             )
-            : (activeDropMockTab && (
+            : (activeSecureTab && (
               <LibraryContent
                 activeItem={activeItem}
                 items={items}

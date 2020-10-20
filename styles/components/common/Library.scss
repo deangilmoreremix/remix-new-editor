@@ -765,6 +765,22 @@ button.library__tab {
   }
 }
 
+.verify-key-button {
+  @include reset-button;
+  width: 14.83px;
+  height: 19.13px;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  path {
+    fill: #575773;
+    stroke: none;
+  }
+}
+
 @media screen and (max-width: $md) {
   .library__item {
     width: 100%;
