@@ -18,6 +18,10 @@ div.modal-container__content {
   @include tiny-scrollbar;
 }
 
+.tui-image-editor-modal {
+  @include tiny-scrollbar;
+}
+
 .header-tabs__title {
   line-height: 1;
   padding: 1rem;
