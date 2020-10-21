@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import classnames from 'classnames';
 
 import PropTypes from '../../../lib/PropTypes';
 import {
@@ -25,6 +26,7 @@ const LibraryVoiceFilter = React.memo((props) => {
     voiceType,
     setVoiceType,
     fetchItems,
+    disabled,
   } = props;
 
   const [isDisabledInput, setIsDisabledInput] = useState(true);
@@ -45,7 +47,13 @@ const LibraryVoiceFilter = React.memo((props) => {
       ? DEFAULT_VOICES[currentVoiceType] : VOICES[item];
 
     if (currentVoice) {
-      setVoiceType(ENGINE_TYPE_VALUES.STANDART);
+      if (voiceType !== ENGINE_TYPE_VALUES.STANDART) {
+        setVoiceType(ENGINE_TYPE_VALUES.STANDART);
+      } else {
+        setIsDisabledInput(false);
+        setSelectedVoices(currentVoice);
+        setVoice(currentVoice[0].value);
+      }
     } else {
       setVoiceType(null);
       setVoice(null);
@@ -130,7 +138,13 @@ const LibraryVoiceFilter = React.memo((props) => {
         )}
       </div>
 
-      <button className="library-voice-filter__btn" onClick={fetchItems}>Filter</button>
+      <button
+        className={classnames('library-voice-filter__btn', { 'library-voice-filter__btn-disabled': disabled })}
+        onClick={fetchItems}
+        disabled={disabled}
+      >
+        Filter
+      </button>
     </div>
   );
 });
@@ -143,6 +157,7 @@ LibraryVoiceFilter.propTypes = {
   setVoice: PropTypes.func.isRequired,
   setVoiceType: PropTypes.func.isRequired,
   fetchItems: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
 };
 
 export default LibraryVoiceFilter;

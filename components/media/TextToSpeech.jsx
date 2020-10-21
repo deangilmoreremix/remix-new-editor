@@ -6,7 +6,6 @@ import AudioPlayer from 'react-audio-player';
 
 import { TEXT_TO_SPEECH_SUCCESS, TEXT_TO_SPEECH_ERROR, ERROR_TEXT_SYMBOLS } from '../../lib/constants/text-info';
 import { ASSET_TYPES } from '../../lib/constants/media';
-import { LIBRARY_TABS } from '../../lib/constants/library';
 import {
   VOICES,
   LANGUAGES,
@@ -29,26 +28,20 @@ import useProjectStore from '../hooks/useProjectStore';
 import useUserStore from '../hooks/useUserStore';
 
 import FormSelect from '../form/FormSelect';
-import FormRadioButton from '../form/FormRadioButton';
 import { showError } from '../../lib/services/alertService';
 import CloseButton from '../common/CloseButton';
 import { LibrarySpinner } from './Loader';
 import PersonalizeButton from '../common/personalization/PersonalizeButton';
 import FormTokensTextArea from '../form/FormTokensTextArea';
 import FormTextArea from '../form/FormTextArea';
+import TextToSpeechLibrary from '../common/textToSpeech/TextToSpeechLibrary';
 
 import playIcon from '../../public/static/svgImages/common/play.svg';
-import stopIcon from '../../public/static/svgImages/common/stop.svg';
-import soundOnIcon from '../../public/static/svgImages/common/soundOn.svg';
-import soundOffIcon from '../../public/static/svgImages/common/soundOff.svg';
-
-// import SVGInline from 'react-svg-inline';
-// import trashIcon from '../../public/static/svgImages/common/trash.svg';
-// import svgVoice from '../../public/static/svgImages/common/voice.svg';
-// import FormTextField from '../form/FormTextField';
+import textSpeechIcon from '../../public/static/svgImages/common/textspeech.svg';
+import arrowIcon from '../../public/static/svgImages/common/arrow-back.svg';
 
 const TextToSpeech = observer(() => {
-  const { toggleRightBlock, isTimelineOpen, setLibraryType } = useUIStore();
+  const { toggleRightBlock, isTimelineOpen, toggleVisibleCanvas } = useUIStore();
   const { postTextToSpeech } = useMediaStore();
   const { showSuccess } = useProjectStore();
   const { getTextSpeechSymbols, textToSpeechNeuralEnabled } = useUserStore();
@@ -64,13 +57,9 @@ const TextToSpeech = observer(() => {
   const [symbols, setSymbols] = useState();
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMute, setIsMute] = useState(false);
   const [isActivePreview, setIsActivePreview] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isDisplayingControls, setIsDisplayingControls] = useState(true);
-
-  const isPlayingIcon = useMemo(() => (isPlaying ? stopIcon : playIcon), [isPlaying]);
-  const isMuteIcon = useMemo(() => (isMute ? soundOffIcon : soundOnIcon), [isMute]);
 
   const changePlaying = () => {
     setIsPlaying(value => {
@@ -122,10 +111,6 @@ const TextToSpeech = observer(() => {
     return symbols > value ? value : symbols;
   };
 
-  const backToLibrary = () => {
-    setLibraryType(LIBRARY_TABS.VOICE);
-  };
-
   const getVoice = () => {
     setLoading(true);
     postTextToSpeech(
@@ -169,50 +154,34 @@ const TextToSpeech = observer(() => {
     }
   }, [voiceType]);
 
-  const itemsRadio = useMemo(() => {
-    const modifiedEngineType = engineType.slice();
-
-    if (language) {
-      modifiedEngineType.forEach(item => {
-        item.disabled = false;
-      });
-      modifiedEngineType[1].disabled = !LANGUAGES_PRO.some(({ value: languageItem }) => (
-        languageItem === language
-      ));
-    } else {
-      modifiedEngineType.forEach(item => {
-        item.disabled = true;
-      });
-    }
-
-    return modifiedEngineType;
-  }, [language]);
-
-  const onVoiceSelect = v => {
-    const item = selectedVoices.find(voiceItem => voiceItem.value === v).value;
+  const onVoiceSelect = value => {
+    const item = selectedVoices.find(voiceItem => voiceItem.value === value).value;
     setVoice(item);
     changeAndPlay(language, item, voiceType);
   };
 
-  const onLanguageSelect = v => {
-    const item = LANGUAGES.find(languageItem => languageItem.value === v).value;
+  const onLanguageSelect = value => {
+    const item = LANGUAGES.find(languageItem => languageItem.value === value).value;
     setLanguage(item);
     const currentVoice = item === LANGUAGES_VALUES.ENUS
       ? DEFAULT_VOICES[voiceType] : VOICES[item];
     changeAndPlay(item, currentVoice[0].value, ENGINE_TYPE_VALUES.STANDART);
   };
 
-  const onRadioSelect = v => {
+  const onRadioSelect = () => {
+    const voiceEngine = voiceType === ENGINE_TYPE_VALUES.STANDART
+      ? ENGINE_TYPE_VALUES.NEURAL : ENGINE_TYPE_VALUES.STANDART;
+
     const voices = language === LANGUAGES_VALUES.ENUS
       ? DEFAULT_VOICES[voiceType] : VOICES[language];
     let currentVoice = voices[0].value;
-    if (v === ENGINE_TYPE_VALUES.STANDART && voice === VOICES_PRO[0].value) {
+    if (voiceEngine === ENGINE_TYPE_VALUES.STANDART && voice === VOICES_PRO[0].value) {
       setVoice(currentVoice);
     } else {
       currentVoice = voice;
     }
-    setVoiceType(v);
-    changeAndPlay(language, currentVoice, v);
+    setVoiceType(voiceEngine);
+    changeAndPlay(language, currentVoice, voiceEngine);
   };
 
   const isPersonalizeText = useMemo(() => valueTextarea && unwrapTokens(valueTextarea).indexOf('{{') !== -1, [valueTextarea]);
@@ -251,8 +220,8 @@ const TextToSpeech = observer(() => {
     if (!symbols) {
       return true;
     }
-    return getValueLength(valueTextarea) >= maxTextSymbols;
-  }, [valueTextarea, maxTextSymbols, symbols]);
+    return getValueLength(valueTextarea) >= maxSymbols.personalized;
+  }, [valueTextarea, symbols]);
 
   const onAddTextToken = useCallback((token) => {
     if (disabledPersonalizedVoice) {
@@ -262,12 +231,49 @@ const TextToSpeech = observer(() => {
     setValueTextarea(wrapTokens(result));
   }, [valueTextarea, caret, maxTextSymbols]);
 
+  const closeWindow = () => {
+    toggleRightBlock(false);
+    toggleVisibleCanvas(true);
+  };
+
+  const disabledProButton = useMemo(() => (
+    !(LANGUAGES_PRO.some(({ value }) => value === language))
+  ), [language]);
+
+  const currentVoiceImage = useMemo(() => {
+    const currentVoices = language === LANGUAGES_VALUES.ENUS
+      ? DEFAULT_VOICES[voiceType] : VOICES[language];
+    const currentVoice = currentVoices.find(item => item.value === voice);
+    if (currentVoice) {
+      return currentVoice.img;
+    }
+  }, [language, voice]);
+
+  const sliderClick = (direction) => {
+    const currentVoices = language === LANGUAGES_VALUES.ENUS
+      ? DEFAULT_VOICES[voiceType] : VOICES[language];
+    const currentVoice = currentVoices.find(item => item.value === voice);
+    const currentIndex = currentVoices.indexOf(currentVoice);
+
+    let item;
+    if (direction === 'left') {
+      item = currentIndex === 0
+        ? currentVoices[currentVoices.length - 1].value : currentVoices[currentIndex - 1].value;
+    } else {
+      item = currentIndex === currentVoices.length - 1
+        ? currentVoices[0].value : currentVoices[currentIndex + 1].value;
+    }
+    setVoice(item);
+    changeAndPlay(language, item, voiceType);
+  };
+
+
   return (
     <div className={classnames('text-to-speech', { 'big-window': !isTimelineOpen })}>
       <div className="text-to-speech__title-wrapper">
         <span className="text-to-speech__title">TEXT TO SPEECH</span>
       </div>
-      <div className="text-to-speech__content">
+      <div className="text-to-speech__body">
         {/* toDo: Code below should be used for upper(white) input */}
         {/* <div className="text-to-speech__input-wrapper"> */}
         {/* <FormTextField */}
@@ -300,131 +306,163 @@ const TextToSpeech = observer(() => {
         className="icon icon-button svg-fix" type="button" /> */}
         {/* </div> */}
         {/* </div> */}
-        <div className="text-to-speech__options">
-          <div className="text-to-speech__left">
-            <FormSelect
-              label="Language"
-              items={LANGUAGES}
-              className="text-to-speech__select"
-              value={language}
-              onChange={onLanguageSelect}
-            />
-            <FormSelect
-              label="Voice"
-              items={selectedVoices}
-              className="text-to-speech__select"
-              value={voice}
-              onChange={onVoiceSelect}
-            />
-            {isDisplayingControls && (
-              <div className="text-to-speech__controls">
-                <button className="text-to-speech__button" onClick={changePlaying}>
-                  <SVGInline
-                    className="library__item-icon"
-                    svg={isPlayingIcon}
-                  />
-                </button>
-                <button className="text-to-speech__button" onClick={() => setIsMute(!isMute)}>
-                  <SVGInline
-                    className="library__item-icon"
-                    svg={isMuteIcon}
-                  />
-                </button>
-                {isActivePreview && (
-                  <AudioPlayer
-                    src={previewUrl}
-                    muted={isMute}
-                    onEnded={() => changePlaying(false)}
-                    autoPlay
-                  />
-                )}
-              </div>
-            )}
+        <div className="text-to-speech__creator">
+          <div className="text-to-speech__control">
             {textToSpeechNeuralEnabled && (
-              <FormRadioButton
-                items={itemsRadio}
-                groupName="groupName"
-                value={voiceType}
-                containerClassName="text-to-speech__radio-container"
-                radioClassName="text-to-speech__radio"
-                onChange={onRadioSelect}
-              />
+              <button
+                onClick={onRadioSelect}
+                disabled={disabledProButton}
+                className={classnames(
+                  'text-to-speech__radio',
+                  { 'text-to-speech__radio-active': voiceType === ENGINE_TYPE_VALUES.NEURAL },
+                  { 'text-to-speech__radio-disabled': disabledProButton },
+                )}
+              >
+                PRO
+              </button>
             )}
-            <PersonalizeButton
-              onAdd={onAddTextToken}
-              text="Personalize Voice"
-              disabled={disabledPersonalizedVoice}
-              elementType={ASSET_TYPES.PERSONALIZED_VOICE}
-              tokenModes={{
-                plain: tokenModes.plain,
-              }}
-            />
+
+            <div className="text-to-speech__clear-block" />
+
+            <div className="text-to-speech__select-block">
+              <FormSelect
+                label="Language"
+                items={LANGUAGES}
+                className="text-to-speech__selection"
+                selectClassName="text-to-speech__select-list"
+                value={language}
+                onChange={onLanguageSelect}
+              />
+              <FormSelect
+                label="Voice"
+                items={selectedVoices}
+                className="text-to-speech__selection"
+                selectClassName="text-to-speech__select-list"
+                value={voice}
+                onChange={onVoiceSelect}
+              />
+            </div>
           </div>
-          <div className="text-to-speech__right">
-            <div className="text-to-speech__text-wrapper">
-              {isPersonalizeText && (
-                <Fragment>
-                  <FormTextArea
-                    label="Fallback Value"
-                    value={fallbackValue}
-                    onChange={handleChangeFallback}
-                    className="text-to-speech__textarea"
-                    inputClassName="text-to-speech__textarea-input"
-                    rows={6}
-                    text
-                    maxTextSymbols={maxFallbackSymbols}
-                    languageValidator={VALIDATION_ENG_LANGUAGE}
-                  />
-                  <p className="text-to-speech__info">Required field</p>
-                </Fragment>
-              )}
-              <FormTokensTextArea
-                label="Text"
-                inputClassName="text-to-speech__textarea"
-                value={valueTextarea}
-                onChange={handleChange}
-                additionalFieldName="text"
-                caretName="caretOffset"
-                variant="multiline"
-                updateCaret={(value) => setCaret(value.caretOffset)}
-                maxTextSymbols={maxTextSymbols}
-                symbolsCount={textValueAreaLength}
+
+          {isPersonalizeText && (
+            <Fragment>
+              <FormTextArea
+                label="Fallback Value"
+                value={fallbackValue}
+                onChange={handleChangeFallback}
+                className="text-to-speech__textarea"
+                inputClassName="text-to-speech__textarea-input"
+                rows={6}
+                text
+                maxTextSymbols={maxFallbackSymbols}
                 languageValidator={VALIDATION_ENG_LANGUAGE}
               />
-            </div>
-            <div className="text-to-speech__loader-btn-group-wrapper">
-              <div className="text-to-speech__loader" />
-              <div className="text-to-speech__btn-group">
-                <button
-                  onClick={getVoice}
-                  className={classnames('btn-custom btn-speech-get', { 'btn-custom-disabled': isDisabledButton || loading })}
-                  disabled={isDisabledButton}
-                >
-                  {loading ? <LibrarySpinner /> : <span>GET VOICE</span>}
-                </button>
+              <p className="text-to-speech__info">Required field</p>
+            </Fragment>
+          )}
 
-                <button className="btn-custom btn-open-library" onClick={backToLibrary}>Open Library</button>
-              </div>
+          <FormTokensTextArea
+            label="Text"
+            inputClassName="text-to-speech__textarea"
+            value={valueTextarea}
+            onChange={handleChange}
+            additionalFieldName="text"
+            caretName="caretOffset"
+            variant="multiline"
+            updateCaret={(value) => setCaret(value.caretOffset)}
+            maxTextSymbols={maxTextSymbols}
+            symbolsCount={textValueAreaLength}
+            languageValidator={VALIDATION_ENG_LANGUAGE}
+          />
+
+          <div className="text-to-speech__footer">
+            <div className="text-to-speech__notification">
+              {symbols !== undefined && (
+                <div className="text-to-speech__notification-top">
+                  <p>
+                    The number of characters remaining is
+                    <span>{` ${symbols.toLocaleString('en')}`}</span>
+                    .
+                  </p>
+                  <div className="text-to-speech__icon">
+                    <SVGInline
+                      svg={textSpeechIcon}
+                      cleanup={['title']}
+                    />
+                  </div>
+                </div>
+              )}
+              {isPersonalizeText && (
+                <p className="text-to-speech__notification-bottom">
+                  Each time you watch your video in the player,
+                  the number of available symbols will decrease.
+                </p>
+              )}
+            </div>
+
+            <div className="text-to-speech__buttons">
+              <PersonalizeButton
+                onAdd={onAddTextToken}
+                text="Personalize Voice"
+                disabled={disabledPersonalizedVoice}
+                elementType={ASSET_TYPES.PERSONALIZED_VOICE}
+                tokenModes={{
+                  plain: tokenModes.plain,
+                }}
+              />
+              <button
+                onClick={getVoice}
+                className={classnames('btn-speech-get', { 'btn-custom-disabled': isDisabledButton || loading })}
+                disabled={isDisabledButton}
+              >
+                {loading ? <LibrarySpinner /> : (
+                  <SVGInline
+                    svg={playIcon}
+                    cleanup={['title']}
+                  />
+                )}
+              </button>
             </div>
           </div>
         </div>
-        <div className="text-to-speech__notification">
-          {symbols !== undefined && (
-            <p>
-              The number of characters remaining is
-              <span>{` ${symbols.toLocaleString('en')}`}</span>
-              .
-            </p>
-          )}
-          {isPersonalizeText && (
-            <p>
-              Each time you watch your video in the player,
-              the number of available symbols will decrease.
-            </p>
+
+        <div className={classnames('text-to-speech__slider', { 'text-to-speech__slider-enum': !textToSpeechNeuralEnabled })}>
+          <button className="text-to-speech__slider-left" onClick={() => sliderClick('left')}>
+            <SVGInline
+              svg={arrowIcon}
+              cleanup={['title']}
+            />
+          </button>
+          <button className="text-to-speech__slider-right" onClick={sliderClick}>
+            <SVGInline
+              svg={arrowIcon}
+              cleanup={['title']}
+            />
+          </button>
+          <p className="text-to-speech__voice-name">{voice}</p>
+          <div className="text-to-speech__image">
+            <img src={currentVoiceImage} alt="img" />
+          </div>
+          {isDisplayingControls && (
+            <div className="text-to-speech__controls">
+              <button
+                className={classnames('text-to-speech__button', { 'text-to-speech__button-active': isPlaying })}
+                onClick={changePlaying}
+              />
+              {isActivePreview && (
+                <AudioPlayer
+                  src={previewUrl}
+                  onEnded={() => changePlaying(false)}
+                  autoPlay
+                />
+              )}
+            </div>
           )}
         </div>
+
+        <TextToSpeechLibrary />
       </div>
-      <CloseButton onClick={() => toggleRightBlock(false)} />
+      <CloseButton onClick={closeWindow} />
     </div>
   );
 });

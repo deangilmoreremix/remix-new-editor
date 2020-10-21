@@ -52,7 +52,7 @@ const Library = observer((props) => {
     openSettings,
     toggleRightBlock,
     isTimelineOpen,
-    openSecondaryModal,
+    openTextToSpeech,
   } = uiStore;
 
   const {
@@ -483,7 +483,7 @@ const Library = observer((props) => {
   }, [activeTab, activeBtn, volume, activeItem, listProviders, isLoading]);
 
   const openVoiceWindow = () => {
-    openSecondaryModal(WINDOW_TYPES.TEXT_TO_SPEECH);
+    openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
   };
 
   return (
