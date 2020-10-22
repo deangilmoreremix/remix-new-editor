@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
@@ -16,6 +16,13 @@ const ProviderList = observer((props) => {
     activeTab,
   } = props;
 
+  const providerTitle = useMemo(() => {
+    if (title) {
+      return <p className="library__block--title">{title}</p>;
+    }
+    return null;
+  }, [title]);
+
   return (
     <div className="library__block">
       {
@@ -23,7 +30,7 @@ const ProviderList = observer((props) => {
           // eslint-disable-next-line react/jsx-no-target-blank
           <a href="http://download.vidcloud.io/" className="library__block--title" target="_blank">{title}</a>
         ) : (
-          <p className="library__block--title">{title}</p>
+          providerTitle
         )
       }
       <div className="library__btn-container">
@@ -64,10 +71,14 @@ const ProviderList = observer((props) => {
 ProviderList.propTypes = {
   list: PropTypes.shape({}).isRequired,
   activeItem: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
-  userContentTitle: PropTypes.string.isRequired,
+  title: PropTypes.string,
+  userContentTitle: PropTypes.string,
   handleButtonClick: PropTypes.func.isRequired,
   activeTab: PropTypes.string,
+};
+
+ProviderList.defaultProps = {
+  userContentTitle: '',
 };
 
 export default ProviderList;

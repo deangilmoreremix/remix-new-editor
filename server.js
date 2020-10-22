@@ -15,6 +15,7 @@ const checkAccess = require('./lib/express/check-access');
 const { processForm, isValidMedia, mediaUpload } = require('./lib/express/media-upload');
 // const { join } = require('./lib/express/video-processing');
 const getContentType = require('./lib/express/get-content-type');
+const { getVoice, saveVoice } = require('./lib/express/temporary-voice');
 
 mobxReact.useStaticRendering(true);
 
@@ -36,6 +37,8 @@ app.prepare().then(() => {
   // server.post('/api/media/join', join);
   server.put('/api/media', processForm, isValidMedia, mediaUpload);
   server.get('/api/get-content-type', getContentType);
+  server.post('/api/get-temporary-voice', getVoice);
+  server.put('/api/save-temporary-voice', processForm, isValidMedia, saveVoice);
 
   if (!nakedRun) {
     server.get('/_next/*', (req, res) => {

@@ -112,11 +112,8 @@ const Home = observer(() => {
   );
 
   const {
-    setLibraryType,
-    openLowerThird,
     changeRadioButton,
     secondaryWindowType,
-    openStickers,
     setSecondaryWindowType,
     checkboxRight,
     radioButtonBottom,
@@ -126,15 +123,14 @@ const Home = observer(() => {
     toolsWidth,
     setListBuilder,
     openCTA,
-    openSecondaryModal,
+    openTextToSpeech,
     toggleRightBlock,
     openUploadTransition,
-    openToolbarElement,
-    openGif,
-    openSticker,
     showProducePanel,
     closeAllWindows,
     setInitialView,
+    isCanvasPresent,
+    closeRightOpenCanvas,
   } = uiStore;
 
   const {
@@ -287,9 +283,6 @@ const Home = observer(() => {
       actions: {
         openModal,
         closeModal,
-        setLibraryType,
-        openStickers,
-        openLowerThird,
         changeRadioButton,
         addElement,
         addRetargetForm,
@@ -297,12 +290,10 @@ const Home = observer(() => {
         setSecondaryWindowType,
         openMediaButton,
         openCTA,
-        openSecondaryModal,
+        openTextToSpeech,
         toggleRightBlock,
         openUploadTransition,
-        openToolbarElement,
-        openGif,
-        openSticker,
+        closeRightOpenCanvas,
       },
       project: {
         allowedSocials,
@@ -338,7 +329,6 @@ const Home = observer(() => {
   }, [
     openModal,
     closeModal,
-    setLibraryType,
     changeRadioButton,
     addElement,
     optinCodeEnabled,
@@ -364,7 +354,7 @@ const Home = observer(() => {
           { isLoading ? <div className="hover-loading" /> : null }
           <Loader isLoading={isLoading} />
           <Grid container className="controls">
-            <Grid item xs={toolsWidth} className="controls-block">
+            <Grid item xs={!isCanvasPresent ? 12 : toolsWidth} className={classnames('controls-block', { 'controls-block-library': !isCanvasPresent })}>
               <Grid container>
 
                 <Grid item xs={radioButtonBottom ? 12 : 6} style={{ maxWidth: radioButtonBottom ? '100%' : '23.3em', flexBasis: !radioButtonBottom && 'auto' }}>
@@ -383,7 +373,7 @@ const Home = observer(() => {
 
               </Grid>
             </Grid>
-            <Grid item xs={canvasWidth}>
+            <Grid className={classnames({ hidden: !isCanvasPresent })} item xs={canvasWidth}>
               <Canvas />
             </Grid>
           </Grid>

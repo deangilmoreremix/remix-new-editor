@@ -7,6 +7,7 @@ import PropTypes from '../../../lib/PropTypes';
 import useUIStore from '../../hooks/useUIStore';
 
 import arrowIcon from '../../../public/static/svgImages/common/arrow-back.svg';
+import { WINDOW_TYPES } from '../../../lib/constants/ui';
 
 import AnimatedWindow from '../AnimatedWindow';
 import HelpIconComponent from '../HelpIcon';
@@ -14,7 +15,18 @@ import HelpIconComponent from '../HelpIcon';
 const Toolbar = observer(({ items }) => {
   let tooltipTime;
 
-  const { toolbarItem: { id, options }, setToolbarItem, isExpand, isTimelineOpen } = useUIStore();
+  const {
+    toolbarItem: {
+      id,
+      options,
+    },
+    setToolbarItem,
+    isExpand,
+    isTimelineOpen,
+    toggleVisibleCanvas,
+    isCanvasPresent,
+    secondaryWindowType,
+  } = useUIStore();
 
   React.useEffect(() => {
     if (items && items.length && !id) {
@@ -28,6 +40,10 @@ const Toolbar = observer(({ items }) => {
   } = items.find(i => i.id === id) || {};
 
   const onClick = (label, func) => {
+    if (secondaryWindowType !== WINDOW_TYPES.TEXT_TO_SPEECH && !isCanvasPresent) {
+      toggleVisibleCanvas(true);
+    }
+
     func();
     handleCloseTooltip(label);
     setToolbarItem(label);

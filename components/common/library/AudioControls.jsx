@@ -36,4 +36,8 @@ const AudioControls = observer(({ selected, volume, setVolume }) => {
 
 AudioControls.propTypes = {};
 
+AudioControls.defaultProps = {
+  volume: 100,
+};
+
 export default AudioControls;
