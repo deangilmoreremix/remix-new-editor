@@ -4,7 +4,7 @@ import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 import AudioPlayer from 'react-audio-player';
 
-import { TEXT_TO_SPEECH_SUCCESS, TEXT_TO_SPEECH_ERROR, ERROR_TEXT_SYMBOLS } from '../../lib/constants/text-info';
+import { ERROR_TEXT_SYMBOLS } from '../../lib/constants/text-info';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import {
   VOICES,
@@ -24,7 +24,6 @@ import { VALIDATION_ENG_LANGUAGE } from '../../lib/constants/regExps';
 
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
-import useProjectStore from '../hooks/useProjectStore';
 import useUserStore from '../hooks/useUserStore';
 
 import FormSelect from '../form/FormSelect';
@@ -37,13 +36,15 @@ import FormTextArea from '../form/FormTextArea';
 import TextToSpeechLibrary from '../common/textToSpeech/TextToSpeechLibrary';
 
 import playIcon from '../../public/static/svgImages/common/play.svg';
+// todo update icon
+import saveIcon from '../../public/static/svgImages/header/save.svg';
 import textSpeechIcon from '../../public/static/svgImages/common/textspeech.svg';
 import arrowIcon from '../../public/static/svgImages/common/arrow-back.svg';
+import { LIBRARY_KEYS } from '../../lib/constants/library';
 
 const TextToSpeech = observer(() => {
   const { toggleRightBlock, isTimelineOpen, toggleVisibleCanvas } = useUIStore();
-  const { postTextToSpeech } = useMediaStore();
-  const { showSuccess } = useProjectStore();
+  const { getTemporaryTextToSpeech, saveTemporaryTextToSpeech, saveTextToSpeech } = useMediaStore();
   const { getTextSpeechSymbols, textToSpeechNeuralEnabled } = useUserStore();
 
   const [loading, setLoading] = useState(false);
@@ -60,6 +61,9 @@ const TextToSpeech = observer(() => {
   const [isActivePreview, setIsActivePreview] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isDisplayingControls, setIsDisplayingControls] = useState(true);
+  const [audioFile, setAudioFile] = useState(null);
+  const [audio, setAudio] = useState(null);
+  const [addedItems, setAddedItems] = useState([]);
 
   const changePlaying = () => {
     setIsPlaying(value => {
@@ -67,6 +71,19 @@ const TextToSpeech = observer(() => {
       return !value;
     });
   };
+
+  const existedAudio = useMemo(() => !!audio, [audio]);
+
+  const existedAudioFile = useMemo(() => !!audioFile, [audioFile]);
+
+  const lastKind = useMemo(() => {
+    if (addedItems.length) {
+      const lastElement = addedItems[0];
+      return lastElement.kind === ASSET_TYPES.VOICE
+        ? LIBRARY_KEYS.VOICE : LIBRARY_KEYS.PERSONALIZED_VOICE;
+    }
+    return null;
+  }, [addedItems]);
 
   const changeAndPlay = (languageItem, voiceItem, voiceTypeItem) => {
     const url = PREVIEW[languageItem][voiceItem][voiceTypeItem];
@@ -81,20 +98,6 @@ const TextToSpeech = observer(() => {
       setIsDisplayingControls(false);
     }
   };
-
-  // toDo: Code commented below should be used for upper(white) input
-  // const [valueSelect, setValueSelect] = useState(2);
-  // const selectItems = [
-  //   { label: 'First item', value: 1 },
-  //   { label: 'Second item', value: 2 },
-  //   { label: 'New item', value: 3 },
-  // ];
-  // const [valueInput, setValueInput] = useState(null)
-  //
-  // const onChange = v => {
-  //   const item = selectItems.filter(item => item.value === v);
-  //   setValueSelect(item.value);
-  // };
 
   const quantify = () => {
     getTextSpeechSymbols()
@@ -111,18 +114,56 @@ const TextToSpeech = observer(() => {
     return symbols > value ? value : symbols;
   };
 
+  const playVoice = React.useCallback(() => {
+    if (audio) {
+      const promise = audio.play();
+      if (promise) {
+        promise.catch(() => {
+          showError('To play audio please press play again');
+        });
+      }
+    }
+  }, [audio]);
+
   const getVoice = () => {
     setLoading(true);
-    postTextToSpeech(
-      voiceType,
+    getTemporaryTextToSpeech({
+      engine: voiceType,
       language,
-      isPersonalizeText ? unwrapTokens(valueTextarea) : valueTextarea,
+      text: isPersonalizeText ? fallbackValue : valueTextarea,
       voice,
-      isPersonalizeText ? ASSET_TYPES.PERSONALIZED_VOICE : ASSET_TYPES.VOICE,
-      isPersonalizeText ? fallbackValue : null,
+    },
     )
-      .then(() => showSuccess(TEXT_TO_SPEECH_SUCCESS.title))
-      .catch(() => showError(TEXT_TO_SPEECH_ERROR.title))
+      .then((result) => {
+        setAudioFile(result.blob);
+        setAudio(result.audio);
+      })
+      .catch((e) => showError((e && e.message) || e))
+      .finally(() => setLoading(false));
+  };
+
+  const saveVoice = () => {
+    setLoading(true);
+    saveTemporaryTextToSpeech(audioFile)
+      .then((result) => {
+        setAudioFile(null);
+        return saveTextToSpeech({
+          engine: voiceType,
+          language,
+          voice,
+          url: result.url,
+          text: isPersonalizeText ? unwrapTokens(valueTextarea) : valueTextarea,
+          fallbackValue,
+          isPersonalizeText,
+        });
+      })
+      .catch((e) => showError((e && (e.message || e.error)) || e))
+      .then((result) => {
+        if (addedItems.length) {
+          return setAddedItems([result, ...addedItems]);
+        }
+        return setAddedItems([result]);
+      })
       .then(() => quantify())
       .finally(() => setLoading(false));
   };
@@ -159,6 +200,13 @@ const TextToSpeech = observer(() => {
     setVoice(item);
     changeAndPlay(language, item, voiceType);
   };
+
+  useEffect(() => {
+    setAudioFile(null);
+    setAudio(null);
+  }, [voiceType, language, voice, valueTextarea]);
+
+  useEffect(() => playVoice(), [audio]);
 
   const onLanguageSelect = value => {
     const item = LANGUAGES.find(languageItem => languageItem.value === value).value;
@@ -411,17 +459,30 @@ const TextToSpeech = observer(() => {
                 }}
               />
               <button
-                onClick={getVoice}
+                onClick={existedAudio ? playVoice : getVoice}
                 className={classnames('btn-speech-get', { 'btn-custom-disabled': isDisabledButton || loading })}
                 disabled={isDisabledButton}
               >
-                {loading ? <LibrarySpinner /> : (
+                {loading && !existedAudioFile ? <LibrarySpinner /> : (
                   <SVGInline
                     svg={playIcon}
                     cleanup={['title']}
                   />
                 )}
               </button>
+              {existedAudioFile ? (
+                <button
+                  onClick={saveVoice}
+                  className={classnames('btn-speech-get', { 'btn-custom-disabled': loading })}
+                >
+                  {loading ? <LibrarySpinner /> : (
+                    <SVGInline
+                      svg={saveIcon}
+                      cleanup={['title']}
+                    />
+                  )}
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
@@ -460,7 +521,11 @@ const TextToSpeech = observer(() => {
           )}
         </div>
 
-        <TextToSpeechLibrary />
+        <TextToSpeechLibrary
+          addedItems={addedItems}
+          setAddedItems={setAddedItems}
+          kind={lastKind}
+        />
       </div>
       <CloseButton onClick={closeWindow} />
     </div>

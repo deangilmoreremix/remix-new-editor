@@ -15,8 +15,9 @@ import useProjectStore from '../../hooks/useProjectStore';
 import LibraryVoiceFilter from '../library/LibraryVoiceFilter';
 import TextToSpeechContent from './TextToSpeechContent';
 import { showError } from '../../../lib/services/alertService';
+import PropTypes from '../../../lib/PropTypes';
 
-const TextToSpeechLibrary = observer(() => {
+const TextToSpeechLibrary = observer(({ addedItems, setAddedItems, kind }) => {
   const {
     voiceProvidersInfo,
     libraryItemsForDelete,
@@ -33,7 +34,7 @@ const TextToSpeechLibrary = observer(() => {
   const [voice, setVoice] = useState(null);
   const [language, setLanguage] = useState(null);
   const [voiceType, setVoiceType] = useState(null);
-  const [activeTab, setActiveTab] = useState(LIBRARY_KEYS.VOICE);
+  const [activeTab, setActiveTab] = useState(kind || LIBRARY_KEYS.VOICE);
   // ============ VOICE FILTER ===========
 
   const [activeItem, setActiveItem] = useState(null);
@@ -53,6 +54,13 @@ const TextToSpeechLibrary = observer(() => {
     }
   }, []);
 
+  useEffect(() => () => setAddedItems([]), [activeTab]);
+
+  useEffect(() => () => {
+    setLanguage(null);
+    setActiveTab(kind);
+  }, [kind]);
+
   useEffect(() => {
     if (activeTab) {
       if (libraryItemsForDelete.length) {
@@ -63,7 +71,15 @@ const TextToSpeechLibrary = observer(() => {
     }
   }, [activeTab]);
 
-  const fetchItems = async ({ source = activeTab, isScrolling = false }) => {
+  const newItems = React.useMemo(() => {
+    if (!addedItems || !addedItems.length) {
+      return null;
+    }
+    return addedItems;
+  }, [addedItems, addedItems?.length]);
+
+
+  const fetchItems = async ({ source = activeTab, isScrolling = false } = {}) => {
     let currentPage = 0;
     let uploaded = [];
     if (isLoading) {
@@ -83,9 +99,13 @@ const TextToSpeechLibrary = observer(() => {
       uploaded = uploadedItems;
     }
 
-    const filter = source === LIBRARY_KEYS.PERSONALIZED_VOICE
-      ? { 'extra.fallbackValue': { $exists: true } }
-      : { _id: { $nin: uploaded } };
+    const filter = {};
+    if (source === LIBRARY_KEYS.PERSONALIZED_VOICE) {
+      filter['extra.fallbackValue'] = { $exists: true };
+    }
+    if (newItems) {
+      filter._id = { $nin: uploaded };
+    }
     if (language) {
       filter['extra.language'] = language;
       filter['extra.voice'] = voice;
@@ -191,7 +211,10 @@ const TextToSpeechLibrary = observer(() => {
         setVoice={setVoice}
         voiceType={voiceType}
         setVoiceType={setVoiceType}
-        fetchItems={fetchItems}
+        fetchItems={() => {
+          setAddedItems([]);
+          return fetchItems();
+        }}
         disabled={isInitialLoading}
       />
 
@@ -205,7 +228,7 @@ const TextToSpeechLibrary = observer(() => {
       ) : (
         <TextToSpeechContent
           activeItem={activeItem}
-          items={items}
+          items={newItems ? [...newItems, ...items] : items}
           onSelect={onSelect}
           activeTab={activeTab}
           onDelete={onDelete}
@@ -218,5 +241,11 @@ const TextToSpeechLibrary = observer(() => {
     </div>
   );
 });
+
+TextToSpeechLibrary.propTypes = {
+  addedItems: PropTypes.arrayOrObservableArray,
+  setAddedItems: PropTypes.func.isRequired,
+  kind: PropTypes.string,
+};
 
 export default TextToSpeechLibrary;
