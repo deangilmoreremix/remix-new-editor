@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, memo } from 'react';
 import { ClickOutsideListener } from 'react-click-outside-listener';
 import HelpIcon from '@material-ui/icons/Help';
@@ -60,41 +61,42 @@ const HelpIconComponent = memo((props) => {
     </div>
   );
 
-  return (
-    <>
-      {!noIcon ? (
-        <div className="help-icon" style={{ padding: noPadding ? 0 : undefined }}>
-          <ClickOutsideListener onClickOutside={() => setOpenCloud(false)}>
-            <div
-              className={isInput && 'help-icon__input'}
-              style={{
-                height: noPadding ? '35px' : `${height}px`,
-                padding,
-              }}
-            >
-              {mouseEntered ? (
-                <HelpIcon
-                  className={`help-icon__icon help-icon__icon-${whiteIcon ? 'white' : 'gray'}`}
-                  onMouseEnter={handleTooltipMouseEnter}
-                  onMouseLeave={handleTooltipMouseLeave}
-                />
-              ) : (
-                <HelpIcon
-                  className={`help-icon__icon help-icon__icon-${whiteIcon ? 'white' : 'gray'}`}
-                  onClick={handleClickOnIcon}
-                />
-              )}
-              {openCloud && messageCloud(message)}
-            </div>
-          </ClickOutsideListener>
-        </div>
-      ) : (
-        <>
-          {onParentMouseEntered && messageCloud(message)}
-        </>
-      )}
-    </>
-  );
+  // return (
+  //   <>
+  //     {!noIcon ? (
+  //       <div className="help-icon" style={{ padding: noPadding ? 0 : undefined }}>
+  //         <ClickOutsideListener onClickOutside={() => setOpenCloud(false)}>
+  //           <div
+  //             className={isInput && 'help-icon__input'}
+  //             style={{
+  //               height: noPadding ? '35px' : `${height}px`,
+  //               padding,
+  //             }}
+  //           >
+  //             {mouseEntered ? (
+  //               <HelpIcon
+  //                 className={`help-icon__icon help-icon__icon-${whiteIcon ? 'white' : 'gray'}`}
+  //                 onMouseEnter={handleTooltipMouseEnter}
+  //                 onMouseLeave={handleTooltipMouseLeave}
+  //               />
+  //             ) : (
+  //               <HelpIcon
+  //                 className={`help-icon__icon help-icon__icon-${whiteIcon ? 'white' : 'gray'}`}
+  //                 onClick={handleClickOnIcon}
+  //               />
+  //             )}
+  //             {openCloud && messageCloud(message)}
+  //           </div>
+  //         </ClickOutsideListener>
+  //       </div>
+  //     ) : (
+  //       <>
+  //         {onParentMouseEntered && messageCloud(message)}
+  //       </>
+  //     )}
+  //   </>
+  // );
+  return null;
 });
 
 HelpIconComponent.propTypes = {

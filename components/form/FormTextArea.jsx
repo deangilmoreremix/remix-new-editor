@@ -7,7 +7,6 @@ import PropTypes from '../../lib/PropTypes';
 const FormTextArea = (props) => {
   const {
     label,
-    text,
     onChange,
     inputClassName,
     className,
@@ -53,7 +52,6 @@ const FormTextArea = (props) => {
         value={value || ''}
         placeholder={placeholder}
         onChange={onEdit}
-        label={!text && label}
         multiline
         rows={rows}
         variant={variant}
@@ -65,7 +63,6 @@ const FormTextArea = (props) => {
 FormTextArea.propTypes = {
   onChange: PropTypes.func,
   label: PropTypes.string,
-  text: PropTypes.bool,
   className: PropTypes.string,
   inputClassName: PropTypes.string,
   textClassName: PropTypes.string,

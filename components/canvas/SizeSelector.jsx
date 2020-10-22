@@ -1,12 +1,18 @@
 import * as React from 'react';
+import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import isEqual from 'lodash/isEqual';
+
+import useUIStore from '../hooks/useUIStore';
 
 import PropTypes from '../../lib/PropTypes';
 
 const baseDimension = 2;
 
-const SizeSelector = ({ active, sizes, onChange }) => {
+const SizeSelector = observer(({ active, sizes, onChange }) => {
+  const uiStore = useUIStore();
+  const { isCanvasPresent } = uiStore;
+
   const getStyle = ({ width, height }) => {
     const ratio = width / height;
 
@@ -17,7 +23,7 @@ const SizeSelector = ({ active, sizes, onChange }) => {
   };
 
   return (
-    <div className="canvas-size-selector">
+    <div className={classnames('canvas-size-selector', { hidden: !isCanvasPresent })}>
       {sizes.map(({ width, height }) => (
         <button
           key={`${width}:${height}`}
@@ -35,7 +41,7 @@ const SizeSelector = ({ active, sizes, onChange }) => {
       ))}
     </div>
   );
-};
+});
 
 SizeSelector.propTypes = {
   active: PropTypes.shape({

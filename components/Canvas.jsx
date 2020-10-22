@@ -38,13 +38,20 @@ const Canvas = observer(() => {
     isExpand,
     radioButtonBottom,
     isTimelineOpen,
+    isCanvasPresent,
   } = uiStore;
 
   const [style, setStyle] = React.useState({});
   const [fontSize, setFontSize] = React.useState(DEFAULT_FONT_SIZE);
   const [windowWidth, windowHeight] = useWindowSize();
 
-  const aspectRatio = useMemo(() => width / height, [width, height]);
+  const aspectRatio = useMemo(() => {
+    if (!isCanvasPresent) {
+      return 0;
+    } else {
+      return width / height;
+    }
+  }, [width, height, isCanvasPresent]);
 
   const ref = useRef(null);
   const wrapper = useRef(null);

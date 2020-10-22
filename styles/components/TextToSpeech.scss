@@ -6,16 +6,45 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 31.75rem;
   height: $toolbarHeight - 5vh;
   background: $light-twinlight;
   transition: 0.3s all;
 
+  .select__control {
+    border-color: $border-color;
+    background: $light-twinlight;
+  }
+
   &__notification {
-    margin-top: 1.5rem;
+    margin-right: 2rem;
+
+    &-top {
+      display: flex;
+      align-items: center;
+    }
+
+    &-bottom {
+      margin-top: 1rem;
+    }
+
+    p {
+      margin-bottom: 0;
+    }
 
     span {
       color: $secondary-color;
+    }
+  }
+
+  &__icon {
+    width: 1.55rem;
+    min-width: 1.55rem;
+    height: 1.55rem;
+    margin-left: 1.25rem;
+
+    span {
+      width: 100%;
+      height: 100%;
     }
   }
 
@@ -23,21 +52,40 @@
     font-size: $defaultFontSize;
   }
 
-  &__controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1rem;
+  &__voice-name {
+    font-size: $defaultFontSize;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-bottom: 9px;
+    line-height: 1;
   }
 
   &__button {
     @include reset-button;
-    width: 1.3rem;
-    height: 1.3rem;
+    width: 1.625rem;
+    height: 1.625rem;
+    background: $secondary-color;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -14px;
 
-    .library__item-icon {
-      width: 100%;
-      height: 100%;
+    &:after {
+      content: "";
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 5.5px 0 5.5px 10px;
+      border-color: transparent transparent transparent #ffffff;
+      transition: 0.3s all;
+    }
+
+    &-active:after {
+      border: none;
+      width: 10px;
+      height: 10px;
+      background: #fff;
     }
   }
 
@@ -56,7 +104,6 @@
 
   label, &__label {
     margin: 0;
-    margin-bottom: 1rem;
     font-size: $defaultFontSize;
     line-height: $defaultLineHeight;
   }
@@ -68,14 +115,26 @@
     line-height: 1;
   }
 
-  &__textarea.multiline {
-    height: 9.3125rem;
-    margin-bottom: 0;
+  &__textarea-input {
+    fieldset {
+      border: 1px dashed #575773 !important;
+      border-radius: 0.3125rem;
+    }
+
+    textarea:focus + fieldset {
+      border: 1px dashed $secondary-color !important;
+    }
   }
 
-  &__textarea {
-    &-input {
-      background: $sidebr-bg;
+  &__textarea.text-area.multiline {
+    height: 9.3125rem;
+    margin-bottom: 0;
+    background-color: unset;
+    border: 1px dashed #575773;
+    border-radius: 0.3125rem;
+
+    &:focus {
+      border: 1px dashed $secondary-color;
     }
   }
 
@@ -94,10 +153,99 @@
     align-items: center;
   }
 
-  &__content {
-    @include tiny-scrollbar;
+  &__body {
+    display: flex;
+    justify-content: space-between;
     height: 100%;
-    padding: 1rem 2.62rem 1rem 1rem;
+    padding: 0 2.62rem 1rem 1rem;
+    overflow: hidden;
+    position: relative;
+  }
+
+  &__creator {
+    @include tiny-scrollbar;
+    width: 62%;
+    border: 2px solid #575773;
+    padding: 1.875rem 1.5rem;
+    border-radius: 0.75rem;
+    margin-top: 5rem;
+  }
+
+  &__library {
+    display: flex;
+    flex-direction: column;
+    width: 36%;
+    margin-top: 1rem;
+
+    p {
+      margin: 0;
+    }
+
+    .library-voice-filter {
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  &__tabs {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+
+    p {
+      margin: 0 !important;
+      color: $white;
+    }
+
+    .library__block {
+      margin: 0;
+    }
+
+    .library__btn-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      max-width: 100%;
+      max-height: none;
+      margin: 0;
+      flex: none;
+      overflow: auto;
+    }
+
+    .library__btn-item {
+      width: auto;
+      max-width: 100%;
+
+      &:first-child {
+        margin-right: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      &:last-child {
+        margin-bottom: 1rem;
+      }
+    }
+  }
+
+  &__library-content {
+    @include tiny-scrollbar;
+    width: 100%;
+    flex: 1;
+    max-height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+  }
+
+  &__control {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
   }
 
   &__input-wrapper {
@@ -107,49 +255,57 @@
   &__input-icon-left {
     position: absolute;
     top: 30%;
-    left: .3rem;
+    left: 0.3rem;
   }
 
   &__input-icon-right {
     position: absolute;
     top: 30%;
-    right: .3rem;
-  }
-
-  &__options {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1rem;
-  }
-
-  &__right {
-    width: 50%;
+    right: 0.3rem;
   }
 
   &__left {
-    width: 40%;
-
     .btn-custom {
       margin-top: 1rem;
     }
   }
 
-  &__select {
-    width: 100%;
-    text-align: left;
+  &__select-block {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    flex: 1;
+  }
 
-    & + & {
-      margin-top: 1rem;
+  &__selection {
+    width: 48%;
+    min-width: 11.875rem;
+    text-align: left;
+    margin-bottom: 1rem;
+
+    .MuiBox-root {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
     }
 
     .select-label-top {
-      margin-bottom: 1rem;
+      margin-right: 1.18rem;
       font-size: $defaultFontSize;
     }
 
     .select-element {
       min-width: 0;
     }
+
+    &:last-of-type {
+      margin-left: 4%;
+    }
+  }
+
+  &__select-list {
+    width: 100%;
   }
 
   &__text-wrapper {
@@ -174,12 +330,27 @@
   }
 
   &__radio {
-    label {
-      justify-content: space-between;
+    @include reset-button;
+    width: 3.25rem;
+    min-width: 3.25rem;
+    height: 2.18rem;
+    border: 1px solid #575773;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: $defaultFontSize;
+    color: #575773;
+    line-height: 1;
+    transition: 0.3s all;
+    margin-bottom: 1rem;
+
+    &-active {
+      border-color: $secondary-color;
+      color: $secondary-color;
     }
 
-    .MuiRadio-root {
-      margin-right: -9px;
+    &-disabled {
+      opacity: 0.5;
+      cursor: auto;
     }
   }
 
@@ -247,32 +418,129 @@
     }
   }
 
-  button.btn-speech-get {
+  .btn-speech-get {
+    @include reset-button;
+    width: 3.56rem;
+    height: 3.56rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    line-height: 1;
+    margin-left: 1.56rem;
+
+    span {
+      width: 100%;
+      height: 100%;
+    }
   }
 
-  @media screen and (max-width: 1200px) {
-    &__options {
+  &__clear-block {
+    width: 8.3rem;
+    min-width: 8.3rem;
+  }
+
+  &__slider {
+    width: 8.3rem;
+    height: 8.375rem;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    top: 8px;
+    left: 92px;
+
+    &-enum {
+      left: 1.5rem;
+    }
+
+    &-left,
+    &-right {
+      @include reset-button;
+      width: 9px;
+      height: 13px;
+      position: absolute;
+      top: 50px;
+      left: 0;
+
+      &:hover path {
+        fill: $secondary-color;
+      }
+
+      span {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        svg {
+          width: 100%;
+          height: 100%;
+        }
+      }
+    }
+
+    &-right {
+      left: auto;
+      right: 0;
+      transform: rotate(180deg);
+    }
+  }
+
+  &__image {
+    width: 94px;
+    min-width: 94px;
+    height: 98px;
+    min-height: 98px;
+    border-radius: 50%;
+    background: $white;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 2.25rem;
+  }
+
+  &__buttons {
+    display: flex;
+    align-items: center;
+
+    .personalize-container {
+      margin-top: 0;
+    }
+
+    .btn-personalize {
+      height: 2.4375rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      padding: 0 18px;
+    }
+  }
+
+  @media screen and (max-width: 1450px) {
+    &__footer {
       flex-direction: column;
-    }
-
-    &__right, &__left {
-      width: 100%;
-    }
-
-    &__right {
       margin-top: 1rem;
     }
 
-    &__loader, &__btn-group {
-      width: 100%;
+    &__notification {
+      order: 1;
+      margin-top: 1rem;
+    }
+  }
+
+  @media screen and (max-width: 1100px) {
+    &__select-block {
+      justify-content: flex-start;
     }
 
-    &__loader-btn-group-wrapper {
-      flex-direction: column;
+    &__selection:last-of-type {
+      margin-left: 0;
     }
   }
 }
