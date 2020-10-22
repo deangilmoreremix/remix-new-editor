@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import TextField from '@material-ui/core/TextField';
 import classnames from 'classnames';
 
@@ -7,7 +7,6 @@ import PropTypes from '../../lib/PropTypes';
 const FormTextArea = (props) => {
   const {
     label,
-    text,
     onChange,
     inputClassName,
     className,
@@ -17,20 +16,42 @@ const FormTextArea = (props) => {
     rows,
     variant,
     inputRef,
+    maxTextSymbols,
+    languageValidator,
   } = props;
+
+  const [symbolsCount, setSymbolsCount] = useState(0);
+
   const onEdit = ({ target: { value: v } }) => {
-    onChange(v);
+    if (languageValidator) {
+      v = v.replace(languageValidator, '');
+    }
+
+    if ((maxTextSymbols && v.length <= maxTextSymbols) || !maxTextSymbols) {
+      setSymbolsCount(v.length);
+      onChange(v);
+    } else {
+      setSymbolsCount(maxTextSymbols);
+      onChange(v.slice(0, maxTextSymbols));
+    }
   };
+
+  const counter = useMemo(() => (
+    maxTextSymbols !== undefined ? (<p>{`${symbolsCount} / ${maxTextSymbols}`}</p>) : null
+  ), [maxTextSymbols, symbolsCount]);
+
   return (
     <div className={classnames('container-textarea', className)}>
-      {text && label && <p className={classnames('text-area-label', textClassName)}>{label}</p>}
+      <div className={classnames(textClassName, { 'container-textarea-head': label || symbolsCount !== undefined })}>
+        {label && <p>{label}</p>}
+        {counter}
+      </div>
       <TextField
         id={label}
         className={classnames(inputClassName, 'text-area')}
         value={value || ''}
         placeholder={placeholder}
         onChange={onEdit}
-        label={!text && label}
         multiline
         rows={rows}
         variant={variant}
@@ -42,7 +63,6 @@ const FormTextArea = (props) => {
 FormTextArea.propTypes = {
   onChange: PropTypes.func,
   label: PropTypes.string,
-  text: PropTypes.bool,
   className: PropTypes.string,
   inputClassName: PropTypes.string,
   textClassName: PropTypes.string,
@@ -51,6 +71,8 @@ FormTextArea.propTypes = {
   variant: PropTypes.string,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   inputRef: PropTypes.shape({}),
+  maxTextSymbols: PropTypes.number,
+  languageValidator: PropTypes.string,
 };
 FormTextArea.defaultProps = {
   label: '',

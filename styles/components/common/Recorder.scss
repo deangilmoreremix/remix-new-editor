@@ -65,6 +65,10 @@
       background: $modal-header-bg;
       border-radius: 7px;
       overflow: hidden;
+
+      &:hover {
+        border: 1px solid $secondary-color;
+      }
     }
   }
 

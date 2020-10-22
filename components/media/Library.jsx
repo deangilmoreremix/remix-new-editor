@@ -10,8 +10,8 @@ import {
   LIBRARY_TABS,
   LIBRARY_KEYS,
 } from '../../lib/constants/library';
-import { LOADING_COLOR } from '../../lib/constants/ui';
-import mediaConstants from '../../lib/constants/media';
+import { LOADING_COLOR, WINDOW_TYPES } from '../../lib/constants/ui';
+import mediaConstants, { ASSET_TYPES } from '../../lib/constants/media';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import { URL_RULE } from '../../lib/constants/regExps';
 import { TYPES } from '../../lib/constants/validator';
@@ -19,6 +19,7 @@ import { ALL_VIDEO } from '../../lib/constants/formats';
 import config from '../../config/config';
 import { showError } from '../../lib/services/alertService';
 
+import { TEXT_TO_SPEECH_WARNING } from '../../lib/constants/text-info';
 import Tabs from '../common/library/Tabs';
 import ProviderList from '../common/library/ProviderList';
 import LibraryContent from '../common/library/LibraryContent';
@@ -34,6 +35,8 @@ import DropPasteInput from './DropPasteInput';
 
 import withModal from '../hoc/withValidation';
 import Is360 from '../settings/video-settings/components/Is360';
+import HelpIconComponent from '../common/HelpIcon';
+import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
 
 const Library = observer((props) => {
   const { checkValue, setError } = props;
@@ -49,6 +52,7 @@ const Library = observer((props) => {
     openSettings,
     toggleRightBlock,
     isTimelineOpen,
+    openSecondaryModal,
   } = uiStore;
 
   const {
@@ -61,6 +65,7 @@ const Library = observer((props) => {
     videoProvidersInfo,
     imageProvidersInfo,
     audioProvidersInfo,
+    voiceProvidersInfo,
     defaultProvidersInfo,
   } = useMediaStore();
 
@@ -89,6 +94,12 @@ const Library = observer((props) => {
   const addFileInputRef = useRef();
 
   // =============== STATE ===============
+
+  // ============ VOICE FILTER ===========
+  const [voice, setVoice] = useState(null);
+  const [language, setLanguage] = useState(null);
+  const [voiceType, setVoiceType] = useState(null);
+  // ============ VOICE FILTER ===========
 
   useEffect(() => () => {
     if (updateElementInLibrary) {
@@ -136,6 +147,9 @@ const Library = observer((props) => {
       case LIBRARY_TABS.AUDIO: {
         return audioProvidersInfo;
       }
+      case LIBRARY_TABS.VOICE: {
+        return voiceProvidersInfo;
+      }
       default: {
         return defaultProvidersInfo;
       }
@@ -182,13 +196,29 @@ const Library = observer((props) => {
       setActiveBtn(source);
     }
 
+    let filter;
+
+    if (activeTab === LIBRARY_KEYS.VOICE) {
+      filter = source === LIBRARY_KEYS.PERSONALIZED_VOICE
+        ? { 'extra.fallbackValue': { $exists: true } }
+        : { _id: { $nin: uploaded } };
+      if (language) {
+        filter['extra.language'] = language;
+        filter['extra.voice'] = voice;
+        filter['extra.engine'] = voiceType;
+      }
+    } else {
+      filter = { _id: { $nin: uploaded } };
+    }
+
     try {
       const data = await getAssets({
         providerName: source,
-        assetType: activeTab,
+        assetType: source === LIBRARY_KEYS.PERSONALIZED_VOICE
+          ? LIBRARY_KEYS.PERSONALIZED_VOICE : activeTab,
         page: currentPage,
         query: queryStr,
-        filter: { _id: { $nin: uploaded } },
+        filter,
       });
 
       if (data) {
@@ -283,7 +313,11 @@ const Library = observer((props) => {
         Object.keys(tabItems).forEach(item => {
           tabItems[item].formats.forEach(format => {
             if (format === fileExtension) {
-              fileType = item;
+              if (item === LIBRARY_TABS.VOICE) {
+                fileType = LIBRARY_TABS.AUDIO;
+              } else {
+                fileType = item;
+              }
             }
           });
         });
@@ -297,7 +331,7 @@ const Library = observer((props) => {
 
         Object.keys(tabItems).forEach((item, i) => {
           tabItems[item].formats.forEach(format => {
-            if (format === extension) {
+            if (format === extension && item !== LIBRARY_TABS.VOICE) {
               setActiveTab(Object.keys(tabItems)[i]);
             } else {
               setItems([
@@ -355,6 +389,16 @@ const Library = observer((props) => {
     item.src = item.src || item.url;
     item.is360 = is360;
     item.type = MEDIA_TYPES[activeTab];
+    if (activeTab === LIBRARY_TABS.VOICE) {
+      item.type = MEDIA_TYPES.AUDIO;
+    } else {
+      item.type = MEDIA_TYPES[activeTab];
+    }
+
+    if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
+      projectStore.showWarning(TEXT_TO_SPEECH_WARNING.title);
+    }
+
     if (updateElementInLibrary && activeTab === LIBRARY_TABS.IMAGE) {
       projectStore.findAndUpdate(updateElementInLibrary, item);
       openSettings();
@@ -400,22 +444,31 @@ const Library = observer((props) => {
 
   const renderSidebar = React.useCallback(() => {
     switch (activeTab) {
-      case LIBRARY_TABS.AUDIO: return (
-        <div className="library__audio-toolbar">
-          <ProviderList
-            activeItem={activeBtn}
-            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
-            userContentTitle={tabItems[activeTab].label}
-            handleButtonClick={handleButtonClick}
-            list={listProviders}
-          />
-          <AudioControls
-            selected={activeItem}
-            volume={volume}
-            setVolume={setVolume}
-          />
-        </div>
-      );
+      case LIBRARY_TABS.AUDIO:
+      case LIBRARY_TABS.VOICE: {
+        let audioActiveItem = '';
+        if (activeTab === LIBRARY_TABS.VOICE && activeBtn === LIBRARY_KEYS.USER) {
+          audioActiveItem = LIBRARY_TABS.VOICE;
+        } else {
+          audioActiveItem = activeBtn;
+        }
+        return (
+          <div className="library__audio-toolbar">
+            <ProviderList
+              activeItem={audioActiveItem}
+              title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
+              userContentTitle={tabItems[activeTab].label}
+              handleButtonClick={handleButtonClick}
+              list={listProviders}
+            />
+            <AudioControls
+              selected={audioActiveItem}
+              volume={volume}
+              setVolume={setVolume}
+            />
+          </div>
+        );
+      }
       default: return (
         <ProviderList
           activeItem={activeBtn}
@@ -429,25 +482,40 @@ const Library = observer((props) => {
     }
   }, [activeTab, activeBtn, volume, activeItem, listProviders, isLoading]);
 
+  const openVoiceWindow = () => {
+    openSecondaryModal(WINDOW_TYPES.TEXT_TO_SPEECH);
+  };
+
   return (
     <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
           <div className="library__add-file__container">
-            <div className="library__add-file">
-              <input
-                {...getInputProps()}
-                id="add-file"
-                disabled={isDisabledUpload}
-                ref={addFileInputRef}
-              />
-              <label htmlFor="add-file" className="library__add">
-                {
-                  isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
-                }
-              </label>
-            </div>
+            {
+              activeTab !== LIBRARY_TABS.VOICE ? (
+                <div className="library__add-file">
+                  <input
+                    {...getInputProps()}
+                    id="add-file"
+                    disabled={isDisabledUpload}
+                    ref={addFileInputRef}
+                  />
+                  <label htmlFor="add-file" className="library__add">
+                    {
+                      isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
+                    }
+                  </label>
+                  <HelpIconComponent mouseEntered isLibrary message={tabItems[activeTab].tooltip} />
+                </div>
+              ) : (
+                <div className="library__add-file">
+                  <button className="library__add" onClick={openVoiceWindow}>
+                    Add Voice
+                  </button>
+                </div>
+              )
+            }
             {showed360
             && (
               <Is360
@@ -497,6 +565,18 @@ const Library = observer((props) => {
               )
             }
             </div>
+            {(activeTab === LIBRARY_KEYS.PERSONALIZED_VOICE || activeTab === LIBRARY_KEYS.VOICE)
+            && (
+              <LibraryVoiceFilter
+                language={language}
+                setLanguage={setLanguage}
+                voice={voice}
+                setVoice={setVoice}
+                voiceType={voiceType}
+                setVoiceType={setVoiceType}
+                fetchItems={fetchItems}
+              />
+            )}
           </div>
         </div>
 

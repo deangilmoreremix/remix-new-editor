@@ -3,8 +3,6 @@ import { observer } from 'mobx-react';
 
 import PropTypes from '../../../../lib/PropTypes';
 
-import { rgba2hex } from '../../../../lib/lottie/utils';
-
 import FieldBuilder from '../../../form/FieldBuilder';
 import DropAndEditButton from '../../../media/DropAndEditButton';
 import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
@@ -87,9 +85,9 @@ const StylesTab = observer((options) => {
 
   const handleChangeColor = (rgbColor) => {
     if (Object.keys(rgbColor).join() === BACKGROUND_COLOR && values.backgroundImage) {
-      onChange({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()), backgroundImage: '' });
+      onChange({ [Object.keys(rgbColor).join()]: Object.values(rgbColor).join(), backgroundImage: '' });
     } else {
-      onChange({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
+      onChange({ [Object.keys(rgbColor).join()]: Object.values(rgbColor).join() });
     }
   };
 
@@ -227,6 +225,7 @@ const StylesTab = observer((options) => {
                 radioClassName="radio-container"
                 containerClassName="text-radio-container"
                 items={iconAlignmentAdvanced}
+                row
               />
             </div>
             <FieldBuilder

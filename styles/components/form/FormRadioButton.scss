@@ -1,16 +1,13 @@
 .MuiRadio-root {
   color: $white;
-
-  .MuiIconButton-label {
-    width: 0.6em;
-    height: 0.6em;
-  }
 }
 
 .layout-container {
   .MuiRadio-colorSecondary {
-    &.Mui-checked:hover, &:hover {
-      background-color: rgba(245, 0, 87, 0.1);
+    cursor: pointer;
+
+    &:hover {
+      background-color: transparent;
     }
   }
 }
@@ -19,7 +16,7 @@
   color: $secondary-color;
 
   &:hover {
-    background-color: rgba(245, 0, 87, 0.1);
+    background-color: transparent !important;
   }
 }
 

@@ -1,0 +1,11 @@
+.MuiSnackbar-anchorOriginBottomCenter.snackbar {
+  &.success-snackbar {
+    bottom: 5px;
+    right: 5px;
+    left: auto;
+
+    div.success-snackbar-content {
+      background: #4caf50;
+    }
+  }
+}

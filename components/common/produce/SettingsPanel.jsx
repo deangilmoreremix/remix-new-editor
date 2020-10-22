@@ -11,8 +11,10 @@ import useModalStore from '../../hooks/useModalStore';
 import FieldBuilder from '../../form/FieldBuilder';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../../lib/constants/settings/image';
 import { IMAGE_CROPPER_MODAL } from '../../../lib/constants/modals';
-import DropAndEditButton from '../../media/DropAndEditButton';
 import { rgba2hex } from '../../../lib/lottie/utils';
+import { produceTooltips } from '../../../lib/constants/tooltips';
+import DropAndEditButton from '../../media/DropAndEditButton';
+import HelpIconComponent from '../HelpIcon';
 
 const SettingPanel = observer(() => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
@@ -95,6 +97,14 @@ const SettingPanel = observer(() => {
           label="Background Color"
           className="settings-formcolor"
         />
+        <FieldBuilder
+          type="checkbox"
+          name="disabledPlaybar"
+          label="Show playbar"
+          value={!item.disabledPlaybar}
+          onChange={() => updateItem({ disabledPlaybar: !item.disabledPlaybar })}
+          floatClassName="settings-checkbox settings-checkbox-playbar"
+        />
       </div>
       <div className="settings__inputs">
         <FieldBuilder
@@ -105,9 +115,19 @@ const SettingPanel = observer(() => {
           label="Tags"
           className="settings-input"
           titleClass="settings-panel-text"
+          tooltipMessage={produceTooltips.tags}
+          isTooltip
         />
         <div className="settings-allow">
-          <p className="settings-panel-text">Allow</p>
+          <div className="settings-allow__label-box">
+            <p className="settings-panel-text">Allow</p>
+            <HelpIconComponent
+              isText
+              mouseEntered
+              padding="0 1.56rem 0 0"
+              message={produceTooltips.allow}
+            />
+          </div>
           <FieldBuilder
             type="checkbox"
             name="facebook"
@@ -157,14 +177,16 @@ const SettingPanel = observer(() => {
         </div>
         <div className="settings__row">
           <div className="settings__row-block">
-            <DropAndEditButton
-              onUploaded={onUploadedImage}
-              isDisabled={isDisabledUpload}
-              startUpload={() => setIsDisabledUpload(true)}
-              endUpload={() => setIsDisabledUpload(false)}
-              className="settings__add-file"
-              needSaveAsset={false}
-            />
+            <div className="settings__first-row-block">
+              <DropAndEditButton
+                onUploaded={onUploadedImage}
+                isDisabled={isDisabledUpload}
+                startUpload={() => setIsDisabledUpload(true)}
+                endUpload={() => setIsDisabledUpload(false)}
+                needSaveAsset={false}
+                tooltipMessage={produceTooltips.thumbnailUpload}
+              />
+            </div>
             <p className="settings__row-text-2">
               recommended image resolution
               {CROP_RECOMMENDED_RESOLUTION.width}

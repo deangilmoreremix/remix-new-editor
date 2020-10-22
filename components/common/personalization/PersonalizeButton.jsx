@@ -7,18 +7,19 @@ import PropTypes from '../../../lib/PropTypes';
 
 import { PERSONALIZATION_MODAL } from '../../../lib/constants/modals';
 
-const PersonalizeButton = ({ elementType, onAdd, text, className }) => {
+const PersonalizeButton = ({ elementType, onAdd, text, className, disabled, tokenModes }) => {
   const { openModal } = useModalStore();
 
   const openPersonalize = () => {
-    openModal(PERSONALIZATION_MODAL, { elementType, onAdd });
+    openModal(PERSONALIZATION_MODAL, { elementType, onAdd, tokenModes });
   };
 
   return (
     <div className={classnames('personalize-container', className)}>
       <button
-        className="btn-personalize"
+        className={classnames('btn-personalize', { 'btn-personalize-disabled': disabled })}
         onClick={() => openPersonalize()}
+        disabled={disabled}
       >
         {text}
       </button>
@@ -31,10 +32,17 @@ PersonalizeButton.propTypes = {
   onAdd: PropTypes.func.isRequired,
   text: PropTypes.string,
   className: PropTypes.string,
+  disabled: PropTypes.bool,
+  tokenModes: PropTypes.shape({
+    plain: PropTypes.string,
+    fallbackValue: PropTypes.string,
+    uppercase: PropTypes.string,
+  }),
 };
 
 PersonalizeButton.defaultProps = {
   text: 'Personalize',
+  disabled: false,
 };
 
 export default PersonalizeButton;

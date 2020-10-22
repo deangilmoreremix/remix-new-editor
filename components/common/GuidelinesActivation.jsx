@@ -9,6 +9,8 @@ import useUIStore from '../hooks/useUIStore';
 import FieldBuilder from '../form/FieldBuilder';
 
 import guidelinesIcon from '../../public/static/svgImages/guidlines.svg';
+import { mainTooltips } from '../../lib/constants/tooltips';
+import TimeoutTooltip from './TimeoutTooltip';
 
 const GuidelinesActivation = observer(({ marginLeft }) => {
   const { hasGuidLines, setGuideLines } = useUIStore();
@@ -18,11 +20,17 @@ const GuidelinesActivation = observer(({ marginLeft }) => {
       className="guidelines-activation"
       style={marginLeft && { marginLeft }}
     >
-      <SVGInline
-        svg={guidelinesIcon}
-        cleanup={['guidelines']}
+      <TimeoutTooltip
         className="guidelines-icon"
-      />
+        message={mainTooltips.guideline}
+        isLeft
+        isBottom
+      >
+        <SVGInline
+          svg={guidelinesIcon}
+          cleanup={['guidelines']}
+        />
+      </TimeoutTooltip>
       <FieldBuilder
         type="checkbox"
         label="Guideline"

@@ -25,6 +25,7 @@
     justify-content: space-between;
     align-items: center;
     min-height: unset;
+    position: relative;
 
     .user-menu {
       background-color: #3E3E51;
@@ -191,6 +192,7 @@
       &.active,
       &.active-save {
         color: $secondary-color;
+        pointer-events: all;
          // svg styles
         .redo-0,
         .undo-0,
@@ -205,6 +207,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+
+      &__item {
+        position: relative;
+      }
     }
 
     &__button-text {
@@ -213,6 +219,11 @@
       font-size: $smallFontSize;
       line-height: 1;
       padding-top: 7px !important;
+      pointer-events: none;
+
+      &.active {
+        pointer-events: all;
+      }
     }
   }
 }

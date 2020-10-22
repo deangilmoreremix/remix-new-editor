@@ -9,8 +9,11 @@ import useUIStore from '../../hooks/useUIStore';
 import arrowIcon from '../../../public/static/svgImages/common/arrow-back.svg';
 
 import AnimatedWindow from '../AnimatedWindow';
+import HelpIconComponent from '../HelpIcon';
 
 const Toolbar = observer(({ items }) => {
+  let tooltipTime;
+
   const { toolbarItem: { id, options }, setToolbarItem, isExpand, isTimelineOpen } = useUIStore();
 
   React.useEffect(() => {
@@ -26,22 +29,42 @@ const Toolbar = observer(({ items }) => {
 
   const onClick = (label, func) => {
     func();
+    handleCloseTooltip(label);
     setToolbarItem(label);
   };
 
+  const handleOpenTooltip = (tabId) => {
+    tooltipTime = setTimeout(
+      () => setToolbarItem(tabId, { isHover: true }), 1000,
+    );
+  };
+
+  const handleCloseTooltip = (tabId) => {
+    clearTimeout(tooltipTime);
+    setToolbarItem(tabId, { isHover: false });
+  };
 
   return (
     <div className={classnames('toolbar-container', { 'big-window': !isTimelineOpen })}>
       <div className="toolbar-tabs">
-        {items.map(({ label, icon, id: tabId, func }) => (
+        {items.map(({ label, icon, id: tabId, func, tooltip }) => (
           <button
             className="toolbar-tab"
             key={label}
             onClick={() => onClick(tabId, func)}
             type="button"
+            onMouseEnter={() => isExpand && handleOpenTooltip(tabId)}
+            onMouseLeave={() => isExpand && handleCloseTooltip(tabId)}
           >
-            <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
-            <span className="toolbar-tab-title">{label}</span>
+            <div>
+              <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
+              <span className="toolbar-tab-title">{label}</span>
+            </div>
+            <HelpIconComponent
+              noIcon
+              onParentMouseEntered={id === tabId && options.isHover}
+              message={tooltip}
+            />
             {isExpand && (
               <AnimatedWindow
                 isOpen={isExpand}

@@ -14,12 +14,8 @@
   }
 }
 
-.layout-container {
-  .MuiCheckbox-colorSecondary {
-    &.Mui-checked:hover, &:hover {
-      background-color: rgba(245, 0, 87, 0.1);
-    }
-  }
+.MuiIconButton-colorSecondary:hover {
+  background-color: transparent !important;
 }
 
 .MuiBox-root:not(:first-child) {

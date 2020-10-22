@@ -1,4 +1,5 @@
-&--audio {
+&--audio,
+&--voice {
   .library__item {
     width: calc(50% - 0.64em);
 
@@ -16,7 +17,7 @@
       background: $modal-dark-bg;
 
       .library__item-icon * {
-        stroke: $secondary-color !important;
+        stroke: $secondary-color;
       }
     }
 

@@ -5,8 +5,6 @@ import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 
 import PropTypes from '../../../../lib/PropTypes';
 
-import { rgba2hex } from '../../../../lib/lottie/utils';
-
 import { showInfo } from '../../../../lib/services/alertService';
 import FieldBuilder from '../../../form/FieldBuilder';
 import fonts from '../../../../lib/constants/fonts';
@@ -51,7 +49,7 @@ const Advanced = ({ values, fields, onChange }) => {
   };
 
   const handleChangeColor = (rgbColor) => {
-    onChange({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
+    onChange({ [Object.keys(rgbColor).join()]: Object.values(rgbColor).join() });
   };
 
   return (
@@ -99,6 +97,7 @@ const Advanced = ({ values, fields, onChange }) => {
               onChange={onChange}
               containerClass="text-radio-container"
               items={iconAlignmentAdvanced}
+              row
             />
           </div>
         </div>

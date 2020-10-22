@@ -40,7 +40,7 @@ const Basic = observer(({ values, fields, element, onChange }) => {
     end,
     text,
     caretOffset,
-    urlCaretOffset,
+    // urlCaretOffset,
     htmlText,
     linkUrl,
     htmlUrl,
@@ -61,10 +61,10 @@ const Basic = observer(({ values, fields, element, onChange }) => {
     onChange({ text: result, htmlText: wrapTokens(result) });
   }, [text, caretOffset, onChange]);
 
-  const onAddUrlToken = useCallback((token) => {
-    const result = addToken(linkUrl, token, urlCaretOffset);
-    onChange({ linkUrl: result, htmlUrl: wrapTokens(result) });
-  }, [linkUrl, urlCaretOffset, onChange]);
+  // const onAddUrlToken = useCallback((token) => {
+  //   const result = addToken(linkUrl, token, urlCaretOffset);
+  //   onChange({ linkUrl: result, htmlUrl: wrapTokens(result) });
+  // }, [linkUrl, urlCaretOffset, onChange]);
 
   useEffect(() => {
     if (width) {
@@ -206,12 +206,14 @@ const Basic = observer(({ values, fields, element, onChange }) => {
               {...fields.alignment}
               onChange={changePositionHorizontal}
               items={iconAlignmentHorizontal}
+              row
             />
             <FieldBuilder
               value={positionVertical || null}
               {...fields.position}
               onChange={changePositionVertical}
               items={iconPositionVertical}
+              row
             />
           </div>
         </div>
@@ -239,7 +241,7 @@ const Basic = observer(({ values, fields, element, onChange }) => {
               ? LABEL_CLICK_TO_PHONE : fields.htmlUrl.label}
             updateCaret={(value) => onChange({ urlCaretOffset: value })}
           />
-          <PersonalizeButton onAdd={onAddUrlToken} />
+          {/* <PersonalizeButton onAdd={onAddUrlToken} /> */}
         </div>
         <div className="email-link-container">
           <FieldBuilder

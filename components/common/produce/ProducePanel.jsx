@@ -6,6 +6,7 @@ import classnames from 'classnames';
 import PropTypes from '../../../lib/PropTypes';
 
 import { showInfo } from '../../../lib/services/alertService';
+import TimeoutTooltip from '../TimeoutTooltip';
 
 const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const onCLick = (action, isActive, errorMessage, url) => {
@@ -23,7 +24,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
     }
   };
 
-  const svgButton = (label, action, isActive, errorMessage, icon, url) => (
+  const svgButton = (label, action, isActive, errorMessage, icon, tooltip, url) => (
     <button
       type="button"
       key={label}
@@ -32,25 +33,26 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
         'produce-panel__button--active': isActive,
       })}
     >
-      <SVGInline
-        className="produce-panel__icon"
-        svg={icon}
-        cleanup={['title']}
-      />
-      {label}
+      <TimeoutTooltip className="produce-panel__box" message={tooltip} isProduce>
+        <SVGInline
+          className="produce-panel__icon"
+          svg={icon}
+          cleanup={['title']}
+        />
+        {label}
+      </TimeoutTooltip>
     </button>
   );
 
   return (
     <div className="produce-block produce-panel">
-      {items.map(({ label, action, icon, isActive, errorMessage, url }) => (
+      {items.map(({ label, action, icon, tooltip, isActive, errorMessage, url }) => (
         isActive && url ? (
-        // eslint-disable-next-line react/jsx-no-target-blank
+          /* eslint-disable-next-line react/jsx-no-target-blank */
           <a key={`${label}-href`} href={url} target="_blank">
-            {svgButton(label, action, isActive, errorMessage, icon, url)}
+            {svgButton(label, action, isActive, errorMessage, icon, tooltip, url)}
           </a>
-        )
-          : svgButton(label, action, isActive, errorMessage, icon)
+        ) : svgButton(label, action, isActive, errorMessage, icon, tooltip)
       ))}
     </div>
   );
@@ -61,6 +63,7 @@ ProducePanel.propTypes = {
     label: PropTypes.string.isRequired,
     action: PropTypes.func.isRequired,
     icon: PropTypes.string.isRequired,
+    tooltip: PropTypes.string,
     url: PropTypes.string,
   })).isRequired,
   tab: PropTypes.string.isRequired,
