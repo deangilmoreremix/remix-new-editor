@@ -50,6 +50,7 @@
 
 textarea {
   @include tiny-scrollbar;
+  resize: none;
 }
 
 @media screen and (max-width: 1200px) {
