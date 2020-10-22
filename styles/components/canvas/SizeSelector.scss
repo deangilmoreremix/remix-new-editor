@@ -16,8 +16,14 @@
     align-items: center;
     justify-content: center;
     color: $btn-gray;
-    border-color: $btn-gray;
     font-size: 12px;
+    border: 1px solid $btn-gray;
+    border-radius: 4px;
+    transition: all 0.25s ease;
+
+    &:hover {
+      border-color: $red;
+    }
 
     &.active {
       background: $red;

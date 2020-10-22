@@ -7,7 +7,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import useModalStore from '../hooks/useModalStore';
 import SettingsHeader from '../settings/SettingsHeader';
 
-const ModalContainer = observer(() => {
+const ModalContainer = observer(({ classNameWL }) => {
   const modalStore = useModalStore();
   const { modalIds, modals, closeModal, updateHeader, updateClassName, options } = modalStore;
 
@@ -39,7 +39,7 @@ const ModalContainer = observer(() => {
         open
         onClose={close}
         aria-labelledby="max-width-dialog-title"
-        className="modal-container"
+        className={classnames(classNameWL, 'modal-container')}
         {...props}
       >
         <SettingsHeader {...headerProps} />

@@ -7,7 +7,6 @@ import PropTypes from '../../lib/PropTypes';
 const FormTextArea = (props) => {
   const {
     label,
-    text,
     onChange,
     inputClassName,
     className,
@@ -18,11 +17,16 @@ const FormTextArea = (props) => {
     variant,
     inputRef,
     maxTextSymbols,
+    languageValidator,
   } = props;
 
   const [symbolsCount, setSymbolsCount] = useState(0);
 
   const onEdit = ({ target: { value: v } }) => {
+    if (languageValidator) {
+      v = v.replace(languageValidator, '');
+    }
+
     if ((maxTextSymbols && v.length <= maxTextSymbols) || !maxTextSymbols) {
       setSymbolsCount(v.length);
       onChange(v);
@@ -48,7 +52,6 @@ const FormTextArea = (props) => {
         value={value || ''}
         placeholder={placeholder}
         onChange={onEdit}
-        label={!text && label}
         multiline
         rows={rows}
         variant={variant}
@@ -60,7 +63,6 @@ const FormTextArea = (props) => {
 FormTextArea.propTypes = {
   onChange: PropTypes.func,
   label: PropTypes.string,
-  text: PropTypes.bool,
   className: PropTypes.string,
   inputClassName: PropTypes.string,
   textClassName: PropTypes.string,
@@ -70,6 +72,7 @@ FormTextArea.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   inputRef: PropTypes.shape({}),
   maxTextSymbols: PropTypes.number,
+  languageValidator: PropTypes.string,
 };
 FormTextArea.defaultProps = {
   label: '',

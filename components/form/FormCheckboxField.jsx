@@ -5,9 +5,19 @@ import Checkbox from '@material-ui/core/Checkbox';
 import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
+import HelpIconComponent from '../common/HelpIcon';
 
 const FormCheckboxField = (props) => {
-  const { onChange, value, disabled, label, floatClassName } = props;
+  const {
+    onChange,
+    value,
+    disabled,
+    label,
+    floatClassName,
+    tooltipHeight,
+    tooltipMessage,
+    isTooltip,
+  } = props;
 
   const onClick = () => {
     onChange(!value);
@@ -19,6 +29,9 @@ const FormCheckboxField = (props) => {
         <InputLabel className="form-control-label">
           {label}
         </InputLabel>
+        {isTooltip && (
+          <HelpIconComponent mouseEntered height={tooltipHeight} message={tooltipMessage} />
+        )}
       </Button>
       <Checkbox
         disabled={disabled}
@@ -37,6 +50,9 @@ FormCheckboxField.propTypes = {
   disabled: PropTypes.bool,
   label: PropTypes.string,
   floatClassName: PropTypes.string,
+  tooltipHeight: PropTypes.number,
+  tooltipMessage: PropTypes.string,
+  isTooltip: PropTypes.bool,
 };
 
 FormCheckboxField.defaultProps = {

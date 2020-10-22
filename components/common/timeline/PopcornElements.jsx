@@ -138,7 +138,7 @@ const PopcornElements = observer(({ width }) => {
 
     let { popcornOptions: { end } } = element;
 
-    if (kind === ASSET_TYPES.PERSONALIZED_VOICE) {
+    if (kind === ASSET_TYPES.PERSONALIZED_VOICE && duration < 1) {
       end = start + (cols / FRACTIONAL_NUMBER > 1 ? cols / FRACTIONAL_NUMBER : 1);
     }
 
@@ -169,7 +169,8 @@ const PopcornElements = observer(({ width }) => {
       layer,
       dimensions,
       isResizable: type !== POPCORN_ELEMENT_TYPES.JSON_TRANSITION
-        && kind !== ASSET_TYPES.PERSONALIZED_VOICE,
+        && kind !== ASSET_TYPES.PERSONALIZED_VOICE
+        && type !== POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION,
     };
   }), [cols, elements, getEnd, getExtraDuration, layers]);
 

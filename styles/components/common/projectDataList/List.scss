@@ -25,7 +25,7 @@
     @include reset-button();
     display: block;
     // TODO: to normalize scroll
-    width: calc(100% - 12px);
+    width: 100%;
     font-size: $defaultFontSize;
     color: $white;
     line-height: 1.1;

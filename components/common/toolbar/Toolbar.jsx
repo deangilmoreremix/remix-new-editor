@@ -12,6 +12,8 @@ import AnimatedWindow from '../AnimatedWindow';
 import HelpIconComponent from '../HelpIcon';
 
 const Toolbar = observer(({ items }) => {
+  let tooltipTime;
+
   const { toolbarItem: { id, options }, setToolbarItem, isExpand, isTimelineOpen } = useUIStore();
 
   React.useEffect(() => {
@@ -27,7 +29,19 @@ const Toolbar = observer(({ items }) => {
 
   const onClick = (label, func) => {
     func();
+    handleCloseTooltip(label);
     setToolbarItem(label);
+  };
+
+  const handleOpenTooltip = (tabId) => {
+    tooltipTime = setTimeout(
+      () => setToolbarItem(tabId, { isHover: true }), 1000,
+    );
+  };
+
+  const handleCloseTooltip = (tabId) => {
+    clearTimeout(tooltipTime);
+    setToolbarItem(tabId, { isHover: false });
   };
 
   return (
@@ -39,12 +53,18 @@ const Toolbar = observer(({ items }) => {
             key={label}
             onClick={() => onClick(tabId, func)}
             type="button"
+            onMouseEnter={() => isExpand && handleOpenTooltip(tabId)}
+            onMouseLeave={() => isExpand && handleCloseTooltip(tabId)}
           >
-            <div className="toolbar-tab-box">
+            <div>
               <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
               <span className="toolbar-tab-title">{label}</span>
             </div>
-            <HelpIconComponent message={tooltip} />
+            <HelpIconComponent
+              noIcon
+              onParentMouseEntered={id === tabId && options.isHover}
+              message={tooltip}
+            />
             {isExpand && (
               <AnimatedWindow
                 isOpen={isExpand}

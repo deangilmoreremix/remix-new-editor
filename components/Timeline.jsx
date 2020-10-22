@@ -14,7 +14,7 @@ import PlayButton from './common/timeline/PlayButton';
 import PlusButton from './common/timeline/PlusButton';
 import PlayTime from './common/timeline/PlayTime';
 import PopcornElements from './common/timeline/PopcornElements';
-import HelpIconComponent from './common/HelpIcon';
+import TimeoutTooltip from './common/TimeoutTooltip';
 
 import rulerIcon from '../public/static/svgImages/common/ruler.svg';
 import { mainTooltips } from '../lib/constants/tooltips';
@@ -62,16 +62,18 @@ const Timeline = observer(() => {
         <Grid xs={2} item>
           <Grid container alignItems="center" className="timeline__btns">
             {isLoaded && <PlayButton /> }
-            <PlusButton
-              onClick={() => addLayer()}
-              alt="Add Layer"
-              className="timeline-add icon-button"
-            />
-            <PlayTime />
-            <HelpIconComponent
+            <TimeoutTooltip
               message={mainTooltips.timeline}
               isTop
-            />
+              isTimeline
+            >
+              <PlusButton
+                onClick={() => addLayer()}
+                alt="Add Layer"
+                className="timeline-add icon-button"
+              />
+            </TimeoutTooltip>
+            <PlayTime />
           </Grid>
         </Grid>
         <Grid item xs={9}>

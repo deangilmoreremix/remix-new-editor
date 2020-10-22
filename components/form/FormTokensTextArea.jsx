@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useReducer, useState } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 import ContentEditable from 'react-contenteditable';
@@ -12,7 +12,6 @@ import {
 } from '../../lib/utils/tokens-helper';
 import { ENTER_KEY } from '../../lib/constants/keyCodes';
 import { MULTILINE } from '../../lib/constants/forms';
-
 
 const FormTokensTextArea = observer((props) => {
   const {
@@ -30,11 +29,15 @@ const FormTokensTextArea = observer((props) => {
     labelHint,
     maxTextSymbols,
     symbolsCount,
+    languageValidator,
   } = props;
 
   const [isHint, setIsHint] = useState(false);
 
-  const onEdit = async (e) => {
+  // eslint-disable-next-line no-unused-vars
+  const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
+
+  const onEdit = (e) => {
     let { target: { value: v } } = e;
     const text = unwrapTokens(v);
     const textLength = text.replace(/{{\w+}}/g, '').length;
@@ -44,7 +47,7 @@ const FormTokensTextArea = observer((props) => {
       onChange(v, { [caretName]: caretOffset, [additionalFieldName]: text });
     } else {
       const length = v.length - textLength + maxTextSymbols;
-      await onChange(v, { [caretName]: caretOffset, [additionalFieldName]: text });
+      forceUpdate();
       onChange(v.slice(0, length), { [caretName]: caretOffset, [additionalFieldName]: text });
     }
   };
@@ -63,6 +66,9 @@ const FormTokensTextArea = observer((props) => {
   };
 
   const onKeyPress = (e) => {
+    if (languageValidator && e.key.match(languageValidator)) {
+      e.preventDefault();
+    }
     if (variant !== MULTILINE && e.which === ENTER_KEY) {
       e.preventDefault();
     }
@@ -80,7 +86,6 @@ const FormTokensTextArea = observer((props) => {
         {label && <p>{label}</p>}
         {labelHint && isHint && <span className="label-input-hint">{labelHint}</span>}
         {maxTextSymbols !== undefined && symbolsCount !== undefined ? (<p>{`${symbolsCount} / ${maxTextSymbols}`}</p>) : null}
-        {!maxTextSymbols && symbolsCount !== undefined ? (<p>{symbolsCount}</p>) : null}
       </div>
       <ContentEditable
         className={classnames(inputClassName, 'text-area', variant)}
@@ -111,6 +116,9 @@ FormTokensTextArea.propTypes = {
   caretName: PropTypes.string,
   disabled: PropTypes.bool,
   labelHint: PropTypes.string,
+  maxTextSymbols: PropTypes.number,
+  symbolsCount: PropTypes.number,
+  languageValidator: PropTypes.instanceOf(RegExp),
 };
 
 FormTokensTextArea.defaultProps = {

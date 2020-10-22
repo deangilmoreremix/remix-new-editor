@@ -7,6 +7,7 @@ import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 import { ASSET_TYPES } from '../../lib/constants/media';
+import { GOOGLE_MAP_VALUES } from '../../lib/constants/googleMap';
 
 import {
   NO_SETTINGS_ELEMENT_TYPES,
@@ -615,15 +616,20 @@ export default class ProjectStore extends BaseStore {
       [type]: {
         type: animationName,
         // The animated class has a default speed of 1s
-        duration: durationOut,
+        duration: animationName === NONE_CLASS ? 0 : durationOut,
       },
     };
 
-    if (type === ANIMATION_TYPES.OUT && animationName !== NONE_CLASS
-      && !isRetarget && (!oldAnimation || !oldAnimation.out || !oldAnimation.out.type)) {
-      const layerElements = this.elements.filter(el => el.track === this.element.track
-        && el.popcornOptions.start >= this.element.popcornOptions.end);
+    const layerElements = this.elements.filter(el => el.track === this.element.track
+      && el.popcornOptions.start >= this.element.popcornOptions.end);
 
+    layerElements.sort((a, b) => a.popcornOptions.start - b.popcornOptions.start);
+
+    const isFreeSpace = !(layerElements.length
+      && layerElements[0].popcornOptions.start - durationOut
+      < this.element.popcornOptions.end);
+
+    if (type === ANIMATION_TYPES.OUT && animationName !== NONE_CLASS && !isRetarget) {
       const needUpdateDuration = [this.element, ...layerElements].some(el => {
         const animationOut = el.popcornOptions.animation && el.popcornOptions.animation.out
           ? el.popcornOptions.animation.out.duration : 0;
@@ -636,12 +642,14 @@ export default class ProjectStore extends BaseStore {
         await this.updateVideoDuration((this.duration / SANTISECOND) + durationOut);
       }
 
-      layerElements.map(item => this.updateElementFromTimeline({
-        needUpdateStartEnd: true,
-        elementId: item.id,
-        start: item.popcornOptions.start + durationOut,
-        end: item.popcornOptions.end + durationOut,
-      }));
+      if (!isFreeSpace) {
+        layerElements.map(item => this.updateElementFromTimeline({
+          needUpdateStartEnd: true,
+          elementId: item.id,
+          start: item.popcornOptions.start + durationOut,
+          end: item.popcornOptions.end + durationOut,
+        }));
+      }
     }
 
     this.findAndUpdate(this.activeElementId, { animation });
@@ -1579,6 +1587,17 @@ export default class ProjectStore extends BaseStore {
     });
   };
 
+  @action
+  runMapResize = () => {
+    this.popcornElements.forEach(element => {
+      if (element.type === POPCORN_ELEMENT_TYPES.GOOGLE_MAP
+        && (element.popcornOptions.type === GOOGLE_MAP_VALUES.STREETVIEW
+          || element.popcornOptions.type === GOOGLE_MAP_VALUES.SIDEBYSIDE)) {
+        this.updatePopcorn(element, { runResize: true });
+      }
+    });
+  };
+
   @computed
   get popcornElements() {
     return this.popcornObject.popcornElements || [];
@@ -1805,16 +1824,21 @@ export default class ProjectStore extends BaseStore {
     if (newEnd < element.popcornOptions.end) {
       return null;
     }
-    const differenceLength = newEnd - element.popcornOptions.end;
+    const elementAnimationOut = element.popcornOptions.animation?.out?.duration || 0;
+    const differenceLength = +((newEnd - element.popcornOptions.end).toFixed(2));
     const elementsForUpdate = [];
     const elementsEnds = [];
     let animationOut = 0;
     let itemStartAfterToVideo = null;
+    let animationOutInLastItem = 0;
 
-    this.projectData.media.forEach((media) => {
-      media.tracks.forEach((track) => {
+    this.projectData.media.forEach(media => {
+      media.tracks.forEach(track => {
         track.trackEvents.forEach(trackEvent => {
           if (trackEvent.track === element.track) {
+            if (trackEvent.popcornOptions.end > Math.max(...elementsEnds)) {
+              animationOutInLastItem = trackEvent.popcornOptions.animation?.out?.duration || 0;
+            }
             elementsEnds.push(trackEvent.popcornOptions.end);
             if (element.popcornOptions.end <= trackEvent.popcornOptions.start) {
               elementsForUpdate.push(trackEvent);
@@ -1838,10 +1862,12 @@ export default class ProjectStore extends BaseStore {
       });
     }
 
-    if (newEnd > itemStartAfterToVideo) {
+    if (newEnd + elementAnimationOut > itemStartAfterToVideo) {
       if (this.duration < (Math.max(...elementsEnds)
         + differenceLength + animationOut) * SANTISECOND) {
-        await this.updateVideoDuration((this.duration / SANTISECOND) + differenceLength);
+        await this.updateVideoDuration(
+          Math.max(...elementsEnds) + animationOutInLastItem + differenceLength,
+        );
       }
 
       if (elementsForUpdate && elementsForUpdate.length) {
@@ -1854,5 +1880,7 @@ export default class ProjectStore extends BaseStore {
           })));
       }
     }
+
+    return elementsForUpdate;
   };
 }

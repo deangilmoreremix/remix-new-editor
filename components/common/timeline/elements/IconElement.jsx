@@ -4,7 +4,11 @@ import Grid from '@material-ui/core/Grid/Grid';
 import SVGInline from 'react-svg-inline';
 
 import { ASSET_TYPES } from '../../../../lib/constants/media';
-import { POPCORN_ELEMENT_LABELS, POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
+import {
+  POPCORN_ELEMENT_LABELS,
+  POPCORN_ELEMENT_TYPES,
+  SEQUENCER,
+} from '../../../../lib/constants/popcorn';
 import { DEFAULT_SETTINGS } from '../../../../lib/constants/settings';
 import PropTypes from '../../../../lib/PropTypes';
 import {
@@ -16,36 +20,48 @@ import {
 import svgAudioIcon from '../../../../public/static/images/media/icon-audio.svg';
 import personalizedVoiceIcon from '../../../../public/static/images/media/personalized-voice.svg';
 import voiceIcon from '../../../../public/static/images/media/voice.svg';
+import useProjectStore from '../../../hooks/useProjectStore';
 
 const IconElement = React.forwardRef(({ item, ...rest }, ref) => {
-  const icon = useMemo(() => {
-    // ToDO add icons for voice and personalized voice
-    if (item.kind === ASSET_TYPES.AUDIO) {
-      return svgAudioIcon;
+  const {
+    isAudio,
+  } = useProjectStore();
+
+  const kind = React.useMemo(() => {
+    if (!item.kind && item.type === SEQUENCER) {
+      return isAudio({ popcornOptions: item }) ? ASSET_TYPES.AUDIO : ASSET_TYPES.VIDEO;
     }
+  }, [item]);
+
+  const icon = useMemo(() => {
     if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
       return personalizedVoiceIcon;
+    }
+    // ToDO add icons for voice and personalized voice
+    if (item.kind === ASSET_TYPES.AUDIO || kind === ASSET_TYPES.AUDIO) {
+      return svgAudioIcon;
     }
     if (item.kind === ASSET_TYPES.VOICE) {
       return voiceIcon;
     }
     return TIMELINE_ELEMENT_ICONS[item.type];
   }, [item]);
+
   const quantityIcon = useMemo(() => TIMELINE_ELEMENT_DEFAULT_ICONS[item.type], [item]);
 
   const itemTitle = useMemo(() => {
-    if (item.kind === ASSET_TYPES.VOICE
+    if (!(item.kind === ASSET_TYPES.VOICE
       || item.kind === ASSET_TYPES.VIDEO
-      || item.kind === ASSET_TYPES.AUDIO) {
-      let title = item.kind;
-      title = item.kind[0].toUpperCase() + item.kind.slice(1);
-      return title;
+      || kind === ASSET_TYPES.VIDEO
+      || kind === ASSET_TYPES.AUDIO
+      || item.kind === ASSET_TYPES.AUDIO)) {
+      if (item.type === POPCORN_ELEMENT_TYPES.SOCIAL) {
+        return item.title;
+      }
+      return POPCORN_ELEMENT_LABELS[item.type];
+    } else {
+      return item.kind || kind;
     }
-
-    if (item.type === POPCORN_ELEMENT_TYPES.SOCIAL) {
-      return item.title;
-    }
-    return POPCORN_ELEMENT_LABELS[item.type];
   }, [item.type, item.title]);
 
   return (

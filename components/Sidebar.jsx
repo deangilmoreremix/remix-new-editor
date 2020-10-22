@@ -28,7 +28,7 @@ import useUserStore from './hooks/useUserStore';
 
 import { showInfo } from '../lib/services/alertService';
 import { headerTooltips } from '../lib/constants/tooltips';
-import HelpIconComponent from './common/HelpIcon';
+import TimeoutTooltip from './common/TimeoutTooltip';
 
 const Sidebar = observer(() => {
   const anchorRef = React.useRef(null);
@@ -134,13 +134,14 @@ const Sidebar = observer(() => {
           aria-haspopup="true"
           onClick={() => { setOpen(!open); }}
         >
-          <SVGInline
-            className="icon icon-button"
-            classSuffix=""
-            svg={hamburgerIcon}
-            cleanup={['title']}
-          />
-          <HelpIconComponent message={headerTooltips.menu} />
+          <TimeoutTooltip message={headerTooltips.menu}>
+            <SVGInline
+              className="icon icon-button"
+              classSuffix=""
+              svg={hamburgerIcon}
+              cleanup={['title']}
+            />
+          </TimeoutTooltip>
         </Button>
         <Popper
           open={open}

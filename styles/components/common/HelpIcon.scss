@@ -3,8 +3,14 @@
   height: 100%;
   position: relative;
 
+  &__input {
+    position: absolute;
+    right: 3.5em;
+    bottom: -.31em;
+  }
+
   &__icon {
-    width: .5em !important;
+    width: .4em !important;
     height: auto !important;
     vertical-align: top;
     cursor: pointer;
@@ -12,8 +18,8 @@
     opacity: 0.7;
     z-index: 0;
 
-    &-red {
-      color: $secondary-color;
+    &-gray {
+      color: $scrollbarColor;
     }
 
     &-white {
@@ -22,21 +28,21 @@
   }
 
   &__window {
-    width: 15em;
+    text-align: center !important;
+    width: 17em;
     max-width: 20em;
     min-width: 5em;
-    overflow: auto;
-    padding: .7em;
+    overflow: visible;
+    padding: 0.5em;
     position: absolute;
     height: auto;
-    color: $dark-white !important;
-    background-color: $modal-lightdark-bg;
-    border: 1px solid $secondary-color;
-    opacity: 1 !important;
+    color: white !important;
+    background-color: rgba(0, 0, 0, 0.75);
     border-radius: 5px;
     font-size: 12px;
     z-index: 80;
     text-transform: none !important;
+    white-space: pre-wrap;
 
     &-left {
       left: 100%;
@@ -46,12 +52,41 @@
       right: 100%;
     }
 
-    &-top {
+    &-library {
+      right: 100%;
+
+      @media (min-width: 1367px) {
+        right: unset;
+        left: 100%;
+      }
+    }
+
+    &-normal {
       top: 0;
     }
 
-    &-bottom {
+    &-top {
       bottom: 0;
+    }
+
+    &-timeline {
+      bottom: 3em;
+      left: 0;
+    }
+
+    &-text {
+      left: 30%;
+    }
+
+    &-produce {
+      left: -5em;
+      bottom: 35%;
+      top: unset;
+    }
+
+    &-bottom {
+      top: unset;
+      left: -100px;
     }
   }
 }

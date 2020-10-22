@@ -29,10 +29,6 @@
       font-size: $defaultFontSize;
       line-height: $defaultLineHeight;
     }
-
-    &:hover input {
-      border: 0.055rem solid $secondary-color;
-    }
   }
 }
 
@@ -58,7 +54,7 @@
     margin-top: 1rem;
 
     .input-url-position {
-      width: 65%;
+      width: 100%;
     }
   }
 

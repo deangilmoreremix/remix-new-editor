@@ -76,8 +76,6 @@ const SettingPanel = observer(() => {
           className="settings-input"
           labelClassName="settings-panel-text"
           placeholder="My Perfect Videos"
-          tooltipMessage={produceTooltips.title}
-          isTooltip
         />
         <FieldBuilder
           type="textarea"
@@ -90,8 +88,6 @@ const SettingPanel = observer(() => {
           textClassName="settings-panel-text"
           placeholder="A project about"
           rows={5}
-          tooltipMessage={produceTooltips.description}
-          isTooltip
         />
         <FieldBuilder
           type="color"
@@ -100,9 +96,6 @@ const SettingPanel = observer(() => {
           value={item.background}
           label="Background Color"
           className="settings-formcolor"
-          tooltipMessage={produceTooltips.backgroundColor}
-          tooltipHeight={80}
-          isTooltip
         />
         <FieldBuilder
           type="checkbox"
@@ -127,8 +120,13 @@ const SettingPanel = observer(() => {
         />
         <div className="settings-allow">
           <div className="settings-allow__label-box">
-            <HelpIconComponent message={produceTooltips.allow} />
             <p className="settings-panel-text">Allow</p>
+            <HelpIconComponent
+              isText
+              mouseEntered
+              padding="0 1.56rem 0 0"
+              message={produceTooltips.allow}
+            />
           </div>
           <FieldBuilder
             type="checkbox"
@@ -180,16 +178,13 @@ const SettingPanel = observer(() => {
         <div className="settings__row">
           <div className="settings__row-block">
             <div className="settings__first-row-block">
-              <HelpIconComponent
-                height={45}
-                message={produceTooltips.thumbnailUpload}
-              />
               <DropAndEditButton
                 onUploaded={onUploadedImage}
                 isDisabled={isDisabledUpload}
                 startUpload={() => setIsDisabledUpload(true)}
                 endUpload={() => setIsDisabledUpload(false)}
                 needSaveAsset={false}
+                tooltipMessage={produceTooltips.thumbnailUpload}
               />
             </div>
             <p className="settings__row-text-2">

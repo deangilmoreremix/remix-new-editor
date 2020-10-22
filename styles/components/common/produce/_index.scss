@@ -48,6 +48,9 @@
   }
 }
 
+textarea {
+  @include tiny-scrollbar;
+}
 
 @media screen and (max-width: 1200px) {
   .settings__row-block:first-child {

@@ -11,6 +11,8 @@ import {
   DEFAULT_VOICES,
 } from '../../../lib/constants/textToSpeech';
 
+import useUserStore from '../../hooks/useUserStore';
+
 import FormSelect from '../../form/FormSelect';
 import FormRadioButton from '../../form/FormRadioButton';
 
@@ -32,7 +34,9 @@ const LibraryVoiceFilter = React.memo((props) => {
     ...LANGUAGES,
   ];
 
-  const [selectVoices, setSelectVoices] = useState(VOICES[LANGUAGES_VALUES.ENUS_STANDART]);
+  const [selectedVoices, setSelectedVoices] = useState(VOICES[LANGUAGES_VALUES.ENUS_STANDART]);
+
+  const { textToSpeechNeuralEnabled } = useUserStore();
 
   useEffect(() => {
     const item = languagesList.find(languageItem => languageItem.value === language).value;
@@ -57,7 +61,7 @@ const LibraryVoiceFilter = React.memo((props) => {
 
     if (currentVoice) {
       setIsDisabledInput(false);
-      setSelectVoices(currentVoice);
+      setSelectedVoices(currentVoice);
       setVoice(currentVoice[0].value);
     }
   }, [voiceType]);
@@ -68,7 +72,7 @@ const LibraryVoiceFilter = React.memo((props) => {
   };
 
   const onVoiceSelect = v => {
-    const item = selectVoices.find(voiceItem => voiceItem.value === v).value;
+    const item = selectedVoices.find(voiceItem => voiceItem.value === v).value;
     setVoice(item);
   };
 
@@ -106,7 +110,7 @@ const LibraryVoiceFilter = React.memo((props) => {
         <div className="library-voice-filter__cell">
           <FormSelect
             label="Voice"
-            items={selectVoices}
+            items={selectedVoices}
             className="text-to-speech__select"
             value={voice}
             onChange={onVoiceSelect}
@@ -116,12 +120,14 @@ const LibraryVoiceFilter = React.memo((props) => {
       </div>
 
       <div className="library-voice-filter__types">
-        <FormRadioButton
-          items={itemsRadio}
-          groupName="groupName"
-          value={voiceType}
-          onChange={setVoiceType}
-        />
+        {textToSpeechNeuralEnabled && (
+          <FormRadioButton
+            items={itemsRadio}
+            groupName="groupName"
+            value={voiceType}
+            onChange={setVoiceType}
+          />
+        )}
       </div>
 
       <button className="library-voice-filter__btn" onClick={fetchItems}>Filter</button>

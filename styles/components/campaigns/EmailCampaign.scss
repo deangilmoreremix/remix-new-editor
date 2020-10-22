@@ -7,7 +7,10 @@
       display: flex;
       align-items: center;
       flex-flow: row wrap;
-      max-height: 400px;
+      max-height: 315px;
+      padding: 2px 8px;
+      border: 0.055rem solid $border-grey;
+      border-radius: 4px;
 
       &-item {
         padding: 0;
