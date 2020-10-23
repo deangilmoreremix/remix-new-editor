@@ -72,6 +72,30 @@ const Basic = ({ values, fields, onChange, element }) => {
       ? fields.zoom.maxStreetViewValue : fields.zoom.maxValue
   ), [values.type]);
 
+  const changeFullscreen = value => {
+    if (value[popcornConstants.FULLSCREEN]) {
+      onChange({
+        ...value,
+        top: 0,
+        left: 0,
+        width: 100,
+        height: 100,
+        stopMove: true,
+        stopResize: true,
+      });
+    } else {
+      onChange({
+        ...value,
+        top: 15,
+        left: 15,
+        width: 70,
+        height: 70,
+        stopMove: false,
+        stopResize: false,
+      });
+    }
+  };
+
   return (
     <Fragment>
       <div className="map-settings__block">
@@ -153,7 +177,7 @@ const Basic = ({ values, fields, onChange, element }) => {
           value={values[popcornConstants.FULLSCREEN]
             || fields[popcornConstants.FULLSCREEN].default}
           name={popcornConstants.FULLSCREEN}
-          onChange={onChange}
+          onChange={changeFullscreen}
           label={fields[popcornConstants.FULLSCREEN].label}
           floatClassName="map-settings-checkbox"
         />
