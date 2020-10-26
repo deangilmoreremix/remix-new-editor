@@ -26,7 +26,6 @@ const Toolbar = observer(({ items }) => {
     toggleVisibleCanvas,
     isCanvasPresent,
     secondaryWindowType,
-    toggleRightBlock,
   } = useUIStore();
 
   React.useEffect(() => {
@@ -41,7 +40,10 @@ const Toolbar = observer(({ items }) => {
   } = items.find(i => i.id === id) || {};
 
   const onClick = (label, func) => {
-    if ((secondaryWindowType !== WINDOW_TYPES.TEXT_TO_SPEECH && secondaryWindowType !== WINDOW_TYPES.MEDIA) && !isCanvasPresent) {
+    if ((secondaryWindowType !== WINDOW_TYPES.TEXT_TO_SPEECH
+      && secondaryWindowType !== WINDOW_TYPES.IMAGE
+      && secondaryWindowType !== WINDOW_TYPES.VIDEO
+    && secondaryWindowType !== WINDOW_TYPES.AUDIO) && !isCanvasPresent) {
       toggleVisibleCanvas(true);
     }
 

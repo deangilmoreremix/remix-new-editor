@@ -106,17 +106,6 @@ export default class UIStore {
   setListBuilder = () => {
     this.toggleRightBlock();
     this.secondaryWindowType = WINDOW_TYPES.SETTING;
-    if (!this.isCanvasPresent) {
-      this.toggleVisibleCanvas();
-    }
-  };
-
-  @action
-  closeRightOpenCanvas = () => {
-    this.toggleRightBlock(false);
-    if (!this.isCanvasPresent) {
-      this.toggleVisibleCanvas();
-    }
   };
 
   @action
@@ -254,7 +243,7 @@ export default class UIStore {
     this.radioButtonBottom = false;
     this.setLibraryType(type);
     if (!this.isCanvasPresent) {
-      this.toggleVisibleCanvas();
+      this.toggleVisibleCanvas(false);
     }
   };
 
