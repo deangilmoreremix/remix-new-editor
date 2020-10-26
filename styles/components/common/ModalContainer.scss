@@ -14,6 +14,11 @@ div.modal-container__content {
   padding-bottom: 1rem;
 }
 
+div.modal-container__media-content {
+  @extend .modal-container__content;
+  background: inherit;
+}
+
 .email-campaign-modal {
   @include tiny-scrollbar;
 }

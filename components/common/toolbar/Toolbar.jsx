@@ -7,6 +7,7 @@ import PropTypes from '../../../lib/PropTypes';
 import useUIStore from '../../hooks/useUIStore';
 
 import arrowIcon from '../../../public/static/svgImages/common/arrow-back.svg';
+import { TOOLBARS } from '../../../lib/constants/ui';
 
 import AnimatedWindow from '../AnimatedWindow';
 import HelpIconComponent from '../HelpIcon';
@@ -14,7 +15,16 @@ import HelpIconComponent from '../HelpIcon';
 const Toolbar = observer(({ items }) => {
   let tooltipTime;
 
-  const { toolbarItem: { id, options }, setToolbarItem, isExpand, isTimelineOpen } = useUIStore();
+  const {
+    toolbarItem: {
+      id, options,
+    },
+    setToolbarItem,
+    isExpand,
+    isTimelineOpen,
+    toggleVisibleCanvas,
+    toggleRightBlock,
+  } = useUIStore();
 
   React.useEffect(() => {
     if (items && items.length && !id) {
@@ -28,6 +38,10 @@ const Toolbar = observer(({ items }) => {
   } = items.find(i => i.id === id) || {};
 
   const onClick = (label, func) => {
+    if (label !== TOOLBARS.MEDIA) {
+      toggleRightBlock(false);
+      toggleVisibleCanvas(true);
+    }
     func();
     handleCloseTooltip(label);
     setToolbarItem(label);

@@ -136,6 +136,8 @@ const Home = observer(() => {
     showProducePanel,
     closeAllWindows,
     setInitialView,
+    setRecorder,
+    isCanvasPresent,
   } = uiStore;
 
   const {
@@ -304,6 +306,7 @@ const Home = observer(() => {
         openToolbarElement,
         openGif,
         openSticker,
+        setRecorder,
       },
       project: {
         allowedSocials,
@@ -366,26 +369,27 @@ const Home = observer(() => {
           { isLoading ? <div className="hover-loading" /> : null }
           <Loader isLoading={isLoading} />
           <Grid container className="controls">
-            <Grid item xs={toolsWidth} className="controls-block">
+            <Grid item xs={toolsWidth} className={classnames('controls-block', { 'controls-block-library': !isCanvasPresent })}>
               <Grid container>
-
                 <Grid item xs={radioButtonBottom ? 12 : 6} style={{ maxWidth: radioButtonBottom ? '100%' : '23.3em', flexBasis: !radioButtonBottom && 'auto' }}>
                   <Toolbar
                     items={toolbarContent}
                   />
                 </Grid>
-
                 {checkboxRight && !radioButtonBottom && (
-                  <Grid item xs={radioButtonBottom ? false : 6} className="home__center" style={{ flex: 1, maxWidth: 'none' }}>
+                  <Grid
+                    item
+                    xs={radioButtonBottom ? false : 6}
+                    className="home__center"
+                  >
                     <AnimatedWindow isOpen={checkboxRight}>
                       {SecondaryWindow}
                     </AnimatedWindow>
                   </Grid>
                 )}
-
               </Grid>
             </Grid>
-            <Grid item xs={canvasWidth}>
+            <Grid className={classnames({ hidden: !isCanvasPresent })} item xs={canvasWidth}>
               <Canvas />
             </Grid>
           </Grid>

@@ -25,7 +25,6 @@ const AudioPreview = observer(({ item, isActive, volume }) => (
         cleanup={['title']}
       />
     )}
-    <div className="library__item-audio-preview-title">{item.title}</div>
   </div>
 ));
 

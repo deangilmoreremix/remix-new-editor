@@ -17,7 +17,7 @@ const ProviderList = observer((props) => {
   } = props;
 
   return (
-    <div className="library__block">
+    <div className="library__block-sidebar">
       {
         activeTab === LIBRARY_TABS.VIDEO ? (
           // eslint-disable-next-line react/jsx-no-target-blank

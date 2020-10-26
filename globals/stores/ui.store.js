@@ -29,6 +29,7 @@ export default class UIStore {
           this.toggleRightBlock(false);
           this.secondaryWindowType = null;
         }
+        this.isCanvasPresent = true;
       },
     );
   }
@@ -46,6 +47,8 @@ export default class UIStore {
 
   @observable prevStateProduce = false;
 
+  @observable isCanvasPresent = true;
+
   @action
   closeAllWindows = () => {
     this.radioButtonTop = false;
@@ -53,6 +56,7 @@ export default class UIStore {
     this.checkboxLeft = false;
     this.checkboxRight = false;
     this.toggleIsExpand(true);
+    this.toggleVisibleCanvas(true);
     this.toggleTimeLine();
   };
 
@@ -105,8 +109,18 @@ export default class UIStore {
   };
 
   @action
+  setRecorder = (type) => {
+    this.toggleRightBlock();
+    this.secondaryWindowType = type;
+    this.toggleVisibleCanvas(true);
+  };
+
+  @action
   setLibraryType = (type) => {
     this.toggleRightBlock();
+    this.toggleLeftBlock(false);
+    this.toggleTimeLine(false);
+    this.toggleVisibleCanvas(false);
     this.secondaryWindowType = type;
   };
 
@@ -196,6 +210,11 @@ export default class UIStore {
       this.secondaryWindowType = null;
       this.prevStateProduce = true;
     }
+  };
+
+  @action
+  toggleVisibleCanvas = (value = true) => {
+    this.isCanvasPresent = value;
   };
 
   @computed

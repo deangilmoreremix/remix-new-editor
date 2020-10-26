@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect, Fragment } from 'react';
-import { useDropzone } from 'react-dropzone';
+import React, { useState, useRef, useEffect } from 'react';
+// import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import Bb from 'bluebird';
+import SearchIcon from '@material-ui/icons/Search';
 
 import { CircleLoader } from 'react-spinners';
 import SVGInline from 'react-svg-inline';
@@ -14,11 +15,11 @@ import {
   resourcesWithValidation,
 } from '../../lib/constants/library';
 import { LOADING_COLOR, WINDOW_TYPES } from '../../lib/constants/ui';
-import mediaConstants, { ASSET_TYPES } from '../../lib/constants/media';
+import { ASSET_TYPES } from '../../lib/constants/media';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
-import { URL_RULE } from '../../lib/constants/regExps';
-import { TYPES } from '../../lib/constants/validator';
-import { ALL_VIDEO } from '../../lib/constants/formats';
+// import { URL_RULE } from '../../lib/constants/regExps';
+// import { TYPES } from '../../lib/constants/validator';
+// import { ALL_VIDEO } from '../../lib/constants/formats';
 import config from '../../config/config';
 import { showError } from '../../lib/services/alertService';
 
@@ -34,17 +35,17 @@ import useUserStore from '../hooks/useUserStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
 import AudioControls from '../common/library/AudioControls';
-import DropPasteInput from './DropPasteInput';
+// import DropPasteInput from './DropPasteInput';
 
 import withModal from '../hoc/withValidation';
 import Is360 from '../settings/video-settings/components/Is360';
-import HelpIconComponent from '../common/HelpIcon';
-import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
+// import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
+// import FormTextField from '../form/FormTextField';
 import FormTextField from '../form/FormTextField';
 import doubleArrowIcon from '../../public/static/svgImages/common/arrow-down.svg';
 
 const Library = observer((props) => {
-  const { checkValue, setError } = props;
+  const { setError } = props;
   const uiStore = useUIStore();
   const projectStore = useProjectStore();
   const userStore = useUserStore();
@@ -58,6 +59,7 @@ const Library = observer((props) => {
     toggleRightBlock,
     isTimelineOpen,
     openSecondaryModal,
+    toggleVisibleCanvas,
   } = uiStore;
 
   const {
@@ -106,9 +108,9 @@ const Library = observer((props) => {
   // =============== STATE ===============
 
   // ============ VOICE FILTER ===========
-  const [voice, setVoice] = useState(null);
-  const [language, setLanguage] = useState(null);
-  const [voiceType, setVoiceType] = useState(null);
+  // const [voice, setVoice] = useState(null);
+  // const [language, setLanguage] = useState(null);
+  // const [voiceType, setVoiceType] = useState(null);
   // ============ VOICE FILTER ===========
 
   useEffect(() => () => {
@@ -238,11 +240,6 @@ const Library = observer((props) => {
       filter = source === LIBRARY_KEYS.PERSONALIZED_VOICE
         ? { 'extra.fallbackValue': { $exists: true } }
         : { _id: { $nin: uploaded } };
-      if (language) {
-        filter['extra.language'] = language;
-        filter['extra.voice'] = voice;
-        filter['extra.engine'] = voiceType;
-      }
     } else {
       filter = { _id: { $nin: uploaded } };
     }
@@ -388,15 +385,15 @@ const Library = observer((props) => {
     }
   };
 
-  const onEnter = (url) => {
-    if (url && !URL_RULE.test(url)) {
-      url = `${window.location.protocol}//${url}`;
-    }
-    const err = checkValue(url, { type: TYPES.URL, isRequired: true });
-    if (!err) {
-      return onSelect({ url, is360 });
-    }
-  };
+  // const onEnter = (url) => {
+  //   if (url && !URL_RULE.test(url)) {
+  //     url = `${window.location.protocol}//${url}`;
+  //   }
+  //   const err = checkValue(url, { type: TYPES.URL, isRequired: true });
+  //   if (!err) {
+  //     return onSelect({ url, is360 });
+  //   }
+  // };
 
   const onKeyEnter = async (key = '') => {
     listProviders[activeBtn].apiKey = key || userValidationKey;
@@ -420,12 +417,6 @@ const Library = observer((props) => {
     }
   };
 
-  const { getInputProps } = useDropzone({
-    accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
-    onDrop,
-    disabled: false,
-  });
-
   // === Drag and Drop ===
 
   const handleSearch = (e) => {
@@ -434,11 +425,11 @@ const Library = observer((props) => {
     }
   };
 
-  const handleSetFocus = () => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  };
+  // const handleSetFocus = () => {
+  //   if (inputRef.current) {
+  //     inputRef.current.focus();
+  //   }
+  // };
 
   const onSelect = async (item) => {
     if (isLoading) {
@@ -485,6 +476,11 @@ const Library = observer((props) => {
     setItems(newArr);
   };
 
+  const closeLibrary = () => {
+    toggleRightBlock(false);
+    toggleVisibleCanvas(true);
+  };
+
   const bulkDeleteItems = (unmount, searchText) => {
     deleteAsset()
       .then(() => {
@@ -511,7 +507,7 @@ const Library = observer((props) => {
           audioActiveItem = activeBtn;
         }
         return (
-          <div className="library__audio-toolbar">
+          <div style={{ display: 'none' }} className="library__audio-toolbar">
             <ProviderList
               activeItem={audioActiveItem}
               title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
@@ -544,89 +540,86 @@ const Library = observer((props) => {
     openSecondaryModal(WINDOW_TYPES.TEXT_TO_SPEECH);
   };
 
+  const getCurrentTab = () => {
+    if (activeTab === LIBRARY_TABS.AUDIO) {
+      return tabItems[activeTab].label.toLowerCase();
+    } else {
+      return tabItems[activeTab].label.slice(0, -1).toLowerCase();
+    }
+  };
+
   return (
     <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
-          <div className="library__add-file__container">
+          <div className="library__add-title-container">
             {
               activeTab !== LIBRARY_TABS.VOICE ? (
-                <div className="library__add-file">
-                  <input
-                    {...getInputProps()}
-                    id="add-file"
-                    disabled={isDisabledUpload}
-                    ref={addFileInputRef}
-                  />
-                  <label htmlFor="add-file" className="library__add">
-                    {
-                      isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
-                    }
-                  </label>
-                  <HelpIconComponent mouseEntered isLibrary message={tabItems[activeTab].tooltip} />
-                </div>
+                <span className="library__add">
+                  {
+                    isDisabledUpload
+                      ? <LibrarySpinner />
+                      : `Choose your ${getCurrentTab()}`
+                  }
+                </span>
               ) : (
-                <div className="library__add-file">
-                  <button className="library__add" onClick={openVoiceWindow}>
+                // todo Open Voice Modal
+                <button className="library__add-file library__open-window" onClick={openVoiceWindow}>
+                  <input id="add-file" />
+                  <label htmlFor="add-file" className="library__add">
                     Add Voice
-                  </button>
-                </div>
+                  </label>
+                </button>
               )
             }
-            {showed360
-            && (
-              <Is360
-                value={is360}
-                onChange={() => set360(!is360)}
-                className="flex-end is-360"
-                showHint
-              />
-            )}
           </div>
-          <div className="library__block-wrapper">
-            <div className="library__block">
-              {
-                isVideoTab && (
-                  <DropPasteInput
-                    onDrop={onDrop}
-                    accept={[ALL_VIDEO]}
-                    onEnter={onEnter}
-                  />
-                )
-            }
-            </div>
-            {needValidation
-            && (isValidationInputHidden
-              ? (
-                <SVGInline
-                  className="verify-key-button"
-                  svg={doubleArrowIcon}
-                  component="button"
-                  onClick={() => setValidationInputHidden(false)}
+          {needValidation
+          && (isValidationInputHidden
+            ? (
+              <SVGInline
+                className="verify-key-button"
+                svg={doubleArrowIcon}
+                component="button"
+                onClick={() => setValidationInputHidden(false)}
+              />
+            )
+            : (
+              <div>
+                <FormTextField
+                  value={userValidationKey}
+                  onEnter={onKeyEnter}
+                  onChange={setUserValidationKey}
+                  placeholder={`Enter your ${activeBtn === LIBRARY_KEYS.DROPMOCK ? 'DropMock Fusion' : 'TxtVideo'} key here and press return`}
                 />
-              )
-              : (
-                <div>
-                  <FormTextField
-                    value={userValidationKey}
-                    onEnter={onKeyEnter}
-                    onChange={setUserValidationKey}
-                    placeholder={`Enter your ${activeBtn === LIBRARY_KEYS.DROPMOCK ? 'DropMock Fusion' : 'TxtVideo'} key here and press return`}
-                  />
-                  <button
-                    className="library-voice-filter__btn"
-                    onClick={() => verifyKey(userValidationKey)}
-                  >
-                      verify
-                  </button>
-                </div>
-              )
-            )}
-            <div className="library__block">
+                <button
+                  className="library-voice-filter__btn"
+                  onClick={() => verifyKey(userValidationKey)}
+                >
+                    verify
+                </button>
+              </div>
+            )
+          )}
+          <div
+            className={classnames(
+              'library__block',
               {
-                !needValidation && (
-                <Fragment>
+                'library__block-music': activeTab.toLowerCase() === ASSET_TYPES.AUDIO,
+              },
+            )}
+          >
+            {renderSidebar()}
+            {!needValidation && (
+              <>
+                <div
+                  className={classnames(
+                    'library__search-box',
+                    {
+                      'library__search-box-music': activeTab.toLowerCase() === ASSET_TYPES.AUDIO,
+                    },
+                  )}
+                >
                   <input
                     className="library__search"
                     type="text"
@@ -634,74 +627,54 @@ const Library = observer((props) => {
                     ref={inputRef}
                     onChange={e => setQuery(e.target.value)}
                     onKeyDown={handleSearch}
+                    placeholder="search ..."
                   />
-                  {!query && (
-                    <button
-                      className="library__placeholder"
-                      onClick={handleSetFocus}
-                    >
-                      <div>
-                        {tabItems[activeTab].search.label}
-                        <span>{tabItems[activeTab].search.subLabel}</span>
-                      </div>
-                    </button>
-                  )}
-                </Fragment>
-                )
-            }
-            </div>
-            {(activeTab === LIBRARY_KEYS.PERSONALIZED_VOICE || activeTab === LIBRARY_KEYS.VOICE)
-            && (
-              <LibraryVoiceFilter
-                language={language}
-                setLanguage={setLanguage}
-                voice={voice}
-                setVoice={setVoice}
-                voiceType={voiceType}
-                setVoiceType={setVoiceType}
-                fetchItems={fetchItems}
-              />
+                  <div className="library__search-icon-box">
+                    <SearchIcon />
+                  </div>
+                </div>
+                {showed360 ? (
+                  <Is360
+                    value={is360}
+                    onChange={() => set360(!is360)}
+                    className="flex-end is-360"
+                    showHint
+                  />
+                ) : activeTab.toLowerCase() !== ASSET_TYPES.AUDIO && <div className="library__search-box-dummy" />}
+              </>
             )}
           </div>
         </div>
-
         <div className="library__row library__row-second">
-          {renderSidebar()}
-          { isInitialLoading
-            ? (
-              <div className="library__items">
-                <CircleLoader
-                  size={100}
-                  css={{ margin: 'auto' }}
-                  loading
-                  color={LOADING_COLOR}
-                />
-              </div>
-            )
-            : (activeSecureTab && (
-              <LibraryContent
-                activeItem={activeItem}
-                items={items}
-                onSelect={onSelect}
-                activeBtn={activeBtn}
-                activeTab={activeTab}
-                onDelete={onDelete}
-                onPlay={onPlay}
-                fetchItems={fetchItems}
-                isDisabledUpload={isDisabledUpload}
-                onDrop={onDrop}
-                hasMore={hasMore}
-                type={activeTab}
-                volume={volume}
+          {isInitialLoading ? (
+            <div className="library__items">
+              <CircleLoader
+                size={100}
+                css={{ margin: 'auto' }}
+                loading
+                color={LOADING_COLOR}
               />
-            ))}
+            </div>
+          ) : (activeSecureTab && (
+            <LibraryContent
+              activeItem={activeItem}
+              items={items}
+              onSelect={onSelect}
+              activeBtn={activeBtn}
+              activeTab={activeTab}
+              onDelete={onDelete}
+              onPlay={onPlay}
+              fetchItems={fetchItems}
+              isDisabledUpload={isDisabledUpload}
+              onDrop={onDrop}
+              hasMore={hasMore}
+              type={activeTab}
+            />
+          ))}
         </div>
       </div>
-
-      <CloseButton onClick={() => toggleRightBlock(false)} />
+      <CloseButton onClick={closeLibrary} />
     </div>
   );
 });
-
-
 export default withModal(Library);

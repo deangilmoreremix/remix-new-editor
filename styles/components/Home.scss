@@ -7,6 +7,10 @@
     min-width: 105px;
     z-index: 10;
   }
+  .controls-block-library {
+    max-width: 100%;
+    flex-basis: 100%;
+  }
 }
 .home {
   display: flex;
@@ -33,6 +37,10 @@
     left: 0;
     right: 0;
   }
+
+  .hidden {
+    display: none;
+  }
 }
 
 .disabled {
@@ -41,8 +49,9 @@
 
 .home__center {
   position: relative;
-  padding: 0.5rem;
-  padding-top: 1.3rem;
+  padding: 1.3rem 0 0.5rem 1rem;
+  flex: 1 !important;
+  max-width: none !important;
 }
 
 div.big-window {
