@@ -5,7 +5,18 @@ import classnames from 'classnames';
 import PropTypes from '../../lib/PropTypes';
 import HelpIconComponent from '../common/HelpIcon';
 
-const TagsFormInput = ({ value = [], onChange, className, placeholder, label, labelClassName = '', disabled, isTooltip, tooltipMessage }) => (
+const TagsFormInput = ({
+  value = [],
+  onChange,
+  className,
+  placeholder,
+  label,
+  labelClassName = '',
+  disabled,
+  isTooltip,
+  tooltipMessage,
+  tooltipHeight,
+}) => (
   <div className={classnames('tags-input-block', className)}>
     {label && (
       <>
@@ -15,8 +26,8 @@ const TagsFormInput = ({ value = [], onChange, className, placeholder, label, la
         {isTooltip && (
           <HelpIconComponent
             isInput
-            mouseEntered
             message={tooltipMessage}
+            height={tooltipHeight}
           />
         )}
       </>
@@ -42,6 +53,7 @@ TagsFormInput.propTypes = {
   disabled: PropTypes.bool,
   isTooltip: PropTypes.bool,
   tooltipMessage: PropTypes.string,
+  tooltipHeight: PropTypes.number,
 };
 
 export default TagsFormInput;

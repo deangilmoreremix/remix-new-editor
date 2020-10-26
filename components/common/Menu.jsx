@@ -51,8 +51,8 @@ const Menu = observer((
         />
       ) : null}
       <span className="menu__item-title">{buttonItem.title}</span>
-      {buttonItem.title !== 'Sign Out' && (
-        <HelpIconComponent whiteIcon isLeft mouseEntered message={buttonItem.tooltip} />
+      {buttonItem.isTooltip && (
+        <HelpIconComponent placement="left-end" height={25} message={buttonItem.tooltip} />
       )}
     </button>
   );

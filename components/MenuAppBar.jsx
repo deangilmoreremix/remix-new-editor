@@ -7,7 +7,7 @@ import { AppBar, Toolbar } from '@material-ui/core';
 import Menu from './common/Menu';
 import UserBox from './common/user/UserBox';
 import ExpandButton from './common/ExpandButton';
-import TimeoutTooltip from './common/TimeoutTooltip';
+import HelpIconComponent from './common/HelpIcon';
 import { HEADER_ACTIONS, USER_MENU_ITEMS } from '../lib/constants/ui';
 import { headerTooltips } from '../lib/constants/tooltips';
 
@@ -68,64 +68,70 @@ const MenuAppBar = observer(() => {
 
           <div className="container-menu__actions">
             <div className="container-menu__actions__item">
-              <TimeoutTooltip message={headerTooltips.undo}>
-                <SVGInline
-                  className={classnames('icon icon-button', { active: canUndo })}
-                  classSuffix=""
-                  svg={undoIcon}
-                  cleanup={['title']}
-                  component="button"
-                  disabled={!canUndo}
-                  onClick={() => undoRedoAction(true)}
-                />
-                <button
-                  className={classnames('icon-button container-menu__button-text', { active: canUndo })}
-                  disabled={!canUndo}
-                  onClick={() => undoRedoAction(true)}
-                >
-                  {UNDO}
-                </button>
-              </TimeoutTooltip>
+              <HelpIconComponent noIcon message={headerTooltips.undo}>
+                <div>
+                  <SVGInline
+                    className={classnames('icon icon-button', { active: canUndo })}
+                    classSuffix=""
+                    svg={undoIcon}
+                    cleanup={['title']}
+                    component="button"
+                    disabled={!canUndo}
+                    onClick={() => undoRedoAction(true)}
+                  />
+                  <button
+                    className={classnames('icon-button container-menu__button-text', { active: canUndo })}
+                    disabled={!canUndo}
+                    onClick={() => undoRedoAction(true)}
+                  >
+                    {UNDO}
+                  </button>
+                </div>
+              </HelpIconComponent>
             </div>
             <div className="container-menu__actions__item">
-              <TimeoutTooltip message={headerTooltips.redo}>
-                <SVGInline
-                  className={classnames('icon icon-button', { active: canRedo })}
-                  classSuffix=""
-                  svg={redoIcon}
-                  cleanup={['title']}
-                  component="button"
-                  disabled={!canRedo}
-                  onClick={() => undoRedoAction(false)}
-                />
-                <button
-                  className={classnames('icon-button container-menu__button-text', { active: canRedo })}
-                  disabled={!canRedo}
-                  onClick={() => undoRedoAction(false)}
-                >
-                  {REDO}
-                </button>
-              </TimeoutTooltip>
+              <HelpIconComponent noIcon message={headerTooltips.redo}>
+                <div>
+                  <SVGInline
+                    className={classnames('icon icon-button', { active: canRedo })}
+                    classSuffix=""
+                    svg={redoIcon}
+                    cleanup={['title']}
+                    component="button"
+                    disabled={!canRedo}
+                    onClick={() => undoRedoAction(false)}
+                  />
+                  <button
+                    className={classnames('icon-button container-menu__button-text', { active: canRedo })}
+                    disabled={!canRedo}
+                    onClick={() => undoRedoAction(false)}
+                  >
+                    {REDO}
+                  </button>
+                </div>
+              </HelpIconComponent>
             </div>
             <div className="container-menu__actions__item">
-              <TimeoutTooltip message={headerTooltips.save}>
-                <SVGInline
-                  className={`icon icon-button ${modified ? 'active-save' : ''}`}
-                  classSuffix=""
-                  svg={saveIcon}
-                  cleanup={['title']}
-                  component="button"
-                  onClick={saveProject}
-                  disabled={!modified}
-                />
-                <button
-                  className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
-                  onClick={saveProject}
-                  disabled={!modified}
-                >
-                  {SAVE}
-                </button>
-              </TimeoutTooltip>
+              <HelpIconComponent noIcon message={headerTooltips.save}>
+                <div>
+                  <SVGInline
+                    className={`icon icon-button ${modified ? 'active-save' : ''}`}
+                    classSuffix=""
+                    svg={saveIcon}
+                    cleanup={['title']}
+                    component="button"
+                    onClick={saveProject}
+                    disabled={!modified}
+                  />
+                  <button
+                    className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
+                    onClick={saveProject}
+                    disabled={!modified}
+                  >
+                    {SAVE}
+                  </button>
+                </div>
+              </HelpIconComponent>
             </div>
           </div>
           <ExpandButton />

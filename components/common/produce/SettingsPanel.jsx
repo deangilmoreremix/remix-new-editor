@@ -115,6 +115,7 @@ const SettingPanel = observer(() => {
           label="Tags"
           className="settings-input"
           titleClass="settings-panel-text"
+          tooltipHeight={20}
           tooltipMessage={produceTooltips.tags}
           isTooltip
         />
@@ -123,8 +124,8 @@ const SettingPanel = observer(() => {
             <p className="settings-panel-text">Allow</p>
             <HelpIconComponent
               isText
-              mouseEntered
               padding="0 1.56rem 0 0"
+              height={25}
               message={produceTooltips.allow}
             />
           </div>

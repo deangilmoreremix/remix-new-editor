@@ -64,32 +64,33 @@ const Toolbar = observer(({ items }) => {
     <div className={classnames('toolbar-container', { 'big-window': !isTimelineOpen })}>
       <div className="toolbar-tabs">
         {items.map(({ label, icon, id: tabId, func, tooltip }) => (
-          <button
-            className="toolbar-tab"
-            key={label}
-            onClick={() => onClick(tabId, func)}
-            type="button"
-            onMouseEnter={() => isExpand && handleOpenTooltip(tabId)}
-            onMouseLeave={() => isExpand && handleCloseTooltip(tabId)}
+          <HelpIconComponent
+            noIcon
+            message={tooltip}
+            placement="right"
           >
-            <div>
-              <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
-              <span className="toolbar-tab-title">{label}</span>
-            </div>
-            <HelpIconComponent
-              noIcon
-              onParentMouseEntered={id === tabId && options.isHover}
-              message={tooltip}
-            />
-            {isExpand && (
-              <AnimatedWindow
-                isOpen={isExpand}
-                style={{ position: 'absolute' }}
-              >
-                <SVGInline className="toolbar-arrow-icon" svg={arrowIcon} cleanup={['title']} />
-              </AnimatedWindow>
-            )}
-          </button>
+            <button
+              className="toolbar-tab"
+              key={label}
+              onClick={() => onClick(tabId, func)}
+              type="button"
+              onMouseEnter={() => isExpand && handleOpenTooltip(tabId)}
+              onMouseLeave={() => isExpand && handleCloseTooltip(tabId)}
+            >
+              <div>
+                <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
+                <span className="toolbar-tab-title">{label}</span>
+              </div>
+              {isExpand && (
+                <AnimatedWindow
+                  isOpen={isExpand}
+                  style={{ position: 'absolute' }}
+                >
+                  <SVGInline className="toolbar-arrow-icon" svg={arrowIcon} cleanup={['title']} />
+                </AnimatedWindow>
+              )}
+            </button>
+          </HelpIconComponent>
         ))}
       </div>
       {TabRenderer && <TabRenderer items={tabContent} options={options} />}
