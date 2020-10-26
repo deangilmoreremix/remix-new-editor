@@ -1,33 +1,55 @@
-import * as React from 'react';
+import React, { useMemo, Fragment } from 'react';
 import AudioPlayer from 'react-audio-player';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 
 import audioIcon from '../../../public/static/svgImages/common/audio.svg';
 
-const AudioPreview = observer(({ item, isActive, volume }) => (
-  <div className="library__item-audio-preview">
-    {isActive ? (
-      <React.Fragment>
-        <div className="playing-now-icon">
-          <img src="/static/images/media/audio-playing.gif" alt="" />
-        </div>
-        <AudioPlayer
-          src={item.url}
-          volume={volume / 100}
-          autoPlay
+const AudioPreview = observer((props) => {
+  const { item, isActive, volume, isDisplayTitle, isDisplayIcon, onEnded } = props;
+
+  const icon = useMemo(() => {
+    if (isDisplayIcon) {
+      return (
+        <SVGInline
+          className="library__item-audio-preview-icon"
+          svg={audioIcon}
+          cleanup={['title']}
         />
-      </React.Fragment>
-    ) : (
-      <SVGInline
-        className="library__item-audio-preview-icon"
-        svg={audioIcon}
-        cleanup={['title']}
-      />
-    )}
-  </div>
-));
+      );
+    }
+    return null;
+  }, [isDisplayIcon]);
+
+  return (
+    <div className="library__item-audio-preview">
+      {isActive ? (
+        <Fragment>
+          <div className="playing-now-icon">
+            <img src="/static/images/media/audio-playing.gif" alt="img" />
+          </div>
+          <AudioPlayer
+            src={item.url}
+            volume={volume / 100}
+            onEnded={onEnded}
+            autoPlay
+          />
+        </Fragment>
+      ) : icon}
+      {isDisplayTitle && (
+        <div className="library__item-audio-preview-title">{item.title}</div>
+      )}
+    </div>
+  );
+});
 
 AudioPreview.propTypes = {};
+
+AudioPreview.defaultProps = {
+  volume: 100,
+  isDisplayTitle: true,
+  isDisplayIcon: true,
+  onEnded: () => {},
+};
 
 export default AudioPreview;

@@ -7,7 +7,7 @@ import PropTypes from '../../../lib/PropTypes';
 import useUIStore from '../../hooks/useUIStore';
 
 import arrowIcon from '../../../public/static/svgImages/common/arrow-back.svg';
-import { TOOLBARS } from '../../../lib/constants/ui';
+import { WINDOW_TYPES } from '../../../lib/constants/ui';
 
 import AnimatedWindow from '../AnimatedWindow';
 import HelpIconComponent from '../HelpIcon';
@@ -17,12 +17,15 @@ const Toolbar = observer(({ items }) => {
 
   const {
     toolbarItem: {
-      id, options,
+      id,
+      options,
     },
     setToolbarItem,
     isExpand,
     isTimelineOpen,
     toggleVisibleCanvas,
+    isCanvasPresent,
+    secondaryWindowType,
     toggleRightBlock,
   } = useUIStore();
 
@@ -38,10 +41,10 @@ const Toolbar = observer(({ items }) => {
   } = items.find(i => i.id === id) || {};
 
   const onClick = (label, func) => {
-    if (label !== TOOLBARS.MEDIA) {
-      toggleRightBlock(false);
+    if ((secondaryWindowType !== WINDOW_TYPES.TEXT_TO_SPEECH && secondaryWindowType !== WINDOW_TYPES.MEDIA) && !isCanvasPresent) {
       toggleVisibleCanvas(true);
     }
+
     func();
     handleCloseTooltip(label);
     setToolbarItem(label);
@@ -62,32 +65,33 @@ const Toolbar = observer(({ items }) => {
     <div className={classnames('toolbar-container', { 'big-window': !isTimelineOpen })}>
       <div className="toolbar-tabs">
         {items.map(({ label, icon, id: tabId, func, tooltip }) => (
-          <button
-            className="toolbar-tab"
-            key={label}
-            onClick={() => onClick(tabId, func)}
-            type="button"
-            onMouseEnter={() => isExpand && handleOpenTooltip(tabId)}
-            onMouseLeave={() => isExpand && handleCloseTooltip(tabId)}
+          <HelpIconComponent
+            noIcon
+            message={tooltip}
+            placement="right"
           >
-            <div>
-              <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
-              <span className="toolbar-tab-title">{label}</span>
-            </div>
-            <HelpIconComponent
-              noIcon
-              onParentMouseEntered={id === tabId && options.isHover}
-              message={tooltip}
-            />
-            {isExpand && (
-              <AnimatedWindow
-                isOpen={isExpand}
-                style={{ position: 'absolute' }}
-              >
-                <SVGInline className="toolbar-arrow-icon" svg={arrowIcon} cleanup={['title']} />
-              </AnimatedWindow>
-            )}
-          </button>
+            <button
+              className="toolbar-tab"
+              key={label}
+              onClick={() => onClick(tabId, func)}
+              type="button"
+              onMouseEnter={() => isExpand && handleOpenTooltip(tabId)}
+              onMouseLeave={() => isExpand && handleCloseTooltip(tabId)}
+            >
+              <div>
+                <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
+                <span className="toolbar-tab-title">{label}</span>
+              </div>
+              {isExpand && (
+                <AnimatedWindow
+                  isOpen={isExpand}
+                  style={{ position: 'absolute' }}
+                >
+                  <SVGInline className="toolbar-arrow-icon" svg={arrowIcon} cleanup={['title']} />
+                </AnimatedWindow>
+              )}
+            </button>
+          </HelpIconComponent>
         ))}
       </div>
       {TabRenderer && <TabRenderer items={tabContent} options={options} />}

@@ -4,6 +4,10 @@ module.exports = {
   app: {
     prefix: process.env.APP_PREFIX || 'go',
   },
+  aws: {
+    accessKeyId: '' || process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: '' || process.env.AWS_SECRET_ACCESS_KEY,
+  },
   backend: {
     socketPort: process.env.NEXT_PUBLIC_SOCKET_PORT || '',
     url: process.env.BACKEND || 'dev-api.vidcloud.io',

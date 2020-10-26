@@ -10,7 +10,7 @@ import FieldBuilder from '../form/FieldBuilder';
 
 import guidelinesIcon from '../../public/static/svgImages/guidlines.svg';
 import { mainTooltips } from '../../lib/constants/tooltips';
-import TimeoutTooltip from './TimeoutTooltip';
+import HelpIconComponent from './HelpIcon';
 
 const GuidelinesActivation = observer(({ marginLeft }) => {
   const { hasGuidLines, setGuideLines } = useUIStore();
@@ -20,17 +20,16 @@ const GuidelinesActivation = observer(({ marginLeft }) => {
       className="guidelines-activation"
       style={marginLeft && { marginLeft }}
     >
-      <TimeoutTooltip
-        className="guidelines-icon"
+      <HelpIconComponent
+        noIcon
         message={mainTooltips.guideline}
-        isLeft
-        isBottom
       >
         <SVGInline
           svg={guidelinesIcon}
+          className="guidelines-icon"
           cleanup={['guidelines']}
         />
-      </TimeoutTooltip>
+      </HelpIconComponent>
       <FieldBuilder
         type="checkbox"
         label="Guideline"

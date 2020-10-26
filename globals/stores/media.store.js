@@ -129,6 +129,102 @@ export default class Media extends BaseStore {
     }
   };
 
+  saveTextToSpeech = async (props) => {
+    const { engine, language, text, voice, url, isPersonalizeText, fallbackValue } = props;
+    const path = isPersonalizeText ? '/api/users/me/media-assets/save-template-voice'
+      : '/api/users/me/media-assets/save-voice';
+    const body = {
+      engine,
+      language,
+      voice,
+      url,
+      text,
+    };
+    if (isPersonalizeText) {
+      body.fallbackValue = fallbackValue;
+    }
+
+    try {
+      const result = await this.request(
+        path, {
+          method: 'POST',
+          body,
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+      return result;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
+  getTemporaryTextToSpeech = async (props) => {
+    const { engine, language, text, voice } = props;
+    const body = {};
+    body.text = text;
+    body.language = language;
+    body.engine = engine;
+    body.voice = voice;
+
+    try {
+      const response = await this.selfRequest(
+        '/api/get-temporary-voice', {
+          method: 'POST',
+          body,
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+
+      const audioStream = response.AudioStream.data;
+      const uInt8Array = new Uint8Array(audioStream);
+      const arrayBuffer = uInt8Array.buffer;
+      const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.load();
+      const promise = audio.play();
+      if (promise) {
+        promise.then(() => {
+          console.info('success');
+        }).catch((e) => {
+          console.error(e);
+        });
+      }
+      return { blob, audio };
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  saveTemporaryTextToSpeech = async (data) => {
+    let body;
+    const headers = { 'on-behalf': this.currentUser.id };
+
+    if (typeof data === 'string') {
+      body = { [data.includes('data:') ? 'dataUri' : 'srcUrl']: data };
+    } else {
+      const fd = new FormData();
+      fd.append('media', data);
+      body = fd;
+    }
+
+    try {
+      const response = await this.selfRequest(
+        '/api/save-temporary-voice', {
+          method: 'PUT',
+          body,
+          headers,
+        });
+      return response;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  };
+
   mergeMedia = async (videoSrc, audioSrc) => {
     try {
       await this.selfRequest(

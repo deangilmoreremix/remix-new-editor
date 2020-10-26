@@ -8,7 +8,7 @@ import useProjectStore from '../hooks/useProjectStore';
 
 import expandIcon from '../../public/static/svgImages/header/expand.svg';
 import { headerTooltips } from '../../lib/constants/tooltips';
-import TimeoutTooltip from './TimeoutTooltip';
+import HelpIconComponent from './HelpIcon';
 
 const ExpandButton = observer(() => {
   const {
@@ -28,7 +28,7 @@ const ExpandButton = observer(() => {
       className={classnames('expandButton', { 'expandButton-active': isExpand })}
       onClick={onCLick}
     >
-      <TimeoutTooltip message={headerTooltips.expand}>
+      <HelpIconComponent noIcon message={headerTooltips.expand}>
         <div className="expandButton-content">
           <SVGInline
             className="expandButton-icon"
@@ -37,7 +37,7 @@ const ExpandButton = observer(() => {
           />
           <p>Expand</p>
         </div>
-      </TimeoutTooltip>
+      </HelpIconComponent>
     </button>
   );
 });
