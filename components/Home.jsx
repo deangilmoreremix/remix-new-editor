@@ -154,8 +154,8 @@ const Home = observer(() => {
   } = projectStore;
 
   hotkeys.filter = () => true;
-  const keys = [twoKeys.ctrlS, twoKeys.ctrlZ, twoKeys.ctrlY, twoKeys.ctrlC,
-    twoKeys.commandS, twoKeys.commandZ, twoKeys.commandY, twoKeys.commandC];
+  const keys = [twoKeys.ctrlS, twoKeys.ctrlZ, twoKeys.ctrlY, twoKeys.ctrlD,
+    twoKeys.commandS, twoKeys.commandZ, twoKeys.commandY, twoKeys.commandD];
 
   React.useEffect(() => {
     hotkeys.unbind(keys.join(), hotkeys.getScope());
@@ -178,12 +178,13 @@ const Home = observer(() => {
           event.preventDefault();
           undoRedoAction(false);
           break;
-        case twoKeys.ctrlC:
-        case twoKeys.commandC: {
+        case twoKeys.ctrlD:
+        case twoKeys.commandD: {
+          event.preventDefault();
           if (!event.target.classList.contains('popcorn-element')) {
             return null;
           }
-          event.preventDefault();
+
           if (projectData.media && projectData.media.length && activeElementId) {
             projectData.media.forEach((media) => {
               media.tracks.forEach((track) => {
