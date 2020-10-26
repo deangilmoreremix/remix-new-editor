@@ -86,10 +86,10 @@ const Basic = ({ values, fields, onChange, element }) => {
     } else {
       onChange({
         ...value,
-        top: 15,
-        left: 15,
-        width: 70,
-        height: 70,
+        top: fields.top.default,
+        left: fields.left.default,
+        width: fields.width.default,
+        height: fields.height.default,
         stopMove: false,
         stopResize: false,
       });
@@ -296,6 +296,10 @@ Basic.propTypes = {
       label: PropTypes.string,
       type: PropTypes.string,
     }),
+    top: PropTypes.number,
+    left: PropTypes.number,
+    width: PropTypes.number,
+    height: PropTypes.number,
   }),
   onChange: PropTypes.func,
 };
