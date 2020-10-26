@@ -9,7 +9,6 @@ import {
   LANGUAGES_PRO,
   LANGUAGES_VALUES,
   VOICES,
-  DEFAULT_VOICES,
 } from '../../../lib/constants/textToSpeech';
 
 import useUserStore from '../../hooks/useUserStore';
@@ -40,11 +39,19 @@ const LibraryVoiceFilter = React.memo((props) => {
 
   const { textToSpeechNeuralEnabled } = useUserStore();
 
+  const currentVoiceArray = (currentLanguage, currentVoiceType) => {
+    const isLanguageWithPro = LANGUAGES_PRO.some(item => item.value === currentLanguage);
+    if (isLanguageWithPro) {
+      return VOICES[`${currentLanguage}-${currentVoiceType}`];
+    } else {
+      return VOICES[currentLanguage];
+    }
+  };
+
   useEffect(() => {
     const item = languagesList.find(languageItem => languageItem.value === language).value;
     const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
-    const currentVoice = item === LANGUAGES_VALUES.ENUS
-      ? DEFAULT_VOICES[currentVoiceType] : VOICES[item];
+    const currentVoice = currentVoiceArray(item, currentVoiceType);
 
     if (currentVoice) {
       if (voiceType !== ENGINE_TYPE_VALUES.STANDART) {
@@ -64,8 +71,7 @@ const LibraryVoiceFilter = React.memo((props) => {
   useEffect(() => {
     const item = languagesList.find(languageItem => languageItem.value === language).value;
     const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
-    const currentVoice = item === LANGUAGES_VALUES.ENUS
-      ? DEFAULT_VOICES[currentVoiceType] : VOICES[item];
+    const currentVoice = currentVoiceArray(item, currentVoiceType);
 
     if (currentVoice) {
       setIsDisabledInput(false);

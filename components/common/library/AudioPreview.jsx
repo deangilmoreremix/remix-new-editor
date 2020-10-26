@@ -26,7 +26,7 @@ const AudioPreview = observer((props) => {
       {isActive ? (
         <Fragment>
           <div className="playing-now-icon">
-            <img src="/static/images/media/audio-playing.gif" alt="" />
+            <img src="/static/images/media/audio-playing.gif" alt="img" />
           </div>
           <AudioPlayer
             src={item.url}

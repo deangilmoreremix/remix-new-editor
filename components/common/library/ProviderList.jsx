@@ -29,9 +29,7 @@ const ProviderList = observer((props) => {
         activeTab === LIBRARY_TABS.VIDEO ? (
           // eslint-disable-next-line react/jsx-no-target-blank
           <a href="http://download.vidcloud.io/" className="library__block--title" target="_blank">{title}</a>
-        ) : (
-          providerTitle
-        )
+        ) : providerTitle
       }
       <div className="library__btn-container">
         {

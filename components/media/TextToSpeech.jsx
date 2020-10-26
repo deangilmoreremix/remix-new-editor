@@ -13,14 +13,11 @@ import {
   LANGUAGES_PRO,
   ENGINE_TYPE_VALUES,
   LANGUAGES_VALUES,
-  DEFAULT_VOICES,
   maxSymbols,
   PREVIEW,
-  VOICES_PRO,
 } from '../../lib/constants/textToSpeech';
 import { addToken, wrapTokens, unwrapTokens } from '../../lib/utils/tokens-helper';
 import { tokenModes } from '../../lib/constants/tokens';
-import { VALIDATION_ENG_LANGUAGE } from '../../lib/constants/regExps';
 
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
@@ -35,9 +32,8 @@ import FormTokensTextArea from '../form/FormTokensTextArea';
 import FormTextArea from '../form/FormTextArea';
 import TextToSpeechLibrary from '../common/textToSpeech/TextToSpeechLibrary';
 
-import playIcon from '../../public/static/svgImages/common/play.svg';
-// todo update icon
-import saveIcon from '../../public/static/svgImages/header/save.svg';
+import playIcon from '../../public/static/svgImages/voice/play-voice.svg';
+import saveIcon from '../../public/static/svgImages/voice/save-voice.svg';
 import textSpeechIcon from '../../public/static/svgImages/common/textspeech.svg';
 import arrowIcon from '../../public/static/svgImages/common/arrow-back.svg';
 import { LIBRARY_KEYS } from '../../lib/constants/library';
@@ -170,25 +166,33 @@ const TextToSpeech = observer(() => {
 
   useEffect(() => quantify(), []);
 
+  const currentVoiceArray = (lan, currentVoiceType) => {
+    const isLanguageWithPro = LANGUAGES_PRO.some(item => item.value === lan);
+    if (isLanguageWithPro) {
+      return VOICES[`${lan}-${currentVoiceType}`];
+    } else {
+      return VOICES[lan];
+    }
+  };
+
   useEffect(() => {
     const item = LANGUAGES.find(languageItem => languageItem.value === language).value;
     const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
-    const currentVoice = item === LANGUAGES_VALUES.ENUS
-      ? DEFAULT_VOICES[currentVoiceType] : VOICES[item];
+    currentVoiceArray(item, currentVoiceType);
+    const currentVoice = currentVoiceArray(item, currentVoiceType);
 
     if (currentVoice) {
       setSelectedVoices(currentVoice);
       setVoiceType(ENGINE_TYPE_VALUES.STANDART);
       setVoice(currentVoice[0].value);
-      setPreviewUrl(PREVIEW[language][currentVoice[0].value][voiceType]);
+      setPreviewUrl(PREVIEW[language][currentVoice[0].value][ENGINE_TYPE_VALUES.STANDART]);
     }
   }, [language]);
 
   useEffect(() => {
     const item = LANGUAGES.find(languageItem => languageItem.value === language).value;
     const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
-    const currentVoice = item === LANGUAGES_VALUES.ENUS
-      ? DEFAULT_VOICES[currentVoiceType] : VOICES[item];
+    const currentVoice = currentVoiceArray(item, currentVoiceType);
 
     if (currentVoice) {
       setSelectedVoices(currentVoice);
@@ -211,8 +215,8 @@ const TextToSpeech = observer(() => {
   const onLanguageSelect = value => {
     const item = LANGUAGES.find(languageItem => languageItem.value === value).value;
     setLanguage(item);
-    const currentVoice = item === LANGUAGES_VALUES.ENUS
-      ? DEFAULT_VOICES[voiceType] : VOICES[item];
+    const currentVoice = currentVoiceArray(item, voiceType);
+
     changeAndPlay(item, currentVoice[0].value, ENGINE_TYPE_VALUES.STANDART);
   };
 
@@ -220,10 +224,9 @@ const TextToSpeech = observer(() => {
     const voiceEngine = voiceType === ENGINE_TYPE_VALUES.STANDART
       ? ENGINE_TYPE_VALUES.NEURAL : ENGINE_TYPE_VALUES.STANDART;
 
-    const voices = language === LANGUAGES_VALUES.ENUS
-      ? DEFAULT_VOICES[voiceType] : VOICES[language];
+    const voices = currentVoiceArray(language, voiceEngine);
     let currentVoice = voices[0].value;
-    if (voiceEngine === ENGINE_TYPE_VALUES.STANDART && voice === VOICES_PRO[0].value) {
+    if (!voices.some(item => item.value === voice)) {
       setVoice(currentVoice);
     } else {
       currentVoice = voice;
@@ -289,8 +292,7 @@ const TextToSpeech = observer(() => {
   ), [language]);
 
   const currentVoiceImage = useMemo(() => {
-    const currentVoices = language === LANGUAGES_VALUES.ENUS
-      ? DEFAULT_VOICES[voiceType] : VOICES[language];
+    const currentVoices = currentVoiceArray(language, voiceType);
     const currentVoice = currentVoices.find(item => item.value === voice);
     if (currentVoice) {
       return currentVoice.img;
@@ -298,8 +300,7 @@ const TextToSpeech = observer(() => {
   }, [language, voice]);
 
   const sliderClick = (direction) => {
-    const currentVoices = language === LANGUAGES_VALUES.ENUS
-      ? DEFAULT_VOICES[voiceType] : VOICES[language];
+    const currentVoices = currentVoiceArray(language, voiceType);
     const currentVoice = currentVoices.find(item => item.value === voice);
     const currentIndex = currentVoices.indexOf(currentVoice);
 
@@ -403,7 +404,6 @@ const TextToSpeech = observer(() => {
                 rows={6}
                 text
                 maxTextSymbols={maxFallbackSymbols}
-                languageValidator={VALIDATION_ENG_LANGUAGE}
               />
               <p className="text-to-speech__info">Required field</p>
             </Fragment>
@@ -420,7 +420,6 @@ const TextToSpeech = observer(() => {
             updateCaret={(value) => setCaret(value.caretOffset)}
             maxTextSymbols={maxTextSymbols}
             symbolsCount={textValueAreaLength}
-            languageValidator={VALIDATION_ENG_LANGUAGE}
           />
 
           <div className="text-to-speech__footer">
