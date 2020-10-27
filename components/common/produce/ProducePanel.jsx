@@ -34,7 +34,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
       })}
     >
       <HelpIconComponent noIcon message={tooltip}>
-        <div>
+        <div className="produce-panel__button">
           <SVGInline
             className="produce-panel__icon"
             svg={icon}
