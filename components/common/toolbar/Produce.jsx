@@ -16,8 +16,7 @@ const Produce = observer(({ items, options: { tab, ...options } = {} }) => {
   const {
     radioButtonBottom,
     checkboxLeft,
-    toggleLeftBlock,
-    toggleIsExpand,
+    closeProduceWindow,
   } = useUIStore();
 
   const activeTabItem = items.find(i => i.id === activeTab);
@@ -28,8 +27,7 @@ const Produce = observer(({ items, options: { tab, ...options } = {} }) => {
   }
 
   const onClose = () => {
-    toggleLeftBlock(false);
-    toggleIsExpand();
+    closeProduceWindow();
   };
 
   return (

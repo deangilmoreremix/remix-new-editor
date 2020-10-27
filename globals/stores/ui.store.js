@@ -1,4 +1,4 @@
-import { observable, action, reaction, computed } from 'mobx';
+import { observable, action, reaction } from 'mobx';
 import { WINDOW_TYPES, TOOLBARS } from '../../lib/constants/ui';
 import { POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 
@@ -61,6 +61,18 @@ export default class UIStore {
   };
 
   @action
+  closeProduceWindow = () => {
+    this.radioButtonTop = false;
+    this.radioButtonBottom = false;
+    this.checkboxLeft = false;
+    this.checkboxRight = false;
+    if (!this.isTimelineOpen) {
+      this.toggleIsExpand(true);
+    }
+  };
+
+
+  @action
   setPrevStateProduce = (value) => {
     this.prevStateProduce = value;
   };
@@ -72,6 +84,13 @@ export default class UIStore {
   @action
   toggleTimeLine = (value = false) => {
     this.isTimelineOpen = value;
+    if (this.isExpand && value) {
+      this.toggleIsExpand(false);
+    }
+
+    if (!value && !this.checkboxLeft && !this.checkboxRight && !this.isExpand) {
+      this.toggleIsExpand(true);
+    }
   };
   // timeline
 
@@ -104,6 +123,7 @@ export default class UIStore {
 
   @action
   setListBuilder = () => {
+    this.toggleLeftBlock(false);
     this.toggleRightBlock();
     this.secondaryWindowType = WINDOW_TYPES.SETTING;
   };
@@ -149,7 +169,7 @@ export default class UIStore {
 
   @action
   toggleLeftBlock = (isOpen = true) => {
-    if (!this.checkboxRight && !isOpen) {
+    if (!this.checkboxRight && !isOpen && !this.isTimelineOpen) {
       this.toggleIsExpand();
     }
     this.checkboxLeft = isOpen;
@@ -157,7 +177,7 @@ export default class UIStore {
 
   @action
   toggleRightBlock = (isOpen = true) => {
-    if (!this.checkboxLeft && !isOpen) {
+    if (!this.checkboxLeft && !isOpen && !this.isTimelineOpen) {
       this.toggleIsExpand();
     }
     this.closeSecondaryWindow();
@@ -203,39 +223,6 @@ export default class UIStore {
     this.isCanvasPresent = value;
   };
 
-  @computed
-  get canvasWidth() {
-    if (this.checkboxRight && !this.checkboxLeft) {
-      return 7;
-    }
-    if (this.isExpand) {
-      return 11;
-    } else if (!this.checkboxRight && this.checkboxLeft && !this.radioButtonBottom) {
-      return 9;
-    } else if ((this.checkboxRight && this.checkboxLeft) || this.radioButtonBottom) {
-      return 5;
-    } else {
-      return 5;
-    }
-  }
-
-  @computed
-  get toolsWidth() {
-    if (this.checkboxRight && !this.checkboxLeft) {
-      return 5;
-    }
-
-    if (this.isExpand) {
-      return 1;
-    } else if (!this.checkboxRight && this.checkboxLeft && !this.radioButtonBottom) {
-      return 3;
-    } else if ((this.checkboxRight && this.checkboxLeft) || this.radioButtonBottom) {
-      return 7;
-    } else {
-      return 7;
-    }
-  }
-
   @action
   openMediaButton = (type) => {
     this.isExpand = false;
@@ -260,6 +247,7 @@ export default class UIStore {
 
   @action
   setSecondaryWindowType = (type) => {
+    this.toggleLeftBlock(false);
     this.toggleRightBlock();
     this.secondaryWindowType = type;
     if (!this.isCanvasPresent) {

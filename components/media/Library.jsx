@@ -11,7 +11,7 @@ import {
   LIBRARY_TABS,
   LIBRARY_KEYS,
 } from '../../lib/constants/library';
-import { LOADING_COLOR, WINDOW_TYPES } from '../../lib/constants/ui';
+import { LOADING_COLOR } from '../../lib/constants/ui';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 // import { URL_RULE } from '../../lib/constants/regExps';
@@ -66,7 +66,6 @@ const Library = observer((props) => {
     openSettings,
     toggleRightBlock,
     isTimelineOpen,
-    openSecondaryModal,
     toggleVisibleCanvas,
   } = uiStore;
 
@@ -570,7 +569,7 @@ const Library = observer((props) => {
   }, [activeTab, activeBtn, activeItem, listProviders, isLoading, volume]);
 
   const openVoiceWindow = () => {
-    openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
+    // openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
   };
 
   const getCurrentTab = () => {
