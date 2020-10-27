@@ -2,17 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 // import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
-import Bb from 'bluebird';
 import SearchIcon from '@material-ui/icons/Search';
 
 import { CircleLoader } from 'react-spinners';
-import SVGInline from 'react-svg-inline';
 import {
   tabItems,
   perPage,
   LIBRARY_TABS,
   LIBRARY_KEYS,
-  resourcesWithValidation,
 } from '../../lib/constants/library';
 import { LOADING_COLOR, WINDOW_TYPES } from '../../lib/constants/ui';
 import { ASSET_TYPES } from '../../lib/constants/media';
@@ -34,6 +31,7 @@ import useUIStore from '../hooks/useUIStore';
 import useUserStore from '../hooks/useUserStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
+import useMultiSelectStore from '../hooks/useMultiSelectStore';
 import AudioControls from '../common/library/AudioControls';
 // import DropPasteInput from './DropPasteInput';
 
@@ -41,14 +39,24 @@ import withModal from '../hoc/withValidation';
 import Is360 from '../settings/video-settings/components/Is360';
 // import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
 // import FormTextField from '../form/FormTextField';
-import FormTextField from '../form/FormTextField';
-import doubleArrowIcon from '../../public/static/svgImages/common/arrow-down.svg';
+
 
 const Library = observer((props) => {
   const { setError } = props;
   const uiStore = useUIStore();
   const projectStore = useProjectStore();
   const userStore = useUserStore();
+  const multiSelectStore = useMultiSelectStore();
+
+  const {
+    addSelectedElement,
+    deleteSelectedElement,
+    isItemPresent,
+    clearAllSelectedItems,
+    addAllSelectedItems,
+    emptyCollections,
+    selectedItemsId,
+  } = multiSelectStore;
 
   const {
     secondaryWindowType: activeTab,
@@ -74,15 +82,14 @@ const Library = observer((props) => {
     audioProvidersInfo,
     voiceProvidersInfo,
     defaultProvidersInfo,
-    checkToken,
   } = useMediaStore();
 
-  const { video360Enabled, isSuperAdmin, getUserKey, updateUserKeys } = userStore;
+  const { video360Enabled, isSuperAdmin } = userStore;
 
   // =============== STATE ===============
-  const [isValidationInputHidden, setValidationInputHidden] = useState(true);
-  const [userValidationKey, setUserValidationKey] = useState();
-  const [preKeySecure, setPreKeySecure] = useState();
+  const [isDropMockTab, setDropMockTab] = useState(false);
+  const [dropMockKey, setDropMockKey] = useState();
+  const [preKeyDropMock, setPreKeyDropMock] = useState();
 
   const [query, setQuery] = useState('');
 
@@ -124,6 +131,22 @@ const Library = observer((props) => {
 
   const isVideoTab = React.useMemo(() => activeTab === LIBRARY_TABS.VIDEO, [activeTab]);
 
+  const itemsWithSelect = React.useMemo(() => {
+    if (selectedItemsId) {
+      const newArr = items.map(item => {
+        if (isItemPresent(item)) {
+          item.selected = true;
+        } else {
+          item.selected = false;
+        }
+        return item;
+      });
+      return newArr;
+    } else {
+      return items;
+    }
+  }, [selectedItemsId.length, items]);
+
   const showed360 = React.useMemo(() => video360Enabled && isVideoTab,
     [video360Enabled, isVideoTab]);
 
@@ -132,6 +155,9 @@ const Library = observer((props) => {
       setActiveTab(tab);
     }
   }, [isLoading, setActiveTab]);
+
+  const activeDropMockTab = React.useMemo(
+    () => !!((isDropMockTab && preKeyDropMock) || !isDropMockTab), [isDropMockTab, preKeyDropMock]);
 
   useEffect(() => {
     async function fetchData() {
@@ -168,34 +194,16 @@ const Library = observer((props) => {
     }
   }, [activeTab, activeBtn, userStore]);
 
-  const needValidation = React.useMemo(
-    () => resourcesWithValidation.some(element => element === activeBtn)
-      && activeTab === LIBRARY_TABS.VIDEO,
-    [activeTab, activeBtn]);
-
-  const activeSecureTab = React.useMemo(
-    () => !!((needValidation && preKeySecure) || !needValidation),
-    [needValidation, preKeySecure]);
-
-  useEffect(() => {
-    let validationKey = getUserKey(activeBtn);
-    if (needValidation) {
-      if (isSuperAdmin) {
-        setUserValidationKey(listProviders[activeBtn].apiKey);
-        onKeyEnter(listProviders[activeBtn].apiKey);
-      } else if (validationKey) {
-        setValidationInputHidden(true);
-        validationKey = getUserKey(activeBtn);
-        setUserValidationKey(validationKey);
-        onKeyEnter(validationKey);
-      } else {
-        setValidationInputHidden(false);
-        setUserValidationKey('');
-      }
-    }
-  }, [needValidation, activeBtn]);
-
   const handleButtonClick = React.useCallback(async (element) => {
+    if (element === LIBRARY_KEYS.DROPMOCK) {
+      setDropMockTab(true);
+      if (isSuperAdmin) {
+        setDropMockKey(listProviders.DROPMOCK.apiKey);
+        await onKeyEnter(listProviders.DROPMOCK.apiKey);
+      }
+    } else {
+      setDropMockTab(false);
+    }
     if (!isLoading) {
       setActiveBtn(element);
     }
@@ -215,6 +223,9 @@ const Library = observer((props) => {
     let currentPage = 0;
     let uploaded = [];
     if (isLoading) {
+      return;
+    }
+    if (isDropMockTab && !dropMockKey) {
       return;
     }
     setIsLoading(true);
@@ -240,6 +251,11 @@ const Library = observer((props) => {
       filter = source === LIBRARY_KEYS.PERSONALIZED_VOICE
         ? { 'extra.fallbackValue': { $exists: true } }
         : { _id: { $nin: uploaded } };
+      // if (language) {
+      //   filter['extra.language'] = language;
+      //   filter['extra.voice'] = voice;
+      //   filter['extra.engine'] = voiceType;
+      // }
     } else {
       filter = { _id: { $nin: uploaded } };
     }
@@ -395,27 +411,17 @@ const Library = observer((props) => {
   //   }
   // };
 
-  const onKeyEnter = async (key = '') => {
-    listProviders[activeBtn].apiKey = key || userValidationKey;
-    setPreKeySecure(key || userValidationKey);
+  const onKeyEnter = async (key) => {
+    listProviders.DROPMOCK.apiKey = key || dropMockKey;
+    setPreKeyDropMock(key || dropMockKey);
     await fetchItems({ source: activeBtn });
   };
 
-  const verifyKey = async (key = '') => {
-    listProviders[activeBtn].apiKey = key || userValidationKey;
-    setPreKeySecure(key || userValidationKey);
-    if (await checkToken(activeBtn)) {
-      await Bb.all([
-        fetchItems({ source: activeBtn }),
-        updateUserKeys(activeBtn, key || userValidationKey),
-      ]);
-      setValidationInputHidden(true);
-    } else {
-      await showError(`WRONG CREDENTIALS: ${activeBtn === LIBRARY_KEYS.DROPMOCK
-        ? 'Looks like Your DropMock Fusion key is invalid'
-        : 'Looks like Your TxtVideo key is invalid'}`);
-    }
-  };
+  // const { getInputProps } = useDropzone({
+  //   accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
+  //   onDrop,
+  //   disabled: false,
+  // });
 
   // === Drag and Drop ===
 
@@ -431,6 +437,18 @@ const Library = observer((props) => {
   //   }
   // };
 
+  const toogleSelectItem = (item) => {
+    if (isItemPresent(item)) {
+      deleteSelectedElement(item);
+    } else {
+      item.src = item.src || item.url;
+      item.type = MEDIA_TYPES[activeTab];
+      item.kind = activeTab.toLowerCase();
+      item.is360 = is360;
+      addSelectedElement(item);
+    }
+  };
+
   const onSelect = async (item) => {
     if (isLoading) {
       return;
@@ -438,6 +456,7 @@ const Library = observer((props) => {
     item.src = item.src || item.url;
     item.is360 = is360;
     item.type = MEDIA_TYPES[activeTab];
+    item.kind = activeTab;
     if (activeTab === LIBRARY_TABS.VOICE) {
       item.type = MEDIA_TYPES.AUDIO;
     } else {
@@ -468,6 +487,20 @@ const Library = observer((props) => {
 
   const onPlay = (item) => {
     setActiveItem(item);
+  };
+
+  const addSelectedElements = async () => {
+    setIsLoading(true);
+    setIsInitialLoading(true);
+    try {
+      await addAllSelectedItems();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setIsLoading(false);
+      setIsInitialLoading(false);
+      clearAllSelectedItems();
+    }
   };
 
   const onDelete = (id) => {
@@ -534,7 +567,7 @@ const Library = observer((props) => {
         />
       );
     }
-  }, [activeTab, activeBtn, volume, activeItem, listProviders, isLoading]);
+  }, [activeTab, activeBtn, activeItem, listProviders, isLoading, volume]);
 
   const openVoiceWindow = () => {
     openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
@@ -547,7 +580,6 @@ const Library = observer((props) => {
       return tabItems[activeTab].label.slice(0, -1).toLowerCase();
     }
   };
-
   return (
     <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
@@ -574,33 +606,6 @@ const Library = observer((props) => {
               )
             }
           </div>
-          {needValidation
-          && (isValidationInputHidden
-            ? (
-              <SVGInline
-                className="verify-key-button"
-                svg={doubleArrowIcon}
-                component="button"
-                onClick={() => setValidationInputHidden(false)}
-              />
-            )
-            : (
-              <div>
-                <FormTextField
-                  value={userValidationKey}
-                  onEnter={onKeyEnter}
-                  onChange={setUserValidationKey}
-                  placeholder={`Enter your ${activeBtn === LIBRARY_KEYS.DROPMOCK ? 'DropMock Fusion' : 'TxtVideo'} key here and press return`}
-                />
-                <button
-                  className="library-voice-filter__btn"
-                  onClick={() => verifyKey(userValidationKey)}
-                >
-                    verify
-                </button>
-              </div>
-            )
-          )}
           <div
             className={classnames(
               'library__block',
@@ -610,28 +615,37 @@ const Library = observer((props) => {
             )}
           >
             {renderSidebar()}
-            {!needValidation && (
+            {activeBtn !== LIBRARY_KEYS.DROPMOCK && (
               <>
-                <div
-                  className={classnames(
-                    'library__search-box',
-                    {
-                      'library__search-box-music': activeTab.toLowerCase() === ASSET_TYPES.AUDIO,
-                    },
-                  )}
-                >
-                  <input
-                    className="library__search"
-                    type="text"
-                    value={query}
-                    ref={inputRef}
-                    onChange={e => setQuery(e.target.value)}
-                    onKeyDown={handleSearch}
-                    placeholder="search ..."
-                  />
-                  <div className="library__search-icon-box">
-                    <SearchIcon />
+                <div className="library__search-container">
+                  <div
+                    className={classnames(
+                      'library__search-box',
+                      {
+                        'library__search-box-music': activeTab.toLowerCase() === ASSET_TYPES.AUDIO,
+                      },
+                    )}
+                  >
+                    <input
+                      className="library__search"
+                      type="text"
+                      value={query}
+                      ref={inputRef}
+                      onChange={e => setQuery(e.target.value)}
+                      onKeyDown={handleSearch}
+                      placeholder="search ..."
+                    />
+                    <div className="library__search-icon-box">
+                      <SearchIcon />
+                    </div>
                   </div>
+                  <button
+                    className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
+                    onClick={addAllSelectedItems}
+                    disabled={emptyCollections}
+                  >
+                    Add to timeline
+                  </button>
                 </div>
                 {showed360 ? (
                   <Is360
@@ -655,10 +669,12 @@ const Library = observer((props) => {
                 color={LOADING_COLOR}
               />
             </div>
-          ) : (activeSecureTab && (
+          ) : (activeDropMockTab && (
             <LibraryContent
               activeItem={activeItem}
-              items={items}
+              items={itemsWithSelect}
+              onToggleSelect={toogleSelectItem}
+              addToTimeLine={addSelectedElements}
               onSelect={onSelect}
               activeBtn={activeBtn}
               activeTab={activeTab}

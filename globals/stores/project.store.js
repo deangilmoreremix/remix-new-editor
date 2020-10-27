@@ -1,6 +1,7 @@
 import { observable, action, computed, reaction, runInAction, toJS } from 'mobx';
 import arrayMove from 'array-move';
 import size from 'lodash/size';
+import Bb from 'bluebird';
 
 import Router from 'next/router';
 import BaseStore from './base.store';
@@ -201,6 +202,10 @@ export default class ProjectStore extends BaseStore {
 
   @observable showedRetarget = false;
 
+  @observable prevMultiselectElement;
+
+  @observable isFirstTrackFull;
+
   @observable pluginDefaults = {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
     [POPCORN_ELEMENT_TYPES.IMAGE]: {},
@@ -294,21 +299,23 @@ export default class ProjectStore extends BaseStore {
         }
         const source = (item.extra && item.extra.source) || [item.url];
         const fileDuration = (item.extra && item.extra.duration) || null;
-        let fileMeta;
-        try {
-          fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration,
-            this.userStore.video360Enabled);
-        } catch (e) {
-          // if there is no error, then loading will hide, after adding the item to the popcorn
-          this.isLoadingSequencer = false;
-          throw e;
+        let { fileMeta } = item;
+        if (!fileMeta) {
+          try {
+            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration,
+              this.userStore.video360Enabled);
+          } catch (e) {
+            // if there is no error, then loading will hide, after adding the item to the popcorn
+            this.isLoadingSequencer = false;
+            throw e;
+          }
         }
-        options.end = options.start + fileMeta.duration;
+        options.end = options.start + (fileMeta?.duration ?? item.duration);
         options.source = source;
-        options.title = fileMeta.title;
-        options.duration = fileMeta.duration;
+        options.title = fileMeta?.title ?? item.title;
+        options.duration = fileMeta?.duration ?? item.duration;
         options.from = 0;
-        options.contentType = fileMeta.contentType;
+        options.contentType = fileMeta?.contentType ?? item.contentType;
         options.in = options.start;
         options.out = options.end;
         options.volume = item.volume !== undefined ? item.volume : 100;
@@ -862,6 +869,7 @@ export default class ProjectStore extends BaseStore {
     }
   };
 
+  @observable
   @action
   addElement = (item) => {
     this.setUndo();
@@ -1699,6 +1707,40 @@ export default class ProjectStore extends BaseStore {
     }
   };
 
+  @observable
+  findLayerForType = (kind) => {
+    // we add images on the new layer
+    if (kind === ASSET_TYPES.IMAGE) {
+      // to check if the first track is empty
+      if (this.layers.length > 1 || this.isFirstTrackFull) {
+        this.createNewLayer();
+      }
+      const [track] = this.layers;
+      this.isFirstTrackFull = true;
+      return { track, end: 0 };
+    }
+    const findElement = this.elements.find(element => element.popcornOptions.kind === kind);
+    if (findElement) {
+      const currentTrack = (findElement.track && findElement.track.id) || findElement.track;
+      const track = this.layers.find(element => element.id === currentTrack);
+      let layerElements;
+      if (this.elements) {
+        layerElements = this.elements.filter((element) => element.track === currentTrack);
+      }
+      const sortedElements = layerElements
+        .sort((a, b) => b.popcornOptions.end - a.popcornOptions.end);
+      const lastElement = sortedElements[0];
+      return { track, end: lastElement.popcornOptions.end };
+    }
+    // add video or audio to the new layer if the first is present or full
+    if (this.layers.length > 1 || this.isFirstTrackFull) {
+      this.createNewLayer();
+    }
+    const [track] = this.layers;
+    this.isFirstTrackFull = true;
+    return { track, end: 0 };
+  };
+
   // untraceable methods for undo redo
   // analog for addElement
   @action
@@ -1759,6 +1801,23 @@ export default class ProjectStore extends BaseStore {
       this.editElement(element.id);
     } else {
       this.releaseElement();
+    }
+  };
+
+  @observable
+  @action
+  createNewElements = async (elements, end) => {
+    this.setUndo();
+    await this.updateEnd(end);
+    this.isFirstTrackFull = false;
+    return Bb.all(elements.map(item => this.createNewElement(item)));
+  }
+
+  updateEnd = (end) => {
+    if (end > this.duration / SANTISECOND) {
+      this.recompressProject(end, false);
+      this.setPopcorn(this.popcorn.target);
+      this.duration = Math.ceil(end * SANTISECOND);
     }
   };
 

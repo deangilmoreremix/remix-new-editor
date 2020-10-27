@@ -17,12 +17,14 @@ import plusIcon from '../../../public/static/images/media/drop-plus.svg';
 import playIcon from '../../../public/static/svgImages/common/play-no-border.svg';
 import stopIcon from '../../../public/static/svgImages/common/stop-no-border.svg';
 import selectIcon from '../../../public/static/images/media/icon-select.svg';
+import deselectIcon from '../../../public/static/images/media/deselect-icon.svg';
 
 const LibraryContent = observer((props) => {
   const {
     type,
     items,
     onSelect,
+    onToggleSelect,
     activeBtn,
     onDelete,
     onPlay,
@@ -77,10 +79,13 @@ const LibraryContent = observer((props) => {
           <React.Fragment>
             { (activeBtn === LIBRARY_KEYS.USER || activeTab === LIBRARY_TABS.VOICE) && (
               <div className="library__item-audio-top">
-                <button className="library__item-audio-select">
+                <button
+                  onClick={() => onToggleSelect(item)}
+                  className="library__item-audio-select"
+                >
                   <SVGInline
                     className="library__item-top-icon"
-                    svg={selectIcon}
+                    svg={item.selected ? deselectIcon : selectIcon}
                   />
                 </button>
                 {
@@ -116,10 +121,13 @@ const LibraryContent = observer((props) => {
       default: return (
         <React.Fragment>
           <div className="library__item-top">
-            <button className="library__item-select">
+            <button
+              className="library__item-select"
+              onClick={() => onToggleSelect(item)}
+            >
               <SVGInline
                 className="library__item-top-icon"
-                svg={selectIcon}
+                svg={item.selected ? deselectIcon : selectIcon}
               />
             </button>
             {
@@ -208,7 +216,7 @@ const LibraryContent = observer((props) => {
           ? items.map(item => (
             <div
               key={item._id || item.url}
-              className="library__item"
+              className={classnames('library__item', { 'library__item-selected': item.selected })}
             >
               {Element(item)}
               <div className="library__item-actions">
@@ -244,6 +252,7 @@ LibraryContent.propTypes = {
     title: PropTypes.string,
   })),
   onSelect: PropTypes.func.isRequired,
+  onToggleSelect: PropTypes.func.isRequired,
   activeBtn: PropTypes.string.isRequired,
   activeTab: PropTypes.string.isRequired,
   onDelete: PropTypes.func.isRequired,
