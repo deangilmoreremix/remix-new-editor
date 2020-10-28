@@ -313,8 +313,8 @@ export default class ProjectStore extends BaseStore {
         options.out = options.end;
         options.volume = item.volume !== undefined ? item.volume : 100;
         options.mute = item.volume === 0;
-        options.audioFadeIn = 0;
-        options.audioFadeOut = 0;
+        options.audioFadeIn = item.audioFadeIn || 0;
+        options.audioFadeOut = item.audioFadeOut || 0;
         options.fill = false;
 
         if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
