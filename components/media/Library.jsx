@@ -361,11 +361,7 @@ const Library = observer((props) => {
         Object.keys(tabItems).forEach(item => {
           tabItems[item].formats.forEach(format => {
             if (format === fileExtension) {
-              if (item === LIBRARY_TABS.VOICE) {
-                fileType = LIBRARY_TABS.AUDIO;
-              } else {
-                fileType = item;
-              }
+              fileType = item;
             }
           });
         });
@@ -379,7 +375,7 @@ const Library = observer((props) => {
 
         Object.keys(tabItems).forEach((item, i) => {
           tabItems[item].formats.forEach(format => {
-            if (format === extension && item !== LIBRARY_TABS.VOICE) {
+            if (format === extension) {
               setActiveTab(Object.keys(tabItems)[i]);
             } else {
               setItems([
@@ -530,8 +526,7 @@ const Library = observer((props) => {
 
   const renderSidebar = React.useCallback(() => {
     switch (activeTab) {
-      case LIBRARY_TABS.AUDIO:
-      case LIBRARY_TABS.VOICE: {
+      case LIBRARY_TABS.AUDIO: {
         let audioActiveItem = '';
         if (activeTab === LIBRARY_TABS.VOICE && activeBtn === LIBRARY_KEYS.USER) {
           audioActiveItem = LIBRARY_TABS.VOICE;
