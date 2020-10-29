@@ -9,6 +9,7 @@ import PixabayProvider from '../../lib/utils/media/PixabayProvider';
 import UnsplashProvider from '../../lib/utils/media/UnsplashProvider';
 import DropmockProvider from '../../lib/utils/media/DropmockProvider';
 import RemoteMediaProvider from '../../lib/utils/media/RemoteMediaProvider';
+import FreesoundProvider from '../../lib/utils/media/FreesoundProvider';
 import TxtVideoProvider from '../../lib/utils/media/TxtVideoProvider';
 
 import { ASSET_TYPES, REMOTE_ASSET_TYPES } from '../../lib/constants/media';
@@ -553,7 +554,9 @@ export default class Media extends BaseStore {
     const providersInfo = { ...this.defaultProvidersInfo };
 
     providersInfo[LIBRARY_KEYS.REMOTE] = this.providersConfiguration[LIBRARY_KEYS.REMOTE];
-
+    if (this.userStore.isfeatureEnabled(FEATURES.FREESOUND_INTEGRATION)) {
+      providersInfo[LIBRARY_KEYS.FREESOUND] = this.providersConfiguration[LIBRARY_KEYS.FREESOUND];
+    }
     return providersInfo;
   }
 
@@ -673,6 +676,12 @@ export default class Media extends BaseStore {
         [ASSET_TYPES.VIDEO]: new TxtVideoProvider(
           ASSET_TYPES.VIDEO,
           this.providersConfiguration[LIBRARY_KEYS.TXTVIDEO],
+        ),
+      },
+      [LIBRARY_KEYS.FREESOUND]: {
+        [ASSET_TYPES.AUDIO]: new FreesoundProvider(
+          ASSET_TYPES.AUDIO,
+          this.providersConfiguration[LIBRARY_KEYS.FREESOUND],
         ),
       },
     };
