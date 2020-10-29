@@ -7,7 +7,7 @@ import { CircleLoader } from 'react-spinners';
 import {
   tabItems,
   perPage,
-  LIBRARY_TABS,
+  // LIBRARY_TABS,
   LIBRARY_KEYS,
 } from '../../lib/constants/library';
 import { LOADING_COLOR, WINDOW_TYPES } from '../../lib/constants/ui';
@@ -37,6 +37,13 @@ import withModal from '../hoc/withValidation';
 import Is360 from '../settings/video-settings/components/Is360';
 import HelpIconComponent from '../common/HelpIcon';
 import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
+
+const LIBRARY_TABS = {
+  IMAGE: 'IMAGE',
+  VIDEO: 'VIDEO',
+  AUDIO: 'AUDIO',
+};
+
 
 const Library = observer((props) => {
   const { checkValue, setError } = props;
