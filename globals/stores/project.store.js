@@ -11,7 +11,6 @@ import { ASSET_TYPES } from '../../lib/constants/media';
 import { GOOGLE_MAP_VALUES } from '../../lib/constants/googleMap';
 
 import {
-  NO_SETTINGS_ELEMENT_TYPES,
   SEQUENCER,
   POPCORN_ELEMENT_TYPES,
   CARET_NAMES,
@@ -105,9 +104,7 @@ export default class ProjectStore extends BaseStore {
                 }
 
                 if (this.activeElementId !== id) {
-                  if (this.isElementWithSettings(element.type)) {
-                    this.editElement(id);
-                  }
+                  this.editElement(id);
                 }
               }
             }
@@ -320,8 +317,8 @@ export default class ProjectStore extends BaseStore {
         options.out = options.end;
         options.volume = item.volume !== undefined ? item.volume : 100;
         options.mute = item.volume === 0;
-        options.audioFadeIn = 0;
-        options.audioFadeOut = 0;
+        options.audioFadeIn = options.audioFadeIn || 0;
+        options.audioFadeOut = options.audioFadeOut || 0;
         options.fill = false;
 
         if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
@@ -356,8 +353,6 @@ export default class ProjectStore extends BaseStore {
     }
     return options;
   };
-
-  isElementWithSettings = (type) => !NO_SETTINGS_ELEMENT_TYPES.some(e => e === type);
 
   @action
   createRetargetForm = (noUndo, kind) => {
@@ -1797,11 +1792,7 @@ export default class ProjectStore extends BaseStore {
     // update timeline
     this.elements = [element, ...this.elements];
 
-    if (this.isElementWithSettings(element.type)) {
-      this.editElement(element.id);
-    } else {
-      this.releaseElement();
-    }
+    this.editElement(element.id);
   };
 
   @observable
