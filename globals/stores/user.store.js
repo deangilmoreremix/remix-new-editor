@@ -216,4 +216,19 @@ export default class UserStore {
   get textMaskEnabled() {
     return this.isfeatureEnabled(FEATURES.TEXT_MASK);
   }
+
+  @computed
+  get basicMediaSupportEnabled() {
+    return this.isfeatureEnabled(FEATURES.BASIC_MEDIA_SUPPORT);
+  }
+
+  @computed
+  get op360Enabled() {
+    return this.isfeatureEnabled(FEATURES.OP_360);
+  }
+
+  @computed
+  get revolutionAdvancedOptInEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_ADVANCED_OPTIN);
+  }
 }
