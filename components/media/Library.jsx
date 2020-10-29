@@ -72,7 +72,6 @@ const Library = observer((props) => {
     videoProvidersInfo,
     imageProvidersInfo,
     audioProvidersInfo,
-    voiceProvidersInfo,
     defaultProvidersInfo,
   } = useMediaStore();
 
@@ -154,9 +153,9 @@ const Library = observer((props) => {
       case LIBRARY_TABS.AUDIO: {
         return audioProvidersInfo;
       }
-      case LIBRARY_TABS.VOICE: {
-        return voiceProvidersInfo;
-      }
+      // case LIBRARY_TABS.VOICE: {
+      //   return voiceProvidersInfo;
+      // }
       default: {
         return defaultProvidersInfo;
       }
@@ -320,11 +319,7 @@ const Library = observer((props) => {
         Object.keys(tabItems).forEach(item => {
           tabItems[item].formats.forEach(format => {
             if (format === fileExtension) {
-              if (item === LIBRARY_TABS.VOICE) {
-                fileType = LIBRARY_TABS.AUDIO;
-              } else {
-                fileType = item;
-              }
+              fileType = item;
             }
           });
         });
@@ -338,7 +333,7 @@ const Library = observer((props) => {
 
         Object.keys(tabItems).forEach((item, i) => {
           tabItems[item].formats.forEach(format => {
-            if (format === extension && item !== LIBRARY_TABS.VOICE) {
+            if (format === extension) {
               setActiveTab(Object.keys(tabItems)[i]);
             } else {
               setItems([
@@ -396,11 +391,6 @@ const Library = observer((props) => {
     item.src = item.src || item.url;
     item.is360 = is360;
     item.type = MEDIA_TYPES[activeTab];
-    if (activeTab === LIBRARY_TABS.VOICE) {
-      item.type = MEDIA_TYPES.AUDIO;
-    } else {
-      item.type = MEDIA_TYPES[activeTab];
-    }
 
     if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
       projectStore.showWarning(TEXT_TO_SPEECH_WARNING.title);
@@ -451,8 +441,7 @@ const Library = observer((props) => {
 
   const renderSidebar = React.useCallback(() => {
     switch (activeTab) {
-      case LIBRARY_TABS.AUDIO:
-      case LIBRARY_TABS.VOICE: {
+      case LIBRARY_TABS.AUDIO: {
         let audioActiveItem = '';
         if (activeTab === LIBRARY_TABS.VOICE && activeBtn === LIBRARY_KEYS.USER) {
           audioActiveItem = LIBRARY_TABS.VOICE;
