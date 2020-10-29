@@ -11,7 +11,17 @@ import FormTextField from './FormTextField';
 import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 import { rgba2hex, fade, rgbToHex } from '../../lib/lottie/utils';
 
-const FormColor = ({ label, onChange, value, className, disabled, allowReset, resetText }) => {
+const FormColor = (
+  {
+    label,
+    onChange,
+    value,
+    className,
+    disabled,
+    allowReset,
+    resetText,
+    disableAlpha,
+  }) => {
   const colorPrimary = 'rgb(235, 80, 84, 1)';
   const [anchorEl, setAnchorEl] = useState(null);
   const [color, setColor] = useState(value || colorPrimary);
@@ -85,6 +95,7 @@ const FormColor = ({ label, onChange, value, className, disabled, allowReset, re
             <ChromePicker
               onChange={(r) => updateColor(r)}
               color={color}
+              disableAlpha={disableAlpha}
             />
           </Popover>
         </Box>
@@ -110,11 +121,13 @@ FormColor.propTypes = {
   className: PropTypes.string,
   allowReset: PropTypes.func,
   resetText: PropTypes.string,
+  disableAlpha: PropTypes.bool,
 };
 
 FormColor.defaultProps = {
   disabled: false,
   resetText: 'Default color',
+  disableAlpha: false,
 };
 
 export default FormColor;

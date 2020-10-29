@@ -441,8 +441,8 @@ const TextToSpeech = observer(() => {
               )}
               {isPersonalizeText && (
                 <p className="text-to-speech__notification-bottom">
-                  Each time you watch your video in the player,
-                  the number of available symbols will decrease.
+                  The number of available characters will decrease each time
+                  the video is viewed on playback by individual persons.
                 </p>
               )}
             </div>

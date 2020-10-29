@@ -7,7 +7,7 @@ import PropTypes from '../../../lib/PropTypes';
 import useUIStore from '../../hooks/useUIStore';
 
 import arrowIcon from '../../../public/static/svgImages/common/arrow-back.svg';
-import { WINDOW_TYPES } from '../../../lib/constants/ui';
+import { WINDOW_TYPES, TOOLBARS } from '../../../lib/constants/ui';
 
 import AnimatedWindow from '../AnimatedWindow';
 import HelpIconComponent from '../HelpIcon';
@@ -26,6 +26,7 @@ const Toolbar = observer(({ items }) => {
     toggleVisibleCanvas,
     isCanvasPresent,
     secondaryWindowType,
+    toggleRightBlock,
   } = useUIStore();
 
   React.useEffect(() => {
@@ -40,8 +41,16 @@ const Toolbar = observer(({ items }) => {
   } = items.find(i => i.id === id) || {};
 
   const onClick = (label, func) => {
-    if (secondaryWindowType !== WINDOW_TYPES.TEXT_TO_SPEECH && !isCanvasPresent) {
+    if ((secondaryWindowType !== WINDOW_TYPES.TEXT_TO_SPEECH && !isCanvasPresent)
+      || label !== TOOLBARS.MEDIA) {
       toggleVisibleCanvas(true);
+    }
+
+    if ((secondaryWindowType === WINDOW_TYPES.TEXT_TO_SPEECH
+      || secondaryWindowType === WINDOW_TYPES.IMAGE
+      || secondaryWindowType === WINDOW_TYPES.VIDEO
+      || secondaryWindowType === WINDOW_TYPES.AUDIO) && !isCanvasPresent) {
+      toggleRightBlock(false);
     }
 
     func();

@@ -1,0 +1,23 @@
+.seethroughtext {
+  .font-color-section {
+    margin-top: 1rem;
+
+    .checkbox-element {
+      margin-top: 1.5rem;
+    }
+  }
+
+  .font-color-section__input, .font-section__input {
+    width: 48%;
+  }
+
+  .font-decoration-section {
+    margin-top: 1rem;
+
+    .checkbox-element {
+      button {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+}

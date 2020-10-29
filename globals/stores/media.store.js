@@ -9,12 +9,15 @@ import PixabayProvider from '../../lib/utils/media/PixabayProvider';
 import UnsplashProvider from '../../lib/utils/media/UnsplashProvider';
 import DropmockProvider from '../../lib/utils/media/DropmockProvider';
 import RemoteMediaProvider from '../../lib/utils/media/RemoteMediaProvider';
+import FreesoundProvider from '../../lib/utils/media/FreesoundProvider';
+import TxtVideoProvider from '../../lib/utils/media/TxtVideoProvider';
 
 import { ASSET_TYPES, REMOTE_ASSET_TYPES } from '../../lib/constants/media';
 import { LIBRARY_KEYS, libraryProviders, perPage } from '../../lib/constants/library';
 import { FEATURES } from '../../lib/constants/features';
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import config from '../../config/config';
+import requestCreator from '../../lib/requestCreator';
 
 export default class Media extends BaseStore {
   @observable providersConfiguration = null;
@@ -390,6 +393,26 @@ export default class Media extends BaseStore {
     }
   };
 
+  @action
+  checkToken = async (activeBtn) => {
+    let result;
+    const { apiKey, apiUrl, videosApiPath, apiToken } = this.providersConfiguration[activeBtn];
+    const request = requestCreator(`${apiUrl}`);
+    try {
+      result = await request(videosApiPath, {
+        method: 'GET',
+        headers: activeBtn === LIBRARY_KEYS.DROPMOCK
+          ? { key: apiKey, 'Content-Type': 'application/json' }
+          : { key: apiToken, token: apiKey, 'Content-Type': 'application/json' },
+      });
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+
+    return result;
+  }
+
   uploadMedia = async ({ data, isCrop, preview }) => {
     let asset;
     try {
@@ -500,6 +523,9 @@ export default class Media extends BaseStore {
     if (this.userStore.isfeatureEnabled(FEATURES.PEXELS_VIDEO_INTEGRATION)) {
       providersInfo[LIBRARY_KEYS.PEXELS] = this.providersConfiguration[LIBRARY_KEYS.PEXELS];
     }
+    if (this.userStore.isfeatureEnabled(FEATURES.TXTVIDEO_INTEGRATION)) {
+      providersInfo[LIBRARY_KEYS.TXTVIDEO] = this.providersConfiguration[LIBRARY_KEYS.TXTVIDEO];
+    }
 
     return providersInfo;
   }
@@ -528,7 +554,9 @@ export default class Media extends BaseStore {
     const providersInfo = { ...this.defaultProvidersInfo };
 
     providersInfo[LIBRARY_KEYS.REMOTE] = this.providersConfiguration[LIBRARY_KEYS.REMOTE];
-
+    if (this.userStore.isfeatureEnabled(FEATURES.FREESOUND_INTEGRATION)) {
+      providersInfo[LIBRARY_KEYS.FREESOUND] = this.providersConfiguration[LIBRARY_KEYS.FREESOUND];
+    }
     return providersInfo;
   }
 
@@ -642,6 +670,18 @@ export default class Media extends BaseStore {
           REMOTE_ASSET_TYPES.VIDEOS,
           this.providersConfiguration[LIBRARY_KEYS.REMOTE],
           this.assetsRequest,
+        ),
+      },
+      [LIBRARY_KEYS.TXTVIDEO]: {
+        [ASSET_TYPES.VIDEO]: new TxtVideoProvider(
+          ASSET_TYPES.VIDEO,
+          this.providersConfiguration[LIBRARY_KEYS.TXTVIDEO],
+        ),
+      },
+      [LIBRARY_KEYS.FREESOUND]: {
+        [ASSET_TYPES.AUDIO]: new FreesoundProvider(
+          ASSET_TYPES.AUDIO,
+          this.providersConfiguration[LIBRARY_KEYS.FREESOUND],
         ),
       },
     };

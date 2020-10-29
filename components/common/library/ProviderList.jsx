@@ -5,6 +5,12 @@ import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 import { LIBRARY_KEYS, LIBRARY_TABS } from '../../../lib/constants/library';
+import { URL_VIDEO_MODAL } from '../../../lib/constants/modals';
+
+import useModalStore from '../../hooks/useModalStore';
+import useUserStore from '../../hooks/useUserStore';
+
+import addUrlIcon from '../../../public/static/svgImages/addurl.svg';
 
 const ProviderList = observer((props) => {
   const {
@@ -16,6 +22,14 @@ const ProviderList = observer((props) => {
     activeTab,
   } = props;
 
+  const { openModal } = useModalStore();
+  const {
+    revolutionAdvancedOptInEnabled,
+    basicMediaSupportEnabled,
+    video360Enabled,
+    op360Enabled,
+  } = useUserStore();
+
   const providerTitle = useMemo(() => {
     if (title) {
       return <p className="library__block--title">{title}</p>;
@@ -23,8 +37,24 @@ const ProviderList = observer((props) => {
     return null;
   }, [title]);
 
+  const openUrlModal = () => {
+    openModal(URL_VIDEO_MODAL);
+  };
+
+  const isEnabledAddUrl = useMemo(() => !!(activeTab === LIBRARY_TABS.VIDEO
+      && (revolutionAdvancedOptInEnabled
+        || basicMediaSupportEnabled
+        || video360Enabled
+        || op360Enabled)), [
+    activeTab,
+    revolutionAdvancedOptInEnabled,
+    basicMediaSupportEnabled,
+    video360Enabled,
+    op360Enabled,
+  ]);
+
   return (
-    <div className="library__block">
+    <div className="library__block-sidebar">
       {
         activeTab === LIBRARY_TABS.VIDEO ? (
           // eslint-disable-next-line react/jsx-no-target-blank
@@ -60,6 +90,20 @@ const ProviderList = observer((props) => {
               </p>
             </button>
           ))
+        }
+        {
+          isEnabledAddUrl && (
+            <button
+              className="library__btn-item"
+              onClick={openUrlModal}
+            >
+              <SVGInline
+                className="library__icon-btn"
+                svg={addUrlIcon}
+              />
+              <p>Add URL...</p>
+            </button>
+          )
         }
       </div>
     </div>

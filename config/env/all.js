@@ -102,6 +102,11 @@ module.exports = {
   linkedinAppId: process.env.LINKEDIN_APP_ID || '77dc93kxh13kfc',
   vrviewPath: process.env.VRVIEW_PATH || 'https://cdn.videoremix.io/external/vrview/dist/vrview.min.js',
   mediaProviders: {
+    FREESOUND: {
+      apiUrl: process.env.FREESOUND_API_URL || 'https://freesound.org',
+      apiKey: process.env.FREESOUND_API_KEY || '0dc4lRxsqTJivBSAKDf7o9FL4U2bPHRPbhCd5ZQW',
+      audiosApiPath: '/apiv2/search/text/',
+    },
     PEXELS: {
       apiUrl: process.env.PEXELS_API_URL || 'https://api.pexels.com',
       apiKey: process.env.PEXELS_API_KEY || '563492ad6f917000010000016536fdd8a2cd46b7be0af6abf04caf86',
@@ -127,6 +132,12 @@ module.exports = {
     },
     GIPHY: {
       apiKey: process.env.GIPHY_API_KEY || 'sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh',
+    },
+    TXTVIDEO: {
+      apiUrl: process.env.TXTVIDEO_API_URL || 'https://app.txtvideo.com',
+      apiToken: process.env.TXTVIDEO_API_TOKEN || 'soA6FfAiDGcMCx016HjRt0cs4qqzzh3C',
+      apiKey: process.env.TXTVIDEO_API_KEY || '40aJDpabv6XMC8XDJYLNY03Xl6XB3rayWJlxBYJW',
+      videosApiPath: 'api/videos',
     },
   },
   scriptStatistic: process.env.SCRIPT_STATISTIC || '',

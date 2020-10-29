@@ -70,6 +70,7 @@ const Home = observer(() => {
     googleMapsEnabled,
     socialFbEnabled,
     wrapperFeatureEnabled,
+    textMaskEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -119,8 +120,6 @@ const Home = observer(() => {
     radioButtonBottom,
     openMediaButton,
     isTimelineOpen,
-    canvasWidth,
-    toolsWidth,
     setListBuilder,
     openCTA,
     openTextToSpeech,
@@ -130,7 +129,7 @@ const Home = observer(() => {
     closeAllWindows,
     setInitialView,
     isCanvasPresent,
-    closeRightOpenCanvas,
+    toggleLeftBlock,
   } = uiStore;
 
   const {
@@ -294,7 +293,7 @@ const Home = observer(() => {
         openTextToSpeech,
         toggleRightBlock,
         openUploadTransition,
-        closeRightOpenCanvas,
+        toggleLeftBlock,
       },
       project: {
         allowedSocials,
@@ -324,6 +323,7 @@ const Home = observer(() => {
         googleMapsEnabled,
         socialFbEnabled,
         wrapperFeatureEnabled,
+        textMaskEnabled,
       },
     });
     return items && items.length ? items : [];
@@ -355,28 +355,27 @@ const Home = observer(() => {
           { isLoading ? <div className="hover-loading" /> : null }
           <Loader isLoading={isLoading} />
           <Grid container className="controls">
-            <Grid item xs={!isCanvasPresent ? 12 : toolsWidth} className={classnames('controls-block', { 'controls-block-library': !isCanvasPresent })}>
-              <Grid container>
-
-                <Grid item xs={radioButtonBottom ? 12 : 6} style={{ maxWidth: radioButtonBottom ? '100%' : '23.3em', flexBasis: !radioButtonBottom && 'auto' }}>
+            <div className={classnames('controls-block', { 'controls-block-library': !isCanvasPresent })} style={{ width: radioButtonBottom ? '60%' : 'auto' }}>
+              <div className="controls-block__sidebar">
+                <div className={classnames('controls-block__toolbar', { 'controls-block__toolbar-produce': radioButtonBottom })}>
                   <Toolbar
                     items={toolbarContent}
                   />
-                </Grid>
-
+                </div>
                 {checkboxRight && !radioButtonBottom && (
-                  <Grid item xs={radioButtonBottom ? false : 6} className="home__center" style={{ flex: 1, maxWidth: 'none' }}>
+                  <div
+                    className="home__center"
+                  >
                     <AnimatedWindow isOpen={checkboxRight}>
                       {SecondaryWindow}
                     </AnimatedWindow>
-                  </Grid>
+                  </div>
                 )}
-
-              </Grid>
-            </Grid>
-            <Grid className={classnames({ hidden: !isCanvasPresent })} item xs={canvasWidth}>
+              </div>
+            </div>
+            <div className={classnames('controls__canvas', { hidden: !isCanvasPresent })} style={{ width: '40%' }}>
               <Canvas />
-            </Grid>
+            </div>
           </Grid>
           <SizeSelector sizes={CANVAS_SIZES} onChange={updateItem} active={{ width, height }} />
           <Grid container className={classnames('timeline', { 'timeline-open': isTimelineOpen })}>

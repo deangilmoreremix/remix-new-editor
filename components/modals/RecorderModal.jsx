@@ -83,7 +83,6 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
         if (mute.current) {
           player.volume(0);
         }
-        setSaveOptionsVisible(true);
       });
 
       player.on('error', (element, error) => {
@@ -93,6 +92,9 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
 
       player.on('deviceError', () => {
         showError(`Recording device error, code ${player.deviceErrorCode}`);
+      });
+      player.on('finishConvert', () => {
+        setSaveOptionsVisible(true);
       });
     }
   }, [videoRef, useAudio, type, config]);
