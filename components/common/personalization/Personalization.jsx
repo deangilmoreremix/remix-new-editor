@@ -31,7 +31,7 @@ const Personalization = ({ closeModal, tokenList, onAdd, tokenModes }) => {
 
   const addToken = React.useCallback(() => {
     const tokenValue = token === CUSTOM ? customToken : token;
-    const tokenString = formatToken(tokenValue.toUpperCase(),
+    const tokenString = formatToken(tokenValue.replace(/\s/g, '').toUpperCase(),
       tokenState, !disabled && fallbackValue);
     onAdd(tokenString);
     closeModal();
