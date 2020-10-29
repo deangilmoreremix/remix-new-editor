@@ -29,6 +29,7 @@ export default class UIStore {
           this.toggleRightBlock(false);
           this.secondaryWindowType = null;
         }
+        this.isCanvasPresent = true;
       },
     );
   }
@@ -46,6 +47,8 @@ export default class UIStore {
 
   @observable prevStateProduce = false;
 
+  @observable isCanvasPresent = true;
+
   @action
   closeAllWindows = () => {
     this.radioButtonTop = false;
@@ -53,6 +56,7 @@ export default class UIStore {
     this.checkboxLeft = false;
     this.checkboxRight = false;
     this.toggleIsExpand(true);
+    this.toggleVisibleCanvas(true);
     this.toggleTimeLine();
   };
 
@@ -102,6 +106,17 @@ export default class UIStore {
   setListBuilder = () => {
     this.toggleRightBlock();
     this.secondaryWindowType = WINDOW_TYPES.SETTING;
+    if (!this.isCanvasPresent) {
+      this.toggleVisibleCanvas();
+    }
+  };
+
+  @action
+  closeRightOpenCanvas = () => {
+    this.toggleRightBlock(false);
+    if (!this.isCanvasPresent) {
+      this.toggleVisibleCanvas();
+    }
   };
 
   @action
@@ -111,25 +126,11 @@ export default class UIStore {
   };
 
   @action
-  openStickers = (type) => {
-    this.toggleRightBlock();
+  openTextToSpeech = (type) => {
     this.secondaryWindowType = type;
-  };
-
-  @action
-  openToolbarElement = (type) => {
-    this.secondaryWindowType = type;
-  };
-
-  @action
-  openSecondaryModal = (type) => {
-    this.secondaryWindowType = type;
-  };
-
-  @action
-  openLowerThird = (tab = WINDOW_TYPES.LOWER_THIRDS) => {
-    this.toggleRightBlock();
-    this.secondaryWindowType = tab;
+    this.toggleLeftBlock(false);
+    this.toggleTimeLine(false);
+    this.toggleVisibleCanvas(false);
   };
 
   @action
@@ -198,6 +199,11 @@ export default class UIStore {
     }
   };
 
+  @action
+  toggleVisibleCanvas = (value = true) => {
+    this.isCanvasPresent = value;
+  };
+
   @computed
   get canvasWidth() {
     if (this.checkboxRight && !this.checkboxLeft) {
@@ -237,6 +243,9 @@ export default class UIStore {
     this.radioButtonTop = true;
     this.radioButtonBottom = false;
     this.setLibraryType(type);
+    if (!this.isCanvasPresent) {
+      this.toggleVisibleCanvas();
+    }
   };
 
   @action
@@ -252,22 +261,16 @@ export default class UIStore {
 
   @action
   setSecondaryWindowType = (type) => {
+    this.toggleRightBlock();
     this.secondaryWindowType = type;
+    if (!this.isCanvasPresent) {
+      this.toggleVisibleCanvas();
+    }
   }
 
   @action
   setInitialView = () => {
     this.projectStore.releaseElement();
     this.setToolbarItem(TOOLBARS.ELEMENTS);
-  };
-
-  @action
-  openGif = (type) => {
-    this.setSecondaryWindowType(type);
-  };
-
-  @action
-  openSticker = (type) => {
-    this.setSecondaryWindowType(type);
   };
 }

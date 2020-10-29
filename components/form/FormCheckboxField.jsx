@@ -30,7 +30,7 @@ const FormCheckboxField = (props) => {
           {label}
         </InputLabel>
         {isTooltip && (
-          <HelpIconComponent mouseEntered height={tooltipHeight} message={tooltipMessage} />
+          <HelpIconComponent height={tooltipHeight} message={tooltipMessage} />
         )}
       </Button>
       <Checkbox

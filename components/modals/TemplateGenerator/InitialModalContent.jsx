@@ -11,7 +11,7 @@ export default function InitialModalContent({ accept, decline }) {
     <>
       <div className="generator-offer__text-box">
         <p className="generator-offer__text">Do you want to use the Template Generator?</p>
-        <HelpIconComponent mouseEntered isBottom message={mainTooltips.templateGenerator} />
+        <HelpIconComponent isBottom message={mainTooltips.templateGenerator} />
       </div>
       <SVGInline
         className="generator-img"

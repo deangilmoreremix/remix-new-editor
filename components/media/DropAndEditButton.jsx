@@ -92,7 +92,6 @@ const DropAndEditButton = (
             {...rest}
           />
           <HelpIconComponent
-            mouseEntered
             isText
             message={produceTooltips.thumbnailUpload}
           />

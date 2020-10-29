@@ -6,7 +6,7 @@ import classnames from 'classnames';
 import PropTypes from '../../../lib/PropTypes';
 
 import { showInfo } from '../../../lib/services/alertService';
-import TimeoutTooltip from '../TimeoutTooltip';
+import HelpIconComponent from '../HelpIcon';
 
 const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const onCLick = (action, isActive, errorMessage, url) => {
@@ -33,14 +33,16 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
         'produce-panel__button--active': isActive,
       })}
     >
-      <TimeoutTooltip className="produce-panel__box" message={tooltip} isProduce>
-        <SVGInline
-          className="produce-panel__icon"
-          svg={icon}
-          cleanup={['title']}
-        />
-        {label}
-      </TimeoutTooltip>
+      <HelpIconComponent noIcon message={tooltip}>
+        <div className="produce-panel__button">
+          <SVGInline
+            className="produce-panel__icon"
+            svg={icon}
+            cleanup={['title']}
+          />
+          {label}
+        </div>
+      </HelpIconComponent>
     </button>
   );
 

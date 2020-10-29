@@ -52,7 +52,7 @@ const Library = observer((props) => {
     openSettings,
     toggleRightBlock,
     isTimelineOpen,
-    openSecondaryModal,
+    openTextToSpeech,
   } = uiStore;
 
   const {
@@ -483,7 +483,7 @@ const Library = observer((props) => {
   }, [activeTab, activeBtn, volume, activeItem, listProviders, isLoading]);
 
   const openVoiceWindow = () => {
-    openSecondaryModal(WINDOW_TYPES.TEXT_TO_SPEECH);
+    openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
   };
 
   return (
@@ -506,7 +506,7 @@ const Library = observer((props) => {
                       isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
                     }
                   </label>
-                  <HelpIconComponent mouseEntered isLibrary message={tabItems[activeTab].tooltip} />
+                  <HelpIconComponent isLibrary message={tabItems[activeTab].tooltip} />
                 </div>
               ) : (
                 <div className="library__add-file">
