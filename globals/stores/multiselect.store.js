@@ -96,6 +96,20 @@ export default class MultiselectStore {
   };
 
   @action
+  removeSelectedVideosAfterReset = (integrationType) => {
+    if (!this.selectedVideos) {
+      return;
+    }
+    this.selectedVideos.forEach(item => {
+      if (item.integrationType === integrationType) {
+        this.deleteSelectedElement(item);
+        this.selectedItemsId = this.deleteFromArrayId(item._id || item.id || item.source);
+      }
+    });
+    this.emptyCollections = this.isCollectionsEmpty();
+  }
+
+  @action
   deleteSelectedElement = (item) => {
     const mapKey = maps[item.kind];
     const currentMap = this[mapKey];

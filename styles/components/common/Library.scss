@@ -58,10 +58,6 @@
         flex: 3;
       }
 
-      .library__block--title {
-        display: none;
-      }
-
       .library__btn-item {
         width: 100%;
       }
@@ -91,7 +87,7 @@
 }
 
 .library__body {
-  @include tiny-scrollbar();
+  @include tiny-scrollbar($thumbWidth: 0px);
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -114,15 +110,11 @@
     justify-content: flex-start;
   }
 
-  &-music {
-    justify-content: center;
-  }
-
   &-sidebar {
     display: flex;
     flex-direction: column;
     width: 28%;
-    max-width: 22rem;
+    max-width: 28rem;
   }
 
   .text-input {
@@ -157,7 +149,7 @@
 .library__block--title {
   text-align: left;
   color: $white;
-  width: 100%;
+  width: 60%;
   padding-bottom: 1rem;
 }
 
@@ -186,17 +178,17 @@ button.library__tab {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  padding: 1rem;
+  padding: 0 1rem;
   flex: 1;
   font-size: 12px;
   color: $media-library-color;
-  border-bottom: 0.5rem solid $block-dark;
+  border-bottom: 5px solid $block-dark;
   transition: all ease-out 250ms;
-  min-height: 7em;
+  height: 3.75rem;
 
   &-active {
     color: $white;
-    border-bottom: 0.5rem solid $secondary-color;
+    border-bottom: 5px solid $secondary-color;
     transition: all ease-out 250ms;
   }
 }
@@ -204,7 +196,7 @@ button.library__tab {
 .tab-icon {
   @include reset-button;
   width: 1.6em;
-  margin-bottom: 5px;
+  margin-bottom: 2.5px;
 
   svg path {
     stroke: $media-library-color;
@@ -212,7 +204,7 @@ button.library__tab {
 
   &-active {
     svg path {
-      stroke: $white !important;
+      stroke: $white;
     }
   }
 }
@@ -237,7 +229,7 @@ button.library__tab {
     }
 
     .library__items {
-      width: 65%;
+      width: 100%;
     }
 
     .library__audio-toolbar {
@@ -292,12 +284,29 @@ button.library__tab {
   justify-content: center;
 }
 
+.library__key-container {
+  width: 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+
+  span {
+    color: $dark-white;
+    font-size: 12px;
+    font-weight: lighter !important;
+    position: absolute;
+    bottom: -50%;
+  }
+}
+
 .library__search-box {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin: 0 3%;
-  width: 66%;
+  width: 40%;
   padding: 8.5px 0.8rem;
   border: 1px solid $media-library-color;
   border-radius: 5px;
@@ -313,6 +322,17 @@ button.library__tab {
   }
 }
 
+.library__key-box {
+  @extend .library__search-box;
+  padding: 0 0 0 2.5%;
+  height: 43px;
+  width: 100%;
+
+  &-dummy {
+    width: 10%;
+  }
+}
+
 .library__search {
   height: 1.5rem;
   display: block;
@@ -320,9 +340,15 @@ button.library__tab {
   outline: none;
   flex: 1;
   border: none;
+  margin-right: 2%;
+
+  &-disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+  }
 
   &::placeholder {
-    color: $dark-white;
+    color: #9292B5;
   }
 
   &:focus ~ .library__placeholder {
@@ -339,6 +365,26 @@ button.library__tab {
       cursor: pointer;
     }
   }
+
+  &-unlock-icon {
+    margin-right: 3%;
+    width: 16px;
+    height: auto;
+  }
+
+  &-unlock-box {
+    @include reset-button;
+    display: flex;
+    align-items: center;
+    border-left: 1px solid $panel-dark;
+    height: 100%;
+    width: 7.5rem;
+
+    &:hover {
+      cursor: pointer;
+      color: $secondary-color;
+    }
+  }
 }
 
 .btn-add {
@@ -351,12 +397,13 @@ button.library__tab {
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
-  padding: 0 10px;
+  padding: 13.5px 10px;
   border-radius: 4px;
   display: inline-block;
   align-items: center;
   justify-content: center;
   outline: none;
+  width: 10rem;
 }
 
 .btn-add-disabled {
@@ -469,7 +516,6 @@ button.library__tab {
 
 .library__item {
   width: 18%;
-  height: 10rem;
   position: relative;
   overflow: hidden;
   margin: 0 2% 2% 0;
@@ -479,7 +525,7 @@ button.library__tab {
   &:before {
     content:'';
     display: block;
-    padding-bottom: 100%;
+    padding-bottom: 57%;
   }
 
   &-drop {
@@ -499,6 +545,17 @@ button.library__tab {
     align-items: center;
     justify-content: center;
     flex-direction: column;
+  }
+
+  &-lock-box {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: $scrollbarColor;
+    position: absolute;
+    top: 0;
   }
 
   &-drop-text {
@@ -541,6 +598,7 @@ button.library__tab {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      padding: 0 5px;
     }
   }
 
@@ -579,7 +637,8 @@ button.library__tab {
 
 .library__item-audio-top {
   @extend .library__item-top;
-  height: 1.2rem;
+  height: 25%;
+  align-items: flex-start;
 }
 
 .library__item-actions {
@@ -596,6 +655,26 @@ button.library__tab {
   top: 0;
   left: 0;
   transition: 0.3s all;
+}
+
+.library__item-unlock-action {
+  @extend .library__item-actions;
+  justify-content: center;
+  background-color: #2D2D3B;
+}
+
+.library__item-unlock {
+  @include reset-button;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  width: 5.7rem;
+  height: 24px;
+  border: 1px solid $border-color;
+  color: $border-color !important;
+  text-transform: uppercase;
+  border-radius: 3px;
+  padding: 5px;
 }
 
 .library__item-use {
@@ -627,19 +706,37 @@ button.library__tab {
 
 .library__item-select {
   @extend .library__item-delete;
-  background-color: $black !important;
+  background-color: rgba(25, 25, 25, 0.9) !important;
 }
 
 .library__item-audio-select {
-  @extend .library__item-select;
-  position: relative !important;
-  left: 8% !important;
-  top: 1rem;
+  @include reset-button;
+  position: relative;
+  padding: 5px;
+  background-color: rgba(25, 25, 25, 0.9);
+  border-radius: 2.5px;
 }
 
 .library__item-audio-delete {
   @extend .library__item-audio-select;
-  left: 2.2em !important;
+  background-color: $secondary-color;
+}
+
+.library__item-lock-icon {
+  width: 10%;
+  height: auto;
+
+  svg path {
+    fill: $media-library-color;
+  }
+
+  &-button {
+    width: 13%;
+
+    svg path {
+      fill: $media-library-color;
+    }
+  }
 }
 
 .library__item-top-icon {
@@ -840,6 +937,8 @@ button.library__tab {
 
   .library__btn-item {
     width: 33%;
+    font-size: 12px;
+    font-weight: lighter !important;
   }
 
   .library__items {
@@ -855,8 +954,6 @@ button.library__tab {
 
 @media screen and (max-width: 1450px) {
   .library__item {
-    height: 7rem;
-
     &-drop-text {
       font-size: 12px;
     }
@@ -875,6 +972,10 @@ button.library__tab {
 }
 
 @media screen and (max-width: $xl) {
+  .library__item {
+    width: 23%;
+  }
+
   .library-voice-filter__cell {
     width: 100%;
 
@@ -928,6 +1029,9 @@ button.library__tab {
 }
 
 @media screen and (max-width: $lg) {
+  .library__item {
+    width: 31%;
+  }
   .library__row-second {
     max-height: 50rem;
   }
@@ -953,10 +1057,6 @@ button.library__tab {
     }
   }
 
-  .library__item {
-    width: 23%;
-    height: 7rem;
-  }
 
   .library__add-file__container {
     flex-direction: column;
@@ -1002,6 +1102,13 @@ button.library__tab {
     width: 100%;
     max-width: none;
   }
+  .library__key-container {
+    @include w100;
+
+    span {
+      bottom: 10%;
+    }
+  }
   .library__block-sidebar {
     @include w100;
     margin-bottom: 10px;
@@ -1031,10 +1138,6 @@ button.library__tab {
 }
 
 @media screen and (max-width: $md) {
-  .library__item {
-    width: 31%;
-    height: 7em;
-  }
   .library__btn-container {
     width: 11rem;
     min-width: 11rem;

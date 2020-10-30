@@ -6,7 +6,7 @@ import SVGInline from 'react-svg-inline';
 import audioIcon from '../../../public/static/svgImages/common/audio.svg';
 
 const AudioPreview = observer((props) => {
-  const { item, isActive, volume, isDisplayTitle, isDisplayIcon, onEnded } = props;
+  const { item, isActive, volume, isDisplayIcon, onEnded } = props;
 
   const icon = useMemo(() => {
     if (isDisplayIcon) {
@@ -36,9 +36,6 @@ const AudioPreview = observer((props) => {
           />
         </Fragment>
       ) : icon}
-      {isDisplayTitle && (
-        <div className="library__item-audio-preview-title">{item.title}</div>
-      )}
     </div>
   );
 });

@@ -407,7 +407,7 @@ export default class Media extends BaseStore {
       });
     } catch (e) {
       console.error(e);
-      throw e;
+      return false;
     }
 
     return result;

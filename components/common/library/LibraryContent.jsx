@@ -18,6 +18,7 @@ import playIcon from '../../../public/static/svgImages/common/play-no-border.svg
 import stopIcon from '../../../public/static/svgImages/common/stop-no-border.svg';
 import selectIcon from '../../../public/static/images/media/icon-select.svg';
 import deselectIcon from '../../../public/static/images/media/deselect-icon.svg';
+import lockIcon from '../../../public/static/images/media/key-lock.svg';
 
 const LibraryContent = observer((props) => {
   const {
@@ -35,6 +36,8 @@ const LibraryContent = observer((props) => {
     activeTab,
     volume,
     activeItem,
+    needValidation,
+    keyRef,
   } = props;
 
   const { openModal } = useModalStore();
@@ -183,61 +186,97 @@ const LibraryContent = observer((props) => {
     return `${minutes}:${seconds < 10 ? `0${seconds}` : seconds}`;
   };
 
-  return (
-    <div className={classnames('library__items', `library__items--${activeTab.toLowerCase()}`)}>
-      {
-        activeBtn === LIBRARY_KEYS.USER && activeTab !== LIBRARY_TABS.VOICE && (
-          <div
-            {...getRootProps()}
-            className={classnames(
-              'library__item library__item-drop',
-              {
-                'library__item-drag': isDragActive,
-                'library__item-disabled': isDisabledUpload,
-              },
-            )}
-          >
-            <input {...getInputProps()} disabled={isDisabledUpload} />
-            <div className="library__item-drop-box">
-              <p className="library__item-drop-text">Drag n drop here from</p>
-              <SVGInline
-                className="library__item-plus"
-                svg={plusIcon}
-                cleanup={['plus']}
-              />
-              <p className="library__item-drop-text">your computer, or ..</p>
+  const generateLockedFiles = () => {
+    const dummyItems = [];
+    const count = 15;
+
+    for (let i = 0; i < count; i++) {
+      dummyItems.push(
+        <div className="library__item">
+          <div className="library__item-lock-box">
+            <SVGInline
+              className="library__item-lock-icon"
+              svg={lockIcon}
+            />
+            <div className="library__item-unlock-action">
+              <button
+                className="library__item-unlock"
+                onClick={() => keyRef.current.focus()}
+              >
+                <SVGInline
+                  className="library__item-lock-icon-button"
+                  svg={lockIcon}
+                />
+                Unlock
+              </button>
             </div>
           </div>
-        )
-      }
+        </div>,
+      );
+    }
 
-      {
-        items.length
-          ? items.map(item => (
+    return dummyItems;
+  };
+
+  return (
+    <div className={classnames('library__items', `library__items--${activeTab.toLowerCase()}`)}>
+      {(needValidation && !items.length) ? generateLockedFiles() : (
+        <>
+          {
+            activeBtn === LIBRARY_KEYS.USER && activeTab !== LIBRARY_TABS.VOICE && (
             <div
-              key={item._id || item.url}
-              className={classnames('library__item', { 'library__item-selected': item.selected })}
+              {...getRootProps()}
+              className={classnames(
+                'library__item library__item-drop',
+                {
+                  'library__item-drag': isDragActive,
+                  'library__item-disabled': isDisabledUpload,
+                },
+              )}
             >
-              {Element(item)}
-              <div className="library__item-actions">
-                {renderActions(item)}
-              </div>
-              <div className="library__item-info">
+              <input {...getInputProps()} disabled={isDisabledUpload} />
+              <div className="library__item-drop-box">
+                <p className="library__item-drop-text">Drag n drop here from</p>
                 <SVGInline
-                  className="library__item-icon"
-                  svg={tabItems[activeTab].icon}
+                  className="library__item-plus"
+                  svg={plusIcon}
+                  cleanup={['plus']}
                 />
-                <span>{item.name || getTitle(item)}</span>
-                {activeTab === LIBRARY_TABS.VIDEO ? (
-                  <p className="library__item-videotime">{getTime(item.duration)}</p>
-                ) : (
-                  <div />
-                )}
+                <p className="library__item-drop-text">your computer, or ..</p>
               </div>
             </div>
-          )) : null
-      }
-      { hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} /> }
+            )
+          }
+
+          {
+            items.length ? items.map(item => (
+              <div
+                key={item._id || item.url}
+                className={classnames('library__item', { 'library__item-selected': item.selected })}
+              >
+                {Element(item)}
+                <div className="library__item-actions">
+                  {renderActions(item)}
+                </div>
+                <div className="library__item-info">
+                  <SVGInline
+                    className="library__item-icon"
+                    svg={tabItems[activeTab].icon}
+                    component="div"
+                  />
+                  <span>{item.name || getTitle(item)}</span>
+                  {activeTab === LIBRARY_TABS.VIDEO ? (
+                    <p className="library__item-videotime">{getTime(item.duration)}</p>
+                  ) : (
+                    <div />
+                  )}
+                </div>
+              </div>
+            )) : null
+          }
+          { hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} /> }
+        </>
+      )}
     </div>
   );
 });
@@ -261,6 +300,7 @@ LibraryContent.propTypes = {
   onDrop: PropTypes.func.isRequired,
   hasMore: PropTypes.bool.isRequired,
   type: PropTypes.string.isRequired,
+  needValidation: PropTypes.bool.isRequired,
 };
 
 export default LibraryContent;
