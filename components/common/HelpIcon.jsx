@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
 import Tooltip from '@material-ui/core/Tooltip';
+import classnames from 'classnames';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import SVGInline from 'react-svg-inline';
 
@@ -51,12 +52,17 @@ const HelpIconComponent = memo((props) => {
     noPadding,
     padding,
     isInput,
+    whiteIcon,
+    projectCourses,
   } = props;
 
   return (
     <>
       {!noIcon ? (
-        <div className="help-icon" style={{ padding: noPadding ? 0 : undefined }}>
+        <div
+          className={classnames('help-icon', { 'help-icon-project': projectCourses })}
+          style={{ padding: noPadding ? 0 : undefined }}
+        >
           <div
             className={isInput && 'help-icon__input'}
             style={{
@@ -69,7 +75,7 @@ const HelpIconComponent = memo((props) => {
               title={message}
             >
               <SVGInline
-                className="help-icon__icon"
+                className={classnames('help-icon__icon', { 'help-icon__icon-white': whiteIcon })}
                 svg={helpIcon}
               />
             </TooltipProvider>
@@ -100,6 +106,8 @@ HelpIconComponent.propTypes = {
   isInput: PropTypes.bool,
   children: PropTypes.element,
   placement: PropTypes.string,
+  whiteIcon: PropTypes.boolean,
+  projectCourses: PropTypes.boolean,
 };
 
 HelpIconComponent.defaultProps = {
