@@ -3,6 +3,12 @@
   height: 100%;
   position: relative;
 
+  &-project {
+    position: absolute;
+    right: 30%;
+    top: 8%;
+  }
+
   &__input {
     position: absolute;
     right: 3.1em;
@@ -20,11 +26,23 @@
     opacity: 0.7;
     z-index: 2;
 
+    &-white {
+      svg path {
+        stroke: $white;
+      }
+    }
+
     &-svg {
       width: .75em !important;
       height: auto;
       position: absolute;
       top: 0;
     }
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .help-icon-project {
+    right: 20%;
   }
 }

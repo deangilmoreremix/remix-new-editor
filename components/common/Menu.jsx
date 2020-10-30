@@ -52,7 +52,13 @@ const Menu = observer((
       ) : null}
       <span className="menu__item-title">{buttonItem.title}</span>
       {buttonItem.isTooltip && (
-        <HelpIconComponent placement="left-end" height={25} message={buttonItem.tooltip} />
+        <HelpIconComponent
+          whiteIcon
+          projectCourses={buttonItem.tooltip.includes('Strategy')}
+          placement="left-end"
+          height={25}
+          message={buttonItem.tooltip}
+        />
       )}
     </button>
   );
