@@ -17,12 +17,12 @@ import FieldBuilder from '../../../form/FieldBuilder';
 import DefaultBasic from '../../default-tabs/Basic';
 
 const Basic = ({ values, fields, element, onChange }) => {
-  const pluginType = useMemo(() => values.type || SOCIAL_TYPES.FB_LIKE, [values]);
+  const pluginType = useMemo(() => values.actionType, [values.actionType]);
 
   const pluginTitle = useMemo(() => (
-    FB_PLUGINS[values.type] && FB_PLUGINS[values.type].title
-      ? FB_PLUGINS[values.type].title : FB_PLUGINS[pluginType].title
-  ), [FB_PLUGINS[values.type]]);
+    FB_PLUGINS[pluginType] && FB_PLUGINS[pluginType].title
+      ? FB_PLUGINS[pluginType].title : null
+  ), [pluginType]);
 
   const removeBackground = useCallback(() => {
     onChange({ background: 'rgb(255, 255, 255, 0)' });
@@ -50,7 +50,7 @@ const Basic = ({ values, fields, element, onChange }) => {
           [TYPE]: { ...fields[TYPE] },
           [HREF]: { ...fields[HREF] },
         }}
-        options={values}
+        options={{ ...values, type: values.actionType }}
         onChange={onChange}
       />
 
@@ -88,20 +88,21 @@ const Basic = ({ values, fields, element, onChange }) => {
       }
 
       {
-       (values.type === SOCIAL_TYPES.FB_PAGE || values.type === SOCIAL_TYPES.FB_COMMENTS) && (
-       <FieldBuilder
-         type={fields[EDITOR_HEIGHT].type}
-         label={fields[EDITOR_HEIGHT].label}
-         value={values[EDITOR_HEIGHT] || FB_PLUGINS[pluginType].height}
-         name={EDITOR_HEIGHT}
-         onChange={onChange}
-         minValue={FB_PLUGINS[pluginType].minHeight}
-         maxValue={FB_PLUGINS[pluginType].maxHeight}
-         containerClassName="social-settings-slider-block"
-         sliderClassName="video-settings-slider"
-         inputClassName="video-settings-slider-input"
-         labelClassName="map-settings-zoom-label"
-       />
+       (values.actionType === SOCIAL_TYPES.FB_PAGE
+         || values.actionType === SOCIAL_TYPES.FB_COMMENTS) && (
+         <FieldBuilder
+           type={fields[EDITOR_HEIGHT].type}
+           label={fields[EDITOR_HEIGHT].label}
+           value={values[EDITOR_HEIGHT] || FB_PLUGINS[pluginType].height}
+           name={EDITOR_HEIGHT}
+           onChange={onChange}
+           minValue={FB_PLUGINS[pluginType].minHeight}
+           maxValue={FB_PLUGINS[pluginType].maxHeight}
+           containerClassName="social-settings-slider-block"
+           sliderClassName="video-settings-slider"
+           inputClassName="video-settings-slider-input"
+           labelClassName="map-settings-zoom-label"
+         />
        )
       }
 
@@ -134,6 +135,7 @@ Basic.propTypes = {
     heading: PropTypes.number,
     pitch: PropTypes.number,
     type: PropTypes.string,
+    actionType: PropTypes.string,
     fullscreen: PropTypes.bool,
     location: PropTypes.string,
     transition: PropTypes.arrayOf(PropTypes.shape({

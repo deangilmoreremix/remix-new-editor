@@ -31,14 +31,14 @@ const Basic = ({ values, fields, onChange, element }) => {
   };
 
   const typeValue = useMemo(() => {
-    const valueType = values[popcornConstants.TYPE];
+    const valueType = values.actionType;
     const typeItems = fields[popcornConstants.TYPE].items;
     if (valueType === popcornConstants.POPCORN_ELEMENT_TYPES.GOOGLE_MAP || !valueType) {
       const result = typeItems.filter(item => item.value === fields[popcornConstants.TYPE].default);
       return result[0].value;
     }
     return valueType;
-  }, [values[popcornConstants.TYPE]]);
+  }, [values.actionType]);
 
   const transitionValue = useMemo(() => {
     const valueType = values[popcornConstants.TRANSITION];
@@ -94,6 +94,10 @@ const Basic = ({ values, fields, onChange, element }) => {
         stopResize: false,
       });
     }
+  };
+
+  const onChangeType = (newValue) => {
+    onChange({ ...newValue, actionType: newValue.type });
   };
 
   return (
@@ -168,7 +172,7 @@ const Basic = ({ values, fields, onChange, element }) => {
           type={fields[popcornConstants.TYPE].type}
           value={typeValue}
           name={popcornConstants.TYPE}
-          onChange={onChange}
+          onChange={onChangeType}
           items={fields[popcornConstants.TYPE].items}
           className="map-settings-select"
         />
@@ -231,6 +235,7 @@ Basic.propTypes = {
     heading: PropTypes.number,
     pitch: PropTypes.number,
     type: PropTypes.string,
+    actionType: PropTypes.string,
     fullscreen: PropTypes.bool,
     location: PropTypes.string,
     transition: PropTypes.arrayOf(PropTypes.shape({
