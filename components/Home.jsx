@@ -40,7 +40,7 @@ import { DEFAULT_RATIO } from '../lib/constants/project';
 import { WINDOW_TYPES, SCREEN_RATIO } from '../lib/constants/ui';
 import { ROUTES } from '../lib/constants/routing';
 import AnimatedWindow from './common/AnimatedWindow';
-import { TEMPLATE_GENERATOR_MODAL } from '../lib/constants/modals';
+import { TEMPLATE_GENERATOR_MODAL, SAFARI_WARNING_MODAL } from '../lib/constants/modals';
 
 const Home = observer(() => {
   const { pathname, query: { project, remix }, push } = useRouter();
@@ -98,6 +98,14 @@ const Home = observer(() => {
           setShouldShowTGModal(false);
         });
     } else {
+      if (typeof navigator !== 'undefined') {
+        const ua = navigator.userAgent;
+        const isSafari = (ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1);
+
+        if (isSafari) {
+          openModal(SAFARI_WARNING_MODAL);
+        }
+      }
       if (shouldShowTGModal && !project && !remix) {
         openModal(TEMPLATE_GENERATOR_MODAL);
       }
