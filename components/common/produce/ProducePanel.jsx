@@ -30,7 +30,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
       key={label}
       onClick={() => onCLick(action, isActive, errorMessage, url)}
       className={classnames('produce-panel__button', {
-        'produce-panel__button--active': isActive,
+        'produce-panel__button--unactive': !isActive,
       })}
     >
       <HelpIconComponent noIcon message={tooltip}>
