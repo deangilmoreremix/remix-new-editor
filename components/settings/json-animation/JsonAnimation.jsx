@@ -38,14 +38,18 @@ const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
     update({ colors });
   };
 
+  const newFields = React.useMemo(() => (
+    isSuperAdmin ? fields : { start: fields.start }
+  ), []);
+
   return (
     <div className="json-animation-form">
-      {(element && element.popcornOptions) && isSuperAdmin && (
+      {(element && element.popcornOptions) && (
         <Tab
           options={element.popcornOptions}
           element={element}
           onChange={handleChange}
-          fields={fields}
+          fields={newFields}
           update={update}
         />
       )}

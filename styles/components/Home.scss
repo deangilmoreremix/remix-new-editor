@@ -1,11 +1,35 @@
 .main {
   .controls {
+    display: flex;
+    justify-content: space-between;
     padding-top: $menu-height;
   }
 
   .controls-block {
     min-width: 105px;
     z-index: 10;
+  }
+
+  .controls-block__sidebar {
+    display: flex;
+  }
+
+  .controls-block__toolbar {
+    max-width: 34.3em;
+
+    &-produce {
+      max-width: 100%;
+      width: 100%;
+    }
+  }
+
+  .controls-block-library {
+    max-width: 100%;
+    flex-basis: 100%;
+  }
+
+  .controls__canvas {
+    flex: 1;
   }
 }
 .home {
@@ -44,11 +68,19 @@
 }
 
 .home__center {
+  width: 31.75rem;
   position: relative;
-  padding: 0.5rem;
-  padding-top: 1.3rem;
+  padding: 1.3rem 0 0.5rem 1rem;
+  flex: 1 !important;
+  max-width: none !important;
 }
 
 div.big-window {
   height: $toolbarHeight-big;
+}
+
+@media screen and (max-width: 1365px) {
+  .home__center {
+    width: 25rem;
+  }
 }

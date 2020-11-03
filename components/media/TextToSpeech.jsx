@@ -323,38 +323,6 @@ const TextToSpeech = observer(() => {
         <span className="text-to-speech__title">TEXT TO SPEECH</span>
       </div>
       <div className="text-to-speech__body">
-        {/* toDo: Code below should be used for upper(white) input */}
-        {/* <div className="text-to-speech__input-wrapper"> */}
-        {/* <FormTextField */}
-        {/* inputClassName="text-to-speech__input" */}
-        {/* type="input" */}
-        {/* placeholder="Hello world!" */}
-        {/* value={valueInput} */}
-        {/* onChange={(v) => setValueInput(v)} */}
-        {/* /> */}
-        {/* <div className="text-to-speech__input-icon-left"> */}
-        {/* <SVGInline */}
-        {/* className="icon" */}
-        {/* classSuffix="" */}
-        {/* svg={svgVoice} */}
-        {/* cleanup={['title']} */}
-        {/* alt="Remove item" */}
-        {/* data-tip="Remove item" */}
-        {/* /> */}
-        {/* </div> */}
-        {/* <div className="text-to-speech__input-icon-right"> */}
-        {/* <SVGInline */}
-        {/* className="icon" */}
-        {/* classSuffix="" */}
-        {/* svg={trashIcon} */}
-        {/* cleanup={['title']} */}
-        {/* alt="Remove item" */}
-        {/* data-tip="Remove item" */}
-        {/* /> */}
-        {/* <button onClick={() => onRemove(item)}
-        className="icon icon-button svg-fix" type="button" /> */}
-        {/* </div> */}
-        {/* </div> */}
         <div className="text-to-speech__creator">
           <div className="text-to-speech__control">
             {textToSpeechNeuralEnabled && (
@@ -441,8 +409,8 @@ const TextToSpeech = observer(() => {
               )}
               {isPersonalizeText && (
                 <p className="text-to-speech__notification-bottom">
-                  Each time you watch your video in the player,
-                  the number of available symbols will decrease.
+                  The number of available characters will decrease each time
+                  the video is viewed on playback by individual persons.
                 </p>
               )}
             </div>

@@ -1,10 +1,10 @@
 // Thin scrollbars styling
 
-@mixin tiny-scrollbar($thumbHeight: auto, $thumbColor: $thumbColor, $thumbHover: $thumbColor, $scrollbarColor:  $scrollbarColor) {
+@mixin tiny-scrollbar($thumbWidth: 6px, $thumbHeight: auto, $thumbColor: $thumbColor, $thumbHover: $thumbColor, $scrollbarColor:  $scrollbarColor) {
   overflow-y: auto;
 
   &::-webkit-scrollbar {
-    width: 6px;
+    width: $thumbWidth;
     cursor: pointer;
   }
 

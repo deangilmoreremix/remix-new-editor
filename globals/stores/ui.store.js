@@ -104,6 +104,7 @@ export default class UIStore {
 
   @action
   setListBuilder = () => {
+    this.toggleLeftBlock(false);
     this.toggleRightBlock();
     this.secondaryWindowType = WINDOW_TYPES.SETTING;
     if (!this.isCanvasPresent) {
@@ -122,6 +123,7 @@ export default class UIStore {
   @action
   setLibraryType = (type) => {
     this.toggleRightBlock();
+    this.toggleLeftBlock(false);
     this.secondaryWindowType = type;
   };
 
@@ -204,39 +206,6 @@ export default class UIStore {
     this.isCanvasPresent = value;
   };
 
-  @computed
-  get canvasWidth() {
-    if (this.checkboxRight && !this.checkboxLeft) {
-      return 7;
-    }
-    if (this.isExpand) {
-      return 11;
-    } else if (!this.checkboxRight && this.checkboxLeft && !this.radioButtonBottom) {
-      return 9;
-    } else if ((this.checkboxRight && this.checkboxLeft) || this.radioButtonBottom) {
-      return 5;
-    } else {
-      return 5;
-    }
-  }
-
-  @computed
-  get toolsWidth() {
-    if (this.checkboxRight && !this.checkboxLeft) {
-      return 5;
-    }
-
-    if (this.isExpand) {
-      return 1;
-    } else if (!this.checkboxRight && this.checkboxLeft && !this.radioButtonBottom) {
-      return 3;
-    } else if ((this.checkboxRight && this.checkboxLeft) || this.radioButtonBottom) {
-      return 7;
-    } else {
-      return 7;
-    }
-  }
-
   @action
   openMediaButton = (type) => {
     this.isExpand = false;
@@ -255,12 +224,14 @@ export default class UIStore {
 
   @action
   showProducePanel = (options) => {
+    this.toggleRightBlock(false);
     this.setLibraryType(null, true);
     this.setToolbarItem(TOOLBARS.PRODUCE, options);
   };
 
   @action
   setSecondaryWindowType = (type) => {
+    this.toggleLeftBlock(false);
     this.toggleRightBlock();
     this.secondaryWindowType = type;
     if (!this.isCanvasPresent) {
