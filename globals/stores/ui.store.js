@@ -225,7 +225,8 @@ export default class UIStore {
   @action
   showProducePanel = (options) => {
     this.toggleRightBlock(false);
-    this.setLibraryType(null, true);
+    this.toggleVisibleCanvas(true);
+    this.secondaryWindowType = null;
     this.setToolbarItem(TOOLBARS.PRODUCE, options);
   };
 
