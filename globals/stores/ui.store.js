@@ -1,4 +1,4 @@
-import { observable, action, reaction, computed } from 'mobx';
+import { observable, action, reaction } from 'mobx';
 import { WINDOW_TYPES, TOOLBARS } from '../../lib/constants/ui';
 import { POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 
