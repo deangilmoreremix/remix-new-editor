@@ -811,6 +811,27 @@ export default class ProjectStore extends BaseStore {
   });
 
   @action
+  preRemix = async (projectId, openModal) => {
+    const path = `/api/makes/${projectId}/pre-remix`;
+    try {
+      const result = await this.request(
+        path, {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+      if (result && !result.length) {
+        return this.remixOne(projectId);
+      } else {
+        return this.remixOne();
+      }
+    } catch (e) {
+      return this.remixOne();
+    }
+  };
+
+  @action
   remixOne = async (projectId) => {
     this.modified = true;
     this.item = DEFAULT_ITEM;
