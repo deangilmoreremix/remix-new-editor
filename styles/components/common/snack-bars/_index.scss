@@ -2,6 +2,10 @@
 @import "Success";
 
 .MuiSnackbar-anchorOriginBottomCenter {
+  &.MuiSnackbar-root {
+    position: absolute;
+  }
+
   &.snackbar {
     bottom: 0;
     right: 0;
@@ -28,4 +32,3 @@
     }
   }
 }
-

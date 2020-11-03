@@ -48,10 +48,46 @@
   &__btns {
     display: flex;
     align-items: center;
+    justify-content: center;
   }
 
   &__text {
     margin-bottom: 0 !important;
+  }
+
+  &__warning {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    &-icon {
+      color: $secondary-color;
+      margin-bottom: 10px;
+      width: 8rem !important;
+      height: auto !important;
+    }
+
+    &-text {
+      font-size: 18px;
+      text-align: center;
+    }
+
+    &-small-text {
+      margin-top: 2.5rem;
+      font-size: 14px;
+    }
+
+    &-link {
+      color: $secondary-color;
+      margin: 0 .5em;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: none;
+        color: white;
+      }
+    }
   }
 
   &__btn {

@@ -1,5 +1,7 @@
 .stager-wrapper {
   display: flex;
+  opacity: 1;
+  animation: fade_in_show 0.5s;
   flex-direction: column;
   position: relative;
   top: 0;
@@ -18,5 +20,17 @@
   .embed-wrapper {
     position: relative;
     flex-grow: 1;
+  }
+}
+
+// leave animation fot test. If will be regress need to delete animation
+@keyframes fade_in_show {
+  0% {
+    opacity: 0;
+    transform: scale(0)
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1)
   }
 }

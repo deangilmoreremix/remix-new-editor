@@ -1,6 +1,6 @@
-import * as React from 'react';
+import React from 'react';
 import { observer } from 'mobx-react';
-import { Container, Row } from 'reactstrap';
+import { Row } from 'reactstrap';
 import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
@@ -35,7 +35,7 @@ const ElementsPanel = observer(({ items }) => {
 
   return (
     <AnimatedWindow isOpen={checkboxLeft}>
-      <Container className="elements-panel-container">
+      <div className="elements-panel-container">
         <Row className="elements-panel-inner-row">
           {items.map(({ label, icon, action, disabled }) => {
             if (disabled) {
@@ -62,7 +62,7 @@ const ElementsPanel = observer(({ items }) => {
           })}
         </Row>
         <CloseButton onClick={() => toggleLeftBlock(false)} />
-      </Container>
+      </div>
     </AnimatedWindow>
   );
 });
