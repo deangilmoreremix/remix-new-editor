@@ -16,7 +16,6 @@ const ProviderList = observer((props) => {
   const {
     list,
     activeItem,
-    title,
     userContentTitle,
     handleButtonClick,
     activeTab,
@@ -29,13 +28,6 @@ const ProviderList = observer((props) => {
     video360Enabled,
     op360Enabled,
   } = useUserStore();
-
-  const providerTitle = useMemo(() => {
-    if (title) {
-      return <p className="library__block--title">{title}</p>;
-    }
-    return null;
-  }, [title]);
 
   const openUrlModal = () => {
     openModal(URL_VIDEO_MODAL);
@@ -55,13 +47,21 @@ const ProviderList = observer((props) => {
 
   return (
     <div className="library__block-sidebar">
-      {
-        activeTab === LIBRARY_TABS.VIDEO ? (
-          // eslint-disable-next-line react/jsx-no-target-blank
-          <a href="http://download.vidcloud.io/" className="library__block--title" target="_blank">{title}</a>
-        ) : providerTitle
-      }
       <div className="library__btn-container">
+        {
+          isEnabledAddUrl && (
+            <button
+              className="library__block--import"
+              onClick={openUrlModal}
+            >
+              <SVGInline
+                className="library__icon-btn"
+                svg={addUrlIcon}
+              />
+              <p>Import from URL</p>
+            </button>
+          )
+        }
         {
           list && Object.keys(list).map(element => (
             <button
@@ -90,20 +90,6 @@ const ProviderList = observer((props) => {
               </p>
             </button>
           ))
-        }
-        {
-          isEnabledAddUrl && (
-            <button
-              className="library__btn-item"
-              onClick={openUrlModal}
-            >
-              <SVGInline
-                className="library__icon-btn"
-                svg={addUrlIcon}
-              />
-              <p>Add URL...</p>
-            </button>
-          )
         }
       </div>
     </div>

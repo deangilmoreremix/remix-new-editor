@@ -106,14 +106,14 @@ const LibraryContent = observer((props) => {
             {isActive ? (
               <button className="library__item-play" onClick={() => onPlay(null)}>
                 <SVGInline
-                  className="library__item-icon"
+                  className="library__item-audio-icon"
                   svg={stopIcon}
                 />
               </button>
             ) : (
               <button className="library__item-play" onClick={() => onPlay(item)}>
                 <SVGInline
-                  className="library__item-icon"
+                  className="library__item-audio-icon"
                   svg={playIcon}
                 />
               </button>

@@ -146,6 +146,20 @@
   }
 }
 
+.library__block--import {
+  @include reset-button;
+  width: 100%;
+  text-align: left !important;
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 0.9em;
+  color: $media-library-color !important;
+
+  svg path {
+    fill: $media-library-color;
+  }
+}
+
 .library__block--title {
   text-align: left;
   color: $white;
@@ -589,7 +603,7 @@ button.library__tab {
     align-items: center;
     position: absolute;
     bottom: 0;
-    padding: .5em .2em .5em .2em;
+    padding: .75em .2em .75em .2em;
 
     span {
       font-size: 12px;
@@ -602,8 +616,12 @@ button.library__tab {
     }
   }
 
+  &-audio-icon {
+    width: 2em;
+  }
+
   &-icon {
-    width: 1rem !important;
+    width: 1.15rem;
   }
 
   &-videotime {
@@ -679,13 +697,14 @@ button.library__tab {
 
 .library__item-use {
   @include reset-button;
-  height: 1.7em;
+  height: 2em;
   flex: 1;
   background-color: $secondary-color;
   border-radius: 2.5px;
   text-transform: uppercase !important;
   font-size: 12px;
   padding: 0 5px 0 5px;
+  width: 5.5rem !important;
 }
 
 .library__item-preview {
@@ -699,7 +718,6 @@ button.library__tab {
   @extend .library__item-use;
   max-width: 2.5em !important;
   width: 2em !important;
-  height: 1.8rem;
   background-color: $secondary-color;
   border: none;
 }
@@ -912,11 +930,6 @@ button.library__tab {
 }
 
 @media screen and (max-width: 1450px) {
-  .library__body {
-    padding-left: 1rem;
-    padding-right: 2rem;
-  }
-
   .library__row {
     flex-direction: column;
 
@@ -939,6 +952,10 @@ button.library__tab {
     width: 33%;
     font-size: 12px;
     font-weight: lighter !important;
+  }
+
+  .library__block--import {
+    font-size: 12px;
   }
 
   .library__items {
@@ -1009,6 +1026,12 @@ button.library__tab {
 
   .hint-360 {
     text-align: right;
+  }
+}
+
+@media screen and (min-width: $mock) {
+  .library__item-select {
+    padding: 1rem;
   }
 }
 
@@ -1131,6 +1154,9 @@ button.library__tab {
   .hint-360 {
     @include w100;
     text-align: left;
+  }
+  .library__block--import {
+    margin-right: 65%;
   }
   .is-360-checkbox {
     order: 2;

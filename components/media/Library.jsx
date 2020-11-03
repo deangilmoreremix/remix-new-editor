@@ -618,7 +618,7 @@ const Library = observer((props) => {
                   {
                     isDisabledUpload
                       ? <LibrarySpinner />
-                      : `Choose your ${getCurrentTab()}`
+                      : `You can select one or more ${getCurrentTab()}s then add to the timeline`
                   }
                 </span>
               ) : (
