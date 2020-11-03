@@ -1,6 +1,9 @@
 div.modal-container__content.pre-remix-voice-modal {
   padding-top: 2rem;
-  padding-bottom: 2rem;
+  padding-bottom: 1rem;
+  background: #0F0F13;
+  border: 1px solid $border-color;
+  border-radius: 10px;
 }
 
 .pre-remix-voice {
@@ -14,27 +17,26 @@ div.modal-container__content.pre-remix-voice-modal {
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
+    margin: 0 -0.5rem;
   }
 
   &__btn {
     @include reset-button;
     flex: 1;
     height: 2.174rem;
-    background: $secondary-color;
     border-radius: 4px;
     color: $white;
     font-size: $defaultFontSize;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    padding: 0 1.5em;
-    margin-right: 1rem;
+    margin: 0 0.5rem 1rem;
+    border: 1px solid $secondary-color;
 
-    &:last-child {
-      margin-right: 0;
+    span {
+      margin: 0 1.5em;
+      white-space: nowrap;
     }
 
     &:hover {
+      background: $secondary-color;
       text-decoration: none;
       color: $white;
     }

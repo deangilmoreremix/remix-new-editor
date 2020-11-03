@@ -10,16 +10,24 @@ const PreRemixVoiceModal = () => {
   const createNewProject = () => window.open('/');
 
   const btnNewProject = useMemo(() => (
-    <button className="pre-remix-voice__btn" onClick={createNewProject}>Create new project</button>
+    <button className="pre-remix-voice__btn" onClick={createNewProject}>
+      <span>Create a new project</span>
+    </button>
   ), []);
 
   const btnRemixWithoutVoice = useMemo(() => (
-    <button className="pre-remix-voice__btn">Create a remix without voices</button>
+    <button className="pre-remix-voice__btn">
+      <span>Create a remix without voices</span>
+    </button>
   ), []);
 
   const btnRemixWithVoice = useMemo(() => {
     if (scenario === preRemixVoice.hasData.name) {
-      return <button className="pre-remix-voice__btn">Create a remix with voices</button>;
+      return (
+        <button className="pre-remix-voice__btn">
+          <span>Create a remix with voices</span>
+        </button>
+      );
     }
     return null;
   }, [scenario]);
@@ -27,7 +35,9 @@ const PreRemixVoiceModal = () => {
   const btnUpgrade = useMemo(() => {
     if (scenario === preRemixVoice.noFeature.name) {
       return (
-        <a href="https://paykickstart.com" className="pre-remix-voice__btn">Go to upgrade</a>
+        <a href="https://paykickstart.com" className="pre-remix-voice__btn">
+          <span>Go to upgrade</span>
+        </a>
       );
     }
     return null;
