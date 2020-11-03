@@ -317,9 +317,9 @@ export default class ProjectStore extends BaseStore {
         options.out = options.end;
         options.volume = item.volume !== undefined ? item.volume : 100;
         options.mute = item.volume === 0;
-        options.audioFadeIn = options.audioFadeIn || 0;
-        options.audioFadeOut = options.audioFadeOut || 0;
-        options.fill = false;
+        options.audioFadeIn = item.audioFadeIn || 0;
+        options.audioFadeOut = item.audioFadeOut || 0;
+        options.fill = item.fill || false;
 
         if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
           options.templateId = item._id;
