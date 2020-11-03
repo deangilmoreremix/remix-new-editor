@@ -483,7 +483,7 @@ const Library = observer((props) => {
     item.src = item.src || item.url;
     item.is360 = is360;
     item.type = MEDIA_TYPES[activeTab];
-    item.kind = activeTab;
+    item.kind = ASSET_TYPES[activeTab];
     if (activeTab === LIBRARY_TABS.VOICE) {
       item.type = MEDIA_TYPES.AUDIO;
     } else {
