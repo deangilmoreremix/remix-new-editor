@@ -7,10 +7,12 @@ import AudioPlayer from 'react-audio-player';
 import { ERROR_TEXT_SYMBOLS } from '../../lib/constants/text-info';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import {
-  VOICES,
-  LANGUAGES,
+  VOICES as UNLIMITED_VOICES,
+  LANGUAGES as UNLIMITED_LANGUAGES,
   engineType,
   LANGUAGES_PRO,
+  LIMITED_VOICES,
+  LIMITED_LANGUAGES,
   ENGINE_TYPE_VALUES,
   LANGUAGES_VALUES,
   maxSymbols,
@@ -41,7 +43,17 @@ import { LIBRARY_KEYS } from '../../lib/constants/library';
 const TextToSpeech = observer(() => {
   const { toggleRightBlock, isTimelineOpen, toggleVisibleCanvas } = useUIStore();
   const { getTemporaryTextToSpeech, saveTemporaryTextToSpeech, saveTextToSpeech } = useMediaStore();
-  const { getTextSpeechSymbols, textToSpeechNeuralEnabled } = useUserStore();
+  const {
+    getTextSpeechSymbols,
+    textToSpeechNeuralEnabled,
+    onlyLimitedTextToSpeech,
+  } = useUserStore();
+
+  const languages = React.useMemo(() => (onlyLimitedTextToSpeech ? LIMITED_LANGUAGES
+    : UNLIMITED_LANGUAGES), [onlyLimitedTextToSpeech]);
+
+  const userVoices = React.useMemo(() => (onlyLimitedTextToSpeech ? LIMITED_VOICES
+    : UNLIMITED_VOICES), [onlyLimitedTextToSpeech]);
 
   const [loading, setLoading] = useState(false);
 
@@ -50,8 +62,8 @@ const TextToSpeech = observer(() => {
 
   const [fallbackValue, setFallbackValue] = useState('');
   const [voice, setVoice] = useState();
-  const [language, setLanguage] = useState(LANGUAGES[0].value);
-  const [selectedVoices, setSelectedVoices] = useState(VOICES[LANGUAGES_VALUES.ENUS_STANDART]);
+  const [language, setLanguage] = useState(languages[0].value);
+  const [selectedVoices, setSelectedVoices] = useState(userVoices[LANGUAGES_VALUES.ENUS_STANDART]);
   const [voiceType, setVoiceType] = useState(engineType[0].value);
   const [caret, setCaret] = useState();
   const [symbols, setSymbols] = useState();
@@ -172,14 +184,14 @@ const TextToSpeech = observer(() => {
   const currentVoiceArray = (lan, currentVoiceType) => {
     const isLanguageWithPro = LANGUAGES_PRO.some(item => item.value === lan);
     if (isLanguageWithPro) {
-      return VOICES[`${lan}-${currentVoiceType}`];
+      return userVoices[`${lan}-${currentVoiceType}`];
     } else {
-      return VOICES[lan];
+      return userVoices[lan];
     }
   };
 
   useEffect(() => {
-    const item = LANGUAGES.find(languageItem => languageItem.value === language).value;
+    const item = languages.find(languageItem => languageItem.value === language).value;
     const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
     currentVoiceArray(item, currentVoiceType);
     const currentVoice = currentVoiceArray(item, currentVoiceType);
@@ -193,7 +205,7 @@ const TextToSpeech = observer(() => {
   }, [language]);
 
   useEffect(() => {
-    const item = LANGUAGES.find(languageItem => languageItem.value === language).value;
+    const item = languages.find(languageItem => languageItem.value === language).value;
     const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
     const currentVoice = currentVoiceArray(item, currentVoiceType);
 
@@ -216,7 +228,7 @@ const TextToSpeech = observer(() => {
   useEffect(() => playVoice(), [audio]);
 
   const onLanguageSelect = value => {
-    const item = LANGUAGES.find(languageItem => languageItem.value === value).value;
+    const item = languages.find(languageItem => languageItem.value === value).value;
     setLanguage(item);
     const currentVoice = currentVoiceArray(item, voiceType);
 
@@ -357,17 +369,19 @@ const TextToSpeech = observer(() => {
             <div className="text-to-speech__select-block">
               <FormSelect
                 label="Language"
-                items={LANGUAGES}
+                items={languages}
                 className="text-to-speech__selection"
                 selectClassName="text-to-speech__select-list"
                 value={language}
                 onChange={onLanguageSelect}
+                disabled={onlyLimitedTextToSpeech}
               />
               <FormSelect
                 label="Voice"
                 items={selectedVoices}
                 className="text-to-speech__selection"
-                selectClassName="text-to-speech__select-list"
+                selectClassName={classnames('text-to-speech__select-list',
+                  { 'text-to-speech__select-voice-list': onlyLimitedTextToSpeech })}
                 value={voice}
                 onChange={onVoiceSelect}
               />

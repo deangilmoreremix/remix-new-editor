@@ -282,6 +282,14 @@
     flex: 1;
   }
 
+  &__select-voice-list {
+    .select__menu {
+      .select__menu-list {
+        height: auto;
+      }
+    }
+  }
+
   &__selection {
     width: 48%;
     min-width: 11.875rem;
