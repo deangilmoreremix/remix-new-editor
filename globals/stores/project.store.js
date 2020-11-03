@@ -9,6 +9,8 @@ import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import { GOOGLE_MAP_VALUES } from '../../lib/constants/googleMap';
+import preRemixVoice from '../../lib/constants/preRemixVoice';
+import { PRE_REMIX_VOICE_MODAL } from '../../lib/constants/modals';
 
 import {
   SEQUENCER,
@@ -821,9 +823,13 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
         });
-      if (result && !result.length) {
+
+      const { scenario } = result;
+
+      if (scenario === preRemixVoice.noVoice.name) {
         return this.remixOne(projectId);
       } else {
+        openModal(PRE_REMIX_VOICE_MODAL, { scenario });
         return this.remixOne();
       }
     } catch (e) {
