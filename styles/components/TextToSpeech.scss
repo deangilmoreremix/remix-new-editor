@@ -431,6 +431,11 @@
     justify-content: center;
     margin-left: 1.56rem;
 
+    &-disabled {
+      opacity: 0.5;
+      cursor: auto;
+    }
+
     span {
       width: 100%;
       height: 100%;
