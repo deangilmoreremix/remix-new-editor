@@ -62,15 +62,14 @@ const Timeline = observer(() => {
         <Grid xs={2} item>
           <Grid container alignItems="center" className="timeline__btns">
             {isLoaded && <PlayButton /> }
-            <HelpIconComponent placement="top-right" noIcon message={mainTooltips.timeline}>
-              <div>
-                <PlusButton
-                  onClick={() => addLayer()}
-                  alt="Add Layer"
-                  className="timeline-add icon-button"
-                />
-              </div>
-            </HelpIconComponent>
+            <div className="tooltip-box">
+              <PlusButton
+                onClick={() => addLayer()}
+                alt="Add Layer"
+                className="timeline-add icon-button"
+              />
+              <HelpIconComponent placement="right-start" noPadding message={mainTooltips.timeline} />
+            </div>
             <PlayTime />
           </Grid>
         </Grid>

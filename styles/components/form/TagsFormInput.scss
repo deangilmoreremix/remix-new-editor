@@ -70,3 +70,15 @@
   color: $white;
   line-height: 1;
 }
+
+.tags-input-title-box {
+  display: flex;
+  position: relative;
+}
+
+@media screen and (max-width: $lg) {
+  .tags-input-title-box {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

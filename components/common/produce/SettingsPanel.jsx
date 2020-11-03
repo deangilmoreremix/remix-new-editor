@@ -115,7 +115,6 @@ const SettingPanel = observer(() => {
           label="Tags"
           className="settings-input"
           titleClass="settings-panel-text"
-          tooltipHeight={20}
           tooltipMessage={produceTooltips.tags}
           isTooltip
         />
