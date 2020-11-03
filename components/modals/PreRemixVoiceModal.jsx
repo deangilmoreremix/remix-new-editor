@@ -7,8 +7,10 @@ const PreRemixVoiceModal = () => {
   const { options: { scenario } } = useModalStore();
   const title = useMemo(() => preRemixVoice[scenario].modalTitle, [scenario]);
 
+  const createNewProject = () => window.open('/');
+
   const btnNewProject = useMemo(() => (
-    <button className="pre-remix-voice__btn">Create new project</button>
+    <button className="pre-remix-voice__btn" onClick={createNewProject}>Create new project</button>
   ), []);
 
   const btnRemixWithoutVoice = useMemo(() => (
