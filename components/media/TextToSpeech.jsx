@@ -341,6 +341,18 @@ const TextToSpeech = observer(() => {
     changeAndPlay(language, item, voiceType);
   };
 
+  const warningMessage = useMemo(() => {
+    if (!symbols) {
+      return 'You have reached the maximum number of characters.';
+    }
+    if (getValueLength(htmlText) >= maxTextSymbols) {
+      if (isPersonalizeText) {
+        return 'You have reached the maximum number of characters for Personalization. You can personalize this voice up to 70 characters. You can still add text up to 150 characters for this voice scene';
+      }
+      return 'You have reached the maximum number of characters for this scene. The maximum number of 150 for each voice scene.';
+    }
+    return null;
+  }, [maxTextSymbols, htmlText, isPersonalizeText, symbols]);
 
   return (
     <div className={classnames('text-to-speech', { 'big-window': !isTimelineOpen })}>
@@ -417,6 +429,8 @@ const TextToSpeech = observer(() => {
             symbolsCount={textValueAreaLength}
             disabled={!maxTextSymbols}
           />
+
+          {warningMessage && <p className="text-to-speech__warning">{warningMessage}</p>}
 
           <div className="text-to-speech__footer">
             <div className="text-to-speech__notification">
