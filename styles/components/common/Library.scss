@@ -970,6 +970,21 @@ button.library__tab {
 }
 
 @media screen and (max-width: 1450px) {
+  .library__items {
+    &--audio {
+      .library__item {
+        &-play {
+          top: 33%;
+          width: 2.2rem;
+          height: 2.2rem;
+        }
+        &-use {
+          top: 62%;
+          padding: 0.15rem 1rem 0.20rem;
+        }
+      }
+    }
+  }
   .library__item {
     &-drop-text {
       font-size: 12px;
@@ -985,6 +1000,21 @@ button.library__tab {
   .library__btn-container {
     min-width: 14rem;
     width: 14rem;
+  }
+  .library__items {
+    &--audio {
+      .library__item {
+        &-play {
+          width: 2rem;
+          height: 2rem;
+        }
+        &-use {
+          top: 61%;
+          font-size: 0.7rem;
+          padding: 0.15rem 1rem 0.20rem;
+        }
+      }
+    }
   }
 }
 
