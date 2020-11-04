@@ -118,6 +118,7 @@ export default class UIStore {
 
   @action
   setUpdateElementInLibrary = (value = null) => {
+    this.toggleVisibleCanvas(true);
     this.updateElementInLibrary = value;
   };
 
