@@ -840,15 +840,17 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  fillMakeData = (result) => {
+  fillMakeData = (result, isRemix = false) => {
     this.item.title = `Remix of ${result.title}`;
     this.item.thumbnail = result.thumbnail;
     this.item.description = result.description;
     this.item.remixedFrom = result.project._id;
     this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${result._id}`;
     this.setProjectData(JSON.parse(result.project.data));
-    this.setPopcorn();
-    this.attach();
+    if (isRemix) {
+      this.setPopcorn();
+      this.attach();
+    }
     if (result.project && result.project.retargetForm) {
       this.retarget = this.item.project.retargetForm || result.project.retargetForm;
     }
@@ -874,7 +876,7 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
         });
-      this.fillMakeData(result);
+      this.fillMakeData(result, true);
     } catch (e) {
       this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);
@@ -884,7 +886,7 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  remixOne = async (projectId) => {
+  remixOne = async (projectId, isRemix) => {
     this.modified = true;
     this.item = DEFAULT_ITEM;
     if (!projectId) {
@@ -900,7 +902,7 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
         });
-      this.fillMakeData(result);
+      this.fillMakeData(result, isRemix);
     } catch (e) {
       this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);

@@ -23,7 +23,7 @@ const PreRemixVoiceModal = () => {
   };
 
   const withoutVoiceFn = async () => {
-    await remixOne(remix);
+    await remixOne(remix, true);
     closeModal(PRE_REMIX_VOICE_MODAL);
   };
 
