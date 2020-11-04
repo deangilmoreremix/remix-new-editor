@@ -33,7 +33,7 @@ const OverlayListTransitions = observer(() => {
     toggleRightBlock,
     isTimelineOpen,
     secondaryWindowType: activeTab,
-    setLibraryType: setActiveTab,
+    setOverlayType: setActiveTab,
   } = useUIStore();
 
   useEffect(() => {
