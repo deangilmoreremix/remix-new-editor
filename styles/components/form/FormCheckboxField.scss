@@ -38,6 +38,9 @@
 
   .checkmark .MuiIconButton-label {
     margin: 0;
+    background: inherit;
+    border-color: $media-library-color;
+    color: $secondary-color;
   }
 
   button {
@@ -66,12 +69,12 @@
 .checkmark {
   &.unchecked .MuiIconButton-label {
     &:after {
-      background-color: $white;
+      background-color: $secondary-color;
     }
 
     &:hover .MuiIconButton-label {
       &:after {
-        background-color: $red;
+        background-color: $secondary-color;
       }
     }
   }

@@ -13,6 +13,7 @@
   font-size: 0.625rem;
   text-align: right;
   line-height: .937rem;
+  white-space: pre-line;
 }
 .is-360 {
   .checkmark {
@@ -21,11 +22,28 @@
 }
 
 .is-360-wrapper {
-  width: 100%;
-
   .is-360 {
+    margin-right: 1rem;
+
     > button {
       margin-right: 1rem;
+    }
+  }
+}
+
+.is-360-checkbox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+}
+
+.icon-360 {
+  width: 3em;
+
+  &-active {
+    svg path {
+      fill: $secondary-color;
     }
   }
 }

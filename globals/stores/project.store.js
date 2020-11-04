@@ -199,6 +199,10 @@ export default class ProjectStore extends BaseStore {
 
   @observable showedRetarget = false;
 
+  @observable prevMultiselectElement;
+
+  @observable isFirstTrackFull;
+
   @observable pluginDefaults = {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
     [POPCORN_ELEMENT_TYPES.IMAGE]: {},
@@ -292,28 +296,30 @@ export default class ProjectStore extends BaseStore {
         }
         const source = (item.extra && item.extra.source) || [item.url];
         const fileDuration = (item.extra && item.extra.duration) || null;
-        let fileMeta;
-        try {
-          fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration,
-            this.userStore.video360Enabled);
-        } catch (e) {
-          // if there is no error, then loading will hide, after adding the item to the popcorn
-          this.isLoadingSequencer = false;
-          throw e;
+        let { fileMeta } = item;
+        if (!fileMeta) {
+          try {
+            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration,
+              this.userStore.video360Enabled);
+          } catch (e) {
+            // if there is no error, then loading will hide, after adding the item to the popcorn
+            this.isLoadingSequencer = false;
+            throw e;
+          }
         }
-        options.end = options.start + fileMeta.duration;
+        options.end = options.start + (fileMeta?.duration ?? item.duration);
         options.source = source;
-        options.title = fileMeta.title;
-        options.duration = fileMeta.duration;
+        options.title = fileMeta?.title ?? item.title;
+        options.duration = fileMeta?.duration ?? item.duration;
         options.from = 0;
-        options.contentType = fileMeta.contentType;
+        options.contentType = fileMeta?.contentType ?? item.contentType;
         options.in = options.start;
         options.out = options.end;
         options.volume = item.volume !== undefined ? item.volume : 100;
         options.mute = item.volume === 0;
-        options.audioFadeIn = options.audioFadeIn || 0;
-        options.audioFadeOut = options.audioFadeOut || 0;
-        options.fill = false;
+        options.audioFadeIn = item.audioFadeIn || 0;
+        options.audioFadeOut = item.audioFadeOut || 0;
+        options.fill = item.fill || false;
 
         if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
           options.templateId = item._id;
@@ -794,6 +800,13 @@ export default class ProjectStore extends BaseStore {
       this.popcorn.pause();
     } else {
       this.popcorn.play();
+    }
+  };
+
+  @action
+  stopIfPlay = () => {
+    if (this.isPlayed) {
+      this.popcorn.pause();
     }
   };
 
@@ -1578,6 +1591,9 @@ export default class ProjectStore extends BaseStore {
         // we need to recount the fontsize. This is done in the update method.
         this.updatePopcorn(element, { fontDecorations: element.popcornOptions.fontDecorations });
       }
+      if (isCurrentElement && element.type === POPCORN_ELEMENT_TYPES.TEXT_MASK) {
+        this.updatePopcorn(element, { newSize: true });
+      }
     });
   };
 
@@ -1693,6 +1709,40 @@ export default class ProjectStore extends BaseStore {
     }
   };
 
+  @observable
+  findLayerForType = (kind) => {
+    // we add images on the new layer
+    if (kind === ASSET_TYPES.IMAGE) {
+      // to check if the first track is empty
+      if (this.layers.length > 1 || this.isFirstTrackFull || this.elements.length) {
+        this.createNewLayer();
+      }
+      const [track] = this.layers;
+      this.isFirstTrackFull = true;
+      return { track, end: 0 };
+    }
+    const findElement = this.elements.find(element => element.popcornOptions.kind === kind);
+    if (findElement) {
+      const currentTrack = (findElement.track && findElement.track.id) || findElement.track;
+      const track = this.layers.find(element => element.id === currentTrack);
+      let layerElements;
+      if (this.elements) {
+        layerElements = this.elements.filter((element) => element.track === currentTrack);
+      }
+      const sortedElements = layerElements
+        .sort((a, b) => b.popcornOptions.end - a.popcornOptions.end);
+      const lastElement = sortedElements[0];
+      return { track, end: lastElement.popcornOptions.end };
+    }
+    // add video or audio to the new layer if the first is present or full
+    if (this.layers.length > 1 || this.isFirstTrackFull || this.elements.length) {
+      this.createNewLayer();
+    }
+    const [track] = this.layers;
+    this.isFirstTrackFull = true;
+    return { track, end: 0 };
+  };
+
   // untraceable methods for undo redo
   // analog for addElement
   @action
@@ -1755,6 +1805,7 @@ export default class ProjectStore extends BaseStore {
   @observable
   @action
   createNewElements = async (elements, end) => {
+    this.stopIfPlay();
     this.setUndo();
     await this.updateEnd(end);
     this.isFirstTrackFull = false;
