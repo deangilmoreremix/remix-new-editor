@@ -82,7 +82,7 @@ export default class MultiselectStore {
       }
       item.track = track;
       if (!end) {
-        item.start = 0;
+        item.start = this.projectStore.time / SANTISECOND || 0;
       } else {
         item.start = end + 0.01;
       }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
@@ -48,6 +48,10 @@ const LibraryContent = observer((props) => {
     disabled: false,
   });
 
+  const activebtn = useMemo(() => (activeBtn === LIBRARY_KEYS.REMOTE)
+    || (activeBtn === LIBRARY_KEYS.FREESOUND)
+    || (activeBtn === LIBRARY_KEYS.USER), [activeBtn]);
+
   const uploadNewItems = () => {
     fetchItems({ source: activeBtn, isScrolling: true });
   };
@@ -80,7 +84,7 @@ const LibraryContent = observer((props) => {
         const isActive = activeItem && activeItem.url === item.url;
         return (
           <React.Fragment>
-            { (activeBtn === LIBRARY_KEYS.USER || activeTab === LIBRARY_TABS.VOICE) && (
+            {activebtn && (
               <div className="library__item-audio-top">
                 <button
                   onClick={() => onToggleSelect(item)}
@@ -118,6 +122,9 @@ const LibraryContent = observer((props) => {
                 />
               </button>
             )}
+            <button className="library__item-use" onClick={() => onSelect(item)}>
+              Use
+            </button>
           </React.Fragment>
         );
       }

@@ -804,6 +804,13 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  stopIfPlay = () => {
+    if (this.isPlayed) {
+      this.popcorn.pause();
+    }
+  };
+
+  @action
   orderItems = (items, updateTracks) => items.map((track, index) => {
     track.defaultName = `Layer ${index}`;
     if (updateTracks) {
@@ -1707,7 +1714,7 @@ export default class ProjectStore extends BaseStore {
     // we add images on the new layer
     if (kind === ASSET_TYPES.IMAGE) {
       // to check if the first track is empty
-      if (this.layers.length > 1 || this.isFirstTrackFull) {
+      if (this.layers.length > 1 || this.isFirstTrackFull || this.elements.length) {
         this.createNewLayer();
       }
       const [track] = this.layers;
@@ -1728,7 +1735,7 @@ export default class ProjectStore extends BaseStore {
       return { track, end: lastElement.popcornOptions.end };
     }
     // add video or audio to the new layer if the first is present or full
-    if (this.layers.length > 1 || this.isFirstTrackFull) {
+    if (this.layers.length > 1 || this.isFirstTrackFull || this.elements.length) {
       this.createNewLayer();
     }
     const [track] = this.layers;
@@ -1798,6 +1805,7 @@ export default class ProjectStore extends BaseStore {
   @observable
   @action
   createNewElements = async (elements, end) => {
+    this.stopIfPlay();
     this.setUndo();
     await this.updateEnd(end);
     this.isFirstTrackFull = false;
