@@ -50,7 +50,7 @@ const Menu = observer((
           cleanup={['title']}
         />
       ) : null}
-      <span className="menu__item-title">{buttonItem.title}</span>
+      {buttonItem.title}
       {buttonItem.isTooltip && (
         <HelpIconComponent
           whiteIcon

@@ -15,12 +15,14 @@ const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
   const mediaStore = useMediaStore();
   const provider = mediaStore.providersList.USER;
   const remoteProvider = mediaStore.providersList.REMOTE;
+  const pexelsProvider = mediaStore.providersList.PEXELS;
+  const pixabayProvider = mediaStore.providersList.PIXABAY;
   const assetType = ASSET_TYPES.VIDEO;
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [hasMore, setHasMore] = useState(true);
   const [videos, setVideos] = useState([]);
-  const [activeTab, setTab] = useState(0);
+  const [activeTab, setTab] = useState(2);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -45,23 +47,14 @@ const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
     if (hasMore) {
       try {
         let results = '';
-        if (activeTab === 1) {
-          results = await mediaStore.getAssets({
-            assetType,
-            page,
-            perPage,
-            query,
-            providerName: provider,
-          });
-        } else {
-          results = await mediaStore.getAssets({
-            assetType,
-            page,
-            perPage,
-            query,
-            providerName: remoteProvider,
-          });
-        }
+        const providers = { 0: remoteProvider, 1: provider, 2: pexelsProvider, 3: pixabayProvider };
+        results = await mediaStore.getAssets({
+          assetType,
+          page,
+          perPage,
+          query,
+          providerName: providers[activeTab],
+        });
         const hasNextPage = results.length === perPage;
         setVideos(videos.concat(results));
         setHasMore(hasNextPage);

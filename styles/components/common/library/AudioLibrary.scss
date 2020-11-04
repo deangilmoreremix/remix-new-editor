@@ -1,10 +1,8 @@
 &--audio,
 &--voice {
   .library__item {
-    width: calc(50% - 0.64em);
-
     &-delete {
-      position: absolute;
+      position: relative;
       width: 1.5rem;
       height: 1.5rem;
       display: flex;
@@ -25,17 +23,17 @@
       @include reset-button;
 
       position: absolute;
-      top: 50%;
+      top: 40%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 1.8rem;
-      height: 1.8rem;
+      width: 2.5rem;
+      height: 2.5rem;
       border-radius: 50%;
       border: 1px solid $secondary-color;
 
       .library__item-icon {
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 2rem;
+        height: 1rem;
       }
     }
 
@@ -43,7 +41,7 @@
       @include red-button;
 
       position: absolute;
-      top: 80%;
+      top: 65%;
       left: 50%;
       height: auto;
       font-size: 0.8rem;

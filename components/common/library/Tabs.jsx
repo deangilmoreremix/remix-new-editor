@@ -1,5 +1,6 @@
 import React from 'react';
 import classnames from 'classnames';
+import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 import { tabItems } from '../../../lib/constants/library';
@@ -18,7 +19,14 @@ const Tabs = ({ setActiveTab, activeTab }) => (
           onClick={() => setActiveTab(item)}
           key={item}
         >
-          {`Add ${tabItems[item].label}`}
+          <SVGInline
+            className={classnames('tab-icon', { 'tab-icon-active': activeTab === item })}
+            classSuffix=""
+            svg={tabItems[item].icon}
+            cleanup={['title']}
+            component="button"
+          />
+          <span>{tabItems[item].label}</span>
         </button>
       ))
     }
