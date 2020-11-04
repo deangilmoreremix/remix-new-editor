@@ -1,3 +1,5 @@
+// todo remove it after testing multiselect
+/* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from 'react';
 // import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
@@ -618,7 +620,9 @@ const Library = observer((props) => {
                   {
                     isDisabledUpload
                       ? <LibrarySpinner />
-                      : `You can select one or more ${getCurrentTab()}s then add to the timeline`
+                      // todo uncomment it after testing multiselect
+                      // : `You can select one or more ${getCurrentTab()}s then add to the timeline`
+                      : `You can select ${getCurrentTab()} then add to the timeline`
                   }
                 </span>
               ) : (
@@ -650,13 +654,14 @@ const Library = observer((props) => {
                     <SearchIcon />
                   </div>
                 </div>
-                <button
-                  className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
-                  onClick={addAllSelectedItems}
-                  disabled={emptyCollections}
-                >
-                  Add to timeline
-                </button>
+                {/* todo Uncomment it after testing multiselect */}
+                {/* <button */}
+                {/* className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })} */}
+                {/* onClick={addAllSelectedItems} */}
+                {/* disabled={emptyCollections} */}
+                {/* > */}
+                {/* Add to timeline */}
+                {/* </button> */}
                 {showed360 ? (
                   <Is360
                     value={is360}
@@ -707,13 +712,14 @@ const Library = observer((props) => {
                     <span>To unlock this library, you need to enter a custom key.</span>
                   )}
                 </div>
-                <button
-                  className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
-                  onClick={addAllSelectedItems}
-                  disabled={emptyCollections}
-                >
-                  Add to timeline
-                </button>
+                {/* todo Uncomment it after testing multiselect */}
+                {/* <button */}
+                {/* className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })} */}
+                {/* onClick={addAllSelectedItems} */}
+                {/* disabled={emptyCollections} */}
+                {/* > */}
+                {/* Add to timeline */}
+                {/* </button> */}
                 <div className="library__key-box-dummy" />
               </>
             )}

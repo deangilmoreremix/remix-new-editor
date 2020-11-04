@@ -554,9 +554,11 @@ export default class Media extends BaseStore {
     const providersInfo = { ...this.defaultProvidersInfo };
 
     providersInfo[LIBRARY_KEYS.REMOTE] = this.providersConfiguration[LIBRARY_KEYS.REMOTE];
-    if (this.userStore.isfeatureEnabled(FEATURES.FREESOUND_INTEGRATION)) {
-      providersInfo[LIBRARY_KEYS.FREESOUND] = this.providersConfiguration[LIBRARY_KEYS.FREESOUND];
-    }
+    // todo uncomment it after fix free sound
+    // if (this.userStore.isfeatureEnabled(FEATURES.FREESOUND_INTEGRATION)) {
+    //   providersInfo[LIBRARY_KEYS.FREESOUND]
+    // = this.providersConfiguration[LIBRARY_KEYS.FREESOUND];
+    // }
     return providersInfo;
   }
 
