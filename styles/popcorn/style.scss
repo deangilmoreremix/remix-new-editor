@@ -178,3 +178,55 @@ body.editor-minimized .stage-wrapper {
   overflow: hidden;
   box-shadow: 0 5px 6px -5px rgba(0, 0, 0, 0.3);
 }
+
+.overlay-arrow {
+  background-color: rgba(34, 34, 40, 0.8);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  cursor: pointer;
+  z-index: 100;
+
+  .arrow-image {
+    width: 14.8%;
+    height: 25%;
+    position: absolute;
+    right: 45.8%;
+    bottom: 20%;
+  }
+
+  .container-hint {
+    font-family: $font-primary;
+    background: rgba(23, 23, 28, 0.86);
+    border: 1px solid #575773;
+    box-sizing: border-box;
+    border-radius: 12px;
+    width: 44%;
+    position: absolute;
+    right: 1.60%;
+    bottom: 2.7%;
+    padding: 3% 3%;
+
+    h3 {
+      font-weight: bold;
+      font-size: 75%;
+      margin-bottom: 7%;
+    }
+
+    p {
+      font-weight: 300;
+      font-size: 60%;
+      line-height: 1;
+      margin-bottom: 3%;
+
+      &:last-of-type {
+        margin-bottom: 0;
+      }
+    }
+
+    span {
+      font-weight: 700;
+    }
+  }
+}

@@ -7,10 +7,12 @@ import AudioPlayer from 'react-audio-player';
 import { ERROR_TEXT_SYMBOLS } from '../../lib/constants/text-info';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import {
-  VOICES,
-  LANGUAGES,
+  VOICES as UNLIMITED_VOICES,
+  LANGUAGES as UNLIMITED_LANGUAGES,
   engineType,
   LANGUAGES_PRO,
+  LIMITED_VOICES,
+  LIMITED_LANGUAGES,
   ENGINE_TYPE_VALUES,
   LANGUAGES_VALUES,
   maxSymbols,
@@ -41,14 +43,27 @@ import { LIBRARY_KEYS } from '../../lib/constants/library';
 const TextToSpeech = observer(() => {
   const { toggleRightBlock, isTimelineOpen, toggleVisibleCanvas } = useUIStore();
   const { getTemporaryTextToSpeech, saveTemporaryTextToSpeech, saveTextToSpeech } = useMediaStore();
-  const { getTextSpeechSymbols, textToSpeechNeuralEnabled } = useUserStore();
+  const {
+    getTextSpeechSymbols,
+    textToSpeechNeuralEnabled,
+    onlyLimitedTextToSpeech,
+  } = useUserStore();
+
+  const languages = React.useMemo(() => (onlyLimitedTextToSpeech ? LIMITED_LANGUAGES
+    : UNLIMITED_LANGUAGES), [onlyLimitedTextToSpeech]);
+
+  const userVoices = React.useMemo(() => (onlyLimitedTextToSpeech ? LIMITED_VOICES
+    : UNLIMITED_VOICES), [onlyLimitedTextToSpeech]);
 
   const [loading, setLoading] = useState(false);
+
   const [valueTextarea, setValueTextarea] = useState('');
+  const [htmlText, setHtmlText] = useState('');
+
   const [fallbackValue, setFallbackValue] = useState('');
   const [voice, setVoice] = useState();
-  const [language, setLanguage] = useState(LANGUAGES[0].value);
-  const [selectedVoices, setSelectedVoices] = useState(VOICES[LANGUAGES_VALUES.ENUS_STANDART]);
+  const [language, setLanguage] = useState(languages[0].value);
+  const [selectedVoices, setSelectedVoices] = useState(userVoices[LANGUAGES_VALUES.ENUS_STANDART]);
   const [voiceType, setVoiceType] = useState(engineType[0].value);
   const [caret, setCaret] = useState();
   const [symbols, setSymbols] = useState();
@@ -148,7 +163,7 @@ const TextToSpeech = observer(() => {
           language,
           voice,
           url: result.url,
-          text: isPersonalizeText ? unwrapTokens(valueTextarea) : valueTextarea,
+          text: valueTextarea,
           fallbackValue,
           isPersonalizeText,
         });
@@ -169,14 +184,14 @@ const TextToSpeech = observer(() => {
   const currentVoiceArray = (lan, currentVoiceType) => {
     const isLanguageWithPro = LANGUAGES_PRO.some(item => item.value === lan);
     if (isLanguageWithPro) {
-      return VOICES[`${lan}-${currentVoiceType}`];
+      return userVoices[`${lan}-${currentVoiceType}`];
     } else {
-      return VOICES[lan];
+      return userVoices[lan];
     }
   };
 
   useEffect(() => {
-    const item = LANGUAGES.find(languageItem => languageItem.value === language).value;
+    const item = languages.find(languageItem => languageItem.value === language).value;
     const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
     currentVoiceArray(item, currentVoiceType);
     const currentVoice = currentVoiceArray(item, currentVoiceType);
@@ -190,7 +205,7 @@ const TextToSpeech = observer(() => {
   }, [language]);
 
   useEffect(() => {
-    const item = LANGUAGES.find(languageItem => languageItem.value === language).value;
+    const item = languages.find(languageItem => languageItem.value === language).value;
     const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
     const currentVoice = currentVoiceArray(item, currentVoiceType);
 
@@ -213,7 +228,7 @@ const TextToSpeech = observer(() => {
   useEffect(() => playVoice(), [audio]);
 
   const onLanguageSelect = value => {
-    const item = LANGUAGES.find(languageItem => languageItem.value === value).value;
+    const item = languages.find(languageItem => languageItem.value === value).value;
     setLanguage(item);
     const currentVoice = currentVoiceArray(item, voiceType);
 
@@ -235,15 +250,19 @@ const TextToSpeech = observer(() => {
     changeAndPlay(language, currentVoice, voiceEngine);
   };
 
-  const isPersonalizeText = useMemo(() => valueTextarea && unwrapTokens(valueTextarea).indexOf('{{') !== -1, [valueTextarea]);
+  const isPersonalizeText = useMemo(() => valueTextarea && valueTextarea.indexOf('{{') !== -1, [valueTextarea]);
 
   const isDisabledButton = useMemo(() => {
+    if (!symbols) {
+      return true;
+    }
+
     if (isPersonalizeText) {
       return !fallbackValue;
     } else {
       return !valueTextarea;
     }
-  }, [valueTextarea, fallbackValue, isPersonalizeText]);
+  }, [valueTextarea, fallbackValue, isPersonalizeText, symbols]);
 
   const maxTextSymbols = useMemo(() => {
     const value = isPersonalizeText ? maxSymbols.personalized : maxSymbols.text;
@@ -255,11 +274,12 @@ const TextToSpeech = observer(() => {
   ), [symbols]);
 
   const textValueAreaLength = useMemo(() => (
-    getValueLength(valueTextarea)
-  ), [valueTextarea]);
+    getValueLength(htmlText)
+  ), [htmlText]);
 
   const handleChange = useCallback((text, data) => {
-    setValueTextarea(text);
+    setValueTextarea(data.text);
+    setHtmlText(text);
     setCaret(data.caretOffset);
   }, [maxTextSymbols]);
 
@@ -271,15 +291,20 @@ const TextToSpeech = observer(() => {
     if (!symbols) {
       return true;
     }
-    return getValueLength(valueTextarea) >= maxSymbols.personalized;
-  }, [valueTextarea, symbols]);
+
+    return (
+      getValueLength(htmlText) >= maxTextSymbols
+      || getValueLength(htmlText) >= maxSymbols.personalized
+    );
+  }, [htmlText, symbols, maxTextSymbols]);
 
   const onAddTextToken = useCallback((token) => {
     if (disabledPersonalizedVoice) {
       return;
     }
-    const result = addToken(unwrapTokens(valueTextarea), token, caret);
-    setValueTextarea(wrapTokens(result));
+    const result = addToken(valueTextarea, token, caret);
+    setValueTextarea(result);
+    setHtmlText(wrapTokens(result));
   }, [valueTextarea, caret, maxTextSymbols]);
 
   const closeWindow = () => {
@@ -344,17 +369,19 @@ const TextToSpeech = observer(() => {
             <div className="text-to-speech__select-block">
               <FormSelect
                 label="Language"
-                items={LANGUAGES}
+                items={languages}
                 className="text-to-speech__selection"
                 selectClassName="text-to-speech__select-list"
                 value={language}
                 onChange={onLanguageSelect}
+                disabled={onlyLimitedTextToSpeech}
               />
               <FormSelect
                 label="Voice"
                 items={selectedVoices}
                 className="text-to-speech__selection"
-                selectClassName="text-to-speech__select-list"
+                selectClassName={classnames('text-to-speech__select-list',
+                  { 'text-to-speech__select-voice-list': onlyLimitedTextToSpeech })}
                 value={voice}
                 onChange={onVoiceSelect}
               />
@@ -380,7 +407,7 @@ const TextToSpeech = observer(() => {
           <FormTokensTextArea
             label="Text"
             inputClassName="text-to-speech__textarea"
-            value={valueTextarea}
+            value={htmlText}
             onChange={handleChange}
             additionalFieldName="text"
             caretName="caretOffset"
@@ -388,6 +415,7 @@ const TextToSpeech = observer(() => {
             updateCaret={(value) => setCaret(value.caretOffset)}
             maxTextSymbols={maxTextSymbols}
             symbolsCount={textValueAreaLength}
+            disabled={!maxTextSymbols}
           />
 
           <div className="text-to-speech__footer">
@@ -427,7 +455,7 @@ const TextToSpeech = observer(() => {
               />
               <button
                 onClick={existedAudio ? playVoice : getVoice}
-                className={classnames('btn-speech-get', { 'btn-custom-disabled': isDisabledButton || loading })}
+                className={classnames('btn-speech-get', { 'btn-speech-get-disabled': isDisabledButton || loading })}
                 disabled={isDisabledButton}
               >
                 {loading && !existedAudioFile ? <LibrarySpinner /> : (
@@ -440,7 +468,7 @@ const TextToSpeech = observer(() => {
               {existedAudioFile ? (
                 <button
                   onClick={saveVoice}
-                  className={classnames('btn-speech-get', { 'btn-custom-disabled': loading })}
+                  className={classnames('btn-speech-get', { 'btn-speech-get-disabled': loading })}
                 >
                   {loading ? <LibrarySpinner /> : (
                     <SVGInline

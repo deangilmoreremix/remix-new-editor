@@ -68,7 +68,7 @@ const MenuAppBar = observer(() => {
 
           <div className="container-menu__actions">
             <div className="container-menu__actions__item">
-              <HelpIconComponent noIcon message={headerTooltips.undo}>
+              <HelpIconComponent noDelay noIcon message={headerTooltips.undo}>
                 <div>
                   <SVGInline
                     className={classnames('icon icon-button', { active: canUndo })}
@@ -90,7 +90,7 @@ const MenuAppBar = observer(() => {
               </HelpIconComponent>
             </div>
             <div className="container-menu__actions__item">
-              <HelpIconComponent noIcon message={headerTooltips.redo}>
+              <HelpIconComponent noDelay noIcon message={headerTooltips.redo}>
                 <div>
                   <SVGInline
                     className={classnames('icon icon-button', { active: canRedo })}
@@ -112,7 +112,7 @@ const MenuAppBar = observer(() => {
               </HelpIconComponent>
             </div>
             <div className="container-menu__actions__item">
-              <HelpIconComponent noIcon message={headerTooltips.save}>
+              <HelpIconComponent noDelay noIcon message={headerTooltips.save}>
                 <div>
                   <SVGInline
                     className={`icon icon-button ${modified ? 'active-save' : ''}`}
