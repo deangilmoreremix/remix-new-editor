@@ -15,6 +15,11 @@
     background: $light-twinlight;
   }
 
+  &__information {
+    font-size: $defaultFontSize;
+    margin-bottom: 1rem;
+  }
+
   &__notification {
     margin-right: 2rem;
 

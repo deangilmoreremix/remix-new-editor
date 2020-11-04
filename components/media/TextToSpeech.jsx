@@ -347,7 +347,7 @@ const TextToSpeech = observer(() => {
     }
     if (getValueLength(htmlText) >= maxTextSymbols) {
       if (isPersonalizeText) {
-        return 'You have reached the maximum number of characters for Personalization. You can personalize this voice up to 70 characters. You can still add text up to 150 characters for this voice scene';
+        return 'You have reached the maximum number of characters for Personalization. You can personalize this voice up to 70 characters.';
       }
       return 'You have reached the maximum number of characters for this scene. The maximum number of 150 for each voice scene.';
     }
@@ -403,7 +403,7 @@ const TextToSpeech = observer(() => {
           {isPersonalizeText && (
             <Fragment>
               <FormTextArea
-                label="Fallback Value"
+                label="Fallback Text"
                 value={fallbackValue}
                 onChange={handleChangeFallback}
                 className="text-to-speech__textarea"
@@ -412,7 +412,7 @@ const TextToSpeech = observer(() => {
                 text
                 maxTextSymbols={maxFallbackSymbols}
               />
-              <p className="text-to-speech__info">Required field</p>
+              <p className="text-to-speech__info">{`Required field. Enter Fallback Text up to ${maxFallbackSymbols} characters.`}</p>
             </Fragment>
           )}
 
@@ -429,6 +429,8 @@ const TextToSpeech = observer(() => {
             symbolsCount={textValueAreaLength}
             disabled={!maxTextSymbols}
           />
+
+          <p className="text-to-speech__information">You can use 70 characters to personalize voice or 150 characters for voice without personalization.</p>
 
           {warningMessage && <p className="text-to-speech__warning">{warningMessage}</p>}
 
