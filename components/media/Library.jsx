@@ -508,6 +508,7 @@ const Library = observer((props) => {
       } finally {
         setIsLoading(false);
         setIsInitialLoading(false);
+        clearAllSelectedItems();
       }
     }
   };
