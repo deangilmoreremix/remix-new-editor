@@ -1,0 +1,43 @@
+@import "Basic";
+@import "Advanced";
+
+.inner-canvas {
+  svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .seethroughtext {
+    .font-color-section__input, .font-section__input {
+      width: 100%;
+    }
+
+    .font-decoration-section {
+      & > .checkbox-element {
+        display: flex;
+        justify-content: space-between;
+
+        & > .MuiIconButton-root {
+          margin-right: -9px;
+        }
+      }
+    }
+
+    .time-section {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .input-time-position {
+      width: 100%;
+
+      & + .input-time-position {
+        margin-top: 1rem;
+      }
+    }
+  }
+}
+

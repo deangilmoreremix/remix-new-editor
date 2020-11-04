@@ -9,13 +9,22 @@ import SettingsHeader from '../settings/SettingsHeader';
 
 const ModalContainer = observer(({ classNameWL }) => {
   const modalStore = useModalStore();
-  const { modalIds, modals, closeModal, updateHeader, updateClassName, options } = modalStore;
+  const {
+    modalIds,
+    modals,
+    closeModal,
+    updateHeader,
+    updateClassName,
+    updateMaxWidth,
+    options,
+  } = modalStore;
 
   const modalsToShow = modals.filter(m => modalIds.has(m.id));
 
   return modalsToShow.map(({
     id,
     className,
+    maxWidth,
     renderer: ModalComponent,
     header: headerProps,
     ...props
@@ -28,14 +37,14 @@ const ModalContainer = observer(({ classNameWL }) => {
     };
 
     const updateModalHeader = (newHeaderProps) => updateHeader(id, newHeaderProps);
-
     const updateModalClassName = (newHeaderProps) => updateClassName(id, newHeaderProps);
+    const updateModalMaxWidth = (newWidthProps) => updateMaxWidth(id, newWidthProps);
 
     return (
       <Dialog
         key={id}
         fullWidth={false}
-        // maxWidth={maxWidth}
+        maxWidth={maxWidth || 'sm'}
         open
         onClose={close}
         aria-labelledby="max-width-dialog-title"
@@ -49,6 +58,7 @@ const ModalContainer = observer(({ classNameWL }) => {
             handleClose={close}
             setHeader={updateModalHeader}
             setClassName={updateModalClassName}
+            setMaxWidth={updateModalMaxWidth}
           />
         </DialogContent>
       </Dialog>

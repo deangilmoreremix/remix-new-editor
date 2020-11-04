@@ -12,6 +12,7 @@ import UIStore from './stores/ui.store';
 import PresetStore from './stores/preset.store';
 import MakeStore from './stores/make.store';
 import SocketStore from './stores/socket.store';
+import MultiselectStore from './stores/multiselect.store';
 import WhiteLabelManager from '../lib/white-label/manager';
 import { initializeSockets } from './socket-io';
 
@@ -209,6 +210,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
         isServer,
         currentUser: creator.currentUser,
       }),
+      multiSelectStore: new MultiselectStore({ projectStore, userStore }),
     };
   }
   if (preloader) {
@@ -264,6 +266,7 @@ export function init(source) {
         isServer,
         currentUser: creator.currentUser,
       }),
+      multiSelectStore: new MultiselectStore({ projectStore, userStore }),
     };
   }
   initializeSockets(creator.authorization, creator.currentUser, creator.hostname);

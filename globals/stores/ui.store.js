@@ -61,6 +61,18 @@ export default class UIStore {
   };
 
   @action
+  closeProduceWindow = () => {
+    this.radioButtonTop = false;
+    this.radioButtonBottom = false;
+    this.checkboxLeft = false;
+    this.checkboxRight = false;
+    if (!this.isTimelineOpen) {
+      this.toggleIsExpand(true);
+    }
+  };
+
+
+  @action
   setPrevStateProduce = (value) => {
     this.prevStateProduce = value;
   };
@@ -72,6 +84,13 @@ export default class UIStore {
   @action
   toggleTimeLine = (value = false) => {
     this.isTimelineOpen = value;
+    if (this.isExpand && value) {
+      this.toggleIsExpand(false);
+    }
+
+    if (!value && !this.checkboxLeft && !this.checkboxRight && !this.isExpand) {
+      this.toggleIsExpand(true);
+    }
   };
   // timeline
 
@@ -107,23 +126,21 @@ export default class UIStore {
     this.toggleLeftBlock(false);
     this.toggleRightBlock();
     this.secondaryWindowType = WINDOW_TYPES.SETTING;
-    if (!this.isCanvasPresent) {
-      this.toggleVisibleCanvas();
-    }
   };
 
   @action
-  closeRightOpenCanvas = () => {
-    this.toggleRightBlock(false);
-    if (!this.isCanvasPresent) {
-      this.toggleVisibleCanvas();
-    }
+  setRecorder = (type) => {
+    this.toggleRightBlock();
+    this.secondaryWindowType = type;
+    this.toggleVisibleCanvas(true);
   };
 
   @action
   setLibraryType = (type) => {
     this.toggleRightBlock();
     this.toggleLeftBlock(false);
+    this.toggleTimeLine(false);
+    this.toggleVisibleCanvas(false);
     this.secondaryWindowType = type;
   };
 
@@ -152,7 +169,7 @@ export default class UIStore {
 
   @action
   toggleLeftBlock = (isOpen = true) => {
-    if (!this.checkboxRight && !isOpen) {
+    if (!this.checkboxRight && !isOpen && !this.isTimelineOpen) {
       this.toggleIsExpand();
     }
     this.checkboxLeft = isOpen;
@@ -160,7 +177,7 @@ export default class UIStore {
 
   @action
   toggleRightBlock = (isOpen = true) => {
-    if (!this.checkboxLeft && !isOpen) {
+    if (!this.checkboxLeft && !isOpen && !this.isTimelineOpen) {
       this.toggleIsExpand();
     }
     this.closeSecondaryWindow();
@@ -213,7 +230,7 @@ export default class UIStore {
     this.radioButtonBottom = false;
     this.setLibraryType(type);
     if (!this.isCanvasPresent) {
-      this.toggleVisibleCanvas();
+      this.toggleVisibleCanvas(false);
     }
   };
 
