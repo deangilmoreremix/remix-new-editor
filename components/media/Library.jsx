@@ -200,7 +200,7 @@ const Library = observer((props) => {
 
   const needValidation = React.useMemo(
     () => resourcesWithValidation.some(element => element === activeBtn)
-      && activeTab === LIBRARY_TABS.VIDEO,
+      && (activeTab === LIBRARY_TABS.VIDEO || activeTab === LIBRARY_TABS.IMAGE),
     [activeTab, activeBtn]);
 
   const activeSecureTab = React.useMemo(
@@ -296,6 +296,11 @@ const Library = observer((props) => {
           ]);
         }
       }
+
+      if (!data && !isScrolling) {
+        setItems([]);
+      }
+
       setHasMore(data && data.length === perPage);
     } catch (e) {
       showError('An error occurred while loading items');
@@ -693,6 +698,7 @@ const Library = observer((props) => {
                       <button
                         onClick={() => resetKeyInput()}
                         className="library__search-unlock-box"
+                        disabled={isInitialLoading}
                       >
                         RESET
                       </button>

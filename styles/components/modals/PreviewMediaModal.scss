@@ -1,29 +1,27 @@
-.preview-media-modal {
+div.modal-container__media-content {
   display: flex;
+  //height: 93vh;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  padding-bottom: .5rem;
-  background: #0F0F13;
+  background: #0F0F13 !important;
   border-radius: 5px;
-
-  .preview-video-player-container {
-    width: 100%;
-    height: 100%;
-  }
 
   .preview-image-container {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100%;
     width: 100%;
+    height: 70vh;
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+    }
   }
 
-  .preview-image {
-    height: 75vH;
+  .preview-video-player-container {
+    width: 100%;
+    height: 50vh;
   }
 
   .preview-video-player {
@@ -48,7 +46,6 @@
     margin-top: .5rem;
     display: flex;
     width: 100%;
-    height: 100%;
     justify-content: space-between;
     align-items: center;
   }
