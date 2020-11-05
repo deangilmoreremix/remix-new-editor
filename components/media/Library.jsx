@@ -1,21 +1,27 @@
-import React, { useState, useRef, useEffect, Fragment } from 'react';
-import { useDropzone } from 'react-dropzone';
+// todo remove it after testing multiselect
+/* eslint-disable no-unused-vars */
+import React, { useState, useRef, useEffect } from 'react';
+// import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
+import SearchIcon from '@material-ui/icons/Search';
+import Bb from 'bluebird';
 
 import { CircleLoader } from 'react-spinners';
+import SVGInline from 'react-svg-inline';
 import {
   tabItems,
   perPage,
-  // LIBRARY_TABS,
+  LIBRARY_TABS,
   LIBRARY_KEYS,
+  resourcesWithValidation,
 } from '../../lib/constants/library';
-import { LOADING_COLOR, WINDOW_TYPES } from '../../lib/constants/ui';
-import mediaConstants, { ASSET_TYPES } from '../../lib/constants/media';
+import { LOADING_COLOR } from '../../lib/constants/ui';
+import { ASSET_TYPES } from '../../lib/constants/media';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
-import { URL_RULE } from '../../lib/constants/regExps';
-import { TYPES } from '../../lib/constants/validator';
-import { ALL_VIDEO } from '../../lib/constants/formats';
+// import { URL_RULE } from '../../lib/constants/regExps';
+// import { TYPES } from '../../lib/constants/validator';
+// import { ALL_VIDEO } from '../../lib/constants/formats';
 import config from '../../config/config';
 import { showError } from '../../lib/services/alertService';
 
@@ -30,26 +36,33 @@ import useUIStore from '../hooks/useUIStore';
 import useUserStore from '../hooks/useUserStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
-import AudioControls from '../common/library/AudioControls';
-import DropPasteInput from './DropPasteInput';
+import useMultiSelectStore from '../hooks/useMultiSelectStore';
+// import AudioControls from '../common/library/AudioControls';
+// import DropPasteInput from './DropPasteInput';
 
 import withModal from '../hoc/withValidation';
 import Is360 from '../settings/video-settings/components/Is360';
-import HelpIconComponent from '../common/HelpIcon';
-import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
-
-const LIBRARY_TABS = {
-  IMAGE: 'IMAGE',
-  VIDEO: 'VIDEO',
-  AUDIO: 'AUDIO',
-};
-
+// import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
+// import FormTextField from '../form/FormTextField';
+import keyLock from '../../public/static/images/media/key-lock.svg';
 
 const Library = observer((props) => {
-  const { checkValue, setError } = props;
+  const { setError } = props;
   const uiStore = useUIStore();
   const projectStore = useProjectStore();
   const userStore = useUserStore();
+  const multiSelectStore = useMultiSelectStore();
+
+  const {
+    addSelectedElement,
+    deleteSelectedElement,
+    isItemPresent,
+    clearAllSelectedItems,
+    addAllSelectedItems,
+    emptyCollections,
+    selectedItemsId,
+    removeSelectedVideosAfterReset,
+  } = multiSelectStore;
 
   const {
     secondaryWindowType: activeTab,
@@ -59,7 +72,8 @@ const Library = observer((props) => {
     openSettings,
     toggleRightBlock,
     isTimelineOpen,
-    openTextToSpeech,
+    // openSecondaryModal,
+    toggleVisibleCanvas,
   } = uiStore;
 
   const {
@@ -72,12 +86,16 @@ const Library = observer((props) => {
     videoProvidersInfo,
     imageProvidersInfo,
     audioProvidersInfo,
+    voiceProvidersInfo,
     defaultProvidersInfo,
+    checkToken,
   } = useMediaStore();
 
-  const { video360Enabled } = userStore;
+  const { video360Enabled, isSuperAdmin, getUserKey, updateUserKeys } = userStore;
 
   // =============== STATE ===============
+  const [userValidationKey, setUserValidationKey] = useState();
+
   const [query, setQuery] = useState('');
 
   const [activeBtn, setActiveBtn] = useState(LIBRARY_KEYS.USER);
@@ -89,22 +107,24 @@ const Library = observer((props) => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
   const [is360, set360] = useState(false);
+  const [isKeyLoading, setIsKeyLoading] = useState(false);
 
   const [items, setItems] = useState([]);
   const [uploadedItems, setUploadedItems] = useState([]);
 
-  const [volume, setVolume] = useState(72);
+  // const [volume, setVolume] = useState(72);
   const [activeItem, setActiveItem] = useState(null);
 
   const inputRef = useRef();
+  const keyRef = useRef();
   const addFileInputRef = useRef();
 
   // =============== STATE ===============
 
   // ============ VOICE FILTER ===========
-  const [voice, setVoice] = useState(null);
-  const [language, setLanguage] = useState(null);
-  const [voiceType, setVoiceType] = useState(null);
+  // const [voice, setVoice] = useState(null);
+  // const [language, setLanguage] = useState(null);
+  // const [voiceType, setVoiceType] = useState(null);
   // ============ VOICE FILTER ===========
 
   useEffect(() => () => {
@@ -117,6 +137,22 @@ const Library = observer((props) => {
   }, []);
 
   const isVideoTab = React.useMemo(() => activeTab === LIBRARY_TABS.VIDEO, [activeTab]);
+
+  const itemsWithSelect = React.useMemo(() => {
+    if (selectedItemsId) {
+      const newArr = items.map(item => {
+        if (isItemPresent(item)) {
+          item.selected = true;
+        } else {
+          item.selected = false;
+        }
+        return item;
+      });
+      return newArr;
+    } else {
+      return items;
+    }
+  }, [selectedItemsId.length, items]);
 
   const showed360 = React.useMemo(() => video360Enabled && isVideoTab,
     [video360Enabled, isVideoTab]);
@@ -153,39 +189,61 @@ const Library = observer((props) => {
       case LIBRARY_TABS.AUDIO: {
         return audioProvidersInfo;
       }
-      // case LIBRARY_TABS.VOICE: {
-      //   return voiceProvidersInfo;
-      // }
+      case LIBRARY_TABS.VOICE: {
+        return voiceProvidersInfo;
+      }
       default: {
         return defaultProvidersInfo;
       }
     }
   }, [activeTab, activeBtn, userStore]);
 
-  const handleButtonClick = React.useCallback((element) => {
+  const needValidation = React.useMemo(
+    () => resourcesWithValidation.some(element => element === activeBtn)
+      && (activeTab === LIBRARY_TABS.VIDEO || activeTab === LIBRARY_TABS.IMAGE),
+    [activeTab, activeBtn]);
+
+  const activeSecureTab = React.useMemo(
+    () => !!((needValidation) || !needValidation),
+    [needValidation]);
+
+  useEffect(() => {
+    let validationKey = getUserKey(activeBtn);
+
+    if (needValidation) {
+      if (isSuperAdmin) {
+        setUserValidationKey(listProviders[activeBtn].apiKey);
+        onKeyEnter(listProviders[activeBtn].apiKey);
+      } else if (validationKey) {
+        validationKey = getUserKey(activeBtn);
+        setUserValidationKey(validationKey);
+        onKeyEnter(validationKey);
+      } else {
+        setUserValidationKey('');
+      }
+    } else if (libraryItemsForDelete.length) {
+      bulkDeleteItems();
+    } else {
+      fetchItems({ source: activeBtn });
+    }
+  }, [needValidation, activeBtn]);
+
+  const handleButtonClick = React.useCallback(async (element) => {
     if (!isLoading) {
       setActiveBtn(element);
     }
   }, [isLoading]);
 
-  useEffect(() => {
-    if (activeBtn || activeTab) {
-      if (libraryItemsForDelete.length) {
-        bulkDeleteItems();
-      } else {
-        fetchItems({ source: activeBtn });
-      }
-    }
-  }, [activeBtn]);
-
   const fetchItems = async ({ source = activeBtn, queryStr = query || '', isScrolling = false }) => {
     let currentPage = 0;
     let uploaded = [];
+
     if (isLoading) {
       return;
     }
 
     setIsLoading(true);
+
     if (!isScrolling) {
       setIsInitialLoading(true);
       setPageNumber(1);
@@ -208,11 +266,11 @@ const Library = observer((props) => {
       filter = source === LIBRARY_KEYS.PERSONALIZED_VOICE
         ? { 'extra.fallbackValue': { $exists: true } }
         : { _id: { $nin: uploaded } };
-      if (language) {
-        filter['extra.language'] = language;
-        filter['extra.voice'] = voice;
-        filter['extra.engine'] = voiceType;
-      }
+      // if (language) {
+      //   filter['extra.language'] = language;
+      //   filter['extra.voice'] = voice;
+      //   filter['extra.engine'] = voiceType;
+      // }
     } else {
       filter = { _id: { $nin: uploaded } };
     }
@@ -238,6 +296,11 @@ const Library = observer((props) => {
           ]);
         }
       }
+
+      if (!data && !isScrolling) {
+        setItems([]);
+      }
+
       setHasMore(data && data.length === perPage);
     } catch (e) {
       showError('An error occurred while loading items');
@@ -354,21 +417,45 @@ const Library = observer((props) => {
     }
   };
 
-  const onEnter = (url) => {
-    if (url && !URL_RULE.test(url)) {
-      url = `${window.location.protocol}//${url}`;
-    }
-    const err = checkValue(url, { type: TYPES.URL, isRequired: true });
-    if (!err) {
-      return onSelect({ url, is360 });
-    }
+  // const onEnter = (url) => {
+  //   if (url && !URL_RULE.test(url)) {
+  //     url = `${window.location.protocol}//${url}`;
+  //   }
+  //   const err = checkValue(url, { type: TYPES.URL, isRequired: true });
+  //   if (!err) {
+  //     return onSelect({ url, is360 });
+  //   }
+  // };
+
+  const onKeyEnter = async (key = '') => {
+    listProviders[activeBtn].apiKey = key || userValidationKey;
+    await fetchItems({ source: activeBtn });
   };
 
-  const { getInputProps } = useDropzone({
-    accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
-    onDrop,
-    disabled: false,
-  });
+  const verifyKey = async (key = '') => {
+    listProviders[activeBtn].apiKey = key || userValidationKey;
+    setIsKeyLoading(true);
+
+    if (await checkToken(activeBtn)) {
+      await Bb.all([
+        fetchItems({ source: activeBtn }),
+        updateUserKeys(activeBtn, key || userValidationKey),
+      ]);
+    } else {
+      showError(`WRONG CREDENTIALS: ${activeBtn === LIBRARY_KEYS.DROPMOCK
+        ? 'Looks like Your DropMock Fusion key is invalid'
+        : 'Looks like Your TxtVideo key is invalid'}`);
+      setItems([]);
+    }
+
+    setIsKeyLoading(false);
+  };
+
+  // const { getInputProps } = useDropzone({
+  //   accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
+  //   onDrop,
+  //   disabled: false,
+  // });
 
   // === Drag and Drop ===
 
@@ -378,9 +465,21 @@ const Library = observer((props) => {
     }
   };
 
-  const handleSetFocus = () => {
-    if (inputRef.current) {
-      inputRef.current.focus();
+  // const handleSetFocus = () => {
+  //   if (inputRef.current) {
+  //     inputRef.current.focus();
+  //   }
+  // };
+
+  const toogleSelectItem = (item) => {
+    if (isItemPresent(item)) {
+      deleteSelectedElement(item);
+    } else {
+      item.src = item.src || item.url;
+      item.type = MEDIA_TYPES[activeTab];
+      item.kind = activeTab.toLowerCase();
+      item.is360 = is360;
+      addSelectedElement(item);
     }
   };
 
@@ -391,6 +490,12 @@ const Library = observer((props) => {
     item.src = item.src || item.url;
     item.is360 = is360;
     item.type = MEDIA_TYPES[activeTab];
+    item.kind = ASSET_TYPES[activeTab];
+    if (activeTab === LIBRARY_TABS.VOICE) {
+      item.type = MEDIA_TYPES.AUDIO;
+    } else {
+      item.type = MEDIA_TYPES[activeTab];
+    }
 
     if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
       projectStore.showWarning(TEXT_TO_SPEECH_WARNING.title);
@@ -418,10 +523,29 @@ const Library = observer((props) => {
     setActiveItem(item);
   };
 
+  const addSelectedElements = async () => {
+    setIsLoading(true);
+    setIsInitialLoading(true);
+    try {
+      await addAllSelectedItems();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setIsLoading(false);
+      setIsInitialLoading(false);
+      clearAllSelectedItems();
+    }
+  };
+
   const onDelete = (id) => {
     const newArr = items.filter(item => item._id !== id);
     setLibraryItemsForDelete(id);
     setItems(newArr);
+  };
+
+  const closeLibrary = () => {
+    toggleRightBlock(false);
+    toggleVisibleCanvas(true);
   };
 
   const bulkDeleteItems = (unmount, searchText) => {
@@ -449,20 +573,13 @@ const Library = observer((props) => {
           audioActiveItem = activeBtn;
         }
         return (
-          <div className="library__audio-toolbar">
-            <ProviderList
-              activeItem={audioActiveItem}
-              title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
-              userContentTitle={tabItems[activeTab].label}
-              handleButtonClick={handleButtonClick}
-              list={listProviders}
-            />
-            <AudioControls
-              selected={audioActiveItem}
-              volume={volume}
-              setVolume={setVolume}
-            />
-          </div>
+          <ProviderList
+            activeItem={audioActiveItem}
+            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
+            userContentTitle={tabItems[activeTab].label}
+            handleButtonClick={handleButtonClick}
+            list={listProviders}
+          />
         );
       }
       default: return (
@@ -476,10 +593,24 @@ const Library = observer((props) => {
         />
       );
     }
-  }, [activeTab, activeBtn, volume, activeItem, listProviders, isLoading]);
+  }, [activeTab, activeBtn, activeItem, listProviders, isLoading]);
 
-  const openVoiceWindow = () => {
-    openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
+  // const openVoiceWindow = () => {
+  //   openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
+  // };
+
+  const getCurrentTab = () => {
+    if (activeTab === LIBRARY_TABS.AUDIO) {
+      return tabItems[activeTab].label.toLowerCase();
+    } else {
+      return tabItems[activeTab].label.slice(0, -1).toLowerCase();
+    }
+  };
+
+  const resetKeyInput = () => {
+    removeSelectedVideosAfterReset(activeBtn);
+    setUserValidationKey('');
+    setItems([]);
   };
 
   return (
@@ -487,57 +618,34 @@ const Library = observer((props) => {
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
-          <div className="library__add-file__container">
+          <div className="library__add-title-container">
             {
               activeTab !== LIBRARY_TABS.VOICE ? (
-                <div className="library__add-file">
-                  <input
-                    {...getInputProps()}
-                    id="add-file"
-                    disabled={isDisabledUpload}
-                    ref={addFileInputRef}
-                  />
-                  <label htmlFor="add-file" className="library__add">
-                    {
-                      isDisabledUpload ? <LibrarySpinner /> : `Add ${tabItems[activeTab].label}`
-                    }
-                  </label>
-                  <HelpIconComponent isLibrary message={tabItems[activeTab].tooltip} />
-                </div>
+                <span className="library__add">
+                  {
+                    isDisabledUpload
+                      ? <LibrarySpinner />
+                      // todo uncomment it after testing multiselect
+                      // : `You can select one or more ${getCurrentTab()}s then add to the timeline`
+                      : `You can select ${getCurrentTab()} then add to the timeline`
+                  }
+                </span>
               ) : (
-                <div className="library__add-file">
-                  <button className="library__add" onClick={openVoiceWindow}>
+                // todo Open Voice Modal
+                <button className="library__add-file library__open-window">
+                  <input id="add-file" />
+                  <label htmlFor="add-file" className="library__add">
                     Add Voice
-                  </button>
-                </div>
+                  </label>
+                </button>
               )
             }
-            {showed360
-            && (
-              <Is360
-                value={is360}
-                onChange={() => set360(!is360)}
-                className="flex-end is-360"
-                showHint
-              />
-            )}
           </div>
-          <div className="library__block-wrapper">
-            <div className="library__block">
-              {
-                isVideoTab && (
-                  <DropPasteInput
-                    onDrop={onDrop}
-                    accept={[ALL_VIDEO]}
-                    onEnter={onEnter}
-                  />
-                )
-            }
-            </div>
-            <div className="library__block">
-              {
-              activeBtn !== LIBRARY_KEYS.DROPMOCK && (
-                <Fragment>
+          <div className="library__block">
+            {renderSidebar()}
+            {!needValidation ? (
+              <>
+                <div className="library__search-box">
                   <input
                     className="library__search"
                     type="text"
@@ -545,74 +653,118 @@ const Library = observer((props) => {
                     ref={inputRef}
                     onChange={e => setQuery(e.target.value)}
                     onKeyDown={handleSearch}
+                    placeholder="search ..."
                   />
-                  {!query && (
-                    <button
-                      className="library__placeholder"
-                      onClick={handleSetFocus}
-                    >
-                      <div>
-                        {tabItems[activeTab].search.label}
-                        <span>{tabItems[activeTab].search.subLabel}</span>
-                      </div>
-                    </button>
+                  <div className="library__search-icon-box">
+                    <SearchIcon />
+                  </div>
+                </div>
+                {/* todo Uncomment it after testing multiselect */}
+                {/* <button */}
+                {/* className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })} */}
+                {/* onClick={addAllSelectedItems} */}
+                {/* disabled={emptyCollections} */}
+                {/* > */}
+                {/* Add to timeline */}
+                {/* </button> */}
+                {showed360 ? (
+                  <Is360
+                    value={is360}
+                    onChange={() => set360(!is360)}
+                    className="flex-end is-360"
+                    showHint
+                  />
+                ) : <div className="library__search-box-dummy" />}
+              </>
+            ) : (
+              <>
+                <div className="library__key-container">
+                  <div className="library__key-box">
+                    <SVGInline
+                      className="library__search-unlock-icon"
+                      svg={keyLock}
+                      component="div"
+                    />
+                    <input
+                      className={classnames('library__search', { 'library__search-disabled': items.length })}
+                      type="text"
+                      value={userValidationKey}
+                      onChange={(event) => setUserValidationKey(event.target.value)}
+                      placeholder="Paste the API key"
+                      disabled={items.length}
+                      ref={keyRef}
+                    />
+                    {items.length ? (
+                      <button
+                        onClick={() => resetKeyInput()}
+                        className="library__search-unlock-box"
+                        disabled={isInitialLoading}
+                      >
+                        RESET
+                      </button>
+                    ) : (
+                      <button
+                        disabled={isKeyLoading}
+                        onClick={() => verifyKey(userValidationKey)}
+                        className="library__search-unlock-box"
+                      >
+                        { isKeyLoading ? <LibrarySpinner /> : 'UNLOCK'}
+                      </button>
+                    )}
+                  </div>
+                  {items.length ? (
+                    <span>Press Reset button to clear the key.</span>
+                  ) : (
+                    <span>To unlock this library, you need to enter a custom key.</span>
                   )}
-                </Fragment>
-              )
-            }
-            </div>
-            {(activeTab === LIBRARY_KEYS.PERSONALIZED_VOICE || activeTab === LIBRARY_KEYS.VOICE)
-            && (
-              <LibraryVoiceFilter
-                language={language}
-                setLanguage={setLanguage}
-                voice={voice}
-                setVoice={setVoice}
-                voiceType={voiceType}
-                setVoiceType={setVoiceType}
-                fetchItems={fetchItems}
-              />
+                </div>
+                {/* todo Uncomment it after testing multiselect */}
+                {/* <button */}
+                {/* className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })} */}
+                {/* onClick={addAllSelectedItems} */}
+                {/* disabled={emptyCollections} */}
+                {/* > */}
+                {/* Add to timeline */}
+                {/* </button> */}
+                <div className="library__key-box-dummy" />
+              </>
             )}
           </div>
         </div>
-
         <div className="library__row library__row-second">
-          {renderSidebar()}
-          {isInitialLoading
-            ? (
-              <div className="library__items">
-                <CircleLoader
-                  size={100}
-                  css={{ margin: 'auto' }}
-                  loading
-                  color={LOADING_COLOR}
-                />
-              </div>
-            )
-            : (
-              <LibraryContent
-                activeItem={activeItem}
-                items={items}
-                onSelect={onSelect}
-                activeBtn={activeBtn}
-                activeTab={activeTab}
-                onDelete={onDelete}
-                onPlay={onPlay}
-                fetchItems={fetchItems}
-                isDisabledUpload={isDisabledUpload}
-                onDrop={onDrop}
-                hasMore={hasMore}
-                type={activeTab}
-                volume={volume}
+          {isInitialLoading ? (
+            <div className="library__items">
+              <CircleLoader
+                size={100}
+                css={{ margin: 'auto' }}
+                loading
+                color={LOADING_COLOR}
               />
-            )}
+            </div>
+          ) : (activeSecureTab && (
+            <LibraryContent
+              keyRef={keyRef}
+              needValidation={needValidation}
+              activeItem={activeItem}
+              items={itemsWithSelect}
+              onToggleSelect={toogleSelectItem}
+              addToTimeLine={addSelectedElements}
+              onSelect={onSelect}
+              activeBtn={activeBtn}
+              activeTab={activeTab}
+              onDelete={onDelete}
+              onPlay={onPlay}
+              fetchItems={fetchItems}
+              isDisabledUpload={isDisabledUpload}
+              onDrop={onDrop}
+              hasMore={hasMore}
+              type={activeTab}
+            />
+          ))}
         </div>
       </div>
-
-      <CloseButton onClick={() => toggleRightBlock(false)} />
+      <CloseButton onClick={closeLibrary} />
     </div>
   );
 });
-
-
 export default withModal(Library);

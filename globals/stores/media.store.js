@@ -554,10 +554,10 @@ export default class Media extends BaseStore {
     const providersInfo = { ...this.defaultProvidersInfo };
 
     providersInfo[LIBRARY_KEYS.REMOTE] = this.providersConfiguration[LIBRARY_KEYS.REMOTE];
-    // todo uncomment it
+    // todo uncomment it after fix free sound
     // if (this.userStore.isfeatureEnabled(FEATURES.FREESOUND_INTEGRATION)) {
-    //   providersInfo[LIBRARY_KEYS.FREESOUND] =
-    // this.providersConfiguration[LIBRARY_KEYS.FREESOUND];
+    //   providersInfo[LIBRARY_KEYS.FREESOUND]
+    // = this.providersConfiguration[LIBRARY_KEYS.FREESOUND];
     // }
     return providersInfo;
   }
@@ -569,6 +569,21 @@ export default class Media extends BaseStore {
       [LIBRARY_KEYS.PERSONALIZED_VOICE]:
         this.providersConfiguration[LIBRARY_KEYS.PERSONALIZED_VOICE],
     };
+  }
+
+  @computed
+  get generatorProviders() {
+    const providers = {};
+    providers[0] = this.providersList.REMOTE;
+    providers[1] = this.providersList.USER;
+    if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
+      providers[2] = this.providersList.PEXELS;
+    }
+    if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
+      providers[3] = this.providersList.PIXABAY;
+    }
+
+    return providers;
   }
 
   constructor(props) {

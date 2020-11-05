@@ -62,7 +62,6 @@ const FieldsTab = ({ kind, values, fields, onChange, type }) => {
           element.label = element.label ?? editElem.elements;
           element.type = editElem.elements ?? element.type;
           element.value = editElem.elements ?? element.value;
-          element.token = editElem?.elements?.toUpperCase() ?? element.token;
         }
       }
       return element;

@@ -7,10 +7,12 @@ import AudioPlayer from 'react-audio-player';
 import { ERROR_TEXT_SYMBOLS } from '../../lib/constants/text-info';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import {
-  VOICES,
-  LANGUAGES,
+  VOICES as UNLIMITED_VOICES,
+  LANGUAGES as UNLIMITED_LANGUAGES,
   engineType,
   LANGUAGES_PRO,
+  LIMITED_VOICES,
+  LIMITED_LANGUAGES,
   ENGINE_TYPE_VALUES,
   LANGUAGES_VALUES,
   maxSymbols,
@@ -41,7 +43,17 @@ import { LIBRARY_KEYS } from '../../lib/constants/library';
 const TextToSpeech = observer(() => {
   const { toggleRightBlock, isTimelineOpen, toggleVisibleCanvas } = useUIStore();
   const { getTemporaryTextToSpeech, saveTemporaryTextToSpeech, saveTextToSpeech } = useMediaStore();
-  const { getTextSpeechSymbols, textToSpeechNeuralEnabled } = useUserStore();
+  const {
+    getTextSpeechSymbols,
+    textToSpeechNeuralEnabled,
+    onlyLimitedTextToSpeech,
+  } = useUserStore();
+
+  const languages = React.useMemo(() => (onlyLimitedTextToSpeech ? LIMITED_LANGUAGES
+    : UNLIMITED_LANGUAGES), [onlyLimitedTextToSpeech]);
+
+  const userVoices = React.useMemo(() => (onlyLimitedTextToSpeech ? LIMITED_VOICES
+    : UNLIMITED_VOICES), [onlyLimitedTextToSpeech]);
 
   const [loading, setLoading] = useState(false);
 
@@ -50,8 +62,8 @@ const TextToSpeech = observer(() => {
 
   const [fallbackValue, setFallbackValue] = useState('');
   const [voice, setVoice] = useState();
-  const [language, setLanguage] = useState(LANGUAGES[0].value);
-  const [selectedVoices, setSelectedVoices] = useState(VOICES[LANGUAGES_VALUES.ENUS_STANDART]);
+  const [language, setLanguage] = useState(languages[0].value);
+  const [selectedVoices, setSelectedVoices] = useState(userVoices[LANGUAGES_VALUES.ENUS_STANDART]);
   const [voiceType, setVoiceType] = useState(engineType[0].value);
   const [caret, setCaret] = useState();
   const [symbols, setSymbols] = useState();
@@ -172,14 +184,14 @@ const TextToSpeech = observer(() => {
   const currentVoiceArray = (lan, currentVoiceType) => {
     const isLanguageWithPro = LANGUAGES_PRO.some(item => item.value === lan);
     if (isLanguageWithPro) {
-      return VOICES[`${lan}-${currentVoiceType}`];
+      return userVoices[`${lan}-${currentVoiceType}`];
     } else {
-      return VOICES[lan];
+      return userVoices[lan];
     }
   };
 
   useEffect(() => {
-    const item = LANGUAGES.find(languageItem => languageItem.value === language).value;
+    const item = languages.find(languageItem => languageItem.value === language).value;
     const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
     currentVoiceArray(item, currentVoiceType);
     const currentVoice = currentVoiceArray(item, currentVoiceType);
@@ -193,7 +205,7 @@ const TextToSpeech = observer(() => {
   }, [language]);
 
   useEffect(() => {
-    const item = LANGUAGES.find(languageItem => languageItem.value === language).value;
+    const item = languages.find(languageItem => languageItem.value === language).value;
     const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
     const currentVoice = currentVoiceArray(item, currentVoiceType);
 
@@ -216,7 +228,7 @@ const TextToSpeech = observer(() => {
   useEffect(() => playVoice(), [audio]);
 
   const onLanguageSelect = value => {
-    const item = LANGUAGES.find(languageItem => languageItem.value === value).value;
+    const item = languages.find(languageItem => languageItem.value === value).value;
     setLanguage(item);
     const currentVoice = currentVoiceArray(item, voiceType);
 
@@ -329,6 +341,18 @@ const TextToSpeech = observer(() => {
     changeAndPlay(language, item, voiceType);
   };
 
+  const warningMessage = useMemo(() => {
+    if (!symbols) {
+      return 'You have reached the maximum number of characters.';
+    }
+    if (getValueLength(htmlText) >= maxTextSymbols) {
+      if (isPersonalizeText) {
+        return 'You have reached the maximum number of characters for Personalization. You can personalize this voice up to 70 characters.';
+      }
+      return 'You\'ve reached the maximum number of characters. You are allowed up to 150 characters for each voice scene.';
+    }
+    return null;
+  }, [maxTextSymbols, htmlText, isPersonalizeText, symbols]);
 
   return (
     <div className={classnames('text-to-speech', { 'big-window': !isTimelineOpen })}>
@@ -357,17 +381,19 @@ const TextToSpeech = observer(() => {
             <div className="text-to-speech__select-block">
               <FormSelect
                 label="Language"
-                items={LANGUAGES}
+                items={languages}
                 className="text-to-speech__selection"
                 selectClassName="text-to-speech__select-list"
                 value={language}
                 onChange={onLanguageSelect}
+                disabled={onlyLimitedTextToSpeech}
               />
               <FormSelect
                 label="Voice"
                 items={selectedVoices}
                 className="text-to-speech__selection"
-                selectClassName="text-to-speech__select-list"
+                selectClassName={classnames('text-to-speech__select-list',
+                  { 'text-to-speech__select-voice-list': onlyLimitedTextToSpeech })}
                 value={voice}
                 onChange={onVoiceSelect}
               />
@@ -377,7 +403,7 @@ const TextToSpeech = observer(() => {
           {isPersonalizeText && (
             <Fragment>
               <FormTextArea
-                label="Fallback Value"
+                label="Fallback Text"
                 value={fallbackValue}
                 onChange={handleChangeFallback}
                 className="text-to-speech__textarea"
@@ -386,7 +412,7 @@ const TextToSpeech = observer(() => {
                 text
                 maxTextSymbols={maxFallbackSymbols}
               />
-              <p className="text-to-speech__info">Required field</p>
+              <p className="text-to-speech__info">{`Required field. Enter Fallback Text up to ${maxFallbackSymbols} characters.`}</p>
             </Fragment>
           )}
 
@@ -403,6 +429,10 @@ const TextToSpeech = observer(() => {
             symbolsCount={textValueAreaLength}
             disabled={!maxTextSymbols}
           />
+
+          <p className="text-to-speech__information">You can use 70 characters to personalize voice or 150 characters for voice without personalization.</p>
+
+          {warningMessage && <p className="text-to-speech__warning">{warningMessage}</p>}
 
           <div className="text-to-speech__footer">
             <div className="text-to-speech__notification">

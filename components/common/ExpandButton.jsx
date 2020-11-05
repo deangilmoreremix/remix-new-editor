@@ -28,7 +28,7 @@ const ExpandButton = observer(() => {
       className={classnames('expandButton', { 'expandButton-active': isExpand })}
       onClick={onCLick}
     >
-      <HelpIconComponent noIcon message={headerTooltips.expand}>
+      <HelpIconComponent noDelay noIcon message={headerTooltips.expand}>
         <div className="expandButton-content">
           <SVGInline
             className="expandButton-icon"

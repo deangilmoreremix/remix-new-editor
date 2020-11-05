@@ -48,6 +48,15 @@ export default () => {
     }
   };
 
+  const updateMaxWidth = (modalId, maxWidth) => {
+    if (modalId) {
+      const mutatedModalIndex = modals.findIndex(modal => modal.id === modalId);
+      const originalModal = MODAL_CONFIG.find(modal => modal.id === modalId);
+
+      modals[mutatedModalIndex].maxWidth = maxWidth || originalModal.maxWidth;
+    }
+  };
+
   const openCropper = async (scope) => {
     const {
       image,
@@ -117,6 +126,7 @@ export default () => {
     closeModal: action(closeModal),
     updateHeader: action(updateHeader),
     updateClassName: action(updateClassName),
+    updateMaxWidth: action(updateMaxWidth),
     openCropper,
     options,
     openImageEditor,

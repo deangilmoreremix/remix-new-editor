@@ -75,6 +75,7 @@
 @import "components/common/pause";
 @import "components/common/background";
 @import "components/common/HelpIcon";
+@import "components/common/text-mask";
 
 @import "components/campaigns/index";
 
@@ -96,8 +97,20 @@
 
 @font-face {
   font-family: "Proxima Nova";
-  src: url("/static/fonts/ProximaNova/ProximaNova-Regular.ttf");
-  src: url("/static/fonts/ProximaNova/ProximaNova-Regular.woff");
+  src: url("../public/static/fonts/ProximaNova/Proxima-Nova-Regular.otf") format("opentype");
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Proxima Light";
+  src: url("../public/static/fonts/ProximaNova/Proxima-Nova-Light.otf") format("opentype");
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Proxima Bold";
+  src: url("../public/static/fonts/ProximaNova/Proxima-Nova-Bold.otf") format("opentype");
+  font-style: normal;
 }
 
 .flex-end {

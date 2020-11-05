@@ -340,8 +340,8 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
         && (
         <Is360
           value={is360}
-          className="flex-end is-360"
-          onChange={() => changeIs360()}
+          className="is-360"
+          onChange={changeIs360}
         />
         )}
       </div>

@@ -6,6 +6,20 @@
     line-height: 1;
     margin-bottom: 0.93em;
   }
+
+  .is-360-wrapper {
+    width: 100%;
+  }
+
+  .is-360-checkbox {
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .is-360 {
+    order: 1;
+    margin-right: 0;
+  }
 }
 
 .hint-360 {
@@ -13,6 +27,7 @@
   font-size: 0.625rem;
   text-align: right;
   line-height: .937rem;
+  white-space: pre-line;
 }
 .is-360 {
   .checkmark {
@@ -20,12 +35,19 @@
   }
 }
 
-.is-360-wrapper {
-  width: 100%;
+.is-360-checkbox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+}
 
-  .is-360 {
-    > button {
-      margin-right: 1rem;
+.icon-360 {
+  width: 3em;
+
+  &-active {
+    svg path {
+      fill: $secondary-color;
     }
   }
 }
