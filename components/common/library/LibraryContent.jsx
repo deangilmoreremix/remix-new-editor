@@ -1,6 +1,6 @@
 // todo remove it after checking multiselect
 /* eslint-disable no-unused-vars */
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
@@ -58,6 +58,8 @@ const LibraryContent = observer((props) => {
     fetchItems({ source: activeBtn, isScrolling: true });
   };
 
+  const onEnded = useCallback(() => onPlay(null), []);
+
   const Element = (item) => {
     switch (type) {
       case LIBRARY_TABS.VIDEO: {
@@ -70,6 +72,7 @@ const LibraryContent = observer((props) => {
             item={item}
             volume={100}
             isActive={activeItem && activeItem.url === item.url}
+            onEnded={onEnded}
           />
         );
       }
