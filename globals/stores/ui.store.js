@@ -118,6 +118,7 @@ export default class UIStore {
 
   @action
   setUpdateElementInLibrary = (value = null) => {
+    this.toggleVisibleCanvas(true);
     this.updateElementInLibrary = value;
   };
 
@@ -141,6 +142,14 @@ export default class UIStore {
     this.toggleLeftBlock(false);
     this.toggleTimeLine(false);
     this.toggleVisibleCanvas(false);
+    this.secondaryWindowType = type;
+  };
+
+  @action
+  setOverlayType = (type) => {
+    this.toggleRightBlock();
+    this.toggleLeftBlock(false);
+    this.toggleTimeLine(false);
     this.secondaryWindowType = type;
   };
 

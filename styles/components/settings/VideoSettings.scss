@@ -6,6 +6,20 @@
     line-height: 1;
     margin-bottom: 0.93em;
   }
+
+  .is-360-wrapper {
+    width: 100%;
+  }
+
+  .is-360-checkbox {
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .is-360 {
+    order: 1;
+    margin-right: 0;
+  }
 }
 
 .hint-360 {
@@ -18,16 +32,6 @@
 .is-360 {
   .checkmark {
     margin-right: -9px;
-  }
-}
-
-.is-360-wrapper {
-  .is-360 {
-    margin-right: 1rem;
-
-    > button {
-      margin-right: 1rem;
-    }
   }
 }
 

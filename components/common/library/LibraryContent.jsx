@@ -1,3 +1,5 @@
+// todo remove it after checking multiselect
+/* eslint-disable no-unused-vars */
 import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
@@ -86,15 +88,16 @@ const LibraryContent = observer((props) => {
           <React.Fragment>
             {activebtn && (
               <div className="library__item-audio-top">
-                <button
-                  onClick={() => onToggleSelect(item)}
-                  className="library__item-audio-select"
-                >
-                  <SVGInline
-                    className="library__item-top-icon"
-                    svg={item.selected ? deselectIcon : selectIcon}
-                  />
-                </button>
+                {/* todo uncomment it after checking multiselect */}
+                {/* <button */}
+                  {/* onClick={() => onToggleSelect(item)} */}
+                  {/* className="library__item-audio-select" */}
+                {/* > */}
+                  {/* <SVGInline */}
+                {/* className="library__item-top-icon" */}
+                {/* svg={item.selected ? deselectIcon : selectIcon} */}
+                  {/* /> */}
+                {/* </button> */}
                 {
                   activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive && (
                     <button className="library__item-audio-delete" onClick={() => onDelete(item._id)}>
@@ -131,15 +134,16 @@ const LibraryContent = observer((props) => {
       default: return (
         <React.Fragment>
           <div className="library__item-top">
-            <button
-              className="library__item-select"
-              onClick={() => onToggleSelect(item)}
-            >
-              <SVGInline
-                className="library__item-top-icon"
-                svg={item.selected ? deselectIcon : selectIcon}
-              />
-            </button>
+            {/* todo uncomment it after checking multiselect */}
+            {/* <button */}
+            {/* className="library__item-select" */}
+            {/* onClick={() => onToggleSelect(item)} */}
+            {/* > */}
+            {/* <SVGInline */}
+            {/* className="library__item-top-icon" */}
+            {/* svg={item.selected ? deselectIcon : selectIcon} */}
+            {/* /> */}
+            {/* </button> */}
             {
               activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive && (
                 <button className="library__item-delete" onClick={() => onDelete(item._id)}>

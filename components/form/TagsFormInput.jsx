@@ -15,11 +15,10 @@ const TagsFormInput = ({
   disabled,
   isTooltip,
   tooltipMessage,
-  tooltipHeight,
 }) => (
   <div className={classnames('tags-input-block', className)}>
     {label && (
-      <>
+      <div className="tags-input-title-box">
         <p className={classnames('tags-input-title', labelClassName)}>
           {label}
         </p>
@@ -27,10 +26,9 @@ const TagsFormInput = ({
           <HelpIconComponent
             isInput
             message={tooltipMessage}
-            height={tooltipHeight}
           />
         )}
-      </>
+      </div>
     )}
     <TagsInput
       value={value}
@@ -53,7 +51,6 @@ TagsFormInput.propTypes = {
   disabled: PropTypes.bool,
   isTooltip: PropTypes.bool,
   tooltipMessage: PropTypes.string,
-  tooltipHeight: PropTypes.number,
 };
 
 export default TagsFormInput;

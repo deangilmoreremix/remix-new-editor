@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Fragment } from 'react';
 import PropTypes from '../../lib/PropTypes';
 
 import VideoPlayer from '../media/VideoGallery/VideoPlayer';
@@ -28,10 +28,10 @@ const PreviewMediaModal = ({ handleClose, options, setMaxWidth }) => {
   };
 
   return (
-    <div className="preview-media-modal">
+    <Fragment>
       {activeTab.toLowerCase() === ASSET_TYPES.IMAGE ? (
         <div className="preview-image-container">
-          <img className="preview-image" src={item.url} alt={`preview-${activeTab.toLowerCase()}`} />
+          <img src={item.url} alt={`preview-${activeTab.toLowerCase()}`} />
         </div>
       ) : (
         <>
@@ -50,7 +50,7 @@ const PreviewMediaModal = ({ handleClose, options, setMaxWidth }) => {
         <button className="preview-video-button" onClick={handleUseVideo}>Use</button>
         <button className="preview-video-button-cancel" onClick={handleClose}>Cancel</button>
       </div>
-    </div>
+    </Fragment>
   );
 };
 
