@@ -146,6 +146,14 @@ export default class UIStore {
   };
 
   @action
+  setOverlayType = (type) => {
+    this.toggleRightBlock();
+    this.toggleLeftBlock(false);
+    this.toggleTimeLine(false);
+    this.secondaryWindowType = type;
+  };
+
+  @action
   openTextToSpeech = (type) => {
     this.secondaryWindowType = type;
     this.toggleLeftBlock(false);

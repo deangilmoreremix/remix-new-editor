@@ -15,6 +15,11 @@
     background: $light-twinlight;
   }
 
+  &__information {
+    font-size: $defaultFontSize;
+    margin-bottom: 1rem;
+  }
+
   &__notification {
     margin-right: 2rem;
 
@@ -516,11 +521,19 @@
     align-items: center;
   }
 
+  &__warning {
+    margin-bottom: 0;
+    margin-top: 0.5rem;
+    font-size: $defaultFontSize;
+    color: $secondary-color;
+  }
+
   &__footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-top: 2.25rem;
+    font-size: $defaultFontSize;
   }
 
   &__buttons {
@@ -548,6 +561,7 @@
     &__notification {
       order: 1;
       margin-top: 1rem;
+      margin-right: 0;
     }
   }
 

@@ -81,11 +81,6 @@
   flex-wrap: wrap;
 }
 
-.is-360-wrapper {
-  width: 28%;
-  max-width: 22rem;
-}
-
 .library__body {
   @include tiny-scrollbar($thumbWidth: 0px);
   flex: 1;

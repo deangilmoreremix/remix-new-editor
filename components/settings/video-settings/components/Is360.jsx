@@ -6,7 +6,6 @@ import PropTypes from '../../../../lib/PropTypes';
 import FormCheckboxField from '../../../form/FormCheckboxField';
 import VRIcon from '../../../../public/static/images/media/360-degrees.svg';
 
-// todo update layout
 const Is360 = React.memo(({ value, onChange, className, showHint }) => (
   <div className="is-360-wrapper">
     <div className="is-360-checkbox">

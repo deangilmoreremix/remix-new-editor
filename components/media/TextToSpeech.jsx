@@ -341,6 +341,18 @@ const TextToSpeech = observer(() => {
     changeAndPlay(language, item, voiceType);
   };
 
+  const warningMessage = useMemo(() => {
+    if (!symbols) {
+      return 'You have reached the maximum number of characters.';
+    }
+    if (getValueLength(htmlText) >= maxTextSymbols) {
+      if (isPersonalizeText) {
+        return 'You have reached the maximum number of characters for Personalization. You can personalize this voice up to 70 characters.';
+      }
+      return 'You\'ve reached the maximum number of characters. You are allowed up to 150 characters for each voice scene.';
+    }
+    return null;
+  }, [maxTextSymbols, htmlText, isPersonalizeText, symbols]);
 
   return (
     <div className={classnames('text-to-speech', { 'big-window': !isTimelineOpen })}>
@@ -391,7 +403,7 @@ const TextToSpeech = observer(() => {
           {isPersonalizeText && (
             <Fragment>
               <FormTextArea
-                label="Fallback Value"
+                label="Fallback Text"
                 value={fallbackValue}
                 onChange={handleChangeFallback}
                 className="text-to-speech__textarea"
@@ -400,7 +412,7 @@ const TextToSpeech = observer(() => {
                 text
                 maxTextSymbols={maxFallbackSymbols}
               />
-              <p className="text-to-speech__info">Required field</p>
+              <p className="text-to-speech__info">{`Required field. Enter Fallback Text up to ${maxFallbackSymbols} characters.`}</p>
             </Fragment>
           )}
 
@@ -417,6 +429,10 @@ const TextToSpeech = observer(() => {
             symbolsCount={textValueAreaLength}
             disabled={!maxTextSymbols}
           />
+
+          <p className="text-to-speech__information">You can use 70 characters to personalize voice or 150 characters for voice without personalization.</p>
+
+          {warningMessage && <p className="text-to-speech__warning">{warningMessage}</p>}
 
           <div className="text-to-speech__footer">
             <div className="text-to-speech__notification">

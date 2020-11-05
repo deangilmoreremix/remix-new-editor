@@ -122,12 +122,6 @@ const Basic = ({ values, fields, onChange, handleClose, element: elementData }) 
               className="image-settings__field"
             />
           </div>
-          <div className="image-settings__cell--second">
-            <div className="image-settings__btn--block">
-              <a href="#" className="image-settings__information">i</a>
-              <button className="image-settings__btn">Personalize</button>
-            </div>
-          </div>
         </div>
       )}
 
@@ -211,7 +205,9 @@ const Basic = ({ values, fields, onChange, handleClose, element: elementData }) 
         onChange={onChange}
         floatClassName="image-settings__checkbox"
       />
-      <SetAsDefaultCheckbox />
+      <SetAsDefaultCheckbox
+        floatClassName="image-settings__checkbox"
+      />
     </Fragment>
   );
 };
