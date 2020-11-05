@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { observer } from 'mobx-react';
 
-import { generatorTabs } from '../../../lib/constants/templateGenerator';
-
 import useMediaStore from '../../hooks/useMediaStore';
 import { ASSET_TYPES } from '../../../lib/constants/media';
+import { LIBRARY_KEYS } from '../../../lib/constants/library';
 import { showError } from '../../../lib/services/alertService';
 import VideoGallery from '../../media/VideoGallery/VideoGallery';
 
@@ -14,16 +13,18 @@ const perPage = 10;
 const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
   const mediaStore = useMediaStore();
   const provider = mediaStore.providersList.USER;
-  const remoteProvider = mediaStore.providersList.REMOTE;
-  const pexelsProvider = mediaStore.providersList.PEXELS;
-  const pixabayProvider = mediaStore.providersList.PIXABAY;
   const assetType = ASSET_TYPES.VIDEO;
+  const { providers, generatorTabs } = mediaStore.generatorProviders;
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [hasMore, setHasMore] = useState(true);
   const [videos, setVideos] = useState([]);
-  const [activeTab, setTab] = useState(2);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setTab] = useState(
+    (Object.values(providers).includes(LIBRARY_KEYS.PIXABAY)
+      ? (Object.values(providers).indexOf(LIBRARY_KEYS.PIXABAY))
+      : (Object.values(providers).indexOf(LIBRARY_KEYS.USER))),
+  );
 
   useEffect(() => {
     setHeader({ activeTab, setTab, tabs: generatorTabs });
@@ -47,7 +48,6 @@ const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
     if (hasMore) {
       try {
         let results = '';
-        const providers = { 0: remoteProvider, 1: provider, 2: pexelsProvider, 3: pixabayProvider };
         results = await mediaStore.getAssets({
           assetType,
           page,
