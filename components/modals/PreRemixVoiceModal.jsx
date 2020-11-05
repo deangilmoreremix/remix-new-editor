@@ -26,7 +26,7 @@ const PreRemixVoiceModal = observer(() => {
     setIsRedirect(true);
   };
 
-  const upgradeFn = () => window.open('https://paykickstart.com');
+  // const upgradeFn = () => window.open('https://paykickstart.com');
 
   const withVoiceFn = async () => {
     setIsloading(true);
@@ -71,18 +71,18 @@ const PreRemixVoiceModal = observer(() => {
     return null;
   }, [scenario]);
 
-  const btnUpgrade = useMemo(() => {
-    if (scenario === preRemixVoice.noFeature.name
-      || scenario === preRemixVoice.noNeuralFeature.name
-      || scenario === preRemixVoice.allowedOnlyBaseTemplates.name) {
-      return (
-        <button className="pre-remix-voice__btn" onClick={upgradeFn}>
-          <span>Go to upgrade</span>
-        </button>
-      );
-    }
-    return null;
-  }, [scenario]);
+  // const btnUpgrade = useMemo(() => {
+  //   if (scenario === preRemixVoice.noFeature.name
+  //     || scenario === preRemixVoice.noNeuralFeature.name
+  //     || scenario === preRemixVoice.allowedOnlyBaseTemplates.name) {
+  //     return (
+  //       <button className="pre-remix-voice__btn" onClick={upgradeFn}>
+  //         <span>Go to upgrade</span>
+  //       </button>
+  //     );
+  //   }
+  //   return null;
+  // }, [scenario]);
 
   return (
     <Fragment>
@@ -90,7 +90,6 @@ const PreRemixVoiceModal = observer(() => {
       {isLoading ? <div className="pre-remix-voice__loader"><LibrarySpinner /></div> : (
         <div className="pre-remix-voice__btns">
           {btnNewProject}
-          {btnUpgrade}
           {btnRemixWithoutVoice}
           {btnRemixWithVoice}
         </div>
