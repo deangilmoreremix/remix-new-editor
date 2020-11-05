@@ -21,7 +21,6 @@ const blackCloud = createMuiTheme({
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         padding: '.5em',
         fontSize: '12px',
-        fontFamily: 'Proxima Nova',
         whiteSpace: 'pre-wrap',
         textAlign: 'center',
       },
