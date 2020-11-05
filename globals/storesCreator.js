@@ -71,7 +71,7 @@ class Creator {
     Object.assign(this, source);
     this.clientAuthHeader = `Basic ${btoa(`${this.common.clientId}:${this.common.clientSecret}`)}`;
     const accessToken = this.getCookies(AUTH_DATA_CONFIG.accessToken);
-    this.setupNetworkServices(accessToken, isServer, this.currentUser, req.whiteLabel);
+    this.setupNetworkServices(accessToken, isServer, this.currentUser);
   }
 
   getCookies(key) {
@@ -84,15 +84,14 @@ class Creator {
     }
   }
 
-  setupNetworkServices(accessToken, isServer = false, user, wl) {
+  setupNetworkServices(accessToken, isServer = false, user) {
     const { common } = this;
     if (accessToken) {
       this.authorization = `Bearer ${accessToken}`;
     } else {
       this.authorization = this.clientAuthHeader;
     }
-    const whiteLabel = (wl && wl.domain) || (common.whiteLabel && common.whiteLabel.domain) || 'videoremix.io';
-    this.hostname = `${common.prefixes.api}.${whiteLabel}`;
+    this.hostname = `${common.prefixes.api}.${(common.whiteLabel && common.whiteLabel.domain) || 'videoremix.io'}`;
     this.request = requestCreator(
       this.hostname,
       this.authorization,
