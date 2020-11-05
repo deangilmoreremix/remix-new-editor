@@ -41,4 +41,11 @@ div.modal-container__content.pre-remix-voice-modal {
       color: $white;
     }
   }
+
+  &__loader {
+    width: 28.75rem;
+    height: 1rem;
+    max-width: 100%;
+    margin: 0 auto 1rem;
+  }
 }

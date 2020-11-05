@@ -150,6 +150,8 @@ const Home = observer(() => {
     checkAndSave,
     undoRedoAction,
     projectData,
+    setIsRedirect,
+    isRedirect,
   } = projectStore;
 
   hotkeys.filter = () => true;
@@ -343,9 +345,15 @@ const Home = observer(() => {
     height,
   ]);
 
+  useEffect(() => {
+    if (asyncHero && !asyncHero.loading) {
+      setIsRedirect();
+    }
+  }, [asyncHero?.loading]);
+
   return (
     <React.Fragment>
-      {(asyncHero.loading) && (
+      {(asyncHero.loading || isRedirect) && (
         <Loader isLoading preloader />
       )}
       {asyncHero.error && (

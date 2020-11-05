@@ -1,4 +1,5 @@
-import React, { useMemo, Fragment } from 'react';
+import React, { useMemo, Fragment, useState } from 'react';
+import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 
 import preRemixVoice from '../../lib/constants/preRemixVoice';
@@ -7,22 +8,34 @@ import { PRE_REMIX_VOICE_MODAL } from '../../lib/constants/modals';
 import useModalStore from '../hooks/useModalStore';
 import useProjectStore from '../hooks/useProjectStore';
 
-const PreRemixVoiceModal = () => {
-  const { query: { remix } } = useRouter();
-  const { options: { scenario }, closeModal } = useModalStore();
-  const { remixPersonalizedOne, remixOne } = useProjectStore();
-  const title = useMemo(() => preRemixVoice[scenario].modalTitle, [scenario]);
+import { LibrarySpinner } from '../media/Loader';
 
-  const createNewProject = () => window.open('/');
+const PreRemixVoiceModal = observer(() => {
+  const [isLoading, setIsloading] = useState(false);
+
+  const router = useRouter();
+  const { query: { remix } } = router;
+  const { options: { scenario }, closeModal } = useModalStore();
+  const { remixPersonalizedOne, remixOne, setIsRedirect } = useProjectStore();
+
+  const title = useMemo(() => preRemixVoice[scenario]?.modalTitle, [scenario]);
+
+  const createNewProject = () => {
+    router.push('/');
+    closeModal(PRE_REMIX_VOICE_MODAL);
+    setIsRedirect(true);
+  };
 
   const upgradeFn = () => window.open('https://paykickstart.com');
 
   const withVoiceFn = async () => {
+    setIsloading(true);
     await remixPersonalizedOne(remix);
     closeModal(PRE_REMIX_VOICE_MODAL);
   };
 
   const withoutVoiceFn = async () => {
+    setIsloading(true);
     await remixOne(remix, true);
     closeModal(PRE_REMIX_VOICE_MODAL);
   };
@@ -34,7 +47,11 @@ const PreRemixVoiceModal = () => {
   ), []);
 
   const btnRemixWithoutVoice = useMemo(() => (
-    <button className="pre-remix-voice__btn" onClick={withoutVoiceFn}>
+    <button
+      className="pre-remix-voice__btn"
+      onClick={withoutVoiceFn}
+      disabled={isLoading}
+    >
       <span>Create a remix without voices</span>
     </button>
   ), []);
@@ -42,7 +59,11 @@ const PreRemixVoiceModal = () => {
   const btnRemixWithVoice = useMemo(() => {
     if (scenario === preRemixVoice.hasData.name) {
       return (
-        <button className="pre-remix-voice__btn" onClick={withVoiceFn}>
+        <button
+          className="pre-remix-voice__btn"
+          onClick={withVoiceFn}
+          disabled={isLoading}
+        >
           <span>Create a remix with voices</span>
         </button>
       );
@@ -66,14 +87,16 @@ const PreRemixVoiceModal = () => {
   return (
     <Fragment>
       {title && <p className="pre-remix-voice__title">{title}</p>}
-      <div className="pre-remix-voice__btns">
-        {btnNewProject}
-        {btnUpgrade}
-        {btnRemixWithoutVoice}
-        {btnRemixWithVoice}
-      </div>
+      {isLoading ? <div className="pre-remix-voice__loader"><LibrarySpinner /></div> : (
+        <div className="pre-remix-voice__btns">
+          {btnNewProject}
+          {btnUpgrade}
+          {btnRemixWithoutVoice}
+          {btnRemixWithVoice}
+        </div>
+      )}
     </Fragment>
   );
-};
+});
 
 export default PreRemixVoiceModal;

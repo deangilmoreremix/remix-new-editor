@@ -171,6 +171,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable isLoaded = false;
 
+  @observable isRedirect = false;
+
   @observable isPlayed = false;
 
   @observable isLooped = false;
@@ -221,6 +223,11 @@ export default class ProjectStore extends BaseStore {
   @observable warning = null;
 
   @observable success = null;
+
+  @action
+  setIsRedirect = (value = false) => {
+    this.isRedirect = value;
+  };
 
   @action
   undoRedoAction = (undo = true) => {
@@ -839,13 +846,15 @@ export default class ProjectStore extends BaseStore {
 
       const { scenario } = result;
 
-      if (scenario === preRemixVoice.withoutPersonalizeAssets.name) {
-        return this.remixOne(projectId);
-      } else if (scenario === preRemixVoice.isOwner.name) {
-        return this.remixPersonalizedOne(projectId);
-      } else {
-        openModal(PRE_REMIX_VOICE_MODAL, { scenario });
-        return this.remixOne();
+      switch (scenario) {
+        case preRemixVoice.withoutPersonalizeAssets.name:
+          return this.remixOne(projectId);
+        case preRemixVoice.isOwner.name:
+          return this.remixPersonalizedOne(projectId);
+        default: {
+          openModal(PRE_REMIX_VOICE_MODAL, { scenario });
+          return this.remixOne();
+        }
       }
     } catch (e) {
       return this.remixOne();
