@@ -349,7 +349,7 @@ const TextToSpeech = observer(() => {
       if (isPersonalizeText) {
         return 'You have reached the maximum number of characters for Personalization. You can personalize this voice up to 70 characters.';
       }
-      return 'You reached the max number of characters for this voice scene. You can use up to 150 for each voice scene.';
+      return 'You\'ve reached the maximum number of characters. You are allowed up to 150 characters for each voice scene.';
     }
     return null;
   }, [maxTextSymbols, htmlText, isPersonalizeText, symbols]);
