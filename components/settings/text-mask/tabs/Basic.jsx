@@ -8,6 +8,7 @@ import FieldBuilder from '../../../form/FieldBuilder';
 import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
 
 import { addToken, wrapTokens, wrapSvgTokens } from '../../../../lib/utils/tokens-helper';
+import { TOKEN_FORMATS } from '../../../../lib/constants/tokens';
 
 const Basic = observer(({ options, element, fields, onChange }) => {
   const {
@@ -59,6 +60,7 @@ const Basic = observer(({ options, element, fields, onChange }) => {
           {...fields.htmlText}
           onChange={onChange}
           updateCaret={(value) => onChange({ caretOffset: value })}
+          tokenType={TOKEN_FORMATS.SVG}
         />
       </div>
       <PersonalizeButton onAdd={onAddTextToken} />
