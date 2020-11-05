@@ -12,7 +12,7 @@
   }
 
   .is-360-checkbox {
-    justify-content: unset;
+    justify-content: flex-end;
     align-items: center;
   }
 
@@ -32,16 +32,6 @@
 .is-360 {
   .checkmark {
     margin-right: -9px;
-  }
-}
-
-.is-360-wrapper {
-  .is-360 {
-    margin-right: 1rem;
-
-    > button {
-      margin-right: 1rem;
-    }
   }
 }
 
