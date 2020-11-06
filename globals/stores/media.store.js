@@ -322,12 +322,12 @@ export default class Media extends BaseStore {
   };
 
   @action
-  deleteAsset = async () => {
+  deleteAsset = async (isTextToSpeech = false) => {
     if (this.libraryItemsForDelete.length) {
       const promiseArr = this.libraryItemsForDelete.map(id => (
         this.request(
-          `/api/users/me/media-assets/${id}`, {
-            method: 'DELETE',
+          isTextToSpeech ? `/api/media-assets/${id}/hide` : `/api/users/me/media-assets/${id}`, {
+            method: isTextToSpeech ? 'PATCH' : 'DELETE',
             headers: {
               'on-behalf': this.currentUser.id,
             },
