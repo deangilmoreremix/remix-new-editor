@@ -299,8 +299,9 @@ export default class ProjectStore extends BaseStore {
         let { fileMeta } = item;
         if (!fileMeta) {
           try {
-            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration,
-              this.userStore.video360Enabled);
+            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], item.kind === 'audio'
+              ? 'audio' : 'video', fileDuration,
+            this.userStore.video360Enabled);
           } catch (e) {
             // if there is no error, then loading will hide, after adding the item to the popcorn
             this.isLoadingSequencer = false;

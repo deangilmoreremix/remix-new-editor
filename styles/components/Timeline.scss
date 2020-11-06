@@ -297,6 +297,10 @@ div.popcorn-element-personalized-voice {
         left: 100%;
       }
     }
+    &:hover {
+      min-width: 80px;
+      z-index: 1;
+    }
   }
 }
 
