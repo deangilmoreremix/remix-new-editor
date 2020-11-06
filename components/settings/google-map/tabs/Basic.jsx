@@ -97,7 +97,7 @@ const Basic = ({ values, fields, onChange, element }) => {
   };
 
   const onChangeType = (newValue) => {
-    onChange({ ...newValue, actionType: newValue.type });
+    onChange({ ...newValue, actionType: newValue.type, oldType: typeValue });
   };
 
   return (

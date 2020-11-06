@@ -18,6 +18,8 @@ import { FEATURES } from '../../lib/constants/features';
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import config from '../../config/config';
 import requestCreator from '../../lib/requestCreator';
+import { generatorTabs } from '../../lib/constants/templateGenerator';
+
 
 export default class Media extends BaseStore {
   @observable providersConfiguration = null;
@@ -576,14 +578,16 @@ export default class Media extends BaseStore {
     const providers = {};
     providers[0] = this.providersList.REMOTE;
     providers[1] = this.providersList.USER;
-    if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
-      providers[2] = this.providersList.PEXELS;
+    if (this.userStore.isfeatureEnabled(FEATURES.PEXELS_VIDEO_INTEGRATION)) {
+      providers[Object.keys(providers).length] = this.providersList.PEXELS;
+      generatorTabs.push({ label: LIBRARY_KEYS.PEXELS.toLowerCase() });
     }
     if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
-      providers[3] = this.providersList.PIXABAY;
+      providers[Object.keys(providers).length] = this.providersList.PIXABAY;
+      generatorTabs.push({ label: LIBRARY_KEYS.PIXABAY.toLowerCase() });
     }
 
-    return providers;
+    return { providers, generatorTabs };
   }
 
   constructor(props) {
