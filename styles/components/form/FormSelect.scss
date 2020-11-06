@@ -48,8 +48,8 @@
 
     .select__menu-list {
       @include tiny-scrollbar;
-      height: 10em;
       text-align: center;
+      max-height: 10em;
 
       .select__option {
         color: $white;
