@@ -103,7 +103,7 @@ const LibraryContent = observer((props) => {
                 {
                   activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive
                   && !item.selected && (
-                    <button className="library__item-audio-delete" onClick={() => onDelete(item._id)}>
+                    <button className="library__item-audio-delete" onClick={(e) => onDelete(e, item._id)}>
                       <SVGInline
                         className="library__item-top-icon"
                         svg={trashIcon}
@@ -149,7 +149,7 @@ const LibraryContent = observer((props) => {
             {
               activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive
               && !item.selected && (
-                <button className="library__item-delete" onClick={() => onDelete(item._id)}>
+                <button className="library__item-delete" onClick={(e) => onDelete(e, item._id)}>
                   <SVGInline
                     className="library__item-top-icon"
                     svg={trashIcon}
