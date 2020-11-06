@@ -92,7 +92,7 @@ const LibraryContent = observer((props) => {
             {activebtn && (
               <div className="library__item-audio-top">
                 <button
-                  onClick={() => onToggleSelect(item)}
+                  onClick={(e) => onToggleSelect(e, item)}
                   className="library__item-audio-select"
                 >
                   <SVGInline
@@ -138,7 +138,7 @@ const LibraryContent = observer((props) => {
           <div className="library__item-top">
             <button
               className="library__item-select"
-              onClick={() => onToggleSelect(item)}
+              onClick={(e) => onToggleSelect(e, item)}
             >
               <SVGInline
                 className="library__item-top-icon"
@@ -262,9 +262,12 @@ const LibraryContent = observer((props) => {
 
           {
             items.length ? items.map(item => (
+              // eslint-disable-next-line max-len
+              // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
               <div
                 key={item._id || item.url}
                 className={classnames('library__item', { 'library__item-selected': item.selected })}
+                onClick={(e) => onToggleSelect(e, item)}
               >
                 {Element(item)}
                 <div className="library__item-actions">
