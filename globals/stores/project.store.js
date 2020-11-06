@@ -9,6 +9,8 @@ import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import { GOOGLE_MAP_VALUES } from '../../lib/constants/googleMap';
+import preRemixVoice from '../../lib/constants/preRemixVoice';
+import { PRE_REMIX_VOICE_MODAL } from '../../lib/constants/modals';
 
 import {
   SEQUENCER,
@@ -169,6 +171,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable isLoaded = false;
 
+  @observable isRedirect = false;
+
   @observable isPlayed = false;
 
   @observable isLooped = false;
@@ -219,6 +223,11 @@ export default class ProjectStore extends BaseStore {
   @observable warning = null;
 
   @observable success = null;
+
+  @action
+  setIsRedirect = (value = false) => {
+    this.isRedirect = value;
+  };
 
   @action
   undoRedoAction = (undo = true) => {
@@ -824,7 +833,82 @@ export default class ProjectStore extends BaseStore {
   });
 
   @action
-  remixOne = async (projectId) => {
+  preRemix = async (projectId, openModal) => {
+    const path = `/api/makes/${projectId}/pre-remix`;
+    try {
+      const result = await this.request(
+        path, {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+
+      const { scenario } = result;
+
+      switch (scenario) {
+        case preRemixVoice.withoutPersonalizeAssets.name:
+          return this.remixOne(projectId);
+        case preRemixVoice.isOwner.name:
+          return this.remixPersonalizedOne(projectId);
+        default: {
+          openModal(PRE_REMIX_VOICE_MODAL, { scenario });
+          return this.remixOne();
+        }
+      }
+    } catch (e) {
+      return this.remixOne();
+    }
+  };
+
+  @action
+  fillMakeData = (result, isRemix = false) => {
+    this.item.title = `Remix of ${result.title}`;
+    this.item.thumbnail = result.thumbnail;
+    this.item.description = result.description;
+    this.item.remixedFrom = result.project._id;
+    this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${result._id}`;
+    this.setProjectData(JSON.parse(result.project.data));
+    if (isRemix) {
+      this.setPopcorn();
+      this.attach();
+    }
+    if (result.project && result.project.retargetForm) {
+      this.retarget = this.item.project.retargetForm || result.project.retargetForm;
+    }
+    if (result.project && result.project.allowedSocials) {
+      this.item.allowedSocials = result.project.allowedSocials;
+    }
+  };
+
+  @action
+  remixPersonalizedOne = async (projectId) => {
+    this.modified = true;
+    this.item = DEFAULT_ITEM;
+    if (!projectId) {
+      this.setProjectData(this.item.project.data);
+      return this.item;
+    }
+    const path = `/api/makes/${projectId}/remix-personalized`;
+    try {
+      const result = await this.request(
+        path, {
+          method: 'POST',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+      this.fillMakeData(result, true);
+    } catch (e) {
+      this.item = DEFAULT_ITEM;
+      this.setProjectData(this.item.project.data);
+      throw e;
+    }
+    return this.item;
+  };
+
+  @action
+  remixOne = async (projectId, isRemix) => {
     this.modified = true;
     this.item = DEFAULT_ITEM;
     if (!projectId) {
@@ -840,18 +924,7 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
         });
-      this.item.title = `Remix of ${result.title}`;
-      this.item.thumbnail = result.thumbnail;
-      this.item.description = result.description;
-      this.item.remixedFrom = result.project._id;
-      this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${result._id}`;
-      this.setProjectData(JSON.parse(result.project.data));
-      if (result.project && result.project.retargetForm) {
-        this.retarget = this.item.project.retargetForm || result.project.retargetForm;
-      }
-      if (result.project && result.project.allowedSocials) {
-        this.item.allowedSocials = result.project.allowedSocials;
-      }
+      this.fillMakeData(result, isRemix);
     } catch (e) {
       this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);

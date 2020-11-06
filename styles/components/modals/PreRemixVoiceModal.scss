@@ -1,0 +1,51 @@
+div.modal-container__content.pre-remix-voice-modal {
+  padding-top: 2rem;
+  padding-bottom: 1rem;
+  background: #0F0F13;
+  border: 1px solid $border-color;
+  border-radius: 10px;
+}
+
+.pre-remix-voice {
+  &__title {
+    text-align: center;
+    margin-bottom: 2em;
+  }
+
+  &__btns {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin: 0 -0.5rem;
+  }
+
+  &__btn {
+    @include reset-button;
+    flex: 1;
+    height: 2.174rem;
+    border-radius: 4px;
+    color: $white;
+    font-size: $defaultFontSize;
+    margin: 0 0.5rem 1rem;
+    border: 1px solid $secondary-color;
+
+    span {
+      margin: 0 1.5em;
+      white-space: nowrap;
+    }
+
+    &:hover {
+      background: $secondary-color;
+      text-decoration: none;
+      color: $white;
+    }
+  }
+
+  &__loader {
+    width: 28.75rem;
+    height: 1rem;
+    max-width: 100%;
+    margin: 0 auto 1rem;
+  }
+}
