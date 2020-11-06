@@ -21,7 +21,7 @@
     font-family: helvetica, arial, sans-serif;
 
     .user-image img {
-      width: 50px;
+      width: 50px !important;
       height: 50px;
     }
 
@@ -132,10 +132,20 @@
       margin-bottom: 3%;
     }
 
+    .embed-group {
+      &:last-of-type {
+        align-items: baseline;
+      }
+    }
+
     .facebook-post-input {
       width: 100%;
       background: transparent;
       margin-left: 4%;
+    }
+    .drop-area {
+      justify-content: unset;
+      margin-top: 0.5rem;
     }
   }
 }

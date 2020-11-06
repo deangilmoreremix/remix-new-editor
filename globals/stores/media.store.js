@@ -571,6 +571,21 @@ export default class Media extends BaseStore {
     };
   }
 
+  @computed
+  get generatorProviders() {
+    const providers = {};
+    providers[0] = this.providersList.REMOTE;
+    providers[1] = this.providersList.USER;
+    if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
+      providers[2] = this.providersList.PEXELS;
+    }
+    if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
+      providers[3] = this.providersList.PIXABAY;
+    }
+
+    return providers;
+  }
+
   constructor(props) {
     super(props);
     this.assetsRequest = props.assetsRequest;
