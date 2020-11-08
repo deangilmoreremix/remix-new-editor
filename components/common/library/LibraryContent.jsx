@@ -40,6 +40,7 @@ const LibraryContent = observer((props) => {
     activeItem,
     needValidation,
     keyRef,
+    isViewedValidationBlock,
   } = props;
 
   const { openModal } = useModalStore();
@@ -231,7 +232,7 @@ const LibraryContent = observer((props) => {
 
   return (
     <div className={classnames('library__items', `library__items--${activeTab.toLowerCase()}`)}>
-      {(needValidation && !items.length) ? generateLockedFiles() : (
+      {(needValidation && isViewedValidationBlock) ? generateLockedFiles() : (
         <>
           {
             activeBtn === LIBRARY_KEYS.USER && activeTab !== LIBRARY_TABS.VOICE && (
@@ -312,6 +313,7 @@ LibraryContent.propTypes = {
   hasMore: PropTypes.bool.isRequired,
   type: PropTypes.string.isRequired,
   needValidation: PropTypes.bool.isRequired,
+  isViewedValidationBlock: PropTypes.bool.isRequired,
 };
 
 export default LibraryContent;
