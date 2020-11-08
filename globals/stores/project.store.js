@@ -165,6 +165,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable activeElementId;
 
+  @observable voiceTextId;
+
   @observable assets = [];
 
   @observable item = {};
@@ -223,6 +225,11 @@ export default class ProjectStore extends BaseStore {
   @observable warning = null;
 
   @observable success = null;
+
+  @action
+  setVoiceTextId = (id = this.activeElementId) => {
+    this.voiceTextId = id;
+  };
 
   @action
   setIsRedirect = (value = false) => {

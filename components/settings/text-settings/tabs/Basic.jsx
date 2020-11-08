@@ -1,5 +1,6 @@
 import React, { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
+import classnames from 'classnames';
 
 import FieldBuilder from '../../../form/FieldBuilder';
 import SetAsDefaultCheckbox from '../../default-settings/SetAsDefaultCheckbox';
@@ -8,6 +9,7 @@ import PersonalizeButton from '../../../common/personalization/PersonalizeButton
 
 import useUIStore from '../../../hooks/useUIStore';
 import useUserStore from '../../../hooks/useUserStore';
+import useProjectStore from '../../../hooks/useProjectStore';
 
 import {
   padding,
@@ -17,6 +19,7 @@ import {
 } from '../../../../lib/constants/settings/vrtext-element';
 import { FEATURES } from '../../../../lib/constants/features';
 import { LABEL_CLICK_TO_PHONE } from '../../../../lib/constants/popcorn';
+import { WINDOW_TYPES } from '../../../../lib/constants/ui';
 
 import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 
@@ -28,11 +31,15 @@ const Basic = observer(({ values, fields, element, onChange }) => {
   const [positionHorizontal, setPositionHorizontal] = useState();
   const [positionVertical, setPositionVertical] = useState();
 
-  const { openAnimation } = useUIStore();
+  const { setVoiceTextId } = useProjectStore();
+  const { openAnimation, openTextToSpeech } = useUIStore();
   const {
     currentUser: user,
     isfeatureEnabled: checkStateFeature,
     clickToPhoneCall,
+    textToSpeechStandardEnabled,
+    textToSpeechNeuralEnabled,
+    textToSpeechBaseEnabled,
   } = useUserStore();
 
   const {
@@ -176,6 +183,23 @@ const Basic = observer(({ values, fields, element, onChange }) => {
 
   const hint = useMemo(() => (clickToPhoneCall ? HINTS.LINK_URL_PHONE : HINTS.LINK_URL));
 
+  const isViewVoiceBtn = useMemo(() => {
+    if (textToRender
+      && (textToSpeechStandardEnabled || textToSpeechNeuralEnabled || textToSpeechBaseEnabled)) {
+      return true;
+    }
+    return false;
+  }, [textToRender,
+    textToSpeechStandardEnabled,
+    textToSpeechNeuralEnabled,
+    textToSpeechBaseEnabled,
+  ]);
+
+  const openVoice = () => {
+    setVoiceTextId();
+    openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
+  };
+
   return (
     <Fragment>
       <div className="text-container">
@@ -226,7 +250,12 @@ const Basic = observer(({ values, fields, element, onChange }) => {
           updateCaret={(value) => onChange({ caretOffset: value })}
         />
       </div>
-      <PersonalizeButton onAdd={onAddTextToken} />
+      <div className={classnames('text-buttons-container', { 'text-buttons-container-once': !isViewVoiceBtn })}>
+        {isViewVoiceBtn && (
+          <button className="open-text-to-speech" onClick={openVoice}>Voice</button>
+        )}
+        <PersonalizeButton onAdd={onAddTextToken} />
+      </div>
       <div>
         <div className="link-url-container">
           <FieldBuilder
