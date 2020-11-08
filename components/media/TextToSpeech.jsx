@@ -142,8 +142,13 @@ const TextToSpeech = observer(() => {
 
         textArray[lastItemIndex] = textArray[lastItemIndex].slice(0,
           textArray[lastItemIndex].length - difference);
-        const newArray = textArray.slice(0, lastItemIndex + 1);
-        newText = newArray.join(' ');
+
+        if (newTextLength > maxVoiceSymbols) {
+          const newArray = textArray.slice(0, lastItemIndex + 1);
+          newText = newArray.join(' ');
+        } else {
+          newText = textArray.join(' ');
+        }
 
         const isBracketsStart = newText.lastIndexOf('{{');
         const isBracketsEnd = newText.lastIndexOf('}}');
