@@ -1144,6 +1144,7 @@ export default class ProjectStore extends BaseStore {
             zindex: null,
             start: null,
             end: null,
+            type: trackEvent.type,
           };
 
           if (trackEvent.popcornOptions.start === firstElementStart) {
