@@ -323,7 +323,7 @@ export default class ProjectStore extends BaseStore {
             throw e;
           }
         }
-        options.end = options.start + (fileMeta?.duration ?? item.duration);
+        options.end = item.end || (options.start + (fileMeta?.duration ?? item.duration));
         options.source = source;
         options.title = fileMeta?.title ?? item.title;
         options.duration = fileMeta?.duration ?? item.duration;

@@ -182,7 +182,15 @@ const Home = observer(() => {
         case twoKeys.ctrlD:
         case twoKeys.commandD: {
           event.preventDefault();
-          if (!event.target.classList.contains('popcorn-element')) {
+          let isStopCommand = true;
+
+          event.target.classList.forEach(item => {
+            if (item.indexOf('popcorn-element') !== -1) {
+              isStopCommand = false;
+            }
+          });
+
+          if (isStopCommand) {
             return null;
           }
 
