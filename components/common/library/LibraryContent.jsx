@@ -62,7 +62,11 @@ const LibraryContent = observer((props) => {
   const Element = (item) => {
     switch (type) {
       case LIBRARY_TABS.VIDEO: {
-        return <video src={item.preview || item.url}><track /></video>;
+        const videoProps = {};
+        if (item.poster) {
+          videoProps.poster = item.poster;
+        }
+        return <video src={item.preview || item.url} {...videoProps}><track /></video>;
       }
       case LIBRARY_TABS.AUDIO:
       case LIBRARY_TABS.VOICE: {

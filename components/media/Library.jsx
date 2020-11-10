@@ -214,10 +214,7 @@ const Library = observer((props) => {
     let validationKey = getUserKey(activeBtn);
 
     if (needValidation) {
-      if (isSuperAdmin) {
-        setUserValidationKey(listProviders[activeBtn].apiKey);
-        onKeyEnter(listProviders[activeBtn].apiKey);
-      } else if (validationKey) {
+      if (validationKey) {
         validationKey = getUserKey(activeBtn);
         setUserValidationKey(validationKey);
         onKeyEnter(validationKey);

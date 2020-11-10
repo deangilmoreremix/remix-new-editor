@@ -399,12 +399,19 @@ export default class Media extends BaseStore {
   checkToken = async (activeBtn) => {
     let result;
     const { apiKey, apiUrl, videosApiPath, apiToken } = this.providersConfiguration[activeBtn];
+    const urlParams = new URLSearchParams({
+      page: 1,
+      per_page: 1,
+    });
+    if (activeBtn === LIBRARY_KEYS.DROPMOCK) {
+      urlParams.append('api_key', apiKey);
+    }
     const request = requestCreator(`${apiUrl}`);
     try {
-      result = await request(videosApiPath, {
+      result = await request(`${videosApiPath}?${urlParams}`, {
         method: 'GET',
         headers: activeBtn === LIBRARY_KEYS.DROPMOCK
-          ? { key: apiKey, 'Content-Type': 'application/json' }
+          ? {}
           : { key: apiToken, token: apiKey, 'Content-Type': 'application/json' },
       });
     } catch (e) {
