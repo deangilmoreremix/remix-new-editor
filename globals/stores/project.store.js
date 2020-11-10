@@ -857,7 +857,7 @@ export default class ProjectStore extends BaseStore {
         case preRemixVoice.withoutPersonalizeAssets.name:
           return this.remixOne(projectId);
         case preRemixVoice.isOwner.name:
-          return this.remixPersonalizedOne(projectId);
+          return this.remixPersonalizedOne(projectId, false);
         default: {
           openModal(PRE_REMIX_VOICE_MODAL, { scenario });
           return this.remixOne();
@@ -889,7 +889,7 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  remixPersonalizedOne = async (projectId) => {
+  remixPersonalizedOne = async (projectId, needData = true) => {
     this.modified = true;
     this.item = DEFAULT_ITEM;
     if (!projectId) {
@@ -905,9 +905,10 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
         });
-      this.fillMakeData(result, true);
+      this.fillMakeData(result, needData);
     } catch (e) {
       this.item = DEFAULT_ITEM;
+      console.info(e);
       this.setProjectData(this.item.project.data);
       throw e;
     }
