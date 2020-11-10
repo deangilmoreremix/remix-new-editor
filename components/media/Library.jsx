@@ -113,6 +113,8 @@ const Library = observer((props) => {
   // const [volume, setVolume] = useState(72);
   const [activeItem, setActiveItem] = useState(null);
 
+  const [isMultiSelectLoading, setIsMultiSelectLoading] = useState(false);
+
   const inputRef = useRef();
   const keyRef = useRef();
   const addFileInputRef = useRef();
@@ -609,6 +611,15 @@ const Library = observer((props) => {
     setItems([]);
   };
 
+  const addArrayItemsToTimeline = () => {
+    setIsMultiSelectLoading(true);
+    try {
+      addAllSelectedItems();
+    } catch (e) {
+      setIsMultiSelectLoading(false);
+    }
+  };
+
   return (
     <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
@@ -654,10 +665,10 @@ const Library = observer((props) => {
                 </div>
                 <button
                   className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
-                  onClick={addAllSelectedItems}
-                  disabled={emptyCollections}
+                  onClick={addArrayItemsToTimeline}
+                  disabled={emptyCollections || isMultiSelectLoading}
                 >
-                  Add to timeline
+                  {isMultiSelectLoading ? <LibrarySpinner /> : 'Add to timeline'}
                 </button>
                 {showed360 ? (
                   <Is360
@@ -711,10 +722,10 @@ const Library = observer((props) => {
                 </div>
                 <button
                   className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
-                  onClick={addAllSelectedItems}
-                  disabled={emptyCollections}
+                  onClick={addArrayItemsToTimeline}
+                  disabled={emptyCollections || isMultiSelectLoading}
                 >
-                  Add to timeline
+                  {isMultiSelectLoading ? <LibrarySpinner /> : 'Add to timeline'}
                 </button>
                 <div className="library__key-box-dummy" />
               </>
