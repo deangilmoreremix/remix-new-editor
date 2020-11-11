@@ -91,19 +91,19 @@ const LibraryContent = observer((props) => {
           <React.Fragment>
             {activebtn && (
               <div className="library__item-audio-top">
-                <button
-                  onClick={(e) => onToggleSelect(e, item)}
-                  className="library__item-audio-select"
-                >
-                  <SVGInline
-                    className="library__item-top-icon"
-                    svg={item.selected ? deselectIcon : selectIcon}
-                  />
-                </button>
+                {/* todo uncomment it */}
+                {/* <button */}
+                {/* onClick={() => onToggleSelect(item)} */}
+                {/* className="library__item-audio-select" */}
+                {/* > */}
+                {/* <SVGInline */}
+                {/* className="library__item-top-icon" */}
+                {/* svg={item.selected ? deselectIcon : selectIcon} */}
+                {/* /> */}
+                {/* </button> */}
                 {
-                  activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive
-                  && !item.selected && (
-                    <button className="library__item-audio-delete" onClick={(e) => onDelete(e, item._id)}>
+                  activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive && (
+                    <button className="library__item-audio-delete" onClick={() => onDelete(item._id)}>
                       <SVGInline
                         className="library__item-top-icon"
                         svg={trashIcon}
@@ -137,19 +137,19 @@ const LibraryContent = observer((props) => {
       default: return (
         <React.Fragment>
           <div className="library__item-top">
-            <button
-              className="library__item-select"
-              onClick={(e) => onToggleSelect(e, item)}
-            >
-              <SVGInline
-                className="library__item-top-icon"
-                svg={item.selected ? deselectIcon : selectIcon}
-              />
-            </button>
+            {/* todo uncomment it */}
+            {/* <button */}
+            {/* className="library__item-select" */}
+            {/* onClick={() => onToggleSelect(item)} */}
+            {/* > */}
+            {/* <SVGInline */}
+            {/* className="library__item-top-icon" */}
+            {/* svg={item.selected ? deselectIcon : selectIcon} */}
+            {/* /> */}
+            {/* </button> */}
             {
-              activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive
-              && !item.selected && (
-                <button className="library__item-delete" onClick={(e) => onDelete(e, item._id)}>
+              activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive && (
+                <button className="library__item-delete" onClick={() => onDelete(item._id)}>
                   <SVGInline
                     className="library__item-top-icon"
                     svg={trashIcon}
@@ -264,12 +264,9 @@ const LibraryContent = observer((props) => {
 
           {
             items.length ? items.map(item => (
-              // eslint-disable-next-line max-len
-              // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
               <div
                 key={item._id || item.url}
                 className={classnames('library__item', { 'library__item-selected': item.selected })}
-                onClick={(e) => onToggleSelect(e, item)}
               >
                 {Element(item)}
                 <div className="library__item-actions">
