@@ -115,6 +115,7 @@ const Library = observer((props) => {
   const [activeItem, setActiveItem] = useState(null);
 
   const [isViewedValidationBlock, setIsViewedValidationBlock] = useState(true);
+  const [isMultiSelectLoading, setIsMultiSelectLoading] = useState(false);
 
   const inputRef = useRef();
   const keyRef = useRef();
