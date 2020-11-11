@@ -611,10 +611,10 @@ const Library = observer((props) => {
     setItems([]);
   };
 
-  const addArrayItemsToTimeline = () => {
+  const addArrayItemsToTimeline = async () => {
     setIsMultiSelectLoading(true);
     try {
-      addAllSelectedItems();
+      await addAllSelectedItems();
     } catch (e) {
       setIsMultiSelectLoading(false);
     }
