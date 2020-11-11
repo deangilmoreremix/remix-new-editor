@@ -40,6 +40,7 @@ const LibraryContent = observer((props) => {
     activeItem,
     needValidation,
     keyRef,
+    isViewedValidationBlock,
   } = props;
 
   const { openModal } = useModalStore();
@@ -63,7 +64,11 @@ const LibraryContent = observer((props) => {
   const Element = (item) => {
     switch (type) {
       case LIBRARY_TABS.VIDEO: {
-        return <video src={item.preview || item.url}><track /></video>;
+        const videoProps = {};
+        if (item.poster) {
+          videoProps.poster = item.poster;
+        }
+        return <video src={item.preview || item.url} {...videoProps}><track /></video>;
       }
       case LIBRARY_TABS.AUDIO:
       case LIBRARY_TABS.VOICE: {
@@ -234,7 +239,7 @@ const LibraryContent = observer((props) => {
 
   return (
     <div className={classnames('library__items', `library__items--${activeTab.toLowerCase()}`)}>
-      {(needValidation && !items.length) ? generateLockedFiles() : (
+      {(needValidation && isViewedValidationBlock) ? generateLockedFiles() : (
         <>
           {
             activeBtn === LIBRARY_KEYS.USER && activeTab !== LIBRARY_TABS.VOICE && (
@@ -315,6 +320,7 @@ LibraryContent.propTypes = {
   hasMore: PropTypes.bool.isRequired,
   type: PropTypes.string.isRequired,
   needValidation: PropTypes.bool.isRequired,
+  isViewedValidationBlock: PropTypes.bool.isRequired,
 };
 
 export default LibraryContent;

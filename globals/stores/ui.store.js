@@ -25,11 +25,16 @@ export default class UIStore {
           && this.projectStore.retarget
           && this.projectStore.retarget.id === this.projectStore.activeElementId) {
           this.secondaryWindowType = WINDOW_TYPES.SETTING;
-        } else {
+        } else if (!this.isOpenFullWindow) {
           this.toggleRightBlock(false);
           this.secondaryWindowType = null;
         }
-        this.isCanvasPresent = true;
+
+        if (!this.isOpenFullWindow) {
+          this.isCanvasPresent = true;
+        } else {
+          this.isOpenFullWindow = false;
+        }
       },
     );
   }
@@ -48,6 +53,8 @@ export default class UIStore {
   @observable prevStateProduce = false;
 
   @observable isCanvasPresent = true;
+
+  @observable isOpenFullWindow = false;
 
   @action
   closeAllWindows = () => {
@@ -155,6 +162,8 @@ export default class UIStore {
 
   @action
   openTextToSpeech = (type) => {
+    this.isOpenFullWindow = true;
+    this.projectStore.releaseElement();
     this.secondaryWindowType = type;
     this.toggleLeftBlock(false);
     this.toggleTimeLine(false);

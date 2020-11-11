@@ -28,14 +28,13 @@ import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
 import useUIStore from './hooks/useUIStore';
 import useUserStore from './hooks/useUserStore';
-import useSocketStore from './hooks/useSocketStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
 import Warning from './common/snackBars/Warning';
 import Success from './common/snackBars/Success';
 
-import { CANVAS_SIZES, ASSET_TYPES } from '../lib/constants/media';
+import { CANVAS_SIZES } from '../lib/constants/media';
 import { DEFAULT_RATIO } from '../lib/constants/project';
 import { WINDOW_TYPES, SCREEN_RATIO } from '../lib/constants/ui';
 import { ROUTES } from '../lib/constants/routing';
@@ -46,7 +45,6 @@ const Home = observer(() => {
   const { pathname, query: { project, remix }, push } = useRouter();
   const projectStore = useProjectStore();
   const userStore = useUserStore();
-  const { subscribeToSocketEvent, unsubscribeToSocketEvent } = useSocketStore();
 
   const {
     optinCodeEnabled,
@@ -76,13 +74,6 @@ const Home = observer(() => {
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
   const [shouldShowTGModal, setShouldShowTGModal] = useState(templateGeneratorEnabled);
-
-  const socketHandler = () => openModal(ASSET_TYPES.VOICE);
-
-  useEffect(() => {
-    subscribeToSocketEvent('text-to-speech-ready', socketHandler);
-    return () => unsubscribeToSocketEvent('text-to-speech-ready', socketHandler);
-  }, []);
 
   useEffect(() => {
     if (!project && pathname !== ROUTES.edit) {
@@ -117,8 +108,8 @@ const Home = observer(() => {
   const asyncHero = useAsync(
     project
       ? projectStore.getOne
-      : projectStore.remixOne,
-    [project || remix],
+      : projectStore.preRemix,
+    [project || remix, openModal],
   );
 
   const {
@@ -159,6 +150,8 @@ const Home = observer(() => {
     checkAndSave,
     undoRedoAction,
     projectData,
+    setIsRedirect,
+    isRedirect,
   } = projectStore;
 
   hotkeys.filter = () => true;
@@ -189,7 +182,15 @@ const Home = observer(() => {
         case twoKeys.ctrlD:
         case twoKeys.commandD: {
           event.preventDefault();
-          if (!event.target.classList.contains('popcorn-element')) {
+          let isStopCommand = true;
+
+          event.target.classList.forEach(item => {
+            if (item.indexOf('popcorn-element') !== -1) {
+              isStopCommand = false;
+            }
+          });
+
+          if (isStopCommand) {
             return null;
           }
 
@@ -352,9 +353,15 @@ const Home = observer(() => {
     height,
   ]);
 
+  useEffect(() => {
+    if (asyncHero && !asyncHero.loading) {
+      setIsRedirect();
+    }
+  }, [asyncHero?.loading]);
+
   return (
     <React.Fragment>
-      {(asyncHero.loading) && (
+      {(asyncHero.loading || isRedirect) && (
         <Loader isLoading preloader />
       )}
       {asyncHero.error && (

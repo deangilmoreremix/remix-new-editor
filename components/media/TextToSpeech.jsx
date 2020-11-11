@@ -19,11 +19,12 @@ import {
   PREVIEW,
 } from '../../lib/constants/textToSpeech';
 import { addToken, wrapTokens, unwrapTokens } from '../../lib/utils/tokens-helper';
-import { tokenModes } from '../../lib/constants/tokens';
+import { TOKEN_REGEX, tokenModes } from '../../lib/constants/tokens';
 
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useUserStore from '../hooks/useUserStore';
+import useProjectStore from '../hooks/useProjectStore';
 
 import FormSelect from '../form/FormSelect';
 import { showError } from '../../lib/services/alertService';
@@ -41,6 +42,7 @@ import arrowIcon from '../../public/static/svgImages/common/arrow-back.svg';
 import { LIBRARY_KEYS } from '../../lib/constants/library';
 
 const TextToSpeech = observer(() => {
+  const { voiceTextId, setVoiceTextId, findElement } = useProjectStore();
   const { toggleRightBlock, isTimelineOpen, toggleVisibleCanvas } = useUIStore();
   const { getTemporaryTextToSpeech, saveTemporaryTextToSpeech, saveTextToSpeech } = useMediaStore();
   const {
@@ -75,6 +77,95 @@ const TextToSpeech = observer(() => {
   const [audioFile, setAudioFile] = useState(null);
   const [audio, setAudio] = useState(null);
   const [addedItems, setAddedItems] = useState([]);
+
+  useEffect(() => {
+    if (voiceTextId && symbols) {
+      const activeTextElement = findElement(voiceTextId);
+      const isPersonalizedVoice = activeTextElement.popcornOptions.text && activeTextElement.popcornOptions.text.indexOf('{{') !== -1;
+      const maxVoiceSymbols = maxCount(
+        isPersonalizedVoice ? maxSymbols.personalized : maxSymbols.text,
+      );
+      const newTextLength = activeTextElement.popcornOptions.text.replace(/{{\w+}}/g, '').length;
+      let newText = activeTextElement.popcornOptions.text;
+
+      if (isPersonalizedVoice) {
+        const newString = activeTextElement.popcornOptions.text.replace(TOKEN_REGEX, (match) => {
+          match = match.replace(/({{|}})/gm, '');
+          let result = '';
+          if (match.split(' ').length > 1) {
+            // eslint-disable-next-line no-unused-vars
+            const [helper, tokenName, ...params] = match.split(' ');
+            result += `{{${tokenName}}}`;
+          } else {
+            result += `{{${match}}}`;
+          }
+          return result;
+        });
+
+        const rawArray = newString.split(' ');
+        const textArray = [];
+
+        rawArray.forEach(item => {
+          if (item.indexOf('{{') !== -1 || item.indexOf('}}') !== -1) {
+            const arrayStings = item.replace(TOKEN_REGEX, (match) => {
+              match = match.replace(/({{|}})/gm, '');
+              let result = '';
+              result += ` {{${match}}} `;
+              return result;
+            }).split(' ');
+
+            arrayStings.forEach(el => {
+              if (el) {
+                textArray.push(el);
+              }
+            });
+          } else {
+            textArray.push(item);
+          }
+        });
+
+        let lastItemIndex = 0;
+        let mapTextLength = 0;
+        let difference = 0;
+        for (let i = 0; i < textArray.length; i++) {
+          if (textArray[i].indexOf('{{') === -1) {
+            mapTextLength += textArray[i].length + 1;
+            lastItemIndex = i;
+          } else {
+            mapTextLength += 1;
+          }
+          if (mapTextLength >= maxVoiceSymbols) {
+            difference = mapTextLength - maxVoiceSymbols;
+            break;
+          }
+        }
+
+        textArray[lastItemIndex] = textArray[lastItemIndex].slice(0,
+          textArray[lastItemIndex].length - difference);
+
+        if (newTextLength > maxVoiceSymbols) {
+          const newArray = textArray.slice(0, lastItemIndex + 1);
+          newText = newArray.join(' ');
+        } else {
+          newText = textArray.join(' ');
+        }
+
+        const isBracketsStart = newText.lastIndexOf('{{');
+        const isBracketsEnd = newText.lastIndexOf('}}');
+        if (isPersonalizedVoice && isBracketsStart > isBracketsEnd) {
+          newText = newText.slice(0, isBracketsStart - 1);
+        }
+      }
+
+      if (newTextLength > maxVoiceSymbols && !isPersonalizedVoice) {
+        newText = newText.slice(0, maxVoiceSymbols);
+      }
+
+      setValueTextarea(newText);
+      setHtmlText(wrapTokens(newText));
+      setVoiceTextId(null);
+    }
+  }, [voiceTextId, symbols]);
 
   const changePlaying = () => {
     setIsPlaying(value => {
