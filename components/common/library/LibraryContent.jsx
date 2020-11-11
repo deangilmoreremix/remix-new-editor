@@ -94,7 +94,7 @@ const LibraryContent = observer((props) => {
             {activebtn && (
               <div className="library__item-audio-top">
                 <button
-                  onClick={() => onToggleSelect(item)}
+                  onClick={e => onToggleSelect(e, item)}
                   className="library__item-audio-select"
                 >
                   <SVGInline
@@ -140,7 +140,7 @@ const LibraryContent = observer((props) => {
           <div className="library__item-top">
             <button
               className="library__item-select"
-              onClick={() => onToggleSelect(item)}
+              onClick={e => onToggleSelect(e, item)}
             >
               <SVGInline
                 className="library__item-top-icon"

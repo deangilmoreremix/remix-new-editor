@@ -413,6 +413,11 @@ button.library__tab {
   justify-content: center;
   outline: none;
   width: 10rem;
+  transition: 0.3s width;
+}
+
+.library .btn-add {
+  min-height: 2.6625rem;
 }
 
 .btn-add-disabled {
