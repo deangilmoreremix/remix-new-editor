@@ -1,6 +1,6 @@
 // todo remove it after checking multiselect
 /* eslint-disable no-unused-vars */
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
@@ -59,8 +59,6 @@ const LibraryContent = observer((props) => {
     fetchItems({ source: activeBtn, isScrolling: true });
   };
 
-  const onEnded = useCallback(() => onPlay(null), []);
-
   const Element = (item) => {
     switch (type) {
       case LIBRARY_TABS.VIDEO: {
@@ -77,7 +75,6 @@ const LibraryContent = observer((props) => {
             item={item}
             volume={100}
             isActive={activeItem && activeItem.url === item.url}
-            onEnded={onEnded}
           />
         );
       }
@@ -96,16 +93,15 @@ const LibraryContent = observer((props) => {
           <React.Fragment>
             {activebtn && (
               <div className="library__item-audio-top">
-                {/* todo uncomment it */}
-                {/* <button */}
-                {/* onClick={() => onToggleSelect(item)} */}
-                {/* className="library__item-audio-select" */}
-                {/* > */}
-                {/* <SVGInline */}
-                {/* className="library__item-top-icon" */}
-                {/* svg={item.selected ? deselectIcon : selectIcon} */}
-                {/* /> */}
-                {/* </button> */}
+                <button
+                  onClick={() => onToggleSelect(item)}
+                  className="library__item-audio-select"
+                >
+                  <SVGInline
+                    className="library__item-top-icon"
+                    svg={item.selected ? deselectIcon : selectIcon}
+                  />
+                </button>
                 {
                   activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive && (
                     <button className="library__item-audio-delete" onClick={() => onDelete(item._id)}>
@@ -142,16 +138,15 @@ const LibraryContent = observer((props) => {
       default: return (
         <React.Fragment>
           <div className="library__item-top">
-            {/* todo uncomment it */}
-            {/* <button */}
-            {/* className="library__item-select" */}
-            {/* onClick={() => onToggleSelect(item)} */}
-            {/* > */}
-            {/* <SVGInline */}
-            {/* className="library__item-top-icon" */}
-            {/* svg={item.selected ? deselectIcon : selectIcon} */}
-            {/* /> */}
-            {/* </button> */}
+            <button
+              className="library__item-select"
+              onClick={() => onToggleSelect(item)}
+            >
+              <SVGInline
+                className="library__item-top-icon"
+                svg={item.selected ? deselectIcon : selectIcon}
+              />
+            </button>
             {
               activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive && (
                 <button className="library__item-delete" onClick={() => onDelete(item._id)}>
