@@ -103,8 +103,9 @@ const LibraryContent = observer((props) => {
                   />
                 </button>
                 {
-                  activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive && (
-                    <button className="library__item-audio-delete" onClick={() => onDelete(item._id)}>
+                  activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive
+                  && !item.selected && (
+                    <button className="library__item-audio-delete" onClick={e => onDelete(e, item._id)}>
                       <SVGInline
                         className="library__item-top-icon"
                         svg={trashIcon}
@@ -148,8 +149,9 @@ const LibraryContent = observer((props) => {
               />
             </button>
             {
-              activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive && (
-                <button className="library__item-delete" onClick={() => onDelete(item._id)}>
+              activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive
+              && !item.selected && (
+                <button className="library__item-delete" onClick={e => onDelete(e, item._id)}>
                   <SVGInline
                     className="library__item-top-icon"
                     svg={trashIcon}
@@ -264,9 +266,12 @@ const LibraryContent = observer((props) => {
 
           {
             items.length ? items.map(item => (
+              // eslint-disable-next-line max-len
+              // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
               <div
                 key={item._id || item.url}
                 className={classnames('library__item', { 'library__item-selected': item.selected })}
+                onClick={e => onToggleSelect(e, item)}
               >
                 {Element(item)}
                 <div className="library__item-actions">
