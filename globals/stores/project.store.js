@@ -299,8 +299,9 @@ export default class ProjectStore extends BaseStore {
         let { fileMeta } = item;
         if (!fileMeta) {
           try {
-            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration,
-              this.userStore.video360Enabled);
+            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], item.kind === 'audio'
+              ? 'audio' : 'video', fileDuration,
+            this.userStore.video360Enabled);
           } catch (e) {
             // if there is no error, then loading will hide, after adding the item to the popcorn
             this.isLoadingSequencer = false;
@@ -355,7 +356,7 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  createRetargetForm = (noUndo, kind) => {
+  createRetargetForm = (noUndo, kind, isPersonalizer) => {
     if (!noUndo) {
       this.setUndo();
     }
@@ -381,6 +382,7 @@ export default class ProjectStore extends BaseStore {
     // eslint-disable-next-line no-underscore-dangle
     popcornFunctions._setup(retargetOptions);
     this.retarget = { ...retargetOptions, ...popcornFunctions };
+    this.retarget.isPersonalizer = isPersonalizer;
     this.retarget.end = () => {
       this.showedRetarget = false;
       if (popcornFunctions.end) {
@@ -412,7 +414,11 @@ export default class ProjectStore extends BaseStore {
 
 
   @action
-  addRetargetForm = ({ kind, showed, noUndo }) => {
+  addRetargetForm = ({ kind, showed, noUndo, isPersonalizer }) => {
+    if (!this.retarget || (this.retarget && !this.retarget.id) || !showed) {
+      console.log(isPersonalizer);
+      this.createRetargetForm(noUndo, kind, isPersonalizer);
+    }
     if (this.retarget && this.retarget.options && this.retarget.id) {
       const isAdvancedOptin = kind === POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN;
       Object.keys(DEFAULT_OPTIONS_OPTIN).forEach(key => {
@@ -427,12 +433,10 @@ export default class ProjectStore extends BaseStore {
           }
         }
       });
+      this.retarget.isPersonalizer = isPersonalizer;
       // eslint-disable-next-line no-underscore-dangle
       this.retarget._update({ ...this.retarget }, { ...this.retarget.options });
       this.releaseElement();
-    }
-    if (!this.retarget || (this.retarget && !this.retarget.id) || !showed) {
-      this.createRetargetForm(noUndo, kind);
     }
     this.retarget.kind = kind;
     this.editElement(this.retarget.id);

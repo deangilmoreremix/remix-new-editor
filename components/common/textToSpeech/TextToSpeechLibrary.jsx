@@ -174,7 +174,7 @@ const TextToSpeechLibrary = observer(({ addedItems, setAddedItems, kind }) => {
   };
 
   const bulkDeleteItems = (unmount) => {
-    deleteAsset()
+    deleteAsset(true)
       .then(() => {
         if (!unmount) {
           setItems([]);

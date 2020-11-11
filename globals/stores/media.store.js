@@ -322,12 +322,12 @@ export default class Media extends BaseStore {
   };
 
   @action
-  deleteAsset = async () => {
+  deleteAsset = async (isTextToSpeech = false) => {
     if (this.libraryItemsForDelete.length) {
       const promiseArr = this.libraryItemsForDelete.map(id => (
         this.request(
-          `/api/users/me/media-assets/${id}`, {
-            method: 'DELETE',
+          isTextToSpeech ? `/api/media-assets/${id}/hide` : `/api/users/me/media-assets/${id}`, {
+            method: isTextToSpeech ? 'PATCH' : 'DELETE',
             headers: {
               'on-behalf': this.currentUser.id,
             },
@@ -554,11 +554,9 @@ export default class Media extends BaseStore {
     const providersInfo = { ...this.defaultProvidersInfo };
 
     providersInfo[LIBRARY_KEYS.REMOTE] = this.providersConfiguration[LIBRARY_KEYS.REMOTE];
-    // todo uncomment it after fix free sound
-    // if (this.userStore.isfeatureEnabled(FEATURES.FREESOUND_INTEGRATION)) {
-    //   providersInfo[LIBRARY_KEYS.FREESOUND]
-    // = this.providersConfiguration[LIBRARY_KEYS.FREESOUND];
-    // }
+    if (this.userStore.isfeatureEnabled(FEATURES.FREESOUND_INTEGRATION)) {
+      providersInfo[LIBRARY_KEYS.FREESOUND] = this.providersConfiguration[LIBRARY_KEYS.FREESOUND];
+    }
     return providersInfo;
   }
 

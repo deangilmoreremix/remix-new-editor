@@ -45,8 +45,6 @@ const ResponsiveGrid = observer((props) => {
 },
 );
 
-// todo add class name
-
 ResponsiveGrid.propTypes = {
   maxRows: PropTypes.number,
   onDragStop: PropTypes.func,

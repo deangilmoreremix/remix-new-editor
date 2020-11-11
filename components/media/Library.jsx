@@ -1,5 +1,3 @@
-// todo remove it after testing multiselect
-/* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from 'react';
 // import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
@@ -200,7 +198,7 @@ const Library = observer((props) => {
 
   const needValidation = React.useMemo(
     () => resourcesWithValidation.some(element => element === activeBtn)
-      && (activeTab === LIBRARY_TABS.VIDEO || activeTab === LIBRARY_TABS.IMAGE),
+      && activeTab === LIBRARY_TABS.VIDEO,
     [activeTab, activeBtn]);
 
   const activeSecureTab = React.useMemo(
@@ -296,11 +294,6 @@ const Library = observer((props) => {
           ]);
         }
       }
-
-      if (!data && !isScrolling) {
-        setItems([]);
-      }
-
       setHasMore(data && data.length === perPage);
     } catch (e) {
       showError('An error occurred while loading items');
@@ -471,7 +464,8 @@ const Library = observer((props) => {
   //   }
   // };
 
-  const toogleSelectItem = (item) => {
+  const toogleSelectItem = (e, item) => {
+    e.stopPropagation();
     if (isItemPresent(item)) {
       deleteSelectedElement(item);
     } else {
@@ -538,7 +532,8 @@ const Library = observer((props) => {
     }
   };
 
-  const onDelete = (id) => {
+  const onDelete = (e, id) => {
+    e.stopPropagation();
     const newArr = items.filter(item => item._id !== id);
     setLibraryItemsForDelete(id);
     setItems(newArr);
@@ -626,13 +621,10 @@ const Library = observer((props) => {
                   {
                     isDisabledUpload
                       ? <LibrarySpinner />
-                      // todo uncomment it after testing multiselect
-                      // : `You can select one or more ${getCurrentTab()}s then add to the timeline`
-                      : `You can select ${getCurrentTab()} then add to the timeline`
+                      : `You can select one or more ${getCurrentTab()}s then add to the timeline`
                   }
                 </span>
               ) : (
-                // todo Open Voice Modal
                 <button className="library__add-file library__open-window">
                   <input id="add-file" />
                   <label htmlFor="add-file" className="library__add">
@@ -660,14 +652,13 @@ const Library = observer((props) => {
                     <SearchIcon />
                   </div>
                 </div>
-                {/* todo Uncomment it after testing multiselect */}
-                {/* <button */}
-                {/* className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })} */}
-                {/* onClick={addAllSelectedItems} */}
-                {/* disabled={emptyCollections} */}
-                {/* > */}
-                {/* Add to timeline */}
-                {/* </button> */}
+                <button
+                  className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
+                  onClick={addAllSelectedItems}
+                  disabled={emptyCollections}
+                >
+                  Add to timeline
+                </button>
                 {showed360 ? (
                   <Is360
                     value={is360}
@@ -699,7 +690,6 @@ const Library = observer((props) => {
                       <button
                         onClick={() => resetKeyInput()}
                         className="library__search-unlock-box"
-                        disabled={isInitialLoading}
                       >
                         RESET
                       </button>
@@ -719,14 +709,13 @@ const Library = observer((props) => {
                     <span>To unlock this library, you need to enter a custom key.</span>
                   )}
                 </div>
-                {/* todo Uncomment it after testing multiselect */}
-                {/* <button */}
-                {/* className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })} */}
-                {/* onClick={addAllSelectedItems} */}
-                {/* disabled={emptyCollections} */}
-                {/* > */}
-                {/* Add to timeline */}
-                {/* </button> */}
+                <button
+                  className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
+                  onClick={addAllSelectedItems}
+                  disabled={emptyCollections}
+                >
+                  Add to timeline
+                </button>
                 <div className="library__key-box-dummy" />
               </>
             )}
