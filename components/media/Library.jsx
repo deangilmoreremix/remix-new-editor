@@ -480,7 +480,8 @@ const Library = observer((props) => {
   //   }
   // };
 
-  const toogleSelectItem = (item) => {
+  const toogleSelectItem = (e, item) => {
+    e.stopPropagation();
     if (isItemPresent(item)) {
       deleteSelectedElement(item);
     } else {
@@ -547,7 +548,8 @@ const Library = observer((props) => {
     }
   };
 
-  const onDelete = (id) => {
+  const onDelete = (e, id) => {
+    e.stopPropagation();
     const newArr = items.filter(item => item._id !== id);
     setLibraryItemsForDelete(id);
     setItems(newArr);
@@ -649,7 +651,6 @@ const Library = observer((props) => {
                   }
                 </span>
               ) : (
-                // todo Open Voice Modal
                 <button className="library__add-file library__open-window">
                   <input id="add-file" />
                   <label htmlFor="add-file" className="library__add">

@@ -5,9 +5,9 @@ import { MAX_DURATION, SANTISECOND } from '../../lib/constants/project';
 import { showError } from '../../lib/services/alertService';
 
 const maps = {
-  image: 'selectedImages',
   video: 'selectedVideos',
   audio: 'selectedAudios',
+  image: 'selectedImages',
 };
 
 export default class MultiselectStore {
