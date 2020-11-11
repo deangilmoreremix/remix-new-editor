@@ -23,6 +23,7 @@ import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import config from '../../config/config';
 import { showError } from '../../lib/services/alertService';
 
+import { ENTER_KEY } from '../../lib/constants/keyCodes';
 import { TEXT_TO_SPEECH_WARNING } from '../../lib/constants/text-info';
 import Tabs from '../common/library/Tabs';
 import ProviderList from '../common/library/ProviderList';
@@ -89,7 +90,7 @@ const Library = observer((props) => {
     checkToken,
   } = useMediaStore();
 
-  const { video360Enabled, isSuperAdmin, getUserKey, updateUserKeys } = userStore;
+  const { video360Enabled, getUserKey, updateUserKeys } = userStore;
 
   // =============== STATE ===============
   const [userValidationKey, setUserValidationKey] = useState();
@@ -113,7 +114,7 @@ const Library = observer((props) => {
   // const [volume, setVolume] = useState(72);
   const [activeItem, setActiveItem] = useState(null);
 
-  const [isMultiSelectLoading, setIsMultiSelectLoading] = useState(false);
+  const [isViewedValidationBlock, setIsViewedValidationBlock] = useState(true);
 
   const inputRef = useRef();
   const keyRef = useRef();
@@ -200,7 +201,7 @@ const Library = observer((props) => {
 
   const needValidation = React.useMemo(
     () => resourcesWithValidation.some(element => element === activeBtn)
-      && activeTab === LIBRARY_TABS.VIDEO,
+      && (activeTab === LIBRARY_TABS.VIDEO || activeTab === LIBRARY_TABS.IMAGE),
     [activeTab, activeBtn]);
 
   const activeSecureTab = React.useMemo(
@@ -211,15 +212,13 @@ const Library = observer((props) => {
     let validationKey = getUserKey(activeBtn);
 
     if (needValidation) {
-      if (isSuperAdmin) {
-        setUserValidationKey(listProviders[activeBtn].apiKey);
-        onKeyEnter(listProviders[activeBtn].apiKey);
-      } else if (validationKey) {
+      if (validationKey) {
         validationKey = getUserKey(activeBtn);
         setUserValidationKey(validationKey);
         onKeyEnter(validationKey);
       } else {
         setUserValidationKey('');
+        setItems([]);
       }
     } else if (libraryItemsForDelete.length) {
       bulkDeleteItems();
@@ -296,6 +295,17 @@ const Library = observer((props) => {
           ]);
         }
       }
+
+      if (!data && !isScrolling) {
+        setItems([]);
+      }
+
+      if (listProviders[activeBtn].apiKey) {
+        setIsViewedValidationBlock(false);
+      } else {
+        setIsViewedValidationBlock(true);
+      }
+
       setHasMore(data && data.length === perPage);
     } catch (e) {
       showError('An error occurred while loading items');
@@ -437,10 +447,12 @@ const Library = observer((props) => {
         updateUserKeys(activeBtn, key || userValidationKey),
       ]);
     } else {
+      await resetKeyInput();
+      listProviders[activeBtn].apiKey = '';
+      setIsViewedValidationBlock(true);
       showError(`WRONG CREDENTIALS: ${activeBtn === LIBRARY_KEYS.DROPMOCK
         ? 'Looks like Your DropMock Fusion key is invalid'
         : 'Looks like Your TxtVideo key is invalid'}`);
-      setItems([]);
     }
 
     setIsKeyLoading(false);
@@ -605,10 +617,18 @@ const Library = observer((props) => {
     }
   };
 
-  const resetKeyInput = () => {
+  const resetKeyInput = async () => {
+    await updateUserKeys(activeBtn, '');
     removeSelectedVideosAfterReset(activeBtn);
     setUserValidationKey('');
+    setIsViewedValidationBlock(true);
     setItems([]);
+  };
+
+  const handleEnterApiKey = event => {
+    if (event.keyCode === ENTER_KEY) {
+      return verifyKey(userValidationKey);
+    }
   };
 
   const addArrayItemsToTimeline = async () => {
@@ -692,7 +712,8 @@ const Library = observer((props) => {
                       className={classnames('library__search', { 'library__search-disabled': items.length })}
                       type="text"
                       value={userValidationKey}
-                      onChange={(event) => setUserValidationKey(event.target.value)}
+                      onChange={event => setUserValidationKey(event.target.value)}
+                      onKeyDown={handleEnterApiKey}
                       placeholder="Paste the API key"
                       disabled={items.length}
                       ref={keyRef}
@@ -701,12 +722,13 @@ const Library = observer((props) => {
                       <button
                         onClick={() => resetKeyInput()}
                         className="library__search-unlock-box"
+                        disabled={isInitialLoading}
                       >
                         RESET
                       </button>
                     ) : (
                       <button
-                        disabled={isKeyLoading}
+                        disabled={isKeyLoading || !userValidationKey}
                         onClick={() => verifyKey(userValidationKey)}
                         className="library__search-unlock-box"
                       >
@@ -760,6 +782,7 @@ const Library = observer((props) => {
               onDrop={onDrop}
               hasMore={hasMore}
               type={activeTab}
+              isViewedValidationBlock={isViewedValidationBlock}
             />
           ))}
         </div>

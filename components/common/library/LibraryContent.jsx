@@ -1,6 +1,6 @@
 // todo remove it after checking multiselect
 /* eslint-disable no-unused-vars */
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
@@ -40,6 +40,7 @@ const LibraryContent = observer((props) => {
     activeItem,
     needValidation,
     keyRef,
+    isViewedValidationBlock,
   } = props;
 
   const { openModal } = useModalStore();
@@ -58,12 +59,14 @@ const LibraryContent = observer((props) => {
     fetchItems({ source: activeBtn, isScrolling: true });
   };
 
-  const onEnded = useCallback(() => onPlay(null), []);
-
   const Element = (item) => {
     switch (type) {
       case LIBRARY_TABS.VIDEO: {
-        return <video src={item.preview || item.url}><track /></video>;
+        const videoProps = {};
+        if (item.poster) {
+          videoProps.poster = item.poster;
+        }
+        return <video src={item.preview || item.url} {...videoProps}><track /></video>;
       }
       case LIBRARY_TABS.AUDIO:
       case LIBRARY_TABS.VOICE: {
@@ -72,7 +75,6 @@ const LibraryContent = observer((props) => {
             item={item}
             volume={100}
             isActive={activeItem && activeItem.url === item.url}
-            onEnded={onEnded}
           />
         );
       }
@@ -92,7 +94,7 @@ const LibraryContent = observer((props) => {
             {activebtn && (
               <div className="library__item-audio-top">
                 <button
-                  onClick={(e) => onToggleSelect(e, item)}
+                  onClick={() => onToggleSelect(item)}
                   className="library__item-audio-select"
                 >
                   <SVGInline
@@ -101,9 +103,8 @@ const LibraryContent = observer((props) => {
                   />
                 </button>
                 {
-                  activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive
-                  && !item.selected && (
-                    <button className="library__item-audio-delete" onClick={(e) => onDelete(e, item._id)}>
+                  activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive && (
+                    <button className="library__item-audio-delete" onClick={() => onDelete(item._id)}>
                       <SVGInline
                         className="library__item-top-icon"
                         svg={trashIcon}
@@ -139,7 +140,7 @@ const LibraryContent = observer((props) => {
           <div className="library__item-top">
             <button
               className="library__item-select"
-              onClick={(e) => onToggleSelect(e, item)}
+              onClick={() => onToggleSelect(item)}
             >
               <SVGInline
                 className="library__item-top-icon"
@@ -147,9 +148,8 @@ const LibraryContent = observer((props) => {
               />
             </button>
             {
-              activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive
-              && !item.selected && (
-                <button className="library__item-delete" onClick={(e) => onDelete(e, item._id)}>
+              activeBtn === LIBRARY_KEYS.USER && !isDisabledUpload && !isDragActive && (
+                <button className="library__item-delete" onClick={() => onDelete(item._id)}>
                   <SVGInline
                     className="library__item-top-icon"
                     svg={trashIcon}
@@ -234,7 +234,7 @@ const LibraryContent = observer((props) => {
 
   return (
     <div className={classnames('library__items', `library__items--${activeTab.toLowerCase()}`)}>
-      {(needValidation && !items.length) ? generateLockedFiles() : (
+      {(needValidation && isViewedValidationBlock) ? generateLockedFiles() : (
         <>
           {
             activeBtn === LIBRARY_KEYS.USER && activeTab !== LIBRARY_TABS.VOICE && (
@@ -264,12 +264,9 @@ const LibraryContent = observer((props) => {
 
           {
             items.length ? items.map(item => (
-              // eslint-disable-next-line max-len
-              // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
               <div
                 key={item._id || item.url}
                 className={classnames('library__item', { 'library__item-selected': item.selected })}
-                onClick={(e) => onToggleSelect(e, item)}
               >
                 {Element(item)}
                 <div className="library__item-actions">
@@ -318,6 +315,7 @@ LibraryContent.propTypes = {
   hasMore: PropTypes.bool.isRequired,
   type: PropTypes.string.isRequired,
   needValidation: PropTypes.bool.isRequired,
+  isViewedValidationBlock: PropTypes.bool.isRequired,
 };
 
 export default LibraryContent;
