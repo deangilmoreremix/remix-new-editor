@@ -479,8 +479,7 @@ const Library = observer((props) => {
   //   }
   // };
 
-  const toogleSelectItem = (e, item) => {
-    e.stopPropagation();
+  const toogleSelectItem = (item) => {
     if (isItemPresent(item)) {
       deleteSelectedElement(item);
     } else {
