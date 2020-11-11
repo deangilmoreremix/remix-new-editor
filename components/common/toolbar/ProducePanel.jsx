@@ -3,7 +3,6 @@ import { Container } from 'reactstrap';
 
 import PropTypes from '../../../lib/PropTypes';
 
-// todo add styles
 const ProducePanel = ({ items }) => {
   const [activeTab, setActiveTab] = React.useState(items[0].label);
 

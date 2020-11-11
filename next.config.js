@@ -20,6 +20,10 @@ module.exports = withSass({
         test: /\.svg$/,
         loader: 'svg-inline-loader',
       },
+      {
+        test: /\.(otf|ttf|woff|woff2)$/,
+        loader: 'url-loader',
+      },
     );
     config.resolve.alias = {
       ...config.resolve.alias,

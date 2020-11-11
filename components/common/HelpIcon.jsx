@@ -8,13 +8,19 @@ import PropTypes from '../../lib/PropTypes';
 import helpIcon from '../../public/static/svgImages/common/help-icon.svg';
 
 const blackCloud = createMuiTheme({
+  props: {
+    MuiTooltip: {
+      style: {
+        zIndex: 1,
+      },
+    },
+  },
   overrides: {
     MuiTooltip: {
       tooltip: {
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         padding: '.5em',
         fontSize: '12px',
-        fontFamily: 'Proxima Nova',
         whiteSpace: 'pre-wrap',
         textAlign: 'center',
       },
@@ -25,22 +31,22 @@ const blackCloud = createMuiTheme({
   },
 });
 
-const TooltipProvider = memo((props) => {
-  const { children } = props;
+const TooltipProvider = (props) => {
+  const { children, placement, title, isDelay } = props;
 
   return (
     <MuiThemeProvider theme={blackCloud}>
       <Tooltip
-        {...props}
-        enterDelay={1000}
-        leaveDelay={100}
+        placement={placement}
+        title={title}
+        enterDelay={!isDelay ? 1000 : 0}
         arrow
       >
         {children}
       </Tooltip>
     </MuiThemeProvider>
   );
-});
+};
 
 const HelpIconComponent = memo((props) => {
   const {
@@ -54,23 +60,27 @@ const HelpIconComponent = memo((props) => {
     isInput,
     whiteIcon,
     projectCourses,
+    noDelay,
   } = props;
 
   return (
     <>
       {!noIcon ? (
         <div
-          className={classnames('help-icon', { 'help-icon-project': projectCourses })}
+          className={classnames('help-icon', {
+            'help-icon-project': projectCourses,
+            'help-icon__input': isInput,
+          })}
           style={{ padding: noPadding ? 0 : undefined }}
         >
           <div
-            className={isInput && 'help-icon__input'}
             style={{
               height: noPadding ? '35px' : `${height}px`,
               padding,
             }}
           >
             <TooltipProvider
+              isDelay={noDelay}
               placement={placement}
               title={message}
             >
@@ -83,6 +93,7 @@ const HelpIconComponent = memo((props) => {
         </div>
       ) : (
         <TooltipProvider
+          isDelay={noDelay}
           placement={placement}
           title={message}
         >
@@ -95,6 +106,9 @@ const HelpIconComponent = memo((props) => {
 
 TooltipProvider.propTypes = {
   children: PropTypes.element.isRequired,
+  isDelay: PropTypes.bool,
+  placement: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
 };
 
 HelpIconComponent.propTypes = {
@@ -106,8 +120,9 @@ HelpIconComponent.propTypes = {
   isInput: PropTypes.bool,
   children: PropTypes.element,
   placement: PropTypes.string,
-  whiteIcon: PropTypes.boolean,
-  projectCourses: PropTypes.boolean,
+  whiteIcon: PropTypes.bool,
+  projectCourses: PropTypes.bool,
+  noDelay: PropTypes.bool,
 };
 
 HelpIconComponent.defaultProps = {

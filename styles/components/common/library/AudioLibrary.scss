@@ -23,7 +23,7 @@
       @include reset-button;
 
       position: absolute;
-      top: 50%;
+      top: 40%;
       left: 50%;
       transform: translate(-50%, -50%);
       width: 2.5rem;
@@ -41,7 +41,7 @@
       @include red-button;
 
       position: absolute;
-      top: 80%;
+      top: 65%;
       left: 50%;
       height: auto;
       font-size: 0.8rem;

@@ -9,6 +9,8 @@ import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import { GOOGLE_MAP_VALUES } from '../../lib/constants/googleMap';
+import preRemixVoice from '../../lib/constants/preRemixVoice';
+import { PRE_REMIX_VOICE_MODAL } from '../../lib/constants/modals';
 
 import {
   SEQUENCER,
@@ -163,11 +165,15 @@ export default class ProjectStore extends BaseStore {
 
   @observable activeElementId;
 
+  @observable voiceTextId;
+
   @observable assets = [];
 
   @observable item = {};
 
   @observable isLoaded = false;
+
+  @observable isRedirect = false;
 
   @observable isPlayed = false;
 
@@ -219,6 +225,16 @@ export default class ProjectStore extends BaseStore {
   @observable warning = null;
 
   @observable success = null;
+
+  @action
+  setVoiceTextId = (id = this.activeElementId) => {
+    this.voiceTextId = id;
+  };
+
+  @action
+  setIsRedirect = (value = false) => {
+    this.isRedirect = value;
+  };
 
   @action
   undoRedoAction = (undo = true) => {
@@ -299,15 +315,16 @@ export default class ProjectStore extends BaseStore {
         let { fileMeta } = item;
         if (!fileMeta) {
           try {
-            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], null, fileDuration,
-              this.userStore.video360Enabled);
+            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], item.kind === 'audio'
+              ? 'audio' : 'video', fileDuration,
+            this.userStore.video360Enabled);
           } catch (e) {
             // if there is no error, then loading will hide, after adding the item to the popcorn
             this.isLoadingSequencer = false;
             throw e;
           }
         }
-        options.end = options.start + (fileMeta?.duration ?? item.duration);
+        options.end = item.end || (options.start + (fileMeta?.duration ?? item.duration));
         options.source = source;
         options.title = fileMeta?.title ?? item.title;
         options.duration = fileMeta?.duration ?? item.duration;
@@ -317,9 +334,9 @@ export default class ProjectStore extends BaseStore {
         options.out = options.end;
         options.volume = item.volume !== undefined ? item.volume : 100;
         options.mute = item.volume === 0;
-        options.audioFadeIn = options.audioFadeIn || 0;
-        options.audioFadeOut = options.audioFadeOut || 0;
-        options.fill = false;
+        options.audioFadeIn = item.audioFadeIn || 0;
+        options.audioFadeOut = item.audioFadeOut || 0;
+        options.fill = item.fill || false;
 
         if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
           options.templateId = item._id;
@@ -355,7 +372,7 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  createRetargetForm = (noUndo, kind) => {
+  createRetargetForm = (noUndo, kind, isPersonalizer) => {
     if (!noUndo) {
       this.setUndo();
     }
@@ -381,6 +398,7 @@ export default class ProjectStore extends BaseStore {
     // eslint-disable-next-line no-underscore-dangle
     popcornFunctions._setup(retargetOptions);
     this.retarget = { ...retargetOptions, ...popcornFunctions };
+    this.retarget.isPersonalizer = isPersonalizer;
     this.retarget.end = () => {
       this.showedRetarget = false;
       if (popcornFunctions.end) {
@@ -412,7 +430,11 @@ export default class ProjectStore extends BaseStore {
 
 
   @action
-  addRetargetForm = ({ kind, showed, noUndo }) => {
+  addRetargetForm = ({ kind, showed, noUndo, isPersonalizer }) => {
+    if (!this.retarget || (this.retarget && !this.retarget.id) || !showed) {
+      console.log(isPersonalizer);
+      this.createRetargetForm(noUndo, kind, isPersonalizer);
+    }
     if (this.retarget && this.retarget.options && this.retarget.id) {
       const isAdvancedOptin = kind === POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN;
       Object.keys(DEFAULT_OPTIONS_OPTIN).forEach(key => {
@@ -427,12 +449,10 @@ export default class ProjectStore extends BaseStore {
           }
         }
       });
+      this.retarget.isPersonalizer = isPersonalizer;
       // eslint-disable-next-line no-underscore-dangle
       this.retarget._update({ ...this.retarget }, { ...this.retarget.options });
       this.releaseElement();
-    }
-    if (!this.retarget || (this.retarget && !this.retarget.id) || !showed) {
-      this.createRetargetForm(noUndo, kind);
     }
     this.retarget.kind = kind;
     this.editElement(this.retarget.id);
@@ -804,6 +824,13 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  stopIfPlay = () => {
+    if (this.isPlayed) {
+      this.popcorn.pause();
+    }
+  };
+
+  @action
   orderItems = (items, updateTracks) => items.map((track, index) => {
     track.defaultName = `Layer ${index}`;
     if (updateTracks) {
@@ -817,7 +844,83 @@ export default class ProjectStore extends BaseStore {
   });
 
   @action
-  remixOne = async (projectId) => {
+  preRemix = async (projectId, openModal) => {
+    const path = `/api/makes/${projectId}/pre-remix`;
+    try {
+      const result = await this.request(
+        path, {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+
+      const { scenario } = result;
+
+      switch (scenario) {
+        case preRemixVoice.withoutPersonalizeAssets.name:
+          return this.remixOne(projectId);
+        case preRemixVoice.isOwner.name:
+          return this.remixPersonalizedOne(projectId, false);
+        default: {
+          openModal(PRE_REMIX_VOICE_MODAL, { scenario });
+          return this.remixOne();
+        }
+      }
+    } catch (e) {
+      return this.remixOne();
+    }
+  };
+
+  @action
+  fillMakeData = (result, isRemix = false) => {
+    this.item.title = `Remix of ${result.title}`;
+    this.item.thumbnail = result.thumbnail;
+    this.item.description = result.description;
+    this.item.remixedFrom = result.project._id;
+    this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${result._id}`;
+    this.setProjectData(JSON.parse(result.project.data));
+    if (isRemix) {
+      this.setPopcorn();
+      this.attach();
+    }
+    if (result.project && result.project.retargetForm) {
+      this.retarget = this.item.project.retargetForm || result.project.retargetForm;
+    }
+    if (result.project && result.project.allowedSocials) {
+      this.item.allowedSocials = result.project.allowedSocials;
+    }
+  };
+
+  @action
+  remixPersonalizedOne = async (projectId, needData = true) => {
+    this.modified = true;
+    this.item = DEFAULT_ITEM;
+    if (!projectId) {
+      this.setProjectData(this.item.project.data);
+      return this.item;
+    }
+    const path = `/api/makes/${projectId}/remix-personalized`;
+    try {
+      const result = await this.request(
+        path, {
+          method: 'POST',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+      this.fillMakeData(result, needData);
+    } catch (e) {
+      this.item = DEFAULT_ITEM;
+      console.info(e);
+      this.setProjectData(this.item.project.data);
+      throw e;
+    }
+    return this.item;
+  };
+
+  @action
+  remixOne = async (projectId, isRemix) => {
     this.modified = true;
     this.item = DEFAULT_ITEM;
     if (!projectId) {
@@ -833,18 +936,7 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
         });
-      this.item.title = `Remix of ${result.title}`;
-      this.item.thumbnail = result.thumbnail;
-      this.item.description = result.description;
-      this.item.remixedFrom = result.project._id;
-      this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${result._id}`;
-      this.setProjectData(JSON.parse(result.project.data));
-      if (result.project && result.project.retargetForm) {
-        this.retarget = this.item.project.retargetForm || result.project.retargetForm;
-      }
-      if (result.project && result.project.allowedSocials) {
-        this.item.allowedSocials = result.project.allowedSocials;
-      }
+      this.fillMakeData(result, isRemix);
     } catch (e) {
       this.item = DEFAULT_ITEM;
       this.setProjectData(this.item.project.data);
@@ -1057,6 +1149,7 @@ export default class ProjectStore extends BaseStore {
             zindex: null,
             start: null,
             end: null,
+            type: trackEvent.type,
           };
 
           if (trackEvent.popcornOptions.start === firstElementStart) {
@@ -1707,7 +1800,7 @@ export default class ProjectStore extends BaseStore {
     // we add images on the new layer
     if (kind === ASSET_TYPES.IMAGE) {
       // to check if the first track is empty
-      if (this.layers.length > 1 || this.isFirstTrackFull) {
+      if (this.layers.length > 1 || this.isFirstTrackFull || this.elements.length) {
         this.createNewLayer();
       }
       const [track] = this.layers;
@@ -1728,7 +1821,7 @@ export default class ProjectStore extends BaseStore {
       return { track, end: lastElement.popcornOptions.end };
     }
     // add video or audio to the new layer if the first is present or full
-    if (this.layers.length > 1 || this.isFirstTrackFull) {
+    if (this.layers.length > 1 || this.isFirstTrackFull || this.elements.length) {
       this.createNewLayer();
     }
     const [track] = this.layers;
@@ -1798,6 +1891,7 @@ export default class ProjectStore extends BaseStore {
   @observable
   @action
   createNewElements = async (elements, end) => {
+    this.stopIfPlay();
     this.setUndo();
     await this.updateEnd(end);
     this.isFirstTrackFull = false;

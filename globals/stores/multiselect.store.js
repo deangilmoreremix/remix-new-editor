@@ -5,9 +5,9 @@ import { MAX_DURATION, SANTISECOND } from '../../lib/constants/project';
 import { showError } from '../../lib/services/alertService';
 
 const maps = {
-  image: 'selectedImages',
   video: 'selectedVideos',
   audio: 'selectedAudios',
+  image: 'selectedImages',
 };
 
 export default class MultiselectStore {
@@ -82,7 +82,7 @@ export default class MultiselectStore {
       }
       item.track = track;
       if (!end) {
-        item.start = 0;
+        item.start = this.projectStore.time / SANTISECOND || 0;
       } else {
         item.start = end + 0.01;
       }
@@ -94,6 +94,20 @@ export default class MultiselectStore {
     });
     return elements;
   };
+
+  @action
+  removeSelectedVideosAfterReset = (integrationType) => {
+    if (!this.selectedVideos) {
+      return;
+    }
+    this.selectedVideos.forEach(item => {
+      if (item.integrationType === integrationType) {
+        this.deleteSelectedElement(item);
+        this.selectedItemsId = this.deleteFromArrayId(item._id || item.id || item.source);
+      }
+    });
+    this.emptyCollections = this.isCollectionsEmpty();
+  }
 
   @action
   deleteSelectedElement = (item) => {

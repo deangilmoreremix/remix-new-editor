@@ -59,8 +59,16 @@ export default class UserStore {
   };
 
   @action
-  updateUserKeys = async (activeBnt, key) => {
-    const fragment = { [activeBnt === LIBRARY_KEYS.DROPMOCK ? 'dropMockKey' : 'txtVideoKey']: key };
+  updateUserKeys = async (activeBtn, key) => {
+    if (!key) {
+      if (activeBtn === LIBRARY_KEYS.DROPMOCK) {
+        this.currentUser.dropMockKey = '';
+      } else {
+        this.currentUser.txtVideoKey = '';
+      }
+    }
+
+    const fragment = { [activeBtn === LIBRARY_KEYS.DROPMOCK ? 'dropMockKey' : 'txtVideoKey']: key };
     try {
       await this.request(`/api/users/${this.currentUser.id}/update-user-key`,
         {
@@ -71,6 +79,11 @@ export default class UserStore {
           body: fragment,
         },
       );
+      if (activeBtn === LIBRARY_KEYS.DROPMOCK) {
+        this.currentUser.dropMockKey = key;
+      } else {
+        this.currentUser.txtVideoKey = key;
+      }
     } catch (e) {
       console.log(e);
       throw e;
@@ -189,6 +202,18 @@ export default class UserStore {
   @computed
   get textToSpeechNeuralEnabled() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_TEXT_TO_SPEECH_NEURAL);
+  }
+
+  @computed
+  get textToSpeechLimitedEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_TEXT_TO_SPEECH_BASE);
+  }
+
+  @computed
+  get onlyLimitedTextToSpeech() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_TEXT_TO_SPEECH_BASE)
+      && !this.textToSpeechNeuralEnabled
+      && !this.textToSpeechStandardEnabled;
   }
 
   @computed

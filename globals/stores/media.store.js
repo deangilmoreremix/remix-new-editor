@@ -18,6 +18,8 @@ import { FEATURES } from '../../lib/constants/features';
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import config from '../../config/config';
 import requestCreator from '../../lib/requestCreator';
+import { generatorTabs } from '../../lib/constants/templateGenerator';
+
 
 export default class Media extends BaseStore {
   @observable providersConfiguration = null;
@@ -322,12 +324,12 @@ export default class Media extends BaseStore {
   };
 
   @action
-  deleteAsset = async () => {
+  deleteAsset = async (isTextToSpeech = false) => {
     if (this.libraryItemsForDelete.length) {
       const promiseArr = this.libraryItemsForDelete.map(id => (
         this.request(
-          `/api/users/me/media-assets/${id}`, {
-            method: 'DELETE',
+          isTextToSpeech ? `/api/media-assets/${id}/hide` : `/api/users/me/media-assets/${id}`, {
+            method: isTextToSpeech ? 'PATCH' : 'DELETE',
             headers: {
               'on-behalf': this.currentUser.id,
             },
@@ -397,17 +399,24 @@ export default class Media extends BaseStore {
   checkToken = async (activeBtn) => {
     let result;
     const { apiKey, apiUrl, videosApiPath, apiToken } = this.providersConfiguration[activeBtn];
+    const urlParams = new URLSearchParams({
+      page: 1,
+      per_page: 1,
+    });
+    if (activeBtn === LIBRARY_KEYS.DROPMOCK) {
+      urlParams.append('api_key', apiKey);
+    }
     const request = requestCreator(`${apiUrl}`);
     try {
-      result = await request(videosApiPath, {
+      result = await request(`${videosApiPath}?${urlParams}`, {
         method: 'GET',
         headers: activeBtn === LIBRARY_KEYS.DROPMOCK
-          ? { key: apiKey, 'Content-Type': 'application/json' }
+          ? {}
           : { key: apiToken, token: apiKey, 'Content-Type': 'application/json' },
       });
     } catch (e) {
       console.error(e);
-      throw e;
+      return false;
     }
 
     return result;
@@ -567,6 +576,23 @@ export default class Media extends BaseStore {
       [LIBRARY_KEYS.PERSONALIZED_VOICE]:
         this.providersConfiguration[LIBRARY_KEYS.PERSONALIZED_VOICE],
     };
+  }
+
+  @computed
+  get generatorProviders() {
+    const providers = {};
+    providers[0] = this.providersList.REMOTE;
+    providers[1] = this.providersList.USER;
+    if (this.userStore.isfeatureEnabled(FEATURES.PEXELS_VIDEO_INTEGRATION)) {
+      providers[Object.keys(providers).length] = this.providersList.PEXELS;
+      generatorTabs.push({ label: LIBRARY_KEYS.PEXELS.toLowerCase() });
+    }
+    if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
+      providers[Object.keys(providers).length] = this.providersList.PIXABAY;
+      generatorTabs.push({ label: LIBRARY_KEYS.PIXABAY.toLowerCase() });
+    }
+
+    return { providers, generatorTabs };
   }
 
   constructor(props) {

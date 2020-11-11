@@ -293,20 +293,22 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
                   onChange={changeHidden}
                 />
               </div>
-              <div className="video-settings__block-element">
-                <SVGInline
-                  className="video-settings__icon"
-                  svg={fillIcon}
-                  cleanup={['title']}
-                />
-                <FieldBuilder
-                  label={fields[popcornConstants.FILL].label}
-                  type={fields[popcornConstants.FILL].type}
-                  value={values[popcornConstants.FILL]}
-                  name={popcornConstants.FILL}
-                  onChange={onChange}
-                />
-              </div>
+              {!is360 && (
+                <div className="video-settings__block-element">
+                  <SVGInline
+                    className="video-settings__icon"
+                    svg={fillIcon}
+                    cleanup={['title']}
+                  />
+                  <FieldBuilder
+                    label={fields[popcornConstants.FILL].label}
+                    type={fields[popcornConstants.FILL].type}
+                    value={values[popcornConstants.FILL]}
+                    name={popcornConstants.FILL}
+                    onChange={onChange}
+                  />
+                </div>
+              )}
             </Fragment>
           )}
           <div className="video-settings__block-element">
@@ -340,8 +342,8 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
         && (
         <Is360
           value={is360}
-          className="flex-end is-360"
-          onChange={() => changeIs360()}
+          className="is-360"
+          onChange={changeIs360}
         />
         )}
       </div>

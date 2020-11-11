@@ -3,13 +3,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import SearchIcon from '@material-ui/icons/Search';
+import Bb from 'bluebird';
 
 import { CircleLoader } from 'react-spinners';
+import SVGInline from 'react-svg-inline';
 import {
   tabItems,
   perPage,
   LIBRARY_TABS,
   LIBRARY_KEYS,
+  resourcesWithValidation,
 } from '../../lib/constants/library';
 import { LOADING_COLOR } from '../../lib/constants/ui';
 import { ASSET_TYPES } from '../../lib/constants/media';
@@ -20,6 +23,7 @@ import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import config from '../../config/config';
 import { showError } from '../../lib/services/alertService';
 
+import { ENTER_KEY } from '../../lib/constants/keyCodes';
 import { TEXT_TO_SPEECH_WARNING } from '../../lib/constants/text-info';
 import Tabs from '../common/library/Tabs';
 import ProviderList from '../common/library/ProviderList';
@@ -32,14 +36,14 @@ import useUserStore from '../hooks/useUserStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
 import useMultiSelectStore from '../hooks/useMultiSelectStore';
-import AudioControls from '../common/library/AudioControls';
+// import AudioControls from '../common/library/AudioControls';
 // import DropPasteInput from './DropPasteInput';
 
 import withModal from '../hoc/withValidation';
 import Is360 from '../settings/video-settings/components/Is360';
 // import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
 // import FormTextField from '../form/FormTextField';
-
+import keyLock from '../../public/static/images/media/key-lock.svg';
 
 const Library = observer((props) => {
   const { setError } = props;
@@ -56,6 +60,7 @@ const Library = observer((props) => {
     addAllSelectedItems,
     emptyCollections,
     selectedItemsId,
+    removeSelectedVideosAfterReset,
   } = multiSelectStore;
 
   const {
@@ -66,6 +71,7 @@ const Library = observer((props) => {
     openSettings,
     toggleRightBlock,
     isTimelineOpen,
+    // openSecondaryModal,
     toggleVisibleCanvas,
   } = uiStore;
 
@@ -81,14 +87,13 @@ const Library = observer((props) => {
     audioProvidersInfo,
     voiceProvidersInfo,
     defaultProvidersInfo,
+    checkToken,
   } = useMediaStore();
 
-  const { video360Enabled, isSuperAdmin } = userStore;
+  const { video360Enabled, getUserKey, updateUserKeys } = userStore;
 
   // =============== STATE ===============
-  const [isDropMockTab, setDropMockTab] = useState(false);
-  const [dropMockKey, setDropMockKey] = useState();
-  const [preKeyDropMock, setPreKeyDropMock] = useState();
+  const [userValidationKey, setUserValidationKey] = useState();
 
   const [query, setQuery] = useState('');
 
@@ -101,14 +106,18 @@ const Library = observer((props) => {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
   const [is360, set360] = useState(false);
+  const [isKeyLoading, setIsKeyLoading] = useState(false);
 
   const [items, setItems] = useState([]);
   const [uploadedItems, setUploadedItems] = useState([]);
 
-  const [volume, setVolume] = useState(72);
+  // const [volume, setVolume] = useState(72);
   const [activeItem, setActiveItem] = useState(null);
 
+  const [isViewedValidationBlock, setIsViewedValidationBlock] = useState(true);
+
   const inputRef = useRef();
+  const keyRef = useRef();
   const addFileInputRef = useRef();
 
   // =============== STATE ===============
@@ -155,9 +164,6 @@ const Library = observer((props) => {
     }
   }, [isLoading, setActiveTab]);
 
-  const activeDropMockTab = React.useMemo(
-    () => !!((isDropMockTab && preKeyDropMock) || !isDropMockTab), [isDropMockTab, preKeyDropMock]);
-
   useEffect(() => {
     async function fetchData() {
       await fetchItems({ source: activeBtn, queryStr: '' });
@@ -193,41 +199,50 @@ const Library = observer((props) => {
     }
   }, [activeTab, activeBtn, userStore]);
 
-  const handleButtonClick = React.useCallback(async (element) => {
-    if (element === LIBRARY_KEYS.DROPMOCK) {
-      setDropMockTab(true);
-      if (isSuperAdmin) {
-        setDropMockKey(listProviders.DROPMOCK.apiKey);
-        await onKeyEnter(listProviders.DROPMOCK.apiKey);
+  const needValidation = React.useMemo(
+    () => resourcesWithValidation.some(element => element === activeBtn)
+      && (activeTab === LIBRARY_TABS.VIDEO || activeTab === LIBRARY_TABS.IMAGE),
+    [activeTab, activeBtn]);
+
+  const activeSecureTab = React.useMemo(
+    () => !!((needValidation) || !needValidation),
+    [needValidation]);
+
+  useEffect(() => {
+    let validationKey = getUserKey(activeBtn);
+
+    if (needValidation) {
+      if (validationKey) {
+        validationKey = getUserKey(activeBtn);
+        setUserValidationKey(validationKey);
+        onKeyEnter(validationKey);
+      } else {
+        setUserValidationKey('');
+        setItems([]);
       }
+    } else if (libraryItemsForDelete.length) {
+      bulkDeleteItems();
     } else {
-      setDropMockTab(false);
+      fetchItems({ source: activeBtn });
     }
+  }, [needValidation, activeBtn]);
+
+  const handleButtonClick = React.useCallback(async (element) => {
     if (!isLoading) {
       setActiveBtn(element);
     }
   }, [isLoading]);
 
-  useEffect(() => {
-    if (activeBtn || activeTab) {
-      if (libraryItemsForDelete.length) {
-        bulkDeleteItems();
-      } else {
-        fetchItems({ source: activeBtn });
-      }
-    }
-  }, [activeBtn]);
-
   const fetchItems = async ({ source = activeBtn, queryStr = query || '', isScrolling = false }) => {
     let currentPage = 0;
     let uploaded = [];
+
     if (isLoading) {
       return;
     }
-    if (isDropMockTab && !dropMockKey) {
-      return;
-    }
+
     setIsLoading(true);
+
     if (!isScrolling) {
       setIsInitialLoading(true);
       setPageNumber(1);
@@ -280,6 +295,17 @@ const Library = observer((props) => {
           ]);
         }
       }
+
+      if (!data && !isScrolling) {
+        setItems([]);
+      }
+
+      if (listProviders[activeBtn].apiKey) {
+        setIsViewedValidationBlock(false);
+      } else {
+        setIsViewedValidationBlock(true);
+      }
+
       setHasMore(data && data.length === perPage);
     } catch (e) {
       showError('An error occurred while loading items');
@@ -406,10 +432,30 @@ const Library = observer((props) => {
   //   }
   // };
 
-  const onKeyEnter = async (key) => {
-    listProviders.DROPMOCK.apiKey = key || dropMockKey;
-    setPreKeyDropMock(key || dropMockKey);
+  const onKeyEnter = async (key = '') => {
+    listProviders[activeBtn].apiKey = key || userValidationKey;
     await fetchItems({ source: activeBtn });
+  };
+
+  const verifyKey = async (key = '') => {
+    listProviders[activeBtn].apiKey = key || userValidationKey;
+    setIsKeyLoading(true);
+
+    if (await checkToken(activeBtn)) {
+      await Bb.all([
+        fetchItems({ source: activeBtn }),
+        updateUserKeys(activeBtn, key || userValidationKey),
+      ]);
+    } else {
+      await resetKeyInput();
+      listProviders[activeBtn].apiKey = '';
+      setIsViewedValidationBlock(true);
+      showError(`WRONG CREDENTIALS: ${activeBtn === LIBRARY_KEYS.DROPMOCK
+        ? 'Looks like Your DropMock Fusion key is invalid'
+        : 'Looks like Your TxtVideo key is invalid'}`);
+    }
+
+    setIsKeyLoading(false);
   };
 
   // const { getInputProps } = useDropzone({
@@ -432,7 +478,8 @@ const Library = observer((props) => {
   //   }
   // };
 
-  const toogleSelectItem = (item) => {
+  const toogleSelectItem = (e, item) => {
+    e.stopPropagation();
     if (isItemPresent(item)) {
       deleteSelectedElement(item);
     } else {
@@ -451,7 +498,7 @@ const Library = observer((props) => {
     item.src = item.src || item.url;
     item.is360 = is360;
     item.type = MEDIA_TYPES[activeTab];
-    item.kind = activeTab;
+    item.kind = ASSET_TYPES[activeTab];
     if (activeTab === LIBRARY_TABS.VOICE) {
       item.type = MEDIA_TYPES.AUDIO;
     } else {
@@ -476,6 +523,7 @@ const Library = observer((props) => {
       } finally {
         setIsLoading(false);
         setIsInitialLoading(false);
+        clearAllSelectedItems();
       }
     }
   };
@@ -498,7 +546,8 @@ const Library = observer((props) => {
     }
   };
 
-  const onDelete = (id) => {
+  const onDelete = (e, id) => {
+    e.stopPropagation();
     const newArr = items.filter(item => item._id !== id);
     setLibraryItemsForDelete(id);
     setItems(newArr);
@@ -534,20 +583,13 @@ const Library = observer((props) => {
           audioActiveItem = activeBtn;
         }
         return (
-          <div style={{ display: 'none' }} className="library__audio-toolbar">
-            <ProviderList
-              activeItem={audioActiveItem}
-              title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
-              userContentTitle={tabItems[activeTab].label}
-              handleButtonClick={handleButtonClick}
-              list={listProviders}
-            />
-            <AudioControls
-              selected={audioActiveItem}
-              volume={volume}
-              setVolume={setVolume}
-            />
-          </div>
+          <ProviderList
+            activeItem={audioActiveItem}
+            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
+            userContentTitle={tabItems[activeTab].label}
+            handleButtonClick={handleButtonClick}
+            list={listProviders}
+          />
         );
       }
       default: return (
@@ -561,11 +603,11 @@ const Library = observer((props) => {
         />
       );
     }
-  }, [activeTab, activeBtn, activeItem, listProviders, isLoading, volume]);
+  }, [activeTab, activeBtn, activeItem, listProviders, isLoading]);
 
-  const openVoiceWindow = () => {
-    // openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
-  };
+  // const openVoiceWindow = () => {
+  //   openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
+  // };
 
   const getCurrentTab = () => {
     if (activeTab === LIBRARY_TABS.AUDIO) {
@@ -574,6 +616,21 @@ const Library = observer((props) => {
       return tabItems[activeTab].label.slice(0, -1).toLowerCase();
     }
   };
+
+  const resetKeyInput = async () => {
+    await updateUserKeys(activeBtn, '');
+    removeSelectedVideosAfterReset(activeBtn);
+    setUserValidationKey('');
+    setIsViewedValidationBlock(true);
+    setItems([]);
+  };
+
+  const handleEnterApiKey = event => {
+    if (event.keyCode === ENTER_KEY) {
+      return verifyKey(userValidationKey);
+    }
+  };
+
   return (
     <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
@@ -586,12 +643,11 @@ const Library = observer((props) => {
                   {
                     isDisabledUpload
                       ? <LibrarySpinner />
-                      : `Choose your ${getCurrentTab()}`
+                      : `You can select one or more ${getCurrentTab()}s then add to the timeline`
                   }
                 </span>
               ) : (
-                // todo Open Voice Modal
-                <button className="library__add-file library__open-window" onClick={openVoiceWindow}>
+                <button className="library__add-file library__open-window">
                   <input id="add-file" />
                   <label htmlFor="add-file" className="library__add">
                     Add Voice
@@ -600,47 +656,31 @@ const Library = observer((props) => {
               )
             }
           </div>
-          <div
-            className={classnames(
-              'library__block',
-              {
-                'library__block-music': activeTab.toLowerCase() === ASSET_TYPES.AUDIO,
-              },
-            )}
-          >
+          <div className="library__block">
             {renderSidebar()}
-            {activeBtn !== LIBRARY_KEYS.DROPMOCK && (
+            {!needValidation ? (
               <>
-                <div className="library__search-container">
-                  <div
-                    className={classnames(
-                      'library__search-box',
-                      {
-                        'library__search-box-music': activeTab.toLowerCase() === ASSET_TYPES.AUDIO,
-                      },
-                    )}
-                  >
-                    <input
-                      className="library__search"
-                      type="text"
-                      value={query}
-                      ref={inputRef}
-                      onChange={e => setQuery(e.target.value)}
-                      onKeyDown={handleSearch}
-                      placeholder="search ..."
-                    />
-                    <div className="library__search-icon-box">
-                      <SearchIcon />
-                    </div>
+                <div className="library__search-box">
+                  <input
+                    className="library__search"
+                    type="text"
+                    value={query}
+                    ref={inputRef}
+                    onChange={e => setQuery(e.target.value)}
+                    onKeyDown={handleSearch}
+                    placeholder="search ..."
+                  />
+                  <div className="library__search-icon-box">
+                    <SearchIcon />
                   </div>
-                  <button
-                    className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
-                    onClick={addAllSelectedItems}
-                    disabled={emptyCollections}
-                  >
-                    Add to timeline
-                  </button>
                 </div>
+                <button
+                  className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
+                  onClick={addAllSelectedItems}
+                  disabled={emptyCollections}
+                >
+                 Add to timeline
+                </button>
                 {showed360 ? (
                   <Is360
                     value={is360}
@@ -648,7 +688,59 @@ const Library = observer((props) => {
                     className="flex-end is-360"
                     showHint
                   />
-                ) : activeTab.toLowerCase() !== ASSET_TYPES.AUDIO && <div className="library__search-box-dummy" />}
+                ) : <div className="library__search-box-dummy" />}
+              </>
+            ) : (
+              <>
+                <div className="library__key-container">
+                  <div className="library__key-box">
+                    <SVGInline
+                      className="library__search-unlock-icon"
+                      svg={keyLock}
+                      component="div"
+                    />
+                    <input
+                      className={classnames('library__search', { 'library__search-disabled': items.length })}
+                      type="text"
+                      value={userValidationKey}
+                      onChange={event => setUserValidationKey(event.target.value)}
+                      onKeyDown={handleEnterApiKey}
+                      placeholder="Paste the API key"
+                      disabled={items.length}
+                      ref={keyRef}
+                    />
+                    {items.length ? (
+                      <button
+                        onClick={() => resetKeyInput()}
+                        className="library__search-unlock-box"
+                        disabled={isInitialLoading}
+                      >
+                        RESET
+                      </button>
+                    ) : (
+                      <button
+                        disabled={isKeyLoading || !userValidationKey}
+                        onClick={() => verifyKey(userValidationKey)}
+                        className="library__search-unlock-box"
+                      >
+                        { isKeyLoading ? <LibrarySpinner /> : 'UNLOCK'}
+                      </button>
+                    )}
+                  </div>
+                  {items.length ? (
+                    <span>Press Reset button to clear the key.</span>
+                  ) : (
+                    <span>To unlock this library, you need to enter a custom key.</span>
+                  )}
+                </div>
+                <button
+                  className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
+                  onClick={addAllSelectedItems}
+                  disabled={emptyCollections}
+                >
+                 Add to timeline
+                </button>
+                <div className="library__key-box-dummy" />
               </>
             )}
           </div>
@@ -663,8 +755,10 @@ const Library = observer((props) => {
                 color={LOADING_COLOR}
               />
             </div>
-          ) : (activeDropMockTab && (
+          ) : (activeSecureTab && (
             <LibraryContent
+              keyRef={keyRef}
+              needValidation={needValidation}
               activeItem={activeItem}
               items={itemsWithSelect}
               onToggleSelect={toogleSelectItem}
@@ -679,6 +773,7 @@ const Library = observer((props) => {
               onDrop={onDrop}
               hasMore={hasMore}
               type={activeTab}
+              isViewedValidationBlock={isViewedValidationBlock}
             />
           ))}
         </div>

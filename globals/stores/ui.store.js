@@ -25,11 +25,16 @@ export default class UIStore {
           && this.projectStore.retarget
           && this.projectStore.retarget.id === this.projectStore.activeElementId) {
           this.secondaryWindowType = WINDOW_TYPES.SETTING;
-        } else {
+        } else if (!this.isOpenFullWindow) {
           this.toggleRightBlock(false);
           this.secondaryWindowType = null;
         }
-        this.isCanvasPresent = true;
+
+        if (!this.isOpenFullWindow) {
+          this.isCanvasPresent = true;
+        } else {
+          this.isOpenFullWindow = false;
+        }
       },
     );
   }
@@ -48,6 +53,8 @@ export default class UIStore {
   @observable prevStateProduce = false;
 
   @observable isCanvasPresent = true;
+
+  @observable isOpenFullWindow = false;
 
   @action
   closeAllWindows = () => {
@@ -118,6 +125,7 @@ export default class UIStore {
 
   @action
   setUpdateElementInLibrary = (value = null) => {
+    this.toggleVisibleCanvas(true);
     this.updateElementInLibrary = value;
   };
 
@@ -145,7 +153,17 @@ export default class UIStore {
   };
 
   @action
+  setOverlayType = (type) => {
+    this.toggleRightBlock();
+    this.toggleLeftBlock(false);
+    this.toggleTimeLine(false);
+    this.secondaryWindowType = type;
+  };
+
+  @action
   openTextToSpeech = (type) => {
+    this.isOpenFullWindow = true;
+    this.projectStore.releaseElement();
     this.secondaryWindowType = type;
     this.toggleLeftBlock(false);
     this.toggleTimeLine(false);
@@ -241,7 +259,9 @@ export default class UIStore {
 
   @action
   showProducePanel = (options) => {
-    this.setLibraryType(null, true);
+    this.toggleRightBlock(false);
+    this.toggleVisibleCanvas(true);
+    this.secondaryWindowType = null;
     this.setToolbarItem(TOOLBARS.PRODUCE, options);
   };
 

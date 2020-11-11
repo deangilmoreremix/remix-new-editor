@@ -27,7 +27,8 @@
   }
 
   .checkbox-element.image-settings__checkbox {
-    justify-content: flex-start;
+    width: 8rem;
+    justify-content: space-between;
   }
 
   .image-settings__cell--first,
@@ -47,7 +48,7 @@
       }
 
       .image-settings__btn {
-        width: 90%;
+        width: 100%;
       }
     }
   }

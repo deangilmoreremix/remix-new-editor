@@ -13,8 +13,6 @@ import AnimatedWindow from '../AnimatedWindow';
 import HelpIconComponent from '../HelpIcon';
 
 const Toolbar = observer(({ items }) => {
-  let tooltipTime;
-
   const {
     toolbarItem: {
       id,
@@ -54,52 +52,38 @@ const Toolbar = observer(({ items }) => {
     }
 
     func();
-    handleCloseTooltip(label);
     setToolbarItem(label);
-  };
-
-  const handleOpenTooltip = (tabId) => {
-    tooltipTime = setTimeout(
-      () => setToolbarItem(tabId, { isHover: true }), 1000,
-    );
-  };
-
-  const handleCloseTooltip = (tabId) => {
-    clearTimeout(tooltipTime);
-    setToolbarItem(tabId, { isHover: false });
   };
 
   return (
     <div className={classnames('toolbar-container', { 'big-window': !isTimelineOpen })}>
       <div className="toolbar-tabs">
         {items.map(({ label, icon, id: tabId, func, tooltip }) => (
-          <HelpIconComponent
-            noIcon
-            message={tooltip}
-            placement="right"
+          <button
+            className="toolbar-tab"
+            key={label}
+            onClick={() => onClick(tabId, func)}
+            type="button"
           >
-            <button
-              className="toolbar-tab"
-              key={label}
-              onClick={() => onClick(tabId, func)}
-              type="button"
-              onMouseEnter={() => isExpand && handleOpenTooltip(tabId)}
-              onMouseLeave={() => isExpand && handleCloseTooltip(tabId)}
+            <HelpIconComponent
+              noIcon
+              message={tooltip}
+              placement="right"
             >
               <div>
                 <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
                 <span className="toolbar-tab-title">{label}</span>
               </div>
-              {isExpand && (
-                <AnimatedWindow
-                  isOpen={isExpand}
-                  style={{ position: 'absolute' }}
-                >
-                  <SVGInline className="toolbar-arrow-icon" svg={arrowIcon} cleanup={['title']} />
-                </AnimatedWindow>
-              )}
-            </button>
-          </HelpIconComponent>
+            </HelpIconComponent>
+            {isExpand && (
+              <AnimatedWindow
+                isOpen={isExpand}
+                style={{ position: 'absolute' }}
+              >
+                <SVGInline className="toolbar-arrow-icon" svg={arrowIcon} cleanup={['title']} />
+              </AnimatedWindow>
+            )}
+          </button>
         ))}
       </div>
       {TabRenderer && <TabRenderer items={tabContent} options={options} />}

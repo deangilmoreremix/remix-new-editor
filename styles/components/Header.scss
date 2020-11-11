@@ -112,10 +112,6 @@
         }
       }
 
-      .menu__item-title {
-        line-height: $defaultLineHeight;
-      }
-
       .popover {
         border: none;
         border-radius: 3px;
@@ -182,7 +178,7 @@
     }
 
     .logo {
-      width: 7rem;
+      width: 8rem;
     }
     .icon-button {
       @include reset-button;

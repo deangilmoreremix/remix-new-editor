@@ -297,6 +297,10 @@ div.popcorn-element-personalized-voice {
         left: 100%;
       }
     }
+    &:hover {
+      min-width: 80px;
+      z-index: 1;
+    }
   }
 }
 
@@ -308,6 +312,12 @@ div.popcorn-element-personalized-voice {
   button {
     margin-right: 10px;
   }
+}
+
+.tooltip-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .timeline-play,

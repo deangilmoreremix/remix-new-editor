@@ -64,13 +64,23 @@ const UrlVideoModal = ({ setError }) => {
     onEnter(currentValue);
   };
 
+  const returnLink = () => (
+    // eslint-disable-next-line react/jsx-no-target-blank
+    <a href="http://download.vidcloud.io/" className="library__block--title" target="_blank">Download Video</a>
+  );
+
   return (
     <Fragment>
       <SVGInline
         className="url-video-modal__image"
         svg={socialImg}
       />
-      <p className="url-video-modal__title">Add Your URL Link...</p>
+      <p className="url-video-modal__title">
+        Add your URL or
+        &nbsp;
+        {returnLink()}
+        &nbsp;
+      </p>
       <div className="url-video-modal__block">
         <div className="url-video-modal__input-block">
           <SVGInline
@@ -82,7 +92,7 @@ const UrlVideoModal = ({ setError }) => {
             value={currentValue}
             onChange={onChange}
             className="url-video-modal__input"
-            placeholder="Paste the URL/Link to external video hosting (Youtube, Vimeo, ect)"
+            placeholder="Paste the URL to external video hosting (Youtube, Vimeo, etc)"
           />
         </div>
         <button

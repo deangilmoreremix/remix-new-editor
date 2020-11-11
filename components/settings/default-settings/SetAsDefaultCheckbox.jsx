@@ -5,7 +5,7 @@ import useProjectStore from '../../hooks/useProjectStore';
 import FormCheckboxField from '../../form/FormCheckboxField';
 
 
-const SetAsDefaultCheckbox = observer(() => {
+const SetAsDefaultCheckbox = observer(({ floatClassName }) => {
   const { pluginDefaults, element, activeElementId, setAsDefault } = useProjectStore();
   const value = React.useMemo(() => pluginDefaults[element.type].id === activeElementId,
     [activeElementId, pluginDefaults[element.type].id]);
@@ -15,6 +15,7 @@ const SetAsDefaultCheckbox = observer(() => {
       value={value}
       label="Set as Default"
       onChange={() => setAsDefault(value)}
+      floatClassName={floatClassName}
     />
   );
 });
