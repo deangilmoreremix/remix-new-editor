@@ -132,7 +132,7 @@ class Layout extends Component {
             </Head>
             {this.hasPermissions ? (
               <div>
-                <Header {...this.props} className={`theme-${whiteLabelManager.key}`} />
+                <Header whiteLabelManager={whiteLabelManager} className={`theme-${whiteLabelManager.key}`} />
                 <div {...this.props} className={`main theme-${whiteLabelManager.key}`}>
                   <ModalContainer classNameWL={`theme-${whiteLabelManager.key}`} />
                   {children}

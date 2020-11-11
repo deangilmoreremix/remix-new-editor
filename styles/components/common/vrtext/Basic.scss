@@ -203,6 +203,35 @@
   }
 }
 
+.text-buttons-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  &-once {
+    justify-content: flex-end;
+  }
+}
+
+.open-text-to-speech {
+  @include reset-button;
+  flex: 1;
+  display: inline-block;
+  height: 2.174rem;
+  background: $secondary-color;
+  border-radius: 4px;
+  color: $white;
+  font-size: $defaultFontSize;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  padding: 0 24px;
+  margin-top: 1rem;
+  margin-right: 1rem;
+}
+
 @media screen and (max-width: 1480px) {
   .text-form {
     .text-transform-container {
@@ -268,9 +297,11 @@
       }
     }
 
-    .personalize-container, .btn-personalize {
+    .personalize-container, .btn-personalize, .open-text-to-speech {
       width: 100%;
       margin-left: 0;
+      margin-right: 0;
+      flex: none;
     }
 
     .link-url-container {

@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { observer } from 'mobx-react';
 
-import { generatorTabs } from '../../../lib/constants/templateGenerator';
-
 import useMediaStore from '../../hooks/useMediaStore';
 import { ASSET_TYPES } from '../../../lib/constants/media';
 import { LIBRARY_KEYS } from '../../../lib/constants/library';
@@ -16,24 +14,17 @@ const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
   const mediaStore = useMediaStore();
   const provider = mediaStore.providersList.USER;
   const assetType = ASSET_TYPES.VIDEO;
-  const providers = mediaStore.generatorProviders;
+  const { providers, generatorTabs } = mediaStore.generatorProviders;
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState('');
   const [hasMore, setHasMore] = useState(true);
   const [videos, setVideos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setTab] = useState(Object.values(providers)
-    .includes(LIBRARY_KEYS.PIXABAY) ? 3 : 1);
-
-  generatorTabs.forEach((tab) => {
-    if (!Object.values(providers).includes(LIBRARY_KEYS.PIXABAY)
-      && tab.label.toUpperCase() === (LIBRARY_KEYS.PIXABAY)) {
-      generatorTabs.splice(generatorTabs.indexOf(tab));
-    } else if (!Object.values(providers).includes(LIBRARY_KEYS.PEXELS)
-      && tab.label.toUpperCase() === (LIBRARY_KEYS.PEXELS)) {
-      generatorTabs.splice(generatorTabs.indexOf(tab));
-    }
-  });
+  const [activeTab, setTab] = useState(
+    (Object.values(providers).includes(LIBRARY_KEYS.PIXABAY)
+      ? (Object.values(providers).indexOf(LIBRARY_KEYS.PIXABAY))
+      : (Object.values(providers).indexOf(LIBRARY_KEYS.USER))),
+  );
 
   useEffect(() => {
     setHeader({ activeTab, setTab, tabs: generatorTabs });

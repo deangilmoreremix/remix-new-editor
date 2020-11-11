@@ -11,7 +11,7 @@ import HelpIconComponent from './common/HelpIcon';
 import { HEADER_ACTIONS, USER_MENU_ITEMS } from '../lib/constants/ui';
 import { headerTooltips } from '../lib/constants/tooltips';
 
-// import logoIcon from '../public/static/svgImages/header/logo.svg';
+import logoIcon from '../public/static/svgImages/header/logo.svg';
 import redoIcon from '../public/static/svgImages/header/redo.svg';
 import undoIcon from '../public/static/svgImages/header/undo.svg';
 import saveIcon from '../public/static/svgImages/header/save.svg';
@@ -21,6 +21,9 @@ import useCommonStore from './hooks/useCommonStore';
 
 import useUIStore from './hooks/useUIStore';
 import Sidebar from './Sidebar';
+import { DOMAIN_VIDEOREMIX } from '../lib/constants/project';
+
+import PropTypes from '../lib/PropTypes';
 
 const {
   REDO,
@@ -28,7 +31,7 @@ const {
   SAVE,
 } = HEADER_ACTIONS;
 
-const MenuAppBar = observer(() => {
+const MenuAppBar = observer(({ whiteLabelManager }) => {
   const anchorRef = useRef(null);
 
   const {
@@ -56,15 +59,22 @@ const MenuAppBar = observer(() => {
     <div className="container-header" ref={anchorRef}>
       <AppBar position="static" className="app-bar">
         <Toolbar className="container-menu">
-          <Sidebar />
-          {/* <div className="flex-vertical-center"> */}
-          {/*  <SVGInline */}
-          {/*    className="logo flex" */}
-          {/*    classSuffix="" */}
-          {/*    svg={logoIcon} */}
-          {/*    cleanup={['title']} */}
-          {/*  /> */}
-          {/* </div> */}
+          <div className="container-logo-humburger">
+            <Sidebar />
+            <div className="flex-vertical-center">
+              {whiteLabelManager && whiteLabelManager.domain !== DOMAIN_VIDEOREMIX
+                ? (<a className="navbar-logo-wl" href="/" />)
+                : (
+                  <SVGInline
+                    className="logo flex"
+                    classSuffix=""
+                    svg={logoIcon}
+                    cleanup={['title']}
+                  />
+                )}
+            </div>
+          </div>
+
 
           <div className="container-menu__actions">
             <div className="container-menu__actions__item">
@@ -146,5 +156,9 @@ const MenuAppBar = observer(() => {
     </div>
   );
 });
+
+MenuAppBar.propTypes = {
+  whiteLabelManager: PropTypes.shape({}),
+};
 
 export default MenuAppBar;

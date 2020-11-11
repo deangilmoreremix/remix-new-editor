@@ -93,7 +93,8 @@ class Creator {
       this.authorization = this.clientAuthHeader;
     }
     const whiteLabel = (wl && wl.domain) || (common.whiteLabel && common.whiteLabel.domain) || 'videoremix.io';
-    this.hostname = `${common.prefixes.api}.${whiteLabel}`;
+    this.hostname = this.hostname || `${common.prefixes.api}.${whiteLabel}`;
+    console.log(this.hostname);
     this.request = requestCreator(
       this.hostname,
       this.authorization,

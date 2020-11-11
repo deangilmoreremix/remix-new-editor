@@ -18,6 +18,8 @@ import { FEATURES } from '../../lib/constants/features';
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import config from '../../config/config';
 import requestCreator from '../../lib/requestCreator';
+import { generatorTabs } from '../../lib/constants/templateGenerator';
+
 
 export default class Media extends BaseStore {
   @observable providersConfiguration = null;
@@ -397,12 +399,19 @@ export default class Media extends BaseStore {
   checkToken = async (activeBtn) => {
     let result;
     const { apiKey, apiUrl, videosApiPath, apiToken } = this.providersConfiguration[activeBtn];
+    const urlParams = new URLSearchParams({
+      page: 1,
+      per_page: 1,
+    });
+    if (activeBtn === LIBRARY_KEYS.DROPMOCK) {
+      urlParams.append('api_key', apiKey);
+    }
     const request = requestCreator(`${apiUrl}`);
     try {
-      result = await request(videosApiPath, {
+      result = await request(`${videosApiPath}?${urlParams}`, {
         method: 'GET',
         headers: activeBtn === LIBRARY_KEYS.DROPMOCK
-          ? { key: apiKey, 'Content-Type': 'application/json' }
+          ? {}
           : { key: apiToken, token: apiKey, 'Content-Type': 'application/json' },
       });
     } catch (e) {
@@ -576,14 +585,16 @@ export default class Media extends BaseStore {
     const providers = {};
     providers[0] = this.providersList.REMOTE;
     providers[1] = this.providersList.USER;
-    if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
-      providers[2] = this.providersList.PEXELS;
+    if (this.userStore.isfeatureEnabled(FEATURES.PEXELS_VIDEO_INTEGRATION)) {
+      providers[Object.keys(providers).length] = this.providersList.PEXELS;
+      generatorTabs.push({ label: LIBRARY_KEYS.PEXELS.toLowerCase() });
     }
     if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
-      providers[3] = this.providersList.PIXABAY;
+      providers[Object.keys(providers).length] = this.providersList.PIXABAY;
+      generatorTabs.push({ label: LIBRARY_KEYS.PIXABAY.toLowerCase() });
     }
 
-    return providers;
+    return { providers, generatorTabs };
   }
 
   constructor(props) {

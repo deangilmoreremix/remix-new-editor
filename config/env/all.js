@@ -128,7 +128,7 @@ module.exports = {
       apiUrl: process.env.DROPMOCK_API_URL || 'https://app.dropmock.com',
       apiKey: process.env.DROPMOCK_API_KEY || 'bTzbENea9u3p35y726pn5xALu7KerQulOWxIPt0F',
       imagesApiPath: 'api/v1/images',
-      videosApiPath: 'api/v1/fusion/videos',
+      videosApiPath: 'api/v1/videos',
     },
     GIPHY: {
       apiKey: process.env.GIPHY_API_KEY || 'sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh',
