@@ -532,7 +532,8 @@ const Library = observer((props) => {
     }
   };
 
-  const onDelete = (id) => {
+  const onDelete = (e, id) => {
+    e.stopPropagation();
     const newArr = items.filter(item => item._id !== id);
     setLibraryItemsForDelete(id);
     setItems(newArr);
