@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useMemo } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
@@ -10,18 +10,20 @@ import ExpandButton from './common/ExpandButton';
 import HelpIconComponent from './common/HelpIcon';
 import { HEADER_ACTIONS, USER_MENU_ITEMS } from '../lib/constants/ui';
 import { headerTooltips } from '../lib/constants/tooltips';
+import { DOMAIN_VIDEOREMIX } from '../lib/constants/project';
 
 import logoIcon from '../public/static/svgImages/header/logo.svg';
 import redoIcon from '../public/static/svgImages/header/redo.svg';
 import undoIcon from '../public/static/svgImages/header/undo.svg';
 import saveIcon from '../public/static/svgImages/header/save.svg';
+import voiceIcon from '../public/static/svgImages/header/logo-text-to-speech.svg';
 
 import useProjectStore from './hooks/useProjectStore';
 import useCommonStore from './hooks/useCommonStore';
 
 import useUIStore from './hooks/useUIStore';
+import useUserStore from './hooks/useUserStore';
 import Sidebar from './Sidebar';
-import { DOMAIN_VIDEOREMIX } from '../lib/constants/project';
 
 import PropTypes from '../lib/PropTypes';
 
@@ -42,6 +44,12 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     checkAndSave,
   } = useProjectStore();
 
+  const {
+    textToSpeechStandardEnabled,
+    textToSpeechNeuralEnabled,
+    textToSpeechLimitedEnabled,
+  } = useUserStore();
+
   const common = useCommonStore();
 
   const {
@@ -54,6 +62,15 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   const saveProject = useCallback(async () => {
     checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
   }, [setInitialView, showProducePanel]);
+
+  const isViewVoiceBtn = useMemo(() => !!((textToSpeechStandardEnabled
+      || textToSpeechNeuralEnabled
+      || textToSpeechLimitedEnabled)
+      && whiteLabelManager.domain === DOMAIN_VIDEOREMIX), [
+    textToSpeechStandardEnabled,
+    textToSpeechNeuralEnabled,
+    textToSpeechLimitedEnabled,
+  ]);
 
   return (
     <div className="container-header" ref={anchorRef}>
@@ -145,6 +162,16 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
             </div>
           </div>
           <ExpandButton />
+          {isViewVoiceBtn && (
+            <div className="text-to-speech-logo">
+              <SVGInline
+                className="text-to-speech-logo__icon"
+                classSuffix=""
+                svg={voiceIcon}
+                cleanup={['title']}
+              />
+            </div>
+          )}
           <Menu
             toggleElement={<UserBox />}
             items={USER_MENU_ITEMS(common)}
