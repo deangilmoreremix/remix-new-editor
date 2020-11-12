@@ -1,5 +1,3 @@
-// todo remove it after testing multiselect
-/* eslint-disable no-unused-vars */
 import React, { useState, useRef, useEffect } from 'react';
 // import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
@@ -92,7 +90,7 @@ const Library = observer((props) => {
     checkToken,
   } = useMediaStore();
 
-  const { video360Enabled, isSuperAdmin, getUserKey, updateUserKeys } = userStore;
+  const { video360Enabled, getUserKey, updateUserKeys } = userStore;
 
   // =============== STATE ===============
   const [userValidationKey, setUserValidationKey] = useState();
@@ -117,6 +115,7 @@ const Library = observer((props) => {
   const [activeItem, setActiveItem] = useState(null);
 
   const [isViewedValidationBlock, setIsViewedValidationBlock] = useState(true);
+  const [isMultiSelectLoading, setIsMultiSelectLoading] = useState(false);
 
   const inputRef = useRef();
   const keyRef = useRef();
@@ -633,6 +632,15 @@ const Library = observer((props) => {
     }
   };
 
+  const addArrayItemsToTimeline = async () => {
+    setIsMultiSelectLoading(true);
+    try {
+      await addAllSelectedItems();
+    } catch (e) {
+      setIsMultiSelectLoading(false);
+    }
+  };
+
   return (
     <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
@@ -645,9 +653,7 @@ const Library = observer((props) => {
                   {
                     isDisabledUpload
                       ? <LibrarySpinner />
-                      // todo uncomment it after testing multiselect
-                      // : `You can select one or more ${getCurrentTab()}s then add to the timeline`
-                      : `You can select ${getCurrentTab()} then add to the timeline`
+                      : `You can select one or more ${getCurrentTab()}s then add to the timeline`
                   }
                 </span>
               ) : (
@@ -678,14 +684,13 @@ const Library = observer((props) => {
                     <SearchIcon />
                   </div>
                 </div>
-                {/* todo Uncomment it after testing multiselect */}
-                {/* <button */}
-                {/* className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })} */}
-                {/* onClick={addAllSelectedItems} */}
-                {/* disabled={emptyCollections} */}
-                {/* > */}
-                {/* Add to timeline */}
-                {/* </button> */}
+                <button
+                  className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
+                  onClick={addArrayItemsToTimeline}
+                  disabled={emptyCollections || isMultiSelectLoading}
+                >
+                  {isMultiSelectLoading ? <LibrarySpinner /> : 'Add to timeline'}
+                </button>
                 {showed360 ? (
                   <Is360
                     value={is360}
@@ -738,14 +743,13 @@ const Library = observer((props) => {
                     <span>To unlock this library, you need to enter a custom key.</span>
                   )}
                 </div>
-                {/* todo Uncomment it after testing multiselect */}
-                {/* <button */}
-                {/* className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })} */}
-                {/* onClick={addAllSelectedItems} */}
-                {/* disabled={emptyCollections} */}
-                {/* > */}
-                {/* Add to timeline */}
-                {/* </button> */}
+                <button
+                  className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
+                  onClick={addArrayItemsToTimeline}
+                  disabled={emptyCollections || isMultiSelectLoading}
+                >
+                  {isMultiSelectLoading ? <LibrarySpinner /> : 'Add to timeline'}
+                </button>
                 <div className="library__key-box-dummy" />
               </>
             )}
