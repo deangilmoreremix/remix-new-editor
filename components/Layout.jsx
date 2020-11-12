@@ -72,6 +72,24 @@ class Layout extends Component {
           )}
           <div className={`theme-${whiteLabelManager.key} layout-container`}>
             <Head>
+              <link
+                rel="preload"
+                href="../public/static/fonts/ProximaNova/Proxima-Nova-Regular.otf"
+                as="font"
+                crossOrigin=""
+              />
+              <link
+                rel="preload"
+                href="../public/static/fonts/ProximaNova/Proxima-Nova-Light.otf"
+                as="font"
+                crossOrigin=""
+              />
+              <link
+                rel="preload"
+                href="../public/static/fonts/ProximaNova/Proxima-Nova-Bold.otf"
+                as="font"
+                crossOrigin=""
+              />
               <title>{DEFAULT_TITLE}</title>
               <link
                 rel="shortcut icon"
