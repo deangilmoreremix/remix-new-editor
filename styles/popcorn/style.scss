@@ -225,8 +225,25 @@ body.editor-minimized .stage-wrapper {
       }
     }
 
+    .container-fill-out {
+      display: flex;
+      flex-wrap: wrap;
+      line-height: 1.3;
+    }
+
     span {
       font-weight: 700;
+    }
+    .fill-out {
+      font-weight: 300;
+      margin-right: 0.2rem;
+    }
+    .element-field {
+      display: inline-block;
+      max-width: 80px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
   }
 }
