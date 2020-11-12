@@ -43,7 +43,7 @@ const AnimatableElement = React.forwardRef(({ onSelect, item, ...rest }, ref) =>
 
   return (
     <Grid
-      title={item.type || item.title || item.htmlText}
+      title={item.title || item.htmlText || item.type}
       container
       className="popcorn-element"
       onClick={onSelect}
