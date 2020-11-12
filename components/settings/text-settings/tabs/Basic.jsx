@@ -39,7 +39,7 @@ const Basic = observer(({ values, fields, element, onChange }) => {
     clickToPhoneCall,
     textToSpeechStandardEnabled,
     textToSpeechNeuralEnabled,
-    textToSpeechBaseEnabled,
+    textToSpeechLimitedEnabled,
   } = useUserStore();
 
   const {
@@ -185,14 +185,14 @@ const Basic = observer(({ values, fields, element, onChange }) => {
 
   const isViewVoiceBtn = useMemo(() => {
     if (textToRender
-      && (textToSpeechStandardEnabled || textToSpeechNeuralEnabled || textToSpeechBaseEnabled)) {
+      && (textToSpeechStandardEnabled || textToSpeechNeuralEnabled || textToSpeechLimitedEnabled)) {
       return true;
     }
     return false;
   }, [textToRender,
     textToSpeechStandardEnabled,
     textToSpeechNeuralEnabled,
-    textToSpeechBaseEnabled,
+    textToSpeechLimitedEnabled,
   ]);
 
   const openVoice = () => {
