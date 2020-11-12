@@ -477,7 +477,6 @@ const TextToSpeech = observer(() => {
                 selectClassName="text-to-speech__select-list"
                 value={language}
                 onChange={onLanguageSelect}
-                disabled={onlyLimitedTextToSpeech}
               />
               <FormSelect
                 label="Voice"
