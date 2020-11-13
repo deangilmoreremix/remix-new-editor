@@ -13,6 +13,28 @@
 
 @import "popcorn";
 
+@font-face {
+  font-family: "Proxima Nova";
+  src: url("../public/static/fonts/ProximaNova/Proxima-Nova-Regular.otf") format("opentype");
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Proxima Light";
+  src: url("../public/static/fonts/ProximaNova/Proxima-Nova-Light.otf") format("opentype");
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Proxima Bold";
+  src: url("../public/static/fonts/ProximaNova/Proxima-Nova-Bold.otf") format("opentype");
+  font-style: normal;
+}
+
+body {
+  font-family: "Proxima Nova", sans-serif;
+}
+
 @import "components/DropzoneArea";
 @import "components/Home";
 @import "components/Header";
@@ -94,24 +116,6 @@
 
 @import "components/canvas/Canvas";
 @import "components/canvas/SizeSelector";
-
-@font-face {
-  font-family: "Proxima Nova";
-  src: url("../public/static/fonts/ProximaNova/Proxima-Nova-Regular.otf") format("opentype");
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Proxima Light";
-  src: url("../public/static/fonts/ProximaNova/Proxima-Nova-Light.otf") format("opentype");
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Proxima Bold";
-  src: url("../public/static/fonts/ProximaNova/Proxima-Nova-Bold.otf") format("opentype");
-  font-style: normal;
-}
 
 .flex-end {
   width: 100%;
