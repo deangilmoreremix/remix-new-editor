@@ -406,10 +406,10 @@ export default class ProjectStore extends BaseStore {
         popcornFunctions.end(this.retarget);
       }
     };
-    this.retarget.start = () => {
+    this.retarget.start = (newOptions = retargetOptions) => {
       this.showedRetarget = true;
       if (popcornFunctions.start) {
-        popcornFunctions.start(retargetOptions);
+        popcornFunctions.start(newOptions);
       }
     };
   };
@@ -458,7 +458,7 @@ export default class ProjectStore extends BaseStore {
     this.retarget.kind = kind;
     this.editElement(this.retarget.id);
     if (showed) {
-      this.retarget.start();
+      this.retarget.start({ ...this.retarget });
     }
     this.retarget.showed = showed;
     if (!noUndo) {
