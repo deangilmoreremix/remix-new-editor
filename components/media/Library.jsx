@@ -789,6 +789,7 @@ const Library = observer((props) => {
         </div>
       </div>
       <CloseButton onClick={closeLibrary} />
+      <div className="library__gradient" />
     </div>
   );
 });
