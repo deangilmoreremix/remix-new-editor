@@ -1,4 +1,11 @@
 .toolbar {
+  &-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
   &-container {
     //max-width: 23.3em;
     height: $toolbarHeight;
@@ -35,6 +42,10 @@
       max-width: 3.58em;
       max-height: 3.08em;
       margin-bottom: 0.42em;
+
+      svg {
+        width: 100%;
+      }
     }
   }
 
