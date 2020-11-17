@@ -87,6 +87,22 @@ const LibraryContent = observer((props) => {
     }
   };
 
+  const openPreview = (e, item) => {
+    e.stopPropagation();
+    return openModal(
+      PREVIEW_MEDIA_MODAL, { item, activeTab, onSelect, volume, mute: false },
+    );
+  };
+
+  const togglePlay = (e, item) => {
+    e.stopPropagation();
+    if (item) {
+      onPlay(item);
+    } else {
+      onPlay(null);
+    }
+  };
+
   const renderActions = React.useCallback((item) => {
     switch (activeTab) {
       case LIBRARY_TABS.AUDIO:
@@ -119,14 +135,14 @@ const LibraryContent = observer((props) => {
               </div>
             )}
             {isActive ? (
-              <button className="library__item-play" onClick={() => onPlay(null)}>
+              <button className="library__item-play" onClick={togglePlay}>
                 <SVGInline
                   className="library__item-audio-icon"
                   svg={stopIcon}
                 />
               </button>
             ) : (
-              <button className="library__item-play" onClick={() => onPlay(item)}>
+              <button className="library__item-play" onClick={e => togglePlay(e, item)}>
                 <SVGInline
                   className="library__item-audio-icon"
                   svg={playIcon}
@@ -165,9 +181,7 @@ const LibraryContent = observer((props) => {
           </div>
           <button
             className="library__item-preview"
-            onClick={() => openModal(
-              PREVIEW_MEDIA_MODAL, { item, activeTab, onSelect, volume, mute: false },
-            )}
+            onClick={e => openPreview(e, item)}
           >
             Preview
           </button>
