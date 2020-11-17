@@ -553,6 +553,10 @@ button.library__tab {
     padding-bottom: 57%;
   }
 
+  &:hover .library__item-info {
+    background-color: transparent !important;
+  }
+
   &-drop {
     border: 2px dashed $media-library-color;
     cursor: pointer;
@@ -615,6 +619,7 @@ button.library__tab {
     position: absolute;
     bottom: 0;
     padding: .75em .2em .75em .2em;
+    transition: all ease-out 250ms;
 
     span {
       font-size: 12px;
@@ -632,7 +637,7 @@ button.library__tab {
   }
 
   &-icon {
-    width: 1.15rem;
+    width: 10%;
   }
 
   &-videotime {
@@ -729,6 +734,7 @@ button.library__tab {
   @extend .library__item-use;
   max-width: 2.5em !important;
   width: 2em !important;
+  height: 2.5em !important;
   background-color: $secondary-color;
   border: none;
 }
