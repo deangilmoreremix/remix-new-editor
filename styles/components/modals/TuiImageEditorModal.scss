@@ -471,28 +471,32 @@
 
 .tui-image-editor-container .tui-image-editor-checkbox input + label:before,
 .tui-image-editor-container .tui-image-editor-checkbox > label > span:before {
-  content: '';
+  content: '\2022';
+  color: $secondary-color !important;
   position: absolute;
   width: 14px;
   height: 14px;
-  background-color: #fff;
+  background-color: transparent !important;
+  border: 1px solid $media-library-color !important;
   top: 6px;
   left: -19px;
   display: inline-block;
   margin: 0;
   text-align: center;
-  font-size: 11px;
-  border: 0;
+  font-size: 9px;
   border-radius: 2px;
-  padding-top: 1px;
   box-sizing: border-box;
 
+  &:hover {
+    border: 1px solid $secondary-color !important;
+  }
 }
 
 .tui-image-editor-container .tui-image-editor-checkbox input[type='checkbox']:checked + span:before {
   background-size: cover;
-  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAAXNSR0IArs4c6QAAAMBJREFUKBWVkjEOwjAMRe2WgZW7IIHEDdhghhuwcQ42rlJugAQS54Cxa5cq1QM5TUpByZfS2j9+dlJVt/tX5ZxbS4ZU9VLkQvSHKTIGRaVJYFmKrBbTCJxE2UgCdDzMZDkHrOV6b95V0US6UmgKodujEZbJg0B0ZgEModO5lrY1TMQf1TpyJGBEjD+E2NPN7ukIUDiF/BfEXgRiGEw8NgkffYGYwCi808fpn/6OvfUfsDr/Vc1IfRf8sKnFVqeiVQfDu0tf/nWH9gAAAABJRU5ErkJggg==");
-
+  content: '\2022';
+  vertical-align: center;
+  border: 1px solid $secondary-color !important;
 }
 
 .tui-image-editor-container .tui-image-editor-selectlist-wrap {
@@ -561,7 +565,7 @@
 .tui-image-editor-container .tui-image-editor-virtual-range-bar .tui-image-editor-disabled,
 .tui-image-editor-container .tui-image-editor-virtual-range-subbar .tui-image-editor-disabled,
 .tui-image-editor-container .tui-image-editor-virtual-range-pointer .tui-image-editor-disabled {
-  backbround-color: #f00;
+  background-color: #f00;
 
 }
 
@@ -578,8 +582,8 @@
   top: 7px;
   position: absolute;
   width: 100%;
-  height: 2px;
-  background-color: #666;
+  height: 3px;
+  background-color: $scrollbarColor !important;
 
 }
 
@@ -588,7 +592,7 @@
   height: 100%;
   left: 0;
   right: 0;
-  background-color: #d1d1d1;
+  background-color: $layer-color !important;
 
 }
 
@@ -600,7 +604,23 @@
   width: 12px;
   height: 12px;
   background-color: #fff;
+  border: 1px solid $secondary-color;
   border-radius: 100%;
+
+}
+
+.tui-image-editor-container .tui-image-editor-virtual-range-pointer::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 2px;
+  right: 2px;
+  position: absolute;
+  background-color: $scrollbarColor;
 
 }
 
