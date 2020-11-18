@@ -203,6 +203,36 @@
       }
     }
 
+    &__project-name {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 8.75rem;
+      width: 8.75rem;
+      white-space: nowrap;
+
+      span {
+        font-size: 14px;
+        margin-right: 5px;
+        width: 100%;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        padding: 1px;
+        margin-left: 1px;
+      }
+
+      input {
+        @include reset-button;
+        cursor: inherit;
+        color: $white;
+        border-bottom: 1px solid $media-library-color;
+        font-size: 14px;
+        margin-right: 5px;
+        width: 100%;
+        padding: 1px;
+      }
+    }
+
     &__actions {
       width: 150px;
       display: flex;
