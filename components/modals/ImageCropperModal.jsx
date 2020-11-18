@@ -13,6 +13,7 @@ const ImageCropperModal = observer(({ handleClose, options }) => {
     updateField,
     needClose,
     zoomable,
+    openImageEditor,
   } = useMemo(
     () => options, [options]);
   if (!options.imageMeta) {
@@ -30,6 +31,7 @@ const ImageCropperModal = observer(({ handleClose, options }) => {
           handleClose={handleClose}
           needClose={needClose}
           zoomable={zoomable}
+          openImageEditor={openImageEditor}
         />
       </Box>
     </div>

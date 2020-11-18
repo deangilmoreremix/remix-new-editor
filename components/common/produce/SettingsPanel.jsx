@@ -43,7 +43,7 @@ const SettingPanel = observer(() => {
   };
 
   const onUploadedImage = (image) => {
-    openEditor(image.url);
+    updateItem({ thumbnail: image.url });
   };
 
   const onImageEdited = (thumbnail) => {
@@ -53,7 +53,7 @@ const SettingPanel = observer(() => {
   const openEditor = (image) => {
     closeModal(IMAGE_CROPPER_MODAL);
     openImageEditor({
-      src: image,
+      src: image || item.thumbnail,
       onImageEdited,
       startUpload: () => setIsDisabledUpload(true),
       endUpload: () => setIsDisabledUpload(false),
@@ -163,7 +163,7 @@ const SettingPanel = observer(() => {
               item.thumbnail
             && (
             <Button
-              onClick={() => openEditor(item.thumbnail)}
+              onClick={() => openEditor()}
               disableRipple
               disableFocusRipple
               disableTouchRipple
@@ -185,6 +185,7 @@ const SettingPanel = observer(() => {
                 endUpload={() => setIsDisabledUpload(false)}
                 needSaveAsset={false}
                 tooltipMessage={produceTooltips.thumbnailUpload}
+                openImageEditor={(image) => openEditor(image)}
               />
             </div>
             <p className="settings__row-text-2">
