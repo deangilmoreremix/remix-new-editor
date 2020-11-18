@@ -4,7 +4,7 @@ import Gallery from 'react-masonry-infinite';
 import { LibrarySpinner } from '../Loader';
 import VideoTile from './VideoTile';
 import useModalStore from '../../hooks/useModalStore';
-import { VIDEO_PLAYER_MODAL } from '../../../lib/constants/modals';
+import { PREVIEW_MEDIA_MODAL } from '../../../lib/constants/modals';
 
 const VideoGallery = (props) => {
   const { items, loadMore, hasMore, inWindow, onSelect } = props;
@@ -15,8 +15,8 @@ const VideoGallery = (props) => {
     ]
     : [
       { mq: '512px', columns: 2, gutter: 20 },
-      { mq: '768px', columns: 4, gutter: 20 },
-      { mq: '1024px', columns: 5, gutter: 15 },
+      { mq: '768px', columns: 3, gutter: 20 },
+      { mq: '1024px', columns: 4, gutter: 15 },
       { mq: '1536px', columns: 5, gutter: 30 },
     ];
 
@@ -38,8 +38,10 @@ const VideoGallery = (props) => {
             preview={item.preview || item.url}
             key={`tile${item._id || item.url}`}
             onPreview={
-                () => openModal(VIDEO_PLAYER_MODAL, { url: item.url, title: item.title })
-              }
+              () => openModal(PREVIEW_MEDIA_MODAL, {
+                item, activeTab: 'VIDEO', volume: 100, mute: false, hasUse: false,
+              })
+            }
             onSelect={() => { onSelect(item); }}
           />
         ))
