@@ -297,7 +297,7 @@ const LibraryContent = observer((props) => {
                 <div className="library__item-info">
                   <SVGInline
                     className="library__item-icon"
-                    svg={tabItems[activeTab].icon}
+                    svg={tabItems[activeTab].libraryIcon || tabItems[activeTab].icon}
                     component="div"
                   />
                   <span>{item.name || getTitle(item)}</span>
