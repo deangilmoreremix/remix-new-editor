@@ -666,7 +666,8 @@ button.library__tab {
 }
 
 .library__item-selected {
-  border-color: $secondary-color
+  border-color: $secondary-color;
+  border-width: 2px;
 }
 
 .library__item-audio-top {
@@ -728,6 +729,12 @@ button.library__tab {
   background: rgba(0, 0, 0, 0);
   border: 1px solid $secondary-color;
   margin-right: 0.5em;
+}
+
+.library__item-preview-selected {
+  flex: 0;
+  margin: 0 auto;
+  padding: 0 15px;
 }
 
 .library__item-delete {
@@ -995,9 +1002,14 @@ button.library__tab {
           width: 2.2rem;
           height: 2.2rem;
         }
+        &-play-selected {
+          top: 40%;
+          width: 2.5rem;
+          height: 2.5rem;
+        }
         &-use {
           top: 62%;
-          padding: 0.15rem 1rem 0.20rem;
+          padding: 0.20rem 1rem 0.20rem;
         }
       }
     }
@@ -1028,7 +1040,7 @@ button.library__tab {
         &-use {
           top: 61%;
           font-size: 0.7rem;
-          padding: 0.15rem 1rem 0.20rem;
+          padding: 0.20rem 1rem 0.20rem;
         }
       }
     }

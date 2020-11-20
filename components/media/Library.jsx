@@ -773,6 +773,7 @@ const Library = observer((props) => {
               items={itemsWithSelect}
               onToggleSelect={toogleSelectItem}
               addToTimeLine={addSelectedElements}
+              hasData={emptyCollections}
               onSelect={onSelect}
               activeBtn={activeBtn}
               activeTab={activeTab}

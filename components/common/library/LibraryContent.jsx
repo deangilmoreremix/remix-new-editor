@@ -41,6 +41,7 @@ const LibraryContent = observer((props) => {
     needValidation,
     keyRef,
     isViewedValidationBlock,
+    hasData,
   } = props;
 
   const { openModal } = useModalStore();
@@ -103,6 +104,12 @@ const LibraryContent = observer((props) => {
     }
   };
 
+  const selectedSpan = () => (
+    <span className="library__item-use">
+      Selected
+    </span>
+  );
+
   const renderActions = React.useCallback((item) => {
     switch (activeTab) {
       case LIBRARY_TABS.AUDIO:
@@ -135,23 +142,34 @@ const LibraryContent = observer((props) => {
               </div>
             )}
             {isActive ? (
-              <button className="library__item-play" onClick={togglePlay}>
+              <button
+                className={classnames('library__item-play',
+                  { 'library__item-play-selected': !hasData && !item.selected })}
+                onClick={togglePlay}
+              >
                 <SVGInline
                   className="library__item-audio-icon"
                   svg={stopIcon}
                 />
               </button>
             ) : (
-              <button className="library__item-play" onClick={e => togglePlay(e, item)}>
+              <button
+                className={classnames('library__item-play',
+                  { 'library__item-play-selected': !hasData && !item.selected })}
+                onClick={e => togglePlay(e, item)}
+              >
                 <SVGInline
                   className="library__item-audio-icon"
                   svg={playIcon}
                 />
               </button>
             )}
-            <button className="library__item-use" onClick={() => onSelect(item)}>
-              Use
-            </button>
+            {hasData
+              ? (
+                <button className="library__item-use" onClick={() => onSelect(item)}>
+                  Use
+                </button>
+              ) : (item?.selected && selectedSpan()) || null}
           </React.Fragment>
         );
       }
@@ -180,14 +198,18 @@ const LibraryContent = observer((props) => {
             }
           </div>
           <button
-            className="library__item-preview"
+            className={classnames('library__item-preview',
+              { 'library__item-preview-selected': !hasData && !item.selected })}
             onClick={e => openPreview(e, item)}
           >
             Preview
           </button>
-          <button className="library__item-use" onClick={() => onSelect(item)}>
-            Use
-          </button>
+          {hasData
+            ? (
+              <button className="library__item-use" onClick={() => onSelect(item)}>
+                Use
+              </button>
+            ) : (item?.selected && selectedSpan()) || null}
         </React.Fragment>
       );
     }
@@ -338,6 +360,7 @@ LibraryContent.propTypes = {
   type: PropTypes.string.isRequired,
   needValidation: PropTypes.bool.isRequired,
   isViewedValidationBlock: PropTypes.bool.isRequired,
+  hasData: PropTypes.bool.isRequired,
 };
 
 export default LibraryContent;
