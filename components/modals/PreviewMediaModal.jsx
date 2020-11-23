@@ -5,7 +5,7 @@ import VideoPlayer from '../media/VideoGallery/VideoPlayer';
 import { ASSET_TYPES } from '../../lib/constants/media';
 
 const PreviewMediaModal = ({ handleClose, options, setMaxWidth }) => {
-  const { item, volume, mute, activeTab } = options;
+  const { item, volume, mute, activeTab, hasUse = true } = options;
 
   const handleUseVideo = () => {
     options.onSelect({ ...item, volume, mute });
@@ -47,8 +47,12 @@ const PreviewMediaModal = ({ handleClose, options, setMaxWidth }) => {
       )}
       <div className="preview-video-buttons-container">
         <button className="preview-video-button-hidden" />
-        <button className="preview-video-button" onClick={handleUseVideo}>Use</button>
-        <button className="preview-video-button-cancel" onClick={handleClose}>Cancel</button>
+        {hasUse && (
+          <button className="preview-video-button" onClick={handleUseVideo}>Use</button>
+        )}
+        <button className="preview-video-button-cancel" onClick={handleClose}>
+          {hasUse ? 'Cancel' : 'Close'}
+        </button>
       </div>
     </Fragment>
   );
@@ -61,6 +65,7 @@ PreviewMediaModal.propTypes = {
     activeTab: PropTypes.string.isRequired,
     volume: PropTypes.number,
     mute: PropTypes.bool,
+    hasUse: PropTypes.bool,
   }),
   handleClose: PropTypes.func.isRequired,
   setMaxWidth: PropTypes.func,

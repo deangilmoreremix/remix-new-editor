@@ -846,30 +846,34 @@ export default class ProjectStore extends BaseStore {
 
   @action
   preRemix = async (projectId, openModal) => {
-    const path = `/api/makes/${projectId}/pre-remix`;
-    try {
-      const result = await this.request(
-        path, {
-          method: 'GET',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+    if (projectId) {
+      const path = `/api/makes/${projectId}/pre-remix`;
+      try {
+        const result = await this.request(
+          path, {
+            method: 'GET',
+            headers: {
+              'on-behalf': this.currentUser.id,
+            },
+          });
 
-      const { scenario } = result;
+        const { scenario } = result;
 
-      switch (scenario) {
-        case preRemixVoice.withoutPersonalizeAssets.name:
-          return this.remixOne(projectId);
-        case preRemixVoice.isOwner.name:
-          return this.remixPersonalizedOne(projectId, false);
-        default: {
-          openModal(PRE_REMIX_VOICE_MODAL, { scenario });
-          return this.remixOne();
+        switch (scenario) {
+          case preRemixVoice.withoutPersonalizeAssets.name:
+            return this.remixOne(projectId);
+          case preRemixVoice.isOwner.name:
+            return this.remixPersonalizedOne(projectId, false);
+          default: {
+            openModal(PRE_REMIX_VOICE_MODAL, { scenario });
+            return this.remixOne();
+          }
         }
+      } catch (e) {
+        return this.remixOne();
       }
-    } catch (e) {
-      return this.remixOne();
+    } else {
+      this.remixOne();
     }
   };
 

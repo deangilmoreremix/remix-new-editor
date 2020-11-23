@@ -773,6 +773,7 @@ const Library = observer((props) => {
               items={itemsWithSelect}
               onToggleSelect={toogleSelectItem}
               addToTimeLine={addSelectedElements}
+              hasData={emptyCollections}
               onSelect={onSelect}
               activeBtn={activeBtn}
               activeTab={activeTab}
@@ -789,6 +790,7 @@ const Library = observer((props) => {
         </div>
       </div>
       <CloseButton onClick={closeLibrary} />
+      <div className="library__gradient" />
     </div>
   );
 });
