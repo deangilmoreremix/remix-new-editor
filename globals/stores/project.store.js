@@ -887,7 +887,6 @@ export default class ProjectStore extends BaseStore {
     this.setProjectData(JSON.parse(result.project.data));
     if (isRemix) {
       this.setPopcorn();
-      this.attach();
     }
     if (result.project && result.project.retargetForm) {
       this.retarget = this.item.project.retargetForm || result.project.retargetForm;
