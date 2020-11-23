@@ -2,6 +2,9 @@
 
 @mixin tiny-scrollbar($thumbWidth: 6px, $thumbHeight: auto, $thumbColor: $thumbColor, $thumbHover: $thumbColor, $scrollbarColor:  $scrollbarColor) {
   overflow-y: auto;
+  scrollbar-color: $thumbColor transparent;
+  scrollbar-width: $thumbWidth;
+  transition: all 0.25s ease;
 
   &::-webkit-scrollbar {
     width: $thumbWidth;

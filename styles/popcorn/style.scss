@@ -179,6 +179,30 @@ body.editor-minimized .stage-wrapper {
   box-shadow: 0 5px 6px -5px rgba(0, 0, 0, 0.3);
 }
 
+.active {
+  .delete-handle {
+    @include reset-button;
+    position: absolute;
+    display: inherit;
+    top: -25px;
+    right: -8px;
+    height: 14px;
+    border-radius: 2.5px;
+    background-color: transparent;
+    border: $secondary-color solid 1px;
+    font-size: 8px;
+    width: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    svg {
+      width: 10px;
+    }
+  }
+}
+
 .overlay-arrow {
   background-color: rgba(34, 34, 40, 0.8);
   width: 100%;

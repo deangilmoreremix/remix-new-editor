@@ -1,6 +1,6 @@
 // todo remove it after checking multiselect
 /* eslint-disable no-unused-vars */
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 import { Waypoint } from 'react-waypoint';
@@ -41,6 +41,7 @@ const LibraryContent = observer((props) => {
     needValidation,
     keyRef,
     isViewedValidationBlock,
+    hasData,
   } = props;
 
   const { openModal } = useModalStore();
@@ -59,6 +60,8 @@ const LibraryContent = observer((props) => {
     fetchItems({ source: activeBtn, isScrolling: true });
   };
 
+  const onEnded = useCallback(() => onPlay(null), []);
+
   const Element = (item) => {
     switch (type) {
       case LIBRARY_TABS.VIDEO: {
@@ -75,6 +78,7 @@ const LibraryContent = observer((props) => {
             item={item}
             volume={100}
             isActive={activeItem && activeItem.url === item.url}
+            onEnded={onEnded}
           />
         );
       }
@@ -83,6 +87,28 @@ const LibraryContent = observer((props) => {
       }
     }
   };
+
+  const openPreview = (e, item) => {
+    e.stopPropagation();
+    return openModal(
+      PREVIEW_MEDIA_MODAL, { item, activeTab, onSelect, volume, mute: false },
+    );
+  };
+
+  const togglePlay = (e, item) => {
+    e.stopPropagation();
+    if (item) {
+      onPlay(item);
+    } else {
+      onPlay(null);
+    }
+  };
+
+  const selectedSpan = () => (
+    <span className="library__item-use">
+      Selected
+    </span>
+  );
 
   const renderActions = React.useCallback((item) => {
     switch (activeTab) {
@@ -116,23 +142,34 @@ const LibraryContent = observer((props) => {
               </div>
             )}
             {isActive ? (
-              <button className="library__item-play" onClick={() => onPlay(null)}>
+              <button
+                className={classnames('library__item-play',
+                  { 'library__item-play-selected': !hasData && !item.selected })}
+                onClick={togglePlay}
+              >
                 <SVGInline
                   className="library__item-audio-icon"
                   svg={stopIcon}
                 />
               </button>
             ) : (
-              <button className="library__item-play" onClick={() => onPlay(item)}>
+              <button
+                className={classnames('library__item-play',
+                  { 'library__item-play-selected': !hasData && !item.selected })}
+                onClick={e => togglePlay(e, item)}
+              >
                 <SVGInline
                   className="library__item-audio-icon"
                   svg={playIcon}
                 />
               </button>
             )}
-            <button className="library__item-use" onClick={() => onSelect(item)}>
-              Use
-            </button>
+            {hasData
+              ? (
+                <button className="library__item-use" onClick={() => onSelect(item)}>
+                  Use
+                </button>
+              ) : (item?.selected && selectedSpan()) || null}
           </React.Fragment>
         );
       }
@@ -161,16 +198,18 @@ const LibraryContent = observer((props) => {
             }
           </div>
           <button
-            className="library__item-preview"
-            onClick={() => openModal(
-              PREVIEW_MEDIA_MODAL, { item, activeTab, onSelect, volume, mute: false },
-            )}
+            className={classnames('library__item-preview',
+              { 'library__item-preview-selected': !hasData && !item.selected })}
+            onClick={e => openPreview(e, item)}
           >
             Preview
           </button>
-          <button className="library__item-use" onClick={() => onSelect(item)}>
-            Use
-          </button>
+          {hasData
+            ? (
+              <button className="library__item-use" onClick={() => onSelect(item)}>
+                Use
+              </button>
+            ) : (item?.selected && selectedSpan()) || null}
         </React.Fragment>
       );
     }
@@ -280,7 +319,7 @@ const LibraryContent = observer((props) => {
                 <div className="library__item-info">
                   <SVGInline
                     className="library__item-icon"
-                    svg={tabItems[activeTab].icon}
+                    svg={tabItems[activeTab].libraryIcon || tabItems[activeTab].icon}
                     component="div"
                   />
                   <span>{item.name || getTitle(item)}</span>
@@ -321,6 +360,7 @@ LibraryContent.propTypes = {
   type: PropTypes.string.isRequired,
   needValidation: PropTypes.bool.isRequired,
   isViewedValidationBlock: PropTypes.bool.isRequired,
+  hasData: PropTypes.bool.isRequired,
 };
 
 export default LibraryContent;

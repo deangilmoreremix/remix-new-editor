@@ -86,7 +86,6 @@ const FieldsTab = ({ kind, values, fields, onChange, type }) => {
   return (
     <div className="retarget-fields-tab">
       <div>
-        <label className="form-control-label">Caption</label>
         <FieldBuilder
           value={values.caption ?? fields.caption.default}
           onChange={onChange}
@@ -110,7 +109,6 @@ const FieldsTab = ({ kind, values, fields, onChange, type }) => {
       {kind !== POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN && (
         <React.Fragment>
           <div>
-            <label className="form-control-label">Privacy Disclaimer</label>
             <FieldBuilder
               value={values.privacyDisclaimer ?? fields.privacyDisclaimer.default}
               onChange={onChange}

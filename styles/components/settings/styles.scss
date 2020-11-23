@@ -1,6 +1,8 @@
 .input-time-start,
 .input-loop-start,
 .input-loop-end,
+.input-skip-start,
+.input-skip-end,
 .input-background-time {
   width: 4.55rem;
   display: flex;
@@ -22,12 +24,10 @@
 
 .input-loop-start,
 .input-loop-end,
+.input-skip-start,
+.input-skip-end,
 .input-background-time {
   display: inline-flex;
-}
-
-.input-loop-end {
-  margin-left: 2rem;
 }
 
 .slider-container {
@@ -78,6 +78,8 @@
   .input-time-start,
   .input-loop-start,
   .input-loop-end,
+  .input-skip-start,
+  .input-skip-end,
   .input-background-time {
     width: 100%;
   }
@@ -92,6 +94,8 @@
   .input-time-start,
   .input-loop-start,
   .input-loop-end,
+  .input-skip-start,
+  .input-skip-end,
   .input-background-time {
     &:first-child {
       margin-right: 2.1875rem;

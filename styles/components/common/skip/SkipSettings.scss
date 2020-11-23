@@ -1,9 +1,3 @@
-.input-skip-start, .input-skip-end {
-  width: 35%;
-  display: flex;
-  flex-direction: column;
-}
-
 .inputs-skip-wrapper,
 .inputs-lottie-json-wrapper {
   display: flex;
@@ -13,10 +7,6 @@
     line-height: $defaultLineHeight;
     font-size: $defaultFontSize;
   }
-}
-
-.input-skip-end {
-  margin-left: 1rem;
 }
 
 @media screen and (max-width: $lg) {

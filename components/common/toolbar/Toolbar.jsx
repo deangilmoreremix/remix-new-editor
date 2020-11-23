@@ -70,7 +70,7 @@ const Toolbar = observer(({ items }) => {
               message={tooltip}
               placement="right"
             >
-              <div>
+              <div className="toolbar-box">
                 <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
                 <span className="toolbar-tab-title">{label}</span>
               </div>
