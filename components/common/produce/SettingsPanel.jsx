@@ -204,6 +204,7 @@ const SettingPanel = observer(() => {
               startUpload={() => setIsDisabledUpload(true)}
               endUpload={() => setIsDisabledUpload(false)}
               needSaveAsset={false}
+              openImageEditor={(image) => openEditor(image)}
             />
           </div>
         </div>
