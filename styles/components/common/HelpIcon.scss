@@ -3,12 +3,6 @@
   height: 100%;
   position: relative;
 
-  &-project {
-    position: absolute;
-    right: 30%;
-    top: 8%;
-  }
-
   &__input {
     position: absolute;
     margin-left: 1.8rem;
@@ -42,6 +36,8 @@
 
 @media screen and (max-width: $xxl) {
   .help-icon-project {
+    position: absolute;
     right: 20%;
+    top: 8%;
   }
 }
