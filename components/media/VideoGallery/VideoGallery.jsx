@@ -11,18 +11,19 @@ const VideoGallery = (props) => {
   const { openModal } = useModalStore();
   const sizes = inWindow
     ? [
-      { columns: 2, gutter: 20 },
+      { columns: 2, gutter: 5 },
     ]
     : [
-      { mq: '512px', columns: 2, gutter: 20 },
-      { mq: '768px', columns: 3, gutter: 20 },
-      { mq: '1024px', columns: 4, gutter: 15 },
-      { mq: '1536px', columns: 5, gutter: 30 },
+      { mq: '512px', columns: 2, gutter: 5 },
+      { mq: '960px', columns: 3, gutter: 5 },
+      { mq: '1366px', columns: 4, gutter: 10 },
+      { mq: '1650px', columns: 5, gutter: 15 },
     ];
 
   return (
     <Gallery
       initialLoad
+      pack
       hasMore={hasMore}
       className="generator-gallery"
       loadMore={() => loadMore()}
@@ -36,7 +37,7 @@ const VideoGallery = (props) => {
             url={item.url}
             title={item.title}
             preview={item.preview || item.url}
-            key={`tile${item._id || item.url}`}
+            key={`tile-${item._id || item.url}`}
             onPreview={
               () => openModal(PREVIEW_MEDIA_MODAL, {
                 item, activeTab: 'VIDEO', volume: 100, mute: false, hasUse: false,
