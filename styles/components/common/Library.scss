@@ -931,8 +931,6 @@ button.library__tab {
 
       &:after {
         content: "";
-        width: 0.205rem;
-        height: 0.205rem;
         display: inline-block;
         border-radius: 50%;
         background-color: #ffffff;
@@ -947,6 +945,8 @@ button.library__tab {
 
         &:after {
           background-color: $secondary-color;
+          width: 0.205rem;
+          height: 0.205rem;
         }
       }
     }

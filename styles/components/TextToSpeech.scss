@@ -415,8 +415,6 @@
 
     &:after {
       content: "";
-      width: 0.205rem;
-      height: 0.205rem;
       display: inline-block;
       border-radius: 50%;
       background-color: #ffffff;
@@ -431,6 +429,8 @@
 
       &:after {
         background-color: $secondary-color;
+        width: 0.205rem;
+        height: 0.205rem;
       }
     }
   }
