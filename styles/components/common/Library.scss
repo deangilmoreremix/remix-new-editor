@@ -924,15 +924,13 @@ button.library__tab {
     .radio-button-icon {
       width: 1.07rem;
       height: 1.07rem;
-      background-color: #131319;
+      background-color: inherit;
       display: inline-block;
-      border: 0.055rem solid $border-grey;
+      border: 0.055rem solid $border-color;
       border-radius: 0.175rem;
 
       &:after {
         content: "";
-        width: 0.205rem;
-        height: 0.205rem;
         display: inline-block;
         border-radius: 50%;
         background-color: #ffffff;
@@ -947,6 +945,8 @@ button.library__tab {
 
         &:after {
           background-color: $secondary-color;
+          width: 0.205rem;
+          height: 0.205rem;
         }
       }
     }

@@ -68,10 +68,6 @@
 
 .checkmark {
   &.unchecked .MuiIconButton-label {
-    &:after {
-      background-color: $secondary-color;
-    }
-
     &:hover .MuiIconButton-label {
       &:after {
         background-color: $secondary-color;
@@ -84,6 +80,8 @@
 
     &::after {
       background-color: $red;
+      width: 0.205rem;
+      height: 0.205rem;
     }
 
     &:hover .MuiIconButton-label {
@@ -111,8 +109,6 @@
 
     &:after {
       content: "";
-      width: 0.205rem;
-      height: 0.205rem;
       display: inline-block;
       border-radius: 50%;
       background-color: #ffffff;

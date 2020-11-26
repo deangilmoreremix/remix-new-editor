@@ -471,8 +471,7 @@
 
 .tui-image-editor-container .tui-image-editor-checkbox input + label:before,
 .tui-image-editor-container .tui-image-editor-checkbox > label > span:before {
-  content: '\2022';
-  color: $secondary-color !important;
+  content: '';
   position: absolute;
   width: 14px;
   height: 14px;
@@ -496,6 +495,7 @@
   background-size: cover;
   content: '\2022';
   vertical-align: center;
+  color: $secondary-color !important;
   border: 1px solid $secondary-color !important;
 }
 
