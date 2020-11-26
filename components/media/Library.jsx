@@ -623,6 +623,7 @@ const Library = observer((props) => {
     removeSelectedVideosAfterReset(activeBtn);
     setUserValidationKey('');
     setIsViewedValidationBlock(true);
+    listProviders[activeBtn].apiKey = null;
     setItems([]);
   };
 

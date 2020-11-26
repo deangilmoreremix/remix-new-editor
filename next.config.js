@@ -7,7 +7,6 @@ module.exports = withSass({
   exportPathMap() {
     return {
       '/': { page: '/' },
-      '/index': { page: '/index' },
     };
   },
   webpack: (config) => {

@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { observer } from 'mobx-react';
-
 import ImageEditor from '@toast-ui/react-image-editor';
 import { Box } from '@material-ui/core';
+
 import PropTypes from '../../lib/PropTypes';
 import { showError } from '../../lib/services/alertService';
 import useMediaStore from '../hooks/useMediaStore';

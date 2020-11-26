@@ -65,6 +65,7 @@ export default () => {
       cancelCropper,
       setError,
       saveFile,
+      openImageEditor,
     } = scope;
     let imageMeta;
     if (!image.src || !onImageCropped) {
@@ -98,6 +99,7 @@ export default () => {
       openCropper: () => openModal(IMAGE_CROPPER_MODAL,
         {
           ...scope,
+          openImageEditor,
           src: image.src,
           imageMeta,
         }),

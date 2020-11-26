@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useMemo } from 'react';
+import React, { useRef, useCallback, useState, useMemo } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
@@ -8,14 +8,17 @@ import Menu from './common/Menu';
 import UserBox from './common/user/UserBox';
 import ExpandButton from './common/ExpandButton';
 import HelpIconComponent from './common/HelpIcon';
+
 import { HEADER_ACTIONS, USER_MENU_ITEMS } from '../lib/constants/ui';
 import { headerTooltips } from '../lib/constants/tooltips';
 import { DOMAIN_VIDEOREMIX } from '../lib/constants/project';
+import { ENTER_KEY } from '../lib/constants/keyCodes';
 
 import logoIcon from '../public/static/svgImages/header/logo.svg';
 import redoIcon from '../public/static/svgImages/header/redo.svg';
 import undoIcon from '../public/static/svgImages/header/undo.svg';
 import saveIcon from '../public/static/svgImages/header/save.svg';
+import editIcon from '../public/static/svgImages/header/edit-project.svg';
 import voiceIcon from '../public/static/svgImages/header/logo-text-to-speech.svg';
 
 import useProjectStore from './hooks/useProjectStore';
@@ -36,12 +39,16 @@ const {
 const MenuAppBar = observer(({ whiteLabelManager }) => {
   const anchorRef = useRef(null);
 
+  const [isProjectTitle, setProjectTitle] = useState(false);
+
   const {
     modified,
     undoRedoAction,
     canUndo,
     canRedo,
     checkAndSave,
+    item,
+    updateItem,
   } = useProjectStore();
 
   const {
@@ -62,6 +69,16 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   const saveProject = useCallback(async () => {
     checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
   }, [setInitialView, showProducePanel]);
+
+  const updateTitle = useCallback((event) => {
+    updateItem({ title: event.target.value });
+  }, []);
+
+  const onEnterKeyPress = (event) => {
+    if (event.keyCode === ENTER_KEY) {
+      setProjectTitle(false);
+    }
+  };
 
   const isViewVoiceBtn = useMemo(() => !!((textToSpeechStandardEnabled
       || textToSpeechNeuralEnabled
@@ -160,6 +177,31 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                 </div>
               </HelpIconComponent>
             </div>
+          </div>
+          <div className="container-menu__project-name">
+            {isProjectTitle ? (
+              <input
+                /* eslint-disable-next-line jsx-a11y/no-autofocus */
+                autoFocus
+                type="text"
+                value={item.title}
+                onChange={updateTitle}
+                onKeyDown={onEnterKeyPress}
+                onBlur={() => setProjectTitle(false)}
+              />
+            ) : (
+              <span onDoubleClick={() => setProjectTitle(true)}>
+                {item.title || 'Untitled project'}
+              </span>
+            )}
+            <SVGInline
+              className="icon icon-button"
+              classSuffix=""
+              svg={editIcon}
+              cleanup={['title']}
+              component="button"
+              onClick={() => setProjectTitle(!isProjectTitle)}
+            />
           </div>
           <ExpandButton />
           {isViewVoiceBtn && (
