@@ -9,11 +9,9 @@ import {
   wrapTokens,
   unwrapTokens,
   catchCaretCharacterOffsetWithin,
-  unwrapSvgTokens,
 } from '../../lib/utils/tokens-helper';
 import { ENTER_KEY } from '../../lib/constants/keyCodes';
 import { MULTILINE } from '../../lib/constants/forms';
-import { TOKEN_FORMATS } from '../../lib/constants/tokens';
 
 const FormTokensTextArea = observer((props) => {
   const {
@@ -32,7 +30,6 @@ const FormTokensTextArea = observer((props) => {
     maxTextSymbols,
     symbolsCount,
     languageValidator,
-    tokenType,
   } = props;
 
   const [isHint, setIsHint] = useState(false);
@@ -42,7 +39,7 @@ const FormTokensTextArea = observer((props) => {
 
   const onEdit = (e) => {
     let { target: { value: v } } = e;
-    const text = tokenType === TOKEN_FORMATS.SVG ? unwrapSvgTokens(v) : unwrapTokens(v);
+    const text = unwrapTokens(v);
     const textLength = text.replace(/{{\w+}}/g, '').length;
     v = wrapTokens(v);
     const caretOffset = catchCaretCharacterOffsetWithin(e);
@@ -108,7 +105,6 @@ const FormTokensTextArea = observer((props) => {
 
 FormTokensTextArea.propTypes = {
   label: PropTypes.string,
-  tokenType: PropTypes.string,
   value: PropTypes.string,
   variant: PropTypes.string,
   className: PropTypes.string,
