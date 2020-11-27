@@ -15,8 +15,8 @@ const VideoGallery = (props) => {
     ]
     : [
       { mq: '512px', columns: 2, gutter: 5 },
-      { mq: '960px', columns: 3, gutter: 5 },
-      { mq: '1366px', columns: 4, gutter: 10 },
+      { mq: '780px', columns: 3, gutter: 5 },
+      { mq: '1300px', columns: 4, gutter: 10 },
       { mq: '1650px', columns: 5, gutter: 15 },
     ];
 
