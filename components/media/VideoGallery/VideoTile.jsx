@@ -23,22 +23,19 @@ const VideoTile = (props) => {
         <video
           className="video"
           ref={previewContainer}
-          loop
           muted
         >
           <source src={preview} type="video/webm" />
         </video>
       )}
+      {/* eslint-disable-next-line jsx-a11y/mouse-events-have-key-events */}
       <div
         className="overlay"
         onMouseOver={() => togglePreview(true)}
-        onFocus={() => togglePreview(true)}
-        onBlur={() => togglePreview(false)}
+        onMouseOut={() => togglePreview(false)}
       >
         <div
           className="buttons-container"
-          onMouseOver={() => togglePreview(true)}
-          onFocus={() => togglePreview(true)}
         >
           <button className="btn-preview" onClick={() => { onPreview(title, url); }}>
             <SVGInline

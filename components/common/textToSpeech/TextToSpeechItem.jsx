@@ -43,7 +43,7 @@ const TextToSpeechItem = ({ data, activeItem, onPlay, onSelect, onDelete }) => {
         {activeItem && (
           <AudioPreview
             item={data}
-            isActive={activeItem && activeItem.url === data.url}
+            isActive={activeItem && activeItem._id === data._id}
             isDisplayTitle={false}
             isDisplayIcon={false}
             onEnded={onEnded}
@@ -52,7 +52,7 @@ const TextToSpeechItem = ({ data, activeItem, onPlay, onSelect, onDelete }) => {
       </div>
 
       <button
-        className={classnames('text-to-speech__library-play', { 'text-to-speech__library-play-active': activeItem && activeItem.url === data.url })}
+        className={classnames('text-to-speech__library-play', { 'text-to-speech__library-play-active': activeItem && activeItem._id === data._id })}
         onClick={playStop}
       />
 

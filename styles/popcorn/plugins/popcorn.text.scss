@@ -58,16 +58,11 @@
       display: none;
     }
 
-    .token-uppercase {
-      content: url('/static/svgImages/tokens/uppercase.svg');
-      background: white;
-      margin: auto 2px -4px 0;
-    }
-
-    .token-default {
-      content: url('/static/svgImages/tokens/default.svg');
-      background:  white;
-      margin: auto 2px -4px 0;
+    .default-token,
+    .token-uppercase-icon {
+      margin: auto 4px auto auto;
+      width: 5%;
+      height: 5%;
     }
   }
 

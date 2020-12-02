@@ -301,7 +301,7 @@ const Library = observer((props) => {
         setItems([]);
       }
 
-      if (listProviders[activeBtn].apiKey) {
+      if (listProviders[activeBtn]?.apiKey) {
         setIsViewedValidationBlock(false);
       } else {
         setIsViewedValidationBlock(true);

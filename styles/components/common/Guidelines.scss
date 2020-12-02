@@ -1,7 +1,7 @@
 .guidelines__line {
   position: absolute;
   background: #FAFF04;
-  z-index: 3000;
+  z-index: 1300;
 
   &--h {
     width: 100%;
@@ -23,7 +23,7 @@
 .guidelines__side {
   position: absolute;
   background: $grey;
-  z-index: 3000;
+  z-index: 1300;
 
   &--l {
     width: 1px;
