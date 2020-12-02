@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import Box from '@material-ui/core/Box';
@@ -24,9 +24,13 @@ const FormColor = (
   }) => {
   const colorPrimary = 'rgb(235, 80, 84, 1)';
   const [anchorEl, setAnchorEl] = useState(null);
-  const [color, setColor] = useState(value || colorPrimary);
+  const [color, setColor] = useState(colorPrimary);
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
+
+  useEffect(() => {
+    setColor(value);
+  }, [value]);
 
   const changeColor = (newColor) => {
     if (newColor) {
@@ -75,7 +79,7 @@ const FormColor = (
           <button
             onClick={handleClick}
             className={classnames('color-element', { 'button-disabled': disabled })}
-            style={{ backgroundColor: value || colorPrimary }}
+            style={{ backgroundColor: color || colorPrimary }}
             disabled={disabled}
           />
           <Popover

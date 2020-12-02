@@ -13,17 +13,19 @@ import { CHECKBOX } from '../../lib/constants/forms';
 import { setMinMax } from '../../lib/utils/cropHelper';
 import { DRAG_MODES } from '../../lib/constants/imageEditor/tuiEditor';
 
-const ImageCropper = observer(({
-  resolution,
-  imageData,
-  needSave,
-  onImageCropped,
-  handleClose,
-  startUpload,
-  endUpload,
-  zoomable,
-  needClose = true,
-}) => {
+const ImageCropper = observer((props) => {
+  const {
+    resolution,
+    imageData,
+    needSave,
+    onImageCropped,
+    handleClose,
+    startUpload,
+    endUpload,
+    zoomable,
+    needClose = true,
+    openImageEditor,
+  } = props;
   const refEditor = useRef();
   const { uploadMedia } = useMediaStore();
   const [isAuto, setIsAuto] = useState(true);
@@ -40,6 +42,8 @@ const ImageCropper = observer(({
     [widthProportion, heightProportion]);
   const ratio = useMemo(() => recommendedWidth / recommendedHeight,
     [recommendedWidth, recommendedHeight]);
+  const editStep = useMemo(() => (openImageEditor && 'Open Image Editor'),
+    [openImageEditor]);
 
   const uploadFile = useCallback(async () => {
     let image = refEditor.current.cropper
@@ -73,6 +77,12 @@ const ImageCropper = observer(({
         handleClose();
       }
     }
+  }, [refEditor]);
+
+  const handleExtraStep = useCallback(() => {
+    const image = refEditor.current.cropper
+      .getCroppedCanvas({ width: recommendedWidth, height: recommendedHeight }).toDataURL();
+    openImageEditor(image);
   }, [refEditor]);
 
   React.useEffect(() => {
@@ -145,7 +155,12 @@ const ImageCropper = observer(({
             onChange={() => setIsAuto(!isAuto)}
           />
         </div>
-        <ImageButtons uploadFile={uploadFile} handleClose={handleClose} />
+        <ImageButtons
+          uploadFile={uploadFile}
+          handleClose={handleClose}
+          extraStep={editStep}
+          handleExtraStep={handleExtraStep}
+        />
       </Box>
     </div>
   );
@@ -163,6 +178,7 @@ ImageCropper.propTypes = {
     height: PropTypes.number,
   }).isRequired,
   onImageCropped: PropTypes.func.isRequired,
+  openImageEditor: PropTypes.func,
   startUpload: PropTypes.func,
   endUpload: PropTypes.func,
   needSave: PropTypes.bool,

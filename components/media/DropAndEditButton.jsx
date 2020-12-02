@@ -25,6 +25,7 @@ const DropAndEditButton = (
     recommendedResolution,
     tooltipMessage,
     zoomable,
+    openImageEditor,
     ...rest
   }) => {
   const { uploadMedia, saveFile } = useMediaStore();
@@ -54,6 +55,7 @@ const DropAndEditButton = (
     return openCropper({
       image,
       onImageCropped: save,
+      openImageEditor,
       recommendedResolution: recommendedResolution || CROP_RECOMMENDED_RESOLUTION,
       cancelCropper: () => save(image),
       startUpload,
@@ -105,6 +107,7 @@ const DropAndEditButton = (
 DropAndEditButton.propTypes = {
   onUploaded: PropTypes.func.isRequired,
   startUpload: PropTypes.func,
+  openImageEditor: PropTypes.func,
   endUpload: PropTypes.func,
   isDisabled: PropTypes.bool,
   className: PropTypes.string,
