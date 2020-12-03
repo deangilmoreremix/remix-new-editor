@@ -2,6 +2,7 @@ import { observable, action, computed, reaction, runInAction, toJS } from 'mobx'
 import arrayMove from 'array-move';
 import size from 'lodash/size';
 import Bb from 'bluebird';
+import _ from 'lodash';
 
 import Router from 'next/router';
 import BaseStore from './base.store';
@@ -745,6 +746,7 @@ export default class ProjectStore extends BaseStore {
     const elements = [];
     const projectData = data;
     projectData.media.forEach((media) => {
+      media.tracks = _.uniqWith(media.tracks, _.isEqual);
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
           elements.push({
@@ -1644,13 +1646,13 @@ export default class ProjectStore extends BaseStore {
     }
     this.pluginDefaults[this.element.type] = {
       id: this.activeElementId,
+      track: null,
       popcornOptions: {
         ...this.element.popcornOptions,
         id: null,
         src: null,
         opacity: null,
         blendMode: null,
-        track: null,
         zIndex: null,
       },
     };
@@ -1857,6 +1859,12 @@ export default class ProjectStore extends BaseStore {
     if (isLayerFulfilled(options, layerElements)) {
       this.createNewLayer();
       [track] = this.layers;
+    }
+    item.track = track;
+
+    const order = MAX_ZINDEX - options.zindex;
+    if (track.order !== order) {
+      options.zindex = track.order ? MAX_ZINDEX - track.order : MAX_ZINDEX;
     }
 
     if (track.blendMode || item.blendMode) {
