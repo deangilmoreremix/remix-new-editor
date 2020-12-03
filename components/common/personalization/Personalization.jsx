@@ -4,7 +4,7 @@ import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 
-import { tokenModes as modes, INPUT_PLACEHOLDER, CUSTOM } from '../../../lib/constants/tokens';
+import { tokenModes as modes, INPUT_PLACEHOLDER, CUSTOM, TOKEN_WINDOW_TITLE } from '../../../lib/constants/tokens';
 import FormTextField from '../../form/FormTextField';
 
 import svgCogWheel from '../../../public/static/images/cogwheel.svg';
@@ -41,7 +41,7 @@ const Personalization = ({ closeModal, tokenList, onAdd, tokenModes }) => {
     <div className="personalization">
       <div className="personalization__wrapper">
         <div className="personalization__header">
-          <p className="personalization__header__title">Personalizer</p>
+          <p className="personalization__header__title">{TOKEN_WINDOW_TITLE}</p>
           <button
             className="personalization__close"
             type="button"
