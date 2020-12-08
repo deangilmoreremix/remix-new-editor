@@ -64,15 +64,23 @@ const Advanced = ({ values, fields, onChange }) => {
             onChange={onChange}
             className="font-section__input"
           />
-          <FieldBuilder
-            value={fontSize || fields.fontSize.default}
-            name={fields.fontSize.name}
-            {...fields.fontSize}
-            onChange={onChange}
-            disabled={fontDecorations.responsive}
-            minValue={1}
-            containerClassName={classnames('slider-container', { 'slider-element': !fontDecorations.responsive })}
-          />
+          <div className="font-size-container">
+            <FieldBuilder
+              value={fontSize || fields.fontSize.default}
+              name={fields.fontSize.name}
+              {...fields.fontSize}
+              onChange={onChange}
+              disabled={fontDecorations.responsive}
+              minValue={1}
+              containerClassName={classnames('slider-container', { 'slider-element': !fontDecorations.responsive })}
+            />
+            <FieldBuilder
+              value={fontDecorations.responsive}
+              name={fields.fontDecorations.responsive.name}
+              {...fields.fontDecorations.responsive}
+              onChange={(v) => handleChange(v, fields.fontDecorations.responsive.name)}
+            />
+          </div>
         </div>
         <div className="font-decoration-section">
           <div className="font-decoration-container">
@@ -160,12 +168,6 @@ const Advanced = ({ values, fields, onChange }) => {
           {...fields.backgroundColor}
           onChange={handleChangeColor}
           className="font-color-container-input"
-        />
-        <FieldBuilder
-          value={fontDecorations.responsive}
-          name={fields.fontDecorations.responsive.name}
-          {...fields.fontDecorations.responsive}
-          onChange={(v) => handleChange(v, fields.fontDecorations.responsive.name)}
         />
       </div>
     </Fragment>
