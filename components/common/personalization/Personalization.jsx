@@ -6,9 +6,13 @@ import PropTypes from '../../../lib/PropTypes';
 
 import { tokenModes as modes, INPUT_PLACEHOLDER, CUSTOM, TOKEN_WINDOW_TITLE } from '../../../lib/constants/tokens';
 import FormTextField from '../../form/FormTextField';
+import HelpIconComponent from '../HelpIcon';
 
 import svgCogWheel from '../../../public/static/images/cogwheel.svg';
+import closeIcon from '../../../public/static/images/media/delete-layer.svg';
+
 import { formatToken } from '../../../lib/utils/tokens-helper';
+import { personalizeTooltips } from '../../../lib/constants/tooltips';
 
 
 const Personalization = ({ closeModal, tokenList, onAdd, tokenModes }) => {
@@ -47,7 +51,11 @@ const Personalization = ({ closeModal, tokenList, onAdd, tokenModes }) => {
             type="button"
             onClick={() => closeModal()}
           >
-            X
+            <SVGInline
+              className=""
+              svg={closeIcon}
+              cleanup={['title']}
+            />
           </button>
         </div>
 
@@ -119,15 +127,21 @@ const Personalization = ({ closeModal, tokenList, onAdd, tokenModes }) => {
                       </button>
                       {item === 'fallbackValue'
                       && (
-                        <input
-                          className="personalization__input"
-                          type="text"
-                          disabled={disabled}
-                          ref={inputRef}
-                          placeholder={INPUT_PLACEHOLDER}
-                          value={fallbackValue}
-                          onChange={(e) => { setFallbackValue(e.target.value); }}
-                        />
+                        <>
+                          <HelpIconComponent
+                            noPadding
+                            message={personalizeTooltips.fallbackValue}
+                          />
+                          <input
+                            className="personalization__input"
+                            type="text"
+                            disabled={disabled}
+                            ref={inputRef}
+                            placeholder={INPUT_PLACEHOLDER}
+                            value={fallbackValue}
+                            onChange={(e) => { setFallbackValue(e.target.value); }}
+                          />
+                        </>
                       )}
                     </div>
                   ))
