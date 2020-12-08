@@ -5,6 +5,7 @@ import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 
 import PropTypes from '../../../../lib/PropTypes';
 
+import { settingsTooltips } from '../../../../lib/constants/tooltips';
 import { showInfo } from '../../../../lib/services/alertService';
 import FieldBuilder from '../../../form/FieldBuilder';
 import fonts from '../../../../lib/constants/fonts';
@@ -66,6 +67,7 @@ const Advanced = ({ values, fields, onChange }) => {
           />
           <div className="font-size-container">
             <FieldBuilder
+              isTooltip
               value={fontSize || fields.fontSize.default}
               name={fields.fontSize.name}
               {...fields.fontSize}
@@ -73,6 +75,8 @@ const Advanced = ({ values, fields, onChange }) => {
               disabled={fontDecorations.responsive}
               minValue={1}
               containerClassName={classnames('slider-container', { 'slider-element': !fontDecorations.responsive })}
+              tooltipMessage={settingsTooltips.fontSize}
+              tooltipHeight={35}
             />
             <FieldBuilder
               value={fontDecorations.responsive}
