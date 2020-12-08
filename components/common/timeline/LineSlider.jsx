@@ -23,7 +23,7 @@ const LineSlider = observer(({ startDate, endDate, startDateWithZoom, endDateWit
   const line = useMemo(() => {
     const array = [];
     const maxI = duration / SANTISECOND;
-    const stampNum = parseInt(maxI / 30, 10);
+    const stampNum = parseInt(maxI / 30, 10) || 1;
     for (let i = 0; i <= maxI; i++) {
       array.push(i);
     }
