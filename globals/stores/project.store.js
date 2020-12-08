@@ -115,6 +115,11 @@ export default class ProjectStore extends BaseStore {
           emitter.on(emitterActions.DELETE, id => {
             this.removeElement(id);
           });
+          emitter.on(emitterActions.ARRAY_DELETE, () => {
+            this.timelineSelectedItems.forEach(id => {
+              this.removeElement(id);
+            });
+          });
           emitter.on(emitterActions.SEQUENCES_LOADING, () => {
             this.isLoadingSequencer = true;
           });
@@ -210,6 +215,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable isFirstTrackFull;
 
+  @observable timelineSelectedItems = [];
+
   @observable pluginDefaults = {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
     [POPCORN_ELEMENT_TYPES.IMAGE]: {},
@@ -226,6 +233,11 @@ export default class ProjectStore extends BaseStore {
   @observable warning = null;
 
   @observable success = null;
+
+  @action
+  setTimelineSelectedItems = (ids = []) => {
+    this.timelineSelectedItems = ids;
+  };
 
   @action
   setVoiceTextId = (id = this.activeElementId) => {
@@ -433,7 +445,6 @@ export default class ProjectStore extends BaseStore {
   @action
   addRetargetForm = ({ kind, showed, noUndo, isPersonalizer }) => {
     if (!this.retarget || (this.retarget && !this.retarget.id) || !showed) {
-      console.log(isPersonalizer);
       this.createRetargetForm(noUndo, kind, isPersonalizer);
     }
     if (this.retarget && this.retarget.options && this.retarget.id) {
@@ -616,6 +627,11 @@ export default class ProjectStore extends BaseStore {
       element.popcornOptions = { ...element.popcornOptions, ...options };
       this.popcorn[element.type](element.popcornOptions);
     }
+
+    if (options.zindex) {
+      element.popcornOptions = { ...element.popcornOptions, zindex: options.zindex };
+    }
+
     const trackEvent = this.popcorn.getTrackEvent(elementId);
     // eslint-disable-next-line no-underscore-dangle
     if (trackEvent && trackEvent._natives._update) {

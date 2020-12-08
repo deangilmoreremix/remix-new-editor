@@ -7,15 +7,22 @@ import useProjectStore from '../../hooks/useProjectStore';
 import playIcon from '../../../public/static/svgImages/common/play.svg';
 import pauseIcon from '../../../public/static/svgImages/common/pause.svg';
 
-const PlayButton = observer(() => {
+const PlayButton = observer(({ endDateWithZoom, startDate }) => {
   const projectStore = useProjectStore();
-  const { isPlayed, isLoadingSequencer } = projectStore;
+  const { isPlayed, isLoadingSequencer, playPause, updateTime, time } = projectStore;
 
   const icon = React.useMemo(() => (isPlayed ? pauseIcon : playIcon), [isPlayed]);
 
+  const onClick = async () => {
+    if (time * 10 > endDateWithZoom.diff(startDate)) {
+      await updateTime(endDateWithZoom.diff(startDate) / 10);
+    }
+    playPause();
+  };
+
   return (
     <SVGInline
-      onClick={projectStore.playPause}
+      onClick={onClick}
       component="button"
       className="icon-button timeline-play"
       classSuffix=""
