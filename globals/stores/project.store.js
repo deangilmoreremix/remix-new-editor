@@ -288,7 +288,7 @@ export default class ProjectStore extends BaseStore {
   setElementOptions = async (item) => {
     const { track, type } = item || {};
     const options = this.pluginDefaults && this.pluginDefaults[type]
-      ? this.pluginDefaults[type].popcornOptions || {} : {};
+      ? { ...this.pluginDefaults[type].popcornOptions } || {} : {};
     options.start = item.start || (Math.ceil(this.time) / SANTISECOND);
     const duration = item.duration || DEFAULT_DURATION;
     options.end = item.end || (options.start + duration);
