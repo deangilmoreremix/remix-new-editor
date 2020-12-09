@@ -110,11 +110,14 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
 
   useEffect(() => () => player.record().stopStream(), []);
 
-  const handleDownload = React.useCallback(() => {
+  const handleDownload = React.useCallback(async () => {
     if (!player) {
       return;
     }
-    player.record().saveAs({
+    const duration = await getBlobDuration(player.recordedData);
+
+    await player.duration(duration);
+    await player.record().saveAs({
       [type === RECORDER_TYPES.AUDIO
         ? RECORDER_TYPES.AUDIO : RECORDER_TYPES.CAMERA]: `${type}.${EXTENSIONS_MAP[type]}`,
     });
