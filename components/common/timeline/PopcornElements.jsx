@@ -322,6 +322,7 @@ const PopcornElements = observer(({
         selectedItems={timelineSelectedItems}
         showCursorTime
         itemHeight={35}
+        multiselectMaxRow={4}
         onInteraction={handleInteraction}
         onRowClick={handleRowClick}
         componentId="timeline-block"
