@@ -633,20 +633,11 @@ div.popcorn-element-personalized-voice {
 .rct9k-row {
   box-sizing: border-box;
   border-bottom: 1px solid #303044;
+  border-right: 1px solid #303044;
 
   &:first-child {
     border-top: 1px solid #303044;
   }
-}
-
-.rct9k-id-timeline-block:after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: -1px;
-  width: 1px;
-  height: 100%;
-  background: #303044;
 }
 
 .rct9k-row-scroll {
