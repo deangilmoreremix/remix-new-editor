@@ -65,6 +65,15 @@
     opacity: 1;
     color: $red;
   }
+
+  & svg {
+    width: 14px;
+    height: 14px;
+
+    & path {
+      stroke: $red !important;
+    }
+  }
 }
 
 .personalization__body {
@@ -80,7 +89,7 @@
   min-width: 11em;
   max-height: 18em;
   overflow-x: hidden;
-  border-right: 1px $modal-lightdark-bg solid;
+  border-right: 1px $media-library-color solid;
 }
 
 .personalization__list__border {
@@ -197,7 +206,7 @@
 
 .personalization__name {
   text-transform: uppercase;
-  border-bottom: 1px $modal-header-bg solid;
+  border-bottom: 1px $media-library-color solid;
   padding-bottom: 0.7em;
   margin-bottom: 0.7em;
   color: $white;
@@ -210,7 +219,7 @@
   outline: none;
   padding: 0.8em;
   margin-left: 2em;
-  border: 1px solid $btn-gray;
+  border: 1px solid $media-library-color;
   border-radius: 3px;
   background: $dark-twinlight;
   color: $white;

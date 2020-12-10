@@ -314,7 +314,7 @@ const TextToSpeech = observer(() => {
   useEffect(() => {
     setAudioFile(null);
     setAudio(null);
-  }, [voiceType, language, voice, valueTextarea]);
+  }, [voiceType, language, voice, valueTextarea, fallbackValue]);
 
   useEffect(() => playVoice(), [audio]);
 

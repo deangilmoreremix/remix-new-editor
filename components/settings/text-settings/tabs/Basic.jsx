@@ -252,7 +252,7 @@ const Basic = observer(({ values, fields, element, onChange }) => {
       </div>
       <div className={classnames('text-buttons-container', { 'text-buttons-container-once': !isViewVoiceBtn })}>
         {isViewVoiceBtn && (
-          <button className="open-text-to-speech" onClick={openVoice}>Voice</button>
+          <button className="open-text-to-speech" onClick={openVoice}>Convert to Smart Speech</button>
         )}
         <PersonalizeButton onAdd={onAddTextToken} />
       </div>

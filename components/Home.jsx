@@ -203,6 +203,7 @@ const Home = observer(() => {
                       ...trackEvent.popcornOptions,
                       type: trackEvent.type,
                       track: null,
+                      zindex: null,
                       blendMode: null,
                       opacity: null,
                       id: null,

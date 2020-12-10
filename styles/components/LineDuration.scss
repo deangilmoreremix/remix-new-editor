@@ -1,3 +1,6 @@
+$toggleWidth: 6px;
+$halfToggle: 3px;
+
 .line-duration-block {
   display: flex;
   justify-content: space-between;
@@ -16,9 +19,16 @@
   height: 35px;
   margin-bottom: 0.75rem;
   border-radius: 4px;
-  overflow: hidden;
-  background: $scrollbarColor;
   position: relative;
+  padding: 0 $halfToggle;
+  overflow: hidden;
+
+  &__inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: $scrollbarColor;
+  }
 
   &-slider {
     width: 50px;
@@ -31,11 +41,11 @@
 }
 
 .line-duration__toggle {
-  width: 6px;
+  width: $toggleWidth;
   height: 9px;
   position: absolute;
   top: 50%;
-  left: -3px;
+  left: -$halfToggle;
   transform: translateY(-50%);
   background: $secondary-color;
 
@@ -52,6 +62,6 @@
 
   &--right {
     left: auto;
-    right: -3px;
+    right: -$halfToggle;
   }
 }
