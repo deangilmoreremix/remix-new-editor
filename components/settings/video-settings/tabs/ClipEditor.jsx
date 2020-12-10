@@ -12,7 +12,7 @@ import useProjectStore from '../../../hooks/useProjectStore';
 import useUserStore from '../../../hooks/useUserStore';
 
 import FieldBuilder from '../../../form/FieldBuilder';
-// import LineDuration from '../../../media/LineDuration';
+import LineDuration from '../../../media/LineDuration';
 
 import videoIcon from '../../../../public/static/images/media/icon-video.svg';
 import audioIcon from '../../../../public/static/images/media/icon-audio-2.svg';
@@ -69,7 +69,11 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
   }, [mute, volume]);
 
   useEffect(() => {
-    setVideoOut(end - start + from);
+    let newOut = +(end - start + from).toFixed(2);
+    if (newOut > +duration) {
+      newOut = +duration;
+    }
+    setVideoOut(newOut);
   }, [end, from]);
 
   const changeHidden = useCallback((field) => {
@@ -195,6 +199,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     } else {
       value = field.out;
     }
+
     if (value < duration && value > from) {
       const newEnd = +(start + value - from).toFixed(2);
       if (newEnd * 100 > timelineDuration) {
@@ -205,13 +210,11 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     } else {
       onChange({ end: start + 1 });
     }
-  }, [start, end, duration]);
+  }, [start, end, from, duration]);
 
-  // ToDo implement in next PR
-  // const changeFromOut = useCallback((field) => {
-  //   onChange(field);
-  //   onChange({ end });
-  // }, [end, from]);
+  const updateFrom = (field) => {
+    onChange(field);
+  };
 
   useEffect(() => {
     const defaultMax = fields[popcornConstants.AUDIO_FADE_IN].max;
@@ -241,15 +244,14 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
 
   return (
     <div className="video-settings-container">
-      {/* ToDo implement in next PR */}
-      {/* <LineDuration */}
-      {/*  duration={duration} */}
-      {/*  from={from} */}
-      {/*  to={videoOut} */}
-      {/*  changeFrom={changeFrom} */}
-      {/*  changeOut={changeOut} */}
-      {/*  changeFromOut={changeFromOut} */}
-      {/* /> */}
+      <LineDuration
+        duration={duration}
+        from={from}
+        to={videoOut}
+        changeFrom={changeFrom}
+        changeOut={changeOut}
+        updateFrom={updateFrom}
+      />
       {
         element.popcornOptions.kind !== ASSET_TYPES.PERSONALIZED_VOICE && (
           <div className="video-settings__inputs">
