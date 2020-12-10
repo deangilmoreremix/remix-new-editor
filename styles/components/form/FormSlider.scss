@@ -41,6 +41,12 @@
   }
 }
 
+.tooltip-box {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
 .slider-input {
   & input {
     color: $white;

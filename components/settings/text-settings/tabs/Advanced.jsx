@@ -5,6 +5,7 @@ import GoogleFontsLoader from '../../../wizard/editor/GoogleFontsLoader';
 
 import PropTypes from '../../../../lib/PropTypes';
 
+import { settingsTooltips } from '../../../../lib/constants/tooltips';
 import { showInfo } from '../../../../lib/services/alertService';
 import FieldBuilder from '../../../form/FieldBuilder';
 import fonts from '../../../../lib/constants/fonts';
@@ -64,15 +65,26 @@ const Advanced = ({ values, fields, onChange }) => {
             onChange={onChange}
             className="font-section__input"
           />
-          <FieldBuilder
-            value={fontSize || fields.fontSize.default}
-            name={fields.fontSize.name}
-            {...fields.fontSize}
-            onChange={onChange}
-            disabled={fontDecorations.responsive}
-            minValue={1}
-            containerClassName={classnames('slider-container', { 'slider-element': !fontDecorations.responsive })}
-          />
+          <div className="font-size-container">
+            <FieldBuilder
+              isTooltip
+              value={fontSize || fields.fontSize.default}
+              name={fields.fontSize.name}
+              {...fields.fontSize}
+              onChange={onChange}
+              disabled={fontDecorations.responsive}
+              minValue={1}
+              containerClassName={classnames('slider-container', { 'slider-element': !fontDecorations.responsive })}
+              tooltipMessage={settingsTooltips.fontSize}
+              tooltipHeight={35}
+            />
+            <FieldBuilder
+              value={fontDecorations.responsive}
+              name={fields.fontDecorations.responsive.name}
+              {...fields.fontDecorations.responsive}
+              onChange={(v) => handleChange(v, fields.fontDecorations.responsive.name)}
+            />
+          </div>
         </div>
         <div className="font-decoration-section">
           <div className="font-decoration-container">
@@ -160,12 +172,6 @@ const Advanced = ({ values, fields, onChange }) => {
           {...fields.backgroundColor}
           onChange={handleChangeColor}
           className="font-color-container-input"
-        />
-        <FieldBuilder
-          value={fontDecorations.responsive}
-          name={fields.fontDecorations.responsive.name}
-          {...fields.fontDecorations.responsive}
-          onChange={(v) => handleChange(v, fields.fontDecorations.responsive.name)}
         />
       </div>
     </Fragment>

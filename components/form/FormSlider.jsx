@@ -7,6 +7,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
+import HelpIconComponent from '../common/HelpIcon';
 
 const FormSlider = props => {
   const {
@@ -24,6 +25,9 @@ const FormSlider = props => {
     inputClassName,
     labelClassName,
     disabled,
+    isTooltip,
+    tooltipMessage,
+    tooltipHeight,
   } = props;
 
   const useStyles = makeStyles({
@@ -61,11 +65,16 @@ const FormSlider = props => {
 
   return (
     <div className={classnames(classes.root, containerClassName, 'slider-element')}>
-      <InputLabel
-        className={classnames('form-control-label', labelClassName)}
-      >
-        {label}
-      </InputLabel>
+      <div className="tooltip-box">
+        <InputLabel
+          className={classnames('form-control-label', labelClassName)}
+        >
+          {label}
+        </InputLabel>
+        {isTooltip && (
+          <HelpIconComponent message={tooltipMessage} height={tooltipHeight} />
+        )}
+      </div>
       <Grid container spacing={2} alignItems="center">
         <Grid item xs>
           <Slider
@@ -118,6 +127,9 @@ FormSlider.propTypes = {
   inputClassName: PropTypes.string,
   labelClassName: PropTypes.string,
   disabled: PropTypes.bool,
+  isTooltip: PropTypes.bool,
+  tooltipMessage: PropTypes.bool,
+  tooltipHeight: PropTypes.number,
 };
 
 FormSlider.defaultProps = {
@@ -126,6 +138,8 @@ FormSlider.defaultProps = {
   minValue: 0,
   value: 0,
   disabled: false,
+  isTooltip: false,
+  tooltipMessage: '',
 };
 
 export default FormSlider;
