@@ -80,6 +80,7 @@ const LineSlider = observer(({ startDate, endDate, startDateWithZoom, endDateWit
         onInteraction={() => {}}
         itemHeight={29}
         componentId="timeline-line"
+        withDragSelection={false}
         layersNumber={1}
       />
     );
