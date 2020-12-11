@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import Slider from '@material-ui/core/Slider';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
@@ -13,7 +12,6 @@ import LineSlider from './LineSlider';
 
 const TimeLineSlider = observer((props) => {
   const {
-    sliderWidth,
     containerClassName,
     sliderClassName,
     disabled,
@@ -26,7 +24,9 @@ const TimeLineSlider = observer((props) => {
   } = props;
 
   const { isTimelineOpen } = useUIStore();
-  const { duration, updateTime, time, isPlayed } = useProjectStore();
+  const { duration, updateTime, time, isPlayed, layers } = useProjectStore();
+
+  const layersCount = React.useMemo(() => layers.length, [layers.length]);
 
   useEffect(() => {
     const thumb = document.querySelector('.timeline .MuiSlider-thumb');
@@ -39,13 +39,6 @@ const TimeLineSlider = observer((props) => {
       thumb.style.display = 'flex';
     }
   }, [time, startDateWithZoom, endDateWithZoom, isPlayed]);
-
-  const useStyles = makeStyles({
-    root: {
-      width: sliderWidth,
-    },
-  });
-  const classes = useStyles(sliderWidth);
 
   const minValue = useMemo(() => {
     if (!startDateWithZoom) {
@@ -106,8 +99,12 @@ const TimeLineSlider = observer((props) => {
     }
   };
 
+  // If the timeline has more than 4 layers, a scroll appears.
+  // Therefore, plus 6 px must be added to the right hand side for the slider.
+  const marginRight = useMemo(() => (layersCount > 4 ? '20px' : '14px'), [layersCount]);
+
   return (
-    <div className={classnames(classes.root, containerClassName, 'slider-element', { 'slider-element-hidden': !isTimelineOpen })}>
+    <div className={classnames(containerClassName, 'slider-element', { 'slider-element-hidden': !isTimelineOpen })} style={{ marginRight }}>
       <Slider
         className={classnames(sliderClassName)}
         value={time}
@@ -134,7 +131,6 @@ const TimeLineSlider = observer((props) => {
 });
 
 TimeLineSlider.propTypes = {
-  sliderWidth: PropTypes.number,
   containerClassName: PropTypes.string,
   sliderClassName: PropTypes.string,
   disabled: PropTypes.bool,

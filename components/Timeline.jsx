@@ -27,11 +27,10 @@ import HelpIconComponent from './common/HelpIcon';
 const date = '2018-08-01 00:00:00';
 
 const Timeline = observer(() => {
-  const ref = useRef(null);
   const sortableRef = useRef(null);
+  const layersRef = useRef(null);
   const projectStore = useProjectStore();
   const uiStore = useUIStore();
-  const [width, setWidth] = React.useState(0);
   const [sortableWidth, setSortableWidth] = React.useState(0);
   const [windowWidth] = useWindowSize();
 
@@ -128,8 +127,7 @@ const Timeline = observer(() => {
   };
 
   useEffect(() => {
-    if (ref.current) {
-      setWidth(ref.current.offsetWidth);
+    if (sortableRef.current) {
       setSortableWidth(sortableRef.current.offsetWidth);
     }
   }, [windowWidth]);
@@ -183,9 +181,8 @@ const Timeline = observer(() => {
           </Grid>
         </div>
         {
-          isLoaded && width && (
+          isLoaded && (
             <TimeLineSlider
-              sliderWidth={width}
               startDate={startDate}
               endDate={endDate}
               startDateWithZoom={startDateWithZoom}
@@ -197,7 +194,7 @@ const Timeline = observer(() => {
         }
       </div>
 
-      <div className="layers">
+      <div className="layers" ref={layersRef}>
         <SortableList
           sortableRef={sortableRef}
           className="layers-settings"
@@ -207,8 +204,8 @@ const Timeline = observer(() => {
           idField="order"
           onRemove={(item) => removeLayer(item.id)}
         />
-        <div ref={ref} className="timeline-side">
-          { isLoaded && width && (
+        <div className="timeline-side">
+          { isLoaded && (
             <PopcornElements
               startDate={startDate}
               endDate={endDate}
@@ -216,6 +213,7 @@ const Timeline = observer(() => {
               endDateWithZoom={endDateWithZoom}
               zoom={zoom}
               sortableWidth={sortableWidth}
+              layersRef={layersRef}
             />
           )}
         </div>

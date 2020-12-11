@@ -26,6 +26,7 @@ const PopcornElements = observer(({
   startDateWithZoom,
   endDateWithZoom,
   sortableWidth,
+  layersRef,
 }) => {
   const {
     changeDuration,
@@ -322,7 +323,7 @@ const PopcornElements = observer(({
         selectedItems={timelineSelectedItems}
         showCursorTime
         itemHeight={35}
-        multiselectMaxRow={4}
+        scrollBlock={layersRef.current}
         onInteraction={handleInteraction}
         onRowClick={handleRowClick}
         componentId="timeline-block"
