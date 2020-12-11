@@ -747,10 +747,12 @@ export default class ProjectStore extends BaseStore {
     const projectData = data;
     projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
+        track.id = this.generateUid();
         track.trackEvents = _.uniqWith(track.trackEvents, _.isEqual);
         track.trackEvents.forEach((trackEvent) => {
           elements.push({
             ...trackEvent,
+            track: track.id,
           });
         });
         const layer = {
