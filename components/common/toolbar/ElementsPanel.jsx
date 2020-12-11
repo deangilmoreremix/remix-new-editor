@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 import { Row } from 'reactstrap';
 import SVGInline from 'react-svg-inline';
@@ -9,6 +9,7 @@ import useUIStore from '../../hooks/useUIStore';
 
 import AnimatedWindow from '../AnimatedWindow';
 import CloseButton from '../CloseButton';
+import { SECTIONS } from '../../../lib/constants/settings';
 
 const ElementsPanel = observer(({ items }) => {
   const {
@@ -18,6 +19,16 @@ const ElementsPanel = observer(({ items }) => {
     prevStateProduce,
     setPrevStateProduce,
   } = useUIStore();
+
+  const creativeElements = useMemo(
+    () => items.filter(({ uiSection, disabled }) => uiSection === SECTIONS.basic && !disabled),
+    [items]);
+  const leadGenElements = useMemo(
+    () => items.filter(({ uiSection, disabled }) => uiSection === SECTIONS.leadGeneration
+      && !disabled), [items]);
+  const advancedElements = useMemo(
+    () => items.filter(({ uiSection, disabled }) => uiSection === SECTIONS.advanced && !disabled),
+    [items]);
 
   if (!checkboxLeft) {
     return null;
@@ -33,33 +44,37 @@ const ElementsPanel = observer(({ items }) => {
     action();
   };
 
+  const elementsRenderer = (elements) => elements.map((
+    { label, icon, action, disabled },
+  ) => (
+    <button
+      key={label}
+      className="elements-panel-button"
+      disabled={disabled}
+      onClick={() => onClick(action)}
+      type="button"
+    >
+      <SVGInline
+        className="elements-panel-icon"
+        classSuffix="-inline"
+        svg={icon}
+        cleanup={['title']}
+      />
+      <span className="elements-panel-label">{label}</span>
+    </button>
+  ));
+
   return (
     <AnimatedWindow isOpen={checkboxLeft}>
       <div className="elements-panel-container">
         <Row className="elements-panel-inner-row">
-          {items.map(({ label, icon, action, disabled }) => {
-            if (disabled) {
-              return;
-            }
+          {creativeElements.length ? (<h3 className="elements-panel-section__title">Creative and Personalization</h3>) : null}
+          {creativeElements.length ? elementsRenderer(creativeElements) : null}
+          {leadGenElements.length ? (<h3 className="elements-panel-section__title">Lead Generation</h3>) : null}
+          {leadGenElements.length ? elementsRenderer(leadGenElements) : null}
+          {advancedElements.length ? (<h3 className="elements-panel-section__title">Advanced Tools / Add-ons</h3>) : null}
+          {advancedElements.length ? elementsRenderer(advancedElements) : null}
 
-            return (
-              <button
-                key={label}
-                className="elements-panel-button"
-                disabled={disabled}
-                onClick={() => onClick(action)}
-                type="button"
-              >
-                <SVGInline
-                  className="elements-panel-icon"
-                  classSuffix="-inline"
-                  svg={icon}
-                  cleanup={['title']}
-                />
-                <span className="elements-panel-label">{label}</span>
-              </button>
-            );
-          })}
         </Row>
         <CloseButton onClick={() => toggleLeftBlock(false)} />
       </div>
