@@ -1,12 +1,12 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import { Row } from 'reactstrap';
-import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 
 import useUIStore from '../../hooks/useUIStore';
 
+import Element from './Element';
 import AnimatedWindow from '../AnimatedWindow';
 import CloseButton from '../CloseButton';
 
@@ -37,27 +37,17 @@ const ElementsPanel = observer(({ items }) => {
     <AnimatedWindow isOpen={checkboxLeft}>
       <div className="elements-panel-container">
         <Row className="elements-panel-inner-row">
-          {items.map(({ label, icon, action, disabled }) => {
-            if (disabled) {
+          {items.map((item) => {
+            if (item.disabled) {
               return;
             }
 
             return (
-              <button
-                key={label}
-                className="elements-panel-button"
-                disabled={disabled}
-                onClick={() => onClick(action)}
-                type="button"
-              >
-                <SVGInline
-                  className="elements-panel-icon"
-                  classSuffix="-inline"
-                  svg={icon}
-                  cleanup={['title']}
-                />
-                <span className="elements-panel-label">{label}</span>
-              </button>
+              <Element
+                key={`element-${item.label}`}
+                item={item}
+                onClick={onClick}
+              />
             );
           })}
         </Row>
