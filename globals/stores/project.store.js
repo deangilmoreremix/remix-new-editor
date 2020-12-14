@@ -463,6 +463,14 @@ export default class ProjectStore extends BaseStore {
         }
       });
       this.retarget.isPersonalizer = isPersonalizer;
+      if (this.retarget.options.webhook2 && !this.retarget.options.webhook2.value
+        && !this.retarget.options.webhook2.hidden) {
+        this.retarget.options.webhook2.hidden = true;
+      }
+      if (this.retarget.options.webhook3 && !this.retarget.options.webhook3.value
+        && !this.retarget.options.webhook3.hidden) {
+        this.retarget.options.webhook3.hidden = true;
+      }
       // eslint-disable-next-line no-underscore-dangle
       this.retarget._update({ ...this.retarget }, { ...this.retarget.options });
       this.releaseElement();
@@ -528,7 +536,8 @@ export default class ProjectStore extends BaseStore {
     }
     if (this.retarget && elementId === this.retarget.id) {
       this.modified = true;
-      if (!options.animation) {
+      if (!options.animation && !options.webhook2 && !options.webhook3
+        && !options.addWebhook && !options.removeWebhook) {
         this.retarget.options = {
           ...this.retarget.options,
           ...options,
@@ -908,6 +917,9 @@ export default class ProjectStore extends BaseStore {
     }
     if (result.project && result.project.retargetForm) {
       this.retarget = this.item.project.retargetForm || result.project.retargetForm;
+      if (this.retarget && !this.retarget.kind) {
+        this.retarget.kind = POPCORN_ELEMENT_TYPES.RETARGET;
+      }
     }
     if (result.project && result.project.allowedSocials) {
       this.item.allowedSocials = result.project.allowedSocials;
@@ -934,7 +946,6 @@ export default class ProjectStore extends BaseStore {
       this.fillMakeData(result, needData);
     } catch (e) {
       this.item = DEFAULT_ITEM;
-      console.info(e);
       this.setProjectData(this.item.project.data);
       throw e;
     }

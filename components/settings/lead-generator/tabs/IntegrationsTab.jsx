@@ -1,6 +1,8 @@
 import React from 'react';
 import classnames from 'classnames';
+import { observer } from 'mobx-react';
 
+import SVGInline from 'react-svg-inline';
 import PropTypes from '../../../../lib/PropTypes';
 
 import FieldBuilder from '../../../form/FieldBuilder';
@@ -8,14 +10,36 @@ import useMakeStore from '../../../hooks/useMakeStore';
 import useProjectStore from '../../../hooks/useProjectStore';
 
 import { BUTTON_DISABLED_HINT as buttonText } from '../../../../lib/constants/text-info';
+import trashIcon from '../../../../public/static/svgImages/common/trash.svg';
+import { TYPES } from '../../../../lib/constants/validator';
+import withValidation from '../../../hoc/withValidation';
+import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 
-const IntegrationsTab = ({ values, fields, onChange }) => {
+const IntegrationsTab = observer(({ values, fields, onChange, checkValue, type }) => {
   const { item: { project } } = useProjectStore();
 
   const { downloadOptinStatistic } = useMakeStore();
 
+  const hasMaxWebhooks = React.useMemo(() => !values.webhookEnabled || (values.webhook3
+    && values.webhook2 && !values.webhook2.hidden && !values.webhook3.hidden), [
+    values?.webhook2,
+    values?.webhook2?.hidden,
+    values?.webhook3,
+    values?.webhook3?.hidden,
+    values.webhookEnabled,
+  ]);
+
+  const onChangeWebhook = (e) => {
+    const fieldName = Object.keys(e)[0];
+    const value = e[fieldName];
+    const error = checkValue(value, { type: TYPES.WEBHOOK });
+    if (!error) {
+      onChange({ [fieldName]: value });
+    }
+  };
+
   return (
-    <div className="intergrations-container">
+    <div className="integrations-container">
       <FieldBuilder
         value={values.webhookEnabled ?? fields.webhookEnabled.default}
         onChange={onChange}
@@ -26,8 +50,65 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
         disabled={!values.webhookEnabled}
         onChange={onChange}
         {...fields.webhook}
-        className="input-field-conatainer"
       />
+      {type === POPCORN_ELEMENT_TYPES.RETARGET && !values.webhook2.hidden
+      && (
+        <div className="webhook-container">
+          <FieldBuilder
+            disabled={!values.webhookEnabled}
+            onChange={onChangeWebhook}
+            {...fields.webhook2}
+            inputClassName="item-retarget-container-input"
+            value={values.webhook2.value}
+          />
+          <div className="item-delete">
+            <SVGInline
+              className="icon trash"
+              classSuffix=""
+              svg={trashIcon}
+              cleanup={['title']}
+              alt="Remove item"
+              data-tip="Remove item"
+              onClick={() => onChange({ removeWebhook: 2 })}
+            />
+          </div>
+        </div>
+      )}
+      {type === POPCORN_ELEMENT_TYPES.RETARGET && !values.webhook3.hidden
+      && (
+        <div className="webhook-container">
+          <FieldBuilder
+            disabled={!values.webhookEnabled}
+            onChange={onChangeWebhook}
+            {...fields.webhook3}
+            inputClassName="item-retarget-container-input"
+            value={values.webhook3.value}
+          />
+          <div className="item-delete">
+            <SVGInline
+              className="icon trash"
+              classSuffix=""
+              svg={trashIcon}
+              cleanup={['title']}
+              alt="Remove item"
+              data-tip="Remove item"
+              onClick={() => onChange({ removeWebhook: 3 })}
+            />
+          </div>
+        </div>
+      )}
+      {type === POPCORN_ELEMENT_TYPES.RETARGET
+      && (
+      <div className="add-field-container">
+        <button
+          className={classnames('btn-custom', { 'button-disabled': hasMaxWebhooks })}
+          onClick={() => { onChange({ addWebhook: true }); }}
+          disabled={hasMaxWebhooks}
+        >
+          + Add WeboAddress
+        </button>
+      </div>
+      )}
       {/* <FieldBuilder */}
       {/*  value={values.dialEnabled ?? fields.dialEnabled.default} */}
       {/*  onChange={onChange} */}
@@ -39,14 +120,14 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
       {/*  onChange={onChange} */}
       {/*  disabled={!values.dialEnabled} */}
       {/*  {...fields.phone} */}
-      {/*  className="input-field-conatainer" */}
+      {/*  className="input-field-container" */}
       {/* /> */}
       {/* <FieldBuilder */}
       {/*  value={values.callNotifyAddress ?? fields.callNotifyAddress.default} */}
       {/*  onChange={onChange} */}
       {/*  disabled={!values.dialEnabled} */}
       {/*  {...fields.callNotifyAddress} */}
-      {/*  className="input-field-conatainer" */}
+      {/*  className="input-field-container" */}
       {/* /> */}
       <FieldBuilder
         value={values.emailEnabled ?? fields.emailEnabled.default}
@@ -71,12 +152,20 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
       </div>
     </div>
   );
-};
+});
 
 IntegrationsTab.propTypes = {
   values: PropTypes.shape({
     webhookEnabled: PropTypes.bool,
     webhook: PropTypes.string,
+    webhook2: PropTypes.shape({
+      value: PropTypes.string,
+      hidden: PropTypes.bool,
+    }),
+    webhook3: PropTypes.shape({
+      value: PropTypes.string,
+      hidden: PropTypes.bool,
+    }),
     dialEnabled: PropTypes.bool,
     phone: PropTypes.string,
     callNotifyAddress: PropTypes.string,
@@ -90,6 +179,20 @@ IntegrationsTab.propTypes = {
     }),
     webhook: PropTypes.shape({
       default: PropTypes.string,
+    }),
+    webhook2: PropTypes.shape({
+      default: PropTypes.shape({
+        value: PropTypes.string,
+        hidden: PropTypes.bool,
+      }),
+      hidden: PropTypes.bool,
+    }),
+    webhook3: PropTypes.shape({
+      default: PropTypes.shape({
+        value: PropTypes.string,
+        hidden: PropTypes.bool,
+      }),
+      hidden: PropTypes.bool,
     }),
     dialEnabled: PropTypes.shape({
       default: PropTypes.bool,
@@ -109,4 +212,4 @@ IntegrationsTab.propTypes = {
   }),
 };
 
-export default IntegrationsTab;
+export default withValidation(IntegrationsTab);
