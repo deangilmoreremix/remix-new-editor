@@ -21,6 +21,7 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
         isTooltip
         tooltipMessage={settingsTooltips.webhookAddress}
         tooltipHeight={35}
+        tooltipPlacement="right"
         value={values.webhookEnabled ?? fields.webhookEnabled.default}
         onChange={onChange}
         {...fields.webhookEnabled}
@@ -56,6 +57,7 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
         isTooltip
         tooltipMessage={settingsTooltips.emailNotification}
         tooltipHeight={35}
+        tooltipPlacement="right"
         value={values.emailEnabled ?? fields.emailEnabled.default}
         onChange={onChange}
         {...fields.emailEnabled}
