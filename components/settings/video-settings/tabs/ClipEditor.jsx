@@ -200,7 +200,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
       value = field.out;
     }
 
-    if (value < duration && value > from) {
+    if (value <= duration && value > from) {
       const newEnd = +(start + value - from).toFixed(2);
       if (newEnd * 100 > timelineDuration) {
         await updateVideoDuration(newEnd);
