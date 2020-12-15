@@ -68,7 +68,7 @@ const ElementsPanel = observer(({ items }) => {
     <AnimatedWindow isOpen={checkboxLeft}>
       <div className="elements-panel-container">
         <Row className="elements-panel-inner-row">
-          {creativeElements.length ? (<h3 className="elements-panel-section__title">Creative and Personalization</h3>) : null}
+          {creativeElements.length ? (<h3 className="elements-panel-section__title">Creative & Personalization</h3>) : null}
           {creativeElements.length ? elementsRenderer(creativeElements) : null}
           {leadGenElements.length ? (<h3 className="elements-panel-section__title">Lead Generation</h3>) : null}
           {leadGenElements.length ? elementsRenderer(leadGenElements) : null}
