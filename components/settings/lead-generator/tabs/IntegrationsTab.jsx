@@ -8,6 +8,7 @@ import useMakeStore from '../../../hooks/useMakeStore';
 import useProjectStore from '../../../hooks/useProjectStore';
 
 import { BUTTON_DISABLED_HINT as buttonText } from '../../../../lib/constants/text-info';
+import { settingsTooltips } from '../../../../lib/constants/tooltips';
 
 const IntegrationsTab = ({ values, fields, onChange }) => {
   const { item: { project } } = useProjectStore();
@@ -17,6 +18,10 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
   return (
     <div className="intergrations-container">
       <FieldBuilder
+        isTooltip
+        tooltipMessage={settingsTooltips.webhookAddress}
+        tooltipHeight={35}
+        tooltipPlacement="right"
         value={values.webhookEnabled ?? fields.webhookEnabled.default}
         onChange={onChange}
         {...fields.webhookEnabled}
@@ -49,6 +54,10 @@ const IntegrationsTab = ({ values, fields, onChange }) => {
       {/*  className="input-field-conatainer" */}
       {/* /> */}
       <FieldBuilder
+        isTooltip
+        tooltipMessage={settingsTooltips.emailNotification}
+        tooltipHeight={35}
+        tooltipPlacement="right"
         value={values.emailEnabled ?? fields.emailEnabled.default}
         onChange={onChange}
         {...fields.emailEnabled}

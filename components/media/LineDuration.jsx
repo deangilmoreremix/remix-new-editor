@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import interact from 'interactjs';
 import moment from 'moment';
+import { useWindowSize } from '@react-hook/window-size';
 
 import PropTypes from '../../lib/PropTypes';
 
@@ -8,7 +9,7 @@ import { TIME_DISPLAY_FORMAT } from '../../lib/constants/formats';
 
 const DEFAULT_TIME_VALUE = '0:00:00';
 
-const LineDuration = ({ duration, from, to, changeFrom, changeOut, changeFromOut }) => {
+const LineDuration = ({ duration, from, to, changeFrom, changeOut, updateFrom }) => {
   const refSlider = useRef();
 
   const [slider, setSlider] = useState();
@@ -17,6 +18,8 @@ const LineDuration = ({ duration, from, to, changeFrom, changeOut, changeFromOut
 
   const [secondsFrom, setSecondsFrom] = useState();
   const [secondsTo, setSecondsTo] = useState();
+
+  const [windowWidth] = useWindowSize();
 
   useEffect(() => {
     setSlider(interact(refSlider.current));
@@ -27,30 +30,30 @@ const LineDuration = ({ duration, from, to, changeFrom, changeOut, changeFromOut
     const parentFrom = +from.toFixed(2);
     const parentTo = +to.toFixed(2);
 
+    const newWidthInPercents = ((((parentWidth / (duration || 1))
+      * (parentTo - parentFrom)) / parentWidth) * 100).toFixed(2);
+    setInitialWidth(newWidthInPercents);
+
     if (parentFrom !== secondsFrom) {
-      setInitialStart((((parentWidth / (duration || 1))
-        * parentFrom) / parentWidth) * 100);
+      const newStartInPercents = ((((parentWidth / (duration || 1)) * parentFrom)
+        / parentWidth) * 100).toFixed(2);
+      setInitialStart(newStartInPercents);
       setSecondsFrom(parentFrom);
     }
 
     if (parentTo !== secondsTo) {
-      setInitialWidth((((parentWidth / (duration || 1))
-        * (parentTo - parentFrom)) / parentWidth) * 100);
       setSecondsTo(parentTo);
     }
-  }, [from, to]);
+  }, [from, to, windowWidth]);
 
   const changePosition = (event) => {
-    const parentWidth = refSlider.current.parentNode.offsetWidth; // in %
     const { target } = event;
-
+    const parentWidth = refSlider.current.parentNode.offsetWidth; // in px
     const leftButton = target.style.left.replace(/%/g, ''); // position in %
-    const rightButton = (parseFloat(target.style.left.replace(/%/g, '')) + (parseFloat(target.offsetWidth) / parentWidth) * 100); // position in %
+    const rightButton = parseFloat(target.style.left.replace(/%/g, '')) + (parseFloat(target.offsetWidth) / parentWidth) * 100; // position in %
 
-    let xLeft = ((parentWidth * leftButton) / 100) || 0;
-    xLeft += event.deltaRect.left;
-    let xRight = ((parentWidth * rightButton) / 100) || 0;
-    xRight += event.deltaRect.left;
+    const xLeft = ((parentWidth * leftButton) / 100) || 0;
+    const xRight = ((parentWidth * rightButton) / 100) || 0;
 
     let relativeLeft = (xLeft / parentWidth) * 100; // new position left btn in %
     let relativeRight = (xRight / parentWidth) * 100; // new position right btn in %
@@ -62,21 +65,27 @@ const LineDuration = ({ duration, from, to, changeFrom, changeOut, changeFromOut
       relativeRight = 100;
     }
 
-    const newSecondsFrom = +(relativeLeft
+    let newSecondsFrom = +(relativeLeft
       / (((parentWidth / duration) / parentWidth) * 100))
       .toFixed(2); // new position left btn in seconds
-    const newSecondsTo = +(relativeRight
+    let newSecondsTo = +(relativeRight
       / (((parentWidth / duration) / parentWidth) * 100))
       .toFixed(2); // new position right btn in seconds
 
-    if (from !== newSecondsFrom) {
-      setSecondsFrom(newSecondsFrom);
+    if (newSecondsFrom < 0) {
+      newSecondsFrom = 0;
+    }
+
+    if (newSecondsTo > duration) {
+      newSecondsTo = duration;
+    }
+
+    if (+from.toFixed(2) !== newSecondsFrom) {
       changeFrom({ from: newSecondsFrom });
       return;
     }
 
-    if (to !== newSecondsTo) {
-      setSecondsTo(newSecondsTo);
+    if (+to.toFixed(2) !== newSecondsTo) {
       changeOut({ out: newSecondsTo });
     }
   };
@@ -85,33 +94,18 @@ const LineDuration = ({ duration, from, to, changeFrom, changeOut, changeFromOut
     const { target } = event;
     const parentWidth = refSlider.current.parentNode.offsetWidth;
     const leftButton = target.style.left.replace(/%/g, '');
-    const rightButton = (parseFloat(target.style.left.replace(/%/g, ''))
-      + (parseFloat(target.offsetWidth) / parentWidth) * 100); // position in %
-
     const xLeft = ((parentWidth * leftButton) / 100) || 0 + event.dx;
-    const xRight = ((parentWidth * rightButton) / 100) || 0 + event.dx;
-
     let relativeLeft = (xLeft / parentWidth) * 100;
-    let relativeRight = (xRight / parentWidth) * 100; // new position right btn in %
 
     if (relativeLeft < 0) {
       relativeLeft = 0;
     }
 
-    if (relativeRight > 100) {
-      relativeRight = 100;
-    }
-
     const newSecondsFrom = +(relativeLeft
       / (((parentWidth / duration) / parentWidth) * 100))
       .toFixed(2); // new position left btn in seconds
-    const newSecondsTo = +(relativeRight
-      / (((parentWidth / duration) / parentWidth) * 100))
-      .toFixed(2); // new position right btn in seconds
 
-    setSecondsFrom(newSecondsFrom);
-    setSecondsTo(newSecondsTo);
-    changeFromOut({ from: newSecondsFrom });
+    updateFrom({ from: newSecondsFrom });
   };
 
   const dragMoveListener = event => {
@@ -163,14 +157,14 @@ const LineDuration = ({ duration, from, to, changeFrom, changeOut, changeFromOut
             },
           }),
         ],
-        inertia: true,
+        inertia: false,
       })
       .draggable({
         listeners: {
           move: dragMoveListener,
           end: dragPosition,
         },
-        inertia: true,
+        inertia: false,
         modifiers: [
           interact.modifiers.restrictRect({
             restriction: 'parent',
@@ -196,9 +190,11 @@ const LineDuration = ({ duration, from, to, changeFrom, changeOut, changeFromOut
         <p className="line-duration-time">{formattedValue(duration)}</p>
       </div>
       <div className="line-duration">
-        <div className="line-duration-slider" ref={refSlider} style={{ left: `${initialStart}%`, width: `${initialWidth}%` }}>
-          <div className="line-duration__toggle line-duration__toggle--left" />
-          <div className="line-duration__toggle line-duration__toggle--right" />
+        <div className="line-duration__inner">
+          <div className="line-duration-slider" ref={refSlider} style={{ left: `${initialStart}%`, width: `${initialWidth}%` }}>
+            <div className="line-duration__toggle line-duration__toggle--left" />
+            <div className="line-duration__toggle line-duration__toggle--right" />
+          </div>
         </div>
       </div>
     </div>
@@ -211,7 +207,7 @@ LineDuration.propTypes = {
   to: PropTypes.number.isRequired,
   changeFrom: PropTypes.func.isRequired,
   changeOut: PropTypes.func.isRequired,
-  changeFromOut: PropTypes.func.isRequired,
+  updateFrom: PropTypes.func.isRequired,
 };
 
 export default LineDuration;
