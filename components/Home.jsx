@@ -22,7 +22,7 @@ import Recorder from './common/recorder/Recorder';
 import CallToAction from './media/CallToAction';
 import Giphy from './media/Giphy';
 import { twoKeys } from '../lib/constants/keyCodes';
-import TextToSpeech from './media/TextToSpeech';
+import GoogleTextToSpeech from './media/GoogleTextToSpeech';
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
@@ -281,7 +281,7 @@ const Home = observer(() => {
         return <Giphy type="stickers" />;
       }
       case WINDOW_TYPES.TEXT_TO_SPEECH: {
-        return <TextToSpeech />;
+        return <GoogleTextToSpeech />;
       }
       default: {
         return null;
