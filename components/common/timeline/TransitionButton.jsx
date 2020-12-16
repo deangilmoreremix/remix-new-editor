@@ -17,9 +17,9 @@ const TransitionButton = ({ type, onClick, className, from, to }) => {
   const isTo = React.useMemo(() => type === TO, [type]);
 
   const transitions = useTransition(true, null, {
-    from: { transform: `translate(${isFrom ? '-100%' : '100%'}, -50%) scale(0)`, opacity: 0 },
+    from: { transform: `translate(${isFrom ? '-100%' : '100%'}, -50%) scale(0)`, top: '50%', opacity: 0 },
     enter: { transform: 'translate(0, -50%) scale(1)', opacity: 1 },
-    leave: { transform: `translate(${isFrom ? '-100%' : '100%'}, -50%) scale(0)`, opacity: 0 },
+    leave: { transform: `translate(${isFrom ? '-100%' : '100%'}, -50%) scale(0)`, top: '50%', opacity: 0 },
   });
 
   const handlePairHovered = ({ event, type: buttonType, from: fromId, to: toId }) => {

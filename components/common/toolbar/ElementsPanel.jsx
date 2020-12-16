@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 import { Row } from 'reactstrap';
-import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 
 import useUIStore from '../../hooks/useUIStore';
 
+import Element from './Element';
 import AnimatedWindow from '../AnimatedWindow';
 import CloseButton from '../CloseButton';
 import { SECTIONS } from '../../../lib/constants/settings';
@@ -45,23 +45,13 @@ const ElementsPanel = observer(({ items }) => {
   };
 
   const elementsRenderer = (elements) => elements.map((
-    { label, icon, action, disabled },
+    item,
   ) => (
-    <button
-      key={label}
-      className="elements-panel-button"
-      disabled={disabled}
-      onClick={() => onClick(action)}
-      type="button"
-    >
-      <SVGInline
-        className="elements-panel-icon"
-        classSuffix="-inline"
-        svg={icon}
-        cleanup={['title']}
-      />
-      <span className="elements-panel-label">{label}</span>
-    </button>
+    <Element
+      key={`element-${item.label}`}
+      item={item}
+      onClick={onClick}
+    />
   ));
 
   return (
