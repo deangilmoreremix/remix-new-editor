@@ -43,6 +43,7 @@ import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
 import { showConfirmation, showError, showInfo } from '../../lib/services/alertService';
 import {
+  CONFIRMATION_DELETE_LAYER,
   FORM_ONE_LG,
   WARNING_OPACITY,
   WARNINGS,
@@ -1008,8 +1009,11 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  removeLayer = (id) => {
-    if (this.layers.length <= 1) {
+  removeLayer = async (id) => {
+    const currentLayerByOrder = this.layers.find(layer => layer.id === id);
+    const layerName = currentLayerByOrder.name || currentLayerByOrder.defaultName;
+    const confirmDelete = await showConfirmation(`${CONFIRMATION_DELETE_LAYER.text} ${layerName}?`, '');
+    if (this.layers.length <= 1 || !confirmDelete) {
       return;
     }
     this.setUndo();
