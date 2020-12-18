@@ -13,6 +13,7 @@ import PresetStore from './stores/preset.store';
 import MakeStore from './stores/make.store';
 import SocketStore from './stores/socket.store';
 import MultiselectStore from './stores/multiselect.store';
+import TimelineStore from './stores/timeline.store';
 import WhiteLabelManager from '../lib/white-label/manager';
 // import { initializeSockets } from './socket-io';
 
@@ -198,6 +199,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       projectStore,
       modalStore: ModalStore(),
       uiStore: new UIStore({ projectStore }),
+      timelineStore: new TimelineStore({ projectStore }),
       userStore,
       socketStore,
       makeStore: new MakeStore({
@@ -255,6 +257,7 @@ export function init(source) {
       socketStore,
       projectStore,
       uiStore: new UIStore({ projectStore }),
+      timelineStore: new TimelineStore({ projectStore }),
       userStore,
       makeStore: new MakeStore({
         request: creator.request,

@@ -116,11 +116,6 @@ export default class ProjectStore extends BaseStore {
           emitter.on(emitterActions.DELETE, id => {
             this.removeElement(id);
           });
-          emitter.on(emitterActions.ARRAY_DELETE, () => {
-            this.timelineSelectedItems.forEach(id => {
-              this.removeElement(id);
-            });
-          });
           emitter.on(emitterActions.SEQUENCES_LOADING, () => {
             this.isLoadingSequencer = true;
           });
@@ -216,8 +211,6 @@ export default class ProjectStore extends BaseStore {
 
   @observable isFirstTrackFull;
 
-  @observable timelineSelectedItems = [];
-
   @observable pluginDefaults = {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
     [POPCORN_ELEMENT_TYPES.IMAGE]: {},
@@ -234,11 +227,6 @@ export default class ProjectStore extends BaseStore {
   @observable warning = null;
 
   @observable success = null;
-
-  @action
-  setTimelineSelectedItems = (ids = []) => {
-    this.timelineSelectedItems = ids;
-  };
 
   @action
   setVoiceTextId = (id = this.activeElementId) => {
@@ -1685,9 +1673,9 @@ export default class ProjectStore extends BaseStore {
     };
   };
 
-  getElementById(id) {
-    return this.popcornElements.find(element => element.id === id);
-  }
+  getElementById = id => (
+    this.popcornElements.find(element => element.id === id)
+  );
 
   @computed
   get canUndo() {

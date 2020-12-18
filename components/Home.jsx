@@ -28,6 +28,7 @@ import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
 import useUIStore from './hooks/useUIStore';
 import useUserStore from './hooks/useUserStore';
+import useTimelineStore from './hooks/useTimelineStore';
 
 import toolbarItems from '../lib/generators/toolbarItemsGenerator';
 
@@ -149,14 +150,18 @@ const Home = observer(() => {
     activeElementId,
     checkAndSave,
     undoRedoAction,
-    projectData,
     setIsRedirect,
     isRedirect,
+    getElementById,
   } = projectStore;
 
+  const { setCopiedItems, pasteElement } = useTimelineStore();
+
   hotkeys.filter = () => true;
-  const keys = [twoKeys.ctrlS, twoKeys.ctrlZ, twoKeys.ctrlY, twoKeys.ctrlD,
-    twoKeys.commandS, twoKeys.commandZ, twoKeys.commandY, twoKeys.commandD];
+  const keys = [twoKeys.ctrlS, twoKeys.ctrlZ, twoKeys.ctrlY,
+    twoKeys.commandS, twoKeys.commandZ, twoKeys.commandY,
+    twoKeys.ctrlC, twoKeys.commandC, twoKeys.ctrlV, twoKeys.commandV,
+    twoKeys.ctrlD, twoKeys.commandD];
 
   React.useEffect(() => {
     hotkeys.unbind(keys.join(), hotkeys.getScope());
@@ -179,38 +184,33 @@ const Home = observer(() => {
           event.preventDefault();
           undoRedoAction(false);
           break;
+        case twoKeys.ctrlC:
+        case twoKeys.commandC: {
+          event.preventDefault();
+          setCopiedItems();
+          break;
+        }
+        case twoKeys.ctrlV:
+        case twoKeys.commandV: {
+          pasteElement();
+          break;
+        }
         case twoKeys.ctrlD:
         case twoKeys.commandD: {
           event.preventDefault();
-          let isStopCommand = true;
-
-          event.target.classList.forEach(item => {
-            if (item.indexOf('popcorn-element') !== -1) {
-              isStopCommand = false;
-            }
-          });
-
-          if (isStopCommand) {
+          if (!event.target.classList.contains('popcorn-element')) {
             return null;
           }
 
-          if (projectData.media && projectData.media.length && activeElementId) {
-            projectData.media.forEach((media) => {
-              media.tracks.forEach((track) => {
-                track.trackEvents.forEach(trackEvent => {
-                  if (trackEvent.id === activeElementId) {
-                    addElement({
-                      ...trackEvent.popcornOptions,
-                      type: trackEvent.type,
-                      track: null,
-                      zindex: null,
-                      blendMode: null,
-                      opacity: null,
-                      id: null,
-                    });
-                  }
-                });
-              });
+          if (activeElementId) {
+            const selectedItem = getElementById(activeElementId);
+            addElement({
+              ...selectedItem.popcornOptions,
+              type: selectedItem.type,
+              track: null,
+              blendMode: null,
+              opacity: null,
+              id: null,
             });
           }
           break;

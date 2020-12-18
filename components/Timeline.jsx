@@ -9,6 +9,7 @@ import Scroll from 'timeline/lib/scroll';
 
 import useProjectStore from './hooks/useProjectStore';
 import useUIStore from './hooks/useUIStore';
+import useTimelineStore from './hooks/useTimelineStore';
 
 import TimeLineSlider from './common/timeline/TimeLineSlider';
 import Layer from './common/timeline/Layer';
@@ -23,6 +24,7 @@ import minusIcon from '../public/static/svgImages/timeline/minus.svg';
 import resetIcon from '../public/static/svgImages/timeline/reset.svg';
 import { mainTooltips } from '../lib/constants/tooltips';
 import HelpIconComponent from './common/HelpIcon';
+import ContextMenu from './common/timeline/ContextMenu';
 
 const date = '2018-08-01 00:00:00';
 
@@ -47,6 +49,8 @@ const Timeline = observer(() => {
   } = projectStore;
 
   const { isTimelineOpen, toggleTimeLine } = uiStore;
+
+  const { contextMenu } = useTimelineStore();
 
   const startDate = moment(date);
   const [endDate, setEndDate] = useState(moment(date));
@@ -194,7 +198,9 @@ const Timeline = observer(() => {
         }
       </div>
 
-      <div className="layers" ref={layersRef}>
+      {contextMenu?.buttons.length && contextMenu.isOpen ? <ContextMenu /> : null}
+
+      <div className="layers">
         <SortableList
           sortableRef={sortableRef}
           className="layers-settings"
