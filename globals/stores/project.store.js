@@ -994,9 +994,9 @@ export default class ProjectStore extends BaseStore {
 
   @observable
   @action
-  addElement = (item) => {
+  addElement = (item, position) => {
     this.setUndo();
-    return this.createNewElement(item);
+    return this.createNewElement(item, position);
   };
 
   removeTrackEvent = (id) => {
@@ -1871,7 +1871,7 @@ export default class ProjectStore extends BaseStore {
   // untraceable methods for undo redo
   // analog for addElement
   @action
-  createNewElement = async (item) => {
+  createNewElement = async (item, position) => {
     const { type } = item;
     this.modified = true;
     if (this.isPlayed) {
@@ -1915,7 +1915,7 @@ export default class ProjectStore extends BaseStore {
       type,
       track: track.id,
       name: options.id,
-      popcornOptions: { ...item, ...options, type: undefined },
+      popcornOptions: { ...item, ...options, ...position, type: undefined },
     };
 
     this.addElementToProject(element);

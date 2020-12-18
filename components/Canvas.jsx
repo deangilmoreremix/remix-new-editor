@@ -98,14 +98,22 @@ const Canvas = observer(() => {
     runMapResize();
   }, [fontSize, runTextfill]);
 
-  const onDropElement = ({ action }) => {
+  const onDropElement = ({ action }, monitor) => {
+    const { left, top, width: w, height: h } = wrapper.current.getBoundingClientRect();
+    const { x, y } = monitor.getClientOffset();
+
+    const position = {
+      top: (((y - top) / h) * 100),
+      left: (((x - left) / w) * 100),
+    };
+
     toggleRightBlock();
-    action();
+    action(position);
   };
 
   const [{ isOver }, dropRef] = useDrop({
     accept: acceptedDraggableItems,
-    drop: onDropElement,
+    drop: (item, monitor) => onDropElement(item, monitor),
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
