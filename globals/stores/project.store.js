@@ -100,6 +100,7 @@ export default class ProjectStore extends BaseStore {
           });
           emitter.on(emitterActions.SELECT, id => {
             if (id) {
+              this.timelineSelectedItems = [id];
               const element = this.getElementById(id);
               if (element) {
                 const { popcornOptions } = element;
