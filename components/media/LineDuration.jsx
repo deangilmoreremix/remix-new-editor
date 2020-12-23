@@ -65,17 +65,26 @@ const LineDuration = ({ duration, from, to, changeFrom, changeOut, updateFrom })
       relativeRight = 100;
     }
 
-    const newSecondsFrom = +(relativeLeft
+    let newSecondsFrom = +(relativeLeft
       / (((parentWidth / duration) / parentWidth) * 100))
       .toFixed(2); // new position left btn in seconds
-    const newSecondsTo = +(relativeRight
+    let newSecondsTo = +(relativeRight
       / (((parentWidth / duration) / parentWidth) * 100))
       .toFixed(2); // new position right btn in seconds
+
+    if (newSecondsFrom < 0) {
+      newSecondsFrom = 0;
+    }
+
+    if (newSecondsTo > duration) {
+      newSecondsTo = duration;
+    }
 
     if (+from.toFixed(2) !== newSecondsFrom) {
       changeFrom({ from: newSecondsFrom });
       return;
     }
+
     if (+to.toFixed(2) !== newSecondsTo) {
       changeOut({ out: newSecondsTo });
     }

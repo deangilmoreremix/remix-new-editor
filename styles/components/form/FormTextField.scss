@@ -56,7 +56,7 @@ input, div, textarea {
     outline: none;
     color: $white;
     font-family: $font-primary;
-    border: 0.055rem solid $btn-gray;
+    border: 0.055rem solid $border-color;
     border-radius: 0.218rem;
     font-style: normal;
     font-weight: normal;
@@ -68,6 +68,10 @@ input, div, textarea {
       padding: 0;
       font-size: $defaultFontSize;
       min-height: 2.065rem;
+
+      &:disabled {
+        color: $border-color;
+      }
     }
 
     &-disabled {

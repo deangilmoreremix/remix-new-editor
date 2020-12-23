@@ -10,6 +10,7 @@ import useMakeStore from '../../../hooks/useMakeStore';
 import useProjectStore from '../../../hooks/useProjectStore';
 
 import { BUTTON_DISABLED_HINT as buttonText } from '../../../../lib/constants/text-info';
+import { settingsTooltips } from '../../../../lib/constants/tooltips';
 import trashIcon from '../../../../public/static/svgImages/common/trash.svg';
 import { TYPES } from '../../../../lib/constants/validator';
 import withValidation from '../../../hoc/withValidation';
@@ -41,6 +42,10 @@ const IntegrationsTab = observer(({ values, fields, onChange, checkValue, type }
   return (
     <div className="integrations-container">
       <FieldBuilder
+        isTooltip
+        tooltipMessage={settingsTooltips.webhookAddress}
+        tooltipHeight={35}
+        tooltipPlacement="right"
         value={values.webhookEnabled ?? fields.webhookEnabled.default}
         onChange={onChange}
         {...fields.webhookEnabled}
@@ -130,6 +135,10 @@ const IntegrationsTab = observer(({ values, fields, onChange, checkValue, type }
       {/*  className="input-field-container" */}
       {/* /> */}
       <FieldBuilder
+        isTooltip
+        tooltipMessage={settingsTooltips.emailNotification}
+        tooltipHeight={35}
+        tooltipPlacement="right"
         value={values.emailEnabled ?? fields.emailEnabled.default}
         onChange={onChange}
         {...fields.emailEnabled}

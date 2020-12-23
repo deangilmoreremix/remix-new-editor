@@ -35,6 +35,7 @@ FieldBuilder.propTypes = {
   isTooltip: PropTypes.bool,
   tooltipHeight: PropTypes.number,
   tooltipMessage: PropTypes.string,
+  tooltipPlacement: PropTypes.string,
   value: PropTypes.oneOfType([
     PropTypes.string,
     PropTypes.number,

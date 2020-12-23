@@ -43,6 +43,7 @@ import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
 import { showConfirmation, showError, showInfo } from '../../lib/services/alertService';
 import {
+  CONFIRMATION_DELETE_LAYER,
   FORM_ONE_LG,
   WARNING_OPACITY,
   WARNINGS,
@@ -99,6 +100,7 @@ export default class ProjectStore extends BaseStore {
           });
           emitter.on(emitterActions.SELECT, id => {
             if (id) {
+              this.timelineSelectedItems = [id];
               const element = this.getElementById(id);
               if (element) {
                 const { popcornOptions } = element;
@@ -759,11 +761,13 @@ export default class ProjectStore extends BaseStore {
     const elements = [];
     const projectData = data;
     projectData.media.forEach((media) => {
-      media.tracks = _.uniqWith(media.tracks, _.isEqual);
       media.tracks.forEach((track) => {
+        track.id = this.generateUid();
+        track.trackEvents = _.uniqWith(track.trackEvents, _.isEqual);
         track.trackEvents.forEach((trackEvent) => {
           elements.push({
             ...trackEvent,
+            track: track.id,
           });
         });
         const layer = {
@@ -979,9 +983,9 @@ export default class ProjectStore extends BaseStore {
 
   @observable
   @action
-  addElement = (item) => {
+  addElement = (item, position) => {
     this.setUndo();
-    return this.createNewElement(item);
+    return this.createNewElement(item, position);
   };
 
   removeTrackEvent = (id) => {
@@ -994,8 +998,11 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  removeLayer = (id) => {
-    if (this.layers.length <= 1) {
+  removeLayer = async (id) => {
+    const currentLayerByOrder = this.layers.find(layer => layer.id === id);
+    const layerName = currentLayerByOrder.name || currentLayerByOrder.defaultName;
+    const confirmDelete = await showConfirmation(`${CONFIRMATION_DELETE_LAYER.text} ${layerName}?`, '');
+    if (this.layers.length <= 1 || !confirmDelete) {
       return;
     }
     this.setUndo();
@@ -1853,7 +1860,7 @@ export default class ProjectStore extends BaseStore {
   // untraceable methods for undo redo
   // analog for addElement
   @action
-  createNewElement = async (item) => {
+  createNewElement = async (item, position) => {
     const { type } = item;
     this.modified = true;
     if (this.isPlayed) {
@@ -1897,7 +1904,7 @@ export default class ProjectStore extends BaseStore {
       type,
       track: track.id,
       name: options.id,
-      popcornOptions: { ...item, ...options, type: undefined },
+      popcornOptions: { ...item, ...options, ...position, type: undefined },
     };
 
     this.addElementToProject(element);

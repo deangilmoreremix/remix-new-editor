@@ -3,6 +3,7 @@ import React, { Fragment, useCallback, useEffect } from 'react';
 import PropTypes from '../../../../lib/PropTypes';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
 import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
+import { imgTokenModes } from '../../../../lib/constants/tokens';
 
 import FieldBuilder from '../../../form/FieldBuilder';
 import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
@@ -75,6 +76,7 @@ const Basic = ({ values, fields, element, onChange }) => {
             text="Personalized Image"
             onAdd={onAddSrc}
             className="vrimage-settings__button"
+            tokenModes={imgTokenModes}
           />
         </div>
       </div>

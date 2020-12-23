@@ -61,7 +61,7 @@ const PopcornElements = observer(({
 
   useEffect(() => {
     if (activeElementId && !timelineSelectedItems.some(item => item === activeElementId)) {
-      setTimelineSelectedItems([...timelineSelectedItems, activeElementId]);
+      setTimelineSelectedItems([activeElementId]);
     }
   }, [activeElementId]);
 
@@ -288,21 +288,34 @@ const PopcornElements = observer(({
         changes.e.stopPropagation();
         const newSelection = timelineSelectedItems.slice();
         const idx = timelineSelectedItems.indexOf(changes.item.id);
-        if (idx >= 0) {
+        if (changes.e.ctrlKey || changes.e.shiftKey || changes.e.metaKey) {
+          if (idx >= 0) {
+            if (activeElementId !== changes.item.id) {
+              selectItem(changes.e, changes.item.i);
+            } else {
+              newSelection.splice(idx, 1);
+              releaseElement();
+            }
+          } else {
+            newSelection.push(changes.item.key);
+            if (Object.values(POPCORN_ELEMENT_TYPES).includes(changes.item.type)) {
+              selectItem(changes.e, changes.item.i);
+            }
+          }
+          setTimelineSelectedItems(newSelection);
+          setContextMenu({ isOpen: false });
+        } else {
           if (activeElementId !== changes.item.id) {
             selectItem(changes.e, changes.item.i);
+            setTimelineSelectedItems([changes.item.id]);
+            setContextMenu({ isOpen: false });
           } else {
-            newSelection.splice(idx, 1);
+            setTimelineSelectedItems();
+            setContextMenu({ isOpen: false });
             releaseElement();
           }
-        } else {
-          newSelection.push(changes.item.key);
-          if (Object.values(POPCORN_ELEMENT_TYPES).includes(changes.item.type)) {
-            selectItem(changes.e, changes.item.i);
-          }
+          return null;
         }
-        setTimelineSelectedItems(newSelection);
-        setContextMenu({ isOpen: false });
         break;
       }
       case Timeline.changeTypes.dragStart:

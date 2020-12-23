@@ -21,6 +21,14 @@
     margin: 0;
   }
 
+  &-section__title {
+    width: 100%;
+    font-size: 14px;
+    text-align: center;
+    color: $media-library-color;
+    margin-bottom: 0.6rem;
+  }
+
   &-button {
     @include reset-button;
     width: 7.81rem;
@@ -87,7 +95,7 @@
     padding-right: 1.25rem;
   }
 
-  .elements-panel-button {
+  .elements-panel-button, .elements-panel-section__title {
     margin-left: 0.7rem;
     font-size: $smallFontSize;
   }

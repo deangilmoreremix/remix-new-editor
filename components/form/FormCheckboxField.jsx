@@ -17,6 +17,7 @@ const FormCheckboxField = (props) => {
     tooltipHeight,
     tooltipMessage,
     isTooltip,
+    tooltipPlacement,
   } = props;
 
   const onClick = () => {
@@ -30,7 +31,11 @@ const FormCheckboxField = (props) => {
           {label}
         </InputLabel>
         {isTooltip && (
-          <HelpIconComponent height={tooltipHeight} message={tooltipMessage} />
+          <HelpIconComponent
+            placement={tooltipPlacement}
+            height={tooltipHeight}
+            message={tooltipMessage}
+          />
         )}
       </Button>
       <Checkbox
@@ -53,11 +58,13 @@ FormCheckboxField.propTypes = {
   tooltipHeight: PropTypes.number,
   tooltipMessage: PropTypes.string,
   isTooltip: PropTypes.bool,
+  tooltipPlacement: PropTypes.string,
 };
 
 FormCheckboxField.defaultProps = {
   disabled: false,
   onChange: () => {},
+  tooltipPlacement: 'bottom',
 };
 
 export default FormCheckboxField;

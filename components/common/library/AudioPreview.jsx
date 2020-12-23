@@ -4,22 +4,26 @@ import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 
 import audioIcon from '../../../public/static/svgImages/common/audio.svg';
+import PropTypes from '../../../lib/PropTypes';
 
 const AudioPreview = observer((props) => {
   const { item, isActive, volume, isDisplayIcon, onEnded } = props;
 
   const icon = useMemo(() => {
-    if (isDisplayIcon) {
-      return (
-        <SVGInline
-          className="library__item-audio-preview-icon"
-          svg={audioIcon}
-          cleanup={['title']}
-        />
-      );
+    if (!isDisplayIcon) {
+      return null;
     }
-    return null;
-  }, [isDisplayIcon]);
+    if (item.preview) {
+      return <img src={item.preview} alt="img" />;
+    }
+    return (
+      <SVGInline
+        className="library__item-audio-preview-icon"
+        svg={audioIcon}
+        cleanup={['title']}
+      />
+    );
+  }, [isDisplayIcon, item.preview]);
 
   return (
     <div className="library__item-audio-preview">
@@ -40,11 +44,19 @@ const AudioPreview = observer((props) => {
   );
 });
 
-AudioPreview.propTypes = {};
+AudioPreview.propTypes = {
+  isActive: PropTypes.bool,
+  isDisplayIcon: PropTypes.bool,
+  volume: PropTypes.number,
+  onEnded: PropTypes.func,
+  item: PropTypes.shape({
+    url: PropTypes.string.isRequired,
+    preview: PropTypes.string,
+  }).isRequired,
+};
 
 AudioPreview.defaultProps = {
   volume: 100,
-  isDisplayTitle: true,
   isDisplayIcon: true,
   onEnded: () => {},
 };
