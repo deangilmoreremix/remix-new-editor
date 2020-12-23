@@ -1,7 +1,9 @@
 .blend-mode-select {
   display: block;
-  max-width: 3.8rem;
+  width: 4.5rem;
   height: 0.875rem;
+  position: relative;
+  margin: 0 0.5rem;
 
   .menu__open {
     position: relative;

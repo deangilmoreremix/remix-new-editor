@@ -6,6 +6,17 @@
   }
 }
 
+.checkbox-box {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.font-color-container-input {
+  width: 100% !important;
+}
+
 .container-select {
   display: flex;
   align-items: center;
@@ -63,6 +74,7 @@
 .font-section, .font-style-section {
   display: flex;
   justify-content: space-between;
+  margin-top: 0.5rem;
 
   .select-element {
     min-width: 8rem;
@@ -181,7 +193,6 @@
   flex-wrap: wrap;
   justify-content: space-between;
   text-align: left;
-  margin-top: 1rem;
 
   &-input {
     width: 46%;
@@ -224,6 +235,7 @@
     .icon-edit-text {
       justify-content: flex-end;
       margin-bottom: 0.5rem;
+      margin-right: 5px;
     }
   }
 

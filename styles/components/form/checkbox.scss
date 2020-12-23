@@ -17,7 +17,7 @@
 .checkbox-element {
   cursor: pointer;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
 
   button {
     @include reset-button;

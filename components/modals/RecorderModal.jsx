@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import videojs from 'video.js';
+import { Decoder, tools, Reader } from 'ts-ebml';
+import { saveAs } from 'file-saver';
 import { ClipLoader } from 'react-spinners';
 import WaveSurfer from 'wavesurfer.js';
 import MicrophonePlugin from 'wavesurfer.js/dist/plugin/wavesurfer.microphone';
@@ -31,6 +33,8 @@ const timeOut = 3000;
 
 export default observer(({ options: { type, useAudio }, handleClose }) => {
   const mute = useRef(false);
+  const playerRef = useRef(null);
+  const videoRef = useRef(null);
 
   const {
     uploadMedia,
@@ -45,14 +49,21 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   const [showHiddenButton, setShowHiddenButton] = useState(false);
   const [time, setTime] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const playerRef = React.useRef(null);
-  const videoRef = React.useRef(null);
 
   let { current: player } = playerRef;
 
   const config = React.useMemo(
     () => RECORDER_VIDEOJS_CONFIG({ type, useAudio, WaveSurfer }),
     [type, useAudio]);
+
+  const readAsArrayBuffer = (blob) => (
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(blob);
+      reader.onloadend = () => { resolve(reader.result); };
+      reader.onerror = (ev) => { reject(ev.error); };
+    })
+  );
 
   useEffect(() => {
     if (videoRef.current && useAudio !== undefined && type) {
@@ -110,16 +121,31 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
 
   useEffect(() => () => player.record().stopStream(), []);
 
-  const handleDownload = React.useCallback(async () => {
+  const handleDownload = useCallback(() => {
     if (!player) {
       return;
     }
-    const duration = await getBlobDuration(player.recordedData);
 
-    await player.duration(duration);
-    await player.record().saveAs({
-      [type === RECORDER_TYPES.AUDIO
-        ? RECORDER_TYPES.AUDIO : RECORDER_TYPES.CAMERA]: `${type}.${EXTENSIONS_MAP[type]}`,
+    const blob = player.recordedData;
+    const decoder = new Decoder();
+    const reader = new Reader();
+
+    reader.logging = false;
+    reader.drop_default_duration = false;
+
+    // load webm blob and inject metadata
+    readAsArrayBuffer(blob).then((buffer) => {
+      const elms = decoder.decode(buffer);
+      elms.forEach((elm) => { reader.read(elm); });
+      reader.stop();
+
+      const refinedMetadataBuf = tools.makeMetadataSeekable(
+        reader.metadatas, reader.duration, reader.cues);
+      const body = buffer.slice(reader.metadataSize);
+      const result = new Blob([refinedMetadataBuf, body],
+        { type: blob.type });
+
+      saveAs(result, `${type}.${EXTENSIONS_MAP[type]}`);
     });
   }, [player]);
 

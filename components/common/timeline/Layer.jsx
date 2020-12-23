@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
-import Grid from '@material-ui/core/Grid';
 
 import useProjectStore from '../../hooks/useProjectStore';
 
@@ -44,37 +43,37 @@ const Layer = observer(({ item, onRemove }) => {
   }, [isEdit]);
 
   return (
-    <Grid container className="layer flex-center">
-      <Grid item xs={5}>
-        <Grid container className="flex-center">
-          <Grid item xs={3} className="without-side-padding flex-center">
-            {
-              layersCount > 1 ? (
-                <div className="flex-center">
-                  <SVGInline
-                    className="icon trash"
-                    classSuffix=""
-                    svg={trashIcon}
-                    cleanup={['title']}
-                    alt="Remove layer"
-                    data-tip="Remove layer"
-                  />
-                  <button onClick={() => onRemove(item)} className="icon icon-button svg-fix" type="button" />
-                </div>
-              ) : null
-            }
-          </Grid>
-          <Grid item xs={5} className="without-side-padding">
-            <input
-              className="title reset-input"
-              value={name}
-              ref={ref}
-              onChange={(e) => { setName(e.target.value); }}
-              onFocus={() => setIsEdit(true)}
-              onBlur={onEdited}
-            />
-          </Grid>
-          <Grid item xs={4} className="without-side-padding flex-center">
+    <div className="layer">
+      <div className="layer__block">
+        <div className="layer__delete">
+          {
+            layersCount > 1 ? (
+              <div className="layer__flex">
+                <SVGInline
+                  className="icon trash"
+                  classSuffix=""
+                  svg={trashIcon}
+                  cleanup={['title']}
+                  alt="Remove layer"
+                  data-tip="Remove layer"
+                />
+                <button onClick={() => onRemove(item)} className="icon icon-button svg-fix" type="button" />
+              </div>
+            ) : null
+          }
+        </div>
+
+        <div className="layer__block">
+          <input
+            className="title reset-input"
+            value={name}
+            ref={ref}
+            onChange={(e) => setName(e.target.value)}
+            onFocus={() => setIsEdit(true)}
+            onBlur={onEdited}
+          />
+
+          <div className="layer__flex">
             <SVGInline
               className="icon"
               classSuffix=""
@@ -84,33 +83,21 @@ const Layer = observer(({ item, onRemove }) => {
               data-tip="Edit layer"
             />
             <button onClick={onEdit} className="icon icon-button svg-fix" type="button" />
-          </Grid>
-        </Grid>
-      </Grid>
-      <Grid item xs={7}>
-        <Grid container>
-          <Grid item xs={6} className="without-side-padding">
-            <BlendingMode
-              layer={item}
-            />
-          </Grid>
-          <Grid item xs={4} className="without-side-padding">
-            <Opacity
-              layer={item}
-            />
-          </Grid>
-          <Grid item xs={2} className="without-side-padding">
-            {/* todo implement it */}
-          </Grid>
-          <Grid item xs={2} className="without-side-padding">
-            {/* todo implement locked */}
-          </Grid>
-        </Grid>
-      </Grid>
-    </Grid>
+          </div>
+        </div>
+      </div>
+
+      <div className="layer__block">
+        <BlendingMode
+          layer={item}
+        />
+        <Opacity
+          layer={item}
+        />
+      </div>
+    </div>
   );
-},
-);
+});
 
 Layer.propTypes = {
   item: PropTypes.shape({

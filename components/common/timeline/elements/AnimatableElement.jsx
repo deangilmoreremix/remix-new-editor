@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import Grid from '@material-ui/core/Grid/Grid';
@@ -11,9 +11,16 @@ import useProjectStore from '../../../hooks/useProjectStore';
 import { wrapTokens } from '../../../../lib/utils/tokens-helper';
 
 const AnimatableElement = React.forwardRef(({ onSelect, item, ...rest }, ref) => {
-  const { updateAnimation } = useProjectStore();
+  const { updateAnimation, activeElementId } = useProjectStore();
 
-  const getGridItem = React.useCallback((animationType) => {
+  const removeAnimation = (e, animationType) => {
+    e.stopPropagation();
+    updateAnimation(animationType);
+  };
+
+  const isViewCloseButton = useMemo(() => activeElementId === item.i, [activeElementId, item]);
+
+  const getGridItem = useCallback((animationType) => {
     switch (item.type) {
       case POPCORN_ELEMENT_TYPES.LEAD_GENERATOR:
       case POPCORN_ELEMENT_TYPES.TEXT:
@@ -27,8 +34,8 @@ const AnimatableElement = React.forwardRef(({ onSelect, item, ...rest }, ref) =>
             className={classnames('popcorn-element-part',
               { [`${animationType}-animation-element`]: animated })}
           >
-            {animated && (
-              <button className="icon-button" onClick={() => updateAnimation(animationType)}>
+            {animated && isViewCloseButton && (
+              <button className="icon-button" onClick={e => removeAnimation(e, animationType)}>
                 x
               </button>
             )}
@@ -39,7 +46,7 @@ const AnimatableElement = React.forwardRef(({ onSelect, item, ...rest }, ref) =>
         return null;
       }
     }
-  }, [item]);
+  }, [item, isViewCloseButton]);
 
   return (
     <Grid

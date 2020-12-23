@@ -21,6 +21,10 @@
     position: relative;
     flex-grow: 1;
   }
+
+  .video-active {
+    background-color: $border-color !important;
+  }
 }
 
 // leave animation fot test. If will be regress need to delete animation

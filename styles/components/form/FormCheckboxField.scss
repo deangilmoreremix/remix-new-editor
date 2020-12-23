@@ -22,11 +22,17 @@
   height: 2.19rem;
 }
 
+.json-animation-form, .json-button-form {
+  .MuiBox-root:not(:first-child) {
+    margin-top: 1rem;
+  }
+}
+
 .checkbox-element {
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
 
   button {
     min-width: 1em;

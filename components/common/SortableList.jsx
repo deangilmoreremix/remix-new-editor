@@ -13,13 +13,14 @@ const SortableList = observer((props) => {
     className,
     valueDistance,
     component: Component,
+    sortableRef,
     ...rest
   } = props;
   const Item = React.useMemo(
     () => SortableElement(({ item }) => <Component item={item} {...rest} />), [rest]);
 
   const List = React.useMemo(() => SortableContainer(() => (
-    <ul className={className}>
+    <ul className={className} ref={sortableRef}>
       {items.map((item, index) => (
         <Item
           withRef

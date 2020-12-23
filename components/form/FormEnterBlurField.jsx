@@ -43,7 +43,7 @@ FormEnterBlurField.propTypes = {
   inputClassName: PropTypes.string,
   labelClassName: PropTypes.string,
   placeholder: PropTypes.string,
-  type: PropTypes.oneOf(['input', 'text', 'number']),
+  type: PropTypes.oneOf(['blurInputField']),
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
   multiline: PropTypes.bool,
   rowsMin: PropTypes.number,

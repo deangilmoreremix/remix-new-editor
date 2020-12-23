@@ -89,7 +89,8 @@ const IconElement = React.forwardRef(({ item, ...rest }, ref) => {
         </div>
       )}
       {
-        item.kind !== ASSET_TYPES.PERSONALIZED_VOICE && (
+        item.kind !== ASSET_TYPES.PERSONALIZED_VOICE
+        && item.type !== POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION && (
           <Fragment>
             <div className="popcorn-element-title">
               {itemTitle}

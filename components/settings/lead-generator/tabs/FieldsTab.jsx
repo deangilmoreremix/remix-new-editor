@@ -103,8 +103,8 @@ const FieldsTab = ({ kind, values, fields, onChange, type }) => {
         valueDistance={1}
         autoClose
       />
-      <div className="addfield-container">
-        <button className="addfield-container-button" onClick={addField}>+ Add Field</button>
+      <div className="add-field-container">
+        <button className="add-field-container-button" onClick={addField}>+ Add Field</button>
       </div>
       {kind !== POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN && (
         <React.Fragment>
@@ -113,20 +113,20 @@ const FieldsTab = ({ kind, values, fields, onChange, type }) => {
               value={values.privacyDisclaimer ?? fields.privacyDisclaimer.default}
               onChange={onChange}
               {...fields.privacyDisclaimer}
-              className="input-field-conatainer"
+              className="input-field-container"
             />
           </div>
           <FieldBuilder
             value={values.privacyPolicyCaption ?? fields.privacyPolicyCaption.default}
             onChange={onChange}
             {...fields.privacyPolicyCaption}
-            className="input-field-conatainer"
+            className="input-field-container"
           />
           <FieldBuilder
             value={values.privacyPolicyLink ?? fields.privacyPolicyLink.default}
             onChange={onChange}
             {...fields.privacyPolicyLink}
-            className="input-field-conatainer"
+            className="input-field-container"
           />
         </React.Fragment>
       )}
@@ -134,7 +134,7 @@ const FieldsTab = ({ kind, values, fields, onChange, type }) => {
         value={values.btnText ?? fields.btnText.default}
         onChange={onChange}
         {...fields.btnText}
-        className="input-field-conatainer"
+        className="input-field-container"
       />
     </div>
   );

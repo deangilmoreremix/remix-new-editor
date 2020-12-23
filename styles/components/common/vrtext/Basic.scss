@@ -124,6 +124,9 @@
   .icon-edit-text {
     .radio-button-icon {
       min-width: 1.2rem;
+      & svg path {
+        fill: $border-color;
+      }
     }
   }
 }

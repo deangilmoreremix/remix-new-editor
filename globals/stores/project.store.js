@@ -43,6 +43,7 @@ import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
 import { showConfirmation, showError, showInfo } from '../../lib/services/alertService';
 import {
+  CONFIRMATION_DELETE_LAYER,
   FORM_ONE_LG,
   WARNING_OPACITY,
   WARNINGS,
@@ -99,6 +100,7 @@ export default class ProjectStore extends BaseStore {
           });
           emitter.on(emitterActions.SELECT, id => {
             if (id) {
+              this.timelineSelectedItems = [id];
               const element = this.getElementById(id);
               if (element) {
                 const { popcornOptions } = element;
@@ -115,6 +117,11 @@ export default class ProjectStore extends BaseStore {
           });
           emitter.on(emitterActions.DELETE, id => {
             this.removeElement(id);
+          });
+          emitter.on(emitterActions.ARRAY_DELETE, () => {
+            this.timelineSelectedItems.forEach(id => {
+              this.removeElement(id);
+            });
           });
           emitter.on(emitterActions.SEQUENCES_LOADING, () => {
             this.isLoadingSequencer = true;
@@ -211,6 +218,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable isFirstTrackFull;
 
+  @observable timelineSelectedItems = [];
+
   @observable pluginDefaults = {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
     [POPCORN_ELEMENT_TYPES.IMAGE]: {},
@@ -227,6 +236,11 @@ export default class ProjectStore extends BaseStore {
   @observable warning = null;
 
   @observable success = null;
+
+  @action
+  setTimelineSelectedItems = (ids = []) => {
+    this.timelineSelectedItems = ids;
+  };
 
   @action
   setVoiceTextId = (id = this.activeElementId) => {
@@ -434,7 +448,6 @@ export default class ProjectStore extends BaseStore {
   @action
   addRetargetForm = ({ kind, showed, noUndo, isPersonalizer }) => {
     if (!this.retarget || (this.retarget && !this.retarget.id) || !showed) {
-      console.log(isPersonalizer);
       this.createRetargetForm(noUndo, kind, isPersonalizer);
     }
     if (this.retarget && this.retarget.options && this.retarget.id) {
@@ -452,6 +465,14 @@ export default class ProjectStore extends BaseStore {
         }
       });
       this.retarget.isPersonalizer = isPersonalizer;
+      if (this.retarget.options.webhook2 && !this.retarget.options.webhook2.value
+        && !this.retarget.options.webhook2.hidden) {
+        this.retarget.options.webhook2.hidden = true;
+      }
+      if (this.retarget.options.webhook3 && !this.retarget.options.webhook3.value
+        && !this.retarget.options.webhook3.hidden) {
+        this.retarget.options.webhook3.hidden = true;
+      }
       // eslint-disable-next-line no-underscore-dangle
       this.retarget._update({ ...this.retarget }, { ...this.retarget.options });
       this.releaseElement();
@@ -517,7 +538,8 @@ export default class ProjectStore extends BaseStore {
     }
     if (this.retarget && elementId === this.retarget.id) {
       this.modified = true;
-      if (!options.animation) {
+      if (!options.animation && !options.webhook2 && !options.webhook3
+        && !options.addWebhook && !options.removeWebhook) {
         this.retarget.options = {
           ...this.retarget.options,
           ...options,
@@ -617,6 +639,11 @@ export default class ProjectStore extends BaseStore {
       element.popcornOptions = { ...element.popcornOptions, ...options };
       this.popcorn[element.type](element.popcornOptions);
     }
+
+    if (options.zindex) {
+      element.popcornOptions = { ...element.popcornOptions, zindex: options.zindex };
+    }
+
     const trackEvent = this.popcorn.getTrackEvent(elementId);
     // eslint-disable-next-line no-underscore-dangle
     if (trackEvent && trackEvent._natives._update) {
@@ -894,6 +921,9 @@ export default class ProjectStore extends BaseStore {
     }
     if (result.project && result.project.retargetForm) {
       this.retarget = this.item.project.retargetForm || result.project.retargetForm;
+      if (this.retarget && !this.retarget.kind) {
+        this.retarget.kind = POPCORN_ELEMENT_TYPES.RETARGET;
+      }
     }
     if (result.project && result.project.allowedSocials) {
       this.item.allowedSocials = result.project.allowedSocials;
@@ -920,7 +950,6 @@ export default class ProjectStore extends BaseStore {
       this.fillMakeData(result, needData);
     } catch (e) {
       this.item = DEFAULT_ITEM;
-      console.info(e);
       this.setProjectData(this.item.project.data);
       throw e;
     }
@@ -966,9 +995,9 @@ export default class ProjectStore extends BaseStore {
 
   @observable
   @action
-  addElement = (item) => {
+  addElement = (item, position) => {
     this.setUndo();
-    return this.createNewElement(item);
+    return this.createNewElement(item, position);
   };
 
   removeTrackEvent = (id) => {
@@ -981,8 +1010,11 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  removeLayer = (id) => {
-    if (this.layers.length <= 1) {
+  removeLayer = async (id) => {
+    const currentLayerByOrder = this.layers.find(layer => layer.id === id);
+    const layerName = currentLayerByOrder.name || currentLayerByOrder.defaultName;
+    const confirmDelete = await showConfirmation(`${CONFIRMATION_DELETE_LAYER.text} ${layerName}?`, '');
+    if (this.layers.length <= 1 || !confirmDelete) {
       return;
     }
     this.setUndo();
@@ -1840,7 +1872,7 @@ export default class ProjectStore extends BaseStore {
   // untraceable methods for undo redo
   // analog for addElement
   @action
-  createNewElement = async (item) => {
+  createNewElement = async (item, position) => {
     const { type } = item;
     this.modified = true;
     if (this.isPlayed) {
@@ -1884,7 +1916,7 @@ export default class ProjectStore extends BaseStore {
       type,
       track: track.id,
       name: options.id,
-      popcornOptions: { ...item, ...options, type: undefined },
+      popcornOptions: { ...item, ...options, ...position, type: undefined },
     };
 
     this.addElementToProject(element);

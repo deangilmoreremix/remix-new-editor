@@ -64,7 +64,9 @@ const FormColor = (
     <div className={className}>
       <FormGroup>
         <Box>
-          <FormLabel key="label-key" className="form-control-label">{label}</FormLabel>
+          {label && (
+            <FormLabel key="label-key" className="form-control-label">{label}</FormLabel>
+          )}
         </Box>
         <Box tabIndex={-1}>
           <FormTextField

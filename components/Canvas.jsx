@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import { observer } from 'mobx-react';
+import { useDrop } from 'react-dnd';
 import { useWindowSize } from '@react-hook/window-size';
 import classnames from 'classnames';
 import { CircleLoader } from 'react-spinners';
@@ -14,6 +15,7 @@ import {
 } from '../lib/constants/project';
 
 import { LOADING_COLOR } from '../lib/constants/ui';
+import { acceptedDraggableItems } from '../lib/constants/dragNDropConstants';
 
 import PersonalizerActivation from './common/PersonalizerActivation';
 import GuidelinesActivation from './common/GuidelinesActivation';
@@ -39,6 +41,7 @@ const Canvas = observer(() => {
     radioButtonBottom,
     isTimelineOpen,
     isCanvasPresent,
+    toggleRightBlock,
   } = uiStore;
 
   const [style, setStyle] = React.useState({});
@@ -95,6 +98,27 @@ const Canvas = observer(() => {
     runMapResize();
   }, [fontSize, runTextfill]);
 
+  const onDropElement = ({ action }, monitor) => {
+    const { left, top, width: w, height: h } = wrapper.current.getBoundingClientRect();
+    const { x, y } = monitor.getClientOffset();
+
+    const position = {
+      top: (((y - top) / h) * 100),
+      left: (((x - left) / w) * 100),
+    };
+
+    toggleRightBlock();
+    action(position);
+  };
+
+  const [{ isOver }, dropRef] = useDrop({
+    accept: acceptedDraggableItems,
+    drop: (item, monitor) => onDropElement(item, monitor),
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+    }),
+  });
+
   return (
     <div ref={ref} className={classnames('stager-wrapper', { 'stager-wrapper-big': !isTimelineOpen })}>
       <GuidelinesActivation marginLeft={style.margin && style.margin.split(' ')[1]} />
@@ -105,7 +129,7 @@ const Canvas = observer(() => {
           togglePersonalizer={toggleViewPersonalizer}
         />
       ) : null}
-      <div style={{ ...style }} className="embed-wrapper">
+      <div ref={dropRef} style={{ ...style }} className="embed-wrapper">
         {hasGuidLines && <Guidelines />}
 
         { isLoadingSequencer ? <div className="hover-loading" /> : null }
@@ -128,7 +152,7 @@ const Canvas = observer(() => {
         <div id={DEFAULT_CONTAINER} ref={wrapper} className="video-container" style={{ fontSize }}>
           <div
             id="video"
-            className="video"
+            className={classnames('video', { 'video-active': isOver })}
             webkit-playsinline="webkit-playsinline"
           />
         </div>

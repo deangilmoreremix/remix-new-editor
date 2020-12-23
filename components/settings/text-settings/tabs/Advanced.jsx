@@ -121,58 +121,57 @@ const Advanced = ({ values, fields, onChange }) => {
             onChange={handleChangeColor}
             className="font-color-container-input"
           />
-          <div className="font-style-container">
-            <div className="font-style-group">
-              <FieldBuilder
-                value={shadow || fields.shadow.default}
-                name={fields.shadow.name}
-                {...fields.shadow}
-                onChange={checkboxBoxShadow}
-              />
-              <FieldBuilder
-                value={stroke || fields.stroke.default}
-                name={fields.stroke.name}
-                {...fields.stroke}
-                onChange={checkboxStroke}
-              />
-            </div>
-            <div className="font-style-group">
-              <FieldBuilder
-                value={background || fields.background.default}
-                name={fields.background.name}
-                {...fields.background}
-                onChange={checkboxBackground}
-              />
-            </div>
-          </div>
         </div>
-
       </div>
       <div className="font-color-container">
-        <FieldBuilder
-          value={shadowColor || fields.shadowColor.default}
-          disabled={!values.shadow}
-          name={fields.shadowColor.name}
-          {...fields.shadowColor}
-          onChange={handleChangeColor}
-          className="font-color-container-input"
-        />
-        <FieldBuilder
-          value={strokeColor || fields.strokeColor.default}
-          disabled={!values.stroke}
-          name={fields.strokeColor.name}
-          {...fields.strokeColor}
-          onChange={handleChangeColor}
-          className="font-color-container-input"
-        />
-        <FieldBuilder
-          value={backgroundColor || fields.backgroundColor.default}
-          disabled={!values.background}
-          name={fields.backgroundColor.name}
-          {...fields.backgroundColor}
-          onChange={handleChangeColor}
-          className="font-color-container-input"
-        />
+        <div className="checkbox-box">
+          <FieldBuilder
+            value={shadow || fields.shadow.default}
+            name={fields.shadow.name}
+            {...fields.shadow}
+            onChange={checkboxBoxShadow}
+          />
+          <FieldBuilder
+            value={shadowColor || fields.shadowColor.default}
+            disabled={!values.shadow}
+            name={fields.shadowColor.name}
+            {...fields.shadowColor}
+            onChange={handleChangeColor}
+            className="font-color-container-input"
+          />
+        </div>
+        <div className="checkbox-box">
+          <FieldBuilder
+            value={stroke || fields.stroke.default}
+            name={fields.stroke.name}
+            {...fields.stroke}
+            onChange={checkboxStroke}
+          />
+          <FieldBuilder
+            value={strokeColor || fields.strokeColor.default}
+            disabled={!values.stroke}
+            name={fields.strokeColor.name}
+            {...fields.strokeColor}
+            onChange={handleChangeColor}
+            className="font-color-container-input"
+          />
+        </div>
+        <div className="checkbox-box">
+          <FieldBuilder
+            value={background || fields.background.default}
+            name={fields.background.name}
+            {...fields.background}
+            onChange={checkboxBackground}
+          />
+          <FieldBuilder
+            value={backgroundColor || fields.backgroundColor.default}
+            disabled={!values.background}
+            name={fields.backgroundColor.name}
+            {...fields.backgroundColor}
+            onChange={handleChangeColor}
+            className="font-color-container-input"
+          />
+        </div>
       </div>
     </Fragment>
   );
