@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { observer } from 'mobx-react';
 
 import Button from '@material-ui/core/Button';
@@ -22,9 +22,26 @@ const SettingPanel = observer(() => {
   const titleRef = React.useRef(null);
 
   const { linkedinEnabled } = useUserStore();
-  const { item, updateItem } = useProjectStore();
+  const {
+    item,
+    updateItem,
+    categories,
+    updateCategories,
+    findCategoriesInMake,
+  } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
   const { openImageEditor, closeModal } = useModalStore();
+
+  const categoriesModified = useMemo(() => {
+    if (categories) {
+      return categories.map(
+        (category) => ({ value: category.name, label: category.name, _id: category._id }));
+    }
+    return null;
+  }, [categories]);
+
+  const selectedCategories = useMemo(
+    () => findCategoriesInMake(categoriesModified), [categoriesModified]);
 
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -117,6 +134,17 @@ const SettingPanel = observer(() => {
           titleClass="settings-panel-text"
           tooltipMessage={produceTooltips.tags}
           isTooltip
+        />
+        <FieldBuilder
+          type="multipleSelect"
+          name="categories"
+          onChange={updateCategories}
+          label="Categories"
+          className="settings-input"
+          titleClass="settings-panel-text"
+          items={categoriesModified}
+          isDisabled={!categories}
+          defaultValue={selectedCategories}
         />
         <div className="settings-allow">
           <div className="settings-allow__label-box">

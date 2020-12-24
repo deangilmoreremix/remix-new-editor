@@ -40,7 +40,7 @@ import {
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
-import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
+import { NUMBER_OF_STEPS, REMOVE_VALUE, SELECT_OPTION, CLEAR } from '../../lib/constants/actions';
 import { showConfirmation, showError, showInfo } from '../../lib/services/alertService';
 import {
   CONFIRMATION_DELETE_LAYER,
@@ -212,6 +212,10 @@ export default class ProjectStore extends BaseStore {
   @observable prevMultiselectElement;
 
   @observable isFirstTrackFull;
+
+  @observable categories;
+
+  @observable selectIdCategory = new Set([]);
 
   @observable pluginDefaults = {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
@@ -950,6 +954,7 @@ export default class ProjectStore extends BaseStore {
     this.item = DEFAULT_ITEM;
     if (!projectId) {
       this.setProjectData(this.item.project.data);
+      this.categories = await this.getAllCategories();
       return this.item;
     }
     const path = `/api/makes/${projectId}/remix`;
@@ -1250,6 +1255,10 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
         });
+      this.categories = await this.getAllCategories();
+      if (this.item?.categories) {
+        this.item.categories.forEach((category) => this.selectIdCategory.add(category));
+      }
       this.setProjectData(JSON.parse(this.item.project.data));
       if (this.item.project && this.item.project.allowedSocials) {
         this.item.allowedSocials = this.item.project.allowedSocials;
@@ -1261,6 +1270,22 @@ export default class ProjectStore extends BaseStore {
     }
     return this.item;
   };
+
+  @action
+  getAllCategories = async () => {
+    const path = '/api/make-category';
+    let categories;
+    try {
+      categories = await this.request(
+        path, {
+          method: 'GET',
+        },
+      );
+    } catch (e) {
+      console.error(e);
+    }
+    return categories || [];
+  }
 
   @action
   setUndoRedoAction = (projectData, undo = true) => {
@@ -1335,7 +1360,41 @@ export default class ProjectStore extends BaseStore {
     source: this.item.source,
     tags: this.item.tags,
     disabledPlaybar: this.item.disabledPlaybar,
+    categories: [...this.selectIdCategory],
   });
+
+  @action
+  updateCategories = (value, { action: actiontype, option, removedValue }) => {
+    this.modified = true;
+    switch (actiontype) {
+      case CLEAR:
+        this.selectIdCategory.clear();
+        break;
+      case REMOVE_VALUE:
+        this.selectIdCategory.delete(removedValue._id);
+        break;
+      case SELECT_OPTION:
+        this.selectIdCategory.add(option._id);
+        break;
+      default:
+        return null;
+    }
+  }
+
+  @action
+  findCategoriesInMake = (items) => {
+    const currentCategories = [];
+    if (this.selectIdCategory) {
+      items.forEach((category) => {
+        this.selectIdCategory.forEach((id) => {
+          if (category._id === id) {
+            currentCategories.push(category);
+          }
+        });
+      });
+    }
+    return currentCategories;
+  }
 
   @action
   recompressProject = (newDuration, updateElements = true) => {
@@ -1457,6 +1516,7 @@ export default class ProjectStore extends BaseStore {
             remixedFrom: serializedData.source,
             tags: serializedData.tags,
             disabledPlaybar: serializedData.disabledPlaybar,
+            categories: serializedData.categories,
           },
         });
       const publishedMake = await this.publish(result._id);
