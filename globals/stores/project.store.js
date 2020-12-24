@@ -12,6 +12,7 @@ import { ASSET_TYPES } from '../../lib/constants/media';
 import { GOOGLE_MAP_VALUES } from '../../lib/constants/googleMap';
 import preRemixVoice from '../../lib/constants/preRemixVoice';
 import { PRE_REMIX_VOICE_MODAL } from '../../lib/constants/modals';
+import { JSON_ANIMATION_OUT_DURATION } from '../../lib/constants/settings/json-animation';
 
 import {
   SEQUENCER,
@@ -379,6 +380,10 @@ export default class ProjectStore extends BaseStore {
       case POPCORN_ELEMENT_TYPES.IMAGE: {
         options.src = item.src;
         options.fill = false;
+        break;
+      }
+      case POPCORN_ELEMENT_TYPES.JSON_ANIMATION: {
+        options.outDuration = JSON_ANIMATION_OUT_DURATION;
         break;
       }
       default:
@@ -1404,32 +1409,20 @@ export default class ProjectStore extends BaseStore {
     // crop video
     if (byEnd && byEnd.length && byEnd.length > 1) {
       const lastEvent = byEnd[byEnd.length - 2];
-      let eventEnd = 0;
+      let lastEnd = lastEvent.end;
 
-      switch (lastEvent.type) {
-        case POPCORN_ELEMENT_TYPES.TEXT:
-        case POPCORN_ELEMENT_TYPES.IMAGE:
-          if (lastEvent.animation && lastEvent.animation.out && lastEvent.animation.out.duration) {
-            eventEnd = lastEvent.end + lastEvent.animation.out.duration;
-          } else {
-            eventEnd = lastEvent.end;
-          }
-          break;
-        case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
-          if (lastEvent.outDuration) {
-            eventEnd = lastEvent.end + lastEvent.outDuration;
-          } else {
-            eventEnd = lastEvent.end;
-          }
-          break;
-        default:
-          eventEnd = lastEvent.end;
-      }
+      byEnd.forEach(element => {
+        const shift = element.outDuration
+          || (element.animation && element.animation.out && element.animation.out.duration) || 0;
+        if (shift && (element.end + shift) > lastEnd) {
+          lastEnd = element.end + shift;
+        }
+      });
 
-      if (lastEvent.end !== this.popcorn.duration() && byEnd.length !== 2) {
-        this.projectData.media[0].url = `#t=,${eventEnd}`;
-        this.projectData.media[0].duration = eventEnd;
-        this.duration = eventEnd * SANTISECOND;
+      if (lastEnd !== this.popcorn.duration() && byEnd.length !== 2) {
+        this.projectData.media[0].url = `#t=,${lastEnd}`;
+        this.projectData.media[0].duration = lastEnd;
+        this.duration = lastEnd * SANTISECOND;
         this.setPopcorn();
       }
 
