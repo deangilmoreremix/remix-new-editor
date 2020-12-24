@@ -43,6 +43,13 @@
       border: 1px solid $secondary-color;
       border-radius: 4px;
 
+      .multiple__multi-value__remove {
+        &:hover {
+          background-color: transparent;
+          color: $secondary-color;
+        }
+      }
+
       .multiple__multi-value__label {
         color: $white;
       }
