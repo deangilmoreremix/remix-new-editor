@@ -78,7 +78,7 @@
     "isomorphic-fetch": "2.2.1",
     "jquery": "2.2.3",
     "jquery-textfill": "git://github.com/strategic-limited/jquery-textfill.git#8ed46e20baa7ec217dcdf78cf07f9800f3ca118d",
-    "timeline": "git://github.com/strategic-limited/timeline.git#98c9859512b29e472b53d644774a6e51b7f00b3f",
+    "timeline": "git://github.com/strategic-limited/timeline.git#e30fbe97ef999dc194d1de15e134bfbbeaa28f49",
     "js-cookie": "2.2.1",
     "knox": "0.9.2",
     "lamejs": "1.2.0",
