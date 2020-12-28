@@ -108,7 +108,7 @@ const TextToSpeechLibrary = observer(({ addedItems, setAddedItems, kind }) => {
     }
     if (language) {
       filter['extra.language'] = language;
-      filter['extra.voice'] = voice;
+      filter['extra.voice'] = voice.value;
       filter['extra.engine'] = voiceType;
     }
 
@@ -207,7 +207,7 @@ const TextToSpeechLibrary = observer(({ addedItems, setAddedItems, kind }) => {
       <LibraryVoiceFilter
         language={language}
         setLanguage={setLanguage}
-        voice={voice}
+        voice={voice || {}}
         setVoice={setVoice}
         voiceType={voiceType}
         setVoiceType={setVoiceType}

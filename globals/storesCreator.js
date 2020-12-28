@@ -13,8 +13,9 @@ import PresetStore from './stores/preset.store';
 import MakeStore from './stores/make.store';
 import SocketStore from './stores/socket.store';
 import MultiselectStore from './stores/multiselect.store';
+import TimelineStore from './stores/timeline.store';
 import WhiteLabelManager from '../lib/white-label/manager';
-import { initializeSockets } from './socket-io';
+// import { initializeSockets } from './socket-io';
 
 let creator = null;
 let stores = null;
@@ -71,8 +72,7 @@ class Creator {
     Object.assign(this, source);
     this.clientAuthHeader = `Basic ${btoa(`${this.common.clientId}:${this.common.clientSecret}`)}`;
     const accessToken = this.getCookies(AUTH_DATA_CONFIG.accessToken);
-    this.setupNetworkServices(accessToken, isServer, this.currentUser,
-      this.req && this.req.whiteLabel);
+    this.setupNetworkServices(accessToken, isServer, this.req && this.req.whiteLabel);
   }
 
   getCookies(key) {
@@ -85,7 +85,7 @@ class Creator {
     }
   }
 
-  setupNetworkServices(accessToken, isServer = false, user = null, wl) {
+  setupNetworkServices(accessToken, isServer = false, wl) {
     const { common } = this;
     if (accessToken) {
       this.authorization = `Bearer ${accessToken}`;
@@ -102,7 +102,7 @@ class Creator {
       () => this.refreshToken(),
     );
     this.assetsRequest = requestCreator(common.assetsPath, this.authorization, isServer, () => {});
-    initializeSockets(this.authorization, user, this.hostname);
+    // initializeSockets(this.authorization, user, this.hostname);
   }
 
   async refreshToken() {
@@ -199,6 +199,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       projectStore,
       modalStore: ModalStore(),
       uiStore: new UIStore({ projectStore }),
+      timelineStore: new TimelineStore({ projectStore }),
       userStore,
       socketStore,
       makeStore: new MakeStore({
@@ -256,6 +257,7 @@ export function init(source) {
       socketStore,
       projectStore,
       uiStore: new UIStore({ projectStore }),
+      timelineStore: new TimelineStore({ projectStore }),
       userStore,
       makeStore: new MakeStore({
         request: creator.request,
@@ -272,7 +274,7 @@ export function init(source) {
       multiSelectStore: new MultiselectStore({ projectStore, userStore }),
     };
   }
-  initializeSockets(creator.authorization, creator.currentUser, creator.hostname);
+  // initializeSockets(creator.authorization, creator.currentUser, creator.hostname);
 
   return { creator, stores };
 }

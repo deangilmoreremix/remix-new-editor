@@ -6,18 +6,15 @@ import AudioPlayer from 'react-audio-player';
 
 import { ERROR_TEXT_SYMBOLS } from '../../lib/constants/text-info';
 import { ASSET_TYPES } from '../../lib/constants/media';
+import { reducer as voiceReducer, initialState as voiceInitialState } from '../../lib/utils/reducers/voiceReducer';
 import {
   VOICES as UNLIMITED_VOICES,
   LANGUAGES as UNLIMITED_LANGUAGES,
-  engineType,
-  LANGUAGES_PRO,
-  LIMITED_VOICES,
   LIMITED_LANGUAGES,
+  LIMITED_VOICES,
   ENGINE_TYPE_VALUES,
-  LANGUAGES_VALUES,
   maxSymbols,
-  PREVIEW,
-} from '../../lib/constants/textToSpeech';
+} from '../../lib/constants/googleTextToSpeech';
 import { addToken, wrapTokens, unwrapTokens } from '../../lib/utils/tokens-helper';
 import { TOKEN_REGEX, tokenModes } from '../../lib/constants/tokens';
 
@@ -40,11 +37,16 @@ import saveIcon from '../../public/static/svgImages/voice/save-voice.svg';
 import textSpeechIcon from '../../public/static/svgImages/common/textspeech.svg';
 import arrowIcon from '../../public/static/svgImages/common/arrow-back.svg';
 import { LIBRARY_KEYS } from '../../lib/constants/library';
+import { ACTION_TYPES } from '../../lib/constants/reducers/voiceReducer';
 
-const TextToSpeech = observer(() => {
+const GoogleTextToSpeech = observer(() => {
   const { voiceTextId, setVoiceTextId, findElement } = useProjectStore();
   const { toggleRightBlock, isTimelineOpen, toggleVisibleCanvas } = useUIStore();
-  const { getTemporaryTextToSpeech, saveTemporaryTextToSpeech, saveTextToSpeech } = useMediaStore();
+  const {
+    getTemporaryGoogleTextToSpeech,
+    saveTemporaryTextToSpeech,
+    saveTextToSpeech,
+  } = useMediaStore();
   const {
     getTextSpeechSymbols,
     textToSpeechNeuralEnabled,
@@ -61,18 +63,33 @@ const TextToSpeech = observer(() => {
 
   const [valueTextarea, setValueTextarea] = useState('');
   const [htmlText, setHtmlText] = useState('');
-
   const [fallbackValue, setFallbackValue] = useState('');
-  const [voice, setVoice] = useState();
-  const [language, setLanguage] = useState(languages[0].value);
-  const [selectedVoices, setSelectedVoices] = useState(userVoices[LANGUAGES_VALUES.ENUS_STANDART]);
-  const [voiceType, setVoiceType] = useState(engineType[0].value);
+
+  const [state, dispatch] = React.useReducer(voiceReducer, voiceInitialState);
+
+  useEffect(() => {
+    if (!state.init) {
+      dispatch({
+        type: ACTION_TYPES.INIT,
+        value: {
+          language: languages[0].value,
+          voices: userVoices,
+          allowedPro: textToSpeechNeuralEnabled,
+        },
+      });
+    }
+  }, []);
+
   const [caret, setCaret] = useState();
   const [symbols, setSymbols] = useState();
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isActivePreview, setIsActivePreview] = useState(false);
+  // todo remove it, after adding preview
+  // eslint-disable-next-line no-unused-vars
   const [previewUrl, setPreviewUrl] = useState(null);
+  // todo remove it, after adding preview
+  // eslint-disable-next-line no-unused-vars
   const [isDisplayingControls, setIsDisplayingControls] = useState(true);
   const [audioFile, setAudioFile] = useState(null);
   const [audio, setAudio] = useState(null);
@@ -93,8 +110,7 @@ const TextToSpeech = observer(() => {
           match = match.replace(/({{|}})/gm, '');
           let result = '';
           if (match.split(' ').length > 1) {
-            // eslint-disable-next-line no-unused-vars
-            const [helper, tokenName, ...params] = match.split(' ');
+            const [, tokenName] = match.split(' ');
             result += `{{${tokenName}}}`;
           } else {
             result += `{{${match}}}`;
@@ -187,19 +203,20 @@ const TextToSpeech = observer(() => {
     return null;
   }, [addedItems]);
 
-  const changeAndPlay = (languageItem, voiceItem, voiceTypeItem) => {
-    const url = PREVIEW[languageItem][voiceItem][voiceTypeItem];
-    setPreviewUrl(url);
-    if (url) {
-      setIsActivePreview(true);
-      setIsPlaying(true);
-      if (!isDisplayingControls) {
-        setIsDisplayingControls(true);
-      }
-    } else {
-      setIsDisplayingControls(false);
-    }
-  };
+  // todo update it after record examples
+  // const changeAndPlay = () => {
+  //   const url = 'https://s3.us-east-1.amazonaws.com/videoremix-tts/polly/standard.370c220d-e3c0-4a4d-ad1c-545f8c75300a.mp3';
+  //   setPreviewUrl(url);
+  //   if (url) {
+  //     setIsActivePreview(true);
+  //     setIsPlaying(true);
+  //     if (!isDisplayingControls) {
+  //       setIsDisplayingControls(true);
+  //     }
+  //   } else {
+  //     setIsDisplayingControls(false);
+  //   }
+  // };
 
   const quantify = () => {
     getTextSpeechSymbols()
@@ -229,18 +246,18 @@ const TextToSpeech = observer(() => {
 
   const getVoice = () => {
     setLoading(true);
-    getTemporaryTextToSpeech({
-      engine: voiceType,
-      language,
+    getTemporaryGoogleTextToSpeech({
       text: isPersonalizeText ? fallbackValue : valueTextarea,
-      voice,
+      state,
     },
     )
       .then((result) => {
         setAudioFile(result.blob);
         setAudio(result.audio);
       })
-      .catch((e) => showError((e && e.message) || e))
+      .catch((e) => {
+        showError((e && e.message) || e);
+      })
       .finally(() => setLoading(false));
   };
 
@@ -250,9 +267,10 @@ const TextToSpeech = observer(() => {
       .then((result) => {
         setAudioFile(null);
         return saveTextToSpeech({
-          engine: voiceType,
-          language,
-          voice,
+          engine: state.isPro ? ENGINE_TYPE_VALUES.NEURAL : ENGINE_TYPE_VALUES.STANDART,
+          language: state.language,
+          voice: state.voice.value,
+          voiceId: state.isPro ? state.voice.pro : state.voice.standard,
           url: result.url,
           text: valueTextarea,
           fallbackValue,
@@ -271,74 +289,28 @@ const TextToSpeech = observer(() => {
   };
 
   useEffect(() => quantify(), []);
-
-  const currentVoiceArray = (lan, currentVoiceType) => {
-    const isLanguageWithPro = LANGUAGES_PRO.some(item => item.value === lan);
-    if (isLanguageWithPro) {
-      return userVoices[`${lan}-${currentVoiceType}`];
-    } else {
-      return userVoices[lan];
-    }
-  };
-
-  useEffect(() => {
-    const item = languages.find(languageItem => languageItem.value === language).value;
-    const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
-    currentVoiceArray(item, currentVoiceType);
-    const currentVoice = currentVoiceArray(item, currentVoiceType);
-
-    if (currentVoice) {
-      setSelectedVoices(currentVoice);
-      setVoiceType(ENGINE_TYPE_VALUES.STANDART);
-      setVoice(currentVoice[0].value);
-      setPreviewUrl(PREVIEW[language][currentVoice[0].value][ENGINE_TYPE_VALUES.STANDART]);
-    }
-  }, [language]);
-
-  useEffect(() => {
-    const item = languages.find(languageItem => languageItem.value === language).value;
-    const currentVoiceType = voiceType || ENGINE_TYPE_VALUES.STANDART;
-    const currentVoice = currentVoiceArray(item, currentVoiceType);
-
-    if (currentVoice) {
-      setSelectedVoices(currentVoice);
-    }
-  }, [voiceType]);
+  // todo uncomment it after adding preview
+  // useEffect(() => {
+  //   changeAndPlay(state.language, state.voice);
+  // }, [state.voice, state.isPro]);
 
   const onVoiceSelect = value => {
-    const item = selectedVoices.find(voiceItem => voiceItem.value === value).value;
-    setVoice(item);
-    changeAndPlay(language, item, voiceType);
+    dispatch({ type: ACTION_TYPES.SET_VOICE, value });
   };
 
   useEffect(() => {
     setAudioFile(null);
     setAudio(null);
-  }, [voiceType, language, voice, valueTextarea, fallbackValue]);
+  }, [state.isPro, state.language, state.voice, valueTextarea, fallbackValue]);
 
   useEffect(() => playVoice(), [audio]);
 
   const onLanguageSelect = value => {
-    const item = languages.find(languageItem => languageItem.value === value).value;
-    setLanguage(item);
-    const currentVoice = currentVoiceArray(item, voiceType);
-
-    changeAndPlay(item, currentVoice[0].value, ENGINE_TYPE_VALUES.STANDART);
+    dispatch({ type: ACTION_TYPES.SET_LANGUAGE, value });
   };
 
   const onRadioSelect = () => {
-    const voiceEngine = voiceType === ENGINE_TYPE_VALUES.STANDART
-      ? ENGINE_TYPE_VALUES.NEURAL : ENGINE_TYPE_VALUES.STANDART;
-
-    const voices = currentVoiceArray(language, voiceEngine);
-    let currentVoice = voices[0].value;
-    if (!voices.some(item => item.value === voice)) {
-      setVoice(currentVoice);
-    } else {
-      currentVoice = voice;
-    }
-    setVoiceType(voiceEngine);
-    changeAndPlay(language, currentVoice, voiceEngine);
+    dispatch(({ type: ACTION_TYPES.SET_IS_PRO }));
   };
 
   const isPersonalizeText = useMemo(() => valueTextarea && valueTextarea.indexOf('{{') !== -1, [valueTextarea]);
@@ -403,33 +375,26 @@ const TextToSpeech = observer(() => {
     toggleVisibleCanvas(true);
   };
 
-  const disabledProButton = useMemo(() => (
-    !(LANGUAGES_PRO.some(({ value }) => value === language))
-  ), [language]);
+  const disabledProButton = useMemo(() => !textToSpeechNeuralEnabled
+    || !state.voice?.pro, [state.voice, textToSpeechNeuralEnabled]);
 
-  const currentVoiceImage = useMemo(() => {
-    const currentVoices = currentVoiceArray(language, voiceType);
-    const currentVoice = currentVoices.find(item => item.value === voice);
-    if (currentVoice) {
-      return currentVoice.img;
-    }
-  }, [language, voice]);
+  const disabledStandardButton = useMemo(() => !state.voice?.standard,
+    [state.voice, textToSpeechNeuralEnabled]);
 
-  const sliderClick = (direction) => {
-    const currentVoices = currentVoiceArray(language, voiceType);
-    const currentVoice = currentVoices.find(item => item.value === voice);
-    const currentIndex = currentVoices.indexOf(currentVoice);
+  const currentVoiceImage = useMemo(() => state.voice?.img, [state.voice]);
 
+  const sliderClick = (isPrev) => {
+    const currentIndex = state.selectedVoices.findIndex(({ value }) => value === state.voice.value);
+    const lastIndex = state.selectedVoices.length - 1;
     let item;
-    if (direction === 'left') {
+    if (isPrev) {
       item = currentIndex === 0
-        ? currentVoices[currentVoices.length - 1].value : currentVoices[currentIndex - 1].value;
+        ? state.selectedVoices[lastIndex].value : state.selectedVoices[currentIndex - 1].value;
     } else {
-      item = currentIndex === currentVoices.length - 1
-        ? currentVoices[0].value : currentVoices[currentIndex + 1].value;
+      item = currentIndex === lastIndex
+        ? state.selectedVoices[0].value : state.selectedVoices[currentIndex + 1].value;
     }
-    setVoice(item);
-    changeAndPlay(language, item, voiceType);
+    dispatch({ type: ACTION_TYPES.SET_VOICE, value: item });
   };
 
   const warningMessage = useMemo(() => {
@@ -456,10 +421,10 @@ const TextToSpeech = observer(() => {
             {textToSpeechNeuralEnabled && (
               <button
                 onClick={onRadioSelect}
-                disabled={disabledProButton}
+                disabled={disabledProButton || disabledStandardButton}
                 className={classnames(
                   'text-to-speech__radio',
-                  { 'text-to-speech__radio-active': voiceType === ENGINE_TYPE_VALUES.NEURAL },
+                  { 'text-to-speech__radio-active': state.isPro },
                   { 'text-to-speech__radio-disabled': disabledProButton },
                 )}
               >
@@ -475,16 +440,16 @@ const TextToSpeech = observer(() => {
                 items={languages}
                 className="text-to-speech__selection"
                 selectClassName="text-to-speech__select-list"
-                value={language}
+                value={state.language}
                 onChange={onLanguageSelect}
               />
               <FormSelect
                 label="Voice"
-                items={selectedVoices}
+                items={state.selectedVoices}
                 className="text-to-speech__selection"
                 selectClassName={classnames('text-to-speech__select-list',
                   { 'text-to-speech__select-voice-list': onlyLimitedTextToSpeech })}
-                value={voice}
+                value={state.voice.value}
                 onChange={onVoiceSelect}
               />
             </div>
@@ -589,19 +554,19 @@ const TextToSpeech = observer(() => {
         </div>
 
         <div className={classnames('text-to-speech__slider', { 'text-to-speech__slider-enum': !textToSpeechNeuralEnabled })}>
-          <button className="text-to-speech__slider-left" onClick={() => sliderClick('left')}>
+          <button className="text-to-speech__slider-left" onClick={() => sliderClick(true)}>
             <SVGInline
               svg={arrowIcon}
               cleanup={['title']}
             />
           </button>
-          <button className="text-to-speech__slider-right" onClick={sliderClick}>
+          <button className="text-to-speech__slider-right" onClick={() => sliderClick()}>
             <SVGInline
               svg={arrowIcon}
               cleanup={['title']}
             />
           </button>
-          <p className="text-to-speech__voice-name">{voice}</p>
+          <p className="text-to-speech__voice-name">{state.voice.label}</p>
           <div className="text-to-speech__image">
             <img src={currentVoiceImage} alt="img" />
           </div>
@@ -633,4 +598,4 @@ const TextToSpeech = observer(() => {
   );
 });
 
-export default TextToSpeech;
+export default GoogleTextToSpeech;

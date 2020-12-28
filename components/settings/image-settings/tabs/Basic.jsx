@@ -191,7 +191,7 @@ const Basic = ({ values, fields, onChange, handleClose, element: elementData }) 
                 menu: EXTRA_MENU,
               });
             }}
-            isDisabled={isLoading}
+            disabled={isLoading}
           >
             Image Editor
           </button>

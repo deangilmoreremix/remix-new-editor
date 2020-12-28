@@ -142,4 +142,5 @@ module.exports = {
     },
   },
   scriptStatistic: process.env.SCRIPT_STATISTIC || '',
+  pathForGoogleCloudAccount: process.env.GOOGLE_APPLICATION_CREDENTIALS || '',
 };
