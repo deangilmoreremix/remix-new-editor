@@ -213,10 +213,6 @@ export default class ProjectStore extends BaseStore {
 
   @observable isFirstTrackFull;
 
-  @observable categories;
-
-  @observable selectIdCategory = new Set([]);
-
   @observable pluginDefaults = {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
     [POPCORN_ELEMENT_TYPES.IMAGE]: {},
@@ -954,7 +950,6 @@ export default class ProjectStore extends BaseStore {
     this.item = DEFAULT_ITEM;
     if (!projectId) {
       this.setProjectData(this.item.project.data);
-      this.categories = await this.getAllCategories();
       return this.item;
     }
     const path = `/api/makes/${projectId}/remix`;
@@ -1255,10 +1250,6 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
         });
-      this.categories = await this.getAllCategories();
-      if (this.item?.categories) {
-        this.item.categories.forEach((category) => this.selectIdCategory.add(category));
-      }
       this.setProjectData(JSON.parse(this.item.project.data));
       if (this.item.project && this.item.project.allowedSocials) {
         this.item.allowedSocials = this.item.project.allowedSocials;
@@ -1272,20 +1263,43 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  getAllCategories = async () => {
-    const path = '/api/make-category';
-    let categories;
+  getAllCategories = async (query, perPage = 30) => {
+    const path = '/api/make-categories';
+    let result;
     try {
-      categories = await this.request(
-        path, {
-          method: 'GET',
-        },
-      );
+       result = await this.getList(
+        {
+          query,
+          perPage,
+          path,
+        });
     } catch (e) {
       console.error(e);
     }
-    return categories || [];
+    return result;
   }
+
+  @action
+  updateCategories = (category) => {
+    if (this.item?.categories && !this.item.categories.some(_id => _id === category._id)) {
+      this.item.categories = [...this.item.categories, category];
+    } else {
+      this.item.categories = [category];
+    }
+    this.modified = true;
+  }
+
+  @action
+  clearAllCategories = () => {
+    this.item.categories = [];
+    this.modified = true;
+  };
+
+  @action
+  removeCategory = (id) => {
+    this.item.categories = this.item.categories.filter(category => category._id !== id);
+    this.modified = true;
+  };
 
   @action
   setUndoRedoAction = (projectData, undo = true) => {
@@ -1360,41 +1374,8 @@ export default class ProjectStore extends BaseStore {
     source: this.item.source,
     tags: this.item.tags,
     disabledPlaybar: this.item.disabledPlaybar,
-    categories: [...this.selectIdCategory],
+    categories: this.item.categories,
   });
-
-  @action
-  updateCategories = (value, { action: actiontype, option, removedValue }) => {
-    this.modified = true;
-    switch (actiontype) {
-      case CLEAR:
-        this.selectIdCategory.clear();
-        break;
-      case REMOVE_VALUE:
-        this.selectIdCategory.delete(removedValue._id);
-        break;
-      case SELECT_OPTION:
-        this.selectIdCategory.add(option._id);
-        break;
-      default:
-        return null;
-    }
-  }
-
-  @action
-  findCategoriesInMake = (items) => {
-    const currentCategories = [];
-    if (this.selectIdCategory) {
-      items.forEach((category) => {
-        this.selectIdCategory.forEach((id) => {
-          if (category._id === id) {
-            currentCategories.push(category);
-          }
-        });
-      });
-    }
-    return currentCategories;
-  }
 
   @action
   recompressProject = (newDuration, updateElements = true) => {

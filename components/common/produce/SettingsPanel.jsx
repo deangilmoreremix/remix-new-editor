@@ -21,27 +21,19 @@ const SettingPanel = observer(() => {
 
   const titleRef = React.useRef(null);
 
-  const { linkedinEnabled } = useUserStore();
+  const { linkedinEnabled, isSuperAdmin } = useUserStore();
   const {
     item,
     updateItem,
-    categories,
     updateCategories,
-    findCategoriesInMake,
+    clearAllCategories,
+    getAllCategories,
+    removeCategory,
   } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
   const { openImageEditor, closeModal } = useModalStore();
 
-  const categoriesModified = useMemo(() => {
-    if (categories) {
-      return categories.map(
-        (category) => ({ value: category.name, label: category.name, _id: category._id }));
-    }
-    return null;
-  }, [categories]);
-
-  const selectedCategories = useMemo(
-    () => findCategoriesInMake(categoriesModified), [categoriesModified]);
+  const categories = useMemo(() => item?.categories || [], [item.categories]);
 
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -135,17 +127,18 @@ const SettingPanel = observer(() => {
           tooltipMessage={produceTooltips.tags}
           isTooltip
         />
-        <FieldBuilder
-          type="multipleSelect"
-          name="categories"
-          onChange={updateCategories}
-          label="Categories"
-          className="settings-input"
-          titleClass="settings-panel-text"
-          items={categoriesModified}
-          isDisabled={!categories}
-          defaultValue={selectedCategories}
-        />
+        {isSuperAdmin && (
+          <FieldBuilder
+            type="multipleSelect"
+            name="categories"
+            label="Categories"
+            categories={categories}
+            getCategories={getAllCategories}
+            clear={clearAllCategories}
+            addInput={updateCategories}
+            removeInput={removeCategory}
+          />
+        )}
         <div className="settings-allow">
           <div className="settings-allow__label-box">
             <p className="settings-panel-text">Allow</p>
