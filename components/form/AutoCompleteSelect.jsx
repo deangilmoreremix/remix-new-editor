@@ -8,6 +8,8 @@ import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
 
+import { CLEAR, REMOVE_VALUE, SELECT_OPTION } from '../../lib/constants/actions';
+
 const AutoCompleteSelect = React.forwardRef((
   {
     getCategories,
@@ -57,11 +59,11 @@ const AutoCompleteSelect = React.forwardRef((
       return;
     }
     switch (reason) {
-      case 'clear':
+      case CLEAR:
         return clear();
-      case 'select-option':
+      case SELECT_OPTION:
         return addInput({ _id: option._id, name: option.name });
-      case 'remove-option':
+      case REMOVE_VALUE:
         return removeInput(option._id);
       default:
         return null;
