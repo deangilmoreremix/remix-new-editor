@@ -39,6 +39,11 @@ class Layout extends Component {
     },
   });
 
+  componentDidMount() {
+    const { common: { whiteLabelManager } } = this.stores;
+    document.body.classList.add(`theme-${whiteLabelManager.key}`);
+  }
+
   constructor(props) {
     super(props);
     const data = init(props.creator);
