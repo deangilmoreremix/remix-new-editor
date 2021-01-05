@@ -193,6 +193,7 @@ const Timeline = observer(() => {
               endDateWithZoom={endDateWithZoom}
               setStartDateWithZoom={setStartDateWithZoom}
               setEndDateWithZoom={setEndDateWithZoom}
+              sortableWidth={sortableWidth}
             />
           )
         }

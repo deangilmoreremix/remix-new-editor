@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Slider from '@material-ui/core/Slider';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
@@ -21,7 +21,12 @@ const TimeLineSlider = observer((props) => {
     endDateWithZoom,
     setStartDateWithZoom,
     setEndDateWithZoom,
+    sortableWidth,
   } = props;
+
+  const [hoverCurrentTime, setHoverCurrentTime] = useState(null);
+  const [timestampLeft, setTimestampLeft] = useState(null);
+  const sliderBlockRef = useRef(null);
 
   const { isTimelineOpen } = useUIStore();
   const { duration, updateTime, time, isPlayed, layers } = useProjectStore();
@@ -99,12 +104,42 @@ const TimeLineSlider = observer((props) => {
     }
   };
 
+  const timeOnMove = (e) => {
+    if (endDateWithZoom.diff(startDateWithZoom) <= 0) {
+      return;
+    }
+    const mousePosition = e.clientX - sortableWidth;
+    const blockWidth = sliderBlockRef.current.getBoundingClientRect().width;
+    const msWidth = blockWidth / endDateWithZoom.diff(startDateWithZoom);
+    let currentTime = startDateWithZoom.diff(0) + (mousePosition / msWidth);
+    if (currentTime < startDateWithZoom.diff(0)) {
+      currentTime = startDateWithZoom.diff(0);
+    }
+
+    if (currentTime > endDateWithZoom.diff(0)) {
+      currentTime = endDateWithZoom.diff(0);
+    }
+
+    setHoverCurrentTime(moment(currentTime).format('mm:ss.SS'));
+    setTimestampLeft(mousePosition);
+  };
+
+  const timeOnLeave = () => {
+    setHoverCurrentTime(null);
+  };
+
   // If the timeline has more than 4 layers, a scroll appears.
   // Therefore, plus 6 px must be added to the right hand side for the slider.
   const marginRight = useMemo(() => (layersCount > 4 ? '20px' : '14px'), [layersCount]);
 
   return (
-    <div className={classnames(containerClassName, 'slider-element', { 'slider-element-hidden': !isTimelineOpen })} style={{ marginRight }}>
+    <div
+      className={classnames(containerClassName, 'slider-element', { 'slider-element-hidden': !isTimelineOpen })}
+      style={{ marginRight }}
+      onMouseMove={timeOnMove}
+      onMouseLeave={timeOnLeave}
+      ref={sliderBlockRef}
+    >
       <Slider
         className={classnames(sliderClassName)}
         value={time}
@@ -114,6 +149,16 @@ const TimeLineSlider = observer((props) => {
         min={minValue}
         disabled={disabled}
       />
+      {hoverCurrentTime && (
+        <div
+          className="timestamp"
+          style={{ left: timestampLeft }}
+          onMouseOver={timeOnLeave}
+          onFocus={timeOnLeave}
+        >
+          {hoverCurrentTime}
+        </div>
+      )}
       {
         isTimelineOpen && (
           <div className="line-slider">
@@ -138,6 +183,7 @@ TimeLineSlider.propTypes = {
   endDate: PropTypes.shape({}),
   startDateWithZoom: PropTypes.shape({}),
   endDateWithZoom: PropTypes.shape({}),
+  sortableWidth: PropTypes.number,
 };
 
 TimeLineSlider.defaultProps = {

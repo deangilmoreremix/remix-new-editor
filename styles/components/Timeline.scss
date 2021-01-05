@@ -793,3 +793,22 @@ div.popcorn-element-personalized-voice {
   }
 }
 
+.timestamp {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 70px;
+  position: absolute;
+  top: -24px;
+  left: 0;
+  background: #BEBEE8;
+  box-shadow: 0 5px 6px -5px rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+  text-align: center;
+  margin-left: -35px;
+  padding: 6px 0;
+  font-size: $smallFontSize;
+  font-weight: bold;
+  overflow: hidden;
+}
+
