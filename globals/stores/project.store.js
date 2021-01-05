@@ -80,8 +80,8 @@ export default class ProjectStore extends BaseStore {
             this.isLoaded = true;
           });
           this.popcorn.on('elementUpdated', (data) => {
-            const { element, options } = data;
-            this.findAndUpdate(element.id, options);
+            const { element, options, setUndo = true } = data;
+            this.findAndUpdate(element.id, options, setUndo);
           });
           this.popcorn.on('timeupdate', () => {
             this.time = this.popcorn.currentTime() * SANTISECOND;
@@ -524,9 +524,10 @@ export default class ProjectStore extends BaseStore {
   }
 
   @action
-  findAndUpdate = (elementId, options = {}) => {
+  findAndUpdate = (elementId, options = {}, setUndo = true) => {
     const newValues = Object.keys(options);
-    if (newValues && newValues.length && !newValues.every(key => caretNames.includes(key))) {
+    if (setUndo && newValues && newValues.length
+      && !newValues.every(key => caretNames.includes(key))) {
       this.setUndo();
     }
     if (this.retarget && elementId === this.retarget.id) {
