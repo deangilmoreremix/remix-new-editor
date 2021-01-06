@@ -27,52 +27,29 @@ const LineSlider = observer(({ startDate, endDate, startDateWithZoom, endDateWit
     for (let i = 0; i <= maxI; i++) {
       array.push(i);
     }
-
-    const itemWidth = `${100 / (maxI - 1)}%`;
-
-    if (!Number.isInteger(maxI)) {
-      array.pop();
-      array.push(maxI);
-    }
     // eslint-disable-next-line array-callback-return
-    return array.map((el, i) => {
+    return array.map(el => {
       if (el * stampNum <= maxI) {
         if (el % 2 === 0 && el !== maxI) {
           const momentTime = moment.duration(el * stampNum, 'seconds');
           const stamp = moment({ minutes: 0, seconds: 0 }).add(momentTime).format('mm:ss');
           return (
-            <div className="line-slider-item" key={el} style={{ width: itemWidth }}>
+            <div className="line-slider-item" key={el}>
               <div className="line-slider-block" />
               <div className="line-slider-number">
                 {stamp}
               </div>
             </div>
           );
-        } else if (el === maxI && (array[i - 1] % 2 !== 0)) {
-          let lastItemWidth = '1px';
-          if (!Number.isInteger(el)) {
-            const restSeconds = maxI % 1;
-            lastItemWidth = `${(100 / (maxI - 1)) * restSeconds}%`;
-          }
+        } else if (el === maxI && el % 2 === 0) {
           return (
-            <div className="line-slider-item" key={el} style={{ width: lastItemWidth }}>
+            <div className="line-slider-item" key={el}>
               <div className="line-slider-block" />
-            </div>
-          );
-        } else if (el === maxI && (array[i - 1] % 2 === 0)) {
-          let lastItemWidth = '1px';
-          if (!Number.isInteger(el)) {
-            const restSeconds = maxI % 1;
-            lastItemWidth = `${(100 / (maxI - 1)) * restSeconds}%`;
-          }
-          return (
-            <div className="line-slider-item" key={el} style={{ width: lastItemWidth }}>
-              <div className="line-slider-little-block" />
             </div>
           );
         } else {
           return (
-            <div className="line-slider-item" key={el} style={{ width: itemWidth }}>
+            <div className="line-slider-item" key={el}>
               <div className="line-slider-little-block" />
             </div>
           );

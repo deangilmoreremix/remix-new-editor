@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, reaction } from 'mobx';
 
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import { SANTISECOND } from '../../lib/constants/project';
@@ -13,7 +13,30 @@ export default class TimelineStore {
       });
       this.timelineSelectedItems = [];
     });
+
+    emitter.on(emitterActions.DELETE, id => {
+      if (this.timelineSelectedItems.includes(id)) {
+        this.timelineSelectedItems = this.timelineSelectedItems.filter(el => el !== id) || [];
+      }
+      if (this.copiedItems.includes(id)) {
+        this.copiedItems = this.copiedItems.filter(el => el !== id) || [];
+      }
+    });
+
+    reaction(
+      () => this.projectStore.elements.length,
+      (elementsLength) => {
+        if (elementsLength >= this.projectElementsLength) {
+          this.projectElementsLength = elementsLength;
+          return;
+        }
+        this.projectElementsLength = elementsLength;
+        this.handleUpdateCopiedItems();
+      },
+    );
   }
+
+  @observable projectElementsLength = 0;
 
   @observable timelineSelectedItems = [];
 
@@ -58,6 +81,16 @@ export default class TimelineStore {
     this.contextMenu = { ...this.contextMenu, ...data };
   };
 
+  handleUpdateCopiedItems = () => {
+    this.copiedItems = this.copiedItems.filter(element => (
+      this.projectStore.elements.some(projectElement => projectElement.id === element)
+    ));
+
+    if (!this.copiedItems.length) {
+      this.setContextMenu({ buttons: [] });
+    }
+  };
+
   @action
   pasteElement = () => {
     if (!this.copiedItems.length) {
@@ -82,15 +115,14 @@ export default class TimelineStore {
         track: elementById.track,
       });
     });
-
     const orders = [...Object.keys(newItems)];
     orders.sort((a, b) => b - a);
 
     orders.forEach(el => {
       newItems[el].sort((a, b) => {
-        const currentLayerA = this.projectStore.layers.find(item => item.id === a.track);
-        const currentLayerB = this.projectStore.layers.find(item => item.id === b.track);
-        return currentLayerB.order - currentLayerA.order;
+        const firstElementStart = a.popcornOptions.start;
+        const secondElementStart = b.popcornOptions.start;
+        return firstElementStart - secondElementStart;
       });
     });
 

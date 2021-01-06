@@ -257,7 +257,7 @@ export default class ProjectStore extends BaseStore {
     this.setUndoRedoAction({
       projectData: snapshot,
       duration: this.duration,
-      retarget: { ...this.retarget },
+      retarget: _.isEmpty(this.retarget) ? null : { ...this.retarget },
       activeElementId: this.activeElementId,
     }, !undo);
     if (this.activeElementId !== activeElementId) {
@@ -762,14 +762,16 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  setProjectData = (data) => {
+  setProjectData = (data, isUpdateId) => {
     let layers = [];
     const elements = [];
     const projectData = data;
     projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
-        track.id = this.generateUid();
-        track.trackEvents = _.uniqWith(track.trackEvents, _.isEqual);
+        if (isUpdateId) {
+          track.id = this.generateUid();
+          track.trackEvents = _.uniqWith(track.trackEvents, _.isEqual);
+        }
         track.trackEvents.forEach((trackEvent) => {
           elements.push({
             ...trackEvent,
@@ -909,7 +911,7 @@ export default class ProjectStore extends BaseStore {
     this.item.description = result.description;
     this.item.remixedFrom = result.project._id;
     this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${result._id}`;
-    this.setProjectData(JSON.parse(result.project.data));
+    this.setProjectData(JSON.parse(result.project.data), true);
     if (isRemix) {
       this.setPopcorn();
     }
@@ -929,7 +931,7 @@ export default class ProjectStore extends BaseStore {
     this.modified = true;
     this.item = DEFAULT_ITEM;
     if (!projectId) {
-      this.setProjectData(this.item.project.data);
+      this.setProjectData(this.item.project.data, true);
       return this.item;
     }
     const path = `/api/makes/${projectId}/remix-personalized`;
@@ -944,7 +946,7 @@ export default class ProjectStore extends BaseStore {
       this.fillMakeData(result, needData);
     } catch (e) {
       this.item = DEFAULT_ITEM;
-      this.setProjectData(this.item.project.data);
+      this.setProjectData(this.item.project.data, true);
       throw e;
     }
     return this.item;
@@ -955,7 +957,7 @@ export default class ProjectStore extends BaseStore {
     this.modified = true;
     this.item = DEFAULT_ITEM;
     if (!projectId) {
-      this.setProjectData(this.item.project.data);
+      this.setProjectData(this.item.project.data, true);
       return this.item;
     }
     const path = `/api/makes/${projectId}/remix`;
@@ -970,7 +972,7 @@ export default class ProjectStore extends BaseStore {
       this.fillMakeData(result, isRemix);
     } catch (e) {
       this.item = DEFAULT_ITEM;
-      this.setProjectData(this.item.project.data);
+      this.setProjectData(this.item.project.data, true);
       throw e;
     }
     return this.item;
@@ -1256,7 +1258,7 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
         });
-      this.setProjectData(JSON.parse(this.item.project.data));
+      this.setProjectData(JSON.parse(this.item.project.data), true);
       if (this.item.project && this.item.project.allowedSocials) {
         this.item.allowedSocials = this.item.project.allowedSocials;
       }
@@ -1552,7 +1554,7 @@ export default class ProjectStore extends BaseStore {
     if (isSource) {
       this.item.source = makeTemplate._id;
     }
-    this.setProjectData(JSON.parse(makeTemplate.project.data));
+    this.setProjectData(JSON.parse(makeTemplate.project.data), true);
     this.setPopcorn();
     if (video) {
       await this.updateVideo(video);
@@ -1825,14 +1827,14 @@ export default class ProjectStore extends BaseStore {
       if (this.layers.length > 1 || this.isFirstTrackFull || this.elements.length) {
         this.createNewLayer();
       }
-      const [track] = this.layers;
+      const [track] = [...this.layers];
       this.isFirstTrackFull = true;
       return { track, end: 0 };
     }
     const findElement = this.elements.find(element => element.popcornOptions.kind === kind);
     if (findElement) {
       const currentTrack = (findElement.track && findElement.track.id) || findElement.track;
-      const track = this.layers.find(element => element.id === currentTrack);
+      const track = { ...this.layers.find(element => element.id === currentTrack) };
       let layerElements;
       if (this.elements) {
         layerElements = this.elements.filter((element) => element.track === currentTrack);
@@ -1846,7 +1848,7 @@ export default class ProjectStore extends BaseStore {
     if (this.layers.length > 1 || this.isFirstTrackFull || this.elements.length) {
       this.createNewLayer();
     }
-    const [track] = this.layers;
+    const [track] = [...this.layers];
     this.isFirstTrackFull = true;
     return { track, end: 0 };
   };
@@ -1869,12 +1871,11 @@ export default class ProjectStore extends BaseStore {
     const options = await this.setElementOptions(item);
 
     // get first track
-    let track = item.track || this.layers[0];
-
+    let track = item.track || { ...this.layers[0] };
     const layerElements = this.elements.filter(element => element.track === track.id);
     if (isLayerFulfilled(options, layerElements)) {
       this.createNewLayer();
-      [track] = this.layers;
+      [track] = [...this.layers];
     }
     item.track = track;
 
