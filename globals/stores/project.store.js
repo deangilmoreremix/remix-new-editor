@@ -983,9 +983,9 @@ export default class ProjectStore extends BaseStore {
 
   @observable
   @action
-  addElement = (item, position) => {
+  addElement = (item, newOptions) => {
     this.setUndo();
-    return this.createNewElement(item, position);
+    return this.createNewElement(item, newOptions);
   };
 
   removeTrackEvent = (id) => {
@@ -1860,22 +1860,31 @@ export default class ProjectStore extends BaseStore {
   // untraceable methods for undo redo
   // analog for addElement
   @action
-  createNewElement = async (item, position) => {
+  createNewElement = async (item, newOptions) => {
+    const position = newOptions?.position;
+    const startInDrag = newOptions?.startInDrag;
+    const trackInDrag = newOptions?.trackInDrag;
     const { type } = item;
     this.modified = true;
+
     if (this.isPlayed) {
       this.playPause();
     }
+
     if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR
       && this.elements.some(el => el.type === type)) {
       this.releaseElement();
       return showInfo(FORM_ONE_LG.text, FORM_ONE_LG.title);
     }
 
+    if (startInDrag) {
+      item.start = startInDrag;
+    }
+
     const options = await this.setElementOptions(item);
 
     // get first track
-    let track = item.track || this.layers[0];
+    let track = item.track || trackInDrag || this.layers[0];
 
     const layerElements = this.elements.filter(element => element.track === track.id);
     if (isLayerFulfilled(options, layerElements)) {
