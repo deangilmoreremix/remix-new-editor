@@ -367,7 +367,7 @@ export default class ProjectStore extends BaseStore {
       }
       case POPCORN_ELEMENT_TYPES.IMAGE: {
         options.src = item.src;
-        options.fill = false;
+        options.fill = item.fill || false;
         break;
       }
       case POPCORN_ELEMENT_TYPES.JSON_ANIMATION: {
