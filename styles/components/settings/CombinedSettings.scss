@@ -1,0 +1,160 @@
+$combinedMarginRight: 8.2%;
+
+.combined-settings {
+  &__time {
+    display: flex;
+    margin-bottom: 2rem;
+
+    &-block {
+      width: 4.56rem;
+
+      &:first-child {
+        margin-right: 2.1875rem;
+      }
+    }
+
+    .time-input {
+      width: 100%;
+    }
+
+    label {
+      width: 100%;
+      text-align: left;
+    }
+  }
+
+  &__container {
+    flex: 1;
+
+    &:first-child {
+      margin-right: $combinedMarginRight;
+    }
+  }
+
+  &__wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+  }
+
+  &__lt {
+    display: flex;
+    margin-bottom: 1rem;
+  }
+
+  &__convert {
+    @include reset-button;
+    display: inline-block;
+    height: 2.0625rem;
+    border: 1px solid $secondary-color;
+    border-radius: 4px;
+    font-size: $defaultFontSize;
+    color: $white;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+    padding: 0 10px;
+  }
+
+  .personalize-container {
+    margin-top: 0;
+    max-width: none;
+    height: 2.0625rem;
+  }
+
+  &__convert,
+  .personalize-container,
+  .combined-settings__fonts,
+  .font-decoration-container {
+    width: 46% !important;
+    margin-bottom: 1rem;
+  }
+
+  .font-color-container-input,
+  .link-url-container {
+    margin-bottom: 2rem;
+  }
+
+  .btn-personalize {
+    width: 100%;
+    background: none;
+    border: 1px solid $secondary-color;
+    border-radius: 4px;
+    padding: 0 10px;
+  }
+
+  .combined-settings__json-color {
+    flex: 1;
+    margin-bottom: 1rem;
+
+    &:first-child {
+      margin-right: $combinedMarginRight;
+    }
+  }
+
+  .input-textarea-container {
+    margin-bottom: 0.875rem;
+  }
+
+  .open-link-container {
+    margin-bottom: 2rem;
+  }
+
+  .text-buttons-container {
+    margin-bottom: 1.4375rem;
+  }
+
+  .font-decoration-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .font-section__input{
+    width: 100%;
+  }
+}
+
+.combined-settings__text {
+  margin-bottom: 1rem;
+
+  &-title {
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media screen and (max-width: 960px) {
+  .combined-settings {
+    &__time {
+      display: block;
+
+      &-block {
+        width: 100%;
+
+        &:first-child {
+          margin-right: 0;
+          margin-bottom: 1rem;
+        }
+      }
+    }
+
+    &__lt,
+    &__wrapper {
+      display: block;
+    }
+
+    &__convert,
+    .personalize-container,
+    .combined-settings__fonts,
+    .font-decoration-container {
+      width: 100% !important;
+    }
+
+    &__container:first-child,
+    .combined-settings__json-color:first-child {
+       margin-right: 0;
+    }
+  }
+}

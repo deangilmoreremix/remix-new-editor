@@ -17,6 +17,7 @@ import {
 } from '../../lib/constants/googleTextToSpeech';
 import { addToken, wrapTokens, unwrapTokens } from '../../lib/utils/tokens-helper';
 import { TOKEN_REGEX, tokenModes } from '../../lib/constants/tokens';
+import { POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
@@ -97,16 +98,28 @@ const GoogleTextToSpeech = observer(() => {
 
   useEffect(() => {
     if (voiceTextId && symbols) {
-      const activeTextElement = findElement(voiceTextId);
-      const isPersonalizedVoice = activeTextElement.popcornOptions.text && activeTextElement.popcornOptions.text.indexOf('{{') !== -1;
+      let activeTextElement;
+
+      if (typeof voiceTextId === 'object' && voiceTextId.id && voiceTextId.textId) {
+        const element = findElement(voiceTextId.id);
+        if (element.type === POPCORN_ELEMENT_TYPES.COMBINED) {
+          activeTextElement = element.popcornOptions.items.find(el => (
+            el.id === voiceTextId.textId
+          ));
+        }
+      } else {
+        activeTextElement = findElement(voiceTextId).popcornOptions;
+      }
+
+      const isPersonalizedVoice = activeTextElement.text && activeTextElement.text.indexOf('{{') !== -1;
       const maxVoiceSymbols = maxCount(
         isPersonalizedVoice ? maxSymbols.personalized : maxSymbols.text,
       );
-      const newTextLength = activeTextElement.popcornOptions.text.replace(/{{\w+}}/g, '').length;
-      let newText = activeTextElement.popcornOptions.text;
+      const newTextLength = activeTextElement.text.replace(/{{\w+}}/g, '').length;
+      let newText = activeTextElement.text;
 
       if (isPersonalizedVoice) {
-        const newString = activeTextElement.popcornOptions.text.replace(TOKEN_REGEX, (match) => {
+        const newString = activeTextElement.text.replace(TOKEN_REGEX, (match) => {
           match = match.replace(/({{|}})/gm, '');
           let result = '';
           if (match.split(' ').length > 1) {
