@@ -1,4 +1,4 @@
-import React, { useReducer, useState } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 import ContentEditable from 'react-contenteditable';
@@ -30,26 +30,24 @@ const FormTokensTextArea = observer((props) => {
     maxTextSymbols,
     symbolsCount,
     languageValidator,
+    onCheckValue,
+    validationProps,
   } = props;
 
   const [isHint, setIsHint] = useState(false);
+  const [localValue, setLocalValue] = useState();
 
   // eslint-disable-next-line no-unused-vars
   const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
 
-  const onEdit = (e) => {
-    let { target: { value: v } } = e;
-    const text = unwrapTokens(v);
-    const textLength = text.replace(/{{\w+}}/g, '').length;
-    v = wrapTokens(v);
-    const caretOffset = catchCaretCharacterOffsetWithin(e);
-    if ((maxTextSymbols && textLength <= maxTextSymbols) || !maxTextSymbols) {
-      onChange(v, { [caretName]: caretOffset, [additionalFieldName]: text });
-    } else {
-      const length = v.length - textLength + maxTextSymbols;
-      forceUpdate();
-      onChange(v.slice(0, length), { [caretName]: caretOffset, [additionalFieldName]: text });
+  useEffect(() => {
+    if (value) {
+      setLocalValue(value);
     }
+  }, []);
+
+  const onEdit = ({ target: { value: v } }) => {
+    setLocalValue(v);
   };
 
   const pasteData = (e) => {
@@ -80,6 +78,33 @@ const FormTokensTextArea = observer((props) => {
     }
   };
 
+  const handleBlur = (event) => {
+    let { target: { innerHTML: v } } = event;
+
+    const text = unwrapTokens(v);
+    const textLength = text.replace(/{{\w+}}/g, '').length;
+    const caretOffset = catchCaretCharacterOffsetWithin(event);
+    const err = onCheckValue ? onCheckValue(v, validationProps) : null;
+
+    v = wrapTokens(v);
+
+    if (labelHint) {
+      setIsHint((prevIsHint) => !prevIsHint);
+    }
+
+    if ((v && onCheckValue && !err) || v === '' || !onCheckValue) {
+      onChange(v);
+
+      if ((maxTextSymbols && textLength <= maxTextSymbols) || !maxTextSymbols) {
+        onChange(v, { [caretName]: caretOffset, [additionalFieldName]: text });
+      } else {
+        const length = v.length - textLength + maxTextSymbols;
+        forceUpdate();
+        onChange(v.slice(0, length), { [caretName]: caretOffset, [additionalFieldName]: text });
+      }
+    }
+  };
+
   return (
     <div className={classnames('container-tokens-textarea', className)}>
       <div className={classnames(textClassName, { 'tokens-textarea-head': label || symbolsCount !== undefined })}>
@@ -90,12 +115,12 @@ const FormTokensTextArea = observer((props) => {
       <ContentEditable
         className={classnames(inputClassName, 'text-area', variant)}
         tagName="pre"
-        html={wrapTokens(value) || ''}
+        html={wrapTokens(localValue) || ''}
         onChange={onEdit}
         onClick={onClick}
         onPaste={pasteData}
         onFocus={handleShowHint}
-        onBlur={handleShowHint}
+        onBlur={handleBlur}
         onKeyPress={onKeyPress}
         disabled={disabled}
       />
@@ -104,6 +129,13 @@ const FormTokensTextArea = observer((props) => {
 });
 
 FormTokensTextArea.propTypes = {
+  onCheckValue: PropTypes.func,
+  validationProps: PropTypes.shape({
+    type: PropTypes.string.isRequired,
+    isRequired: PropTypes.bool,
+    message: PropTypes.string,
+    validationType: PropTypes.string,
+  }),
   label: PropTypes.string,
   value: PropTypes.string,
   variant: PropTypes.string,

@@ -1,10 +1,13 @@
 import React from 'react';
 
 import PropTypes from '../../lib/PropTypes';
+import ValidatorPropType from '../../lib/propTypes/ValidatorPropType';
+
 import FormTextField from './FormTextField';
+
 import { INPUT } from '../../lib/constants/forms';
 
-const FormEnterBlurField = ({ value, onChange, ...rest }) => {
+const FormEnterBlurField = ({ value, onChange, checkValue, validationProps, ...rest }) => {
   const [src, setSrc] = React.useState('');
 
   React.useEffect(() => {
@@ -12,6 +15,10 @@ const FormEnterBlurField = ({ value, onChange, ...rest }) => {
   }, [value]);
 
   const onSave = () => {
+    const error = checkValue ? checkValue(src, validationProps) : null;
+    if (error) {
+      return onChange({ value: src, error });
+    }
     if (src !== value) {
       onChange(src);
     }
@@ -33,6 +40,7 @@ const FormEnterBlurField = ({ value, onChange, ...rest }) => {
 
 FormEnterBlurField.propTypes = {
   onChange: PropTypes.func.isRequired,
+  checkValue: PropTypes.func,
   mask: PropTypes.string,
   label: PropTypes.string,
   name: PropTypes.string,
@@ -49,6 +57,7 @@ FormEnterBlurField.propTypes = {
   rowsMin: PropTypes.number,
   rowsMax: PropTypes.number,
   readOnly: PropTypes.bool,
+  validationProps: ValidatorPropType,
 };
 
 FormEnterBlurField.defaultProps = {
