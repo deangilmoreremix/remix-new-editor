@@ -19,7 +19,7 @@ const CombinedSettings = observer((props) => {
     });
 
     if (tab.includes(TEXT_TAB)) {
-      const index = tab.split('').find(sign => Number.isInteger(+sign));
+      const index = tab.split('').find(sign => Number.isInteger(+sign)) || 1;
       options = combinedTextItems[index - 1];
     } else if (tab.includes(BASIC)) {
       options = element.popcornOptions;
