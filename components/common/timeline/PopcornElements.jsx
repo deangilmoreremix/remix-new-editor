@@ -65,9 +65,15 @@ const PopcornElements = observer(({
   }
 
   const onDropElement = ({ action }, monitor) => {
-    const data = dropItemOnTimeline(
-      monitor, timelineRowHeight, sortableWidth, startDateWithZoom, endDateWithZoom, layers,
-    );
+    const data = dropItemOnTimeline({
+      monitor,
+      timelineRowHeight,
+      sortableWidth,
+      startDateWithZoom,
+      startDate,
+      endDateWithZoom,
+      layers,
+    });
     action(data);
   };
 
