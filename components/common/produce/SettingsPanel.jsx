@@ -27,13 +27,13 @@ const SettingPanel = observer(() => {
     updateItem,
     updateCategories,
     clearAllCategories,
-    getAllCategories,
     removeCategory,
+    getList,
   } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
   const { openImageEditor, closeModal } = useModalStore();
 
-  const categories = useMemo(() => item?.categories || [], [item.categories]);
+  const categories = useMemo(() => item.categories, [item.categories]);
 
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -132,8 +132,9 @@ const SettingPanel = observer(() => {
             type="multipleSelect"
             name="categories"
             label="Categories"
-            categories={categories}
-            getCategories={getAllCategories}
+            items={categories}
+            path="/api/make-categories"
+            getList={getList}
             clear={clearAllCategories}
             addInput={updateCategories}
             removeInput={removeCategory}

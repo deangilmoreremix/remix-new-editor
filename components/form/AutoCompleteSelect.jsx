@@ -10,38 +10,52 @@ import PropTypes from '../../lib/PropTypes';
 
 import { CLEAR, REMOVE_VALUE, SELECT_OPTION } from '../../lib/constants/actions';
 
+const autocompleteClasses = {
+  root: 'autocomplete',
+  tag: 'autocomplete-input-tag',
+  input: 'autocomplete-input-tag-placeholder',
+  inputRoot: 'autocomplete-input',
+  endAdornment: 'action-icons',
+  clearIndicator: 'clear-icon',
+  popupIndicator: 'popup-icon',
+  listbox: 'listbox-content',
+  focused: 'autocomplete-focus',
+};
+
 const AutoCompleteSelect = React.forwardRef((
   {
-    getCategories,
     clear,
     removeInput,
     addInput,
-    categories,
+    items,
     label,
+    getList,
+    perPage = 30,
+    path,
   }) => {
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState([]);
-  const loading = open && options.length === 0;
+  const isLoading = open && options.length === 0;
 
   React.useEffect(() => {
     let active = true;
 
-    if (!loading) {
-      return undefined;
+    if (!isLoading) {
+      return;
     }
 
     (async () => {
-      const resp = await getCategories();
+      const resp = await getList({ perPage, path });
 
       if (active) {
-        setOptions(resp.map((category) => category));
+        setOptions(resp);
       }
     })();
 
     return () => {
       active = false;
     };
-  }, [loading]);
+  }, [isLoading]);
 
   React.useEffect(() => {
     if (!open) {
@@ -50,11 +64,11 @@ const AutoCompleteSelect = React.forwardRef((
   }, [open]);
 
   const handleChange = async (e) => {
-    const resp = await getCategories(e.target.value);
-    setOptions(resp.map((category) => category));
+    const resp = await getList({ query: e.target.value, perPage, path });
+    setOptions(resp);
   };
 
-  const handleTestChange = (e, selectedArray, reason, { option } = {}) => {
+  const handleItemChange = (e, selectedArray, reason, { option } = {}) => {
     if (e.type === 'blur') {
       return;
     }
@@ -84,35 +98,34 @@ const AutoCompleteSelect = React.forwardRef((
         )
       }
       <Autocomplete
-        value={categories}
+        value={items}
         multiple
         autoSelect
         autoHighlight
-        style={{ width: 300 }}
         open={open}
-        onChange={handleTestChange}
+        onChange={handleItemChange}
         onOpen={() => {
           setOpen(true);
         }}
-        limitTags={3}
+        limitTags={10}
         onClose={() => {
           setOpen(false);
         }}
         classes={{
-          root: 'autocomplete',
-          tag: 'autocomplete-input-tag',
-          input: 'autocomplete-input-tag-placeholder',
-          inputRoot: 'autocomplete-input',
-          endAdornment: 'action-icons',
-          clearIndicator: 'clear-icon',
-          popupIndicator: 'popup-icon',
-          listbox: 'listbox-content',
-          focused: 'autocomplete-focus',
+          root: autocompleteClasses.root,
+          tag: autocompleteClasses.tag,
+          input: autocompleteClasses.input,
+          inputRoot: autocompleteClasses.inputRoot,
+          endAdornment: autocompleteClasses.endAdornment,
+          clearIndicator: autocompleteClasses.clearIndicator,
+          popupIndicator: autocompleteClasses.popupIndicator,
+          listbox: autocompleteClasses.listbox,
+          focused: autocompleteClasses.focused,
         }}
         getOptionSelected={(option, value) => option.name === value.name}
         getOptionLabel={(option) => option.name}
         options={options}
-        loading={loading}
+        loading={isLoading}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -126,7 +139,7 @@ const AutoCompleteSelect = React.forwardRef((
               ...params.InputProps,
               endAdornment: (
                 <React.Fragment>
-                  {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                  {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
                   {params.InputProps.endAdornment}
                 </React.Fragment>
               ),
@@ -141,11 +154,13 @@ const AutoCompleteSelect = React.forwardRef((
 
 AutoCompleteSelect.propTypes = {
   label: PropTypes.string,
-  getCategories: PropTypes.func,
+  perPage: PropTypes.number,
+  path: PropTypes.string.isRequired,
+  getList: PropTypes.func.isRequired,
   clear: PropTypes.func,
   addInput: PropTypes.func,
   removeInput: PropTypes.func,
-  categories: PropTypes.arrayOf(PropTypes.shape({
+  items: PropTypes.arrayOf(PropTypes.shape({
     _id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
   })),

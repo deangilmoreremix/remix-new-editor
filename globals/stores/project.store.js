@@ -1263,28 +1263,11 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  getAllCategories = async (query, perPage = 30) => {
-    const path = '/api/make-categories';
-    let result;
-    try {
-       result = await this.getList(
-        {
-          query,
-          perPage,
-          path,
-        });
-    } catch (e) {
-      console.error(e);
-    }
-    return result;
-  }
-
-  @action
   updateCategories = (category) => {
-    if (this.item?.categories && !this.item.categories.some(_id => _id === category._id)) {
-      this.item.categories = [...this.item.categories, category];
+    if (this.item.categories.some(_id => _id === category._id)) {
+      return;
     } else {
-      this.item.categories = [category];
+      this.item.categories = [...this.item.categories, category];
     }
     this.modified = true;
   }
