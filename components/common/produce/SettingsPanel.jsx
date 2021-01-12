@@ -28,7 +28,6 @@ const SettingPanel = observer(() => {
     updateCategories,
     clearAllCategories,
     removeCategory,
-    getList,
   } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
   const { openImageEditor, closeModal } = useModalStore();
@@ -134,7 +133,6 @@ const SettingPanel = observer(() => {
             label="Categories"
             items={categories}
             path="/api/make-categories"
-            getList={getList}
             clear={clearAllCategories}
             addInput={updateCategories}
             removeInput={removeCategory}

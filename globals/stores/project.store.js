@@ -1264,9 +1264,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   updateCategories = (category) => {
-    if (this.item.categories.some(_id => _id === category._id)) {
-      return;
-    } else {
+    if (!this.item.categories.some(_id => _id === category._id)) {
       this.item.categories = [...this.item.categories, category];
     }
     this.modified = true;
@@ -1357,7 +1355,7 @@ export default class ProjectStore extends BaseStore {
     source: this.item.source,
     tags: this.item.tags,
     disabledPlaybar: this.item.disabledPlaybar,
-    categories: this.item.categories,
+    categories: this.item.categories || [],
   });
 
   @action

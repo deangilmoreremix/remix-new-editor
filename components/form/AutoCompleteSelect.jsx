@@ -9,6 +9,7 @@ import classnames from 'classnames';
 import PropTypes from '../../lib/PropTypes';
 
 import { CLEAR, REMOVE_VALUE, SELECT_OPTION } from '../../lib/constants/actions';
+import useProjectStore from '../hooks/useProjectStore';
 
 const autocompleteClasses = {
   root: 'autocomplete',
@@ -29,32 +30,22 @@ const AutoCompleteSelect = React.forwardRef((
     addInput,
     items,
     label,
-    getList,
     perPage = 30,
     path,
   }) => {
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState([]);
+  const { getList } = useProjectStore();
   const isLoading = open && options.length === 0;
 
   React.useEffect(() => {
-    let active = true;
-
     if (!isLoading) {
       return;
     }
-
     (async () => {
       const resp = await getList({ perPage, path });
-
-      if (active) {
-        setOptions(resp);
-      }
+      setOptions(resp);
     })();
-
-    return () => {
-      active = false;
-    };
   }, [isLoading]);
 
   React.useEffect(() => {
@@ -156,7 +147,6 @@ AutoCompleteSelect.propTypes = {
   label: PropTypes.string,
   perPage: PropTypes.number,
   path: PropTypes.string.isRequired,
-  getList: PropTypes.func.isRequired,
   clear: PropTypes.func,
   addInput: PropTypes.func,
   removeInput: PropTypes.func,
