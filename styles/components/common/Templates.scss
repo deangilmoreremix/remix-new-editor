@@ -1,0 +1,55 @@
+.templates {
+  display: flex;
+  height: 84vh;
+
+  .list {
+    flex: 1;
+    margin-left: 1.5rem;
+  }
+
+  .list-settings {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .library__body {
+    max-height: 100%;
+    padding: 0;
+    margin-top: 1.5rem;
+  }
+
+  .library__items {
+    @include tiny-scrollbar($scrollbarColor: #FFFFFF, $thumbHover:#E3E3EA, $thumbColor: #E3E3EA);
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    overflow-x: hidden;
+    justify-content: stretch;
+  }
+
+  .library__item {
+    width: 17.6%;
+    margin: 0 2.4% 1.5rem 0;
+    border-radius: 5px;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center center;
+    border: 1px solid #575773;
+    &:before {
+      padding-bottom: 56%;
+    }
+  }
+
+  .library__gradient {
+    position: absolute;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+    width: 100%;
+    height: 35%;
+    bottom: 0;
+    pointer-events: none;
+  }
+}

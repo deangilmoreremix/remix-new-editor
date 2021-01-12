@@ -6,6 +6,7 @@ import config from '../config/config';
 import requestCreator from '../lib/requestCreator';
 import ProjectStore from './stores/project.store';
 import UserStore from './stores/user.store';
+import BaseStore from './stores/base.store';
 import ModalStore from './stores/modal.store';
 import MediaStore from './stores/media.store';
 import UIStore from './stores/ui.store';
@@ -182,6 +183,12 @@ export async function initCreateStores(isServer, source, req, preloader) {
       currentUser: creator.currentUser,
       userStore,
     });
+    const baseStore = new BaseStore({
+      request: creator.request,
+      common: creator.common,
+      isServer,
+      currentUser: creator.currentUser,
+    });
 
     stores = {
       common: {
@@ -197,6 +204,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
         userStore,
       }),
       projectStore,
+      baseStore,
       modalStore: ModalStore(),
       uiStore: new UIStore({ projectStore }),
       timelineStore: new TimelineStore({ projectStore }),
@@ -240,6 +248,12 @@ export function init(source) {
       currentUser: creator.currentUser,
       userStore,
     });
+    const baseStore = new BaseStore({
+      request: creator.request,
+      common: creator.common,
+      isServer,
+      currentUser: creator.currentUser,
+    });
     stores = {
       common: {
         ...creator.common,
@@ -254,6 +268,7 @@ export function init(source) {
         assetsRequest: creator.assetsRequest,
         userStore,
       }),
+      baseStore,
       socketStore,
       projectStore,
       uiStore: new UIStore({ projectStore }),
