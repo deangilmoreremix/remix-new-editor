@@ -51,7 +51,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
     isSuperAdmin,
   } = useUserStore();
 
-  const { updateItem, item } = useProjectStore();
+  const { updateItem } = useProjectStore();
 
   const [saveOptionsVisible, setSaveOptionsVisible] = useState(false);
   const [showHiddenButton, setShowHiddenButton] = useState(false);
@@ -180,7 +180,8 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
       setIsLoading(false);
     }
   }, [player]);
-  const getLink = async () => {
+
+  const getLink = React.useCallback(async () => {
     if (!player.recordedData) {
       return;
     }
@@ -188,15 +189,14 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
     try {
       const data = await uploadMedia({ data: player.recordedData });
       updateItem({ preview: data.url });
-      showSuccess(`Preview link was created: ${item.preview}`, 'success');
+      showSuccess(`Preview link was created: ${data.url}`, 'Success');
       handleClose();
     } catch (e) {
-      console.error('error', e);
       showError(e.message || e.data || e.toString());
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [player]);
 
   const handleClick = useCallback(() => {
     const recorder = player.record();
