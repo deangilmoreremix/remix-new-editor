@@ -58,7 +58,7 @@ class Layout extends Component {
     if (process.browser) {
       PopcornProxy.init(window);
     }
-    const { children } = this.props;
+    const { children, Header: BaseHeader, layoutClassName } = this.props;
     const { common: { whiteLabelManager } } = this.stores;
     return (
       <ThemeProvider theme={this.theme}>
@@ -80,7 +80,7 @@ class Layout extends Component {
                 />
               </>
             )}
-            <div className={`theme-${whiteLabelManager.key} layout-container`}>
+            <div className={`theme-${whiteLabelManager.key} ${layoutClassName}`}>
               <Head>
                 <link
                   rel="preload"
@@ -160,36 +160,42 @@ class Layout extends Component {
               </Head>
               {this.hasPermissions ? (
                 <div>
-                  <Header whiteLabelManager={whiteLabelManager} className={`theme-${whiteLabelManager.key}`} />
+                  { BaseHeader ? <BaseHeader className={`theme-${whiteLabelManager.key}`} />
+                    : (
+                      <Header
+                        whiteLabelManager={whiteLabelManager}
+                        className={`theme-${whiteLabelManager.key}`}
+                      />
+                    ) }
                   <div {...this.props} className={`main theme-${whiteLabelManager.key}`}>
                     <ModalContainer classNameWL={`theme-${whiteLabelManager.key}`} />
                     {children}
-                    {this.stores.userStore.currentUser
-                    && whiteLabelManager && whiteLabelManager.domain === DOMAIN_VIDEOREMIX
-                      ? (
-                        <HelpCrunch
-                          userStore={this.stores.userStore}
-                          applicationId={this.stores.common.helpCrunch.applicationId}
-                          applicationSecret={this.stores.common.helpCrunch.applicationSecret}
-                        />
-                      ) : null}
-                    {this.stores.userStore.currentUser
-                    && whiteLabelManager && whiteLabelManager.domain === DOMAIN_VIDEOREMIX
-                      ? (
-                        <Intercom
-                          appID={this.stores.common.intercom.appId}
-                          user={{
-                            email: this.currentUser.email,
-                            fullName: this.currentUser.fullName,
-                            hash: this.currentUser.intercomHash,
-                            createdAt: Math.floor(
-                              Date.parse(this.currentUser.createdAt) / 1000,
-                            ).toString(),
-                          }}
-                          domain={DOMAIN_VIDEOREMIX}
-                        />
-                      ) : null}
                   </div>
+                  {this.stores.userStore.currentUser
+                  && whiteLabelManager && whiteLabelManager.domain === DOMAIN_VIDEOREMIX
+                    ? (
+                      <HelpCrunch
+                        userStore={this.stores.userStore}
+                        applicationId={this.stores.common.helpCrunch.applicationId}
+                        applicationSecret={this.stores.common.helpCrunch.applicationSecret}
+                      />
+                    ) : null}
+                  {this.stores.userStore.currentUser
+                  && whiteLabelManager && whiteLabelManager.domain === DOMAIN_VIDEOREMIX
+                    ? (
+                      <Intercom
+                        appID={this.stores.common.intercom.appId}
+                        user={{
+                          email: this.currentUser.email,
+                          fullName: this.currentUser.fullName,
+                          hash: this.currentUser.intercomHash,
+                          createdAt: Math.floor(
+                            Date.parse(this.currentUser.createdAt) / 1000,
+                          ).toString(),
+                        }}
+                        domain={DOMAIN_VIDEOREMIX}
+                      />
+                    ) : null}
                 </div>
               )
                 : <UnauthorizedView />}
@@ -203,10 +209,12 @@ class Layout extends Component {
 
 Layout.propTypes = {
   children: PropTypes.element.isRequired,
+  Header: PropTypes.element,
   // eslint-disable-next-line react/forbid-prop-types
   stores: PropTypes.any,
   // eslint-disable-next-line react/forbid-prop-types
   creator: PropTypes.any,
+  layoutClassName: PropTypes.string,
 };
 
 export default Layout;

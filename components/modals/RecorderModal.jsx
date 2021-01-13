@@ -16,10 +16,12 @@ import 'videojs-record-dealiased/dist/plugins/videojs.record.lamejs';
 
 import useMediaStore from '../hooks/useMediaStore';
 import useUiStore from '../hooks/useUIStore';
+import useProjectStore from '../hooks/useProjectStore';
+import useUserStore from '../hooks/useUserStore';
 
 import { LIBRARY_TABS } from '../../lib/constants/library';
 import { RECORDER_TYPES, RECORDER_VIDEOJS_CONFIG } from '../../lib/constants/recorder';
-import { showError } from '../../lib/services/alertService';
+import { showError, showSuccess } from '../../lib/services/alertService';
 
 WaveSurfer.microphone = MicrophonePlugin;
 
@@ -44,6 +46,12 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   const {
     setLibraryType,
   } = useUiStore();
+
+  const {
+    isSuperAdmin,
+  } = useUserStore();
+
+  const { updateItem } = useProjectStore();
 
   const [saveOptionsVisible, setSaveOptionsVisible] = useState(false);
   const [showHiddenButton, setShowHiddenButton] = useState(false);
@@ -173,6 +181,23 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
     }
   }, [player]);
 
+  const getLink = React.useCallback(async () => {
+    if (!player.recordedData) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const data = await uploadMedia({ data: player.recordedData });
+      updateItem({ preview: data.url });
+      showSuccess(`Preview link was created: ${data.url}`, 'Success');
+      handleClose();
+    } catch (e) {
+      showError(e.message || e.data || e.toString());
+    } finally {
+      setIsLoading(false);
+    }
+  }, [player]);
+
   const handleClick = useCallback(() => {
     const recorder = player.record();
     const { title } = document;
@@ -215,6 +240,15 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
                 >
                   Download
                 </button>
+                { isSuperAdmin
+                  ? (
+                    <button
+                      className="recorder-modal-options__button recorder-modal-options__button_upload"
+                      onClick={getLink}
+                    >
+                    Get preview link
+                    </button>
+                  ) : null}
                 <button
                   className="recorder-modal-options__button recorder-modal-options__button_upload"
                   onClick={handleUpload}
