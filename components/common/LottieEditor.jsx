@@ -23,7 +23,17 @@ const fetchAnimation = async (url) => new Promise((resolve, reject) => {
   }
 }).then(loadUrl);
 
-const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [], className }) => {
+const LottieEditor = ({
+  showControls,
+  file,
+  setColor,
+  segments = {},
+  value = [],
+  className,
+  showPreview,
+  formColorClassName,
+  isLabel,
+}) => {
   const [isStopped, setIsStopped] = React.useState(false);
   const [isPaused, setIsPaused] = React.useState(false);
   const [colors, storeColors] = React.useState();
@@ -139,15 +149,17 @@ const LottieEditor = ({ showControls, file, setColor, segments = {}, value = [],
   return (
     <React.Fragment>
       {showColors && showColors.length
-        ? showColors.map((oldColor) => (
+        ? showColors.map((oldColor, i) => (
           <FormColor
             key={oldColor}
             value={oldColor}
             onChange={(newColor) => pickColor(newColor, oldColor)}
+            className={formColorClassName}
+            label={isLabel ? `Lower Third color ${i + 1}` : null}
           />
         ))
         : null}
-      {!isEmpty(preparedAnimation) && options && (
+      {!isEmpty(preparedAnimation) && options && showPreview && (
         <Lottie
           ref={animationElement}
           options={options}
@@ -192,6 +204,7 @@ LottieEditor.propTypes = {
   setColor: PropTypes.func,
   segments: PropTypes.shape({}),
   className: PropTypes.string,
+  formColorClassName: PropTypes.string,
   value: PropTypes.arrayOf(
     PropTypes.shape({
       a: PropTypes.number,
@@ -206,6 +219,12 @@ LottieEditor.propTypes = {
       r: PropTypes.number,
     }),
   ),
+  showPreview: PropTypes.bool,
+  isLabel: PropTypes.bool,
+};
+
+LottieEditor.defaultProps = {
+  showPreview: true,
 };
 
 export default LottieEditor;
