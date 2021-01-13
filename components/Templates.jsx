@@ -25,7 +25,7 @@ const Templates = observer(() => {
   return (
     <div className="templates">
       {/* todo add Categories */}
-      <div style={{ width: '13.75%' }} />
+      <div className="categories" />
       <div className="list">
         {/* todo implement logic and styles */}
         <div className="list-settings">

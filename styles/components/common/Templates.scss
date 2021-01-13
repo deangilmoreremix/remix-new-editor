@@ -1,10 +1,13 @@
+$leftSideWidth: 256px;
+
 .templates {
   display: flex;
-  height: 84vh;
+  height: calc(100vh - 9.625rem);
 
   .list {
     flex: 1;
     margin-left: 1.5rem;
+    padding-right: 2.25rem;
   }
 
   .list-settings {
@@ -12,13 +15,13 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
-    padding-right: 1.5rem;
   }
 
   .library__body {
     max-height: 100%;
     padding: 0;
     margin-top: 1.5rem;
+    margin-right: -2.4%;
   }
 
   .library__items {
@@ -51,5 +54,301 @@
     height: 35%;
     bottom: 0;
     pointer-events: none;
+  }
+}
+
+.categories {
+  width: $leftSideWidth;
+  min-width: $leftSideWidth;
+}
+
+.templates-header {
+  display: flex;
+  height: 9.625rem;
+  padding: 3rem 2.25rem 2.125rem 0;
+
+  &__left {
+    width: $leftSideWidth;
+    min-width: $leftSideWidth;
+    display: flex;
+    align-items: center;
+    padding-left: 3.375rem;
+  }
+
+  &__right {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: 1.5rem;
+  }
+
+  &__logo {
+    display: block;
+    width: 2.8rem;
+    height: 2.25rem;
+  }
+
+  &__search {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 4.5rem;
+    margin-right: 2.3%;
+    background: #E3E3EA;
+    border-radius: 5px;
+    padding: 1.4375rem;
+  }
+
+  &__search-icon {
+    display: block;
+    width: 1.5625rem;
+    min-width: 1.5625rem;
+    height: 1.5625rem;
+    margin-right: 1.25rem;
+
+    path {
+      stroke: $secondary-color;
+    }
+  }
+
+  &__input {
+    @include input-placeholder($color: $backgroundSlider, $opacity: 1);
+    background: none;
+    outline: none;
+    border: none;
+    height: 1.25rem;
+    flex: 1;
+    margin-right: 1.25rem;
+    color: $backgroundSlider;
+  }
+
+  &__search-clear {
+    @include reset-button;
+    display: block;
+    width: 0.625rem;
+    height: 0.625rem;
+
+    path {
+      fill: $backgroundSlider;
+    }
+  }
+
+  &__block {
+    width: 4.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__checkbox-label {
+    width: 1.39rem;
+    height: 1.03rem;
+    display: block;
+    cursor: pointer;
+    margin: 0;
+  }
+
+  &__checkbox {
+    display: none;
+
+    &:checked + .templates-header__template-icon {
+      path {
+        fill: $secondary-color;
+      }
+    }
+  }
+
+  &__template-icon {
+    display: block;
+    height: 100%;
+
+    path {
+      fill: #9292B5;
+      transition: 0.3s;
+    }
+  }
+
+  &__create {
+    @include reset-button;
+    font-size: 1.125rem;
+    color: $backgroundSlider;
+    line-height: 1;
+    margin-right: 2.7%;
+
+    &-icon {
+      width: 2.5rem;
+      min-width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      background: $secondary-color;
+      position: relative;
+      margin-right: 1.625rem;
+
+      &:before, &:after {
+        content: "";
+        width: 0.8rem;
+        height: 2px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #fff;
+      }
+
+      &:after {
+        width: 2px;
+        height: 0.8rem;
+      }
+    }
+  }
+
+  &__user {
+    width: 100%;
+    max-width: 16.5rem;
+    height: 4.5rem;
+    background: $secondary-color;
+    border-radius: 5px;
+    position: relative;
+
+    &>button {
+      width: 100%;
+      height: 100%;
+      padding: 0.75rem 0.875rem 0.75rem 0.75rem;
+      color: $white;
+      font-weight: 400;
+      font-size: 1.125rem;
+
+      .MuiButton-label {
+        justify-content: flex-start;
+      }
+    }
+
+    .user-image-photo {
+      width: 18.18%;
+      min-width: 18.18%;
+      height: 18.18%;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-right: 0.75rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      img {
+        width: 100%;
+        height: auto;
+        margin: 0;
+        border-radius: 0;
+      }
+    }
+
+    .user-name {
+      width: 68%;
+      text-transform: capitalize;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      text-align: left;
+    }
+
+    .MuiButton-endIcon {
+      margin-left: auto;
+      margin-right: 0;
+    }
+
+    .toggler-icon, .MuiButton-endIcon {
+      display: block;
+      width: 9.4px;
+      min-width: 9.4px;
+      height: 4.7px;
+
+      path {
+        fill: $white;
+      }
+    }
+
+    .popover {
+      width: 100%;
+      max-width: 16.5rem;
+      background: #D1484B;
+      border: none;
+      overflow: hidden;
+
+      &>div {
+        background: none;
+      }
+    }
+
+    .menu__list a {
+      text-decoration: none;
+    }
+
+    .menu__item {
+      height: 2.625rem;
+      padding-left: 0.75rem;
+      font-weight: 400;
+      font-size: 1.125rem;
+    }
+  }
+
+  &__select {
+    height: 2.5rem;
+    width: 9.25rem;
+    min-width: 9.25rem;
+    background: #E3E3EA;
+    border-radius: 5px;
+    margin-right: 1.5%;
+    position: relative;
+
+    &>button {
+      @include reset-button;
+      justify-content: flex-start;
+      width: 100%;
+      height: 100%;
+      padding: 0 1.18rem 0 0.57rem;
+      font-size: 1.125rem;
+      color: $backgroundSlider;
+      text-transform: capitalize;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    &:after {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border: 1px solid $secondary-color;
+      border-top: 0;
+      border-right: 0;
+      position: absolute;
+      top: 50%;
+      right: 0.57rem;
+      transform: translateY(-50%) rotate(-45deg);
+    }
+
+    .popover {
+      width: 100%;
+      background: #CDCDDF;
+      border: none;
+      overflow: hidden;
+
+      &>div {
+        background: none;
+      }
+
+      .menu__item {
+        height: 2.5rem;
+        padding-left: 0.56rem;
+        font-size: 1.125rem;
+        color: $backgroundSlider;
+
+        &:hover {
+          background: #a7a7c8;
+        }
+      }
+    }
   }
 }

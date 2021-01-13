@@ -5,6 +5,7 @@ import SVGInline from 'react-svg-inline';
 import { Popper, Button, Grow, ClickAwayListener, Paper } from '@material-ui/core';
 
 import togglerIcon from '../../public/static/svgImages/common/toggler.svg';
+import lineTogglerIcon from '../../public/static/svgImages/common/toggler-2.svg';
 
 import PropTypes from '../../lib/PropTypes';
 import { ACTION_LOGOUT } from '../../lib/constants/ui';
@@ -21,6 +22,7 @@ const Menu = observer((
     placement,
     useButton,
     onClick,
+    lineDropIcon,
   }) => {
   const anchorRef = React.useRef(null);
   const [open, setOpen] = React.useState(false);
@@ -35,11 +37,19 @@ const Menu = observer((
     }
   };
 
+  const listItemClick = buttonItem => {
+    if (onClick) {
+      onClick(buttonItem.value);
+    } else {
+      handleAction(buttonItem.action);
+    }
+    setOpen(!open);
+  };
+
   const menuButton = buttonItem => (
     <button
       key={`menu-${buttonItem.title}`}
-      onClick={onClick
-        ? (() => onClick(buttonItem.value)) : (() => handleAction(buttonItem.action))}
+      onClick={() => listItemClick(buttonItem)}
       className="menu__item"
     >
       {buttonItem.icon ? (
@@ -98,7 +108,7 @@ const Menu = observer((
                 <SVGInline
                   className="toggler-icon"
                   classSuffix=""
-                  svg={togglerIcon}
+                  svg={lineDropIcon ? lineTogglerIcon : togglerIcon}
                   cleanup={['title']}
                 />
               ) : null}
@@ -159,10 +169,12 @@ Menu.propTypes = {
   })),
   useButton: PropTypes.bool,
   onClick: PropTypes.func,
+  lineDropIcon: PropTypes.bool,
 };
 
 Menu.defaultProps = {
   useButton: false,
+  lineDropIcon: false,
 };
 
 export default Menu;
