@@ -1,5 +1,6 @@
 import React, { Fragment, useState, useMemo } from 'react';
 import SVGInline from 'react-svg-inline';
+import { observer } from 'mobx-react';
 
 import DropButton from '../../../media/DropButton';
 import FieldBuilder from '../../../form/FieldBuilder';
@@ -22,8 +23,16 @@ import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 import PropTypes from '../../../../lib/PropTypes';
 
 import { HINTS } from '../../../../lib/constants/text-info';
+import withValidation from '../../../hoc/withValidation';
 
-const Basic = ({ values, fields, onChange, handleClose, element: elementData }) => {
+const Basic = observer(({
+  values,
+  fields,
+  onChange,
+  handleClose,
+  checkValue,
+  element: elementData,
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const { setLibraryType, setUpdateElementInLibrary, openAnimation } = useUIStore();
   const { findAndUpdate, element } = useProjectStore();
@@ -40,6 +49,12 @@ const Basic = ({ values, fields, onChange, handleClose, element: elementData }) 
     setLibraryType(LIBRARY_TABS.IMAGE);
   };
 
+  const onChangeWithValidation = (v) => {
+    if (!v.error) {
+      onChange(v);
+    }
+  };
+
   const selectImage = (item) => {
     findAndUpdate(element.id, { ...INITIAL_VALUES, ...item, src: item.url });
   };
@@ -52,8 +67,6 @@ const Basic = ({ values, fields, onChange, handleClose, element: elementData }) 
   const hint = useMemo(() => (clickToPhoneCall ? HINTS.LINK_URL_PHONE : HINTS.LINK_URL));
 
   // ToDo add select field "Select the kind of Image you want to add"
-  // ToDo add handle click on buttons "Personalize"
-  // ToDo add button "Default"
   return (
     <Fragment>
       <div className="image-settings__block">
@@ -69,16 +82,13 @@ const Basic = ({ values, fields, onChange, handleClose, element: elementData }) 
           />
           {values.kind !== popcornConstants.BLEND_MODE && (
             <FieldBuilder
-              label={fields[popcornConstants.CALL_NOTIFY_ADDRESS].label}
-              type={fields[popcornConstants.CALL_NOTIFY_ADDRESS].type}
+              {...fields[popcornConstants.CALL_NOTIFY_ADDRESS]}
               value={
                 values[popcornConstants.CALL_NOTIFY_ADDRESS]
                 || fields[popcornConstants.CALL_NOTIFY_ADDRESS].default
               }
-              name={popcornConstants.CALL_NOTIFY_ADDRESS}
-              onChange={onChange}
-              labelClassName="image-settings__label--input"
-              className="image-settings__field"
+              onChange={onChangeWithValidation}
+              checkValue={checkValue}
             />
           )}
         </div>
@@ -109,17 +119,15 @@ const Basic = ({ values, fields, onChange, handleClose, element: elementData }) 
         <div className="image-settings__block">
           <div className="image-settings__cell--first">
             <FieldBuilder
+              {...fields[popcornConstants.LINKSRC]}
               labelHint={hint}
               label={user
               && user.features
               && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
                 ? popcornConstants.LABEL_CLICK_TO_PHONE : fields[popcornConstants.LINKSRC].label}
-              type={fields[popcornConstants.LINKSRC].type}
               value={values[popcornConstants.LINKSRC] || fields[popcornConstants.LINKSRC].default}
-              name={popcornConstants.LINKSRC}
-              onChange={onChange}
-              labelClassName="image-settings__label--input"
-              className="image-settings__field"
+              onChange={onChangeWithValidation}
+              checkValue={checkValue}
             />
           </div>
         </div>
@@ -210,7 +218,7 @@ const Basic = ({ values, fields, onChange, handleClose, element: elementData }) 
       />
     </Fragment>
   );
-};
+});
 
 Basic.propTypes = {
   element: PropTypes.shape({
@@ -234,6 +242,7 @@ Basic.propTypes = {
   }),
   onChange: PropTypes.func.isRequired,
   handleClose: PropTypes.func.isRequired,
+  checkValue: PropTypes.func.isRequired,
   fields: PropTypes.shape({
     [popcornConstants.START]: PropTypes.shape({
       type: PropTypes.string.isRequired,
@@ -273,4 +282,4 @@ Basic.propTypes = {
   }),
 };
 
-export default Basic;
+export default withValidation(Basic);

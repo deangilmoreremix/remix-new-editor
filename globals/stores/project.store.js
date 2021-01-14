@@ -12,6 +12,7 @@ import { ASSET_TYPES } from '../../lib/constants/media';
 import { GOOGLE_MAP_VALUES } from '../../lib/constants/googleMap';
 import preRemixVoice from '../../lib/constants/preRemixVoice';
 import { PRE_REMIX_VOICE_MODAL } from '../../lib/constants/modals';
+import { JSON_ANIMATION_OUT_DURATION } from '../../lib/constants/settings/json-animation';
 import {
   DEFAULT_WIDTH as jsonDefaultWidth,
   DEFAULT_HEIGHT as jsonDefaultHeight,
@@ -95,8 +96,8 @@ export default class ProjectStore extends BaseStore {
             this.isLoaded = true;
           });
           this.popcorn.on('elementUpdated', (data) => {
-            const { element, options } = data;
-            this.findAndUpdate(element.id, options);
+            const { element, options, setUndo = true } = data;
+            this.findAndUpdate(element.id, options, setUndo);
           });
           this.popcorn.on('timeupdate', () => {
             this.time = this.popcorn.currentTime() * SANTISECOND;
@@ -293,7 +294,7 @@ export default class ProjectStore extends BaseStore {
     this.setUndoRedoAction({
       projectData: snapshot,
       duration: this.duration,
-      retarget: { ...this.retarget },
+      retarget: _.isEmpty(this.retarget) ? null : { ...this.retarget },
       activeElementId: this.activeElementId,
     }, !undo);
     if (this.activeElementId !== activeElementId) {
@@ -403,7 +404,11 @@ export default class ProjectStore extends BaseStore {
       }
       case POPCORN_ELEMENT_TYPES.IMAGE: {
         options.src = item.src;
-        options.fill = false;
+        options.fill = item.fill || false;
+        break;
+      }
+      case POPCORN_ELEMENT_TYPES.JSON_ANIMATION: {
+        options.outDuration = JSON_ANIMATION_OUT_DURATION;
         break;
       }
       case POPCORN_ELEMENT_TYPES.TEXT: {
@@ -493,8 +498,8 @@ export default class ProjectStore extends BaseStore {
     if (this.retarget && this.retarget.options && this.retarget.id) {
       const isAdvancedOptin = kind === POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN;
       Object.keys(DEFAULT_OPTIONS_OPTIN).forEach(key => {
-        const defaultValue = this.retarget.manifest.options[key].default
-          ?? this.retarget.options[key];
+        const defaultValue = DEFAULT_OPTIONS[key] || (this.retarget.manifest.options[key].default
+          ?? this.retarget.options[key]);
         let currentValue = this.retarget.options[key];
         // eslint-disable-next-line no-prototype-builtins
         if (this.retarget.options.hasOwnProperty(key)) {
@@ -571,9 +576,10 @@ export default class ProjectStore extends BaseStore {
   }
 
   @action
-  findAndUpdate = (elementId, options = {}) => {
+  findAndUpdate = (elementId, options = {}, setUndo = true) => {
     const newValues = Object.keys(options);
-    if (newValues && newValues.length && !newValues.every(key => caretNames.includes(key))) {
+    if (setUndo && newValues && newValues.length
+      && !newValues.every(key => caretNames.includes(key))) {
       this.setUndo();
     }
     if (this.retarget && elementId === this.retarget.id) {
@@ -816,14 +822,16 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  setProjectData = (data) => {
+  setProjectData = (data, isUpdateId) => {
     let layers = [];
     const elements = [];
     const projectData = data;
     projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
-        track.id = this.generateUid();
-        track.trackEvents = _.uniqWith(track.trackEvents, _.isEqual);
+        if (isUpdateId) {
+          track.id = this.generateUid();
+          track.trackEvents = _.uniqWith(track.trackEvents, _.isEqual);
+        }
         track.trackEvents.forEach((trackEvent) => {
           elements.push({
             ...trackEvent,
@@ -963,7 +971,7 @@ export default class ProjectStore extends BaseStore {
     this.item.description = result.description;
     this.item.remixedFrom = result.project._id;
     this.remixedFromUrl = `${window.location.protocol}//${this.common.self}/edit?project=${result._id}`;
-    this.setProjectData(JSON.parse(result.project.data));
+    this.setProjectData(JSON.parse(result.project.data), true);
     if (isRemix) {
       this.setPopcorn();
     }
@@ -983,7 +991,7 @@ export default class ProjectStore extends BaseStore {
     this.modified = true;
     this.item = DEFAULT_ITEM;
     if (!projectId) {
-      this.setProjectData(this.item.project.data);
+      this.setProjectData(this.item.project.data, true);
       return this.item;
     }
     const path = `/api/makes/${projectId}/remix-personalized`;
@@ -998,7 +1006,7 @@ export default class ProjectStore extends BaseStore {
       this.fillMakeData(result, needData);
     } catch (e) {
       this.item = DEFAULT_ITEM;
-      this.setProjectData(this.item.project.data);
+      this.setProjectData(this.item.project.data, true);
       throw e;
     }
     return this.item;
@@ -1009,7 +1017,7 @@ export default class ProjectStore extends BaseStore {
     this.modified = true;
     this.item = DEFAULT_ITEM;
     if (!projectId) {
-      this.setProjectData(this.item.project.data);
+      this.setProjectData(this.item.project.data, true);
       return this.item;
     }
     const path = `/api/makes/${projectId}/remix`;
@@ -1024,7 +1032,7 @@ export default class ProjectStore extends BaseStore {
       this.fillMakeData(result, isRemix);
     } catch (e) {
       this.item = DEFAULT_ITEM;
-      this.setProjectData(this.item.project.data);
+      this.setProjectData(this.item.project.data, true);
       throw e;
     }
     return this.item;
@@ -1310,7 +1318,7 @@ export default class ProjectStore extends BaseStore {
             'on-behalf': this.currentUser.id,
           },
         });
-      this.setProjectData(JSON.parse(this.item.project.data));
+      this.setProjectData(JSON.parse(this.item.project.data), true);
       if (this.item.project && this.item.project.allowedSocials) {
         this.item.allowedSocials = this.item.project.allowedSocials;
       }
@@ -1452,32 +1460,20 @@ export default class ProjectStore extends BaseStore {
     // crop video
     if (byEnd && byEnd.length && byEnd.length > 1) {
       const lastEvent = byEnd[byEnd.length - 2];
-      let eventEnd = 0;
+      let lastEnd = lastEvent.end;
 
-      switch (lastEvent.type) {
-        case POPCORN_ELEMENT_TYPES.TEXT:
-        case POPCORN_ELEMENT_TYPES.IMAGE:
-          if (lastEvent.animation && lastEvent.animation.out && lastEvent.animation.out.duration) {
-            eventEnd = lastEvent.end + lastEvent.animation.out.duration;
-          } else {
-            eventEnd = lastEvent.end;
-          }
-          break;
-        case POPCORN_ELEMENT_TYPES.JSON_ANIMATION:
-          if (lastEvent.outDuration) {
-            eventEnd = lastEvent.end + lastEvent.outDuration;
-          } else {
-            eventEnd = lastEvent.end;
-          }
-          break;
-        default:
-          eventEnd = lastEvent.end;
-      }
+      byEnd.forEach(element => {
+        const shift = element.outDuration
+          || (element.animation && element.animation.out && element.animation.out.duration) || 0;
+        if (shift && (element.end + shift) > lastEnd) {
+          lastEnd = element.end + shift;
+        }
+      });
 
-      if (lastEvent.end !== this.popcorn.duration() && byEnd.length !== 2) {
-        this.projectData.media[0].url = `#t=,${eventEnd}`;
-        this.projectData.media[0].duration = eventEnd;
-        this.duration = eventEnd * SANTISECOND;
+      if (lastEnd !== this.popcorn.duration() && byEnd.length !== 2) {
+        this.projectData.media[0].url = `#t=,${lastEnd}`;
+        this.projectData.media[0].duration = lastEnd;
+        this.duration = lastEnd * SANTISECOND;
         this.setPopcorn();
       }
 
@@ -1618,7 +1614,7 @@ export default class ProjectStore extends BaseStore {
     if (isSource) {
       this.item.source = makeTemplate._id;
     }
-    this.setProjectData(JSON.parse(makeTemplate.project.data));
+    this.setProjectData(JSON.parse(makeTemplate.project.data), true);
     this.setPopcorn();
     if (video) {
       await this.updateVideo(video);
@@ -1890,14 +1886,14 @@ export default class ProjectStore extends BaseStore {
       if (this.layers.length > 1 || this.isFirstTrackFull || this.elements.length) {
         this.createNewLayer();
       }
-      const [track] = this.layers;
+      const [track] = [...this.layers];
       this.isFirstTrackFull = true;
       return { track, end: 0 };
     }
     const findElement = this.elements.find(element => element.popcornOptions.kind === kind);
     if (findElement) {
       const currentTrack = (findElement.track && findElement.track.id) || findElement.track;
-      const track = this.layers.find(element => element.id === currentTrack);
+      const track = { ...this.layers.find(element => element.id === currentTrack) };
       let layerElements;
       if (this.elements) {
         layerElements = this.elements.filter((element) => element.track === currentTrack);
@@ -1911,7 +1907,7 @@ export default class ProjectStore extends BaseStore {
     if (this.layers.length > 1 || this.isFirstTrackFull || this.elements.length) {
       this.createNewLayer();
     }
-    const [track] = this.layers;
+    const [track] = [...this.layers];
     this.isFirstTrackFull = true;
     return { track, end: 0 };
   };
@@ -1953,12 +1949,12 @@ export default class ProjectStore extends BaseStore {
     const options = await this.setElementOptions(item);
 
     // get first track
-    let track = item.track || trackInDrag || this.layers[0];
+    let track = item.track || trackInDrag || { ...this.layers[0] };
 
     const layerElements = this.elements.filter(element => element.track === track.id);
     if (isLayerFulfilled(options, layerElements)) {
       this.createNewLayer();
-      [track] = this.layers;
+      [track] = [...this.layers];
     }
     item.track = track;
 

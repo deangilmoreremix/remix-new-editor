@@ -86,11 +86,6 @@ const GoogleTextToSpeech = observer(() => {
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isActivePreview, setIsActivePreview] = useState(false);
-  // todo remove it, after adding preview
-  // eslint-disable-next-line no-unused-vars
-  const [previewUrl, setPreviewUrl] = useState(null);
-  // todo remove it, after adding preview
-  // eslint-disable-next-line no-unused-vars
   const [isDisplayingControls, setIsDisplayingControls] = useState(true);
   const [audioFile, setAudioFile] = useState(null);
   const [audio, setAudio] = useState(null);
@@ -216,20 +211,17 @@ const GoogleTextToSpeech = observer(() => {
     return null;
   }, [addedItems]);
 
-  // todo update it after record examples
-  // const changeAndPlay = () => {
-  //   const url = 'https://s3.us-east-1.amazonaws.com/videoremix-tts/polly/standard.370c220d-e3c0-4a4d-ad1c-545f8c75300a.mp3';
-  //   setPreviewUrl(url);
-  //   if (url) {
-  //     setIsActivePreview(true);
-  //     setIsPlaying(true);
-  //     if (!isDisplayingControls) {
-  //       setIsDisplayingControls(true);
-  //     }
-  //   } else {
-  //     setIsDisplayingControls(false);
-  //   }
-  // };
+  const changeAndPlay = () => {
+    if (state.preview) {
+      setIsActivePreview(true);
+      setIsPlaying(true);
+      if (!isDisplayingControls) {
+        setIsDisplayingControls(true);
+      }
+    } else {
+      setIsDisplayingControls(false);
+    }
+  };
 
   const quantify = () => {
     getTextSpeechSymbols()
@@ -302,10 +294,8 @@ const GoogleTextToSpeech = observer(() => {
   };
 
   useEffect(() => quantify(), []);
-  // todo uncomment it after adding preview
-  // useEffect(() => {
-  //   changeAndPlay(state.language, state.voice);
-  // }, [state.voice, state.isPro]);
+
+  useEffect(() => changeAndPlay(), [state.preview]);
 
   const onVoiceSelect = value => {
     dispatch({ type: ACTION_TYPES.SET_VOICE, value });
@@ -591,7 +581,7 @@ const GoogleTextToSpeech = observer(() => {
               />
               {isActivePreview && (
                 <AudioPlayer
-                  src={previewUrl}
+                  src={state.preview}
                   onEnded={() => changePlaying(false)}
                   autoPlay
                 />

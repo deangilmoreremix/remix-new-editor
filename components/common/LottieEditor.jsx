@@ -6,7 +6,7 @@ import SVGInline from 'react-svg-inline';
 import PropTypes from '../../lib/PropTypes';
 import Lottie from '../../lib/lottie/Lottie';
 import FormColor from '../form/FormColor';
-import { rgbToHex, getColors, setColors } from '../../lib/lottie/utils';
+import { rgbToHex, setColors } from '../../lib/lottie/utils';
 import { colorToRgbaString, parseRgbaString } from '../../lib/utils/color';
 import { isValidJsonUrl } from '../../lib/popcorn/helpers';
 import { loadUrl } from '../../lib/requestCreator';
@@ -62,26 +62,6 @@ const LottieEditor = ({
       anim.playSegments(segments, true);
     }
   };
-
-  React.useEffect(() => {
-    // Recalculate original animation colors
-    const rows = [];
-
-    if (!value.length) {
-      if (animation && animation.layers) {
-        getColors(animation.layers, color => rows.push(color));
-      }
-
-      if (animation && animation.assets) {
-        animation.assets.forEach((asset, i) => getColors(
-          asset.layers,
-          color => rows.push(color), i),
-        );
-      }
-
-      storeColors(rows);
-    }
-  }, [animation]);
 
   const pickColor = (newColor, oldColor) => {
     const newRgb = parseRgbaString(newColor);

@@ -27,7 +27,7 @@ const SnackBar = (
         className: classnames('snackbar-content', contentClassName),
       }}
       action={(
-        <Button color="inherit" size="small" onClick={handleClose}>
+        <Button color="inherit" size="small" onClick={() => handleClose(null)}>
           <SVGInline
             className="icon-button"
             svg={closeIcon}
