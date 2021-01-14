@@ -3,8 +3,8 @@ import { Waypoint } from 'react-waypoint';
 import PropTypes from '../../../lib/PropTypes';
 import { LibrarySpinner } from '../../media/Loader';
 
-const Content = ({ items, hasMore, uploadNewItems, isLoading, element: Element }) => (
-  <div className="list-items">
+const Content = ({ items, hasMore, uploadNewItems, isLoading, element: Element, className }) => (
+  <div className={className}>
     {items && items.length ? (
       <Fragment>
         {items.map((item) => (
@@ -23,6 +23,10 @@ const Content = ({ items, hasMore, uploadNewItems, isLoading, element: Element }
   </div>
 );
 
+Content.defaultProps = {
+  className: 'list-items',
+};
+
 Content.propTypes = {
   items: PropTypes.arrayOrObservableArrayOf(
     PropTypes.shape(),
@@ -31,5 +35,6 @@ Content.propTypes = {
   uploadNewItems: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired,
   element: PropTypes.func.isRequired,
+  className: PropTypes.string,
 };
 export default Content;

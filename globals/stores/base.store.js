@@ -26,9 +26,15 @@ export default class BaseStore {
       urlParams.append('q', query);
     }
     if (orderBy) {
+      if (typeof orderBy !== 'string') {
+        orderBy = JSON.stringify(orderBy);
+      }
       urlParams.append('orderBy', orderBy);
     }
     if (filter) {
+      if (typeof filter !== 'string') {
+        filter = JSON.stringify(filter);
+      }
       urlParams.append('filter', filter);
     }
     if (params) {
