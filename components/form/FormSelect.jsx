@@ -82,6 +82,7 @@ FormSelect.propTypes = {
 
 FormSelect.defaultProps = {
   labelClassName: 'select-label-top',
+  disabled: false,
 };
 
 export default FormSelect;

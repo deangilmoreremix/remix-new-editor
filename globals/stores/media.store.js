@@ -133,18 +133,22 @@ export default class Media extends BaseStore {
   };
 
   saveTextToSpeech = async (props) => {
-    const { engine, language, text, voice, url, isPersonalizeText, fallbackValue } = props;
+    const { engine, language, text, voice, url, isPersonalizeText, fallbackValue, voiceId } = props;
     const path = isPersonalizeText ? '/api/users/me/media-assets/save-template-voice'
       : '/api/users/me/media-assets/save-voice';
     const body = {
-      engine,
-      language,
-      voice,
+      extra: {
+        engine,
+        language,
+        voice,
+        text,
+        voiceId,
+        audioConfig: { audioEncoding: 'MP3' },
+      },
       url,
-      text,
     };
     if (isPersonalizeText) {
-      body.fallbackValue = fallbackValue;
+      body.extra.fallbackValue = fallbackValue;
     }
 
     try {
@@ -182,6 +186,43 @@ export default class Media extends BaseStore {
         });
 
       const audioStream = response.AudioStream.data;
+      const uInt8Array = new Uint8Array(audioStream);
+      const arrayBuffer = uInt8Array.buffer;
+      const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.load();
+      const promise = audio.play();
+      if (promise) {
+        promise.then(() => {
+          console.info('success');
+        }).catch((e) => {
+          console.error(e);
+        });
+      }
+      return { blob, audio };
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  getTemporaryGoogleTextToSpeech = async (props) => {
+    const { state: { language, isPro, voice }, text } = props;
+    const body = {};
+    body.text = text;
+    body.languageCode = language;
+    body.name = isPro ? voice.pro : voice.standard;
+
+    try {
+      const response = await this.selfRequest(
+        '/api/get-temporary-best-voice', {
+          method: 'POST',
+          body,
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+      const audioStream = response.audioContent.data;
       const uInt8Array = new Uint8Array(audioStream);
       const arrayBuffer = uInt8Array.buffer;
       const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });

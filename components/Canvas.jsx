@@ -89,7 +89,7 @@ const Canvas = observer(() => {
   useEffect(() => {
     if (wrapper.current) {
       setFontSize(`${DEFAULT_FONT_SIZE * (wrapper.current.offsetWidth / DEFAULT_VIDEO_WIDTH)}px`);
-      runTextfill();
+      setTimeout(() => runTextfill(), 300);
     }
   }, [style]);
 

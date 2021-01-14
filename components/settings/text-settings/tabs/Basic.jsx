@@ -20,14 +20,15 @@ import {
 import { FEATURES } from '../../../../lib/constants/features';
 import { LABEL_CLICK_TO_PHONE } from '../../../../lib/constants/popcorn';
 import { WINDOW_TYPES } from '../../../../lib/constants/ui';
+import { HINTS } from '../../../../lib/constants/text-info';
 
 import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 
 import PropTypes from '../../../../lib/PropTypes';
 
-import { HINTS } from '../../../../lib/constants/text-info';
+import withValidation from '../../../hoc/withValidation';
 
-const Basic = observer(({ values, fields, element, onChange }) => {
+const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
   const [positionHorizontal, setPositionHorizontal] = useState();
   const [positionVertical, setPositionVertical] = useState();
 
@@ -47,10 +48,8 @@ const Basic = observer(({ values, fields, element, onChange }) => {
     end,
     text,
     caretOffset,
-    // urlCaretOffset,
     htmlText,
     linkUrl,
-    htmlUrl,
     linkTarget,
     callNotifyAddress,
     rotation,
@@ -171,16 +170,6 @@ const Basic = observer(({ values, fields, element, onChange }) => {
     }
   }, [htmlText, text, fields]);
 
-  const urlToRender = useMemo(() => {
-    if (htmlUrl !== undefined) {
-      return htmlUrl;
-    } else if (linkUrl !== undefined) {
-      return wrapTokens(linkUrl);
-    } else {
-      return '';
-    }
-  }, [htmlUrl, linkUrl]);
-
   const hint = useMemo(() => (clickToPhoneCall ? HINTS.LINK_URL_PHONE : HINTS.LINK_URL));
 
   const isViewVoiceBtn = useMemo(() => {
@@ -198,6 +187,12 @@ const Basic = observer(({ values, fields, element, onChange }) => {
   const openVoice = () => {
     setVoiceTextId();
     openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
+  };
+
+  const onChangeWithValidation = (v) => {
+    if (!v.error) {
+      onChange(v);
+    }
   };
 
   return (
@@ -259,27 +254,28 @@ const Basic = observer(({ values, fields, element, onChange }) => {
       <div>
         <div className="link-url-container">
           <FieldBuilder
-            value={urlToRender}
+            checkValue={checkValue}
+            value={linkUrl || ''}
             labelHint={hint}
-            {...fields.htmlUrl}
+            {...fields.linkUrl}
             className="input-url-position"
-            onChange={onChange}
+            onChange={onChangeWithValidation}
             label={user
             && user.features
             && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
-              ? LABEL_CLICK_TO_PHONE : fields.htmlUrl.label}
-            updateCaret={(value) => onChange({ urlCaretOffset: value })}
+              ? LABEL_CLICK_TO_PHONE : fields.linkUrl.label}
           />
           {/* <PersonalizeButton onAdd={onAddUrlToken} /> */}
         </div>
         <div className="email-link-container">
           <FieldBuilder
+            checkValue={checkValue}
             value={callNotifyAddress || ''}
             {...fields.callNotifyAddress}
             className="email-notify"
             labelClassName="email-notify-label"
             inputClassName="email-notify-input"
-            onChange={onChange}
+            onChange={onChangeWithValidation}
           />
           <div className="open-link-container">
             <span className="text-settings-label">Open Link In</span>
@@ -354,4 +350,4 @@ Basic.propTypes = {
   closeModal: PropTypes.func,
 };
 
-export default Basic;
+export default withValidation(Basic);

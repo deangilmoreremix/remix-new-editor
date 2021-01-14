@@ -307,15 +307,17 @@ const StylesTab = observer((options) => {
               {...fields.btnBottomBorder}
               onChange={handleChangeColor}
             />
-            <div className="container-transition">
-              <span className="form-control-label">Animations</span>
-              <button
-                className="btn-library"
-                onClick={() => openAnimation()}
-              >
-Open Library
-              </button>
-            </div>
+            {type !== POPCORN_ELEMENT_TYPES.RETARGET && (
+              <div className="container-transition">
+                <span className="form-control-label">Animations</span>
+                <button
+                  className="btn-library"
+                  onClick={() => openAnimation()}
+                >
+                  Open Library
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
