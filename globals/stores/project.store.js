@@ -12,7 +12,6 @@ import { ASSET_TYPES } from '../../lib/constants/media';
 import { GOOGLE_MAP_VALUES } from '../../lib/constants/googleMap';
 import preRemixVoice from '../../lib/constants/preRemixVoice';
 import { PRE_REMIX_VOICE_MODAL } from '../../lib/constants/modals';
-import { JSON_ANIMATION_OUT_DURATION } from '../../lib/constants/settings/json-animation';
 import {
   DEFAULT_WIDTH as jsonDefaultWidth,
   DEFAULT_HEIGHT as jsonDefaultHeight,
@@ -405,10 +404,6 @@ export default class ProjectStore extends BaseStore {
       case POPCORN_ELEMENT_TYPES.IMAGE: {
         options.src = item.src;
         options.fill = item.fill || false;
-        break;
-      }
-      case POPCORN_ELEMENT_TYPES.JSON_ANIMATION: {
-        options.outDuration = JSON_ANIMATION_OUT_DURATION;
         break;
       }
       case POPCORN_ELEMENT_TYPES.TEXT: {
