@@ -152,9 +152,9 @@ const Home = observer(() => {
     undoRedoAction,
     setIsRedirect,
     isRedirect,
+    getElementById,
     createCombinedItem,
     destroyCombinedItem,
-    getElementById,
     popcorn,
   } = projectStore;
 

@@ -9,8 +9,11 @@ import PersonalizeButton from '../../../common/personalization/PersonalizeButton
 
 import { addToken, wrapTokens, wrapSvgTokens } from '../../../../lib/utils/tokens-helper';
 import { TOKEN_FORMATS } from '../../../../lib/constants/tokens';
+import { MAX_LENGTH_TEXT_MASK } from '../../../../lib/constants/text-info';
+import { TYPES, VALIDATION_TYPES } from '../../../../lib/constants/validator';
+import withValidation from '../../../hoc/withValidation';
 
-const Basic = observer(({ options, element, fields, onChange }) => {
+const Basic = observer(({ options, element, fields, onChange, checkValue }) => {
   const {
     start,
     end,
@@ -21,6 +24,12 @@ const Basic = observer(({ options, element, fields, onChange }) => {
 
   const onAddTextToken = useCallback((token) => {
     const result = addToken(text, token, caretOffset);
+    checkValue(result,
+      {
+        type: TYPES.MAX_TEXT_LENGTH,
+        message: MAX_LENGTH_TEXT_MASK.text,
+        validationType: VALIDATION_TYPES.WARNING,
+      });
     onChange({ text: result, htmlText: wrapSvgTokens(result) });
   }, [text, caretOffset, onChange]);
 
@@ -33,6 +42,16 @@ const Basic = observer(({ options, element, fields, onChange }) => {
       return fields.htmlText.default;
     }
   }, [htmlText, text, fields]);
+
+  const handleChange = (value, otherOptions) => {
+    checkValue(otherOptions.text,
+      {
+        type: TYPES.MAX_TEXT_LENGTH,
+        message: MAX_LENGTH_TEXT_MASK.text,
+        validationType: VALIDATION_TYPES.WARNING,
+      });
+    onChange(value, otherOptions);
+  };
 
   return (
     <Fragment>
@@ -58,7 +77,7 @@ const Basic = observer(({ options, element, fields, onChange }) => {
           inputClassName="input-text-area"
           value={textToRender}
           {...fields.htmlText}
-          onChange={onChange}
+          onChange={handleChange}
           updateCaret={(value) => onChange({ caretOffset: value })}
           tokenType={TOKEN_FORMATS.SVG}
         />
@@ -75,6 +94,7 @@ Basic.propTypes = {
     htmlText: PropTypes.string,
   }),
   onChange: PropTypes.func.isRequired,
+  checkValue: PropTypes.func.isRequired,
   fields: PropTypes.shape({
     start: PropTypes.shape({}),
     end: PropTypes.shape({}),
@@ -83,4 +103,4 @@ Basic.propTypes = {
   }),
 };
 
-export default Basic;
+export default withValidation(Basic);

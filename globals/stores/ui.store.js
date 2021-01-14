@@ -1,5 +1,5 @@
-import { observable, action, reaction } from 'mobx';
-import { WINDOW_TYPES, TOOLBARS } from '../../lib/constants/ui';
+import { observable, action, reaction, computed } from 'mobx';
+import { WINDOW_TYPES, TOOLBARS, ACTION_LOGOUT } from '../../lib/constants/ui';
 import { POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 
 import { radioButton } from '../../lib/constants/windowsLogics';
@@ -55,6 +55,24 @@ export default class UIStore {
   @observable isCanvasPresent = true;
 
   @observable isOpenFullWindow = false;
+
+  @computed
+  get templatesMenuItems() {
+    return [
+      {
+        title: 'Settings',
+        url: `${this.projectStore.common.hostname}/account`,
+      },
+      {
+        title: 'Sign Out',
+        action: ACTION_LOGOUT,
+      },
+      {
+        title: 'Help',
+        url: `${this.projectStore.common.whiteLabel.helpUrl}`,
+      },
+    ];
+  }
 
   @action
   closeAllWindows = () => {

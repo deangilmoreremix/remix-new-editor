@@ -30,6 +30,13 @@ const FieldBuilder = React.forwardRef(({ onChange, value, ...props }, ref) => {
 
 FieldBuilder.propTypes = {
   type: PropTypes.string,
+  validationProps: PropTypes.shape({
+    type: PropTypes.string.isRequired,
+    isRequired: PropTypes.bool,
+    message: PropTypes.string,
+    validationType: PropTypes.string,
+  }),
+  onCheckValue: PropTypes.func,
   onChange: PropTypes.func,
   name: PropTypes.string.isRequired,
   isTooltip: PropTypes.bool,

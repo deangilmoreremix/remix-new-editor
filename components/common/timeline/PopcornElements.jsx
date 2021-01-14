@@ -316,12 +316,10 @@ const PopcornElements = observer(({
         const idx = timelineSelectedItems.indexOf(changes.item.id);
         if (changes.e.ctrlKey || changes.e.shiftKey || changes.e.metaKey) {
           if (idx >= 0) {
-            if (activeElementId !== changes.item.id) {
-              selectItem(changes.e, changes.item.i);
-            } else {
-              newSelection.splice(idx, 1);
+            if (activeElementId === changes.item.id) {
               releaseElement();
             }
+            newSelection.splice(idx, 1);
           } else {
             newSelection.push(changes.item.key);
             if (Object.values(POPCORN_ELEMENT_TYPES).includes(changes.item.type)) {
