@@ -3,12 +3,20 @@ import { Waypoint } from 'react-waypoint';
 import PropTypes from '../../../lib/PropTypes';
 import { LibrarySpinner } from '../../media/Loader';
 
-const Content = ({ items, hasMore, uploadNewItems, isLoading, element: Element, className }) => (
+const Content = ({
+  items,
+  hasMore,
+  uploadNewItems,
+  isLoading,
+  element: Element,
+  className,
+  activeItem,
+}) => (
   <div className={className}>
     {items && items.length ? (
       <Fragment>
         {items.map((item) => (
-          <Element item={item} key={item._id} />
+          <Element item={item} key={item._id} activeItem={activeItem} />
         ))}
       </Fragment>
     ) : null}
@@ -36,5 +44,6 @@ Content.propTypes = {
   isLoading: PropTypes.bool.isRequired,
   element: PropTypes.func.isRequired,
   className: PropTypes.string,
+  activeItem: PropTypes.string,
 };
 export default Content;

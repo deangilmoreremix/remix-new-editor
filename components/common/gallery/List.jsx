@@ -19,6 +19,7 @@ const List = observer((
     list,
     dispatchList,
     className,
+    contentClassName,
   }) => {
   const { getList } = useBaseStore();
 
@@ -43,7 +44,7 @@ const List = observer((
     if (list.init) {
       getItems();
     }
-  }, [list.init]);
+  }, [list.init, list.filter]);
 
   const itemElement = useMemo(() => (props) => <list.content {...props} />,
     [list.content]);
@@ -56,7 +57,8 @@ const List = observer((
         uploadNewItems={getItems}
         isLoading={list.isLoading}
         hasMore={list.hasMoreData}
-        className="library__items"
+        className={contentClassName}
+        activeItem={list.activeItem}
       />
     </div>
   );
@@ -65,6 +67,7 @@ const List = observer((
 List.propTypes = {
   dispatchList: PropTypes.func.isRequired,
   className: PropTypes.string,
+  contentClassName: PropTypes.string,
   list: ListPropType,
 };
 

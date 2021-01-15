@@ -1,8 +1,57 @@
 $leftSideWidth: 256px;
+$baseColor: #565670;
+$pageHeight: calc(100vh - 9.625rem);
+$titleHeight: 9vh;
+
+.flex-center {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
 .templates {
   display: flex;
-  height: calc(100vh - 9.625rem);
+  height: 84vh;
+
+  .categories {
+    width: $leftSideWidth;
+    min-width: $leftSideWidth;
+    color: $baseColor;
+
+    &-list {
+      @include tiny-scrollbar($scrollbarColor: #FFFFFF, $thumbHover:#E3E3EA, $thumbColor: #E3E3EA);
+      max-height: $pageHeight - $titleHeight;
+      margin-left: 3rem;
+      .category {
+        line-height: 1.5rem;
+        @include reset-button;
+        justify-content: inherit;
+        color: $baseColor;
+        width: 100%;
+
+        &.active-category {
+          color: $secondary-color;
+        }
+      }
+    }
+    &-header {
+      @extend .flex-center;
+      margin-bottom: 1rem;
+      margin-left: 3rem;
+    }
+    &-subheader {
+      @extend .flex-center;
+      @include reset-button;
+      margin-bottom: 0.5rem;
+      color: $baseColor;
+      margin-left: 3rem;
+    }
+  };
+
+  .active-category {
+    color: $secondary-color;
+    font-weight: 500;
+  }
 
   .list {
     flex: 1;
@@ -11,9 +60,7 @@ $leftSideWidth: 256px;
   }
 
   .list-settings {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    @extend .flex-center;
     margin-bottom: 1.5rem;
   }
 
@@ -32,6 +79,7 @@ $leftSideWidth: 256px;
     align-content: flex-start;
     overflow-x: hidden;
     justify-content: stretch;
+    max-height: $pageHeight - $titleHeight;
   }
 
   .library__item {
@@ -50,9 +98,10 @@ $leftSideWidth: 256px;
   .library__gradient {
     position: absolute;
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
-    width: 100%;
+    width: 98%;
     height: 35%;
     bottom: 0;
+    left: 0;
     pointer-events: none;
   }
 }
