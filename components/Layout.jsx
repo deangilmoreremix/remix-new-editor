@@ -17,6 +17,8 @@ import UnauthorizedView from './common/UnauthorizedView';
 import ModalContainer from './common/ModalContainer';
 import { init, initCreateStores } from '../globals/storesCreator';
 
+import all from '../config/env/all';
+
 import PopcornProxy from '../lib/PopcornProxy';
 
 import PropTypes from '../lib/PropTypes';
@@ -53,6 +55,7 @@ class Layout extends Component {
     const { userStore: { hasPermissions, currentUser } } = this.stores;
     this.hasPermissions = hasPermissions;
     this.currentUser = currentUser;
+    this.imageEditor = all.pixoEditor.script;
   }
 
   render() {
@@ -159,6 +162,7 @@ class Layout extends Component {
                 )}
                 {/* End Facebook Pixel Code */}
                 <script src={this.stores.common.vrviewPath} />
+                <script src={this.imageEditor} />
               </Head>
               {this.hasPermissions ? (
                 <div>

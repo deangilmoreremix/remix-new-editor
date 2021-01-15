@@ -65,6 +65,7 @@ const SettingPanel = observer(() => {
       onImageEdited,
       startUpload: () => setIsDisabledUpload(true),
       endUpload: () => setIsDisabledUpload(false),
+      noCrop: true,
     });
   };
   const handleChangeColor = (rgbColor) => {
