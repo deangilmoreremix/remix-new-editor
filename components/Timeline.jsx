@@ -6,6 +6,7 @@ import classnames from 'classnames';
 import { useWindowSize } from '@react-hook/window-size';
 import moment from 'moment';
 import Scroll from 'timeline/lib/scroll';
+import useClickOutside from 'use-click-outside';
 
 import useProjectStore from './hooks/useProjectStore';
 import useUIStore from './hooks/useUIStore';
@@ -31,6 +32,7 @@ const date = '2018-08-01 00:00:00';
 const Timeline = observer(() => {
   const sortableRef = useRef(null);
   const layersRef = useRef(null);
+  const timelineRef = useRef(null);
   const projectStore = useProjectStore();
   const uiStore = useUIStore();
   const [sortableWidth, setSortableWidth] = React.useState(0);
@@ -50,7 +52,7 @@ const Timeline = observer(() => {
 
   const { isTimelineOpen, toggleTimeLine } = uiStore;
 
-  const { contextMenu } = useTimelineStore();
+  const { contextMenu, setIsActiveTimeline } = useTimelineStore();
 
   const startDate = moment(date);
   const [endDate, setEndDate] = useState(moment(date));
@@ -58,6 +60,8 @@ const Timeline = observer(() => {
   const [isShowScroll, setIsShowScroll] = useState(false);
   const [startDateWithZoom, setStartDateWithZoom] = useState(startDate);
   const [endDateWithZoom, setEndDateWithZoom] = useState(startDate);
+
+  useClickOutside(timelineRef, () => setIsActiveTimeline(false));
 
   // If the slider is out of sight.
   useEffect(() => {
@@ -137,7 +141,13 @@ const Timeline = observer(() => {
   }, [windowWidth]);
 
   return (
-    <div className="timeline">
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+    <div
+      className="timeline"
+      ref={timelineRef}
+      onClick={() => setIsActiveTimeline(true)}
+      onKeyDown={() => {}}
+    >
       <button
         className={classnames('timeline-arrow', { 'timeline-arrow-open': isTimelineOpen })}
         onClick={() => toggleTimeLine(!isTimelineOpen)}

@@ -56,6 +56,7 @@ const PopcornElements = observer(({
     setTimeOnClick,
     contextMenu,
     setContextMenu,
+    setIsActiveTimeline,
   } = useTimelineStore();
 
   const layersCount = React.useMemo(() => layers.length, [layers.length]);
@@ -309,6 +310,7 @@ const PopcornElements = observer(({
   };
 
   const handleInteraction = (type, changes, newElements) => {
+    setIsActiveTimeline(true);
     switch (type) {
       case Timeline.changeTypes.oneItemSelected: {
         changes.e.stopPropagation();

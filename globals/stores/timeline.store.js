@@ -8,6 +8,9 @@ export default class TimelineStore {
     this.projectStore = props.projectStore;
 
     emitter.on(emitterActions.ARRAY_DELETE, () => {
+      if (!this.isActiveTimeline) {
+        return null;
+      }
       this.timelineSelectedItems.forEach(id => {
         this.projectStore.removeElement(id);
       });
@@ -36,6 +39,8 @@ export default class TimelineStore {
     );
   }
 
+  @observable isActiveTimeline = false;
+
   @observable projectElementsLength = 0;
 
   @observable timelineSelectedItems = [];
@@ -52,6 +57,11 @@ export default class TimelineStore {
     isClickOnRow: true,
     isOpen: false,
     buttons: [],
+  };
+
+  @action
+  setIsActiveTimeline = (value = false) => {
+    this.isActiveTimeline = value;
   };
 
   @action
