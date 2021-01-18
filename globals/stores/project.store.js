@@ -55,7 +55,7 @@ import {
 
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
-import { NUMBER_OF_STEPS, REMOVE_VALUE, SELECT_OPTION, CLEAR } from '../../lib/constants/actions';
+import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
 import { showConfirmation, showError, showInfo } from '../../lib/services/alertService';
 import {
   CONFIRMATION_DELETE_LAYER,

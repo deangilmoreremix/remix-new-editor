@@ -9,66 +9,27 @@ $titleHeight: 9vh;
   align-items: center;
 }
 
-.templates {
+.templates,
+.projects {
   display: flex;
-  height: 84vh;
-
-  .categories {
-    width: $leftSideWidth;
-    min-width: $leftSideWidth;
-    color: $baseColor;
-
-    &-list {
-      @include tiny-scrollbar($scrollbarColor: #FFFFFF, $thumbHover:#E3E3EA, $thumbColor: #E3E3EA);
-      max-height: $pageHeight - $titleHeight;
-      margin-left: 3rem;
-      .category {
-        line-height: 1.5rem;
-        @include reset-button;
-        justify-content: inherit;
-        color: $baseColor;
-        width: 100%;
-
-        &.active-category {
-          color: $secondary-color;
-        }
-      }
-    }
-    &-header {
-      @extend .flex-center;
-      margin-bottom: 1rem;
-      margin-left: 3rem;
-    }
-    &-subheader {
-      @extend .flex-center;
-      @include reset-button;
-      margin-bottom: 0.5rem;
-      color: $baseColor;
-      margin-left: 3rem;
-    }
-  };
-
-  .active-category {
-    color: $secondary-color;
-    font-weight: 500;
-  }
+  height: calc(100vh - 6.725rem);
 
   .list {
     flex: 1;
     margin-left: 1.5rem;
-    padding-right: 2.25rem;
+    padding-right: 0.45rem;;
   }
 
   .list-settings {
     @extend .flex-center;
     margin-bottom: 1.5rem;
+    padding-right: 1.8rem;
   }
 
   .library__body {
     max-height: 100%;
     padding: 0;
     margin-top: 1.5rem;
-    margin-right: -2.4%;
   }
 
   .library__items {
@@ -79,19 +40,55 @@ $titleHeight: 9vh;
     align-content: flex-start;
     overflow-x: hidden;
     justify-content: stretch;
-    max-height: $pageHeight - $titleHeight;
+    max-height: none;
+    padding-right: 1.8rem;
   }
 
   .library__item {
-    width: 17.6%;
-    margin: 0 2.4% 1.5rem 0;
+    width: 19.024%;
+    margin: 0 1.22% 1.22% 0;
     border-radius: 5px;
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;
-    border: 1px solid #575773;
+    border: none;
+    overflow: hidden;
+
     &:before {
-      padding-bottom: 56%;
+      padding-bottom: 52.16%;
+    }
+
+    &:nth-child(5n) {
+      margin-right: 0;
+    }
+
+    &-image {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 2.3rem);
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center center;
+      border-bottom-left-radius: 5px;
+      border-bottom-right-radius: 5px;
+    }
+
+    &-information {
+      height: 2.3rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 0.75rem;
+      font-size: $smallFontSize;
+      color: $backgroundSlider;
+
+      span {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
     }
   }
 
@@ -109,12 +106,47 @@ $titleHeight: 9vh;
 .categories {
   width: $leftSideWidth;
   min-width: $leftSideWidth;
+  color: $baseColor;
+
+  &-list {
+    @include tiny-scrollbar($scrollbarColor: #FFFFFF, $thumbHover:#E3E3EA, $thumbColor: #E3E3EA);
+    max-height: $pageHeight - $titleHeight;
+    margin-left: 3rem;
+    .category {
+      line-height: 1.5rem;
+      @include reset-button;
+      justify-content: inherit;
+      color: $baseColor;
+      width: 100%;
+
+      &.active-category {
+        color: $secondary-color;
+      }
+    }
+  }
+  &-header {
+    @extend .flex-center;
+    margin-bottom: 1rem;
+    margin-left: 3rem;
+  }
+  &-subheader {
+    @extend .flex-center;
+    @include reset-button;
+    margin-bottom: 0.5rem;
+    color: $baseColor;
+    margin-left: 3rem;
+  }
+};
+
+.active-category {
+  color: $secondary-color;
+  font-weight: 500;
 }
 
 .templates-header {
   display: flex;
-  height: 9.625rem;
-  padding: 3rem 2.25rem 2.125rem 0;
+  height: 6.725rem;
+  padding: 1.6rem 2.25rem 2.125rem 0;
 
   &__left {
     width: $leftSideWidth;
@@ -143,19 +175,19 @@ $titleHeight: 9vh;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 4.5rem;
-    margin-right: 2.3%;
+    height: 3rem;
+    margin-right: 1.5%;
     background: #E3E3EA;
     border-radius: 5px;
-    padding: 1.4375rem;
+    padding: 0 1.4375rem;
   }
 
   &__search-icon {
     display: block;
-    width: 1.5625rem;
-    min-width: 1.5625rem;
-    height: 1.5625rem;
-    margin-right: 1.25rem;
+    width: 1.2rem;
+    min-width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 1rem;
 
     path {
       stroke: $secondary-color;
@@ -168,6 +200,7 @@ $titleHeight: 9vh;
     outline: none;
     border: none;
     height: 1.25rem;
+    min-width: 0;
     flex: 1;
     margin-right: 1.25rem;
     color: $backgroundSlider;
@@ -221,19 +254,19 @@ $titleHeight: 9vh;
 
   &__create {
     @include reset-button;
-    font-size: 1.125rem;
+    font-size: 1rem;
     color: $backgroundSlider;
     line-height: 1;
-    margin-right: 2.7%;
+    margin-right: 1.5%;
 
     &-icon {
-      width: 2.5rem;
-      min-width: 2.5rem;
-      height: 2.5rem;
+      width: 2rem;
+      min-width: 2rem;
+      height: 2rem;
       border-radius: 50%;
       background: $secondary-color;
       position: relative;
-      margin-right: 1.625rem;
+      margin-right: 0.5rem;
 
       &:before, &:after {
         content: "";
@@ -255,8 +288,8 @@ $titleHeight: 9vh;
 
   &__user {
     width: 100%;
-    max-width: 16.5rem;
-    height: 4.5rem;
+    max-width: 14rem;
+    height: 3rem;
     background: $secondary-color;
     border-radius: 5px;
     position: relative;
@@ -267,7 +300,7 @@ $titleHeight: 9vh;
       padding: 0.75rem 0.875rem 0.75rem 0.75rem;
       color: $white;
       font-weight: 400;
-      font-size: 1.125rem;
+      font-size: 1rem;
 
       .MuiButton-label {
         justify-content: flex-start;
@@ -275,9 +308,9 @@ $titleHeight: 9vh;
     }
 
     .user-image-photo {
-      width: 18.18%;
-      min-width: 18.18%;
-      height: 18.18%;
+      width: 14%;
+      min-width: 14%;
+      height: 14%;
       border-radius: 50%;
       overflow: hidden;
       margin-right: 0.75rem;
@@ -335,17 +368,17 @@ $titleHeight: 9vh;
     }
 
     .menu__item {
-      height: 2.625rem;
+      height: 2.5rem;
       padding-left: 0.75rem;
       font-weight: 400;
-      font-size: 1.125rem;
+      font-size: 1rem;
     }
   }
 
   &__select {
-    height: 2.5rem;
+    height: 2.2rem;
     width: 9.25rem;
-    min-width: 9.25rem;
+    min-width: 5rem;
     background: #E3E3EA;
     border-radius: 5px;
     margin-right: 1.5%;
@@ -353,15 +386,16 @@ $titleHeight: 9vh;
 
     &>button {
       @include reset-button;
-      justify-content: flex-start;
+      display: block;
       width: 100%;
       height: 100%;
       padding: 0 1.18rem 0 0.57rem;
-      font-size: 1.125rem;
+      font-size: 1rem;
       color: $backgroundSlider;
       text-transform: capitalize;
       text-overflow: ellipsis;
       white-space: nowrap;
+      text-align: left;
       overflow: hidden;
     }
 
@@ -389,15 +423,55 @@ $titleHeight: 9vh;
       }
 
       .menu__item {
+        display: block;
         height: 2.5rem;
         padding-left: 0.56rem;
-        font-size: 1.125rem;
+        font-size: 1rem;
         color: $backgroundSlider;
+        text-align: left;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
 
         &:hover {
           background: #a7a7c8;
         }
       }
     }
+  }
+}
+
+@media screen and (max-width: 1270px) {
+  .templates-header__create {
+    span {
+      &:first-child {
+        margin: 0;
+      }
+
+      &:last-child {
+        display: none;
+      }
+    }
+  }
+
+  .templates,
+  .projects {
+    .library__item {
+      width: 24.085%;
+
+      &:nth-child(4n) {
+        margin-right: 0;
+      }
+
+      &:nth-child(5n) {
+        margin-right: 1.22%;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 1040px) {
+  .templates-header__search {
+    max-width: 15.6rem;
   }
 }

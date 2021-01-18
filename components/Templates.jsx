@@ -7,7 +7,7 @@ import {
   reducer as listReducer,
 } from '../lib/utils/reducers/listReducer';
 import { ACTION_TYPES } from '../lib/constants/reducers/listReducer';
-import ProjectPreview from './common/libraryElements/ProjectPreview';
+import TemplatesPreview from './common/libraryElements/TemplatesPreview';
 import Category from './common/libraryElements/Category';
 import Categories from './common/Categories';
 
@@ -17,7 +17,7 @@ const Templates = observer(() => {
   useEffect(() => {
     dispatchList({
       type: ACTION_TYPES.SET_INITIAL,
-      value: { path: '/api/makes/templates', content: ProjectPreview, perPage: 20 },
+      value: { path: '/api/makes/templates', content: TemplatesPreview, perPage: 20 },
     });
   }, []);
 

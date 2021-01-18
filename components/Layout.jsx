@@ -42,11 +42,6 @@ class Layout extends Component {
     },
   });
 
-  componentDidMount() {
-    const { common: { whiteLabelManager } } = this.stores;
-    document.body.classList.add(`theme-${whiteLabelManager.key}`);
-  }
-
   constructor(props) {
     super(props);
     const data = init(props.creator);
@@ -58,11 +53,16 @@ class Layout extends Component {
     this.imageEditor = all.pixoEditor.script;
   }
 
+  componentDidMount() {
+    const { common: { whiteLabelManager } } = this.stores;
+    document.body.classList.add(`theme-${whiteLabelManager.key}`);
+  }
+
   render() {
     if (process.browser) {
       PopcornProxy.init(window);
     }
-    const { children, Header: BaseHeader, layoutClassName, ...rest } = this.props;
+    const { children, Header: BaseHeader, layoutClassName, className, ...rest } = this.props;
     const { common: { whiteLabelManager } } = this.stores;
     return (
       <ThemeProvider theme={this.theme}>
@@ -166,7 +166,7 @@ class Layout extends Component {
               </Head>
               {this.hasPermissions ? (
                 <div>
-                  { BaseHeader ? <BaseHeader className={`theme-${whiteLabelManager.key}`} />
+                  { BaseHeader ? <BaseHeader className={`theme-${whiteLabelManager.key} ${className}-baseheader`} />
                     : (
                       <Header
                         whiteLabelManager={whiteLabelManager}
@@ -221,6 +221,7 @@ Layout.propTypes = {
   // eslint-disable-next-line react/forbid-prop-types
   creator: PropTypes.any,
   layoutClassName: PropTypes.string,
+  className: PropTypes.string,
 };
 
 export default Layout;
