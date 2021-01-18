@@ -105,6 +105,10 @@ export default class TimelineStore {
       const elementById = this.projectStore.getElementById(id);
       const currentLayer = this.projectStore.layers.find(item => item.id === elementById.track);
 
+      if (!currentLayer) {
+        return null;
+      }
+
       if (!newItems[currentLayer.order]) {
         newItems[currentLayer.order] = [];
       }
@@ -115,6 +119,11 @@ export default class TimelineStore {
         track: elementById.track,
       });
     });
+
+    if (!Object.keys(newItems).length) {
+      return null;
+    }
+
     const orders = [...Object.keys(newItems)];
     orders.sort((a, b) => b - a);
 

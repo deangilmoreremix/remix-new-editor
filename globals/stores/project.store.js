@@ -828,9 +828,9 @@ export default class ProjectStore extends BaseStore {
           track.trackEvents = _.uniqWith(track.trackEvents, _.isEqual);
         }
         track.trackEvents.forEach((trackEvent) => {
+          trackEvent.track = track.id;
           elements.push({
             ...trackEvent,
-            track: track.id,
           });
         });
         const layer = {
