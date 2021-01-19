@@ -1913,6 +1913,7 @@ export default class ProjectStore extends BaseStore {
   createNewElement = async (item, newOptions) => {
     const position = newOptions?.position;
     const startInDrag = newOptions?.startInDrag;
+    const endInDrag = newOptions?.endInDrag;
     const trackInDrag = newOptions?.trackInDrag;
     const { type } = item;
     this.modified = true;
@@ -1939,6 +1940,10 @@ export default class ProjectStore extends BaseStore {
 
     if (startInDrag) {
       item.start = startInDrag;
+    }
+
+    if (endInDrag) {
+      item.end = endInDrag;
     }
 
     const options = await this.setElementOptions(item);

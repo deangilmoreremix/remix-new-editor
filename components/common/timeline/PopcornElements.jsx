@@ -74,6 +74,7 @@ const PopcornElements = observer(({
       startDate,
       endDateWithZoom,
       layers,
+      projectData,
     });
     action(data);
   };
