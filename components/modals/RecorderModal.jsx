@@ -186,10 +186,25 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
       return;
     }
     setIsLoading(true);
+    const blob = player.recordedData;
+    const decoder = new Decoder();
+    const reader = new Reader();
+
+    reader.logging = false;
+    reader.drop_default_duration = false;
     try {
-      const data = await uploadMedia({ data: player.recordedData });
-      updateItem({ preview: data.url });
-      showSuccess(`Preview link was created: ${data.url}`, 'Success');
+      const data = await readAsArrayBuffer(blob);
+      const elms = decoder.decode(data);
+      elms.forEach((elm) => { reader.read(elm); });
+      reader.stop();
+      const refinedMetadataBuf = tools.makeMetadataSeekable(
+        reader.metadatas, reader.duration, reader.cues);
+      const body = data.slice(reader.metadataSize);
+      const result = new Blob([refinedMetadataBuf, body],
+        { type: blob.type });
+      const updatedData = await uploadMedia({ data: result });
+      updateItem({ preview: updatedData.url });
+      showSuccess(`Preview link was created:  ${updatedData.url}`, 'Success');
       handleClose();
     } catch (e) {
       showError(e.message || e.data || e.toString());
