@@ -45,6 +45,7 @@ $left-side-width: 256px;
     border-bottom: none;
     border-right: none;
     height: $layer-height;
+    z-index: 100;
 
     &:last-of-type {
       border: 1px solid $border-color;
