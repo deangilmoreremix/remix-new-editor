@@ -579,3 +579,99 @@
 .select-element-disabled {
   opacity: 0.5;
 }
+
+.sliders-box {
+  width: 100%;
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.current-slider {
+  width: 50%;
+  display: flex;
+  margin-left: 15px;
+
+  .tooltip-box {
+    margin-right: 15px;
+  }
+
+  .MuiSlider-track, .MuiSlider-rail {
+    opacity: 1;
+    height: 5px;
+    border-radius: 15px;
+  }
+
+  .MuiSlider-track {
+    background-color: $backgroundSlider;
+  }
+
+  .MuiSlider-rail {
+    background-color: $backgroundSlider;
+    opacity: 0.4;
+  }
+
+  .MuiSlider-thumb {
+    color: #9292B5 !important;
+    border: none !important;
+    width: 15px;
+    height: 15px;
+
+    &:after {
+      content: none;
+    }
+  }
+
+  &:after {
+    background-color: $scrollbarColor;
+    top: 2px;
+    left: 2px;
+    width: 9px;
+    height: 9px;
+  }
+}
+
+.slider-input {
+  border-radius: 5px;
+}
+
+.slider-element {
+  .MuiSlider-track, .MuiSlider-rail {
+    opacity: 1;
+    height: 5px;
+    border-radius: 15px;
+  }
+  .MuiSlider-track {
+    background-color: $backgroundSlider;
+  }
+  .MuiSlider-rail {
+    background-color: $backgroundSlider;
+    opacity: 0.4;
+  }
+
+  .MuiSlider-thumb {
+    color: #9292B5;
+    width: 15px;
+    height: 15px;
+
+    &.Mui-disabled {
+      background-color: $scrollbarColor;
+      width: 15px;
+      height: 15px;
+      margin-top: -5px;
+      margin-left: -6px;
+      border: none;
+
+      &:after {
+        content: none;
+      }
+    }
+
+    &:after {
+      background-color: $scrollbarColor;
+      top: 2px;
+      left: 2px;
+      width: 9px;
+      height: 9px;
+    }
+  }
+}
