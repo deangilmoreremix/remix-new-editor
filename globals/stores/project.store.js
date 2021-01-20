@@ -1995,6 +1995,15 @@ export default class ProjectStore extends BaseStore {
       options.opacity = track.opacity;
     }
 
+    const dropTop = !item.isSocial ? position?.top - (item.height / 2) : position?.top;
+    const dropLeft = !item.isSocial ? position?.left - (item.width / 2) : position?.left;
+
+    const droppedOptions = {
+      top: position ? dropTop : options.top,
+      left: position ? dropLeft : options.left,
+      dropped: position?.dropped,
+    };
+
     if (type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION || type === POPCORN_ELEMENT_TYPES.TEXT) {
       const { isSuperAdmin } = this.userStore;
       options.isSuperAdmin = isSuperAdmin;
@@ -2005,7 +2014,7 @@ export default class ProjectStore extends BaseStore {
       type,
       track: track.id,
       name: options.id,
-      popcornOptions: { ...item, ...options, ...position, type: undefined },
+      popcornOptions: { ...item, ...options, ...droppedOptions, type: undefined },
     };
 
     if (combinedItems) {
