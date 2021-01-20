@@ -24,6 +24,31 @@ $titleHeight: 9vh;
     @extend .flex-center;
     margin-bottom: 1.5rem;
     padding-right: 1.8rem;
+
+    &-item {
+      display: inline-block;
+      margin-right: 5px;
+
+      &:after {
+        content: ">";
+        display: inline-block;
+        margin-left: 5px;
+      }
+
+      &:last-child {
+        margin-right: 0;
+
+        &:after {
+          content: none;
+        }
+      }
+    }
+
+    &__block:first-of-type {
+      .list-settings-item:last-child {
+        color: $secondary-color;
+      }
+    }
   }
 
   .library__body {
@@ -95,7 +120,7 @@ $titleHeight: 9vh;
   .library__gradient {
     position: absolute;
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
-    width: 98%;
+    width: 100%;
     height: 35%;
     bottom: 0;
     left: 0;
@@ -467,6 +492,65 @@ $titleHeight: 9vh;
         margin-right: 1.22%;
       }
     }
+  }
+}
+
+.dark-theme {
+  background-color: $light-twinlight;
+
+  .templates-header__search {
+    background-color: $panel-dark;
+  }
+
+  .templates-header__input {
+    @include input-placeholder($color: #9292B5, $opacity: 1);
+    color: #9292B5;
+  }
+
+  .templates-header__search-clear {
+    path {
+      fill: #9292B5;
+    }
+  }
+
+  .templates-header__create {
+    color: $white;
+  }
+
+  .templates-header__select,
+  .templates-header__user {
+    background-color: $panel-dark;
+
+    .menu__open,
+    .menu__item {
+      color: $white;
+    }
+
+    .popover {
+      background-color: #494963;
+    }
+  }
+
+  .list-settings {
+    color: #9292B5;
+  }
+
+  .list-settings__block:first-of-type {
+    .list-settings-item:last-child {
+      color: $white;
+    }
+  }
+
+  .library__items {
+    @include tiny-scrollbar($scrollbarColor: rgba(255,255,255,0), $thumbHover:#E3E3EA, $thumbColor: $panel-dark);
+  }
+
+  .library__item {
+    border-color: #9292b5;
+  }
+
+  .library__gradient {
+    background: linear-gradient(to bottom, rgba(28, 28, 38, 0), rgba(28, 28, 38, 1));
   }
 }
 

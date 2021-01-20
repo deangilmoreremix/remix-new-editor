@@ -84,3 +84,9 @@ $leftSideWidth: 162px;
     border-bottom-right-radius: 0;
   }
 }
+
+.dark-theme {
+  .projects-library__item .projects-item-info {
+    border-color: #9292b5;
+  }
+}

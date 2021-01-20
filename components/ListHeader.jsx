@@ -4,6 +4,7 @@ import SVGInline from 'react-svg-inline';
 import classnames from 'classnames';
 
 import useUIStore from './hooks/useUIStore';
+import useUserStore from './hooks/useUserStore';
 
 import UserBox from './common/user/UserBox';
 import Menu from './common/Menu';
@@ -32,6 +33,7 @@ const ListHeader = observer(({ className }) => {
   const [select, setSelect] = useState(pageList.myVideos);
 
   const { templatesMenuItems } = useUIStore();
+  const { hasPermissions } = useUserStore();
 
   const onChange = value => {
     const newKey = Object.keys(pageList).find(key => pageList[key].value === value);
@@ -41,7 +43,7 @@ const ListHeader = observer(({ className }) => {
   };
 
   return (
-    <div className={classnames('templates-header', className)}>
+    <div className={classnames('templates-header', className, { 'dark-theme': hasPermissions })}>
       <div className="templates-header__left">
         <SVGInline
           className="templates-header__logo"

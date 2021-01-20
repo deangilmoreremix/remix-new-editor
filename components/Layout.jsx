@@ -85,7 +85,7 @@ class Layout extends Component {
                 />
               </>
             )}
-            <div className={`theme-${whiteLabelManager.key} ${layoutClassName}`}>
+            <div className={`theme-${whiteLabelManager.key} ${layoutClassName} ${className}-baseheader`}>
               <Head>
                 <link
                   rel="preload"

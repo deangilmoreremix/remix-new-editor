@@ -1,5 +1,8 @@
 import React, { useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react';
+import classnames from 'classnames';
+
+import useUserStore from './hooks/useUserStore';
 
 import List from './common/gallery/List';
 import {
@@ -12,8 +15,11 @@ import Category from './common/libraryElements/Category';
 import Categories from './common/Categories';
 
 const Templates = observer(() => {
+  const { hasPermissions } = useUserStore();
+
   const [list, dispatchList] = React.useReducer(listReducer, listInitialState);
   const [categoriesList, dispatchCategoriesList] = React.useReducer(listReducer, listInitialState);
+
   useEffect(() => {
     dispatchList({
       type: ACTION_TYPES.SET_INITIAL,
@@ -51,7 +57,7 @@ const Templates = observer(() => {
     });
   }, []);
   return (
-    <div className="templates">
+    <div className={classnames('templates', { 'dark-theme': hasPermissions })}>
       <Categories
         list={categoriesList}
         dispatchList={dispatchCategoriesList}
@@ -61,8 +67,13 @@ const Templates = observer(() => {
       <div className="list">
         {/* todo implement logic and styles */}
         <div className="list-settings">
-          <div><span> All templates</span></div>
-          <div><span>All Ratios</span></div>
+          <div className="list-settings__block">
+            <span className="list-settings-item">All templates</span>
+            <span className="list-settings-item">Health and Fitness</span>
+          </div>
+          <div className="list-settings__block">
+            <span className="list-settings-item">All Ratios</span>
+          </div>
         </div>
         <List
           list={list}
