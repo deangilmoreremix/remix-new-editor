@@ -94,6 +94,10 @@ module.exports = {
     maxDuration: process.env.MAX_VIDEO_DURATION || 60, // in seconds
     maxSize: process.env.MAX_VIDEO_SIZE || 100 * 1024 * 1024, // in bytes
   },
+  pixoEditor: {
+    script: 'https://pixoeditor.com/editor/scripts/bridge.m.js',
+    apiKey: process.env.PIXO_API_KEY || 'kgc5jzskhr40',
+  },
   image: {
     maxSize: process.env.MAX_IMAGE_SIZE || 5 * 1024 * 1024, // in bytes
   },

@@ -1326,6 +1326,26 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  updateCategories = (category) => {
+    if (!this.item.categories.some(_id => _id === category._id)) {
+      this.item.categories = [...this.item.categories, category];
+    }
+    this.modified = true;
+  }
+
+  @action
+  clearAllCategories = () => {
+    this.item.categories = [];
+    this.modified = true;
+  };
+
+  @action
+  removeCategory = (id) => {
+    this.item.categories = this.item.categories.filter(category => category._id !== id);
+    this.modified = true;
+  };
+
+  @action
   setUndoRedoAction = (projectData, undo = true) => {
     const targetData = undo ? this.undoStore : this.redoStore;
     targetData.push(projectData);
@@ -1398,6 +1418,7 @@ export default class ProjectStore extends BaseStore {
     source: this.item.source,
     tags: this.item.tags,
     disabledPlaybar: this.item.disabledPlaybar,
+    categories: this.item.categories || [],
   });
 
   @action
@@ -1508,6 +1529,7 @@ export default class ProjectStore extends BaseStore {
             remixedFrom: serializedData.source,
             tags: serializedData.tags,
             disabledPlaybar: serializedData.disabledPlaybar,
+            categories: serializedData.categories,
           },
         });
       const publishedMake = await this.publish(result._id);
