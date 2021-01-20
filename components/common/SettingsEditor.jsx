@@ -9,6 +9,7 @@ import useUIStore from '../hooks/useUIStore';
 import useProjectStore from '../hooks/useProjectStore';
 
 import { DEFAULT_TABS, CUSTOM_TABS } from '../../lib/constants/settings';
+import { BASIC, POPCORN_ELEMENT_TYPES, TEXT_TAB } from '../../lib/constants/popcorn';
 
 import CloseButton from './CloseButton';
 
@@ -36,10 +37,26 @@ const SettingsEditor = observer(() => {
 
   const { additionalType, type } = currentElement;
 
-  let tabs = React.useMemo(
-    () => CUSTOM_TABS[additionalType || type] || DEFAULT_TABS,
-    [type, additionalType],
-  );
+  let tabs = React.useMemo(() => {
+    if (type === POPCORN_ELEMENT_TYPES.COMBINED) {
+      const combinedTabs = [{ label: BASIC }];
+      const combinedTextItems = currentElement.popcornOptions.items.filter(combinedItem => (
+        combinedItem.type === POPCORN_ELEMENT_TYPES.TEXT
+      ));
+
+      combinedTextItems.forEach((combinedItem, i) => {
+        if (combinedTextItems.length < 2) {
+          combinedTabs.push({ label: TEXT_TAB });
+        } else {
+          combinedTabs.push({ label: `${TEXT_TAB}${i + 1}` });
+        }
+      });
+
+      return combinedTabs;
+    }
+    return CUSTOM_TABS[additionalType || type] || DEFAULT_TABS;
+  }, [type, additionalType]);
+
   tabs = tabs.filter(tab => !tab.disabled);
 
   const closeWindow = () => {

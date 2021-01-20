@@ -5,6 +5,7 @@ import moment from 'moment';
 import _ from 'lodash';
 import Timeline from 'timeline/lib/index';
 import classnames from 'classnames';
+import { useDrop } from 'react-dnd';
 
 import useProjectStore from '../../hooks/useProjectStore';
 import useTimelineStore from '../../hooks/useTimelineStore';
@@ -17,10 +18,14 @@ import { getTransitionButtons } from '../../../lib/utils/timeline';
 import { LOWER_THIRDS_END_DURATION } from '../../../lib/constants/lowerThirds';
 import { selectItem, arrayDeleteListener, emitterActions } from '../../../lib/mitt/emitter';
 import { contextButtons } from '../../../lib/constants/timelineContextMenu';
+import { acceptedDraggableItems } from '../../../lib/constants/dragNDropConstants';
+import { dropItemOnTimeline } from '../../../lib/utils/dropItemOnTimeline';
 
 import PopcornElement from './PopcornElement';
 import { TRANSITION_TIMELINE_OFFSET } from '../../../lib/constants/settings/video-transition';
 import TransitionButton from './TransitionButton';
+
+const timelineRowHeight = 35;
 
 const PopcornElements = observer(({
   startDate,
@@ -51,6 +56,7 @@ const PopcornElements = observer(({
     setTimeOnClick,
     contextMenu,
     setContextMenu,
+    setIsActiveTimeline,
   } = useTimelineStore();
 
   const layersCount = React.useMemo(() => layers.length, [layers.length]);
@@ -58,6 +64,28 @@ const PopcornElements = observer(({
   if (!layersCount) {
     return null;
   }
+
+  const onDropElement = ({ action }, monitor) => {
+    const data = dropItemOnTimeline({
+      monitor,
+      timelineRowHeight,
+      sortableWidth,
+      startDateWithZoom,
+      startDate,
+      endDateWithZoom,
+      layers,
+      projectData,
+    });
+    action(data);
+  };
+
+  const [{ isOver }, dropRef] = useDrop({
+    accept: acceptedDraggableItems,
+    drop: onDropElement,
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+    }),
+  });
 
   useEffect(() => {
     if (activeElementId && !timelineSelectedItems.some(item => item === activeElementId)) {
@@ -283,6 +311,7 @@ const PopcornElements = observer(({
   };
 
   const handleInteraction = (type, changes, newElements) => {
+    setIsActiveTimeline(true);
     switch (type) {
       case Timeline.changeTypes.oneItemSelected: {
         changes.e.stopPropagation();
@@ -376,30 +405,33 @@ const PopcornElements = observer(({
 
   if (startDateWithZoom && endDateWithZoom) {
     return (
-      <Timeline
-        shallowUpdateCheck
-        items={components}
-        groups={groups}
-        startDate={startDateWithZoom}
-        endDate={endDateWithZoom}
-        originalStartDate={startDate}
-        originalEndDate={endDate}
-        selectedItems={timelineSelectedItems}
-        showCursorTime
-        itemHeight={35}
-        scrollBlock={layersRef.current}
-        onInteraction={handleInteraction}
-        onRowClick={handleRowClick}
-        componentId="timeline-block"
-        updateEndDate={changeTimelineDuration}
-        layersNumber={layersCount}
-        offsetLeft={sortableWidth}
-        activeElementId={activeElementId}
-        onItemContextClick={onItemContextClick}
-        onRowContextClick={onRowContextClick}
-        // offsetLeft - is necessary in order to make a multi-selection correctly.
-        // This value shows us the distance of the timeline to the left edge of the browser window.
-      />
+      <div ref={dropRef} className={classnames('timeline-container', { 'timeline-container-active': isOver })}>
+        <Timeline
+          shallowUpdateCheck
+          items={components}
+          groups={groups}
+          startDate={startDateWithZoom}
+          endDate={endDateWithZoom}
+          originalStartDate={startDate}
+          originalEndDate={endDate}
+          selectedItems={timelineSelectedItems}
+          showCursorTime
+          itemHeight={timelineRowHeight}
+          scrollBlock={layersRef.current}
+          onInteraction={handleInteraction}
+          onRowClick={handleRowClick}
+          componentId="timeline-block"
+          updateEndDate={changeTimelineDuration}
+          layersNumber={layersCount}
+          offsetLeft={sortableWidth}
+          activeElementId={activeElementId}
+          onItemContextClick={onItemContextClick}
+          onRowContextClick={onRowContextClick}
+          // offsetLeft - is necessary in order to make a multi-selection correctly.
+          // This value shows us the distance of the timeline to the left edge
+          // of the browser window.
+        />
+      </div>
     );
   }
   return null;

@@ -12,7 +12,20 @@ import { ASSET_TYPES } from '../../lib/constants/media';
 import { GOOGLE_MAP_VALUES } from '../../lib/constants/googleMap';
 import preRemixVoice from '../../lib/constants/preRemixVoice';
 import { PRE_REMIX_VOICE_MODAL } from '../../lib/constants/modals';
-import { JSON_ANIMATION_OUT_DURATION } from '../../lib/constants/settings/json-animation';
+import {
+  DEFAULT_WIDTH as jsonDefaultWidth,
+  DEFAULT_HEIGHT as jsonDefaultHeight,
+  DEFAULT_TOP as jsonDefaultTop,
+  DEFAULT_LEFT as jsonDefaultLeft,
+  JSON_ANIMATION_OUT_DURATION,
+} from '../../lib/constants/settings/json-animation';
+
+import {
+  DEFAULT_WIDTH as textDefaultWidth,
+  DEFAULT_HEIGHT as textDefaultHeight,
+  DEFAULT_TOP as textDefaultTop,
+  DEFAULT_LEFT as textDefaultLeft,
+} from '../../lib/constants/settings/text';
 
 import {
   SEQUENCER,
@@ -25,6 +38,7 @@ import { isLayerFulfilled, validateBeforeSave } from '../../lib/utils/project';
 import { NONE_CLASS, ANIMATION_TYPES } from '../../lib/constants/animations';
 import { DEFAULT_OPTIONS, DEFAULT_OPTIONS_OPTIN } from '../../lib/constants/settings/retarget-settings';
 import { FB_PLUGINS } from '../../lib/constants/settings/social';
+import { createItemsInCombinedElement, destroyCombined } from '../../lib/utils/combinedUtils';
 
 import {
   SANTISECOND,
@@ -63,6 +77,7 @@ export default class ProjectStore extends BaseStore {
     this.elements = [];
     this.mediaTypeDetector = new MediaTypeDetector();
     this.userStore = props.userStore;
+
     if (runReaction) {
       reaction(
         () => this.popcorn,
@@ -99,48 +114,65 @@ export default class ProjectStore extends BaseStore {
           this.popcorn.on('play', () => {
             this.isPlayed = true;
           });
-          emitter.on(emitterActions.SELECT, id => {
-            if (id) {
-              this.timelineSelectedItems = [id];
-              const element = this.getElementById(id);
-              if (element) {
-                const { popcornOptions } = element;
-                const currentTime = this.time / SANTISECOND;
-                if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
-                  this.updateTime(popcornOptions.start * SANTISECOND);
-                }
-
-                if (this.activeElementId !== id) {
-                  this.editElement(id);
-                }
-              }
-            }
-          });
-          emitter.on(emitterActions.DELETE, id => {
-            this.removeElement(id);
-          });
-          emitter.on(emitterActions.SEQUENCES_LOADING, () => {
-            this.isLoadingSequencer = true;
-          });
-          emitter.on(emitterActions.SEQUENCES_READY, () => {
-            this.isLoadingSequencer = false;
-          });
-          emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
-            this.elements = this.elements.map(el => {
-              if (el.id === id) {
-                return {
-                  ...el,
-                  dimensions: { width, height },
-                };
-              }
-              return el;
-            });
-          });
-          emitter.on(emitterActions.VIDEO_LOOPED, () => {
-            this.isLooped = true;
-          });
         },
       );
+
+      emitter.on(emitterActions.SELECT, data => {
+        let id = data;
+        let isCtrlKey = false;
+        if (typeof data === 'object') {
+          id = data.id;
+          isCtrlKey = data.isCtrlKey;
+        }
+
+        if (id) {
+          const element = this.getElementById(id);
+          if (element) {
+            const { popcornOptions } = element;
+            const currentTime = this.time / SANTISECOND;
+            if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
+              this.updateTime(popcornOptions.start * SANTISECOND);
+            }
+
+            if (isCtrlKey) {
+              const indexId = this.combinedItems.indexOf(id);
+              if (indexId === -1) {
+                this.combinedItems.push(id);
+              } else {
+                this.combinedItems.splice(indexId, 1);
+              }
+            }
+
+            if (this.activeElementId !== id) {
+              this.editElement(id);
+            }
+          }
+        }
+      });
+
+      emitter.on(emitterActions.DELETE, id => {
+        this.removeElement(id);
+      });
+      emitter.on(emitterActions.SEQUENCES_LOADING, () => {
+        this.isLoadingSequencer = true;
+      });
+      emitter.on(emitterActions.SEQUENCES_READY, () => {
+        this.isLoadingSequencer = false;
+      });
+      emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
+        this.elements = this.elements.map(el => {
+          if (el.id === id) {
+            return {
+              ...el,
+              dimensions: { width, height },
+            };
+          }
+          return el;
+        });
+      });
+      emitter.on(emitterActions.VIDEO_LOOPED, () => {
+        this.isLooped = true;
+      });
 
       reaction(
         () => this.item.allowedSocials
@@ -213,6 +245,10 @@ export default class ProjectStore extends BaseStore {
   @observable prevMultiselectElement;
 
   @observable isFirstTrackFull;
+
+  @observable timelineSelectedItems = [];
+
+  @observable combinedItems = [];
 
   @observable pluginDefaults = {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
@@ -292,7 +328,7 @@ export default class ProjectStore extends BaseStore {
     const { track, type } = item || {};
     const options = this.pluginDefaults && this.pluginDefaults[type]
       ? { ...this.pluginDefaults[type].popcornOptions } || {} : {};
-    options.start = item.start || (Math.ceil(this.time) / SANTISECOND);
+    options.start = item.start ?? (Math.ceil(this.time) / SANTISECOND);
     const duration = item.duration || DEFAULT_DURATION;
     options.end = item.end || (options.start + duration);
     options.id = `0.${this.generateUid()}`;
@@ -370,7 +406,18 @@ export default class ProjectStore extends BaseStore {
         options.fill = item.fill || false;
         break;
       }
+      case POPCORN_ELEMENT_TYPES.TEXT: {
+        options.width = item.width ?? textDefaultWidth;
+        options.height = item.height ?? textDefaultHeight;
+        options.top = item.top ?? textDefaultTop;
+        options.left = item.left ?? textDefaultLeft;
+        break;
+      }
       case POPCORN_ELEMENT_TYPES.JSON_ANIMATION: {
+        options.width = item.width ?? jsonDefaultWidth;
+        options.height = item.height ?? jsonDefaultHeight;
+        options.top = item.top ?? jsonDefaultTop;
+        options.left = item.left ?? jsonDefaultLeft;
         options.outDuration = JSON_ANIMATION_OUT_DURATION;
         break;
       }
@@ -547,7 +594,15 @@ export default class ProjectStore extends BaseStore {
         media.tracks.forEach((track) => {
           track.trackEvents = track.trackEvents.map((trackEvent) => {
             if (trackEvent.id === elementId) {
-              trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
+              if (trackEvent.type === POPCORN_ELEMENT_TYPES.COMBINED && options.combinedItemId) {
+                trackEvent.popcornOptions.items.forEach((combinedItem, i) => {
+                  if (combinedItem.id === options.combinedItemId) {
+                    trackEvent.popcornOptions.items[i] = { ...combinedItem, ...options };
+                  }
+                });
+              } else {
+                trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
+              }
             }
             return trackEvent;
           });
@@ -565,7 +620,7 @@ export default class ProjectStore extends BaseStore {
     // end or animation, this is necessary to rerender the elements
     const { start, end, animation, title, duration, htmlText, loop, type } = options;
     this.elements = this.elements.map(element => {
-      if (element.id === elementId) {
+      if (element.id === elementId && !options.combinedItemId) {
         const newOptions = {};
         if (start !== undefined && start !== element.popcornOptions.start) {
           newOptions.start = start;
@@ -773,9 +828,9 @@ export default class ProjectStore extends BaseStore {
           track.trackEvents = _.uniqWith(track.trackEvents, _.isEqual);
         }
         track.trackEvents.forEach((trackEvent) => {
+          trackEvent.track = track.id;
           elements.push({
             ...trackEvent,
-            track: track.id,
           });
         });
         const layer = {
@@ -991,9 +1046,9 @@ export default class ProjectStore extends BaseStore {
 
   @observable
   @action
-  addElement = (item, position) => {
+  addElement = (item, newOptions) => {
     this.setUndo();
-    return this.createNewElement(item, position);
+    return this.createNewElement(item, newOptions);
   };
 
   removeTrackEvent = (id) => {
@@ -1676,9 +1731,7 @@ export default class ProjectStore extends BaseStore {
     };
   };
 
-  getElementById = id => (
-    this.popcornElements.find(element => element.id === id)
-  );
+  getElementById = id => this.popcornElements.find(element => element.id === id);
 
   @computed
   get canUndo() {
@@ -1701,7 +1754,8 @@ export default class ProjectStore extends BaseStore {
         // we need to recount the fontsize. This is done in the update method.
         this.updatePopcorn(element, { fontDecorations: element.popcornOptions.fontDecorations });
       }
-      if (isCurrentElement && element.type === POPCORN_ELEMENT_TYPES.TEXT_MASK) {
+      if (isCurrentElement && (element.type === POPCORN_ELEMENT_TYPES.TEXT_MASK
+        || element.type === POPCORN_ELEMENT_TYPES.COMBINED)) {
         this.updatePopcorn(element, { newSize: true });
       }
     });
@@ -1856,22 +1910,47 @@ export default class ProjectStore extends BaseStore {
   // untraceable methods for undo redo
   // analog for addElement
   @action
-  createNewElement = async (item, position) => {
+  createNewElement = async (item, newOptions) => {
+    const position = newOptions?.position;
+    const startInDrag = newOptions?.startInDrag;
+    const endInDrag = newOptions?.endInDrag;
+    const trackInDrag = newOptions?.trackInDrag;
     const { type } = item;
     this.modified = true;
+
     if (this.isPlayed) {
       this.playPause();
     }
+
+    let combinedItems = null;
+    if (type === POPCORN_ELEMENT_TYPES.COMBINED) {
+      combinedItems = [...item.items];
+      combinedItems.forEach((el, i) => {
+        combinedItems[i] = { ...el };
+        combinedItems[i].id = `0.${this.generateUid()}`;
+      });
+      item.items = null;
+    }
+
     if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR
       && this.elements.some(el => el.type === type)) {
       this.releaseElement();
       return showInfo(FORM_ONE_LG.text, FORM_ONE_LG.title);
     }
 
+    if (startInDrag) {
+      item.start = startInDrag;
+    }
+
+    if (endInDrag) {
+      item.end = endInDrag;
+    }
+
     const options = await this.setElementOptions(item);
 
     // get first track
-    let track = item.track || { ...this.layers[0] };
+    let track = item.track || trackInDrag || { ...this.layers[0] };
+
     const layerElements = this.elements.filter(element => element.track === track.id);
     if (isLayerFulfilled(options, layerElements)) {
       this.createNewLayer();
@@ -1894,6 +1973,11 @@ export default class ProjectStore extends BaseStore {
       options.opacity = track.opacity;
     }
 
+    if (type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION || type === POPCORN_ELEMENT_TYPES.TEXT) {
+      const { isSuperAdmin } = this.userStore;
+      options.isSuperAdmin = isSuperAdmin;
+    }
+
     const element = {
       id: options.id,
       type,
@@ -1901,6 +1985,10 @@ export default class ProjectStore extends BaseStore {
       name: options.id,
       popcornOptions: { ...item, ...options, ...position, type: undefined },
     };
+
+    if (combinedItems) {
+      element.popcornOptions.items = combinedItems;
+    }
 
     this.addElementToProject(element);
 
@@ -2055,5 +2143,138 @@ export default class ProjectStore extends BaseStore {
     }
 
     return elementsForUpdate;
+  };
+
+  @action
+  createCombinedItem = () => {
+    if (this.combinedItems.length < 2) {
+      return;
+    }
+
+    const items = [];
+
+    let heightAfterMinTop = null;
+    let maxTop = null;
+    let heightAfterMaxTop = null;
+
+    let widthtAfterMinLeft = null;
+    let maxLeft = null;
+    let widthAfterMaxLeft = null;
+
+    let start = null;
+    let end = null;
+    let top = null;
+    let left = null;
+    let width = null;
+    let height = null;
+
+    this.combinedItems.forEach(id => {
+      const elementById = this.getElementById(id);
+
+      const item = {
+        ...elementById.popcornOptions,
+        type: elementById.type,
+        blendMode: blendModeConstants.normal.value,
+        opacity: 100,
+        zindex: 2,
+      };
+
+      if (item.start < start || !start) {
+        start = item.start;
+      }
+
+      let shift = 0;
+      if (item.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION) {
+        shift = JSON_ANIMATION_OUT_DURATION;
+        item.zindex = 1;
+      } else if (item.animation && item.animation.out && item.animation.out.duration) {
+        shift = item.animation && item.animation.out && item.animation.out.duration;
+      }
+
+      if (item.end + shift > end || !end) {
+        end = item.end + shift;
+      }
+
+      if (item.top !== undefined && (item.top < top || top === null)) {
+        top = item.top;
+        heightAfterMinTop = item.height;
+      }
+
+      if (item.top !== undefined && (item.top > maxTop || maxTop === null)) {
+        maxTop = item.top;
+        heightAfterMaxTop = item.height;
+      }
+
+      if (item.left !== undefined && (item.left < left || left === null)) {
+        left = item.left;
+        widthtAfterMinLeft = item.width;
+      }
+
+      if (item.left !== undefined && (item.left > maxLeft || maxLeft === null)) {
+        maxLeft = item.left;
+        widthAfterMaxLeft = item.width;
+      }
+
+      items.push(item);
+    });
+
+    if (heightAfterMinTop > ((maxTop - top) + heightAfterMaxTop)) {
+      height = heightAfterMinTop;
+    } else {
+      height = (maxTop - top) + heightAfterMaxTop;
+    }
+
+    if (widthtAfterMinLeft > ((maxLeft - left) + widthAfterMaxLeft)) {
+      width = widthtAfterMinLeft;
+    } else {
+      width = (maxLeft - left) + widthAfterMaxLeft;
+    }
+
+    createItemsInCombinedElement({
+      items,
+      videoContainer: this.popcorn.target,
+      blockOptions: {
+        width,
+        height,
+        top,
+        left,
+        start,
+        end,
+      },
+      action: elementId => this.removeElement(elementId),
+    });
+
+    this.combinedItems = [];
+
+    const options = {
+      type: POPCORN_ELEMENT_TYPES.COMBINED,
+      start,
+      end,
+      top,
+      left,
+      width,
+      height,
+      items,
+    };
+
+    this.addElement(options);
+  };
+
+  @action
+  destroyCombinedItem = () => {
+    const element = this.getElementById(this.activeElementId);
+    if (element.type !== POPCORN_ELEMENT_TYPES.COMBINED) {
+      return null;
+    }
+
+    this.releaseElement();
+    this.removeElement(element.id);
+
+    destroyCombined({
+      items: element.popcornOptions.items,
+      videoContainer: this.popcorn.target,
+      blockOptions: element.popcornOptions,
+      action: item => this.addElement(item),
+    });
   };
 }

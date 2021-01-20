@@ -153,15 +153,19 @@ const Home = observer(() => {
     setIsRedirect,
     isRedirect,
     getElementById,
+    createCombinedItem,
+    destroyCombinedItem,
+    popcorn,
   } = projectStore;
 
-  const { setCopiedItems, pasteElement } = useTimelineStore();
+  const { setCopiedItems, pasteElement, isActiveTimeline } = useTimelineStore();
 
   hotkeys.filter = () => true;
   const keys = [twoKeys.ctrlS, twoKeys.ctrlZ, twoKeys.ctrlY,
     twoKeys.commandS, twoKeys.commandZ, twoKeys.commandY,
     twoKeys.ctrlC, twoKeys.commandC, twoKeys.ctrlV, twoKeys.commandV,
-    twoKeys.ctrlD, twoKeys.commandD];
+    twoKeys.ctrlD, twoKeys.commandD, twoKeys.ctrlO, twoKeys.commandO,
+    twoKeys.ctrlP, twoKeys.commandP];
 
   React.useEffect(() => {
     hotkeys.unbind(keys.join(), hotkeys.getScope());
@@ -186,19 +190,23 @@ const Home = observer(() => {
           break;
         case twoKeys.ctrlC:
         case twoKeys.commandC: {
-          event.preventDefault();
-          setCopiedItems();
+          if (isActiveTimeline) {
+            event.preventDefault();
+            setCopiedItems();
+          }
           break;
         }
         case twoKeys.ctrlV:
         case twoKeys.commandV: {
-          pasteElement();
+          if (isActiveTimeline) {
+            pasteElement();
+          }
           break;
         }
         case twoKeys.ctrlD:
         case twoKeys.commandD: {
           event.preventDefault();
-          if (!event.target.classList.contains('popcorn-element')) {
+          if (!isActiveTimeline) {
             return null;
           }
 
@@ -215,10 +223,34 @@ const Home = observer(() => {
           }
           break;
         }
+        case twoKeys.ctrlO:
+        case twoKeys.commandO: {
+          event.preventDefault();
+          createCombinedItem();
+          break;
+        }
+        case twoKeys.ctrlP:
+        case twoKeys.commandP: {
+          event.preventDefault();
+          destroyCombinedItem();
+          break;
+        }
         default: return null;
       }
     });
-  }, [activeElementId]);
+
+    hotkeys('*', { keyup: true }, event => {
+      if (hotkeys.ctrl && event.type === 'keyup') {
+        const videoContainer = popcorn.target;
+        const canvasItems = videoContainer ? videoContainer.querySelectorAll('.canvas-multiselected-item') : null;
+        if (canvasItems) {
+          canvasItems.forEach(canvasItem => {
+            canvasItem.style.pointerEvents = 'auto';
+          });
+        }
+      }
+    });
+  }, [activeElementId, isActiveTimeline]);
 
   const currentElement = useMemo(() => {
     if (retarget) {

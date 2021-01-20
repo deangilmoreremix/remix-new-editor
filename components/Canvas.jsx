@@ -108,12 +108,12 @@ const Canvas = observer(() => {
     };
 
     toggleRightBlock();
-    action(position);
+    action({ position });
   };
 
   const [{ isOver }, dropRef] = useDrop({
     accept: acceptedDraggableItems,
-    drop: (item, monitor) => onDropElement(item, monitor),
+    drop: onDropElement,
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
