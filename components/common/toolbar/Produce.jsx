@@ -47,6 +47,7 @@ const Produce = observer(({ items, options: { tab, ...options } = {} }) => {
               <span className="toolbar__tab-title">{label}</span>
             </button>
           ))}
+          <CloseButton className="close-button-produce" onClick={onClose} />
         </div>
         <Panel
           items={panelItems}
@@ -54,8 +55,6 @@ const Produce = observer(({ items, options: { tab, ...options } = {} }) => {
           tab={items[1].id}
           options={options}
         />
-
-        <CloseButton onClick={onClose} />
       </div>
     </AnimatedWindow>
   );

@@ -15,7 +15,10 @@ const BlendModeLibrary = observer(() => {
 
   return (
     <div className={classnames('blendmode-library', { 'big-window': !isTimelineOpen })}>
-      <header className="blendmode-library__header">Blend mode</header>
+      <div className="flex">
+        <header className="blendmode-library__header">Blend mode</header>
+        <CloseButton onClick={() => toggleRightBlock(false)} />
+      </div>
       <div className="blendmode-library__body">
         <List
           get={getTemplatesBlendMode}
@@ -23,7 +26,6 @@ const BlendModeLibrary = observer(() => {
           projectElement
           blendModeImage
         />
-        <CloseButton onClick={() => toggleRightBlock(false)} />
       </div>
     </div>
   );

@@ -139,7 +139,10 @@ const OverlayListTransitions = observer(() => {
 
   return (
     <div className={classnames('overlay', { 'big-window': !isTimelineOpen })}>
-      <header className="overlay__header">Overlays</header>
+      <div className="flex">
+        <header className="overlay__header">Overlays</header>
+        <CloseButton onClick={() => toggleRightBlock(false)} />
+      </div>
       <Tabs activeTab={activeTab} />
       <div className="overlay__body">
         <div className="overlay-container">
@@ -161,7 +164,6 @@ const OverlayListTransitions = observer(() => {
           <button className="overlay__use" onClick={addDataToCanvas}>Use</button>
         </div>
       </div>
-      <CloseButton onClick={() => toggleRightBlock(false)} />
     </div>
   );
 });

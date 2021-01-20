@@ -14,11 +14,13 @@ const CallToAction = observer(() => {
 
   return (
     <div className={classnames('library-cta', { 'big-window': !isTimelineOpen })}>
-      <header className="library-cta__header">Add Call To Action Button</header>
+      <div className="flex">
+        <header className="library-cta__header">Add Call To Action Button</header>
+        <CloseButton onClick={handleClose} />
+      </div>
       <div className="library-cta__body">
         <LibraryCTA className="library-cta-items" onSelect={handleClose} />
       </div>
-      <CloseButton onClick={handleClose} />
     </div>
   );
 });

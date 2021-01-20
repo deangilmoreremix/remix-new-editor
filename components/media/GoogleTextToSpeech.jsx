@@ -649,7 +649,7 @@ const GoogleTextToSpeech = observer(() => {
           kind={lastKind}
         />
       </div>
-      <CloseButton onClick={closeWindow} />
+      <CloseButton className="close-button-extend" onClick={closeWindow} />
     </div>
   );
 });
