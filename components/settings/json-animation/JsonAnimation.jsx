@@ -39,7 +39,7 @@ const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
   };
 
   const newFields = React.useMemo(() => (
-    isSuperAdmin ? fields : { start: fields.start }
+    isSuperAdmin ? fields : { start: fields.start, end: fields.end }
   ), []);
 
   return (
