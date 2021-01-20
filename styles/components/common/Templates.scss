@@ -1,6 +1,7 @@
 $leftSideWidth: 256px;
 $baseColor: #565670;
-$pageHeight: calc(100vh - 9.625rem);
+$backgroundBaseColor: #E3E3EA;
+$pageHeight: calc(100vh - 6.725rem);
 $titleHeight: 9vh;
 
 .flex-center {
@@ -14,39 +15,133 @@ $titleHeight: 9vh;
   display: flex;
   height: calc(100vh - 6.725rem);
 
+  .categories {
+    width: $leftSideWidth;
+    min-width: $leftSideWidth;
+    color: $baseColor;
+
+    &-list {
+      @include tiny-scrollbar($scrollbarColor: #FFFFFF, $thumbHover:$backgroundBaseColor, $thumbColor: $backgroundBaseColor);
+      max-height: $pageHeight - $titleHeight;
+      margin-left: 3rem;
+      .category {
+        line-height: 1.5rem;
+        @include reset-button;
+        justify-content: inherit;
+        color: $baseColor;
+        width: 100%;
+
+        &.active-category {
+          color: $secondary-color;
+        }
+      }
+    }
+    &-header {
+      @extend .flex-center;
+      margin-bottom: 1rem;
+      margin-left: 3rem;
+    }
+    &-subheader {
+      @extend .flex-center;
+      @include reset-button;
+      margin-bottom: 0.5rem;
+      color: $baseColor;
+      margin-left: 3rem;
+    }
+  };
+
+  .active-category {
+    color: $secondary-color;
+    font-weight: 500;
+  }
+
   .list {
     flex: 1;
     margin-left: 1.5rem;
-    padding-right: 0.45rem;;
+    padding-right: 0.45rem;
   }
 
   .list-settings {
     @extend .flex-center;
     margin-bottom: 1.5rem;
     padding-right: 1.8rem;
+    align-items: end;
 
-    &-item {
-      display: inline-block;
-      margin-right: 5px;
-
-      &:after {
-        content: ">";
-        display: inline-block;
-        margin-left: 5px;
-      }
-
-      &:last-child {
-        margin-right: 0;
-
-        &:after {
-          content: none;
-        }
-      }
+    .templates-item {
+      display: flex;
+      color: $baseColor;
     }
 
-    &__block:first-of-type {
-      .list-settings-item:last-child {
-        color: $secondary-color;
+    .subheader {
+      @include reset-button;
+      color: $baseColor;
+    }
+
+    .ratio-title {
+      margin-right: 1rem;
+      text-transform: none;
+      color: $baseColor;
+    }
+
+    .ratio {
+      width: 100%;
+      //max-width: 16.5rem;
+      //height: 1.5rem;
+      position: relative;
+      //
+      button {
+        width: 100%;
+        height: 100%;
+        .MuiButton-label {
+          justify-content: flex-start;
+        }
+        &:hover {
+          background: $backgroundBaseColor;
+        }
+      }
+
+      .MuiButton-endIcon {
+        margin-left: 0;
+        margin-right: 0;
+      }
+
+
+      .toggler-icon, .MuiButton-endIcon {
+        display: block;
+        width: 9.4px;
+        min-width: 9.4px;
+        height: 4.7px;
+
+        path {
+          fill: $secondary-color;
+        }
+      }
+
+      .popover {
+        width: 100%;
+        max-width: 16.5rem;
+        background: $backgroundBaseColor;
+        border: none;
+        overflow: hidden;
+
+        &>div {
+          background: none;
+        }
+      }
+
+      .menu__list a {
+        text-decoration: none;
+      }
+
+      .menu__item {
+        color: $baseColor;
+        margin: auto;
+        padding: inherit;
+        justify-content: center;
+
+        &:hover {
+          background: $secondary-color;
+        }
       }
     }
   }
@@ -58,7 +153,7 @@ $titleHeight: 9vh;
   }
 
   .library__items {
-    @include tiny-scrollbar($scrollbarColor: #FFFFFF, $thumbHover:#E3E3EA, $thumbColor: #E3E3EA);
+    @include tiny-scrollbar($scrollbarColor: #FFFFFF, $thumbHover: $backgroundBaseColor, $thumbColor: $backgroundBaseColor);
     width: 100%;
     display: flex;
     flex-wrap: wrap;
@@ -268,12 +363,13 @@ $titleHeight: 9vh;
     align-items: center;
     height: 3rem;
     margin-right: 1.5%;
-    background: #E3E3EA;
+    background: $backgroundBaseColor;
     border-radius: 5px;
     padding: 0 1.4375rem;
   }
 
   &__search-icon {
+    @include reset-button;
     display: block;
     width: 1.2rem;
     min-width: 1.2rem;
@@ -470,7 +566,7 @@ $titleHeight: 9vh;
     height: 2.2rem;
     width: 9.25rem;
     min-width: 5rem;
-    background: #E3E3EA;
+    background: $backgroundBaseColor;
     border-radius: 5px;
     margin-right: 1.5%;
     position: relative;
