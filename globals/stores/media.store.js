@@ -354,7 +354,6 @@ export default class Media extends BaseStore {
      }));
    };
 
-
   @action
   setLibraryItemsForDelete = (id) => {
     if (id) {
