@@ -135,6 +135,11 @@ export default class UserStore {
   }
 
   @computed
+  get editorEnabled() {
+    return this.isfeatureEnabled(FEATURES.EDITOR);
+  }
+
+  @computed
   get stickersEnabled() {
     return this.isfeatureEnabled(FEATURES.STICKERS);
   }
