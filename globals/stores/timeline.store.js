@@ -8,6 +8,9 @@ export default class TimelineStore {
     this.projectStore = props.projectStore;
 
     emitter.on(emitterActions.ARRAY_DELETE, () => {
+      if (!this.isActiveTimeline) {
+        return null;
+      }
       this.timelineSelectedItems.forEach(id => {
         this.projectStore.removeElement(id);
       });
@@ -36,6 +39,8 @@ export default class TimelineStore {
     );
   }
 
+  @observable isActiveTimeline = false;
+
   @observable projectElementsLength = 0;
 
   @observable timelineSelectedItems = [];
@@ -52,6 +57,11 @@ export default class TimelineStore {
     isClickOnRow: true,
     isOpen: false,
     buttons: [],
+  };
+
+  @action
+  setIsActiveTimeline = (value = false) => {
+    this.isActiveTimeline = value;
   };
 
   @action
@@ -105,6 +115,10 @@ export default class TimelineStore {
       const elementById = this.projectStore.getElementById(id);
       const currentLayer = this.projectStore.layers.find(item => item.id === elementById.track);
 
+      if (!currentLayer) {
+        return null;
+      }
+
       if (!newItems[currentLayer.order]) {
         newItems[currentLayer.order] = [];
       }
@@ -115,6 +129,11 @@ export default class TimelineStore {
         track: elementById.track,
       });
     });
+
+    if (!Object.keys(newItems).length) {
+      return null;
+    }
+
     const orders = [...Object.keys(newItems)];
     orders.sort((a, b) => b - a);
 

@@ -17,7 +17,7 @@ const FormEnterBlurField = ({ value, onChange, checkValue, validationProps, ...r
   const onSave = () => {
     const error = checkValue ? checkValue(src, validationProps) : null;
     if (error) {
-      return onChange({ value: src, error });
+      return onChange(src, error);
     }
     if (src !== value) {
       onChange(src);

@@ -189,8 +189,8 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
     openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
   };
 
-  const onChangeWithValidation = (v) => {
-    if (!v.error) {
+  const onChangeWithValidation = (v, error) => {
+    if (!error) {
       onChange(v);
     }
   };

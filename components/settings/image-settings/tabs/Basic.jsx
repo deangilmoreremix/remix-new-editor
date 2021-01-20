@@ -49,8 +49,8 @@ const Basic = observer(({
     setLibraryType(LIBRARY_TABS.IMAGE);
   };
 
-  const onChangeWithValidation = (v) => {
-    if (!v.error) {
+  const onChangeWithValidation = (v, error) => {
+    if (!error) {
       onChange(v);
     }
   };

@@ -158,7 +158,7 @@ const Home = observer(() => {
     popcorn,
   } = projectStore;
 
-  const { setCopiedItems, pasteElement } = useTimelineStore();
+  const { setCopiedItems, pasteElement, isActiveTimeline } = useTimelineStore();
 
   hotkeys.filter = () => true;
   const keys = [twoKeys.ctrlS, twoKeys.ctrlZ, twoKeys.ctrlY,
@@ -190,19 +190,23 @@ const Home = observer(() => {
           break;
         case twoKeys.ctrlC:
         case twoKeys.commandC: {
-          event.preventDefault();
-          setCopiedItems();
+          if (isActiveTimeline) {
+            event.preventDefault();
+            setCopiedItems();
+          }
           break;
         }
         case twoKeys.ctrlV:
         case twoKeys.commandV: {
-          pasteElement();
+          if (isActiveTimeline) {
+            pasteElement();
+          }
           break;
         }
         case twoKeys.ctrlD:
         case twoKeys.commandD: {
           event.preventDefault();
-          if (!event.target.classList.contains('popcorn-element')) {
+          if (!isActiveTimeline) {
             return null;
           }
 
@@ -246,7 +250,7 @@ const Home = observer(() => {
         }
       }
     });
-  }, [activeElementId]);
+  }, [activeElementId, isActiveTimeline]);
 
   const currentElement = useMemo(() => {
     if (retarget) {
