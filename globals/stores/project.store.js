@@ -1284,7 +1284,11 @@ export default class ProjectStore extends BaseStore {
         });
       });
     });
-    this.updatePopcorn(elementId, { start, end });
+    this.updatePopcorn(elementId, {
+      start,
+      end,
+      stopAction: this.getElementById(elementId).type === POPCORN_ELEMENT_TYPES.PAUSE,
+    });
   };
 
   isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'
