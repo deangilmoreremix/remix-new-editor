@@ -6,7 +6,13 @@ import PropTypes from '../../../../lib/PropTypes';
 import FormCheckboxField from '../../../form/FormCheckboxField';
 import VRIcon from '../../../../public/static/images/media/360-degrees.svg';
 
-const Is360 = React.memo(({ value, onChange, className, showHint }) => (
+const Is360 = React.memo(({
+  value,
+  onChange,
+  className,
+  showHint,
+  downloaderEnabled,
+}) => (
   <div className="is-360-wrapper">
     <div className="is-360-checkbox">
       <FormCheckboxField
@@ -25,16 +31,19 @@ const Is360 = React.memo(({ value, onChange, className, showHint }) => (
     {showHint
       && (
         <div className="hint-360">
-          {'For 360 videos, we recommend using only videos \n downloaded from your computer. \nYou can use'}
+          {'For 360 videos, we recommend using only videos \n downloaded from your computer. \n'}
           &nbsp;
-          <a
-            href="http://download.vidcloud.io/"
-            className="library__block--title"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          {downloaderEnabled && 'You can use '}
+          {downloaderEnabled && (
+            <a
+              href="http://download.vidcloud.io/"
+              className="library__block--title"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
           our downloader
-          </a>
+            </a>
+          ) }
         </div>
       )}
   </div>
@@ -45,6 +54,7 @@ Is360.propTypes = {
   value: PropTypes.bool,
   showHint: PropTypes.bool,
   className: PropTypes.string,
+  downloaderEnabled: PropTypes.bool,
 };
 
 export default Is360;

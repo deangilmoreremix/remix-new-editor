@@ -266,4 +266,9 @@ export default class UserStore {
   get revolutionAdvancedOptInEnabled() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_ADVANCED_OPTIN);
   }
+
+  @computed
+  get downloaderEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_DOWNLOADER);
+  }
 }
