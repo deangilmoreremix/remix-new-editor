@@ -28,10 +28,12 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
     projectData,
     duration: clipDuration,
     updateElementFromTimeline,
+    removeTransition,
   } = useProjectStore();
   const { uploadMedia } = useMediaStore();
 
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isSaved, setIsSaved] = React.useState(false);
   const [isCaptured, setIsCaptured] = React.useState(false);
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [transition, setTransition] = React.useState(null);
@@ -65,6 +67,12 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   } = values;
 
   const duration = React.useMemo(() => +((end - start).toFixed(2)), [start, end]);
+
+  React.useEffect(() => () => {
+    if (!isSaved) {
+      removeTransition(values);
+    }
+  }, []);
 
   const fromVideo = React.useMemo(() => {
     if (values) {
@@ -163,6 +171,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   }, [fromVideo, isCaptured, toVideo]);
 
   const handleSave = React.useCallback(async () => {
+    setIsSaved(true);
     // 1. upload images
     if (from && to) {
       setIsLoading(true);

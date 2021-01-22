@@ -189,14 +189,14 @@ export default class ProjectStore extends BaseStore {
     }
   }
 
-  setUndo = () => {
+  setUndo = (activeElementId) => {
     const snapshot = toJS(this.projectData);
     this.redoStore = [];
     this.setUndoRedoAction({
       projectData: snapshot,
       duration: this.duration,
       retarget: { ...this.retarget },
-      activeElementId: this.activeElementId,
+      activeElementId: activeElementId || this.activeElementId,
     });
   };
 
@@ -252,6 +252,12 @@ export default class ProjectStore extends BaseStore {
 
   @observable combinedItems = [];
 
+  @observable isTransition;
+
+  @observable isAddingTransition = false;
+
+  @observable removedTransition = null;
+
   @observable pluginDefaults = {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
     [POPCORN_ELEMENT_TYPES.IMAGE]: {},
@@ -288,6 +294,9 @@ export default class ProjectStore extends BaseStore {
     }
 
     this.modified = true;
+    const activeElement = this.activeElementId && this.getElementById(this.activeElementId);
+    this.isTransition = activeElement
+      && activeElement.type === POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION;
     const { projectData, duration, retarget, activeElementId } = targetData[targetDataLength - 1];
     const snapshot = toJS(this.projectData);
     targetData.pop();
@@ -325,6 +334,16 @@ export default class ProjectStore extends BaseStore {
       this.updateTime(0);
     }
   };
+
+  @action
+  setIsAddingTransition = (value) => {
+    this.isAddingTransition = value;
+  }
+
+  @action
+  setRemovedTransition = (value) => {
+    this.removedTransition = value;
+  }
 
   setElementOptions = async (item) => {
     const { track, type } = item || {};
@@ -776,8 +795,10 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  updateElementFromTimeline = (options) => {
-    this.setUndo();
+  updateElementFromTimeline = (options, setUndo = true) => {
+    if (setUndo) {
+      this.setUndo();
+    }
     this.modified = true;
     const { needUpdateLayer, needUpdateStartEnd, elementId, start, end, layerLevel } = options;
     if (needUpdateLayer) {
@@ -1044,6 +1065,45 @@ export default class ProjectStore extends BaseStore {
       this.removeTrackEvent(id);
       this.elements = this.elements.filter(element => element.id !== id);
     }
+  };
+
+  @action
+  removeTransition = (transition) => {
+    let isRemoved = false;
+    if (!transition && this.removedTransition) {
+      transition = { ...this.removedTransition };
+      isRemoved = true;
+    }
+    if (this.isTransition || !transition) {
+      return;
+    }
+    if (this.isAddingTransition) {
+      this.setRemovedTransition({ ...transition });
+      return;
+    }
+    const duration = +((transition.end - transition.start).toFixed(2));
+    const layer = transition.track?.id || transition.track;
+
+    if (!isRemoved) {
+      this.setUndo(transition.id);
+      this.releaseElement();
+    }
+    this.elements = this.elements.slice().map(event => this.popcorn.removeTrackEvent(event.id));
+    this.projectData.media[0].tracks.forEach(track => {
+      if (track.id === layer) {
+        track.trackEvents = track.trackEvents.filter(trackEvent => trackEvent.id !== transition.id);
+        track.trackEvents = track.trackEvents.map(trackEvent => {
+          if (trackEvent.popcornOptions.start >= transition.start) {
+            trackEvent.popcornOptions.start -= duration;
+            trackEvent.popcornOptions.end -= duration;
+          }
+          return trackEvent;
+        });
+      }
+    });
+    this.setProjectData(this.projectData);
+    this.attach(this.popcorn.target);
+    this.setRemovedTransition(null);
   };
 
   @observable
@@ -2296,6 +2356,8 @@ export default class ProjectStore extends BaseStore {
 
     this.addElement(options);
   };
+
+  getLayerByTrackEventId = (id) => this.layers.find(layer => layer.id === id)
 
   @action
   destroyCombinedItem = () => {
