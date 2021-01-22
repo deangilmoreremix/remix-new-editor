@@ -131,7 +131,9 @@ export default class ProjectStore extends BaseStore {
             const { popcornOptions } = element;
             const currentTime = this.time / SANTISECOND;
             if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
-              this.updateTime(popcornOptions.start * SANTISECOND);
+              const idleTime = popcornOptions.start
+                + (popcornOptions.end - popcornOptions.start) / 2;
+              this.updateTime(idleTime * SANTISECOND);
             }
 
             if (isCtrlKey) {
