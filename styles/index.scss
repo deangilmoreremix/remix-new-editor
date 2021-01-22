@@ -138,3 +138,7 @@ body {
 .small-text {
   font-weight: 300;
 }
+
+.swal-overlay {
+  z-index: 10002;
+}
