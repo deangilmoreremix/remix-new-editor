@@ -13,6 +13,7 @@ const FormSelect = React.forwardRef((props, ref) => {
     items,
     label,
     onChange,
+    dataIsRequired,
     value,
     className,
     labelClassName,
@@ -22,7 +23,7 @@ const FormSelect = React.forwardRef((props, ref) => {
   } = props;
 
   const handleChange = data => {
-    onChange(data.value);
+    onChange(dataIsRequired ? data : data.value);
   };
 
   const fontFamily = {
@@ -77,12 +78,14 @@ FormSelect.propTypes = {
   ]),
   label: PropTypes.string,
   onChange: PropTypes.func.isRequired,
+  dataIsRequired: PropTypes.bool,
   disabled: PropTypes.bool,
 };
 
 FormSelect.defaultProps = {
   labelClassName: 'select-label-top',
   disabled: false,
+  dataIsRequired: false,
 };
 
 export default FormSelect;

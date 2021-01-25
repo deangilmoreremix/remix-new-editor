@@ -88,6 +88,15 @@
     }
   }
 
+  .search-input-box {
+    margin-bottom: 0.5rem;
+
+    span {
+      margin: 1rem 0 0.1rem 0 !important;
+      font-size: 12px !important;
+    }
+  }
+
   .personalized-link {
     @include input-reset;
 
