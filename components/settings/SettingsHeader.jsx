@@ -11,7 +11,8 @@ const SettingsHeader = ({
   activeTab,
   title,
   onCloseWindow,
-  notCloseButton,
+  closeButton,
+  handleClose,
 }) => {
   const handleChange = React.useCallback((newValue) => {
     if (newValue === activeTab) {
@@ -41,8 +42,8 @@ const SettingsHeader = ({
           </button>
         ))
       }
-      {tabs && !notCloseButton && (
-        <CloseButton isTabs={tabs.length > 1} onClick={onCloseWindow} />
+      {tabs && (
+        <CloseButton isTabs={tabs.length > 1} onClick={closeButton ? handleClose : onCloseWindow} />
       )}
     </div>
   );
@@ -59,11 +60,12 @@ SettingsHeader.propTypes = {
     requiredFeature: PropTypes.string,
   })),
   title: PropTypes.string,
-  notCloseButton: PropTypes.bool,
+  closeButton: PropTypes.bool,
+  handleClose: PropTypes.func,
 };
 
 SettingsHeader.defaultProps = {
-  notCloseButton: false,
+  closeButton: false,
 };
 
 export default SettingsHeader;
