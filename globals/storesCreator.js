@@ -62,7 +62,7 @@ class Creator {
       this.currentUser = req.locals && req.locals.populatedUser;
       this.whiteLabelManager = new WhiteLabelManager(
         req.whiteLabel,
-        req.whiteLabel && req.whiteLabel.domain === 'videoremix.io',
+        req.whiteLabel && req.whiteLabel.domain !== 'videoremix.io',
         `${source.common.cdnHostname}`,
       );
       if (this.currentUser) {
