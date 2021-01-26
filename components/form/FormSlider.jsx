@@ -57,7 +57,7 @@ const FormSlider = props => {
   };
 
   const handleBlur = () => {
-    if (!value || value < minValue) {
+    if (value === undefined || value < minValue) {
       onChange(minValue);
     } else if (value > maxValue) {
       onChange(maxValue);
