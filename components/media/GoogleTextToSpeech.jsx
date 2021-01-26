@@ -472,7 +472,7 @@ const GoogleTextToSpeech = observer(() => {
               <FormSelect
                 label="Voice"
                 items={state.selectedVoices}
-                className="text-to-speech__selection"
+                className="text-to-speech__selection-second"
                 selectClassName={classnames('text-to-speech__select-list',
                   { 'text-to-speech__select-voice-list': onlyLimitedTextToSpeech })}
                 value={state.voice.value}
@@ -481,6 +481,7 @@ const GoogleTextToSpeech = observer(() => {
               <div className="sliders-box">
                 {textToSpeechPitchEnabled && (
                   <FieldBuilder
+                    isFloat
                     inputClassName="slider-input"
                     value={state.pitch}
                     label="Pitch"
@@ -495,6 +496,7 @@ const GoogleTextToSpeech = observer(() => {
                 )}
                 {textToSpeechSpeedEnabled && (
                   <FieldBuilder
+                    isFloat
                     inputClassName="slider-input"
                     value={state.speakingRate}
                     label="Speed"
@@ -503,7 +505,7 @@ const GoogleTextToSpeech = observer(() => {
                     onChange={onSpeedChange}
                     minValue={0.25}
                     maxValue={4}
-                    step={0.1}
+                    step={0.01}
                     containerClassName={classnames('current-slider', { 'slider-element': state.isPro })}
                   />
                 )}

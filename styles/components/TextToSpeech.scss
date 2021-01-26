@@ -319,6 +319,11 @@
     &:last-of-type {
       margin-left: 4%;
     }
+
+    &-second {
+      @extend .text-to-speech__selection;
+      margin-left: 16px;
+    }
   }
 
   &__select-list {
