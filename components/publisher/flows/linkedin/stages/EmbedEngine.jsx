@@ -3,7 +3,6 @@ import * as React from 'react';
 import PropTypes from '../../../../../lib/PropTypes';
 import { DEFAULT, EMBED_LOCATIONS } from '../../../../../lib/constants/campaigns/constants';
 import EmbedDataContainer from '../../../EmbedDataContainer';
-import {DEFAULT_THUMBNAIL} from "../../../../../lib/constants/project";
 
 const EmbedEngine = ({ settings, project, updateCampaign }) => (
   <div className="embed-engine">
@@ -56,10 +55,8 @@ const EmbedEngine = ({ settings, project, updateCampaign }) => (
                 !settings.preload ? 'preload=none' : null,
               ].filter(item => !!item).join('&')]
               .join('?')}
-            thumbnail={project.thumbnail || DEFAULT_THUMBNAIL}
             stringGenerator={settings.embedLocation.embedGenerator}
             resizable
-            playCheckbox={settings.embedLocation.playCheckbox}
           />
         )}
       </div>
@@ -79,13 +76,11 @@ EmbedEngine.propTypes = {
       label: PropTypes.string.isRequired,
       prompt: PropTypes.string,
       embedGenerator: PropTypes.func,
-      playCheckbox: PropTypes.bool,
     }),
     preload: PropTypes.bool,
   }).isRequired,
   project: PropTypes.shape({
     url: PropTypes.string.isRequired,
-    thumbnail: PropTypes.string,
   }).isRequired,
   updateCampaign: PropTypes.func.isRequired,
   provider: PropTypes.shape({

@@ -3,10 +3,10 @@ import React, { Fragment, useState } from 'react';
 import PropTypes from '../../lib/PropTypes';
 import { DEFAULT_IFRAME_SIZE } from '../../lib/constants/campaigns/constants';
 import { styledIframeWithScript } from '../../lib/generators/iframe';
-import FormCheckboxField from '../form/FormCheckboxField';
 
 const EmbedDataContainer = ({
   url,
+  thumbnail,
   className,
   resizable = false,
   playCheckbox,
@@ -43,19 +43,31 @@ const EmbedDataContainer = ({
               onChange={handleInputChange}
             />
           </div>
-          {playCheckbox
-          && (
-          <FormCheckboxField
-            label="Show Play Button"
-            value={needPlayButton}
-            onChange={setNeedPlayButton}
-          />
-          )}
         </div>
+        {playCheckbox
+        && (
+          <div className="embed-group mb-3">
+            <label className="cell row mb-2" htmlFor="preload-check">
+              <div className="col-md-4">Show Play Button</div>
+              <div className="col-md-8">
+                <div className="custom-checkbox">
+                  <input
+                    className="cell"
+                    type="checkbox"
+                    id="preload-check"
+                    checked={needPlayButton}
+                    onChange={() => setNeedPlayButton(!needPlayButton)}
+                  />
+                  <span className="label" />
+                </div>
+              </div>
+            </label>
+          </div>
+        )}
         <textarea
           readOnly
           rows={4}
-          value={stringGenerator(url, width, height, null, needPlayButton)}
+          value={stringGenerator(url, width, height, thumbnail, needPlayButton)}
           onClick={handleTextAreaClick}
         />
       </div>
@@ -65,6 +77,7 @@ const EmbedDataContainer = ({
 
 EmbedDataContainer.propTypes = {
   className: PropTypes.string,
+  thumbnail: PropTypes.string,
   url: PropTypes.string.isRequired,
   resizable: PropTypes.bool,
   stringGenerator: PropTypes.func,
