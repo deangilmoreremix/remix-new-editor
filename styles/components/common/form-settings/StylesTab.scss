@@ -26,6 +26,13 @@
       height: 15em;
       width: 45%;
 
+      & > * {
+        margin-bottom: 1rem;
+      }
+      .MuiFormGroup-root {
+        width: 100%;
+      }
+
       .button-add-file {
         background: $secondary-color;
 
