@@ -14,7 +14,7 @@ import useProjectStore from '../../../hooks/useProjectStore';
 import { FEATURES } from '../../../../lib/constants/features';
 import { LIBRARY_TABS } from '../../../../lib/constants/library';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
-import { PIXO_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
+import { TUI_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
 import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
 import { EXTRA_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
 
@@ -61,7 +61,7 @@ const Basic = observer(({
 
   const onImageEdited = (image) => {
     findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
-    closeModal(PIXO_IMAGE_EDITOR_MODAL);
+    closeModal(TUI_IMAGE_EDITOR_MODAL);
   };
 
   const hint = useMemo(() => (clickToPhoneCall ? HINTS.LINK_URL_PHONE : HINTS.LINK_URL));
