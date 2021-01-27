@@ -6,11 +6,14 @@ import { styledIframeWithScript } from '../../lib/generators/iframe';
 
 const EmbedDataContainer = ({
   url,
+  thumbnail,
   className,
   resizable = false,
+  playCheckbox,
   stringGenerator = styledIframeWithScript,
 }) => {
   const [size, setSize] = useState(DEFAULT_IFRAME_SIZE);
+  const [needPlayButton, setNeedPlayButton] = useState(playCheckbox);
 
   const handleInputChange = ({ target: { name, value } }) => setSize({ ...size, [name]: value });
 
@@ -41,10 +44,30 @@ const EmbedDataContainer = ({
             />
           </div>
         </div>
+        {playCheckbox
+        && (
+          <div className="embed-group mb-3">
+            <label className="cell row mb-2" htmlFor="preload-check">
+              <div className="col-md-4">Show Play Button</div>
+              <div className="col-md-8">
+                <div className="custom-checkbox">
+                  <input
+                    className="cell"
+                    type="checkbox"
+                    id="preload-check"
+                    checked={needPlayButton}
+                    onChange={() => setNeedPlayButton(!needPlayButton)}
+                  />
+                  <span className="label" />
+                </div>
+              </div>
+            </label>
+          </div>
+        )}
         <textarea
           readOnly
           rows={4}
-          value={stringGenerator(url, width, height)}
+          value={stringGenerator(url, width, height, thumbnail, needPlayButton)}
           onClick={handleTextAreaClick}
         />
       </div>
@@ -54,9 +77,11 @@ const EmbedDataContainer = ({
 
 EmbedDataContainer.propTypes = {
   className: PropTypes.string,
+  thumbnail: PropTypes.string,
   url: PropTypes.string.isRequired,
   resizable: PropTypes.bool,
   stringGenerator: PropTypes.func,
+  playCheckbox: PropTypes.bool,
 };
 
 export default EmbedDataContainer;
