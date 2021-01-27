@@ -20,13 +20,7 @@ import {
   JSON_ANIMATION_OUT_DURATION,
 } from '../../lib/constants/settings/json-animation';
 
-import {
-  DEFAULT_WIDTH as textDefaultWidth,
-  DEFAULT_HEIGHT as textDefaultHeight,
-  DEFAULT_TOP as textDefaultTop,
-  DEFAULT_LEFT as textDefaultLeft,
-} from '../../lib/constants/settings/text';
-
+import { INITIAL_VALUES } from '../../lib/constants/settings/vrtext-element';
 import {
   SEQUENCER,
   POPCORN_ELEMENT_TYPES,
@@ -69,6 +63,13 @@ import { ROUTES } from '../../lib/constants/routing';
 import { video360prefix, REGEX_MAP } from '../../lib/constants/settings/video';
 
 const caretNames = Object.values(CARET_NAMES);
+
+const {
+  WIDTH: textDefaultWidth,
+  HEIGHT: textDefaultHeight,
+  TOP: textDefaultTop,
+  LEFT: textDefaultLeft,
+} = INITIAL_VALUES;
 
 export default class ProjectStore extends BaseStore {
   constructor(props, runReaction = true) {
