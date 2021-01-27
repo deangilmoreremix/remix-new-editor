@@ -44,9 +44,12 @@ const GiphyGifs = observer(({ type }) => {
 
   return (
     <div className={classnames('gif-library', { 'big-window': !isTimelineOpen })}>
-      <header className="gif-library__header">
-        {type}
-      </header>
+      <div className="flex">
+        <header className="gif-library__header">
+          {type}
+        </header>
+        <CloseButton onClick={() => toggleRightBlock(false)} />
+      </div>
       <div className="gif-library__body">
         <div className="gif-library__search">
           <input
@@ -86,7 +89,6 @@ const GiphyGifs = observer(({ type }) => {
           setStartSearch={setStartSearch}
           searchPage
         />
-        <CloseButton onClick={() => toggleRightBlock(false)} />
       </div>
     </div>
   );

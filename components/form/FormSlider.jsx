@@ -20,6 +20,7 @@ const FormSlider = props => {
     minValue,
     maxValue,
     step,
+    isFloat,
     containerClassName,
     sliderClassName,
     inputClassName,
@@ -49,14 +50,14 @@ const FormSlider = props => {
   const handleInputChange = event => {
     const { value: val } = event.target;
     if (val && !Number.isNaN(val)) {
-      onChange(parseInt(val, 10));
+      onChange(isFloat ? parseFloat(val) : parseInt(val, 10));
     } else {
       onChange('');
     }
   };
 
   const handleBlur = () => {
-    if (!value || value < minValue) {
+    if (value === undefined || value < minValue) {
       onChange(minValue);
     } else if (value > maxValue) {
       onChange(maxValue);
@@ -102,6 +103,7 @@ const FormSlider = props => {
                   max: maxValue,
                   type: 'number',
                   'aria-labelledby': 'input-slider',
+                  step,
                 }}
               />
             </Grid>
@@ -115,6 +117,7 @@ const FormSlider = props => {
 FormSlider.propTypes = {
   value: PropTypes.number,
   onChange: PropTypes.func.isRequired,
+  isFloat: PropTypes.bool,
   label: PropTypes.string,
   sliderWidth: PropTypes.number,
   inputWidth: PropTypes.number,
@@ -140,6 +143,8 @@ FormSlider.defaultProps = {
   disabled: false,
   isTooltip: false,
   tooltipMessage: '',
+  isFloat: false,
+  step: 1,
 };
 
 export default FormSlider;

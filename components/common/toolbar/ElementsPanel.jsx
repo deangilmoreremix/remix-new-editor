@@ -66,7 +66,7 @@ const ElementsPanel = observer(({ items }) => {
           {advancedElements.length ? elementsRenderer(advancedElements) : null}
 
         </Row>
-        <CloseButton onClick={() => toggleLeftBlock(false)} />
+        <CloseButton className="close-button-extend" onClick={() => toggleLeftBlock(false)} />
       </div>
     </AnimatedWindow>
   );

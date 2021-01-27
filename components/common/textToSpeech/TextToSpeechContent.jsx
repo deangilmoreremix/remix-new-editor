@@ -6,7 +6,16 @@ import PropTypes from '../../../lib/PropTypes';
 import TextToSpeechItem from './TextToSpeechItem';
 
 const TextToSpeechContent = (props) => {
-  const { fetchItems, hasMore, items, activeItem, onPlay, onSelect, onDelete, isLoading } = props;
+  const {
+    fetchItems,
+    hasMore,
+    items,
+    activeItem,
+    onPlay,
+    onSelect,
+    onDelete,
+    isLoading,
+  } = props;
 
   const uploadNewItems = () => {
     fetchItems({ isScrolling: true });

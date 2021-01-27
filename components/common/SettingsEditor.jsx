@@ -11,7 +11,6 @@ import useProjectStore from '../hooks/useProjectStore';
 import { DEFAULT_TABS, CUSTOM_TABS } from '../../lib/constants/settings';
 import { BASIC, POPCORN_ELEMENT_TYPES, TEXT_TAB } from '../../lib/constants/popcorn';
 
-import CloseButton from './CloseButton';
 
 const SettingsEditor = observer(() => {
   const [activeTab, setTab] = useState(0);
@@ -66,7 +65,12 @@ const SettingsEditor = observer(() => {
 
   return (
     <div className={classnames('base-editor', { 'big-window': !isTimelineOpen })}>
-      <SettingsHeader tabs={tabs} setTab={setTab} activeTab={activeTab} />
+      <SettingsHeader
+        onCloseWindow={closeWindow}
+        tabs={tabs}
+        setTab={setTab}
+        activeTab={activeTab}
+      />
       {tabs[activeTab] ? (
         <div className="base-editor-elements">
           <SettingsContainer
@@ -76,7 +80,6 @@ const SettingsEditor = observer(() => {
           />
         </div>
       ) : setTab(0)}
-      <CloseButton onClick={closeWindow} />
     </div>
   );
 });

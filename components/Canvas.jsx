@@ -105,6 +105,7 @@ const Canvas = observer(() => {
     const position = {
       top: (((y - top) / h) * 100),
       left: (((x - left) / w) * 100),
+      dropped: true,
     };
 
     toggleRightBlock();

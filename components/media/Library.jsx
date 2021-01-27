@@ -90,7 +90,7 @@ const Library = observer((props) => {
     checkToken,
   } = useMediaStore();
 
-  const { video360Enabled, getUserKey, updateUserKeys } = userStore;
+  const { downloaderEnabled, video360Enabled, getUserKey, updateUserKeys } = userStore;
 
   // =============== STATE ===============
   const [userValidationKey, setUserValidationKey] = useState();
@@ -698,6 +698,7 @@ const Library = observer((props) => {
                     onChange={() => set360(!is360)}
                     className="flex-end is-360"
                     showHint
+                    downloaderEnabled={downloaderEnabled}
                   />
                 ) : <div className="library__search-box-dummy" />}
               </>
@@ -790,7 +791,7 @@ const Library = observer((props) => {
           ))}
         </div>
       </div>
-      <CloseButton onClick={closeLibrary} />
+      <CloseButton className="close-button-extend" onClick={closeLibrary} />
       <div className="library__gradient" />
     </div>
   );

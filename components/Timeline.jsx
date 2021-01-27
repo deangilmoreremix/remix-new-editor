@@ -220,6 +220,7 @@ const Timeline = observer(() => {
           component={Layer}
           idField="order"
           onRemove={(item) => removeLayer(item.id)}
+          getContainerElement={() => sortableRef.current}
         />
         <div className="timeline-side">
           { isLoaded && (

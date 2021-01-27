@@ -8,8 +8,10 @@ import usePresetStore from '../../hooks/usePresetStore';
 import useProjectStore from '../../hooks/useProjectStore';
 
 import { showError } from '../../../lib/services/alertService';
+
 import List from '../../common/projectDataList/List';
 import Preview from '../../common/projectDataList/Preview';
+import CloseButton from '../../common/CloseButton';
 
 const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart }) => {
   const [items, setItems] = useState([]);
@@ -111,7 +113,10 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart }) => 
 
   return (
     <div className="view-project-window">
-      <p className="view-project-window__header">{title}</p>
+      <div className="flex">
+        <p className="view-project-window__header">{title}</p>
+        <CloseButton className="close-button" onClick={handleClose} />
+      </div>
       <div className="view-project-window__body">
         <div className="view-project-window__container">
           <List

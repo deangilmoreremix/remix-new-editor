@@ -67,6 +67,7 @@ const SettingPanel = observer(() => {
       endUpload: () => setIsDisabledUpload(false),
     });
   };
+
   const handleChangeColor = (rgbColor) => {
     updateItem({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
   };
@@ -97,6 +98,18 @@ const SettingPanel = observer(() => {
           placeholder="A project about"
           rows={5}
         />
+        {isSuperAdmin && (
+          <FieldBuilder
+            type="input"
+            name="preview"
+            label="Preview"
+            value={item.preview}
+            onChange={updateItem}
+            className="settings-input"
+            textClassName="settings-panel-text"
+            placeholder="Preview link"
+          />
+        )}
         <FieldBuilder
           type="color"
           name="background"

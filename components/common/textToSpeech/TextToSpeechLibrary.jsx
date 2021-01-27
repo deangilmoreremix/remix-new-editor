@@ -78,6 +78,7 @@ const TextToSpeechLibrary = observer(({ addedItems, setAddedItems, kind }) => {
     return addedItems;
   }, [addedItems, addedItems?.length]);
 
+  useEffect(() => () => deleteAsset(true), []);
 
   const fetchItems = async ({ source = activeTab, isScrolling = false } = {}) => {
     let currentPage = 0;
@@ -111,6 +112,7 @@ const TextToSpeechLibrary = observer(({ addedItems, setAddedItems, kind }) => {
       filter['extra.voice'] = voice.value;
       filter['extra.engine'] = voiceType;
     }
+    filter.hidden = { $ne: true };
 
     try {
       const data = await getAssets({

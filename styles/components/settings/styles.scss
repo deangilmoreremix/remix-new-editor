@@ -18,8 +18,20 @@
   }
 }
 
+.inputs-json-animation-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .lt-input-time {
+  width: 40%;
   margin-bottom: 1rem;
+  margin-right: 20% !important;
+
+  &-end {
+    @extend .lt-input-time;
+    margin-right: 0 !important;
+  }
 }
 
 .input-loop-start,
@@ -82,6 +94,11 @@
   .input-skip-end,
   .input-background-time {
     width: 100%;
+  }
+
+  .input-time-start-lt {
+    width: 100%;
+    margin-right: 0 !important;
   }
 
   .input-loop-end {
