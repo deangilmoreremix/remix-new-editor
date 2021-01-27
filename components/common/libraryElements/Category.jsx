@@ -9,7 +9,7 @@ const Category = React.memo((props) => {
   return (
     <button
       className={classnames('small-text', 'category',
-        { 'active-category': item._id === activeItem })}
+        { 'active-category': activeItem && item._id === activeItem._id })}
       onClick={() => onClick(item)}
     >
       {item.name}
@@ -23,7 +23,10 @@ Category.propTypes = {
     _id: PropTypes.string.isRequired,
   }).isRequired,
   onClick: PropTypes.func.isRequired,
-  activeItem: PropTypes.string,
+  activeItem: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    _id: PropTypes.string.isRequired,
+  }),
 };
 
 export default Category;
