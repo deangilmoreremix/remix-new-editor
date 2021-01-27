@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
+import classnames from 'classnames';
 
 import useUIStore from './hooks/useUIStore';
 
@@ -24,7 +25,7 @@ const pageList = {
   },
 };
 
-const ListHeader = observer(() => {
+const ListHeader = observer(({ className }) => {
   const [q, setQ] = useState('');
   const [isVideo, setIsVideo] = useState(false);
   const [isImage, setIsImage] = useState(false);
@@ -40,7 +41,7 @@ const ListHeader = observer(() => {
   };
 
   return (
-    <div className="templates-header">
+    <div className={classnames('templates-header', className)}>
       <div className="templates-header__left">
         <SVGInline
           className="templates-header__logo"

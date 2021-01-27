@@ -33,8 +33,11 @@ export default observer(() => {
 
   return (
     <div className={classnames('recorder', { 'big-window': !isTimelineOpen })}>
-      <div className="recorder__header">
-        <span>Recorder</span>
+      <div className="flex">
+        <div className="recorder__header">
+          <span>Recorder</span>
+        </div>
+        <CloseButton onClick={() => toggleRightBlock(false)} />
       </div>
       <div className="recorder__body">
         <div className="recorder-panel">
@@ -62,8 +65,6 @@ export default observer(() => {
           </div>
         </div>
       </div>
-
-      <CloseButton onClick={() => toggleRightBlock(false)} />
     </div>
   );
 });

@@ -75,6 +75,7 @@ body {
 @import "components/common/Toolbar";
 @import "components/common/Library";
 @import "components/common/Templates";
+@import "components/common/Projects";
 @import "components/common/Loader";
 @import "components/common/ModalContainer";
 @import "components/common/UserBox";
@@ -115,6 +116,7 @@ body {
 @import "components/form/TagsFormInput";
 @import "components/form/TimeInput";
 @import "components/form/FormTokensTextArea";
+@import "components/form/AutoCompleteSelect";
 
 @import "components/canvas/Canvas";
 @import "components/canvas/SizeSelector";
@@ -123,4 +125,20 @@ body {
   width: 100%;
   justify-content: flex-end;
   padding-right: 0.5rem;
+}
+
+.first-title {
+  font-weight: 700;
+}
+
+.second-title {
+  font-weight: 400;
+}
+
+.small-text {
+  font-weight: 300;
+}
+
+.swal-overlay {
+  z-index: 10002;
 }

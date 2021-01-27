@@ -1,9 +1,19 @@
 import * as React from 'react';
 import classnames from 'classnames';
+import CloseButton from '../common/CloseButton';
 
 import PropTypes from '../../lib/PropTypes';
 
-const SettingsHeader = ({ className, tabs, setTab, activeTab, title }) => {
+const SettingsHeader = ({
+  className,
+  tabs,
+  setTab,
+  activeTab,
+  title,
+  onCloseWindow,
+  closeButton,
+  handleClose,
+}) => {
   const handleChange = React.useCallback((newValue) => {
     if (newValue === activeTab) {
       return;
@@ -32,6 +42,9 @@ const SettingsHeader = ({ className, tabs, setTab, activeTab, title }) => {
           </button>
         ))
       }
+      {tabs && (
+        <CloseButton isTabs={tabs.length > 1} onClick={closeButton ? handleClose : onCloseWindow} />
+      )}
     </div>
   );
 };
@@ -40,12 +53,19 @@ SettingsHeader.propTypes = {
   activeTab: PropTypes.number,
   className: PropTypes.string,
   setTab: PropTypes.func,
+  onCloseWindow: PropTypes.func,
   tabs: PropTypes.arrayOf(PropTypes.shape({
     label: PropTypes.string,
     disabled: PropTypes.bool,
     requiredFeature: PropTypes.string,
   })),
   title: PropTypes.string,
+  closeButton: PropTypes.bool,
+  handleClose: PropTypes.func,
+};
+
+SettingsHeader.defaultProps = {
+  closeButton: false,
 };
 
 export default SettingsHeader;

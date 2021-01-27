@@ -38,9 +38,15 @@ const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
     update({ colors });
   };
 
-  const newFields = React.useMemo(() => (
-    isSuperAdmin ? fields : { start: fields.start }
+  const newAnimationFields = React.useMemo(() => (
+    isSuperAdmin ? fields : { start: fields.start, end: fields.end }
   ), []);
+
+  const newTransitionFields = React.useMemo(() => {
+    const transitionFieldsWithoutEnd = { ...fields };
+    delete transitionFieldsWithoutEnd.end;
+    return isSuperAdmin ? transitionFieldsWithoutEnd : { start: fields.start };
+  }, []);
 
   return (
     <div className="json-animation-form">
@@ -49,7 +55,9 @@ const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
           options={element.popcornOptions}
           element={element}
           onChange={handleChange}
-          fields={newFields}
+          fields={element.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
+            ? newAnimationFields
+            : newTransitionFields}
           update={update}
         />
       )}

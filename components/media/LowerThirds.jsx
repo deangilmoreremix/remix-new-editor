@@ -12,12 +12,13 @@ const LowerThirds = observer(() => {
 
   return (
     <div className={classnames('lower-thirds', { 'big-window': !isTimelineOpen })}>
-      <header className="lower-thirds__header">Lower Thirds</header>
+      <div className="flex">
+        <header className="lower-thirds__header">Lower Thirds</header>
+        <CloseButton onClick={() => toggleRightBlock(false)} />
+      </div>
       <div className="lower-thirds__body">
         <Content />
       </div>
-
-      <CloseButton onClick={() => toggleRightBlock(false)} />
     </div>
   );
 });

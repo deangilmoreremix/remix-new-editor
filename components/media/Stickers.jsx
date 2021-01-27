@@ -13,13 +13,14 @@ const Stickers = observer(() => {
 
   return (
     <div className={classnames('stickers', { 'big-window': !isTimelineOpen })}>
-      <header className="stickers__header">Stickers</header>
+      <div className="flex">
+        <header className="stickers__header">Stickers</header>
+        <CloseButton onClick={() => toggleRightBlock(false)} />
+      </div>
       <Tabs />
       <div className="stickers__body">
         <Content />
       </div>
-
-      <CloseButton onClick={() => toggleRightBlock(false)} />
     </div>
   );
 });

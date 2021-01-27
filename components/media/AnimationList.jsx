@@ -47,7 +47,7 @@ const AnimationList = observer(({ onSelect, element }) => {
       <div className="animation-blocks">
         {animationGroups.map((type => block(type)))}
       </div>
-      <CloseButton onClick={() => closeAnimationLibrary()} />
+      <CloseButton className="close-button-extend" onClick={closeAnimationLibrary} />
     </div>
   );
 },

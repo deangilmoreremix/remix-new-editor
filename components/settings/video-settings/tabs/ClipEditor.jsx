@@ -45,7 +45,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     projectData,
     updateElementFromTimeline,
   } = useProjectStore();
-  const { video360Enabled } = useUserStore();
+  const { video360Enabled, downloaderEnabled } = useUserStore();
   const [videoOut, setVideoOut] = useState(end - start + from);
   const [fadeInMax, setFadeInMax] = useState();
   const [fadeOutMax, setFadeOutMax] = useState();
@@ -346,6 +346,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
           value={is360}
           className="is-360"
           onChange={changeIs360}
+          downloaderEnabled={downloaderEnabled}
         />
         )}
       </div>

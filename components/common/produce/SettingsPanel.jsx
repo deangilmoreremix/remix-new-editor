@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { observer } from 'mobx-react';
 
 import Button from '@material-ui/core/Button';
@@ -21,10 +21,18 @@ const SettingPanel = observer(() => {
 
   const titleRef = React.useRef(null);
 
-  const { linkedinEnabled } = useUserStore();
-  const { item, updateItem } = useProjectStore();
+  const { linkedinEnabled, isSuperAdmin } = useUserStore();
+  const {
+    item,
+    updateItem,
+    updateCategories,
+    clearAllCategories,
+    removeCategory,
+  } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
   const { openImageEditor, closeModal } = useModalStore();
+
+  const categories = useMemo(() => item.categories, [item.categories]);
 
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -59,6 +67,7 @@ const SettingPanel = observer(() => {
       endUpload: () => setIsDisabledUpload(false),
     });
   };
+
   const handleChangeColor = (rgbColor) => {
     updateItem({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
   };
@@ -89,6 +98,18 @@ const SettingPanel = observer(() => {
           placeholder="A project about"
           rows={5}
         />
+        {isSuperAdmin && (
+          <FieldBuilder
+            type="input"
+            name="preview"
+            label="Preview"
+            value={item.preview}
+            onChange={updateItem}
+            className="settings-input"
+            textClassName="settings-panel-text"
+            placeholder="Preview link"
+          />
+        )}
         <FieldBuilder
           type="color"
           name="background"
@@ -118,6 +139,18 @@ const SettingPanel = observer(() => {
           tooltipMessage={produceTooltips.tags}
           isTooltip
         />
+        {isSuperAdmin && (
+          <FieldBuilder
+            type="multipleSelect"
+            name="categories"
+            label="Categories"
+            items={categories}
+            path="/api/make-categories"
+            clear={clearAllCategories}
+            addInput={updateCategories}
+            removeInput={removeCategory}
+          />
+        )}
         <div className="settings-allow">
           <div className="settings-allow__label-box">
             <p className="settings-panel-text">Allow</p>

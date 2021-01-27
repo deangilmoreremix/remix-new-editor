@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, Fragment } from 'react';
-import classnames from 'classnames';
+
+import FormSelect from '../../../../form/FormSelect';
 
 import PropTypes from '../../../../../lib/PropTypes';
 import PROVIDERS from '../../../../../lib/constants/campaigns/email-providers';
@@ -7,7 +8,9 @@ import PROVIDERS from '../../../../../lib/constants/campaigns/email-providers';
 const ServiceProvider = ({ settings, updateCampaign, generatePersonalizedLink, setLink }) => {
   const { emailProvider } = settings;
   const linkElement = useRef(null);
+
   const [tooltip, showTooltip] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState();
 
   useEffect(() => {
     if (linkElement && linkElement.current) {
@@ -25,6 +28,11 @@ const ServiceProvider = ({ settings, updateCampaign, generatePersonalizedLink, s
     }
   };
 
+  const onSelectProvider = (item) => {
+    setSelectedProvider(item.value);
+    updateCampaign({ emailProvider: item });
+  };
+
   const handleShowTooltip = () => {
     if (!tooltip) {
       showTooltip(true);
@@ -37,21 +45,15 @@ const ServiceProvider = ({ settings, updateCampaign, generatePersonalizedLink, s
       <div className="service-provider-inner">
         <div className="service-provider-section">
           <span>Select your Email Service Provider</span>
-          <ul className="service-provider-list">
-            {PROVIDERS.map((item) => (
-              <li
-                className={classnames('service-provider-list-item', { selected: emailProvider && emailProvider.key === item.key })}
-                key={item.key}
-              >
-                <button
-                  type="button"
-                  onClick={() => updateCampaign({ emailProvider: item })}
-                >
-                  {item.value}
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className="search-input-box">
+            <span>Select provider:</span>
+            <FormSelect
+              dataIsRequired
+              value={selectedProvider}
+              items={PROVIDERS}
+              onChange={onSelectProvider}
+            />
+          </div>
         </div>
         {emailProvider && (
           <Fragment>

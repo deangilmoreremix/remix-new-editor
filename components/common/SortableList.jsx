@@ -14,6 +14,7 @@ const SortableList = observer((props) => {
     valueDistance,
     component: Component,
     sortableRef,
+    getContainerElement,
     ...rest
   } = props;
   const Item = React.useMemo(
@@ -35,7 +36,13 @@ const SortableList = observer((props) => {
   )), [className, idField, items]);
 
   return (
-    <List onSortEnd={onSortEnd} distance={valueDistance} className={className || ''} items={items} />
+    <List
+      helperContainer={getContainerElement}
+      onSortEnd={onSortEnd}
+      distance={valueDistance}
+      className={className || ''}
+      items={items}
+    />
   );
 });
 
@@ -47,6 +54,7 @@ SortableList.propTypes = {
   onSortEnd: PropTypes.func.isRequired,
   component: PropTypes.elementType.isRequired,
   items: PropTypes.arrayOrObservableArrayOf(PropTypes.shape({}).isRequired).isRequired,
+  getContainerElement: PropTypes.func,
 };
 
 SortableList.defaultProps = {

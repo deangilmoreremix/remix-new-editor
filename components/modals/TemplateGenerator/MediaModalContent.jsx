@@ -27,7 +27,7 @@ const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
   );
 
   useEffect(() => {
-    setHeader({ activeTab, setTab, tabs: generatorTabs });
+    setHeader({ activeTab, setTab, tabs: generatorTabs, closeButton: true });
   }, [activeTab]);
 
   const resetParams = () => {

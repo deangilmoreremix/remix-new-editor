@@ -7,9 +7,9 @@ import PropTypes from '../../../lib/PropTypes';
 import { tokenModes as modes, INPUT_PLACEHOLDER, CUSTOM, TOKEN_WINDOW_TITLE } from '../../../lib/constants/tokens';
 import FormTextField from '../../form/FormTextField';
 import HelpIconComponent from '../HelpIcon';
+import CloseButton from '../CloseButton';
 
 import svgCogWheel from '../../../public/static/images/cogwheel.svg';
-import closeIcon from '../../../public/static/images/media/delete-layer.svg';
 
 import { formatToken } from '../../../lib/utils/tokens-helper';
 import { personalizeTooltips } from '../../../lib/constants/tooltips';
@@ -46,17 +46,7 @@ const Personalization = ({ closeModal, tokenList, onAdd, tokenModes }) => {
       <div className="personalization__wrapper">
         <div className="personalization__header">
           <p className="personalization__header__title">{TOKEN_WINDOW_TITLE}</p>
-          <button
-            className="personalization__close"
-            type="button"
-            onClick={() => closeModal()}
-          >
-            <SVGInline
-              className=""
-              svg={closeIcon}
-              cleanup={['title']}
-            />
-          </button>
+          <CloseButton onClick={closeModal} />
         </div>
 
         <div className="personalization__body">

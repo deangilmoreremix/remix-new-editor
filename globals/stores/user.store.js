@@ -195,6 +195,16 @@ export default class UserStore {
   }
 
   @computed
+  get textToSpeechPitchEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_PITCH);
+  }
+
+  @computed
+  get textToSpeechSpeedEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_SPEED);
+  }
+
+  @computed
   get textToSpeechStandardEnabled() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_TEXT_TO_SPEECH_STANDARD);
   }
@@ -255,5 +265,10 @@ export default class UserStore {
   @computed
   get revolutionAdvancedOptInEnabled() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_ADVANCED_OPTIN);
+  }
+
+  @computed
+  get downloaderEnabled() {
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_DOWNLOADER);
   }
 }

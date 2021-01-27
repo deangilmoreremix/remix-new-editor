@@ -31,6 +31,7 @@ import { LibrarySpinner } from './Loader';
 import PersonalizeButton from '../common/personalization/PersonalizeButton';
 import FormTokensTextArea from '../form/FormTokensTextArea';
 import FormTextArea from '../form/FormTextArea';
+import FieldBuilder from '../form/FieldBuilder';
 import TextToSpeechLibrary from '../common/textToSpeech/TextToSpeechLibrary';
 
 import playIcon from '../../public/static/svgImages/voice/play-voice.svg';
@@ -52,6 +53,8 @@ const GoogleTextToSpeech = observer(() => {
     getTextSpeechSymbols,
     textToSpeechNeuralEnabled,
     onlyLimitedTextToSpeech,
+    textToSpeechSpeedEnabled,
+    textToSpeechPitchEnabled,
   } = useUserStore();
 
   const languages = React.useMemo(() => (onlyLimitedTextToSpeech ? LIMITED_LANGUAGES
@@ -76,6 +79,8 @@ const GoogleTextToSpeech = observer(() => {
           language: languages[0].value,
           voices: userVoices,
           allowedPro: textToSpeechNeuralEnabled,
+          pitch: 0,
+          speakingRate: 1,
         },
       });
     }
@@ -275,6 +280,8 @@ const GoogleTextToSpeech = observer(() => {
           engine: state.isPro ? ENGINE_TYPE_VALUES.NEURAL : ENGINE_TYPE_VALUES.STANDART,
           language: state.language,
           voice: state.voice.value,
+          pitch: state.pitch,
+          speakingRate: state.speakingRate,
           voiceId: state.isPro ? state.voice.pro : state.voice.standard,
           url: result.url,
           text: valueTextarea,
@@ -301,10 +308,26 @@ const GoogleTextToSpeech = observer(() => {
     dispatch({ type: ACTION_TYPES.SET_VOICE, value });
   };
 
+  const onPitchChange = ({ pitch: value }) => {
+    dispatch({ type: ACTION_TYPES.SET_PITCH, value });
+  };
+
+  const onSpeedChange = ({ speakingRate: value }) => {
+    dispatch({ type: ACTION_TYPES.SET_SPEAKING_RATE, value });
+  };
+
   useEffect(() => {
     setAudioFile(null);
     setAudio(null);
-  }, [state.isPro, state.language, state.voice, valueTextarea, fallbackValue]);
+  }, [
+    state.isPro,
+    state.language,
+    state.voice,
+    valueTextarea,
+    fallbackValue,
+    state.pitch,
+    state.speakingRate,
+  ]);
 
   useEffect(() => playVoice(), [audio]);
 
@@ -449,12 +472,44 @@ const GoogleTextToSpeech = observer(() => {
               <FormSelect
                 label="Voice"
                 items={state.selectedVoices}
-                className="text-to-speech__selection"
+                className="text-to-speech__selection-second"
                 selectClassName={classnames('text-to-speech__select-list',
                   { 'text-to-speech__select-voice-list': onlyLimitedTextToSpeech })}
                 value={state.voice.value}
                 onChange={onVoiceSelect}
               />
+              <div className="sliders-box">
+                {textToSpeechPitchEnabled && (
+                  <FieldBuilder
+                    isFloat
+                    inputClassName="slider-input"
+                    value={state.pitch}
+                    label="Pitch"
+                    name="pitch"
+                    type="slider"
+                    onChange={onPitchChange}
+                    minValue={-20}
+                    maxValue={20}
+                    step={0.1}
+                    containerClassName={classnames('current-slider', { 'slider-element': state.isPro })}
+                  />
+                )}
+                {textToSpeechSpeedEnabled && (
+                  <FieldBuilder
+                    isFloat
+                    inputClassName="slider-input"
+                    value={state.speakingRate}
+                    label="Speed"
+                    name="speakingRate"
+                    type="slider"
+                    onChange={onSpeedChange}
+                    minValue={0.25}
+                    maxValue={4}
+                    step={0.01}
+                    containerClassName={classnames('current-slider', { 'slider-element': state.isPro })}
+                  />
+                )}
+              </div>
             </div>
           </div>
 
@@ -596,7 +651,7 @@ const GoogleTextToSpeech = observer(() => {
           kind={lastKind}
         />
       </div>
-      <CloseButton onClick={closeWindow} />
+      <CloseButton className="close-button-extend" onClick={closeWindow} />
     </div>
   );
 });

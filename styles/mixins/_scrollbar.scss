@@ -1,6 +1,6 @@
 // Thin scrollbars styling
 
-@mixin tiny-scrollbar($thumbWidth: 6px, $thumbHeight: auto, $thumbColor: $thumbColor, $thumbHover: $thumbColor, $scrollbarColor:  $scrollbarColor) {
+@mixin tiny-scrollbar($thumbWidth: 6px, $thumbHeight: auto, $thumbColor: $backgroundSlider, $thumbHover: $backgroundSlider, $scrollbarColor:  $scrollbarColor) {
   overflow-y: auto;
   scrollbar-color: $thumbColor transparent;
   scrollbar-width: thin;

@@ -4,6 +4,7 @@ import classnames from 'classnames';
 
 import useProjectStore from '../hooks/useProjectStore';
 import useModalStore from '../hooks/useModalStore';
+import useUserStore from '../hooks/useUserStore';
 
 import PropTypes from '../../lib/PropTypes';
 import * as VALIDATORS from '../../lib/validators';
@@ -25,6 +26,7 @@ const UrlVideoModal = ({ setError }) => {
 
   const { addElement } = useProjectStore();
   const { closeModal } = useModalStore();
+  const { downloaderEnabled } = useUserStore();
 
   const onSelect = async (item) => {
     if (isLoading) {
@@ -65,8 +67,14 @@ const UrlVideoModal = ({ setError }) => {
   };
 
   const returnLink = () => (
-    // eslint-disable-next-line react/jsx-no-target-blank
-    <a href="http://download.vidcloud.io/" className="library__block--title" target="_blank">Download Video</a>
+    <a
+      href="http://download.vidcloud.io/"
+      className="library__block--title"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Download Video
+    </a>
   );
 
   return (
@@ -76,10 +84,11 @@ const UrlVideoModal = ({ setError }) => {
         svg={socialImg}
       />
       <p className="url-video-modal__title">
-        Add your URL or
+        Add your URL
         &nbsp;
-        {returnLink()}
+        {downloaderEnabled && 'or'}
         &nbsp;
+        {downloaderEnabled && returnLink()}
       </p>
       <div className="url-video-modal__block">
         <div className="url-video-modal__input-block">

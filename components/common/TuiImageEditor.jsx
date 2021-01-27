@@ -9,7 +9,6 @@ import useMediaStore from '../hooks/useMediaStore';
 import ImageButtons from '../imageEditor/ImageButtons';
 import { DEFAULT_IMAGE_NAME, BAR_POSITION, BASE_MENU, SIZE } from '../../lib/constants/imageEditor/tuiEditor';
 
-
 const TuiImageEditor = observer(({
   imageData,
   onImageEdited,

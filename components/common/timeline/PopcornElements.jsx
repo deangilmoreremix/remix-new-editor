@@ -43,9 +43,13 @@ const PopcornElements = observer(({
     projectData,
     updateVideoDuration,
     updateElementFromTimeline,
-    addElement,
+    createNewElement,
     releaseElement,
+    setUndo,
+    setIsAddingTransition,
+    removeTransition,
     activeElementId,
+    removedTransition,
   } = useProjectStore();
 
   const {
@@ -111,6 +115,7 @@ const PopcornElements = observer(({
   }, [getExtraDuration]);
 
   const insertTransition = async ({ transition, element }) => {
+    setIsAddingTransition(true);
     const transitionDuration = +((transition.end - transition.start).toFixed(2));
     transition.start = +(transition.start.toFixed(2)) + TRANSITION_TIMELINE_OFFSET;
     transition.end = +(transition.end.toFixed(2)) + TRANSITION_TIMELINE_OFFSET;
@@ -138,7 +143,7 @@ const PopcornElements = observer(({
         return null;
       });
     });
-
+    setUndo();
     if (elementsForUpdate && elementsForUpdate.length) {
       elementsForUpdate.forEach(item => {
         if (item.popcornOptions.start <= itemStartAfterToVideo || !itemStartAfterToVideo) {
@@ -160,7 +165,7 @@ const PopcornElements = observer(({
             elementId: item.id,
             start: item.popcornOptions.start + transitionDuration,
             end: item.popcornOptions.end + transitionDuration,
-          })));
+          }, false)));
       }
     }
 
@@ -169,11 +174,16 @@ const PopcornElements = observer(({
       elementId: element.id,
       start: transition.end + TRANSITION_TIMELINE_OFFSET,
       end: (element.end - element.start) + transition.end,
-    });
-    await addElement({
+    }, false);
+    await createNewElement({
       ...DEFAULT_SETTINGS[POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION],
       ...transition,
     });
+    setIsAddingTransition(false);
+    if (removedTransition) {
+      setUndo();
+    }
+    removeTransition();
   };
 
   const layouts = React.useMemo(() => elements.map(element => {

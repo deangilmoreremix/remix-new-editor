@@ -133,9 +133,22 @@ export default class Media extends BaseStore {
   };
 
   saveTextToSpeech = async (props) => {
-    const { engine, language, text, voice, url, isPersonalizeText, fallbackValue, voiceId } = props;
+    const {
+      engine,
+      language,
+      text,
+      voice,
+      url,
+      isPersonalizeText,
+      fallbackValue,
+      voiceId,
+      pitch,
+      speakingRate,
+    } = props;
+
     const path = isPersonalizeText ? '/api/users/me/media-assets/save-template-voice'
       : '/api/users/me/media-assets/save-voice';
+
     const body = {
       extra: {
         engine,
@@ -143,10 +156,11 @@ export default class Media extends BaseStore {
         voice,
         text,
         voiceId,
-        audioConfig: { audioEncoding: 'MP3' },
+        audioConfig: { audioEncoding: 'MP3', pitch, speakingRate },
       },
       url,
     };
+
     if (isPersonalizeText) {
       body.extra.fallbackValue = fallbackValue;
     }
@@ -207,11 +221,16 @@ export default class Media extends BaseStore {
   };
 
   getTemporaryGoogleTextToSpeech = async (props) => {
-    const { state: { language, isPro, voice }, text } = props;
+    const {
+      state: { language, isPro, voice, speakingRate, pitch }, text,
+    } = props;
     const body = {};
+
     body.text = text;
     body.languageCode = language;
     body.name = isPro ? voice.pro : voice.standard;
+    body.pitch = pitch;
+    body.speakingRate = speakingRate;
 
     try {
       const response = await this.selfRequest(
@@ -353,7 +372,6 @@ export default class Media extends BaseStore {
        _id: gif.id,
      }));
    };
-
 
   @action
   setLibraryItemsForDelete = (id) => {

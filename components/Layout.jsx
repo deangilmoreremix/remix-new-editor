@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Head from 'next/head';
 import { Provider, observer } from 'mobx-react';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
+import { CssBaseline } from '@material-ui/core';
 
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -49,14 +50,20 @@ class Layout extends Component {
     this.currentUser = currentUser;
   }
 
+  componentDidMount() {
+    const { common: { whiteLabelManager } } = this.stores;
+    document.body.classList.add(`theme-${whiteLabelManager.key}`);
+  }
+
   render() {
     if (process.browser) {
       PopcornProxy.init(window);
     }
-    const { children, Header: BaseHeader, layoutClassName } = this.props;
+    const { children, Header: BaseHeader, layoutClassName, className, ...rest } = this.props;
     const { common: { whiteLabelManager } } = this.stores;
     return (
       <ThemeProvider theme={this.theme}>
+        <CssBaseline />
         <Provider {...this.stores}>
           <DndProvider backend={HTML5Backend}>
             {whiteLabelManager.domain === DOMAIN_VIDEOREMIX
@@ -155,14 +162,14 @@ class Layout extends Component {
               </Head>
               {this.hasPermissions ? (
                 <div>
-                  { BaseHeader ? <BaseHeader className={`theme-${whiteLabelManager.key}`} />
+                  { BaseHeader ? <BaseHeader className={`theme-${whiteLabelManager.key} ${className}-baseheader`} />
                     : (
                       <Header
                         whiteLabelManager={whiteLabelManager}
                         className={`theme-${whiteLabelManager.key}`}
                       />
                     ) }
-                  <div {...this.props} className={`main theme-${whiteLabelManager.key}`}>
+                  <div {...rest} className={`main theme-${whiteLabelManager.key}`}>
                     <ModalContainer classNameWL={`theme-${whiteLabelManager.key}`} />
                     {children}
                   </div>
@@ -204,12 +211,13 @@ class Layout extends Component {
 
 Layout.propTypes = {
   children: PropTypes.element.isRequired,
-  Header: PropTypes.element,
+  Header: PropTypes.shape({}),
   // eslint-disable-next-line react/forbid-prop-types
   stores: PropTypes.any,
   // eslint-disable-next-line react/forbid-prop-types
   creator: PropTypes.any,
   layoutClassName: PropTypes.string,
+  className: PropTypes.string,
 };
 
 export default Layout;
