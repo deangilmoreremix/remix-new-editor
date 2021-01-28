@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState, useMemo } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
@@ -19,13 +19,11 @@ import redoIcon from '../public/static/svgImages/header/redo.svg';
 import undoIcon from '../public/static/svgImages/header/undo.svg';
 import saveIcon from '../public/static/svgImages/header/save.svg';
 import editIcon from '../public/static/svgImages/header/edit-project.svg';
-import voiceIcon from '../public/static/svgImages/header/logo-text-to-speech.svg';
 
 import useProjectStore from './hooks/useProjectStore';
 import useCommonStore from './hooks/useCommonStore';
 
 import useUIStore from './hooks/useUIStore';
-import useUserStore from './hooks/useUserStore';
 import Sidebar from './Sidebar';
 
 import PropTypes from '../lib/PropTypes';
@@ -51,12 +49,6 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     updateItem,
   } = useProjectStore();
 
-  const {
-    textToSpeechStandardEnabled,
-    textToSpeechNeuralEnabled,
-    textToSpeechLimitedEnabled,
-  } = useUserStore();
-
   const common = useCommonStore();
 
   const {
@@ -79,15 +71,6 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       setProjectTitle(false);
     }
   };
-
-  const isViewVoiceBtn = useMemo(() => !!((textToSpeechStandardEnabled
-      || textToSpeechNeuralEnabled
-      || textToSpeechLimitedEnabled)
-      && whiteLabelManager.domain === DOMAIN_VIDEOREMIX), [
-    textToSpeechStandardEnabled,
-    textToSpeechNeuralEnabled,
-    textToSpeechLimitedEnabled,
-  ]);
 
   return (
     <div className="container-header" ref={anchorRef}>
@@ -204,16 +187,6 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
             />
           </div>
           <ExpandButton />
-          {isViewVoiceBtn && (
-            <div className="text-to-speech-logo">
-              <SVGInline
-                className="text-to-speech-logo__icon"
-                classSuffix=""
-                svg={voiceIcon}
-                cleanup={['title']}
-              />
-            </div>
-          )}
           <Menu
             toggleElement={<UserBox />}
             items={USER_MENU_ITEMS(common)}
