@@ -356,6 +356,8 @@ export default class ProjectStore extends BaseStore {
     options.id = `0.${this.generateUid()}`;
     options.zindex = track && track.order ? MAX_ZINDEX - track.order : MAX_ZINDEX;
     options.opacity = 100;
+    options.left = item?.left;
+    options.top = item?.top;
 
     switch (type) {
       case SEQUENCER: {
@@ -852,6 +854,11 @@ export default class ProjectStore extends BaseStore {
           track.trackEvents = _.uniqWith(track.trackEvents, _.isEqual);
         }
         track.trackEvents.forEach((trackEvent) => {
+          if (trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
+            || trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT) {
+            const { isSuperAdmin } = this.userStore;
+            trackEvent.popcornOptions.isSuperAdmin = isSuperAdmin;
+          }
           trackEvent.track = track.id;
           elements.push({
             ...trackEvent,
