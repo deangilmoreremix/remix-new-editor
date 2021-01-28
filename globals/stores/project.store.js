@@ -2101,6 +2101,7 @@ export default class ProjectStore extends BaseStore {
     this.elements = [element, ...this.elements];
 
     this.editElement(element.id);
+    emitter.emit(emitterActions.SELECT, element.id);
   };
 
   @observable
