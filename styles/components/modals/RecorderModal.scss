@@ -39,3 +39,17 @@
     }
   }
 }
+.pic-to-pic {
+  position: absolute !important;
+  height: 30px !important;
+  bottom: 0;
+  left: 25%;
+
+  &-disable {
+    .vjs-control-bar {
+      .vjs-pip-button {
+        display: none;
+      }
+    }
+  }
+}

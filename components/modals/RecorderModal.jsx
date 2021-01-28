@@ -245,8 +245,20 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
           ) : (
             <div>
               <div data-vjs-player>
-                <video ref={videoRef} className="video-js vjs-default-skin" playsInline />
-                {showHiddenButton && <button className="recorder-button-hidden" onClick={handleClick} />}
+                <video
+                  ref={videoRef}
+                  className="video-js vjs-default-skin pic-to-pic-disable"
+                  playsInline
+                />
+                {showHiddenButton && (
+                  <>
+                    <button className="recorder-button-hidden" onClick={handleClick} />
+                    <button
+                      onClick={() => videoRef.current.requestPictureInPicture()}
+                      className="pic-to-pic vjs-pip-button vjs-control vjs-button vjs-icon-picture-in-picture-start"
+                    />
+                  </>
+                )}
               </div>
               <div className={`recorder-modal-options ${saveOptionsVisible ? '' : 'recorder-modal-options_hidden'}`}>
                 <button
