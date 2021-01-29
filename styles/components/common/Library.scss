@@ -5,7 +5,7 @@
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
-  height: $toolbarHeight - 5vh;
+  height: $defaultBlockHeight;
   background: $light-twinlight;
   box-sizing: border-box;
   font-family: $font-primary;
@@ -21,7 +21,7 @@
     background: linear-gradient(
         to bottom,
         rgba(23, 23, 28, 0),
-        $dark-twinlight,
+        $dark-twinlight
     );
     width: 100%;
     height: 15%;

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
-import classnames from 'classnames';
 
+import { editorStyles } from '../../../lib/constants/editorStyles';
 import PropTypes from '../../../lib/PropTypes';
 import useUIStore from '../../hooks/useUIStore';
+import useTimelineStore from '../../hooks/useTimelineStore';
 
 import arrowIcon from '../../../public/static/svgImages/common/arrow-back.svg';
 import { WINDOW_TYPES, TOOLBARS } from '../../../lib/constants/ui';
@@ -20,14 +21,15 @@ const Toolbar = observer(({ items }) => {
     },
     setToolbarItem,
     isExpand,
-    isTimelineOpen,
     toggleVisibleCanvas,
     isCanvasPresent,
     secondaryWindowType,
     toggleRightBlock,
   } = useUIStore();
 
-  React.useEffect(() => {
+  const { timelineHeight } = useTimelineStore();
+
+  useEffect(() => {
     if (items && items.length && !id) {
       setToolbarItem(items[1].id);
     }
@@ -55,8 +57,12 @@ const Toolbar = observer(({ items }) => {
     setToolbarItem(label);
   };
 
+  const libraryHeight = useMemo(() => (
+    editorStyles.calculateHeight(timelineHeight - editorStyles.toolbar.differencePX)
+  ), [timelineHeight]);
+
   return (
-    <div className={classnames('toolbar-container', { 'big-window': !isTimelineOpen })}>
+    <div style={{ height: libraryHeight }} className="toolbar-container">
       <div className="toolbar-tabs">
         {items.map(({ label, icon, id: tabId, func, tooltip }) => (
           <button

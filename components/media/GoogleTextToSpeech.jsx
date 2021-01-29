@@ -18,11 +18,13 @@ import {
 import { addToken, wrapTokens, unwrapTokens } from '../../lib/utils/tokens-helper';
 import { TOKEN_REGEX, tokenModes } from '../../lib/constants/tokens';
 import { POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
+import { editorStyles } from '../../lib/constants/editorStyles';
 
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useUserStore from '../hooks/useUserStore';
 import useProjectStore from '../hooks/useProjectStore';
+import useTimelineStore from '../hooks/useTimelineStore';
 
 import FormSelect from '../form/FormSelect';
 import { showError } from '../../lib/services/alertService';
@@ -43,7 +45,7 @@ import { ACTION_TYPES } from '../../lib/constants/reducers/voiceReducer';
 
 const GoogleTextToSpeech = observer(() => {
   const { voiceTextId, setVoiceTextId, findElement } = useProjectStore();
-  const { toggleRightBlock, isTimelineOpen, toggleVisibleCanvas } = useUIStore();
+  const { toggleRightBlock, toggleVisibleCanvas } = useUIStore();
   const {
     getTemporaryGoogleTextToSpeech,
     saveTemporaryTextToSpeech,
@@ -56,6 +58,7 @@ const GoogleTextToSpeech = observer(() => {
     textToSpeechSpeedEnabled,
     textToSpeechPitchEnabled,
   } = useUserStore();
+  const { timelineHeight } = useTimelineStore();
 
   const languages = React.useMemo(() => (onlyLimitedTextToSpeech ? LIMITED_LANGUAGES
     : UNLIMITED_LANGUAGES), [onlyLimitedTextToSpeech]);
@@ -436,8 +439,12 @@ const GoogleTextToSpeech = observer(() => {
     return null;
   }, [maxTextSymbols, htmlText, isPersonalizeText, symbols]);
 
+  const libraryHeight = useMemo(() => (
+    editorStyles.calculateHeight(timelineHeight)
+  ), [timelineHeight]);
+
   return (
-    <div className={classnames('text-to-speech', { 'big-window': !isTimelineOpen })}>
+    <div style={{ height: libraryHeight }} className="text-to-speech">
       <div className="text-to-speech__title-wrapper">
         <span className="text-to-speech__title">TEXT TO SPEECH</span>
       </div>

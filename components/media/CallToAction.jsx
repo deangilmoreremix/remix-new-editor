@@ -1,19 +1,26 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
-import classnames from 'classnames';
+
+import { editorStyles } from '../../lib/constants/editorStyles';
+
+import useUIStore from '../hooks/useUIStore';
+import useTimelineStore from '../hooks/useTimelineStore';
 
 import LibraryCTA from '../common/libraryCTA/LibraryCTA';
 import CloseButton from '../common/CloseButton';
 
-import useUIStore from '../hooks/useUIStore';
-
 const CallToAction = observer(() => {
-  const { toggleRightBlock, isTimelineOpen } = useUIStore();
+  const { toggleRightBlock } = useUIStore();
+  const { timelineHeight } = useTimelineStore();
 
   const handleClose = () => toggleRightBlock(false);
 
+  const libraryHeight = useMemo(() => (
+    editorStyles.calculateHeight(timelineHeight)
+  ), [timelineHeight]);
+
   return (
-    <div className={classnames('library-cta', { 'big-window': !isTimelineOpen })}>
+    <div style={{ height: libraryHeight }} className="library-cta">
       <div className="flex">
         <header className="library-cta__header">Add Call To Action Button</header>
         <CloseButton onClick={handleClose} />

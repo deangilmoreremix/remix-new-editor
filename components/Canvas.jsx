@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useDrop } from 'react-dnd';
 import { useWindowSize } from '@react-hook/window-size';
@@ -7,12 +7,15 @@ import { CircleLoader } from 'react-spinners';
 
 import useProjectStore from './hooks/useProjectStore';
 import useUIStore from './hooks/useUIStore';
+import useTimelineStore from './hooks/useTimelineStore';
+
 import {
   DEFAULT_RATIO,
   DEFAULT_VIDEO_WIDTH,
   DEFAULT_FONT_SIZE,
   DEFAULT_CONTAINER,
 } from '../lib/constants/project';
+import { editorStyles } from '../lib/constants/editorStyles';
 
 import { LOADING_COLOR } from '../lib/constants/ui';
 import { acceptedDraggableItems } from '../lib/constants/dragNDropConstants';
@@ -44,8 +47,12 @@ const Canvas = observer(() => {
     toggleRightBlock,
   } = uiStore;
 
-  const [style, setStyle] = React.useState({});
-  const [fontSize, setFontSize] = React.useState(DEFAULT_FONT_SIZE);
+  const { timelineHeight } = useTimelineStore();
+
+  const [style, setStyle] = useState({});
+  const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
+  const [canvasHeight, setCanvasHeight] = useState(`calc(100vh - ${editorStyles.canvas.canvasDefaultDifferencePX}px)`);
+
   const [windowWidth, windowHeight] = useWindowSize();
 
   const aspectRatio = useMemo(() => {
@@ -78,7 +85,12 @@ const Canvas = observer(() => {
     isExpand,
     radioButtonBottom,
     isTimelineOpen,
+    canvasHeight,
   ]);
+
+  useEffect(() => {
+    setCanvasHeight(`calc(100vh - ${editorStyles.canvas.canvasDifferencePX}px - ${timelineHeight}px)`);
+  }, [timelineHeight]);
 
   useEffect(() => {
     if (wrapper.current) {
@@ -121,7 +133,7 @@ const Canvas = observer(() => {
   });
 
   return (
-    <div ref={ref} className={classnames('stager-wrapper', { 'stager-wrapper-big': !isTimelineOpen })}>
+    <div ref={ref} style={{ height: canvasHeight }} className="stager-wrapper">
       <GuidelinesActivation marginLeft={style.margin && style.margin.split(' ')[1]} />
       { retarget && retarget.showed ? (
         <PersonalizerActivation

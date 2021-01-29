@@ -1,12 +1,14 @@
 $left-side-width: 256px;
 
 .timeline {
-  position: relative;
+  position: fixed;
+  left: 0;
+  bottom: 0;
   height: $timeline-height-closed;
   background-color: $light-twinlight;
   width: 100%;
   transition: 0.3s all;
-  z-index: 15;
+  z-index: 1008;
 
   &-open {
     height: $timeline-height;
@@ -19,7 +21,7 @@ $left-side-width: 256px;
   display: flex;
   position: relative;
   margin: 29px 14px 0 0;
-  height: 140px;
+  height: calc(100% - 113px);
 }
 
 .layers-settings {
@@ -390,10 +392,12 @@ div.popcorn-element-personalized-voice {
   display: inline-flex;
   align-items: center;
   position: absolute;
-  bottom: 2.5rem;
-  left: 47%;
+  bottom: 35px;
+  left: 50%;
+  transform: translateX(-50%);
   background-color: $light-twinlight;
-  border-radius: 4px;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
 
   .time-current, .time-total {
     font-size: $defaultFontSize;
@@ -553,6 +557,7 @@ div.popcorn-element-personalized-voice {
 .timeline-top {
   display: flex;
   align-items: center;
+  position: relative;
 
   .MuiSlider-root {
     z-index: 2;
@@ -763,16 +768,6 @@ div.popcorn-element-personalized-voice {
       border-color: $secondary-color transparent transparent transparent;
     }
 
-    &:before {
-      content: '';
-      width: 1px;
-      height: 225px;
-      background-color: $secondary-color;
-      position: absolute;
-      top: 13px;
-      z-index: 3;
-    }
-
     &:hover {
       box-shadow: none;
     }
@@ -817,3 +812,19 @@ div.popcorn-element-personalized-voice {
   overflow: hidden;
 }
 
+.tray-resize {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 7px;
+  cursor: row-resize;
+  z-index: 10;
+  background: $white;
+  opacity: 0;
+  transition: 0.3s opacity;
+
+  &:hover {
+    opacity: 0.03;
+  }
+}

@@ -1,17 +1,21 @@
-import * as React from 'react';
+import React, { useMemo, useRef } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import isEqual from 'lodash/isEqual';
 
 import useUIStore from '../hooks/useUIStore';
+import useTimelineStore from '../hooks/useTimelineStore';
+import { editorStyles } from '../../lib/constants/editorStyles';
 
 import PropTypes from '../../lib/PropTypes';
 
 const baseDimension = 2;
 
 const SizeSelector = observer(({ active, sizes, onChange }) => {
-  const uiStore = useUIStore();
-  const { isCanvasPresent } = uiStore;
+  const selectorRef = useRef(null);
+
+  const { isCanvasPresent } = useUIStore();
+  const { timelineHeight } = useTimelineStore();
 
   const getStyle = ({ width, height }) => {
     const ratio = width / height;
@@ -22,8 +26,15 @@ const SizeSelector = observer(({ active, sizes, onChange }) => {
     };
   };
 
+  const positionTop = useMemo(() => {
+    if (selectorRef?.current) {
+      const selectorHeight = selectorRef.current.getBoundingClientRect().height;
+      return `calc((${editorStyles.pageHeightWithoutHeader} - ${selectorHeight / 2 + timelineHeight}px)/2)`;
+    }
+  }, [timelineHeight, selectorRef]);
+
   return (
-    <div className={classnames('canvas-size-selector', { hidden: !isCanvasPresent })}>
+    <div ref={selectorRef} style={{ top: positionTop }} className={classnames('canvas-size-selector', { hidden: !isCanvasPresent })}>
       {sizes.map(({ width, height }) => (
         <button
           key={`${width}:${height}`}
