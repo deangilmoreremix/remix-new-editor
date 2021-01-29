@@ -30,10 +30,9 @@ const ModalContainer = observer(({ classNameWL }) => {
     maxWidth,
     renderer: ModalComponent,
     header: headerProps,
+    themeChange,
     ...props
   }) => {
-    const { themeChange } = props;
-
     const close = () => {
       if (headerProps && headerProps.onClose) {
         headerProps.onClose();

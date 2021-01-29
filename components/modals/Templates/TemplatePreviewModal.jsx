@@ -50,7 +50,7 @@ const TemplatePreviewModal = ({ options }) => {
 TemplatePreviewModal.propTypes = {
   options: PropTypes.shape({
     item: PropTypes.shape({
-      preview: PropTypes.string.isRequired,
+      preview: PropTypes.string,
       title: PropTypes.string.isRequired,
     }).isRequired,
     mute: PropTypes.bool,
