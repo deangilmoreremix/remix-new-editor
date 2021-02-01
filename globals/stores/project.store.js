@@ -2100,6 +2100,7 @@ export default class ProjectStore extends BaseStore {
     // update duration
     if (options.end > this.duration / SANTISECOND) {
       this.recompressProject(options.end, false);
+      this.updateTime(options.start);
       this.setPopcorn(this.popcorn.target);
       this.duration = Math.ceil(options.end * SANTISECOND);
     }
