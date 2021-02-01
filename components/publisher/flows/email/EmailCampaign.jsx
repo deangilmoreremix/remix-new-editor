@@ -11,11 +11,12 @@ import {
   EMAIL_SKIP_TOKENS,
   DEFAULT,
   SERVICE_PROVIDER,
+  EMAIL_FRAME,
 } from '../../../../lib/constants/campaigns/constants';
 
 
 const EmaiCampaign = ({ isLoading, handleClose }) => {
-  const [currentStage, setStage] = React.useState(EMAIL_STAGES[0]);
+  const [currentStage, setStage] = React.useState({ ...EMAIL_STAGES[0] });
   const [settings, setSettings] = React.useState({
     embedLocation: EMAIL_EMBED_LOCATIONS[0],
     embedPage: null,
@@ -29,6 +30,14 @@ const EmaiCampaign = ({ isLoading, handleClose }) => {
   const updateCampaign = (newSettings) => {
     setSettings({ ...settings, ...newSettings });
   };
+
+  React.useEffect(() => {
+    if (settings.embedLocation.key === EMAIL_FRAME) {
+      setStage({ ...currentStage, completionPercentage: 100 });
+    } else {
+      setStage({ ...EMAIL_STAGES[0] });
+    }
+  }, [settings?.embedLocation?.key]);
 
   const canBypassStage = (stage) => () => {
     const {
