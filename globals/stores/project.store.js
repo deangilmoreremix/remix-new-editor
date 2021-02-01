@@ -8,7 +8,7 @@ import Router from 'next/router';
 import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
-import { ASSET_TYPES } from '../../lib/constants/media';
+import { ASSET_TYPES, AUDIO_KINDS } from '../../lib/constants/media';
 import { GOOGLE_MAP_VALUES } from '../../lib/constants/googleMap';
 import preRemixVoice from '../../lib/constants/preRemixVoice';
 import { PRE_REMIX_VOICE_MODAL } from '../../lib/constants/modals';
@@ -380,8 +380,9 @@ export default class ProjectStore extends BaseStore {
         let { fileMeta } = item;
         if (!fileMeta) {
           try {
-            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], item.kind === 'audio'
-              ? 'audio' : 'video', fileDuration,
+            const isAudio = AUDIO_KINDS.includes(item.kind);
+            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], isAudio
+              ? ASSET_TYPES.AUDIO : ASSET_TYPES.VIDEO, fileDuration,
             this.userStore.video360Enabled);
           } catch (e) {
             // if there is no error, then loading will hide, after adding the item to the popcorn
