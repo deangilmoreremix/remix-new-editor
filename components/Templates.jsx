@@ -39,6 +39,9 @@ const Templates = observer(() => {
       filter: {
         archived: { $in: [null, false] },
       },
+      orderBy: {
+        createdAt: -1,
+      },
     },
   }), []);
 

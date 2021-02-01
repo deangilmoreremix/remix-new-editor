@@ -5,6 +5,7 @@ import PropTypes from '../../../lib/PropTypes';
 
 import VideoPlayer from '../../media/VideoGallery/VideoPlayer';
 import useUserStore from '../../hooks/useUserStore';
+import IframePlayer from '../../media/VideoGallery/IframePlayer';
 
 const TemplatePreviewModal = ({ options }) => {
   const { item, mute } = options;
@@ -12,7 +13,7 @@ const TemplatePreviewModal = ({ options }) => {
 
   return (
     <Fragment>
-      {item.preview && (
+      {item.preview ? (
         <VideoPlayer
           autoPlay
           url={item.preview}
@@ -20,7 +21,7 @@ const TemplatePreviewModal = ({ options }) => {
           containerClassName="template-preview-modal__container"
           videoClassName="template-preview-modal__video"
         />
-      )}
+      ) : <IframePlayer item={item} />}
       <div className="template-preview-modal__panel">
         <span
           className={
@@ -51,6 +52,7 @@ TemplatePreviewModal.propTypes = {
   options: PropTypes.shape({
     item: PropTypes.shape({
       preview: PropTypes.string,
+      url: PropTypes.string.isRequired,
       title: PropTypes.string.isRequired,
     }).isRequired,
     mute: PropTypes.bool,

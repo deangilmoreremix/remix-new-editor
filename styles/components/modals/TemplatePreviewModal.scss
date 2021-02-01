@@ -17,6 +17,17 @@
     width: 100%;
   }
 
+  .iframe-container {
+    display: flex;
+    justify-content: center;
+    min-height: 32.5rem;
+    position: relative;
+
+    iframe {
+      width: 100%;
+    }
+  }
+
   &__panel {
     display: flex;
     justify-content: space-between;
