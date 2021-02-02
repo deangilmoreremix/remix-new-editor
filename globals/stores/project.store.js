@@ -855,8 +855,8 @@ export default class ProjectStore extends BaseStore {
           track.trackEvents = _.uniqWith(track.trackEvents, _.isEqual);
         }
         track.trackEvents.forEach((trackEvent) => {
-          if (trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
-            || trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT) {
+          if ((trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
+            || trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT) && trackEvent.popcornOptions) {
             const { isSuperAdmin } = this.userStore;
             trackEvent.popcornOptions.isSuperAdmin = isSuperAdmin;
           }
