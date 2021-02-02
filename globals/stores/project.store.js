@@ -2035,6 +2035,10 @@ export default class ProjectStore extends BaseStore {
       return showInfo(FORM_ONE_LG.text, FORM_ONE_LG.title);
     }
 
+    if (type === POPCORN_ELEMENT_TYPES.PAUSE) {
+      item.stopAction = true;
+    }
+
     if (startInDrag) {
       item.start = startInDrag;
     }
