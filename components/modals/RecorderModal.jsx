@@ -57,6 +57,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   const [showHiddenButton, setShowHiddenButton] = useState(false);
   const [time, setTime] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPipButton, setShowPipButton] = useState(false);
 
   let { current: player } = playerRef;
 
@@ -79,6 +80,9 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
 
       player.on('deviceReady', () => {
         setShowHiddenButton(true);
+        if (config.plugins.record.video !== false) {
+          setShowPipButton(true);
+        }
       });
 
       player.recordToggle.on('click', () => {
@@ -245,8 +249,20 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
           ) : (
             <div>
               <div data-vjs-player>
-                <video ref={videoRef} className="video-js vjs-default-skin" playsInline />
-                {showHiddenButton && <button className="recorder-button-hidden" onClick={handleClick} />}
+                <video
+                  ref={videoRef}
+                  className="video-js vjs-default-skin pic-to-pic-disable"
+                  playsInline
+                />
+                {showHiddenButton && (
+                  <button className="recorder-button-hidden" onClick={handleClick} />
+                )}
+                {showPipButton && (
+                  <button
+                    onClick={() => videoRef.current.requestPictureInPicture()}
+                    className="pic-to-pic vjs-pip-button vjs-control vjs-button vjs-icon-picture-in-picture-start"
+                  />
+                )}
               </div>
               <div className={`recorder-modal-options ${saveOptionsVisible ? '' : 'recorder-modal-options_hidden'}`}>
                 <button

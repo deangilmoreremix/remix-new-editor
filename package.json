@@ -97,7 +97,7 @@
     "node-uuid": "1.4.8",
     "normalize.css": "8.0.1",
     "noxmox": "0.2.4",
-    "popcorn-js": "git://github.com/strategic-limited/popcorn-js.git#ad79aaa1f5120e9ea91c94d08c8637bb03cf789b",
+    "popcorn-js": "git://github.com/strategic-limited/popcorn-js.git#060d40cb3b1a9aff4f67f9c479071b49aa27959a",
     "postcss-easy-import": "3.0.0",
     "postcss-loader": "3.0.0",
     "prop-types": "15.7.2",

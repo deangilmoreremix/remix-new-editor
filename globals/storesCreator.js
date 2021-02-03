@@ -223,6 +223,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
         common: creator.common,
         isServer,
         currentUser: creator.currentUser,
+        userStore,
       }),
       multiSelectStore: new MultiselectStore({ projectStore, userStore }),
     };
@@ -288,6 +289,7 @@ export function init(source) {
         common: creator.common,
         isServer,
         currentUser: creator.currentUser,
+        userStore,
       }),
       multiSelectStore: new MultiselectStore({ projectStore, userStore }),
     };

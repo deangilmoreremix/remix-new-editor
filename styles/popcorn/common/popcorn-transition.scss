@@ -11,6 +11,36 @@
   visibility: hidden;
   opacity: 0 !important;
 }
+.popcorn-slide-up.on {
+  -webkit-animation: slideUp 0.3s;
+  -moz-animation: slideUp 0.3s;
+  -o-animation: slideUp 0.3s;
+  -ms-animation: slideUp 0.3s;
+  animation: slideUp 0.3s;
+}
+.popcorn-slide-up.off {
+  -webkit-animation: slideUpEnd 0.3s;
+  -moz-animation: slideUpEnd 0.3s;
+  -o-animation: slideUpEnd 0.3s;
+  -ms-animation: slideUpEnd 0.3s;
+  animation: slideUpEnd 0.3s;
+  visibility: hidden;
+}
+.popcorn-slide-down {
+  -webkit-animation: slideDown 0.3s;
+  -moz-animation: slideDown 0.3s;
+  -o-animation: slideDown 0.3s;
+  -ms-animation: slideDown 0.3s;
+  animation: slideDown 0.3s;
+}
+.popcorn-slide-down.off {
+  -webkit-animation: slideDownEnd 0.3s;
+  -moz-animation: slideDownEnd 0.3s;
+  -o-animation: slideDownEnd 0.3s;
+  -ms-animation: slideDownEnd 0.3s;
+  animation: slideDownEnd 0.3s;
+  visibility: hidden;
+}
 .popcorn-fade-in {
   -webkit-animation: fadein 0.3s;
   /* Safari, Chrome and Opera > 12.1 */
@@ -26,6 +56,215 @@
   opacity: 0;
   visibility: hidden;
 }
+
+/* ----- SlideUp key frames ----- */
+@keyframes slideUp {
+  from {
+    margin-top: -100%;
+  }
+  to {
+    margin-top: 0;
+  }
+}
+/* Firefox < 16 */
+@-moz-keyframes slideUp {
+  from {
+    margin-top: -100%;
+  }
+  to {
+    margin-top: 0;
+  }
+}
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes slideUp {
+  from {
+    margin-top: -100%;
+  }
+  to {
+    margin-top: 0;
+  }
+}
+/* Internet Explorer */
+@-ms-keyframes slideUp {
+  from {
+    margin-top: -100%;
+  }
+  to {
+    margin-top: 0;
+  }
+}
+/* Opera < 12.1 */
+@-o-keyframes slideUp {
+  from {
+    margin-top: -100%;
+  }
+  to {
+    margin-top: 0;
+  }
+}
+/* --------- SlideUp end ---------- */
+
+/* ----- SlideDown key frames ----- */
+@keyframes slideDown {
+  from {
+    margin-top: 100%;
+  }
+  to {
+    margin-top: 0;
+  }
+}
+/* Firefox < 16 */
+@-moz-keyframes slideDown {
+  from {
+    margin-top: 100%;
+  }
+  to {
+    margin-top: 0;
+  }
+}
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes slideDown {
+  from {
+    margin-top: 100%;
+  }
+  to {
+    margin-top: 0;
+  }
+}
+/* Internet Explorer */
+@-ms-keyframes slideDown {
+  from {
+    margin-top: 100%;
+  }
+  to {
+    margin-top: 0;
+  }
+}
+/* Opera < 12.1 */
+@-o-keyframes slideDown {
+  from {
+    margin-top: 100%;
+  }
+  to {
+    margin-top: 0;
+  }
+}
+/* --------- SlideDown end ---------- */
+
+/* ----- SlideUpEnd key frames ----- */
+@keyframes slideUpEnd {
+  from {
+    margin-top: 0;
+    visibility: visible;
+  }
+  to {
+    margin-top: -100%;
+    visibility: hidden;
+  }
+}
+/* Firefox < 16 */
+@-moz-keyframes slideUpEnd {
+  from {
+    margin-top: 0;
+    visibility: visible;
+  }
+  to {
+    margin-top: -100%;
+    visibility: hidden;
+  }
+}
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes slideUpEnd {
+  from {
+    margin-top: 0;
+    visibility: visible;
+  }
+  to {
+    margin-top: -100%;
+    visibility: hidden;
+  }
+}
+/* Internet Explorer */
+@-ms-keyframes slideUpEnd {
+  from {
+    margin-top: 0;
+    visibility: visible;
+  }
+  to {
+    margin-top: -100%;
+    visibility: hidden;
+  }
+}
+/* Opera < 12.1 */
+@-o-keyframes slideUpEnd {
+  from {
+    margin-top: 0;
+    visibility: visible;
+  }
+  to {
+    margin-top: -100%;
+    visibility: hidden;
+  }
+}
+/* --------- SlideUpEnd end ---------- */
+
+/* ----- SlideDownEnd key frames ----- */
+@keyframes slideDownEnd {
+  from {
+    margin-top: 0;
+    visibility: visible;
+  }
+  to {
+    margin-top: 100%;
+    visibility: hidden;
+  }
+}
+/* Firefox < 16 */
+@-moz-keyframes slideDownEnd {
+  from {
+    margin-top: 0;
+    visibility: visible;
+  }
+  to {
+    margin-top: 100%;
+    visibility: hidden;
+  }
+}
+/* Safari, Chrome and Opera > 12.1 */
+@-webkit-keyframes slideDownEnd {
+  from {
+    margin-top: 0;
+    visibility: visible;
+  }
+  to {
+    margin-top: 100%;
+    visibility: hidden;
+  }
+}
+/* Internet Explorer */
+@-ms-keyframes slideDownEnd {
+  from {
+    margin-top: 0;
+    visibility: visible;
+  }
+  to {
+    margin-top: 100%;
+    visibility: hidden;
+  }
+}
+/* Opera < 12.1 */
+@-o-keyframes slideDownEnd {
+  from {
+    margin-top: 0;
+    visibility: visible;
+  }
+  to {
+    margin-top: 100%;
+    visibility: hidden;
+  }
+}
+/* --------- SlideDownEnd end ---------- */
+
 @keyframes fadein {
   from {
     opacity: 0;
@@ -235,32 +474,6 @@
 }
 .popcorn-none.off {
   visibility: hidden;
-}
-.popcorn-slide-up {
-  -webkit-transition: margin-top 0.3s ease, visibility 0.3s ease;
-  -moz-transition: margin-top 0.3s ease, visibility 0.3s ease;
-  -o-transition: margin-top 0.3s ease, visibility 0.3s ease;
-  -ms-transition: margin-top 0.3s ease, visibility 0.3s ease;
-  transition: margin-top 0.3s ease, visibility 0.3s ease;
-  visibility: visible;
-  margin-top: 0;
-}
-.popcorn-slide-up.off {
-  visibility: hidden;
-  margin-top: -100% !important;
-}
-.popcorn-slide-down {
-  -webkit-transition: margin-top 0.3s ease, visibility 0.3s ease;
-  -moz-transition: margin-top 0.3s ease, visibility 0.3s ease;
-  -o-transition: margin-top 0.3s ease, visibility 0.3s ease;
-  -ms-transition: margin-top 0.3s ease, visibility 0.3s ease;
-  transition: margin-top 0.3s ease, visibility 0.3s ease;
-  visibility: visible;
-  margin-top: 0;
-}
-.popcorn-slide-down.off {
-  visibility: hidden;
-  margin-top: 100% !important;
 }
 .popcorn-pop {
   visibility: hidden;

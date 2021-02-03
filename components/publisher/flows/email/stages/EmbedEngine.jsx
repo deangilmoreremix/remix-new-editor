@@ -8,6 +8,7 @@ import {
 import EmbedDataContainer from '../../../EmbedDataContainer';
 import PropTypes from '../../../../../lib/PropTypes';
 import FormSelect from '../../../../form/FormSelect';
+import { DEFAULT_THUMBNAIL } from '../../../../../lib/constants/project';
 
 
 const EmbedEngine = ({ settings, updateCampaign, project }) => {
@@ -79,6 +80,8 @@ const EmbedEngine = ({ settings, updateCampaign, project }) => {
               url={project.url}
               stringGenerator={embedLocation.embedGenerator}
               resizable
+              thumbnail={project.thumbnail || DEFAULT_THUMBNAIL}
+              playCheckbox={settings.embedLocation.playCheckbox}
             />
           )}
         </div>
@@ -93,12 +96,14 @@ EmbedEngine.propTypes = {
       key: PropTypes.string.isRequired,
       prompt: PropTypes.string,
       embedGenerator: PropTypes.func.isRequired,
+      playCheckbox: PropTypes.bool,
     }),
     preload: PropTypes.bool,
   }).isRequired,
   updateCampaign: PropTypes.func.isRequired,
   project: PropTypes.shape({
     url: PropTypes.string.isRequired,
+    thumbnail: PropTypes.string,
   }).isRequired,
 };
 
