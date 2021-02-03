@@ -1,11 +1,14 @@
 .canvas-size {
   &-selector {
+    height: 197px;
     position: absolute;
     right: 1rem;
     display: flex;
     flex-flow: column;
     align-items: center;
-    bottom: 100vh - $toolbarHeight;
+    top: calc(50% - 98.5px);
+    z-index: 1;
+    transition: 0.3s top;
   }
 
   &-item {

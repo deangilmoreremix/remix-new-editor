@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
 import useUserStore from './hooks/useUserStore';
+import useSearchStore from './hooks/useSearchStore';
 
 import List from './common/gallery/List';
 import {
@@ -10,10 +11,10 @@ import {
   reducer as listReducer,
 } from '../lib/utils/reducers/listReducer';
 import { ACTION_TYPES } from '../lib/constants/reducers/listReducer';
-import ProjectPreview from './common/libraryElements/ProjectsPreview';
+
+import TemplatesPreview from './common/libraryElements/TemplatesPreview';
 import Category from './common/libraryElements/Category';
 import Categories from './common/Categories';
-import useSearchStore from './hooks/useSearchStore';
 import RatioList from './common/templates/RatioList';
 
 const MAKE_TYPES = {
@@ -33,10 +34,13 @@ const Templates = observer(() => {
     type: ACTION_TYPES.SET_INITIAL,
     value: {
       path: '/api/makes/templates',
-      content: ProjectPreview,
+      content: TemplatesPreview,
       perPage: 20,
       filter: {
         archived: { $in: [null, false] },
+      },
+      orderBy: {
+        createdAt: -1,
       },
     },
   }), []);

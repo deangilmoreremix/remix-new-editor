@@ -7,6 +7,7 @@ import { radioButton } from '../../lib/constants/windowsLogics';
 export default class UIStore {
   constructor(props) {
     this.projectStore = props.projectStore;
+
     reaction(
       () => this.projectStore.activeElementId,
       () => {

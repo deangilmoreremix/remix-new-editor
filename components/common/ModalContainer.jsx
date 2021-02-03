@@ -5,6 +5,8 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 
 import useModalStore from '../hooks/useModalStore';
+import useUserStore from '../hooks/useUserStore';
+
 import SettingsHeader from '../settings/SettingsHeader';
 
 const ModalContainer = observer(({ classNameWL }) => {
@@ -18,6 +20,7 @@ const ModalContainer = observer(({ classNameWL }) => {
     updateMaxWidth,
     options,
   } = modalStore;
+  const { hasPermissions } = useUserStore();
 
   const modalsToShow = modals.filter(m => modalIds.has(m.id));
 
@@ -27,6 +30,7 @@ const ModalContainer = observer(({ classNameWL }) => {
     maxWidth,
     renderer: ModalComponent,
     header: headerProps,
+    themeChange,
     ...props
   }) => {
     const close = () => {
@@ -54,8 +58,15 @@ const ModalContainer = observer(({ classNameWL }) => {
         className={classnames(classNameWL, 'modal-container')}
         {...props}
       >
-        <SettingsHeader {...headerProps} handleClose={close} />
-        <DialogContent className={classnames('modal-container__content', className)}>
+        <SettingsHeader {...headerProps} />
+        <DialogContent
+          className={
+            classnames(
+              'modal-container__content',
+              themeChange && !hasPermissions ? `${className}-white` : className,
+            )
+          }
+        >
           <ModalComponent
             options={options}
             handleClose={close}

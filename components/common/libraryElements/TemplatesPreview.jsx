@@ -7,20 +7,28 @@ import PropTypes from '../../../lib/PropTypes';
 import HelpIconComponent from '../HelpIcon';
 
 import { DEFAULT_THUMBNAIL } from '../../../lib/constants/project';
+import { TEMPLATE_PREVIEW_MODAL } from '../../../lib/constants/modals';
 import { templatesTooltips } from '../../../lib/constants/tooltips';
 
 import useUserStore from '../../hooks/useUserStore';
+import useModalStore from '../../hooks/useModalStore';
 
 const TemplatesPreview = observer((props) => {
   const { item } = props;
 
   const { hasPermissions, editorEnabled } = useUserStore();
+  const { openModal } = useModalStore();
 
   return (
     <div className="library__item">
       <div className="library__item-image" style={{ backgroundImage: `url(${item.thumbnail || DEFAULT_THUMBNAIL})` }} />
       <div className="library__item-buttons">
-        <button className="library__item-button">Preview</button>
+        <button
+          className="library__item-button"
+          onClick={() => openModal(TEMPLATE_PREVIEW_MODAL, { item })}
+        >
+          Preview
+        </button>
         {hasPermissions && (
           <HelpIconComponent noIcon message={templatesTooltips.editButton}>
             <button className="library__item-button">Edit</button>

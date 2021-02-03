@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 // import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
@@ -31,8 +31,11 @@ import LibraryContent from '../common/library/LibraryContent';
 import { LibrarySpinner } from './Loader';
 import CloseButton from '../common/CloseButton';
 
+import { editorStyles } from '../../lib/constants/editorStyles';
+
 import useUIStore from '../hooks/useUIStore';
 import useUserStore from '../hooks/useUserStore';
+import useTimelineStore from '../hooks/useTimelineStore';
 import useMediaStore from '../hooks/useMediaStore';
 import useProjectStore from '../hooks/useProjectStore';
 import useMultiSelectStore from '../hooks/useMultiSelectStore';
@@ -91,6 +94,7 @@ const Library = observer((props) => {
   } = useMediaStore();
 
   const { downloaderEnabled, video360Enabled, getUserKey, updateUserKeys } = userStore;
+  const { timelineHeight } = useTimelineStore();
 
   // =============== STATE ===============
   const [userValidationKey, setUserValidationKey] = useState();
@@ -642,8 +646,15 @@ const Library = observer((props) => {
     }
   };
 
+  const libraryHeight = useMemo(() => {
+    if (!isTimelineOpen) {
+      return editorStyles.calculateHeight(editorStyles.timeline.minHeight);
+    }
+    return editorStyles.calculateHeight(timelineHeight);
+  }, [timelineHeight, isTimelineOpen]);
+
   return (
-    <div className={classnames('library', `library-${activeTab.toLowerCase()}`, { 'big-window': !isTimelineOpen })}>
+    <div style={{ height: libraryHeight }} className={classnames('library', `library-${activeTab.toLowerCase()}`)}>
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">

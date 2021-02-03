@@ -1,18 +1,25 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
-import classnames from 'classnames';
+
+import { editorStyles } from '../../lib/constants/editorStyles';
+
+import useUIStore from '../hooks/useUIStore';
+import useTimelineStore from '../hooks/useTimelineStore';
 
 import Tabs from '../common/stickers/Tabs';
 import Content from '../common/stickers/Content';
 import CloseButton from '../common/CloseButton';
 
-import useUIStore from '../hooks/useUIStore';
-
 const Stickers = observer(() => {
-  const { toggleRightBlock, isTimelineOpen } = useUIStore();
+  const { toggleRightBlock } = useUIStore();
+  const { timelineHeight } = useTimelineStore();
+
+  const libraryHeight = useMemo(() => (
+    editorStyles.calculateHeight(timelineHeight)
+  ), [timelineHeight]);
 
   return (
-    <div className={classnames('stickers', { 'big-window': !isTimelineOpen })}>
+    <div style={{ height: libraryHeight }} className="stickers">
       <div className="flex">
         <header className="stickers__header">Stickers</header>
         <CloseButton onClick={() => toggleRightBlock(false)} />

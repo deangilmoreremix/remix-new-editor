@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: column;
   max-width: 31.75rem;
-  height: $toolbarHeight - 5vh;
+  height: $defaultBlockHeight;
   background: $light-twinlight;
   box-sizing: border-box;
   z-index: 1;

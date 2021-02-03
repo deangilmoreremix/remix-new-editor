@@ -1,17 +1,24 @@
-import React from 'react';
-import classnames from 'classnames';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 
+import { editorStyles } from '../../lib/constants/editorStyles';
+
 import useUIStore from '../hooks/useUIStore';
+import useTimelineStore from '../hooks/useTimelineStore';
 
 import Content from '../common/lower-thirds/Content';
 import CloseButton from '../common/CloseButton';
 
 const LowerThirds = observer(() => {
-  const { toggleRightBlock, isTimelineOpen } = useUIStore();
+  const { toggleRightBlock } = useUIStore();
+  const { timelineHeight } = useTimelineStore();
+
+  const libraryHeight = useMemo(() => (
+    editorStyles.calculateHeight(timelineHeight)
+  ), [timelineHeight]);
 
   return (
-    <div className={classnames('lower-thirds', { 'big-window': !isTimelineOpen })}>
+    <div style={{ height: libraryHeight }} className="lower-thirds">
       <div className="flex">
         <header className="lower-thirds__header">Lower Thirds</header>
         <CloseButton onClick={() => toggleRightBlock(false)} />

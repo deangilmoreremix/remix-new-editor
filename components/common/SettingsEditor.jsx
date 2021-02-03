@@ -7,6 +7,9 @@ import SettingsContainer from '../settings/SettingsContainer';
 
 import useUIStore from '../hooks/useUIStore';
 import useProjectStore from '../hooks/useProjectStore';
+import useTimelineStore from '../hooks/useTimelineStore';
+
+import { editorStyles } from '../../lib/constants/editorStyles';
 
 import { DEFAULT_TABS, CUSTOM_TABS } from '../../lib/constants/settings';
 import { BASIC, POPCORN_ELEMENT_TYPES, TEXT_TAB } from '../../lib/constants/popcorn';
@@ -16,7 +19,8 @@ const SettingsEditor = observer(() => {
   const [activeTab, setTab] = useState(0);
 
   const { element, retarget, activeElementId, releaseElement } = useProjectStore();
-  const { closeSecondaryWindow, toggleRightBlock, isTimelineOpen } = useUIStore();
+  const { closeSecondaryWindow, toggleRightBlock } = useUIStore();
+  const { timelineHeight } = useTimelineStore();
 
   const currentElement = useMemo(() => {
     if (retarget) {
@@ -63,8 +67,12 @@ const SettingsEditor = observer(() => {
     releaseElement();
   };
 
+  const editorHeight = useMemo(() => (
+    editorStyles.calculateHeight(timelineHeight)
+  ), [timelineHeight]);
+
   return (
-    <div className={classnames('base-editor', { 'big-window': !isTimelineOpen })}>
+    <div style={{ height: editorHeight }} className={classnames('base-editor')}>
       <SettingsHeader
         onCloseWindow={closeWindow}
         tabs={tabs}
