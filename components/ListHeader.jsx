@@ -6,16 +6,20 @@ import classnames from 'classnames';
 import useUIStore from './hooks/useUIStore';
 import useUserStore from './hooks/useUserStore';
 import useSearchStore from './hooks/useSearchStore';
+import useModalStore from './hooks/useModalStore';
 
 import UserBox from './common/user/UserBox';
 import Menu from './common/Menu';
+
+import { ENTER_KEY } from '../lib/constants/keyCodes';
+import { CREATE_PROJECT_MODAL } from '../lib/constants/modals';
+
 // ToDO Update it for WL
 import logo from '../public/static/svgImages/header/logo-2.svg';
 import searchIcon from '../public/static/images/search.svg';
 import clearIcon from '../public/static/svgImages/close.svg';
 import videoIcon from '../public/static/images/toolbar/video.svg';
 import imageIcon from '../public/static/images/toolbar/image-2.svg';
-import { ENTER_KEY } from '../lib/constants/keyCodes';
 
 const pageList = {
   myVideos: {
@@ -32,8 +36,9 @@ const ListHeader = observer(({ className }) => {
   const [select, setSelect] = useState(pageList.myVideos);
   const [q, setQ] = useState('');
 
-  const { templatesMenuItems } = useUIStore();
+  const { templatesMenuItems, templatesProjectItems } = useUIStore();
   const { hasPermissions } = useUserStore();
+  const { openModal } = useModalStore();
 
   const { isVideo, isImage, setIsVideo, setIsImage, setQ: setQuery } = useSearchStore();
 
@@ -48,6 +53,10 @@ const ListHeader = observer(({ className }) => {
     if (event.which === ENTER_KEY) {
       return setQuery(q);
     }
+  };
+
+  const openNewProjectDialog = () => {
+    openModal(CREATE_PROJECT_MODAL, { items: templatesProjectItems });
   };
 
   return (
@@ -122,7 +131,7 @@ const ListHeader = observer(({ className }) => {
           </div>
         </div>
 
-        <button className="templates-header__create">
+        <button className="templates-header__create" onClick={openNewProjectDialog}>
           <span className="templates-header__create-icon" />
           <span>Create a new Project</span>
         </button>

@@ -4,9 +4,15 @@ import { POPCORN_ELEMENT_TYPES } from '../../lib/constants/popcorn';
 
 import { radioButton } from '../../lib/constants/windowsLogics';
 
+import goEditorIcon from '../../public/static/svgImages/templates/go-editor-icon.svg';
+import advancedEditorIcon from '../../public/static/svgImages/templates/advanced-editor-icon.svg';
+import smartRevolutionEditorIcon from '../../public/static/svgImages/templates/smart-revolution-editor-icon.svg';
+
 export default class UIStore {
   constructor(props) {
     this.projectStore = props.projectStore;
+    this.prefixes = props.prefixes;
+    this.whiteLabelManager = props.whiteLabelManager;
 
     reaction(
       () => this.projectStore.activeElementId,
@@ -71,6 +77,27 @@ export default class UIStore {
       {
         title: 'Help',
         url: `${this.projectStore.common.whiteLabel.helpUrl}`,
+      },
+    ];
+  }
+
+  @computed
+  get templatesProjectItems() {
+    return [
+      {
+        url: `http://${this.prefixes.go}.${this.whiteLabelManager.domain}`,
+        icon: goEditorIcon,
+        title: 'Go Editor',
+      },
+      {
+        url: `http://${this.prefixes.editor}.${this.whiteLabelManager.domain}`,
+        icon: advancedEditorIcon,
+        title: 'Advanced Editor',
+      },
+      {
+        url: `http://${this.prefixes.app}.${this.whiteLabelManager.domain}`,
+        icon: smartRevolutionEditorIcon,
+        title: 'Smart Video Editor',
       },
     ];
   }
