@@ -110,7 +110,7 @@ const IntegrationsTab = observer(({ values, fields, onChange, checkValue, type }
           onClick={() => { onChange({ addWebhook: true }); }}
           disabled={hasMaxWebhooks}
         >
-          + Add WeboAddress
+          + Add Web Address
         </button>
       </div>
       )}

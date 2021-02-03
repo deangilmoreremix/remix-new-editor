@@ -33,6 +33,9 @@ const ModalContainer = observer(({ classNameWL }) => {
       if (headerProps && headerProps.onClose) {
         headerProps.onClose();
       }
+      if (document.pictureInPictureElement) {
+        document.exitPictureInPicture();
+      }
       closeModal(id);
     };
 

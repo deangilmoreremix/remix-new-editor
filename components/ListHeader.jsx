@@ -4,6 +4,8 @@ import SVGInline from 'react-svg-inline';
 import classnames from 'classnames';
 
 import useUIStore from './hooks/useUIStore';
+import useUserStore from './hooks/useUserStore';
+import useSearchStore from './hooks/useSearchStore';
 
 import UserBox from './common/user/UserBox';
 import Menu from './common/Menu';
@@ -13,6 +15,7 @@ import searchIcon from '../public/static/images/search.svg';
 import clearIcon from '../public/static/svgImages/close.svg';
 import videoIcon from '../public/static/images/toolbar/video.svg';
 import imageIcon from '../public/static/images/toolbar/image-2.svg';
+import { ENTER_KEY } from '../lib/constants/keyCodes';
 
 const pageList = {
   myVideos: {
@@ -26,12 +29,13 @@ const pageList = {
 };
 
 const ListHeader = observer(({ className }) => {
-  const [q, setQ] = useState('');
-  const [isVideo, setIsVideo] = useState(false);
-  const [isImage, setIsImage] = useState(false);
   const [select, setSelect] = useState(pageList.myVideos);
+  const [q, setQ] = useState('');
 
   const { templatesMenuItems } = useUIStore();
+  const { hasPermissions } = useUserStore();
+
+  const { isVideo, isImage, setIsVideo, setIsImage, setQ: setQuery } = useSearchStore();
 
   const onChange = value => {
     const newKey = Object.keys(pageList).find(key => pageList[key].value === value);
@@ -40,8 +44,14 @@ const ListHeader = observer(({ className }) => {
     }
   };
 
+  const onKeyPress = (event) => {
+    if (event.which === ENTER_KEY) {
+      return setQuery(q);
+    }
+  };
+
   return (
-    <div className={classnames('templates-header', className)}>
+    <div className={classnames('templates-header', className, { 'dark-theme': hasPermissions })}>
       <div className="templates-header__left">
         <SVGInline
           className="templates-header__logo"
@@ -58,10 +68,13 @@ const ListHeader = observer(({ className }) => {
             classSuffix=""
             svg={searchIcon}
             cleanup={['title']}
+            component="button"
+            onClick={() => setQuery(q)}
           />
           <input
             value={q}
             onChange={event => setQ(event.target.value)}
+            onKeyPress={onKeyPress}
             className="templates-header__input"
             type="text"
             placeholder="Search Templates ..."
@@ -73,7 +86,10 @@ const ListHeader = observer(({ className }) => {
               classSuffix=""
               svg={clearIcon}
               cleanup={['title']}
-              onClick={() => setQ('')}
+              onClick={() => {
+                setQ('');
+                setQuery(null);
+              }}
             />
             <label className="templates-header__checkbox-label">
               <input

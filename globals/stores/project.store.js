@@ -8,7 +8,7 @@ import Router from 'next/router';
 import BaseStore from './base.store';
 import { emitter, emitterActions } from '../../lib/mitt/emitter';
 import blendModeConstants from '../../lib/constants/blendMode';
-import { ASSET_TYPES } from '../../lib/constants/media';
+import { ASSET_TYPES, AUDIO_KINDS } from '../../lib/constants/media';
 import { GOOGLE_MAP_VALUES } from '../../lib/constants/googleMap';
 import preRemixVoice from '../../lib/constants/preRemixVoice';
 import { PRE_REMIX_VOICE_MODAL } from '../../lib/constants/modals';
@@ -356,6 +356,8 @@ export default class ProjectStore extends BaseStore {
     options.id = `0.${this.generateUid()}`;
     options.zindex = track && track.order ? MAX_ZINDEX - track.order : MAX_ZINDEX;
     options.opacity = 100;
+    options.left = item?.left;
+    options.top = item?.top;
 
     switch (type) {
       case SEQUENCER: {
@@ -378,8 +380,9 @@ export default class ProjectStore extends BaseStore {
         let { fileMeta } = item;
         if (!fileMeta) {
           try {
-            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], item.kind === 'audio'
-              ? 'audio' : 'video', fileDuration,
+            const isAudio = AUDIO_KINDS.includes(item.kind);
+            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], isAudio
+              ? ASSET_TYPES.AUDIO : ASSET_TYPES.VIDEO, fileDuration,
             this.userStore.video360Enabled);
           } catch (e) {
             // if there is no error, then loading will hide, after adding the item to the popcorn
@@ -852,6 +855,11 @@ export default class ProjectStore extends BaseStore {
           track.trackEvents = _.uniqWith(track.trackEvents, _.isEqual);
         }
         track.trackEvents.forEach((trackEvent) => {
+          if ((trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
+            || trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT) && trackEvent.popcornOptions) {
+            const { isSuperAdmin } = this.userStore;
+            trackEvent.popcornOptions.isSuperAdmin = isSuperAdmin;
+          }
           trackEvent.track = track.id;
           elements.push({
             ...trackEvent,
@@ -2027,6 +2035,10 @@ export default class ProjectStore extends BaseStore {
       return showInfo(FORM_ONE_LG.text, FORM_ONE_LG.title);
     }
 
+    if (type === POPCORN_ELEMENT_TYPES.PAUSE) {
+      item.stopAction = true;
+    }
+
     if (startInDrag) {
       item.start = startInDrag;
     }
@@ -2093,6 +2105,7 @@ export default class ProjectStore extends BaseStore {
     // update duration
     if (options.end > this.duration / SANTISECOND) {
       this.recompressProject(options.end, false);
+      this.updateTime(options.start);
       this.setPopcorn(this.popcorn.target);
       this.duration = Math.ceil(options.end * SANTISECOND);
     }
@@ -2101,6 +2114,7 @@ export default class ProjectStore extends BaseStore {
     this.elements = [element, ...this.elements];
 
     this.editElement(element.id);
+    emitter.emit(emitterActions.SELECT, element.id);
   };
 
   @observable
