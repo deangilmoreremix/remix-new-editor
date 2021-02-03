@@ -2078,8 +2078,8 @@ export default class ProjectStore extends BaseStore {
     const dropLeft = !item.isSocial ? position?.left - (item.width / 2) : position?.left;
 
     const droppedOptions = {
-      top: position ? dropTop : options.top,
-      left: position ? dropLeft : options.left,
+      top: position ? dropTop : options.top || item.top,
+      left: position ? dropLeft : options.left || item.left,
       dropped: position?.dropped,
     };
 
