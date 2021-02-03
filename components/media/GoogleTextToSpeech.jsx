@@ -193,8 +193,10 @@ const GoogleTextToSpeech = observer(() => {
         newText = newText.slice(0, maxVoiceSymbols);
       }
 
-      setValueTextarea(newText);
-      setHtmlText(wrapTokens(newText));
+      const text = newText && newText.toLowerCase();
+
+      setValueTextarea(text);
+      setHtmlText(wrapTokens(text));
       setVoiceTextId(null);
     }
   }, [voiceTextId, symbols]);
