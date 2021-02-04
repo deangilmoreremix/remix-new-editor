@@ -2108,6 +2108,8 @@ export default class ProjectStore extends BaseStore {
       this.updateTime(options.start);
       this.setPopcorn(this.popcorn.target);
       this.duration = Math.ceil(options.end * SANTISECOND);
+    } else if (this.time === 0) {
+      this.updateTime(0.01 * SANTISECOND);
     }
 
     // update timeline
