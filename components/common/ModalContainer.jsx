@@ -58,7 +58,7 @@ const ModalContainer = observer(({ classNameWL }) => {
         className={classnames(classNameWL, 'modal-container')}
         {...props}
       >
-        <SettingsHeader {...headerProps} />
+        <SettingsHeader {...headerProps} handleClose={close} />
         <DialogContent
           className={
             classnames(

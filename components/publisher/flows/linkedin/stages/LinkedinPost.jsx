@@ -65,7 +65,7 @@ const LinkedinPost = observer((props) => {
               {
                 settings.postData
                 && (
-                  <div className="col-md-8">
+                  <div className="col-md-8 flex">
                     {
                       settings.postData.thumbnail
                       && (
@@ -93,7 +93,7 @@ const LinkedinPost = observer((props) => {
                       needSaveAsset={false}
                       mediaType={ASSET_TYPES.IMAGE}
                       multiple={false}
-                      className="settings__add-file"
+                      className="settings__add-file w-50"
                     />
                   </div>
                 )
