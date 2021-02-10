@@ -1,17 +1,20 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 
 import classnames from 'classnames';
 import PropTypes from '../../lib/PropTypes';
 import { animations, ANIMATION_TYPES, ANIMATION_GROUPS } from '../../lib/constants/animations';
+import { editorStyles } from '../../lib/constants/editorStyles';
 
 import useUIStore from '../hooks/useUIStore';
+import useTimelineStore from '../hooks/useTimelineStore';
 
 import AnimationPreview from '../common/AnimationPreview';
 import CloseButton from '../common/CloseButton';
 
 const AnimationList = observer(({ onSelect, element }) => {
-  const { closeAnimationLibrary, isTimelineOpen } = useUIStore();
+  const { closeAnimationLibrary } = useUIStore();
+  const { timelineHeight } = useTimelineStore();
 
   const animationGroups = React.useMemo(() => ANIMATION_GROUPS[element.type]
     || Object.values(ANIMATION_TYPES), [element]);
@@ -41,8 +44,12 @@ const AnimationList = observer(({ onSelect, element }) => {
     </div>
   ), [onSelect, selected]);
 
+  const libraryHeight = useMemo(() => (
+    editorStyles.calculateHeight(timelineHeight)
+  ), [timelineHeight]);
+
   return (
-    <div className={classnames('animation-container', { 'big-window': !isTimelineOpen })}>
+    <div style={{ height: libraryHeight }} className="animation-container">
       <p className="animation-container__title">Add Animation</p>
       <div className="animation-blocks">
         {animationGroups.map((type => block(type)))}

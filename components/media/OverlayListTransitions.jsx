@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import classnames from 'classnames';
 import { observer } from 'mobx-react';
 
 import { JSON_TRANSITION_TABS } from '../../lib/constants/jsonTransition';
+import { editorStyles } from '../../lib/constants/editorStyles';
 
 import useUIStore from '../hooks/useUIStore';
 import useMakeStore from '../hooks/useMakeStore';
 import useProjectStore from '../hooks/useProjectStore';
 import usePresetStore from '../hooks/usePresetStore';
+import useTimelineStore from '../hooks/useTimelineStore';
 
 import Tabs from '../common/overlay/Tabs';
 import CloseButton from '../common/CloseButton';
@@ -28,10 +29,10 @@ const OverlayListTransitions = observer(() => {
   const { getJsonTransitions } = useMakeStore();
   const { setPreviewData, updateTime } = usePresetStore();
   const { addData, item: { ratio } } = useProjectStore();
+  const { timelineHeight } = useTimelineStore();
 
   const {
     toggleRightBlock,
-    isTimelineOpen,
     secondaryWindowType: activeTab,
     setOverlayType: setActiveTab,
   } = useUIStore();
@@ -137,8 +138,12 @@ const OverlayListTransitions = observer(() => {
     }
   };
 
+  const libraryHeight = useMemo(() => (
+    editorStyles.calculateHeight(timelineHeight)
+  ), [timelineHeight]);
+
   return (
-    <div className={classnames('overlay', { 'big-window': !isTimelineOpen })}>
+    <div style={{ height: libraryHeight }} className="overlay">
       <div className="flex">
         <header className="overlay__header">Overlays</header>
         <CloseButton onClick={() => toggleRightBlock(false)} />

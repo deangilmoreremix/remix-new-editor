@@ -71,8 +71,10 @@ $timeline-height: 253px;
 $timeline-height-closed: 41px;
 
 //toolbar
-$toolbarHeight: 56vh;
-$toolbarHeight-big: 77vh;
+$toolbarHeight: calc(82vh - 17px);
+
+//height
+$defaultBlockHeight: calc(82vh - 35px);
 
 //placeholder
 $placeholderOpacity: 0.3;

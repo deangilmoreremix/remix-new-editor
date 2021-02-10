@@ -1,20 +1,27 @@
-import React from 'react';
-import classnames from 'classnames';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 
 import useUIStore from '../hooks/useUIStore';
 import useMakeStore from '../hooks/useMakeStore';
+import useTimelineStore from '../hooks/useTimelineStore';
+
+import { editorStyles } from '../../lib/constants/editorStyles';
 
 import List from '../common/list/List';
 import ProjectImageElement from '../common/libraryElements/ProjectImageElement';
 import CloseButton from '../common/CloseButton';
 
 const BlendModeLibrary = observer(() => {
-  const { toggleRightBlock, isTimelineOpen } = useUIStore();
+  const { toggleRightBlock } = useUIStore();
   const { getTemplatesBlendMode } = useMakeStore();
+  const { timelineHeight } = useTimelineStore();
+
+  const libraryHeight = useMemo(() => (
+    editorStyles.calculateHeight(timelineHeight)
+  ), [timelineHeight]);
 
   return (
-    <div className={classnames('blendmode-library', { 'big-window': !isTimelineOpen })}>
+    <div style={{ height: libraryHeight }} className="blendmode-library">
       <div className="flex">
         <header className="blendmode-library__header">Blend mode</header>
         <CloseButton onClick={() => toggleRightBlock(false)} />

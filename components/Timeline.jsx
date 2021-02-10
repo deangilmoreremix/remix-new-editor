@@ -12,6 +12,8 @@ import useProjectStore from './hooks/useProjectStore';
 import useUIStore from './hooks/useUIStore';
 import useTimelineStore from './hooks/useTimelineStore';
 
+import { editorStyles } from '../lib/constants/editorStyles';
+
 import TimeLineSlider from './common/timeline/TimeLineSlider';
 import Layer from './common/timeline/Layer';
 import SortableList from './common/SortableList';
@@ -19,6 +21,7 @@ import PlayButton from './common/timeline/PlayButton';
 import PlusButton from './common/timeline/PlusButton';
 import PlayTime from './common/timeline/PlayTime';
 import PopcornElements from './common/timeline/PopcornElements';
+import SliderArrow from './common/timeline/SliderArrow';
 
 import plusIcon from '../public/static/svgImages/timeline/plus.svg';
 import minusIcon from '../public/static/svgImages/timeline/minus.svg';
@@ -33,9 +36,10 @@ const Timeline = observer(() => {
   const sortableRef = useRef(null);
   const layersRef = useRef(null);
   const timelineRef = useRef(null);
+  const timelineSideRef = useRef(null);
   const projectStore = useProjectStore();
   const uiStore = useUIStore();
-  const [sortableWidth, setSortableWidth] = React.useState(0);
+  const [sortableWidth, setSortableWidth] = useState(0);
   const [windowWidth] = useWindowSize();
 
   const {
@@ -52,7 +56,12 @@ const Timeline = observer(() => {
 
   const { isTimelineOpen, toggleTimeLine } = uiStore;
 
-  const { contextMenu, setIsActiveTimeline } = useTimelineStore();
+  const {
+    contextMenu,
+    setIsActiveTimeline,
+    setTimelineHeight,
+    timelineHeight,
+  } = useTimelineStore();
 
   const startDate = moment(date);
   const [endDate, setEndDate] = useState(moment(date));
@@ -62,6 +71,13 @@ const Timeline = observer(() => {
   const [endDateWithZoom, setEndDateWithZoom] = useState(startDate);
 
   useClickOutside(timelineRef, () => setIsActiveTimeline(false));
+
+  useEffect(() => {
+    if (!isTimelineOpen && timelineHeight !== editorStyles.timeline.minHeight) {
+      setTimelineHeight(editorStyles.timeline.minHeight);
+      timelineRef.current.style.height = `${editorStyles.timeline.minHeight}px`;
+    }
+  }, [isTimelineOpen]);
 
   // If the slider is out of sight.
   useEffect(() => {
@@ -140,17 +156,72 @@ const Timeline = observer(() => {
     }
   }, [windowWidth]);
 
+  // ===== tray-resize =====
+  const onTrayHandleMousedown = e => {
+    e.preventDefault();
+    timelineRef.current.style.transition = '0s';
+    window.addEventListener('mousemove', onTrayHandleMousemove);
+    window.addEventListener('mouseup', onTrayHandleMouseup);
+  };
+
+  const onTrayHandleMousemove = e => {
+    const height = window.innerHeight - e.pageY;
+    const headerHeight = document.querySelector('.menu-app-bar').getBoundingClientRect().height;
+    const maxHeight = document.documentElement.clientHeight - headerHeight
+      - editorStyles.timeline.maxDifferenceHeightPx;
+
+    if (height <= editorStyles.timeline.minHeight) {
+      timelineRef.current.style.height = `${editorStyles.timeline.minHeight}px`;
+      toggleTimeLine(false);
+    } else if (height >= maxHeight) {
+      timelineRef.current.style.height = `${maxHeight}px`;
+    } else {
+      toggleTimeLine(true);
+      timelineRef.current.style.height = `${height}px`;
+    }
+  };
+
+  const onTrayHandleMouseup = () => {
+    timelineRef.current.style.transition = '0.3s';
+    window.removeEventListener('mousemove', onTrayHandleMousemove, false);
+    window.removeEventListener('mouseup', onTrayHandleMouseup, false);
+    const newHeight = timelineRef.current.getBoundingClientRect().height;
+    setTimelineHeight(newHeight);
+    if (newHeight > editorStyles.timeline.minHeight) {
+      toggleTimeLine(true);
+    } else {
+      toggleTimeLine(false);
+    }
+  };
+  // =======================
+
+  const closeOpenTimeline = () => {
+    if (isTimelineOpen) {
+      setTimelineHeight(editorStyles.timeline.minHeight);
+    } else {
+      setTimelineHeight(editorStyles.timeline.defaultHeight);
+    }
+    timelineRef.current.removeAttribute('style');
+    toggleTimeLine(!isTimelineOpen);
+  };
+
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
-      className="timeline"
+      className={classnames('timeline', { 'timeline-open': isTimelineOpen })}
       ref={timelineRef}
       onClick={() => setIsActiveTimeline(true)}
       onKeyDown={() => {}}
     >
+      <div
+        className="tray-resize"
+        onMouseDown={onTrayHandleMousedown}
+        role="button"
+        tabIndex="0"
+      />
       <button
         className={classnames('timeline-arrow', { 'timeline-arrow-open': isTimelineOpen })}
-        onClick={() => toggleTimeLine(!isTimelineOpen)}
+        onClick={closeOpenTimeline}
       />
 
       <div className="timeline-zoom">
@@ -211,6 +282,17 @@ const Timeline = observer(() => {
 
       {contextMenu?.buttons.length && contextMenu.isOpen ? <ContextMenu /> : null}
 
+      {timelineSideRef ? (
+        <SliderArrow
+          sortableWidth={sortableWidth}
+          time={time}
+          timelineSideRef={timelineSideRef}
+          startDateWithZoom={startDateWithZoom}
+          endDateWithZoom={endDateWithZoom}
+          startDate={startDate}
+        />
+      ) : null}
+
       <div className="layers">
         <SortableList
           sortableRef={sortableRef}
@@ -222,7 +304,7 @@ const Timeline = observer(() => {
           onRemove={(item) => removeLayer(item.id)}
           getContainerElement={() => sortableRef.current}
         />
-        <div className="timeline-side">
+        <div className="timeline-side" ref={timelineSideRef}>
           { isLoaded && (
             <PopcornElements
               startDate={startDate}

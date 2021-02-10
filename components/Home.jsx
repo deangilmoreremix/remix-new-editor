@@ -120,7 +120,6 @@ const Home = observer(() => {
     checkboxRight,
     radioButtonBottom,
     openMediaButton,
-    isTimelineOpen,
     setListBuilder,
     openCTA,
     openTextToSpeech,
@@ -428,9 +427,7 @@ const Home = observer(() => {
             </div>
           </Grid>
           <SizeSelector sizes={CANVAS_SIZES} onChange={updateItem} active={{ width, height }} />
-          <Grid container className={classnames('timeline', { 'timeline-open': isTimelineOpen })}>
-            <Timeline />
-          </Grid>
+          <Timeline />
         </div>
       )}
       {warning && <Warning message={warning} />}

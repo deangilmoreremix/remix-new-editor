@@ -4,7 +4,7 @@
   left: 50%;
   transform: translateX(-50%);
   max-width: 31.75rem;
-  height: $toolbarHeight - 5vh;
+  height: $defaultBlockHeight;
   display: flex;
   flex-direction: column;
   background: $light-twinlight;

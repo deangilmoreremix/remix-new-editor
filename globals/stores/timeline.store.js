@@ -39,6 +39,8 @@ export default class TimelineStore {
     );
   }
 
+  @observable timelineHeight = 35;
+
   @observable isActiveTimeline = false;
 
   @observable projectElementsLength = 0;
@@ -57,6 +59,11 @@ export default class TimelineStore {
     isClickOnRow: true,
     isOpen: false,
     buttons: [],
+  };
+
+  @action
+  setTimelineHeight = (value = 35) => {
+    this.timelineHeight = value;
   };
 
   @action

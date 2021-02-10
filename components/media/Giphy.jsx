@@ -1,13 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react';
-import classnames from 'classnames';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 
 import useUIStore from '../hooks/useUIStore';
 import useMediaStore from '../hooks/useMediaStore';
+import useTimelineStore from '../hooks/useTimelineStore';
 
 import { search } from '../../lib/constants/library';
 import { ENTER_KEY } from '../../lib/constants/keyCodes';
+import { editorStyles } from '../../lib/constants/editorStyles';
 
 import List from '../common/list/List';
 import ImageElement from '../common/libraryElements/ImageElement';
@@ -21,7 +22,8 @@ const GiphyGifs = observer(({ type }) => {
   const [startSearch, setStartSearch] = useState(false);
 
   const { getGiphyData } = useMediaStore();
-  const { toggleRightBlock, isTimelineOpen } = useUIStore();
+  const { toggleRightBlock } = useUIStore();
+  const { timelineHeight } = useTimelineStore();
 
   const handleSetFocus = () => {
     if (inputRef.current) {
@@ -42,8 +44,12 @@ const GiphyGifs = observer(({ type }) => {
     setStartSearch(true);
   }, [type]);
 
+  const libraryHeight = useMemo(() => (
+    editorStyles.calculateHeight(timelineHeight)
+  ), [timelineHeight]);
+
   return (
-    <div className={classnames('gif-library', { 'big-window': !isTimelineOpen })}>
+    <div style={{ height: libraryHeight }} className="gif-library">
       <div className="flex">
         <header className="gif-library__header">
           {type}

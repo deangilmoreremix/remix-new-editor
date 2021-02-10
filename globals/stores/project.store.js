@@ -264,7 +264,7 @@ export default class ProjectStore extends BaseStore {
     [POPCORN_ELEMENT_TYPES.IMAGE]: {},
   };
 
-  getPersonalization = () => getCustomVarsFromMediaArr(this.projectData.media);
+  getPersonalization = (data) => getCustomVarsFromMediaArr(data || this.projectData.media)
 
   generateUid = () => `${Date.now()}/${Math.random()}/${Date.now() * Math.random()}`;
 
@@ -781,7 +781,7 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
-  setPopcorn = (target) => {
+  setPopcorn = (target, time) => {
     if (!this.popcornObject) {
       return;
     }
@@ -793,9 +793,14 @@ export default class ProjectStore extends BaseStore {
     if (this.popcorn && this.popcorn.target) {
       window.Popcorn.destroy(this.popcorn);
     }
+
     this.popcorn = window.Popcorn.smart(target,
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
     this.attach(target);
+
+    if (time !== undefined) {
+      this.updateTime(time);
+    }
   };
 
   @action
@@ -1962,7 +1967,7 @@ export default class ProjectStore extends BaseStore {
       this.projectData.media[0].url = `#t=,${lastEnd / SANTISECOND}`;
       this.projectData.media[0].duration = lastEnd / SANTISECOND;
       this.duration = lastEnd;
-      this.setPopcorn();
+      this.setPopcorn(null, time);
     }
 
     if (time >= lastEnd) {
@@ -2105,8 +2110,7 @@ export default class ProjectStore extends BaseStore {
     // update duration
     if (options.end > this.duration / SANTISECOND) {
       this.recompressProject(options.end, false);
-      this.updateTime(options.start);
-      this.setPopcorn(this.popcorn.target);
+      this.setPopcorn(this.popcorn.target, Math.ceil(options.start * SANTISECOND));
       this.duration = Math.ceil(options.end * SANTISECOND);
     } else if (this.time === 0) {
       this.updateTime(0.01 * SANTISECOND);
