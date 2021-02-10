@@ -48,6 +48,7 @@ class Layout extends Component {
     const { userStore: { hasPermissions, currentUser } } = this.stores;
     this.hasPermissions = hasPermissions;
     this.currentUser = currentUser;
+    this.imageEditor = this.stores.common.pixoEditor.script;
   }
 
   componentDidMount() {
@@ -159,6 +160,7 @@ class Layout extends Component {
                 )}
                 {/* End Facebook Pixel Code */}
                 <script src={this.stores.common.vrviewPath} />
+                <script src={this.imageEditor} />
               </Head>
               {this.hasPermissions ? (
                 <div>
