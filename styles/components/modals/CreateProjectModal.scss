@@ -1,0 +1,92 @@
+.create-project-modal {
+  width: 45vw;
+  height: 40vh;
+  background: $light-twinlight !important;
+
+  &-white {
+    @extend .create-project-modal;
+    background: $white !important;
+  }
+
+  &__title {
+    display: flex;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 400;
+
+    &-white {
+      @extend .create-project-modal__title;
+      color: $backgroundSlider;
+    }
+  }
+
+  &__box {
+    width: 100%;
+    height: 90%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: row;
+  }
+
+  &__item {
+    width: 9.5rem;
+    height: 13.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background: #28283A;
+    border-radius: 5px;
+    text-decoration: none !important;
+    color: $white;
+
+    &:hover {
+      color: $white;
+    }
+
+    &-white {
+      @extend .create-project-modal__item;
+      color: $backgroundSlider;
+      background: #F8F8FF;
+
+      &:hover {
+        color: $backgroundSlider;
+      }
+    }
+  }
+
+  &__icon {
+    width: 53%;
+    margin-bottom: 2rem;
+  }
+
+  &__url {
+    color: $secondary-color;
+    margin-top: 0.5rem;
+  }
+}
+
+@media screen and (max-width: $xxl) {
+  .create-project-modal {
+    width: 50vw;
+    height: 40vh;
+  }
+
+  .create-project-modal__item {
+    width: 8.5rem;
+    height: 11rem;
+  }
+}
+
+@media screen and (max-width: 1288px) {
+  .create-project-modal {
+    height: 50vh;
+  }
+}
+
+@media screen and (max-width: $lg) {
+  .create-project-modal {
+    width: 65vw;
+  }
+}

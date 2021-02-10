@@ -8,13 +8,6 @@ import PropTypes from '../../lib/PropTypes';
 import helpIcon from '../../public/static/svgImages/common/help-icon.svg';
 
 const blackCloud = createMuiTheme({
-  props: {
-    MuiTooltip: {
-      style: {
-        zIndex: 1,
-      },
-    },
-  },
   overrides: {
     MuiTooltip: {
       tooltip: {
