@@ -119,17 +119,17 @@ const GoogleTextToSpeech = observer(() => {
         isPersonalizedVoice ? maxSymbols.personalized : maxSymbols.text,
       );
       const newTextLength = activeTextElement.text.replace(/{{\w+}}/g, '').length;
-      let newText = activeTextElement.text;
+      let newText = activeTextElement.text.toLowerCase();
 
       if (isPersonalizedVoice) {
-        const newString = activeTextElement.text.replace(TOKEN_REGEX, (match) => {
+        const newString = newText.replace(TOKEN_REGEX, (match) => {
           match = match.replace(/({{|}})/gm, '');
           let result = '';
           if (match.split(' ').length > 1) {
             const [, tokenName] = match.split(' ');
-            result += `{{${tokenName}}}`;
+            result += `{{${tokenName.toUpperCase()}}}`;
           } else {
-            result += `{{${match}}}`;
+            result += `{{${match.toUpperCase()}}}`;
           }
           return result;
         });
@@ -193,10 +193,9 @@ const GoogleTextToSpeech = observer(() => {
         newText = newText.slice(0, maxVoiceSymbols);
       }
 
-      const text = newText && newText.toLowerCase();
 
-      setValueTextarea(text);
-      setHtmlText(wrapTokens(text));
+      setValueTextarea(newText);
+      setHtmlText(wrapTokens(newText));
       setVoiceTextId(null);
     }
   }, [voiceTextId, symbols]);
