@@ -105,6 +105,7 @@ module.exports = {
   posterframe: process.env.DEFAULT_POSTERFRAME || 'https://cdn.vidcloud.io/resources/go/posterframe_default.jpg',
   facebookAppId: process.env.FACEBOOK_APP_ID || '766265603823913',
   facebookSocialId: process.env.SOCIALIZER_APP_ID || '701751126630371',
+  facebookPixelId: process.env.FACEBOOK_PIXEL_ID || '',
   linkedinAppId: process.env.LINKEDIN_APP_ID || '77dc93kxh13kfc',
   vrviewPath: process.env.VRVIEW_PATH || 'https://cdn.videoremix.io/external/vrview/dist/vrview.min.js',
   mediaProviders: {
