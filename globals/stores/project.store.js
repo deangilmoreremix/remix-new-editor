@@ -2083,8 +2083,8 @@ export default class ProjectStore extends BaseStore {
     const dropLeft = !item.isSocial ? position?.left - (item.width / 2) : position?.left;
 
     const droppedOptions = {
-      top: position ? dropTop : options.top || item.top,
-      left: position ? dropLeft : options.left || item.left,
+      top: position ? dropTop : options.top ?? item.top,
+      left: position ? dropLeft : options.left ?? item.left,
       dropped: position?.dropped,
     };
 
@@ -2112,6 +2112,8 @@ export default class ProjectStore extends BaseStore {
       this.recompressProject(options.end, false);
       this.setPopcorn(this.popcorn.target, Math.ceil(options.start * SANTISECOND));
       this.duration = Math.ceil(options.end * SANTISECOND);
+    } else if (this.time === 0) {
+      this.updateTime(0.01 * SANTISECOND);
     }
 
     // update timeline
