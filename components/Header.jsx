@@ -48,7 +48,7 @@ Header.propTypes = {
     domain: PropTypes.string,
   }),
   fbPixelId: PropTypes.number,
-  scriptStatistic: PropTypes.bool,
+  scriptStatistic: PropTypes.string,
 };
 
 export default Header;

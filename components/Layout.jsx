@@ -168,7 +168,7 @@ class Layout extends Component {
                         whiteLabelManager={whiteLabelManager}
                         className={`theme-${whiteLabelManager.key}`}
                         fbPixelId={+this.stores.common.facebookPixelId}
-                        scriptStatistic={this.stores.common.scriptStatistic === 'true'}
+                        scriptStatistic={this.stores.common.scriptStatistic}
                       />
                     ) }
                   <div {...rest} className={`main theme-${whiteLabelManager.key}`}>
