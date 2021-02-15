@@ -798,8 +798,8 @@ export default class ProjectStore extends BaseStore {
       this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
     this.attach(target);
 
-    if (time !== undefined) {
-      this.updateTime(time);
+    if (time !== undefined || this.time) {
+      this.updateTime(time || this.time);
     }
   };
 
@@ -1848,15 +1848,12 @@ export default class ProjectStore extends BaseStore {
   @action
   runTextfill = () => {
     this.popcornElements.forEach(element => {
-      const currentTime = this.time / SANTISECOND;
-      const isCurrentElement = (element.popcornOptions.start <= currentTime)
-        && (currentTime <= element.popcornOptions.end);
-      if (isCurrentElement && element.popcornOptions.fontDecorations
+      if (element.popcornOptions.fontDecorations
         && element.popcornOptions.fontDecorations.responsive) {
         // we need to recount the fontsize. This is done in the update method.
         this.updatePopcorn(element, { fontDecorations: element.popcornOptions.fontDecorations });
       }
-      if (isCurrentElement && (element.type === POPCORN_ELEMENT_TYPES.TEXT_MASK
+      if ((element.type === POPCORN_ELEMENT_TYPES.TEXT_MASK
         || element.type === POPCORN_ELEMENT_TYPES.COMBINED)) {
         this.updatePopcorn(element, { newSize: true });
       }
