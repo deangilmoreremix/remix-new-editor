@@ -23,7 +23,8 @@ const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
 
   const handleChange = async (field) => {
     const { url } = field;
-    if (element && element.popcornOptions.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION && url) {
+    if (element && (element.popcornOptions.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION
+      || element.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION) && url) {
       const animationData = await loadUrl(url);
       const animation = await lottie.loadAnimation({ animationData });
       return update({

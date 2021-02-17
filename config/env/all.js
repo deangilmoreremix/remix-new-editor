@@ -75,6 +75,7 @@ module.exports = {
     cdn: process.env.CDN_PREFIX || 'cdn',
     projects: process.env.PROJECTS_PREFIX || 'projects',
     play: process.env.PLAY_PREFIX || 'play',
+    go: process.env.GO_PREFIX || 'go',
   },
   s3: {
     cdn: process.env.CDN_HOSTNAME || '',
