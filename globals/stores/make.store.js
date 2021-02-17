@@ -6,7 +6,7 @@ export default class PresetStore extends BaseStore {
   getNicheScripts = ({ page = 1, query = '', perPage = 20 }) => {
     try {
       return this.request(
-        `/api/makes/go?segment=${TEMPLATES_SEGMENTS.NICHE_SCRIPTS}&perPage=${perPage}&page=${page}&q=${query}`, {
+        `/api/makes/revolution?segment=${TEMPLATES_SEGMENTS.NICHE_SCRIPTS}&perPage=${perPage}&page=${page}&q=${query}`, {
           method: 'GET',
           headers: {
             'on-behalf': this.currentUser.id,
