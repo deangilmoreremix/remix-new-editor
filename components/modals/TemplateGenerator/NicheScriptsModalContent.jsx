@@ -3,16 +3,38 @@ import PropTypes from 'prop-types';
 import useMakeStore from '../../hooks/useMakeStore';
 import { showError } from '../../../lib/services/alertService';
 import NicheScriptsGrid from './NicheScriptsGrid';
+import {
+  initialState as listInitialState,
+  reducer as listReducer
+} from "../../../lib/utils/reducers/listReducer";
+import {ACTION_TYPES} from "../../../lib/constants/reducers/listReducer";
+import TemplatesPreview from "../../common/libraryElements/TemplatesPreview";
+import {TEMPLATES_SEGMENTS} from "../../../lib/constants/templateSegments";
 
 // todo update it, Pagination does not work here.
 const perPage = 100;
 
 export default function NicheScriptsModalContent({ options: { onSelect }, setHeader }) {
-  const makeStore = useMakeStore();
-  const [scripts, setScripts] = useState([]);
-  const [page, setPage] = useState(1);
-  const [query, setQuery] = useState('');
-  const [hasMore, setHasMore] = useState(true);
+  const [list, dispatchList] = React.useReducer(listReducer, listInitialState);
+  useEffect(() => dispatchList({
+    type: ACTION_TYPES.SET_INITIAL,
+    value: {
+      path: '/api/makes/revolution',
+      params: {
+        segment: TEMPLATES_SEGMENTS.NICHE_SCRIPTS,
+      },
+      content: TemplatesPreview,
+      perPage: 20,
+      orderBy: {
+        createdAt: -1,
+      },
+    },
+  }), []);
+  // const makeStore = useMakeStore();
+  // const [scripts, setScripts] = useState([]);
+  // const [page, setPage] = useState(1);
+  // const [query, setQuery] = useState('');
+  // const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     setHeader({});
