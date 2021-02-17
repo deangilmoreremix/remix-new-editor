@@ -11,6 +11,7 @@ import { LOADING_COLOR } from '../../../lib/constants/ui';
 
 import useMediaStore from '../../hooks/useMediaStore';
 import useProjectStore from '../../hooks/useProjectStore';
+import useUserStore from '../../hooks/useUserStore';
 
 import LibraryVoiceFilter from '../library/LibraryVoiceFilter';
 import TextToSpeechContent from './TextToSpeechContent';
@@ -29,6 +30,7 @@ const TextToSpeechLibrary = observer(({ addedItems, setAddedItems, kind }) => {
   } = useMediaStore();
 
   const { showWarning, addElement } = useProjectStore();
+  const { currentUser } = useUserStore();
 
   // ============ VOICE FILTER ===========
   const [voice, setVoice] = useState(null);
@@ -44,6 +46,13 @@ const TextToSpeechLibrary = observer(({ addedItems, setAddedItems, kind }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [uploadedItems, setUploadedItems] = useState([]);
+
+  useEffect(() => {
+    const pixelOptions = { user_email: currentUser.email };
+    if (window && window.fbq) {
+      window.fbq('trackCustom', 'TextToSpeech', pixelOptions);
+    }
+  }, []);
 
   useEffect(() => () => {
     if (updateElementInLibrary) {

@@ -11,6 +11,7 @@ import useModalStore from '../../hooks/useModalStore';
 import FieldBuilder from '../../form/FieldBuilder';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../../lib/constants/settings/image';
 import { IMAGE_CROPPER_MODAL } from '../../../lib/constants/modals';
+import { GIF_FORMAT, GIF_WARNING } from '../../../lib/constants/media';
 import { rgba2hex } from '../../../lib/lottie/utils';
 import { produceTooltips } from '../../../lib/constants/tooltips';
 import DropAndEditButton from '../../media/DropAndEditButton';
@@ -50,8 +51,8 @@ const SettingPanel = observer(() => {
     updateItem({ allowedSocials });
   };
 
-  const onUploadedImage = (image) => {
-    updateItem({ thumbnail: image.url });
+  const onUploadedImage = (image, type) => {
+    updateItem({ thumbnail: image.url, type });
   };
 
   const onImageEdited = (thumbnail) => {
@@ -193,26 +194,26 @@ const SettingPanel = observer(() => {
             </div>
           </div>
           <div className="settings__row-block">
-            {
-              item.thumbnail
-            && (
-            <Button
-              onClick={() => openEditor()}
-              disableRipple
-              disableFocusRipple
-              disableTouchRipple
-              className="settings__edit-file"
-            >
-              Image Editor
-            </Button>
-            )
-            }
+            {item.thumbnail && item.type !== GIF_FORMAT ? (
+              <Button
+                onClick={openEditor}
+                disableRipple
+                disableFocusRipple
+                disableTouchRipple
+                className="settings__edit-file"
+              >
+                Image Editor
+              </Button>
+            ) : (
+              <span className="settings__gif-message">{GIF_WARNING}</span>
+            )}
           </div>
         </div>
         <div className="settings__row">
           <div className="settings__row-block">
             <div className="settings__first-row-block">
               <DropAndEditButton
+                allowedGif
                 onUploaded={onUploadedImage}
                 isDisabled={isDisabledUpload}
                 startUpload={() => setIsDisabledUpload(true)}
@@ -232,6 +233,7 @@ const SettingPanel = observer(() => {
           <div className="settings__row-block">
             <DropAndEditButton
               isArea
+              allowedGif
               onUploaded={onUploadedImage}
               isDisabled={isDisabledUpload}
               value={item.thumbnail}

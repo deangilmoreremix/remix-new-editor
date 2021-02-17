@@ -101,14 +101,14 @@ const Canvas = observer(() => {
   useEffect(() => {
     if (wrapper.current) {
       setFontSize(`${DEFAULT_FONT_SIZE * (wrapper.current.offsetWidth / DEFAULT_VIDEO_WIDTH)}px`);
-      setTimeout(() => runTextfill(), 300);
+      setTimeout(() => runTextfill(), 0);
     }
   }, [style]);
 
   useEffect(() => {
     runTextfill();
     runMapResize();
-  }, [fontSize, runTextfill]);
+  }, [fontSize]);
 
   const onDropElement = ({ action }, monitor) => {
     const { left, top, width: w, height: h } = wrapper.current.getBoundingClientRect();

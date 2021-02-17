@@ -39,6 +39,8 @@ class Creator {
     clientSecret: null,
     helpCrunch: {},
     cdnSocialWeb: config.s3.cdnSocialWeb,
+    scriptStatistic: config.scriptStatistic,
+    facebookPixelId: config.facebookPixelId,
     pixoEditor: config.pixoEditor,
   };
 
@@ -168,6 +170,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       self: req.get && req.get('host'),
       cdnHostname: config.s3.cdn,
       facebookAppId: config.facebookAppId,
+      facebookPixelId: config.facebookPixelId,
       linkedinAppId: config.linkedinAppId,
       whiteLabel: config.whiteLabel,
       mediaProviders: config.mediaProviders,

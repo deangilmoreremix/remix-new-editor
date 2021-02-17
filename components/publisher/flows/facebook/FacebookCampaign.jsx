@@ -115,6 +115,7 @@ const FacebookCampaign = observer(({
       closeModal(SOCIAL_CAMPAIGN_MODAL);
       showInfo('Success');
     } catch (e) {
+      collapseConductor();
       showError(e.message);
     } finally {
       setLoading(false);
