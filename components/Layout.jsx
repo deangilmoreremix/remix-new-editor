@@ -60,7 +60,7 @@ class Layout extends Component {
       PopcornProxy.init(window);
     }
     const { children, Header: BaseHeader, layoutClassName, className, ...rest } = this.props;
-    const { common: { whiteLabelManager } } = this.stores;
+    const { common: { whiteLabelManager, userPilotToken } } = this.stores;
     return (
       <ThemeProvider theme={this.theme}>
         <CssBaseline />
@@ -203,6 +203,41 @@ class Layout extends Component {
                 </div>
               )
                 : <UnauthorizedView />}
+              { userPilotToken && whiteLabelManager
+              && whiteLabelManager.domain === DOMAIN_VIDEOREMIX && (
+                <>
+                  <script src="https://js.userpilot.io/sdk/latest.js" />
+                  <script dangerouslySetInnerHTML={{
+                    __html: `window.userpilotSettings = {
+                  token: ${userPilotToken}
+                };`,
+                  }}
+                  />
+                  <script dangerouslySetInnerHTML={{
+                    __html: `userpilot.identify(
+                           ${this.currentUser.id},
+                            {
+                              email: ${this.currentUser.email},
+                              fullName: ${this.currentUser.fullName},
+                              date: ${new Date().toLocaleString()},
+                              company:
+                               {
+                                 id: 'Revolution_Editor',
+                               }
+                            },
+                          );`,
+                  }}
+                  />
+                  <script dangerouslySetInnerHTML={{
+                    __html: `userpilot.track("Layout Revolution Editor", {
+                            email: ${this.currentUser.email},
+                            fullName: ${this.currentUser.fullName},
+                            date: ${new Date().toLocaleString()},
+                    });`,
+                  }}
+                  />
+                </>
+              )}
             </div>
           </DndProvider>
         </Provider>
