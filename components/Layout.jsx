@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import Head from 'next/head';
-import moment from 'moment';
 import { Provider, observer } from 'mobx-react';
 import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import { CssBaseline } from '@material-ui/core';
@@ -51,23 +50,9 @@ class Layout extends Component {
     this.currentUser = currentUser;
   }
 
-  async componentDidMount() {
-    const { common: { whiteLabelManager }, userStore } = this.stores;
+  componentDidMount() {
+    const { common: { whiteLabelManager } } = this.stores;
     document.body.classList.add(`theme-${whiteLabelManager.key}`);
-    try {
-      await userStore.setRoles();
-      const { roles } = userStore;
-      if (window && window.userpilot) {
-        window.userpilot.identify(this.currentUser.id, {
-          name: this.currentUser.fullName,
-          email: this.currentUser.email,
-          created_at: moment(this.currentUser.createdAt).format('X'),
-          roles: roles.map(({ name }) => name).join(', '),
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    }
   }
 
   render() {
@@ -218,41 +203,6 @@ class Layout extends Component {
                 </div>
               )
                 : <UnauthorizedView />}
-              { userPilotToken && whiteLabelManager
-              && whiteLabelManager.domain === DOMAIN_VIDEOREMIX && (
-                <>
-                  <script src="https://js.userpilot.io/sdk/latest.js" />
-                  <script dangerouslySetInnerHTML={{
-                    __html: `window.userpilotSettings = {
-                  token: ${userPilotToken}
-                };`,
-                  }}
-                  />
-                  <script dangerouslySetInnerHTML={{
-                    __html: `userpilot.identify(
-                           ${this.currentUser.id},
-                            {
-                              email: ${this.currentUser.email},
-                              fullName: ${this.currentUser.fullName},
-                              date: ${new Date().toLocaleString()},
-                              company:
-                               {
-                                 id: 'Revolution_Editor',
-                               }
-                            },
-                          );`,
-                  }}
-                  />
-                  <script dangerouslySetInnerHTML={{
-                    __html: `userpilot.track("Layout Revolution Editor", {
-                            email: ${this.currentUser.email},
-                            fullName: ${this.currentUser.fullName},
-                            date: ${new Date().toLocaleString()},
-                    });`,
-                  }}
-                  />
-                </>
-              )}
             </div>
             { userPilotToken && whiteLabelManager
             && whiteLabelManager.domain === DOMAIN_VIDEOREMIX && (
