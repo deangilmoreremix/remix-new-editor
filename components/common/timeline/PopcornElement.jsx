@@ -22,6 +22,7 @@ const PopcornElement = observer(({ item }) => {
     <Element
       item={item}
       tabIndex={-1}
+      className={`timeline-popcorn-${item.type}`}
     />
   );
 });
