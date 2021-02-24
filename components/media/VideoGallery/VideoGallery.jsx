@@ -1,12 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Gallery from 'react-masonry-infinite';
+import { observer } from 'mobx-react';
+
 import { LibrarySpinner } from '../Loader';
 import VideoTile from './VideoTile';
 import useModalStore from '../../hooks/useModalStore';
 import { PREVIEW_MEDIA_MODAL } from '../../../lib/constants/modals';
 
-const VideoGallery = (props) => {
+const VideoGallery = observer((props) => {
   const { items, loadMore, hasMore, inWindow, onSelect } = props;
   const { openModal } = useModalStore();
   const sizes = inWindow
@@ -22,9 +24,9 @@ const VideoGallery = (props) => {
 
   return (
     <Gallery
-      initialLoad
       pack
       hasMore={hasMore}
+      initialLoad={false}
       className="generator-gallery"
       loadMore={() => loadMore()}
       useWindow={false}
@@ -37,6 +39,7 @@ const VideoGallery = (props) => {
             url={item.url}
             title={item.title}
             preview={item.preview || item.url}
+            poster={item.poster}
             key={`tile-${item._id || item.url}`}
             onPreview={
               () => openModal(PREVIEW_MEDIA_MODAL, {
@@ -49,7 +52,7 @@ const VideoGallery = (props) => {
       }
     </Gallery>
   );
-};
+});
 
 VideoGallery.propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({

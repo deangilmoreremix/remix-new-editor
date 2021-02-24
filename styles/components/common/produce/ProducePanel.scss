@@ -17,7 +17,7 @@
     min-width: 5rem;
     flex-direction: column;
     line-height: 1;
-    color: $white;
+    color: $produce-title;
     text-transform: uppercase;
     font-size: $smallFontSize;
     margin-bottom: 1rem;
@@ -35,14 +35,43 @@
     align-items: center;
     width: 5.2rem;
     height: 6.2rem;
-    border: 1px solid $secondary-color;
-    border-radius: 3px;
+    border-radius: 5px;
     margin-bottom: 1.125rem;
+    background: #2D2D3B;
 
     svg {
       width: 100%;
       max-width: 3.6rem;
       max-height: 3.3rem;
+    }
+  }
+  .personalized-link-copy {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    color: #ffffff;
+    line-height: 1;
+    padding: 5px 7px;
+    background: $secondary-color;
+    z-index: 1;
+    transition: 0.3s all;
+
+    &:after {
+      content: "";
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 5px 5px 0 5px;
+      border-color: $secondary-color transparent transparent transparent;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: -5px;
     }
   }
 }

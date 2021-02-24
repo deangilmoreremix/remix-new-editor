@@ -68,7 +68,6 @@ const OverlayListTransitions = observer(() => {
       activeItem.project.data = newData;
 
       await addData(activeItem);
-      toggleRightBlock(false);
     } catch (e) {
       showError(e.message);
     }

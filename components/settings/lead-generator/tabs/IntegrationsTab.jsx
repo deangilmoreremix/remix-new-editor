@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
 
@@ -8,6 +8,7 @@ import PropTypes from '../../../../lib/PropTypes';
 import FieldBuilder from '../../../form/FieldBuilder';
 import useMakeStore from '../../../hooks/useMakeStore';
 import useProjectStore from '../../../hooks/useProjectStore';
+import useUserStore from '../../../hooks/useUserStore';
 
 import { BUTTON_DISABLED_HINT as buttonText } from '../../../../lib/constants/text-info';
 import { settingsTooltips } from '../../../../lib/constants/tooltips';
@@ -18,6 +19,7 @@ import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
 
 const IntegrationsTab = observer(({ values, fields, onChange, checkValue, type }) => {
   const { item: { project } } = useProjectStore();
+  const { fbLbPixelEnabled, fbLgPixelEnabled } = useUserStore();
 
   const { downloadOptinStatistic } = useMakeStore();
 
@@ -39,8 +41,21 @@ const IntegrationsTab = observer(({ values, fields, onChange, checkValue, type }
     }
   };
 
+  const idPixelAvailable = useMemo(() => (
+    (fbLbPixelEnabled && type === POPCORN_ELEMENT_TYPES.RETARGET)
+        || (fbLgPixelEnabled && type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR)),
+  [fbLbPixelEnabled, fbLgPixelEnabled]);
+
   return (
     <div className="integrations-container">
+      {idPixelAvailable && (
+        <FieldBuilder
+          className="input-fb-pixel"
+          value={values.fbPixelId ?? fields.fbPixelId.default}
+          onChange={onChange}
+          {...fields.fbPixelId}
+        />
+      )}
       <FieldBuilder
         isTooltip
         tooltipMessage={settingsTooltips.webhookAddress}
@@ -217,6 +232,9 @@ IntegrationsTab.propTypes = {
     }),
     emailAddress: PropTypes.shape({
       default: PropTypes.string,
+    }),
+    fbPixelId: PropTypes.shape({
+      default: PropTypes.number,
     }),
   }),
 };

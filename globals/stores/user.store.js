@@ -276,4 +276,14 @@ export default class UserStore {
   get downloaderEnabled() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_DOWNLOADER);
   }
+
+  @computed
+  get fbLbPixelEnabled() {
+    return this.isfeatureEnabled(FEATURES.LB_FACEBOOK_PIXEL_ID);
+  }
+
+  @computed
+  get fbLgPixelEnabled() {
+    return this.isfeatureEnabled(FEATURES.LG_FACEBOOK_PIXEL_ID);
+  }
 }

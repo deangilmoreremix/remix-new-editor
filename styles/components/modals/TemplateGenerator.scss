@@ -138,6 +138,8 @@
   margin: auto;
 
   .video-tile {
+    background-size: cover;
+    background-repeat: no-repeat;
     position: relative;
     width: 10rem;
     height: 10rem;
