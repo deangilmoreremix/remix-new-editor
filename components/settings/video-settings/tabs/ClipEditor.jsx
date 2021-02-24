@@ -295,7 +295,7 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
                   onChange={changeHidden}
                 />
               </div>
-              {!is360 && (
+              {!is360 && contentType !== ASSET_TYPES.AUDIO && (
                 <div className="video-settings__block-element">
                   <SVGInline
                     className="video-settings__icon"

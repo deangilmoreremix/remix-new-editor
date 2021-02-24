@@ -41,6 +41,7 @@ class Creator {
     cdnSocialWeb: config.s3.cdnSocialWeb,
     scriptStatistic: config.scriptStatistic,
     facebookPixelId: config.facebookPixelId,
+    userPilotToken: config.userPilotToken,
     pixoEditor: config.pixoEditor,
   };
 
@@ -171,6 +172,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       cdnHostname: config.s3.cdn,
       facebookAppId: config.facebookAppId,
       facebookPixelId: config.facebookPixelId,
+      userPilotToken: config.userPilotToken,
       linkedinAppId: config.linkedinAppId,
       whiteLabel: config.whiteLabel,
       mediaProviders: config.mediaProviders,

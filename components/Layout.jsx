@@ -61,7 +61,7 @@ class Layout extends Component {
       PopcornProxy.init(window);
     }
     const { children, Header: BaseHeader, layoutClassName, className, ...rest } = this.props;
-    const { common: { whiteLabelManager } } = this.stores;
+    const { common: { whiteLabelManager, userPilotToken } } = this.stores;
     return (
       <ThemeProvider theme={this.theme}>
         <CssBaseline />
@@ -206,6 +206,18 @@ class Layout extends Component {
               )
                 : <UnauthorizedView />}
             </div>
+            { userPilotToken && whiteLabelManager
+            && whiteLabelManager.domain === DOMAIN_VIDEOREMIX && (
+              <>
+                <script src="https://js.userpilot.io/sdk/latest.js" />
+                <script dangerouslySetInnerHTML={{
+                  __html: `window.userpilotSettings = {
+                  token: '${userPilotToken}'
+                };`,
+                }}
+                />
+              </>
+            )}
           </DndProvider>
         </Provider>
       </ThemeProvider>

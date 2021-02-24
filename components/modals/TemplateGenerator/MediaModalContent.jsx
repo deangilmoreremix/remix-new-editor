@@ -8,7 +8,7 @@ import { LIBRARY_KEYS } from '../../../lib/constants/library';
 import { showError } from '../../../lib/services/alertService';
 import VideoGallery from '../../media/VideoGallery/VideoGallery';
 
-const perPage = 10;
+const perPage = 16;
 
 const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
   const mediaStore = useMediaStore();
@@ -31,9 +31,10 @@ const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
   }, [activeTab]);
 
   const resetParams = () => {
-    setPage(1);
-    setHasMore(true);
     setVideos([]);
+    setIsLoading(false);
+    setHasMore(true);
+    setPage(1);
   };
 
   const getAssets = React.useCallback(async (reset = false) => {
@@ -77,10 +78,10 @@ const MediaModalContent = observer(({ inWindow, useVideo, setHeader }) => {
   }, [activeTab]);
 
   useEffect(() => {
-    if (page === 1 && hasMore && !videos.length) {
+    if (page === 1 && hasMore && !videos.length && !isLoading) {
       getAssets();
     }
-  }, [page, hasMore, videos, getAssets]);
+  }, [page, hasMore, videos, isLoading]);
 
   return (
     <div className="generator-body">

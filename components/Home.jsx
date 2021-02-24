@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import moment from 'moment';
 import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
 import Grid from '@material-ui/core/Grid';
@@ -71,6 +72,8 @@ const Home = observer(() => {
     socialFbEnabled,
     wrapperFeatureEnabled,
     textMaskEnabled,
+    roles,
+    currentUser,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -155,6 +158,7 @@ const Home = observer(() => {
     createCombinedItem,
     destroyCombinedItem,
     popcorn,
+    item,
   } = projectStore;
 
   const { setCopiedItems, pasteElement, isActiveTimeline } = useTimelineStore();
@@ -270,7 +274,7 @@ const Home = observer(() => {
       case WINDOW_TYPES.ANIMATION: {
         return (
           <AnimationList
-            onSelect={(item, type) => updateAnimation(type, item)}
+            onSelect={(el, type) => updateAnimation(type, el)}
             element={currentElement}
           />
         );
@@ -390,6 +394,22 @@ const Home = observer(() => {
       setIsRedirect();
     }
   }, [asyncHero?.loading]);
+
+  useEffect(() => {
+    try {
+      if (window && window.userpilot && item?.tags && roles) {
+        window.userpilot.identify(currentUser.id, {
+          name: currentUser.fullName,
+          email: currentUser.email,
+          created_at: moment(currentUser.createdAt).format('X'),
+          roles: roles.map(({ name }) => name).join(', '),
+          tags: item.tags.map((tag) => tag).join(', '),
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [item?.tags, roles]);
 
   return (
     <React.Fragment>

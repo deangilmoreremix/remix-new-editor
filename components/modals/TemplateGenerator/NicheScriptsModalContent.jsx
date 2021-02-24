@@ -5,7 +5,7 @@ import { showError } from '../../../lib/services/alertService';
 import NicheScriptsGrid from './NicheScriptsGrid';
 
 // todo update it, Pagination does not work here.
-const perPage = 100;
+const perPage = 250;
 
 export default function NicheScriptsModalContent({ options: { onSelect }, setHeader }) {
   const makeStore = useMakeStore();
