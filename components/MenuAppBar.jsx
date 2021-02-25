@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
@@ -22,8 +22,9 @@ import editIcon from '../public/static/svgImages/header/edit-project.svg';
 
 import useProjectStore from './hooks/useProjectStore';
 import useCommonStore from './hooks/useCommonStore';
-
+import useUserStore from './hooks/useUserStore';
 import useUIStore from './hooks/useUIStore';
+
 import Sidebar from './Sidebar';
 
 import PropTypes from '../lib/PropTypes';
@@ -38,6 +39,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   const anchorRef = useRef(null);
 
   const [isProjectTitle, setProjectTitle] = useState(false);
+  const [userItems, setUserItems] = useState([]);
 
   const {
     modified,
@@ -50,13 +52,20 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   } = useProjectStore();
 
   const common = useCommonStore();
-
+  const { oneOfFeatureEnabled } = useUserStore();
   const {
     showProducePanel,
     setInitialView,
     changeRadioButton,
     closeAllWindows,
   } = useUIStore();
+
+  useEffect(() => {
+    if (USER_MENU_ITEMS(common)) {
+      const items = USER_MENU_ITEMS(common);
+      setUserItems(oneOfFeatureEnabled ? items : items.filter((i) => !i.isFeatureDependence));
+    }
+  }, []);
 
   const saveProject = useCallback(async () => {
     checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
@@ -189,7 +198,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
           <ExpandButton />
           <Menu
             toggleElement={<UserBox />}
-            items={USER_MENU_ITEMS(common)}
+            items={userItems}
             className="user-menu flex-center"
             needEndIcon
           />
