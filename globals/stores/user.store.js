@@ -115,6 +115,12 @@ export default class UserStore {
     && this.currentUser.features[feature].state === STATE.ENABLED);
 
   @computed
+  get oneOfFeatureEnabled() {
+    const features = Object.values(FEATURES);
+    return features.some((feature) => this.isfeatureEnabled(feature));
+  }
+
+  @computed
   get leadGeneratorEnabled() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_LEAD_GENERATOR);
   }
