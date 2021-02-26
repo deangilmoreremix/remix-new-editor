@@ -899,6 +899,7 @@ export default class ProjectStore extends BaseStore {
   @action
   moveElements = (oldIndex, newIndex) => {
     this.setUndo();
+    this.modified = true;
     this.projectData.media.forEach((media) => {
       const tracks = arrayMove(media.tracks, oldIndex, newIndex);
       media.tracks = this.orderItems(tracks, true);
