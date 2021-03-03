@@ -29,7 +29,7 @@ const PixoImageEditor = observer(({
     if (refEditor.current) {
       const pixoEditor = new Pixo.Bridge({
         parent: refEditor.current,
-        texturesize: 512,
+        texturesize: 1024,
         type: 'child',
         apikey: apiKey,
         sessionrestore: false,
