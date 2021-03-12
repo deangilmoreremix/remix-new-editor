@@ -91,6 +91,7 @@ const Library = observer((props) => {
     voiceProvidersInfo,
     defaultProvidersInfo,
     checkToken,
+    uploadImageUrl,
   } = useMediaStore();
 
   const { downloaderEnabled, video360Enabled, getUserKey, updateUserKeys } = userStore;
@@ -522,6 +523,10 @@ const Library = observer((props) => {
       setIsLoading(true);
       setIsInitialLoading(true);
       try {
+        const imageKeys = [LIBRARY_KEYS.PEXELS, LIBRARY_KEYS.PIXABAY];
+        if (activeTab === LIBRARY_TABS.IMAGE && imageKeys.includes(activeBtn)) {
+          item = await uploadImageUrl(item);
+        }
         await projectStore.addElement(item);
       } catch (e) {
         setError(e.message);

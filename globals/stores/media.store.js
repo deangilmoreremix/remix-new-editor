@@ -401,6 +401,19 @@ export default class Media extends BaseStore {
   };
 
   @action
+  uploadImageUrl = async (item) => {
+    const uploadedItem = await this.uploadMedia(
+      { data: item.url, isCrop: true });
+    const { url } = uploadedItem;
+
+    item.src = url;
+    item.url = url;
+    item.preview = url;
+
+    return item;
+  };
+
+  @action
   setPresetsForDelete = (id) => {
     if (id) {
       this.presetsItemsForDelete.push(id);

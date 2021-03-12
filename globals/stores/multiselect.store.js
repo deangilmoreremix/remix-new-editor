@@ -14,6 +14,7 @@ export default class MultiselectStore {
   constructor(props) {
     this.projectStore = props.projectStore;
     this.userStore = props.userStore;
+    this.mediaStore = props.mediaStore;
   }
 
   @observable selectedImages = new Map();
@@ -172,6 +173,13 @@ export default class MultiselectStore {
       promises = promises.concat(Bb
         .map(this.selectedAudios.values(), (item) => this.setOptions(item,
           POPCORN_ELEMENT_TYPES.SEQUENCER)));
+    }
+    if (this.selectedImages.size) {
+      promises = promises.concat(Bb
+        .map(this.selectedImages.values(), (item) => (
+          item.needUpload && this.mediaStore.uploadImageUrl(item)
+        )),
+      );
     }
     try {
       await Bb.all(promises);
