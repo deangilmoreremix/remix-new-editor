@@ -136,6 +136,35 @@ const FieldsTab = ({ kind, values, fields, onChange, type }) => {
         {...fields.btnText}
         className="input-field-container"
       />
+      {(kind === POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN
+        || kind === POPCORN_ELEMENT_TYPES.RETARGET) && (
+        <div className="popup-fields-box">
+          <FieldBuilder
+            value={values.popupHeaderText ?? fields.popupHeaderText.default}
+            onChange={onChange}
+            {...fields.popupHeaderText}
+            className="input-field-container"
+          />
+          <FieldBuilder
+            value={values.popupFillOutText ?? fields.popupFillOutText.default}
+            onChange={onChange}
+            {...fields.popupFillOutText}
+            className="input-field-container"
+          />
+          <FieldBuilder
+            value={values.popupClickText ?? fields.popupClickText.default}
+            onChange={onChange}
+            {...fields.popupClickText}
+            className="input-field-container"
+          />
+          <FieldBuilder
+            value={values.popupDescriptionText ?? fields.popupDescriptionText.default}
+            onChange={onChange}
+            {...fields.popupDescriptionText}
+            className="input-field-container"
+          />
+        </div>
+      )}
     </div>
   );
 };
@@ -148,6 +177,10 @@ FieldsTab.propTypes = {
     privacyPolicyCaption: PropTypes.string,
     privacyPolicyLink: PropTypes.string,
     btnText: PropTypes.string,
+    popupHeaderText: PropTypes.string,
+    popupFillOutText: PropTypes.string,
+    popupClickText: PropTypes.string,
+    popupDescriptionText: PropTypes.string,
   }),
   kind: PropTypes.string,
   onChange: PropTypes.func.isRequired,
@@ -169,6 +202,18 @@ FieldsTab.propTypes = {
       default: PropTypes.string,
     }),
     btnText: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    popupHeaderText: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    popupFillOutText: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    popupClickText: PropTypes.shape({
+      default: PropTypes.string,
+    }),
+    popupDescriptionText: PropTypes.shape({
       default: PropTypes.string,
     }),
   }),
