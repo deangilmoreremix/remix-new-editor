@@ -42,7 +42,7 @@ const PixoImageEditor = observer(({
           logosrc: 'none',
           css: `
             .pixo-editmenu button {
-              padding: 2vh 0;
+              padding: 1vh 0;
             }
             .pixo-propertypanel-handle {
               left: -2rem !important;

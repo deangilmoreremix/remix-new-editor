@@ -196,7 +196,7 @@ const SettingPanel = observer(() => {
           <div className="settings__row-block">
             {item.thumbnail && item.type !== GIF_FORMAT ? (
               <Button
-                onClick={openEditor}
+                onClick={() => openEditor()}
                 disableRipple
                 disableFocusRipple
                 disableTouchRipple
