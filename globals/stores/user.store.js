@@ -1,6 +1,6 @@
 import { action, computed, observable } from 'mobx';
 
-import { FEATURES, STATE } from '../../lib/constants/features';
+import { FEATURES, STATE, INTEGRATION_FEATURES } from '../../lib/constants/features';
 import { LIBRARY_KEYS } from '../../lib/constants/library';
 
 export default class UserStore {
@@ -116,7 +116,7 @@ export default class UserStore {
 
   @computed
   get oneOfFeatureEnabled() {
-    const features = Object.values(FEATURES);
+    const features = Object.values(INTEGRATION_FEATURES);
     return features.some((feature) => this.isfeatureEnabled(feature));
   }
 
