@@ -201,20 +201,21 @@ export async function initCreateStores(isServer, source, req, preloader) {
       isServer,
       currentUser: creator.currentUser,
     });
+    const mediaStore = new MediaStore({
+      request: creator.request,
+      common: creator.common,
+      isServer,
+      currentUser: creator.currentUser,
+      assetsRequest: creator.assetsRequest,
+      userStore,
+    });
 
     stores = {
       common: {
         ...creator.common,
         whiteLabelManager: creator.whiteLabelManager,
       },
-      mediaStore: new MediaStore({
-        request: creator.request,
-        common: creator.common,
-        isServer,
-        currentUser: creator.currentUser,
-        assetsRequest: creator.assetsRequest,
-        userStore,
-      }),
+      mediaStore,
       projectStore,
       baseStore,
       modalStore: ModalStore(),
@@ -240,7 +241,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
         currentUser: creator.currentUser,
         userStore,
       }),
-      multiSelectStore: new MultiselectStore({ projectStore, userStore }),
+      multiSelectStore: new MultiselectStore({ projectStore, userStore, mediaStore }),
     };
   }
   if (preloader) {
@@ -272,20 +273,21 @@ export function init(source) {
       isServer,
       currentUser: creator.currentUser,
     });
+    const mediaStore = new MediaStore({
+      request: creator.request,
+      common: creator.common,
+      isServer,
+      currentUser: creator.currentUser,
+      assetsRequest: creator.assetsRequest,
+      userStore,
+    });
     stores = {
       common: {
         ...creator.common,
         whiteLabelManager: creator.whiteLabelManager,
       },
       modalStore: ModalStore(),
-      mediaStore: new MediaStore({
-        request: creator.request,
-        common: creator.common,
-        isServer,
-        currentUser: creator.currentUser,
-        assetsRequest: creator.assetsRequest,
-        userStore,
-      }),
+      mediaStore,
       baseStore,
       socketStore,
       projectStore,
@@ -310,7 +312,7 @@ export function init(source) {
         currentUser: creator.currentUser,
         userStore,
       }),
-      multiSelectStore: new MultiselectStore({ projectStore, userStore }),
+      multiSelectStore: new MultiselectStore({ projectStore, userStore, mediaStore }),
     };
   }
   // initializeSockets(creator.authorization, creator.currentUser, creator.hostname);

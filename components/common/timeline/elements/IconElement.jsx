@@ -22,7 +22,7 @@ import personalizedVoiceIcon from '../../../../public/static/images/media/person
 import voiceIcon from '../../../../public/static/images/media/voice.svg';
 import useProjectStore from '../../../hooks/useProjectStore';
 
-const IconElement = React.forwardRef(({ item, ...rest }, ref) => {
+const IconElement = React.forwardRef(({ item, className, ...rest }, ref) => {
   const {
     isAudio,
   } = useProjectStore();
@@ -68,6 +68,7 @@ const IconElement = React.forwardRef(({ item, ...rest }, ref) => {
     <Grid
       container
       className={classnames(
+        className,
         'popcorn-element',
         'icon-element',
         `popcorn-${item.type}-element`,
@@ -118,6 +119,7 @@ const IconElement = React.forwardRef(({ item, ...rest }, ref) => {
 });
 
 IconElement.propTypes = {
+  className: PropTypes.string,
   item: PropTypes.shape({
     type: PropTypes.string.isRequired,
     title: PropTypes.string,

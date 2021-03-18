@@ -1,6 +1,6 @@
 import { action, computed, observable } from 'mobx';
 
-import { FEATURES, STATE } from '../../lib/constants/features';
+import { FEATURES, STATE, INTEGRATION_FEATURES } from '../../lib/constants/features';
 import { LIBRARY_KEYS } from '../../lib/constants/library';
 
 export default class UserStore {
@@ -113,6 +113,12 @@ export default class UserStore {
   isfeatureEnabled = (feature) => this.isSuperAdmin || (
     this.currentUser.features && this.currentUser.features[feature]
     && this.currentUser.features[feature].state === STATE.ENABLED);
+
+  @computed
+  get oneOfFeatureEnabled() {
+    const features = Object.values(INTEGRATION_FEATURES);
+    return features.some((feature) => this.isfeatureEnabled(feature));
+  }
 
   @computed
   get leadGeneratorEnabled() {

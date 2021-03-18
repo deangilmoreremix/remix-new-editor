@@ -119,7 +119,7 @@ const GoogleTextToSpeech = observer(() => {
         isPersonalizedVoice ? maxSymbols.personalized : maxSymbols.text,
       );
       const newTextLength = activeTextElement.text.replace(/{{\w+}}/g, '').length;
-      let newText = activeTextElement.text.toLowerCase();
+      let newText = activeTextElement.text.toLowerCase().replace(/<br>/g, '');
 
       if (isPersonalizedVoice) {
         const newString = newText.replace(TOKEN_REGEX, (match) => {

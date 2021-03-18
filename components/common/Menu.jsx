@@ -12,6 +12,7 @@ import { ACTION_LOGOUT } from '../../lib/constants/ui';
 
 import HelpIconComponent from './HelpIcon';
 
+
 const Menu = observer((
   {
     toggleElement,
@@ -26,6 +27,7 @@ const Menu = observer((
   }) => {
   const anchorRef = React.useRef(null);
   const [open, setOpen] = React.useState(false);
+
   const { push } = useRouter();
 
   const handleAction = (arg) => {
@@ -138,14 +140,12 @@ const Menu = observer((
                   id="menu-list-grow"
                 >
                   {items.map((item) => (
-                    item.url
-                      ? (
-                        // eslint-disable-next-line react/jsx-no-target-blank
-                        <a key={item.url} href={`//${item.url}`} target="_blank">
-                          {menuButton(item)}
-                        </a>
-                      )
-                      : (menuButton(item))
+                    item.url ? (
+                      // eslint-disable-next-line react/jsx-no-target-blank
+                      <a key={item.url} href={`//${item.url}`} target="_blank">
+                        {menuButton(item)}
+                      </a>
+                    ) : (menuButton(item))
                   ))}
                 </div>
               </ClickAwayListener>
