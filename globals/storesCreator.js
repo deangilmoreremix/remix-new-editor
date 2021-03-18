@@ -42,6 +42,7 @@ class Creator {
     scriptStatistic: config.scriptStatistic,
     facebookPixelId: config.facebookPixelId,
     userPilotToken: config.userPilotToken,
+    pixoEditor: config.pixoEditor,
   };
 
   clientAuthHeader = null;
@@ -74,8 +75,12 @@ class Creator {
         this.currentUser.intercomHash = getUserHash(this.currentUser.email, true);
       }
     }
+    this.clientAuthHeader = `Basic ${btoa(`${source.common.clientId}:${source.common.clientSecret}`)}`;
+    if (source && source.common) {
+      delete source.common.clientId;
+      delete source.common.clientSecret;
+    }
     Object.assign(this, source);
-    this.clientAuthHeader = `Basic ${btoa(`${this.common.clientId}:${this.common.clientSecret}`)}`;
     const accessToken = this.getCookies(AUTH_DATA_CONFIG.accessToken);
     this.setupNetworkServices(accessToken, isServer, this.req && this.req.whiteLabel);
   }
@@ -175,6 +180,7 @@ export async function initCreateStores(isServer, source, req, preloader) {
       scriptStatistic: config.scriptStatistic,
       vrviewPath: config.vrviewPath,
       cdnSocialWeb: config.s3.cdnSocialWeb,
+      pixoEditor: config.pixoEditor,
     };
   }
 

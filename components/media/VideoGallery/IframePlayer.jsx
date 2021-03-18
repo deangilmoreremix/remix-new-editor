@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import ProjectLoader from '../../common/ProjectLoader';
 
 import useProjectStore from '../../hooks/useProjectStore';
+import useCommonStore from '../../hooks/useCommonStore';
 
 import { generatePopcornObject } from '../../../lib/utils/popcorn-helper';
 
@@ -13,6 +14,8 @@ import { DEFAULT_USER_IMAGE } from '../../../lib/constants/project';
 
 const IframePlayer = (props) => {
   const projectStore = useProjectStore();
+  const common = useCommonStore();
+
   const { getPersonalization } = projectStore;
 
   const { containerClassName, videoClassName, item: { url, title }, item } = props;
@@ -41,7 +44,7 @@ const IframePlayer = (props) => {
     frameConductor.postMessage({
       topic: 'preplay',
       config: {
-        domain: 'vidcloud.io',
+        domain: common.whiteLabelManager.domain,
         serviceName: 'VidCloud',
         salesPage: '',
         privacyPolicyLink: '',
