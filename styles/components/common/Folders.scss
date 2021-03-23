@@ -1,0 +1,40 @@
+.create-folder {
+  &-box {
+    display: flex;
+    align-items: center;
+  }
+
+  &-icon {
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    margin-left: 0.5rem;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__hover-icon {
+    cursor: pointer;
+    margin-left: 0.25rem;
+
+    &:hover {
+      svg path {
+        stroke: $secondary-color;
+      }
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__icons-box {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}

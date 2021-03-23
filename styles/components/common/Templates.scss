@@ -15,15 +15,30 @@ $titleHeight: 9vh;
   display: flex;
   height: calc(100vh - 6.725rem);
 
+  .folders-height {
+    max-height: 100% !important;
+  }
+
   .categories {
     width: $leftSideWidth;
     min-width: $leftSideWidth;
     color: $baseColor;
 
+    &-span {
+      cursor: default !important;
+      justify-content: flex-start !important;
+      margin-top: 1.5rem !important;
+      margin-bottom: 0.5rem !important;
+      font-size: 16px;
+      font-weight: 400;
+    }
+
     &-list {
       @include tiny-scrollbar($scrollbarColor: #FFFFFF, $thumbHover:$backgroundBaseColor, $thumbColor: $backgroundBaseColor);
       max-height: $pageHeight - $titleHeight;
       margin-left: 3rem;
+      height: calc(100vh - 17rem);
+
       .category {
         line-height: 1.5rem;
         @include reset-button;
@@ -34,6 +49,19 @@ $titleHeight: 9vh;
         &.active-category {
           color: $secondary-color;
         }
+      }
+
+      .width-auto {
+        width: auto !important;
+        white-space: nowrap;
+        max-width: 100%;
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .folder {
+        display: flex;
+        justify-content: space-between;
       }
     }
     &-header {
@@ -47,6 +75,9 @@ $titleHeight: 9vh;
       margin-bottom: 0.5rem;
       color: $baseColor;
       margin-left: 3rem;
+    }
+    &__all-projects {
+      margin-bottom: 0;
     }
   };
 
@@ -271,6 +302,10 @@ $titleHeight: 9vh;
     bottom: 0;
     left: 0;
     pointer-events: none;
+
+    &.only-content {
+      margin-left: 16rem;
+    }
   }
 }
 
