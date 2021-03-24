@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import _ from 'lodash';
 import { observer } from 'mobx-react';
 
@@ -22,8 +22,15 @@ const PixoImageEditor = observer(({
 }) => {
   const refEditor = useRef();
   const { uploadMedia, common: { pixoEditor: { apiKey } } } = useMediaStore();
+  const [isLoading, setIsLoading] = useState(false);
 
   const { source } = useMemo(() => imageData, [imageData]);
+
+  const onClose = () => {
+    if (!isLoading) {
+      handleClose();
+    }
+  };
 
   React.useEffect(() => {
     if (refEditor.current) {
@@ -56,8 +63,8 @@ const PixoImageEditor = observer(({
             }
           `,
         },
-        onSave: (img) => onLoadImage(img.toDataURL()),
-        onClose: () => handleClose(),
+        onSave: (img) => onLoadImage(img.toBlob()),
+        onClose,
       });
 
       pixoEditor.edit(source);
@@ -73,12 +80,14 @@ const PixoImageEditor = observer(({
     let hasError;
 
     try {
+      setIsLoading(true);
       startUpload();
       media = await uploadMedia({ data: image, isCrop: true });
     } catch (e) {
       hasError = true;
       showError(e.message);
     } finally {
+      setIsLoading(false);
       image = media && media.url;
       if (!hasError) {
         onImageEdited(image);
@@ -88,7 +97,12 @@ const PixoImageEditor = observer(({
     }
   }, [refEditor]);
 
-  return <div className="pixo-image-editor" ref={refEditor} />;
+  return (
+    <>
+      { isLoading ? <div className="pixo-image-loading">Uploading image... </div>
+        : <div className="pixo-image-editor" ref={refEditor} /> }
+    </>
+  );
 });
 
 PixoImageEditor.propTypes = {

@@ -33,7 +33,7 @@ app.prepare().then(() => {
   });
   require('./lib/express/webmaker')(server);
   server.use(express.json({ limit: '10mb' }));
-  server.use(express.urlencoded({ extended: true }));
+  server.use(express.urlencoded({ limit: '10mb', extended: true }));
   // server.post('/api/media/join', join);
   server.put('/api/media', processForm, isValidMedia, mediaUpload);
   server.get('/api/get-content-type', getContentType);
