@@ -74,7 +74,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   }, [isSaved]);
 
   React.useEffect(() => () => {
-    if (!isSavedRef.current) {
+    if (!isSavedRef.current && !values.kind) {
       removeTransition(values);
     }
   }, []);
