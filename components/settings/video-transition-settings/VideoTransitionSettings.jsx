@@ -38,6 +38,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [transition, setTransition] = React.useState(null);
 
+  const isSavedRef = React.useRef(null);
   const newFromEnd = React.useRef(null);
   const newToStart = React.useRef(null);
   const selectRef = React.useRef(null);
@@ -68,8 +69,12 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
 
   const duration = React.useMemo(() => +((end - start).toFixed(2)), [start, end]);
 
+  React.useEffect(() => {
+    isSavedRef.current = isSaved;
+  }, [isSaved]);
+
   React.useEffect(() => () => {
-    if (!isSaved) {
+    if (!isSavedRef.current && !values.kind) {
       removeTransition(values);
     }
   }, []);
@@ -171,7 +176,6 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
   }, [fromVideo, isCaptured, toVideo]);
 
   const handleSave = React.useCallback(async () => {
-    setIsSaved(true);
     // 1. upload images
     if (from && to) {
       setIsLoading(true);
@@ -303,6 +307,7 @@ const VideoTransitionSettings = observer(({ element, update, fields, find }) => 
       newFromEnd.current = null;
       newToStart.current = null;
       setIsLoading(false);
+      setIsSaved(true);
     }
   }, [
     duration,
