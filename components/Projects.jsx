@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
+import { useRouter } from 'next/router';
 
 import { initialState as listInitialState, reducer as listReducer } from '../lib/utils/reducers/listReducer';
 
@@ -11,6 +12,8 @@ import { showSuccess, showConfirmation } from '../lib/services/alertService';
 import useUserStore from './hooks/useUserStore';
 import useModalStore from './hooks/useModalStore';
 import useBaseStore from './hooks/useBaseStore';
+import useSearchStore from './hooks/useSearchStore';
+import useCommonStore from './hooks/useCommonStore';
 
 import ProjectsPreview from './common/libraryElements/ProjectsPreview';
 import List from './common/gallery/List';
@@ -23,49 +26,92 @@ const Projects = observer(() => {
   const { hasPermissions } = useUserStore();
   const { openModal } = useModalStore();
   const { sendRequest } = useBaseStore();
+  const { prefixes, whiteLabelManager } = useCommonStore();
+
+  const router = useRouter();
 
   const [list, dispatchList] = React.useReducer(listReducer, listInitialState);
   const [foldersList, dispatchFoldersList] = React.useReducer(listReducer, listInitialState);
-
-  useEffect(() => {
-    dispatchList({
-      type: ACTION_TYPES.SET_INITIAL,
-      value: { path: '/api/makes', content: ProjectsPreview, perPage: 20 },
-    });
-  }, []);
+  const { q, reset: resetSearch } = useSearchStore();
 
   useEffect(() => {
     updateFolders();
   }, []);
 
   useEffect(() => {
+    if (foldersList.init) {
+      updateList(true);
+    }
+  }, [foldersList.init]);
+
+  useEffect(() => {
+    if (foldersList.items.length > 0 && router.query.folder) {
+      selectFolder(router.query.folder);
+    }
+  }, [foldersList.items]);
+
+  useEffect(() => {
     if (!foldersList.activeItem) {
       selectFolder();
     }
+    updateList();
   }, [foldersList.activeItem]);
 
+  useEffect(() => dispatchList({
+    type: ACTION_TYPES.SET_QUERY,
+    value: q,
+  }), [q]);
+
+  useEffect(() => resetSearch(), []);
+
+  const updateList = (isInit = false) => {
+    if (router.query.folder && isInit) {
+      return;
+    }
+
+    dispatchList({
+      type: ACTION_TYPES.SET_INITIAL,
+      value: {
+        path: '/api/users/me/makes',
+        content: (props) => (
+          <ProjectsPreview
+            prefixes={prefixes}
+            whiteLabel={whiteLabelManager}
+            updateItem={updateCurrentProject}
+            updateList={updateList}
+            {...props}
+          />
+        ),
+        perPage: 20,
+        filter: {
+          folder: foldersList.activeItem && foldersList.activeItem._id,
+          archived: foldersList.activeItem === ARCHIVED ? { $in: true } : { $in: [null, false] },
+        },
+        orderBy: { createdAt: -1 },
+      },
+    });
+  };
+
+  const updateCurrentProject = (item) => {
+    dispatchList({
+      type: ACTION_TYPES.UPDATE_ITEM,
+      value: item || null,
+    });
+  };
+
   const selectFolder = useCallback((item) => {
+    if (item || item === ARCHIVED) {
+      router.push({
+        query: { folder: item === ARCHIVED ? ARCHIVED : item.title || item },
+      });
+    } else {
+      router.push('/projects');
+    }
     dispatchFoldersList({
       type: ACTION_TYPES.SET_ACTIVE_ITEM,
       value: item || null,
     });
-
-    if (item === ARCHIVED) {
-      dispatchList({
-        type: ACTION_TYPES.UPDATE_FILTER,
-        value: { key: ARCHIVED, v: { $in: true } },
-      });
-    } else {
-      dispatchList({
-        type: ACTION_TYPES.UPDATE_FILTER,
-        value: { key: ARCHIVED, v: { $in: [null, false] } },
-      });
-      dispatchList({
-        type: ACTION_TYPES.UPDATE_FILTER,
-        value: { key: 'folder', v: item && item._id },
-      });
-    }
-  }, [list.filter]);
+  }, []);
 
   const onDeleteFolder = async (item) => {
     const response = await showConfirmation(

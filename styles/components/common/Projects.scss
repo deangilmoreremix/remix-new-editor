@@ -20,7 +20,8 @@ $leftSideWidth: 162px;
 
   .projects-item-buttons {
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
+    flex-direction: column;
     align-items: center;
     position: absolute;
     top: 0;
@@ -30,6 +31,26 @@ $leftSideWidth: 162px;
     background: rgba(21, 21, 26, 0.7);
     opacity: 0;
     transition: 0.3s opacity;
+
+    &__second {
+      display: flex;
+      justify-content: space-between;
+      width: 80%;
+    }
+
+    &__edit-icon {
+      position: absolute;
+      width: 12px;
+      top: 0;
+      right: 4%;
+      cursor: pointer;
+
+      &:hover {
+        svg path {
+          fill: $secondary-color;
+        }
+      }
+    }
 
     button {
       @include reset-button;
@@ -49,6 +70,22 @@ $leftSideWidth: 162px;
 
   button.projects-item-edit {
     background: $secondary-color;
+  }
+
+  .projects-item-edit {
+    @include reset-button;
+    height: 1.5rem;
+    width: 42%;
+    max-width: 6rem;
+    border-radius: 15px;
+    margin: 0 4%;
+    font-size: $defaultFontSize;
+    background: $secondary-color;
+
+    a {
+      text-decoration: none;
+      color: $white;
+    }
   }
 
   .library__item-information {

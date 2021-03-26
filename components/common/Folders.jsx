@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 
@@ -14,7 +14,7 @@ import addFolderIcon from '../../public/static/svgImages/projects/add-project-ic
 
 const ARCHIVED = 'archived';
 
-const Folders = React.memo((
+const Folders = memo((
   { list, dispatchList, select, className, createFolder }) => {
   const { openModal } = useModalStore();
 

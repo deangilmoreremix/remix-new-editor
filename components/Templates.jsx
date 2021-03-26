@@ -1,9 +1,11 @@
 import React, { useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
+import { useRouter } from 'next/router';
 
 import useUserStore from './hooks/useUserStore';
 import useSearchStore from './hooks/useSearchStore';
+import useCommonStore from './hooks/useCommonStore';
 
 import List from './common/gallery/List';
 import {
@@ -23,27 +25,38 @@ const MAKE_TYPES = {
 };
 
 const Templates = observer(() => {
+  const router = useRouter();
+
   const { hasPermissions } = useUserStore();
+  const { prefixes, whiteLabelManager } = useCommonStore();
 
   const [list, dispatchList] = React.useReducer(listReducer, listInitialState);
   const [categoriesList, dispatchCategoriesList] = React.useReducer(listReducer, listInitialState);
 
   const { q, isVideo, isImage, reset: resetSearch } = useSearchStore();
 
-  useEffect(() => dispatchList({
-    type: ACTION_TYPES.SET_INITIAL,
-    value: {
-      path: '/api/makes/templates',
-      content: TemplatesPreview,
-      perPage: 20,
-      filter: {
-        archived: { $in: [null, false] },
-      },
-      orderBy: {
-        createdAt: -1,
-      },
-    },
-  }), []);
+  useEffect(() => {
+    updateFolders();
+  }, []);
+
+  useEffect(() => {
+    if (categoriesList.init) {
+      updateList(true);
+    }
+  }, [categoriesList.init]);
+
+  useEffect(() => {
+    if (categoriesList.items.length > 0 && router.query.folder) {
+      selectCategory(router.query.folder);
+    }
+  }, [categoriesList.items]);
+
+  useEffect(() => {
+    if (!categoriesList.activeItem) {
+      selectCategory();
+    }
+    updateList();
+  }, [categoriesList.activeItem]);
 
   useEffect(() => resetSearch(), []);
 
@@ -65,17 +78,46 @@ const Templates = observer(() => {
     });
   }, [isVideo, isImage]);
 
+  const updateList = (isInit = false) => {
+    if (router.query.folder && isInit) {
+      return;
+    }
+
+    dispatchList({
+      type: ACTION_TYPES.SET_INITIAL,
+      value: {
+        path: '/api/makes/templates',
+        content: (props) => (
+          <TemplatesPreview
+            prefixes={prefixes}
+            whiteLabel={whiteLabelManager}
+            {...props}
+          />
+        ),
+        perPage: 20,
+        filter: {
+          archived: { $in: [null, false] },
+        },
+        orderBy: {
+          createdAt: -1,
+        },
+      },
+    });
+  };
+
   const selectCategory = useCallback((item) => {
+    if (item) {
+      router.push({
+        query: { folder: item.name || item },
+      });
+    } else {
+      router.push('/templates');
+    }
     dispatchCategoriesList({
       type: ACTION_TYPES.SET_ACTIVE_ITEM,
       value: item || null,
     });
-    dispatchList({
-      type: ACTION_TYPES.UPDATE_FILTER,
-      value: { key: 'categories', v: item && item._id },
-    });
-  }, [list.filter]);
-
+  }, []);
 
   const onChangeRatio = useCallback((value) => {
     dispatchList({
@@ -84,7 +126,7 @@ const Templates = observer(() => {
     });
   }, [list.filter]);
 
-  useEffect(() => {
+  const updateFolders = () => {
     dispatchCategoriesList({
       type: ACTION_TYPES.SET_INITIAL,
       // todo update path after implementing backend
@@ -101,7 +143,8 @@ const Templates = observer(() => {
         perPage: 25,
       },
     });
-  }, []);
+  };
+
   return (
     <div className={classnames('templates', { 'dark-theme': hasPermissions })}>
       <Categories

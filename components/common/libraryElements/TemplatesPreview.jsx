@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { observer } from 'mobx-react';
 
@@ -9,15 +9,29 @@ import HelpIconComponent from '../HelpIcon';
 import { DEFAULT_THUMBNAIL } from '../../../lib/constants/project';
 import { TEMPLATE_PREVIEW_MODAL } from '../../../lib/constants/modals';
 import { templatesTooltips } from '../../../lib/constants/tooltips';
+import { EDITOR_TYPES } from '../../../lib/constants/routing';
 
 import useUserStore from '../../hooks/useUserStore';
 import useModalStore from '../../hooks/useModalStore';
 
 const TemplatesPreview = observer((props) => {
-  const { item } = props;
+  const { item, prefixes, whiteLabel } = props;
 
   const { hasPermissions, editorEnabled } = useUserStore();
   const { openModal } = useModalStore();
+
+  const editorLink = useMemo(() => {
+    const project = `edit?project=${item.project._id}`;
+    switch (item.editor) {
+      case EDITOR_TYPES.REVOLUTION:
+        return project;
+      case EDITOR_TYPES.GO:
+        return `http://${prefixes.go}.${whiteLabel.domain}/${project}`;
+      case EDITOR_TYPES.DEFAULT:
+        return `http://${prefixes.editor}.${whiteLabel.domain}/en-US/editor/${item.project._id}/edit`;
+      default: break;
+    }
+  }, [item, item.editor]);
 
   return (
     <div className="library__item">
@@ -25,7 +39,7 @@ const TemplatesPreview = observer((props) => {
       <div className="library__item-buttons">
         <button
           className="library__item-button"
-          onClick={() => openModal(TEMPLATE_PREVIEW_MODAL, { item })}
+          onClick={() => openModal(TEMPLATE_PREVIEW_MODAL, { item, editorLink })}
         >
           Preview
         </button>

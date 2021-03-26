@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { useMemo } from 'react';
 import { Waypoint } from 'react-waypoint';
 import PropTypes from '../../../lib/PropTypes';
 import { LibrarySpinner } from '../../media/Loader';
@@ -11,25 +11,36 @@ const Content = ({
   element: Element,
   className,
   activeItem,
-}) => (
-  <div className={className}>
-    {items && items.length ? (
-      <Fragment>
-        {items.map((item) => (
-          <Element item={item} key={item._id} activeItem={activeItem} />
-        ))}
-      </Fragment>
-    ) : null}
-    {isLoading && hasMore && <LibrarySpinner />}
-    {
-      !isLoading && hasMore && (
-        <Waypoint bottomOffset="3%" onEnter={uploadNewItems}>
-          <span className="list-waypoint" />
-        </Waypoint>
-      )
-    }
-  </div>
-);
+  withoutParent,
+}) => {
+  const content = useMemo(() => (
+    <>
+      {items && items.length ? (
+        <>
+          {items.map((item) => (
+            <Element item={item} key={item._id} activeItem={activeItem} />
+          ))}
+        </>
+      ) : null}
+      {isLoading && hasMore && <LibrarySpinner />}
+      {
+        !isLoading && hasMore && (
+          <Waypoint bottomOffset="3%" onEnter={uploadNewItems}>
+            <span className="list-waypoint" />
+          </Waypoint>
+        )
+      }
+    </>
+  ), [activeItem, hasMore, isLoading, items]);
+
+  return (
+    withoutParent ? content : (
+      <div className={className}>
+        {content}
+      </div>
+    )
+  );
+};
 
 Content.defaultProps = {
   className: 'list-items',
@@ -45,5 +56,6 @@ Content.propTypes = {
   element: PropTypes.func.isRequired,
   className: PropTypes.string,
   activeItem: PropTypes.string,
+  withoutParent: PropTypes.bool,
 };
 export default Content;

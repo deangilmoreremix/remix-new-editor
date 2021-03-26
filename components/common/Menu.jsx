@@ -2,6 +2,8 @@ import { useRouter } from 'next/router';
 import * as React from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
+import Link from 'next/link';
+
 import { Popper, Button, Grow, ClickAwayListener, Paper } from '@material-ui/core';
 
 import togglerIcon from '../../public/static/svgImages/common/toggler.svg';
@@ -11,7 +13,6 @@ import PropTypes from '../../lib/PropTypes';
 import { ACTION_LOGOUT } from '../../lib/constants/ui';
 
 import HelpIconComponent from './HelpIcon';
-
 
 const Menu = observer((
   {
@@ -140,11 +141,20 @@ const Menu = observer((
                   id="menu-list-grow"
                 >
                   {items.map((item) => (
+                    // eslint-disable-next-line no-nested-ternary
                     item.url ? (
-                      // eslint-disable-next-line react/jsx-no-target-blank
-                      <a key={item.url} href={`//${item.url}`} target="_blank">
-                        {menuButton(item)}
-                      </a>
+                      item.isLink ? (
+                        <div>
+                          <Link href={item.url}>
+                            {menuButton(item)}
+                          </Link>
+                        </div>
+                      ) : (
+                        // eslint-disable-next-line react/jsx-no-target-blank
+                        <a key={item.url} href={`//${item.url}`} target="_blank">
+                          {menuButton(item)}
+                        </a>
+                      )
                     ) : (menuButton(item))
                   ))}
                 </div>

@@ -1,5 +1,6 @@
 import React, { Fragment } from 'react';
 import classnames from 'classnames';
+import Link from 'next/link';
 
 import PropTypes from '../../../lib/PropTypes';
 
@@ -8,7 +9,7 @@ import useUserStore from '../../hooks/useUserStore';
 import IframePlayer from '../../media/VideoGallery/IframePlayer';
 
 const TemplatePreviewModal = ({ options }) => {
-  const { item, mute } = options;
+  const { item, mute, editorLink } = options;
   const { hasPermissions } = useUserStore();
 
   return (
@@ -32,7 +33,9 @@ const TemplatePreviewModal = ({ options }) => {
         >
           {item.title}
         </span>
-        <button className="template-preview-modal__panel-button" onClick={() => {}}>Edit</button>
+        <div className="template-preview-modal__panel-button">
+          <Link href={editorLink || ''}>Edit</Link>
+        </div>
         <button
           className={
             classnames('template-preview-modal__panel-button-share', {
@@ -56,6 +59,7 @@ TemplatePreviewModal.propTypes = {
       title: PropTypes.string.isRequired,
     }).isRequired,
     mute: PropTypes.bool,
+    editorLink: PropTypes.string,
   }),
 };
 

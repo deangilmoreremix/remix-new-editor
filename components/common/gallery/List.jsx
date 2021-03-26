@@ -20,6 +20,7 @@ const List = observer((
     dispatchList,
     className,
     contentClassName,
+    withoutParent,
   }) => {
   const { getList } = useBaseStore();
 
@@ -49,18 +50,25 @@ const List = observer((
   const itemElement = useMemo(() => (props) => <list.content {...props} />,
     [list.content]);
 
+  const content = useMemo(() => (
+    <Content
+      items={list.items}
+      element={itemElement}
+      uploadNewItems={getItems}
+      isLoading={list.isLoading}
+      hasMore={list.hasMoreData}
+      className={contentClassName}
+      activeItem={list.activeItem}
+      withoutParent={withoutParent}
+    />
+  ), [list]);
+
   return (
-    <div className={className}>
-      <Content
-        items={list.items}
-        element={itemElement}
-        uploadNewItems={getItems}
-        isLoading={list.isLoading}
-        hasMore={list.hasMoreData}
-        className={contentClassName}
-        activeItem={list.activeItem}
-      />
-    </div>
+    withoutParent ? content : (
+      <div className={className}>
+        {content}
+      </div>
+    )
   );
 });
 
@@ -69,6 +77,11 @@ List.propTypes = {
   className: PropTypes.string,
   contentClassName: PropTypes.string,
   list: ListPropType,
+  withoutParent: PropTypes.bool,
+};
+
+List.defaultProps = {
+  withoutParent: false,
 };
 
 export default List;

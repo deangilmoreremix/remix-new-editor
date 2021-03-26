@@ -17,7 +17,7 @@ export default class BaseStore {
     this.currentUser = currentUser;
   }
 
-  sendRequest = async (method, path, body) => {
+  sendRequest = (method, path, body) => {
     if (body) {
       return this.request(path, {
         method,

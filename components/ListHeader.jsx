@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 import classnames from 'classnames';
+import { useRouter } from 'next/router';
 
 import useUIStore from './hooks/useUIStore';
 import useUserStore from './hooks/useUserStore';
@@ -25,15 +26,22 @@ const pageList = {
   myVideos: {
     title: 'My Videos',
     value: 'myVideos',
+    url: '/projects',
+    isLink: true,
   },
-  templateClub: {
-    title: 'Template Club',
-    value: 'templateClub',
+  templates: {
+    title: 'Templates',
+    value: 'templates',
+    url: '/templates',
+    isLink: true,
   },
 };
 
 const ListHeader = observer(({ className }) => {
-  const [select, setSelect] = useState(pageList.myVideos);
+  const router = useRouter();
+
+  const [select, setSelect] = useState(router.route === pageList.myVideos.url
+    ? pageList.myVideos : pageList.templates);
   const [q, setQ] = useState('');
 
   const { templatesMenuItems, templatesProjectItems } = useUIStore();
