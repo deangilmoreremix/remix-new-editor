@@ -27,10 +27,15 @@ const List = observer((
   const getItems = async () => {
     if ((list.hasMoreData && !list.isLoading) || (list.isLoading && list.page === 1)) {
       dispatchList({ type: ACTION_TYPES.SET_LOADING, value: true });
+      let results;
       try {
-        const results = await getList({
-          ...list,
-        });
+        if (list.provider) {
+          results = await list.provider.getList({ ...list.provider, ...list });
+        } else {
+          results = await getList({
+            ...list,
+          });
+        }
         dispatchList({ type: ACTION_TYPES.ADD_ITEMS, value: results });
       } catch (e) {
         showError(e.message);
@@ -60,6 +65,7 @@ const List = observer((
       className={contentClassName}
       activeItem={list.activeItem}
       withoutParent={withoutParent}
+      query={list.query}
     />
   ), [list]);
 

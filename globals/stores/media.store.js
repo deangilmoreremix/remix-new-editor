@@ -19,6 +19,7 @@ import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import config from '../../config/config';
 import requestCreator from '../../lib/requestCreator';
 import { generatorTabs } from '../../lib/constants/templateGenerator';
+import userUpload from '../../public/static/svgImages/user-upload.svg';
 
 
 export default class Media extends BaseStore {
@@ -593,6 +594,21 @@ export default class Media extends BaseStore {
   }
 
   @computed
+  get defaultTemplateProvidersInfo() {
+    if (this.providersConfiguration) {
+      return {
+        [LIBRARY_KEYS.USER]: {
+          ...this.providersConfiguration[LIBRARY_KEYS.USER],
+          name: 'Upload',
+          icon: userUpload,
+        },
+        [LIBRARY_KEYS.REMOTE]: this.providersConfiguration[LIBRARY_KEYS.REMOTE],
+      };
+    }
+    return {};
+  }
+
+  @computed
   get videoProvidersInfo() {
     const providersInfo = { ...this.defaultProvidersInfo };
     if (this.userStore.isfeatureEnabled(FEATURES.FUSION_INTEGRATION)) {
@@ -608,6 +624,19 @@ export default class Media extends BaseStore {
       providersInfo[LIBRARY_KEYS.TXTVIDEO] = this.providersConfiguration[LIBRARY_KEYS.TXTVIDEO];
     }
 
+    return providersInfo;
+  }
+
+  @computed
+  get videoTemplateProvidersInfo() {
+    let providersInfo = { };
+    if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
+      providersInfo[LIBRARY_KEYS.PIXABAY] = this.providersConfiguration[LIBRARY_KEYS.PIXABAY];
+    }
+    if (this.userStore.isfeatureEnabled(FEATURES.PEXELS_VIDEO_INTEGRATION)) {
+      providersInfo[LIBRARY_KEYS.PEXELS] = this.providersConfiguration[LIBRARY_KEYS.PEXELS];
+    }
+    providersInfo = { ...providersInfo, ...this.defaultTemplateProvidersInfo };
     return providersInfo;
   }
 

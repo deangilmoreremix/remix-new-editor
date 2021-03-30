@@ -1,0 +1,37 @@
+.template__items {
+  .library__item-actions {
+    flex-direction: column;
+    justify-content: center;
+
+    .template__item-preview {
+      color: $white;
+      background: rgba(0, 0, 0, 0);
+      border: 1px solid $secondary-color;
+      margin: 0 auto;
+    }
+    .template__item-selected {
+      flex: 0;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    span {
+      text-align: center;
+    }
+    .template__item-preview {
+      margin-top: 0.5rem;
+    }
+    .template__item-top {
+      .library__item-select {
+        margin: 4px;
+        border-radius: 50%;
+        font-size: 9px;
+        background-color: $btn-color !important;
+
+        .library__item-top-icon-svg {
+          width: 11px;
+        }
+      }
+    }
+  }
+}
+

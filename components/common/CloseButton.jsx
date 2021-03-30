@@ -5,9 +5,9 @@ import PropTypes from '../../lib/PropTypes';
 
 import arrowIcon from '../../public/static/svgImages/common/arrow-back.svg';
 
-const CloseButton = ({ onClick, className, isTabs }) => (
+const CloseButton = ({ onClick, className, isTabs, allowedMultiButton }) => (
   <SVGInline
-    className={`${className || 'close-button'} ${isTabs ? 'multi-close-button' : ''}`}
+    className={`${className || 'close-button'} ${isTabs && allowedMultiButton ? 'multi-close-button' : ''}`}
     svg={arrowIcon}
     component="button"
     onClick={onClick}
@@ -18,10 +18,12 @@ CloseButton.propTypes = {
   onClick: PropTypes.func.isRequired,
   className: PropTypes.string,
   isTabs: PropTypes.bool,
+  allowedMultiButton: PropTypes.bool,
 };
 
 CloseButton.defaultProps = {
   isTabs: false,
+  allowedMultiButton: true,
 };
 
 export default CloseButton;

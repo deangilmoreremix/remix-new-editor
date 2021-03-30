@@ -61,6 +61,7 @@ import { radioButton } from '../../lib/constants/windowsLogics';
 import { ACTION_MAKE_COPY, ACTION_WATCH_VIDEO, PRODUCE_TABS } from '../../lib/constants/ui';
 import { ROUTES } from '../../lib/constants/routing';
 import { video360prefix, REGEX_MAP } from '../../lib/constants/settings/video';
+import { recompressProject } from '../../lib/utils/popcorn-helper';
 
 const caretNames = Object.values(CARET_NAMES);
 
@@ -997,6 +998,14 @@ export default class ProjectStore extends BaseStore {
     }
   };
 
+  @observable
+  @action
+  fillItem = (data) => {
+    this.item = { ...DEFAULT_ITEM, project: { data } };
+    this.setProjectData(JSON.parse(this.item.project.data));
+    this.setPopcorn();
+  }
+
   @action
   fillMakeData = (result, isRemix = false) => {
     this.item.title = `Remix of ${result.title}`;
@@ -1504,27 +1513,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   recompressProject = (newDuration, updateElements = true) => {
-    this.projectData.media.forEach((media) => {
-      const initialDuration = media.duration;
-      if (initialDuration >= newDuration) {
-        return;
-      }
-      media.duration = newDuration;
-      media.url = `#t=,${newDuration}`;
-      if (updateElements) {
-        const recompressRatio = newDuration / initialDuration;
-        media.tracks.forEach((track) => {
-          track.trackEvents.forEach((trackEvent) => {
-            if (trackEvent.type !== 'sequencer') {
-              trackEvent.popcornOptions.start = Math
-                .round(trackEvent.popcornOptions.start * recompressRatio * 100) / 100;
-              trackEvent.popcornOptions.end = Math
-                .round(trackEvent.popcornOptions.end * recompressRatio * 100) / 100;
-            }
-          });
-        });
-      }
-    });
+    recompressProject(this.projectData, newDuration, updateElements);
   };
 
   @action

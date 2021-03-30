@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import classnames from 'classnames';
 import { Waypoint } from 'react-waypoint';
 import PropTypes from '../../../lib/PropTypes';
 import { LibrarySpinner } from '../../media/Loader';
@@ -11,8 +12,16 @@ const Content = ({
   element: Element,
   className,
   activeItem,
+  query,
   withoutParent,
 }) => {
+  const notFound = useMemo(() => {
+    if (isLoading || !query) {
+      return null;
+    }
+    return (<span className={classnames('nothing-found')}>Nothing found</span>);
+  }, [isLoading, query]);
+
   const content = useMemo(() => (
     <>
       {items && items.length ? (
@@ -21,7 +30,7 @@ const Content = ({
             <Element item={item} key={item._id} activeItem={activeItem} />
           ))}
         </>
-      ) : null}
+      ) : notFound}
       {isLoading && hasMore && <LibrarySpinner />}
       {
         !isLoading && hasMore && (
@@ -31,7 +40,7 @@ const Content = ({
         )
       }
     </>
-  ), [activeItem, hasMore, isLoading, items]);
+  ), [notFound, activeItem, hasMore, isLoading]);
 
   return (
     withoutParent ? content : (
@@ -55,7 +64,11 @@ Content.propTypes = {
   isLoading: PropTypes.bool.isRequired,
   element: PropTypes.func.isRequired,
   className: PropTypes.string,
-  activeItem: PropTypes.string,
+  activeItem: PropTypes.oneOfType([
+    PropTypes.shape({}),
+    PropTypes.string,
+  ]),
+  query: PropTypes.string,
   withoutParent: PropTypes.bool,
 };
 export default Content;
