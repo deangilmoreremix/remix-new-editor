@@ -39,4 +39,5 @@ module.exports = withSass({
     },
   },
   withImages: withImages(),
+  compress: false,
 });
