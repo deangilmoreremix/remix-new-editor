@@ -24,7 +24,7 @@ import PropTypes from '../lib/PropTypes';
 import Intercom from './common/Intercom';
 import HelpCrunch from './common/HelpCrunch';
 
-import { DEFAULT_TITLE, DOMAIN_VIDEOREMIX } from '../lib/constants/project';
+import { DOMAIN_VIDEOREMIX } from '../lib/constants/project';
 
 @observer
 class Layout extends Component {
@@ -103,7 +103,7 @@ class Layout extends Component {
                   as="font"
                   crossOrigin=""
                 />
-                <title>{DEFAULT_TITLE}</title>
+                <title>{whiteLabelManager.brandName}</title>
                 <link
                   rel="shortcut icon"
                   href={
