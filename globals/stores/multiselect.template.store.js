@@ -107,15 +107,32 @@ export default class MultiselectTemplateStore {
     this.selectedOverlay = null;
   }
 
+  @action
+  orderItems = (items) => items.map((track, index) => {
+    track.defaultName = `Layer ${index}`;
+    track.order = index;
+    const elementZindex = MAX_ZINDEX - track.order;
+    track.trackEvents.forEach(element => {
+      element.popcornOptions.zindex = elementZindex;
+    });
+    return track;
+  });
+
   getProjectData = async () => {
     const selectedVideoSize = this.selectedVideo.size;
     if (!selectedVideoSize || !this.selectedNiche) {
       return;
     }
     const projectData = JSON.parse(this.selectedNiche.project.data);
+    const oldLayersCount = projectData.media[0].tracks.length;
 
     removeVideos(projectData);
     const layersCount = projectData.media[0].tracks.length;
+    if (layersCount !== oldLayersCount) {
+      const layers = projectData.media[0]
+        .tracks.slice().sort((a, b) => a.order - b.order);
+      projectData.media[0].tracks = this.orderItems(layers);
+    }
     const promises = [];
     this.selectedVideo.forEach((video) => {
       promises.push(setOptions(video, POPCORN_ELEMENT_TYPES.SEQUENCER));
