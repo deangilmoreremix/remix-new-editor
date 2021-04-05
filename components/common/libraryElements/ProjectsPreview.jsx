@@ -15,6 +15,9 @@ import { templatesTooltips } from '../../../lib/constants/tooltips';
 import { EDITOR_TYPES } from '../../../lib/constants/routing';
 
 import editProjectIcon from '../../../public/static/svgImages/common/edit-project-icon.svg';
+import openEditIcon from '../../../public/static/svgImages/projects/edit-project-icon.svg';
+import previewProjectIcon from '../../../public/static/svgImages/projects/preview-project-icon.svg';
+import remixProjectIcon from '../../../public/static/svgImages/projects/remix-project-icon.svg';
 
 const TemplatesPreview = observer((props) => {
   const { item, updateItem, updateList, prefixes, whiteLabel } = props;
@@ -47,24 +50,35 @@ const TemplatesPreview = observer((props) => {
           svg={editProjectIcon}
           onClick={() => openModal(PROJECT_SETTINGS_MODAL, { item, updateItem, updateList })}
         />
-        <button
-          className="projects-item-preview"
-          onClick={() => openModal(TEMPLATE_PREVIEW_MODAL, { item, editorLink })}
-        >
-          Preview
-        </button>
         <div className="projects-item-buttons__second">
+          <HelpIconComponent noIcon message={templatesTooltips.previewButton}>
+            <button
+              className="projects-item-edit"
+              onClick={() => openModal(TEMPLATE_PREVIEW_MODAL, { item, editorLink })}
+            >
+              <SVGInline
+                className="projects-item-buttons__action-icon"
+                svg={previewProjectIcon}
+              />
+            </button>
+          </HelpIconComponent>
           <HelpIconComponent noIcon message={templatesTooltips.editProjectButton}>
             <div className="projects-item-edit">
               <Link href={editorLink || ''}>
-                Edit
+                <SVGInline
+                  className="projects-item-buttons__action-icon"
+                  svg={openEditIcon}
+                />
               </Link>
             </div>
           </HelpIconComponent>
           <HelpIconComponent noIcon message={templatesTooltips.remixProjectButton}>
             <div className="projects-item-edit">
               <Link href={`edit?remix=${item.project?._id}`}>
-                Remix
+                <SVGInline
+                  className="projects-item-buttons__action-icon"
+                  svg={remixProjectIcon}
+                />
               </Link>
             </div>
           </HelpIconComponent>

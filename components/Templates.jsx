@@ -37,6 +37,7 @@ const Templates = observer(() => {
 
   useEffect(() => {
     updateFolders();
+    resetSearch();
   }, []);
 
   useEffect(() => {
@@ -52,13 +53,13 @@ const Templates = observer(() => {
   }, [categoriesList.items]);
 
   useEffect(() => {
-    if (!categoriesList.activeItem) {
-      selectCategory();
+    if (categoriesList.init) {
+      if (!categoriesList.activeItem) {
+        selectCategory();
+      }
+      updateList();
     }
-    updateList();
   }, [categoriesList.activeItem]);
-
-  useEffect(() => resetSearch(), []);
 
   useEffect(() => dispatchList({
     type: ACTION_TYPES.SET_QUERY,

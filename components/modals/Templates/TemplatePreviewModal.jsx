@@ -1,6 +1,5 @@
 import React, { Fragment } from 'react';
 import classnames from 'classnames';
-import Link from 'next/link';
 
 import PropTypes from '../../../lib/PropTypes';
 
@@ -34,7 +33,7 @@ const TemplatePreviewModal = ({ options }) => {
           {item.title}
         </span>
         <div className="template-preview-modal__panel-button">
-          <Link href={editorLink || ''}>Edit</Link>
+          <a href={editorLink || ''}>Edit</a>
         </div>
         <button
           className={

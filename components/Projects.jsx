@@ -36,6 +36,7 @@ const Projects = observer(() => {
 
   useEffect(() => {
     updateFolders();
+    resetSearch();
   }, []);
 
   useEffect(() => {
@@ -51,18 +52,18 @@ const Projects = observer(() => {
   }, [foldersList.items]);
 
   useEffect(() => {
-    if (!foldersList.activeItem) {
-      selectFolder();
+    if (foldersList.init) {
+      if (!foldersList.activeItem) {
+        selectFolder();
+      }
+      updateList();
     }
-    updateList();
   }, [foldersList.activeItem]);
 
   useEffect(() => dispatchList({
     type: ACTION_TYPES.SET_QUERY,
     value: q,
   }), [q]);
-
-  useEffect(() => resetSearch(), []);
 
   const updateList = (isInit = false) => {
     if (router.query.folder && isInit) {

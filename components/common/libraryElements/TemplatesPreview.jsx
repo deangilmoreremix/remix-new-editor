@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { observer } from 'mobx-react';
+import SVGInline from 'react-svg-inline';
 
 import PropTypes from '../../../lib/PropTypes';
 
@@ -13,6 +14,10 @@ import { EDITOR_TYPES } from '../../../lib/constants/routing';
 
 import useUserStore from '../../hooks/useUserStore';
 import useModalStore from '../../hooks/useModalStore';
+
+import remixTemplateIcon from '../../../public/static/svgImages/projects/remix-project-icon.svg';
+import openEditIcon from '../../../public/static/svgImages/projects/edit-project-icon.svg';
+import previewTemplateIcon from '../../../public/static/svgImages/projects/preview-project-icon.svg';
 
 const TemplatesPreview = observer((props) => {
   const { item, prefixes, whiteLabel } = props;
@@ -35,30 +40,42 @@ const TemplatesPreview = observer((props) => {
 
   return (
     <div className="library__item">
-      <div className="library__item-image" style={{ backgroundImage: `url(${item.thumbnail || DEFAULT_THUMBNAIL})` }} />
-      <div className="library__item-buttons">
-        <button
-          className="library__item-button"
-          onClick={() => openModal(TEMPLATE_PREVIEW_MODAL, { item, editorLink })}
-        >
-          Preview
-        </button>
-        {hasPermissions && (
-          <HelpIconComponent noIcon message={templatesTooltips.editButton}>
-            <button className="library__item-button">Edit</button>
+      <div className="library__item-image" style={{ backgroundImage: `url(${item.thumbnail || DEFAULT_THUMBNAIL})` }}>
+        <div className="library__item-buttons">
+          <HelpIconComponent noIcon message={templatesTooltips.templatePreviewButton}>
+            <button
+              className="library__item-button"
+              onClick={() => openModal(TEMPLATE_PREVIEW_MODAL, { item, editorLink })}
+            >
+              <SVGInline
+                className="library__item-button__action-icon"
+                svg={previewTemplateIcon}
+              />
+            </button>
           </HelpIconComponent>
-        )}
-        {editorEnabled && (
-          <HelpIconComponent noIcon message={templatesTooltips.remixCopyButton}>
-            <div className="library__item-button">
-              <Link
-                href={`edit?remix=${item.project._id}`}
-              >
-                Remix / Copy
-              </Link>
-            </div>
-          </HelpIconComponent>
-        )}
+          {hasPermissions && (
+            <HelpIconComponent noIcon message={templatesTooltips.editButton}>
+              <button className="library__item-button">
+                <SVGInline
+                  className="library__item-button__action-icon"
+                  svg={openEditIcon}
+                />
+              </button>
+            </HelpIconComponent>
+          )}
+          {editorEnabled && (
+            <HelpIconComponent noIcon message={templatesTooltips.remixCopyButton}>
+              <div className="library__item-button">
+                <Link href={`edit?remix=${item.project._id}`}>
+                  <SVGInline
+                    className="library__item-button__action-icon"
+                    svg={remixTemplateIcon}
+                  />
+                </Link>
+              </div>
+            </HelpIconComponent>
+          )}
+        </div>
       </div>
       <div className="library__item-information">
         <span>{item.title}</span>
