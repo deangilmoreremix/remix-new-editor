@@ -30,16 +30,16 @@ const EmbedDataContainer = ({
             <input
               className="dimension-input"
               type="text"
-              name="height"
-              value={height}
+              name="width"
+              value={width}
               onChange={handleInputChange}
             />
             <span className="mx-1">X</span>
             <input
               className="dimension-input"
               type="text"
-              name="width"
-              value={width}
+              name="height"
+              value={height}
               onChange={handleInputChange}
             />
           </div>
