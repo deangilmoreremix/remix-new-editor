@@ -73,7 +73,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
       }) => (
         isActive && url && !copiedTooltip ? (
           /* eslint-disable-next-line react/jsx-no-target-blank */
-          <a key={`${label}-href`} href={url} target="_blank">
+          <a key={`${label}-href`} href={`${url}?v=${Date.now()}`} target="_blank">
             {svgButton(label, action, isActive, errorMessage, icon, tooltip, url)}
           </a>
         ) : svgButton(label, action, isActive, errorMessage, icon, tooltip, url, copiedTooltip)
