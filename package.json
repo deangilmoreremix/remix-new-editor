@@ -139,7 +139,7 @@
     "svg-inline-loader": "0.8.0",
     "sweetalert": "2.1.2",
     "throng": "4.0.0",
-    "timeline": "git://github.com/strategic-limited/timeline.git#e30fbe97ef999dc194d1de15e134bfbbeaa28f49",
+    "timeline": "git://github.com/strategic-limited/timeline.git#83438f741354952624250f9f094a1b8ea7d172a9",
     "ts-ebml": "2.0.2",
     "tui-image-editor": "3.9.0",
     "universal-cookie": "4.0.3",
