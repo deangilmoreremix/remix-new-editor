@@ -186,7 +186,8 @@ export async function initCreateStores(isServer, source, req, preloader) {
 
   if (isServer || !creator) {
     creator = new Creator(isServer, source, req);
-    const userStore = new UserStore(creator.currentUser, creator.request);
+    const userStore = new UserStore(creator.currentUser,
+      creator.request, creator.common.hostname, isServer);
     const socketStore = new SocketStore();
     const projectStore = new ProjectStore({
       request: creator.request,
@@ -258,7 +259,8 @@ export function init(source) {
   if (!creator) {
     const isServer = false;
     creator = new Creator(false, source);
-    const userStore = new UserStore(creator.currentUser, creator.request);
+    const userStore = new UserStore(creator.currentUser, creator.request,
+      creator.common.hostname, isServer);
     const socketStore = new SocketStore();
     const projectStore = new ProjectStore({
       request: creator.request,

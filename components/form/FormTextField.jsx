@@ -9,6 +9,7 @@ import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import PropTypes from '../../lib/PropTypes';
 
 const FormTextField = React.forwardRef(({
+  id,
   type,
   mask,
   label,
@@ -27,6 +28,10 @@ const FormTextField = React.forwardRef(({
   rowsMax,
   readOnly,
   labelHint,
+  error,
+  helperText,
+  onEdit: defaultOnEdit,
+  inputClass,
 }, ref) => {
   const conditionalProps = {};
 
@@ -42,6 +47,16 @@ const FormTextField = React.forwardRef(({
         onEnter(v);
       }
     };
+  }
+
+  if (error) {
+    conditionalProps.error = error;
+  }
+  if (helperText) {
+    conditionalProps.helperText = helperText;
+  }
+  if (inputClass) {
+    InputProps.className = `${inputClass} text-input`;
   }
 
   const onEdit = ({ target: { value: v } }) => {
@@ -78,7 +93,7 @@ const FormTextField = React.forwardRef(({
               value={value}
               className={classnames(inputClassName)}
               placeholder={placeholder}
-              onChange={onEdit}
+              onChange={defaultOnEdit || onEdit}
               type={type}
               name={name}
               disabled={disabled}
@@ -90,11 +105,12 @@ const FormTextField = React.forwardRef(({
             <TextField
               inputRef={ref}
               key="input-key"
-              id={name}
-              className={classnames(inputClassName, 'text-input', { 'input-disabled': disabled })}
+              id={id || name}
+              name={name}
+              className={classnames(inputClassName, { 'text-input': !inputClass }, { 'input-disabled': disabled })}
               value={value || (value === 0 && type === 'number') ? value : ''}
               placeholder={placeholder}
-              onChange={onEdit}
+              onChange={defaultOnEdit || onEdit}
               type={type}
               disabled={disabled}
               {...conditionalProps}
@@ -108,11 +124,12 @@ const FormTextField = React.forwardRef(({
         <TextareaAutosize
           ref={ref}
           key="input-key"
-          id={name}
+          id={id || name}
+          name={name}
           className={classnames('text-input', inputClassName, { 'text-input-disabled': readOnly })}
           value={value || ''}
           placeholder={placeholder}
-          onChange={onEdit}
+          onChange={defaultOnEdit || onEdit}
           disabled={disabled}
           {...conditionalProps}
           multiline={multiline}
@@ -127,8 +144,12 @@ const FormTextField = React.forwardRef(({
 });
 
 FormTextField.propTypes = {
-  onChange: PropTypes.func.isRequired,
+  onChange: PropTypes.func,
+  onEdit: PropTypes.func,
   mask: PropTypes.string,
+  id: PropTypes.string,
+  error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+  helperText: PropTypes.string,
   label: PropTypes.string,
   labelHint: PropTypes.string,
   name: PropTypes.string,
@@ -138,9 +159,10 @@ FormTextField.propTypes = {
   disabled: PropTypes.bool,
   className: PropTypes.string,
   inputClassName: PropTypes.string,
+  inputClass: PropTypes.string,
   labelClassName: PropTypes.string,
   placeholder: PropTypes.string,
-  type: PropTypes.oneOf(['input', 'text', 'number']),
+  type: PropTypes.oneOf(['input', 'text', 'number', 'password']),
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
   multiline: PropTypes.bool,
   rowsMin: PropTypes.number,

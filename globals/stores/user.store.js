@@ -2,20 +2,123 @@ import { action, computed, observable } from 'mobx';
 
 import { FEATURES, STATE, INTEGRATION_FEATURES } from '../../lib/constants/features';
 import { LIBRARY_KEYS } from '../../lib/constants/library';
+import requestCreator from '../../lib/requestCreator';
 
 export default class UserStore {
   @observable currentUser = null;
 
-  constructor(currentUser = {}, request) {
+  constructor(currentUser = {}, request, hostname, isServer) {
     this.currentUser = currentUser;
     this.roles = null;
     this.request = request;
+    this.selfRequest = requestCreator(hostname, null, isServer, () => {});
   }
 
   @computed
   get isSuperAdmin() {
     return this.currentUser && this.currentUser.authorityLevel === 0;
   }
+
+  @action
+  changeApiKey = async () => {
+    let response;
+    try {
+      response = await this.request('/api/users/generateApiKey', {
+        method: 'POST',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      this.currentUser.apiKey = response.apiKey;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
+  @action
+  changeExternalApiKey = async () => {
+    let response;
+    try {
+      response = await this.request('/api/users/generateApiAccessKey', {
+        method: 'POST',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      this.currentUser.externalApiKey = response.token;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
+  @action
+  setExternalApiKey = async () => {
+    let response;
+    try {
+      response = await this.request('/api/users/getApiAccessKey', {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      this.currentUser.externalApiKey = response.token;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
+  @action
+  changePassword = async (password, currentPassword) => {
+    try {
+      await this.selfRequest('/auth/v2/enable-passwords', {
+        method: 'POST',
+        body: { password, currentPassword },
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+    } catch (e) {
+      console.error(e.error);
+      throw e;
+    }
+  };
+
+  @action
+  updateUser = async (body) => {
+    try {
+      const response = await this.selfRequest('/users/me', {
+        method: 'PATCH',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      this.currentUser[Object.keys(body)[0]] = response.body.user[Object.keys(body)[0]];
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
+  @action
+  setApiKey = async () => {
+    let user;
+    try {
+      user = await this.request('/api/users/me', {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      this.currentUser.apiKey = user.apiKey;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
 
   setRoles = async () => {
     let user;
@@ -57,6 +160,16 @@ export default class UserStore {
       ? dropMockKey
       : txtVideoKey;
   };
+
+  @action
+  setUserPhoto = (url) => {
+    this.currentUser.photoUrl = url;
+  }
+
+  @action
+  setFullName = (name) => {
+    this.currentUser.fullName = name;
+  }
 
   @action
   updateUserKeys = async (activeBtn, key) => {
@@ -105,6 +218,16 @@ export default class UserStore {
   }
 
   @computed
+  get apiKey() {
+    return this.currentUser.apiKey || 'Not set';
+  }
+
+  @computed
+  get externalApiKey() {
+    return this.currentUser.externalApiKey || 'Not set';
+  }
+
+  @computed
   get photo() {
     return this.currentUser.photoUrl || this.currentUser.avatar
       || 'https://stuff.webmaker.org/avatars/webmaker-avatar-200x200.png';
@@ -113,6 +236,25 @@ export default class UserStore {
   isfeatureEnabled = (feature) => this.isSuperAdmin || (
     this.currentUser.features && this.currentUser.features[feature]
     && this.currentUser.features[feature].state === STATE.ENABLED);
+
+  get accountDataArray() {
+    return ({
+      USERNAME: { label: 'Username', input: this.currentUser.fullName },
+      EMAIL: { label: 'Email', input: this.currentUser.email },
+      API_KEY: {
+        label: 'API Key',
+        input: this.apiKey,
+        link: 'Issue new',
+        onClick: () => this.changeApiKey(),
+      },
+      EXTERNAL_API_KEY: {
+        label: 'External API Key',
+        input: this.externalApiKey,
+        link: 'Issue new',
+        onClick: () => this.changeExternalApiKey(),
+      },
+    });
+  }
 
   @computed
   get oneOfFeatureEnabled() {

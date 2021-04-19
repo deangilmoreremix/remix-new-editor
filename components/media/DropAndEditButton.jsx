@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import classnames from 'classnames';
 
 import { ASSET_TYPES, GIF_FORMAT, GIF_WARNING, IMAGE_FORMATS } from '../../lib/constants/media';
-import { produceTooltips } from '../../lib/constants/tooltips';
 import { showError } from '../../lib/services/alertService';
 import PropTypes from '../../lib/PropTypes';
 
@@ -96,28 +95,30 @@ const DropAndEditButton = (
   return (
     <div className="drop-area">
       {
-      isArea ? (
-        <DropzoneArea
-          onDrop={onDrop}
-          {...props}
-          {...rest}
-        />
-      ) : (
-        <>
-          <DropZone
+        isArea ? (
+          <DropzoneArea
             onDrop={onDrop}
-            ref={uploadButtonRef}
-            className={classnames('button-add-file', className)}
             {...props}
             {...rest}
           />
-          <HelpIconComponent
-            isText
-            message={produceTooltips.thumbnailUpload}
-          />
-        </>
-      )
-    }
+        ) : (
+          <>
+            <DropZone
+              onDrop={onDrop}
+              ref={uploadButtonRef}
+              className={classnames('button-add-file', className)}
+              {...props}
+              {...rest}
+            />
+            {tooltipMessage && (
+              <HelpIconComponent
+                isText
+                message={tooltipMessage}
+              />
+            )}
+          </>
+        )
+      }
     </div>
   );
 };
