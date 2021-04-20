@@ -88,7 +88,7 @@ export default class HelpCrunch extends Component {
     const { userStore } = this.props;
     await userStore.setRoles();
 
-    const { roles } = userStore;
+    const { roles = [] } = userStore;
     window.HelpCrunch('onReady', () => {
       window.HelpCrunch('showChatWidget');
       window.HelpCrunch('updateUserData', {
@@ -98,7 +98,7 @@ export default class HelpCrunch extends Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    const { userStore: { currentUser: user, roles } } = nextProps;
+    const { userStore: { currentUser: user, roles = [] } } = nextProps;
 
     if (!canUseDOM) {
       return;
