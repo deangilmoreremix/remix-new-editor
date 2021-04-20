@@ -137,6 +137,21 @@ export default class UserStore {
   };
 
   @action
+  getActiveSubscription = async () => {
+    try {
+      return await this.request('/api/users/me/active-subscriptions', {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
   getTextSpeechSymbols = async () => {
     let user;
     try {
@@ -170,6 +185,22 @@ export default class UserStore {
   setFullName = (name) => {
     this.currentUser.fullName = name;
   }
+
+  @action
+  cancelPlan = async (body) => {
+    try {
+      await this.selfRequest('/users/me/request-cancel', {
+        method: 'POST',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
 
   @action
   updateUserKeys = async (activeBtn, key) => {

@@ -1,0 +1,231 @@
+.billing-plan-box {
+  width: calc(25% + 20rem);
+  border: 1px solid rgba(76, 81, 93, 0.5);
+  box-sizing: border-box;
+  border-radius: 5px;
+  padding: 1rem 2rem;
+  height: calc(15% + 8rem);
+
+  &__nothing-text {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: $media-library-color;
+    font-size: 16px;
+  }
+
+  &__chevrons {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding-bottom: 1rem;
+    width: 100%;
+
+    span {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: $media-library-color;
+      margin: 0 0.25rem;
+    }
+
+    &-icon {
+      width: 9px;
+      height: 13px;
+      cursor: pointer;
+
+      &.disabled {
+        svg path {
+          fill-opacity: 0.3 !important;
+        }
+      }
+
+      svg path {
+        fill: $media-library-color;
+        fill-opacity: 1;
+      }
+    }
+  }
+
+  &__header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+
+    button {
+      @include reset-button;
+      color: $secondary-color;
+
+      &:disabled {
+        color: #9999B4;
+        pointer-events: none;
+      }
+    }
+
+    span {
+      color: $white;
+      font-size: calc(1vw + 0.5rem);
+    }
+  }
+
+  &__data {
+    display: flex;
+    flex-direction: column;
+    margin-top: 1.25rem;
+
+    &-field {
+      display: flex;
+      justify-content: space-between;
+
+      &-taxes {
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-end;
+        min-width: 6.5rem;
+        max-width: 6.5rem;
+        font-size: 12px;
+        color: #9999B4 !important;
+      }
+
+      span {
+        color: $produce-title;
+        width: 7rem;
+      }
+
+      p {
+        color: $white;
+        width: 15rem;
+      }
+    }
+  }
+}
+
+.billing-history-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: calc(25% + 20rem);
+  padding: 0 2rem;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+
+    span {
+      color: $white;
+      font-size: calc(1vw + 0.5rem);
+    }
+
+    &-search {
+      display: flex;
+      justify-content: center;
+
+      &__input {
+        @include reset-button;
+        cursor: text;
+        color: $white;
+        border-bottom: 1px solid rgba(76, 81, 93, 0.5);
+      }
+
+      &__svg {
+        border-left: none;
+        padding-left: 0.5em;
+        color: $secondary-color;
+        cursor: pointer;
+
+        svg {
+          width: 24px;
+        }
+      }
+    }
+  }
+
+  &__table {
+    @include tiny-scrollbar;
+    width: 100%;
+    margin-top: 1rem;
+    max-height: 35vh;
+    min-height: 35vh;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+
+    &-custom-td {
+      position: absolute;
+      margin-top: 1rem;
+      left: 46.5%;
+      text-align: left;
+
+      .nothing-found {
+        color: $white !important;
+      }
+    }
+
+    &-buttons {
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+
+      button {
+        @include reset-button;
+        border: 1px solid $secondary-color;
+        box-sizing: border-box;
+        border-radius: 5px;
+        color: $white;
+        padding: 5px 15px;
+
+        &:disabled {
+          cursor: not-allowed;
+          opacity: 0.3;
+        }
+
+        &:last-child {
+          margin-left: 1rem;
+        }
+      }
+    }
+
+    table {
+      width: 100%;
+      color: $white;
+    }
+
+    th {
+      text-align: center;
+      width: 16.6%;
+      border-bottom: 1px solid rgba(76, 81, 93, 0.5);
+      padding-bottom: 0.5rem;
+      color: $produce-title;
+    }
+
+    td {
+      padding-top: 0.5rem;
+      text-align: center;
+
+      button {
+        @include reset-button;
+        border: 1px solid rgba(76, 81, 93, 0.5);
+        box-sizing: border-box;
+        border-radius: 5px;
+        color: $secondary-color;
+        padding: 5px 15px;
+        margin: 0 auto;
+      }
+    }
+  }
+}
+
+h3 {
+  color: $white;
+}
+
+@media screen and (max-width: $xxl) {
+  .billing-plan-box__data-field {
+    p {
+      margin-bottom: 0.5rem;
+    }
+  }
+}
