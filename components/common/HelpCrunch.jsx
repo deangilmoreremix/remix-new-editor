@@ -92,7 +92,7 @@ export default class HelpCrunch extends Component {
     window.HelpCrunch('onReady', () => {
       window.HelpCrunch('showChatWidget');
       window.HelpCrunch('updateUserData', {
-        active_roles: roles.map(({ name }) => name).join(', '),
+        active_roles: roles && roles.map(({ name }) => name).join(', '),
       });
     });
   }
@@ -104,7 +104,7 @@ export default class HelpCrunch extends Component {
       return;
     }
 
-    const roleNames = roles.map(({ name }) => name).join(', ');
+    const roleNames = roles && roles.map(({ name }) => name).join(', ');
 
     window.helpCrunchSettings = {
       email: user.email,
