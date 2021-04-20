@@ -104,7 +104,6 @@ class Creator {
     }
     const whiteLabel = (wl && wl.domain) || (common.whiteLabel && common.whiteLabel.domain) || 'videoremix.io';
     this.hostname = this.hostname || `${common.prefixes.api}.${whiteLabel}`;
-    console.log(this.hostname);
     this.request = requestCreator(
       this.hostname,
       this.authorization,

@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import SVGInline from 'react-svg-inline';
 import Link from 'next/link';
+import PropTypes from '../lib/PropTypes';
 
 import Menu from './common/Menu';
 import UserBox from './common/user/UserBox';
@@ -11,13 +12,13 @@ import useCommonStore from './hooks/useCommonStore';
 import logoIcon from '../public/static/svgImages/header/logo-2.svg';
 import backgroundImage from '../public/static/images/background-header.jpg';
 
-const AccountHeader = memo(() => {
+const AccountHeader = memo(({ isAccount }) => {
   const common = useCommonStore();
 
   return (
     <nav
       className="navigation"
-      style={{ backgroundImage: `url(${backgroundImage});` }}
+      style={{ backgroundImage: `url(${backgroundImage})` }}
     >
       <div className="navigation-first-level">
         <Link href="/">
@@ -33,9 +34,17 @@ const AccountHeader = memo(() => {
           needEndIcon
         />
       </div>
-      <div className="navigation-title">My Account Settings</div>
+      <div className="navigation-title">{isAccount ? 'My Account Settings' : 'Billing'}</div>
     </nav>
   );
 });
+
+AccountHeader.propTypes = {
+  isAccount: PropTypes.bool,
+};
+
+AccountHeader.defaultProps = {
+  isAccount: false,
+};
 
 export default AccountHeader;
