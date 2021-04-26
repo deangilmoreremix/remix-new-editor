@@ -140,6 +140,7 @@ const Billing = observer(() => {
   return (
     <div className={classnames('user-panel auto-height', { 'background-dark-theme': hasPermissions })}>
       <div className="billing-plan-box">
+        {loading && <LibrarySpinner />}
         {subscriptions && subscriptions.length ? (
           <>
             <div className="billing-plan-box__chevrons">
@@ -155,7 +156,6 @@ const Billing = observer(() => {
                 onClick={() => setPlanPage(planPage + 1)}
               />
             </div>
-            {loading && <LibrarySpinner />}
             {activeSubscription(subscriptions[planPage - 1])}
           </>
         ) : <p className="billing-plan-box__nothing-text">You have no active subscriptions</p>}
@@ -176,7 +176,7 @@ const Billing = observer(() => {
           <table>
             <thead>
               <tr>
-                <th>Date & Time (EST)</th>
+                <th>Date</th>
                 <th>Product Name</th>
                 <th>Amount</th>
                 <th>Payment Via</th>

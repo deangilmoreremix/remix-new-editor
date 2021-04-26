@@ -61,6 +61,10 @@
         color: #9999B4;
         pointer-events: none;
       }
+
+      &:hover {
+        color: $produce-title;
+      }
     }
 
     span {
@@ -213,6 +217,11 @@
         color: $secondary-color;
         padding: 5px 15px;
         margin: 0 auto;
+
+        &:hover {
+          color: $produce-title;
+          border: 1px solid $produce-title;
+        }
       }
     }
   }
