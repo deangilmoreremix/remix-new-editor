@@ -270,7 +270,7 @@ export default class UserStore {
 
   get accountDataArray() {
     return ({
-      USERNAME: { label: 'Username', input: this.currentUser.fullName },
+      USERNAME: { label: 'Full Name', input: this.currentUser.fullName },
       EMAIL: { label: 'Email', input: this.currentUser.email },
       API_KEY: {
         label: 'API Key',

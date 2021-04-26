@@ -47,7 +47,7 @@ const AccountPasswordField = memo(({ updatePassword }) => {
     <form onSubmit={formik.handleSubmit}>
       <div className="user-panel__data-field">
         <span className="user-panel__data-field-label">
-          Password
+          New password
         </span>
         <FormTextField
           type="password"
@@ -56,14 +56,16 @@ const AccountPasswordField = memo(({ updatePassword }) => {
           value={formik.values.password}
           onEdit={formik.handleChange}
           placeholder="********"
-          inputClass="user-panel__data-field-input"
+          inputClass="user-panel__data-field-input-password"
           error={formik.errors.password}
           helperText={formik.errors.password}
         />
+        <div className="user-panel__data-field-dummy" />
       </div>
       <div className="user-panel__data-field">
         <span className="user-panel__data-field-label">
-          Repeat password
+          Confirm new password
+          <p>*</p>
         </span>
         <FormTextField
           id="repeatPassword"
@@ -71,14 +73,16 @@ const AccountPasswordField = memo(({ updatePassword }) => {
           type="password"
           value={formik.values.repeatPassword}
           onEdit={formik.handleChange}
-          inputClass="user-panel__data-field-input"
+          inputClass="user-panel__data-field-input-password"
           error={Boolean(formik.errors.repeatPassword)}
           helperText={formik.errors.repeatPassword}
         />
+        <div className="user-panel__data-field-dummy" />
       </div>
       <div className="user-panel__data-field">
         <span className="user-panel__data-field-label">
           Current password
+          <p>*</p>
         </span>
         <FormTextField
           id="currentPassword"
@@ -86,19 +90,24 @@ const AccountPasswordField = memo(({ updatePassword }) => {
           type="password"
           value={formik.values.currentPassword}
           onEdit={formik.handleChange}
-          inputClass="user-panel__data-field-input"
+          inputClass="user-panel__data-field-input-password"
           error={Boolean(formik.errors.currentPassword)}
           helperText={formik.errors.currentPassword}
         />
+        <div className="user-panel__data-field-dummy" />
       </div>
       <div className="user-panel__buttons-box">
-        <Button
-          className="user-panel__buttons-box-button"
-          type="submit"
-          disabled={Boolean(hasErrors) || !formik.values.password}
-        >
-          Confirm
-        </Button>
+        <div className="user-panel__data-field-label" />
+        <div className="user-panel__data-field-button">
+          <Button
+            className="user-panel__buttons-box-button"
+            type="submit"
+            disabled={Boolean(hasErrors) || !formik.values.password}
+          >
+            Confirm
+          </Button>
+        </div>
+        <div className="user-panel__data-field-link" />
       </div>
     </form>
   );

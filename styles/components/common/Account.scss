@@ -38,7 +38,7 @@
    line-height: 49px;
    color: $white;
    font-weight: lighter;
-   padding-bottom: 10px;
+   padding-bottom: 1%;
  }
 }
 
@@ -137,12 +137,13 @@ a {
    @include reset-button;
    color: $white !important;
    width: 8rem;
-   height: 2rem;
    background: $secondary-color !important;
    border-radius: 5px;
    border: none;
+   padding: 5px 0;
+   font-size: calc(0.4vw + 0.52rem);
 
-span {
+  span {
   color: $white !important;
   text-transform: none;
 }
@@ -159,32 +160,74 @@ span {
 &__data {
    margin-top: 2.5rem;
    display: flex;
-   width: 100%;
    flex-direction: column;
 
 &-field {
    display: flex;
    align-items: center;
    margin: 9px 0 9px 0;
+  justify-content: space-between;
+
+  &-button {
+    display: flex;
+    justify-content: flex-end;
+    width: calc(9% + 15rem) !important;
+  }
 
 &-label {
+   display: flex;
+   align-items: center;
    color: $backgroundSlider;
-   display: inline-block;
    width: 30%;
    padding-right: 5%;
+   font-size: calc(0.4vw + 0.52rem);
+
+  p {
+    margin-left: 0.25rem;
+    color: $secondary-color;
+  }
  }
 
+  .MuiFormGroup-root {
+    width: calc(9% + 15rem);
+  }
+
 &-input {
-   border: 1px solid rgba(76, 81, 93, 0.5) !important;
-   box-sizing: border-box;
-   border-radius: 5px;
-   padding: 5px;
-   width: 22rem !important;
-   background: inherit !important;
-   color: $backgroundSlider;
-   margin-right: 2rem;
-   height: 35px;
+  border: 1px solid rgba(76, 81, 93, 0.5) !important;
+  box-sizing: border-box;
+  border-radius: 5px;
+  padding: 5px 5px 5px 0.5rem;
+  width: calc(9% + 15rem) !important;
+  background: inherit !important;
+  color: $backgroundSlider;
+  outline: none;
+  font-size: calc(0.4vw + 0.52rem);
+
+  &-password {
+    border: 1px solid rgba(76, 81, 93, 0.5) !important;
+    box-sizing: border-box;
+    border-radius: 5px;
+    padding: 5px 5px 5px 0.5rem;
+    width: 100% !important;
+    background: inherit !important;
+    color: $backgroundSlider;
+    margin-right: 2rem;
+    font-size: calc(0.4vw + 0.52rem);
+
+    &:read-only {
+      background: inherit !important;
+    }
+  }
+
+  &:read-only {
+    background: rgba(86 ,86, 112, 0.1) !important;
+    cursor: default !important;
+  }
  }
+
+  &-dummy {
+    width: 30%;
+  }
 
 &-password {
    display: flex;
@@ -200,6 +243,14 @@ span {
    @include reset-button;
    color: $secondary-color;
    cursor: pointer;
+   width: 30%;
+   padding-left: 2rem;
+   justify-content: flex-start;
+  font-size: calc(0.4vw + 0.52rem);
+
+  &:hover {
+    color: $produce-title;
+  }
  }
 }
 }
@@ -211,17 +262,19 @@ span {
 
 &__buttons {
    margin-top: 1rem;
-   width: calc(10% + 10rem);
+   width: calc(5% + 15rem);
    display: flex;
    justify-content: space-between;
    height: calc(1vh + 1.52rem);
 
 &__tab-icon {
    margin-left: 0.25rem;
+  display: flex;
+  align-items: center;
 
 svg {
-  width: calc(0.5vw + 0.3em);
-  height: calc(0.5vw + 0.3em);
+  width: calc(0.2vw + 0.6em);
+  height: calc(0.2vw + 0.6em);
 
 path {
   stroke: #9292B5;
@@ -235,7 +288,7 @@ path {
 
 button {
   @include reset-button;
-  font-size: calc(0.5vw + 0.3em);
+  font-size: calc(0.2vw + 0.6em);
   height: 100%;
   color: #9292B5;
   background: rgba(58, 58, 81, 0.5);
@@ -267,7 +320,7 @@ button {
 &__avatar {
    position: absolute;
    left: 20vw;
-   top: 15vh;
+   top: 16.5vh;
    pointer-events: none;
 
 &-hint {
@@ -283,7 +336,7 @@ button {
 }
 
 &-span-hint {
-   font-size: 85%;
+   font-size: 75%;
    color: #9999B4;
  }
 
@@ -291,7 +344,7 @@ button {
    display: flex;
    justify-content: center;
    align-items: center;
-   width: 5.21vw;
+   width: 3.21vw;
    background: $panel-dark;
    border-radius: 100%;
    cursor: pointer;
@@ -309,10 +362,22 @@ button {
    width: 46.6%;
    margin-top: 1rem;
 
+  &:hover {
+    border: 1px solid $produce-title;
+
+    .button-add-file__label {
+      color: $produce-title;
+    }
+  }
+
 .button-add-file__label {
   height: auto;
   border: none;
   color: $backgroundSlider;
+
+  span {
+    font-size: calc(0.4vw + 0.52rem);
+  }
 }
 }
 
@@ -365,6 +430,34 @@ svg path {
 
 .avatar-dark-theme {
   background: $secondary-color;
+}
+
+@media screen and (max-width: 1300px) {
+  .MuiFormGroup-root {
+    width: 44% !important;
+  }
+
+  .user-panel__first-level__buttons {
+    width: 25%;
+  }
+
+  .user-panel__data-field-input, .user-panel__data-field-button {
+    width: 44% !important;
+  }
+}
+
+@media screen and (max-width: $lg) {
+  .MuiFormGroup-root {
+    width: 60% !important;
+  }
+
+  .user-panel__first-level__buttons {
+    width: 30%;
+  }
+
+  .user-panel__data-field-input, .user-panel__data-field-button {
+    width: 60% !important;
+  }
 }
 
 @media screen and (max-width: 1650px){

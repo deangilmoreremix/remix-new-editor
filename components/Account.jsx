@@ -186,13 +186,17 @@ const Account = observer(() => {
         </div>
         {(activeTab !== TABS.PASSWORD.url && activeTab !== TABS.KEYS.url) && (
           <div className="user-panel__buttons-box">
-            <button
-              disabled={!userName || userName === userData.USERNAME.input}
-              className="user-panel__buttons-box-button"
-              onClick={onUsernameSave}
-            >
-              Save
-            </button>
+            <div className="user-panel__data-field-label" />
+            <div className="user-panel__data-field-button">
+              <button
+                disabled={!userName || userName === userData.USERNAME.input}
+                className="user-panel__buttons-box-button"
+                onClick={onUsernameSave}
+              >
+                Save
+              </button>
+            </div>
+            <div className="user-panel__data-field-link" />
           </div>
         )}
       </div>

@@ -20,15 +20,15 @@ const AccountField = memo(({ item, value, variableField, onChange, maxSymbols })
           className="user-panel__data-field-input"
           max={maxSymbols || null}
         />
-        {item.link && (
-          <button
-            className="user-panel__data-field-link"
-            {...extraProps}
-          >
-            {item.link}
-          </button>
-        )}
       </>
+      {item.link ? (
+        <button
+          className="user-panel__data-field-link"
+          {...extraProps}
+        >
+          {item.link}
+        </button>
+      ) : <div className="user-panel__data-field-dummy" />}
     </div>
   );
 });
