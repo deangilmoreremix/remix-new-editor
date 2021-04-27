@@ -1,9 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo, useCallback } from 'react';
 import classnames from 'classnames';
+import SVGInline from 'react-svg-inline';
 
-import { ASSET_TYPES, GIF_FORMAT, GIF_WARNING, IMAGE_FORMATS } from '../../lib/constants/media';
-import { produceTooltips } from '../../lib/constants/tooltips';
-import { showError } from '../../lib/services/alertService';
+import { showConfirmation, showError, showSuccess } from '../../lib/services/alertService';
 import PropTypes from '../../lib/PropTypes';
 
 import useMediaStore from '../hooks/useMediaStore';
@@ -11,15 +10,21 @@ import useModalStore from '../hooks/useModalStore';
 import useProjectStore from '../hooks/useProjectStore';
 
 import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
+import { ASSET_TYPES, GIF_FORMAT, GIF_WARNING, IMAGE_FORMATS } from '../../lib/constants/media';
+import { produceTooltips } from '../../lib/constants/tooltips';
+
 import DropZone from './DropZone';
 import DropzoneArea from './DropzoneArea';
 import HelpIconComponent from '../common/HelpIcon';
+
+import removeIcon from '../../public/static/svgImages/common/remove-image-icon.svg';
 
 const IMAGE_FORMATS_WITH_GIF = [...IMAGE_FORMATS, GIF_FORMAT];
 
 const DropAndEditButton = (
   {
     isArea,
+    isRemovable,
     onUploaded,
     startUpload,
     endUpload,
@@ -30,6 +35,7 @@ const DropAndEditButton = (
     zoomable,
     openImageEditor,
     allowedGif,
+    fallbackValue,
     ...rest
   }) => {
   const { uploadMedia, saveFile } = useMediaStore();
@@ -38,12 +44,12 @@ const DropAndEditButton = (
 
   const uploadButtonRef = useRef();
 
-  const props = React.useMemo(() => ({
+  const props = useMemo(() => ({
     multiple: false,
     accept: allowedGif ? IMAGE_FORMATS_WITH_GIF : IMAGE_FORMATS,
   }), []);
 
-  const onDrop = React.useCallback(async (acceptedFiles, rejectedFiles) => {
+  const onDrop = useCallback(async (acceptedFiles, rejectedFiles) => {
     if (!acceptedFiles.length) {
       if (rejectedFiles.length > 0) {
         return showError('Wrong Format!');
@@ -82,7 +88,7 @@ const DropAndEditButton = (
     }
   }, [uploadMedia]);
 
-  const save = React.useCallback(async (src, type) => {
+  const save = useCallback(async (src, type) => {
     if (startUpload) {
       startUpload();
     }
@@ -93,15 +99,31 @@ const DropAndEditButton = (
     }
   }, [onUploaded]);
 
+  const onRemoveImage = useCallback(async () => {
+    const response = await showConfirmation('Are you sure you want to remove the image?', 'Remove image');
+    if (response) {
+      onUploaded(!!fallbackValue && { url: fallbackValue });
+      showSuccess('Image is successfully removed');
+    }
+  }, [uploadMedia]);
+
   return (
     <div className="drop-area">
-      {
-      isArea ? (
-        <DropzoneArea
-          onDrop={onDrop}
-          {...props}
-          {...rest}
-        />
+      {isArea ? (
+        <>
+          <DropzoneArea
+            onDrop={onDrop}
+            {...props}
+            {...rest}
+          />
+          {isRemovable && (
+            <SVGInline
+              svg={removeIcon}
+              className="drop-area__icon"
+              onClick={onRemoveImage}
+            />
+          )}
+        </>
       ) : (
         <>
           <DropZone
@@ -116,8 +138,7 @@ const DropAndEditButton = (
             message={produceTooltips.thumbnailUpload}
           />
         </>
-      )
-    }
+      )}
     </div>
   );
 };
@@ -131,9 +152,11 @@ DropAndEditButton.propTypes = {
   className: PropTypes.string,
   needSaveAsset: PropTypes.bool,
   isArea: PropTypes.bool,
+  isRemovable: PropTypes.bool,
   zoomable: PropTypes.bool,
   tooltipMessage: PropTypes.string,
   allowedGif: PropTypes.bool,
+  fallbackValue: PropTypes.string,
   recommendedResolution: PropTypes.shape({
     width: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
@@ -144,6 +167,7 @@ DropAndEditButton.defaultProps = {
   isDisabled: false,
   needSaveAsset: true,
   allowedGif: false,
+  isRemovable: false,
 };
 
 export default DropAndEditButton;
