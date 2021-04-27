@@ -2128,7 +2128,13 @@ export default class ProjectStore extends BaseStore {
     this.setUndo();
     await this.updateEnd(end);
     this.isFirstTrackFull = false;
-    return Bb.all(elements.map(item => this.createNewElement(item)));
+    await Bb.all(elements.map(item => this.createNewElement(item)));
+    if (this.elements.length) {
+      const current = this.elements[this.elements.length - 1];
+      this.editElement(current.id);
+      this.updateTime(
+        ((current.popcornOptions.start + current.popcornOptions.end) / 2) * SANTISECOND);
+    }
   }
 
   updateEnd = (end) => {

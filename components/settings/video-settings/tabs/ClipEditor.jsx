@@ -91,16 +91,9 @@ const ClipEditor = observer(({ values, fields, element, onChange }) => {
     onChange({ source: [newSource] });
   }, [is360]);
 
-  const changeMute = useCallback((field) => {
-    if (volume === 0 && field.mute) {
-      return;
-    }
-
-    onChange({ mute: !field.mute });
-    if (!field.mute) {
-      onChange({ volume: 0 });
-    }
-  }, [mute, volume]);
+  const changeMute = () => {
+    onChange({ mute: !mute, volume: !mute ? 0 : 100 });
+  };
 
   const changeVolume = useCallback((field) => {
     if (field.volume > 100) {
