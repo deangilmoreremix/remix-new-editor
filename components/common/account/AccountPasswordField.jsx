@@ -16,7 +16,7 @@ const validationSchema = yup.object({
     )
     .min(8, 'Password should be of minimum 8 characters length')
     .max(100, 'Password should be of maximum 100 characters length')
-    .required('Password is required'),
+    .required('New password is required'),
   repeatPassword: yup
     .mixed().oneOf([yup.ref('password'), null], 'Passwords must match')
     .required('Repeating password is required'),
@@ -70,6 +70,7 @@ const AccountPasswordField = memo(({ updatePassword }) => {
         <FormTextField
           id="repeatPassword"
           name="repeatPassword"
+          placeholder="********"
           type="password"
           value={formik.values.repeatPassword}
           onEdit={formik.handleChange}
@@ -87,6 +88,7 @@ const AccountPasswordField = memo(({ updatePassword }) => {
         <FormTextField
           id="currentPassword"
           name="currentPassword"
+          placeholder="********"
           type="password"
           value={formik.values.currentPassword}
           onEdit={formik.handleChange}

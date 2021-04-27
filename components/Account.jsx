@@ -87,7 +87,7 @@ const Account = observer(() => {
       await userStore.changePassword(password, currentPassword);
       showSuccess('Password is successfully changed!');
     } catch (e) {
-      showError(e.error);
+      showError('Incorrect current password');
     }
   };
 
