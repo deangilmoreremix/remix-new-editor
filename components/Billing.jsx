@@ -87,7 +87,7 @@ const Billing = observer(() => {
 
   const billingTable = (item) => (
     <tr key={item._id}>
-      <td>{moment(item.createdAt).format('MMMM Do YYYY')}</td>
+      <td>{moment(item.createdAt).format('MMM Do YY')}</td>
       <td>{item.productName}</td>
       <td>{`${item.amount}$`}</td>
       <td>{item.paymentPlatform}</td>
@@ -137,6 +137,10 @@ const Billing = observer(() => {
     )
   ), [subscriptions, planPage]);
 
+  const noActiveSubscriptions = () => !loading && (
+    <p className="billing-plan-box__nothing-text">You have no active subscriptions</p>
+  );
+
   return (
     <div className={classnames('user-panel auto-height', { 'background-dark-theme': hasPermissions })}>
       <div className="billing-plan-box">
@@ -158,7 +162,7 @@ const Billing = observer(() => {
             </div>
             {activeSubscription(subscriptions[planPage - 1])}
           </>
-        ) : <p className="billing-plan-box__nothing-text">You have no active subscriptions</p>}
+        ) : noActiveSubscriptions()}
       </div>
       <div className="billing-history-box">
         <div className="billing-history-box__header">

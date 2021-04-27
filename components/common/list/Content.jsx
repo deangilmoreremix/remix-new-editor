@@ -17,7 +17,7 @@ const Content = memo(({
   isTable,
 }) => {
   const notFound = useMemo(() => {
-    if (isLoading || !query) {
+    if (isLoading && !query) {
       return null;
     }
 

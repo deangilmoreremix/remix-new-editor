@@ -195,6 +195,7 @@
     table {
       width: 100%;
       color: $white;
+      height: 100%;
     }
 
     th {
@@ -206,7 +207,7 @@
     }
 
     td {
-      padding-top: 0.5rem;
+      padding: 0.5rem;
       text-align: center;
 
       button {
