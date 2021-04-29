@@ -324,6 +324,7 @@ const PopcornElements = observer(({
     setIsActiveTimeline(true);
     switch (type) {
       case Timeline.changeTypes.oneItemSelected: {
+        setTimeOnClick(changes.currentTime.diff(startDate) / ONE_SECOND);
         changes.e.stopPropagation();
         const newSelection = timelineSelectedItems.slice();
         const idx = timelineSelectedItems.indexOf(changes.item.id);

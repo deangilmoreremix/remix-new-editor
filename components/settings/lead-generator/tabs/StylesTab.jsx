@@ -136,6 +136,7 @@ const StylesTab = observer((options) => {
           />
           <DropAndEditButton
             isArea
+            isRemovable={values?.brandLogoSrc}
             onUploaded={(item) => onUploadedImage(item, fields.brandLogoSrc.name)}
             isDisabled={isDisabledUploadLogo}
             value={values?.brandLogoSrc}
@@ -167,6 +168,7 @@ const StylesTab = observer((options) => {
           />
           <DropAndEditButton
             isArea
+            isRemovable={values?.backgroundImage}
             onUploaded={(item) => onUploadedImage(item, fields.backgroundImage.name)}
             isDisabled={isDisabledUploadImage}
             value={values?.backgroundImage}

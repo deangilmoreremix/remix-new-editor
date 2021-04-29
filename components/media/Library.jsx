@@ -648,6 +648,7 @@ const Library = observer((props) => {
       await addAllSelectedItems();
     } catch (e) {
       setIsMultiSelectLoading(false);
+      showError(e);
     }
   };
 
