@@ -1,0 +1,31 @@
+.details-modal {
+  background: $light-twinlight !important;
+  width: calc(13vw + 24rem);
+
+  span {
+    color: $produce-title;
+  }
+
+  p {
+    color: $produce-title;
+    text-align: left;
+    width: 55%;
+  }
+
+  &-content {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+
+    &__data {
+      margin-top: 1rem;
+      width: 100%;
+
+      &-field {
+        display: flex;
+        justify-content: space-between;
+      }
+    }
+  }
+}

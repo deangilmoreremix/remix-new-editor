@@ -154,7 +154,8 @@
     "wavesurfer.js": "3.3.3",
     "webmaker-auth": "git://github.com/strategic-limited/webmaker-auth2.git#ea30983b3140c85139bd2b12d8ce8bbf5c4588f9",
     "webpack": "4.41.5",
-    "webrtc-adapter": "7.5.1"
+    "webrtc-adapter": "7.5.1",
+    "yup": "0.32.9"
   },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "7.8.3",
