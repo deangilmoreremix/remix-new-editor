@@ -179,7 +179,9 @@ const ValidationTimeInput = observer(({
       const isEnd = label.toLowerCase() === END;
 
       switch (type) {
-        case POPCORN_ELEMENT_TYPES.PAUSE: {
+        case POPCORN_ELEMENT_TYPES.PAUSE:
+        case POPCORN_ELEMENT_TYPES.JSON_TRANSITION:
+        {
           const newPauseEnd = newValue + (end - start);
 
           updateLayerElements(newPauseEnd, element);

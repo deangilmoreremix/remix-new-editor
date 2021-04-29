@@ -3,17 +3,20 @@ import { observer } from 'mobx-react';
 
 import Button from '@material-ui/core/Button';
 import PropTypes from '../../../lib/PropTypes';
+import { rgba2hex } from '../../../lib/lottie/utils';
 
 import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';
 import useModalStore from '../../hooks/useModalStore';
 
 import FieldBuilder from '../../form/FieldBuilder';
+
 import { CROP_RECOMMENDED_RESOLUTION } from '../../../lib/constants/settings/image';
 import { IMAGE_CROPPER_MODAL } from '../../../lib/constants/modals';
 import { GIF_FORMAT, GIF_WARNING } from '../../../lib/constants/media';
-import { rgba2hex } from '../../../lib/lottie/utils';
 import { produceTooltips } from '../../../lib/constants/tooltips';
+import { DEFAULT_THUMBNAIL } from '../../../lib/constants/project';
+
 import DropAndEditButton from '../../media/DropAndEditButton';
 import HelpIconComponent from '../HelpIcon';
 
@@ -234,6 +237,8 @@ const SettingPanel = observer(() => {
             <DropAndEditButton
               isArea
               allowedGif
+              isRemovable={item.thumbnail !== DEFAULT_THUMBNAIL}
+              fallbackValue={DEFAULT_THUMBNAIL}
               onUploaded={onUploadedImage}
               isDisabled={isDisabledUpload}
               value={item.thumbnail}

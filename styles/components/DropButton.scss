@@ -1,3 +1,5 @@
+$removeIconSize: 20px;
+
 .button-add-file {
   display: flex;
   width: 4.7rem;
@@ -28,6 +30,27 @@
   width: 100%;
   display: flex;
   justify-content: center;
+
+  &__icon {
+    height: $removeIconSize;
+    position: relative;
+    right: 0.7rem;
+    bottom: 0.5rem;
+    cursor: pointer;
+    width: 0;
+
+    svg {
+      background: $secondary-color;
+      width: $removeIconSize;
+      height: $removeIconSize;
+      border-radius: 100%;
+      padding: 4px;
+
+      path {
+        stroke: $white;
+      }
+    }
+  }
 }
 
 @media screen and (max-width: $lg) {
