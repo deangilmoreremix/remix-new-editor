@@ -11,12 +11,13 @@ const PageFactory = (scope) => (
     }
 
     render() {
-      const { RootComponent, className, options, Header, layoutClassName } = scope;
+      const { RootComponent, className, options, Header, layoutClassName, headerTitle } = scope;
       return (
         <Layout
           className={className}
           Header={Header}
           layoutClassName={layoutClassName}
+          headerTitle={headerTitle}
           {...this.props}
         >
           <RootComponent {...options} />

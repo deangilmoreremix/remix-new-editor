@@ -48,6 +48,7 @@ const AccountPasswordField = memo(({ updatePassword }) => {
       <div className="user-panel__data-field">
         <span className="user-panel__data-field-label">
           New password
+          <p>*</p>
         </span>
         <FormTextField
           type="password"

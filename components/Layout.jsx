@@ -60,7 +60,14 @@ class Layout extends Component {
     if (process.browser) {
       PopcornProxy.init(window);
     }
-    const { children, Header: BaseHeader, layoutClassName, className, ...rest } = this.props;
+    const {
+      children,
+      Header: BaseHeader,
+      layoutClassName,
+      className,
+      headerTitle,
+      ...rest
+    } = this.props;
     const { common: { whiteLabelManager, userPilotToken } } = this.stores;
     return (
       <ThemeProvider theme={this.theme}>
@@ -103,7 +110,7 @@ class Layout extends Component {
                   as="font"
                   crossOrigin=""
                 />
-                <title>{whiteLabelManager.brandName}</title>
+                <title>{headerTitle || whiteLabelManager.brandName}</title>
                 <link
                   rel="shortcut icon"
                   href={
@@ -233,6 +240,7 @@ Layout.propTypes = {
   // eslint-disable-next-line react/forbid-prop-types
   creator: PropTypes.any,
   layoutClassName: PropTypes.string,
+  headerTitle: PropTypes.string,
   className: PropTypes.string,
 };
 

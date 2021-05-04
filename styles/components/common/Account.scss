@@ -52,8 +52,7 @@
   margin-right: 13.3%;
 
 .popover {
-  transform: translate3d(73.2vw, 8.3vh, 0px) !important;
-  width: 13.6%;
+  width: 14.7%;
 }
 
 .MuiButton-iconSizeMedium > *:first-child {
@@ -473,11 +472,6 @@ svg path {
 }
 
 @media screen and (max-width: $xxl){
-  .user-bar .popover {
-    transform: translate3d(71.7vw, 12vh, 0px) !important;
-    width: 15%;
-  }
-
   .user-panel__second-level {
     font-size: 12px;
   }

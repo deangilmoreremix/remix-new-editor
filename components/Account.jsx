@@ -37,6 +37,7 @@ const Account = observer(() => {
     hasPermissions,
     setUserPhoto,
     setFullName,
+    changePassword,
   } = userStore;
 
   const [activeTab, setActiveTab] = useState(TABS.GENERAL.url);
@@ -84,7 +85,7 @@ const Account = observer(() => {
 
   const onChangePassword = async (password, currentPassword) => {
     try {
-      await userStore.changePassword(password, currentPassword);
+      await changePassword(password, currentPassword);
       showSuccess('Password is successfully changed!');
     } catch (e) {
       showError('Incorrect current password');
