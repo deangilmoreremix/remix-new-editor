@@ -6,5 +6,6 @@ import AccountHeader from '../components/AccountHeader';
 export default pageFactory({
   RootComponent: Account,
   Header: () => <AccountHeader isAccount />,
+  headerTitle: 'My Account Settings',
   className: 'account',
 });
