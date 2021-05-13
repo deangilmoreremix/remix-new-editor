@@ -7,7 +7,6 @@ const Loader = () => (
       <div className="loader-inner loader-two" />
       <div className="loader-inner loader-three" />
     </div>
-    <p>Creating Personalized Video Magic</p>
   </div>
 );
 

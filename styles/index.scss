@@ -104,6 +104,9 @@ body {
 @import "components/common/background";
 @import "components/common/HelpIcon";
 @import "components/common/text-mask";
+@import "components/common/Folders";
+@import "components/common/ModalContent";
+@import "components/common/template-generator/MediaTemplate";
 
 @import "components/campaigns/index";
 
@@ -120,6 +123,7 @@ body {
 @import "components/form/TimeInput";
 @import "components/form/FormTokensTextArea";
 @import "components/form/AutoCompleteSelect";
+@import "components/form/HorizontalStepper";
 
 @import "components/canvas/Canvas";
 @import "components/canvas/SizeSelector";
@@ -144,4 +148,10 @@ body {
 
 .swal-overlay {
   z-index: 10002;
+}
+
+.nothing-found {
+  color: $media-library-color;
+  font-size: 1rem;
+  margin: 0 auto;
 }

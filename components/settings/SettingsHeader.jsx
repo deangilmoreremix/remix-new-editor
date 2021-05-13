@@ -1,5 +1,6 @@
 import * as React from 'react';
 import classnames from 'classnames';
+import SVGInline from 'react-svg-inline';
 import CloseButton from '../common/CloseButton';
 
 import PropTypes from '../../lib/PropTypes';
@@ -13,6 +14,8 @@ const SettingsHeader = ({
   onCloseWindow,
   closeButton,
   handleClose,
+  isExtendCloseButton,
+  allowedMultiButton,
 }) => {
   const handleChange = React.useCallback((newValue) => {
     if (newValue === activeTab) {
@@ -22,7 +25,7 @@ const SettingsHeader = ({
       return setTab(newValue);
     }
     return null;
-  }, [activeTab]);
+  }, [activeTab, setTab]);
 
   return (
     <div className={classnames(className, 'header-tabs')}>
@@ -38,12 +41,25 @@ const SettingsHeader = ({
             onClick={() => handleChange(i)}
             disabled={tab.disabled}
           >
+            {tab.icon && (
+              <SVGInline
+                className={classnames('tab-icon', { 'tab-icon-active': activeTab === i })}
+                classSuffix=""
+                svg={tabs[i].icon}
+                cleanup={['title']}
+              />
+            )}
             {tab.label}
           </button>
         ))
       }
       {tabs && (
-        <CloseButton isTabs={tabs.length > 1} onClick={closeButton ? handleClose : onCloseWindow} />
+        <CloseButton
+          allowedMultiButton={allowedMultiButton}
+          className={isExtendCloseButton ? 'close-button-extend' : null}
+          isTabs={tabs.length > 1}
+          onClick={closeButton ? handleClose : onCloseWindow}
+        />
       )}
     </div>
   );
@@ -56,12 +72,15 @@ SettingsHeader.propTypes = {
   onCloseWindow: PropTypes.func,
   tabs: PropTypes.arrayOf(PropTypes.shape({
     label: PropTypes.string,
+    icon: PropTypes.string,
     disabled: PropTypes.bool,
     requiredFeature: PropTypes.string,
   })),
   title: PropTypes.string,
   closeButton: PropTypes.bool,
   handleClose: PropTypes.func,
+  isExtendCloseButton: PropTypes.bool,
+  allowedMultiButton: PropTypes.bool,
 };
 
 SettingsHeader.defaultProps = {

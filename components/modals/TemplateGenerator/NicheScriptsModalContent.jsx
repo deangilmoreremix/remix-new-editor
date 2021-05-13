@@ -1,83 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import useMakeStore from '../../hooks/useMakeStore';
-import { showError } from '../../../lib/services/alertService';
-import NicheScriptsGrid from './NicheScriptsGrid';
+import React, { useCallback, useEffect } from 'react';
+import { observer } from 'mobx-react';
+import SearchInput from '../../form/SearchInput';
+import {
+  initialState as listInitialState,
+  reducer as listReducer,
+} from '../../../lib/utils/reducers/listReducer';
+import { ACTION_TYPES } from '../../../lib/constants/reducers/listReducer';
+import { TEMPLATES_SEGMENTS } from '../../../lib/constants/templateSegments';
+import List from '../../common/gallery/List';
+import NicheScript from './NicheScript';
+import PropTypes from '../../../lib/PropTypes';
 
-// todo update it, Pagination does not work here.
-const perPage = 250;
+import { entities } from '../../../lib/constants/templateGenerator';
 
-export default function NicheScriptsModalContent({ options: { onSelect }, setHeader }) {
-  const makeStore = useMakeStore();
-  const [scripts, setScripts] = useState([]);
-  const [page, setPage] = useState(1);
-  const [query, setQuery] = useState('');
-  const [hasMore, setHasMore] = useState(true);
+const NicheScriptsModalContent = observer(({ onSelect, activeElement }) => {
+  const [list, dispatchList] = React.useReducer(listReducer, listInitialState);
 
-  useEffect(() => {
-    setHeader({});
+  const select = useCallback((item) => {
+    dispatchList({
+      type: ACTION_TYPES.TOGGLE_ACTIVE_ITEM,
+      value: item || null,
+    });
   }, []);
 
-  const resetParams = () => {
-    setPage(1);
-    setHasMore(true);
-    setScripts([]);
-  };
-
-  const getScripts = async (reset = false) => {
-    if (reset) {
-      resetParams();
+  useEffect(() => {
+    if (list.init) {
+      return onSelect(entities.NICHE_SCRIPT, list.activeItem);
     }
+  }, [list.activeItem]);
 
-    if (hasMore) {
-      try {
-        const results = await makeStore.getNicheScripts({
-          query,
-          page,
-          perPage,
-        });
-
-        setScripts(scripts.concat(results));
-        const hasNextPage = results.length === perPage;
-        setHasMore(hasNextPage);
-
-        if (hasNextPage) {
-          setPage(page + 1);
-        }
-      } catch (e) {
-        showError(e.message);
-      }
-    }
-  };
+  useEffect(() => dispatchList({
+    type: ACTION_TYPES.SET_INITIAL,
+    value: {
+      path: '/api/makes/revolution',
+      params: { segment: TEMPLATES_SEGMENTS.NICHE_SCRIPTS },
+      // todo update preview
+      content: (props) => (
+        <NicheScript
+          onClick={(item) => {
+            select(item);
+          }}
+          allowedPreview
+          {...props}
+        />
+      ),
+      perPage: 18,
+      filter: {
+        archived: { $in: [null, false] },
+      },
+      activeItem: activeElement,
+      orderBy: {
+        createdAt: -1,
+      },
+    },
+  }), []);
 
   useEffect(() => {
-    if (page === 1) {
-      getScripts();
+    if (!list.init) {
+      dispatchList({
+        type: ACTION_TYPES.SET_LOADING,
+        value: true,
+      });
     }
-  }, [page, query]);
+  }, [list.init]);
+
+  const searchElement = (query) => {
+    dispatchList({
+      type: ACTION_TYPES.SET_QUERY,
+      value: query,
+    });
+  };
 
   return (
     <>
-      <p className="template-generator-offer__text">Select a niche script</p>
-      <input
-        className="generator-search"
-        type="text"
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-        onKeyDown={() => getScripts(true)}
-        placeholder="Search through your content..."
-      />
-      <NicheScriptsGrid
-        onSelect={(item) => onSelect(item)}
-        loadMore={getScripts}
-        hasMore={hasMore}
-        items={scripts}
+      <div className="search">
+        <h4 className="search-title">Choose your script</h4>
+        <div className="library__search-box search-box">
+          <SearchInput onSearch={searchElement} />
+        </div>
+      </div>
+      <List
+        list={list}
+        dispatchList={dispatchList}
+        className="generator-list niche-scripts-list"
       />
     </>
   );
-}
+});
 
 NicheScriptsModalContent.propTypes = {
-  options: PropTypes.shape({ onSelect: PropTypes.func.isRequired }).isRequired,
-  setHeader: PropTypes.func.isRequired,
+  onSelect: PropTypes.func.isRequired,
+  activeElement: PropTypes.shape({}),
 };
+
+export default NicheScriptsModalContent;

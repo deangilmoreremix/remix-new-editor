@@ -16,6 +16,7 @@ const ModalContainer = observer(({ classNameWL }) => {
     modals,
     closeModal,
     updateHeader,
+    updateHeaderProps,
     updateClassName,
     updateMaxWidth,
     options,
@@ -44,6 +45,7 @@ const ModalContainer = observer(({ classNameWL }) => {
     };
 
     const updateModalHeader = (newHeaderProps) => updateHeader(id, newHeaderProps);
+    const updateModalHeaderProps = (newProps) => updateHeaderProps(id, newProps);
     const updateModalClassName = (newHeaderProps) => updateClassName(id, newHeaderProps);
     const updateModalMaxWidth = (newWidthProps) => updateMaxWidth(id, newWidthProps);
 
@@ -51,7 +53,7 @@ const ModalContainer = observer(({ classNameWL }) => {
       <Dialog
         key={id}
         fullWidth={false}
-        maxWidth={maxWidth || 'sm'}
+        maxWidth={maxWidth ?? 'sm'}
         open
         onClose={close}
         aria-labelledby="max-width-dialog-title"
@@ -71,6 +73,7 @@ const ModalContainer = observer(({ classNameWL }) => {
             options={options}
             handleClose={close}
             setHeader={updateModalHeader}
+            setHeaderProps={updateModalHeaderProps}
             setClassName={updateModalClassName}
             setMaxWidth={updateModalMaxWidth}
           />

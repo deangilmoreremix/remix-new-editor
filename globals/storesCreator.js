@@ -11,9 +11,11 @@ import ModalStore from './stores/modal.store';
 import MediaStore from './stores/media.store';
 import UIStore from './stores/ui.store';
 import PresetStore from './stores/preset.store';
+import PopcornStore from './stores/popcorn.store';
 import MakeStore from './stores/make.store';
 import SocketStore from './stores/socket.store';
 import MultiselectStore from './stores/multiselect.store';
+import MultiselectTemplateStore from './stores/multiselect.template.store';
 import TimelineStore from './stores/timeline.store';
 import SearchStore from './stores/search.store';
 import WhiteLabelManager from '../lib/white-label/manager';
@@ -241,7 +243,9 @@ export async function initCreateStores(isServer, source, req, preloader) {
         currentUser: creator.currentUser,
         userStore,
       }),
+      popcornStore: new PopcornStore({}),
       multiSelectStore: new MultiselectStore({ projectStore, userStore, mediaStore }),
+      multiSelectTemplateStore: new MultiselectTemplateStore({ projectStore, userStore }),
     };
   }
   if (preloader) {
@@ -313,7 +317,9 @@ export function init(source) {
         currentUser: creator.currentUser,
         userStore,
       }),
+      popcornStore: new PopcornStore({}),
       multiSelectStore: new MultiselectStore({ projectStore, userStore, mediaStore }),
+      multiSelectTemplateStore: new MultiselectTemplateStore({ projectStore, userStore }),
     };
   }
   // initializeSockets(creator.authorization, creator.currentUser, creator.hostname);

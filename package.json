@@ -117,6 +117,7 @@
     "react-dropzone": "10.2.1",
     "react-google-font-loader": "1.1.0",
     "react-grid-layout": "0.18.2",
+    "react-hover-action-delay": "0.1.1",
     "react-lottie": "1.2.3",
     "react-masonry-infinite": "1.2.2",
     "react-number-format": "4.4.1",
