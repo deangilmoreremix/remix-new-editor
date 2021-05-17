@@ -17,6 +17,25 @@ export default class BaseStore {
     this.currentUser = currentUser;
   }
 
+  sendRequest = (method, path, body) => {
+    if (body) {
+      return this.request(path, {
+        method,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+        body,
+      });
+    } else {
+      return this.request(path, {
+        method,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+    }
+  }
+
   getList = ({ page = 1, query = '', perPage, params, path, orderBy, filter }) => {
     const urlParams = new URLSearchParams({
       page,

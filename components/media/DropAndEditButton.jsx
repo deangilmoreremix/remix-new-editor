@@ -11,7 +11,6 @@ import useProjectStore from '../hooks/useProjectStore';
 
 import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
 import { ASSET_TYPES, GIF_FORMAT, GIF_WARNING, IMAGE_FORMATS } from '../../lib/constants/media';
-import { produceTooltips } from '../../lib/constants/tooltips';
 
 import DropZone from './DropZone';
 import DropzoneArea from './DropzoneArea';
@@ -133,10 +132,12 @@ const DropAndEditButton = (
             {...props}
             {...rest}
           />
-          <HelpIconComponent
-            isText
-            message={produceTooltips.thumbnailUpload}
-          />
+          {tooltipMessage && (
+            <HelpIconComponent
+              isText
+              message={tooltipMessage}
+            />
+          )}
         </>
       )}
     </div>

@@ -117,6 +117,7 @@
     "react-dropzone": "10.2.1",
     "react-google-font-loader": "1.1.0",
     "react-grid-layout": "0.18.2",
+    "react-hover-action-delay": "0.1.1",
     "react-lottie": "1.2.3",
     "react-masonry-infinite": "1.2.2",
     "react-number-format": "4.4.1",
@@ -154,7 +155,8 @@
     "wavesurfer.js": "3.3.3",
     "webmaker-auth": "git://github.com/strategic-limited/webmaker-auth2.git#ea30983b3140c85139bd2b12d8ce8bbf5c4588f9",
     "webpack": "4.41.5",
-    "webrtc-adapter": "7.5.1"
+    "webrtc-adapter": "7.5.1",
+    "yup": "0.32.9"
   },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "7.8.3",

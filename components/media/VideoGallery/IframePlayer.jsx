@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { observer } from 'mobx-react';
 
 import ProjectLoader from '../../common/ProjectLoader';
 
@@ -20,6 +21,8 @@ const IframePlayer = (props) => {
 
   const { containerClassName, videoClassName, item: { url, title }, item } = props;
 
+  const frameRef = React.useRef(`${Date.now()}/${Math.random()}`);
+
   const [isLoading, setIsLoading] = React.useState(true);
 
   const parsedProject = React.useMemo(() => JSON.parse(item.project.data),
@@ -37,10 +40,12 @@ const IframePlayer = (props) => {
     .join('&')}&IMAGE${DEFAULT_USER_IMAGE}`, [queryParams]);
 
   const preplayHandler = (event) => {
-    const { source: frameConductor, data: { topic } } = event;
-    if (topic !== 'preplay') {
+    const { source: frameConductor, data: { topic, preplayId } } = event;
+    if (topic !== 'preplay' || preplayId !== frameRef.current || !frameConductor) {
       return;
     }
+
+    window.removeEventListener('message', preplayHandler);
     frameConductor.postMessage({
       topic: 'preplay',
       config: {
@@ -65,8 +70,10 @@ const IframePlayer = (props) => {
   };
 
   React.useEffect(() => {
-    window.addEventListener('message', event => preplayHandler(event));
-  }, []);
+    if (frameRef?.current) {
+      window.addEventListener('message', preplayHandler);
+    }
+  }, [frameRef?.current]);
 
   return (
     <div className={containerClassName}>
@@ -74,7 +81,7 @@ const IframePlayer = (props) => {
       <iframe
         className={videoClassName}
         title={title}
-        src={`${url}?preplay=postMessage&${queryString}`}
+        src={`${url}?preplay=postMessage&preplayId=${frameRef.current}&${queryString}`}
         frameBorder="0"
         allow="autoplay; fullscreen"
         mozallowfullscreen="true"
@@ -90,7 +97,7 @@ IframePlayer.propTypes = {
   videoClassName: PropTypes.string,
   containerClassName: PropTypes.string,
   item: PropTypes.shape({
-    title: PropTypes.string.isRequired,
+    title: PropTypes.string,
     url: PropTypes.string.isRequired,
     thumbnail: PropTypes.string,
     project: PropTypes.shape({ data: PropTypes.string.isRequired }).isRequired,
@@ -102,4 +109,4 @@ IframePlayer.defaultProps = {
   containerClassName: 'iframe-container',
 };
 
-export default React.memo(IframePlayer);
+export default observer(IframePlayer);

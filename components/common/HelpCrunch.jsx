@@ -88,23 +88,23 @@ export default class HelpCrunch extends Component {
     const { userStore } = this.props;
     await userStore.setRoles();
 
-    const { roles } = userStore;
+    const { roles = [] } = userStore;
     window.HelpCrunch('onReady', () => {
       window.HelpCrunch('showChatWidget');
       window.HelpCrunch('updateUserData', {
-        active_roles: roles.map(({ name }) => name).join(', '),
+        active_roles: roles && roles.map(({ name }) => name).join(', '),
       });
     });
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    const { userStore: { currentUser: user, roles } } = nextProps;
+    const { userStore: { currentUser: user, roles = [] } } = nextProps;
 
     if (!canUseDOM) {
       return;
     }
 
-    const roleNames = roles.map(({ name }) => name).join(', ');
+    const roleNames = roles && roles.map(({ name }) => name).join(', ');
 
     window.helpCrunchSettings = {
       email: user.email,

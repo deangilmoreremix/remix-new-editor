@@ -9,6 +9,9 @@
   }
 }
 
+@import "DetailsModal";
+@import "CancellationModal";
+@import "NicheScriptsPreviewModal";
 @import "CreateProjectModal";
 @import "TemplatePreviewModal";
 @import "PixoImageEditorModal";
@@ -25,6 +28,8 @@
 @import "VoiceModal";
 @import "PreRemixVoiceModal";
 @import "UrlVideoModal";
+@import "ProjectSettingsModal";
+@import "AddFolderModal";
 
 @import "social/LinkedinPost";
 @import "social/Facebook";

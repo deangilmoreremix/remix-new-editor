@@ -1,9 +1,10 @@
 import React, { Fragment } from 'react';
+import { observer } from 'mobx-react';
 import PropTypes from '../../../lib/PropTypes';
 
 import useUserStore from '../../hooks/useUserStore';
 
-const UserBox = ({ greeting }) => {
+const UserBox = observer(({ greeting }) => {
   const userStore = useUserStore();
 
   const { firstName, photo } = userStore;
@@ -15,7 +16,7 @@ const UserBox = ({ greeting }) => {
       <div className="user-name">{`${greeting ? 'Hi, ' : ''}${firstName}`}</div>
     </Fragment>
   );
-};
+});
 
 UserBox.propTypes = {
   greeting: PropTypes.bool,

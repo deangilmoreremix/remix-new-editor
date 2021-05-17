@@ -39,6 +39,13 @@ export default () => {
     }
   };
 
+  const updateHeaderProps = (modalId, props = {}) => {
+    if (modalId) {
+      const mutatedModalIndex = modals.findIndex(modal => modal.id === modalId);
+      modals[mutatedModalIndex].header = { ...modals[mutatedModalIndex].header, ...props };
+    }
+  };
+
   const updateClassName = (modalId, className) => {
     if (modalId) {
       const mutatedModalIndex = modals.findIndex(modal => modal.id === modalId);
@@ -127,6 +134,7 @@ export default () => {
     openModal: action(openModal),
     closeModal: action(closeModal),
     updateHeader: action(updateHeader),
+    updateHeaderProps: action(updateHeaderProps),
     updateClassName: action(updateClassName),
     updateMaxWidth: action(updateMaxWidth),
     openCropper,
