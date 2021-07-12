@@ -86,7 +86,9 @@ const Toolbar = observer(({ items }) => {
                 isOpen={isExpand}
                 style={{ position: 'absolute' }}
               >
-                <SVGInline className="toolbar-arrow-icon" svg={arrowIcon} cleanup={['title']} />
+                {tabId !== TOOLBARS.TEMPLATE_GEN && (
+                  <SVGInline className="toolbar-arrow-icon" svg={arrowIcon} cleanup={['title']} />
+                )}
               </AnimatedWindow>
             )}
           </button>
