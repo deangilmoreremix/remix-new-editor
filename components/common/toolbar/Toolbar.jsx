@@ -65,22 +65,23 @@ const Toolbar = observer(({ items }) => {
     <div style={{ height: libraryHeight }} className="toolbar-container">
       <div className="toolbar-tabs">
         {items.map(({ label, icon, id: tabId, func, tooltip }) => (
+          <HelpIconComponent
+            noIcon
+            message={tooltip}
+            placement="right"
+          >
           <button
             className="toolbar-tab"
             key={label}
             onClick={() => onClick(tabId, func)}
             type="button"
           >
-            <HelpIconComponent
-              noIcon
-              message={tooltip}
-              placement="right"
-            >
+
               <div className="toolbar-box">
                 <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
                 <span className="toolbar-tab-title">{label}</span>
               </div>
-            </HelpIconComponent>
+
             {isExpand && (
               <AnimatedWindow
                 isOpen={isExpand}
@@ -92,6 +93,7 @@ const Toolbar = observer(({ items }) => {
               </AnimatedWindow>
             )}
           </button>
+          </HelpIconComponent>
         ))}
       </div>
       {TabRenderer && <TabRenderer items={tabContent} options={options} />}
