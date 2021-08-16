@@ -70,30 +70,30 @@ const Toolbar = observer(({ items }) => {
             message={tooltip}
             placement="right"
           >
-          <button
-            className="toolbar-tab"
-            key={label}
-            onClick={() => onClick(tabId, func)}
-            type="button"
-          >
+            <button
+              className="toolbar-tab"
+              key={label}
+              onClick={() => onClick(tabId, func)}
+              type="button"
+            >
 
               <div className="toolbar-box">
                 <SVGInline className="toolbar-tab-icon" classSuffix="-inline" svg={icon} cleanup={['title']} />
                 <span className="toolbar-tab-title">{label}</span>
               </div>
 
-            {isExpand && (
-              <AnimatedWindow
-                isOpen={isExpand}
-                style={{ position: 'absolute' }}
-              >
-                {tabId !== TOOLBARS.TEMPLATE_GEN && (
-                  <SVGInline className="toolbar-arrow-icon" svg={arrowIcon} cleanup={['title']} />
-                )}
-              </AnimatedWindow>
-            )}
-          </button>
-          </HelpIconComponent>
+              {isExpand && (
+                <AnimatedWindow
+                  isOpen={isExpand}
+                  style={{ position: 'absolute' }}
+                >
+                  {tabId !== TOOLBARS.TEMPLATE_GEN && (
+                    <SVGInline className="toolbar-arrow-icon" svg={arrowIcon} cleanup={['title']} />
+                  )}
+                </AnimatedWindow>
+              )}
+            </button>
+        </HelpIconComponent>
         ))}
       </div>
       {TabRenderer && <TabRenderer items={tabContent} options={options} />}
