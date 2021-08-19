@@ -699,7 +699,7 @@ const Library = observer((props) => {
                     placeholder="search ..."
                   />
                   <div className="library__search-icon-box">
-                    <SearchIcon />
+                    <SearchIcon onClick={fetchItems} />
                   </div>
                 </div>
                 <button
