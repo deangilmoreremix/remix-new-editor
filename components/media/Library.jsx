@@ -1,52 +1,52 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from "react";
 // import { useDropzone } from 'react-dropzone';
-import { observer } from 'mobx-react';
-import classnames from 'classnames';
-import SearchIcon from '@material-ui/icons/Search';
-import Bb from 'bluebird';
+import { observer } from "mobx-react";
+import classnames from "classnames";
+import SearchIcon from "@material-ui/icons/Search";
+import Bb from "bluebird";
 
-import { CircleLoader } from 'react-spinners';
-import SVGInline from 'react-svg-inline';
+import { CircleLoader } from "react-spinners";
+import SVGInline from "react-svg-inline";
 import {
   tabItems,
   perPage,
   LIBRARY_TABS,
   LIBRARY_KEYS,
   resourcesWithValidation,
-} from '../../lib/constants/library';
-import { LOADING_COLOR } from '../../lib/constants/ui';
-import { ASSET_TYPES } from '../../lib/constants/media';
-import { MEDIA_TYPES } from '../../lib/constants/popcorn';
+} from "../../lib/constants/library";
+import { LOADING_COLOR } from "../../lib/constants/ui";
+import { ASSET_TYPES } from "../../lib/constants/media";
+import { MEDIA_TYPES } from "../../lib/constants/popcorn";
 // import { URL_RULE } from '../../lib/constants/regExps';
 // import { TYPES } from '../../lib/constants/validator';
 // import { ALL_VIDEO } from '../../lib/constants/formats';
-import config from '../../config/config';
-import { showError } from '../../lib/services/alertService';
+import config from "../../config/config";
+import { showError } from "../../lib/services/alertService";
 
-import { ENTER_KEY } from '../../lib/constants/keyCodes';
-import { TEXT_TO_SPEECH_WARNING } from '../../lib/constants/text-info';
-import Tabs from '../common/library/Tabs';
-import ProviderList from '../common/library/ProviderList';
-import LibraryContent from '../common/library/LibraryContent';
-import { LibrarySpinner } from './Loader';
-import CloseButton from '../common/CloseButton';
+import { ENTER_KEY } from "../../lib/constants/keyCodes";
+import { TEXT_TO_SPEECH_WARNING } from "../../lib/constants/text-info";
+import Tabs from "../common/library/Tabs";
+import ProviderList from "../common/library/ProviderList";
+import LibraryContent from "../common/library/LibraryContent";
+import { LibrarySpinner } from "./Loader";
+import CloseButton from "../common/CloseButton";
 
-import { editorStyles } from '../../lib/constants/editorStyles';
+import { editorStyles } from "../../lib/constants/editorStyles";
 
-import useUIStore from '../hooks/useUIStore';
-import useUserStore from '../hooks/useUserStore';
-import useTimelineStore from '../hooks/useTimelineStore';
-import useMediaStore from '../hooks/useMediaStore';
-import useProjectStore from '../hooks/useProjectStore';
-import useMultiSelectStore from '../hooks/useMultiSelectStore';
+import useUIStore from "../hooks/useUIStore";
+import useUserStore from "../hooks/useUserStore";
+import useTimelineStore from "../hooks/useTimelineStore";
+import useMediaStore from "../hooks/useMediaStore";
+import useProjectStore from "../hooks/useProjectStore";
+import useMultiSelectStore from "../hooks/useMultiSelectStore";
 // import AudioControls from '../common/library/AudioControls';
 // import DropPasteInput from './DropPasteInput';
 
-import withModal from '../hoc/withValidation';
-import Is360 from '../settings/video-settings/components/Is360';
+import withModal from "../hoc/withValidation";
+import Is360 from "../settings/video-settings/components/Is360";
 // import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
 // import FormTextField from '../form/FormTextField';
-import keyLock from '../../public/static/images/media/key-lock.svg';
+import keyLock from "../../public/static/images/media/key-lock.svg";
 
 const Library = observer((props) => {
   const { setError } = props;
@@ -94,13 +94,14 @@ const Library = observer((props) => {
     uploadImageUrl,
   } = useMediaStore();
 
-  const { downloaderEnabled, video360Enabled, getUserKey, updateUserKeys } = userStore;
+  const { downloaderEnabled, video360Enabled, getUserKey, updateUserKeys } =
+    userStore;
   const { timelineHeight } = useTimelineStore();
 
   // =============== STATE ===============
   const [userValidationKey, setUserValidationKey] = useState();
 
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
 
   const [activeBtn, setActiveBtn] = useState(LIBRARY_KEYS.USER);
   const [hasMore, setHasMore] = useState(true);
@@ -134,20 +135,26 @@ const Library = observer((props) => {
   // const [voiceType, setVoiceType] = useState(null);
   // ============ VOICE FILTER ===========
 
-  useEffect(() => () => {
-    if (updateElementInLibrary) {
-      setUpdateElementInLibrary();
-    }
-    if (libraryItemsForDelete.length) {
-      bulkDeleteItems(true);
-    }
-  }, []);
+  useEffect(
+    () => () => {
+      if (updateElementInLibrary) {
+        setUpdateElementInLibrary();
+      }
+      if (libraryItemsForDelete.length) {
+        bulkDeleteItems(true);
+      }
+    },
+    []
+  );
 
-  const isVideoTab = React.useMemo(() => activeTab === LIBRARY_TABS.VIDEO, [activeTab]);
+  const isVideoTab = React.useMemo(
+    () => activeTab === LIBRARY_TABS.VIDEO,
+    [activeTab]
+  );
 
   const itemsWithSelect = React.useMemo(() => {
     if (selectedItemsId) {
-      const newArr = items.map(item => {
+      const newArr = items.map((item) => {
         if (isItemPresent(item)) {
           item.selected = true;
         } else {
@@ -161,20 +168,25 @@ const Library = observer((props) => {
     }
   }, [selectedItemsId.length, items]);
 
-  const showed360 = React.useMemo(() => video360Enabled && isVideoTab,
-    [video360Enabled, isVideoTab]);
+  const showed360 = React.useMemo(
+    () => video360Enabled && isVideoTab,
+    [video360Enabled, isVideoTab]
+  );
 
-  const updateActiveTab = React.useCallback((tab) => {
-    if (!isLoading) {
-      setActiveTab(tab);
-    }
-  }, [isLoading, setActiveTab]);
+  const updateActiveTab = React.useCallback(
+    (tab) => {
+      if (!isLoading) {
+        setActiveTab(tab);
+      }
+    },
+    [isLoading, setActiveTab]
+  );
 
   useEffect(() => {
     async function fetchData() {
-      await fetchItems({ source: activeBtn, queryStr: '' });
+      await fetchItems({ source: activeBtn, queryStr: "" });
     }
-    setQuery('');
+    setQuery("");
     if (activeItem) {
       setActiveItem(null);
     }
@@ -206,13 +218,16 @@ const Library = observer((props) => {
   }, [activeTab, activeBtn, userStore]);
 
   const needValidation = React.useMemo(
-    () => resourcesWithValidation.some(element => element === activeBtn)
-      && (activeTab === LIBRARY_TABS.VIDEO || activeTab === LIBRARY_TABS.IMAGE),
-    [activeTab, activeBtn]);
+    () =>
+      resourcesWithValidation.some((element) => element === activeBtn) &&
+      (activeTab === LIBRARY_TABS.VIDEO || activeTab === LIBRARY_TABS.IMAGE),
+    [activeTab, activeBtn]
+  );
 
   const activeSecureTab = React.useMemo(
-    () => !!((needValidation) || !needValidation),
-    [needValidation]);
+    () => !!(needValidation || !needValidation),
+    [needValidation]
+  );
 
   useEffect(() => {
     let validationKey = getUserKey(activeBtn);
@@ -223,7 +238,7 @@ const Library = observer((props) => {
         setUserValidationKey(validationKey);
         onKeyEnter(validationKey);
       } else {
-        setUserValidationKey('');
+        setUserValidationKey("");
         setItems([]);
       }
     } else if (libraryItemsForDelete.length) {
@@ -233,13 +248,20 @@ const Library = observer((props) => {
     }
   }, [needValidation, activeBtn]);
 
-  const handleButtonClick = React.useCallback(async (element) => {
-    if (!isLoading) {
-      setActiveBtn(element);
-    }
-  }, [isLoading]);
+  const handleButtonClick = React.useCallback(
+    async (element) => {
+      if (!isLoading) {
+        setActiveBtn(element);
+      }
+    },
+    [isLoading]
+  );
 
-  const fetchItems = async ({ source = activeBtn, queryStr = query || '', isScrolling = false }) => {
+  const fetchItems = async ({
+    source = activeBtn,
+    queryStr = query || "",
+    isScrolling = false,
+  }) => {
     let currentPage = 0;
     let uploaded = [];
 
@@ -268,9 +290,10 @@ const Library = observer((props) => {
     let filter;
 
     if (activeTab === LIBRARY_KEYS.VOICE) {
-      filter = source === LIBRARY_KEYS.PERSONALIZED_VOICE
-        ? { 'extra.fallbackValue': { $exists: true } }
-        : { _id: { $nin: uploaded } };
+      filter =
+        source === LIBRARY_KEYS.PERSONALIZED_VOICE
+          ? { "extra.fallbackValue": { $exists: true } }
+          : { _id: { $nin: uploaded } };
       // if (language) {
       //   filter['extra.language'] = language;
       //   filter['extra.voice'] = voice;
@@ -283,8 +306,10 @@ const Library = observer((props) => {
     try {
       const data = await getAssets({
         providerName: source,
-        assetType: source === LIBRARY_KEYS.PERSONALIZED_VOICE
-          ? LIBRARY_KEYS.PERSONALIZED_VOICE : activeTab,
+        assetType:
+          source === LIBRARY_KEYS.PERSONALIZED_VOICE
+            ? LIBRARY_KEYS.PERSONALIZED_VOICE
+            : activeTab,
         page: currentPage,
         query: queryStr,
         filter,
@@ -295,10 +320,7 @@ const Library = observer((props) => {
           setItems(data);
           // Loading new items when scrolling
         } else {
-          setItems([
-            ...items,
-            ...data,
-          ]);
+          setItems([...items, ...data]);
         }
       }
 
@@ -314,7 +336,7 @@ const Library = observer((props) => {
 
       setHasMore(data && data.length === perPage);
     } catch (e) {
-      showError('An error occurred while loading items');
+      showError("An error occurred while loading items");
     } finally {
       setIsLoading(false);
       setIsInitialLoading(false);
@@ -328,17 +350,25 @@ const Library = observer((props) => {
     const files = [];
 
     if (addFileInputRef.current) {
-      addFileInputRef.current.value = '';
+      addFileInputRef.current.value = "";
     }
 
-    acceptedFiles.forEach(file => {
-      const validFormat = Object.keys(tabItems).some(item => tabItems[item]
-        .formats
-        .some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]));
+    acceptedFiles.forEach((file) => {
+      const validFormat = Object.keys(tabItems).some((item) =>
+        tabItems[item].formats.some(
+          (format) => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]
+        )
+      );
 
-      const isImage = tabItems[LIBRARY_TABS.IMAGE].formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]);
-      const isVideo = tabItems[LIBRARY_TABS.VIDEO].formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]);
-      const isAudio = tabItems[LIBRARY_TABS.AUDIO].formats.some(format => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]);
+      const isImage = tabItems[LIBRARY_TABS.IMAGE].formats.some(
+        (format) => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]
+      );
+      const isVideo = tabItems[LIBRARY_TABS.VIDEO].formats.some(
+        (format) => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]
+      );
+      const isAudio = tabItems[LIBRARY_TABS.AUDIO].formats.some(
+        (format) => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]
+      );
 
       if (!validFormat) {
         wrongFormat.push(file);
@@ -359,17 +389,25 @@ const Library = observer((props) => {
       }
     });
     const errorFilesText = (errorFiles, text) => `
-    Invalid file ${errorFiles.length > 1 ? `${text}s` : `${text}`} with ${errorFiles.length > 1 ? 'names' : 'name'}:
-      ${errorFiles.map(file => (` ${file.name}`))}. \\n`;
+    Invalid file ${errorFiles.length > 1 ? `${text}s` : `${text}`} with ${
+      errorFiles.length > 1 ? "names" : "name"
+    }:
+      ${errorFiles.map((file) => ` ${file.name}`)}. \\n`;
 
-    const invalidFormatMessage = `${errorFilesText(wrongFormat, 'format')}
+    const invalidFormatMessage = `${errorFilesText(wrongFormat, "format")}
       Supported Formats:
-      Video: ${tabItems[LIBRARY_TABS.VIDEO].formats.map(format => (` ${format}`))}.
-      Image: ${tabItems[LIBRARY_TABS.IMAGE].formats.map(format => (` ${format}`))}.
-      Audio: ${tabItems[LIBRARY_TABS.AUDIO].formats.map(format => (` ${format}`))}.
+      Video: ${tabItems[LIBRARY_TABS.VIDEO].formats.map(
+        (format) => ` ${format}`
+      )}.
+      Image: ${tabItems[LIBRARY_TABS.IMAGE].formats.map(
+        (format) => ` ${format}`
+      )}.
+      Audio: ${tabItems[LIBRARY_TABS.AUDIO].formats.map(
+        (format) => ` ${format}`
+      )}.
     `;
 
-    const invalidSizeMessage = `${errorFilesText(wrongSize, 'size')}
+    const invalidSizeMessage = `${errorFilesText(wrongSize, "size")}
       Supported Size:
       Image: ${config.image.maxSize / 1024 / 1024} mb.
       Video: ${config.video.maxSize / 1024 / 1024} mb.`;
@@ -385,45 +423,43 @@ const Library = observer((props) => {
 
     if (files.length) {
       setIsDisabledUpload(true);
-      Promise.all(files.map(async data => {
-        const asset = await uploadMedia({ data });
+      Promise.all(
+        files.map(async (data) => {
+          const asset = await uploadMedia({ data });
 
-        const fileExtension = asset.url.match(/\.[0-9a-z]{1,5}$/)[0];
-        let fileType = activeTab;
-        Object.keys(tabItems).forEach(item => {
-          tabItems[item].formats.forEach(format => {
-            if (format === fileExtension) {
-              fileType = item;
-            }
+          const fileExtension = asset.url.match(/\.[0-9a-z]{1,5}$/)[0];
+          let fileType = activeTab;
+          Object.keys(tabItems).forEach((item) => {
+            tabItems[item].formats.forEach((format) => {
+              if (format === fileExtension) {
+                fileType = item;
+              }
+            });
           });
-        });
 
-        const item = await storeAsset(asset, fileType);
-        elements.push(item);
-        elementsIds.push(item._id);
-        return fileExtension;
-      })).then(fileExtension => {
-        const extension = fileExtension[fileExtension.length - 1];
+          const item = await storeAsset(asset, fileType);
+          elements.push(item);
+          elementsIds.push(item._id);
+          return fileExtension;
+        })
+      )
+        .then((fileExtension) => {
+          const extension = fileExtension[fileExtension.length - 1];
 
-        Object.keys(tabItems).forEach((item, i) => {
-          tabItems[item].formats.forEach(format => {
-            if (format === extension) {
-              setActiveTab(Object.keys(tabItems)[i]);
-            } else {
-              setItems([
-                ...elements,
-                ...items,
-              ]);
-              setUploadedItems([
-                ...uploadedItems,
-                ...elementsIds,
-              ]);
-            }
+          Object.keys(tabItems).forEach((item, i) => {
+            tabItems[item].formats.forEach((format) => {
+              if (format === extension) {
+                setActiveTab(Object.keys(tabItems)[i]);
+              } else {
+                setItems([...elements, ...items]);
+                setUploadedItems([...uploadedItems, ...elementsIds]);
+              }
+            });
           });
-        });
-      }).catch(err => {
-        showError(err.message);
-      })
+        })
+        .catch((err) => {
+          showError(err.message);
+        })
         .finally(() => setIsDisabledUpload(false));
     }
   };
@@ -438,12 +474,12 @@ const Library = observer((props) => {
   //   }
   // };
 
-  const onKeyEnter = async (key = '') => {
+  const onKeyEnter = async (key = "") => {
     listProviders[activeBtn].apiKey = key || userValidationKey;
     await fetchItems({ source: activeBtn });
   };
 
-  const verifyKey = async (key = '') => {
+  const verifyKey = async (key = "") => {
     listProviders[activeBtn].apiKey = key || userValidationKey;
     setIsKeyLoading(true);
 
@@ -454,11 +490,15 @@ const Library = observer((props) => {
       ]);
     } else {
       await resetKeyInput();
-      listProviders[activeBtn].apiKey = '';
+      listProviders[activeBtn].apiKey = "";
       setIsViewedValidationBlock(true);
-      showError(`WRONG CREDENTIALS: ${activeBtn === LIBRARY_KEYS.DROPMOCK
-        ? 'Looks like Your DropMock Fusion key is invalid'
-        : 'Looks like Your TxtVideo key is invalid'}`);
+      showError(
+        `WRONG CREDENTIALS: ${
+          activeBtn === LIBRARY_KEYS.DROPMOCK
+            ? "Looks like Your DropMock Fusion key is invalid"
+            : "Looks like Your TxtVideo key is invalid"
+        }`
+      );
     }
 
     setIsKeyLoading(false);
@@ -473,7 +513,7 @@ const Library = observer((props) => {
   // === Drag and Drop ===
 
   const handleSearch = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       bulkDeleteItems(null, query);
     }
   };
@@ -558,7 +598,7 @@ const Library = observer((props) => {
 
   const onDelete = (e, id) => {
     e.stopPropagation();
-    const newArr = items.filter(item => item._id !== id);
+    const newArr = items.filter((item) => item._id !== id);
     setLibraryItemsForDelete(id);
     setItems(newArr);
   };
@@ -580,14 +620,17 @@ const Library = observer((props) => {
           fetchItems({ source: activeBtn, queryStr: searchText });
         }
       })
-      .catch(e => showError(`Error while deleting items, ${e.message}`));
+      .catch((e) => showError(`Error while deleting items, ${e.message}`));
   };
 
   const renderSidebar = React.useCallback(() => {
     switch (activeTab) {
       case LIBRARY_TABS.AUDIO: {
-        let audioActiveItem = '';
-        if (activeTab === LIBRARY_TABS.VOICE && activeBtn === LIBRARY_KEYS.USER) {
+        let audioActiveItem = "";
+        if (
+          activeTab === LIBRARY_TABS.VOICE &&
+          activeBtn === LIBRARY_KEYS.USER
+        ) {
           audioActiveItem = LIBRARY_TABS.VOICE;
         } else {
           audioActiveItem = activeBtn;
@@ -595,23 +638,24 @@ const Library = observer((props) => {
         return (
           <ProviderList
             activeItem={audioActiveItem}
-            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
+            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ""}
             userContentTitle={tabItems[activeTab].label}
             handleButtonClick={handleButtonClick}
             list={listProviders}
           />
         );
       }
-      default: return (
-        <ProviderList
-          activeItem={activeBtn}
-          title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
-          userContentTitle={tabItems[activeTab].label}
-          handleButtonClick={handleButtonClick}
-          list={listProviders}
-          activeTab={activeTab}
-        />
-      );
+      default:
+        return (
+          <ProviderList
+            activeItem={activeBtn}
+            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ""}
+            userContentTitle={tabItems[activeTab].label}
+            handleButtonClick={handleButtonClick}
+            list={listProviders}
+            activeTab={activeTab}
+          />
+        );
     }
   }, [activeTab, activeBtn, activeItem, listProviders, isLoading]);
 
@@ -628,15 +672,15 @@ const Library = observer((props) => {
   };
 
   const resetKeyInput = async () => {
-    await updateUserKeys(activeBtn, '');
+    await updateUserKeys(activeBtn, "");
     removeSelectedVideosAfterReset(activeBtn);
-    setUserValidationKey('');
+    setUserValidationKey("");
     setIsViewedValidationBlock(true);
     listProviders[activeBtn].apiKey = null;
     setItems([]);
   };
 
-  const handleEnterApiKey = event => {
+  const handleEnterApiKey = (event) => {
     if (event.keyCode === ENTER_KEY) {
       return verifyKey(userValidationKey);
     }
@@ -660,29 +704,30 @@ const Library = observer((props) => {
   }, [timelineHeight, isTimelineOpen]);
 
   return (
-    <div style={{ height: libraryHeight }} className={classnames('library', `library-${activeTab.toLowerCase()}`)}>
+    <div
+      style={{ height: libraryHeight }}
+      className={classnames("library", `library-${activeTab.toLowerCase()}`)}
+    >
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
       <div className="library__body">
         <div className="library__row library__row-first">
           <div className="library__add-title-container">
-            {
-              activeTab !== LIBRARY_TABS.VOICE ? (
-                <span className="library__add">
-                  {
-                    isDisabledUpload
-                      ? <LibrarySpinner />
-                      : `You can select one or more ${getCurrentTab()}s then add to the timeline`
-                  }
-                </span>
-              ) : (
-                <button className="library__add-file library__open-window">
-                  <input id="add-file" />
-                  <label htmlFor="add-file" className="library__add">
-                    Add Voice
-                  </label>
-                </button>
-              )
-            }
+            {activeTab !== LIBRARY_TABS.VOICE ? (
+              <span className="library__add">
+                {isDisabledUpload ? (
+                  <LibrarySpinner />
+                ) : (
+                  `You can select one or more ${getCurrentTab()}s then add to the timeline`
+                )}
+              </span>
+            ) : (
+              <button className="library__add-file library__open-window">
+                <input id="add-file" />
+                <label htmlFor="add-file" className="library__add">
+                  Add Voice
+                </label>
+              </button>
+            )}
           </div>
           <div className="library__block">
             {renderSidebar()}
@@ -694,7 +739,7 @@ const Library = observer((props) => {
                     type="text"
                     value={query}
                     ref={inputRef}
-                    onChange={e => setQuery(e.target.value)}
+                    onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={handleSearch}
                     placeholder="search ..."
                   />
@@ -703,11 +748,17 @@ const Library = observer((props) => {
                   </div>
                 </div>
                 <button
-                  className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
+                  className={classnames("btn-add", {
+                    "btn-add-disabled": emptyCollections,
+                  })}
                   onClick={addArrayItemsToTimeline}
                   disabled={emptyCollections || isMultiSelectLoading}
                 >
-                  {isMultiSelectLoading ? <LibrarySpinner /> : 'Add to timeline'}
+                  {isMultiSelectLoading ? (
+                    <LibrarySpinner />
+                  ) : (
+                    "Add to timeline"
+                  )}
                 </button>
                 {showed360 ? (
                   <Is360
@@ -717,7 +768,9 @@ const Library = observer((props) => {
                     showHint
                     downloaderEnabled={downloaderEnabled}
                   />
-                ) : <div className="library__search-box-dummy" />}
+                ) : (
+                  <div className="library__search-box-dummy" />
+                )}
               </>
             ) : (
               <>
@@ -729,10 +782,14 @@ const Library = observer((props) => {
                       component="div"
                     />
                     <input
-                      className={classnames('library__search', { 'library__search-disabled': items.length })}
+                      className={classnames("library__search", {
+                        "library__search-disabled": items.length,
+                      })}
                       type="text"
                       value={userValidationKey}
-                      onChange={event => setUserValidationKey(event.target.value)}
+                      onChange={(event) =>
+                        setUserValidationKey(event.target.value)
+                      }
                       onKeyDown={handleEnterApiKey}
                       placeholder="Paste the API key"
                       disabled={items.length}
@@ -752,22 +809,30 @@ const Library = observer((props) => {
                         onClick={() => verifyKey(userValidationKey)}
                         className="library__search-unlock-box"
                       >
-                        { isKeyLoading ? <LibrarySpinner /> : 'UNLOCK'}
+                        {isKeyLoading ? <LibrarySpinner /> : "UNLOCK"}
                       </button>
                     )}
                   </div>
                   {items.length ? (
                     <span>Press Reset button to clear the key.</span>
                   ) : (
-                    <span>To unlock this library, you need to enter a custom key.</span>
+                    <span>
+                      To unlock this library, you need to enter a custom key.
+                    </span>
                   )}
                 </div>
                 <button
-                  className={classnames('btn-add', { 'btn-add-disabled': emptyCollections })}
+                  className={classnames("btn-add", {
+                    "btn-add-disabled": emptyCollections,
+                  })}
                   onClick={addArrayItemsToTimeline}
                   disabled={emptyCollections || isMultiSelectLoading}
                 >
-                  {isMultiSelectLoading ? <LibrarySpinner /> : 'Add to timeline'}
+                  {isMultiSelectLoading ? (
+                    <LibrarySpinner />
+                  ) : (
+                    "Add to timeline"
+                  )}
                 </button>
                 <div className="library__key-box-dummy" />
               </>
@@ -779,33 +844,35 @@ const Library = observer((props) => {
             <div className="library__items">
               <CircleLoader
                 size={100}
-                css={{ margin: 'auto' }}
+                css={{ margin: "auto" }}
                 loading
                 color={LOADING_COLOR}
               />
             </div>
-          ) : (activeSecureTab && (
-            <LibraryContent
-              keyRef={keyRef}
-              needValidation={needValidation}
-              activeItem={activeItem}
-              items={itemsWithSelect}
-              onToggleSelect={toogleSelectItem}
-              addToTimeLine={addSelectedElements}
-              hasData={emptyCollections}
-              onSelect={onSelect}
-              activeBtn={activeBtn}
-              activeTab={activeTab}
-              onDelete={onDelete}
-              onPlay={onPlay}
-              fetchItems={fetchItems}
-              isDisabledUpload={isDisabledUpload}
-              onDrop={onDrop}
-              hasMore={hasMore}
-              type={activeTab}
-              isViewedValidationBlock={isViewedValidationBlock}
-            />
-          ))}
+          ) : (
+            activeSecureTab && (
+              <LibraryContent
+                keyRef={keyRef}
+                needValidation={needValidation}
+                activeItem={activeItem}
+                items={itemsWithSelect}
+                onToggleSelect={toogleSelectItem}
+                addToTimeLine={addSelectedElements}
+                hasData={emptyCollections}
+                onSelect={onSelect}
+                activeBtn={activeBtn}
+                activeTab={activeTab}
+                onDelete={onDelete}
+                onPlay={onPlay}
+                fetchItems={fetchItems}
+                isDisabledUpload={isDisabledUpload}
+                onDrop={onDrop}
+                hasMore={hasMore}
+                type={activeTab}
+                isViewedValidationBlock={isViewedValidationBlock}
+              />
+            )
+          )}
         </div>
       </div>
       <CloseButton className="close-button-extend" onClick={closeLibrary} />
