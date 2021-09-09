@@ -1,52 +1,52 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 // import { useDropzone } from 'react-dropzone';
-import { observer } from "mobx-react";
-import classnames from "classnames";
-import SearchIcon from "@material-ui/icons/Search";
-import Bb from "bluebird";
+import { observer } from 'mobx-react';
+import classnames from 'classnames';
+import SearchIcon from '@material-ui/icons/Search';
+import Bb from 'bluebird';
 
-import { CircleLoader } from "react-spinners";
-import SVGInline from "react-svg-inline";
+import { CircleLoader } from 'react-spinners';
+import SVGInline from 'react-svg-inline';
 import {
   tabItems,
   perPage,
   LIBRARY_TABS,
   LIBRARY_KEYS,
   resourcesWithValidation,
-} from "../../lib/constants/library";
-import { LOADING_COLOR } from "../../lib/constants/ui";
-import { ASSET_TYPES } from "../../lib/constants/media";
-import { MEDIA_TYPES } from "../../lib/constants/popcorn";
+} from '../../lib/constants/library';
+import { LOADING_COLOR } from '../../lib/constants/ui';
+import { ASSET_TYPES } from '../../lib/constants/media';
+import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 // import { URL_RULE } from '../../lib/constants/regExps';
 // import { TYPES } from '../../lib/constants/validator';
 // import { ALL_VIDEO } from '../../lib/constants/formats';
-import config from "../../config/config";
-import { showError } from "../../lib/services/alertService";
+import config from '../../config/config';
+import { showError } from '../../lib/services/alertService';
 
-import { ENTER_KEY } from "../../lib/constants/keyCodes";
-import { TEXT_TO_SPEECH_WARNING } from "../../lib/constants/text-info";
-import Tabs from "../common/library/Tabs";
-import ProviderList from "../common/library/ProviderList";
-import LibraryContent from "../common/library/LibraryContent";
-import { LibrarySpinner } from "./Loader";
-import CloseButton from "../common/CloseButton";
+import { ENTER_KEY } from '../../lib/constants/keyCodes';
+import { TEXT_TO_SPEECH_WARNING } from '../../lib/constants/text-info';
+import Tabs from '../common/library/Tabs';
+import ProviderList from '../common/library/ProviderList';
+import LibraryContent from '../common/library/LibraryContent';
+import { LibrarySpinner } from './Loader';
+import CloseButton from '../common/CloseButton';
 
-import { editorStyles } from "../../lib/constants/editorStyles";
+import { editorStyles } from '../../lib/constants/editorStyles';
 
-import useUIStore from "../hooks/useUIStore";
-import useUserStore from "../hooks/useUserStore";
-import useTimelineStore from "../hooks/useTimelineStore";
-import useMediaStore from "../hooks/useMediaStore";
-import useProjectStore from "../hooks/useProjectStore";
-import useMultiSelectStore from "../hooks/useMultiSelectStore";
+import useUIStore from '../hooks/useUIStore';
+import useUserStore from '../hooks/useUserStore';
+import useTimelineStore from '../hooks/useTimelineStore';
+import useMediaStore from '../hooks/useMediaStore';
+import useProjectStore from '../hooks/useProjectStore';
+import useMultiSelectStore from '../hooks/useMultiSelectStore';
 // import AudioControls from '../common/library/AudioControls';
 // import DropPasteInput from './DropPasteInput';
 
-import withModal from "../hoc/withValidation";
-import Is360 from "../settings/video-settings/components/Is360";
+import withModal from '../hoc/withValidation';
+import Is360 from '../settings/video-settings/components/Is360';
 // import LibraryVoiceFilter from '../common/library/LibraryVoiceFilter';
 // import FormTextField from '../form/FormTextField';
-import keyLock from "../../public/static/images/media/key-lock.svg";
+import keyLock from '../../public/static/images/media/key-lock.svg';
 
 const Library = observer((props) => {
   const { setError } = props;
@@ -101,7 +101,7 @@ const Library = observer((props) => {
   // =============== STATE ===============
   const [userValidationKey, setUserValidationKey] = useState();
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
 
   const [activeBtn, setActiveBtn] = useState(LIBRARY_KEYS.USER);
   const [hasMore, setHasMore] = useState(true);
@@ -184,9 +184,9 @@ const Library = observer((props) => {
 
   useEffect(() => {
     async function fetchData() {
-      await fetchItems({ source: activeBtn, queryStr: "" });
+      await fetchItems({ source: activeBtn, queryStr: '' });
     }
-    setQuery("");
+    setQuery('');
     if (activeItem) {
       setActiveItem(null);
     }
@@ -238,7 +238,7 @@ const Library = observer((props) => {
         setUserValidationKey(validationKey);
         onKeyEnter(validationKey);
       } else {
-        setUserValidationKey("");
+        setUserValidationKey('');
         setItems([]);
       }
     } else if (libraryItemsForDelete.length) {
@@ -259,7 +259,7 @@ const Library = observer((props) => {
 
   const fetchItems = async ({
     source = activeBtn,
-    queryStr = query || "",
+    queryStr = query || '',
     isScrolling = false,
   }) => {
     let currentPage = 0;
@@ -292,7 +292,7 @@ const Library = observer((props) => {
     if (activeTab === LIBRARY_KEYS.VOICE) {
       filter =
         source === LIBRARY_KEYS.PERSONALIZED_VOICE
-          ? { "extra.fallbackValue": { $exists: true } }
+          ? { 'extra.fallbackValue': { $exists: true } }
           : { _id: { $nin: uploaded } };
       // if (language) {
       //   filter['extra.language'] = language;
@@ -336,7 +336,7 @@ const Library = observer((props) => {
 
       setHasMore(data && data.length === perPage);
     } catch (e) {
-      showError("An error occurred while loading items");
+      showError('An error occurred while loading items');
     } finally {
       setIsLoading(false);
       setIsInitialLoading(false);
@@ -350,7 +350,7 @@ const Library = observer((props) => {
     const files = [];
 
     if (addFileInputRef.current) {
-      addFileInputRef.current.value = "";
+      addFileInputRef.current.value = '';
     }
 
     acceptedFiles.forEach((file) => {
@@ -390,11 +390,11 @@ const Library = observer((props) => {
     });
     const errorFilesText = (errorFiles, text) => `
     Invalid file ${errorFiles.length > 1 ? `${text}s` : `${text}`} with ${
-      errorFiles.length > 1 ? "names" : "name"
+      errorFiles.length > 1 ? 'names' : 'name'
     }:
       ${errorFiles.map((file) => ` ${file.name}`)}. \\n`;
 
-    const invalidFormatMessage = `${errorFilesText(wrongFormat, "format")}
+    const invalidFormatMessage = `${errorFilesText(wrongFormat, 'format')}
       Supported Formats:
       Video: ${tabItems[LIBRARY_TABS.VIDEO].formats.map(
         (format) => ` ${format}`
@@ -407,7 +407,7 @@ const Library = observer((props) => {
       )}.
     `;
 
-    const invalidSizeMessage = `${errorFilesText(wrongSize, "size")}
+    const invalidSizeMessage = `${errorFilesText(wrongSize, 'size')}
       Supported Size:
       Image: ${config.image.maxSize / 1024 / 1024} mb.
       Video: ${config.video.maxSize / 1024 / 1024} mb.`;
@@ -474,12 +474,12 @@ const Library = observer((props) => {
   //   }
   // };
 
-  const onKeyEnter = async (key = "") => {
+  const onKeyEnter = async (key = '') => {
     listProviders[activeBtn].apiKey = key || userValidationKey;
     await fetchItems({ source: activeBtn });
   };
 
-  const verifyKey = async (key = "") => {
+  const verifyKey = async (key = '') => {
     listProviders[activeBtn].apiKey = key || userValidationKey;
     setIsKeyLoading(true);
 
@@ -490,13 +490,13 @@ const Library = observer((props) => {
       ]);
     } else {
       await resetKeyInput();
-      listProviders[activeBtn].apiKey = "";
+      listProviders[activeBtn].apiKey = '';
       setIsViewedValidationBlock(true);
       showError(
         `WRONG CREDENTIALS: ${
           activeBtn === LIBRARY_KEYS.DROPMOCK
-            ? "Looks like Your DropMock Fusion key is invalid"
-            : "Looks like Your TxtVideo key is invalid"
+            ? 'Looks like Your DropMock Fusion key is invalid'
+            : 'Looks like Your TxtVideo key is invalid'
         }`
       );
     }
@@ -513,7 +513,7 @@ const Library = observer((props) => {
   // === Drag and Drop ===
 
   const handleSearch = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       bulkDeleteItems(null, query);
     }
   };
@@ -626,7 +626,7 @@ const Library = observer((props) => {
   const renderSidebar = React.useCallback(() => {
     switch (activeTab) {
       case LIBRARY_TABS.AUDIO: {
-        let audioActiveItem = "";
+        let audioActiveItem = '';
         if (
           activeTab === LIBRARY_TABS.VOICE &&
           activeBtn === LIBRARY_KEYS.USER
@@ -638,7 +638,7 @@ const Library = observer((props) => {
         return (
           <ProviderList
             activeItem={audioActiveItem}
-            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ""}
+            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
             userContentTitle={tabItems[activeTab].label}
             handleButtonClick={handleButtonClick}
             list={listProviders}
@@ -649,7 +649,7 @@ const Library = observer((props) => {
         return (
           <ProviderList
             activeItem={activeBtn}
-            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ""}
+            title={Object.keys(tabItems).length ? tabItems[activeTab].find : ''}
             userContentTitle={tabItems[activeTab].label}
             handleButtonClick={handleButtonClick}
             list={listProviders}
@@ -672,9 +672,9 @@ const Library = observer((props) => {
   };
 
   const resetKeyInput = async () => {
-    await updateUserKeys(activeBtn, "");
+    await updateUserKeys(activeBtn, '');
     removeSelectedVideosAfterReset(activeBtn);
-    setUserValidationKey("");
+    setUserValidationKey('');
     setIsViewedValidationBlock(true);
     listProviders[activeBtn].apiKey = null;
     setItems([]);
@@ -706,7 +706,7 @@ const Library = observer((props) => {
   return (
     <div
       style={{ height: libraryHeight }}
-      className={classnames("library", `library-${activeTab.toLowerCase()}`)}
+      className={classnames('library', `library-${activeTab.toLowerCase()}`)}
     >
       <Tabs setActiveTab={updateActiveTab} activeTab={activeTab} />
       <div className="library__body">
@@ -748,8 +748,8 @@ const Library = observer((props) => {
                   </div>
                 </div>
                 <button
-                  className={classnames("btn-add", {
-                    "btn-add-disabled": emptyCollections,
+                  className={classnames('btn-add', {
+                    'btn-add-disabled': emptyCollections,
                   })}
                   onClick={addArrayItemsToTimeline}
                   disabled={emptyCollections || isMultiSelectLoading}
@@ -757,7 +757,7 @@ const Library = observer((props) => {
                   {isMultiSelectLoading ? (
                     <LibrarySpinner />
                   ) : (
-                    "Add to timeline"
+                    'Add to timeline'
                   )}
                 </button>
                 {showed360 ? (
@@ -782,8 +782,8 @@ const Library = observer((props) => {
                       component="div"
                     />
                     <input
-                      className={classnames("library__search", {
-                        "library__search-disabled": items.length,
+                      className={classnames('library__search', {
+                        'library__search-disabled': items.length,
                       })}
                       type="text"
                       value={userValidationKey}
@@ -809,7 +809,7 @@ const Library = observer((props) => {
                         onClick={() => verifyKey(userValidationKey)}
                         className="library__search-unlock-box"
                       >
-                        {isKeyLoading ? <LibrarySpinner /> : "UNLOCK"}
+                        {isKeyLoading ? <LibrarySpinner /> : 'UNLOCK'}
                       </button>
                     )}
                   </div>
@@ -822,8 +822,8 @@ const Library = observer((props) => {
                   )}
                 </div>
                 <button
-                  className={classnames("btn-add", {
-                    "btn-add-disabled": emptyCollections,
+                  className={classnames('btn-add', {
+                    'btn-add-disabled': emptyCollections,
                   })}
                   onClick={addArrayItemsToTimeline}
                   disabled={emptyCollections || isMultiSelectLoading}
@@ -831,7 +831,7 @@ const Library = observer((props) => {
                   {isMultiSelectLoading ? (
                     <LibrarySpinner />
                   ) : (
-                    "Add to timeline"
+                    'Add to timeline'
                   )}
                 </button>
                 <div className="library__key-box-dummy" />
@@ -844,7 +844,7 @@ const Library = observer((props) => {
             <div className="library__items">
               <CircleLoader
                 size={100}
-                css={{ margin: "auto" }}
+                css={{ margin: 'auto' }}
                 loading
                 color={LOADING_COLOR}
               />

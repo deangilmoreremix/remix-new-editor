@@ -1,30 +1,30 @@
-import React, { Component } from "react";
-import Head from "next/head";
-import { Provider, observer } from "mobx-react";
-import ThemeProvider from "@material-ui/styles/ThemeProvider";
-import { CssBaseline } from "@material-ui/core";
+import React, { Component } from 'react';
+import Head from 'next/head';
+import { Provider, observer } from 'mobx-react';
+import ThemeProvider from '@material-ui/styles/ThemeProvider';
+import { CssBaseline } from '@material-ui/core';
 
-import { DndProvider } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
-import { createMuiTheme } from "@material-ui/core/styles";
+import { createMuiTheme } from '@material-ui/core/styles';
 
-import "styles/index.scss";
+import 'styles/index.scss';
 
-import Header from "./Header";
-import UnauthorizedView from "./common/UnauthorizedView";
+import Header from './Header';
+import UnauthorizedView from './common/UnauthorizedView';
 
-import ModalContainer from "./common/ModalContainer";
-import { init, initCreateStores } from "../globals/storesCreator";
+import ModalContainer from './common/ModalContainer';
+import { init, initCreateStores } from '../globals/storesCreator';
 
-import PopcornProxy from "../lib/PopcornProxy";
+import PopcornProxy from '../lib/PopcornProxy';
 
-import PropTypes from "../lib/PropTypes";
+import PropTypes from '../lib/PropTypes';
 
-import Intercom from "./common/Intercom";
-import HelpCrunch from "./common/HelpCrunch";
+import Intercom from './common/Intercom';
+import HelpCrunch from './common/HelpCrunch';
 
-import { DOMAIN_VIDEOREMIX } from "../lib/constants/project";
+import { DOMAIN_VIDEOREMIX } from '../lib/constants/project';
 
 @observer
 class Layout extends Component {
@@ -126,7 +126,7 @@ class Layout extends Component {
                   href={
                     whiteLabelManager.shouldOverride
                       ? `//cdn.vidcloud.io/wl/${whiteLabelManager.domain}/resources/vc_favicon`
-                      : "//cdn.vidcloud.io/resources/revolution/favicon.png"
+                      : '//cdn.vidcloud.io/resources/revolution/favicon.png'
                   }
                 />
                 {whiteLabelManager.shouldOverride && (

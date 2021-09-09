@@ -1,11 +1,11 @@
-import React from "react";
+import React from 'react';
 
-import MenuAppBar from "./MenuAppBar";
+import MenuAppBar from './MenuAppBar';
 
-import { DOMAIN_VIDEOREMIX } from "../lib/constants/project";
-import useUserStore from "./hooks/useUserStore";
+import { DOMAIN_VIDEOREMIX } from '../lib/constants/project';
+import useUserStore from './hooks/useUserStore';
 
-import PropTypes from "../lib/PropTypes";
+import PropTypes from '../lib/PropTypes';
 
 function Header({ whiteLabelManager, fbPixelId, scriptStatistic }) {
   const { currentUser } = useUserStore();
