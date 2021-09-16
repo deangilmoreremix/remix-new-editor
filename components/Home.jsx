@@ -41,10 +41,17 @@ import { DEFAULT_RATIO } from '../lib/constants/project';
 import { WINDOW_TYPES, SCREEN_RATIO } from '../lib/constants/ui';
 import { ROUTES } from '../lib/constants/routing';
 import AnimatedWindow from './common/AnimatedWindow';
-import { TEMPLATE_GENERATOR_MODAL, SAFARI_WARNING_MODAL } from '../lib/constants/modals';
+import {
+  TEMPLATE_GENERATOR_MODAL,
+  SAFARI_WARNING_MODAL,
+} from '../lib/constants/modals';
 
 const Home = observer(() => {
-  const { pathname, query: { project, remix }, push } = useRouter();
+  const {
+    pathname,
+    query: { project, remix },
+    push,
+  } = useRouter();
   const projectStore = useProjectStore();
   const userStore = useUserStore();
 
@@ -77,26 +84,29 @@ const Home = observer(() => {
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
-  const [shouldShowTGModal, setShouldShowTGModal] = useState(templateGeneratorEnabled);
+  const [shouldShowTGModal, setShouldShowTGModal] = useState(
+    templateGeneratorEnabled
+  );
 
   useEffect(() => {
     if (!project && pathname !== ROUTES.edit) {
-      push({
-        pathname: ROUTES.edit,
-      },
-      undefined,
-      { shallow: true },
-      )
-        .finally(() => {
-          if (shouldShowTGModal) {
-            openModal(TEMPLATE_GENERATOR_MODAL);
-          }
-          setShouldShowTGModal(false);
-        });
+      push(
+        {
+          pathname: ROUTES.edit,
+        },
+        undefined,
+        { shallow: true }
+      ).finally(() => {
+        if (shouldShowTGModal) {
+          openModal(TEMPLATE_GENERATOR_MODAL);
+        }
+        setShouldShowTGModal(false);
+      });
     } else {
       if (typeof navigator !== 'undefined') {
         const ua = navigator.userAgent;
-        const isSafari = (ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1);
+        const isSafari =
+          ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1;
 
         if (isSafari) {
           openModal(SAFARI_WARNING_MODAL);
@@ -110,10 +120,8 @@ const Home = observer(() => {
   }, [shouldShowTGModal, pathname, project, remix, push]);
 
   const asyncHero = useAsync(
-    project
-      ? projectStore.getOne
-      : projectStore.preRemix,
-    [project || remix, openModal],
+    project ? projectStore.getOne : projectStore.preRemix,
+    [project || remix, openModal]
   );
 
   const {
@@ -136,7 +144,11 @@ const Home = observer(() => {
   } = uiStore;
 
   const {
-    item: { ratio: { width, height } = DEFAULT_RATIO, allowedSocials, url: videoUrl },
+    item: {
+      ratio: { width, height } = DEFAULT_RATIO,
+      allowedSocials,
+      url: videoUrl,
+    },
     updateItem,
     updateAnimation,
     isLoading,
@@ -164,11 +176,24 @@ const Home = observer(() => {
   const { setCopiedItems, pasteElement, isActiveTimeline } = useTimelineStore();
 
   hotkeys.filter = () => true;
-  const keys = [twoKeys.ctrlS, twoKeys.ctrlZ, twoKeys.ctrlY,
-    twoKeys.commandS, twoKeys.commandZ, twoKeys.commandY,
-    twoKeys.ctrlC, twoKeys.commandC, twoKeys.ctrlV, twoKeys.commandV,
-    twoKeys.ctrlD, twoKeys.commandD, twoKeys.ctrlO, twoKeys.commandO,
-    twoKeys.ctrlP, twoKeys.commandP];
+  const keys = [
+    twoKeys.ctrlS,
+    twoKeys.ctrlZ,
+    twoKeys.ctrlY,
+    twoKeys.commandS,
+    twoKeys.commandZ,
+    twoKeys.commandY,
+    twoKeys.ctrlC,
+    twoKeys.commandC,
+    twoKeys.ctrlV,
+    twoKeys.commandV,
+    twoKeys.ctrlD,
+    twoKeys.commandD,
+    twoKeys.ctrlO,
+    twoKeys.commandO,
+    twoKeys.ctrlP,
+    twoKeys.commandP,
+  ];
 
   React.useEffect(() => {
     hotkeys.unbind(keys.join(), hotkeys.getScope());
@@ -178,7 +203,10 @@ const Home = observer(() => {
         case twoKeys.commandS:
           event.preventDefault();
           checkAndSave({
-            changeRadioButton, showProducePanel, closeAllWindows, setInitialView,
+            changeRadioButton,
+            showProducePanel,
+            closeAllWindows,
+            setInitialView,
           });
           break;
         case twoKeys.ctrlZ:
@@ -238,16 +266,19 @@ const Home = observer(() => {
           destroyCombinedItem();
           break;
         }
-        default: return null;
+        default:
+          return null;
       }
     });
 
-    hotkeys('*', { keyup: true }, event => {
+    hotkeys('*', { keyup: true }, (event) => {
       if (hotkeys.ctrl && event.type === 'keyup') {
         const videoContainer = popcorn.target;
-        const canvasItems = videoContainer ? videoContainer.querySelectorAll('.canvas-multiselected-item') : null;
+        const canvasItems = videoContainer
+          ? videoContainer.querySelectorAll('.canvas-multiselected-item')
+          : null;
         if (canvasItems) {
-          canvasItems.forEach(canvasItem => {
+          canvasItems.forEach((canvasItem) => {
             canvasItem.style.pointerEvents = 'auto';
           });
         }
@@ -413,28 +444,29 @@ const Home = observer(() => {
 
   return (
     <React.Fragment>
-      {(asyncHero.loading || isRedirect) && (
-        <Loader isLoading preloader />
-      )}
-      {asyncHero.error && (
-        <div>Error</div>
-      )}
+      {(asyncHero.loading || isRedirect) && <Loader isLoading preloader />}
+      {asyncHero.error && <div>Error</div>}
       {(!asyncHero.loading || isLoaded) && (
         <div className={classnames('home', { disabled: isLoading })}>
-          { isLoading ? <div className="hover-loading" /> : null }
+          {isLoading ? <div className="hover-loading" /> : null}
           <Loader isLoading={isLoading} />
           <Grid container className="controls">
-            <div className={classnames('controls-block', { 'controls-block-library': !isCanvasPresent })} style={{ width: radioButtonBottom ? '60%' : 'auto' }}>
+            <div
+              className={classnames('controls-block', {
+                'controls-block-library': !isCanvasPresent,
+              })}
+              style={{ width: radioButtonBottom ? '60%' : 'auto' }}
+            >
               <div className="controls-block__sidebar">
-                <div className={classnames('controls-block__toolbar', { 'controls-block__toolbar-produce': radioButtonBottom })}>
-                  <Toolbar
-                    items={toolbarContent}
-                  />
+                <div
+                  className={classnames('controls-block__toolbar', {
+                    'controls-block__toolbar-produce': radioButtonBottom,
+                  })}
+                >
+                  <Toolbar items={toolbarContent} />
                 </div>
                 {checkboxRight && !radioButtonBottom && (
-                  <div
-                    className="home__center"
-                  >
+                  <div className="home__center">
                     <AnimatedWindow isOpen={checkboxRight}>
                       {SecondaryWindow}
                     </AnimatedWindow>
@@ -442,11 +474,20 @@ const Home = observer(() => {
                 )}
               </div>
             </div>
-            <div className={classnames('controls__canvas', { hidden: !isCanvasPresent })} style={{ width: '40%' }}>
+            <div
+              className={classnames('controls__canvas', {
+                hidden: !isCanvasPresent,
+              })}
+              style={{ width: '40%' }}
+            >
               <Canvas />
             </div>
           </Grid>
-          <SizeSelector sizes={CANVAS_SIZES} onChange={updateItem} active={{ width, height }} />
+          <SizeSelector
+            sizes={CANVAS_SIZES}
+            onChange={updateItem}
+            active={{ width, height }}
+          />
           <Timeline />
         </div>
       )}
