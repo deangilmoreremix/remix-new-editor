@@ -30,6 +30,26 @@ import { mainTooltips } from '../lib/constants/tooltips';
 import HelpIconComponent from './common/HelpIcon';
 import ContextMenu from './common/timeline/ContextMenu';
 
+//material slider
+import Slider from "@material-ui/core/Slider";
+import { makeStyles , withStyles } from "@material-ui/core/styles";
+const useStyles = makeStyles({
+  root: {
+    width: 100,
+    marginTop: "5px",
+    color: '#52af77',
+  },
+});
+
+const TimeLineZoomSlider = withStyles({
+  root : {
+    width: 100,
+    color: '#EB5054',
+  },
+  
+})(Slider)
+
+
 const date = '2018-08-01 00:00:00';
 
 const Timeline = observer(() => {
@@ -65,7 +85,7 @@ const Timeline = observer(() => {
 
   const startDate = moment(date);
   const [endDate, setEndDate] = useState(moment(date));
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(0.5);
   const [isShowScroll, setIsShowScroll] = useState(false);
   const [startDateWithZoom, setStartDateWithZoom] = useState(startDate);
   const [endDateWithZoom, setEndDateWithZoom] = useState(startDate);
@@ -143,6 +163,11 @@ const Timeline = observer(() => {
     setZoom(1);
   };
 
+  const handleTimelineZoomLevel = (event, newValue) => {
+    setZoom(newValue);
+  };
+
+
   const onSortEnd = ({ oldIndex, newIndex }) => {
     if (oldIndex === newIndex) {
       return;
@@ -205,6 +230,9 @@ const Timeline = observer(() => {
     toggleTimeLine(!isTimelineOpen);
   };
 
+  const classes = useStyles();
+
+
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
@@ -228,13 +256,25 @@ const Timeline = observer(() => {
         <button className="timeline-zoom__btn" onClick={zoomIn}>
           <SVGInline
             className="plusIcon"
-            svg={plusIcon}
+            svg={minusIcon}
           />
         </button>
+
+        <div className={classes.root}>
+          <TimeLineZoomSlider
+            value={zoom}
+            min={0}
+            max={1}
+            step={0.1}
+            onChange={handleTimelineZoomLevel}
+            aria-labelledby="continuous-slider"
+          />
+        </div>
+
         <button className="timeline-zoom__btn" onClick={zoomOut}>
           <SVGInline
             className="plusIcon"
-            svg={minusIcon}
+            svg={plusIcon}
           />
         </button>
         <button className="timeline-zoom__btn timeline-zoom__reset" onClick={zoomReset}>

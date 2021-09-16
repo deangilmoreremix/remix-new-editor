@@ -6,7 +6,6 @@ import DialogContent from '@material-ui/core/DialogContent';
 
 import useModalStore from '../hooks/useModalStore';
 import useUserStore from '../hooks/useUserStore';
-import useUIStore from '../hooks/useUIStore';
 
 import SettingsHeader from '../settings/SettingsHeader';
 
@@ -23,7 +22,6 @@ const ModalContainer = observer(({ classNameWL }) => {
     options,
   } = modalStore;
   const { hasPermissions } = useUserStore();
-  const { closeProduceWindow } = useUIStore();
 
   const modalsToShow = modals.filter(m => modalIds.has(m.id));
 
@@ -44,7 +42,6 @@ const ModalContainer = observer(({ classNameWL }) => {
         document.exitPictureInPicture();
       }
       closeModal(id);
-      closeProduceWindow();
     };
 
     const updateModalHeader = (newHeaderProps) => updateHeader(id, newHeaderProps);
