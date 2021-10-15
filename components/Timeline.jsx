@@ -32,7 +32,7 @@ import ContextMenu from './common/timeline/ContextMenu';
 
 //material slider
 import Slider from "@material-ui/core/Slider";
-import { makeStyles , withStyles } from "@material-ui/core/styles";
+import { makeStyles, withStyles } from "@material-ui/core/styles";
 const useStyles = makeStyles({
   root: {
     width: 100,
@@ -42,11 +42,11 @@ const useStyles = makeStyles({
 });
 
 const TimeLineZoomSlider = withStyles({
-  root : {
+  root: {
     width: 100,
     color: '#EB5054',
   },
-  
+
 })(Slider)
 
 
@@ -85,7 +85,7 @@ const Timeline = observer(() => {
 
   const startDate = moment(date);
   const [endDate, setEndDate] = useState(moment(date));
-  const [zoom, setZoom] = useState(0.5);
+  const [zoom, setZoom] = useState(1);
   const [isShowScroll, setIsShowScroll] = useState(false);
   const [startDateWithZoom, setStartDateWithZoom] = useState(startDate);
   const [endDateWithZoom, setEndDateWithZoom] = useState(startDate);
@@ -239,7 +239,7 @@ const Timeline = observer(() => {
       className={classnames('timeline', { 'timeline-open': isTimelineOpen })}
       ref={timelineRef}
       onClick={() => setIsActiveTimeline(true)}
-      onKeyDown={() => {}}
+      onKeyDown={() => { }}
     >
       <div
         className="tray-resize"
@@ -345,7 +345,7 @@ const Timeline = observer(() => {
           getContainerElement={() => sortableRef.current}
         />
         <div className="timeline-side" ref={timelineSideRef}>
-          { isLoaded && (
+          {isLoaded && (
             <PopcornElements
               startDate={startDate}
               endDate={endDate}
