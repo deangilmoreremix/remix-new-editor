@@ -359,20 +359,20 @@ export default class Media extends BaseStore {
     return file;
   };
 
-   getGiphyData = async ({ type, page, query: value }) => {
-     const offset = perPage * page;
-     const giphyFetch = new GiphyFetch(config.mediaProviders.GIPHY.apiKey);
-     const res = await giphyFetch.search(value, { type, offset, limit: perPage });
-     if (res.meta.status !== 200) {
-       throw new Error('Something wrong: An error while fetching data');
-     }
+  getGiphyData = async ({ type, page, query: value }) => {
+    const offset = perPage * page;
+    const giphyFetch = new GiphyFetch(config.mediaProviders.GIPHY.apiKey);
+    const res = await giphyFetch.search(value, { type, offset, limit: perPage });
+    if (res.meta.status !== 200) {
+      throw new Error('Something wrong: An error while fetching data');
+    }
 
-     return res.data.map((gif) => ({
-       data: gif.images.original.url,
-       preview: gif.images.preview_gif.url,
-       _id: gif.id,
-     }));
-   };
+    return res.data.map((gif) => ({
+      data: gif.images.original.url,
+      preview: gif.images.preview_gif.url,
+      _id: gif.id,
+    }));
+  };
 
   @action
   setLibraryItemsForDelete = (id) => {
@@ -496,18 +496,21 @@ export default class Media extends BaseStore {
   }
 
   uploadMedia = async ({ data, isCrop, preview }) => {
+    console.log(data, 'This is the data coming');
     let asset;
     try {
       const headers = {};
       let body;
 
-      if (typeof data === 'string') {
+      if (typeof data === 'string') { 
         body = { [data.includes('data:') ? 'dataUri' : 'srcUrl']: data };
       } else {
         const fd = new FormData();
         fd.append('media', data);
         body = fd;
       }
+
+      console.log(body, 'This is the body');
 
       if (!(body instanceof FormData) && body === Object(body) && !isCrop) {
         body = JSON.stringify(body);
@@ -522,6 +525,7 @@ export default class Media extends BaseStore {
         },
       );
     } catch (e) {
+      console.log(e);
       throw new Error(e.message);
     }
     return asset;
@@ -629,7 +633,7 @@ export default class Media extends BaseStore {
 
   @computed
   get videoTemplateProvidersInfo() {
-    let providersInfo = { };
+    let providersInfo = {};
     if (this.userStore.isfeatureEnabled(FEATURES.PIXABAY_VIDEO_INTEGRATION)) {
       providersInfo[LIBRARY_KEYS.PIXABAY] = this.providersConfiguration[LIBRARY_KEYS.PIXABAY];
     }

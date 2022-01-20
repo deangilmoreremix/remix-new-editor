@@ -12,7 +12,7 @@ const AdvancedImageEditorModal = observer(({ handleClose, options }) => {
     return null;
   }
 
-  // console.log(...rest, 'This is image meta');
+ 
 
   return (
     <div className="image-editor-modal">
