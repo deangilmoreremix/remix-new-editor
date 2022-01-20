@@ -496,21 +496,18 @@ export default class Media extends BaseStore {
   }
 
   uploadMedia = async ({ data, isCrop, preview }) => {
-    console.log(data, 'This is the data coming');
     let asset;
     try {
       const headers = {};
       let body;
 
-      if (typeof data === 'string') { 
+      if (typeof data === 'string') {
         body = { [data.includes('data:') ? 'dataUri' : 'srcUrl']: data };
       } else {
         const fd = new FormData();
         fd.append('media', data);
         body = fd;
       }
-
-      console.log(body, 'This is the body');
 
       if (!(body instanceof FormData) && body === Object(body) && !isCrop) {
         body = JSON.stringify(body);
