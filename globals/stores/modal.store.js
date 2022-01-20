@@ -129,7 +129,6 @@ export default () => {
 
 
   const openAdvanceImageEditor = async (scope) => {
-    console.log(scope, 'This is the scope');
     const { src } = scope;
     if (!src) {
       return;

@@ -57,32 +57,32 @@ const AdvancedImageEditor = observer(({
   const onLoadImage = useCallback(async (image) => {
     const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
     const blob = await base64Response.blob();
-    console.log(blob, 'This is the blob');
-    const media = await uploadMedia({ data: blob, isCrop: true });
-    console.log(media);
-    // if (!newImage) {
-    //   return;
-    // }
+    // console.log(blob, 'This is the blob');
+    // const media = await uploadMedia({ data: blob, isCrop: true });
+    // console.log(media);
+    if (!newImage) {
+      return;
+    }
 
-    // let media;
-    // let hasError;
+    let media;
+    let hasError;
 
-    // try {
-    //   setIsLoading(true);
-    //   startUpload();
-    //   media = await uploadMedia({ data: blob, isCrop: true });
-    // } catch (e) {
-    //   hasError = true;
-    //   showError(e.message);
-    // } finally {
-    //   setIsLoading(false);
-    //   image = media && media.url;
-    //   if (!hasError) {
-    //     onImageEdited(image);
-    //   }
-    //   handleClose();
-    //   endUpload();
-    // }
+    try {
+      setIsLoading(true);
+      startUpload();
+      media = await uploadMedia({ data: blob, isCrop: true });
+    } catch (e) {
+      hasError = true;
+      showError(e.message);
+    } finally {
+      setIsLoading(false);
+      image = media && media.url;
+      if (!hasError) {
+        onImageEdited(image);
+      }
+      handleClose();
+      endUpload();
+    }
   }, [newImage]);
 
 
@@ -163,7 +163,8 @@ const AdvancedImageEditor = observer(({
           <div className="edit-menu bg">
 
             <button className="btn btn btn-white mb-3 text-white"> Remove Background </button>
-            <button className="btn btn btn-white mb-3 text-white btn-outline-primary"> Photo Enhancer </button>
+            <button className="btn btn btn-white mb-3 text-white"> Photo Enhancer </button>
+            <button className="btn btn btn-white mb-3 text-white btn-outline-primary"> Face Cutout </button>
             <button className="btn btn btn-white mb-3 text-white"> Photo Colorizer  </button>
             <button className="btn btn btn-white mb-3 text-white"> Photo Animer </button>
             <button className="btn btn btn-white mb-3 text-white"> Photo Color Correction </button>
@@ -179,7 +180,7 @@ const AdvancedImageEditor = observer(({
                 <img className="editor-image" src={source} />
                 <div className="mt-5">
                   <button onClick={processImage} className="btn btn-primary btn-sm">
-                    Enhance Image
+                    Process Face Cutout
                   </button>
                 </div>
               </div>

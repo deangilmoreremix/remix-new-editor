@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 
-import AdvancedImageEditor from '../common/AdvancePhotoEnhanceEditor';
+import AdvancedImageEditor from '../common/AdvanceFaceCutOutEditor';
 
 const AdvancedImageEditorModal = observer(({ handleClose, options }) => {
-  console.log(options, 'this is options');
+  // console.log(options, 'this is options');
   const { imageMeta, ...rest } = useMemo(
     () => options, [options]);
 

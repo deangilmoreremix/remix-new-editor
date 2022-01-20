@@ -216,6 +216,7 @@ const Basic = observer(({
               openAdvanceImageEditor({
                 src: element.popcornOptions.src,
                 onAdvancedImageEdited,
+                onImageEdited,
                 startUpload: () => setIsLoading(true),
                 endUpload: () => setIsLoading(false),
                 menu: ADVANCE_IMAGE_EDITOR_MENU,
