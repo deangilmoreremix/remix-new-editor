@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 
-import AdvancedImageEditor from '../common/AdvanceImageEditor';
+import AdvancedImageEditor from '../common/AdvancePhotoEnhanceEditor';
 
 const AdvancedImageEditorModal = observer(({ handleClose, options }) => {
   console.log(options, 'this is options');
@@ -11,8 +11,6 @@ const AdvancedImageEditorModal = observer(({ handleClose, options }) => {
   if (!imageMeta) {
     return null;
   }
-
- 
 
   return (
     <div className="image-editor-modal">
