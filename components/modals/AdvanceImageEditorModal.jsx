@@ -1,26 +1,15 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react';
+import AdvancedImageEditor from '../common/AdvanceImageEditor/AdvanceEditor';
 
-import AdvancedImageEditor from '../common/AdvanceFaceCutOutEditor';
+const AdvancedImageEditorModal = observer(({ handleClose, options }) => (
+  <div className="image-editor-modal">
+    <AdvancedImageEditor
+      options={options}
+      handleClose={handleClose}
+    />
 
-const AdvancedImageEditorModal = observer(({ handleClose, options }) => {
-  // console.log(options, 'this is options');
-  const { imageMeta, ...rest } = useMemo(
-    () => options, [options]);
-
-  if (!imageMeta) {
-    return null;
-  }
-
-  return (
-    <div className="image-editor-modal">
-      <AdvancedImageEditor
-        imageData={imageMeta}
-        handleClose={handleClose}
-        {...rest}
-      />
-    </div>
-  );
-});
+  </div>
+));
 
 export default AdvancedImageEditorModal;

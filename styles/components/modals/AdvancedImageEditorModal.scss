@@ -1,10 +1,8 @@
 
-
-
 .advance-editor-modal {
   // width: 80vw;
   width: 100%;
-  height: 85vh;
+  // height: 85vh;
   padding: 5px;
 }
 
@@ -14,61 +12,111 @@
   color: $white;
 }
 
+
+.header {
+  height: 45px;
+  line-height: 45px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 9999;
+  display: block;
+  margin: 0;
+  width: 100%;
+  min-width: 1024px;
+  height: 48px;
+  max-height: 44px;
+  background: rgba(221, 221, 221, 0.92);
+  font-size: 14px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  // padding-left: 60px;
+}
+
+
+.tab-header {
+  list-style: none;
+  border-radius: 50px;
+  line-height: 25px;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+.tab-header li {
+  display: inline;
+  padding: 7px 12px;
+  border-radius: 36px;
+  line-height: 35px;
+  cursor: pointer;
+}
+
+.tab-header li.active,
+.tab-header li:hover {
+  background: #EB5054; /* fallback for old browsers */
+  background: -webkit-linear-gradient(
+    to right,
+    #EB5054,
+    #EB5054
+  ); /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(
+    to right,
+    #EB5054,
+    #EB5054
+  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+.tab-content {
+  // height: 400px;
+  // margin: 12px;
+  // width: 100%;
+  // position: relative;
+}
+
+.tab-child {
+  // position: absolute;
+  // top: 50%;
+  // left: 50%;
+  // transform: translate(-50%, -50%);
+}
+
+
 .advance-editor-modal-content {
   margin-top: 3rem;
+  width: 100%;
+  display: flex;
 }
 
-.edit-menu  {
-  margin-right: 2rem;
-  width: 20%;
-  height: 100%;
-  box-shadow: inset;
-  // border-right: 2px solid red;
 
-}
 
 .content-container {
-  width: 60%;
-  height: 100%;
-
+  width: 75%;
 }
 
 .download-container {
-  width: 20%;
+  width: 25%;
 }
-
-.svg-icon {
-  width: 20px;
-  height: 40px;
-  fill: none;
-  background: none;
-  border: 0 none;
-  outline: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 
 
 .original-image-container {
-
   margin-right: 3rem;
+  width: 50%;
 }
-
 .result-image-container {
-
-  margin-right: 4rem;
-
+  margin-right: 3rem;
+  width: 50%;
 
 }
 
 .editor-image {
   object-fit: cover;
-  height: 100%;
-  width: 100%;
+  height: 70%;
+  width: 70%;
   border-radius: 15px;
 }
+
+
+
+
+
+
 

@@ -7,18 +7,12 @@ import Pagination from '@material-ui/lab/Pagination';
 // import Base64Downloader from 'react-base64-downloader';
 import { triggerBase64Download } from 'react-base64-downloader';
 
-import undoIcon from '../../public/static/svgImages/header/undo.svg';
-import saveIcon from '../../public/static/svgImages/header/save.svg';
+import PropTypes from '../../../lib/PropTypes';
+import { showError } from '../../../lib/services/alertService';
+import useMediaStore from '../../hooks/useMediaStore';
+import { LibrarySpinner } from '../../media/Loader';
 
-import PropTypes from '../../lib/PropTypes';
-import { showError } from '../../lib/services/alertService';
-import useMediaStore from '../hooks/useMediaStore';
-import { LibrarySpinner } from '../media/Loader';
-
-// import { BASE_MENU, ADVANCE_IMAGE_EDITOR_MENU } from '../../lib/constants/imageEditor/tuiEditor';
-
-
-const AdvancedImageEditor = observer(({
+const PhotoEnhancer = observer(({
   imageData,
   onImageEdited,
   handleClose,
@@ -35,24 +29,8 @@ const AdvancedImageEditor = observer(({
 
   const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
+  // const source = transparent;
 
-  const onClose = () => {
-    if (!isLoading) {
-      handleClose();
-    }
-  };
-
-  const convertToBlob = (dataURI) => {
-    // eslint-disable-next-line no-var
-    var byteString = atob(dataURI.split(',')[1]);
-    var ab = new ArrayBuffer(byteString.length);
-    var ia = new Uint8Array(ab);
-    // eslint-disable-next-line vars-on-top
-    for (var i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-    }
-    return new Blob([ab], { type: 'image/jpeg' });
-  };
 
   const onLoadImage = useCallback(async (image) => {
     const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
@@ -115,104 +93,65 @@ const AdvancedImageEditor = observer(({
 
   return (
     <>
-      {/* { isLoading ? <div className="pixo-image-loading">Uploading image... </div>
-        : <div className="pixo-image-editor" ref={refEditor} /> } */}
-      <div className="advance-editor-modal">
-
-        <div className="flex justify-content-between align-items-center align-content-center ">
-          <div>
-            <p className="text-header">Advance Image Features</p>
-          </div>
-
-          <div className="w-6 flex">
-
-            <div className="mr-4 flex">
-              <SVGInline
-                className="svg-icon mr-1 "
-                classSuffix=""
-                svg={undoIcon}
-                cleanup={['title']}
-                component="button"
-              />
-
-              <button className="icon-button container-menu__button-text text-white">Undo</button>
-            </div>
-
-
-            <div className="flex">
-              <SVGInline
-                className="svg-icon mr-1"
-                classSuffix=""
-                svg={saveIcon}
-                cleanup={['title']}
-                component="button"
-              />
-              <button onClick={() => onLoadImage(newImage)} className="icon-button container-menu__button-text text-white">Save</button>
-            </div>
-
-          </div>
-
-          <div>
-            <button onClick={onClose} className="icon-button container-menu__button-text text-white">X</button>
-          </div>
-
-        </div>
+      <div className="">
 
         <div className="flex advance-editor-modal-content">
 
-          <div className="edit-menu bg">
-
-            <button className="btn btn btn-white mb-3 text-white"> Remove Background </button>
-            <button className="btn btn btn-white mb-3 text-white btn-outline-primary"> Photo Enhancer </button>
-            <button className="btn btn btn-white mb-3 text-white"> Photo Colorizer  </button>
-            <button className="btn btn btn-white mb-3 text-white"> Photo Animer </button>
-            <button className="btn btn btn-white mb-3 text-white"> Photo Color Correction </button>
-
-          </div>
-
-
           <div className="content-container">
+
             <div className="flex justify-content-center items-center  ">
 
               <div className="original-image-container ">
                 <p className="text-center font-weight-bold"> Original Image</p>
-                <img className="editor-image" src={source} />
-                <div className="mt-5">
-                  <button onClick={processImage} className="btn btn-primary btn-sm">
-                    Enhance Image
-                  </button>
+                <div className=" flex justify-content-center ">
+                  <img className="editor-image" src={source} />
+                </div>
+                <div className="flex justify-content-center ">
+                  <div className="mt-5">
+                    <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
+                      Enhance Photo
+                    </button>
+                  </div>
                 </div>
               </div>
 
               <div className="result-image-container">
                 <p className="text-center font-weight-bold"> Result Image</p>
 
-                {isLoading ? <LibrarySpinner /> : (
-                  <div>
-                    {isProcessImage
-                      ? (
-                        <img
-                          className="editor-image"
-                          src={`data:image/png;base64,${newImage}`}
-                        />
-                      )
-                      : <img className="editor-image" src={transparent} />}
-                  </div>
-                )}
+                <div className=" ">
+                  {isLoading ? <LibrarySpinner /> : (
+                    <div className=" flex justify-content-center">
+                      {isProcessImage
+                        ? (
+                          <img
+                            className="editor-image"
+                            src={`data:image/png;base64,${newImage}`}
+                          />
+                        )
+                        : <img className="editor-image" src={transparent} />}
+                    </div>
+                  )}
+                </div>
 
 
               </div>
+
             </div>
+
           </div>
 
 
           <div className="download-container">
-            <div className="mßt-5">
+            {/* <div className="mt-5">
               <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
               <Pagination count={3} variant="outlined" shape="rounded" color="primary" />
-            </div>
+            </div> */}
             <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
-              Download
+              Download Image
+            </button>
+
+            <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
+              Save to Canvas
             </button>
           </div>
 
@@ -224,7 +163,7 @@ const AdvancedImageEditor = observer(({
   );
 });
 
-AdvancedImageEditor.propTypes = {
+PhotoEnhancer.propTypes = {
   className: PropTypes.string,
   imageData: PropTypes.shape({
     source: PropTypes.string,
@@ -237,8 +176,8 @@ AdvancedImageEditor.propTypes = {
   noCrop: PropTypes.bool.isRequired,
 };
 
-AdvancedImageEditor.defaultProps = {
+PhotoEnhancer.defaultProps = {
   noCrop: false,
 };
 
-export default AdvancedImageEditor;
+export default PhotoEnhancer;
