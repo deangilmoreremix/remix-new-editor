@@ -8,8 +8,6 @@ import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
-
-console.log(config.cutoutPro.apiKey);
 const BackgroundRemoval = observer(({
   imageData,
   onImageEdited,
@@ -82,6 +80,9 @@ const BackgroundRemoval = observer(({
       });
   };
 
+
+  const base64 = `data:image/png;base64,${newImage}`;
+
   return (
     <>
       <div className="">
@@ -137,7 +138,7 @@ const BackgroundRemoval = observer(({
               <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
               <Pagination count={3} variant="outlined" shape="rounded" color="primary" />
             </div>
-            <button onClick={() => triggerBase64Download(newImage, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
+            <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
               Download Image
             </button>
 
