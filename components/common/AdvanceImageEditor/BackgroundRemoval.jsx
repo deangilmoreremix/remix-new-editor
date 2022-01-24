@@ -1,19 +1,15 @@
 /* eslint-disable no-var */
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import _ from 'lodash';
+import React, { useCallback, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
-
-// import SVGInline from 'react-svg-inline';
 import Pagination from '@material-ui/lab/Pagination';
-
 import { triggerBase64Download } from 'react-base64-downloader';
-
-
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
+import config from '../../../config/config';
 
+console.log(config.cutoutPro.apiKey);
 const BackgroundRemoval = observer(({
   imageData,
   onImageEdited,
@@ -62,14 +58,13 @@ const BackgroundRemoval = observer(({
 
 
   const processImage = () => {
-    // console.log(source);
     setIsLoading(true);
     fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=6`, {
       method: 'get',
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
         Accept: 'application/json',
-        APIKEY: 'f8215a0e6b3b40b78a2ce62ce89c5d9e',
+        APIKEY: config.cutoutPro.apiKey,
       },
     })
       .then((data) =>
@@ -81,9 +76,9 @@ const BackgroundRemoval = observer(({
 
         setNewImage(resp.data.imageBase64);
       })
+      // eslint-disable-next-line no-unused-vars
       .catch((error) => {
         setIsLoading(false);
-        console.log('Request failed', error);
       });
   };
 

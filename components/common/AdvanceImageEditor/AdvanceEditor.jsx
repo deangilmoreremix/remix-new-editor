@@ -1,7 +1,6 @@
 /* eslint-disable no-var */
 import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
-
 import SVGInline from 'react-svg-inline';
 import Tabs from './Tabs';
 import TabPane from './TabPane';
@@ -9,9 +8,6 @@ import BackgroundRemoval from './BackgroundRemoval';
 import PhotoEnhancer from './PhotoEnhancer';
 import FaceCutOut from './FaceCutOut';
 import PhotoColorizer from './PhotoColorizer';
-// eslint-disable-next-line no-empty-pattern
-// public/static/svgImages/close.svg
-
 import closeIcon from '../../../public/static/svgImages/close.svg';
 
 

@@ -1,16 +1,14 @@
 /* eslint-disable no-var */
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import _ from 'lodash';
+import React, { useCallback, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
-import SVGInline from 'react-svg-inline';
 import Pagination from '@material-ui/lab/Pagination';
-// import Base64Downloader from 'react-base64-downloader';
 import { triggerBase64Download } from 'react-base64-downloader';
-
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
+import config from '../../../config/config';
+
 
 const PhotoEnhancer = observer(({
   imageData,
@@ -29,38 +27,34 @@ const PhotoEnhancer = observer(({
 
   const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
-  // const source = transparent;
 
 
   const onLoadImage = useCallback(async (image) => {
     const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
     const blob = await base64Response.blob();
-    console.log(blob, 'This is the blob');
-    const media = await uploadMedia({ data: blob, isCrop: true });
-    console.log(media);
-    // if (!newImage) {
-    //   return;
-    // }
+    if (!newImage) {
+      return;
+    }
 
-    // let media;
-    // let hasError;
+    let media;
+    let hasError;
 
-    // try {
-    //   setIsLoading(true);
-    //   startUpload();
-    //   media = await uploadMedia({ data: blob, isCrop: true });
-    // } catch (e) {
-    //   hasError = true;
-    //   showError(e.message);
-    // } finally {
-    //   setIsLoading(false);
-    //   image = media && media.url;
-    //   if (!hasError) {
-    //     onImageEdited(image);
-    //   }
-    //   handleClose();
-    //   endUpload();
-    // }
+    try {
+      setIsLoading(true);
+      startUpload();
+      media = await uploadMedia({ data: blob, isCrop: true });
+    } catch (e) {
+      hasError = true;
+      showError(e.message);
+    } finally {
+      setIsLoading(false);
+      image = media && media.url;
+      if (!hasError) {
+        onImageEdited(image);
+      }
+      handleClose();
+      endUpload();
+    }
   }, [newImage]);
 
 
@@ -71,7 +65,7 @@ const PhotoEnhancer = observer(({
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
         Accept: 'application/json',
-        APIKEY: 'f8215a0e6b3b40b78a2ce62ce89c5d9e',
+        APIKEY: config.cutoutPro.apiKey,
       },
     })
       .then((data) =>
@@ -80,12 +74,11 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        console.log('Request succeeded with JSON response', resp);
         setNewImage(resp.data.imageBase64);
       })
+      // eslint-disable-next-line no-unused-vars
       .catch((error) => {
         setIsLoading(false);
-        console.log('Request failed', error);
       });
   };
 
@@ -142,10 +135,10 @@ const PhotoEnhancer = observer(({
 
 
           <div className="download-container">
-            {/* <div className="mt-5">
+            <div className="mt-5">
               <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
               <Pagination count={3} variant="outlined" shape="rounded" color="primary" />
-            </div> */}
+            </div>
             <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
               Download Image
             </button>
