@@ -170,6 +170,8 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               </HelpIconComponent>
             </div>
           </div>
+
+
           <div className="container-menu__project-name">
             {isProjectTitle ? (
               <input
@@ -195,6 +197,8 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               onClick={() => setProjectTitle(!isProjectTitle)}
             />
           </div>
+
+          
           <ExpandButton />
           <Menu
             toggleElement={<UserBox />}
