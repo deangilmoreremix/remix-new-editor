@@ -150,4 +150,7 @@ module.exports = {
   },
   scriptStatistic: process.env.SCRIPT_STATISTIC || '',
   pathForGoogleCloudAccount: process.env.GOOGLE_APPLICATION_CREDENTIALS || '',
+  cutoutPro: {
+    apiKey: process.env.CUTOUT_PRO_API_KEY || 'f8215a0e6b3b40b78a2ce62ce89c5d9e',
+  },
 };
