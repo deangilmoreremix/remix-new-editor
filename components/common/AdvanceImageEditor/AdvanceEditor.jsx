@@ -8,6 +8,11 @@ import BackgroundRemoval from './BackgroundRemoval';
 import PhotoEnhancer from './PhotoEnhancer';
 import FaceCutOut from './FaceCutOut';
 import PhotoColorizer from './PhotoColorizer';
+import PhotoAnimer from './PhotoAnimer';
+import Retouch from './Retouch';
+import PhotoCorrection from './PhotoCorrection';
+import CartoonSelfie from './CartoonSelfie';
+import PassportMarker from './PassportMarker';
 import closeIcon from '../../../public/static/svgImages/close.svg';
 
 
@@ -78,25 +83,48 @@ const AdvancedImageEditor = observer(({
                 {...rest}
               />
             </TabPane>
-            <TabPane name="Photo Animer" key="5">
-              Coming Soon
+
+
+            <TabPane name=" Photo Correction" key="5">
+              <PhotoCorrection
+                imageData={imageMeta}
+                handleClose={handleClose}
+                {...rest}
+              />
             </TabPane>
 
-            <TabPane name=" Retouch" key="6">
-              Coming Soon
+
+            <TabPane name=" Cartoon Selfie" key="6">
+              <CartoonSelfie
+                imageData={imageMeta}
+                handleClose={handleClose}
+                {...rest}
+              />
             </TabPane>
 
-            <TabPane name=" Photo Correction" key="7">
-              Coming Soon
+
+            <TabPane name="Photo Animer" key="7">
+              <PhotoAnimer
+                imageData={imageMeta}
+                handleClose={handleClose}
+                {...rest}
+              />
             </TabPane>
 
-
-            <TabPane name=" Cartoon Selfie" key="8">
-              Coming Soon
+            <TabPane name=" Retouch" key="8">
+              <Retouch
+                imageData={imageMeta}
+                handleClose={handleClose}
+                {...rest}
+              />
             </TabPane>
 
             <TabPane name="Passport Marker" key="9">
-              Coming Soon
+              <PassportMarker
+                imageData={imageMeta}
+                handleClose={handleClose}
+                {...rest}
+              />
             </TabPane>
 
 
