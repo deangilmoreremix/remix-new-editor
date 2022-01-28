@@ -82,7 +82,7 @@ module.exports = {
     cdnSocialWeb: process.env.CDN_SOCIAL_HOSTNAME || 'https://cdn.vidcloud.io',
     mediaCdn: process.env.MEDIA_CDN_HOSTNAME || '',
     streamingCdn: process.env.STREAMING_CDN_HOSTNAME || '',
-    key: process.env.S3_KEY || 'AKIAIAQ6WDZIWRHJTGVA',
+    key: process.env.S3_KEY || 'AKIAZIC4SYEXDCIH4FI6',
     bucket: process.env.S3_BUCKET || 'videoremix',
     mediaBucket: process.env.S3_MEDIA_BUCKET || 'stream-video-preparations-source-1tdj0kjvmp354',
     secret: process.env.S3_SECRET || 'rVsDp2sM1AyaebUqY3WY9vDefDIE/s6WbqePUVYz',
