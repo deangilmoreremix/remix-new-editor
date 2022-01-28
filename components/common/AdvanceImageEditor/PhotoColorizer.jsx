@@ -22,20 +22,18 @@ const PhotoEnhancer = observer(({
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
-
-
   const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
+
+
   const onLoadImage = useCallback(async (image) => {
     const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
     const blob = await base64Response.blob();
     if (!newImage) {
       return;
     }
-
     let media;
     let hasError;
-
     try {
       setIsLoading(true);
       startUpload();
@@ -84,13 +82,10 @@ const PhotoEnhancer = observer(({
   return (
     <>
       <div className="">
-
         <div className="flex advance-editor-modal-content">
 
           <div className="content-container">
-
             <div className="flex justify-content-center items-center  ">
-
               <div className="original-image-container ">
                 <p className="text-center font-weight-bold"> Original Image</p>
                 <div className=" flex justify-content-center ">
@@ -107,7 +102,6 @@ const PhotoEnhancer = observer(({
 
               <div className="result-image-container">
                 <p className="text-center font-weight-bold"> Result Image</p>
-
                 <div className=" ">
                   {isLoading ? <LibrarySpinner /> : (
                     <div className=" flex justify-content-center">
@@ -122,32 +116,22 @@ const PhotoEnhancer = observer(({
                     </div>
                   )}
                 </div>
-
-
               </div>
-
             </div>
-
           </div>
-
 
           <div className="download-container">
             <div className="mt-5">
-              <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
-              <Pagination count={3} variant="outlined" shape="rounded" color="primary" />
+              <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
+                Download Image
+              </button>
             </div>
-            <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
-              Download Image
-            </button>
-
             <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
               Save to Canvas
             </button>
           </div>
 
-
         </div>
-
       </div>
     </>
   );

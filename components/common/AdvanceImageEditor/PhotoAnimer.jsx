@@ -21,7 +21,7 @@ const PhotoEnhancer = observer(({
   // const refEditor = useRef();
   const { uploadMedia } = useMediaStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [isProcessImage, setIsProcessImage] = useState(true);
+  const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
   const [animerImage, setAnimerImage] = useState('');
 
@@ -34,10 +34,8 @@ const PhotoEnhancer = observer(({
     if (!newImage) {
       return;
     }
-
     let media;
     let hasError;
-
     try {
       setIsLoading(true);
       startUpload();
@@ -141,26 +139,9 @@ const PhotoEnhancer = observer(({
                         ? (
                           <video controls width="250">
                             <source
-                              src="https://deeplor.s3.amazonaws.com/drivingface/2022/01/25/80255.mp4"
-                              type="video/ogg ogv"
+                              src={newImage}
+                              type="video/mp4"
                             />
-
-                            <source
-                              src="https://deeplor.s3.amazonaws.com/drivingface/2022/01/25/80255.mp4"
-                              type="video/webm webm"
-                            />
-
-                            <source
-                              src="https://deeplor.s3.amazonaws.com/drivingface/2022/01/25/80255.mp4"
-                              type="video/x-flv flv"
-                            />
-
-                            <source
-                              src="https://deeplor.s3.amazonaws.com/drivingface/2022/01/25/80255.mp4"
-                              type="video/mp4 mp4 m4v f4v f4p"
-                            />
-
-
                           </video>
                         )
                         : <img className="editor-image" src={transparent} />}

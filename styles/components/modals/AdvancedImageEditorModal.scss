@@ -65,20 +65,19 @@
     #EB5054
   ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
-.tab-content {
-  // height: 400px;
-  // margin: 12px;
-  // width: 100%;
-  // position: relative;
+
+
+.color-btn {
+ padding: .8rem;
+//  background-color: #EB5054;
+ border-radius: 4px;
+ margin-right: 10px;
+ border: none
 }
 
-.tab-child {
-  // position: absolute;
-  // top: 50%;
-  // left: 50%;
-  // transform: translate(-50%, -50%);
+.input-editor {
+  border: none;
 }
-
 
 .advance-editor-modal-content {
   margin-top: 3rem;

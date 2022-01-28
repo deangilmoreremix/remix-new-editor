@@ -8,7 +8,7 @@ import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
-
+import useModalStore from '../../hooks/useModalStore';
 
 const PhotoEnhancer = observer(({
   imageData,
@@ -23,6 +23,8 @@ const PhotoEnhancer = observer(({
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
+  const { openPassportMarkerModal, closeModal } = useModalStore();
+
 
 
   const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
@@ -81,6 +83,17 @@ const PhotoEnhancer = observer(({
       });
   };
 
+  const onProcessPassportMarker = () => {
+    openPassportMarkerModal({
+      // src: element.popcornOptions.src,
+      // onAdvancedImageEdited,
+      // onImageEdited,
+      // startUpload: () => setIsLoading(true),
+      // endUpload: () => setIsLoading(false),
+      // menu: ADVANCE_IMAGE_EDITOR_MENU,
+    });
+  };
+
   const base64 = `data:image/png;base64,${newImage}`;
 
   return (
@@ -100,8 +113,8 @@ const PhotoEnhancer = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
-                    <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
-                      Process Cutout Face
+                    <button onClick={onProcessPassportMarker} className="btn  btn-outline-danger  btn-sm">
+                      Process Passport Marker
                     </button>
                   </div>
                 </div>
@@ -135,13 +148,10 @@ const PhotoEnhancer = observer(({
 
           <div className="download-container">
             <div className="mt-5">
-              <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
-              <Pagination count={3} variant="outlined" shape="rounded" color="primary" />
+              <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
+                Download Image
+              </button>
             </div>
-            <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
-              Download Image
-            </button>
-
             <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
               Save to Canvas
             </button>
