@@ -2,6 +2,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 // import Pagination from '@material-ui/lab/Pagination';
+import  {Carousel,  ScrollingCarousel } from '@trendyol-js/react-carousel';
 import { triggerBase64Download } from 'react-base64-downloader';
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
@@ -183,18 +184,32 @@ const BackgroundRemoval = observer(({
           <div className="download-container">
             <div className="mßt-5">
               <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
-              <div className="flex">
+              <div className="">
                 {/* <input type="color" value="#fffff" />
                 <input type="color" value="#e66465" />
                 <input type="color" value="#ee465" />e
                 <input type="color" value="#d644e5" /> */}
-                <button className="color-btn" style={{ backgroundColor: '#ffffff' }} />
+                {/* <button className="color-btn" style={{ backgroundColor: '#ffffff' }} />
                 <button className="color-btn" style={{ backgroundColor: '#EB5054' }} />
                 <button className="color-btn" style={{ backgroundColor: '#ffed45' }} />
                 <button className="color-btn" style={{ backgroundColor: '#ff45ed' }} />
                 <button className="color-btn" style={{ backgroundColor: '#234ede' }} />
                 <button className="color-btn" style={{ backgroundColor: '#23ef56' }} />
-                <input className="input-editor" type="color" value={color} onChange={changeBackground} />
+                <input className="input-editor" type="color" value={color} onChange={changeBackground} /> */}
+                <Carousel show={8} slide={2} transition={0.5}>
+                  <button className="color-btn" style={{ backgroundColor: '#fffff' }} />
+                  <button className="color-btn" style={{ backgroundColor: '#EB5054' }} />
+                  <button className="color-btn" style={{ backgroundColor: '#ffed45' }} />
+                  <button className="color-btn" style={{ backgroundColor: '#ff45ed' }} />
+                  <button className="color-btn" style={{ backgroundColor: '#234ede' }} />
+                  <button className="color-btn" style={{ backgroundColor: '#23ef56' }} />
+                  <button className="color-btn" style={{ backgroundColor: '#ffffff' }} />
+                  <button className="color-btn" style={{ backgroundColor: '#EB5054' }} />
+                  <button className="color-btn" style={{ backgroundColor: '#ffed45' }} />
+                  <button className="color-btn" style={{ backgroundColor: '#ff45ed' }} />
+                  <button className="color-btn" style={{ backgroundColor: '#234ede' }} />
+                  <button className="color-btn" style={{ backgroundColor: '#23ef56' }} />
+                </Carousel>
               </div>
             </div>
             <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
