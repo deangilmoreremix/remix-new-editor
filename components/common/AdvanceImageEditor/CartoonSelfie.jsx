@@ -1,8 +1,11 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/interactive-supports-focus */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable no-var */
 import React, { useCallback, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
-import Pagination from '@material-ui/lab/Pagination';
 import { triggerBase64Download } from 'react-base64-downloader';
+// import Carousel from 'react-simply-carousel';
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
@@ -18,11 +21,12 @@ const PhotoEnhancer = observer(({
   endUpload,
   noCrop,
 }) => {
-  // const refEditor = useRef();
   const { uploadMedia } = useMediaStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
+  // const [avatar, setAvatar] = useState(1);
+  // const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
 
   const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
@@ -60,6 +64,31 @@ const PhotoEnhancer = observer(({
   const processImage = () => {
     setIsLoading(true);
     fetch(`https://www.cutout.pro/api/v1/cartoonSelfieByUrl?cartoonType=1&url=${source}`, {
+      method: 'get',
+      headers: {
+        'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        Accept: 'application/json',
+        APIKEY: config.cutoutPro.apiKey,
+      },
+    })
+      .then((data) =>
+        // eslint-disable-next-line implicit-arrow-linebreak
+        data.json(),
+      ).then(resp => {
+        setIsLoading(false);
+        setIsProcessImage(true);
+        setNewImage(resp.data.imageBase64);
+      })
+      // eslint-disable-next-line no-unused-vars
+      .catch((error) => {
+        setIsLoading(false);
+      });
+  };
+
+
+  const ChangeAvatarImage = (val) => {
+    setIsLoading(true);
+    fetch(`https://www.cutout.pro/api/v1/cartoonSelfieByUrl?cartoonType=${val}&url=${source}`, {
       method: 'get',
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -135,8 +164,27 @@ const PhotoEnhancer = observer(({
 
           <div className="download-container">
             <div className="mt-5">
-              <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
-              <Pagination count={3} variant="outlined" shape="rounded" color="primary" />
+              <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Avatar Image</p>
+              <div className="flex">
+                <div role="button" onClick={() => ChangeAvatarImage(6)} className="imgS border-sel cartoon-container">
+                  <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFull1.jpg" className="carton-avatar" alt="" />
+                </div>
+                <div role="button" onClick={() => ChangeAvatarImage(5)} className="imgS border-sel cartoon-container">
+                  <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar5.png" className="carton-avatar" alt="" />
+                </div>
+                <div role="button" onClick={() => ChangeAvatarImage(1)} className="imgS border-sel cartoon-container">
+                  <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar1.png" className="carton-avatar" alt="" />
+                </div>
+                <div role="button" onClick={() => ChangeAvatarImage(2)} className="imgS border-sel cartoon-container">
+                  <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar2.png" className="carton-avatar" alt="" />
+                </div>
+                <div role="button" onClick={() => ChangeAvatarImage(3)} className="imgS border-sel cartoon-container">
+                  <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar3.png" className="carton-avatar" alt="" />
+                </div>
+                <div role="button" onClick={() => ChangeAvatarImage(4)} className="imgS border-sel cartoon-container">
+                  <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar4.png" className="carton-avatar" alt="" />
+                </div>
+              </div>
             </div>
             <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
               Download Image

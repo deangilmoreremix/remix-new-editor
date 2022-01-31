@@ -59,23 +59,34 @@ const AdvancedImageEditor = observer(({
                 {...rest}
               />
             </TabPane>
-            <TabPane name=" Photo Enhancer" key="2">
-              <PhotoEnhancer
-                imageData={imageMeta}
-                handleClose={handleClose}
-                {...rest}
-              />
-            </TabPane>
-            <TabPane name="Face Cutout" key="3">
+
+            <TabPane name="Face Cutout" key="2">
               <FaceCutOut
                 imageData={imageMeta}
                 handleClose={handleClose}
                 {...rest}
               />
             </TabPane>
+
+            <TabPane name=" Cartoon Selfie" key="3">
+              <CartoonSelfie
+                imageData={imageMeta}
+                handleClose={handleClose}
+                {...rest}
+              />
+            </TabPane>
+
+            <TabPane name=" Photo Enhancer" key="4">
+              <PhotoEnhancer
+                imageData={imageMeta}
+                handleClose={handleClose}
+                {...rest}
+              />
+            </TabPane>
+
             <TabPane
               name="Photo Colorizer"
-              key="4"
+              key="5"
             >
               <PhotoColorizer
                 imageData={imageMeta}
@@ -85,23 +96,13 @@ const AdvancedImageEditor = observer(({
             </TabPane>
 
 
-            <TabPane name=" Photo Correction" key="5">
+            <TabPane name=" Photo Correction" key="6">
               <PhotoCorrection
                 imageData={imageMeta}
                 handleClose={handleClose}
                 {...rest}
               />
             </TabPane>
-
-
-            <TabPane name=" Cartoon Selfie" key="6">
-              <CartoonSelfie
-                imageData={imageMeta}
-                handleClose={handleClose}
-                {...rest}
-              />
-            </TabPane>
-
 
             <TabPane name="Photo Animer" key="7">
               <PhotoAnimer

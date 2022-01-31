@@ -1,9 +1,8 @@
 /* eslint-disable no-var */
 import React, { useCallback, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
-// import Pagination from '@material-ui/lab/Pagination';
-import  {Carousel,  ScrollingCarousel } from '@trendyol-js/react-carousel';
 import { triggerBase64Download } from 'react-base64-downloader';
+import Carousel from 'react-simply-carousel';
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
@@ -18,12 +17,12 @@ const BackgroundRemoval = observer(({
   endUpload,
   noCrop,
 }) => {
-  // const refEditor = useRef();
   const { uploadMedia } = useMediaStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
-  const [color, setColor] = useState('');
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+
 
   const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
@@ -82,38 +81,10 @@ const BackgroundRemoval = observer(({
       });
   };
 
-  const changeBackground = (e) => {
-    setColor(e.target.value.substring(1));
-    setIsLoading(true);
-    console.log(color);
-    fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&bgcolor=${color}&mattingType=6`, {
-      method: 'get',
-      headers: {
-        'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        Accept: 'application/json',
-        APIKEY: config.cutoutPro.apiKey,
-      },
-    })
-      .then((data) =>
-        // eslint-disable-next-line implicit-arrow-linebreak
-        data.json(),
-      ).then(resp => {
-        setIsLoading(false);
-        setIsProcessImage(true);
-        setNewImage(resp.data.imageBase64);
-      })
-      // eslint-disable-next-line no-unused-vars
-      .catch((error) => {
-        setIsLoading(false);
-      });
-  };
 
-  const changeColorBackground = (val) => {
-    // setColor(e.target.value.substring(1));
-    // setIsLoading(true);
-    // &bgcolor=FFFFFF
-    // &bgcolor=fffe65
-    // console.log(color);
+  const changeBackgroundColor = (val) => {
+    console.log(val, 'this is here now');
+    setIsLoading(true);
     fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&bgcolor=${val}&mattingType=6`, {
       method: 'get',
       headers: {
@@ -144,7 +115,6 @@ const BackgroundRemoval = observer(({
       <div className="">
         <div className="flex advance-editor-modal-content">
           <div className="content-container">
-
             <div className="flex justify-content-center items-center  ">
               <div className="original-image-container ">
                 <p className="text-center font-weight-bold"> Original Image</p>
@@ -182,33 +152,72 @@ const BackgroundRemoval = observer(({
 
 
           <div className="download-container">
-            <div className="mßt-5">
+            <div className="mt-5">
               <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
               <div className="">
-                {/* <input type="color" value="#fffff" />
-                <input type="color" value="#e66465" />
-                <input type="color" value="#ee465" />e
-                <input type="color" value="#d644e5" /> */}
-                {/* <button className="color-btn" style={{ backgroundColor: '#ffffff' }} />
-                <button className="color-btn" style={{ backgroundColor: '#EB5054' }} />
-                <button className="color-btn" style={{ backgroundColor: '#ffed45' }} />
-                <button className="color-btn" style={{ backgroundColor: '#ff45ed' }} />
-                <button className="color-btn" style={{ backgroundColor: '#234ede' }} />
-                <button className="color-btn" style={{ backgroundColor: '#23ef56' }} />
-                <input className="input-editor" type="color" value={color} onChange={changeBackground} /> */}
-                <Carousel show={8} slide={2} transition={0.5}>
-                  <button className="color-btn" style={{ backgroundColor: '#fffff' }} />
-                  <button className="color-btn" style={{ backgroundColor: '#EB5054' }} />
-                  <button className="color-btn" style={{ backgroundColor: '#ffed45' }} />
-                  <button className="color-btn" style={{ backgroundColor: '#ff45ed' }} />
-                  <button className="color-btn" style={{ backgroundColor: '#234ede' }} />
-                  <button className="color-btn" style={{ backgroundColor: '#23ef56' }} />
-                  <button className="color-btn" style={{ backgroundColor: '#ffffff' }} />
-                  <button className="color-btn" style={{ backgroundColor: '#EB5054' }} />
-                  <button className="color-btn" style={{ backgroundColor: '#ffed45' }} />
-                  <button className="color-btn" style={{ backgroundColor: '#ff45ed' }} />
-                  <button className="color-btn" style={{ backgroundColor: '#234ede' }} />
-                  <button className="color-btn" style={{ backgroundColor: '#23ef56' }} />
+                <Carousel
+                  containerProps={{
+                    style: {
+                      width: '100%',
+                      display: 'flex',
+                      justifyContent: '',
+                    },
+                  }}
+                  forwardBtnProps={{
+                    children: '>',
+                    style: {
+                      border: 'none',
+                      height: '20%',
+                      justifyContent: 'center',
+                      marginTop: '5px',
+                      marginRight: '3px',
+                      display: 'flex',
+                      padding: '3px',
+                      background: 'none',
+                      color: '#fff',
+                      outline: 'none',
+                      // alignSelf: 'center',
+
+                    },
+                  }}
+                  backwardBtnProps={{
+                    children: '<',
+                    style: {
+                      border: 'none',
+                      height: '20%',
+                      justifyContent: 'center',
+                      marginTop: '5px',
+                      display: 'flex',
+                      padding: '3px',
+                      background: 'none',
+                      color: '#fff',
+                      outline: 'none',
+                      // alignSelf: 'center',
+
+                    },
+                  }}
+                  itemsToShow={10}
+                  itemsToScroll={3}
+                  activeSlideIndex={activeSlideIndex}
+                  onRequestChange={setActiveSlideIndex}
+                >
+                  <button onClick={() => changeBackgroundColor('ffffff')} className="color-btn" style={{ backgroundColor: '#fffff' }} />
+                  <button onClick={() => changeBackgroundColor('FEACAD')} className="color-btn" style={{ backgroundColor: '#FEACAD' }} />
+                  <button onClick={() => changeBackgroundColor('FFD6A5')} className="color-btn" style={{ backgroundColor: '#FFD6A5' }} />
+                  <button onClick={() => changeBackgroundColor('A0C5FE')} className="color-btn" style={{ backgroundColor: '#A0C5FE' }} />
+                  <button onClick={() => changeBackgroundColor('BCB1FF')} className="color-btn" style={{ backgroundColor: '#BCB1FF' }} />
+                  <button onClick={() => changeBackgroundColor('C2C5AA')} className="color-btn" style={{ backgroundColor: '#C2C5AA' }} />
+                  <button onClick={() => changeBackgroundColor('F1FBEF')} className="color-btn" style={{ backgroundColor: '#F1FBEF' }} />
+                  <button onClick={() => changeBackgroundColor('F1FBEF')} className="color-btn" style={{ backgroundColor: '#F1FBEF' }} />
+                  <button onClick={() => changeBackgroundColor('D8D9D8')} className="color-btn" style={{ backgroundColor: '#D8D9D8' }} />
+                  <button onClick={() => changeBackgroundColor('BEE1E6')} className="color-btn" style={{ backgroundColor: '#BEE1E6' }} />
+                  <button onClick={() => changeBackgroundColor('97F5E1')} className="color-btn" style={{ backgroundColor: '#97F5E1' }} />
+                  <button onClick={() => changeBackgroundColor('EB5054')} className="color-btn" style={{ backgroundColor: '#EB5054' }} />
+                  <button onClick={() => changeBackgroundColor('E8C1CA')} className="color-btn" style={{ backgroundColor: '#E8C1CA' }} />
+                  <button onClick={() => changeBackgroundColor('CFDFC2')} className="color-btn" style={{ backgroundColor: '#CFDFC2' }} />
+                  <button onClick={() => changeBackgroundColor('E82055')} className="color-btn" style={{ backgroundColor: '#E82055' }} />
+                  <button onClick={() => changeBackgroundColor('23ef56')} className="color-btn" style={{ backgroundColor: '#23ef56' }} />
+                  <button onClick={() => changeBackgroundColor('ffed45')} className="color-btn" style={{ backgroundColor: '#ffed45' }} />
                 </Carousel>
               </div>
             </div>

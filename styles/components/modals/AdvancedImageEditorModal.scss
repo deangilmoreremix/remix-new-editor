@@ -68,11 +68,30 @@
 
 
 .color-btn {
- padding: .8rem;
-//  background-color: #EB5054;
- border-radius: 4px;
- margin-right: 10px;
- border: none
+ padding: 1rem;
+ border-radius: 5px;
+//  margin-right: 10px;
+ margin: 5px !important;
+ border: none;
+ background: none;
+//  color: ;
+// outline: none;
+}
+
+.cartoon-container {
+  margin-right: 10px;
+  border-radius: 0px;
+  cursor: pointer;
+  height: 42px;
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+}
+.carton-avatar {
+  width: 40px;
+  height: 40px;
+  margin: 0px;
+  border-radius: 5px;
 }
 
 .input-editor {
