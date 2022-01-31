@@ -83,7 +83,6 @@ const BackgroundRemoval = observer(({
 
 
   const changeBackgroundColor = (val) => {
-    console.log(val, 'this is here now');
     setIsLoading(true);
     fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&bgcolor=${val}&mattingType=6`, {
       method: 'get',
