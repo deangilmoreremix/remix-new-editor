@@ -10,12 +10,6 @@ const ProcessPassportMarker = observer(({
   handleClose,
   options,
 }) => {
-  // const { imageMeta, ...rest } = useMemo(() => options, [options]);
-
-  // if (!imageMeta) {
-  //   return null;
-  // }
-
   const onClose = () => {
     handleClose();
   };

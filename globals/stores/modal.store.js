@@ -140,18 +140,9 @@ export default () => {
       });
   };
 
+  // eslint-disable-next-line no-unused-vars
   const openPassportMarkerModal = (scope) => {
-    console.log('Second here now');
-    // const { src } = scope;
-    // if (!src) {
-    //   return;
-    // }
-    // const metadata = { source: src };
     openModal(PASSPORT_MARKER_MODAL,
-      // {
-      //   ...scope,
-      //   imageMeta: metadata,
-      // }
     );
   };
 
