@@ -79,7 +79,7 @@ const PhotoEnhancer = observer(({
 
   const processImage = () => {
     setIsLoading(true);
-    fetch(`https://www.cutout.pro/api/v1/faceDriven/submitTaskByUrl?imageUrl=${source}&templateId=1`, {
+    fetch(`https://www.cutout.pro/api/v1/faceDriven/submitTaskByUrl?imageUrl=${source}&templateId=2`, {
       method: 'get',
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -93,7 +93,7 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        console.log(resp);
+        console.log(resp.data, 'This is the data response');
         setAnimerImage(resp.data);
         processAnimer(animerImage);
       })
@@ -135,9 +135,10 @@ const PhotoEnhancer = observer(({
                 <div className=" ">
                   {isLoading ? <LibrarySpinner /> : (
                     <div className=" flex justify-content-center">
+                      <p>{newImage}</p>
                       {isProcessImage
                         ? (
-                          <video controls width="250">
+                          <video src={newImage} controls width="250">
                             <source
                               src={newImage}
                               type="video/mp4"
@@ -160,7 +161,39 @@ const PhotoEnhancer = observer(({
           <div className="download-container">
             <div className="mt-5">
               <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
-              <Pagination count={3} variant="outlined" shape="rounded" color="primary" />
+              <div className="flex">
+
+                <div role="button" className=" cartoon-container">
+                  <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
+                    <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4" type="video/mp4" />
+                  </video>
+                </div>
+
+                <div role="button" className="imgS border-sel cartoon-container">
+                  <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
+                    <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4" type="video/mp4" />
+                  </video>
+                </div>
+
+                <div role="button" className="imgS border-sel cartoon-container">
+                  <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer_3.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
+                    <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer_3.mp4" type="video/mp4" />
+                  </video>
+                </div>
+
+                <div role="button" className="imgS border-sel cartoon-container">
+                  <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer4.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
+                    <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer4.mp4" type="video/mp4" />
+                  </video>
+                </div>
+
+                <div role="button" className="imgS border-sel cartoon-container">
+                  <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer5.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
+                    <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer5.mp4" type="video/mp4" />
+                  </video>
+                </div>
+
+              </div>
             </div>
             <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
               Download Image
