@@ -65,20 +65,37 @@
     #EB5054
   ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
-.tab-content {
-  // height: 400px;
-  // margin: 12px;
-  // width: 100%;
-  // position: relative;
+
+
+.color-btn {
+ padding: 1rem;
+ border-radius: 5px;
+//  margin-right: 10px;
+ margin: 5px !important;
+ border: none;
+ background: none;
+//  color: ;
+// outline: none;
 }
 
-.tab-child {
-  // position: absolute;
-  // top: 50%;
-  // left: 50%;
-  // transform: translate(-50%, -50%);
+.cartoon-container {
+  margin-right: 10px;
+  border-radius: 0px;
+  cursor: pointer;
+  height: 42px;
+  display: inline-block;
+  width: 40px;
+}
+.carton-avatar {
+  width: 40px;
+  height: 40px;
+  margin: 0px;
+  border-radius: 5px;
 }
 
+.input-editor {
+  border: none;
+}
 
 .advance-editor-modal-content {
   margin-top: 3rem;

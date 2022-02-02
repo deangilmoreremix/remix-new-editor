@@ -5,7 +5,7 @@ import TabPane from './TabPane';
 const Tabs = (props) => {
   const { children } = props;
   const [tabHeader, setTabHeader] = useState([]);
-  const [childContent, setChildConent] = useState({});
+  const [childContent, setChildContent] = useState({});
   const [active, setActive] = useState('');
   useEffect(() => {
     const headers = [];
@@ -18,7 +18,7 @@ const Tabs = (props) => {
     });
     setTabHeader(headers);
     setActive(headers[0]);
-    setChildConent({ ...childCnt });
+    setChildContent({ ...childCnt });
   }, [props, children]);
 
   const changeTab = (name) => {

@@ -8,7 +8,7 @@ import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
-
+import useModalStore from '../../hooks/useModalStore';
 
 const PhotoEnhancer = observer(({
   imageData,
@@ -23,6 +23,10 @@ const PhotoEnhancer = observer(({
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
+  const { openPassportMarkerModal, closeModal } = useModalStore();
+
+
+
   const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
 
@@ -57,7 +61,7 @@ const PhotoEnhancer = observer(({
 
   const processImage = () => {
     setIsLoading(true);
-    fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=18`, {
+    fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=3`, {
       method: 'get',
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -79,6 +83,17 @@ const PhotoEnhancer = observer(({
       });
   };
 
+  const onProcessPassportMarker = () => {
+    openPassportMarkerModal({
+      // src: element.popcornOptions.src,
+      // onAdvancedImageEdited,
+      // onImageEdited,
+      // startUpload: () => setIsLoading(true),
+      // endUpload: () => setIsLoading(false),
+      // menu: ADVANCE_IMAGE_EDITOR_MENU,
+    });
+  };
+
   const base64 = `data:image/png;base64,${newImage}`;
 
   return (
@@ -98,8 +113,8 @@ const PhotoEnhancer = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
-                    <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
-                      Enhance Photo
+                    <button onClick={onProcessPassportMarker} className="btn  btn-outline-danger  btn-sm">
+                      Process Passport Marker
                     </button>
                   </div>
                 </div>

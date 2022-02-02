@@ -23,6 +23,8 @@ const PhotoEnhancer = observer(({
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
+
+
   const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
 
@@ -57,7 +59,7 @@ const PhotoEnhancer = observer(({
 
   const processImage = () => {
     setIsLoading(true);
-    fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=18`, {
+    fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=4`, {
       method: 'get',
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -99,7 +101,7 @@ const PhotoEnhancer = observer(({
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
                     <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
-                      Enhance Photo
+                      Process Color Correction
                     </button>
                   </div>
                 </div>
@@ -133,10 +135,13 @@ const PhotoEnhancer = observer(({
 
           <div className="download-container">
             <div className="mt-5">
-              <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
-                Download Image
-              </button>
+              {/* <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
+              <Pagination count={3} variant="outlined" shape="rounded" color="primary" /> */}
             </div>
+            <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
+              Download Image
+            </button>
+
             <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
               Save to Canvas
             </button>

@@ -1,8 +1,11 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/interactive-supports-focus */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable no-var */
 import React, { useCallback, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
-import Carousel from 'react-simply-carousel';
 import { triggerBase64Download } from 'react-base64-downloader';
+// import Carousel from 'react-simply-carousel';
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
@@ -22,7 +25,9 @@ const PhotoEnhancer = observer(({
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
-  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  // const [avatar, setAvatar] = useState(1);
+  // const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+
 
   const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
@@ -58,7 +63,7 @@ const PhotoEnhancer = observer(({
 
   const processImage = () => {
     setIsLoading(true);
-    fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=3`, {
+    fetch(`https://www.cutout.pro/api/v1/cartoonSelfieByUrl?cartoonType=1&url=${source}`, {
       method: 'get',
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -80,9 +85,10 @@ const PhotoEnhancer = observer(({
       });
   };
 
-  const changeBackgroundColor = (val) => {
+
+  const ChangeAvatarImage = (val) => {
     setIsLoading(true);
-    fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&bgcolor=${val}&mattingType=3`, {
+    fetch(`https://www.cutout.pro/api/v1/cartoonSelfieByUrl?cartoonType=${val}&url=${source}`, {
       method: 'get',
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -124,7 +130,7 @@ const PhotoEnhancer = observer(({
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
                     <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
-                      Process Cutout Face
+                      Process Cartoon Selfie
                     </button>
                   </div>
                 </div>
@@ -158,68 +164,26 @@ const PhotoEnhancer = observer(({
 
           <div className="download-container">
             <div className="mt-5">
-              <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
-              <div className="">
-                <Carousel
-                  containerProps={{
-                    style: {
-                      width: '100%',
-                      display: 'flex',
-                      justifyContent: '',
-                    },
-                  }}
-                  forwardBtnProps={{
-                    children: '>',
-                    style: {
-                      border: 'none',
-                      height: '20%',
-                      justifyContent: 'center',
-                      marginTop: '5px',
-                      marginRight: '3px',
-                      display: 'flex',
-                      padding: '3px',
-                      background: 'none',
-                      color: '#fff',
-                      outline: 'none',
-                    },
-                  }}
-                  backwardBtnProps={{
-                    children: '<',
-                    style: {
-                      border: 'none',
-                      height: '20%',
-                      justifyContent: 'center',
-                      marginTop: '5px',
-                      display: 'flex',
-                      padding: '3px',
-                      background: 'none',
-                      color: '#fff',
-                      outline: 'none',
-                    },
-                  }}
-                  itemsToShow={10}
-                  itemsToScroll={3}
-                  activeSlideIndex={activeSlideIndex}
-                  onRequestChange={setActiveSlideIndex}
-                >
-                  <button onClick={() => changeBackgroundColor('ffffff')} className="color-btn" style={{ backgroundColor: '#fffff' }} />
-                  <button onClick={() => changeBackgroundColor('FEACAD')} className="color-btn" style={{ backgroundColor: '#FEACAD' }} />
-                  <button onClick={() => changeBackgroundColor('FFD6A5')} className="color-btn" style={{ backgroundColor: '#FFD6A5' }} />
-                  <button onClick={() => changeBackgroundColor('A0C5FE')} className="color-btn" style={{ backgroundColor: '#A0C5FE' }} />
-                  <button onClick={() => changeBackgroundColor('BCB1FF')} className="color-btn" style={{ backgroundColor: '#BCB1FF' }} />
-                  <button onClick={() => changeBackgroundColor('C2C5AA')} className="color-btn" style={{ backgroundColor: '#C2C5AA' }} />
-                  <button onClick={() => changeBackgroundColor('F1FBEF')} className="color-btn" style={{ backgroundColor: '#F1FBEF' }} />
-                  <button onClick={() => changeBackgroundColor('F1FBEF')} className="color-btn" style={{ backgroundColor: '#F1FBEF' }} />
-                  <button onClick={() => changeBackgroundColor('D8D9D8')} className="color-btn" style={{ backgroundColor: '#D8D9D8' }} />
-                  <button onClick={() => changeBackgroundColor('BEE1E6')} className="color-btn" style={{ backgroundColor: '#BEE1E6' }} />
-                  <button onClick={() => changeBackgroundColor('97F5E1')} className="color-btn" style={{ backgroundColor: '#97F5E1' }} />
-                  <button onClick={() => changeBackgroundColor('EB5054')} className="color-btn" style={{ backgroundColor: '#EB5054' }} />
-                  <button onClick={() => changeBackgroundColor('E8C1CA')} className="color-btn" style={{ backgroundColor: '#E8C1CA' }} />
-                  <button onClick={() => changeBackgroundColor('CFDFC2')} className="color-btn" style={{ backgroundColor: '#CFDFC2' }} />
-                  <button onClick={() => changeBackgroundColor('E82055')} className="color-btn" style={{ backgroundColor: '#E82055' }} />
-                  <button onClick={() => changeBackgroundColor('23ef56')} className="color-btn" style={{ backgroundColor: '#23ef56' }} />
-                  <button onClick={() => changeBackgroundColor('ffed45')} className="color-btn" style={{ backgroundColor: '#ffed45' }} />
-                </Carousel>
+              <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Avatar Image</p>
+              <div className="flex">
+                <div role="button" onClick={() => ChangeAvatarImage(6)} className="imgS border-sel cartoon-container">
+                  <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFull1.jpg" className="carton-avatar" alt="" />
+                </div>
+                <div role="button" onClick={() => ChangeAvatarImage(5)} className="imgS border-sel cartoon-container">
+                  <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar5.png" className="carton-avatar" alt="" />
+                </div>
+                <div role="button" onClick={() => ChangeAvatarImage(1)} className="imgS border-sel cartoon-container">
+                  <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar1.png" className="carton-avatar" alt="" />
+                </div>
+                <div role="button" onClick={() => ChangeAvatarImage(2)} className="imgS border-sel cartoon-container">
+                  <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar2.png" className="carton-avatar" alt="" />
+                </div>
+                <div role="button" onClick={() => ChangeAvatarImage(3)} className="imgS border-sel cartoon-container">
+                  <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar3.png" className="carton-avatar" alt="" />
+                </div>
+                <div role="button" onClick={() => ChangeAvatarImage(4)} className="imgS border-sel cartoon-container">
+                  <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar4.png" className="carton-avatar" alt="" />
+                </div>
               </div>
             </div>
             <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
