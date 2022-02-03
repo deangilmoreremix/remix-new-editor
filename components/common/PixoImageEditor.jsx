@@ -72,7 +72,6 @@ const PixoImageEditor = observer(({
   }, [refEditor.current]);
 
   const onLoadImage = useCallback(async (image) => {
-    console.log(image, 'Pixi image to be update');
     if (!refEditor) {
       return;
     }

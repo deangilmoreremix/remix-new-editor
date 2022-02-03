@@ -52,7 +52,7 @@ const AdvancedImageEditor = observer(({
 
         <div className="mt-3">
           <Tabs>
-            <TabPane name="Background Removal" key="1">
+            <TabPane name="Smart BG Removal" key="1">
               <BackgroundRemoval
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -60,7 +60,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name="Face Cutout" key="2">
+            <TabPane name="Smart Face Cutout" key="2">
               <FaceCutOut
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -68,7 +68,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name=" Cartoon Selfie" key="3">
+            <TabPane name="Smart Carton Selfie" key="3">
               <CartoonSelfie
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -76,7 +76,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name=" Photo Enhancer" key="4">
+            <TabPane name="Smart Enhancer" key="4">
               <PhotoEnhancer
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -85,7 +85,7 @@ const AdvancedImageEditor = observer(({
             </TabPane>
 
             <TabPane
-              name="Photo Colorizer"
+              name="Smart Colorizer"
               key="5"
             >
               <PhotoColorizer
@@ -96,7 +96,7 @@ const AdvancedImageEditor = observer(({
             </TabPane>
 
 
-            <TabPane name=" Photo Correction" key="6">
+            <TabPane name="Smart Correction" key="6">
               <PhotoCorrection
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -104,7 +104,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name="Photo Animer" key="7">
+            <TabPane name="Smart Animer" key="7">
               <PhotoAnimer
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -112,7 +112,15 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name=" Retouch" key="8">
+            <TabPane name="Smart Passport" key="9">
+              <PassportMarker
+                imageData={imageMeta}
+                handleClose={handleClose}
+                {...rest}
+              />
+            </TabPane>
+
+            <TabPane name="Smart Retouch" key="8">
               <Retouch
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -120,13 +128,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name="Passport Marker" key="9">
-              <PassportMarker
-                imageData={imageMeta}
-                handleClose={handleClose}
-                {...rest}
-              />
-            </TabPane>
+
 
 
           </Tabs>
