@@ -92,9 +92,6 @@ const PhotoEnhancer = observer(({
         // eslint-disable-next-line implicit-arrow-linebreak
         resp.json(),
       ).then(resp => {
-        console.log(resp);
-        console.log(resp.data);
-        console.log(resp.data.idPhotoImage);
         setIsLoading(false);
         setIsProcessImage(true);
         setNewImage(resp.data.idPhotoImage);
@@ -287,7 +284,7 @@ const PhotoEnhancer = observer(({
                 <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Dress</p>
               </div>
 
-              
+
             </div>
 
 
