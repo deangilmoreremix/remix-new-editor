@@ -1498,6 +1498,30 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  verifyTitle = async () => {
+    const path = '/api/users/me/makes';
+
+    const result = await this.request(path, {
+      method: 'GET',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      },
+    });
+    const data={
+      "result":result,
+      "cur_item":this.item._id,
+    }
+    return data;
+  };
+
+  getItemTitle = async () => {
+    const data ={
+      "title":this.item.title
+    }
+    return data;
+  };
+
+  @action
   serializeProject = () => ({
     data: JSON.stringify(this.projectData),
     allowedSocials: this.item.allowedSocials,
