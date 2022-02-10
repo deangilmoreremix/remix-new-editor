@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo,useCallback } from 'react';
 // import { useDropzone } from 'react-dropzone';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
@@ -21,7 +21,8 @@ import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 // import { TYPES } from '../../lib/constants/validator';
 // import { ALL_VIDEO } from '../../lib/constants/formats';
 import config from '../../config/config';
-import { showError } from '../../lib/services/alertService';
+import { showError, showConfirmation } from '../../lib/services/alertService';
+
 
 import { ENTER_KEY } from '../../lib/constants/keyCodes';
 import { TEXT_TO_SPEECH_WARNING } from '../../lib/constants/text-info';
@@ -596,12 +597,20 @@ const Library = observer((props) => {
     }
   };
 
-  const onDelete = (e, id) => {
+
+  const onDelete = useCallback(async (e, id) => {
     e.stopPropagation();
-    const newArr = items.filter((item) => item._id !== id);
-    setLibraryItemsForDelete(id);
-    setItems(newArr);
-  };
+    const response = await showConfirmation(
+      `Are you sure you want to delete the ${activeTab}`,
+      `Delete "${activeTab}"`,
+    );
+    if (response) {
+      const newArr = items.filter((item) => item._id !== id);
+      setLibraryItemsForDelete(id);
+      setItems(newArr);
+    }
+  }, []);
+
 
   const closeLibrary = () => {
     toggleRightBlock(false);
