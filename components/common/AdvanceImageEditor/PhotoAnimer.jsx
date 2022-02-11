@@ -170,8 +170,8 @@ const PhotoEnhancer = observer(({
                 </div>
 
                 <div role="button" className="imgS border-sel cartoon-container">
-                  <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                    <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4" type="video/mp4" />
+                  <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer1.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
+                    <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer1.mp4" type="video/mp4" />
                   </video>
                 </div>
 

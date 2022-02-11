@@ -8,7 +8,7 @@ import closeIcon from '../../../public/static/svgImages/close.svg';
 
 const ProcessPassportMarker = observer(({
   handleClose,
-  options,
+  // options,
 }) => {
   const onClose = () => {
     handleClose();
@@ -20,7 +20,7 @@ const ProcessPassportMarker = observer(({
 
         <div className="flex justify-content-between align-items-center align-content-center ">
           <div>
-            <p className="text-header">Advance AI Image Feature</p>
+            <p className="text-header">Passport Marker</p>
           </div>
 
           <div>
