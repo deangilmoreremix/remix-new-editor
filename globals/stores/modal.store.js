@@ -1,5 +1,5 @@
 import { set, remove, observable, action } from 'mobx';
-import { IMAGE_CROPPER_MODAL, MODAL_CONFIG, PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL, PASSPORT_MARKER_MODAL } from '../../lib/constants/modals';
+import { IMAGE_CROPPER_MODAL, MODAL_CONFIG, PIXO_IMAGE_EDITOR_MODAL, IMGLY_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL, PASSPORT_MARKER_MODAL } from '../../lib/constants/modals';
 import { checkImageResolution } from '../../lib/utils/cropHelper';
 import { getImageSize } from '../../lib/utils/imageEditorHelper';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../lib/constants/settings/image';
@@ -126,6 +126,20 @@ export default () => {
       });
   };
 
+  const openImglyEditor = async (scope) => {
+    const { src } = scope;
+    if (!src) {
+      return;
+    }
+    const metadata = { source: src };
+
+    openModal(IMGLY_IMAGE_EDITOR_MODAL,
+      {
+        ...scope,
+        imageMeta: metadata,
+      });
+  };
+
 
   const openAdvanceImageEditor = async (scope) => {
     const { src } = scope;
@@ -160,6 +174,7 @@ export default () => {
     options,
     openImageEditor,
     openAdvanceImageEditor,
+    openImglyEditor,
     openPassportMarkerModal,
   };
 };
