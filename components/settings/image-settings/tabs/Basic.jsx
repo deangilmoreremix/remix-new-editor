@@ -14,7 +14,7 @@ import useProjectStore from '../../../hooks/useProjectStore';
 import { FEATURES } from '../../../../lib/constants/features';
 import { LIBRARY_TABS } from '../../../../lib/constants/library';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
-import { PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
+import { PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL, IMGLY_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
 import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
 import { EXTRA_MENU, ADVANCE_IMAGE_EDITOR_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
 
@@ -41,7 +41,7 @@ const Basic = observer(({
     isfeatureEnabled: checkStateFeature,
     clickToPhoneCall,
   } = useUserStore();
-  const { openImageEditor, openAdvanceImageEditor, closeModal } = useModalStore();
+  const { openImageEditor, openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
 
   const backToLibrary = () => {
     handleClose();
@@ -63,7 +63,6 @@ const Basic = observer(({
     findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
     closeModal(PIXO_IMAGE_EDITOR_MODAL);
   };
-
 
   const onAdvancedImageEdited = (image) => {
     findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
@@ -209,7 +208,22 @@ const Basic = observer(({
           >
             Image Editor
           </button>
-
+          <button
+            className="image-settings__btn"
+            onClick={() => {
+              openImglyEditor({
+                src: element.popcornOptions.src,
+                onImageEdited,
+                // onImglyImageEdited,
+                startUpload: () => setIsLoading(true),
+                endUpload: () => setIsLoading(false),
+                menu: EXTRA_MENU,
+              });
+            }}
+            disabled={isLoading}
+          >
+          New Image Editor
+          </button>
           <button
             className="image-settings__btn"
             onClick={() => {
