@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { UIEvent, PhotoEditorSDKUI } from 'photoeditorsdk';
 import { observer } from 'mobx-react';
 import { showError } from '../../lib/services/alertService';
@@ -16,8 +16,6 @@ const PhotoEditorSDK = observer(({
   const { uploadMedia } = useMediaStore();
 
   const onLoadImage = useCallback(async (image) => {
-    console.log(image, 'Pixi image to be update');
-
     let media;
     let hasError;
 
@@ -53,9 +51,11 @@ const PhotoEditorSDK = observer(({
         },
       },
     });
-    console.log('PhotoEditorSDK for Web is ready!');
     editor.on(UIEvent.EXPORT, (imageSrc) => {
       onLoadImage(imageSrc);
+    });
+    editor.on(UIEvent.CLOSE, () => {
+      handleClose();
     });
   }
 
