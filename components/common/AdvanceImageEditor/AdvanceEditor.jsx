@@ -13,7 +13,21 @@ import Retouch from './Retouch';
 import PhotoCorrection from './PhotoCorrection';
 import CartoonSelfie from './CartoonSelfie';
 import PassportMarker from './PassportMarker';
-import closeIcon from '../../../public/static/svgImages/close.svg';
+import RemoveBackgroundSvg from '../../../public/static/AdvanceImageSvg/removebackgorund.svg';
+import FaceCutOutSvg from '../../../public/static/AdvanceImageSvg/faceCutOut.svg';
+import SelfieSvg from '../../../public/static/AdvanceImageSvg/selfie.svg';
+import EnhancerSvg from '../../../public/static/AdvanceImageSvg/Enhancer.svg';
+import ColorizerSvg from '../../../public/static/AdvanceImageSvg/smartColor.svg';
+import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
+import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
+import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
+import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
+
+
+
+
+
+
 
 
 const AdvancedImageEditor = observer(({
@@ -32,27 +46,10 @@ const AdvancedImageEditor = observer(({
   };
   return (
     <>
-      <div className="advance-editor-modal">
-        <div className="flex justify-content-between align-items-center align-content-center ">
-          <div>
-            <p className="text-header">Advance AI Image Feature</p>
-          </div>
-
-          <div>
-
-            <SVGInline
-              className="icon icon-button"
-              svg={closeIcon}
-              component="button"
-              onClick={onClose}
-            />
-          </div>
-
-        </div>
-
-        <div className="mt-3">
+      <div>
+        <div className="advanced-image-editor-wrapper">
           <Tabs>
-            <TabPane name="Smart BG Removal" key="1">
+            <TabPane name="Smart BG Removal" icon={RemoveBackgroundSvg} key="1">
               <BackgroundRemoval
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -60,7 +57,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name="Smart Face Cutout" key="2">
+            <TabPane name="Smart Face Cutout" icon={FaceCutOutSvg} key="2">
               <FaceCutOut
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -68,7 +65,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name="Smart Carton Selfie" key="3">
+            <TabPane name="Smart Carton Selfie" icon={SelfieSvg} key="3">
               <CartoonSelfie
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -76,7 +73,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name="Smart Enhancer" key="4">
+            <TabPane name="Smart Enhancer" icon={EnhancerSvg} key="4">
               <PhotoEnhancer
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -86,6 +83,7 @@ const AdvancedImageEditor = observer(({
 
             <TabPane
               name="Smart Colorizer"
+              icon={ColorizerSvg}
               key="5"
             >
               <PhotoColorizer
@@ -96,7 +94,7 @@ const AdvancedImageEditor = observer(({
             </TabPane>
 
 
-            <TabPane name="Smart Correction" key="6">
+            <TabPane name="Smart Correction" icon={correction} key="6">
               <PhotoCorrection
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -104,7 +102,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name="Smart Animer" key="7">
+            <TabPane name="Smart Motion" icon={smartMotion} key="7">
               <PhotoAnimer
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -112,7 +110,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name="Smart Passport" key="9">
+            <TabPane name="Smart Passport" icon={Passport} key="8">
               <PassportMarker
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -120,7 +118,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name="Smart Retouch" key="8">
+            <TabPane name="Smart Retouch" icon={brush} key="9">
               <Retouch
                 imageData={imageMeta}
                 handleClose={handleClose}
@@ -128,12 +126,8 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-
-
-
           </Tabs>
         </div>
-
       </div>
     </>
   );
