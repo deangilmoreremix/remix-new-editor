@@ -1,7 +1,10 @@
+/* eslint-disable func-names */
+/* eslint-disable array-callback-return */
 /* eslint-disable no-var */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
 import { observer } from 'mobx-react';
-import Pagination from '@material-ui/lab/Pagination';
+import { ReactSketchCanvas } from 'react-sketch-canvas';
+// import Pagination from '@material-ui/lab/Pagination';
 import { triggerBase64Download } from 'react-base64-downloader';
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
@@ -22,15 +25,132 @@ const PhotoEnhancer = observer(({
   const { uploadMedia } = useMediaStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
+  const [imgSrc, setImgSrc] = useState('');
   const [newImage, setNewImage] = useState('');
+  const [draw, setDraw] = useState(false);
+  const [imgDimension, setImgDimension] = useState({
+    width: 0,
+    height: 0,
+  });
 
 
-  const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
+  const canvasRef = useRef(null);
+
+  const startDraw = (e) => {
+    setDraw(true);
+    maskImage(e);
+  };
+
+  const endDraw = async () => {
+    // console.log('endDraw');
+    const canvas = canvasRef.current;
+    const path = await canvas.exportPaths();
+    // console.log(path);
+
+    const points = path.map(resp => resp.paths);
+    // console.log(points.flat());
+    let result = points.flat();
+    result = result.map(point => ({
+      x: point.x,
+      y: point.y,
+      width: 100,
+      height: 100,
+    }));
+    // console.log(result);
+    return result;
+  };
+
+  const clearCanvas = async () => {
+    const canvas = canvasRef.current;
+    await canvas.clearCanvas();
+  };
+
+
+  const maskImage = (e) => {
+    e.persist();
+    // if (!draw) return;
+    const canvas = canvasRef.current;
+    const { width, height } = canvas.getBoundingClientRect();
+    console.log(width, height);
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    console.log(context);
+    context.lineWidth = 20;
+    context.lineCap = 'round';
+    context.fillStyle = '#fff';
+    console.log(e);
+    context.lineTo(e.clientX, e.clientY);
+    context.stroke();
+    context.beginPath();
+    context.moveTo(e.clientX, e.clientY);
+  };
+
+
   const { source } = useMemo(() => imageData, [imageData]);
+  const img = new Image();
+  img.src = source;
+  img.onload = () => {
+    setImgDimension({
+      width: img.width,
+      height: img.height,
+    });
+  };
+
+
+  const convertImgUrlToBase64 = (blob) => new Promise((resolve, _) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+
+
+  const processRetouch = async () => {
+    setIsLoading(true);
+    const base64Response = await fetch(source);
+    const blob = await base64Response.blob();
+    const result = await convertImgUrlToBase64(blob);
+    const newResult = result.replace(/^data:image\/(jpeg|jpg|png);base64,/, '');
+    const point = await endDraw();
+    const data = {
+      base64: newResult,
+      rectangles: point,
+    };
+    console.log(data);
+    clearCanvas();
+
+    fetch('https://www.cutout.pro/api/v1/imageFix', {
+      method: 'post',
+      headers: {
+        'Content-type': 'application/json',
+        APIKEY: config.cutoutPro.apiKey,
+      },
+      body: JSON.stringify(data),
+    }).then((resp) =>
+      // eslint-disable-next-line implicit-arrow-linebreak
+      resp.json(),
+    ).then(resp => {
+      setImgSrc(resp.data.imageUrl);
+      clearCanvas();
+      setIsLoading(false);
+      setIsProcessImage(true);
+    })
+      // eslint-disable-next-line no-unused-vars
+      .catch((error) => {
+        setIsLoading(false);
+      });
+  };
 
   const onLoadImage = useCallback(async (image) => {
-    const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
+    // const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
+    // const blob = await base64Response.blob();
+
+    const base64Response = await fetch(image);
     const blob = await base64Response.blob();
+
+    const result = await convertImgUrlToBase64(blob);
+    const newResult = result.replace(/^data:image\/(jpeg|jpg|png);base64,/, "");
+
     if (!newImage) {
       return;
     }
@@ -41,7 +161,7 @@ const PhotoEnhancer = observer(({
     try {
       setIsLoading(true);
       startUpload();
-      media = await uploadMedia({ data: blob, isCrop: true });
+      media = await uploadMedia({ data: newResult, isCrop: true });
     } catch (e) {
       hasError = true;
       showError(e.message);
@@ -57,30 +177,6 @@ const PhotoEnhancer = observer(({
   }, [newImage]);
 
 
-  const processImage = () => {
-    setIsLoading(true);
-    fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=3`, {
-      method: 'get',
-      headers: {
-        'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        Accept: 'application/json',
-        APIKEY: config.cutoutPro.apiKey,
-      },
-    })
-      .then((data) =>
-        // eslint-disable-next-line implicit-arrow-linebreak
-        data.json(),
-      ).then(resp => {
-        setIsLoading(false);
-        setIsProcessImage(true);
-        setNewImage(resp.data.imageBase64);
-      })
-      // eslint-disable-next-line no-unused-vars
-      .catch((error) => {
-        setIsLoading(false);
-      });
-  };
-
   const base64 = `data:image/png;base64,${newImage}`;
 
   return (
@@ -88,63 +184,45 @@ const PhotoEnhancer = observer(({
       <div className="">
 
         <div className="flex advance-editor-modal-content">
-
           <div className="content-container">
-
             <div className="flex justify-content-center items-center  ">
-
-              <div className="original-image-container ">
-                <p className="text-center font-weight-bold"> Original Image</p>
-                <div className=" flex justify-content-center ">
-                  <img className="editor-image" src={source} />
-                </div>
-                <div className="flex justify-content-center ">
-                  <div className="mt-5">
-                    <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
-                      Process Photo Retouch
-                    </button>
-                  </div>
+              <div className="">
+                {isLoading ? <LibrarySpinner /> : null}
+                <div className=" flex justify-content-center">
+                  <ReactSketchCanvas
+                    ref={canvasRef}
+                    width={imgDimension.width}
+                    height={imgDimension.height}
+                    strokeWidth={10}
+                    strokeColor="#79A3F1"
+                    backgroundImage={isProcessImage ? imgSrc : source}
+                    preserveBackgroundImageAspectRatio
+                    // onChange={processRetouch}
+                    // onStroke={processRetouch}
+                    allowOnlyPointerTypes="mouse"
+                    // onMouseUp={processRetouch}
+                  />
                 </div>
               </div>
-
-              <div className="result-image-container">
-                <p className="text-center font-weight-bold"> Result Image</p>
-
-                <div className=" ">
-                  {isLoading ? <LibrarySpinner /> : (
-                    <div className=" flex justify-content-center">
-                      {isProcessImage
-                        ? (
-                          <img
-                            className="editor-image"
-                            src={`data:image/png;base64,${newImage}`}
-                          />
-                        )
-                        : <img className="editor-image" src={transparent} />}
-                    </div>
-                  )}
-                </div>
-
-
-              </div>
-
             </div>
-
           </div>
 
 
           <div className="download-container">
-            <div className="mt-5">
-              <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
-              <Pagination count={3} variant="outlined" shape="rounded" color="primary" />
-            </div>
             <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
               Download Image
             </button>
 
-            <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
-              Save to Canvas
-            </button>
+            <div className="flex">
+              <button onClick={() => processRetouch()} className="btn btn-danger btn-sm mt-5 mr-4">
+               Retouch Image
+              </button>
+
+
+              <button onClick={() => onLoadImage(newImage)} className="btn btn-primary   btn-xl mt-5 w">
+              Save Image
+              </button>
+            </div>
           </div>
 
 

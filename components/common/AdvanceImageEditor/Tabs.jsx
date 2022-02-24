@@ -1,22 +1,40 @@
+/* eslint-disable no-sequences */
+/* eslint-disable react/jsx-no-comment-textnodes */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import React, { useEffect, useState } from 'react';
+import classnames from 'classnames';
+
+import SVGInline from 'react-svg-inline';
 import TabPane from './TabPane';
+
 
 const Tabs = (props) => {
   const { children } = props;
   const [tabHeader, setTabHeader] = useState([]);
+  const [tabHeaderObj, setTabHeaderObj] = useState([]);
+
   const [childContent, setChildContent] = useState({});
   const [active, setActive] = useState('');
   useEffect(() => {
     const headers = [];
+    const headerObj = [];
     const childCnt = {};
     React.Children.forEach(children, (element) => {
       if (!React.isValidElement(element)) return;
       const { name } = element.props;
+
+      const obj = {
+        name: element.props.name,
+        icon: element.props.icon,
+      };
       headers.push(name);
+      headerObj.push(obj);
+
       childCnt[name] = element.props.children;
     });
     setTabHeader(headers);
+    setTabHeaderObj(headerObj);
+
     setActive(headers[0]);
     setChildContent({ ...childCnt });
   }, [props, children]);
@@ -28,15 +46,29 @@ const Tabs = (props) => {
   return (
     <div className="tabs">
       <ul className="tab-header">
-        {tabHeader.map((item) => (
+        {tabHeaderObj.map((item) => (
           // eslint-disable-next-line jsx-a11y/click-events-have-key-events
           // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-          <li
-            onClick={() => changeTab(item)}
-            key={item}
-            className={item === active ? 'active' : ''}
-          >
-            {item}
+          // <li
+          //   onClick={() => changeTab(item.name)}
+          //   key={item}
+          //   className={item === active ? 'active' : ''}
+          // >
+          //   <SVGInline
+          //     className="svg-icon icon button-icon"
+          //     svg={`${item.icon}`}
+          //   />
+
+          //   {item.name}
+          // </li>
+          <li className="tablist">
+            <button onClick={() => changeTab(item.name)} className={`tabButton ${item === active ? 'active' : ''}`}>
+              <SVGInline
+                className="svg-icon icon button-icon"
+                svg={`${item.icon}`}
+              />
+              {item.name}
+            </button>
           </li>
         ))}
       </ul>

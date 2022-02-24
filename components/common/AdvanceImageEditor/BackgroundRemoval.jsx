@@ -116,7 +116,7 @@ const BackgroundRemoval = observer(({
           <div className="content-container">
             <div className="flex justify-content-center items-center  ">
               <div className="original-image-container ">
-                <p className="text-center font-weight-bold"> Original Image</p>
+                <p className="text-center font-weight-bold"> Original</p>
                 <div className=" flex justify-content-center ">
                   <img className="editor-image" src={source} />
                 </div>
@@ -130,7 +130,7 @@ const BackgroundRemoval = observer(({
               </div>
 
               <div className="result-image-container">
-                <p className="text-center font-weight-bold"> Result Image</p>
+                <p className="text-center font-weight-bold"> Result </p>
                 <div className=" ">
                   {isLoading ? <LibrarySpinner /> : (
                     <div className=" flex justify-content-center">

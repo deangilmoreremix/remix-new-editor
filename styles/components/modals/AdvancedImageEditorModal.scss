@@ -1,81 +1,18 @@
 
 .advance-editor-modal {
   // width: 80vw;
-  width: 100%;
+  // width: 100%;
   // height: 85vh;
-  padding: 5px;
-}
-
-.text-header {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  color: $white;
-}
-
-
-.header {
-  height: 45px;
-  line-height: 45px;
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 9999;
-  display: block;
-  margin: 0;
-  width: 100%;
-  min-width: 1024px;
-  height: 48px;
-  max-height: 44px;
-  background: rgba(221, 221, 221, 0.92);
-  font-size: 14px;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  // padding-left: 60px;
-}
-
-
-.tab-header {
-  list-style: none;
-  border-radius: 50px;
-  line-height: 25px;
-  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-}
-.tab-header li {
-  display: inline;
-  padding: 5px 8px;
-  border-radius: 36px;
-  line-height: 35px;
-  cursor: pointer;
-}
-
-.tab-header li.active,
-.tab-header li:hover {
-  background: #EB5054; /* fallback for old browsers */
-  background: -webkit-linear-gradient(
-    to right,
-    #EB5054,
-    #EB5054
-  ); /* Chrome 10-25, Safari 5.1-6 */
-  background: linear-gradient(
-    to right,
-    #EB5054,
-    #EB5054
-  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  // padding: 5px;
 }
 
 
 .color-btn {
  padding: 1rem;
  border-radius: 5px;
-//  margin-right: 10px;
  margin: 5px !important;
  border: none;
  background: none;
-//  color: ;
-// outline: none;
 }
 
 .cartoon-container {
@@ -115,11 +52,11 @@
 
 
 .original-image-container {
-  margin-right: 3rem;
+  // margin-right: 3rem;
   width: 50%;
 }
 .result-image-container {
-  margin-right: 3rem;
+  // margin-right: 3rem;
   width: 50%;
 
 }
@@ -133,7 +70,95 @@
 
 .passport-image {
   margin-right: 10px;
-  }
+}
+
+.tabs {
+  margin: 0;
+  padding: 0;
+}
+
+
+.tab-header {
+  list-style: none;
+  background-color: #313142;
+  padding: 1rem;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.tablist   {
+  display: inline;
+  border-radius: 10px;
+  line-height: 50px;
+  background-color: #373A4A;
+  color: #fff;
+  cursor: pointer;
+  margin-right: 10px;
+  overflow-wrap: break-word;
+}
+
+.tabButton {
+  background-color: #373A4A;
+  color: #fff;
+  border-radius: 10px;
+  line-height: 50px;
+  cursor: pointer;
+  margin-right: 10px;
+  font-size: 12px;
+  overflow-wrap: break-word;
+  border: none;
+  text-align: center;
+  margin:  0 auto;
+  padding: 5px;
+  display: inline-block;
+  font-size: 12px;
+
+}
+
+
+
+
+.svg-icon {
+  width: 25px !important;
+  height:25px !important;
+  text-align: center;
+  margin:  0 auto;
+  padding-top: 10px;
+  font-size: 14px;
+}
+
+.svg-icon.active,
+.svg-icon.hover {
+  fill: #EB5054 ;
+  fill: #EB5054; /* fallback for old browsers */
+  fill: -webkit-linear-gradient(
+    to right,
+    #EB5054,
+    #EB5054
+  ); /* Chrome 10-25, Safari 5.1-6 */
+  fill: linear-gradient(
+    to right,
+    #EB5054,
+    #EB5054
+  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+
+.tab-header .tabButton.active,
+.tab-header .tabButton:hover {
+  color: #EB5054; /* fallback for old browsers */
+  color: -webkit-linear-gradient(
+    to right,
+    #EB5054,
+    #EB5054
+  ); /* Chrome 10-25, Safari 5.1-6 */
+  color: linear-gradient(
+    to right,
+    #EB5054,
+    #EB5054
+  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+
 
 
 
