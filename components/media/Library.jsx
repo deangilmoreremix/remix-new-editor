@@ -124,7 +124,6 @@ const Library = observer((props) => {
   const [isMultiSelectLoading, setIsMultiSelectLoading] = useState(false);
   const [tabName, setTabName] = useState('VIDEO');
 
-
   const inputRef = useRef();
   const keyRef = useRef();
   const addFileInputRef = useRef();
@@ -177,7 +176,6 @@ const Library = observer((props) => {
 
   const updateActiveTab = React.useCallback(
     (tab) => {
-      console.log(tab, 'this is the tab');
       setTabName(tab);
       if (!isLoading) {
         setActiveTab(tab);
@@ -598,17 +596,17 @@ const Library = observer((props) => {
   };
 
 
-  const onDelete = useCallback(async (e, id) => {
+  const onDelete = useCallback(async (e, id, val) => {
     e.stopPropagation();
     const response = await showConfirmation(
       'Are you sure you want to delete the Media file',
       'Delete Media File',
     );
-
     if (response) {
-      const newArr = items.filter((item) => item._id !== id);
-      setLibraryItemsForDelete(id);
+      const newArr = val.filter((item) => item._id !== id);
       setItems(newArr);
+      setLibraryItemsForDelete(id);
+      projectStore.showSuccess('Media deleted successfully');
     }
   }, []);
 
@@ -622,7 +620,7 @@ const Library = observer((props) => {
     deleteAsset()
       .then(() => {
         if (!unmount) {
-          setItems([]);
+          // setItems([]);
         }
       })
       .then(() => {
@@ -743,7 +741,6 @@ const Library = observer((props) => {
             {renderSidebar()}
             {!needValidation ? (
               <>
-                {tabName}
                 <div className="library__search-box">
                   <input
                     className="library__search"
