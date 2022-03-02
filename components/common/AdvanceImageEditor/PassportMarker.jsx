@@ -13,6 +13,7 @@ import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 // import useModalStore from '../../hooks/useModalStore';
+import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 
 import manOne from '../../../public/static/AdvanceImageSvg/idphotodress/man/1.png';
 import manTwo from '../../../public/static/AdvanceImageSvg/idphotodress/man/2.png';
@@ -74,8 +75,6 @@ const PhotoEnhancer = observer(({
   const [womanActiveSlideIndex, setWomanActiveSlideIndex] = useState(0);
   const [childActiveSlideIndex, setChildActiveSlideIndex] = useState(0);
 
-
-  const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
 
   const convertImgUrlToBase64 = (blob) => new Promise((resolve, _) => {
@@ -234,8 +233,12 @@ const PhotoEnhancer = observer(({
     }
   }, [newImage]);
 
-  const base64 = convertToBlob(newImage);
-  // console.log(base64, 'This is here');
+  const downloadPassport = async () => {
+    const base64Response = await fetch(newImage);
+    const blob = await base64Response.blob();
+    const result = await convertImgUrlToBase64(blob);
+    triggerBase64Download(result, 'my_download');
+  };
 
 
   return (
@@ -286,12 +289,8 @@ const PhotoEnhancer = observer(({
                     </div>
                   )}
                 </div>
-
-
               </div>
-
             </div>
-
           </div>
 
 
@@ -647,7 +646,7 @@ const PhotoEnhancer = observer(({
 
 
             <button
-              onClick={() => triggerBase64Download(base64, 'my_download')}
+              onClick={() => downloadPassport()}
               className="btn btn-outline-danger btn-xl mt-5 w-full  w-100"
             >
               Download Image

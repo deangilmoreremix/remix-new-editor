@@ -8,6 +8,7 @@ import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
+import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 
 const BackgroundRemoval = observer(({
   imageData,
@@ -23,8 +24,6 @@ const BackgroundRemoval = observer(({
   const [newImage, setNewImage] = useState('');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
-
-  const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
 
   const onLoadImage = useCallback(async (image) => {
@@ -175,8 +174,6 @@ const BackgroundRemoval = observer(({
                       background: 'none',
                       color: '#fff',
                       outline: 'none',
-                      // alignSelf: 'center',
-
                     },
                   }}
                   backwardBtnProps={{
@@ -191,11 +188,9 @@ const BackgroundRemoval = observer(({
                       background: 'none',
                       color: '#fff',
                       outline: 'none',
-                      // alignSelf: 'center',
-
                     },
                   }}
-                  itemsToShow={10}
+                  itemsToShow={12}
                   itemsToScroll={3}
                   activeSlideIndex={activeSlideIndex}
                   onRequestChange={setActiveSlideIndex}
@@ -207,14 +202,13 @@ const BackgroundRemoval = observer(({
                   <button onClick={() => changeBackgroundColor('BCB1FF')} className="color-btn" style={{ backgroundColor: '#BCB1FF' }} />
                   <button onClick={() => changeBackgroundColor('C2C5AA')} className="color-btn" style={{ backgroundColor: '#C2C5AA' }} />
                   <button onClick={() => changeBackgroundColor('F1FBEF')} className="color-btn" style={{ backgroundColor: '#F1FBEF' }} />
-                  <button onClick={() => changeBackgroundColor('F1FBEF')} className="color-btn" style={{ backgroundColor: '#F1FBEF' }} />
                   <button onClick={() => changeBackgroundColor('D8D9D8')} className="color-btn" style={{ backgroundColor: '#D8D9D8' }} />
                   <button onClick={() => changeBackgroundColor('BEE1E6')} className="color-btn" style={{ backgroundColor: '#BEE1E6' }} />
                   <button onClick={() => changeBackgroundColor('97F5E1')} className="color-btn" style={{ backgroundColor: '#97F5E1' }} />
                   <button onClick={() => changeBackgroundColor('EB5054')} className="color-btn" style={{ backgroundColor: '#EB5054' }} />
-                  <button onClick={() => changeBackgroundColor('E8C1CA')} className="color-btn" style={{ backgroundColor: '#E8C1CA' }} />
+                  <button onClick={() => changeBackgroundColor('E9C1CA')} className="color-btn" style={{ backgroundColor: '#E9C1CA' }} />
                   <button onClick={() => changeBackgroundColor('CFDFC2')} className="color-btn" style={{ backgroundColor: '#CFDFC2' }} />
-                  <button onClick={() => changeBackgroundColor('E82055')} className="color-btn" style={{ backgroundColor: '#E82055' }} />
+                  <button onClick={() => changeBackgroundColor('EA2055')} className="color-btn" style={{ backgroundColor: '#EA2055' }} />
                   <button onClick={() => changeBackgroundColor('23ef56')} className="color-btn" style={{ backgroundColor: '#23ef56' }} />
                   <button onClick={() => changeBackgroundColor('ffed45')} className="color-btn" style={{ backgroundColor: '#ffed45' }} />
                 </Carousel>
