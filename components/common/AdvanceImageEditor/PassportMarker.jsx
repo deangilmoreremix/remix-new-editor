@@ -132,23 +132,40 @@ const PhotoEnhancer = observer(({
     return result;
   };
 
-  const changeBackgroundColor = (val) => {
+  const changeBackgroundColor = async (val) => {
     setIsLoading(true);
-    fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&bgcolor=${val}&mattingType=6`, {
-      method: 'get',
+    const base64Response = await fetch(source);
+    const blob = await base64Response.blob();
+
+    const result = await convertImgUrlToBase64(blob);
+    const newResult = result.replace(/^data:image\/(jpeg|jpg|png);base64,/, "");
+
+    const data = {
+      base64: newResult,
+      bgColor: val,
+      dpi: 300,
+      mmHeight: 35,
+      mmWidth: 25,
+      printBgColor: "FFFFFF",
+      printMmHeight: 210,
+      printMmWidth: 150,
+    };
+    fetch(`https://www.cutout.pro/api/v1/idphoto/printLayout`, {
+      method: 'post',
       headers: {
-        'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        Accept: 'application/json',
+        'Content-type': 'application/json',
         APIKEY: config.cutoutPro.apiKey,
       },
+      body: JSON.stringify(data),
     })
-      .then((data) =>
+      .then((resp) =>
         // eslint-disable-next-line implicit-arrow-linebreak
-        data.json(),
+        resp.json(),
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setNewImage(resp.data.imageBase64);
+        setNewImage(resp.data.idPhotoImage);
+        setPrintLayoutImage(resp.data.printLayoutImage);
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
