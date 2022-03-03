@@ -8,6 +8,7 @@ import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
+import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 
 
 const PhotoEnhancer = observer(({
@@ -24,7 +25,7 @@ const PhotoEnhancer = observer(({
   const [newImage, setNewImage] = useState('');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
-  const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
+  // const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
 
   const onLoadImage = useCallback(async (image) => {
@@ -202,7 +203,7 @@ const PhotoEnhancer = observer(({
                   activeSlideIndex={activeSlideIndex}
                   onRequestChange={setActiveSlideIndex}
                 >
-                  <button onClick={() => changeBackgroundColor('ffffff')} className="color-btn" style={{ backgroundColor: '#fffff' }} />
+                  <button onClick={() => changeBackgroundColor('FFFFFF')} className="color-btn" style={{ backgroundColor: '#FFFFFF' }} />
                   <button onClick={() => changeBackgroundColor('FEACAD')} className="color-btn" style={{ backgroundColor: '#FEACAD' }} />
                   <button onClick={() => changeBackgroundColor('FFD6A5')} className="color-btn" style={{ backgroundColor: '#FFD6A5' }} />
                   <button onClick={() => changeBackgroundColor('A0C5FE')} className="color-btn" style={{ backgroundColor: '#A0C5FE' }} />

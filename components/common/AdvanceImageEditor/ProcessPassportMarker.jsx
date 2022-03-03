@@ -24,7 +24,6 @@ const ProcessPassportMarker = observer(({
           </div>
 
           <div>
-
             <SVGInline
               className="icon icon-button"
               svg={closeIcon}
