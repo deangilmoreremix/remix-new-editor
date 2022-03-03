@@ -216,15 +216,7 @@ const PhotoEnhancer = observer(({
   };
 
   const onLoadImage = useCallback(async (image) => {
-    // const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
-    // const blob = await base64Response.blob();
-
-    const base64Response = await fetch(image);
-    const blob = await base64Response.blob();
-
-    const result = await convertImgUrlToBase64(blob);
-    const newResult = result.replace(/^data:image\/(jpeg|jpg|png);base64,/, "");
-
+    const result = await convertToBlob(image);
     if (!newImage) {
       return;
     }
@@ -235,7 +227,7 @@ const PhotoEnhancer = observer(({
     try {
       setIsLoading(true);
       startUpload();
-      media = await uploadMedia({ data: newResult, isCrop: true });
+      media = await uploadMedia({ data: result, isCrop: true });
     } catch (e) {
       hasError = true;
       showError(e.message);

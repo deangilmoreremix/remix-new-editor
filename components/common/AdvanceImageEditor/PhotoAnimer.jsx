@@ -8,6 +8,8 @@ import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
+import transparent from '../../../public/static/AdvanceImageSvg/background.png';
+
 
 
 const PhotoEnhancer = observer(({
@@ -25,7 +27,6 @@ const PhotoEnhancer = observer(({
   const [newImage, setNewImage] = useState('');
   const [animerImage, setAnimerImage] = useState('');
 
-  const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
 
   const onLoadImage = useCallback(async (image) => {
@@ -54,8 +55,8 @@ const PhotoEnhancer = observer(({
     }
   }, [newImage]);
 
-  const processAnimer = (val) => {
-    fetch(`https://www.cutout.pro/api/v1/faceDriven/getTaskInfo?taskId=${val}`, {
+  const processAnimer = async (val) => {
+    await fetch(`https://www.cutout.pro/api/v1/faceDriven/getTaskInfo?taskId=${val}`, {
       method: 'get',
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -77,9 +78,9 @@ const PhotoEnhancer = observer(({
       });
   };
 
-  const processImage = () => {
+  const processImage = async () => {
     setIsLoading(true);
-    fetch(`https://www.cutout.pro/api/v1/faceDriven/submitTaskByUrl?imageUrl=${source}&templateId=2`, {
+    await fetch(`https://www.cutout.pro/api/v1/faceDriven/submitTaskByUrl?imageUrl=${source}&templateId=2`, {
       method: 'get',
       headers: {
         'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
@@ -93,8 +94,9 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        console.log(resp.data, 'This is the data response');
+        console.log(resp.data, 'This is the data response get the task ID');
         setAnimerImage(resp.data);
+        console.log(animerImage, 'This is the animer image');
         processAnimer(animerImage);
       })
       // eslint-disable-next-line no-unused-vars
@@ -160,7 +162,7 @@ const PhotoEnhancer = observer(({
 
           <div className="download-container">
             <div className="mt-5">
-              <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
+              <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Anime</p>
               <div className="flex">
 
                 <div role="button" className=" cartoon-container">
@@ -196,7 +198,7 @@ const PhotoEnhancer = observer(({
               </div>
             </div>
             <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
-              Download Image
+              Download Anime
             </button>
 
             <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">

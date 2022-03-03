@@ -11,6 +11,9 @@ import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
+import transparent from '../../../public/static/AdvanceImageSvg/background.png';
+
+
 
 
 const PhotoEnhancer = observer(({
@@ -29,7 +32,6 @@ const PhotoEnhancer = observer(({
   // const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
 
-  const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
 
   const onLoadImage = useCallback(async (image) => {
