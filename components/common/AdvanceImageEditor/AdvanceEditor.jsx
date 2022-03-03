@@ -102,7 +102,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name="Smart Motion" icon={smartMotion} key="7">
+            <TabPane name="Smart Anime" icon={smartMotion} key="7">
               <PhotoAnimer
                 imageData={imageMeta}
                 handleClose={handleClose}

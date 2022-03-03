@@ -193,7 +193,7 @@ const Basic = observer(({
 
       <div className="image-settings__block">
         <div className="image-settings__btn--block">
-          <button
+          {/* <button
             className="image-settings__btn"
             onClick={() => {
               openImageEditor({
@@ -207,7 +207,7 @@ const Basic = observer(({
             disabled={isLoading}
           >
             Image Editor
-          </button>
+          </button> */}
           <button
             className="image-settings__btn"
             onClick={() => {
@@ -222,7 +222,7 @@ const Basic = observer(({
             }}
             disabled={isLoading}
           >
-          New Image Editor
+           Image Editor
           </button>
           <button
             className="image-settings__btn"
@@ -238,7 +238,7 @@ const Basic = observer(({
             }}
             disabled={isLoading}
           >
-            Advance AI Editor
+             AI Image Editor
           </button>
         </div>
       </div>
