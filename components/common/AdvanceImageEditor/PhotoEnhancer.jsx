@@ -1,7 +1,6 @@
 /* eslint-disable no-var */
 import React, { useCallback, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
-import Pagination from '@material-ui/lab/Pagination';
 import { triggerBase64Download } from 'react-base64-downloader';
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
@@ -24,7 +23,7 @@ const PhotoEnhancer = observer(({
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
-  
+
   const { source } = useMemo(() => imageData, [imageData]);
 
   const onLoadImage = useCallback(async (image) => {
