@@ -23,7 +23,6 @@ import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
 
 
-
 const AdvancedImageEditor = observer(({
   handleClose,
   options,
@@ -41,6 +40,11 @@ const AdvancedImageEditor = observer(({
   return (
     <>
       <div>
+        <div className="heading-container">
+          <button className="btn btn-secondary btn-sm" onClick={onClose}>
+          Close
+          </button>
+        </div>
         <div className="advanced-image-editor-wrapper">
           <Tabs>
             <TabPane name="Smart BG Removal" icon={RemoveBackgroundSvg} key="1">
