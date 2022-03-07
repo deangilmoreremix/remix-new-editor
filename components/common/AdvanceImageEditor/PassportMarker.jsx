@@ -216,15 +216,7 @@ const PhotoEnhancer = observer(({
   };
 
   const onLoadImage = useCallback(async (image) => {
-    // const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
-    // const blob = await base64Response.blob();
-
-    const base64Response = await fetch(image);
-    const blob = await base64Response.blob();
-
-    const result = await convertImgUrlToBase64(blob);
-    const newResult = result.replace(/^data:image\/(jpeg|jpg|png);base64,/, "");
-
+    const result = await convertToBlob(image);
     if (!newImage) {
       return;
     }
@@ -235,7 +227,7 @@ const PhotoEnhancer = observer(({
     try {
       setIsLoading(true);
       startUpload();
-      media = await uploadMedia({ data: newResult, isCrop: true });
+      media = await uploadMedia({ data: result, isCrop: true });
     } catch (e) {
       hasError = true;
       showError(e.message);
@@ -363,7 +355,7 @@ const PhotoEnhancer = observer(({
                   activeSlideIndex={activeSlideIndex}
                   onRequestChange={setActiveSlideIndex}
                 >
-                  <button onClick={() => changeBackgroundColor('ffffff')} className="color-btn" style={{ backgroundColor: '#fffff' }} />
+                  <button onClick={() => changeBackgroundColor('FFFFFF')} className="color-btn" style={{ backgroundColor: '#FFFFFF' }} />
                   <button onClick={() => changeBackgroundColor('FEACAD')} className="color-btn" style={{ backgroundColor: '#FEACAD' }} />
                   <button onClick={() => changeBackgroundColor('FFD6A5')} className="color-btn" style={{ backgroundColor: '#FFD6A5' }} />
                   <button onClick={() => changeBackgroundColor('A0C5FE')} className="color-btn" style={{ backgroundColor: '#A0C5FE' }} />

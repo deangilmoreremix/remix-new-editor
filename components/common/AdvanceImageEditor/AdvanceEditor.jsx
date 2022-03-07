@@ -1,7 +1,6 @@
 /* eslint-disable no-var */
 import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
-// import SVGInline from 'react-svg-inline';
 import Tabs from './Tabs';
 import TabPane from './TabPane';
 import BackgroundRemoval from './BackgroundRemoval';

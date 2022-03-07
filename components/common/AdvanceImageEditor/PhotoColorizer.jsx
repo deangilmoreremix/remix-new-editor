@@ -8,6 +8,7 @@ import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
+import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 
 const PhotoEnhancer = observer(({
   imageData,
@@ -22,7 +23,6 @@ const PhotoEnhancer = observer(({
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
-  const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
 
 
