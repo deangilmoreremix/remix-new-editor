@@ -162,7 +162,7 @@ const Canvas = observer(() => {
           color={LOADING_COLOR}
         />
 
-        <div id={DEFAULT_CONTAINER} ref={wrapper} className="video-container" style={{ fontSize }}>
+        <div id={DEFAULT_CONTAINER} ref={wrapper} className="video-container" style={{ fontSize, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div
             id="video"
             className={classnames('video', { 'video-active': isOver })}

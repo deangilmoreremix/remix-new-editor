@@ -13,6 +13,7 @@ import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 // import useModalStore from '../../hooks/useModalStore';
+import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 
 import manOne from '../../../public/static/AdvanceImageSvg/idphotodress/man/1.png';
 import manTwo from '../../../public/static/AdvanceImageSvg/idphotodress/man/2.png';
@@ -74,8 +75,6 @@ const PhotoEnhancer = observer(({
   const [womanActiveSlideIndex, setWomanActiveSlideIndex] = useState(0);
   const [childActiveSlideIndex, setChildActiveSlideIndex] = useState(0);
 
-
-  const transparent = 'https://user-images.githubusercontent.com/20482760/56193735-a33f2800-6031-11e9-80c7-878dad341315.png';
   const { source } = useMemo(() => imageData, [imageData]);
 
   const convertImgUrlToBase64 = (blob) => new Promise((resolve, _) => {
@@ -133,23 +132,40 @@ const PhotoEnhancer = observer(({
     return result;
   };
 
-  const changeBackgroundColor = (val) => {
+  const changeBackgroundColor = async (val) => {
     setIsLoading(true);
-    fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&bgcolor=${val}&mattingType=6`, {
-      method: 'get',
+    const base64Response = await fetch(source);
+    const blob = await base64Response.blob();
+
+    const result = await convertImgUrlToBase64(blob);
+    const newResult = result.replace(/^data:image\/(jpeg|jpg|png);base64,/, "");
+
+    const data = {
+      base64: newResult,
+      bgColor: val,
+      dpi: 300,
+      mmHeight: 35,
+      mmWidth: 25,
+      printBgColor: "FFFFFF",
+      printMmHeight: 210,
+      printMmWidth: 150,
+    };
+    fetch(`https://www.cutout.pro/api/v1/idphoto/printLayout`, {
+      method: 'post',
       headers: {
-        'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        Accept: 'application/json',
+        'Content-type': 'application/json',
         APIKEY: config.cutoutPro.apiKey,
       },
+      body: JSON.stringify(data),
     })
-      .then((data) =>
+      .then((resp) =>
         // eslint-disable-next-line implicit-arrow-linebreak
-        data.json(),
+        resp.json(),
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setNewImage(resp.data.imageBase64);
+        setNewImage(resp.data.idPhotoImage);
+        setPrintLayoutImage(resp.data.printLayoutImage);
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -234,8 +250,12 @@ const PhotoEnhancer = observer(({
     }
   }, [newImage]);
 
-  const base64 = convertToBlob(newImage);
-  // console.log(base64, 'This is here');
+  const downloadPassport = async () => {
+    const base64Response = await fetch(newImage);
+    const blob = await base64Response.blob();
+    const result = await convertImgUrlToBase64(blob);
+    triggerBase64Download(result, 'my_download');
+  };
 
 
   return (
@@ -286,12 +306,8 @@ const PhotoEnhancer = observer(({
                     </div>
                   )}
                 </div>
-
-
               </div>
-
             </div>
-
           </div>
 
 
@@ -647,7 +663,7 @@ const PhotoEnhancer = observer(({
 
 
             <button
-              onClick={() => triggerBase64Download(base64, 'my_download')}
+              onClick={() => downloadPassport()}
               className="btn btn-outline-danger btn-xl mt-5 w-full  w-100"
             >
               Download Image
