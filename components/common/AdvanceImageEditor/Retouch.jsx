@@ -71,11 +71,9 @@ const PhotoEnhancer = observer(({
     // if (!draw) return;
     const canvas = canvasRef.current;
     const { width, height } = canvas.getBoundingClientRect();
-    console.log(width, height);
     canvas.width = width;
     canvas.height = height;
     const context = canvas.getContext('2d');
-    console.log(context);
     context.lineWidth = 20;
     context.lineCap = 'round';
     context.fillStyle = '#fff';
@@ -141,17 +139,17 @@ const PhotoEnhancer = observer(({
       });
   };
 
-  const onLoadImage = useCallback(async (image) => {
-    // const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
-    // const blob = await base64Response.blob();
-
-    const base64Response = await fetch(image);
+  const convertToBlob = async (val) => {
+    const base64Response = await fetch(val);
     const blob = await base64Response.blob();
-
     const result = await convertImgUrlToBase64(blob);
-    const newResult = result.replace(/^data:image\/(jpeg|jpg|png);base64,/, "");
+    return result;
+  };
 
-    if (!newImage) {
+  const onLoadImage = useCallback(async (image) => {
+    const result = await convertToBlob(image);
+
+    if (!imgSrc) {
       return;
     }
 
@@ -161,7 +159,7 @@ const PhotoEnhancer = observer(({
     try {
       setIsLoading(true);
       startUpload();
-      media = await uploadMedia({ data: newResult, isCrop: true });
+      media = await uploadMedia({ data: result, isCrop: true });
     } catch (e) {
       hasError = true;
       showError(e.message);
@@ -174,10 +172,17 @@ const PhotoEnhancer = observer(({
       handleClose();
       endUpload();
     }
-  }, [newImage]);
+  }, [imgSrc]);
 
+  // const base64 = `data:image/png;base64,${newImage}`;
 
-  const base64 = `data:image/png;base64,${newImage}`;
+  const downloadPassport = async () => {
+    const base64Response = await fetch(imgSrc);
+    const blob = await base64Response.blob();
+    const result = await convertImgUrlToBase64(blob);
+    triggerBase64Download(result, 'my_download');
+  };
+
 
   return (
     <>
@@ -209,7 +214,7 @@ const PhotoEnhancer = observer(({
 
 
           <div className="download-container">
-            <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
+            <button onClick={() => downloadPassport()} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
               Download Image
             </button>
 
@@ -219,7 +224,7 @@ const PhotoEnhancer = observer(({
               </button>
 
 
-              <button onClick={() => onLoadImage(newImage)} className="btn btn-primary   btn-xl mt-5 w">
+              <button onClick={() => onLoadImage(imgSrc)} className="btn btn-primary   btn-xl mt-5 w">
               Save Image
               </button>
             </div>
