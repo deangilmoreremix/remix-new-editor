@@ -1,7 +1,6 @@
 /* eslint-disable no-var */
 import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
-import SVGInline from 'react-svg-inline';
 import Tabs from './Tabs';
 import TabPane from './TabPane';
 import BackgroundRemoval from './BackgroundRemoval';
@@ -22,11 +21,6 @@ import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg'
 import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
 import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
-
-
-
-
-
 
 
 

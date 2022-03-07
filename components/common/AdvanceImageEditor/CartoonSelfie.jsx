@@ -13,9 +13,6 @@ import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 
-
-
-
 const PhotoEnhancer = observer(({
   imageData,
   onImageEdited,

@@ -1,7 +1,6 @@
 /* eslint-disable no-var */
 import React, { useCallback, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
-import Pagination from '@material-ui/lab/Pagination';
 import { triggerBase64Download } from 'react-base64-downloader';
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
@@ -9,7 +8,6 @@ import useMediaStore from '../../hooks/useMediaStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
-
 
 
 const PhotoEnhancer = observer(({
@@ -26,7 +24,6 @@ const PhotoEnhancer = observer(({
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
   const [animerImage, setAnimerImage] = useState('');
-
   const { source } = useMemo(() => imageData, [imageData]);
 
   const onLoadImage = useCallback(async (image) => {
