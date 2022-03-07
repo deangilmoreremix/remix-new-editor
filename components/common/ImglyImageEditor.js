@@ -3,7 +3,9 @@ import { UIEvent, PhotoEditorSDKUI } from 'photoeditorsdk';
 import { observer } from 'mobx-react';
 import { showError } from '../../lib/services/alertService';
 import useMediaStore from '../hooks/useMediaStore';
+import useUIStore from '../hooks/useUIStore';
 import PropTypes from '../../lib/PropTypes';
+import { tabItems } from '../../lib/constants/library';
 
 const PhotoEditorSDK = observer(({
   imageData,
@@ -13,8 +15,10 @@ const PhotoEditorSDK = observer(({
   endUpload,
 }) => {
   const { source } = useMemo(() => imageData, [imageData]);
-  const { uploadMedia } = useMediaStore();
-
+  const { uploadMedia, storeAsset } = useMediaStore();
+  const {
+    secondaryWindowType: activeTab,
+  } = useUIStore();
   const onLoadImage = useCallback(async (image) => {
     let media;
     let hasError;
@@ -23,7 +27,17 @@ const PhotoEditorSDK = observer(({
       // setIsLoading(true);
       startUpload();
       media = await uploadMedia({ data: image, isCrop: true });
-      console.log(media, 'Media section');
+      const fileExtension = media.url.match(/\.[0-9a-z]{1,5}$/)[0];
+      let fileType = activeTab;
+      Object.keys(tabItems).forEach((item) => {
+        tabItems[item].formats.forEach((format) => {
+          if (format === fileExtension) {
+            fileType = item;
+          }
+        });
+      });
+
+      await storeAsset(media, fileType);
     } catch (e) {
       hasError = true;
       showError(e.message);
