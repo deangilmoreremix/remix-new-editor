@@ -63,7 +63,7 @@ const AdvancedImageEditor = observer(({
               />
             </TabPane>
 
-            <TabPane name="Smart Carton Selfie" icon={SelfieSvg} key="3">
+            <TabPane name="Smart Cartoon Selfie" icon={SelfieSvg} key="3">
               <CartoonSelfie
                 imageData={imageMeta}
                 handleClose={handleClose}
