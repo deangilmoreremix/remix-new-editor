@@ -1,7 +1,7 @@
 /* eslint-disable no-var */
 import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
-import SVGInline from 'react-svg-inline';
+// import SVGInline from 'react-svg-inline';
 import Tabs from './Tabs';
 import TabPane from './TabPane';
 import BackgroundRemoval from './BackgroundRemoval';
@@ -24,12 +24,6 @@ import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
 
 
-
-
-
-
-
-
 const AdvancedImageEditor = observer(({
   handleClose,
   options,
@@ -47,6 +41,11 @@ const AdvancedImageEditor = observer(({
   return (
     <>
       <div>
+        <div className="heading-container">
+          <button className="btn btn-secondary btn-sm" onClick={onClose}>
+          Close
+          </button>
+        </div>
         <div className="advanced-image-editor-wrapper">
           <Tabs>
             <TabPane name="Smart BG Removal" icon={RemoveBackgroundSvg} key="1">

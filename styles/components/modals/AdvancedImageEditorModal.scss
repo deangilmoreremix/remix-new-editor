@@ -6,6 +6,14 @@
   // padding: 5px;
 }
 
+.heading-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 
 .color-btn {
  padding: 1rem;
