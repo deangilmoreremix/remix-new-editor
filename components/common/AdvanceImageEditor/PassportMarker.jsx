@@ -611,7 +611,7 @@ const PhotoEnhancer = observer(({
                       <img src={childTwo} className="carton-avatar" alt="" />
                     </div>
 
-                    <div role="button" onClick={() => changeDressPhotoImage('child2')} className="imgS border-sel cartoon-container">
+                    <div role="button" onClick={() => changeDressPhotoImage('child3')} className="imgS border-sel cartoon-container">
                       <img src={childThree} className="carton-avatar" alt="" />
                     </div>
                     <div role="button" onClick={() => changeDressPhotoImage('child4')} className="imgS border-sel cartoon-container">
