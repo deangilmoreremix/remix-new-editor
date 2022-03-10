@@ -3,10 +3,11 @@
 /* eslint-disable global-require */
 /* eslint-disable quotes */
 /* eslint-disable no-var */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { triggerBase64Download } from 'react-base64-downloader';
 import Carousel from 'react-simply-carousel';
+import { ColorizeOutlined, ControlPointDuplicateOutlined } from '@material-ui/icons';
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
@@ -66,14 +67,15 @@ const PhotoEnhancer = observer(({
   const { uploadMedia } = useMediaStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
-
   const [newImage, setNewImage] = useState('');
   const [printLayoutImage, setPrintLayoutImage] = useState('');
-
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [manActiveSlideIndex, setManActiveSlideIndex] = useState(0);
   const [womanActiveSlideIndex, setWomanActiveSlideIndex] = useState(0);
   const [childActiveSlideIndex, setChildActiveSlideIndex] = useState(0);
+  const [color, setColor] = useState('FFFFFF');
+  const [dress, setDress] = useState('');
+
 
   const { source } = useMemo(() => imageData, [imageData]);
 
@@ -82,7 +84,6 @@ const PhotoEnhancer = observer(({
     reader.onloadend = () => resolve(reader.result);
     reader.readAsDataURL(blob);
   });
-
 
   const processImage = async () => {
     setIsLoading(true);
@@ -94,14 +95,16 @@ const PhotoEnhancer = observer(({
 
     const data = {
       base64: newResult,
-      bgColor: "FFFFFF",
+      bgColor: color,
       dpi: 300,
       mmHeight: 35,
       mmWidth: 25,
-      printBgColor: "FFFFFF",
+      printBgColor: color,
       printMmHeight: 210,
       printMmWidth: 150,
+      dress,
     };
+
     fetch(`https://www.cutout.pro/api/v1/idphoto/printLayout`, {
       method: 'post',
       headers: {
@@ -116,8 +119,12 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setNewImage(resp.data.idPhotoImage);
-        setPrintLayoutImage(resp.data.printLayoutImage);
+        if (resp.data === null) {
+          setNewImage(null);
+        } else {
+          setNewImage(resp.data.idPhotoImage);
+          setPrintLayoutImage(resp.data.printLayoutImage);
+        }
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -133,6 +140,9 @@ const PhotoEnhancer = observer(({
   };
 
   const changeBackgroundColor = async (val) => {
+    // console.log(val);
+    // setColor(val);
+    // console.log(color);
     setIsLoading(true);
     const base64Response = await fetch(source);
     const blob = await base64Response.blob();
@@ -146,10 +156,12 @@ const PhotoEnhancer = observer(({
       dpi: 300,
       mmHeight: 35,
       mmWidth: 25,
-      printBgColor: "FFFFFF",
+      printBgColor: val,
       printMmHeight: 210,
       printMmWidth: 150,
+      dress,
     };
+    console.log(data);
     fetch(`https://www.cutout.pro/api/v1/idphoto/printLayout`, {
       method: 'post',
       headers: {
@@ -164,8 +176,15 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setNewImage(resp.data.idPhotoImage);
-        setPrintLayoutImage(resp.data.printLayoutImage);
+        // setNewImage(resp.data.idPhotoImage);
+        // setPrintLayoutImage(resp.data.printLayoutImage);
+        if (resp.data === null) {
+          setNewImage(null);
+        } else {
+          setColor(val);
+          setNewImage(resp.data.idPhotoImage);
+          setPrintLayoutImage(resp.data.printLayoutImage);
+        }
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -173,7 +192,16 @@ const PhotoEnhancer = observer(({
       });
   };
 
+  // useEffect(() => {
+  // console.log(dress);
+  // }, [color, dress]);
+
   const changeDressPhotoImage = async (val) => {
+    // console.log(val, 'This is val');
+    // setDress('');
+    // setDress(val);
+    // console.log(dress, 'this is state');
+
     setIsLoading(true);
     const base64Response = await fetch(source);
     const blob = await base64Response.blob();
@@ -183,15 +211,16 @@ const PhotoEnhancer = observer(({
 
     const data = {
       base64: newResult,
-      bgColor: "FFFFFF",
+      bgColor: color,
       dpi: 300,
       mmHeight: 35,
       mmWidth: 25,
-      printBgColor: "FFFFFF",
+      printBgColor: color,
       printMmHeight: 210,
       printMmWidth: 150,
       dress: val,
     };
+    // console.log(data);
     fetch(`https://www.cutout.pro/api/v1/idphoto/printLayout`, {
       method: 'post',
       headers: {
@@ -206,8 +235,15 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setNewImage(resp.data.idPhotoImage);
-        setPrintLayoutImage(resp.data.printLayoutImage);
+        // setNewImage(resp.data.idPhotoImage);
+        // setPrintLayoutImage(resp.data.printLayoutImage);
+        if (resp.data === null) {
+          setNewImage(null);
+        } else {
+          setDress(val);
+          setNewImage(resp.data.idPhotoImage);
+          setPrintLayoutImage(resp.data.printLayoutImage);
+        }
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -283,14 +319,24 @@ const PhotoEnhancer = observer(({
                       {isProcessImage
                         ? (
                           <>
-                            {/* <img
-                              className="editor-image passport-image"
-                              src={printLayoutImage}
-                            /> */}
-                            <img
-                              className="editor-image"
-                              src={newImage}
-                            />
+
+                            {newImage === null ? (
+                              <>
+                                <div>
+                                  <p>Unable to recognize face, please change a photo</p>
+                                  <img
+                                    className="editor-image"
+                                    src={transparent}
+                                  />
+                                </div>
+                              </>
+                            ) : (
+                              <img
+                                className="editor-image"
+                                src={newImage}
+                              />
+
+                            )}
 
                           </>
                         )
@@ -301,7 +347,6 @@ const PhotoEnhancer = observer(({
               </div>
             </div>
           </div>
-
 
           <div className="download-container">
             <div>
@@ -668,7 +713,6 @@ const PhotoEnhancer = observer(({
               Save to Canvas
             </button>
           </div>
-
 
         </div>
 
