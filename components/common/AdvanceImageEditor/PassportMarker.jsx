@@ -43,7 +43,7 @@ import womanEleven from '../../../public/static/AdvanceImageSvg/idphotodress/wom
 
 import childOne from '../../../public/static/AdvanceImageSvg/idphotodress/child/1.png';
 import childTwo from '../../../public/static/AdvanceImageSvg/idphotodress/child/2.png';
-import childThree from '../../../public/static/AdvanceImageSvg/idphotodress/child/3.png';
+// import childThree from '../../../public/static/AdvanceImageSvg/idphotodress/child/3.png';
 import childFour from '../../../public/static/AdvanceImageSvg/idphotodress/child/4.png';
 import childFive from '../../../public/static/AdvanceImageSvg/idphotodress/child/5.png';
 import childSix from '../../../public/static/AdvanceImageSvg/idphotodress/child/6.png';
@@ -52,6 +52,8 @@ import childEight from '../../../public/static/AdvanceImageSvg/idphotodress/chil
 import childNine from '../../../public/static/AdvanceImageSvg/idphotodress/child/9.png';
 import childTen from '../../../public/static/AdvanceImageSvg/idphotodress/child/10.png';
 import childEleven from '../../../public/static/AdvanceImageSvg/idphotodress/child/11.png';
+import childTwelve from '../../../public/static/AdvanceImageSvg/idphotodress/child/12.png';
+
 
 
 const PhotoEnhancer = observer(({
@@ -611,8 +613,8 @@ const PhotoEnhancer = observer(({
                       <img src={childTwo} className="carton-avatar" alt="" />
                     </div>
 
-                    <div role="button" onClick={() => changeDressPhotoImage('child3')} className="imgS border-sel cartoon-container">
-                      <img src={childThree} className="carton-avatar" alt="" />
+                    <div role="button" onClick={() => changeDressPhotoImage('child12')} className="imgS border-sel cartoon-container">
+                      <img src={childTwelve} className="carton-avatar" alt="" />
                     </div>
                     <div role="button" onClick={() => changeDressPhotoImage('child4')} className="imgS border-sel cartoon-container">
                       <img src={childFour} className="carton-avatar" alt="" />
