@@ -46,7 +46,6 @@ const BackgroundRemoval = observer(({
       setIsLoading(true);
       startUpload();
       media = await uploadMedia({ data: blob, isCrop: true });
-      console.log('media', media);
       const fileExtension = media.url.match(/\.[0-9a-z]{1,5}$/)[0];
       let fileType = activeTab;
       Object.keys(tabItems).forEach((item) => {

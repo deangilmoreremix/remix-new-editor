@@ -1,7 +1,7 @@
 /* eslint-disable func-names */
 /* eslint-disable array-callback-return */
 /* eslint-disable no-var */
-import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
+import React, { useCallback, useMemo, useState, useRef } from 'react';
 import { observer } from 'mobx-react';
 import { ReactSketchCanvas } from 'react-sketch-canvas';
 // import Pagination from '@material-ui/lab/Pagination';
@@ -9,8 +9,11 @@ import { triggerBase64Download } from 'react-base64-downloader';
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
+import useUIStore from '../../hooks/useUIStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
+import { tabItems } from '../../../lib/constants/library';
+
 
 
 const PhotoEnhancer = observer(({
@@ -21,8 +24,10 @@ const PhotoEnhancer = observer(({
   endUpload,
   noCrop,
 }) => {
-  // const refEditor = useRef();
-  const { uploadMedia } = useMediaStore();
+  const { uploadMedia, storeAsset } = useMediaStore();
+  const {
+    secondaryWindowType: activeTab,
+  } = useUIStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [imgSrc, setImgSrc] = useState('');
@@ -160,6 +165,16 @@ const PhotoEnhancer = observer(({
       setIsLoading(true);
       startUpload();
       media = await uploadMedia({ data: result, isCrop: true });
+      const fileExtension = media.url.match(/\.[0-9a-z]{1,5}$/)[0];
+      let fileType = activeTab;
+      Object.keys(tabItems).forEach((item) => {
+        tabItems[item].formats.forEach((format) => {
+          if (format === fileExtension) {
+            fileType = item;
+          }
+        });
+      });
+      await storeAsset(media, fileType);
     } catch (e) {
       hasError = true;
       showError(e.message);
@@ -174,9 +189,9 @@ const PhotoEnhancer = observer(({
     }
   }, [imgSrc]);
 
-  // const base64 = `data:image/png;base64,${newImage}`;
 
-  const downloadPassport = async () => {
+
+  const downloadRetouch = async () => {
     const base64Response = await fetch(imgSrc);
     const blob = await base64Response.blob();
     const result = await convertImgUrlToBase64(blob);
@@ -214,7 +229,7 @@ const PhotoEnhancer = observer(({
 
 
           <div className="download-container">
-            <button onClick={() => downloadPassport()} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
+            <button onClick={() => downloadRetouch()} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
               Download Image
             </button>
 

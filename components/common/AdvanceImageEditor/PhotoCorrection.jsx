@@ -5,10 +5,11 @@ import { triggerBase64Download } from 'react-base64-downloader';
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
+import useUIStore from '../../hooks/useUIStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
-
+import { tabItems } from '../../../lib/constants/library';
 
 const PhotoEnhancer = observer(({
   imageData,
@@ -19,7 +20,10 @@ const PhotoEnhancer = observer(({
   noCrop,
 }) => {
   // const refEditor = useRef();
-  const { uploadMedia } = useMediaStore();
+  const { uploadMedia, storeAsset } = useMediaStore();
+  const {
+    secondaryWindowType: activeTab,
+  } = useUIStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
@@ -41,6 +45,16 @@ const PhotoEnhancer = observer(({
       setIsLoading(true);
       startUpload();
       media = await uploadMedia({ data: blob, isCrop: true });
+      const fileExtension = media.url.match(/\.[0-9a-z]{1,5}$/)[0];
+      let fileType = activeTab;
+      Object.keys(tabItems).forEach((item) => {
+        tabItems[item].formats.forEach((format) => {
+          if (format === fileExtension) {
+            fileType = item;
+          }
+        });
+      });
+      await storeAsset(media, fileType);
     } catch (e) {
       hasError = true;
       showError(e.message);
