@@ -224,7 +224,7 @@ const Basic = observer(({
           >
            Image Editor
           </button>
-          {/* <button
+          <button
             className="image-settings__btn"
             onClick={() => {
               openAdvanceImageEditor({
@@ -239,7 +239,7 @@ const Basic = observer(({
             disabled={isLoading}
           >
              AI Image Editor
-          </button> */}
+          </button>
         </div>
       </div>
       <FieldBuilder
