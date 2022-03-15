@@ -64,6 +64,67 @@ const PhotoEditorSDK = observer(({
           enableDownload: false,
         },
       },
+      custom: {
+        themes: {
+          dark: {
+            tooltip: {
+              background: 'darkgray',
+            },
+            toolbar: {
+              foreground: 'rgba(255, 255, 255, 0.90)',
+              background: '#242424',
+              activeBackground: 'transparent',
+              activeForeground: '#EB4F53',
+              /** border between the toolbar and the toolControlBar * */
+              borderColor: 'transparent',
+              /** this will overwrite borderColor and apply a border of your choosing * */
+              border: 'none',
+            },
+            button: {
+              /** High Emphasis button - primary variant e.g.: Export button */
+              containedPrimaryBackground: '#EB4F53',
+              containedPrimaryForeground: 'rgba(255, 255, 255, 0.90)',
+
+
+              /** Medium Emphasis button - primary variant e.g.: New Text, Text Design, Upload on toolControlBar */
+              outlinedPrimaryBackground: '#242424',
+              outlinedPrimaryForeground: 'rgba(255, 255, 255, 0.90)',
+
+
+             /** Medium Emphasis button - secondary variant e.g.: Remove Filter, Overlay, Shuffle Text Design */
+              outlinedSecondaryBackground: 'transparent',
+              outlinedSecondaryForeground: 'rgba(255, 255, 255, 0.90)',
+
+
+              outlinedInactiveOverlayColor: 'rgba(0, 0, 0, 0.3)',
+              outlinedBorderColor: '#333333',
+
+
+              /** Low Emphasis button - primary variant e.g.: primary button in modal */
+              textPrimaryForeground: '#365AFC',
+              /** Low Emphasis button - secondary variant e.g.: secondary button in modal, undo, redo, Carousel navigators, alignment buttons */
+              textSecondaryForeground: 'rgba(255, 255, 255, 0.90)',
+
+
+              textInactiveOpacity: '0.5',
+
+
+              activeForeground: '#365AFC',
+
+
+              hoverOverlayColor: 'rgba(255, 255, 255, 0.08)',
+            },
+            slider: {
+              trackColor: 'rgba(255, 255, 255, 0.4)',
+              activeTrackColor: '#EB4F53',
+              thumbBackground: '#171717',
+              thumbBorderColor: '#EB4F53',
+              inactiveOpacity: '0.3',
+              hoverOpacity: '0.7',
+            },
+          },
+        },
+      },
     });
     editor.on(UIEvent.EXPORT, (imageSrc) => {
       onLoadImage(imageSrc);
