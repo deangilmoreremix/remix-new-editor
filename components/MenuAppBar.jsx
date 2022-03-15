@@ -49,6 +49,8 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     checkAndSave,
     item,
     updateItem,
+    verifyTitle,
+    getItemTitle,
   } = useProjectStore();
 
   const common = useCommonStore();
@@ -68,8 +70,33 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   }, []);
 
   const saveProject = useCallback(async () => {
-    checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
+    let value ="";
+
+    await getItemTitle({}).then(function(data){
+      value=data.title;
+    });
+
+    let verify_duplicate=0;
+
+    await verifyTitle({}).then(function(data){
+      for (let i=0;i< data.result.length;i++)
+      {
+        if(data.cur_item !== data.result[i]._id && data.result[i].title.toUpperCase() === value.toUpperCase())
+        {
+          verify_duplicate=1;
+        }
+      }
+    });
+    if(verify_duplicate===0)
+    {
+      checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
+    }
+    else {
+      swal('Error','Project name already exists!', 'error');
+    }
+
   }, [setInitialView, showProducePanel]);
+
 
   const updateTitle = useCallback((event) => {
     updateItem({ title: event.target.value });
@@ -170,6 +197,8 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               </HelpIconComponent>
             </div>
           </div>
+
+
           <div className="container-menu__project-name">
             {isProjectTitle ? (
               <input
@@ -195,6 +224,8 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               onClick={() => setProjectTitle(!isProjectTitle)}
             />
           </div>
+
+
           <ExpandButton />
           <Menu
             toggleElement={<UserBox />}

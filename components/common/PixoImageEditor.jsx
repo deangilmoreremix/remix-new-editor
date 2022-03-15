@@ -83,6 +83,7 @@ const PixoImageEditor = observer(({
       setIsLoading(true);
       startUpload();
       media = await uploadMedia({ data: image, isCrop: true });
+      console.log(media, 'Media section');
     } catch (e) {
       hasError = true;
       showError(e.message);

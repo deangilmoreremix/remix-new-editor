@@ -82,10 +82,10 @@ module.exports = {
     cdnSocialWeb: process.env.CDN_SOCIAL_HOSTNAME || 'https://cdn.vidcloud.io',
     mediaCdn: process.env.MEDIA_CDN_HOSTNAME || '',
     streamingCdn: process.env.STREAMING_CDN_HOSTNAME || '',
-    key: process.env.S3_KEY || 'AKIAIAQ6WDZIWRHJTGVA',
+    key: process.env.S3_KEY || 'AKIAZIC4SYEXKB3F5L2V',
     bucket: process.env.S3_BUCKET || 'videoremix',
     mediaBucket: process.env.S3_MEDIA_BUCKET || 'stream-video-preparations-source-1tdj0kjvmp354',
-    secret: process.env.S3_SECRET || 'rVsDp2sM1AyaebUqY3WY9vDefDIE/s6WbqePUVYz',
+    secret: process.env.S3_SECRET || 'mhFJES4BgaRQNOjA+F6NvE4nV1KSWbOxgviOPap3',
     domain: process.env.S3_DOMAIN || 'http://videoremix.s3-website-us-west-1.amazonaws.com',
     emulation: process.env.S3_EMULATION || false,
     publishLifetime: process.env.S3_PUBLISH_LIFETIME || 3600,
@@ -150,4 +150,7 @@ module.exports = {
   },
   scriptStatistic: process.env.SCRIPT_STATISTIC || '',
   pathForGoogleCloudAccount: process.env.GOOGLE_APPLICATION_CREDENTIALS || '',
+  cutoutPro: {
+    apiKey: process.env.CUTOUT_PRO_API_KEY || 'f8215a0e6b3b40b78a2ce62ce89c5d9e',
+  },
 };

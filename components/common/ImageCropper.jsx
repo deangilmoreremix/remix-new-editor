@@ -12,8 +12,16 @@ import FieldBuilder from '../form/FieldBuilder';
 import { CHECKBOX } from '../../lib/constants/forms';
 import { setMinMax } from '../../lib/utils/cropHelper';
 import { DRAG_MODES } from '../../lib/constants/imageEditor/tuiEditor';
+import {
+  DEFAULT_RATIO,
+} from '../../lib/constants/project';
+import useProjectStore from '../hooks/useProjectStore';
 
 const ImageCropper = observer((props) => {
+  const projectStore = useProjectStore();
+  const { item: { ratio: { width, height } = DEFAULT_RATIO } } = projectStore;
+
+  const aspectRatio = useMemo(() => width / height, [width, height]);
   const {
     resolution,
     imageData,
@@ -40,8 +48,6 @@ const ImageCropper = observer((props) => {
     [recommendedHeight, imageHeight]);
   const proportion = useMemo(() => Math.min(1, Math.max(widthProportion, heightProportion)),
     [widthProportion, heightProportion]);
-  const ratio = useMemo(() => recommendedWidth / recommendedHeight,
-    [recommendedWidth, recommendedHeight]);
   const editStep = useMemo(() => (openImageEditor && 'Open Image Editor'),
     [openImageEditor]);
 
@@ -107,7 +113,7 @@ const ImageCropper = observer((props) => {
             src={source}
             style={{ height: '70vh', width: '70vw' }}
             cropBoxResizable
-            aspectRatio={ratio}
+            aspectRatio={aspectRatio}
             guides={false}
             toggleDragModeOnDblclick={false}
             zoomable={zoomable || false}
@@ -115,7 +121,6 @@ const ImageCropper = observer((props) => {
             zoomOnWheel={zoomable || false}
             viewMode={zoomable ? 0 : 1}
             background={false}
-            autoCropArea={proportion}
             dragMode={isAuto ? DRAG_MODES.NONE : DRAG_MODES.CROP}
             disable
             ready={() => {

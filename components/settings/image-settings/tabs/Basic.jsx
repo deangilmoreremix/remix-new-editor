@@ -14,9 +14,9 @@ import useProjectStore from '../../../hooks/useProjectStore';
 import { FEATURES } from '../../../../lib/constants/features';
 import { LIBRARY_TABS } from '../../../../lib/constants/library';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
-import { PIXO_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
+import { PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL, IMGLY_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
 import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
-import { EXTRA_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
+import { EXTRA_MENU, ADVANCE_IMAGE_EDITOR_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
 
 import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 
@@ -41,7 +41,7 @@ const Basic = observer(({
     isfeatureEnabled: checkStateFeature,
     clickToPhoneCall,
   } = useUserStore();
-  const { openImageEditor, closeModal } = useModalStore();
+  const { openImageEditor, openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
 
   const backToLibrary = () => {
     handleClose();
@@ -62,6 +62,11 @@ const Basic = observer(({
   const onImageEdited = (image) => {
     findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
     closeModal(PIXO_IMAGE_EDITOR_MODAL);
+  };
+
+  const onAdvancedImageEdited = (image) => {
+    findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
+    closeModal(ADVANCE_IMAGE_EDITOR_MODAL);
   };
 
   const hint = useMemo(() => (clickToPhoneCall ? HINTS.LINK_URL_PHONE : HINTS.LINK_URL));
@@ -188,7 +193,7 @@ const Basic = observer(({
 
       <div className="image-settings__block">
         <div className="image-settings__btn--block">
-          <button
+          {/* <button
             className="image-settings__btn"
             onClick={() => {
               openImageEditor({
@@ -202,7 +207,39 @@ const Basic = observer(({
             disabled={isLoading}
           >
             Image Editor
+          </button> */}
+          <button
+            className="image-settings__btn"
+            onClick={() => {
+              openImglyEditor({
+                src: element.popcornOptions.src,
+                onImageEdited,
+                // onImglyImageEdited,
+                startUpload: () => setIsLoading(true),
+                endUpload: () => setIsLoading(false),
+                menu: EXTRA_MENU,
+              });
+            }}
+            disabled={isLoading}
+          >
+           Image Editor
           </button>
+          {/* <button
+            className="image-settings__btn"
+            onClick={() => {
+              openAdvanceImageEditor({
+                src: element.popcornOptions.src,
+                onAdvancedImageEdited,
+                onImageEdited,
+                startUpload: () => setIsLoading(true),
+                endUpload: () => setIsLoading(false),
+                menu: ADVANCE_IMAGE_EDITOR_MENU,
+              });
+            }}
+            disabled={isLoading}
+          >
+             AI Image Editor
+          </button> */}
         </div>
       </div>
       <FieldBuilder
