@@ -11,7 +11,7 @@ export default class UserStore {
     this.currentUser = currentUser;
     this.roles = null;
     this.request = request;
-    this.selfRequest = requestCreator(hostname, null, isServer, () => {});
+    this.selfRequest = requestCreator(hostname, null, isServer, () => { });
   }
 
   @computed
@@ -464,5 +464,10 @@ export default class UserStore {
   @computed
   get fbLgPixelEnabled() {
     return this.isfeatureEnabled(FEATURES.LG_FACEBOOK_PIXEL_ID);
+  }
+
+  @computed
+  get imglyEditorEnabled() {
+    return this.isfeatureEnabled(FEATURES.IMGLY_EDITOR);
   }
 }
