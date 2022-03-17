@@ -35,7 +35,7 @@ const Toolbar = observer(({ items }) => {
 
   useEffect(() => {
     if (templateGeneratorEnabled === false) {
-      items.pop();
+      items.pop(); // note in the toolbarItemGenerator.jsx always make the last item as template generator..
       if (items && items.length && !id) {
         setToolbarItem(items[1].id);
       }
