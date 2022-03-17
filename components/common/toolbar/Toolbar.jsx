@@ -1,10 +1,12 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import SVGInline from 'react-svg-inline';
 
 import { editorStyles } from '../../../lib/constants/editorStyles';
 import PropTypes from '../../../lib/PropTypes';
 import useUIStore from '../../hooks/useUIStore';
+import useUserStore from '../../hooks/useUserStore';
+
 import useTimelineStore from '../../hooks/useTimelineStore';
 
 import arrowIcon from '../../../public/static/svgImages/common/arrow-back.svg';
@@ -25,12 +27,19 @@ const Toolbar = observer(({ items }) => {
     isCanvasPresent,
     secondaryWindowType,
     toggleRightBlock,
-  } = useUIStore();
 
+  } = useUIStore();
+  const userStore = useUserStore();
+  const { templateGeneratorEnabled } = userStore;
   const { timelineHeight } = useTimelineStore();
 
   useEffect(() => {
-    if (items && items.length && !id) {
+    if (templateGeneratorEnabled === false) {
+      items.pop();
+      if (items && items.length && !id) {
+        setToolbarItem(items[1].id);
+      }
+    } else if (items && items.length && !id) {
       setToolbarItem(items[1].id);
     }
   }, [items]);
@@ -93,7 +102,7 @@ const Toolbar = observer(({ items }) => {
                 </AnimatedWindow>
               )}
             </button>
-        </HelpIconComponent>
+          </HelpIconComponent>
         ))}
       </div>
       {TabRenderer && <TabRenderer items={tabContent} options={options} />}
