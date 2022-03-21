@@ -1,6 +1,7 @@
 /* eslint-disable no-var */
 import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
+import useUserStore from '../../hooks/useUserStore';
 import Tabs from './Tabs';
 import TabPane from './TabPane';
 import BackgroundRemoval from './BackgroundRemoval';
@@ -27,6 +28,10 @@ const AdvancedImageEditor = observer(({
   handleClose,
   options,
 }) => {
+  const {
+    smartBackgroundRemovalEnabled, smartFaceCutOutEnabled, smartCartoonSelfieEnabled,
+    smartEnhancerEnabled, smartColorizerEnabled, smartCorrectionEnabled, smartAnimerEnabled, smartPassportEnabled, smartRetouchEnabled,
+  } = useUserStore();
   const { imageMeta, ...rest } = useMemo(
     () => options, [options]);
 
@@ -42,87 +47,110 @@ const AdvancedImageEditor = observer(({
       <div>
         <div className="heading-container">
           <button className="btn btn-secondary btn-sm" onClick={onClose}>
-          Close
+            Close
           </button>
         </div>
         <div className="advanced-image-editor-wrapper">
           <Tabs>
-            <TabPane name="Smart BG Removal" icon={RemoveBackgroundSvg} key="1">
-              <BackgroundRemoval
-                imageData={imageMeta}
-                handleClose={handleClose}
-                {...rest}
-              />
-            </TabPane>
-
-            <TabPane name="Smart Face Cutout" icon={FaceCutOutSvg} key="2">
-              <FaceCutOut
-                imageData={imageMeta}
-                handleClose={handleClose}
-                {...rest}
-              />
-            </TabPane>
-
-            <TabPane name="Smart Cartoon Selfie" icon={SelfieSvg} key="3">
-              <CartoonSelfie
-                imageData={imageMeta}
-                handleClose={handleClose}
-                {...rest}
-              />
-            </TabPane>
-
-            <TabPane name="Smart Enhancer" icon={EnhancerSvg} key="4">
-              <PhotoEnhancer
-                imageData={imageMeta}
-                handleClose={handleClose}
-                {...rest}
-              />
-            </TabPane>
-
-            <TabPane
-              name="Smart Colorizer"
-              icon={ColorizerSvg}
-              key="5"
-            >
-              <PhotoColorizer
-                imageData={imageMeta}
-                handleClose={handleClose}
-                {...rest}
-              />
-            </TabPane>
+            {
+              smartBackgroundRemovalEnabled && (
+                <TabPane name="Smart BG Removal" icon={RemoveBackgroundSvg} key="1">
+                  <BackgroundRemoval
+                    imageData={imageMeta}
+                    handleClose={handleClose}
+                    {...rest}
+                  />
+                </TabPane>
+              )
+            }
 
 
-            <TabPane name="Smart Correction" icon={correction} key="6">
-              <PhotoCorrection
-                imageData={imageMeta}
-                handleClose={handleClose}
-                {...rest}
-              />
-            </TabPane>
+            {smartFaceCutOutEnabled && (
+              <TabPane name="Smart Face Cutout" icon={FaceCutOutSvg} key="2">
+                <FaceCutOut
+                  imageData={imageMeta}
+                  handleClose={handleClose}
+                  {...rest}
+                />
+              </TabPane>
+            )}
 
-            <TabPane name="Smart Animer" icon={smartMotion} key="7">
-              <PhotoAnimer
-                imageData={imageMeta}
-                handleClose={handleClose}
-                {...rest}
-              />
-            </TabPane>
+            {smartCartoonSelfieEnabled && (
+              <TabPane name="Smart Cartoon Selfie" icon={SelfieSvg} key="3">
+                <CartoonSelfie
+                  imageData={imageMeta}
+                  handleClose={handleClose}
+                  {...rest}
+                />
+              </TabPane>
+            )}
 
-            <TabPane name="Smart Passport" icon={Passport} key="8">
-              <PassportMarker
-                imageData={imageMeta}
-                handleClose={handleClose}
-                {...rest}
-              />
-            </TabPane>
+            {smartEnhancerEnabled && (
+              <TabPane name="Smart Enhancer" icon={EnhancerSvg} key="4">
+                <PhotoEnhancer
+                  imageData={imageMeta}
+                  handleClose={handleClose}
+                  {...rest}
+                />
+              </TabPane>
+            )}
 
-            <TabPane name="Smart Retouch" icon={brush} key="9">
-              <Retouch
-                imageData={imageMeta}
-                handleClose={handleClose}
-                {...rest}
-              />
-            </TabPane>
+            {smartColorizerEnabled && (
+              <TabPane
+                name="Smart Colorizer"
+                icon={ColorizerSvg}
+                key="5"
+              >
+                <PhotoColorizer
+                  imageData={imageMeta}
+                  handleClose={handleClose}
+                  {...rest}
+                />
+              </TabPane>
+            )}
+
+
+            {smartCorrectionEnabled && (
+              <TabPane name="Smart Correction" icon={correction} key="6">
+                <PhotoCorrection
+                  imageData={imageMeta}
+                  handleClose={handleClose}
+                  {...rest}
+                />
+              </TabPane>
+            )}
+
+            {smartAnimerEnabled && (
+              <TabPane name="Smart Animer" icon={smartMotion} key="7">
+                <PhotoAnimer
+                  imageData={imageMeta}
+                  handleClose={handleClose}
+                  {...rest}
+                />
+              </TabPane>
+            )}
+
+            {smartPassportEnabled && (
+              <TabPane name="Smart Passport" icon={Passport} key="8">
+                <PassportMarker
+                  imageData={imageMeta}
+                  handleClose={handleClose}
+                  {...rest}
+                />
+              </TabPane>
+            )}
+
+            {
+              smartRetouchEnabled && (
+                <TabPane name="Smart Retouch" icon={brush} key="9">
+                  <Retouch
+                    imageData={imageMeta}
+                    handleClose={handleClose}
+                    {...rest}
+                  />
+                </TabPane>
+              )
+            }
 
           </Tabs>
         </div>

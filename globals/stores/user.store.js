@@ -470,4 +470,53 @@ export default class UserStore {
   get imglyEditorEnabled() {
     return this.isfeatureEnabled(FEATURES.IMGLY_EDITOR);
   }
+
+  @computed
+  get smartBackgroundRemovalEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_BACKGROUND_REMOVAL);
+  }
+
+  @computed
+  get smartFaceCutOutEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_FACE_CUT_OUT);
+  }
+
+  @computed
+  get smartCartoonSelfieEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_CARTOON_SELFIE);
+  }
+
+  @computed
+  get smartEnhancerEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_ENHANCER);
+  }
+
+  @computed
+  get smartColorizerEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_COLORIZER);
+  }
+
+
+  @computed
+  get smartCorrectionEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_CORRECTION);
+  }
+
+
+  @computed
+  get smartAnimerEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_ANIMER);
+  }
+
+  @computed
+  get smartPassportEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_PASSPORT);
+  }
+
+  @computed
+  get smartRetouchEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_RETOUCH);
+  }
+
+
 }
