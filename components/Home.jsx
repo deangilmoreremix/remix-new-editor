@@ -85,45 +85,8 @@ const Home = observer(() => {
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
   const [shouldShowTGModal, setShouldShowTGModal] = useState(
-    templateGeneratorEnabled
+    templateGeneratorEnabled,
   );
-
-  useEffect(() => {
-    if (!project && pathname !== ROUTES.edit) {
-      push(
-        {
-          pathname: ROUTES.edit,
-        },
-        undefined,
-        { shallow: true }
-      ).finally(() => {
-        if (shouldShowTGModal) {
-          openModal(TEMPLATE_GENERATOR_MODAL);
-        }
-        setShouldShowTGModal(false);
-      });
-    } else {
-      if (typeof navigator !== 'undefined') {
-        const ua = navigator.userAgent;
-        const isSafari =
-          ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1;
-
-        if (isSafari) {
-          openModal(SAFARI_WARNING_MODAL);
-        }
-      }
-      if (shouldShowTGModal && !project && !remix) {
-        openModal(TEMPLATE_GENERATOR_MODAL);
-      }
-      setShouldShowTGModal(false);
-    }
-  }, [shouldShowTGModal, pathname, project, remix, push]);
-
-  const asyncHero = useAsync(
-    project ? projectStore.getOne : projectStore.preRemix,
-    [project || remix, openModal]
-  );
-
   const {
     changeRadioButton,
     secondaryWindowType,
@@ -142,7 +105,6 @@ const Home = observer(() => {
     isCanvasPresent,
     toggleLeftBlock,
   } = uiStore;
-
   const {
     item: {
       ratio: { width, height } = DEFAULT_RATIO,
@@ -172,6 +134,107 @@ const Home = observer(() => {
     popcorn,
     item,
   } = projectStore;
+
+  const toolbarContent = React.useMemo(() => {
+    const items = toolbarItems({
+      actions: {
+        openModal,
+        closeModal,
+        changeRadioButton,
+        addElement,
+        addRetargetForm,
+        setListBuilder,
+        setSecondaryWindowType,
+        openMediaButton,
+        openCTA,
+        openTextToSpeech,
+        toggleRightBlock,
+        openUploadTransition,
+        toggleLeftBlock,
+      },
+      project: {
+        allowedSocials,
+        modified,
+        optinCodeEnabled,
+        videoUrl,
+        userStore,
+        releaseElement,
+        isSuperAdmin,
+        isfeatureEnabled,
+        recorderEnabled,
+        stickersEnabled,
+        lowerThirdsEnabled,
+        presetsEnabled,
+        linkedinEnabled,
+        ctaEnabled,
+        blendModeEnabled,
+        connectEnabled,
+        gifsEnabled,
+        libraryStickerEnabled,
+        leadGeneratorEnabled,
+        jsonTransitionEnabled,
+        width,
+        height,
+        textToSpeechStandardEnabled,
+        textToSpeechNeuralEnabled,
+        textToSpeechLimitedEnabled,
+        googleMapsEnabled,
+        socialFbEnabled,
+        wrapperFeatureEnabled,
+        textMaskEnabled,
+      },
+    });
+    return items && items.length ? items : [];
+  }, [
+    openModal,
+    closeModal,
+    changeRadioButton,
+    addElement,
+    optinCodeEnabled,
+    modified,
+    videoUrl,
+    userStore,
+    allowedSocials,
+    linkedinEnabled,
+    width,
+    height,
+  ]);
+
+  useEffect(() => {
+    if (!project && pathname !== ROUTES.edit) {
+      push(
+        {
+          pathname: ROUTES.edit,
+        },
+        undefined,
+        { shallow: true },
+      ).finally(() => {
+        if (shouldShowTGModal) {
+          openModal(TEMPLATE_GENERATOR_MODAL);
+        }
+        setShouldShowTGModal(false);
+      });
+    } else {
+      if (typeof navigator !== 'undefined') {
+        const ua = navigator.userAgent;
+        const isSafari = ua.indexOf('Safari') !== -1 && ua.indexOf('Chrome') === -1;
+
+        if (isSafari) {
+          openModal(SAFARI_WARNING_MODAL);
+        }
+      }
+      if (shouldShowTGModal && !project && !remix) {
+        openModal(TEMPLATE_GENERATOR_MODAL);
+      }
+      setShouldShowTGModal(false);
+    }
+  }, [shouldShowTGModal, pathname, project, remix, push]);
+
+  const asyncHero = useAsync(
+    project ? projectStore.getOne : projectStore.preRemix,
+    [project || remix, openModal],
+  );
+
 
   const { setCopiedItems, pasteElement, isActiveTimeline } = useTimelineStore();
 
@@ -355,70 +418,6 @@ const Home = observer(() => {
     }
   }, [secondaryWindowType, updateAnimation, currentElement]);
 
-  const toolbarContent = React.useMemo(() => {
-    const items = toolbarItems({
-      actions: {
-        openModal,
-        closeModal,
-        changeRadioButton,
-        addElement,
-        addRetargetForm,
-        setListBuilder,
-        setSecondaryWindowType,
-        openMediaButton,
-        openCTA,
-        openTextToSpeech,
-        toggleRightBlock,
-        openUploadTransition,
-        toggleLeftBlock,
-      },
-      project: {
-        allowedSocials,
-        modified,
-        optinCodeEnabled,
-        videoUrl,
-        userStore,
-        releaseElement,
-        isSuperAdmin,
-        isfeatureEnabled,
-        recorderEnabled,
-        stickersEnabled,
-        lowerThirdsEnabled,
-        presetsEnabled,
-        linkedinEnabled,
-        ctaEnabled,
-        blendModeEnabled,
-        connectEnabled,
-        gifsEnabled,
-        libraryStickerEnabled,
-        leadGeneratorEnabled,
-        jsonTransitionEnabled,
-        width,
-        height,
-        textToSpeechStandardEnabled,
-        textToSpeechNeuralEnabled,
-        textToSpeechLimitedEnabled,
-        googleMapsEnabled,
-        socialFbEnabled,
-        wrapperFeatureEnabled,
-        textMaskEnabled,
-      },
-    });
-    return items && items.length ? items : [];
-  }, [
-    openModal,
-    closeModal,
-    changeRadioButton,
-    addElement,
-    optinCodeEnabled,
-    modified,
-    videoUrl,
-    userStore,
-    allowedSocials,
-    linkedinEnabled,
-    width,
-    height,
-  ]);
 
   useEffect(() => {
     if (asyncHero && !asyncHero.loading) {

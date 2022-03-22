@@ -40,8 +40,10 @@ const Basic = observer(({
     currentUser: user,
     isfeatureEnabled: checkStateFeature,
     clickToPhoneCall,
+    imglyEditorEnabled,
   } = useUserStore();
   const { openImageEditor, openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
+  
 
   const backToLibrary = () => {
     handleClose();
@@ -208,23 +210,27 @@ const Basic = observer(({
           >
             Image Editor
           </button> */}
-          <button
-            className="image-settings__btn"
-            onClick={() => {
-              openImglyEditor({
-                src: element.popcornOptions.src,
-                onImageEdited,
-                // onImglyImageEdited,
-                startUpload: () => setIsLoading(true),
-                endUpload: () => setIsLoading(false),
-                menu: EXTRA_MENU,
-              });
-            }}
-            disabled={isLoading}
-          >
+
+          {imglyEditorEnabled && (
+            <button
+              className="image-settings__btn"
+              onClick={() => {
+                openImglyEditor({
+                  src: element.popcornOptions.src,
+                  onImageEdited,
+                  // onImglyImageEdited,
+                  startUpload: () => setIsLoading(true),
+                  endUpload: () => setIsLoading(false),
+                  menu: EXTRA_MENU,
+                });
+              }}
+              disabled={isLoading}
+            >
            Image Editor
-          </button>
-          {/* <button
+            </button>
+          )}
+
+          <button
             className="image-settings__btn"
             onClick={() => {
               openAdvanceImageEditor({
@@ -239,7 +245,7 @@ const Basic = observer(({
             disabled={isLoading}
           >
              AI Image Editor
-          </button> */}
+          </button>
         </div>
       </div>
       <FieldBuilder
