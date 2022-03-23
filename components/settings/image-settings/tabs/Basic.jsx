@@ -43,7 +43,7 @@ const Basic = observer(({
     imglyEditorEnabled,
   } = useUserStore();
   const { openImageEditor, openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
-  
+
 
   const backToLibrary = () => {
     handleClose();
@@ -195,7 +195,7 @@ const Basic = observer(({
 
       <div className="image-settings__block">
         <div className="image-settings__btn--block">
-          {/* <button
+          <button
             className="image-settings__btn"
             onClick={() => {
               openImageEditor({
@@ -209,7 +209,7 @@ const Basic = observer(({
             disabled={isLoading}
           >
             Image Editor
-          </button> */}
+          </button>
 
           {imglyEditorEnabled && (
             <button
@@ -226,11 +226,11 @@ const Basic = observer(({
               }}
               disabled={isLoading}
             >
-           Image Editor
+           Image Editor Advance
             </button>
           )}
 
-          <button
+          {/* <button
             className="image-settings__btn"
             onClick={() => {
               openAdvanceImageEditor({
@@ -245,7 +245,7 @@ const Basic = observer(({
             disabled={isLoading}
           >
              AI Image Editor
-          </button>
+          </button> */}
         </div>
       </div>
       <FieldBuilder
