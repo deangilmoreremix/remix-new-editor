@@ -7,6 +7,23 @@ import useUIStore from '../hooks/useUIStore';
 import PropTypes from '../../lib/PropTypes';
 import { tabItems } from '../../lib/constants/library';
 
+
+const licence = {
+  api_token: 'Bmz_MBXK-7Rqsro1eLceKg',
+  app_identifiers: ['https://videoremix.io/', 'https://revolution.videoremix.io/', 'https://lead-buster.videoremix.io/', 'https://dev-revolution.videoremix.io/', 'http://local-smart-video.videoremix.io/'],
+  available_actions: [],
+  domains: ['https://api.photoeditorsdk.com'],
+  enterprise_license: false,
+  expires_at: null,
+  features: ['camera', 'library', 'export', 'customassets', 'whitelabel', 'adjustment', 'brush', 'filter', 'focus', 'frame', 'overlay', 'sticker', 'text', 'textdesign', 'transform'],
+  issued_at: 1648042514,
+  minimum_sdk_version: '1.0',
+  owner: 'VideoRemix',
+  platform: 'HTML5',
+  products: ['pesdk'],
+  version: '2.4',
+  signature: 'jko8WvCA0SU008lVIsEWQ6xA6ymjM8n3f+CDHjwGKSlWzHFLTEKS+oeZ0Ji+4bHmXP5uLylh2J9UQHctZR8NqUHcHvgUgtrUh5yNgiEYNbV8A9KUryTqdwEIFjucZkPOiaEvQcuaoIn+r+mK2f6CIJnEnwc6+AhTm8eeN6F6ZUK/0aP9QRY37E+1I33Ti80kNEHPDKhXyAWs7qQHNHtvGZyJPo7f3lJTUFiqjoEh8u474Ym7+xgi+h3SNyvRaGwnbutRqMLR2FG8W9fQNWR+V7YAQkzbORehinkQd/1PEF/iWyA1wrjUwgvGK8EmFQRbrjx7zjzO4n0GzD5rJOakS2l8LNVaLyUDF4h8SSwBLwliSgivWbw8RmgqgcoVq/ayObxHIGSF11PPO0XpUNeA/O4A5Y16VyA4yS2OEtRpeMdZNo2oQ+i9+uAUXcc8T6no2OEeH0fSobMngBqHF0MvVfvpolKOBE38NLvi8esySID4H0K2JPlKJ5ieLnMt/eZ4CE0ikarh2Mgtg6e1ebpwsGyQB+2vM5W7cQzLWKn+gSOBlAVkm+Rc4SKgdqhBUOSGXQ/tvSgtpNljIQfcE3SdCXiNknTqpa7f6Lc9xxKK1Dnesmof+u1bOlpPcaj7D1+C2uJs0tYzdeRZ2OX0Jzs5ppb+gjVtu0oc5lFmIcAo6SQ=',
+};
 const PhotoEditorSDK = observer(({
   imageData,
   onImageEdited,
@@ -16,9 +33,11 @@ const PhotoEditorSDK = observer(({
 }) => {
   const { source } = useMemo(() => imageData, [imageData]);
   const { uploadMedia, storeAsset } = useMediaStore();
+
   const {
     secondaryWindowType: activeTab,
   } = useUIStore();
+
   const onLoadImage = useCallback(async (image) => {
     let media;
     let hasError;
@@ -57,14 +76,17 @@ const PhotoEditorSDK = observer(({
     const editor = await PhotoEditorSDKUI.init({
       container: '#editor',
       image: source, // Image url or Image path relative to assets folder
-      license: '',
+      license: licence.api_token,
+      mainCanvasActions: ['export', 'download'],
       export: {
+
         image: {
           exportType: 'blob',
-          enableDownload: false,
+          enableDownload: true,
         },
       },
       custom: {
+        mainCanvasActions: ['undo', 'redo', 'export', 'close'],
         themes: {
           dark: {
             tooltip: {
@@ -91,7 +113,7 @@ const PhotoEditorSDK = observer(({
               outlinedPrimaryForeground: 'rgba(255, 255, 255, 0.90)',
 
 
-             /** Medium Emphasis button - secondary variant e.g.: Remove Filter, Overlay, Shuffle Text Design */
+              /** Medium Emphasis button - secondary variant e.g.: Remove Filter, Overlay, Shuffle Text Design */
               outlinedSecondaryBackground: 'transparent',
               outlinedSecondaryForeground: 'rgba(255, 255, 255, 0.90)',
 
@@ -126,7 +148,10 @@ const PhotoEditorSDK = observer(({
         },
       },
     });
-    editor.on(UIEvent.EXPORT, (imageSrc) => {
+    //   // editor.on(UIEvent.EXPORT, (imageSrc) => {
+    //   //   onLoadImage(imageSrc);
+    //   // });
+    editor.on(UIEvent.DOWNLOAD, (imageSrc) => {
       onLoadImage(imageSrc);
     });
     editor.on(UIEvent.CLOSE, () => {
