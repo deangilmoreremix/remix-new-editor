@@ -9,7 +9,6 @@ import PropTypes from '../../lib/PropTypes';
 import { tabItems } from '../../lib/constants/library';
 
 
-
 const PhotoEditorSDK = observer(({
   imageData,
   onImageEdited,
@@ -41,7 +40,7 @@ const PhotoEditorSDK = observer(({
           }
         });
       });
-      await storeAsset( media, fileType);
+      await storeAsset(media, fileType);
       showSuccess('Media saved successfully');
     } catch (e) {
       hasError = true;
