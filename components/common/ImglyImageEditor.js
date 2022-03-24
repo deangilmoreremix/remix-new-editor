@@ -9,7 +9,7 @@ import PropTypes from '../../lib/PropTypes';
 import { tabItems } from '../../lib/constants/library';
 
 
-// const licence = `{"api_token":"Bmz_MBXK-7Rqsro1eLceKg","app_identifiers":["https://videoremix.io/","https://revolution.videoremix.io/","https://lead-buster.videoremix.io/","https://dev-revolution.videoremix.io/","http://local-smart-video.videoremix.io/"],"available_actions":[],"domains":["https://api.photoeditorsdk.com"],"enterprise_license":false,"expires_at":null,"features":["camera","library","export","customassets","whitelabel","adjustment","brush","filter","focus","frame","overlay","sticker","text","textdesign","transform"],"issued_at":1648055548,"minimum_sdk_version":"1.0","owner":"VideoRemix","platform":"HTML5","products":["pesdk"],"version":"2.4","signature":"HFcyAK/vr1+SfY6Od9bLWAlQQhNsRUNPS1L2TfdSuFVh1hYBAYjKCsB53YNJV72XfjH1cVuaCFjHchmOyJ66HWGOZ1WcopuV5cBOjq5hpbm1lZrWbk2ey/bl/YTh/SOvskOSrRTcZ4r4BNQMO5BnVPmw4PwV1FysxFZhdfp6yjELK/x12DEKvu+/LE6v08WcnRNmnYZSR7N3+D9kfHeFyOCOv9c+gjjrjD68wWgtWX/wXp/m+5gwKKQeJHKVOzPw5p5QuPE1X1dOAbQa8Oj8lfoIlnp+FUOV/4PFmUBy9gIMI0q31Ubs/227jv0VPVzLW0DmuRRFySGZpBYBOx642TKEmkJW0R2zq42ky05HYSfWgLqNSpKeC+J8BKOQp6M9UDouuFutNzHe5LjLE+bBqu9kVP/QNljWPqIQdO2WN5wBWi0ng200GX7YQ4xJYMWUQ6NebD7O06mEpz7JwR5ablQlenl197b7JcMod1xJ0R1m8jF5/Olh92QS4mL+vNJDP5Ma+l5M6Hu2JS03jCimOHvZFBRoTb+aSULt9AdAIj46OACSSKlPeeYIoi677W66YdELu8G6Zau/oSX1Gbd6/kJ+P/ylbJg+kwlXB6Rhm9fKUvHUo3pm5Mrqok22u01jjXpkYHV5QVZkrPnWA8C7g2Ukvp/s9+jXlHLzi5RZ7dw="}`;
+
 const PhotoEditorSDK = observer(({
   imageData,
   onImageEdited,
@@ -68,7 +68,7 @@ const PhotoEditorSDK = observer(({
       export: {
         image: {
           exportType: 'blob',
-          enableDownload: true,
+          enableDownload: false,
         },
       },
       custom: {
