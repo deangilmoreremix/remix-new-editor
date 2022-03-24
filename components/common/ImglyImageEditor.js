@@ -1,3 +1,4 @@
+/* eslint-disable quotes */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { UIEvent, PhotoEditorSDKUI } from 'photoeditorsdk';
 import { observer } from 'mobx-react';
@@ -8,22 +9,7 @@ import PropTypes from '../../lib/PropTypes';
 import { tabItems } from '../../lib/constants/library';
 
 
-const licence = {
-  api_token: 'Bmz_MBXK-7Rqsro1eLceKg',
-  app_identifiers: ['https://videoremix.io/', 'https://revolution.videoremix.io/', 'https://lead-buster.videoremix.io/', 'https://dev-revolution.videoremix.io/', 'http://local-smart-video.videoremix.io/'],
-  available_actions: [],
-  domains: ['https://api.photoeditorsdk.com'],
-  enterprise_license: false,
-  expires_at: null,
-  features: ['camera', 'library', 'export', 'customassets', 'whitelabel', 'adjustment', 'brush', 'filter', 'focus', 'frame', 'overlay', 'sticker', 'text', 'textdesign', 'transform'],
-  issued_at: 1648042514,
-  minimum_sdk_version: '1.0',
-  owner: 'VideoRemix',
-  platform: 'HTML5',
-  products: ['pesdk'],
-  version: '2.4',
-  signature: 'jko8WvCA0SU008lVIsEWQ6xA6ymjM8n3f+CDHjwGKSlWzHFLTEKS+oeZ0Ji+4bHmXP5uLylh2J9UQHctZR8NqUHcHvgUgtrUh5yNgiEYNbV8A9KUryTqdwEIFjucZkPOiaEvQcuaoIn+r+mK2f6CIJnEnwc6+AhTm8eeN6F6ZUK/0aP9QRY37E+1I33Ti80kNEHPDKhXyAWs7qQHNHtvGZyJPo7f3lJTUFiqjoEh8u474Ym7+xgi+h3SNyvRaGwnbutRqMLR2FG8W9fQNWR+V7YAQkzbORehinkQd/1PEF/iWyA1wrjUwgvGK8EmFQRbrjx7zjzO4n0GzD5rJOakS2l8LNVaLyUDF4h8SSwBLwliSgivWbw8RmgqgcoVq/ayObxHIGSF11PPO0XpUNeA/O4A5Y16VyA4yS2OEtRpeMdZNo2oQ+i9+uAUXcc8T6no2OEeH0fSobMngBqHF0MvVfvpolKOBE38NLvi8esySID4H0K2JPlKJ5ieLnMt/eZ4CE0ikarh2Mgtg6e1ebpwsGyQB+2vM5W7cQzLWKn+gSOBlAVkm+Rc4SKgdqhBUOSGXQ/tvSgtpNljIQfcE3SdCXiNknTqpa7f6Lc9xxKK1Dnesmof+u1bOlpPcaj7D1+C2uJs0tYzdeRZ2OX0Jzs5ppb+gjVtu0oc5lFmIcAo6SQ=',
-};
+// const licence = `{"api_token":"Bmz_MBXK-7Rqsro1eLceKg","app_identifiers":["https://videoremix.io/","https://revolution.videoremix.io/","https://lead-buster.videoremix.io/","https://dev-revolution.videoremix.io/","http://local-smart-video.videoremix.io/"],"available_actions":[],"domains":["https://api.photoeditorsdk.com"],"enterprise_license":false,"expires_at":null,"features":["camera","library","export","customassets","whitelabel","adjustment","brush","filter","focus","frame","overlay","sticker","text","textdesign","transform"],"issued_at":1648055548,"minimum_sdk_version":"1.0","owner":"VideoRemix","platform":"HTML5","products":["pesdk"],"version":"2.4","signature":"HFcyAK/vr1+SfY6Od9bLWAlQQhNsRUNPS1L2TfdSuFVh1hYBAYjKCsB53YNJV72XfjH1cVuaCFjHchmOyJ66HWGOZ1WcopuV5cBOjq5hpbm1lZrWbk2ey/bl/YTh/SOvskOSrRTcZ4r4BNQMO5BnVPmw4PwV1FysxFZhdfp6yjELK/x12DEKvu+/LE6v08WcnRNmnYZSR7N3+D9kfHeFyOCOv9c+gjjrjD68wWgtWX/wXp/m+5gwKKQeJHKVOzPw5p5QuPE1X1dOAbQa8Oj8lfoIlnp+FUOV/4PFmUBy9gIMI0q31Ubs/227jv0VPVzLW0DmuRRFySGZpBYBOx642TKEmkJW0R2zq42ky05HYSfWgLqNSpKeC+J8BKOQp6M9UDouuFutNzHe5LjLE+bBqu9kVP/QNljWPqIQdO2WN5wBWi0ng200GX7YQ4xJYMWUQ6NebD7O06mEpz7JwR5ablQlenl197b7JcMod1xJ0R1m8jF5/Olh92QS4mL+vNJDP5Ma+l5M6Hu2JS03jCimOHvZFBRoTb+aSULt9AdAIj46OACSSKlPeeYIoi677W66YdELu8G6Zau/oSX1Gbd6/kJ+P/ylbJg+kwlXB6Rhm9fKUvHUo3pm5Mrqok22u01jjXpkYHV5QVZkrPnWA8C7g2Ukvp/s9+jXlHLzi5RZ7dw="}`;
 const PhotoEditorSDK = observer(({
   imageData,
   onImageEdited,
@@ -76,10 +62,10 @@ const PhotoEditorSDK = observer(({
     const editor = await PhotoEditorSDKUI.init({
       container: '#editor',
       image: source, // Image url or Image path relative to assets folder
-      license: licence.api_token,
-      mainCanvasActions: ['export', 'download'],
+      license: `{"api_token":"Bmz_MBXK-7Rqsro1eLceKg","app_identifiers":["https://videoremix.io/","https://revolution.videoremix.io/","https://revolution.videoremix.io/edit","https://lead-buster.videoremix.io/","https://dev-revolution.videoremix.io/","https://dev-revolution.videoremix.io/edit","http://local-smart-video.videoremix.io/","http://local-smart-video.videoremix.io/edit"],"available_actions":[],"domains":["https://api.photoeditorsdk.com"],"enterprise_license":false,"expires_at":null,"features":["camera","library","export","customassets","whitelabel","adjustment","brush","filter","focus","frame","overlay","sticker","text","textdesign","transform"],"issued_at":1648111355,"minimum_sdk_version":"1.0","owner":"VideoRemix","platform":"HTML5","products":["pesdk"],"version":"2.4","signature":"OvKhhfYiRHcDZ/GggObgMKd4r+p8Jh4JxP3Ee5OWKpFlMReksa7BCrBpbM8D+6wB8e9BYqNcjutNqyzjLHWAI8z2Z5fqDoTCkF/rnG/HBZ5eTU6DXS+hn6mOs2Aecx3LpOtrGh96vXEwsPExbqauODTxUE2IWneiZywek1e54Pvqw6cEmaGoGCY2cFNkkKx/HjgGdAdmP2BUNhlYXhUzZmsN0L64G4i32yO2caCWpSSLsvRXOML6cpf9qLCX8+ccuFPPi45n5KcrU/m50/fln8cIgBWNeiuFLgyiqZSe2hs4SluNAhvdhS9xZSxpvd4KciPxXfl83ILliAC8FwqpzgeSdpK59QcxE3QfJbuM37guK4s/DZGQtwV4tUjOHZdqWbYv4sIKvpkhcjcYwwt2JUzLmaH0GSjyz92Te6LZlbFAqoSr+4xxuEvtTwQ9iliVBhq4v/zIYFu8roCEAAFrRTeCPf7kq0mw7Yf7PrJhkEHEjN2SQn5QdvvTzcVDNFJspWYNWnf47nl6I6DnHtQf/Vz4lWFblI1oAQpVMubM66rhWms4LEKEQvELWNk58/8cc4xG1ywhYMke5xJ4TP9kw9bM1aD/TcWtqEkdaz0OHl/wgkm0n1njuzbGWEO/ClYBcQVgNl4zfBLz4ry+bZX/7TkBv63l9b+EnkzRA3+BlCk="}
+      `,
+      // mainCanvasActions: ['export', 'download'],
       export: {
-
         image: {
           exportType: 'blob',
           enableDownload: true,
@@ -148,9 +134,9 @@ const PhotoEditorSDK = observer(({
         },
       },
     });
-    //   // editor.on(UIEvent.EXPORT, (imageSrc) => {
-    //   //   onLoadImage(imageSrc);
-    //   // });
+    editor.on(UIEvent.EXPORT, (imageSrc) => {
+      onLoadImage(imageSrc);
+    });
     editor.on(UIEvent.DOWNLOAD, (imageSrc) => {
       onLoadImage(imageSrc);
     });
