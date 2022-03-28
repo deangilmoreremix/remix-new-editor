@@ -315,7 +315,7 @@ const PhotoEnhancer = observer(({
             <div className="flex justify-content-center items-center  ">
 
               <div className="original-image-container ">
-                <p className="text-center font-weight-bold"> Original</p>
+                <p className="text-center font-weight-bold"> Original Image</p>
                 <div className=" flex justify-content-center ">
                   <img className="editor-image" src={source} />
                 </div>
@@ -329,7 +329,7 @@ const PhotoEnhancer = observer(({
               </div>
 
               <div className="result-image-container">
-                <p className="text-center font-weight-bold"> Result </p>
+                <p className="text-center font-weight-bold"> Result Image </p>
 
                 <div className=" ">
                   {isLoading ? <LibrarySpinner /> : (
