@@ -2,12 +2,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { UIEvent, PhotoEditorSDKUI } from 'photoeditorsdk';
 import { observer } from 'mobx-react';
-import { showError } from '../../lib/services/alertService';
+import { showError, showSuccess } from '../../lib/services/alertService';
 import useMediaStore from '../hooks/useMediaStore';
 import useUIStore from '../hooks/useUIStore';
 import PropTypes from '../../lib/PropTypes';
 import { tabItems } from '../../lib/constants/library';
-
 
 
 const PhotoEditorSDK = observer(({
@@ -41,8 +40,8 @@ const PhotoEditorSDK = observer(({
           }
         });
       });
-
       await storeAsset(media, fileType);
+      showSuccess('Media saved successfully');
     } catch (e) {
       hasError = true;
       showError(e.message);
@@ -62,8 +61,9 @@ const PhotoEditorSDK = observer(({
     const editor = await PhotoEditorSDKUI.init({
       container: '#editor',
       image: source, // Image url or Image path relative to assets folder
-      license: `{"api_token":"Bmz_MBXK-7Rqsro1eLceKg","app_identifiers":["https://videoremix.io/","https://revolution.videoremix.io/","https://revolution.videoremix.io/edit","https://lead-buster.videoremix.io/","https://dev-revolution.videoremix.io/","https://dev-revolution.videoremix.io/edit","http://local-smart-video.videoremix.io/","http://local-smart-video.videoremix.io/edit"],"available_actions":[],"domains":["https://api.photoeditorsdk.com"],"enterprise_license":false,"expires_at":null,"features":["camera","library","export","customassets","whitelabel","adjustment","brush","filter","focus","frame","overlay","sticker","text","textdesign","transform"],"issued_at":1648111355,"minimum_sdk_version":"1.0","owner":"VideoRemix","platform":"HTML5","products":["pesdk"],"version":"2.4","signature":"OvKhhfYiRHcDZ/GggObgMKd4r+p8Jh4JxP3Ee5OWKpFlMReksa7BCrBpbM8D+6wB8e9BYqNcjutNqyzjLHWAI8z2Z5fqDoTCkF/rnG/HBZ5eTU6DXS+hn6mOs2Aecx3LpOtrGh96vXEwsPExbqauODTxUE2IWneiZywek1e54Pvqw6cEmaGoGCY2cFNkkKx/HjgGdAdmP2BUNhlYXhUzZmsN0L64G4i32yO2caCWpSSLsvRXOML6cpf9qLCX8+ccuFPPi45n5KcrU/m50/fln8cIgBWNeiuFLgyiqZSe2hs4SluNAhvdhS9xZSxpvd4KciPxXfl83ILliAC8FwqpzgeSdpK59QcxE3QfJbuM37guK4s/DZGQtwV4tUjOHZdqWbYv4sIKvpkhcjcYwwt2JUzLmaH0GSjyz92Te6LZlbFAqoSr+4xxuEvtTwQ9iliVBhq4v/zIYFu8roCEAAFrRTeCPf7kq0mw7Yf7PrJhkEHEjN2SQn5QdvvTzcVDNFJspWYNWnf47nl6I6DnHtQf/Vz4lWFblI1oAQpVMubM66rhWms4LEKEQvELWNk58/8cc4xG1ywhYMke5xJ4TP9kw9bM1aD/TcWtqEkdaz0OHl/wgkm0n1njuzbGWEO/ClYBcQVgNl4zfBLz4ry+bZX/7TkBv63l9b+EnkzRA3+BlCk="}
-      `,
+      license: '',
+      // license: `{"api_token":"Bmz_MBXK-7Rqsro1eLceKg","app_identifiers":["https://videoremix.io/","https://revolution.videoremix.io/","https://revolution.videoremix.io/edit","https://lead-buster.videoremix.io/","https://dev-revolution.videoremix.io/","https://dev-revolution.videoremix.io/edit","http://local-smart-video.videoremix.io/","http://local-smart-video.videoremix.io/edit"],"available_actions":[],"domains":["https://api.photoeditorsdk.com"],"enterprise_license":false,"expires_at":null,"features":["camera","library","export","customassets","whitelabel","adjustment","brush","filter","focus","frame","overlay","sticker","text","textdesign","transform"],"issued_at":1648111355,"minimum_sdk_version":"1.0","owner":"VideoRemix","platform":"HTML5","products":["pesdk"],"version":"2.4","signature":"OvKhhfYiRHcDZ/GggObgMKd4r+p8Jh4JxP3Ee5OWKpFlMReksa7BCrBpbM8D+6wB8e9BYqNcjutNqyzjLHWAI8z2Z5fqDoTCkF/rnG/HBZ5eTU6DXS+hn6mOs2Aecx3LpOtrGh96vXEwsPExbqauODTxUE2IWneiZywek1e54Pvqw6cEmaGoGCY2cFNkkKx/HjgGdAdmP2BUNhlYXhUzZmsN0L64G4i32yO2caCWpSSLsvRXOML6cpf9qLCX8+ccuFPPi45n5KcrU/m50/fln8cIgBWNeiuFLgyiqZSe2hs4SluNAhvdhS9xZSxpvd4KciPxXfl83ILliAC8FwqpzgeSdpK59QcxE3QfJbuM37guK4s/DZGQtwV4tUjOHZdqWbYv4sIKvpkhcjcYwwt2JUzLmaH0GSjyz92Te6LZlbFAqoSr+4xxuEvtTwQ9iliVBhq4v/zIYFu8roCEAAFrRTeCPf7kq0mw7Yf7PrJhkEHEjN2SQn5QdvvTzcVDNFJspWYNWnf47nl6I6DnHtQf/Vz4lWFblI1oAQpVMubM66rhWms4LEKEQvELWNk58/8cc4xG1ywhYMke5xJ4TP9kw9bM1aD/TcWtqEkdaz0OHl/wgkm0n1njuzbGWEO/ClYBcQVgNl4zfBLz4ry+bZX/7TkBv63l9b+EnkzRA3+BlCk="}
+      // `,
       // mainCanvasActions: ['export', 'download'],
       export: {
         image: {
