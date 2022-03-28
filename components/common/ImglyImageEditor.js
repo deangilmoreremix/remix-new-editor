@@ -9,7 +9,6 @@ import PropTypes from '../../lib/PropTypes';
 import { tabItems } from '../../lib/constants/library';
 
 
-
 const PhotoEditorSDK = observer(({
   imageData,
   onImageEdited,
@@ -78,6 +77,24 @@ const PhotoEditorSDK = observer(({
             tooltip: {
               background: 'darkgray',
             },
+            selectColor: {
+              activeBorderColor: '#EB4F53',
+              inactiveOpacity: '0.3',
+            },
+            colorPicker: {
+              inputBorderColor: '#EB4F53',
+              listBackground: '#333333',
+              /**
+              * According to material design
+              * shadows are applied for dark theme
+              * they don't really work well with light theme,
+              * so they are customizable based on your design choices
+              */
+              listShadow: `0 12px 17px 2px rgba(0,0,0,0.14),
+                0 5px 22px 4px rgba(0,0,0,0.12),
+                0 7px 8px -4px rgba(0,0,0,0.20)`,
+              controlsColor: '#FFFFFF',
+            },
             toolbar: {
               foreground: 'rgba(255, 255, 255, 0.90)',
               background: '#242424',
@@ -95,7 +112,7 @@ const PhotoEditorSDK = observer(({
 
 
               /** Medium Emphasis button - primary variant e.g.: New Text, Text Design, Upload on toolControlBar */
-              outlinedPrimaryBackground: '#242424',
+              outlinedPrimaryBackground: '#EB4F53',
               outlinedPrimaryForeground: 'rgba(255, 255, 255, 0.90)',
 
 
@@ -105,19 +122,17 @@ const PhotoEditorSDK = observer(({
 
 
               outlinedInactiveOverlayColor: 'rgba(0, 0, 0, 0.3)',
-              outlinedBorderColor: '#333333',
+              outlinedBorderColor: '#EB4F53',
 
 
               /** Low Emphasis button - primary variant e.g.: primary button in modal */
-              textPrimaryForeground: '#365AFC',
+              textPrimaryForeground: '#EB4F53',
               /** Low Emphasis button - secondary variant e.g.: secondary button in modal, undo, redo, Carousel navigators, alignment buttons */
               textSecondaryForeground: 'rgba(255, 255, 255, 0.90)',
 
 
               textInactiveOpacity: '0.5',
-
-
-              activeForeground: '#365AFC',
+              activeForeground: '#EB4F53',
 
 
               hoverOverlayColor: 'rgba(255, 255, 255, 0.08)',
@@ -130,6 +145,37 @@ const PhotoEditorSDK = observer(({
               inactiveOpacity: '0.3',
               hoverOpacity: '0.7',
             },
+
+            checkbox: {
+              background: '#333333',
+              foreground: '#FFFFFF',
+              activeForeground: '#EB4F53',
+              activeBackground: '#EB4F53',
+              inactiveOpacity: '0.3',
+              hoverOpacity: '0.8',
+            },
+
+            card: {
+              background: '#333333',
+              foreground: 'rgba(255, 255, 255, 0.90)',
+              activeBorderColor: '#EB4F53',
+              // activeOverlayColor: '#f18487',
+              activeOverlayColor: 'rgba(255,0,0,0.20)',
+              /** card in PhotoEditor SDK almost always has a label */
+              labelBackground: 'linear-gradient(transparent, rgba(0, 0, 0, 0.2))',
+              labelForeground: 'rgba(255, 255, 255, 0.90)',
+              inactiveOverlayColor: 'rgba(0, 0, 0, 0.3)',
+              hoverOverlayColor: 'rgba(255, 255, 255, 0.08)',
+            },
+
+            tabTitle: {
+              foreground: 'rgba(255, 255, 255, 0.60)',
+              background: 'transparent',
+              activeBackground: 'transparent',
+              activeBorderColor: '#EB4F53',
+              activeForeground: 'rgba(255, 255, 255, 0.90)',
+            },
+
           },
         },
       },
