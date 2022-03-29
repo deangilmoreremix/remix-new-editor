@@ -325,8 +325,6 @@ export default class ProjectStore extends BaseStore {
       }
       if (this.retarget.showed) {
         this.retarget.start();
-      } else {
-        this.retarget.end();
       }
     }
     if (this.duration !== duration) {
@@ -1665,6 +1663,32 @@ export default class ProjectStore extends BaseStore {
           default: {
             return showError('The project is not valid.');
           }
+        }
+      } else if (actionType === ACTION_MAKE_COPY || actionType === ACTION_WATCH_VIDEO) {
+        closeAllWindows();
+        const project = await this.save();
+        if (!this.modified) {
+          if (actionType === ACTION_MAKE_COPY) {
+            afterSave(`/edit?remix=${this.item._id}`);
+          }
+          if (actionType === ACTION_WATCH_VIDEO) {
+            afterSave(this.item.url);
+          }
+        }
+        if (project && project._id) {
+          Router.push(
+            {
+              pathname: ROUTES.edit,
+              query: {
+                project: project._id,
+              },
+            },
+            undefined,
+            {
+              shallow: true,
+            },
+          );
+          setInitialView();
         }
       } else if (await showConfirmation('Project will be saved')) {
         closeAllWindows();
