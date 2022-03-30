@@ -63,12 +63,20 @@ const PhotoEditorSDK = observer(({
       container: '#editor',
       image: source, // Image url or Image path relative to assets folder
       license: JSON.stringify(license),
+      mainCanvasActions: ['undo', 'redo', 'export', 'close'],
+      displayToolControlBarTitle: true,
       export: {
         image: {
           exportType: 'blob',
           enableDownload: false,
         },
       },
+      tools: [
+        // 'library',
+        ['transform', 'filter', 'adjustment'],
+        ['focus', 'frame', 'overlay'],
+        ['text', 'text-design', 'sticker', 'brush'],
+      ],
       custom: {
         mainCanvasActions: ['undo', 'redo', 'export', 'close'],
         themes: {
