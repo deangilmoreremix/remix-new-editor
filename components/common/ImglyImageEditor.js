@@ -75,7 +75,7 @@ const PhotoEditorSDK = observer(({
         // 'library',
         ['transform', 'filter', 'adjustment'],
         ['focus', 'frame', 'overlay'],
-        ['text', 'text-design', 'sticker', 'brush'],
+        ['text', 'textdesign', 'sticker', 'brush'],
       ],
       custom: {
         mainCanvasActions: ['undo', 'redo', 'export', 'close'],
