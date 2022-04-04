@@ -12,6 +12,7 @@ export default class UserStore {
     this.roles = null;
     this.request = request;
     this.selfRequest = requestCreator(hostname, null, isServer, () => { });
+    this.currentUser.cutOutProCredit = 50;
   }
 
   @computed
@@ -518,5 +519,20 @@ export default class UserStore {
     return this.isfeatureEnabled(FEATURES.SMART_RETOUCH);
   }
 
+  // cutout pro api integration
+  @computed
+  get userCutOutProBalance() {
+    return this.currentUser.cutOutProCredit;
+  }
+
+  @action
+  addCreditUser = (val) => {
+    this.currentUser.cutOutProCredit = this.currentUser.cutOutProCredit + val;
+  }
+
+  @action
+  minusCreditUser = (val) => {
+    this.currentUser.cutOutProCredit = this.currentUser.cutOutProCredit - val;
+  }
 
 }

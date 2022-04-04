@@ -30,8 +30,12 @@ const AdvancedImageEditor = observer(({
 }) => {
   const {
     smartBackgroundRemovalEnabled, smartFaceCutOutEnabled, smartCartoonSelfieEnabled,
-    smartEnhancerEnabled, smartColorizerEnabled, smartCorrectionEnabled, smartAnimerEnabled, smartPassportEnabled, smartRetouchEnabled,
+    smartEnhancerEnabled, smartColorizerEnabled,
+    smartCorrectionEnabled, smartAnimerEnabled,
+    smartPassportEnabled, smartRetouchEnabled,
+    userCutOutProBalance,
   } = useUserStore();
+  // console.log(userCutOutProBalance, 'This is here foe now');
   const { imageMeta, ...rest } = useMemo(
     () => options, [options]);
 
@@ -46,6 +50,11 @@ const AdvancedImageEditor = observer(({
     <>
       <div>
         <div className="heading-container">
+          <p>
+User available Credit
+            {' '}
+            {userCutOutProBalance}
+          </p>
           <button className="btn btn-secondary btn-sm" onClick={onClose}>
             Close
           </button>

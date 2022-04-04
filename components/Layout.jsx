@@ -1,3 +1,4 @@
+/* eslint-disable react/no-danger */
 import React, { Component } from 'react';
 import Head from 'next/head';
 import { Provider, observer } from 'mobx-react';
@@ -80,8 +81,8 @@ class Layout extends Component {
         <CssBaseline />
         <Provider {...this.stores}>
           <DndProvider backend={HTML5Backend}>
-            {whiteLabelManager.domain === DOMAIN_VIDEOREMIX &&
-              this.stores.common.scriptStatistic && (
+            {whiteLabelManager.domain === DOMAIN_VIDEOREMIX
+              && this.stores.common.scriptStatistic && (
                 <>
                   <noscript
                     dangerouslySetInnerHTML={{
@@ -97,7 +98,7 @@ class Layout extends Component {
                     }}
                   />
                 </>
-              )}
+            )}
             <div
               className={`theme-${whiteLabelManager.key} ${layoutClassName} ${className}-baseheader`}
             >
@@ -135,8 +136,8 @@ class Layout extends Component {
                   />
                 )}
                 {/* Google Tag Manager */}
-                {whiteLabelManager.domain === DOMAIN_VIDEOREMIX &&
-                  this.stores.common.scriptStatistic && (
+                {whiteLabelManager.domain === DOMAIN_VIDEOREMIX
+                  && this.stores.common.scriptStatistic && (
                     <>
                       <script
                         dangerouslySetInnerHTML={{
@@ -173,7 +174,7 @@ class Layout extends Component {
                       {/* }} */}
                       {/* /> */}
                     </>
-                  )}
+                )}
                 {/* End Facebook Pixel Code */}
                 <script src={this.stores.common.vrviewPath} />
                 <script src={this.imageEditor} />
@@ -201,43 +202,43 @@ class Layout extends Component {
                     />
                     {children}
                   </div>
-                  {this.stores.userStore.currentUser &&
-                  whiteLabelManager &&
-                  whiteLabelManager.domain === DOMAIN_VIDEOREMIX ? (
-                    <HelpCrunch
-                      userStore={this.stores.userStore}
-                      applicationId={
+                  {this.stores.userStore.currentUser
+                    && whiteLabelManager
+                    && whiteLabelManager.domain === DOMAIN_VIDEOREMIX ? (
+                      <HelpCrunch
+                        userStore={this.stores.userStore}
+                        applicationId={
                         this.stores.common.helpCrunch.applicationId
                       }
-                      applicationSecret={
+                        applicationSecret={
                         this.stores.common.helpCrunch.applicationSecret
                       }
-                    />
-                  ) : null}
-                  {this.stores.userStore.currentUser &&
-                  whiteLabelManager &&
-                  whiteLabelManager.domain === DOMAIN_VIDEOREMIX ? (
-                    <Intercom
-                      appID={this.stores.common.intercom.appId}
-                      user={{
-                        email: this.currentUser.email,
-                        fullName: this.currentUser.fullName,
-                        hash: this.currentUser.intercomHash,
-                        createdAt: Math.floor(
-                          Date.parse(this.currentUser.createdAt) / 1000
-                        ).toString(),
-                      }}
-                      domain={DOMAIN_VIDEOREMIX}
-                    />
-                  ) : null}
+                      />
+                    ) : null}
+                  {this.stores.userStore.currentUser
+                    && whiteLabelManager
+                    && whiteLabelManager.domain === DOMAIN_VIDEOREMIX ? (
+                      <Intercom
+                        appID={this.stores.common.intercom.appId}
+                        user={{
+                          email: this.currentUser.email,
+                          fullName: this.currentUser.fullName,
+                          hash: this.currentUser.intercomHash,
+                          createdAt: Math.floor(
+                            Date.parse(this.currentUser.createdAt) / 1000,
+                          ).toString(),
+                        }}
+                        domain={DOMAIN_VIDEOREMIX}
+                      />
+                    ) : null}
                 </div>
               ) : (
                 <UnauthorizedView />
               )}
             </div>
-            {userPilotToken &&
-              whiteLabelManager &&
-              whiteLabelManager.domain === DOMAIN_VIDEOREMIX && (
+            {userPilotToken
+              && whiteLabelManager
+              && whiteLabelManager.domain === DOMAIN_VIDEOREMIX && (
                 <>
                   <script src="https://js.userpilot.io/sdk/latest.js" />
                   <script
@@ -248,7 +249,7 @@ class Layout extends Component {
                     }}
                   />
                 </>
-              )}
+            )}
           </DndProvider>
         </Provider>
       </ThemeProvider>

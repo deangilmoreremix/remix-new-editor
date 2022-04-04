@@ -4,6 +4,7 @@ import { observer } from 'mobx-react';
 import { triggerBase64Download } from 'react-base64-downloader';
 import Carousel from 'react-simply-carousel';
 import PropTypes from '../../../lib/PropTypes';
+import useUserStore from '../../hooks/useUserStore';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
@@ -24,6 +25,9 @@ const BackgroundRemoval = observer(({
   const {
     secondaryWindowType: activeTab,
   } = useUIStore();
+  const userStore = useUserStore();
+
+  const { minusCreditUser } = userStore;
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
@@ -72,27 +76,29 @@ const BackgroundRemoval = observer(({
 
   const processImage = () => {
     setIsLoading(true);
-    fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=6`, {
-      method: 'get',
-      headers: {
-        'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        Accept: 'application/json',
-        APIKEY: config.cutoutPro.apiKey,
-      },
-    })
-      .then((data) =>
-        // eslint-disable-next-line implicit-arrow-linebreak
-        data.json(),
-      ).then(resp => {
-        setIsLoading(false);
-        setIsProcessImage(true);
+    minusCreditUser(2);
+    setIsLoading(false);
+    // fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=6`, {
+    //   method: 'get',
+    //   headers: {
+    //     'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+    //     Accept: 'application/json',
+    //     APIKEY: config.cutoutPro.apiKey,
+    //   },
+    // })
+    //   .then((data) =>
+    //     // eslint-disable-next-line implicit-arrow-linebreak
+    //     data.json(),
+    //   ).then(resp => {
+    //     setIsLoading(false);
+    //     setIsProcessImage(true);
 
-        setNewImage(resp.data.imageBase64);
-      })
-      // eslint-disable-next-line no-unused-vars
-      .catch((error) => {
-        setIsLoading(false);
-      });
+    //     setNewImage(resp.data.imageBase64);
+    //   })
+    //   // eslint-disable-next-line no-unused-vars
+    //   .catch((error) => {
+    //     setIsLoading(false);
+    //   });
   };
 
 
