@@ -41,10 +41,29 @@ const Basic = observer(({
     isfeatureEnabled: checkStateFeature,
     clickToPhoneCall,
     imglyEditorEnabled,
+    smartBackgroundRemovalEnabled,
+    smartFaceCutOutEnabled,
+    smartCartoonSelfieEnabled,
+    smartEnhancerEnabled,
+    smartColorizerEnabled,
+    smartCorrectionEnabled,
+    smartAnimerEnabled,
+    smartPassportEnabled,
+    smartRetouchEnabled,
   } = useUserStore();
   const { openImageEditor, openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
 
-
+  const isCutOutProEnable = () => {
+    if (smartBackgroundRemovalEnabled === false && smartFaceCutOutEnabled === false
+      && smartCartoonSelfieEnabled === false && smartEnhancerEnabled === false
+      && smartColorizerEnabled === false && smartCorrectionEnabled === false
+      && smartAnimerEnabled === false && smartPassportEnabled === false
+      && smartRetouchEnabled === false) {
+      return false;
+    } else {
+      return true;
+    }
+  };
   const backToLibrary = () => {
     handleClose();
     setUpdateElementInLibrary(element.id);
@@ -129,8 +148,8 @@ const Basic = observer(({
               {...fields[popcornConstants.LINKSRC]}
               labelHint={hint}
               label={user
-              && user.features
-              && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
+                && user.features
+                && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
                 ? popcornConstants.LABEL_CLICK_TO_PHONE : fields[popcornConstants.LINKSRC].label}
               value={values[popcornConstants.LINKSRC] || fields[popcornConstants.LINKSRC].default}
               onChange={onChangeWithValidation}
@@ -226,7 +245,7 @@ const Basic = observer(({
               }}
               disabled={isLoading}
             >
-           Image Editor Advance
+           Image Editor Advanced
             </button>
           )}
 
