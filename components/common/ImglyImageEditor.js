@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { UIEvent, PhotoEditorSDKUI } from 'photoeditorsdk';
 import { observer } from 'mobx-react';
-import { showError } from '../../lib/services/alertService';
+import { showError, showSuccess } from '../../lib/services/alertService';
 import useMediaStore from '../hooks/useMediaStore';
 import useUIStore from '../hooks/useUIStore';
 import PropTypes from '../../lib/PropTypes';
@@ -41,8 +41,8 @@ const PhotoEditorSDK = observer(({
           }
         });
       });
-
       await storeAsset(media, fileType);
+      showSuccess('Media saved successfully');
     } catch (e) {
       hasError = true;
       showError(e.message);
@@ -63,12 +63,20 @@ const PhotoEditorSDK = observer(({
       container: '#editor',
       image: source, // Image url or Image path relative to assets folder
       license: JSON.stringify(license),
+      mainCanvasActions: ['undo', 'redo', 'export', 'close'],
+      displayToolControlBarTitle: true,
       export: {
         image: {
           exportType: 'blob',
           enableDownload: false,
         },
       },
+      tools: [
+        // 'library',
+        ['transform', 'filter', 'adjustment'],
+        ['focus', 'frame', 'overlay'],
+        ['text', 'textdesign', 'sticker', 'brush'],
+      ],
       custom: {
         mainCanvasActions: ['undo', 'redo', 'export', 'close'],
         themes: {
