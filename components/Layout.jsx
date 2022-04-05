@@ -197,6 +197,19 @@ class Layout extends Component {
                     {...rest}
                     className={`main theme-${whiteLabelManager.key}`}
                   >
+                    <script
+                      dangerouslySetInnerHTML={{
+                        __html: `(function (w, d, s) {
+                        var a = d.getElementsByTagName('head')[0];
+                        var r = d.createElement('script');
+                        r.async = 1;
+                        r.src = s;
+                        r.setAttribute('id', 'usetifulScript');
+                        r.dataset.token = "c1cd1e76ccff7accdb1dba2ac651e46e";
+                                            a.appendChild(r);
+                      })(window, document, "https://www.usetiful.com/dist/usetiful.js");`,
+                      }}
+                    />
                     <ModalContainer
                       classNameWL={`theme-${whiteLabelManager.key}`}
                     />
@@ -248,6 +261,20 @@ class Layout extends Component {
                 };`,
                     }}
                   />
+
+                  {/* <script
+                    dangerouslySetInnerHTML={{
+                      __html: `(function (w, d, s) {
+                        var a = d.getElementsByTagName('head')[0];
+                        var r = d.createElement('script');
+                        r.async = 1;
+                        r.src = s;
+                        r.setAttribute('id', 'usetifulScript');
+                        r.dataset.token = "c1cd1e76ccff7accdb1dba2ac651e46e";
+                                            a.appendChild(r);
+                      })(window, document, "https://www.usetiful.com/dist/usetiful.js");`,
+                    }}
+                  /> */}
                 </>
             )}
           </DndProvider>

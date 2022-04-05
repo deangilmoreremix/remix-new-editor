@@ -249,7 +249,6 @@ const Basic = observer(({
             </button>
           )}
 
-
           {isCutOutProEnable && (
             <button
               className="image-settings__btn"
@@ -268,7 +267,6 @@ const Basic = observer(({
               AI Image Editor
             </button>
           )}
-
 
         </div>
       </div>
