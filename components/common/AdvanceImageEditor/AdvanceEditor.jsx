@@ -51,7 +51,7 @@ const AdvancedImageEditor = observer(({
       <div>
         <div className="heading-container">
           <p>
-User available Credit
+            User available Credit
             {' '}
             {userCutOutProBalance}
           </p>
