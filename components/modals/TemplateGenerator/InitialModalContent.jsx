@@ -19,7 +19,7 @@ export default function InitialModalContent({ accept, decline }) {
       { (!isSafari || isWarningClosed) ? (
         <>
           <div className="generator-offer__text-box">
-            <p className="generator-offer__text">Do you want to use the Template Generator?</p>
+            <p className="generator-offer__text">Do you want to use the Video Automation Creator?</p>
             <HelpIconComponent mouseEntered isBottom message={mainTooltips.templateGenerator} />
           </div>
           <SVGInline
