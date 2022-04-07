@@ -12,7 +12,7 @@ export default class UserStore {
     this.roles = null;
     this.request = request;
     this.selfRequest = requestCreator(hostname, null, isServer, () => { });
-    this.currentUser.cutOutProCredit = 50;
+    this.currentUser.cutOutProCredit = 10;
   }
 
   @computed
@@ -532,7 +532,9 @@ export default class UserStore {
 
   @action
   minusCreditUser = (val) => {
+    if (this.currentUser.cutOutProCredit === 0) {
+      return this.currentUser.cutOutProCredit;
+    }
     this.currentUser.cutOutProCredit = this.currentUser.cutOutProCredit - val;
   }
-
 }

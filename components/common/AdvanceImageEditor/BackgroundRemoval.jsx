@@ -3,6 +3,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 import { triggerBase64Download } from 'react-base64-downloader';
 import Carousel from 'react-simply-carousel';
+
 import PropTypes from '../../../lib/PropTypes';
 import useUserStore from '../../hooks/useUserStore';
 import { showError } from '../../../lib/services/alertService';
@@ -27,7 +28,7 @@ const BackgroundRemoval = observer(({
   } = useUIStore();
   const userStore = useUserStore();
 
-  const { minusCreditUser } = userStore;
+  const { minusCreditUser, userCutOutProBalance } = userStore;
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
@@ -142,9 +143,16 @@ const BackgroundRemoval = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
-                    <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
+                    {/* <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
                       Remove Background Image
-                    </button>
+                    </button> */}
+
+                    {userCutOutProBalance === 0 ? null
+                      : (
+                        <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
+                          Remove Background Image
+                        </button>
+                      )}
                   </div>
                 </div>
               </div>
@@ -235,13 +243,19 @@ const BackgroundRemoval = observer(({
                 </Carousel>
               </div>
             </div>
-            <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
-              Download Image
-            </button>
 
-            <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
-              Save to Canvas
-            </button>
+            {userCutOutProBalance === 0 ? null
+              : (
+                <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
+                  Download Image
+                </button>
+              )}
+            {userCutOutProBalance === 0 ? null
+              : (
+                <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
+                  Save to Canvas
+                </button>
+              )}
           </div>
         </div>
 

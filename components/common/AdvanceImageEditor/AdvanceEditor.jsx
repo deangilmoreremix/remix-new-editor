@@ -9,7 +9,7 @@ import PhotoEnhancer from './PhotoEnhancer';
 import FaceCutOut from './FaceCutOut';
 import PhotoColorizer from './PhotoColorizer';
 import PhotoAnimer from './PhotoAnimer';
-import Retouch from './Retouch';
+// import Retouch from './Retouch';
 import PhotoCorrection from './PhotoCorrection';
 import CartoonSelfie from './CartoonSelfie';
 import PassportMarker from './PassportMarker';
@@ -20,7 +20,7 @@ import EnhancerSvg from '../../../public/static/AdvanceImageSvg/Enhancer.svg';
 import ColorizerSvg from '../../../public/static/AdvanceImageSvg/smartColor.svg';
 import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
 import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
-import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
+// import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
 
 
@@ -50,11 +50,24 @@ const AdvancedImageEditor = observer(({
     <>
       <div>
         <div className="heading-container">
-          <p>
-            User available Credit
-            {' '}
-            {userCutOutProBalance}
-          </p>
+          <div>
+            <p>
+              User available Credit
+              {' '}
+              {userCutOutProBalance}
+            </p>
+
+            {userCutOutProBalance === 0 ? (
+              <div>
+                <p className="btn btn-link">
+                  You have exhausted you credit.
+                  {' '}
+                  <a> Click here to purchase credit</a>
+                </p>
+              </div>
+            ) : null}
+
+          </div>
           <button className="btn btn-secondary btn-sm" onClick={onClose}>
             Close
           </button>
@@ -149,7 +162,7 @@ const AdvancedImageEditor = observer(({
               </TabPane>
             )}
 
-            {
+            {/* {
               smartRetouchEnabled && (
                 <TabPane name="Smart Retouch" icon={brush} key="9">
                   <Retouch
@@ -159,7 +172,7 @@ const AdvancedImageEditor = observer(({
                   />
                 </TabPane>
               )
-            }
+            } */}
 
           </Tabs>
         </div>
