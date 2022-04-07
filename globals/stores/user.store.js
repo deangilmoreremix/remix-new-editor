@@ -518,5 +518,34 @@ export default class UserStore {
     return this.isfeatureEnabled(FEATURES.SMART_RETOUCH);
   }
 
+  @computed
+  get evolutionOverlayEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_OVERLAY);
+  }
+
+  @computed
+  get evolutionPresetEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_PRESETS);
+  }
+
+  @computed
+  get evolutionBlendModeEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_BLEND_MODE);
+  }
+
+  @computed
+  get evolutionLowerThirdEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_LOWER_THIRDS);
+  }
+
+  @computed
+  get evolutionCtaEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_CTA);
+  }
+
+  @computed
+  get evolutionImageLTPresetEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_IMAGE_LT_PRESETS);
+  }
 
 }
