@@ -81,6 +81,13 @@ const Home = observer(() => {
     textMaskEnabled,
     roles,
     currentUser,
+
+    evolutionOverlayEnabled,
+    evolutionPresetEnabled,
+    evolutionBlendModeEnabled,
+    evolutionLowerThirdEnabled,
+    evolutionCtaEnabled,
+    evolutionImageLTPresetEnabled,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
@@ -182,6 +189,12 @@ const Home = observer(() => {
         socialFbEnabled,
         wrapperFeatureEnabled,
         textMaskEnabled,
+        evolutionOverlayEnabled,
+        evolutionPresetEnabled,
+        evolutionBlendModeEnabled,
+        evolutionLowerThirdEnabled,
+        evolutionCtaEnabled,
+        evolutionImageLTPresetEnabled,
       },
     });
     return items && items.length ? items : [];
