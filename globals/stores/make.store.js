@@ -80,4 +80,8 @@ export default class PresetStore extends BaseStore {
   getConnect = ({ page = 1, query = '', perPage = 12 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.CONNECT }, path: '/api/makes/revolution' })
   );
+
+  getImageLTPreset = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_IMAGE_LT_PRESETS }, path: '/api/makes/revolution' })
+  );
 }
