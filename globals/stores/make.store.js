@@ -46,7 +46,7 @@ export default class PresetStore extends BaseStore {
         result.forEach((optin) => {
           data.push([new Date(optin.createdAt).toLocaleString(), optin.extra && optin.extra.source,
             ...keys.map((key) => (optin.extra.data && optin.extra.data[key])
-              || (optin.extra && optin.extra[key]))]);
+            || (optin.extra && optin.extra[key]))]);
         });
       }
     } catch (e) {
@@ -81,7 +81,12 @@ export default class PresetStore extends BaseStore {
     this.getList({ page, query, perPage, params: { segment: makeTypes.CONNECT }, path: '/api/makes/revolution' })
   );
 
+  // Evolution template section
   getImageLTPreset = ({ page = 1, query = '', perPage = 12 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_IMAGE_LT_PRESETS }, path: '/api/makes/revolution' })
+  );
+
+  getEvolutionTemplatesCTA = ({ page = 1, query = '', perPage = 20 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_CTA }, path: '/api/makes/revolution' })
   );
 }

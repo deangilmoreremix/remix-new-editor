@@ -14,7 +14,7 @@ const LibraryCTA = ({ className, onSelect }) => {
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
 
-  const { getTemplatesCTA } = useMakeStore();
+  const { getTemplatesCTA, getEvolutionTemplatesCTA } = useMakeStore();
   const { addData } = useProjectStore();
 
   const handleSelect = React.useCallback(async (item) => {
@@ -45,8 +45,14 @@ const LibraryCTA = ({ className, onSelect }) => {
           perPage,
         });
 
-        setItems([...items, ...results]);
-        const hasNextPage = results.length === perPage;
+        const resultsEvolution = await getEvolutionTemplatesCTA({
+          query: '',
+          page,
+          perPage,
+        });
+
+        setItems([...items, ...results, ...resultsEvolution]);
+        const hasNextPage = results.length && resultsEvolution.length === perPage;
         setHasMore(hasNextPage);
 
         if (hasNextPage) {
