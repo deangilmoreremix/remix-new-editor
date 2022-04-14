@@ -7,12 +7,13 @@ import useMakeStore from '../hooks/useMakeStore';
 import ViewProjectWindow from './ViewProjectWindow';
 
 const Presets = ({ handleClose }) => {
-  const { getPresets } = useMakeStore();
+  const { getPresets, evolutionPresets } = useMakeStore();
 
   return (
     <ViewProjectWindow
       handleClose={handleClose}
       fetchItems={getPresets}
+      fetchItemsEvolution={evolutionPresets}
       title="lower thirds presets"
     />
   );

@@ -89,4 +89,12 @@ export default class PresetStore extends BaseStore {
   getEvolutionTemplatesCTA = ({ page = 1, query = '', perPage = 20 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_CTA }, path: '/api/makes/revolution' })
   );
+
+  getEvolutionTemplatesBlendMode = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_BLEND_MODE }, path: '/api/makes/revolution' })
+  );
+
+  evolutionPresets = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_PRESETS }, path: '/api/makes/revolution' })
+  );
 }
