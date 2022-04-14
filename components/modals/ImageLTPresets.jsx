@@ -4,13 +4,13 @@ import PropTypes from '../../lib/PropTypes';
 
 import useMakeStore from '../hooks/useMakeStore';
 
-import ViewProjectWindow from './ViewProjectWindow';
+import ViewProjectWindowImageLt from './ViewProjectWindow/indexImageLT';
 
 const ImagePresets = ({ handleClose }) => {
   const { getImageLTPreset } = useMakeStore();
 
   return (
-    <ViewProjectWindow
+    <ViewProjectWindowImageLt
       handleClose={handleClose}
       fetchItems={getImageLTPreset}
       title="Image LT Preset"
