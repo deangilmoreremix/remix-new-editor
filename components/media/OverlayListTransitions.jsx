@@ -9,6 +9,8 @@ import useMakeStore from '../hooks/useMakeStore';
 import useProjectStore from '../hooks/useProjectStore';
 import usePresetStore from '../hooks/usePresetStore';
 import useTimelineStore from '../hooks/useTimelineStore';
+import useUserStore from '../hooks/useUserStore';
+
 
 import Tabs from '../common/overlay/Tabs';
 import CloseButton from '../common/CloseButton';
@@ -26,10 +28,12 @@ const OverlayListTransitions = observer(() => {
   const [hasMore, setHasMore] = React.useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { getJsonTransitions } = useMakeStore();
+  const { getJsonTransitions, getEvolutionJsonTransitionsOverlay } = useMakeStore();
   const { setPreviewData, updateTime } = usePresetStore();
   const { addData, item: { ratio } } = useProjectStore();
   const { timelineHeight } = useTimelineStore();
+  const userStore = useUserStore();
+  const { jsonTransitionEnabled, evolutionOverlayEnabled } = userStore;
 
   const {
     toggleRightBlock,
@@ -95,23 +99,54 @@ const OverlayListTransitions = observer(() => {
       setIsLoading(true);
 
       try {
-        const results = await getJsonTransitions({
-          query: '',
-          page,
-          perPage,
-          filter,
-        });
+        if (jsonTransitionEnabled === true) {
 
-        if (page === 1) {
-          setItems(results);
-          await setPreviewData(results[0].project.data);
-          setPreview(results[0].thumbnail);
-          setActiveItem(results[0]);
-        } else {
+          const results = await getJsonTransitions({
+            query: '',
+            page,
+            perPage,
+            filter,
+          });
           setItems(elements => [...elements, ...results]);
+
+          // if (page === 1) {
+          //   setItems(results);
+          //   await setPreviewData(results[0].project.data);
+          //   setPreview(results[0].thumbnail);
+          //   setActiveItem(results[0]);
+          // } else {
+          //   setItems(elements => [...elements, ...results]);
+          // }
         }
 
-        const hasNextPage = results.length === perPage;
+        if (evolutionOverlayEnabled === true) {
+          const resultsEvolution = await getEvolutionJsonTransitionsOverlay({
+            query: '',
+            page,
+            perPage,
+            filter,
+          });
+          setItems(elements => [...elements, ...resultsEvolution]);
+          // if (page === 1) {
+          //   setItems(resultsEvolution);
+          //   await setPreviewData(resultsEvolution[0].project.data);
+          //   setPreview(resultsEvolution[0].thumbnail);
+          //   setActiveItem(resultsEvolution[0]);
+          // } else {
+          //   setItems(elements => [...elements, ...resultsEvolution]);
+          // }
+        }
+
+        // if (page === 1) {
+        //   setItems(results);
+        //   await setPreviewData(results[0].project.data);
+        //   setPreview(results[0].thumbnail);
+        //   setActiveItem(results[0]);
+        // } else {
+        //   setItems(elements => [...elements, ...results]);
+        // }
+
+        const hasNextPage = items.length === perPage;
         setHasMore(hasNextPage);
 
         if (hasNextPage) {

@@ -8,13 +8,14 @@ import mediaConstants from '../../../lib/constants/media';
 import { showError } from '../../../lib/services/alertService';
 import { perPage } from '../../../lib/constants/library';
 import { POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
-import { LOWER_THIRDS_TYPE } from '../../../lib/constants/lowerThirds';
+import { LOWER_THIRDS_TYPE, LOWER_THIRDS_EVO_TYPE } from '../../../lib/constants/lowerThirds';
 import { isValidJsonUrl } from '../../../lib/popcorn/helpers';
 
 import useUserStore from '../../hooks/useUserStore';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
 import useProjectStore from '../../hooks/useProjectStore';
+
 
 import plusIcon from '../../../public/static/svgImages/plus-circle.svg';
 
@@ -38,7 +39,7 @@ const Content = () => {
 
   const { secondaryWindowType: activeTab } = useUIStore();
   const { addElement } = useProjectStore();
-  const { isSuperAdmin } = useUserStore();
+  const { isSuperAdmin, lowerThirdsEnabled, evolutionLowerThirdEnabled } = useUserStore();
   const {
     uploadMedia,
     getPresets,
@@ -132,21 +133,44 @@ const Content = () => {
     }
 
     try {
-      const data = await getPresets(LOWER_THIRDS_TYPE, currentPage, { _id: { $nin: uploaded } });
+      if (lowerThirdsEnabled === true) {
+        const data = await getPresets(LOWER_THIRDS_TYPE, currentPage, { _id: { $nin: uploaded } });
 
-      if (data.length) {
-        if (currentTab) {
-          setItems(data);
-          setIsFirstFetch(false);
-          // Loading new items when scrolling
-        } else {
-          setItems([
-            ...items,
-            ...data,
-          ]);
+        if (data.length) {
+          if (currentTab) {
+          //   setItems(data);
+          //   setIsFirstFetch(false);
+          //   // Loading new items when scrolling
+          // } else {
+          //   setItems([
+          //     ...items,
+          //     ...data,
+          //   ]);
+          // }
+            setItems((prevState) => [...prevState, ...data]);
+            setIsFirstFetch(false);
+          }
         }
       }
-      setHasMore(data && data.length === perPage);
+
+      if (evolutionLowerThirdEnabled === true) {
+        const data2 = await getPresets(LOWER_THIRDS_EVO_TYPE, currentPage, { _id: { $nin: uploaded } });
+        if (data2.length) {
+          if (currentTab) {
+          //   setItems(data2);
+          //   setIsFirstFetch(false);
+          //   // Loading new items when scrolling
+          // } else {
+          //   setItems([
+          //     ...items,
+          //     ...data2,
+          //   ]);
+          // }
+            setItems((prevState) => [...prevState, ...data2]);
+          }
+        }
+      }
+      setHasMore(items && items.length === perPage);
     } catch (e) {
       showError('An error occurred while loading items');
     }
