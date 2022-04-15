@@ -80,7 +80,7 @@ export default class Media extends BaseStore {
     }
     return response.slice(count, count + options.perPage);
   }
-
+ 
   getPresets = async (assetType, page = 1, filter = {}) => {
     if (!filter.type) {
       filter.type = assetType;

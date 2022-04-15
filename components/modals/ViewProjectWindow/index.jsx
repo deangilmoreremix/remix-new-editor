@@ -96,7 +96,7 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
           });
           setItems(elements => [...elements, ...resultsEvolutions]);
         }
-        console.log(activeItem, 'This is track here');
+        // console.log(activeItem, 'This is track here');
         // if (!activeItem) {
         //   console.log(items);
         //   await setPreviewData(items[0].project.data);
