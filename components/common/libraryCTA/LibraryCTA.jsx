@@ -6,6 +6,7 @@ import { showError } from '../../../lib/services/alertService';
 
 import PropTypes from '../../../lib/PropTypes';
 import useProjectStore from '../../hooks/useProjectStore';
+import useUserStore from '../../hooks/useUserStore';
 
 const perPage = 12;
 
@@ -14,9 +15,10 @@ const LibraryCTA = ({ className, onSelect }) => {
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
 
-  const { getTemplatesCTA } = useMakeStore();
+  const { getTemplatesCTA, getEvolutionTemplatesCTA } = useMakeStore();
   const { addData } = useProjectStore();
-
+  const userStore = useUserStore();
+  const { evolutionCtaEnabled, ctaEnabled } = userStore;
   const handleSelect = React.useCallback(async (item) => {
     try {
       await addData(item);
@@ -39,14 +41,26 @@ const LibraryCTA = ({ className, onSelect }) => {
 
     if (hasMore) {
       try {
-        const results = await getTemplatesCTA({
-          query: '',
-          page,
-          perPage,
-        });
+        if (ctaEnabled === true) {
+          const results = await getTemplatesCTA({
+            query: '',
+            page,
+            perPage,
+          });
+          setItems((prevState) => [...prevState, ...results]);
+        }
 
-        setItems([...items, ...results]);
-        const hasNextPage = results.length === perPage;
+        if (evolutionCtaEnabled === true) {
+          const resultsEvolution = await getEvolutionTemplatesCTA({
+            query: '',
+            page,
+            perPage,
+          });
+
+          setItems((prevState) => [...prevState, ...resultsEvolution]);
+        }
+
+        const hasNextPage = items.length === perPage;
         setHasMore(hasNextPage);
 
         if (hasNextPage) {

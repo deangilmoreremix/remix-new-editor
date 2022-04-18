@@ -519,15 +519,34 @@ export default class UserStore {
     return this.isfeatureEnabled(FEATURES.SMART_RETOUCH);
   }
 
-  // cutout pro api integration
   @computed
-  get userCutOutProBalance() {
-    return this.currentUser.cutOutProCredit;
+  get evolutionOverlayEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_OVERLAY);
   }
 
-  @action
-  addCreditUser = (val) => {
-    this.currentUser.cutOutProCredit = this.currentUser.cutOutProCredit + val;
+  @computed
+  get evolutionPresetEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_PRESETS);
+  }
+
+  @computed
+  get evolutionBlendModeEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_BLEND_MODE);
+  }
+
+  @computed
+  get evolutionLowerThirdEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_LOWER_THIRDS);
+  }
+
+  @computed
+  get evolutionCtaEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_CTA);
+  }
+
+  @computed
+  get evolutionImageLTPresetEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_IMAGE_LT_PRESETS);
   }
 
   @action

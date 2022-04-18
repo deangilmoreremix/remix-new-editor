@@ -7,13 +7,13 @@ import useTimelineStore from '../hooks/useTimelineStore';
 
 import { editorStyles } from '../../lib/constants/editorStyles';
 
-import List from '../common/list/List';
+import List from '../common/list/ListBlendMode';
 import ProjectImageElement from '../common/libraryElements/ProjectImageElement';
 import CloseButton from '../common/CloseButton';
 
 const BlendModeLibrary = observer(() => {
   const { toggleRightBlock } = useUIStore();
-  const { getTemplatesBlendMode } = useMakeStore();
+  const { getTemplatesBlendMode, getEvolutionTemplatesBlendMode } = useMakeStore();
   const { timelineHeight } = useTimelineStore();
 
   const libraryHeight = useMemo(() => (
@@ -29,6 +29,7 @@ const BlendModeLibrary = observer(() => {
       <div className="blendmode-library__body">
         <List
           get={getTemplatesBlendMode}
+          getEvolution={getEvolutionTemplatesBlendMode}
           element={ProjectImageElement}
           projectElement
           blendModeImage
