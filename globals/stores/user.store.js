@@ -8,6 +8,7 @@ export default class UserStore {
   @observable currentUser = null;
 
   constructor(currentUser = {}, request, hostname, isServer) {
+    console.log(currentUser, 'This is the current users');
     this.currentUser = currentUser;
     this.roles = null;
     this.request = request;
@@ -114,6 +115,7 @@ export default class UserStore {
           'on-behalf': this.currentUser.id,
         },
       });
+      console.log(user, 'This is user from network call')
       this.currentUser.apiKey = user.apiKey;
     } catch (e) {
       console.error(e);
@@ -130,6 +132,7 @@ export default class UserStore {
           'on-behalf': this.currentUser.id,
         },
       });
+
       this.roles = user.roles;
     } catch (e) {
       console.log(e);

@@ -9,7 +9,6 @@ import PhotoEnhancer from './PhotoEnhancer';
 import FaceCutOut from './FaceCutOut';
 import PhotoColorizer from './PhotoColorizer';
 import PhotoAnimer from './PhotoAnimer';
-// import Retouch from './Retouch';
 import PhotoCorrection from './PhotoCorrection';
 import CartoonSelfie from './CartoonSelfie';
 import PassportMarker from './PassportMarker';
@@ -21,6 +20,7 @@ import ColorizerSvg from '../../../public/static/AdvanceImageSvg/smartColor.svg'
 import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
 import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
 // import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
+// import Retouch from './Retouch';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
 
 

@@ -29,6 +29,7 @@ const BackgroundRemoval = observer(({
   const userStore = useUserStore();
 
   const { minusCreditUser, userCutOutProBalance } = userStore;
+
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
@@ -95,10 +96,13 @@ const BackgroundRemoval = observer(({
     //     setIsProcessImage(true);
 
     //     setNewImage(resp.data.imageBase64);
+
+    //     // talk to backend to reduce the use cutopro credit by 4
     //   })
     //   // eslint-disable-next-line no-unused-vars
     //   .catch((error) => {
     //     setIsLoading(false);
+    //     showError('Something went wrong. Please try again later.');
     //   });
   };
 
@@ -120,6 +124,8 @@ const BackgroundRemoval = observer(({
         setIsLoading(false);
         setIsProcessImage(true);
         setNewImage(resp.data.imageBase64);
+        // talk to backend to reduce the use cutopro credit by 4
+
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
