@@ -1,5 +1,5 @@
 /* eslint-disable no-var */
-import React, {useEffect, useMemo, useState} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 import useUserStore from '../../hooks/useUserStore';
 import Tabs from './Tabs';
@@ -22,8 +22,8 @@ import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
 // import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 // import Retouch from './Retouch';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
-import {showError} from "../../../lib/services/alertService";
-import {ERROR_TEXT_SYMBOLS} from "../../../lib/constants/text-info";
+import { showError } from '../../../lib/services/alertService';
+import { ERROR_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
 
 
 const AdvancedImageEditor = observer(({
@@ -34,7 +34,8 @@ const AdvancedImageEditor = observer(({
     smartBackgroundRemovalEnabled, smartFaceCutOutEnabled, smartCartoonSelfieEnabled,
     smartEnhancerEnabled, smartColorizerEnabled,
     smartCorrectionEnabled, smartAnimerEnabled,
-    smartPassportEnabled, smartRetouchEnabled,
+    smartPassportEnabled,
+    //  smartRetouchEnabled,
     userCutOutProBalance,
   } = useUserStore();
   // console.log(userCutOutProBalance, 'This is here foe now');
@@ -66,7 +67,11 @@ const AdvancedImageEditor = observer(({
             <p>
               User available Credit
               {' '}
-              <span style={{ color: 'red' }}> { `${symbols}`} </span>
+              <span style={{ color: 'red' }}>
+                {' '}
+                {`${symbols}`}
+                {' '}
+              </span>
             </p>
 
             {symbols === 0 ? (
