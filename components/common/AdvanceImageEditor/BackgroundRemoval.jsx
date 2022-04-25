@@ -1,5 +1,5 @@
 /* eslint-disable no-var */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import { observer } from 'mobx-react';
 import { triggerBase64Download } from 'react-base64-downloader';
 import Carousel from 'react-simply-carousel';
@@ -13,6 +13,7 @@ import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
+import {ERROR_TEXT_SYMBOLS} from "../../../lib/constants/text-info";
 
 const BackgroundRemoval = observer(({
   imageData,
@@ -28,12 +29,14 @@ const BackgroundRemoval = observer(({
   } = useUIStore();
   const userStore = useUserStore();
 
-  const { minusCreditUser, userCutOutProBalance } = userStore;
+  const { minusCreditUser, userCutOutProBalance,updateUserCredit } = userStore;
 
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+
+  const [symbols, setSymbols] = useState([]);
 
   const { source } = useMemo(() => imageData, [imageData]);
 
@@ -76,10 +79,28 @@ const BackgroundRemoval = observer(({
     }
   }, [newImage]);
 
+  const quantify = () => {
+    userCutOutProBalance()
+      .then(value => setSymbols(+value))
+      .catch(() => showError(ERROR_TEXT_SYMBOLS.title));
+  };
+
+  const userCredit = (curCredit) => {
+    updateUserCredit(curCredit)
+      .then(credit => setSymbols('credit',credit))
+      .catch(() => showError(ERROR_TEXT_SYMBOLS.title))
+  };
+
+  useEffect(() => quantify(), []);
+
   const processImage = () => {
+
     setIsLoading(true);
-    minusCreditUser(2);
+    const curCredit = symbols-2;
+    userCredit(curCredit);
     setIsLoading(false);
+
+
     // fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=6`, {
     //   method: 'get',
     //   headers: {
@@ -153,9 +174,14 @@ const BackgroundRemoval = observer(({
                       Remove Background Image
                     </button> */}
 
-                    {userCutOutProBalance === 0 ? null
+                    {symbols === 0 ?
+                      (
+                        <button onClick={() => processImage(symbols)} className="btn  btn-outline-danger btn-sm disabled">
+                          Remove Background Image
+                        </button>
+                      )
                       : (
-                        <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
+                        <button onClick={() => processImage(symbols)} className="btn  btn-outline-danger  btn-sm">
                           Remove Background Image
                         </button>
                       )}
@@ -250,13 +276,23 @@ const BackgroundRemoval = observer(({
               </div>
             </div>
 
-            {userCutOutProBalance === 0 ? null
+            {symbols === 0 ?
+              (
+                <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100 disabled">
+                  Download Image
+                </button>
+              )
               : (
                 <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
                   Download Image
                 </button>
               )}
-            {userCutOutProBalance === 0 ? null
+            {symbols === 0 ?
+              (
+                <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100 disabled">
+                  Save to Canvas
+                </button>
+              )
               : (
                 <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
                   Save to Canvas
