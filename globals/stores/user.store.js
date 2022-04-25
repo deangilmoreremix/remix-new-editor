@@ -8,10 +8,12 @@ export default class UserStore {
   @observable currentUser = null;
 
   constructor(currentUser = {}, request, hostname, isServer) {
+    console.log(currentUser, 'This is the current users');
     this.currentUser = currentUser;
     this.roles = null;
     this.request = request;
     this.selfRequest = requestCreator(hostname, null, isServer, () => { });
+    this.currentUser.cutOutProCredit = 10;
   }
 
   @computed
@@ -104,6 +106,24 @@ export default class UserStore {
   };
 
   @action
+  updateUserCredit = async (credit) => {
+    let user = this.currentUser.id;
+    try {
+      user = await this.request('/api/users/updateCredit', {
+        method: 'POST',
+        body: { user,credit },
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      this.currentUser.cutOutProCredit = user.cutOutProCredit;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
+  @action
   setApiKey = async () => {
     let user;
     try {
@@ -113,6 +133,7 @@ export default class UserStore {
           'on-behalf': this.currentUser.id,
         },
       });
+      console.log(user, 'This is user from network call')
       this.currentUser.apiKey = user.apiKey;
     } catch (e) {
       console.error(e);
@@ -153,6 +174,23 @@ export default class UserStore {
 
   @action
   getTextSpeechSymbols = async () => {
+    let user;
+    try {
+      user = await this.request('/api/users/me?getVoice=true', {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      return user.ttsAmountOfAvailableCharacters;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
+  userCutOutProBalance = async () => {
     let user;
     try {
       user = await this.request('/api/users/me?getVoice=true', {
@@ -548,4 +586,17 @@ export default class UserStore {
     return this.isfeatureEnabled(FEATURES.EVOLUTION_IMAGE_LT_PRESETS);
   }
 
+  @action
+  minusCreditUser = async (val,symbol) => {
+    console.log('value',val);
+    console.log('symbol',symbol);
+    if (this.currentUser.cutOutProCredit === 0) {
+      return this.currentUser.cutOutProCredit;
+    }
+    this.currentUser.cutOutProCredit = symbol - val;
+    let TextSymbolCredit = this.currentUser.cutOutProCredit;
+    console.log('cutPutProCredit',TextSymbolCredit);
+    return TextSymbolCredit;
+
+  }
 }

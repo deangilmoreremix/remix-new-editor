@@ -1,5 +1,5 @@
 /* eslint-disable no-var */
-import React, { useMemo } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import { observer } from 'mobx-react';
 import useUserStore from '../../hooks/useUserStore';
 import Tabs from './Tabs';
@@ -9,7 +9,6 @@ import PhotoEnhancer from './PhotoEnhancer';
 import FaceCutOut from './FaceCutOut';
 import PhotoColorizer from './PhotoColorizer';
 import PhotoAnimer from './PhotoAnimer';
-import Retouch from './Retouch';
 import PhotoCorrection from './PhotoCorrection';
 import CartoonSelfie from './CartoonSelfie';
 import PassportMarker from './PassportMarker';
@@ -20,8 +19,11 @@ import EnhancerSvg from '../../../public/static/AdvanceImageSvg/Enhancer.svg';
 import ColorizerSvg from '../../../public/static/AdvanceImageSvg/smartColor.svg';
 import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
 import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
-import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
+// import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
+// import Retouch from './Retouch';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
+import {showError} from "../../../lib/services/alertService";
+import {ERROR_TEXT_SYMBOLS} from "../../../lib/constants/text-info";
 
 
 const AdvancedImageEditor = observer(({
@@ -30,14 +32,28 @@ const AdvancedImageEditor = observer(({
 }) => {
   const {
     smartBackgroundRemovalEnabled, smartFaceCutOutEnabled, smartCartoonSelfieEnabled,
-    smartEnhancerEnabled, smartColorizerEnabled, smartCorrectionEnabled, smartAnimerEnabled, smartPassportEnabled, smartRetouchEnabled,
+    smartEnhancerEnabled, smartColorizerEnabled,
+    smartCorrectionEnabled, smartAnimerEnabled,
+    smartPassportEnabled, smartRetouchEnabled,
+    userCutOutProBalance,
   } = useUserStore();
+  // console.log(userCutOutProBalance, 'This is here foe now');
   const { imageMeta, ...rest } = useMemo(
     () => options, [options]);
 
   if (!imageMeta) {
     return null;
   }
+
+  const [symbols, setSymbols] = useState([]);
+
+  const quantify = () => {
+    userCutOutProBalance()
+      .then(value => setSymbols(+value))
+      .catch(() => showError(ERROR_TEXT_SYMBOLS.title));
+  };
+
+  useEffect(() => quantify(), []);
 
   const onClose = () => {
     handleClose();
@@ -46,6 +62,24 @@ const AdvancedImageEditor = observer(({
     <>
       <div>
         <div className="heading-container">
+          <div style={{ display: 'contents' }}>
+            <p>
+              User available Credit
+              {' '}
+              <span style={{ color: 'red' }}> { `${symbols}`} </span>
+            </p>
+
+            {symbols === 0 ? (
+              <div>
+                <p className="btn btn-link">
+                  You have exhausted you credit.
+                  {' '}
+                  <a> Click here to purchase credit</a>
+                </p>
+              </div>
+            ) : null}
+
+          </div>
           <button className="btn btn-secondary btn-sm" onClick={onClose}>
             Close
           </button>
@@ -140,7 +174,7 @@ const AdvancedImageEditor = observer(({
               </TabPane>
             )}
 
-            {
+            {/* {
               smartRetouchEnabled && (
                 <TabPane name="Smart Retouch" icon={brush} key="9">
                   <Retouch
@@ -150,7 +184,7 @@ const AdvancedImageEditor = observer(({
                   />
                 </TabPane>
               )
-            }
+            } */}
 
           </Tabs>
         </div>
