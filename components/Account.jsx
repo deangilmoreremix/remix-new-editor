@@ -41,14 +41,14 @@ const Account = observer(() => {
   } = userStore;
 
   const [activeTab, setActiveTab] = useState(TABS.GENERAL.url);
-  const userData = useMemo(() => userStore.accountDataArray,
+  const userData = useMemo(() => userStore.accountDataArray
     [userStore?.accountDataArray]);
   const [userName, setUserName] = useState(userData.USERNAME.input || '');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setActiveTab(router.query.tab
-    && Object.keys(TABS).some((key) => TABS[key].url === router.query.tab)
+      && Object.keys(TABS).some((key) => TABS[key].url === router.query.tab)
       ? router.query.tab : TABS.GENERAL.url);
   }, []);
 
