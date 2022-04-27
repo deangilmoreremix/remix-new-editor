@@ -23,7 +23,7 @@ import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
 // import Retouch from './Retouch';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
 import { showError } from '../../../lib/services/alertService';
-import { ERROR_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
 
 
 const AdvancedImageEditor = observer(({
@@ -36,26 +36,15 @@ const AdvancedImageEditor = observer(({
     smartCorrectionEnabled, smartAnimerEnabled,
     smartPassportEnabled,
     //  smartRetouchEnabled,
-    userCutOutProBalance,
+    cutoutProCreditAvailableBalance,
   } = useUserStore();
-  // console.log(userCutOutProBalance, 'This is here foe now');
+  console.log(cutoutProCreditAvailableBalance, 'Here now');
   const { imageMeta, ...rest } = useMemo(
     () => options, [options]);
 
   if (!imageMeta) {
     return null;
   }
-
-  const [symbols, setSymbols] = useState([]);
-
-  const quantify = () => {
-    userCutOutProBalance()
-      .then(value => setSymbols(+value))
-      .catch(() => showError(ERROR_TEXT_SYMBOLS.title));
-  };
-
-  useEffect(() => quantify(), []);
-
   const onClose = () => {
     handleClose();
   };
@@ -69,12 +58,12 @@ const AdvancedImageEditor = observer(({
               {' '}
               <span style={{ color: 'red' }}>
                 {' '}
-                {`${symbols}`}
+                {`${cutoutProCreditAvailableBalance}`}
                 {' '}
               </span>
             </p>
 
-            {symbols === 0 ? (
+            {cutoutProCreditAvailableBalance === 0 ? (
               <div>
                 <p className="btn btn-link">
                   You have exhausted you credit.
@@ -159,16 +148,6 @@ const AdvancedImageEditor = observer(({
               </TabPane>
             )}
 
-            {smartAnimerEnabled && (
-              <TabPane name="Smart Animer" icon={smartMotion} key="7">
-                <PhotoAnimer
-                  imageData={imageMeta}
-                  handleClose={handleClose}
-                  {...rest}
-                />
-              </TabPane>
-            )}
-
             {smartPassportEnabled && (
               <TabPane name="Smart Passport" icon={Passport} key="8">
                 <PassportMarker
@@ -178,6 +157,17 @@ const AdvancedImageEditor = observer(({
                 />
               </TabPane>
             )}
+
+
+            {/* {smartAnimerEnabled && (
+              <TabPane name="Smart Animer" icon={smartMotion} key="7">
+                <PhotoAnimer
+                  imageData={imageMeta}
+                  handleClose={handleClose}
+                  {...rest}
+                />
+              </TabPane>
+            )} */}
 
             {/* {
               smartRetouchEnabled && (

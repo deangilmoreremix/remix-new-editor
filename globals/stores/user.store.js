@@ -8,12 +8,12 @@ export default class UserStore {
   @observable currentUser = null;
 
   constructor(currentUser = {}, request, hostname, isServer) {
-    console.log(currentUser, 'This is the current users');
     this.currentUser = currentUser;
     this.roles = null;
     this.request = request;
     this.selfRequest = requestCreator(hostname, null, isServer, () => { });
-    this.currentUser.cutOutProCredit = 10;
+    this.currentUser.cutoutproCreditUsed = 0;
+    this.currentUser.cutoutProCreditAvailableBalance = 0;
   }
 
   @computed
@@ -110,8 +110,8 @@ export default class UserStore {
     let user = this.currentUser.id;
     try {
       user = await this.request('/api/users/updateCredit', {
-        method: 'POST',
-        body: { user,credit },
+        method: 'PATCH',
+        body: { user, credit },
         headers: {
           'on-behalf': this.currentUser.id,
         },
@@ -133,7 +133,6 @@ export default class UserStore {
           'on-behalf': this.currentUser.id,
         },
       });
-      console.log(user, 'This is user from network call')
       this.currentUser.apiKey = user.apiKey;
     } catch (e) {
       console.error(e);
@@ -193,13 +192,15 @@ export default class UserStore {
   userCutOutProBalance = async () => {
     let user;
     try {
-      user = await this.request('/api/users/me?getVoice=true', {
+      user = await this.request('/api/users/me?getCutoutpro=true', {
         method: 'GET',
         headers: {
           'on-behalf': this.currentUser.id,
         },
       });
-      return user.ttsAmountOfAvailableCharacters;
+      this.currentUser.cutoutproCreditUsed = user.cutOutProCredit;
+      this.currentUser.cutoutProCreditAvailableBalance = user.ttsAmountOfAvailableCredit;
+      return user.ttsAmountOfAvailableCredit;
     } catch (e) {
       console.log(e);
       throw e;
@@ -289,6 +290,17 @@ export default class UserStore {
   @computed
   get apiKey() {
     return this.currentUser.apiKey || 'Not set';
+  }
+
+  @computed
+  get cutoutProCreditUserUsed() {
+    return this.currentUser.cutoutproCreditUsed || 0;
+  }
+
+
+  @computed
+  get cutoutProCreditAvailableBalance() {
+    return this.currentUser.cutoutProCreditAvailableBalance || 0;
   }
 
   @computed
@@ -584,19 +596,5 @@ export default class UserStore {
   @computed
   get evolutionImageLTPresetEnabled() {
     return this.isfeatureEnabled(FEATURES.EVOLUTION_IMAGE_LT_PRESETS);
-  }
-
-  @action
-  minusCreditUser = async (val,symbol) => {
-    console.log('value',val);
-    console.log('symbol',symbol);
-    if (this.currentUser.cutOutProCredit === 0) {
-      return this.currentUser.cutOutProCredit;
-    }
-    this.currentUser.cutOutProCredit = symbol - val;
-    let TextSymbolCredit = this.currentUser.cutOutProCredit;
-    console.log('cutPutProCredit',TextSymbolCredit);
-    return TextSymbolCredit;
-
   }
 }

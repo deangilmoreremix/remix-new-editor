@@ -13,7 +13,7 @@ import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
-import { ERROR_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
 
 const BackgroundRemoval = observer(({
   imageData,
@@ -29,14 +29,14 @@ const BackgroundRemoval = observer(({
   } = useUIStore();
   const userStore = useUserStore();
 
-  const { minusCreditUser, userCutOutProBalance, updateUserCredit } = userStore;
+  const { userCutOutProBalance, updateUser, cutoutProCreditUserUsed } = userStore;
 
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
-  const [symbols, setSymbols] = useState([]);
+  const [symbols, setSymbols] = useState(0);
 
   const { source } = useMemo(() => imageData, [imageData]);
 
@@ -82,48 +82,39 @@ const BackgroundRemoval = observer(({
   const quantify = () => {
     userCutOutProBalance()
       .then(value => setSymbols(+value))
-      .catch(() => showError(ERROR_TEXT_SYMBOLS.title));
-  };
-
-  const userCredit = (curCredit) => {
-    updateUserCredit(curCredit)
-      .then(credit => setSymbols('credit', credit))
-      .catch(() => showError(ERROR_TEXT_SYMBOLS.title));
+      .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
   };
 
   useEffect(() => quantify(), []);
 
-  const processImage = () => {
+  const processImage = async () => {
     setIsLoading(true);
-    const curCredit = symbols - 2;
-    userCredit(curCredit);
-    setIsLoading(false);
-
-
-    // fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=6`, {
-    //   method: 'get',
-    //   headers: {
-    //     'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    //     Accept: 'application/json',
-    //     APIKEY: config.cutoutPro.apiKey,
-    //   },
-    // })
-    //   .then((data) =>
-    //     // eslint-disable-next-line implicit-arrow-linebreak
-    //     data.json(),
-    //   ).then(resp => {
-    //     setIsLoading(false);
-    //     setIsProcessImage(true);
-
-    //     setNewImage(resp.data.imageBase64);
-
-    //     // talk to backend to reduce the use cutopro credit by 4
-    //   })
-    //   // eslint-disable-next-line no-unused-vars
-    //   .catch((error) => {
-    //     setIsLoading(false);
-    //     showError('Something went wrong. Please try again later.');
-    //   });
+    const total = cutoutProCreditUserUsed + 2;
+    await updateUser({ cutOutProCredit: total });
+    fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=6`, {
+      method: 'get',
+      headers: {
+        'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        Accept: 'application/json',
+        APIKEY: config.cutoutPro.apiKey,
+      },
+    })
+      .then((data) =>
+        // eslint-disable-next-line implicit-arrow-linebreak
+        data.json(),
+      ).then(resp => {
+        setIsLoading(false);
+        setIsProcessImage(true);
+        setNewImage(resp.data.imageBase64);
+        // talk to backend to reduce the use cutopro credit
+        updateUser({ cutOutProCredit: total });
+        quantify();
+      })
+      // eslint-disable-next-line no-unused-vars
+      .catch((error) => {
+        setIsLoading(false);
+        showError('Something went wrong. Please try again later.');
+      });
   };
 
 
@@ -168,18 +159,12 @@ const BackgroundRemoval = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
-                    {/* <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
-                      Remove Background Image
-                    </button> */}
-
                     {symbols === 0
                       ? (
-                        <button onClick={() => processImage(symbols)} className="btn  btn-outline-danger btn-sm disabled">
-                          Remove Background Image
-                        </button>
+                        null
                       )
                       : (
-                        <button onClick={() => processImage(symbols)} className="btn  btn-outline-danger  btn-sm">
+                        <button onClick={() => processImage()} className="btn  btn-outline-danger  btn-sm">
                           Remove Background Image
                         </button>
                       )}
@@ -276,9 +261,7 @@ const BackgroundRemoval = observer(({
 
             {symbols === 0
               ? (
-                <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100 disabled">
-                  Download Image
-                </button>
+                null
               )
               : (
                 <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
@@ -287,9 +270,7 @@ const BackgroundRemoval = observer(({
               )}
             {symbols === 0
               ? (
-                <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100 disabled">
-                  Save to Canvas
-                </button>
+                null
               )
               : (
                 <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
