@@ -2,10 +2,11 @@
 /* eslint-disable jsx-a11y/interactive-supports-focus */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable no-var */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { triggerBase64Download } from 'react-base64-downloader';
-// import Carousel from 'react-simply-carousel';
+import useUserStore from '../../hooks/useUserStore';
+
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
@@ -14,9 +15,10 @@ import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
+import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
 
 
-const PhotoEnhancer = observer(({
+const CartoonSelfie = observer(({
   imageData,
   onImageEdited,
   handleClose,
@@ -28,9 +30,14 @@ const PhotoEnhancer = observer(({
   const {
     secondaryWindowType: activeTab,
   } = useUIStore();
+  const userStore = useUserStore();
+  const { userCutOutProBalance, updateUser, cutoutProCreditUserUsed } = userStore;
+
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
+  const [symbols, setSymbols] = useState(0);
+
 
   const { source } = useMemo(() => imageData, [imageData]);
 
@@ -72,9 +79,19 @@ const PhotoEnhancer = observer(({
     }
   }, [newImage]);
 
+  const quantify = () => {
+    userCutOutProBalance()
+      .then(value => setSymbols(+value))
+      .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
+  };
+
+  useEffect(() => quantify(), []);
+
 
   const processImage = () => {
     setIsLoading(true);
+    const total = cutoutProCreditUserUsed + 2;
+
     fetch(`https://www.cutout.pro/api/v1/cartoonSelfieByUrl?cartoonType=1&url=${source}`, {
       method: 'get',
       headers: {
@@ -90,6 +107,9 @@ const PhotoEnhancer = observer(({
         setIsLoading(false);
         setIsProcessImage(true);
         setNewImage(resp.data.imageBase64);
+
+        updateUser({ cutOutProCredit: total });
+        quantify();
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -100,6 +120,7 @@ const PhotoEnhancer = observer(({
 
   const ChangeAvatarImage = (val) => {
     setIsLoading(true);
+    const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/cartoonSelfieByUrl?cartoonType=${val}&url=${source}`, {
       method: 'get',
       headers: {
@@ -115,6 +136,9 @@ const PhotoEnhancer = observer(({
         setIsLoading(false);
         setIsProcessImage(true);
         setNewImage(resp.data.imageBase64);
+
+        updateUser({ cutOutProCredit: total });
+        quantify();
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -141,9 +165,19 @@ const PhotoEnhancer = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
-                    <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
+                    {/* <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
                       Process Cartoon Selfie
-                    </button>
+                    </button> */}
+
+                    {symbols <= 0
+                      ? (
+                        null
+                      )
+                      : (
+                        <button onClick={() => processImage()} className="btn  btn-outline-danger  btn-sm">
+                          Process Cartoon Selfie
+                        </button>
+                      )}
                   </div>
                 </div>
               </div>
@@ -198,13 +232,26 @@ const PhotoEnhancer = observer(({
                 </div>
               </div>
             </div>
-            <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
-              Download Image
-            </button>
 
-            <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
-              Save to Canvas
-            </button>
+            {symbols <= 0
+              ? (
+                null
+              )
+              : (
+                <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
+                  Download Image
+                </button>
+              )}
+            {symbols <= 0
+              ? (
+                null
+              )
+              : (
+                <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
+                  Save to Canvas
+                </button>
+              )}
+
           </div>
 
 
@@ -215,7 +262,7 @@ const PhotoEnhancer = observer(({
   );
 });
 
-PhotoEnhancer.propTypes = {
+CartoonSelfie.propTypes = {
   className: PropTypes.string,
   imageData: PropTypes.shape({
     source: PropTypes.string,
@@ -228,8 +275,8 @@ PhotoEnhancer.propTypes = {
   noCrop: PropTypes.bool.isRequired,
 };
 
-PhotoEnhancer.defaultProps = {
+CartoonSelfie.defaultProps = {
   noCrop: false,
 };
 
-export default PhotoEnhancer;
+export default CartoonSelfie;

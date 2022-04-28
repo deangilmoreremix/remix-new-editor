@@ -8,7 +8,6 @@ import BackgroundRemoval from './BackgroundRemoval';
 import PhotoEnhancer from './PhotoEnhancer';
 import FaceCutOut from './FaceCutOut';
 import PhotoColorizer from './PhotoColorizer';
-import PhotoAnimer from './PhotoAnimer';
 import PhotoCorrection from './PhotoCorrection';
 import CartoonSelfie from './CartoonSelfie';
 import PassportMarker from './PassportMarker';
@@ -17,13 +16,14 @@ import FaceCutOutSvg from '../../../public/static/AdvanceImageSvg/faceCutOut.svg
 import SelfieSvg from '../../../public/static/AdvanceImageSvg/selfie.svg';
 import EnhancerSvg from '../../../public/static/AdvanceImageSvg/Enhancer.svg';
 import ColorizerSvg from '../../../public/static/AdvanceImageSvg/smartColor.svg';
-import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
 import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
+import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
+// import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
+// import PhotoAnimer from './PhotoAnimer';
 // import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 // import Retouch from './Retouch';
-import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
-import { showError } from '../../../lib/services/alertService';
-import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+// import { showError } from '../../../lib/services/alertService';
+// import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
 
 
 const AdvancedImageEditor = observer(({
@@ -56,14 +56,21 @@ const AdvancedImageEditor = observer(({
             <p>
               User available Credit
               {' '}
-              <span style={{ color: 'red' }}>
-                {' '}
-                {`${cutoutProCreditAvailableBalance}`}
-                {' '}
-              </span>
+
+              {cutoutProCreditAvailableBalance <= 0 ? (
+                <span style={{ color: 'red' }}>
+                  0
+                </span>
+              ) : (
+                <span style={{ color: 'red' }}>
+                  {' '}
+                  {`${cutoutProCreditAvailableBalance}`}
+                  {' '}
+                </span>
+              )}
             </p>
 
-            {cutoutProCreditAvailableBalance === 0 ? (
+            {cutoutProCreditAvailableBalance <= 0 ? (
               <div>
                 <p className="btn btn-link">
                   You have exhausted you credit.

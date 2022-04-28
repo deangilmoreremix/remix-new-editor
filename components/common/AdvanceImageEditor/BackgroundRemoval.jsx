@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 import { triggerBase64Download } from 'react-base64-downloader';
 import Carousel from 'react-simply-carousel';
-
 import PropTypes from '../../../lib/PropTypes';
 import useUserStore from '../../hooks/useUserStore';
 import { showError } from '../../../lib/services/alertService';
@@ -28,9 +27,7 @@ const BackgroundRemoval = observer(({
     secondaryWindowType: activeTab,
   } = useUIStore();
   const userStore = useUserStore();
-
   const { userCutOutProBalance, updateUser, cutoutProCreditUserUsed } = userStore;
-
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
@@ -120,6 +117,7 @@ const BackgroundRemoval = observer(({
 
   const changeBackgroundColor = (val) => {
     setIsLoading(true);
+    const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&bgcolor=${val}&mattingType=6`, {
       method: 'get',
       headers: {
@@ -136,6 +134,8 @@ const BackgroundRemoval = observer(({
         setIsProcessImage(true);
         setNewImage(resp.data.imageBase64);
         // talk to backend to reduce the use cutopro credit by 4
+        updateUser({ cutOutProCredit: total });
+        quantify();
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -159,7 +159,7 @@ const BackgroundRemoval = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
-                    {symbols === 0
+                    {symbols <= 0
                       ? (
                         null
                       )
@@ -259,7 +259,7 @@ const BackgroundRemoval = observer(({
               </div>
             </div>
 
-            {symbols === 0
+            {symbols <= 0
               ? (
                 null
               )
@@ -268,7 +268,7 @@ const BackgroundRemoval = observer(({
                   Download Image
                 </button>
               )}
-            {symbols === 0
+            {symbols <= 0
               ? (
                 null
               )

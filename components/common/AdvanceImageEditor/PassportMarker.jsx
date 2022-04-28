@@ -7,16 +7,19 @@ import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { triggerBase64Download } from 'react-base64-downloader';
 import Carousel from 'react-simply-carousel';
-import { ColorizeOutlined, ControlPointDuplicateOutlined } from '@material-ui/icons';
+// import { ColorizeOutlined, ControlPointDuplicateOutlined } from '@material-ui/icons';
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
+import useUserStore from '../../hooks/useUserStore';
 import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
-// import useModalStore from '../../hooks/useModalStore';
+
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
+import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+
 
 
 import manOne from '../../../public/static/AdvanceImageSvg/idphotodress/man/1.png';
@@ -73,6 +76,8 @@ const PhotoEnhancer = observer(({
   const {
     secondaryWindowType: activeTab,
   } = useUIStore();
+  const userStore = useUserStore();
+  const { userCutOutProBalance, updateUser, cutoutProCreditUserUsed } = userStore;
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
@@ -87,6 +92,15 @@ const PhotoEnhancer = observer(({
 
   const { source } = useMemo(() => imageData, [imageData]);
 
+  const [symbols, setSymbols] = useState(0);
+
+  const quantify = () => {
+    userCutOutProBalance()
+      .then(value => setSymbols(+value))
+      .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
+  };
+
+  useEffect(() => quantify(), []);
   const convertImgUrlToBase64 = (blob) => new Promise((resolve, _) => {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result);
@@ -95,6 +109,7 @@ const PhotoEnhancer = observer(({
 
   const processImage = async () => {
     setIsLoading(true);
+    const total = cutoutProCreditUserUsed + 2;
     const base64Response = await fetch(source);
     const blob = await base64Response.blob();
 
@@ -132,6 +147,9 @@ const PhotoEnhancer = observer(({
         } else {
           setNewImage(resp.data.idPhotoImage);
           setPrintLayoutImage(resp.data.printLayoutImage);
+          // talk to backend to reduce the use cutopro credit
+          updateUser({ cutOutProCredit: total });
+          quantify();
         }
       })
       // eslint-disable-next-line no-unused-vars
@@ -152,6 +170,8 @@ const PhotoEnhancer = observer(({
     // setColor(val);
     // console.log(color);
     setIsLoading(true);
+    const total = cutoutProCreditUserUsed + 2;
+
     const base64Response = await fetch(source);
     const blob = await base64Response.blob();
 
@@ -192,6 +212,9 @@ const PhotoEnhancer = observer(({
           setColor(val);
           setNewImage(resp.data.idPhotoImage);
           setPrintLayoutImage(resp.data.printLayoutImage);
+          // talk to backend to reduce the use cutopro credit
+          updateUser({ cutOutProCredit: total });
+          quantify();
         }
       })
       // eslint-disable-next-line no-unused-vars
@@ -211,6 +234,7 @@ const PhotoEnhancer = observer(({
     // console.log(dress, 'this is state');
 
     setIsLoading(true);
+    const total = cutoutProCreditUserUsed + 2;
     const base64Response = await fetch(source);
     const blob = await base64Response.blob();
 
@@ -251,6 +275,9 @@ const PhotoEnhancer = observer(({
           setDress(val);
           setNewImage(resp.data.idPhotoImage);
           setPrintLayoutImage(resp.data.printLayoutImage);
+          // talk to backend to reduce the use cutopro credit
+          updateUser({ cutOutProCredit: total });
+          quantify();
         }
       })
       // eslint-disable-next-line no-unused-vars
@@ -321,9 +348,18 @@ const PhotoEnhancer = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
-                    <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
+                    {/* <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
                       Process Passport Marker
-                    </button>
+                    </button> */}
+                    {symbols <= 0
+                      ? (
+                        null
+                      )
+                      : (
+                        <button onClick={() => processImage()} className="btn  btn-outline-danger  btn-sm">
+                          Process Passport Marker
+                        </button>
+                      )}
                   </div>
                 </div>
               </div>
@@ -717,7 +753,7 @@ const PhotoEnhancer = observer(({
             </div>
 
 
-            <button
+            {/* <button
               onClick={() => downloadPassport()}
               className="btn btn-outline-danger btn-xl mt-5 w-full  w-100"
             >
@@ -729,7 +765,28 @@ const PhotoEnhancer = observer(({
               className="btn btn-danger btn-xl mt-5 w-full  w-100"
             >
               Save to Canvas
-            </button>
+            </button> */}
+
+
+            {symbols <= 0
+              ? (
+                null
+              )
+              : (
+                <button onClick={() => downloadPassport()} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
+                  Download Image
+                </button>
+              )}
+            {symbols <= 0
+              ? (
+                null
+              )
+              : (
+                <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
+                  Save to Canvas
+                </button>
+              )}
+
           </div>
 
         </div>
