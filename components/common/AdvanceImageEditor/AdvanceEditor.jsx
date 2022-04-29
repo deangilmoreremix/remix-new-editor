@@ -82,10 +82,9 @@ const AdvancedImageEditor = observer(({
 
             {cutoutProCreditAvailableBalance <= 0 ? (
               <div>
-                <p className="btn btn-link">
-                  {' '}
-                  <a target="_blank" href="https://videoremix.io/image-pricing/" rel="noopener noreferrer">
-                    You have exhausted you credit. Click here to purchase credit
+                <p style={{ color: 'red' }} className=" text-danger ">
+                  <a style={{ color: 'red' }} className=" text-danger " target="_blank" href="https://videoremix.io/image-pricing/" rel="noopener noreferrer">
+                   You have exhausted your credits. Click here to purchase credits.
                   </a>
                 </p>
               </div>
