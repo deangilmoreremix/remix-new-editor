@@ -27,13 +27,18 @@ const PhotoEnhancer = observer(({
     secondaryWindowType: activeTab,
   } = useUIStore();
   const userStore = useUserStore();
-  const { userCutOutProBalance, updateUser, cutoutProCreditUserUsed } = userStore;
+  const {
+    updateUserCreditUseAndGetUserCreditBalance,
+    userCutOutProBalance,
+    cutoutProCreditUserUsed,
+    cutoutProCreditAvailableBalance,
+  } = userStore;
 
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
   const { source } = useMemo(() => imageData, [imageData]);
-  const [symbols, setSymbols] = useState(0);
+
 
 
   const onLoadImage = useCallback(async (image) => {
@@ -76,7 +81,6 @@ const PhotoEnhancer = observer(({
 
   const quantify = () => {
     userCutOutProBalance()
-      .then(value => setSymbols(+value))
       .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
   };
 
@@ -101,8 +105,7 @@ const PhotoEnhancer = observer(({
         setIsProcessImage(true);
         setNewImage(resp.data.imageBase64);
         // talk to backend to reduce the use cutopro credit
-        updateUser({ cutOutProCredit: total });
-        quantify();
+        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -129,7 +132,7 @@ const PhotoEnhancer = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
-                    {symbols <= 0
+                    {cutoutProCreditAvailableBalance <= 0
                       ? (
                         null
                       )
@@ -170,14 +173,9 @@ const PhotoEnhancer = observer(({
 
           <div className="download-container">
             <div className="mt-5">
-              {/* <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
-                Download Image
-              </button> */}
-              {/* <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
-              Save to Canvas
-            </button> */}
+             
 
-              {symbols <= 0
+              {cutoutProCreditAvailableBalance <= 0
                 ? (
                   null
                 )
@@ -186,7 +184,7 @@ const PhotoEnhancer = observer(({
                     Download Image
                   </button>
                 )}
-              {symbols <= 0
+              {cutoutProCreditAvailableBalance <= 0
                 ? (
                   null
                 )

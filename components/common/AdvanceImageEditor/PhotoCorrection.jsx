@@ -27,18 +27,21 @@ const PhotoCorrection = observer(({
     secondaryWindowType: activeTab,
   } = useUIStore();
   const userStore = useUserStore();
-  const { userCutOutProBalance, updateUser, cutoutProCreditUserUsed } = userStore;
+  const {
+    updateUserCreditUseAndGetUserCreditBalance,
+    userCutOutProBalance,
+    cutoutProCreditUserUsed,
+    cutoutProCreditAvailableBalance,
+  } = userStore;
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
 
-  const [symbols, setSymbols] = useState(0);
 
   const { source } = useMemo(() => imageData, [imageData]);
 
   const quantify = () => {
     userCutOutProBalance()
-      .then(value => setSymbols(+value))
       .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
   };
 
@@ -102,8 +105,7 @@ const PhotoCorrection = observer(({
         setIsProcessImage(true);
         setNewImage(resp.data.imageBase64);
         // talk to backend to reduce the use cutopro credit
-        updateUser({ cutOutProCredit: total });
-        quantify();
+        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -131,7 +133,7 @@ const PhotoCorrection = observer(({
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
 
-                    {symbols <= 0
+                    {cutoutProCreditAvailableBalance <= 0
                       ? (
                         null
                       )
@@ -173,7 +175,7 @@ const PhotoCorrection = observer(({
           <div className="download-container">
             <div className="mt-5">
 
-              {symbols <= 0
+              {cutoutProCreditAvailableBalance <= 0
                 ? (
                   null
                 )
@@ -182,7 +184,7 @@ const PhotoCorrection = observer(({
                     Download Image
                   </button>
                 )}
-              {symbols <= 0
+              {cutoutProCreditAvailableBalance <= 0
                 ? (
                   null
                 )

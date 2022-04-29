@@ -23,7 +23,8 @@ import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.s
 // import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 // import Retouch from './Retouch';
 // import { showError } from '../../../lib/services/alertService';
-// import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import { showError } from '../../../lib/services/alertService';
 
 
 const AdvancedImageEditor = observer(({
@@ -33,12 +34,21 @@ const AdvancedImageEditor = observer(({
   const {
     smartBackgroundRemovalEnabled, smartFaceCutOutEnabled, smartCartoonSelfieEnabled,
     smartEnhancerEnabled, smartColorizerEnabled,
-    smartCorrectionEnabled, smartAnimerEnabled,
+    smartCorrectionEnabled,
     smartPassportEnabled,
     //  smartRetouchEnabled,
+    //  smartAnimerEnabled,
+    // userCutOutProBalance,
+    // cutoutProCreditUserUsed,
     cutoutProCreditAvailableBalance,
   } = useUserStore();
-  console.log(cutoutProCreditAvailableBalance, 'Here now');
+
+  // const quantify = () => {
+  //   userCutOutProBalance()
+  //     .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
+  // };
+  // useEffect(() => quantify(), []);
+
   const { imageMeta, ...rest } = useMemo(
     () => options, [options]);
 
@@ -73,20 +83,21 @@ const AdvancedImageEditor = observer(({
             {cutoutProCreditAvailableBalance <= 0 ? (
               <div>
                 <p className="btn btn-link">
-                  You have exhausted you credit.
                   {' '}
-                  <a> Click here to purchase credit</a>
+                  <a target="_blank" href="https://videoremix.io/image-pricing/" rel="noopener noreferrer">
+                    You have exhausted you credit. Click here to purchase credit
+                  </a>
                 </p>
               </div>
             ) : null}
-
           </div>
+
           <button className="btn btn-secondary btn-sm" onClick={onClose}>
             Close
           </button>
         </div>
         <div className="advanced-image-editor-wrapper">
-          <Tabs>
+          <Tabs initialTab="Smart BG Removal">
             {
               smartBackgroundRemovalEnabled && (
                 <TabPane name="Smart BG Removal" icon={RemoveBackgroundSvg} key="1">
@@ -156,7 +167,7 @@ const AdvancedImageEditor = observer(({
             )}
 
             {smartPassportEnabled && (
-              <TabPane name="Smart Passport" icon={Passport} key="8">
+              <TabPane name="Smart Passport" icon={Passport} key="7">
                 <PassportMarker
                   imageData={imageMeta}
                   handleClose={handleClose}
@@ -167,7 +178,7 @@ const AdvancedImageEditor = observer(({
 
 
             {/* {smartAnimerEnabled && (
-              <TabPane name="Smart Animer" icon={smartMotion} key="7">
+              <TabPane name="Smart Animer" icon={smartMotion} key="8">
                 <PhotoAnimer
                   imageData={imageMeta}
                   handleClose={handleClose}
