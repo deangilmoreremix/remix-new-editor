@@ -77,7 +77,12 @@ const PhotoEnhancer = observer(({
     secondaryWindowType: activeTab,
   } = useUIStore();
   const userStore = useUserStore();
-  const { userCutOutProBalance, updateUser, cutoutProCreditUserUsed } = userStore;
+  const {
+    updateUserCreditUseAndGetUserCreditBalance,
+    userCutOutProBalance,
+    cutoutProCreditUserUsed,
+    cutoutProCreditAvailableBalance,
+  } = userStore;
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
@@ -92,15 +97,14 @@ const PhotoEnhancer = observer(({
 
   const { source } = useMemo(() => imageData, [imageData]);
 
-  const [symbols, setSymbols] = useState(0);
 
   const quantify = () => {
     userCutOutProBalance()
-      .then(value => setSymbols(+value))
       .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
   };
 
   useEffect(() => quantify(), []);
+
   const convertImgUrlToBase64 = (blob) => new Promise((resolve, _) => {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result);
@@ -148,8 +152,7 @@ const PhotoEnhancer = observer(({
           setNewImage(resp.data.idPhotoImage);
           setPrintLayoutImage(resp.data.printLayoutImage);
           // talk to backend to reduce the use cutopro credit
-          updateUser({ cutOutProCredit: total });
-          quantify();
+          updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
         }
       })
       // eslint-disable-next-line no-unused-vars
@@ -213,8 +216,7 @@ const PhotoEnhancer = observer(({
           setNewImage(resp.data.idPhotoImage);
           setPrintLayoutImage(resp.data.printLayoutImage);
           // talk to backend to reduce the use cutopro credit
-          updateUser({ cutOutProCredit: total });
-          quantify();
+          updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
         }
       })
       // eslint-disable-next-line no-unused-vars
@@ -276,8 +278,7 @@ const PhotoEnhancer = observer(({
           setNewImage(resp.data.idPhotoImage);
           setPrintLayoutImage(resp.data.printLayoutImage);
           // talk to backend to reduce the use cutopro credit
-          updateUser({ cutOutProCredit: total });
-          quantify();
+          updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
         }
       })
       // eslint-disable-next-line no-unused-vars
@@ -351,7 +352,7 @@ const PhotoEnhancer = observer(({
                     {/* <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
                       Process Passport Marker
                     </button> */}
-                    {symbols <= 0
+                    {cutoutProCreditAvailableBalance <= 0
                       ? (
                         null
                       )
@@ -768,7 +769,7 @@ const PhotoEnhancer = observer(({
             </button> */}
 
 
-            {symbols <= 0
+            {cutoutProCreditAvailableBalance <= 0
               ? (
                 null
               )
@@ -777,7 +778,7 @@ const PhotoEnhancer = observer(({
                   Download Image
                 </button>
               )}
-            {symbols <= 0
+            {cutoutProCreditAvailableBalance <= 0
               ? (
                 null
               )

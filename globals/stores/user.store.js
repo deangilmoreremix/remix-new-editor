@@ -106,24 +106,6 @@ export default class UserStore {
   };
 
   @action
-  updateUserCredit = async (credit) => {
-    let user = this.currentUser.id;
-    try {
-      user = await this.request('/api/users/updateCredit', {
-        method: 'PATCH',
-        body: { user, credit },
-        headers: {
-          'on-behalf': this.currentUser.id,
-        },
-      });
-      this.currentUser.cutOutProCredit = user.cutOutProCredit;
-    } catch (e) {
-      console.error(e);
-      throw e;
-    }
-  };
-
-  @action
   setApiKey = async () => {
     let user;
     try {
@@ -200,12 +182,55 @@ export default class UserStore {
       });
       this.currentUser.cutoutproCreditUsed = user.cutOutProCredit;
       this.currentUser.cutoutProCreditAvailableBalance = user.ttsAmountOfAvailableCredit;
-      return user.ttsAmountOfAvailableCredit;
+      // return user.ttsAmountOfAvailableCredit;
     } catch (e) {
       console.log(e);
       throw e;
     }
   };
+
+  @action
+  updateUserCreditUseAndGetUserCreditBalance = async (body) => {
+    try {
+      const response = await this.selfRequest('/users/me', {
+        method: 'PATCH',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      if (response) {
+        this.currentUser[Object.keys(body)[0]] = response.body.user[Object.keys(body)[0]];
+        // let user;
+        const user = await this.request('/api/users/me?getCutoutpro=true', {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+        this.currentUser.cutoutproCreditUsed = user.cutOutProCredit;
+        this.currentUser.cutoutProCreditAvailableBalance = user.ttsAmountOfAvailableCredit;
+        // cutoutProCreditUserUsed();
+        // cutoutProCreditAvailableBalance();
+        // return user.ttsAmountOfAvailableCredit;
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
+  @computed
+  get cutoutProCreditUserUsed() {
+    return this.currentUser.cutoutproCreditUsed || 0;
+  }
+
+
+  @computed
+  get cutoutProCreditAvailableBalance() {
+    return this.currentUser.cutoutProCreditAvailableBalance || 0;
+  }
+
 
   @action
   getUserKey = (activeBtn) => {
@@ -292,16 +317,7 @@ export default class UserStore {
     return this.currentUser.apiKey || 'Not set';
   }
 
-  @computed
-  get cutoutProCreditUserUsed() {
-    return this.currentUser.cutoutproCreditUsed || 0;
-  }
 
-
-  @computed
-  get cutoutProCreditAvailableBalance() {
-    return this.currentUser.cutoutProCreditAvailableBalance || 0;
-  }
 
   @computed
   get externalApiKey() {

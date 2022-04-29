@@ -31,12 +31,16 @@ const CartoonSelfie = observer(({
     secondaryWindowType: activeTab,
   } = useUIStore();
   const userStore = useUserStore();
-  const { userCutOutProBalance, updateUser, cutoutProCreditUserUsed } = userStore;
+  const {
+    updateUserCreditUseAndGetUserCreditBalance,
+    userCutOutProBalance,
+    cutoutProCreditUserUsed,
+    cutoutProCreditAvailableBalance,
+  } = userStore;
 
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
-  const [symbols, setSymbols] = useState(0);
 
 
   const { source } = useMemo(() => imageData, [imageData]);
@@ -81,7 +85,6 @@ const CartoonSelfie = observer(({
 
   const quantify = () => {
     userCutOutProBalance()
-      .then(value => setSymbols(+value))
       .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
   };
 
@@ -91,7 +94,6 @@ const CartoonSelfie = observer(({
   const processImage = () => {
     setIsLoading(true);
     const total = cutoutProCreditUserUsed + 2;
-
     fetch(`https://www.cutout.pro/api/v1/cartoonSelfieByUrl?cartoonType=1&url=${source}`, {
       method: 'get',
       headers: {
@@ -107,9 +109,8 @@ const CartoonSelfie = observer(({
         setIsLoading(false);
         setIsProcessImage(true);
         setNewImage(resp.data.imageBase64);
-
-        updateUser({ cutOutProCredit: total });
-        quantify();
+        // talk to backend to reduce the use cutoutpro credit
+        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -136,9 +137,8 @@ const CartoonSelfie = observer(({
         setIsLoading(false);
         setIsProcessImage(true);
         setNewImage(resp.data.imageBase64);
-
-        updateUser({ cutOutProCredit: total });
-        quantify();
+        // talk to backend to reduce the use cutoutpro credit
+        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -169,7 +169,7 @@ const CartoonSelfie = observer(({
                       Process Cartoon Selfie
                     </button> */}
 
-                    {symbols <= 0
+                    {cutoutProCreditAvailableBalance <= 0
                       ? (
                         null
                       )
@@ -233,7 +233,7 @@ const CartoonSelfie = observer(({
               </div>
             </div>
 
-            {symbols <= 0
+            {cutoutProCreditAvailableBalance <= 0
               ? (
                 null
               )
@@ -242,7 +242,7 @@ const CartoonSelfie = observer(({
                   Download Image
                 </button>
               )}
-            {symbols <= 0
+            {cutoutProCreditAvailableBalance <= 0
               ? (
                 null
               )

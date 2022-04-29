@@ -1,5 +1,5 @@
 /* eslint-disable no-var */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { triggerBase64Download } from 'react-base64-downloader';
 import Carousel from 'react-simply-carousel';
@@ -14,6 +14,7 @@ import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
 import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
 
+
 const BackgroundRemoval = observer(({
   imageData,
   onImageEdited,
@@ -27,15 +28,24 @@ const BackgroundRemoval = observer(({
     secondaryWindowType: activeTab,
   } = useUIStore();
   const userStore = useUserStore();
-  const { userCutOutProBalance, updateUser, cutoutProCreditUserUsed } = userStore;
+  const {
+    updateUserCreditUseAndGetUserCreditBalance,
+    userCutOutProBalance,
+    cutoutProCreditUserUsed,
+    cutoutProCreditAvailableBalance,
+  } = userStore;
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
-  const [symbols, setSymbols] = useState(0);
-
   const { source } = useMemo(() => imageData, [imageData]);
+
+  const quantify = () => {
+    userCutOutProBalance()
+      .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
+  };
+  useEffect(() => quantify(), []);
 
   const onLoadImage = useCallback(async (image) => {
     const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
@@ -76,18 +86,9 @@ const BackgroundRemoval = observer(({
     }
   }, [newImage]);
 
-  const quantify = () => {
-    userCutOutProBalance()
-      .then(value => setSymbols(+value))
-      .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
-  };
-
-  useEffect(() => quantify(), []);
-
   const processImage = async () => {
     setIsLoading(true);
     const total = cutoutProCreditUserUsed + 2;
-    await updateUser({ cutOutProCredit: total });
     fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=6`, {
       method: 'get',
       headers: {
@@ -103,9 +104,8 @@ const BackgroundRemoval = observer(({
         setIsLoading(false);
         setIsProcessImage(true);
         setNewImage(resp.data.imageBase64);
-        // talk to backend to reduce the use cutopro credit
-        updateUser({ cutOutProCredit: total });
-        quantify();
+        // talk to backend to reduce the use cutoutpro credit
+        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -133,9 +133,8 @@ const BackgroundRemoval = observer(({
         setIsLoading(false);
         setIsProcessImage(true);
         setNewImage(resp.data.imageBase64);
-        // talk to backend to reduce the use cutopro credit by 4
-        updateUser({ cutOutProCredit: total });
-        quantify();
+        // talk to backend to reduce the use cutopro
+        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -159,7 +158,7 @@ const BackgroundRemoval = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
-                    {symbols <= 0
+                    {cutoutProCreditAvailableBalance <= 0
                       ? (
                         null
                       )
@@ -259,7 +258,7 @@ const BackgroundRemoval = observer(({
               </div>
             </div>
 
-            {symbols <= 0
+            {cutoutProCreditAvailableBalance <= 0
               ? (
                 null
               )
@@ -268,7 +267,7 @@ const BackgroundRemoval = observer(({
                   Download Image
                 </button>
               )}
-            {symbols <= 0
+            {cutoutProCreditAvailableBalance <= 0
               ? (
                 null
               )
