@@ -1,4 +1,3 @@
-
 .advance-editor-modal {
   // width: 80vw;
   // width: 100%;
@@ -9,18 +8,18 @@
 .heading-container {
   display: flex;
   flex-direction: row;
-  justify-content: end;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
 
 
 .color-btn {
- padding: 1rem;
- border-radius: 5px;
- margin: 5px !important;
- border: none;
- background: none;
+  padding: 1rem;
+  border-radius: 5px;
+  margin: 5px !important;
+  border: none;
+  background: none;
 }
 
 .cartoon-container {
@@ -31,6 +30,7 @@
   display: inline-block;
   width: 40px;
 }
+
 .carton-avatar {
   width: 40px;
   height: 40px;
@@ -63,6 +63,7 @@
   // margin-right: 3rem;
   width: 50%;
 }
+
 .result-image-container {
   // margin-right: 3rem;
   width: 50%;
@@ -93,7 +94,7 @@
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 }
 
-.tablist   {
+.tablist {
   display: inline;
   border-radius: 10px;
   line-height: 50px;
@@ -115,7 +116,7 @@
   overflow-wrap: break-word;
   border: none;
   text-align: center;
-  margin:  0 auto;
+  margin: 0 auto;
   padding: 5px;
   display: inline-block;
   font-size: 12px;
@@ -127,50 +128,39 @@
 
 .svg-icon {
   width: 25px !important;
-  height:25px !important;
+  height: 25px !important;
   text-align: center;
-  margin:  0 auto;
+  margin: 0 auto;
   padding-top: 10px;
   font-size: 14px;
 }
 
 .svg-icon.active,
 .svg-icon.hover {
-  fill: #EB5054 ;
-  fill: #EB5054; /* fallback for old browsers */
-  fill: -webkit-linear-gradient(
-    to right,
-    #EB5054,
-    #EB5054
-  ); /* Chrome 10-25, Safari 5.1-6 */
-  fill: linear-gradient(
-    to right,
-    #EB5054,
-    #EB5054
-  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  fill: #EB5054;
+  fill: #EB5054;
+  /* fallback for old browsers */
+  fill: -webkit-linear-gradient(to right,
+      #EB5054,
+      #EB5054);
+  /* Chrome 10-25, Safari 5.1-6 */
+  fill: linear-gradient(to right,
+      #EB5054,
+      #EB5054);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
 
 
 .tab-header .tabButton.active,
 .tab-header .tabButton:hover {
-  color: #EB5054; /* fallback for old browsers */
-  color: -webkit-linear-gradient(
-    to right,
-    #EB5054,
-    #EB5054
-  ); /* Chrome 10-25, Safari 5.1-6 */
-  color: linear-gradient(
-    to right,
-    #EB5054,
-    #EB5054
-  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  color: #EB5054;
+  /* fallback for old browsers */
+  color: -webkit-linear-gradient(to right,
+      #EB5054,
+      #EB5054);
+  /* Chrome 10-25, Safari 5.1-6 */
+  color: linear-gradient(to right,
+      #EB5054,
+      #EB5054);
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
-
-
-
-
-
-
-
-
-

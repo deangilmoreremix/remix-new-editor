@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-sequences */
 /* eslint-disable react/jsx-no-comment-textnodes */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
@@ -10,11 +11,13 @@ import TabPane from './TabPane';
 
 const Tabs = (props) => {
   const { children } = props;
+  const { initialTab } = props;
   const [tabHeader, setTabHeader] = useState([]);
   const [tabHeaderObj, setTabHeaderObj] = useState([]);
 
   const [childContent, setChildContent] = useState({});
   const [active, setActive] = useState('');
+
   useEffect(() => {
     const headers = [];
     const headerObj = [];
@@ -29,15 +32,17 @@ const Tabs = (props) => {
       };
       headers.push(name);
       headerObj.push(obj);
-
       childCnt[name] = element.props.children;
     });
     setTabHeader(headers);
     setTabHeaderObj(headerObj);
-
-    setActive(headers[0]);
     setChildContent({ ...childCnt });
   }, [props, children]);
+
+  useEffect(() => {
+    setActive(initialTab);
+  }, []);
+
 
   const changeTab = (name) => {
     setActive(name);
@@ -61,7 +66,7 @@ const Tabs = (props) => {
 
           //   {item.name}
           // </li>
-          <li className="tablist">
+          <li key={item.name} className="tablist">
             <button onClick={() => changeTab(item.name)} className={`tabButton ${item === active ? 'active' : ''}`}>
               <SVGInline
                 className="svg-icon icon button-icon"
