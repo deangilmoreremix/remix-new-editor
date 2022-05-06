@@ -97,7 +97,7 @@ const FormTokensTextArea = observer((props) => {
         onFocus={handleShowHint}
         onBlur={handleShowHint}
         onKeyPress={onKeyPress}
-        disabled={disabled}
+        disabled={!disabled}
       />
     </div>
   );
