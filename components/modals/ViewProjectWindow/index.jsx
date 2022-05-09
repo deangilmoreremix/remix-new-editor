@@ -25,7 +25,6 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
   const userStore = useUserStore();
 
   const { presetsEnabled, evolutionPresetEnabled } = userStore;
-  console.log(presetsEnabled, evolutionPresetEnabled, 'Rules are set here');
   const { setPreviewData, updateTime } = usePresetStore();
   const { addData } = useProjectStore();
 
@@ -40,7 +39,6 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
         }
       });
       newData = JSON.stringify(newData);
-
       await setPreviewData(newData);
       setPreview(item.thumbnail);
       setActiveItem(item);
@@ -86,8 +84,6 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
           });
           setItems(elements => [...elements, ...results]);
         }
-
-
         if (evolutionPresetEnabled === true) {
           const resultsEvolutions = await fetchItemsEvolution({
             query: '',
@@ -96,13 +92,24 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
           });
           setItems(elements => [...elements, ...resultsEvolutions]);
         }
-        // console.log(activeItem, 'This is track here');
-        // if (!activeItem) {
-        //   console.log(items);
-        //   await setPreviewData(items[0].project.data);
-        //   setPreview(items[0].thumbnail);
-        //   setActiveItem(items[0]);
-        // }
+        setItems(elements => {
+          console.log(elements);
+          return [...elements];
+        });
+
+        if (!activeItem) {
+          // console.log(items);
+          // await setPreviewData(items[0].project.data);
+          // setPreview(items[0].thumbnail);
+          // setActiveItem(items[0]);
+          setItems(elements => {
+            console.log(elements);
+            setPreviewData(elements[0].project.data);
+            setPreview(elements[0].thumbnail);
+            setActiveItem(elements[0]);
+            return [...elements];
+          });
+        }
         const hasNextPage = items.length === perPage;
         setHasMore(hasNextPage);
 
