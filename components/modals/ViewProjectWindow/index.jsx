@@ -103,7 +103,6 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
           // setPreview(items[0].thumbnail);
           // setActiveItem(items[0]);
           setItems(elements => {
-            console.log(elements);
             setPreviewData(elements[0].project.data);
             setPreview(elements[0].thumbnail);
             setActiveItem(elements[0]);
