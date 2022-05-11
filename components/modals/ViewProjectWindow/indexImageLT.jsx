@@ -79,10 +79,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
           page,
           perPage,
         });
-
-
         setItems(elements => [...elements, ...results]);
-
         if (!activeItem) {
           await setPreviewData(results[0].project.data);
           setPreview(results[0].thumbnail);
@@ -90,7 +87,6 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
         }
         const hasNextPage = results.length === perPage;
         setHasMore(hasNextPage);
-
         if (hasNextPage) {
           setPage(page + 1);
         }
