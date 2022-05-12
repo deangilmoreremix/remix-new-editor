@@ -27,22 +27,10 @@ const PhotoEditorSDK = observer(({
   const onLoadImage = useCallback(async (image) => {
     let media;
     let hasError;
-
     try {
       // setIsLoading(true);
       startUpload();
       media = await uploadMedia({ data: image, isCrop: true });
-      const fileExtension = media.url.match(/\.[0-9a-z]{1,5}$/)[0];
-      let fileType = activeTab;
-      Object.keys(tabItems).forEach((item) => {
-        tabItems[item].formats.forEach((format) => {
-          if (format === fileExtension) {
-            fileType = item;
-          }
-        });
-      });
-      await storeAsset(media, fileType);
-      showSuccess('Media saved successfully');
     } catch (e) {
       hasError = true;
       showError(e.message);
@@ -50,7 +38,6 @@ const PhotoEditorSDK = observer(({
       // setIsLoading(false);
       image = media && media.url;
       if (!hasError) {
-        // console.log(onImageEdited);
         onImageEdited(image);
       }
       handleClose();
