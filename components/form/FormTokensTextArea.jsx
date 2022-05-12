@@ -97,9 +97,7 @@ const FormTokensTextArea = observer((props) => {
         onFocus={handleShowHint}
         onBlur={handleShowHint}
         onKeyPress={onKeyPress}
-        disabled={
-          inputClassName === 'text-to-speech__textarea' ? !disabled : disabled
-        }
+        disabled={inputClassName === 'text-to-speech__textarea' ? !disabled : disabled}
       />
     </div>
   );
