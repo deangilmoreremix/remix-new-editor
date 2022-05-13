@@ -34,7 +34,7 @@ const SettingPanel = observer(() => {
     removeCategory,
   } = useProjectStore();
   let { item: { allowedSocials = [] } } = useProjectStore();
-  const { openImageEditor, closeModal } = useModalStore();
+  const { openImageEditor, closeModal, openImglyEditorCropper } = useModalStore();
 
   const categories = useMemo(() => item.categories, [item.categories]);
 
@@ -64,7 +64,7 @@ const SettingPanel = observer(() => {
 
   const openEditor = (image) => {
     closeModal(IMAGE_CROPPER_MODAL);
-    openImageEditor({
+    openImglyEditorCropper({
       src: image || item.thumbnail,
       onImageEdited,
       startUpload: () => setIsDisabledUpload(true),
@@ -176,16 +176,16 @@ const SettingPanel = observer(() => {
           />
           {
             linkedinEnabled
-          && (
-          <FieldBuilder
-            type="checkbox"
-            name="linkedin"
-            label="LinkedIn"
-            value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
-            onChange={updateSocials}
-            floatClassName="settings-checkbox"
-          />
-          )
+            && (
+              <FieldBuilder
+                type="checkbox"
+                name="linkedin"
+                label="LinkedIn"
+                value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
+                onChange={updateSocials}
+                floatClassName="settings-checkbox"
+              />
+            )
           }
         </div>
 
