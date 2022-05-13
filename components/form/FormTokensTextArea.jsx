@@ -31,7 +31,7 @@ const FormTokensTextArea = observer((props) => {
     symbolsCount,
     languageValidator,
   } = props;
-  console.log('inputClassName',inputClassName,className,disabled);
+  console.log('inputClassName', inputClassName, className, disabled);
   const [isHint, setIsHint] = useState(false);
 
   // eslint-disable-next-line no-unused-vars
@@ -97,7 +97,7 @@ const FormTokensTextArea = observer((props) => {
         onFocus={handleShowHint}
         onBlur={handleShowHint}
         onKeyPress={onKeyPress}
-        disabled={inputClassName === 'text-to-speech__textarea' ? !disabled : disabled}
+        disabled={disabled}
       />
     </div>
   );
