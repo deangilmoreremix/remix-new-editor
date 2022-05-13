@@ -2,7 +2,7 @@ import { action, computed, observable } from 'mobx';
 
 import { GiphyFetch } from '@giphy/js-fetch-api';
 import BaseStore from './base.store';
-
+import Bb from 'bluebird';
 import PexelsProvider from '../../lib/utils/media/PexelsProvider';
 import UserProvider from '../../lib/utils/media/UserProvider';
 import PixabayProvider from '../../lib/utils/media/PixabayProvider';
@@ -80,7 +80,7 @@ export default class Media extends BaseStore {
     }
     return response.slice(count, count + options.perPage);
   }
- 
+
   getPresets = async (assetType, page = 1, filter = {}) => {
     if (!filter.type) {
       filter.type = assetType;
@@ -399,6 +399,18 @@ export default class Media extends BaseStore {
     } else {
       return Promise.resolve();
     }
+  };
+
+  @action
+  deleteMedia = async (id = []) => {
+    const promises = [];
+    promises.push(this.request(`/api/users/me/media-assets/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      },
+    }));
+    return Bb.all(promises);
   };
 
   @action
