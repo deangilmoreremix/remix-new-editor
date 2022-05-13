@@ -87,6 +87,8 @@ export default class HelpCrunch extends Component {
     }
     const { userStore } = this.props;
     await userStore.setRoles();
+    // await userStore.userCutOutProBalance();
+
 
     const { roles = [] } = userStore;
     window.HelpCrunch('onReady', () => {

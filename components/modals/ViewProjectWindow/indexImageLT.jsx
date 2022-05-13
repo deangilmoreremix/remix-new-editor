@@ -6,7 +6,6 @@ import PropTypes from '../../../lib/PropTypes';
 
 import usePresetStore from '../../hooks/usePresetStore';
 import useProjectStore from '../../hooks/useProjectStore';
-import useUserStore from '../../hooks/useUserStore';
 
 
 import { showError } from '../../../lib/services/alertService';
@@ -15,16 +14,14 @@ import List from '../../common/projectDataList/List';
 import Preview from '../../common/projectDataList/Preview';
 import CloseButton from '../../common/CloseButton';
 
-const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetchItemsEvolution }) => {
+const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart }) => {
   const [items, setItems] = useState([]);
   const [activeItem, setActiveItem] = useState();
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [preview, setPreview] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const userStore = useUserStore();
 
-  const { presetsEnabled, evolutionPresetEnabled } = userStore;
   const { setPreviewData, updateTime } = usePresetStore();
   const { addData } = useProjectStore();
 
@@ -39,6 +36,7 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
         }
       });
       newData = JSON.stringify(newData);
+
       await setPreviewData(newData);
       setPreview(item.thumbnail);
       setActiveItem(item);
@@ -76,42 +74,19 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
     if (hasMore) {
       setIsLoading(true);
       try {
-        if (presetsEnabled === true) {
-          const results = await fetchItems({
-            query: '',
-            page,
-            perPage,
-          });
-          setItems(elements => [...elements, ...results]);
-        }
-        if (evolutionPresetEnabled === true) {
-          const resultsEvolutions = await fetchItemsEvolution({
-            query: '',
-            page,
-            perPage,
-          });
-          setItems(elements => [...elements, ...resultsEvolutions]);
-        }
-        setItems(elements => {
-          console.log(elements);
-          return [...elements];
+        const results = await fetchItems({
+          query: '',
+          page,
+          perPage,
         });
-
+        setItems(elements => [...elements, ...results]);
         if (!activeItem) {
-          // console.log(items);
-          // await setPreviewData(items[0].project.data);
-          // setPreview(items[0].thumbnail);
-          // setActiveItem(items[0]);
-          setItems(elements => {
-            setPreviewData(elements[0].project.data);
-            setPreview(elements[0].thumbnail);
-            setActiveItem(elements[0]);
-            return [...elements];
-          });
+          await setPreviewData(results[0].project.data);
+          setPreview(results[0].thumbnail);
+          setActiveItem(results[0]);
         }
-        const hasNextPage = items.length === perPage;
+        const hasNextPage = results.length === perPage;
         setHasMore(hasNextPage);
-
         if (hasNextPage) {
           setPage(page + 1);
         }
@@ -165,12 +140,11 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
   );
 };
 
-ViewProjectWindow.propTypes = {
+ViewProjectWindowImageLt.propTypes = {
   handleClose: PropTypes.func.isRequired,
   fetchItems: PropTypes.func.isRequired,
-  fetchItemsEvolution: PropTypes.func.isRequired,
   title: PropTypes.string,
   instantStart: PropTypes.bool,
 };
 
-export default ViewProjectWindow;
+export default ViewProjectWindowImageLt;

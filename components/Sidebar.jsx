@@ -83,7 +83,7 @@ const Sidebar = observer(() => {
         openSettingsMenu();
         break;
       case ACTION_NEW_PROJECT:
-        window.open('/');
+        window.open('/edit');
         break;
       case ACTION_MAKE_COPY:
       case ACTION_WATCH_VIDEO:

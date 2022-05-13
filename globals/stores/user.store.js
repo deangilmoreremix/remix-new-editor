@@ -12,6 +12,8 @@ export default class UserStore {
     this.roles = null;
     this.request = request;
     this.selfRequest = requestCreator(hostname, null, isServer, () => { });
+    this.currentUser.cutoutproCreditUsed = 0;
+    this.currentUser.cutoutProCreditAvailableBalance = 0;
   }
 
   @computed
@@ -169,6 +171,68 @@ export default class UserStore {
   };
 
   @action
+  userCutOutProBalance = async () => {
+    let user;
+    try {
+      user = await this.request('/api/users/me?getCutoutpro=true', {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      this.currentUser.cutoutproCreditUsed = user.cutOutProCredit;
+      this.currentUser.cutoutProCreditAvailableBalance = user.ttsAmountOfAvailableCredit;
+      // return user.ttsAmountOfAvailableCredit;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
+  updateUserCreditUseAndGetUserCreditBalance = async (body) => {
+    try {
+      const response = await this.selfRequest('/users/me', {
+        method: 'PATCH',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      if (response) {
+        this.currentUser[Object.keys(body)[0]] = response.body.user[Object.keys(body)[0]];
+        // let user;
+        const user = await this.request('/api/users/me?getCutoutpro=true', {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+        this.currentUser.cutoutproCreditUsed = user.cutOutProCredit;
+        this.currentUser.cutoutProCreditAvailableBalance = user.ttsAmountOfAvailableCredit;
+        // cutoutProCreditUserUsed();
+        // cutoutProCreditAvailableBalance();
+        // return user.ttsAmountOfAvailableCredit;
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
+  @computed
+  get cutoutProCreditUserUsed() {
+    return this.currentUser.cutoutproCreditUsed || 0;
+  }
+
+
+  @computed
+  get cutoutProCreditAvailableBalance() {
+    return this.currentUser.cutoutProCreditAvailableBalance || 0;
+  }
+
+
+  @action
   getUserKey = (activeBtn) => {
     const { txtVideoKey, dropMockKey } = this.currentUser;
     return (activeBtn === LIBRARY_KEYS.DROPMOCK)
@@ -252,6 +316,8 @@ export default class UserStore {
   get apiKey() {
     return this.currentUser.apiKey || 'Not set';
   }
+
+
 
   @computed
   get externalApiKey() {
@@ -518,5 +584,33 @@ export default class UserStore {
     return this.isfeatureEnabled(FEATURES.SMART_RETOUCH);
   }
 
+  @computed
+  get evolutionOverlayEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_OVERLAY);
+  }
 
+  @computed
+  get evolutionPresetEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_PRESETS);
+  }
+
+  @computed
+  get evolutionBlendModeEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_BLEND_MODE);
+  }
+
+  @computed
+  get evolutionLowerThirdEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_LOWER_THIRDS);
+  }
+
+  @computed
+  get evolutionCtaEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_CTA);
+  }
+
+  @computed
+  get evolutionImageLTPresetEnabled() {
+    return this.isfeatureEnabled(FEATURES.EVOLUTION_IMAGE_LT_PRESETS);
+  }
 }

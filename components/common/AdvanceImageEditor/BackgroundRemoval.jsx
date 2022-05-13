@@ -1,9 +1,10 @@
 /* eslint-disable no-var */
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { triggerBase64Download } from 'react-base64-downloader';
 import Carousel from 'react-simply-carousel';
 import PropTypes from '../../../lib/PropTypes';
+import useUserStore from '../../hooks/useUserStore';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
@@ -11,6 +12,8 @@ import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
+import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+
 
 const BackgroundRemoval = observer(({
   imageData,
@@ -24,12 +27,25 @@ const BackgroundRemoval = observer(({
   const {
     secondaryWindowType: activeTab,
   } = useUIStore();
+  const userStore = useUserStore();
+  const {
+    updateUserCreditUseAndGetUserCreditBalance,
+    userCutOutProBalance,
+    cutoutProCreditUserUsed,
+    cutoutProCreditAvailableBalance,
+  } = userStore;
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
   const { source } = useMemo(() => imageData, [imageData]);
+
+  const quantify = () => {
+    userCutOutProBalance()
+      .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
+  };
+  useEffect(() => quantify(), []);
 
   const onLoadImage = useCallback(async (image) => {
     const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
@@ -70,8 +86,9 @@ const BackgroundRemoval = observer(({
     }
   }, [newImage]);
 
-  const processImage = () => {
+  const processImage = async () => {
     setIsLoading(true);
+    const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=6`, {
       method: 'get',
       headers: {
@@ -86,18 +103,21 @@ const BackgroundRemoval = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-
         setNewImage(resp.data.imageBase64);
+        // talk to backend to reduce the use cutoutpro credit
+        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
         setIsLoading(false);
+        showError('Something went wrong. Please try again later.');
       });
   };
 
 
   const changeBackgroundColor = (val) => {
     setIsLoading(true);
+    const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&bgcolor=${val}&mattingType=6`, {
       method: 'get',
       headers: {
@@ -113,6 +133,8 @@ const BackgroundRemoval = observer(({
         setIsLoading(false);
         setIsProcessImage(true);
         setNewImage(resp.data.imageBase64);
+        // talk to backend to reduce the use cutopro
+        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -136,9 +158,15 @@ const BackgroundRemoval = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
-                    <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
-                      Remove Background Image
-                    </button>
+                    {cutoutProCreditAvailableBalance <= 0
+                      ? (
+                        null
+                      )
+                      : (
+                        <button onClick={() => processImage()} className="btn  btn-outline-danger  btn-sm">
+                          Remove Background Image
+                        </button>
+                      )}
                   </div>
                 </div>
               </div>
@@ -168,74 +196,93 @@ const BackgroundRemoval = observer(({
             <div className="mt-5">
               <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Background</p>
               <div className="">
-                <Carousel
-                  containerProps={{
-                    style: {
-                      width: '100%',
-                      display: 'flex',
-                      justifyContent: '',
-                    },
-                  }}
-                  forwardBtnProps={{
-                    children: '>',
-                    style: {
-                      border: 'none',
-                      height: '20%',
-                      justifyContent: 'center',
-                      marginTop: '5px',
-                      marginRight: '3px',
-                      display: 'flex',
-                      padding: '3px',
-                      background: 'none',
-                      color: '#fff',
-                      outline: 'none',
-                    },
-                  }}
-                  backwardBtnProps={{
-                    children: '<',
-                    style: {
-                      border: 'none',
-                      height: '20%',
-                      justifyContent: 'center',
-                      marginTop: '5px',
-                      display: 'flex',
-                      padding: '3px',
-                      background: 'none',
-                      color: '#fff',
-                      outline: 'none',
-                    },
-                  }}
-                  itemsToShow={12}
-                  itemsToScroll={3}
-                  activeSlideIndex={activeSlideIndex}
-                  onRequestChange={setActiveSlideIndex}
-                >
-                  <button onClick={() => changeBackgroundColor('FFFFFF')} className="color-btn" style={{ backgroundColor: '#FFFFFF' }} />
-                  <button onClick={() => changeBackgroundColor('FEACAD')} className="color-btn" style={{ backgroundColor: '#FEACAD' }} />
-                  <button onClick={() => changeBackgroundColor('FFD6A5')} className="color-btn" style={{ backgroundColor: '#FFD6A5' }} />
-                  <button onClick={() => changeBackgroundColor('A0C5FE')} className="color-btn" style={{ backgroundColor: '#A0C5FE' }} />
-                  <button onClick={() => changeBackgroundColor('BCB1FF')} className="color-btn" style={{ backgroundColor: '#BCB1FF' }} />
-                  <button onClick={() => changeBackgroundColor('C2C5AA')} className="color-btn" style={{ backgroundColor: '#C2C5AA' }} />
-                  <button onClick={() => changeBackgroundColor('F1FBEF')} className="color-btn" style={{ backgroundColor: '#F1FBEF' }} />
-                  <button onClick={() => changeBackgroundColor('D8D9D8')} className="color-btn" style={{ backgroundColor: '#D8D9D8' }} />
-                  <button onClick={() => changeBackgroundColor('BEE1E6')} className="color-btn" style={{ backgroundColor: '#BEE1E6' }} />
-                  <button onClick={() => changeBackgroundColor('97F5E1')} className="color-btn" style={{ backgroundColor: '#97F5E1' }} />
-                  <button onClick={() => changeBackgroundColor('EB5054')} className="color-btn" style={{ backgroundColor: '#EB5054' }} />
-                  <button onClick={() => changeBackgroundColor('E9C1CA')} className="color-btn" style={{ backgroundColor: '#E9C1CA' }} />
-                  <button onClick={() => changeBackgroundColor('CFDFC2')} className="color-btn" style={{ backgroundColor: '#CFDFC2' }} />
-                  <button onClick={() => changeBackgroundColor('EA2055')} className="color-btn" style={{ backgroundColor: '#EA2055' }} />
-                  <button onClick={() => changeBackgroundColor('23ef56')} className="color-btn" style={{ backgroundColor: '#23ef56' }} />
-                  <button onClick={() => changeBackgroundColor('ffed45')} className="color-btn" style={{ backgroundColor: '#ffed45' }} />
-                </Carousel>
+                {cutoutProCreditAvailableBalance <= 0
+                  ? (
+                    null
+                  )
+                  : (
+                    <Carousel
+                      containerProps={{
+                        style: {
+                          width: '100%',
+                          display: 'flex',
+                          justifyContent: '',
+                        },
+                      }}
+                      forwardBtnProps={{
+                        children: '>',
+                        style: {
+                          border: 'none',
+                          height: '20%',
+                          justifyContent: 'center',
+                          marginTop: '5px',
+                          marginRight: '3px',
+                          display: 'flex',
+                          padding: '3px',
+                          background: 'none',
+                          color: '#fff',
+                          outline: 'none',
+                        },
+                      }}
+                      backwardBtnProps={{
+                        children: '<',
+                        style: {
+                          border: 'none',
+                          height: '20%',
+                          justifyContent: 'center',
+                          marginTop: '5px',
+                          display: 'flex',
+                          padding: '3px',
+                          background: 'none',
+                          color: '#fff',
+                          outline: 'none',
+                        },
+                      }}
+                      itemsToShow={12}
+                      itemsToScroll={3}
+                      activeSlideIndex={activeSlideIndex}
+                      onRequestChange={setActiveSlideIndex}
+                    >
+                      <button onClick={() => changeBackgroundColor('FFFFFF')} className="color-btn" style={{ backgroundColor: '#FFFFFF' }} />
+                      <button onClick={() => changeBackgroundColor('FEACAD')} className="color-btn" style={{ backgroundColor: '#FEACAD' }} />
+                      <button onClick={() => changeBackgroundColor('FFD6A5')} className="color-btn" style={{ backgroundColor: '#FFD6A5' }} />
+                      <button onClick={() => changeBackgroundColor('A0C5FE')} className="color-btn" style={{ backgroundColor: '#A0C5FE' }} />
+                      <button onClick={() => changeBackgroundColor('BCB1FF')} className="color-btn" style={{ backgroundColor: '#BCB1FF' }} />
+                      <button onClick={() => changeBackgroundColor('C2C5AA')} className="color-btn" style={{ backgroundColor: '#C2C5AA' }} />
+                      <button onClick={() => changeBackgroundColor('F1FBEF')} className="color-btn" style={{ backgroundColor: '#F1FBEF' }} />
+                      <button onClick={() => changeBackgroundColor('D8D9D8')} className="color-btn" style={{ backgroundColor: '#D8D9D8' }} />
+                      <button onClick={() => changeBackgroundColor('BEE1E6')} className="color-btn" style={{ backgroundColor: '#BEE1E6' }} />
+                      <button onClick={() => changeBackgroundColor('97F5E1')} className="color-btn" style={{ backgroundColor: '#97F5E1' }} />
+                      <button onClick={() => changeBackgroundColor('EB5054')} className="color-btn" style={{ backgroundColor: '#EB5054' }} />
+                      <button onClick={() => changeBackgroundColor('E9C1CA')} className="color-btn" style={{ backgroundColor: '#E9C1CA' }} />
+                      <button onClick={() => changeBackgroundColor('CFDFC2')} className="color-btn" style={{ backgroundColor: '#CFDFC2' }} />
+                      <button onClick={() => changeBackgroundColor('EA2055')} className="color-btn" style={{ backgroundColor: '#EA2055' }} />
+                      <button onClick={() => changeBackgroundColor('23ef56')} className="color-btn" style={{ backgroundColor: '#23ef56' }} />
+                      <button onClick={() => changeBackgroundColor('ffed45')} className="color-btn" style={{ backgroundColor: '#ffed45' }} />
+                    </Carousel>
+                  )}
+
               </div>
             </div>
-            <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
-              Download Image
-            </button>
 
-            <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
-              Save to Canvas
-            </button>
+            {cutoutProCreditAvailableBalance <= 0
+              ? (
+                null
+              )
+              : (
+                <button onClick={() => triggerBase64Download(base64, 'my_download')} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
+                  Download Image
+                </button>
+              )}
+            {cutoutProCreditAvailableBalance <= 0
+              ? (
+                null
+              )
+              : (
+                <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
+                  Save to Canvas
+                </button>
+              )}
           </div>
         </div>
 

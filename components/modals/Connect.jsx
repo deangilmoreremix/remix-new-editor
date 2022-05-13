@@ -4,7 +4,7 @@ import PropTypes from '../../lib/PropTypes';
 
 import useMakeStore from '../hooks/useMakeStore';
 
-import ViewProjectWindow from './ViewProjectWindow';
+import ViewProjectWindow from './ViewProjectWindow/indexImageLT';
 
 const Presets = ({ handleClose }) => {
   const { getConnect } = useMakeStore();

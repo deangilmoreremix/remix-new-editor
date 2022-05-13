@@ -1,5 +1,5 @@
 /* eslint-disable no-var */
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 import useUserStore from '../../hooks/useUserStore';
 import Tabs from './Tabs';
@@ -8,8 +8,6 @@ import BackgroundRemoval from './BackgroundRemoval';
 import PhotoEnhancer from './PhotoEnhancer';
 import FaceCutOut from './FaceCutOut';
 import PhotoColorizer from './PhotoColorizer';
-import PhotoAnimer from './PhotoAnimer';
-import Retouch from './Retouch';
 import PhotoCorrection from './PhotoCorrection';
 import CartoonSelfie from './CartoonSelfie';
 import PassportMarker from './PassportMarker';
@@ -18,10 +16,15 @@ import FaceCutOutSvg from '../../../public/static/AdvanceImageSvg/faceCutOut.svg
 import SelfieSvg from '../../../public/static/AdvanceImageSvg/selfie.svg';
 import EnhancerSvg from '../../../public/static/AdvanceImageSvg/Enhancer.svg';
 import ColorizerSvg from '../../../public/static/AdvanceImageSvg/smartColor.svg';
-import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
 import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
-import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
+// import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
+// import PhotoAnimer from './PhotoAnimer';
+// import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
+// import Retouch from './Retouch';
+// import { showError } from '../../../lib/services/alertService';
+import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import { showError } from '../../../lib/services/alertService';
 
 
 const AdvancedImageEditor = observer(({
@@ -30,15 +33,28 @@ const AdvancedImageEditor = observer(({
 }) => {
   const {
     smartBackgroundRemovalEnabled, smartFaceCutOutEnabled, smartCartoonSelfieEnabled,
-    smartEnhancerEnabled, smartColorizerEnabled, smartCorrectionEnabled, smartAnimerEnabled, smartPassportEnabled, smartRetouchEnabled,
+    smartEnhancerEnabled, smartColorizerEnabled,
+    smartCorrectionEnabled,
+    smartPassportEnabled,
+    //  smartRetouchEnabled,
+    //  smartAnimerEnabled,
+    // userCutOutProBalance,
+    // cutoutProCreditUserUsed,
+    cutoutProCreditAvailableBalance,
   } = useUserStore();
+
+  // const quantify = () => {
+  //   userCutOutProBalance()
+  //     .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
+  // };
+  // useEffect(() => quantify(), []);
+
   const { imageMeta, ...rest } = useMemo(
     () => options, [options]);
 
   if (!imageMeta) {
     return null;
   }
-
   const onClose = () => {
     handleClose();
   };
@@ -46,12 +62,41 @@ const AdvancedImageEditor = observer(({
     <>
       <div>
         <div className="heading-container">
+          <div style={{ display: 'contents' }}>
+            <p>
+              User available Credit
+              {' '}
+
+              {cutoutProCreditAvailableBalance <= 0 ? (
+                <span style={{ color: 'red' }}>
+                  0
+                </span>
+              ) : (
+                <span style={{ color: 'red' }}>
+                  {' '}
+                  {`${cutoutProCreditAvailableBalance}`}
+                  {' '}
+                </span>
+              )}
+            </p>
+
+            {cutoutProCreditAvailableBalance <= 0 ? (
+              <div>
+                <p style={{ color: 'red' }} className=" text-danger ">
+                  <a style={{ color: 'red' }} className=" text-danger " target="_blank" href="https://videoremix.io/image-pricing/" rel="noopener noreferrer">
+                   You have exhausted your credits. Click here to purchase credits.
+                  </a>
+                </p>
+              </div>
+            ) : null}
+          </div>
+
           <button className="btn btn-secondary btn-sm" onClick={onClose}>
             Close
           </button>
         </div>
         <div className="advanced-image-editor-wrapper">
-          <Tabs>
+          <Tabs initialTab="Smart BG Removal">
             {
               smartBackgroundRemovalEnabled && (
                 <TabPane name="Smart BG Removal" icon={RemoveBackgroundSvg} key="1">
@@ -120,18 +165,8 @@ const AdvancedImageEditor = observer(({
               </TabPane>
             )}
 
-            {smartAnimerEnabled && (
-              <TabPane name="Smart Animer" icon={smartMotion} key="7">
-                <PhotoAnimer
-                  imageData={imageMeta}
-                  handleClose={handleClose}
-                  {...rest}
-                />
-              </TabPane>
-            )}
-
             {smartPassportEnabled && (
-              <TabPane name="Smart Passport" icon={Passport} key="8">
+              <TabPane name="Smart Passport" icon={Passport} key="7">
                 <PassportMarker
                   imageData={imageMeta}
                   handleClose={handleClose}
@@ -140,7 +175,18 @@ const AdvancedImageEditor = observer(({
               </TabPane>
             )}
 
-            {
+
+            {/* {smartAnimerEnabled && (
+              <TabPane name="Smart Animer" icon={smartMotion} key="8">
+                <PhotoAnimer
+                  imageData={imageMeta}
+                  handleClose={handleClose}
+                  {...rest}
+                />
+              </TabPane>
+            )} */}
+
+            {/* {
               smartRetouchEnabled && (
                 <TabPane name="Smart Retouch" icon={brush} key="9">
                   <Retouch
@@ -150,7 +196,7 @@ const AdvancedImageEditor = observer(({
                   />
                 </TabPane>
               )
-            }
+            } */}
 
           </Tabs>
         </div>
