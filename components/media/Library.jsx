@@ -85,7 +85,7 @@ const Library = observer((props) => {
     getAssets,
     deleteAsset,
     libraryItemsForDelete,
-    setLibraryItemsForDelete,
+    // setLibraryItemsForDelete,
     videoProvidersInfo,
     imageProvidersInfo,
     audioProvidersInfo,
@@ -93,6 +93,7 @@ const Library = observer((props) => {
     defaultProvidersInfo,
     checkToken,
     uploadImageUrl,
+    deleteMedia,
   } = useMediaStore();
 
   const { downloaderEnabled, video360Enabled, getUserKey, updateUserKeys } = userStore;
@@ -604,8 +605,9 @@ const Library = observer((props) => {
     );
     if (response) {
       const newArr = val.filter((item) => item._id !== id);
+      // setLibraryItemsForDelete(id);
+      deleteMedia(id);
       setItems(newArr);
-      setLibraryItemsForDelete(id);
       projectStore.showSuccess('Media deleted successfully');
     }
   }, []);

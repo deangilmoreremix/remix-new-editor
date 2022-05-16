@@ -31,7 +31,7 @@ const FormTokensTextArea = observer((props) => {
     symbolsCount,
     languageValidator,
   } = props;
-
+  console.log('inputClassName', inputClassName, className, disabled);
   const [isHint, setIsHint] = useState(false);
 
   // eslint-disable-next-line no-unused-vars
