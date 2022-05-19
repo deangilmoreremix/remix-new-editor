@@ -405,6 +405,11 @@ export default class UserStore {
   }
 
   @computed
+  get videoAutomationCreatorEnabled() {
+    return this.isfeatureEnabled(FEATURES.VIDEO_AUTOMATION_CREATOR);
+  }
+
+  @computed
   get linkedinEnabled() {
     return this.isfeatureEnabled(FEATURES.LINKEDIN);
   }

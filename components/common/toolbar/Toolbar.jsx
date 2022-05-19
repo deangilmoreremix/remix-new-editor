@@ -30,11 +30,11 @@ const Toolbar = observer(({ items }) => {
 
   } = useUIStore();
   const userStore = useUserStore();
-  const { templateGeneratorEnabled } = userStore;
+  const { videoAutomationCreatorEnabled } = userStore;
   const { timelineHeight } = useTimelineStore();
 
   useEffect(() => {
-    if (templateGeneratorEnabled === false) {
+    if (videoAutomationCreatorEnabled === false) {
       items.pop(); // note in the toolbarItemGenerator.jsx always make the last item as template generator..
       if (items && items.length && !id) {
         setToolbarItem(items[1].id);
