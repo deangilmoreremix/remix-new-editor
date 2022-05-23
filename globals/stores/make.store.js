@@ -101,4 +101,13 @@ export default class PresetStore extends BaseStore {
   getEvolutionJsonTransitionsOverlay = ({ page = 1, query = '', perPage = 12, filter = {} }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_OVERLAY }, path: '/api/makes/revolution', filter: JSON.stringify(filter) })
   );
+
+  // lower third implementation
+  getRevolutionLowerThird = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_PRESETS }, path: '/api/makes/revolution' })
+  );
+
+getEvolutionLowerThird = ({ page = 1, query = '', perPage = 12 }) => (
+  this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_PRESETS }, path: '/api/makes/revolution' })
+);
 }

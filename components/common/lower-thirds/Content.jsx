@@ -133,39 +133,38 @@ const Content = () => {
     }
 
     try {
-      if (lowerThirdsEnabled === true) {
-        const data = await getPresets(LOWER_THIRDS_TYPE, currentPage, { _id: { $nin: uploaded } });
-
-        if (data.length) {
-          if (currentTab) {
-          //   setItems(data);
-          //   setIsFirstFetch(false);
-          //   // Loading new items when scrolling
-          // } else {
-          //   setItems([
-          //     ...items,
-          //     ...data,
-          //   ]);
-          // }
-            setItems((prevState) => [...prevState, ...data]);
-            setIsFirstFetch(false);
-          }
-        }
-      }
+      // if (lowerThirdsEnabled === true) {
+      //   const data = await getPresets(LOWER_THIRDS_TYPE, currentPage, { _id: { $nin: uploaded } });
+      //   if (data.length) {
+      //     if (currentTab) {
+      //     //   setItems(data);
+      //     //   setIsFirstFetch(false);
+      //     //   // Loading new items when scrolling
+      //     // } else {
+      //     //   setItems([
+      //     //     ...items,
+      //     //     ...data,
+      //     //   ]);
+      //     // }
+      //       setItems((prevState) => [...prevState, ...data]);
+      //       setIsFirstFetch(false);
+      //     }
+      //   }
+      // }
 
       if (evolutionLowerThirdEnabled === true) {
         const data2 = await getPresets(LOWER_THIRDS_EVO_TYPE, currentPage, { _id: { $nin: uploaded } });
         if (data2.length) {
           if (currentTab) {
-          //   setItems(data2);
-          //   setIsFirstFetch(false);
-          //   // Loading new items when scrolling
-          // } else {
-          //   setItems([
-          //     ...items,
-          //     ...data2,
-          //   ]);
-          // }
+            //   setItems(data2);
+            //   setIsFirstFetch(false);
+            //   // Loading new items when scrolling
+            // } else {
+            //   setItems([
+            //     ...items,
+            //     ...data2,
+            //   ]);
+            // }
             setItems((prevState) => [...prevState, ...data2]);
           }
         }
