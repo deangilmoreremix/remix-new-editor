@@ -52,26 +52,22 @@ const Tabs = (props) => {
     <div className="tabs">
       <ul className="tab-header">
         {tabHeaderObj.map((item) => (
-          // eslint-disable-next-line jsx-a11y/click-events-have-key-events
-          // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-          // <li
-          //   onClick={() => changeTab(item.name)}
-          //   key={item}
-          //   className={item === active ? 'active' : ''}
-          // >
-          //   <SVGInline
-          //     className="svg-icon icon button-icon"
-          //     svg={`${item.icon}`}
-          //   />
-
-          //   {item.name}
-          // </li>
           <li key={item.name} className="tablist">
-            <button onClick={() => changeTab(item.name)} className={`tabButton ${item === active ? 'active' : ''}`}>
-              <SVGInline
-                className="svg-icon icon button-icon"
-                svg={`${item.icon}`}
-              />
+            <button onClick={() => changeTab(item.name)} className={`tabButton ${item.name === active ? 'active' : ''}`}>
+              {item.name === active ? (
+                <SVGInline
+                  cleanup
+                  className={`svg-icon icon ${item.name === active ? 'active' : ''}`}
+                  svg={`${item.icon}`}
+                />
+              ) : (
+                <SVGInline
+                  cleanup
+                  className="icon svg-icon2"
+                  svg={`${item.icon}`}
+                />
+              )}
+
               {item.name}
             </button>
           </li>

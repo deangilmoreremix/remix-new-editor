@@ -120,10 +120,7 @@
   padding: 5px;
   display: inline-block;
   font-size: 12px;
-
 }
-
-
 
 
 .svg-icon {
@@ -133,27 +130,28 @@
   margin: 0 auto;
   padding-top: 10px;
   font-size: 14px;
+  fill: #EB5054;
+  stroke: #EB5054;
+
 }
 
-.svg-icon.active,
-.svg-icon.hover {
-  fill: #EB5054;
-  fill: #EB5054;
-  /* fallback for old browsers */
-  fill: -webkit-linear-gradient(to right,
-      #EB5054,
-      #EB5054);
-  /* Chrome 10-25, Safari 5.1-6 */
-  fill: linear-gradient(to right,
-      #EB5054,
-      #EB5054);
-  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+.svg-icon2 {
+  width: 25px !important;
+  height: 25px !important;
+  text-align: center;
+  margin: 0 auto;
+  padding-top: 10px;
+  font-size: 14px;
+  fill: #B8BECD;
+  stroke: #B8BECD;
 }
-
 
 .tab-header .tabButton.active,
 .tab-header .tabButton:hover {
   color: #EB5054;
+  background-color: #2C2F3D;
+  border: 1px solid #57595E;
+  box-shadow: #2C2F3D;
   /* fallback for old browsers */
   color: -webkit-linear-gradient(to right,
       #EB5054,
