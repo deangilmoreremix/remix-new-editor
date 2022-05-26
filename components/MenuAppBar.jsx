@@ -54,6 +54,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   } = useProjectStore();
 
   const common = useCommonStore();
+  // console.log(common, 'This is here to check if the common store is working');
   const { oneOfFeatureEnabled } = useUserStore();
   const {
     showProducePanel,
@@ -65,36 +66,32 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   useEffect(() => {
     if (USER_MENU_ITEMS(common)) {
       const items = USER_MENU_ITEMS(common);
+      console.log(items, 'This is here to check if the user menu items are working');
       setUserItems(oneOfFeatureEnabled ? items : items.filter((i) => !i.isFeatureDependence));
     }
   }, []);
 
   const saveProject = useCallback(async () => {
-    let value ="";
+    let value = '';
 
-    await getItemTitle({}).then(function(data){
-      value=data.title;
+    await getItemTitle({}).then((data) => {
+      value = data.title;
     });
 
-    let verify_duplicate=0;
+    let verify_duplicate = 0;
 
-    await verifyTitle({}).then(function(data){
-      for (let i=0;i< data.result.length;i++)
-      {
-        if(data.cur_item !== data.result[i]._id && data.result[i].title.toUpperCase() === value.toUpperCase())
-        {
-          verify_duplicate=1;
+    await verifyTitle({}).then((data) => {
+      for (let i = 0; i < data.result.length; i++) {
+        if (data.cur_item !== data.result[i]._id && data.result[i].title.toUpperCase() === value.toUpperCase()) {
+          verify_duplicate = 1;
         }
       }
     });
-    if(verify_duplicate===0)
-    {
+    if (verify_duplicate === 0) {
       checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
+    } else {
+      swal('Error', 'Project name already exists!', 'error');
     }
-    else {
-      swal('Error','Project name already exists!', 'error');
-    }
-
   }, [setInitialView, showProducePanel]);
 
 

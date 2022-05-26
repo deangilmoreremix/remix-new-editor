@@ -356,6 +356,7 @@ export default class UserStore {
   @computed
   get oneOfFeatureEnabled() {
     const features = Object.values(INTEGRATION_FEATURES);
+    console.log(features, 'Thi is the feature')
     return features.some((feature) => this.isfeatureEnabled(feature));
   }
 
