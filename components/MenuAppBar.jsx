@@ -54,7 +54,6 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   } = useProjectStore();
 
   const common = useCommonStore();
-  // console.log(common, 'This is here to check if the common store is working');
   const { oneOfFeatureEnabled } = useUserStore();
   const {
     showProducePanel,
@@ -66,7 +65,6 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   useEffect(() => {
     if (USER_MENU_ITEMS(common)) {
       const items = USER_MENU_ITEMS(common);
-      console.log(items, 'This is here to check if the user menu items are working');
       setUserItems(oneOfFeatureEnabled ? items : items.filter((i) => !i.isFeatureDependence));
     }
   }, []);
