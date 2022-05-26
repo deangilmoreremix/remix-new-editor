@@ -51,7 +51,7 @@ const Basic = observer(({
     smartPassportEnabled,
     smartRetouchEnabled,
   } = useUserStore();
-  const { openImageEditor, openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
+  const { openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
 
   const isCutOutProEnable = () => {
     if (smartBackgroundRemovalEnabled === false && smartFaceCutOutEnabled === false
@@ -59,11 +59,13 @@ const Basic = observer(({
       && smartColorizerEnabled === false && smartCorrectionEnabled === false
       && smartAnimerEnabled === false && smartPassportEnabled === false
       && smartRetouchEnabled === false) {
-      return false;
+      const result = false;
+      return result;
     } else {
       return true;
     }
   };
+
   const backToLibrary = () => {
     handleClose();
     setUpdateElementInLibrary(element.id);
@@ -214,22 +216,6 @@ const Basic = observer(({
 
       <div className="image-settings__block">
         <div className="image-settings__btn--block">
-          {/* <button
-            className="image-settings__btn"
-            onClick={() => {
-              openImageEditor({
-                src: element.popcornOptions.src,
-                onImageEdited,
-                startUpload: () => setIsLoading(true),
-                endUpload: () => setIsLoading(false),
-                menu: EXTRA_MENU,
-              });
-            }}
-            disabled={isLoading}
-          >
-            Image Editor
-          </button> */}
-
           {imglyEditorEnabled && (
             <button
               className="image-settings__btn"
@@ -249,7 +235,7 @@ const Basic = observer(({
             </button>
           )}
 
-          {isCutOutProEnable && (
+          {isCutOutProEnable() && (
             <button
               className="image-settings__btn"
               onClick={() => {
