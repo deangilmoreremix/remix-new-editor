@@ -38,6 +38,8 @@ const BackgroundRemoval = observer(({
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [isError, setError] = useState(null);
+
 
   const { source } = useMemo(() => imageData, [imageData]);
 
@@ -103,9 +105,14 @@ const BackgroundRemoval = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setNewImage(resp.data.imageBase64);
-        // talk to backend to reduce the use cutoutpro credit
-        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
+        if (resp.msg === 'Processing failed') {
+          setError(resp.msg);
+        } else {
+          setNewImage(resp.data.imageBase64);
+          setError(null);
+          // talk to backend to reduce the use cutoutpro credit
+          updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
+        }
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -132,9 +139,14 @@ const BackgroundRemoval = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setNewImage(resp.data.imageBase64);
-        // talk to backend to reduce the use cutopro
-        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
+        if (resp.msg === 'Processing failed') {
+          setError(resp.msg);
+        } else {
+          setNewImage(resp.data.imageBase64);
+          setError(null);
+          // talk to backend to reduce the use cutoutpro credit
+          updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
+        }
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -148,6 +160,24 @@ const BackgroundRemoval = observer(({
   return (
     <>
       <div className="">
+        <div className="">
+          {
+            isError === 'Processing failed' ? (
+              <div>
+                <p className="errorText mb-0"> This picture is not supported and no foreground is not recognized </p>
+                <p className="errorText">
+                  {' '}
+                  Please select a picture with a clear distinction between foreground and background.
+                  For example a picture of a person, a product, an animal, a car or another object
+                  {' '}
+                </p>
+              </div>
+            ) : (
+              null
+            )
+          }
+        </div>
+
         <div className="flex advance-editor-modal-content">
           <div className="content-container">
             <div className="flex justify-content-center items-center  ">
@@ -160,7 +190,10 @@ const BackgroundRemoval = observer(({
                   <div className="mt-5">
                     {cutoutProCreditAvailableBalance <= 0
                       ? (
-                        null
+                        // null
+                        <button onClick={() => processImage()} className="btn  btn-outline-danger  btn-sm">
+                          Remove Background Image
+                        </button>
                       )
                       : (
                         <button onClick={() => processImage()} className="btn  btn-outline-danger  btn-sm">

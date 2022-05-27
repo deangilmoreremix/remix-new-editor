@@ -91,6 +91,7 @@ const PhotoEnhancer = observer(({
   const [childActiveSlideIndex, setChildActiveSlideIndex] = useState(0);
   const [color, setColor] = useState('FFFFFF');
   const [dress, setDress] = useState('');
+  const [isError, setError] = useState(null);
 
 
   const { source } = useMemo(() => imageData, [imageData]);
@@ -146,6 +147,7 @@ const PhotoEnhancer = observer(({
         setIsProcessImage(true);
         if (resp.data === null) {
           setNewImage(null);
+          setError('Processing failed');
         } else {
           setNewImage(resp.data.idPhotoImage);
           setPrintLayoutImage(resp.data.printLayoutImage);
@@ -167,9 +169,6 @@ const PhotoEnhancer = observer(({
   };
 
   const changeBackgroundColor = async (val) => {
-    // console.log(val);
-    // setColor(val);
-    // console.log(color);
     setIsLoading(true);
     const total = cutoutProCreditUserUsed + 2;
 
@@ -190,7 +189,6 @@ const PhotoEnhancer = observer(({
       printMmWidth: 150,
       dress,
     };
-    console.log(data);
     fetch(`https://www.cutout.pro/api/v1/idphoto/printLayout`, {
       method: 'post',
       headers: {
@@ -205,10 +203,9 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        // setNewImage(resp.data.idPhotoImage);
-        // setPrintLayoutImage(resp.data.printLayoutImage);
         if (resp.data === null) {
           setNewImage(null);
+          setError('Processing failed');
         } else {
           setColor(val);
           setNewImage(resp.data.idPhotoImage);
@@ -223,16 +220,7 @@ const PhotoEnhancer = observer(({
       });
   };
 
-  // useEffect(() => {
-  // console.log(dress);
-  // }, [color, dress]);
-
   const changeDressPhotoImage = async (val) => {
-    // console.log(val, 'This is val');
-    // setDress('');
-    // setDress(val);
-    // console.log(dress, 'this is state');
-
     setIsLoading(true);
     const total = cutoutProCreditUserUsed + 2;
     const base64Response = await fetch(source);
@@ -271,6 +259,7 @@ const PhotoEnhancer = observer(({
         // setPrintLayoutImage(resp.data.printLayoutImage);
         if (resp.data === null) {
           setNewImage(null);
+          setError('Processing failed');
         } else {
           setDress(val);
           setNewImage(resp.data.idPhotoImage);
@@ -333,6 +322,25 @@ const PhotoEnhancer = observer(({
   return (
     <>
       <div className="">
+
+        <div className="">
+          {
+            isError === 'Processing failed' ? (
+              <div>
+                <p className="errorText mb-0"> This picture is not supported and no foreground is not recognized </p>
+                <p className="errorText">
+                  {' '}
+                  Please select a picture with a clear distinction between foreground and background.
+                  For example a picture of a person, a product, an animal, a car or another object
+                  {' '}
+                </p>
+              </div>
+            ) : (
+              null
+            )
+          }
+        </div>
+
 
         <div className="flex advance-editor-modal-content">
 

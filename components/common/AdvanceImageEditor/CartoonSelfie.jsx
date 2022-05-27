@@ -180,8 +180,6 @@ const CartoonSelfie = observer(({
               null
             )
           }
-
-
         </div>
 
         <div className="flex advance-editor-modal-content">
