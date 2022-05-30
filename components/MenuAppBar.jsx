@@ -70,31 +70,26 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   }, []);
 
   const saveProject = useCallback(async () => {
-    let value ="";
+    let value = '';
 
-    await getItemTitle({}).then(function(data){
-      value=data.title;
+    await getItemTitle({}).then((data) => {
+      value = data.title;
     });
 
-    let verify_duplicate=0;
+    let verify_duplicate = 0;
 
-    await verifyTitle({}).then(function(data){
-      for (let i=0;i< data.result.length;i++)
-      {
-        if(data.cur_item !== data.result[i]._id && data.result[i].title.toUpperCase() === value.toUpperCase())
-        {
-          verify_duplicate=1;
+    await verifyTitle({}).then((data) => {
+      for (let i = 0; i < data.result.length; i++) {
+        if (data.cur_item !== data.result[i]._id && data.result[i].title.toUpperCase() === value.toUpperCase()) {
+          verify_duplicate = 1;
         }
       }
     });
-    if(verify_duplicate===0)
-    {
+    if (verify_duplicate === 0) {
       checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
+    } else {
+      swal('Error', 'Project name already exists!', 'error');
     }
-    else {
-      swal('Error','Project name already exists!', 'error');
-    }
-
   }, [setInitialView, showProducePanel]);
 
 

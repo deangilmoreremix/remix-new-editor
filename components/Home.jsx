@@ -63,7 +63,7 @@ const Home = observer(() => {
     stickersEnabled,
     lowerThirdsEnabled,
     presetsEnabled,
-    templateGeneratorEnabled,
+    videoAutomationCreatorEnabled,
     linkedinEnabled,
     ctaEnabled,
     blendModeEnabled,
@@ -92,7 +92,7 @@ const Home = observer(() => {
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
   const [shouldShowTGModal, setShouldShowTGModal] = useState(
-    templateGeneratorEnabled,
+    videoAutomationCreatorEnabled,
   );
   const {
     changeRadioButton,

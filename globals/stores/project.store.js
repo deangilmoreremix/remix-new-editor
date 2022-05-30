@@ -2079,6 +2079,13 @@ export default class ProjectStore extends BaseStore {
       item.stopAction = true;
     }
 
+    if (type === POPCORN_ELEMENT_TYPES.PERSONALIZED_IMAGE) {
+      item.width = 50;
+      item.height = 50;
+      item.top = 25;
+      item.left = 25;
+    }
+
     if (startInDrag) {
       item.start = startInDrag;
     }

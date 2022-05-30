@@ -36,6 +36,7 @@ const PhotoCorrection = observer(({
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
+  const [isError, setError] = useState(null);
 
 
   const { source } = useMemo(() => imageData, [imageData]);
@@ -103,9 +104,14 @@ const PhotoCorrection = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setNewImage(resp.data.imageBase64);
-        // talk to backend to reduce the use cutopro credit
-        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
+        if (resp.msg === 'Processing failed') {
+          setError(resp.msg);
+        } else {
+          setNewImage(resp.data.imageBase64);
+          setError(null);
+          // talk to backend to reduce the use cutoutpro credit
+          updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
+        }
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -118,6 +124,24 @@ const PhotoCorrection = observer(({
   return (
     <>
       <div className="">
+
+        <div className="">
+          {
+            isError === 'Processing failed' ? (
+              <div>
+                <p className="errorText mb-0"> This picture is not supported and no foreground is not recognized </p>
+                <p className="errorText">
+                  {' '}
+                  Please select a picture with a clear distinction between foreground and background.
+                  For example a picture of a person, a product, an animal, a car or another object
+                  {' '}
+                </p>
+              </div>
+            ) : (
+              null
+            )
+          }
+        </div>
 
         <div className="flex advance-editor-modal-content">
 
