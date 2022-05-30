@@ -197,6 +197,7 @@ const Home = observer(() => {
         evolutionImageLTPresetEnabled,
       },
     });
+
     return items && items.length ? items : [];
   }, [
     openModal,
