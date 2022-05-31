@@ -16,6 +16,12 @@ import AnimatedWindow from '../AnimatedWindow';
 import HelpIconComponent from '../HelpIcon';
 
 const Toolbar = observer(({ items }) => {
+  const userStore = useUserStore();
+  const { videoAutomationCreatorEnabled } = userStore;
+  if (videoAutomationCreatorEnabled === false) {
+    items = items.filter((e) => e.id !== 'template-generator');
+  }
+
   const {
     toolbarItem: {
       id,
@@ -29,17 +35,9 @@ const Toolbar = observer(({ items }) => {
     toggleRightBlock,
 
   } = useUIStore();
-  const userStore = useUserStore();
-  const { videoAutomationCreatorEnabled } = userStore;
   const { timelineHeight } = useTimelineStore();
-
   useEffect(() => {
-    if (videoAutomationCreatorEnabled === false) {
-      items.pop(); // note in the toolbarItemGenerator.jsx always make the last item as template generator..
-      if (items && items.length && !id) {
-        setToolbarItem(items[1].id);
-      }
-    } else if (items && items.length && !id) {
+    if (items && items.length && !id) {
       setToolbarItem(items[1].id);
     }
   }, [items]);
