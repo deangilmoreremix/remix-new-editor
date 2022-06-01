@@ -18,8 +18,8 @@ import EnhancerSvg from '../../../public/static/AdvanceImageSvg/Enhancer.svg';
 import ColorizerSvg from '../../../public/static/AdvanceImageSvg/smartColor.svg';
 import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
-// import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
-// import PhotoAnimer from './PhotoAnimer';
+import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
+import PhotoAnimer from './PhotoAnimer';
 // import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 // import Retouch from './Retouch';
 // import { showError } from '../../../lib/services/alertService';
@@ -37,7 +37,7 @@ const AdvancedImageEditor = observer(({
     smartCorrectionEnabled,
     smartPassportEnabled,
     //  smartRetouchEnabled,
-    //  smartAnimerEnabled,
+     smartAnimerEnabled,
     // userCutOutProBalance,
     // cutoutProCreditUserUsed,
     cutoutProCreditAvailableBalance,
@@ -176,7 +176,7 @@ const AdvancedImageEditor = observer(({
             )}
 
 
-            {/* {smartAnimerEnabled && (
+            {smartAnimerEnabled && (
               <TabPane name="Smart Animer" icon={smartMotion} key="8">
                 <PhotoAnimer
                   imageData={imageMeta}
@@ -184,7 +184,7 @@ const AdvancedImageEditor = observer(({
                   {...rest}
                 />
               </TabPane>
-            )} */}
+            )}
 
             {/* {
               smartRetouchEnabled && (
