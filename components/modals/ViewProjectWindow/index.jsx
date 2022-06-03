@@ -76,26 +76,24 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
     if (hasMore) {
       setIsLoading(true);
       try {
+        let results = []
+        let resultsEvolutions = []
         if (presetsEnabled === true) {
-          const results = await fetchItems({
+          results = await fetchItems({
             query: '',
             page,
             perPage,
           });
-          setItems(elements => [...elements, ...results]);
         }
         if (evolutionPresetEnabled === true) {
-          const resultsEvolutions = await fetchItemsEvolution({
+          resultsEvolutions = await fetchItemsEvolution({
             query: '',
             page,
             perPage,
           });
-          setItems(elements => [...elements, ...resultsEvolutions]);
         }
-        setItems(elements => {
-          console.log(elements);
-          return [...elements];
-        });
+        let presetsLT = results.concat(resultsEvolutions);
+        setItems((elements) => [...elements, ...presetsLT]);
 
         if (!activeItem) {
           // console.log(items);
@@ -109,11 +107,13 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
             return [...elements];
           });
         }
-        const hasNextPage = items.length === perPage;
-        setHasMore(hasNextPage);
-
-        if (hasNextPage) {
-          setPage(page + 1);
+        if(results || resultsEvolutions){
+          const hasNextPage = results.length || resultsEvolutions.length === perPage;
+          setHasMore(hasNextPage);
+  
+          if (hasNextPage) {
+            setPage(page + 1);
+          }
         }
         setIsLoading(false);
       } catch (e) {
