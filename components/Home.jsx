@@ -89,7 +89,6 @@ const Home = observer(() => {
     evolutionCtaEnabled,
     evolutionImageLTPresetEnabled,
   } = userStore;
-  console.log(videoAutomationCreatorEnabled, 'This is here now');
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
   const [shouldShowTGModal, setShouldShowTGModal] = useState(
@@ -198,6 +197,7 @@ const Home = observer(() => {
         evolutionImageLTPresetEnabled,
       },
     });
+
     return items && items.length ? items : [];
   }, [
     openModal,

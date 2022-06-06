@@ -14,9 +14,11 @@ import useProjectStore from '../../../hooks/useProjectStore';
 import { FEATURES } from '../../../../lib/constants/features';
 import { LIBRARY_TABS } from '../../../../lib/constants/library';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
-import { PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL, IMGLY_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
+import { PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
 import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
 import { EXTRA_MENU, ADVANCE_IMAGE_EDITOR_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
+//
+import { INITIAL_VALUES as value } from '../../../../lib/constants/settings/video-transition.js'
 
 import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 
@@ -51,7 +53,7 @@ const Basic = observer(({
     smartPassportEnabled,
     smartRetouchEnabled,
   } = useUserStore();
-  const { openImageEditor, openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
+  const { openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
 
   const isCutOutProEnable = () => {
     if (smartBackgroundRemovalEnabled === false && smartFaceCutOutEnabled === false
@@ -59,11 +61,13 @@ const Basic = observer(({
       && smartColorizerEnabled === false && smartCorrectionEnabled === false
       && smartAnimerEnabled === false && smartPassportEnabled === false
       && smartRetouchEnabled === false) {
-      return false;
+      const result = false;
+      return result;
     } else {
       return true;
     }
   };
+
   const backToLibrary = () => {
     handleClose();
     setUpdateElementInLibrary(element.id);
@@ -82,6 +86,11 @@ const Basic = observer(({
 
   const onImageEdited = (image) => {
     findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
+    closeModal(PIXO_IMAGE_EDITOR_MODAL);
+  };
+
+  const onImageEditedValue = (video) => {
+    findAndUpdate(element.id, { ...value, src: video });
     closeModal(PIXO_IMAGE_EDITOR_MODAL);
   };
 
@@ -214,22 +223,6 @@ const Basic = observer(({
 
       <div className="image-settings__block">
         <div className="image-settings__btn--block">
-          {/* <button
-            className="image-settings__btn"
-            onClick={() => {
-              openImageEditor({
-                src: element.popcornOptions.src,
-                onImageEdited,
-                startUpload: () => setIsLoading(true),
-                endUpload: () => setIsLoading(false),
-                menu: EXTRA_MENU,
-              });
-            }}
-            disabled={isLoading}
-          >
-            Image Editor
-          </button> */}
-
           {imglyEditorEnabled && (
             <button
               className="image-settings__btn"
@@ -249,7 +242,7 @@ const Basic = observer(({
             </button>
           )}
 
-          {isCutOutProEnable && (
+          {isCutOutProEnable() && (
             <button
               className="image-settings__btn"
               onClick={() => {
@@ -257,6 +250,7 @@ const Basic = observer(({
                   src: element.popcornOptions.src,
                   onAdvancedImageEdited,
                   onImageEdited,
+                  onImageEditedValue,
                   startUpload: () => setIsLoading(true),
                   endUpload: () => setIsLoading(false),
                   menu: ADVANCE_IMAGE_EDITOR_MENU,

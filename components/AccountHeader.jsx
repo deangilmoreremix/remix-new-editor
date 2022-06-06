@@ -14,7 +14,6 @@ import backgroundImage from '../public/static/images/background-header.jpg';
 
 const AccountHeader = memo(({ isAccount }) => {
   const common = useCommonStore();
-
   return (
     <nav
       className="navigation"
