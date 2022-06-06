@@ -1,5 +1,5 @@
 /* eslint-disable no-var */
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { observer } from 'mobx-react';
 import useUserStore from '../../hooks/useUserStore';
 import Tabs from './Tabs';
@@ -23,8 +23,8 @@ import PhotoAnimer from './PhotoAnimer';
 // import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 // import Retouch from './Retouch';
 // import { showError } from '../../../lib/services/alertService';
-import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
-import { showError } from '../../../lib/services/alertService';
+// import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+// import { showError } from '../../../lib/services/alertService';
 
 
 const AdvancedImageEditor = observer(({
@@ -36,18 +36,10 @@ const AdvancedImageEditor = observer(({
     smartEnhancerEnabled, smartColorizerEnabled,
     smartCorrectionEnabled,
     smartPassportEnabled,
-    //  smartRetouchEnabled,
-     smartAnimerEnabled,
-    // userCutOutProBalance,
-    // cutoutProCreditUserUsed,
+    smartAnimerEnabled,
     cutoutProCreditAvailableBalance,
+    //  smartRetouchEnabled,
   } = useUserStore();
-
-  // const quantify = () => {
-  //   userCutOutProBalance()
-  //     .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
-  // };
-  // useEffect(() => quantify(), []);
 
   const { imageMeta, ...rest } = useMemo(
     () => options, [options]);
@@ -84,7 +76,7 @@ const AdvancedImageEditor = observer(({
               <div>
                 <p style={{ color: 'red' }} className=" text-danger ">
                   <a style={{ color: 'red' }} className=" text-danger " target="_blank" href="https://videoremix.io/image-pricing/" rel="noopener noreferrer">
-                   You have exhausted your credits. Click here to purchase credits.
+                    You have exhausted your credits. Click here to purchase credits.
                   </a>
                 </p>
               </div>

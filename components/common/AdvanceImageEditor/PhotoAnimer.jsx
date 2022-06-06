@@ -2,7 +2,7 @@
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { saveAs } from 'file-saver';
-import { triggerBase64Download } from 'react-base64-downloader';
+// import { triggerBase64Download } from 'react-base64-downloader';
 import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
@@ -18,16 +18,18 @@ import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
 const PhotoEnhancer = observer(({
   imageData,
   onImageEdited,
+  onImageEditedValue,
   handleClose,
   startUpload,
   endUpload,
   noCrop,
 }) => {
-  // const refEditor = useRef();
+
   const { uploadMedia, storeAsset } = useMediaStore();
   const {
     secondaryWindowType: activeTab,
   } = useUIStore();
+  console.log(activeTab);
   const userStore = useUserStore();
   const {
     updateUserCreditUseAndGetUserCreditBalance,
@@ -42,16 +44,12 @@ const PhotoEnhancer = observer(({
   const { source } = useMemo(() => imageData, [imageData]);
   const [isError, setError] = useState(null);
 
-
   const quantify = () => {
     userCutOutProBalance()
       .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
   };
   useEffect(() => quantify(), []);
-
   const onLoadImage = useCallback(async (image) => {
-    // const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
-    // const blob = await base64Response.blob();
     if (!newImage) {
       return;
     }
@@ -78,7 +76,7 @@ const PhotoEnhancer = observer(({
       setIsLoading(false);
       image = media && media.url;
       if (!hasError) {
-        onImageEdited(image);
+        // onImageEditedValue(image);// logic to save to canvas
       }
       handleClose();
       endUpload();
@@ -156,7 +154,6 @@ const PhotoEnhancer = observer(({
       });
   };
 
-  // const base64 = `data:image/png;base64,${newImage}`;
   const downloadImage = () => {
     saveAs(newImage, 'animer.mp4');
   };
@@ -301,7 +298,7 @@ const PhotoEnhancer = observer(({
                     Download Anime
                   </button>
                   <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
-                    Save to Canvas
+                    Save to Video Library
                   </button>
                 </>
               )}

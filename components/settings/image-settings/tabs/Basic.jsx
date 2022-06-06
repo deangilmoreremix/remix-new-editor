@@ -14,9 +14,11 @@ import useProjectStore from '../../../hooks/useProjectStore';
 import { FEATURES } from '../../../../lib/constants/features';
 import { LIBRARY_TABS } from '../../../../lib/constants/library';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
-import { PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL, IMGLY_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
+import { PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
 import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
 import { EXTRA_MENU, ADVANCE_IMAGE_EDITOR_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
+//
+import { INITIAL_VALUES as value } from '../../../../lib/constants/settings/video-transition.js'
 
 import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 
@@ -84,6 +86,11 @@ const Basic = observer(({
 
   const onImageEdited = (image) => {
     findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
+    closeModal(PIXO_IMAGE_EDITOR_MODAL);
+  };
+
+  const onImageEditedValue = (video) => {
+    findAndUpdate(element.id, { ...value, src: video });
     closeModal(PIXO_IMAGE_EDITOR_MODAL);
   };
 
@@ -243,6 +250,7 @@ const Basic = observer(({
                   src: element.popcornOptions.src,
                   onAdvancedImageEdited,
                   onImageEdited,
+                  onImageEditedValue,
                   startUpload: () => setIsLoading(true),
                   endUpload: () => setIsLoading(false),
                   menu: ADVANCE_IMAGE_EDITOR_MENU,
