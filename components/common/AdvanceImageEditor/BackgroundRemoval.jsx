@@ -39,8 +39,6 @@ const BackgroundRemoval = observer(({
   const [newImage, setNewImage] = useState('');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [isError, setError] = useState(null);
-
-
   const { source } = useMemo(() => imageData, [imageData]);
 
   const quantify = () => {
@@ -105,6 +103,7 @@ const BackgroundRemoval = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
+
         if (resp.msg === 'Processing failed') {
           setError(resp.msg);
         } else {
@@ -190,10 +189,7 @@ const BackgroundRemoval = observer(({
                   <div className="mt-5">
                     {cutoutProCreditAvailableBalance <= 0
                       ? (
-                        // null
-                        <button onClick={() => processImage()} className="btn  btn-outline-danger  btn-sm">
-                          Remove Background Image
-                        </button>
+                        null
                       )
                       : (
                         <button onClick={() => processImage()} className="btn  btn-outline-danger  btn-sm">

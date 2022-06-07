@@ -271,13 +271,13 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
                 >
                   Download
                 </button>
-                { isSuperAdmin
+                {isSuperAdmin
                   ? (
                     <button
                       className="recorder-modal-options__button recorder-modal-options__button_upload"
                       onClick={getLink}
                     >
-                    Get preview link
+                      Get preview link
                     </button>
                   ) : null}
                 <button

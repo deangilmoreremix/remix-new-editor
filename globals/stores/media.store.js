@@ -1,8 +1,8 @@
 import { action, computed, observable } from 'mobx';
 
 import { GiphyFetch } from '@giphy/js-fetch-api';
-import BaseStore from './base.store';
 import Bb from 'bluebird';
+import BaseStore from './base.store';
 import PexelsProvider from '../../lib/utils/media/PexelsProvider';
 import UserProvider from '../../lib/utils/media/UserProvider';
 import PixabayProvider from '../../lib/utils/media/PixabayProvider';
@@ -534,7 +534,6 @@ export default class Media extends BaseStore {
         },
       );
     } catch (e) {
-      console.log(e);
       throw new Error(e.message);
     }
     return asset;

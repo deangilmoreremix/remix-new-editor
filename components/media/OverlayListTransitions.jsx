@@ -99,15 +99,17 @@ const OverlayListTransitions = observer(() => {
       setIsLoading(true);
 
       try {
+        let results = []
+        let resultsEvolution = []
         if (jsonTransitionEnabled === true) {
 
-          const results = await getJsonTransitions({
+          results = await getJsonTransitions({
             query: '',
             page,
             perPage,
             filter,
           });
-          setItems(elements => [...elements, ...results]);
+          // setItems(elements => [...elements, ...results]);
 
           // if (page === 1) {
           //   setItems(results);
@@ -120,13 +122,13 @@ const OverlayListTransitions = observer(() => {
         }
 
         if (evolutionOverlayEnabled === true) {
-          const resultsEvolution = await getEvolutionJsonTransitionsOverlay({
+          resultsEvolution = await getEvolutionJsonTransitionsOverlay({
             query: '',
             page,
             perPage,
             filter,
           });
-          setItems(elements => [...elements, ...resultsEvolution]);
+          // setItems(elements => [...elements, ...resultsEvolution]);
           // if (page === 1) {
           //   setItems(resultsEvolution);
           //   await setPreviewData(resultsEvolution[0].project.data);
@@ -135,6 +137,17 @@ const OverlayListTransitions = observer(() => {
           // } else {
           //   setItems(elements => [...elements, ...resultsEvolution]);
           // }
+        }
+
+        let transitionOverlay = results.concat(resultsEvolution);
+        setItems((elements) => [...elements, ...transitionOverlay]);
+        if(results || resultsEvolution){
+          const hasNextPage = results.length || resultsEvolution.length === perPage;
+          setHasMore(hasNextPage);
+
+          if (hasNextPage) {
+            setPage(page + 1);
+          }
         }
 
         // if (page === 1) {
@@ -146,12 +159,6 @@ const OverlayListTransitions = observer(() => {
         //   setItems(elements => [...elements, ...results]);
         // }
 
-        const hasNextPage = items.length === perPage;
-        setHasMore(hasNextPage);
-
-        if (hasNextPage) {
-          setPage(page + 1);
-        }
         setIsLoading(false);
       } catch (e) {
         setIsLoading(false);
