@@ -7,11 +7,11 @@ export default class PresetStore extends BaseStore {
     try {
       return this.request(
         `/api/makes/revolution?segment=${TEMPLATES_SEGMENTS.NICHE_SCRIPTS}&perPage=${perPage}&page=${page}&q=${query}`, {
-          method: 'GET',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
     } finally {
       this.isLoading = false;
     }
@@ -45,7 +45,7 @@ export default class PresetStore extends BaseStore {
         data.push(['Date', 'Time', 'Source', ...keys]);
         result.forEach((optin) => {
           data.push([new Date(optin.createdAt).toLocaleString(), optin.extra && optin.extra.source,
-            ...keys.map((key) => (optin.extra.data && optin.extra.data[key])
+          ...keys.map((key) => (optin.extra.data && optin.extra.data[key])
             || (optin.extra && optin.extra[key]))]);
         });
       }
@@ -100,5 +100,14 @@ export default class PresetStore extends BaseStore {
 
   getEvolutionJsonTransitionsOverlay = ({ page = 1, query = '', perPage = 12, filter = {} }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_OVERLAY }, path: '/api/makes/revolution', filter: JSON.stringify(filter) })
+  );
+
+  // lower third implementation
+  getRevolutionLowerThird = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.LOWER_THIRDS }, path: '/api/makes/revolution' })
+  );
+
+  getEvolutionLowerThird = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_LOWER_THIRDS }, path: '/api/makes/revolution' })
   );
 }
