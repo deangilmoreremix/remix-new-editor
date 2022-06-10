@@ -84,6 +84,7 @@ const PhotoEnhancer = observer(({
   }, [newImage]);
 
   const processAnimer = async (val) => {
+    const total = cutoutProCreditUserUsed + 10;
     await fetch(`https://www.cutout.pro/api/v1/faceDriven/getTaskInfo?taskId=${val}`, {
       method: 'get',
       headers: {
@@ -101,6 +102,8 @@ const PhotoEnhancer = observer(({
       if (resp.data.status === 1) {
         setIsLoading(false);
         setIsProcessImage(true);
+        // talk to backend to reduce the use cutoutpro credit
+        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
         setNewImage(resp.data.resultUrl);
       } else if (resp.data.status === 0) {
         setIsLoading(true);
@@ -124,7 +127,6 @@ const PhotoEnhancer = observer(({
 
   const processImage = async (val) => {
     setIsLoading(true);
-    const total = cutoutProCreditUserUsed + 10;
     await fetch(`https://www.cutout.pro/api/v1/faceDriven/submitTaskByUrl?imageUrl=${source}&templateId=${val}`, {
       method: 'get',
       headers: {
@@ -144,8 +146,6 @@ const PhotoEnhancer = observer(({
         } else {
           processAnimer(resp.data);
           setError(null);
-          // talk to backend to reduce the use cutoutpro credit
-          updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
         }
       })
       // eslint-disable-next-line no-unused-vars
