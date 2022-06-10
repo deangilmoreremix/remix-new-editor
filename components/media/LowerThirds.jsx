@@ -16,6 +16,7 @@ const LowerThirds = observer(() => {
   const libraryHeight = useMemo(() => (
     editorStyles.calculateHeight(timelineHeight)
   ), [timelineHeight]);
+  const handleClose = () => toggleRightBlock(false);
 
   return (
     <div style={{ height: libraryHeight }} className="lower-thirds">
@@ -24,7 +25,7 @@ const LowerThirds = observer(() => {
         <CloseButton onClick={() => toggleRightBlock(false)} />
       </div>
       <div className="lower-thirds__body">
-        <Content />
+        <Content className="library-cta-items" onSelect={handleClose} />
       </div>
     </div>
   );
