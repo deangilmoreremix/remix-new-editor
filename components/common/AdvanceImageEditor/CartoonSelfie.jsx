@@ -244,9 +244,9 @@ const CartoonSelfie = observer(({
                 )
                 : (
                   <div className="flex">
-                    <div role="button" onClick={() => ChangeAvatarImage(6)} className="imgS border-sel cartoon-container">
+                    {/* <div role="button" onClick={() => ChangeAvatarImage(6)} className="imgS border-sel cartoon-container">
                       <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFull1.jpg" className="carton-avatar" alt="" />
-                    </div>
+                    </div> */}
                     <div role="button" onClick={() => ChangeAvatarImage(5)} className="imgS border-sel cartoon-container">
                       <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar5.png" className="carton-avatar" alt="" />
                     </div>
