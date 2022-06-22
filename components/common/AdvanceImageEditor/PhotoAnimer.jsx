@@ -249,40 +249,7 @@ const PhotoEnhancer = observer(({
               <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Anime</p>
               {cutoutProCreditAvailableBalance <= 0
                 ? (
-                  // null
-                  <div className="flex">
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(2)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(1)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer1.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer1.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(3)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer_3.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer_3.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(4)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer4.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer4.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(5)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer5.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer5.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                  </div>
+                  null
                 )
                 : (
                   <div className="flex">
