@@ -126,34 +126,33 @@ const PhotoEnhancer = observer(({
 
 
   const processImage = async (val) => {
-    // setIsLoading(true);
+    setIsLoading(true);
     setActive(val);
-
-    // await fetch(`https://www.cutout.pro/api/v1/faceDriven/submitTaskByUrl?imageUrl=${source}&templateId=${val}`, {
-    //   method: 'get',
-    //   headers: {
-    //     'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    //     Accept: 'application/json',
-    //     APIKEY: config.cutoutPro.apiKey,
-    //   },
-    // })
-    //   .then((data) =>
-    //     // eslint-disable-next-line implicit-arrow-linebreak
-    //     data.json(),
-    //   ).then(resp => {
-    //     setIsLoading(false);
-    //     setIsProcessImage(true);
-    //     if (resp.msg === 'Processing failed') {
-    //       setError(resp.msg);
-    //     } else {
-    //       processAnimer(resp.data);
-    //       setError(null);
-    //     }
-    //   })
-    //   // eslint-disable-next-line no-unused-vars
-    //   .catch((error) => {
-    //     setIsLoading(false);
-    //   });
+    await fetch(`https://www.cutout.pro/api/v1/faceDriven/submitTaskByUrl?imageUrl=${source}&templateId=${val}`, {
+      method: 'get',
+      headers: {
+        'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        Accept: 'application/json',
+        APIKEY: config.cutoutPro.apiKey,
+      },
+    })
+      .then((data) =>
+        // eslint-disable-next-line implicit-arrow-linebreak
+        data.json(),
+      ).then(resp => {
+        setIsLoading(false);
+        setIsProcessImage(true);
+        if (resp.msg === 'Processing failed') {
+          setError(resp.msg);
+        } else {
+          processAnimer(resp.data);
+          setError(null);
+        }
+      })
+      // eslint-disable-next-line no-unused-vars
+      .catch((error) => {
+        setIsLoading(false);
+      });
   };
 
   const downloadImage = () => {
@@ -284,51 +283,18 @@ const PhotoEnhancer = observer(({
               <p className="text-sm text-muted font-weight-light text-sm-left  font-smaller">Change Anime</p>
               {cutoutProCreditAvailableBalance <= 0
                 ? (
-                  // null
+                  null
+                )
+                : (
                   <div className="flex">
+
                     {animerList.map((val) => (
                       <div className={val.id === active ? 'carton-active' : 'cartoon-container'} tabIndex="0" onClick={() => processImage(val.id)} role="button" aria-hidden>
                         <video className="carton-avatar" src={val.src} autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
                           <source src={val.src} type="video/mp4" />
                         </video>
                       </div>
-
                     ))}
-
-                  </div>
-                )
-                : (
-                  <div className="flex">
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(2)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(1)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer1.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer1.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(3)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer_3.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer_3.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(4)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer4.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer4.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(5)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer5.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer5.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
                   </div>
                 )}
             </div>
