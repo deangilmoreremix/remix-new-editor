@@ -24,7 +24,6 @@ const PhotoEnhancer = observer(({
   endUpload,
   noCrop,
 }) => {
-
   const { uploadMedia, storeAsset } = useMediaStore();
   const {
     secondaryWindowType: activeTab,
@@ -43,6 +42,7 @@ const PhotoEnhancer = observer(({
   const [newImage, setNewImage] = useState('');
   const { source } = useMemo(() => imageData, [imageData]);
   const [isError, setError] = useState(null);
+  const [active, setActive] = useState();
 
   const quantify = () => {
     userCutOutProBalance()
@@ -127,6 +127,7 @@ const PhotoEnhancer = observer(({
 
   const processImage = async (val) => {
     setIsLoading(true);
+    setActive(val);
     await fetch(`https://www.cutout.pro/api/v1/faceDriven/submitTaskByUrl?imageUrl=${source}&templateId=${val}`, {
       method: 'get',
       headers: {
@@ -157,6 +158,39 @@ const PhotoEnhancer = observer(({
   const downloadImage = () => {
     saveAs(newImage, 'animer.mp4');
   };
+
+
+  const animerList = [
+    {
+      name: 'Animer1',
+      src: 'https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer1.mp4',
+      id: 1,
+    },
+
+    {
+      name: 'Animer2',
+      src: 'https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4',
+      id: 2,
+    },
+
+    {
+      name: 'Animer3',
+      src: 'https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer_3.mp4',
+      id: 3,
+    },
+    {
+      name: 'Animer4',
+      src: 'https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer4.mp4',
+      id: 4,
+    },
+    {
+      name: 'Animer5',
+      src: 'https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer5.mp4',
+      id: 5,
+    },
+
+
+  ];
 
 
   return (
@@ -254,36 +288,13 @@ const PhotoEnhancer = observer(({
                 : (
                   <div className="flex">
 
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(2)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(1)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer1.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer1.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(3)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer_3.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer_3.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(4)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer4.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer4.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
-                    <div className=" cartoon-container" tabIndex="0" onClick={() => processImage(5)} role="button" aria-hidden>
-                      <video className="carton-avatar" src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer5.mp4" autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
-                        <source src="https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer5.mp4" type="video/mp4" />
-                      </video>
-                    </div>
-
+                    {animerList.map((val) => (
+                      <div className={val.id === active ? 'carton-active' : 'cartoon-container'} tabIndex="0" onClick={() => processImage(val.id)} role="button" aria-hidden>
+                        <video className="carton-avatar" src={val.src} autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '0px' }}>
+                          <source src={val.src} type="video/mp4" />
+                        </video>
+                      </div>
+                    ))}
                   </div>
                 )}
             </div>

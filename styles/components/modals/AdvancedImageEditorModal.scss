@@ -38,6 +38,17 @@
   border-radius: 5px;
 }
 
+.carton-active {
+  border: 5px #EB5054;
+  border-radius: 5px;
+  margin-right: 10px;
+  cursor: pointer;
+  height: 44px;
+  display: inline-block;
+  width: 42px;
+  background-color: #EB5054;
+}
+
 .input-editor {
   border: none;
 }
@@ -168,6 +179,3 @@ errorText {
   margin: 0px;
   margin-bottom: 0px;
 }
-
-
-
