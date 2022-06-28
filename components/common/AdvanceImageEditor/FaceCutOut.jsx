@@ -196,7 +196,10 @@ const FaceCutOut = observer(({
                   <div className="mt-5">
                     {cutoutProCreditAvailableBalance <= 0
                       ? (
-                        null
+                        // null
+                        <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
+                          Process Cutout Face
+                        </button>
                       )
                       : (
                         <button onClick={processImage} className="btn  btn-outline-danger  btn-sm">
