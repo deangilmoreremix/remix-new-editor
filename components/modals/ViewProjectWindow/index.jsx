@@ -7,6 +7,8 @@ import PropTypes from '../../../lib/PropTypes';
 import usePresetStore from '../../hooks/usePresetStore';
 import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';
+import useUIStore from '../../hooks/useUIStore';
+
 
 
 import { showError } from '../../../lib/services/alertService';
@@ -23,6 +25,8 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
   const [preview, setPreview] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const userStore = useUserStore();
+  const { toggleLeftBlock } = useUIStore();
+
 
   const { presetsEnabled, evolutionPresetEnabled } = userStore;
   const { setPreviewData, updateTime } = usePresetStore();
@@ -61,6 +65,12 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
       showError(e.message);
     }
   }, [activeItem, addData]);
+
+
+  const closeButton = () => {
+    toggleLeftBlock(false);
+    handleClose();
+  };
 
   const resetParams = useCallback(() => {
     setPage(1);
@@ -107,10 +117,10 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
             return [...elements];
           });
         }
-        if(results || resultsEvolutions){
+        if (results || resultsEvolutions) {
           const hasNextPage = results.length || resultsEvolutions.length === perPage;
           setHasMore(hasNextPage);
-  
+
           if (hasNextPage) {
             setPage(page + 1);
           }
@@ -139,7 +149,7 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
     <div className="view-project-window">
       <div className="flex">
         <p className="view-project-window__header">{title}</p>
-        <CloseButton className="close-button" onClick={handleClose} />
+        <CloseButton className="close-button" onClick={closeButton} />
       </div>
       <div className="view-project-window__body">
         <div className="view-project-window__container">

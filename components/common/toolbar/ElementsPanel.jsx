@@ -20,7 +20,7 @@ const ElementsPanel = observer(({ items }) => {
     setPrevStateProduce,
   } = useUIStore();
 
-  const creativeElements = useMemo(
+  const personalizationElements = useMemo(
     () => items.filter(({ uiSection, disabled }) => uiSection === SECTIONS.basic && !disabled),
     [items]);
   const leadGenElements = useMemo(
@@ -28,6 +28,16 @@ const ElementsPanel = observer(({ items }) => {
       && !disabled), [items]);
   const advancedElements = useMemo(
     () => items.filter(({ uiSection, disabled }) => uiSection === SECTIONS.advanced && !disabled),
+    [items]);
+
+  // creative elements
+  const creativeElements = useMemo(
+    () => items.filter(({ uiSection, disabled }) => uiSection === SECTIONS.creative && !disabled),
+    [items]);
+
+  // video control
+  const videoControlElements = useMemo(
+    () => items.filter(({ uiSection, disabled }) => uiSection === SECTIONS.videoControl && !disabled),
     [items]);
 
   if (!checkboxLeft) {
@@ -58,10 +68,18 @@ const ElementsPanel = observer(({ items }) => {
     <AnimatedWindow isOpen={checkboxLeft}>
       <div className="elements-panel-container">
         <Row className="elements-panel-inner-row">
-          {creativeElements.length ? (<h3 className="elements-panel-section__title">Creative & Personalization</h3>) : null}
+          {personalizationElements.length ? (<h3 className="elements-panel-section__title"> Personalization</h3>) : null}
+          {personalizationElements.length ? elementsRenderer(personalizationElements) : null}
+
+          {creativeElements.length ? (<h3 className="elements-panel-section__title">Creative</h3>) : null}
           {creativeElements.length ? elementsRenderer(creativeElements) : null}
+
+          {videoControlElements.length ? (<h3 className="elements-panel-section__title">Video Controls</h3>) : null}
+          {videoControlElements.length ? elementsRenderer(videoControlElements) : null}
+
           {leadGenElements.length ? (<h3 className="elements-panel-section__title">Lead Generation</h3>) : null}
           {leadGenElements.length ? elementsRenderer(leadGenElements) : null}
+
           {advancedElements.length ? (<h3 className="elements-panel-section__title">Advanced Tools / Add-ons</h3>) : null}
           {advancedElements.length ? elementsRenderer(advancedElements) : null}
 
