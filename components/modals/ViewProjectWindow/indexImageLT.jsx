@@ -8,8 +8,6 @@ import usePresetStore from '../../hooks/usePresetStore';
 import useProjectStore from '../../hooks/useProjectStore';
 import useUIStore from '../../hooks/useUIStore';
 
-
-
 import { showError } from '../../../lib/services/alertService';
 
 import List from '../../common/projectDataList/List';
@@ -58,6 +56,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
 
       await addData(activeItem, true);
       handleClose();
+      toggleLeftBlock(false);
     } catch (e) {
       showError(e.message);
     }

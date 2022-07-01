@@ -61,6 +61,7 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
 
       await addData(activeItem, true);
       handleClose();
+      toggleLeftBlock(false);
     } catch (e) {
       showError(e.message);
     }
