@@ -6,6 +6,8 @@ import PropTypes from '../../../lib/PropTypes';
 
 import usePresetStore from '../../hooks/usePresetStore';
 import useProjectStore from '../../hooks/useProjectStore';
+import useUIStore from '../../hooks/useUIStore';
+
 
 
 import { showError } from '../../../lib/services/alertService';
@@ -24,6 +26,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
 
   const { setPreviewData, updateTime } = usePresetStore();
   const { addData } = useProjectStore();
+  const { toggleLeftBlock } = useUIStore();
 
   const handleSelect = React.useCallback(async (item) => {
     let zIndex = 0;
@@ -59,6 +62,12 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
       showError(e.message);
     }
   }, [activeItem, addData]);
+
+
+  const closeButton = () => {
+    toggleLeftBlock(false);
+    handleClose();
+  };
 
   const resetParams = useCallback(() => {
     setPage(1);
@@ -114,7 +123,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
     <div className="view-project-window">
       <div className="flex">
         <p className="view-project-window__header">{title}</p>
-        <CloseButton className="close-button" onClick={handleClose} />
+        <CloseButton className="close-button" onClick={closeButton} />
       </div>
       <div className="view-project-window__body">
         <div className="view-project-window__container">
