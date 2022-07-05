@@ -294,15 +294,22 @@ export default class ProjectStore extends BaseStore {
     if (!targetDataLength) {
       return;
     }
-
+    
     this.modified = true;
     const activeElement = this.activeElementId && this.getElementById(this.activeElementId);
     this.isTransition = activeElement
       && activeElement.type === POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION;
-    const { projectData, duration, retarget, activeElementId } = targetData[targetDataLength - 1];
+
+    //Temporary fix undo action for 2 or 3 elements  
+    let { projectData, duration, retarget, activeElementId } = targetData[targetDataLength - 1];
+    if(targetData.length && activeElement  && targetData[targetDataLength - 2] && targetData[targetDataLength - 2].activeElementId && targetData[targetDataLength - 2].activeElementId == activeElement.id) {
+      projectData =  targetData[targetDataLength - 2].projectData;
+      duration = targetData[targetDataLength - 2].duration
+      retarget = targetData[targetDataLength - 2].retarget
+      activeElementId = targetData[targetDataLength - 2].activeElementId
+    }
     const snapshot = toJS(this.projectData);
     targetData.pop();
-
     this.setUndoRedoAction({
       projectData: snapshot,
       duration: this.duration,
