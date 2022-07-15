@@ -8,7 +8,10 @@ import blendModeConstants from '../../../lib/constants/blendMode';
 const ProjectImageElement = ({ handleSelect, item, className }) => {
   const element = JSON.parse(item.project.data);
   const { blendMode } = element.media[0].tracks[0];
-  const { url } = element.media[0].tracks[0].trackEvents[0].popcornOptions;
+  let url = "";
+  if (element.media[0].tracks[0].trackEvents[0]) {
+    url = element.media[0].tracks[0].trackEvents[0].popcornOptions.url;
+  }
 
   return (
     <div className={classnames('list-item', className)}>
