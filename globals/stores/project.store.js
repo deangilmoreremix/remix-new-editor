@@ -204,6 +204,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable userStore = {};
 
+  @observable layer = [];
+
   @observable activeElementId;
 
   @observable voiceTextId;
@@ -294,19 +296,32 @@ export default class ProjectStore extends BaseStore {
     if (!targetDataLength) {
       return;
     }
-    
     this.modified = true;
     const activeElement = this.activeElementId && this.getElementById(this.activeElementId);
     this.isTransition = activeElement
       && activeElement.type === POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION;
 
     //Temporary fix undo action for 2 or 3 elements  
-    let { projectData, duration, retarget, activeElementId } = targetData[targetDataLength - 1];
-    if(targetData.length && activeElement  && targetData[targetDataLength - 2] && targetData[targetDataLength - 2].activeElementId && targetData[targetDataLength - 2].activeElementId == activeElement.id) {
-      projectData =  targetData[targetDataLength - 2].projectData;
-      duration = targetData[targetDataLength - 2].duration
-      retarget = targetData[targetDataLength - 2].retarget
-      activeElementId = targetData[targetDataLength - 2].activeElementId
+    
+    let count = 0;
+    const sortedElements = this.layer[0].trackEvents.sort((a, b) => a.popcornOptions.start - b.popcornOptions.start); 
+    //Get count of elements in active layer
+      for(let i=0;i<sortedElements.length;i++) {
+        console.log(sortedElements[i],sortedElements[i+1],'i')
+        if(sortedElements[i] != sortedElements[sortedElements.length-1]) {
+          if(sortedElements[i].popcornOptions.end == sortedElements[i+1].popcornOptions.start) {
+            count++
+          }
+        }
+      }
+    let { projectData, duration, retarget, activeElementId } =  targetData[targetDataLength - 1];
+    if(count > 0) {
+      if(targetData.length && activeElement  && targetData[targetDataLength - count] && targetData[targetDataLength - count].activeElementId && targetData[targetDataLength - count].activeElementId == activeElement.id) {
+        projectData =  targetData[targetDataLength - count].projectData;
+        duration = targetData[targetDataLength - count].duration
+        retarget = targetData[targetDataLength - count].retarget
+        activeElementId = targetData[targetDataLength - count].activeElementId
+      }
     }
     const snapshot = toJS(this.projectData);
     targetData.pop();
@@ -1444,6 +1459,15 @@ export default class ProjectStore extends BaseStore {
   setUndoRedoAction = (projectData, undo = true) => {
     const targetData = undo ? this.undoStore : this.redoStore;
     targetData.push(projectData);
+    this.layer = this.projectData.media[0].tracks.filter(
+      (ele) =>  {
+         if(ele.trackEvents.filter(
+        (element) => element.id == this.activeElementId
+      ).length > 0) {
+        return ele
+      }}
+    );
+   
     if (targetData.length > NUMBER_OF_STEPS) {
       targetData.shift();
     }
