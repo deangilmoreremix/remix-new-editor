@@ -37,7 +37,11 @@ const {
 
 const MenuAppBar = observer(({ whiteLabelManager }) => {
   const anchorRef = useRef(null);
+  const userStore = useUserStore();
 
+  const {
+    setProjectLimit
+   } = userStore;
   const [isProjectTitle, setProjectTitle] = useState(false);
   const [userItems, setUserItems] = useState([]);
 
@@ -70,6 +74,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   }, []);
 
   const saveProject = useCallback(async () => {
+    const projects = await setProjectLimit()
     let value = '';
 
     await getItemTitle({}).then((data) => {
@@ -85,10 +90,16 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
         }
       }
     });
-    if (verify_duplicate === 0) {
-      checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
-    } else {
-      swal('Error', 'Project name already exists!', 'error');
+    if (projects > 0) {
+      if (verify_duplicate === 0) {
+        checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
+      } else {
+        swal('Error', 'Project name already exists!', 'error');
+      }
+    }
+    else {
+      swal('Error', 'project limit exceeded!', 'error');
+      return false
     }
   }, [setInitialView, showProducePanel]);
 

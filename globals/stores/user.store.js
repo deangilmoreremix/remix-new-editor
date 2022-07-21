@@ -56,6 +56,22 @@ export default class UserStore {
   };
 
   @action
+  setProjectLimit = async () => {
+    let user;
+    try {
+      user = await this.request('/api/users/me?getProjectLimit=true', {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      return user.ttAmountOfAvailbleProjects;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  @action
   setExternalApiKey = async () => {
     let response;
     try {
