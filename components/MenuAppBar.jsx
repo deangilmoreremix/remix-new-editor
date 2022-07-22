@@ -9,6 +9,7 @@ import UserBox from './common/user/UserBox';
 import ExpandButton from './common/ExpandButton';
 import HelpIconComponent from './common/HelpIcon';
 
+import {showProjectLimitError} from "../lib/services/alertService"
 import { HEADER_ACTIONS, USER_MENU_ITEMS } from '../lib/constants/ui';
 import { headerTooltips } from '../lib/constants/tooltips';
 import { DOMAIN_VIDEOREMIX } from '../lib/constants/project';
@@ -98,8 +99,8 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       }
     }
     else {
-      swal('Error', 'project limit exceeded!', 'error');
-      return false
+      showProjectLimitError()
+      return false;
     }
   }, [setInitialView, showProducePanel]);
 
