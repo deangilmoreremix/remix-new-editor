@@ -330,6 +330,12 @@ export default class UserStore {
       || 'https://stuff.webmaker.org/avatars/webmaker-avatar-200x200.png';
   }
 
+
+  @computed
+  get getSvrTerms() {
+    return this.currentUser.svrTerms || true;
+  }
+
   isfeatureEnabled = (feature) => this.isSuperAdmin || (
     this.currentUser.features && this.currentUser.features[feature]
     && this.currentUser.features[feature].state === STATE.ENABLED);

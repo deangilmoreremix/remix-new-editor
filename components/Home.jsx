@@ -88,12 +88,14 @@ const Home = observer(() => {
     evolutionLowerThirdEnabled,
     evolutionCtaEnabled,
     evolutionImageLTPresetEnabled,
+    getSvrTerms,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
   const [shouldShowTGModal, setShouldShowTGModal] = useState(
     videoAutomationCreatorEnabled,
   );
+
   const {
     changeRadioButton,
     secondaryWindowType,
@@ -215,7 +217,15 @@ const Home = observer(() => {
   ]);
 
   useEffect(() => {
-    if (!project && pathname !== ROUTES.edit) {
+    if (getSvrTerms === false) {
+      push(
+        {
+          pathname: ROUTES.terms,
+        },
+        undefined,
+        { shallow: true },
+      );
+    } else if (!project && pathname !== ROUTES.edit) {
       push(
         {
           pathname: ROUTES.edit,
