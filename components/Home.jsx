@@ -53,6 +53,7 @@ const Home = observer(() => {
     push,
   } = useRouter();
   const projectStore = useProjectStore();
+
   const userStore = useUserStore();
 
   const {
@@ -259,10 +260,9 @@ const Home = observer(() => {
     [project || remix, openModal],
   );
 
-
   const { setCopiedItems, pasteElement, isActiveTimeline } = useTimelineStore();
-
   hotkeys.filter = () => true;
+
   const keys = [
     twoKeys.ctrlS,
     twoKeys.ctrlZ,
