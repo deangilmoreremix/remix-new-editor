@@ -1,0 +1,30 @@
+.terms-body {
+  height: 100%;
+  width: 100%;
+  background: #411015;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+
+.terms-content {
+  justify-content: center;
+  position: absolute;
+  display: block;
+  height: 80% !important;
+  width: 50%;
+  background-color: #ffffff;
+  overflow-y: scroll;
+  margin-top: 5rem;
+  margin-left: 25%;
+  margin-right: auto;
+  padding: 20px;
+}
+
+
+.terms-header {
+  font-size: 20px;
+  font-weight: bold;
+}
