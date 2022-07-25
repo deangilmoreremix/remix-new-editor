@@ -317,8 +317,6 @@ export default class UserStore {
     return this.currentUser.apiKey || 'Not set';
   }
 
-
-
   @computed
   get externalApiKey() {
     return this.currentUser.externalApiKey || 'Not set';
@@ -333,7 +331,7 @@ export default class UserStore {
 
   @computed
   get getSvrTerms() {
-    return this.currentUser.svrTerms || true;
+    return this.currentUser.svrTerms;
   }
 
   isfeatureEnabled = (feature) => this.isSuperAdmin || (
