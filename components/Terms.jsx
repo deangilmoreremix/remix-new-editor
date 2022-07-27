@@ -494,9 +494,6 @@ const Terms = observer(() => {
                   4.YOU AGREE THAT WE WILL NOT BE HELD RESPONSIBLE OR LIABLE FOR ANY CONSEQUENCES TO YOU OR ANY THIRD PARTY THAT MAY RESULT FROM TECHNICAL PROBLEMS OF THE INTERNET, SLOW CONNECTIONS, SYSTEM FAILURE, OUTAGES, TRAFFIC CONGESTION, OVERLOAD OF OUR OR OTHER SERVERS, OR OTHER EVENTS BEYOND OUR REASONABLE CONTROL.
                 </div>
 
-                <br />
-                <br />
-
 
                 17.
                 {' '}
@@ -568,14 +565,13 @@ const Terms = observer(() => {
                 <span className="sub-content-title"> General.</span>
                 {' '}
 
-
                 <div className="terms-sub-content-list ">
                   1.
                   {' '}
                   <span className="terms-line">Entire Agreement.</span>
                   {' '}
                   These Terms, together with any annexes, schedules and/or exhibits attached hereto, constitute the entire agreement between you and us with respect to the subject matter hereof, and supersede any prior or contemporaneous agreements or understandings between you and us.
-                  <br />
+
                   {' '}
                   <br />
                   2.
@@ -667,8 +663,6 @@ const Terms = observer(() => {
                     <br />
                     2. Realtime analytics
                   </div>
-                  <br />
-                  <br />
                 </div>
 
 
@@ -691,8 +685,7 @@ const Terms = observer(() => {
                     {' '}
                     <br />
                     3.(permitted) using the YouTube API to show YouTube content on an ad-enabled API Client (such as an ad-enabled blog or website), subject to the advertising restrictions
-                    {' '}
-                    <br />
+        
                     <div className="terms-sub-content-list ">
                       1.the sale of advertising, sponsorships, or promotions placed on or within the YouTube audiovisual content or player
                       {' '}
@@ -700,11 +693,10 @@ const Terms = observer(() => {
                       2. the sale of advertising, sponsorships, or promotions on any page of the API Client containing YouTube audiovisual content, unless other content not obtained from YouTube appears on the same page and is of sufficient value to be the basis for such sales.
                     </div>
                   </div>
-                  <br />
-                  <br />
 
                   <span>
-                    Regarding advertisements, the two prohibitions also apply to placing banner ads around a normal YouTube embed. This is clarified in the Monetization Guidelines:
+                    Regarding advertisements, the two prohibitions also apply to placing banner ads around a normal YouTube embed.
+                    This is clarified in the Monetization Guidelines:
                   </span>
                   <br />
                   <br />
@@ -713,7 +705,6 @@ const Terms = observer(() => {
                   <div>
                     <span className="sub-content-title">
                       Note:
-
                     </span>
                     {' '}
                     If the only reason people go to a page is to watch a video, you should not run ads on that page. If you don’t know whether you
@@ -724,7 +715,6 @@ const Terms = observer(() => {
 
                 </div>
 
-                <br />
                 <br />
                 <span>
                   In order to place ads, consult with YouTube directly.
