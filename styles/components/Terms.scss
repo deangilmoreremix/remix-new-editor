@@ -1,11 +1,13 @@
 .terms-body {
   height: 100%;
   width: 100%;
-  background: #411015;
+  background: #1C1C26;
   display: block;
   position: absolute;
   top: 0;
   left: 0;
+  margin: 0%;
+  padding: 0;
 }
 
 
@@ -14,17 +16,55 @@
   position: absolute;
   display: block;
   height: 80% !important;
-  width: 50%;
+  width: 60%;
   background-color: #ffffff;
   overflow-y: scroll;
   margin-top: 5rem;
-  margin-left: 25%;
+  margin-left: 20%;
   margin-right: auto;
-  padding: 20px;
+  padding: 15px;
+  line-height: 1.625;
 }
-
 
 .terms-header {
   font-size: 20px;
   font-weight: bold;
+  color: #EA4F52;
+
+}
+
+.terms-heading-1 {
+  font-weight: normal;
+  line-height: 1.625;
+}
+
+
+.terms-heading-2 {
+  font-weight: normal;
+  line-height: 1.625;
+}
+
+.terms-sub-content {
+  padding: 20px;
+  justify-content: center;
+  justify-items: center;
+  font-size: small;
+}
+
+.sub-content-title {
+  font-weight: bold
+}
+
+.sub-content-highlight {
+  font-weight: 560;
+  font-size: normal;
+}
+
+.terms-sub-content-list {
+  padding: 25px;
+}
+
+
+.terms-line {
+  text-decoration: underline;
 }
