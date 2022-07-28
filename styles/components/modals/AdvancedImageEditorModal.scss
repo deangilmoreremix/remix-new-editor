@@ -23,7 +23,7 @@
 }
 
 .cartoon-container {
-  margin-right: 10px;
+  margin-right: 5px !important;
   border-radius: 0px;
   cursor: pointer;
   height: 42px;
@@ -41,7 +41,8 @@
 .carton-active {
   border: 5px #EB5054;
   border-radius: 5px;
-  margin-right: 10px;
+  margin-right: 5px !important;
+  margin-left: 5px !important;
   cursor: pointer;
   height: 44px;
   display: inline-block;
