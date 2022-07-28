@@ -9,7 +9,6 @@ import UserBox from './common/user/UserBox';
 import ExpandButton from './common/ExpandButton';
 import HelpIconComponent from './common/HelpIcon';
 
-import {showProjectLimitError} from "../lib/services/alertService"
 import { HEADER_ACTIONS, USER_MENU_ITEMS } from '../lib/constants/ui';
 import { headerTooltips } from '../lib/constants/tooltips';
 import { DOMAIN_VIDEOREMIX } from '../lib/constants/project';
@@ -38,11 +37,7 @@ const {
 
 const MenuAppBar = observer(({ whiteLabelManager }) => {
   const anchorRef = useRef(null);
-  const userStore = useUserStore();
 
-  const {
-    setProjectLimit
-   } = userStore;
   const [isProjectTitle, setProjectTitle] = useState(false);
   const [userItems, setUserItems] = useState([]);
 
@@ -75,7 +70,6 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   }, []);
 
   const saveProject = useCallback(async () => {
-    const projects = await setProjectLimit()
     let value = '';
 
     await getItemTitle({}).then((data) => {
@@ -91,16 +85,10 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
         }
       }
     });
-    if (projects > 0) {
-      if (verify_duplicate === 0) {
-        checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
-      } else {
-        swal('Error', 'Project name already exists!', 'error');
-      }
-    }
-    else {
-      showProjectLimitError()
-      return false;
+    if (verify_duplicate === 0) {
+      checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
+    } else {
+      swal('Error', 'Project name already exists!', 'error');
     }
   }, [setInitialView, showProducePanel]);
 

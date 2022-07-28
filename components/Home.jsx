@@ -24,7 +24,6 @@ import CallToAction from './media/CallToAction';
 import Giphy from './media/Giphy';
 import { twoKeys } from '../lib/constants/keyCodes';
 import GoogleTextToSpeech from './media/GoogleTextToSpeech';
-import { showProjectLimitError } from "../lib/services/alertService";
 
 import useProjectStore from './hooks/useProjectStore';
 import useModalStore from './hooks/useModalStore';
@@ -83,7 +82,6 @@ const Home = observer(() => {
     textMaskEnabled,
     roles,
     currentUser,
-    setProjectLimit,
 
     evolutionOverlayEnabled,
     evolutionPresetEnabled,
@@ -98,7 +96,7 @@ const Home = observer(() => {
   const [shouldShowTGModal, setShouldShowTGModal] = useState(
     videoAutomationCreatorEnabled,
   );
-  const [error,setError] = useState();
+
   const {
     changeRadioButton,
     secondaryWindowType,
@@ -257,25 +255,6 @@ const Home = observer(() => {
     }
   }, [shouldShowTGModal, pathname, project, remix, push]);
 
-  const getProjectLimit = async () => {
-  const projects = await  setProjectLimit();
-    if(projects > 0) {
-      checkAndSave({
-        changeRadioButton,
-        showProducePanel,
-        closeAllWindows,
-        setInitialView,
-      });
-    } 
-    else {
-      setError(true);
-      return false;
-    }
-  }
-  if(error) {
-    showProjectLimitError();
-  }
-
   const asyncHero = useAsync(
     project ? projectStore.getOne : projectStore.preRemix,
     [project || remix, openModal],
@@ -310,7 +289,12 @@ const Home = observer(() => {
         case twoKeys.ctrlS:
         case twoKeys.commandS:
           event.preventDefault();
-          getProjectLimit();
+          checkAndSave({
+            changeRadioButton,
+            showProducePanel,
+            closeAllWindows,
+            setInitialView,
+          });
           break;
         case twoKeys.ctrlZ:
         case twoKeys.commandZ:
