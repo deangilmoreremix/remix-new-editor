@@ -53,6 +53,7 @@ const Home = observer(() => {
     push,
   } = useRouter();
   const projectStore = useProjectStore();
+
   const userStore = useUserStore();
 
   const {
@@ -88,12 +89,14 @@ const Home = observer(() => {
     evolutionLowerThirdEnabled,
     evolutionCtaEnabled,
     evolutionImageLTPresetEnabled,
+    getSvrTerms,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
   const [shouldShowTGModal, setShouldShowTGModal] = useState(
     videoAutomationCreatorEnabled,
   );
+
   const {
     changeRadioButton,
     secondaryWindowType,
@@ -215,7 +218,15 @@ const Home = observer(() => {
   ]);
 
   useEffect(() => {
-    if (!project && pathname !== ROUTES.edit) {
+    if (getSvrTerms === false) {
+      push(
+        {
+          pathname: ROUTES.terms,
+        },
+        undefined,
+        { shallow: true },
+      );
+    } else if (!project && pathname !== ROUTES.edit) {
       push(
         {
           pathname: ROUTES.edit,
@@ -249,10 +260,9 @@ const Home = observer(() => {
     [project || remix, openModal],
   );
 
-
   const { setCopiedItems, pasteElement, isActiveTimeline } = useTimelineStore();
-
   hotkeys.filter = () => true;
+
   const keys = [
     twoKeys.ctrlS,
     twoKeys.ctrlZ,
