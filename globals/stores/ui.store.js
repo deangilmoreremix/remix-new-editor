@@ -57,6 +57,8 @@ export default class UIStore {
 
   @observable isExpand = true;
 
+  @observable isEnabled = false;
+
   @observable prevStateProduce = false;
 
   @observable isCanvasPresent = true;
@@ -296,6 +298,10 @@ export default class UIStore {
     if (!this.isCanvasPresent) {
       this.toggleVisibleCanvas(false);
     }
+  };
+  @action
+  addTogetherJS = (value = false) => {
+   this.isEnabled = value
   };
 
   @action

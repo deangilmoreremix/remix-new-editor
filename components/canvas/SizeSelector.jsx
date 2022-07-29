@@ -26,14 +26,6 @@ const SizeSelector = observer(({ active, sizes, onChange }) => {
     };
   };
 
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = './static/js/togetherjs/togetherjs-min.js';
-    script.async = true;
-    document.body.appendChild(script)
-  },[]);
-
-
   const positionTop = useMemo(() => {
     if (selectorRef?.current) {
       const selectorHeight = selectorRef.current.getBoundingClientRect().height;
@@ -58,11 +50,6 @@ const SizeSelector = observer(({ active, sizes, onChange }) => {
           {`${width}:${height}`}
         </button>
       ))}
-     
-      <button onClick={() => {
-        TogetherJS(this);
-        return false
-      }}>Collaborate</button>
     </div>
   );
 });

@@ -114,6 +114,8 @@ const Home = observer(() => {
     setInitialView,
     isCanvasPresent,
     toggleLeftBlock,
+    addTogetherJS,
+    isEnabled
   } = uiStore;
   const {
     item: {
@@ -161,6 +163,7 @@ const Home = observer(() => {
         toggleRightBlock,
         openUploadTransition,
         toggleLeftBlock,
+        addTogetherJS,
       },
       project: {
         allowedSocials,
@@ -216,6 +219,20 @@ const Home = observer(() => {
     width,
     height,
   ]);
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = './static/js/togetherjs/togetherjs-min.js';
+    script.async = true;
+    document.body.appendChild(script)
+  },[])
+
+  useEffect(() => {
+    if(isEnabled == true) {
+      TogetherJS();
+    }
+  },[isEnabled])
+ 
 
   useEffect(() => {
     if (getSvrTerms === false) {
