@@ -449,6 +449,11 @@ export default class UserStore {
   }
 
   @computed
+  get collborateEnabled() {
+    return this.isfeatureEnabled(FEATURES.COLLABORATE_TOGETHERJS);
+  }
+
+  @computed
   get socialFbEnabled() {
     return this.isfeatureEnabled(FEATURES.SOCIAL_FB_ELEMENT);
   }
