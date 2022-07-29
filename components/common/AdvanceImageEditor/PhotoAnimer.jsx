@@ -290,48 +290,48 @@ const PhotoEnhancer = observer(({
       id: 14,
     },
 
-    {
-      name: 'Animer15',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/15.mp4',
-      id: 15,
-    },
+    // {
+    //   name: 'Animer15',
+    //   src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/15.mp4',
+    //   id: 15,
+    // },
 
 
-    {
-      name: 'Animer16',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/16.mp4',
-      id: 16,
-    },
+    // {
+    //   name: 'Animer16',
+    //   src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/16.mp4',
+    //   id: 16,
+    // },
 
-    {
-      name: 'Animer17',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/17.mp4',
-      id: 17,
-    },
+    // {
+    //   name: 'Animer17',
+    //   src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/17.mp4',
+    //   id: 17,
+    // },
 
-    {
-      name: 'Animer18',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/18.mp4',
-      id: 18,
-    },
-    {
-      name: 'Animer19',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/19.mp4',
-      id: 19,
-    },
+    // {
+    //   name: 'Animer18',
+    //   src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/18.mp4',
+    //   id: 18,
+    // },
+    // {
+    //   name: 'Animer19',
+    //   src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/19.mp4',
+    //   id: 19,
+    // },
 
-    {
-      name: 'Animer20',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/20.mp4',
-      id: 20,
-    },
+    // {
+    //   name: 'Animer20',
+    //   src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/20.mp4',
+    //   id: 20,
+    // },
 
 
-    {
-      name: 'Animer21',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/21.mp4',
-      id: 21,
-    },
+    // {
+    //   name: 'Animer21',
+    //   src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/21.mp4',
+    //   id: 21,
+    // },
 
 
   ];
