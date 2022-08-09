@@ -231,6 +231,7 @@ const Home = observer(() => {
 
   useEffect(() => {
     if(isEnabled == true) {
+      push(`/edit/?remix=${project ? project : remix}`)
       TogetherJS();
     }
   },[isEnabled])

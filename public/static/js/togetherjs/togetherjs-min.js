@@ -12,11 +12,11 @@
     // Setting this to true will disable clicks globally.
     dontShowClicks: false,
     // Experimental feature to echo clicks to certain elements across clients:
-    cloneClicks: false,
+    cloneClicks: true,
     // Enable Mozilla or Google analytics on the page when TogetherJS is activated:
     // FIXME: these don't seem to be working, and probably should be removed in favor
     // of the hub analytics
-    enableAnalytics: false,
+    enableAnalytics: true,
     // The code to enable (this is defaulting to a Mozilla code):
     analyticsCode: "UA-35433268-28",
     // The base URL of the hub (gets filled in below):
