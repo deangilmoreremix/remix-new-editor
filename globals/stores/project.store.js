@@ -1733,13 +1733,20 @@ export default class ProjectStore extends BaseStore {
           }
         }
         if (project && project._id) {
-          Router.push(
-            {
-              pathname: ROUTES.edit,
-              query: {
-                project: project._id,
-              },
+          const key = "togetherjs-session.status";
+          let routeObject = {
+            pathname: ROUTES.edit,
+            query: {
+              project: project._id,
             },
+          }
+          if(sessionStorage.getItem(key)) {
+            routeObject.query = {
+              remix: project._id
+            }
+          }
+          Router.push(
+            routeObject,
             undefined,
             {
               shallow: true,
