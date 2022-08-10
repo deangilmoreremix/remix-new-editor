@@ -8,6 +8,7 @@ import classnames from 'classnames';
 import hotkeys from 'hotkeys-js';
 
 import Loader from './common/Loader';
+import { showInfo } from '../lib/services/alertService';
 import Canvas from './Canvas';
 import Timeline from './Timeline';
 import Library from './media/Library';
@@ -231,6 +232,10 @@ const Home = observer(() => {
 
   useEffect(() => {
     if(isEnabled == true) {
+      if(!project && !remix ) {
+        showInfo('Please save a project');
+        return false
+      }
       push(`/edit/?remix=${project ? project : remix}`)
       TogetherJS();
     }
