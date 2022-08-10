@@ -3,6 +3,7 @@ import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { saveAs } from 'file-saver';
 import Carousel from 'react-simply-carousel';
+import { Progress } from 'reactstrap';
 
 // import { triggerBase64Download } from 'react-base64-downloader';
 import PropTypes from '../../../lib/PropTypes';
@@ -30,7 +31,7 @@ const PhotoEnhancer = observer(({
   const {
     secondaryWindowType: activeTab,
   } = useUIStore();
-  console.log(activeTab);
+
   const userStore = useUserStore();
   const {
     updateUserCreditUseAndGetUserCreditBalance,
@@ -46,6 +47,7 @@ const PhotoEnhancer = observer(({
   const [isError, setError] = useState(null);
   const [active, setActive] = useState();
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const [progressState, setProgressState] = useState(25);
 
 
   const quantify = () => {
@@ -103,12 +105,16 @@ const PhotoEnhancer = observer(({
       setIsLoading(false);
       setIsProcessImage(true);
       console.log(resp);
+      // const myState = progressState + 25;
+      // setProgressState(myState);
       if (resp.data.status === 1) {
         setIsLoading(false);
         setIsProcessImage(true);
+        setProgressState(100);
         // talk to backend to reduce the use cutoutpro credit
         updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
         setNewImage(resp.data.resultUrl);
+        setProgressState(25);
       } else if (resp.data.status === 0) {
         setIsLoading(true);
         setTimeout(getTaskInfo, 5000, resp);
@@ -124,7 +130,9 @@ const PhotoEnhancer = observer(({
   };
 
   const getTaskInfo = async (resp) => {
-    setIsLoading(true);
+    const myState = progressState + 25;
+    console.log(myState);
+    setProgressState(myState);
     processAnimer(resp.data.taskId);
   };
 
@@ -372,8 +380,6 @@ const PhotoEnhancer = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
-
-
                     {cutoutProCreditAvailableBalance <= 0
                       ? (
                         null
@@ -390,8 +396,18 @@ const PhotoEnhancer = observer(({
               <div className="result-image-container">
                 <p className="text-center font-weight-bold"> Result Image</p>
 
-                <div className=" ">
-                  {isLoading ? <LibrarySpinner /> : (
+                <div className="">
+                  {isLoading ? (
+                    <div className="progressState">
+                      <Progress
+                        className=""
+                        animated
+                        color="danger"
+                        value={progressState}
+                      />
+                    </div>
+
+                  ) : (
                     <div className=" flex justify-content-center">
                       {isProcessImage
                         ? (
@@ -495,10 +511,10 @@ const PhotoEnhancer = observer(({
               : (
                 <>
                   <button onClick={() => downloadImage()} className="btn btn-outline-danger btn-xl mt-5 w-full  w-100">
-                Download Anime
+                    Download Anime
                   </button>
                   <button onClick={() => onLoadImage(newImage)} className="btn btn-danger btn-xl mt-5 w-full  w-100">
-                Save to Video Library
+                    Save to Video Library
                   </button>
                 </>
               )}
