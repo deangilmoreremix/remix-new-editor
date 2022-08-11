@@ -404,7 +404,16 @@ const PhotoEnhancer = observer(({
                         animated
                         color="danger"
                         value={progressState}
-                      />
+                        style={{
+                          height: '40px',
+                        }}
+                      >
+                        {progressState}
+                        {' '}
+                        %
+                      </Progress>
+
+
                     </div>
 
                   ) : (
