@@ -102,11 +102,7 @@ const PhotoEnhancer = observer(({
       // eslint-disable-next-line implicit-arrow-linebreak
       data.json(),
     ).then(resp => {
-      setIsLoading(false);
-      setIsProcessImage(true);
       console.log(resp);
-      // const myState = progressState + 25;
-      // setProgressState(myState);
       if (resp.data.status === 1) {
         setIsLoading(false);
         setIsProcessImage(true);
@@ -152,8 +148,6 @@ const PhotoEnhancer = observer(({
         // eslint-disable-next-line implicit-arrow-linebreak
         data.json(),
       ).then(resp => {
-        setIsLoading(false);
-        setIsProcessImage(true);
         if (resp.msg === 'Processing failed') {
           setError(resp.msg);
         } else {
@@ -371,7 +365,7 @@ const PhotoEnhancer = observer(({
 
           <div className="content-container">
 
-            <div className="flex justify-content-center items-center  ">
+            <div className="flex justify-content-center items-center  ">,kmju
 
               <div className="original-image-container ">
                 <p className="text-center font-weight-bold"> Original Image</p>
@@ -380,6 +374,10 @@ const PhotoEnhancer = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
+                    <button onClick={() => processImage(2)} className="btn  btn-outline-danger  btn-sm">
+                      Process Photo Animer
+                    </button>
+
                     {cutoutProCreditAvailableBalance <= 0
                       ? (
                         null
@@ -427,7 +425,7 @@ const PhotoEnhancer = observer(({
                             width="250"
                             muted={false}
                             autoPlay
-                            preload="true"
+                            preload="none"
                             loop
                           >
                             <source
