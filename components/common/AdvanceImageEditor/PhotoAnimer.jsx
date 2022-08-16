@@ -286,11 +286,11 @@ const PhotoEnhancer = observer(({
       id: 13,
     },
 
-    {
-      name: 'Animer14',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/14.mp4',
-      id: 14,
-    },
+    // {
+    //   name: 'Animer14',
+    //   src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/14.mp4',
+    //   id: 14,
+    // },
 
     // {
     //   name: 'Animer15',
@@ -365,7 +365,7 @@ const PhotoEnhancer = observer(({
 
           <div className="content-container">
 
-            <div className="flex justify-content-center items-center  ">,kmju
+            <div className="flex justify-content-center items-center  ">
 
               <div className="original-image-container ">
                 <p className="text-center font-weight-bold"> Original Image</p>
@@ -374,10 +374,6 @@ const PhotoEnhancer = observer(({
                 </div>
                 <div className="flex justify-content-center ">
                   <div className="mt-5">
-                    <button onClick={() => processImage(2)} className="btn  btn-outline-danger  btn-sm">
-                      Process Photo Animer
-                    </button>
-
                     {cutoutProCreditAvailableBalance <= 0
                       ? (
                         null
