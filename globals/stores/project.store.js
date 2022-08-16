@@ -1172,7 +1172,7 @@ export default class ProjectStore extends BaseStore {
     const layerName = currentLayerByOrder.name || currentLayerByOrder.defaultName;
     const confirmDelete = await showConfirmation(`${CONFIRMATION_DELETE_LAYER.text} ${layerName}?`, '');
     if (this.layers.length <= 1 || !confirmDelete) {
-      return; '';
+      return;
     }
     this.setUndo();
     this.modified = true;
