@@ -106,6 +106,12 @@
     margin-left: 0;
   }
 }
+#togetherjs-dock {
+  top: 80px;
+}
+.canvas-size-selector {
+  top: calc(68% - 98.5px) !important;
+}
 
 @media screen and (min-width: $lg) {
   .input-time-start,

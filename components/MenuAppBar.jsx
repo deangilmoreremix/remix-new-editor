@@ -77,14 +77,18 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     });
 
     let verify_duplicate = 0;
-
-    await verifyTitle({}).then((data) => {
-      for (let i = 0; i < data.result.length; i++) {
-        if (data.cur_item !== data.result[i]._id && data.result[i].title.toUpperCase() === value.toUpperCase()) {
-          verify_duplicate = 1;
+    let key = "togetherjs-session.status";
+    let sessionVal = sessionStorage.getItem(key);
+    if(!sessionVal) {
+      await verifyTitle({}).then((data) => {
+        for (let i = 0; i < data.result.length; i++) {
+          if (data.cur_item !== data.result[i]._id && data.result[i].title.toUpperCase() === value.toUpperCase()) {
+            verify_duplicate = 1;
+          }
         }
-      }
-    });
+      });
+    }
+   
     if (verify_duplicate === 0) {
       checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
     } else {
