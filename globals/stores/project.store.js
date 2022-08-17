@@ -1028,7 +1028,8 @@ export default class ProjectStore extends BaseStore {
 
   @action
   fillMakeData = (result, isRemix = false) => {
-    this.item.title = `Remix of ${result.title}`;
+    this.item._id = result._id;
+    this.item.title = result.title;
     this.item.thumbnail = result.thumbnail || DEFAULT_THUMBNAIL;
     this.item.description = result.description;
     this.item.remixedFrom = result.project._id;
