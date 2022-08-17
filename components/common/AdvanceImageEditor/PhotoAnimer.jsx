@@ -102,11 +102,7 @@ const PhotoEnhancer = observer(({
       // eslint-disable-next-line implicit-arrow-linebreak
       data.json(),
     ).then(resp => {
-      setIsLoading(false);
-      setIsProcessImage(true);
       console.log(resp);
-      // const myState = progressState + 25;
-      // setProgressState(myState);
       if (resp.data.status === 1) {
         setIsLoading(false);
         setIsProcessImage(true);
@@ -152,8 +148,6 @@ const PhotoEnhancer = observer(({
         // eslint-disable-next-line implicit-arrow-linebreak
         data.json(),
       ).then(resp => {
-        setIsLoading(false);
-        setIsProcessImage(true);
         if (resp.msg === 'Processing failed') {
           setError(resp.msg);
         } else {
@@ -292,11 +286,11 @@ const PhotoEnhancer = observer(({
       id: 13,
     },
 
-    {
-      name: 'Animer14',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/14.mp4',
-      id: 14,
-    },
+    // {
+    //   name: 'Animer14',
+    //   src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/14.mp4',
+    //   id: 14,
+    // },
 
     // {
     //   name: 'Animer15',
@@ -427,7 +421,7 @@ const PhotoEnhancer = observer(({
                             width="250"
                             muted={false}
                             autoPlay
-                            preload="true"
+                            preload="none"
                             loop
                           >
                             <source
