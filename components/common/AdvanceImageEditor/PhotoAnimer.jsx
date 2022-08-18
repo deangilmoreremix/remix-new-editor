@@ -417,7 +417,6 @@ const PhotoEnhancer = observer(({
                           <video
                             className="video-player"
                             src={newImage}
-                            controls
                             width="250"
                             muted={false}
                             autoPlay
