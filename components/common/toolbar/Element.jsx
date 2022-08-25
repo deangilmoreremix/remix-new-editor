@@ -23,7 +23,7 @@ const Element = (props) => {
   });
 
   return (
-    <a
+    <button
       ref={acceptedDraggableItems.includes(label) ? dragRef : null}
       className="elements-panel-button"
       disabled={disabled}
@@ -37,7 +37,7 @@ const Element = (props) => {
         cleanup={['title']}
       />
       <span className="elements-panel-label">{label}</span>
-    </a>
+    </button>
   );
 };
 

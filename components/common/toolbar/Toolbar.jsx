@@ -77,7 +77,7 @@ const Toolbar = observer(({ items }) => {
             message={tooltip}
             placement="right"
           >
-            <a
+            <button
               className="toolbar-tab"
               key={label}
               onClick={() => onClick(tabId, func)}
@@ -99,7 +99,7 @@ const Toolbar = observer(({ items }) => {
                   )}
                 </AnimatedWindow>
               )}
-            </a>
+            </button>
           </HelpIconComponent>
         ))}
       </div>
