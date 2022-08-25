@@ -4,6 +4,7 @@ import { observer } from 'mobx-react';
 import { saveAs } from 'file-saver';
 import Carousel from 'react-simply-carousel';
 import { Progress } from 'reactstrap';
+import axios from 'axios';
 
 // import { triggerBase64Download } from 'react-base64-downloader';
 import PropTypes from '../../../lib/PropTypes';
@@ -47,7 +48,7 @@ const PhotoEnhancer = observer(({
   const [isError, setError] = useState(null);
   const [active, setActive] = useState();
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
-  const [progressState, setProgressState] = useState(25);
+  const [progressState, setProgressState] = useState(5);
 
 
   const quantify = () => {
@@ -91,6 +92,7 @@ const PhotoEnhancer = observer(({
 
   const processAnimer = async (val) => {
     const total = cutoutProCreditUserUsed + 10;
+
     await fetch(`https://www.cutout.pro/api/v1/faceDriven/getTaskInfo?taskId=${val}`, {
       method: 'get',
       headers: {
@@ -101,37 +103,54 @@ const PhotoEnhancer = observer(({
     }).then((data) =>
       // eslint-disable-next-line implicit-arrow-linebreak
       data.json(),
-    ).then(resp => {
-      console.log(resp);
+    ).then(async resp => {
       if (resp.data.status === 1) {
         setIsLoading(false);
         setIsProcessImage(true);
-        setProgressState(100);
+        setProgressState(5);
         // talk to backend to reduce the use cutoutpro credit
         updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
         setNewImage(resp.data.resultUrl);
-        setProgressState(25);
       } else if (resp.data.status === 0) {
-        setIsLoading(true);
-        setTimeout(getTaskInfo, 5000, resp);
+        try {
+          setIsLoading(true);
+          const progressBarAPI = async (res) => {
+            const apiRes = await axios.get(`https://restapi.cutout.pro/webFaceDriven/getTaskInfo?taskId=${val}`, {
+              headers: {
+                'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                Accept: 'application/json',
+                APIKEY: config.cutoutPro.apiKey,
+              }
+            })
+            if (res?.data?.percentage < 100 || res?.data?.percentage == undefined) {
+              progressBarAPI(apiRes.data)
+              if (res?.data?.percentage < 5) {
+                setProgressState(5);
+              }
+              else {
+                setProgressState(res?.data?.percentage);
+              }
+            }
+            if (res?.data?.percentage == 100) {
+              setProgressState(100);
+              processAnimer(resp.data.taskId);
+            }
+          }
+          progressBarAPI();
+        }
+
+        catch (err) {
+          console.log(err);
+        }
       } else if (resp.data.status === 2) {
         console.log(resp, 'At 2');
         // todo: set the UI to show the process is failed
       }
     })
-      // eslint-disable-next-line no-unused-vars
       .catch((error) => {
         setIsLoading(false);
       });
   };
-
-  const getTaskInfo = async (resp) => {
-    const myState = progressState + 25;
-    console.log(myState);
-    setProgressState(myState);
-    processAnimer(resp.data.taskId);
-  };
-
 
   const processImage = async (val) => {
     setIsLoading(true);
