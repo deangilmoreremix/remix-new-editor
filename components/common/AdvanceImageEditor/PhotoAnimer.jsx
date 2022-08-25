@@ -4,7 +4,7 @@ import { observer } from 'mobx-react';
 import { saveAs } from 'file-saver';
 import Carousel from 'react-simply-carousel';
 import { Progress } from 'reactstrap';
-import axios from 'axios';
+
 
 // import { triggerBase64Download } from 'react-base64-downloader';
 import PropTypes from '../../../lib/PropTypes';
@@ -115,15 +115,16 @@ const PhotoEnhancer = observer(({
         try {
           setIsLoading(true);
           const progressBarAPI = async (res) => {
-            const apiRes = await axios.get(`https://restapi.cutout.pro/webFaceDriven/getTaskInfo?taskId=${val}`, {
+            const getProgress = await fetch(`https://restapi.cutout.pro/webFaceDriven/getTaskInfo?taskId=${val}`, {
               headers: {
                 'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
                 Accept: 'application/json',
                 APIKEY: config.cutoutPro.apiKey,
               }
             })
+            const apiRes = await getProgress.json();
             if (res?.data?.percentage < 100 || res?.data?.percentage == undefined) {
-              progressBarAPI(apiRes.data)
+              progressBarAPI(apiRes)
               if (res?.data?.percentage < 5) {
                 setProgressState(5);
               }
