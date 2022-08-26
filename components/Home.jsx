@@ -8,6 +8,7 @@ import classnames from 'classnames';
 import hotkeys from 'hotkeys-js';
 
 import Loader from './common/Loader';
+import { showInfo } from '../lib/services/alertService';
 import Canvas from './Canvas';
 import Timeline from './Timeline';
 import Library from './media/Library';
@@ -77,6 +78,7 @@ const Home = observer(() => {
     textToSpeechLimitedEnabled,
     leadGeneratorEnabled,
     googleMapsEnabled,
+    collborateEnabled,
     socialFbEnabled,
     wrapperFeatureEnabled,
     textMaskEnabled,
@@ -114,6 +116,8 @@ const Home = observer(() => {
     setInitialView,
     isCanvasPresent,
     toggleLeftBlock,
+    addTogetherJS,
+    isEnabled
   } = uiStore;
   const {
     item: {
@@ -161,6 +165,7 @@ const Home = observer(() => {
         toggleRightBlock,
         openUploadTransition,
         toggleLeftBlock,
+        addTogetherJS,
       },
       project: {
         allowedSocials,
@@ -189,6 +194,7 @@ const Home = observer(() => {
         textToSpeechNeuralEnabled,
         textToSpeechLimitedEnabled,
         googleMapsEnabled,
+        collborateEnabled,
         socialFbEnabled,
         wrapperFeatureEnabled,
         textMaskEnabled,
@@ -216,6 +222,25 @@ const Home = observer(() => {
     width,
     height,
   ]);
+
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = './static/js/togetherjs/togetherjs-min.js';
+    script.async = true;
+    document.body.appendChild(script)
+  },[])
+
+  useEffect(() => {
+    if(isEnabled == true) {
+      if(!project && !remix ) {
+        showInfo('Please save a project');
+        return false
+      }
+      push(`/edit/?remix=${project ? project : remix}`)
+      TogetherJS();
+    }
+  },[isEnabled])
+ 
 
   useEffect(() => {
     if (getSvrTerms === false) {
