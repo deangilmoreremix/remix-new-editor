@@ -29,8 +29,8 @@ const NicheScript = React.memo((props) => {
 
   useEffect(() => {
     setNicheScriptTitle(item.title);
-    if(item.title.length > 30) {
-      let title = item.title.substring(0, 30) + '...';
+    if(item.title.length > 25) {
+      let title = item.title.substring(0, 25) + '...';
       item.title = title;
     }
   },[item])
