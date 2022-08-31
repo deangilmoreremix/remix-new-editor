@@ -190,7 +190,7 @@ const Basic = observer(({
 
       {values.kind !== popcornConstants.BLEND_MODE && (
         <div className="image-settings__block">
-          <div className="image-settings__cell--first">
+          
             {val == 'URL' ? <FieldBuilder
               {...fields[popcornConstants.LINKSRC]}
               labelHint={HINTS.LINK_URL}
@@ -202,29 +202,33 @@ const Basic = observer(({
               onChange={onChangeWithValidation}
               checkValue={checkValue}
             /> :
-              <div className="image-settings__block">
-                <FormSelect
-                  label="area code"
-                  items={areaCodeList}
-                  value={code}
-                  onChange={onCodeSelect}
-                  selectClassName={'area_code_class'}
-                />
-                <FieldBuilder
-                  {...fields[popcornConstants.LINKSRC]}
-                  labelHint={HINTS.PHONE_FORM}
-                  label={user
-                    && user.features
-                    && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
-                    ? popcornConstants.LABEL_CLICK_TO_PHONE : fields[popcornConstants.LINKSRC].label}
-                  value={ctaVal ? values[popcornConstants.LINKSRC] : ''}
-                  onChange={onChangeWithValidation}
-                  checkValue={checkValue}
-                />
+               
+              <div className="phone-area-container">
+               
+                <div className='country-code'>
+                  <FormSelect
+                    label="Phone Number (Click-to-call)"
+                    items={areaCodeList}
+                    value={code}
+                    onChange={onCodeSelect}
+                    selectClassName={'area_code_class'}
+                  />
+                </div>
+                <div className='phone-number'>
+                  <FieldBuilder
+                    {...fields[popcornConstants.LINKSRC]}
+                    labelHint={HINTS.PHONE_FORM}
+                    label={""}
+                    value={ctaVal ? values[popcornConstants.LINKSRC] : ''}
+                    onChange={onChangeWithValidation}
+                    checkValue={checkValue}
+                  />
+                </div>
+
               </div>
             }
           </div>
-        </div>
+       
       )}
 
       <div className="image-settings__block">
