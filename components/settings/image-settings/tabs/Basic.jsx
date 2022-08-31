@@ -48,6 +48,7 @@ const Basic = observer(({
   const [val, setVal] = useState('URL');
   const [ctaVal, setCtaVal] = useState("")
   const [code, setCode] = useState('');
+  const [areaObject,setAreaObject] = useState({});
   const { setLibraryType, setUpdateElementInLibrary, openAnimation } = useUIStore();
   const { findAndUpdate, element } = useProjectStore();
   const {
@@ -81,6 +82,9 @@ const Basic = observer(({
   };
 
   useEffect(() => {
+    const Country =  PHONEAREACODE.find(ele => values[popcornConstants.LINKSRC].includes(ele.value));
+    setAreaObject(Country)
+    const removeFirst = values[popcornConstants.LINKSRC].replace(Country.value, '');
     const ctaValue = Number(values[popcornConstants.LINKSRC])
     if (ctaValue) {
       setCtaVal("PHONE");
@@ -210,6 +214,7 @@ const Basic = observer(({
                     label="Phone Number (Click-to-call)"
                     items={areaCodeList}
                     value={code}
+                    defaultValue={areaObject}
                     onChange={onCodeSelect}
                     selectClassName={'area_code_class'}
                   />
@@ -219,7 +224,7 @@ const Basic = observer(({
                     {...fields[popcornConstants.LINKSRC]}
                     labelHint={HINTS.PHONE_FORM}
                     label={""}
-                    value={ctaVal ? values[popcornConstants.LINKSRC] : ''}
+                    value={ctaVal == 'PHONE' ? values[popcornConstants.LINKSRC] : ''}
                     onChange={onChangeWithValidation}
                     checkValue={checkValue}
                   />
