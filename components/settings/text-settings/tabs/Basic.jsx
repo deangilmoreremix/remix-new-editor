@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
 import FieldBuilder from '../../../form/FieldBuilder';
+import FormSelect from '../../../form/FormSelect';
 import SetAsDefaultCheckbox from '../../default-settings/SetAsDefaultCheckbox';
 import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
 
@@ -10,6 +11,7 @@ import PersonalizeButton from '../../../common/personalization/PersonalizeButton
 import useUIStore from '../../../hooks/useUIStore';
 import useUserStore from '../../../hooks/useUserStore';
 import useProjectStore from '../../../hooks/useProjectStore';
+import { PHONEAREACODE } from '../../../../lib/constants/phoneAreaCode';
 
 import {
   padding,
@@ -18,7 +20,7 @@ import {
   iconAlignmentHorizontal,
 } from '../../../../lib/constants/settings/vrtext-element';
 import { FEATURES } from '../../../../lib/constants/features';
-import { LABEL_CLICK_TO_PHONE } from '../../../../lib/constants/popcorn';
+import { LABEL_CLICK_TO_PHONE, LABEL_CLICK_TO_URL } from '../../../../lib/constants/popcorn';
 import { WINDOW_TYPES } from '../../../../lib/constants/ui';
 import { HINTS } from '../../../../lib/constants/text-info';
 
@@ -27,11 +29,17 @@ import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 import PropTypes from '../../../../lib/PropTypes';
 
 import withValidation from '../../../hoc/withValidation';
+const areaCodeList = [
+  { label: 'All', value: null },
+  ...PHONEAREACODE,
+];
 
 const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
   const [positionHorizontal, setPositionHorizontal] = useState();
   const [positionVertical, setPositionVertical] = useState();
-
+  const [val, setVal] = useState("URL");
+  const [code, setCode] = useState("");
+  const [ctaVal,setCtaVal] = useState("");
   const { setVoiceTextId } = useProjectStore();
   const { openAnimation, openTextToSpeech } = useUIStore();
   const {
@@ -77,6 +85,16 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
       setPositionHorizontal(null);
     }
   }, [width]);
+
+  useEffect(() => {
+    const ctaValue = Number(linkUrl)
+    if(ctaValue) {
+      setCtaVal("PHONE");
+    }
+    else {
+      setCtaVal("URL");
+    }
+  },[linkUrl])
 
   useEffect(() => {
     switch (left) {
@@ -171,7 +189,6 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
   }, [htmlText, text, fields]);
 
   const hint = useMemo(() => (clickToPhoneCall ? HINTS.LINK_URL_PHONE : HINTS.LINK_URL));
-
   const isViewVoiceBtn = useMemo(() => {
     if (textToRender
       && (textToSpeechStandardEnabled || textToSpeechNeuralEnabled || textToSpeechLimitedEnabled)) {
@@ -189,12 +206,22 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
     openTextToSpeech(WINDOW_TYPES.TEXT_TO_SPEECH);
   };
 
+  const onCodeSelect = v => {
+    const item = areaCodeList.find(areaCodeItem => areaCodeItem.value === v).value;
+    setCode(item);
+  };
   const onChangeWithValidation = (v, error) => {
     if (!error) {
+      if (code) {
+        v.linkUrl = `${code + v.linkUrl}`;
+      }
       onChange(v);
     }
   };
 
+  const onChangeHandler = (event) => {
+    setVal(event.target.value);
+  }
   return (
     <Fragment>
       <div className="text-container">
@@ -251,22 +278,58 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
         )}
         <PersonalizeButton onAdd={onAddTextToken} />
       </div>
-      <div>
-        <div className="link-url-container">
-          <FieldBuilder
-            checkValue={checkValue}
-            value={linkUrl || ''}
-            labelHint={hint}
-            {...fields.linkUrl}
-            className="input-url-position"
-            onChange={onChangeWithValidation}
-            label={user
-            && user.features
-            && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
-              ? LABEL_CLICK_TO_PHONE : fields.linkUrl.label}
-          />
-          {/* <PersonalizeButton onAdd={onAddUrlToken} /> */}
+      <div className='text-cta-container'>
+        <div onChange={onChangeHandler}>
+          <input type="radio" value="URL" name="cta" defaultChecked /> URL
+          <input type="radio" value="PHONE" name="cta" /> PHONE
         </div>
+        {val == 'URL' ?
+          <div className="link-url-container">
+            <FieldBuilder
+              checkValue={checkValue}
+              value={ctaVal == 'URL' ? linkUrl : ''}
+              labelHint={HINTS.LINK_URL}
+              {...fields.linkUrl}
+              className="input-url-position"
+              onChange={onChangeWithValidation}
+              label={user
+                && user.features
+                && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
+                ? LABEL_CLICK_TO_URL : fields.linkUrl.label}
+            />
+          </div>
+          :
+          <div >
+            <div className="phone-area-code-container">
+              <div className="phone-code">
+                <FormSelect
+                  label="Phone Number (Click-to-call)"
+                  items={areaCodeList}
+                  value={code}
+                  onChange={onCodeSelect}
+                  selectClassName={'area_code_class'}
+                />
+              </div>
+
+              <div className="link-url-container">
+                <FieldBuilder
+                  checkValue={checkValue}
+                  value={ctaVal == 'PHONE' ? linkUrl : ''}
+                  labelHint={HINTS.PHONE_FORM}
+                  {...fields.linkUrl}
+                  className="input-url-position"
+                  onChange={onChangeWithValidation}
+                  label={""}
+
+                />
+          {/* <PersonalizeButton onAdd={onAddUrlToken} /> */}
+              </div>
+            </div>
+          </div>
+
+
+        }
+
         <div className="email-link-container">
           <FieldBuilder
             checkValue={checkValue}

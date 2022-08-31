@@ -23,9 +23,18 @@ import { INITIAL_VALUES as value } from '../../../../lib/constants/settings/vide
 import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 
 import PropTypes from '../../../../lib/PropTypes';
+import { PHONEAREACODE } from '../../../../lib/constants/phoneAreaCode';
 
 import { HINTS } from '../../../../lib/constants/text-info';
 import withValidation from '../../../hoc/withValidation';
+import FormSelect from '../../../form/FormSelect';
+import { useEffect } from 'react';
+
+
+const areaCodeList = [
+  { label: 'All', value: null },
+  ...PHONEAREACODE,
+];
 
 const Basic = observer(({
   values,
@@ -36,6 +45,9 @@ const Basic = observer(({
   element: elementData,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [val, setVal] = useState('URL');
+  const [ctaVal, setCtaVal] = useState("")
+  const [code, setCode] = useState('');
   const { setLibraryType, setUpdateElementInLibrary, openAnimation } = useUIStore();
   const { findAndUpdate, element } = useProjectStore();
   const {
@@ -68,6 +80,16 @@ const Basic = observer(({
     }
   };
 
+  useEffect(() => {
+    const ctaValue = Number(values[popcornConstants.LINKSRC])
+    if (ctaValue) {
+      setCtaVal("PHONE");
+    }
+    else {
+      setCtaVal("URL");
+    }
+  }, [values])
+
   const backToLibrary = () => {
     handleClose();
     setUpdateElementInLibrary(element.id);
@@ -76,6 +98,9 @@ const Basic = observer(({
 
   const onChangeWithValidation = (v, error) => {
     if (!error) {
+      if (code) {
+        v.linkSrc = `${code + v.linkSrc}`;
+      }
       onChange(v);
     }
   };
@@ -98,9 +123,16 @@ const Basic = observer(({
     findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
     closeModal(ADVANCE_IMAGE_EDITOR_MODAL);
   };
+  const onChangeHandler = event => {
+    setVal(event.target.value)
+  };
+
+  const onCodeSelect = v => {
+    const item = areaCodeList.find(areaCodeItem => areaCodeItem.value === v).value;
+    setCode(item);
+  };
 
   const hint = useMemo(() => (clickToPhoneCall ? HINTS.LINK_URL_PHONE : HINTS.LINK_URL));
-
   // ToDo add select field "Select the kind of Image you want to add"
   return (
     <Fragment>
@@ -149,21 +181,48 @@ const Basic = observer(({
           />
         </div>
       </div>
+      <div className="image-settings__block">
+        <div onChange={onChangeHandler}>
+          <input type="radio" value="URL" name="cta" defaultChecked /> URL
+          <input type="radio" value="PHONE" name="cta" /> PHONE
+        </div>
+      </div>
 
       {values.kind !== popcornConstants.BLEND_MODE && (
         <div className="image-settings__block">
           <div className="image-settings__cell--first">
-            <FieldBuilder
+            {val == 'URL' ? <FieldBuilder
               {...fields[popcornConstants.LINKSRC]}
-              labelHint={hint}
+              labelHint={HINTS.LINK_URL}
               label={user
                 && user.features
                 && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
-                ? popcornConstants.LABEL_CLICK_TO_PHONE : fields[popcornConstants.LINKSRC].label}
-              value={values[popcornConstants.LINKSRC] || fields[popcornConstants.LINKSRC].default}
+                ? popcornConstants.LABEL_CLICK_TO_URL : fields[popcornConstants.LINKSRC].label}
+              value={ctaVal == 'URL' ? values[popcornConstants.LINKSRC] : ''}
               onChange={onChangeWithValidation}
               checkValue={checkValue}
-            />
+            /> :
+              <div className="image-settings__block">
+                <FormSelect
+                  label="area code"
+                  items={areaCodeList}
+                  value={code}
+                  onChange={onCodeSelect}
+                  selectClassName={'area_code_class'}
+                />
+                <FieldBuilder
+                  {...fields[popcornConstants.LINKSRC]}
+                  labelHint={HINTS.PHONE_FORM}
+                  label={user
+                    && user.features
+                    && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
+                    ? popcornConstants.LABEL_CLICK_TO_PHONE : fields[popcornConstants.LINKSRC].label}
+                  value={ctaVal ? values[popcornConstants.LINKSRC] : ''}
+                  onChange={onChangeWithValidation}
+                  checkValue={checkValue}
+                />
+              </div>
+            }
           </div>
         </div>
       )}
@@ -302,6 +361,7 @@ Basic.propTypes = {
   onChange: PropTypes.func.isRequired,
   handleClose: PropTypes.func.isRequired,
   checkValue: PropTypes.func.isRequired,
+  setVal: PropTypes.func.isRequired,
   fields: PropTypes.shape({
     [popcornConstants.START]: PropTypes.shape({
       type: PropTypes.string.isRequired,
