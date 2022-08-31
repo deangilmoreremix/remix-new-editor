@@ -1028,8 +1028,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   fillMakeData = (result, isRemix = false) => {
-    this.item._id = result._id;
-    this.item.title = result.title;
+    this.item.title = `Remix of ${result.title}`;
     this.item.thumbnail = result.thumbnail || DEFAULT_THUMBNAIL;
     this.item.description = result.description;
     this.item.remixedFrom = result.project._id;
@@ -1735,25 +1734,13 @@ export default class ProjectStore extends BaseStore {
           }
         }
         if (project && project._id) {
-          const key = 'togetherjs-session.status';
-          const routeObject = {
-            pathname: ROUTES.edit,
-            query: {
-              project: project._id,
-            },
-          };
-          if (sessionStorage.getItem(key)) {
-            routeObject.query = {
-              remix: project._id,
-            };
-          }
           Router.push(
-            routeObject,
-            undefined,
             {
-              shallow: true,
-            },
-          );
+              pathname: ROUTES.edit,
+              query: {
+                project: project._id,
+              },
+            }),
           setInitialView();
         }
       }
