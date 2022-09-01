@@ -6,6 +6,7 @@
 .text-container {
   margin-bottom: 1em;
   display: flex;
+  flex: 1;
   justify-content: space-between;
   align-items: flex-end;
 
@@ -46,16 +47,26 @@
       height: 0.6em;
     }
   }
+  .phone-code {
+    width: 100px;
+    margin-right: 20px;
+    margin-top: 1rem;
+  }
 
   .link-url-container {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-top: 1rem;
+    margin-top: 1em;
+    margin-right: 1rem;
+    flex: fit-content;
 
     .input-url-position {
       width: 100%;
     }
+  }
+  .phone-area-code-container {
+    display: flex;
   }
 
   .email-link-container {
@@ -215,6 +226,9 @@
   &-once {
     justify-content: flex-end;
   }
+}
+.text-cta-container {
+  margin-top: 15px;
 }
 
 .open-text-to-speech {
