@@ -68,7 +68,9 @@
   .phone-area-code-container {
     display: flex;
   }
-
+  .link-url-container .input-url-position {
+    width: 100% !important;
+  }
   .email-link-container {
     margin-top: 2em;
     margin-bottom: 2em;
@@ -230,6 +232,9 @@
 .text-cta-container {
   margin-top: 15px;
 }
+.cta-radio-btn {
+  accent-color: #EB5054;
+}
 
 .open-text-to-speech {
   @include reset-button;
@@ -321,9 +326,7 @@
       flex: none;
     }
 
-    .link-url-container {
-      flex-direction: column;
-    }
+    
 
     .link-url-container .input-url-position {
       width: 100%;

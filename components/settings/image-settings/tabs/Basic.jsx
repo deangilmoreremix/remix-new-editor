@@ -23,7 +23,7 @@ import { INITIAL_VALUES as value } from '../../../../lib/constants/settings/vide
 import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 
 import PropTypes from '../../../../lib/PropTypes';
-import { COUNTRYCODE } from '../../../../lib/constants/countryCode';
+import { COUNTRYCODE } from '../../../../lib/constants/countryCode.js';
 
 import { HINTS } from '../../../../lib/constants/text-info';
 import withValidation from '../../../hoc/withValidation';
@@ -48,8 +48,8 @@ const Basic = observer(({
   const [val, setVal] = useState('URL');
   const [ctaVal, setCtaVal] = useState("")
   const [code, setCode] = useState('');
-  const [areaObject,setAreaObject] = useState({});
-  const [areaCode,setAreaCode] = useState('');
+  const [areaObject, setAreaObject] = useState({});
+  const [areaCode, setAreaCode] = useState('');
   const { setLibraryType, setUpdateElementInLibrary, openAnimation } = useUIStore();
   const { findAndUpdate, element } = useProjectStore();
   const {
@@ -83,10 +83,10 @@ const Basic = observer(({
   };
 
   useEffect(() => {
-    if(values[popcornConstants.LINKSRC]) {
-      const Country =  COUNTRYCODE.find(ele => values[popcornConstants.LINKSRC].includes(ele.value));
+    if (values[popcornConstants.LINKSRC]) {
+      const Country = COUNTRYCODE.find(ele => values[popcornConstants.LINKSRC].includes(ele.value));
       setAreaObject(Country);
-      if(Country) {
+      if (Country) {
         const phoneNumber = values[popcornConstants.LINKSRC].replace(Country.value, '');
         setAreaCode(phoneNumber);
       }
@@ -98,7 +98,7 @@ const Basic = observer(({
         setCtaVal("URL");
       }
     }
-   
+
   }, [values])
 
   const backToLibrary = () => {
@@ -192,16 +192,17 @@ const Basic = observer(({
           />
         </div>
       </div>
-      <div className="image-settings__block">
-        <div onChange={onChangeHandler}>
-          <input type="radio" value="URL" name="cta" defaultChecked /> URL
-          <input type="radio" value="PHONE" name="cta" /> PHONE
-        </div>
-      </div>
 
       {values.kind !== popcornConstants.BLEND_MODE && (
-        <div className="image-settings__block">
-          
+        <div>
+          <div className="image-settings__block">
+            <div onChange={onChangeHandler}>
+              <input type="radio" value="URL" name="cta" className="cta-radio-btn" defaultChecked /> URL
+              <input type="radio" value="PHONE" name="cta" className="cta-radio-btn" /> PHONE
+            </div>
+          </div>
+          <div className="image-settings__block">
+
             {val == 'URL' ? <FieldBuilder
               {...fields[popcornConstants.LINKSRC]}
               labelHint={HINTS.LINK_URL}
@@ -240,7 +241,7 @@ const Basic = observer(({
               </div>
             }
           </div>
-       
+        </div>
       )}
 
       <div className="image-settings__block">

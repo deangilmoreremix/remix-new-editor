@@ -16,6 +16,7 @@
 .phone-area-container {
   display: flex;
   width: 100%;
+  margin-bottom: 20px;
 }
 
 .country-code {
@@ -31,12 +32,19 @@
   margin-right: 1rem;
   flex: fit-content;
 }
-
+.phone-number .image-settings__field {
+  width: 100% !important;
+  margin-bottom: 0px !important;
+}
 .image-settings__block {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
   margin-bottom: 1.25rem;
+
+  .cta-radio-btn {
+    accent-color: #EB5054;
+  }
 
   &:last-child {
     margin-bottom: 0;
