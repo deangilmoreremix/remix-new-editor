@@ -11,7 +11,7 @@ import PersonalizeButton from '../../../common/personalization/PersonalizeButton
 import useUIStore from '../../../hooks/useUIStore';
 import useUserStore from '../../../hooks/useUserStore';
 import useProjectStore from '../../../hooks/useProjectStore';
-import { COUNTRYCODE } from '../../../../lib/constants/countryCode';
+import { COUNTRYCODE } from '../../../../lib/constants/countryCode.js';
 
 import {
   padding,
@@ -291,8 +291,8 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
       </div>
       <div className='text-cta-container'>
         <div onChange={onChangeHandler}>
-          <input type="radio" value="URL" name="cta" defaultChecked /> URL
-          <input type="radio" value="PHONE" name="cta" /> PHONE
+          <input type="radio" value="URL" name="cta" defaultChecked className='radio-btn' /> URL
+          <input type="radio" value="PHONE" name="cta"  className='radio-btn'/> PHONE
         </div>
         {val == 'URL' ?
           <div className="link-url-container">
@@ -325,6 +325,7 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
 
               <div className="link-url-container">
                 <FieldBuilder
+                  type={'tel'}
                   checkValue={checkValue}
                   value={ctaVal == 'PHONE' ? areaCode : ''}
                   labelHint={HINTS.PHONE_FORM}
