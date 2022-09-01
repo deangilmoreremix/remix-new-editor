@@ -11,7 +11,7 @@ import PersonalizeButton from '../../../common/personalization/PersonalizeButton
 import useUIStore from '../../../hooks/useUIStore';
 import useUserStore from '../../../hooks/useUserStore';
 import useProjectStore from '../../../hooks/useProjectStore';
-import { PHONEAREACODE } from '../../../../lib/constants/phoneAreaCode';
+import { COUNTRYCODE } from '../../../../lib/constants/countryCode';
 
 import {
   padding,
@@ -31,7 +31,7 @@ import PropTypes from '../../../../lib/PropTypes';
 import withValidation from '../../../hoc/withValidation';
 const areaCodeList = [
   { label: 'All', value: null },
-  ...PHONEAREACODE,
+  ...COUNTRYCODE,
 ];
 
 const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
@@ -90,10 +90,12 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
 
   useEffect(() => {
     if (linkUrl) {
-      const Country = PHONEAREACODE.find(ele => values[popcornConstants.LINKSRC].includes(ele.value));
+      const Country = COUNTRYCODE.find(ele =>linkUrl.includes(ele.value));
       setAreaObject(Country);
-      const phoneNumber = values[popcornConstants.LINKSRC].replace(Country.value, '');
-      setAreaCode(phoneNumber);
+      if(Country) {
+        const phoneNumber = linkUrl.replace(Country.value, '');
+        setAreaCode(phoneNumber);
+      }
       const ctaValue = Number(linkUrl)
       if (ctaValue) {
         setCtaVal("PHONE");

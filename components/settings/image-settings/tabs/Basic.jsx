@@ -23,7 +23,7 @@ import { INITIAL_VALUES as value } from '../../../../lib/constants/settings/vide
 import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 
 import PropTypes from '../../../../lib/PropTypes';
-import { PHONEAREACODE } from '../../../../lib/constants/phoneAreaCode';
+import { COUNTRYCODE } from '../../../../lib/constants/countryCode';
 
 import { HINTS } from '../../../../lib/constants/text-info';
 import withValidation from '../../../hoc/withValidation';
@@ -33,7 +33,7 @@ import { useEffect } from 'react';
 
 const areaCodeList = [
   { label: 'All', value: null },
-  ...PHONEAREACODE,
+  ...COUNTRYCODE,
 ];
 
 const Basic = observer(({
@@ -84,7 +84,7 @@ const Basic = observer(({
 
   useEffect(() => {
     if(values[popcornConstants.LINKSRC]) {
-      const Country =  PHONEAREACODE.find(ele => values[popcornConstants.LINKSRC].includes(ele.value));
+      const Country =  COUNTRYCODE.find(ele => values[popcornConstants.LINKSRC].includes(ele.value));
       setAreaObject(Country);
       if(Country) {
         const phoneNumber = values[popcornConstants.LINKSRC].replace(Country.value, '');
