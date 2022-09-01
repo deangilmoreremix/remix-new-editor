@@ -39,6 +39,8 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
   const [positionVertical, setPositionVertical] = useState();
   const [val, setVal] = useState("URL");
   const [code, setCode] = useState("");
+  const [areaCode, setAreaCode] = useState('');
+  const [areaObject, setAreaObject] = useState({});
   const [ctaVal,setCtaVal] = useState("");
   const { setVoiceTextId } = useProjectStore();
   const { openAnimation, openTextToSpeech } = useUIStore();
@@ -87,14 +89,21 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
   }, [width]);
 
   useEffect(() => {
-    const ctaValue = Number(linkUrl)
-    if(ctaValue) {
-      setCtaVal("PHONE");
+    if (linkUrl) {
+      const Country = PHONEAREACODE.find(ele => values[popcornConstants.LINKSRC].includes(ele.value));
+      setAreaObject(Country);
+      const phoneNumber = values[popcornConstants.LINKSRC].replace(Country.value, '');
+      setAreaCode(phoneNumber);
+      const ctaValue = Number(linkUrl)
+      if (ctaValue) {
+        setCtaVal("PHONE");
+      }
+      else {
+        setCtaVal("URL");
+      }
     }
-    else {
-      setCtaVal("URL");
-    }
-  },[linkUrl])
+
+  }, [linkUrl])
 
   useEffect(() => {
     switch (left) {
@@ -306,6 +315,7 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
                   label="Phone Number (Click-to-call)"
                   items={areaCodeList}
                   value={code}
+                  defaultValue={areaObject}
                   onChange={onCodeSelect}
                   selectClassName={'area_code_class'}
                 />
@@ -314,7 +324,7 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
               <div className="link-url-container">
                 <FieldBuilder
                   checkValue={checkValue}
-                  value={ctaVal == 'PHONE' ? linkUrl : ''}
+                  value={ctaVal == 'PHONE' ? areaCode : ''}
                   labelHint={HINTS.PHONE_FORM}
                   {...fields.linkUrl}
                   className="input-url-position"
@@ -322,7 +332,7 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
                   label={""}
 
                 />
-          {/* <PersonalizeButton onAdd={onAddUrlToken} /> */}
+                {/* <PersonalizeButton onAdd={onAddUrlToken} /> */}
               </div>
             </div>
           </div>

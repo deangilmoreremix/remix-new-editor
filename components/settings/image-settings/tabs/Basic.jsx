@@ -49,6 +49,7 @@ const Basic = observer(({
   const [ctaVal, setCtaVal] = useState("")
   const [code, setCode] = useState('');
   const [areaObject,setAreaObject] = useState({});
+  const [areaCode,setAreaCode] = useState('');
   const { setLibraryType, setUpdateElementInLibrary, openAnimation } = useUIStore();
   const { findAndUpdate, element } = useProjectStore();
   const {
@@ -82,16 +83,22 @@ const Basic = observer(({
   };
 
   useEffect(() => {
-    const Country =  PHONEAREACODE.find(ele => values[popcornConstants.LINKSRC].includes(ele.value));
-    setAreaObject(Country)
-    const removeFirst = values[popcornConstants.LINKSRC].replace(Country.value, '');
-    const ctaValue = Number(values[popcornConstants.LINKSRC])
-    if (ctaValue) {
-      setCtaVal("PHONE");
+    if(values[popcornConstants.LINKSRC]) {
+      const Country =  PHONEAREACODE.find(ele => values[popcornConstants.LINKSRC].includes(ele.value));
+      setAreaObject(Country);
+      if(Country) {
+        const phoneNumber = values[popcornConstants.LINKSRC].replace(Country.value, '');
+        setAreaCode(phoneNumber);
+      }
+      const ctaValue = Number(values[popcornConstants.LINKSRC])
+      if (ctaValue) {
+        setCtaVal("PHONE");
+      }
+      else {
+        setCtaVal("URL");
+      }
     }
-    else {
-      setCtaVal("URL");
-    }
+   
   }, [values])
 
   const backToLibrary = () => {
@@ -224,7 +231,7 @@ const Basic = observer(({
                     {...fields[popcornConstants.LINKSRC]}
                     labelHint={HINTS.PHONE_FORM}
                     label={""}
-                    value={ctaVal == 'PHONE' ? values[popcornConstants.LINKSRC] : ''}
+                    value={ctaVal == 'PHONE' ? areaCode : ''}
                     onChange={onChangeWithValidation}
                     checkValue={checkValue}
                   />
