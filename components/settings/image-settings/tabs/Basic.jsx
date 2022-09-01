@@ -197,8 +197,8 @@ const Basic = observer(({
         <div>
           <div className="image-settings__block">
             <div onChange={onChangeHandler}>
-              <input type="radio" value="URL" name="cta" className='radio-btn' defaultChecked /> URL
-              <input type="radio" value="PHONE" name="cta" className='radio-btn' /> PHONE
+              <input type="radio" value="URL" name="cta" className="cta-radio-btn" defaultChecked /> URL
+              <input type="radio" value="PHONE" name="cta" className="cta-radio-btn" /> PHONE
             </div>
           </div>
           <div className="image-settings__block">

@@ -291,8 +291,8 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
       </div>
       <div className='text-cta-container'>
         <div onChange={onChangeHandler}>
-          <input type="radio" value="URL" name="cta" defaultChecked className='radio-btn' /> URL
-          <input type="radio" value="PHONE" name="cta"  className='radio-btn'/> PHONE
+          <input type="radio" value="URL" name="cta" defaultChecked className="cta-radio-btn" /> URL
+          <input type="radio" value="PHONE" name="cta"  className="cta-radio-btn"/> PHONE
         </div>
         {val == 'URL' ?
           <div className="link-url-container">
