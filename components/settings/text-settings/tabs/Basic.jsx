@@ -328,7 +328,6 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
                   type={'tel'}
                   checkValue={checkValue}
                   value={ctaVal == 'PHONE' ? areaCode : ''}
-                  labelHint={HINTS.PHONE_FORM}
                   {...fields.linkUrl}
                   className="input-url-position"
                   onChange={onChangeWithValidation}
