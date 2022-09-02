@@ -230,7 +230,6 @@ const Basic = observer(({
                 <div className='phone-number'>
                   <FieldBuilder
                     {...fields[popcornConstants.LINKSRC]}
-                    labelHint={HINTS.PHONE_FORM}
                     label={""}
                     value={ctaVal == 'PHONE' ? areaCode : ''}
                     onChange={onChangeWithValidation}
