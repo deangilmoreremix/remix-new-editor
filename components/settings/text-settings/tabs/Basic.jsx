@@ -327,6 +327,7 @@ const Basic = observer(({ values, fields, element, onChange, checkValue }) => {
                 <FieldBuilder
                   type={'tel'}
                   checkValue={checkValue}
+                  placeholder={""}
                   value={ctaVal == 'PHONE' ? areaCode : ''}
                   {...fields.linkUrl}
                   className="input-url-position"
