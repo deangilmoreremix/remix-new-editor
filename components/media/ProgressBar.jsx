@@ -1,5 +1,5 @@
 import { Progress } from 'reactstrap';
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 
 const ProgressBar = () => {
