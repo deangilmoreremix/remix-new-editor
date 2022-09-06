@@ -14,6 +14,7 @@ import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
 import useUserStore from '../../hooks/useUserStore';
 import { LibrarySpinner } from '../../media/Loader';
+import { Progress } from 'reactstrap';
 import config from '../../../config/config';
 
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
@@ -92,6 +93,7 @@ const PhotoEnhancer = observer(({
   const [color, setColor] = useState('FFFFFF');
   const [dress, setDress] = useState('');
   const [isError, setError] = useState(null);
+  const [progressState, setProgressState] = useState(0);
 
 
   const { source } = useMemo(() => imageData, [imageData]);
@@ -112,6 +114,16 @@ const PhotoEnhancer = observer(({
 
   const processImage = async () => {
     setIsLoading(true);
+    let counter = 0;
+    const interval = setInterval(() => {
+      if(counter < 100) {
+        counter = counter + 10;
+        }
+        setProgressState(counter);
+        if(counter == 100) {
+            clearInterval(interval);
+        }
+    }, 100);
     const total = cutoutProCreditUserUsed + 2;
     const base64Response = await fetch(source);
     const blob = await base64Response.blob();
@@ -145,6 +157,7 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
+        setProgressState(0);
         if (resp.data === null) {
           setNewImage(null);
           setError('Processing failed');
@@ -170,6 +183,17 @@ const PhotoEnhancer = observer(({
 
   const changeBackgroundColor = async (val) => {
     setIsLoading(true);
+    let counter = 0;
+    const interval = setInterval(() => {
+      if(counter < 100) {
+        counter = counter + 10;
+        }
+        setProgressState(counter);
+        if(counter == 100) {
+            clearInterval(interval);
+           
+        }
+    }, 100);
     const total = cutoutProCreditUserUsed + 2;
 
     const base64Response = await fetch(source);
@@ -203,6 +227,7 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
+        setProgressState(0);
         if (resp.data === null) {
           setNewImage(null);
           setError('Processing failed');
@@ -222,6 +247,17 @@ const PhotoEnhancer = observer(({
 
   const changeDressPhotoImage = async (val) => {
     setIsLoading(true);
+    let counter = 0;
+    const interval = setInterval(() => {
+      if(counter < 100) {
+        counter = counter + 10;
+        }
+        setProgressState(counter);
+        if(counter == 100) {
+            clearInterval(interval);
+           
+        }
+    }, 100);
     const total = cutoutProCreditUserUsed + 2;
     const base64Response = await fetch(source);
     const blob = await base64Response.blob();
@@ -255,6 +291,7 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
+        setProgressState(0);
         // setNewImage(resp.data.idPhotoImage);
         // setPrintLayoutImage(resp.data.printLayoutImage);
         if (resp.data === null) {
@@ -375,7 +412,21 @@ const PhotoEnhancer = observer(({
                 <p className="text-center font-weight-bold"> Result Image </p>
 
                 <div className=" ">
-                  {isLoading ? <LibrarySpinner /> : (
+                  {isLoading ? <div className="progressState">
+                      <Progress
+                        className=""
+                        animated
+                        color="danger"
+                        value={progressState}
+                        style={{
+                          height: '40px',
+                        }}
+                      >
+                        {progressState}
+                        {' '}
+                        %
+                      </Progress>
+                    </div>: (
                     <div className=" flex justify-content-center">
                       {isProcessImage
                         ? (
