@@ -48,7 +48,7 @@ const PhotoEnhancer = observer(({
   const [isError, setError] = useState(null);
   const [active, setActive] = useState();
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
-  const [progressState, setProgressState] = useState(5);
+  const [progressState, setProgressState] = useState(0);
 
 
   const quantify = () => {
@@ -107,7 +107,7 @@ const PhotoEnhancer = observer(({
       if (resp.data.status === 1) {
         setIsLoading(false);
         setIsProcessImage(true);
-        setProgressState(5);
+        setProgressState(0);
         // talk to backend to reduce the use cutoutpro credit
         updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
         setNewImage(resp.data.resultUrl);
