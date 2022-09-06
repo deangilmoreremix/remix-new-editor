@@ -16,6 +16,7 @@ import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
 import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import PercentageProgressBar from '../../media/PercentageProgressBar';
 
 
 const PhotoEnhancer = observer(({
@@ -412,20 +413,7 @@ const PhotoEnhancer = observer(({
                 <div className="">
                   {isLoading ? (
                     <div className="progressState">
-                      <Progress
-                        className=""
-                        animated
-                        color="danger"
-                        value={progressState}
-                        style={{
-                          height: '40px',
-                        }}
-                      >
-                        {progressState}
-                        {' '}
-                        %
-                      </Progress>
-
+                      <PercentageProgressBar progress={progressState} />
 
                     </div>
 
