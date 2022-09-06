@@ -30,7 +30,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
     let zIndex = 0;
     try {
       let newData = JSON.parse(item.project.data);
-      newData.media[0].tracks.reverse();
+      // newData.media[0].tracks.reverse();
       newData.media[0].tracks.forEach(element => {
         if (element.trackEvents.length) {
           element.trackEvents[0].popcornOptions.zindex = ++zIndex;
@@ -50,10 +50,9 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
   const addDataToCanvas = useCallback(async () => {
     try {
       let newData = JSON.parse(activeItem.project.data);
-      newData.media[0].tracks.reverse();
+      // newData.media[0].tracks.reverse();
       newData = JSON.stringify(newData);
       activeItem.project.data = newData;
-
       await addData(activeItem, true);
       handleClose();
       toggleLeftBlock(false);
