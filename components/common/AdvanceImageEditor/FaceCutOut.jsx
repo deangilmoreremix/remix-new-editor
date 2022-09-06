@@ -126,6 +126,7 @@ const FaceCutOut = observer(({
   };
 
   const changeBackgroundColor = (val) => {
+    alert(progressState)
     setIsLoading(true);
     let counter = 0;
     const interval = setInterval(() => {
@@ -138,6 +139,7 @@ const FaceCutOut = observer(({
            
         }
     }, 100);
+    setProgressState(0);
     const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&bgcolor=${val}&mattingType=3`, {
       method: 'get',
@@ -153,7 +155,6 @@ const FaceCutOut = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setProgressState(0);
         if (resp.msg === 'Processing failed') {
           setError(resp.msg);
         } else {

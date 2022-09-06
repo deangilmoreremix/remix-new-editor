@@ -136,6 +136,7 @@ const BackgroundRemoval = observer(({
            
         }
     }, 100);
+    setProgressState(0);
     const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&bgcolor=${val}&mattingType=6`, {
       method: 'get',
@@ -151,7 +152,6 @@ const BackgroundRemoval = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setProgressState(0);
         if (resp.msg === 'Processing failed') {
           setError(resp.msg);
         } else {
