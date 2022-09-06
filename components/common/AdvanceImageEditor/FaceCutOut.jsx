@@ -95,6 +95,18 @@ const FaceCutOut = observer(({
 
   const processImage = async () => {
     setIsLoading(true);
+    let counter = 0;
+    const interval = setInterval(() => {
+      if(counter < 100) {
+        counter = counter + 10;
+        }
+        setProgressState(counter);
+        if(counter == 100) {
+            clearInterval(interval);
+           
+        }
+    }, 100);
+    setProgressState(0);
     const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=3`, {
       method: 'get',

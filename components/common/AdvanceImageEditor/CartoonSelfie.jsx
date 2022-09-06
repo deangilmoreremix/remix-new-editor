@@ -96,6 +96,18 @@ const CartoonSelfie = observer(({
 
   const processImage = () => {
     setIsLoading(true);
+    let counter = 0;
+    const interval = setInterval(() => {
+      if(counter < 100) {
+        counter = counter + 10;
+        }
+        setProgressState(counter);
+        if(counter == 100) {
+            clearInterval(interval);
+           
+        }
+    }, 100);
+    setProgressState(0);
     const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/cartoonSelfieByUrl?cartoonType=1&url=${source}`, {
       method: 'get',
@@ -141,6 +153,7 @@ const CartoonSelfie = observer(({
            
         }
     }, 100);
+    setProgressState(0);
     const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/cartoonSelfieByUrl?cartoonType=${val}&url=${source}`, {
       method: 'get',
@@ -156,7 +169,6 @@ const CartoonSelfie = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setProgressState(0);
         if (resp.msg === 'Processing failed') {
           setError(resp.msg);
         } else {
