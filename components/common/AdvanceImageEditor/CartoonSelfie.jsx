@@ -11,12 +11,11 @@ import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
-import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
-import { Progress } from 'reactstrap';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
 import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import ProgressBar from '../../media/ProgressBar';
 
 
 const CartoonSelfie = observer(({
@@ -96,18 +95,6 @@ const CartoonSelfie = observer(({
 
   const processImage = () => {
     setIsLoading(true);
-    let counter = 0;
-    const interval = setInterval(() => {
-      if(counter < 100) {
-        counter = counter + 10;
-        }
-        setProgressState(counter);
-        if(counter == 100) {
-            clearInterval(interval);
-           
-        }
-    }, 100);
-    setProgressState(0);
     const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/cartoonSelfieByUrl?cartoonType=1&url=${source}`, {
       method: 'get',
@@ -142,18 +129,6 @@ const CartoonSelfie = observer(({
 
   const ChangeAvatarImage = (val) => {
     setIsLoading(true);
-    let counter = 0;
-    const interval = setInterval(() => {
-      if(counter < 100) {
-        counter = counter + 10;
-        }
-        setProgressState(counter);
-        if(counter == 100) {
-            clearInterval(interval);
-           
-        }
-    }, 100);
-    setProgressState(0);
     const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/cartoonSelfieByUrl?cartoonType=${val}&url=${source}`, {
       method: 'get',
@@ -239,19 +214,7 @@ const CartoonSelfie = observer(({
 
                 <div className=" ">
                   {isLoading ? <div className="progressState">
-                      <Progress
-                        className=""
-                        animated
-                        color="danger"
-                        value={progressState}
-                        style={{
-                          height: '40px',
-                        }}
-                      >
-                        {progressState}
-                        {' '}
-                        %
-                      </Progress>
+                   <ProgressBar />
                     </div> : (
                     <div className=" flex justify-content-center">
                       {isProcessImage

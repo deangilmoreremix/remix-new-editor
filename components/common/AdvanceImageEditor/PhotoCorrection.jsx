@@ -7,12 +7,11 @@ import useUserStore from '../../hooks/useUserStore';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
-import { LibrarySpinner } from '../../media/Loader';
-import { Progress } from 'reactstrap';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
 import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import ProgressBar from '../../media/ProgressBar';
 
 const PhotoCorrection = observer(({
   imageData,
@@ -38,7 +37,6 @@ const PhotoCorrection = observer(({
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
   const [isError, setError] = useState(null);
-  const [progressState, setProgressState] = useState(0);
 
 
   const { source } = useMemo(() => imageData, [imageData]);
@@ -117,7 +115,6 @@ const PhotoCorrection = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setProgressState(0);
         if (resp.msg === 'Processing failed') {
           setError(resp.msg);
         } else {
@@ -189,19 +186,7 @@ const PhotoCorrection = observer(({
 
                 <div className=" ">
                   {isLoading ? <div className="progressState">
-                      <Progress
-                        className=""
-                        animated
-                        color="danger"
-                        value={progressState}
-                        style={{
-                          height: '40px',
-                        }}
-                      >
-                        {progressState}
-                        {' '}
-                        %
-                      </Progress>
+                     <ProgressBar />
                     </div>: (
                     <div className=" flex justify-content-center">
                       {isProcessImage
