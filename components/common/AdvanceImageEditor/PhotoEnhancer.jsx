@@ -7,12 +7,11 @@ import useUserStore from '../../hooks/useUserStore';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
-import { LibrarySpinner } from '../../media/Loader';
-import { Progress } from 'reactstrap';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
 import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import PercentageProgressBar from '../../media/PercentageProgressBar';
 
 
 const PhotoEnhancer = observer(({
@@ -40,7 +39,6 @@ const PhotoEnhancer = observer(({
   const [newImage, setNewImage] = useState('');
   const { source } = useMemo(() => imageData, [imageData]);
   const [isError, setError] = useState(null);
-  const [progressState, setProgressState] = useState(0);
 
   const onLoadImage = useCallback(async (image) => {
     const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
@@ -89,17 +87,6 @@ const PhotoEnhancer = observer(({
 
   const processImage = () => {
     setIsLoading(true);
-    let counter = 0;
-    const interval = setInterval(() => {
-      if(counter < 100) {
-        counter = counter + 10;
-        }
-        setProgressState(counter);
-        if(counter == 100) {
-            clearInterval(interval);
-           
-        }
-    }, 100);
     const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&mattingType=18`, {
       method: 'get',
@@ -115,7 +102,6 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setProgressState(0);
         if (resp.msg === 'Processing failed') {
           setError(resp.msg);
         } else {
@@ -187,19 +173,7 @@ const PhotoEnhancer = observer(({
 
                 <div className=" ">
                   {isLoading ? <div className="progressState">
-                      <Progress
-                        className=""
-                        animated
-                        color="danger"
-                        value={progressState}
-                        style={{
-                          height: '40px',
-                        }}
-                      >
-                        {progressState}
-                        {' '}
-                        %
-                      </Progress>
+                     <PercentageProgressBar/>
                     </div>: (
                     <div className=" flex justify-content-center">
                       {isProcessImage

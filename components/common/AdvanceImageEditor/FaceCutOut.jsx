@@ -9,12 +9,11 @@ import useUserStore from '../../hooks/useUserStore';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
-import { LibrarySpinner } from '../../media/Loader';
-import { Progress } from 'reactstrap';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
 import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import PercentageProgressBar from '../../media/PercentageProgressBar';
 
 
 const FaceCutOut = observer(({
@@ -39,7 +38,6 @@ const FaceCutOut = observer(({
   } = userStore;
 
   const [isLoading, setIsLoading] = useState(false);
-  const [progressState, setProgressState] = useState(0);
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
@@ -127,18 +125,6 @@ const FaceCutOut = observer(({
 
   const changeBackgroundColor = (val) => {
     setIsLoading(true);
-    let counter = 0;
-    const interval = setInterval(() => {
-      if(counter < 100) {
-        counter = counter + 10;
-        }
-        setProgressState(counter);
-        if(counter == 100) {
-            clearInterval(interval);
-           
-        }
-    }, 100);
-    setProgressState(0);
     const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${source}&bgcolor=${val}&mattingType=3`, {
       method: 'get',
@@ -226,19 +212,7 @@ const FaceCutOut = observer(({
 
                 <div className=" ">
                   {isLoading ? <div className="progressState">
-                      <Progress
-                        className=""
-                        animated
-                        color="danger"
-                        value={progressState}
-                        style={{
-                          height: '40px',
-                        }}
-                      >
-                        {progressState}
-                        {' '}
-                        %
-                      </Progress>
+                    <PercentageProgressBar/>
                     </div>: (
                     <div className=" flex justify-content-center">
                       {isProcessImage
