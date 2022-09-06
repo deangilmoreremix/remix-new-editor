@@ -126,7 +126,6 @@ const FaceCutOut = observer(({
   };
 
   const changeBackgroundColor = (val) => {
-    alert(progressState)
     setIsLoading(true);
     let counter = 0;
     const interval = setInterval(() => {
