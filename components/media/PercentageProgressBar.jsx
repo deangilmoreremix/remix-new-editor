@@ -2,7 +2,7 @@ import { Progress } from 'reactstrap';
 import React, { useState, useEffect } from 'react';
 
 
-const ProgressBar = () => {
+const PercentageProgressBar = () => {
   const [progressState, setProgressState] = useState(0);
   useEffect(() => {
     let counter = 0;
@@ -35,4 +35,4 @@ const ProgressBar = () => {
       )
 }
 
-export default ProgressBar;
+export default PercentageProgressBar;

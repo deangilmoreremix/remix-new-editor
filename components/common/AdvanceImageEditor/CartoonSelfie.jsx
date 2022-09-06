@@ -15,7 +15,7 @@ import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
 import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
-import ProgressBar from '../../media/ProgressBar';
+import PercentageProgressBar from '../../media/PercentageProgressBar';
 
 
 const CartoonSelfie = observer(({
@@ -42,7 +42,6 @@ const CartoonSelfie = observer(({
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [isError, setError] = useState(null);
   const [newImage, setNewImage] = useState('');
-  const [progressState, setProgressState] = useState(0);
 
 
   const { source } = useMemo(() => imageData, [imageData]);
@@ -214,7 +213,7 @@ const CartoonSelfie = observer(({
 
                 <div className=" ">
                   {isLoading ? <div className="progressState">
-                   <ProgressBar />
+                   <PercentageProgressBar/>
                     </div> : (
                     <div className=" flex justify-content-center">
                       {isProcessImage

@@ -11,7 +11,7 @@ import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
 import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
-import ProgressBar from '../../media/ProgressBar';
+import PercentageProgressBar from '../../media/PercentageProgressBar';
 
 const PhotoCorrection = observer(({
   imageData,
@@ -175,7 +175,7 @@ const PhotoCorrection = observer(({
 
                 <div className=" ">
                   {isLoading ? <div className="progressState">
-                     <ProgressBar />
+                     <PercentageProgressBar/>
                     </div>: (
                     <div className=" flex justify-content-center">
                       {isProcessImage

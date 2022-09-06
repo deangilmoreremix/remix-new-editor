@@ -58,7 +58,7 @@ import childNine from '../../../public/static/AdvanceImageSvg/idphotodress/child
 import childTen from '../../../public/static/AdvanceImageSvg/idphotodress/child/10.png';
 import childEleven from '../../../public/static/AdvanceImageSvg/idphotodress/child/11.png';
 import childTwelve from '../../../public/static/AdvanceImageSvg/idphotodress/child/12.png';
-import ProgressBar from '../../media/ProgressBar';
+import PercentageProgressBar from '../../media/PercentageProgressBar';
 
 
 const PhotoEnhancer = observer(({
@@ -170,17 +170,6 @@ const PhotoEnhancer = observer(({
 
   const changeBackgroundColor = async (val) => {
     setIsLoading(true);
-    let counter = 0;
-    const interval = setInterval(() => {
-      if(counter < 100) {
-        counter = counter + 10;
-        }
-        setProgressState(counter);
-        if(counter == 100) {
-            clearInterval(interval);
-           
-        }
-    }, 100);
     const total = cutoutProCreditUserUsed + 2;
 
     const base64Response = await fetch(source);
@@ -387,7 +376,7 @@ const PhotoEnhancer = observer(({
 
                 <div className=" ">
                   {isLoading ? <div className="progressState">
-                     <ProgressBar />
+                     <PercentageProgressBar/>
                     </div>: (
                     <div className=" flex justify-content-center">
                       {isProcessImage

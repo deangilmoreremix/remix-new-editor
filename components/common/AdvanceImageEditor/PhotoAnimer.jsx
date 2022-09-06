@@ -12,7 +12,6 @@ import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
 import useUserStore from '../../hooks/useUserStore';
-import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
@@ -48,7 +47,7 @@ const PhotoEnhancer = observer(({
   const [isError, setError] = useState(null);
   const [active, setActive] = useState();
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
-  const [progressState, setProgressState] = useState(0);
+  const [progressState, setProgressState] = useState(1);
 
 
   const quantify = () => {
@@ -107,7 +106,7 @@ const PhotoEnhancer = observer(({
       if (resp.data.status === 1) {
         setIsLoading(false);
         setIsProcessImage(true);
-        setProgressState(0);
+        setProgressState(1);
         // talk to backend to reduce the use cutoutpro credit
         updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
         setNewImage(resp.data.resultUrl);
