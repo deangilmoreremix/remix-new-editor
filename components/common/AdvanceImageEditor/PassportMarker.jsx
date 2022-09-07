@@ -13,7 +13,6 @@ import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
 import useUserStore from '../../hooks/useUserStore';
-import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
@@ -59,6 +58,7 @@ import childNine from '../../../public/static/AdvanceImageSvg/idphotodress/child
 import childTen from '../../../public/static/AdvanceImageSvg/idphotodress/child/10.png';
 import childEleven from '../../../public/static/AdvanceImageSvg/idphotodress/child/11.png';
 import childTwelve from '../../../public/static/AdvanceImageSvg/idphotodress/child/12.png';
+import PercentageProgressBar from '../../media/PercentageProgressBar';
 
 
 const PhotoEnhancer = observer(({
@@ -375,7 +375,9 @@ const PhotoEnhancer = observer(({
                 <p className="text-center font-weight-bold"> Result Image </p>
 
                 <div className=" ">
-                  {isLoading ? <LibrarySpinner /> : (
+                  {isLoading ? <div className="progressState">
+                     <PercentageProgressBar/>
+                    </div>: (
                     <div className=" flex justify-content-center">
                       {isProcessImage
                         ? (

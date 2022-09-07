@@ -12,11 +12,11 @@ import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
 import useUserStore from '../../hooks/useUserStore';
-import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
 import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import PercentageProgressBar from '../../media/PercentageProgressBar';
 
 
 const PhotoEnhancer = observer(({
@@ -48,7 +48,7 @@ const PhotoEnhancer = observer(({
   const [isError, setError] = useState(null);
   const [active, setActive] = useState();
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
-  const [progressState, setProgressState] = useState(5);
+  const [progressState, setProgressState] = useState(1);
 
 
   const quantify = () => {
@@ -107,7 +107,7 @@ const PhotoEnhancer = observer(({
       if (resp.data.status === 1) {
         setIsLoading(false);
         setIsProcessImage(true);
-        setProgressState(5);
+        setProgressState(1);
         // talk to backend to reduce the use cutoutpro credit
         updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
         setNewImage(resp.data.resultUrl);
@@ -413,20 +413,7 @@ const PhotoEnhancer = observer(({
                 <div className="">
                   {isLoading ? (
                     <div className="progressState">
-                      <Progress
-                        className=""
-                        animated
-                        color="danger"
-                        value={progressState}
-                        style={{
-                          height: '40px',
-                        }}
-                      >
-                        {progressState}
-                        {' '}
-                        %
-                      </Progress>
-
+                      <PercentageProgressBar progress={progressState} />
 
                     </div>
 

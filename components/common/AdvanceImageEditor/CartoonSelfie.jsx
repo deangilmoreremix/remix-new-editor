@@ -11,11 +11,11 @@ import PropTypes from '../../../lib/PropTypes';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
-import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
 import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import PercentageProgressBar from '../../media/PercentageProgressBar';
 
 
 const CartoonSelfie = observer(({
@@ -212,7 +212,9 @@ const CartoonSelfie = observer(({
                 <p className="text-center font-weight-bold"> Result Image</p>
 
                 <div className=" ">
-                  {isLoading ? <LibrarySpinner /> : (
+                  {isLoading ? <div className="progressState">
+                   <PercentageProgressBar/>
+                    </div> : (
                     <div className=" flex justify-content-center">
                       {isProcessImage
                         ? (
