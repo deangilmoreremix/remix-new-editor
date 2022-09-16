@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect } from 'react';
+import React, { Fragment, useCallback, useEffect, useState } from 'react';
 
 import PropTypes from '../../../../lib/PropTypes';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
@@ -6,6 +6,7 @@ import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 import { imgTokenModes } from '../../../../lib/constants/tokens';
 
 import FieldBuilder from '../../../form/FieldBuilder';
+import FormSelect from '../../../form/FormSelect';
 import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
 
 const Basic = ({ values, fields, element, onChange }) => {
@@ -19,7 +20,7 @@ const Basic = ({ values, fields, element, onChange }) => {
     end,
     title,
     rotation,
-  } = values;
+  } = values; 
 
   useEffect(() => {
     if (!src) {
@@ -33,8 +34,25 @@ const Basic = ({ values, fields, element, onChange }) => {
 
   const onAddUrlToken = useCallback((token) => {
     const result = addToken(linkSrc, token, urlCaretOffset);
+    console.log(result,"result")
     onChange({ linkSrc: result, htmlUrl: wrapTokens(result) });
   }, [linkSrc, urlCaretOffset, onChange]);
+
+  const [shape, setShape] = useState('portrait');
+
+  const shapeList = [
+    { label: 'Portrait', value: 'portrait' },
+    { label: 'Oval', value: 'oval' },
+    { label: 'Landscape', value: 'landscape' }
+  ];
+
+  const onShapeSelect = v => {
+    const item = shapeList.find(shapeList => shapeList.value === v).value;
+    setShape(item);
+    onChange({
+      imageshape:item
+    })
+  };
 
   // ToDo Add logic for transition button
   return (
@@ -56,6 +74,20 @@ const Basic = ({ values, fields, element, onChange }) => {
           className="vrimage-settings__time"
           element={element}
         />
+      </div>
+
+      <div className="vrimage-settings__block">
+        <div className="vrimage-settings__cell--first">
+          <FormSelect
+            {...fields.shape}
+            label="Shape"
+            name={popcornConstants.SHAPE}
+            items={shapeList}
+            className="text-to-speech__select"
+            value={values['imageshape']}
+            onChange={onShapeSelect}
+          />
+        </div>
       </div>
 
       <div className="vrimage-settings__block">
