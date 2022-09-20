@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import React, { Fragment, useCallback, useEffect } from 'react';
 
 import PropTypes from '../../../../lib/PropTypes';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
@@ -20,7 +20,7 @@ const Basic = ({ values, fields, element, onChange }) => {
     end,
     title,
     rotation,
-  } = values; 
+  } = values;
 
   useEffect(() => {
     if (!src) {
