@@ -32,7 +32,7 @@ const Basic = ({ values, fields, element, onChange }) => {
 
   useEffect(() => {
     if(imageshape == 'circle') {
-        onChange({src:"https://cdn.vidcloud.io/src/plugins/personalizedImage/personalizedImage-circle.png"})
+        onChange({src:"https://cdn.vidcloud.io/src/plugins/personalizedImage/personalizedImage-circle.png",htmlSrc: wrapTokens(fields.src.default)})
     }
     else {
       onChange({ src: fields.src.default, htmlSrc: wrapTokens(fields.src.default) });
