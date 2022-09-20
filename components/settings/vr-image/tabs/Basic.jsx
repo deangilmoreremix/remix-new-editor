@@ -30,14 +30,11 @@ const Basic = ({ values, fields, element, onChange }) => {
   }, [fields.src.default, onChange, src]);
 
 
-  useEffect(() => {
-    if(imageshape == 'circle') {
-        onChange({src:"https://cdn.vidcloud.io/src/plugins/personalizedImage/personalizedImage-circle.png",htmlSrc: wrapTokens(fields.src.default)})
-    }
-    else {
-      onChange({ src: fields.src.default, htmlSrc: wrapTokens(fields.src.default) });
-    }
-  },[imageshape])
+  // useEffect(() => {
+  //   if (!src) {
+  //     onChange({ src: fields.src.default, htmlSrc: wrapTokens(fields.src.default) });
+  //   }
+  // },[imageshape])
 
   const onAddSrc = useCallback((token) => {
     onChange({ src: token, htmlSrc: wrapTokens(token) });
