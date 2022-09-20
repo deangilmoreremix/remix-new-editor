@@ -6,6 +6,7 @@ import { addToken, wrapTokens } from '../../../../lib/utils/tokens-helper';
 import { imgTokenModes } from '../../../../lib/constants/tokens';
 
 import FieldBuilder from '../../../form/FieldBuilder';
+import FormSelect from '../../../form/FormSelect';
 import PersonalizeButton from '../../../common/personalization/PersonalizeButton';
 
 const Basic = ({ values, fields, element, onChange }) => {
@@ -36,6 +37,19 @@ const Basic = ({ values, fields, element, onChange }) => {
     onChange({ linkSrc: result, htmlUrl: wrapTokens(result) });
   }, [linkSrc, urlCaretOffset, onChange]);
 
+  const shapeList = [
+    { label: 'Portrait', value: 'portrait' },
+    { label: 'Circle', value: 'circle' },
+    
+  ];
+
+  const onShapeSelect = v => {
+    const item = shapeList.find(shapeList => shapeList.value === v).value;
+    onChange({
+      imageshape:item
+    })
+  };
+
   // ToDo Add logic for transition button
   return (
     <Fragment>
@@ -56,6 +70,21 @@ const Basic = ({ values, fields, element, onChange }) => {
           className="vrimage-settings__time"
           element={element}
         />
+      </div>
+
+      <div className="vrimage-settings__block">
+        <div className="vrimage-settings__cell--first">
+          <FormSelect
+            {...fields.shape}
+            default={fields.shape}
+            label="Shape"
+            name={popcornConstants.SHAPE}
+            items={shapeList}
+            className="text-to-speech__select"
+            value={values['imageshape']}
+            onChange={onShapeSelect}
+          />
+        </div>
       </div>
 
       <div className="vrimage-settings__block">
