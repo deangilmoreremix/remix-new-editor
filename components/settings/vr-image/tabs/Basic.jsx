@@ -20,7 +20,6 @@ const Basic = ({ values, fields, element, onChange }) => {
     end,
     title,
     rotation,
-    imageshape
   } = values; 
 
   useEffect(() => {
@@ -29,20 +28,12 @@ const Basic = ({ values, fields, element, onChange }) => {
     }
   }, [fields.src.default, onChange, src]);
 
-
-  // useEffect(() => {
-  //   if (!src) {
-  //     onChange({ src: fields.src.default, htmlSrc: wrapTokens(fields.src.default) });
-  //   }
-  // },[imageshape])
-
   const onAddSrc = useCallback((token) => {
     onChange({ src: token, htmlSrc: wrapTokens(token) });
   }, [onChange]);
 
   const onAddUrlToken = useCallback((token) => {
     const result = addToken(linkSrc, token, urlCaretOffset);
-    console.log(result,"result")
     onChange({ linkSrc: result, htmlUrl: wrapTokens(result) });
   }, [linkSrc, urlCaretOffset, onChange]);
 
