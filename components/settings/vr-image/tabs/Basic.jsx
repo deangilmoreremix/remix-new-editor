@@ -37,8 +37,6 @@ const Basic = ({ values, fields, element, onChange }) => {
     onChange({ linkSrc: result, htmlUrl: wrapTokens(result) });
   }, [linkSrc, urlCaretOffset, onChange]);
 
-  const [shape, setShape] = useState('portrait');
-
   const shapeList = [
     { label: 'Portrait', value: 'portrait' },
     { label: 'Circle', value: 'circle' },
@@ -47,7 +45,6 @@ const Basic = ({ values, fields, element, onChange }) => {
 
   const onShapeSelect = v => {
     const item = shapeList.find(shapeList => shapeList.value === v).value;
-    setShape(item);
     onChange({
       imageshape:item
     })
@@ -79,6 +76,7 @@ const Basic = ({ values, fields, element, onChange }) => {
         <div className="vrimage-settings__cell--first">
           <FormSelect
             {...fields.shape}
+            default={fields.shape}
             label="Shape"
             name={popcornConstants.SHAPE}
             items={shapeList}
