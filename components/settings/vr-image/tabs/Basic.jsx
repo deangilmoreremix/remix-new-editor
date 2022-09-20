@@ -20,6 +20,7 @@ const Basic = ({ values, fields, element, onChange }) => {
     end,
     title,
     rotation,
+    imageshape
   } = values; 
 
   useEffect(() => {
@@ -27,6 +28,16 @@ const Basic = ({ values, fields, element, onChange }) => {
       onChange({ src: fields.src.default, htmlSrc: wrapTokens(fields.src.default) });
     }
   }, [fields.src.default, onChange, src]);
+
+
+  useEffect(() => {
+    if(imageshape == 'circle') {
+        onChange({src:"/static/images/circle.png"})
+    }
+    else {
+      onChange({ src: fields.src.default, htmlSrc: wrapTokens(fields.src.default) });
+    }
+  },[imageshape])
 
   const onAddSrc = useCallback((token) => {
     onChange({ src: token, htmlSrc: wrapTokens(token) });
@@ -42,8 +53,8 @@ const Basic = ({ values, fields, element, onChange }) => {
 
   const shapeList = [
     { label: 'Portrait', value: 'portrait' },
-    { label: 'Oval', value: 'oval' },
-    { label: 'Landscape', value: 'landscape' }
+    { label: 'Circle', value: 'circle' },
+    
   ];
 
   const onShapeSelect = v => {
