@@ -23,7 +23,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
   const [isLoading, setIsLoading] = useState(false);
 
   const { setPreviewData, updateTime } = usePresetStore();
-  const { addData } = useProjectStore();
+  const { addData, moveElements} = useProjectStore();
   const { toggleLeftBlock } = useUIStore();
 
   const handleSelect = React.useCallback(async (item) => {
@@ -50,12 +50,18 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
   const addDataToCanvas = useCallback(async () => {
     try {
       let newData = JSON.parse(activeItem.project.data);
+      const firstElementType = newData.media[0].target;
       newData.media[0].tracks.reverse();
       newData = JSON.stringify(newData);
       activeItem.project.data = newData;
       await addData(activeItem, true);
       handleClose();
       toggleLeftBlock(false);
+      if(title == "connect form" &&  firstElementType == 'video') {
+        setTimeout(() => {
+          moveElements(0,2);
+        }, 1000);
+      }
     } catch (e) {
       showError(e.message);
     }
