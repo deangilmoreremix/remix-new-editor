@@ -26,6 +26,7 @@ const Element = (props) => {
     window.open(UPGRADE_URL, '_ blank')
   }
   return (
+    <div className='element-container'>
     <button
       ref={acceptedDraggableItems.includes(label) ? dragRef : null}
       className="elements-panel-button"
@@ -38,9 +39,10 @@ const Element = (props) => {
         svg={icon}
         cleanup={['title']}
       />
-      {disabled &&  <img className='pro-icon' src='/static/images/pro.png'/> }
       <span className="elements-panel-label">{label}</span>
+      {disabled &&  <img className='pro-icon' src='/static/images/pro.png'/> }
     </button>
+    </div>
   );
 };
 
