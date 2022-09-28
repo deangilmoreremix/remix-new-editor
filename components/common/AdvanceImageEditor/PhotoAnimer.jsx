@@ -187,178 +187,118 @@ const PhotoEnhancer = observer(({
 
 
   const animerList = [
-    // {
-    //   name: 'Animer1',
-    //   src: 'https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer1.mp4',
-    //   id: 1,
-    // },
-
-    // {
-    //   name: 'Animer2',
-    //   src: 'https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer2.mp4',
-    //   id: 2,
-    // },
-
-    // {
-    //   name: 'Animer3',
-    //   src: 'https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer_3.mp4',
-    //   id: 3,
-    // },
-    // {
-    //   name: 'Animer4',
-    //   src: 'https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer4.mp4',
-    //   id: 4,
-    // },
-    // {
-    //   name: 'Animer5',
-    //   src: 'https://d38b044pevnwc9.cloudfront.net/site/en/photoAnimer5.mp4',
-    //   id: 5,
-    // },
-
-
     {
       name: 'Animer0',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/0.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/0.gif',
       id: 0,
     },
-
-
     {
       name: 'Animer1',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/1.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/1.gif',
       id: 1,
     },
-
-
     {
       name: 'Animer2',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/2.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/2.gif',
       id: 2,
     },
-
     {
       name: 'Animer3',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/3.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/3.gif',
       id: 3,
     },
-
     {
       name: 'Animer4',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/4.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/4.gif',
       id: 4,
     },
-
     {
       name: 'Animer5',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/5.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/5.gif',
       id: 5,
     },
-
     {
       name: 'Animer6',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/6.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/6.gif',
       id: 6,
     },
-
     {
       name: 'Animer7',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/7.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/7.gif',
       id: 7,
     },
-
-
     {
       name: 'Animer8',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/8.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/8.gif',
       id: 8,
     },
-
-
     {
       name: 'Animer9',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/9.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/9.gif',
       id: 9,
     },
-
-
     {
       name: 'Animer10',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/10.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/10.gif',
       id: 10,
     },
-
     {
       name: 'Animer11',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/11.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/11.gif',
       id: 11,
     },
-
     {
       name: 'Animer12',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/12.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/12.gif',
       id: 12,
     },
-
-
     {
       name: 'Animer13',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/13.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/13.gif',
       id: 13,
     },
-
     {
       name: 'Animer14',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/14.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/14.gif',
       id: 'gaoxiao1',
     },
-
     {
       name: 'Animer15',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/15.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/15.gif',
       id: 'gaoxiao2',
     },
-
-
     {
       name: 'Animer16',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/16.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/16.gif',
       id: 'gaoxiao3',
     },
-
     {
       name: 'Animer17',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/17.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/17.gif',
       id: 'gaoxiao4',
     },
-
     {
       name: 'Animer18',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/18.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/18.gif',
       id: 'gaoxiao5',
     },
     {
       name: 'Animer19',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/19.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/19.gif',
       id: 'gaoxiao6',
     },
-
     {
       name: 'Animer20',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/20.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/20.gif',
       id: 'gaoxiao7',
     },
-
-
     {
       name: 'Animer21',
-      src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/animer/animer/21.mp4',
+      src: 'https://cdn.vidcloud.io/src/smartAnimer/exemplers/21.gif',
       id: 'gaoxiao8',
-    },
-
-
+    }
   ];
-
-
+  
   return (
     <>
       <div className="">
@@ -503,9 +443,7 @@ const PhotoEnhancer = observer(({
 
                       {animerList.map((val) => (
                         <div className={val.id === active ? 'carton-active' : 'cartoon-container'} tabIndex="0" onClick={() => processImage(val.id)} role="button" aria-hidden>
-                          <video className="carton-avatar" src={val.src} autoPlay="autoplay" muted="muted" loop="loop" style={{ margin: '5px' }}>
-                            <source src={val.src} type="video/mp4" />
-                          </video>
+                          <img src={val.src} className="carton-avatar"  style={{ margin: '5px' }} />
                         </div>
                       ))}
                     </Carousel>
