@@ -4,6 +4,7 @@ import { useDrag } from 'react-dnd';
 
 import PropTypes from '../../../lib/PropTypes';
 import { acceptedDraggableItems } from '../../../lib/constants/dragNDropConstants';
+import { UPGRADE_URL } from '../../../lib/constants/campaigns/constants';
 
 const Element = (props) => {
   const {
@@ -21,13 +22,14 @@ const Element = (props) => {
   const [, dragRef] = useDrag({
     item: { type: label, action },
   });
-
+  const imageClick = () => {
+    window.open(UPGRADE_URL, '_ blank')
+  }
   return (
     <button
       ref={acceptedDraggableItems.includes(label) ? dragRef : null}
       className="elements-panel-button"
-      disabled={disabled}
-      onClick={() => onClick(action)}
+      onClick={disabled ? imageClick :   () => onClick(action)}
       type="button"
     >
       <SVGInline
@@ -36,6 +38,7 @@ const Element = (props) => {
         svg={icon}
         cleanup={['title']}
       />
+      {disabled &&  <img className='pro-icon' src='/static/images/pro.png'/> }
       <span className="elements-panel-label">{label}</span>
     </button>
   );
