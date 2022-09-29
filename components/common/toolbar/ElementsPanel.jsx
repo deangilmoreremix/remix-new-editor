@@ -21,7 +21,7 @@ const ElementsPanel = observer(({ items }) => {
   } = useUIStore();
 
   const personalizationElements = useMemo(
-    () => items.filter(({ uiSection, }) => uiSection === SECTIONS.basic ),
+    () => items.filter(({ uiSection,adminElement }) => uiSection === SECTIONS.basic && !adminElement),
     [items]);
   const leadGenElements = useMemo(
     () => items.filter(({ uiSection, }) => uiSection === SECTIONS.leadGeneration
@@ -96,6 +96,7 @@ ElementsPanel.propTypes = {
     icon: PropTypes.string.isRequired,
     action: PropTypes.func.isRequired,
     disabled: PropTypes.boolean,
+    adminElement:PropTypes.boolean,
   })).isRequired,
 };
 

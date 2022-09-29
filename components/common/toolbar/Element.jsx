@@ -4,7 +4,6 @@ import { useDrag } from 'react-dnd';
 
 import PropTypes from '../../../lib/PropTypes';
 import { acceptedDraggableItems } from '../../../lib/constants/dragNDropConstants';
-import { UPGRADE_URL } from '../../../lib/constants/campaigns/constants';
 
 const Element = (props) => {
   const {
@@ -17,13 +16,14 @@ const Element = (props) => {
     icon,
     action,
     disabled,
+    upgradeLink
   } = item;
 
   const [, dragRef] = useDrag({
     item: { type: label, action },
   });
   const imageClick = () => {
-    window.open(UPGRADE_URL, '_ blank')
+    window.open(upgradeLink, '_ blank')
   }
   return (
     <div className='element-container'>

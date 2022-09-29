@@ -338,6 +338,10 @@ export default class UserStore {
     this.currentUser.features && this.currentUser.features[feature]
     && this.currentUser.features[feature].state === STATE.ENABLED);
 
+  upgradeLink = (feature) => this.isSuperAdmin || (
+    this.currentUser.features && this.currentUser.features[feature]
+    && this.currentUser.features[feature]?.link);
+    
   get accountDataArray() {
     return ({
       USERNAME: { label: 'Full Name', input: this.currentUser.fullName },
