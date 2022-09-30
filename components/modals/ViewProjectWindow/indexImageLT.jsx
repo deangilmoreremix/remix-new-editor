@@ -50,15 +50,15 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
   const addDataToCanvas = useCallback(async () => {
     try {
       let newData = JSON.parse(activeItem.project.data);
-      newData.media[0].tracks.reverse();
-      const firstElementType = newData.media[0].tracks[0].trackEvents[0].type;
+      const firstElementType = newData.media[0].target;
       const lastIndexOfTracks = newData.media[0].tracks.length - 1;
+      newData.media[0].tracks.reverse();
       newData = JSON.stringify(newData);
       activeItem.project.data = newData;
       await addData(activeItem, true);
       handleClose();
       toggleLeftBlock(false);
-      if(title == "connect form" &&  firstElementType == 'sequencer') {
+      if(title == "connect form" &&  firstElementType == 'video') {
         setTimeout(() => {
           moveElements(0,lastIndexOfTracks);
         }, 3000);
