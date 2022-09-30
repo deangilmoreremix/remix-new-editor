@@ -61,7 +61,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
       if(title == "connect form" &&  firstElementType == 'video') {
         setTimeout(() => {
           moveElements(0,lastIndexOfTracks);
-        }, 1000);
+        }, 2000);
       }
     } catch (e) {
       showError(e.message);
