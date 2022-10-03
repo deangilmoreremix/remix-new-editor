@@ -51,6 +51,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
     try {
       let newData = JSON.parse(activeItem.project.data);
       const firstElementType = newData.media[0].target;
+      const lastIndexOfTracks = newData.media[0].tracks.length - 1;
       newData.media[0].tracks.reverse();
       newData = JSON.stringify(newData);
       activeItem.project.data = newData;
@@ -59,8 +60,8 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
       toggleLeftBlock(false);
       if(title == "connect form" &&  firstElementType == 'video') {
         setTimeout(() => {
-          moveElements(0,2);
-        }, 1000);
+          moveElements(0,lastIndexOfTracks);
+        }, 2000);
       }
     } catch (e) {
       showError(e.message);
