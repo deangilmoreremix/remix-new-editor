@@ -10,6 +10,7 @@ export default class UserStore {
   constructor(currentUser = {}, request, hostname, isServer) {
     this.currentUser = currentUser;
     this.roles = null;
+    this.roleDetail = null;
     this.request = request;
     this.selfRequest = requestCreator(hostname, null, isServer, () => { });
     this.currentUser.cutoutproCreditUsed = 0;
@@ -54,6 +55,24 @@ export default class UserStore {
       throw e;
     }
   };
+
+  @action
+  getRoleDetails = async () => {
+    let response;
+    try {   
+      response = await this.request('/api/roles?filter={"_id":"633edfbbf8417d3c02352b3d"}', {
+        method:'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        }
+      })
+      this.roleDetail = response[0];
+    }
+    catch (e){
+      console.error(e);
+      throw e;
+    }
+  }
 
   @action
   setExternalApiKey = async () => {
@@ -132,6 +151,7 @@ export default class UserStore {
         },
       });
       this.roles = user.roles;
+      this.getRoleDetails();
     } catch (e) {
       console.log(e);
       throw e;
@@ -338,6 +358,10 @@ export default class UserStore {
     this.currentUser.features && this.currentUser.features[feature]
     && this.currentUser.features[feature].state === STATE.ENABLED);
 
+  upgradeLink = (feature) => this.isSuperAdmin || (
+    this.currentUser.features && this.currentUser.features[feature]
+    && this.currentUser.features[feature]?.link);
+    
   get accountDataArray() {
     return ({
       USERNAME: { label: 'Full Name', input: this.currentUser.fullName },
