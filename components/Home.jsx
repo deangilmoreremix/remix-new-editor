@@ -84,6 +84,8 @@ const Home = observer(() => {
     wrapperFeatureEnabled,
     textMaskEnabled,
     roles,
+    getRoleDetails,
+    roleDetail,
     currentUser,
 
     evolutionOverlayEnabled,
@@ -170,11 +172,13 @@ const Home = observer(() => {
       },
       project: {
         allowedSocials,
+        roleDetail,
         modified,
         optinCodeEnabled,
         videoUrl,
         userStore,
         releaseElement,
+        getRoleDetails,
         isSuperAdmin,
         isfeatureEnabled,
         upgradeLink,

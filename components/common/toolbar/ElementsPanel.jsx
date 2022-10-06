@@ -10,6 +10,7 @@ import Element from './Element';
 import AnimatedWindow from '../AnimatedWindow';
 import CloseButton from '../CloseButton';
 import { SECTIONS } from '../../../lib/constants/settings';
+import useUserStore from '../../hooks/useUserStore';
 
 const ElementsPanel = observer(({ items }) => {
   const {
@@ -19,7 +20,8 @@ const ElementsPanel = observer(({ items }) => {
     prevStateProduce,
     setPrevStateProduce,
   } = useUIStore();
-
+  const {getRoleDetails,roleDetail} = useUserStore();
+  getRoleDetails();
   const personalizationElements = useMemo(
     () => items.filter(({ uiSection,adminElement }) => uiSection === SECTIONS.basic && !adminElement),
     [items]);

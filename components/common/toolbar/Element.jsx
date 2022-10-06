@@ -4,6 +4,7 @@ import { useDrag } from 'react-dnd';
 
 import PropTypes from '../../../lib/PropTypes';
 import { acceptedDraggableItems } from '../../../lib/constants/dragNDropConstants';
+import useUserStore from '../../hooks/useUserStore';
 
 const Element = (props) => {
   const {
@@ -11,6 +12,7 @@ const Element = (props) => {
     onClick,
   } = props;
 
+  const { roleDetail } = useUserStore();
   const {
     label,
     icon,
@@ -23,7 +25,7 @@ const Element = (props) => {
     item: { type: label, action },
   });
   const imageClick = () => {
-    window.open(upgradeLink, '_ blank')
+    window.open(roleDetail?.upgradeLink, '_ blank')
   }
   return (
     <div className='element-container'>
