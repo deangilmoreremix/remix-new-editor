@@ -1,5 +1,5 @@
 /* eslint-disable no-var */
-import React, { useMemo,lazy } from 'react';
+import React, { useMemo,lazy,Suspense } from 'react';
 import { observer } from 'mobx-react';
 import useUserStore from '../../hooks/useUserStore';
 import Tabs from './Tabs';
@@ -53,6 +53,7 @@ const AdvancedImageEditor = observer(({
   return (
     <>
       <div>
+      <Suspense fallback={<div>Loading...</div>}>
         <div className="heading-container">
           <div style={{ display: 'contents' }}>
             <p>
@@ -192,6 +193,7 @@ const AdvancedImageEditor = observer(({
 
           </Tabs>
         </div>
+        </Suspense>
       </div>
     </>
   );
