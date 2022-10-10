@@ -250,19 +250,19 @@ const CartoonSelfie = observer(({
                       <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFull1.jpg" className="carton-avatar" alt="" />
                     </div> */}
                     <div role="button" onClick={() => ChangeAvatarImage(5)} className="imgS border-sel cartoon-container">
-                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar5.png" className="carton-avatar" alt="" />
-                    </div>
-                    <div role="button" onClick={() => ChangeAvatarImage(1)} className="imgS border-sel cartoon-container">
-                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar1.png" className="carton-avatar" alt="" />
-                    </div>
-                    <div role="button" onClick={() => ChangeAvatarImage(2)} className="imgS border-sel cartoon-container">
-                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar2.png" className="carton-avatar" alt="" />
-                    </div>
-                    <div role="button" onClick={() => ChangeAvatarImage(3)} className="imgS border-sel cartoon-container">
-                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar3.png" className="carton-avatar" alt="" />
+                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/1.jpg" className="carton-avatar" alt="" />
                     </div>
                     <div role="button" onClick={() => ChangeAvatarImage(4)} className="imgS border-sel cartoon-container">
-                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar4.png" className="carton-avatar" alt="" />
+                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/2.jpg" className="carton-avatar" alt="" />
+                    </div>
+                    <div role="button" onClick={() => ChangeAvatarImage(0)} className="imgS border-sel cartoon-container">
+                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/3.jpg" className="carton-avatar" alt="" />
+                    </div>
+                    <div role="button" onClick={() => ChangeAvatarImage(1)} className="imgS border-sel cartoon-container">
+                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/4.jpg" className="carton-avatar" alt="" />
+                    </div>
+                    <div role="button" onClick={() => ChangeAvatarImage(2)} className="imgS border-sel cartoon-container">
+                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/5.jpg" className="carton-avatar" alt="" />
                     </div>
                   </div>
 
