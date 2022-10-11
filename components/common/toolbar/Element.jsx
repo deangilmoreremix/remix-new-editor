@@ -4,7 +4,6 @@ import { useDrag } from 'react-dnd';
 
 import PropTypes from '../../../lib/PropTypes';
 import { acceptedDraggableItems } from '../../../lib/constants/dragNDropConstants';
-import useUserStore from '../../hooks/useUserStore';
 
 const Element = (props) => {
   const {
@@ -12,27 +11,23 @@ const Element = (props) => {
     onClick,
   } = props;
 
-  const { roleDetail } = useUserStore();
   const {
     label,
     icon,
     action,
     disabled,
-    upgradeLink
   } = item;
 
   const [, dragRef] = useDrag({
     item: { type: label, action },
   });
-  const imageClick = () => {
-    window.open(roleDetail?.upgradeLink, '_ blank')
-  }
+
   return (
-    <div className='element-container'>
     <button
       ref={acceptedDraggableItems.includes(label) ? dragRef : null}
       className="elements-panel-button"
-      onClick={disabled ? imageClick :   () => onClick(action)}
+      disabled={disabled}
+      onClick={() => onClick(action)}
       type="button"
     >
       <SVGInline
@@ -42,9 +37,7 @@ const Element = (props) => {
         cleanup={['title']}
       />
       <span className="elements-panel-label">{label}</span>
-      {disabled &&  <img className='pro-icon' src='/static/images/pro.png'/> }
     </button>
-    </div>
   );
 };
 
