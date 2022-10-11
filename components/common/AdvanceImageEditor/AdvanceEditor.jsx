@@ -1,16 +1,16 @@
 /* eslint-disable no-var */
-import React, { useMemo } from 'react';
+import React, { useMemo,lazy,Suspense } from 'react';
 import { observer } from 'mobx-react';
 import useUserStore from '../../hooks/useUserStore';
 import Tabs from './Tabs';
 import TabPane from './TabPane';
-import BackgroundRemoval from './BackgroundRemoval';
-import PhotoEnhancer from './PhotoEnhancer';
-import FaceCutOut from './FaceCutOut';
-import PhotoColorizer from './PhotoColorizer';
-import PhotoCorrection from './PhotoCorrection';
-import CartoonSelfie from './CartoonSelfie';
-import PassportMarker from './PassportMarker';
+const BackgroundRemoval = lazy(() => import("./BackgroundRemoval") );
+const PhotoEnhancer = lazy(() => import('./PhotoEnhancer'));
+const FaceCutOut = lazy(() => import('./FaceCutOut'));
+const PhotoColorizer = lazy(() => import('./PhotoColorizer'));
+const PhotoCorrection = lazy(() => import('./PhotoCorrection'));
+const CartoonSelfie = lazy(() => import('./CartoonSelfie'));
+const PassportMarker = lazy(() => import('./PassportMarker'));
 import RemoveBackgroundSvg from '../../../public/static/AdvanceImageSvg/removebackgorund.svg';
 import FaceCutOutSvg from '../../../public/static/AdvanceImageSvg/faceCutOut.svg';
 import SelfieSvg from '../../../public/static/AdvanceImageSvg/selfie.svg';
@@ -19,7 +19,7 @@ import ColorizerSvg from '../../../public/static/AdvanceImageSvg/smartColor.svg'
 import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
 import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
-import PhotoAnimer from './PhotoAnimer';
+const PhotoAnimer = lazy(() => import( './PhotoAnimer'));
 // import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 // import Retouch from './Retouch';
 // import { showError } from '../../../lib/services/alertService';
@@ -53,6 +53,7 @@ const AdvancedImageEditor = observer(({
   return (
     <>
       <div>
+      <Suspense fallback={<div>Loading...</div>}>
         <div className="heading-container">
           <div style={{ display: 'contents' }}>
             <p>
@@ -192,6 +193,7 @@ const AdvancedImageEditor = observer(({
 
           </Tabs>
         </div>
+        </Suspense>
       </div>
     </>
   );
