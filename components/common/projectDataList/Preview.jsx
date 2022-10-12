@@ -33,7 +33,7 @@ const Preview = observer(({ preview, activeItem, className, instantStart }) => {
 
   return (
     <div className={classnames('project-data-preview', className)} ref={wrapper} style={{ fontSize }}>
-      {preview && !isPlayed && !instantStart && <img src={preview} className="project-data-preview__img" alt="preview" />}
+      {preview && <img src={preview} className="project-data-preview__img" alt="preview" />}
       {instantStart ? (
         <div className="project-data-preview__unselect" />
       ) : (
