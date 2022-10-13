@@ -4,7 +4,7 @@ import classnames from 'classnames';
 
 import usePresetStore from '../../hooks/usePresetStore';
 
-import { DEFAULT_FONT_SIZE, DEFAULT_VIDEO_WIDTH } from '../../../lib/constants/project';
+import { DEFAULT_FONT_SIZE, DEFAULT_VIDEO_WIDTH, DEFAULT_THUMBNAIL } from '../../../lib/constants/project';
 import PropTypes from '../../../lib/PropTypes';
 
 const Preview = observer(({ preview, activeItem, className, instantStart }) => {
@@ -33,7 +33,7 @@ const Preview = observer(({ preview, activeItem, className, instantStart }) => {
 
   return (
     <div className={classnames('project-data-preview', className)} ref={wrapper} style={{ fontSize }}>
-      {preview && !isPlayed && !instantStart && <img src={preview} className="project-data-preview__img" alt="preview" />}
+      {preview && DEFAULT_THUMBNAIL !== preview && <img src={preview} className="project-data-preview__img" alt="preview" />}
       {instantStart ? (
         <div className="project-data-preview__unselect" />
       ) : (
