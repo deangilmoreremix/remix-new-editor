@@ -223,8 +223,6 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                 </div>
               </HelpIconComponent>
             </div>
-          </div>
-          <div className="container-menu__actions">
             <div className="container-menu__actions__item">
               <HelpIconComponent noDelay noIcon message={headerTooltips.undo}>
                 <div>
