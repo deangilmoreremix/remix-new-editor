@@ -24,6 +24,7 @@ import useProjectStore from './hooks/useProjectStore';
 import useCommonStore from './hooks/useCommonStore';
 import useUserStore from './hooks/useUserStore';
 import useUIStore from './hooks/useUIStore';
+import useMediaStore from './hooks/useMediaStore';
 
 import Sidebar from './Sidebar';
 
@@ -33,6 +34,7 @@ const {
   REDO,
   UNDO,
   SAVE,
+  SAVEASPUBLISH
 } = HEADER_ACTIONS;
 
 const MenuAppBar = observer(({ whiteLabelManager }) => {
@@ -68,10 +70,36 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       setUserItems(oneOfFeatureEnabled ? items : items.filter((i) => !i.isFeatureDependence));
     }
   }, []);
+  const saveProjectAsPublished = useCallback(async () => {
+    let value = '';
+    await updateItem({ published : true })
+    await getItemTitle({}).then((data) => {
+      value = data.title;
+    });
+
+    let verify_duplicate = 0;
+    let key = "togetherjs-session.status";
+    let sessionVal = sessionStorage.getItem(key);
+    if(!sessionVal) {
+      await verifyTitle({}).then((data) => {
+        for (let i = 0; i < data.result.length; i++) {
+          if (data.cur_item !== data.result[i]._id && data.result[i].title.toUpperCase() === value.toUpperCase()) {
+            verify_duplicate = 1;
+          }
+        }
+      });
+    }
+   
+    if (verify_duplicate === 0) {
+      checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
+    } else {
+      swal('Error', 'Project name already exists!', 'error');
+    }
+  },[setInitialView, showProducePanel])
 
   const saveProject = useCallback(async () => {
     let value = '';
-
+    await updateItem({ published :  false });
     await getItemTitle({}).then((data) => {
       value = data.title;
     });
@@ -196,7 +224,30 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               </HelpIconComponent>
             </div>
           </div>
-
+          <div className="container-menu__actions">
+            <div className="container-menu__actions__item">
+              <HelpIconComponent noDelay noIcon message={headerTooltips.undo}>
+                <div>
+                <SVGInline
+                    className={`icon icon-button ${modified ? 'active-save' : ''}`}
+                    classSuffix=""
+                    svg={saveIcon}
+                    cleanup={['title']}
+                    component="button"
+                    onClick={saveProjectAsPublished}
+                    disabled={!modified}
+                  />
+                  <button
+                    className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
+                    onClick={saveProjectAsPublished}
+                    disabled={!modified}
+                  >
+                    {SAVEASPUBLISH}
+                  </button>
+                </div>
+              </HelpIconComponent>
+            </div>
+          </div>
 
           <div className="container-menu__project-name">
             {isProjectTitle ? (
