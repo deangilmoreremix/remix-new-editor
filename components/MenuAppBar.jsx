@@ -205,18 +205,18 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               <HelpIconComponent noDelay noIcon message={headerTooltips.save}>
                 <div>
                   <SVGInline
-                    className={`icon icon-button ${modified ? 'active-save' : ''}`}
+                    className={`icon icon-button active-save`}
                     classSuffix=""
                     svg={saveIcon}
                     cleanup={['title']}
                     component="button"
                     onClick={saveProject}
-                    disabled={!modified}
+                    disabled={false}
                   />
                   <button
-                    className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
+                    className={`icon-button container-menu__button-text active-save`}
                     onClick={saveProject}
-                    disabled={!modified}
+                    disabled={false}
                   >
                     {SAVE}
                   </button>
