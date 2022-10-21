@@ -1685,6 +1685,10 @@ export default class ProjectStore extends BaseStore {
     afterSave,
   }) => {
     try {
+      let confirmMessage = "Project will be saved as a publish";
+      if(!this.item.published) {
+         confirmMessage = "Project will be saved as a draft";
+      }
       const errors = validateBeforeSave(this.item);
       if (errors) {
         switch (true) {
@@ -1722,7 +1726,7 @@ export default class ProjectStore extends BaseStore {
           );
           setInitialView();
         }
-      } else if (await showConfirmation('Project will be saved')) {
+      } else if (await showConfirmation(confirmMessage)) {
         closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
