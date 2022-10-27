@@ -235,12 +235,12 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                     cleanup={['title']}
                     component="button"
                     onClick={saveProjectAsPublished}
-                    disabled={!modified}
+                    disabled={false}
                   />
                   <button
                     className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
                     onClick={saveProjectAsPublished}
-                    disabled={!modified}
+                    disabled={false}
                   >
                     {SAVEASPUBLISH}
                   </button>
