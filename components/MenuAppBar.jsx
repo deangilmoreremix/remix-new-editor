@@ -229,7 +229,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               <HelpIconComponent noDelay noIcon message={headerTooltips.publish}>
                 <div>
                 <SVGInline
-                    className={`icon icon-button ${modified ? 'active-save' : ''}`}
+                    className={`icon icon-button active-save`}
                     classSuffix=""
                     svg={publishIcon}
                     cleanup={['title']}
@@ -238,7 +238,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                     disabled={false}
                   />
                   <button
-                    className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
+                    className={`icon-button container-menu__button-text active-save`}
                     onClick={saveProjectAsPublished}
                     disabled={false}
                   >
