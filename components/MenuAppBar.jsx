@@ -204,7 +204,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               </HelpIconComponent>
             </div>
             <div className="container-menu__actions__item">
-              <HelpIconComponent noDelay noIcon message={headerTooltips.save}>
+              <HelpIconComponent noDelay noIcon message={headerTooltips.draft}>
                 <div>
                   <SVGInline
                     className={`icon icon-button active-save`}
@@ -226,7 +226,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               </HelpIconComponent>
             </div>
             <div className="container-menu__actions__item">
-              <HelpIconComponent noDelay noIcon message={headerTooltips.undo}>
+              <HelpIconComponent noDelay noIcon message={headerTooltips.publish}>
                 <div>
                 <SVGInline
                     className={`icon icon-button ${modified ? 'active-save' : ''}`}

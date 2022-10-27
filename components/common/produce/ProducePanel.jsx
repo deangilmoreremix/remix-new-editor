@@ -12,7 +12,7 @@ import HelpIconComponent from '../HelpIcon';
 const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const [isCopied, showIsCopied] = React.useState(false);
   const { item } = useProjectStore();
-  const onCLick = (action, isActive, errorMessage, url, published, copiedTooltip) => {
+  const onCLick = (action, isActive, errorMessage, url, copiedTooltip) => {
     if(!item.published) {
       showInfo('Please Publish a project!');
      return false;
