@@ -226,6 +226,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable isLoadingSequencer = false;
 
+  @observable isPublished = false;
+
   @observable projectData = {};
 
   @observable undoStore = [];
@@ -288,6 +290,11 @@ export default class ProjectStore extends BaseStore {
   setIsRedirect = (value = false) => {
     this.isRedirect = value;
   };
+
+  @action 
+  setIsPublished = (value =  false) => {
+    this.isPublished =  value;
+  }
 
   @action
   undoRedoAction = (undo = true) => {
@@ -1588,6 +1595,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   save = async () => {
+    this.item.published = this.isPublished;
     if (!this.modified) {
       return;
     }
@@ -1685,9 +1693,9 @@ export default class ProjectStore extends BaseStore {
     afterSave,
   }) => {
     try {
-      let confirmMessage = "Project will be saved as a publish";
+      let confirmMessage = "Project will be saved as a draft";
       if(!this.item.published) {
-         confirmMessage = "Project will be saved as a draft";
+         confirmMessage = "Project will be saved as a publish";
       }
       const errors = validateBeforeSave(this.item);
       if (errors) {
