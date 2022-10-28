@@ -281,6 +281,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable success = null;
 
+  @observable saveButton = null;
+
   @action
   setVoiceTextId = (id = this.activeElementId) => {
     this.voiceTextId = id;
@@ -1596,9 +1598,10 @@ export default class ProjectStore extends BaseStore {
   @action
   save = async () => {
     this.item.published = this.isPublished;
-    if (!this.modified) {
-      return;
-    }
+    //Commented to implement draft
+    // if (!this.modified) {
+    //   return;
+    // }
     this.undoStore = [];
     this.redoStore = [];
     this.isLoading = true;
@@ -1693,10 +1696,6 @@ export default class ProjectStore extends BaseStore {
     afterSave,
   }) => {
     try {
-      let confirmMessage = "Project will be saved as a draft";
-      if(!this.item.published) {
-         confirmMessage = "Project will be saved as a publish";
-      }
       const errors = validateBeforeSave(this.item);
       if (errors) {
         switch (true) {
@@ -1734,7 +1733,7 @@ export default class ProjectStore extends BaseStore {
           );
           setInitialView();
         }
-      } else if (await showConfirmation(confirmMessage)) {
+      } else if (await showConfirmation(`Project will be saved as a ${this.saveButton}`)) {
         closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
@@ -1759,6 +1758,11 @@ export default class ProjectStore extends BaseStore {
     } catch (e) {
       showError(e.message);
     }
+  }
+
+  @action 
+  setButtonType = (value) => {
+    this.saveButton = value;
   }
 
   @action

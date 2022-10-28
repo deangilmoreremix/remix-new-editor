@@ -57,7 +57,8 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     updateItem,
     verifyTitle,
     getItemTitle,
-    setIsPublished
+    setIsPublished,
+    setButtonType
   } = useProjectStore();
 
   const common = useCommonStore();
@@ -89,6 +90,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   const saveProjectAsPublished = useCallback(async () => {
     let value = '';
     await setIsPublished(true);
+    await setButtonType('publish');
     await getItemTitle({}).then((data) => {
       value = data.title;
     });
@@ -116,6 +118,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   const saveProject = useCallback(async () => {
     let value = '';
     await setIsPublished(false);
+    await setButtonType('draft')
     await getItemTitle({}).then((data) => {
       value = data.title;
     });
