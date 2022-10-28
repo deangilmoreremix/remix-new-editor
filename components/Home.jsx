@@ -147,6 +147,7 @@ const Home = observer(() => {
     destroyCombinedItem,
     popcorn,
     item,
+    setButtonType
   } = projectStore;
 
   const toolbarContent = React.useMemo(() => {
@@ -314,6 +315,7 @@ const Home = observer(() => {
         case twoKeys.ctrlS:
         case twoKeys.commandS:
           event.preventDefault();
+          setButtonType('draft');
           checkAndSave({
             changeRadioButton,
             showProducePanel,

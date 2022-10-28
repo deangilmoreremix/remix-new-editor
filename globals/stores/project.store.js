@@ -226,6 +226,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable isLoadingSequencer = false;
 
+  @observable isPublished = false;
+
   @observable projectData = {};
 
   @observable undoStore = [];
@@ -279,6 +281,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable success = null;
 
+  @observable saveButton = null;
+
   @action
   setVoiceTextId = (id = this.activeElementId) => {
     this.voiceTextId = id;
@@ -288,6 +292,11 @@ export default class ProjectStore extends BaseStore {
   setIsRedirect = (value = false) => {
     this.isRedirect = value;
   };
+
+  @action 
+  setIsPublished = (value =  false) => {
+    this.isPublished =  value;
+  }
 
   @action
   undoRedoAction = (undo = true) => {
@@ -1588,9 +1597,11 @@ export default class ProjectStore extends BaseStore {
 
   @action
   save = async () => {
-    if (!this.modified) {
-      return;
-    }
+    this.item.published = this.isPublished;
+    //Commented to implement draft
+    // if (!this.modified) {
+    //   return;
+    // }
     this.undoStore = [];
     this.redoStore = [];
     this.isLoading = true;
@@ -1722,7 +1733,7 @@ export default class ProjectStore extends BaseStore {
           );
           setInitialView();
         }
-      } else if (await showConfirmation('Project will be saved')) {
+      } else if (await showConfirmation(`Project will be saved as a ${this.saveButton}`)) {
         closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
@@ -1747,6 +1758,11 @@ export default class ProjectStore extends BaseStore {
     } catch (e) {
       showError(e.message);
     }
+  }
+
+  @action 
+  setButtonType = (value) => {
+    this.saveButton = value;
   }
 
   @action
