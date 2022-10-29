@@ -139,6 +139,23 @@ export default class UserStore {
   };
 
   @action
+  getUpgradeLinkRole = async (title) => {
+    let roles;
+    try {
+      roles = await this.request(`/api/roles?filter={"features.${title}.link":{"$exists":true}}`, {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      return roles[0].features[title].link;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
   getActiveSubscription = async () => {
     try {
       return await this.request('/api/users/me/active-subscriptions', {
