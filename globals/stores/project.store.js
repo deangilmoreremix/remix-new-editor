@@ -281,7 +281,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable success = null;
 
-  @observable saveButton = null;
+  @observable saveButton = "";
 
   @action
   setVoiceTextId = (id = this.activeElementId) => {
