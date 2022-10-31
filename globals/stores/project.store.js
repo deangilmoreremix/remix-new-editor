@@ -281,7 +281,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable success = null;
 
-  @observable saveButton = null;
+  @observable saveButton = "";
 
   @action
   setVoiceTextId = (id = this.activeElementId) => {
@@ -1733,7 +1733,7 @@ export default class ProjectStore extends BaseStore {
           );
           setInitialView();
         }
-      } else if (await showConfirmation(`Project will be saved as a ${this.saveButton}`)) {
+      } else if (await showConfirmation(`Project will be saved ${this.saveButton}`)) {
         closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
