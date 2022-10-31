@@ -507,6 +507,11 @@ export default class UserStore {
   }
 
   @computed
+  get publishEnabled() {
+    return this.isfeatureEnabled(FEATURES.PROJECT_PUBLISHING);
+  }
+
+  @computed
   get clickToPhoneCall() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL);
   }

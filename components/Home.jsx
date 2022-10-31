@@ -315,7 +315,7 @@ const Home = observer(() => {
         case twoKeys.ctrlS:
         case twoKeys.commandS:
           event.preventDefault();
-          setButtonType('draft');
+          setButtonType('as a draft');
           checkAndSave({
             changeRadioButton,
             showProducePanel,
