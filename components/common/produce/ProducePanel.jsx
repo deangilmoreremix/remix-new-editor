@@ -6,7 +6,7 @@ import useProjectStore from '../../hooks/useProjectStore';
 
 import PropTypes from '../../../lib/PropTypes';
 
-import { showInfo } from '../../../lib/services/alertService';
+import { showInfo, showNotice } from '../../../lib/services/alertService';
 import HelpIconComponent from '../HelpIcon';
 
 const ProducePanel = observer(({ items, tab, setActiveTab }) => {
@@ -14,7 +14,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const { item } = useProjectStore();
   const onCLick = (action, isActive, errorMessage, url, copiedTooltip) => {
     if(!item.published) {
-      showInfo('Please Publish a project!');
+      showNotice('Please Publish the project first!');
      return false;
     }
     if (url && !isActive) {

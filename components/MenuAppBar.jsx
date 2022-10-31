@@ -92,7 +92,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     let value = '';
     await setIsPublished(true);
     if(publishEnabled) {
-      await setButtonType('as a publish');
+      await setButtonType('Project will now be Published');
     } 
     await getItemTitle({}).then((data) => {
       value = data.title;
@@ -121,7 +121,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   const saveProjectAsDraft = useCallback(async () => {
     let value = '';
     await setIsPublished(false);
-    await setButtonType('as a draft')
+    await setButtonType('Project should be saved as Draft')
     await getItemTitle({}).then((data) => {
       value = data.title;
     });
