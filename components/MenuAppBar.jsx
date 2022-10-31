@@ -36,6 +36,7 @@ const {
   REDO,
   UNDO,
   SAVE,
+  DRAFT,
   SAVEASPUBLISH
 } = HEADER_ACTIONS;
 
@@ -62,7 +63,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   } = useProjectStore();
 
   const common = useCommonStore();
-  const { oneOfFeatureEnabled } = useUserStore();
+  const { oneOfFeatureEnabled, publishEnabled } = useUserStore();
   const {
     showProducePanel,
     setInitialView,
@@ -87,10 +88,12 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       setUserItems(oneOfFeatureEnabled ? items : items.filter((i) => !i.isFeatureDependence));
     }
   }, []);
-  const saveProjectAsPublished = useCallback(async () => {
+  const saveProject = useCallback(async () => {
     let value = '';
     await setIsPublished(true);
-    await setButtonType('publish');
+    if(publishEnabled) {
+      await setButtonType('as a publish');
+    } 
     await getItemTitle({}).then((data) => {
       value = data.title;
     });
@@ -115,10 +118,10 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     }
   },[setInitialView, showProducePanel])
 
-  const saveProject = useCallback(async () => {
+  const saveProjectAsDraft = useCallback(async () => {
     let value = '';
     await setIsPublished(false);
-    await setButtonType('draft')
+    await setButtonType('as a draft')
     await getItemTitle({}).then((data) => {
       value = data.title;
     });
@@ -175,7 +178,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
           </div>
 
 
-          <div className="container-menu__actions">
+          <div className={publishEnabled ? "container-menu__publishedactions" : "container-menu__saveactions"}>
             <div className="container-menu__actions__item">
               <HelpIconComponent noDelay noIcon message={headerTooltips.undo}>
                 <div>
@@ -220,7 +223,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                 </div>
               </HelpIconComponent>
             </div>
-            <div className="container-menu__actions__item">
+            {publishEnabled && <div className="container-menu__actions__item">
               <HelpIconComponent noDelay noIcon message={headerTooltips.draft}>
                 <div>
                   <SVGInline
@@ -229,20 +232,20 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                     svg={saveIcon}
                     cleanup={['title']}
                     component="button"
-                    onClick={saveProject}
+                    onClick={saveProjectAsDraft}
                     disabled={disabledDraft}
                   />
                   <button
                     className={`icon-button container-menu__button-text ${!disabledDraft ? 'active-save' : ''}`}
-                    onClick={saveProject}
+                    onClick={saveProjectAsDraft}
                     disabled={disabledDraft}
                   >
-                    {SAVE}
+                    {DRAFT}
                   </button>
                 </div>
               </HelpIconComponent>
-            </div>
-            <div className="container-menu__actions__item">
+            </div>}
+            {publishEnabled &&  <div className="container-menu__actions__item">
               <HelpIconComponent noDelay noIcon message={headerTooltips.publish}>
                 <div>
                 <SVGInline
@@ -251,19 +254,43 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                     svg={publishIcon}
                     cleanup={['title']}
                     component="button"
-                    onClick={saveProjectAsPublished}
+                    onClick={saveProject}
                     disabled={disabledPublish}
                   />
                   <button
                     className={`icon-button container-menu__button-text ${!disabledPublish ? 'active-save' : ''}`}
-                    onClick={saveProjectAsPublished}
+                    onClick={saveProject}
                     disabled={disabledPublish}
                   >
                     {SAVEASPUBLISH}
                   </button>
                 </div>
               </HelpIconComponent>
+            </div>}
+            {
+              !publishEnabled && <div className="container-menu__actions__item">
+              <HelpIconComponent noDelay noIcon message={headerTooltips.save}>
+                <div>
+                  <SVGInline
+                    className={`icon icon-button ${modified ? 'active-save' : ''}`}
+                    classSuffix=""
+                    svg={saveIcon}
+                    cleanup={['title']}
+                    component="button"
+                    onClick={saveProject}
+                    disabled={!modified}
+                  />
+                  <button
+                    className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
+                    onClick={saveProject}
+                    disabled={!modified}
+                  >
+                    {SAVE}
+                  </button>
+                </div>
+              </HelpIconComponent>
             </div>
+            }
           </div>
 
           <div className="container-menu__project-name">

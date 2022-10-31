@@ -236,7 +236,18 @@
       }
     }
 
-    &__actions {
+    &__saveactions {
+      width: 150px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      &__item {
+        position: relative;
+      }
+    }
+
+    &__publishedactions {
       width: 230px;
       display: flex;
       justify-content: space-between;
