@@ -223,6 +223,28 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                 </div>
               </HelpIconComponent>
             </div>
+            <div className="container-menu__actions__item">
+              <HelpIconComponent noDelay noIcon message={headerTooltips.save}>
+                <div>
+                  <SVGInline
+                    className={`icon icon-button ${modified ? 'active-save' : ''}`}
+                    classSuffix=""
+                    svg={saveIcon}
+                    cleanup={['title']}
+                    component="button"
+                    onClick={item.published == false ? saveProjectAsDraft :  saveProject}
+                    disabled={!modified}
+                  />
+                  <button
+                    className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
+                    onClick={item.published == false ? saveProjectAsDraft :  saveProject}
+                    disabled={!modified}
+                  >
+                    {SAVE}
+                  </button>
+                </div>
+              </HelpIconComponent>
+            </div>
             {publishEnabled && <div className="container-menu__actions__item">
               <HelpIconComponent noDelay noIcon message={headerTooltips.draft}>
                 <div>
@@ -267,30 +289,6 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                 </div>
               </HelpIconComponent>
             </div>}
-            {
-              !publishEnabled && <div className="container-menu__actions__item">
-              <HelpIconComponent noDelay noIcon message={headerTooltips.save}>
-                <div>
-                  <SVGInline
-                    className={`icon icon-button ${modified ? 'active-save' : ''}`}
-                    classSuffix=""
-                    svg={saveIcon}
-                    cleanup={['title']}
-                    component="button"
-                    onClick={saveProject}
-                    disabled={!modified}
-                  />
-                  <button
-                    className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
-                    onClick={saveProject}
-                    disabled={!modified}
-                  >
-                    {SAVE}
-                  </button>
-                </div>
-              </HelpIconComponent>
-            </div>
-            }
           </div>
 
           <div className="container-menu__project-name">
