@@ -237,7 +237,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                   />
                   <button
                     className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
-                    onClick={saveProject}
+                    onClick={item.published == false ? saveProjectAsDraft :  saveProject}
                     disabled={!modified}
                   >
                     {SAVE}
