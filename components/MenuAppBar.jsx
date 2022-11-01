@@ -91,9 +91,9 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   const saveProject = useCallback(async () => {
     let value = '';
     await setIsPublished(true);
-    if(publishEnabled) {
-      await setButtonType('Project will now be Published');
-    } 
+    
+    await setButtonType('Project will now be Published');
+     
     await getItemTitle({}).then((data) => {
       value = data.title;
     });
@@ -232,12 +232,12 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                     svg={saveIcon}
                     cleanup={['title']}
                     component="button"
-                    onClick={item.published == false ? saveProjectAsDraft : saveProject}
+                    onClick={item.published == false && publishEnabled ? saveProjectAsDraft : saveProject}
                     disabled={!modified}
                   />
                   <button
                     className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
-                    onClick={item.published == false ? saveProjectAsDraft :  saveProject}
+                    onClick={item.published == false && publishEnabled ? saveProjectAsDraft :  saveProject}
                     disabled={!modified}
                   >
                     {SAVE}

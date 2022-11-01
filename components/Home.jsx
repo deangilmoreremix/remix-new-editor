@@ -84,7 +84,7 @@ const Home = observer(() => {
     textMaskEnabled,
     roles,
     currentUser,
-
+    publishEnabled,
     evolutionOverlayEnabled,
     evolutionPresetEnabled,
     evolutionBlendModeEnabled,
@@ -315,7 +315,10 @@ const Home = observer(() => {
         case twoKeys.ctrlS:
         case twoKeys.commandS:
           event.preventDefault();
-          setButtonType('as a draft');
+          setButtonType('Project will now be Published');
+          if(item.published == false && publishEnabled) {
+             setButtonType('Project should be saved as Draft');
+          }
           checkAndSave({
             changeRadioButton,
             showProducePanel,
