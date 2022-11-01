@@ -14,7 +14,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const { item } = useProjectStore();
   const onCLick = (action, isActive, errorMessage, url, copiedTooltip) => {
     if(!item.published) {
-      showNotice('Please Publish the project first!');
+      showNotice('Please Publish the project first!!');
      return false;
     }
     if (url && !isActive) {
