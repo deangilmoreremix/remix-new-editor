@@ -3,6 +3,7 @@ import SVGInline from 'react-svg-inline';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import useProjectStore from '../../hooks/useProjectStore';
+import useUserStore from '../../hooks/useUserStore';
 
 import PropTypes from '../../../lib/PropTypes';
 
@@ -12,10 +13,12 @@ import HelpIconComponent from '../HelpIcon';
 const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const [isCopied, showIsCopied] = React.useState(false);
   const { item } = useProjectStore();
+  const { publishEnabled } = useUserStore();
+  
   const onCLick = (action, isActive, errorMessage, url, copiedTooltip) => {
-    if(!item.published) {
-      showNotice('Please Publish the project first!!');
-     return false;
+    if(publishEnabled && !item.published) {
+      showNotice('Please publish the project first!!');
+      return false;
     }
     if (url && !isActive) {
       showInfo(errorMessage);
