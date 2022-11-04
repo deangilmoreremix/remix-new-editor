@@ -226,7 +226,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable isLoadingSequencer = false;
 
-  @observable isPublished = false;
+  @observable isPublished = true;
 
   @observable projectData = {};
 
