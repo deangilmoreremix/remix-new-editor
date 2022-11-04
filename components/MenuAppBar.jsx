@@ -18,6 +18,7 @@ import logoIcon from '../public/static/svgImages/header/logo.svg';
 import redoIcon from '../public/static/svgImages/header/redo.svg';
 import undoIcon from '../public/static/svgImages/header/undo.svg';
 import saveIcon from '../public/static/svgImages/header/save.svg';
+import draftIcon from '../public/static/svgImages/header/draft-icon.svg';
 
 import publishIcon from '../public/static/svgImages/header/published-icon.svg';
 import editIcon from '../public/static/svgImages/header/edit-project.svg';
@@ -90,6 +91,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   }, []);
   const saveProject = useCallback(async () => {
     let value = '';
+    await setButtonType("");
     await setIsPublished(true);
     await getItemTitle({}).then((data) => {
       value = data.title;
@@ -276,7 +278,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                   <SVGInline
                     className={`icon icon-button ${!disabledDraft ? 'active-save' : ''}`}
                     classSuffix=""
-                    svg={saveIcon}
+                    svg={draftIcon}
                     cleanup={['title']}
                     component="button"
                     onClick={saveProjectAsDraft}
