@@ -226,7 +226,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable isLoadingSequencer = false;
 
-  @observable isPublished = false;
+  @observable isPublished = true;
 
   @observable projectData = {};
 
@@ -281,7 +281,7 @@ export default class ProjectStore extends BaseStore {
 
   @observable success = null;
 
-  @observable saveButton = null;
+  @observable saveButton = "";
 
   @action
   setVoiceTextId = (id = this.activeElementId) => {
@@ -1733,7 +1733,28 @@ export default class ProjectStore extends BaseStore {
           );
           setInitialView();
         }
-      } else if (await showConfirmation(`Project will be saved as a ${this.saveButton}`)) {
+      } else if (this.saveButton == "") {
+        closeAllWindows();
+        const project = await this.save();
+        if (!this.modified) {
+          if (actionType === ACTION_MAKE_COPY) {
+            afterSave(`/edit?remix=${this.item._id}`);
+          }
+          if (actionType === ACTION_WATCH_VIDEO) {
+            afterSave(this.item.url);
+          }
+        }
+        if (project && project._id) {
+          Router.push(
+            {
+              pathname: ROUTES.edit,
+              query: {
+                project: project._id,
+              },
+            }),
+          setInitialView();
+        }
+      } else if (await showConfirmation(`${this.saveButton}`)) {
         closeAllWindows();
         const project = await this.save();
         if (!this.modified) {

@@ -8,7 +8,7 @@
     .published-icon{fill:#999999;}
   </style>
 <g transform="translate(0.000000,256.000000) scale(0.100000,-0.100000)"
-fill="#FFFFFF" stroke="white">
+fill="#999999" stroke="white">
 <path class="published-icon-0" d="M1750 2255 l-195 -195 75 -75 74 -75 66 65 c36 36 68 65 70 65 3 0 4
 -108 2 -240 l-3 -240 111 0 110 0 0 242 0 242 68 -67 68 -67 74 75 75 75 -195
 195 c-107 107 -197 195 -200 195 -3 0 -93 -88 -200 -195z"/>

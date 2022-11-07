@@ -18,6 +18,7 @@ import logoIcon from '../public/static/svgImages/header/logo.svg';
 import redoIcon from '../public/static/svgImages/header/redo.svg';
 import undoIcon from '../public/static/svgImages/header/undo.svg';
 import saveIcon from '../public/static/svgImages/header/save.svg';
+import draftIcon from '../public/static/svgImages/header/draft-icon.svg';
 
 import publishIcon from '../public/static/svgImages/header/published-icon.svg';
 import editIcon from '../public/static/svgImages/header/edit-project.svg';
@@ -36,6 +37,7 @@ const {
   REDO,
   UNDO,
   SAVE,
+  DRAFT,
   SAVEASPUBLISH
 } = HEADER_ACTIONS;
 
@@ -58,11 +60,12 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     verifyTitle,
     getItemTitle,
     setIsPublished,
+    isPublished,
     setButtonType
   } = useProjectStore();
 
   const common = useCommonStore();
-  const { oneOfFeatureEnabled } = useUserStore();
+  const { oneOfFeatureEnabled, publishEnabled } = useUserStore();
   const {
     showProducePanel,
     setInitialView,
@@ -87,10 +90,15 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       setUserItems(oneOfFeatureEnabled ? items : items.filter((i) => !i.isFeatureDependence));
     }
   }, []);
-  const saveProjectAsPublished = useCallback(async () => {
+  const saveProject = useCallback(async () => {
     let value = '';
-    await setIsPublished(true);
-    await setButtonType('publish');
+    await setButtonType("");
+    if(!publishEnabled) {
+      await setButtonType("Project will be saved");
+    }
+    if(!isPublished) {
+      await setIsPublished(false);
+    }
     await getItemTitle({}).then((data) => {
       value = data.title;
     });
@@ -115,10 +123,38 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     }
   },[setInitialView, showProducePanel])
 
-  const saveProject = useCallback(async () => {
+  const saveProjectAsPublished = useCallback(async () => {
+    let value = '';
+    await setIsPublished(true);
+    await setButtonType('Project will now be Published');
+    await getItemTitle({}).then((data) => {
+      value = data.title;
+    });
+
+    let verify_duplicate = 0;
+    let key = "togetherjs-session.status";
+    let sessionVal = sessionStorage.getItem(key);
+    if(!sessionVal) {
+      await verifyTitle({}).then((data) => {
+        for (let i = 0; i < data.result.length; i++) {
+          if (data.cur_item !== data.result[i]._id && data.result[i].title.toUpperCase() === value.toUpperCase()) {
+            verify_duplicate = 1;
+          }
+        }
+      });
+    }
+   
+    if (verify_duplicate === 0) {
+      checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
+    } else {
+      swal('Error', 'Project name already exists!', 'error');
+    }
+  },[setInitialView, showProducePanel])
+
+  const saveProjectAsDraft = useCallback(async () => {
     let value = '';
     await setIsPublished(false);
-    await setButtonType('draft')
+    await setButtonType('Project should be saved as Draft');
     await getItemTitle({}).then((data) => {
       value = data.title;
     });
@@ -175,7 +211,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
           </div>
 
 
-          <div className="container-menu__actions">
+          <div className={publishEnabled ? "container-menu__publishedactions" : "container-menu__saveactions"}>
             <div className="container-menu__actions__item">
               <HelpIconComponent noDelay noIcon message={headerTooltips.undo}>
                 <div>
@@ -221,28 +257,50 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               </HelpIconComponent>
             </div>
             <div className="container-menu__actions__item">
-              <HelpIconComponent noDelay noIcon message={headerTooltips.draft}>
+              <HelpIconComponent noDelay noIcon message={headerTooltips.save}>
                 <div>
                   <SVGInline
-                    className={`icon icon-button ${!disabledDraft ? 'active-save' : ''}`}
+                    className={`icon icon-button ${modified ? 'active-save' : ''}`}
                     classSuffix=""
                     svg={saveIcon}
                     cleanup={['title']}
                     component="button"
                     onClick={saveProject}
-                    disabled={disabledDraft}
+                    disabled={!modified}
                   />
                   <button
-                    className={`icon-button container-menu__button-text ${!disabledDraft ? 'active-save' : ''}`}
+                    className={`icon-button container-menu__button-text ${modified ? 'active-save' : ''}`}
                     onClick={saveProject}
-                    disabled={disabledDraft}
+                    disabled={!modified}
                   >
                     {SAVE}
                   </button>
                 </div>
               </HelpIconComponent>
             </div>
-            <div className="container-menu__actions__item">
+            {publishEnabled && <div className="container-menu__actions__item">
+              <HelpIconComponent noDelay noIcon message={headerTooltips.draft}>
+                <div>
+                  <SVGInline
+                    className={`icon icon-button ${!disabledDraft ? 'active-save' : ''}`}
+                    classSuffix=""
+                    svg={draftIcon}
+                    cleanup={['title']}
+                    component="button"
+                    onClick={saveProjectAsDraft}
+                    disabled={disabledDraft}
+                  />
+                  <button
+                    className={`icon-button container-menu__button-text ${!disabledDraft ? 'active-save' : ''}`}
+                    onClick={saveProjectAsDraft}
+                    disabled={disabledDraft}
+                  >
+                    {DRAFT}
+                  </button>
+                </div>
+              </HelpIconComponent>
+            </div>}
+            {publishEnabled &&  <div className="container-menu__actions__item">
               <HelpIconComponent noDelay noIcon message={headerTooltips.publish}>
                 <div>
                 <SVGInline
@@ -263,7 +321,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                   </button>
                 </div>
               </HelpIconComponent>
-            </div>
+            </div>}
           </div>
 
           <div className="container-menu__project-name">

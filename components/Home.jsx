@@ -84,7 +84,7 @@ const Home = observer(() => {
     textMaskEnabled,
     roles,
     currentUser,
-
+    publishEnabled,
     evolutionOverlayEnabled,
     evolutionPresetEnabled,
     evolutionBlendModeEnabled,
@@ -315,7 +315,6 @@ const Home = observer(() => {
         case twoKeys.ctrlS:
         case twoKeys.commandS:
           event.preventDefault();
-          setButtonType('draft');
           checkAndSave({
             changeRadioButton,
             showProducePanel,

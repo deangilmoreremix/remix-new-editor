@@ -236,8 +236,19 @@
       }
     }
 
-    &__actions {
-      width: 230px;
+    &__saveactions {
+      width: 150px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      &__item {
+        position: relative;
+      }
+    }
+
+    &__publishedactions {
+      width: 248px;
       display: flex;
       justify-content: space-between;
       align-items: center;
