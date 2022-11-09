@@ -139,16 +139,16 @@ export default class UserStore {
   };
 
   @action
-  getUpgradeLinkRole = async (title) => {
+  getUpgradeLinkRole = async () => {
     let roles;
     try {
-      roles = await this.request(`/api/roles?filter={"features.${title}.link":{"$exists":true}}`, {
+      roles = await this.request(`/api/roles?filter={"name":"${this.roles[0].name}"}`, {
         method: 'GET',
         headers: {
           'on-behalf': this.currentUser.id,
         },
       });
-      return roles[0].features[title].link;
+      return roles[0].upgradeLink;
     } catch (e) {
       console.log(e);
       throw e;

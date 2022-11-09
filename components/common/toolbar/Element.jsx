@@ -2,7 +2,6 @@ import React from 'react';
 import SVGInline from 'react-svg-inline';
 import { useDrag } from 'react-dnd';
 import useUserStore from '../../hooks/useUserStore';
-import { FEATURES } from '../../../lib/constants/campaigns/constants';
 
 import PropTypes from '../../../lib/PropTypes';
 import { acceptedDraggableItems } from '../../../lib/constants/dragNDropConstants';
@@ -15,9 +14,8 @@ const Element = (props) => {
   } = props;
 
   const {
-    getUpgradeLinkRole
+    getUpgradeLinkRole,
   } = userStore;
-
   const {
     label,
     icon,
@@ -30,8 +28,7 @@ const Element = (props) => {
   });
 
   const imageClick =  async () => {
-    const featureDetails = await FEATURES.find(ele => ele.label == item.label);
-    const tempUpgradeLink = await getUpgradeLinkRole(featureDetails.name);
+    const tempUpgradeLink = await getUpgradeLinkRole();
     await window.open(tempUpgradeLink, '_blank')
   }
 
