@@ -60,6 +60,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     verifyTitle,
     getItemTitle,
     setIsPublished,
+    isPublished,
     setButtonType
   } = useProjectStore();
 
@@ -94,6 +95,9 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     await setButtonType("");
     if(!publishEnabled) {
       await setButtonType("Project will be saved");
+    }
+    if(!isPublished) {
+      await setIsPublished(false);
     }
     await getItemTitle({}).then((data) => {
       value = data.title;
