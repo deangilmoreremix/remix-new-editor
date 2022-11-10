@@ -2,15 +2,24 @@ import * as React from 'react';
 import SVGInline from 'react-svg-inline';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
+import useProjectStore from '../../hooks/useProjectStore';
+import useUserStore from '../../hooks/useUserStore';
 
 import PropTypes from '../../../lib/PropTypes';
 
-import { showInfo } from '../../../lib/services/alertService';
+import { showInfo, showNotice } from '../../../lib/services/alertService';
 import HelpIconComponent from '../HelpIcon';
 
 const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const [isCopied, showIsCopied] = React.useState(false);
+  const { item } = useProjectStore();
+  const { publishEnabled } = useUserStore();
+  
   const onCLick = (action, isActive, errorMessage, url, copiedTooltip) => {
+    if(publishEnabled && !item.published) {
+      showNotice('Please publish the project first!!');
+      return false;
+    }
     if (url && !isActive) {
       showInfo(errorMessage);
       setActiveTab(tab);
@@ -71,7 +80,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
         url,
         copiedTooltip,
       }) => (
-        isActive && url && !copiedTooltip ? (
+        isActive && url && !copiedTooltip && item.published ? (
           /* eslint-disable-next-line react/jsx-no-target-blank */
           <a key={`${label}-href`} href={url} target="_blank">
             {svgButton(label, action, isActive, errorMessage, icon, tooltip, url)}

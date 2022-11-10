@@ -84,7 +84,7 @@ const Home = observer(() => {
     textMaskEnabled,
     roles,
     currentUser,
-
+    publishEnabled,
     evolutionOverlayEnabled,
     evolutionPresetEnabled,
     evolutionBlendModeEnabled,
@@ -147,6 +147,7 @@ const Home = observer(() => {
     destroyCombinedItem,
     popcorn,
     item,
+    setButtonType
   } = projectStore;
 
   const toolbarContent = React.useMemo(() => {

@@ -226,6 +226,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable isLoadingSequencer = false;
 
+  @observable isPublished = true;
+
   @observable projectData = {};
 
   @observable undoStore = [];
@@ -279,6 +281,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable success = null;
 
+  @observable saveButton = "";
+
   @action
   setVoiceTextId = (id = this.activeElementId) => {
     this.voiceTextId = id;
@@ -288,6 +292,11 @@ export default class ProjectStore extends BaseStore {
   setIsRedirect = (value = false) => {
     this.isRedirect = value;
   };
+
+  @action 
+  setIsPublished = (value =  false) => {
+    this.isPublished =  value;
+  }
 
   @action
   undoRedoAction = (undo = true) => {
@@ -1028,8 +1037,7 @@ export default class ProjectStore extends BaseStore {
 
   @action
   fillMakeData = (result, isRemix = false) => {
-    this.item._id = result._id;
-    this.item.title = result.title;
+    this.item.title = `Remix of ${result.title}`;
     this.item.thumbnail = result.thumbnail || DEFAULT_THUMBNAIL;
     this.item.description = result.description;
     this.item.remixedFrom = result.project._id;
@@ -1589,9 +1597,11 @@ export default class ProjectStore extends BaseStore {
 
   @action
   save = async () => {
-    if (!this.modified) {
-      return;
-    }
+    this.item.published = this.isPublished;
+    //Commented to implement draft
+    // if (!this.modified) {
+    //   return;
+    // }
     this.undoStore = [];
     this.redoStore = [];
     this.isLoading = true;
@@ -1723,7 +1733,7 @@ export default class ProjectStore extends BaseStore {
           );
           setInitialView();
         }
-      } else if (await showConfirmation('Project will be saved')) {
+      } else if (this.saveButton == "") {
         closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
@@ -1735,31 +1745,45 @@ export default class ProjectStore extends BaseStore {
           }
         }
         if (project && project._id) {
-          const key = 'togetherjs-session.status';
-          const routeObject = {
-            pathname: ROUTES.edit,
-            query: {
-              project: project._id,
-            },
-          };
-          if (sessionStorage.getItem(key)) {
-            routeObject.query = {
-              remix: project._id,
-            };
-          }
           Router.push(
-            routeObject,
-            undefined,
             {
-              shallow: true,
-            },
-          );
+              pathname: ROUTES.edit,
+              query: {
+                project: project._id,
+              },
+            }),
+          setInitialView();
+        }
+      } else if (await showConfirmation(`${this.saveButton}`)) {
+        closeAllWindows();
+        const project = await this.save();
+        if (!this.modified) {
+          if (actionType === ACTION_MAKE_COPY) {
+            afterSave(`/edit?remix=${this.item._id}`);
+          }
+          if (actionType === ACTION_WATCH_VIDEO) {
+            afterSave(this.item.url);
+          }
+        }
+        if (project && project._id) {
+          Router.push(
+            {
+              pathname: ROUTES.edit,
+              query: {
+                project: project._id,
+              },
+            }),
           setInitialView();
         }
       }
     } catch (e) {
       showError(e.message);
     }
+  }
+
+  @action 
+  setButtonType = (value) => {
+    this.saveButton = value;
   }
 
   @action

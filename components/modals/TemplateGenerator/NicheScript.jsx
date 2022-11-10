@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 import SVGInline from 'react-svg-inline';
 
 import classnames from 'classnames';
@@ -8,10 +8,12 @@ import PropTypes from '../../../lib/PropTypes';
 import icon from '../../../public/static/svgImages/template-generator/niche-script.svg';
 import { NICHE_SCRIPTS_PREVIEW_MODAL } from '../../../lib/constants/modals';
 import selectIcon from '../../../public/static/images/media/icon-select.svg';
+import HelpIconComponent from '../../common/HelpIcon';
 
 const NicheScript = React.memo((props) => {
   const { item, onClick, activeItem, allowedPreview } = props;
   const { openModal, closeModal } = useModalStore();
+  const [nicheScriptTitle,setNicheScriptTitle] = useState("");
 
   const openPreview = (e) => {
     e.stopPropagation();
@@ -25,7 +27,18 @@ const NicheScript = React.memo((props) => {
     closeModal(NICHE_SCRIPTS_PREVIEW_MODAL);
   };
 
+  useEffect(() => {
+    setNicheScriptTitle(item.title);
+    if(item.title.length > 25) {
+      let title = item.title.substring(0, 25) + '...';
+      item.title = title;
+    }
+  },[item])
+
+
+
   return (
+    <HelpIconComponent noDelay noIcon message={nicheScriptTitle} placement={'top'}>
     <div
       className={classnames('niche-script', { active: isActive })}
       onClick={onSelectItem}
@@ -39,13 +52,15 @@ const NicheScript = React.memo((props) => {
           svg={selectIcon}
         />
       ) }
-      <div className="niche-script__title">
+                
+      <div className="niche-script__title" >
         <SVGInline svg={icon} cleanup={['arrow']} className="niche-script__title-icon" />
         <span className="niche-script__title">{item.title}</span>
       </div>
       { allowedPreview
       && <button className="niche-script__button" onClick={openPreview}>Preview</button> }
     </div>
+    </HelpIconComponent>
   );
 });
 

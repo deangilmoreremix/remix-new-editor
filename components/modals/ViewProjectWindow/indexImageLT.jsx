@@ -23,7 +23,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
   const [isLoading, setIsLoading] = useState(false);
 
   const { setPreviewData, updateTime } = usePresetStore();
-  const { addData } = useProjectStore();
+  const { addData, moveElements} = useProjectStore();
   const { toggleLeftBlock } = useUIStore();
 
   const handleSelect = React.useCallback(async (item) => {
@@ -50,13 +50,19 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
   const addDataToCanvas = useCallback(async () => {
     try {
       let newData = JSON.parse(activeItem.project.data);
+      const lastIndexOfTracks = newData.media[0].tracks.length - 1;
       newData.media[0].tracks.reverse();
+      const firstElementType = newData.media[0].tracks[0].trackEvents[0].type;
       newData = JSON.stringify(newData);
       activeItem.project.data = newData;
-
       await addData(activeItem, true);
       handleClose();
       toggleLeftBlock(false);
+      if(title == "connect form" &&  firstElementType == 'sequencer') {
+        setTimeout(() => {
+          moveElements(0,lastIndexOfTracks);
+        }, 2000);
+      }
     } catch (e) {
       showError(e.message);
     }

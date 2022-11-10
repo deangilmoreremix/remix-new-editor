@@ -39,15 +39,18 @@
 }
 
 .carton-active {
-  border: 5px #EB5054;
   border-radius: 5px;
   margin-right: 5px !important;
   margin-left: 5px !important;
   cursor: pointer;
   height: 44px;
   display: inline-block;
-  width: 42px;
+  width: 44px;
   background-color: #EB5054;
+  border: 2px solid #EB5054;
+}
+.carton-active .carton-avatar {
+  margin: 0px !important;
 }
 
 .input-editor {
