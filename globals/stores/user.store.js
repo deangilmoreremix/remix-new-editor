@@ -140,22 +140,34 @@ export default class UserStore {
 
   @action
   getUpgradeLinkRole = async (title,envTitle,revTitle) => {
-    let roles;
-    try {
-      roles = await this.request(`/api/roles?filter={"name":"${this.roles[0].name}"}`, {
+    let userObject;
+    try {	
+      userObject = await this.request(`/api/users/${this.currentUser.id}`, {
         method: 'GET',
         headers: {
           'on-behalf': this.currentUser.id,
         },
       });
-      if(roles[0].features[title].link) {
-        return roles[0].features[title].link;
+      let latestDate = Math.max(...userObject.roles.map((ele) => new Date(ele.grantedAt)));
+      latestDate = new Date(latestDate);
+      let latestObject = userObject.roles.filter((ele) => {
+        let date = new Date(ele.grantedAt);
+        return date.getTime() === latestDate.getTime();
+      });
+      const roleObject = await this.request(`/api/roles/${latestObject[0].role}`, {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      if(roleObject.features[title].link) {
+        return roleObject.features[title].link;
       }
-      if(roles[0].features[envTitle].link) {
-        return roles[0].features[envTitle].link;
+      if(roleObject.features[envTitle].link) {
+        return roleObject.features[envTitle].link;
       }
-      if(roles[0].features[revTitle].link) {
-        return roles[0].features[revTitle].link
+      if(roleObject.features[revTitle].link) {
+        return roleObject.features[revTitle].link
       }
     } catch (e) {
       console.log(e);
