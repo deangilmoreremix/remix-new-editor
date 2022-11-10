@@ -148,13 +148,15 @@ export default class UserStore {
           'on-behalf': this.currentUser.id,
         },
       });
-      if(!roles[0].features[title].link) {
+      if(roles[0].features[title].link) {
+        return roles[0].features[title].link;
+      }
+      if(roles[0].features[envTitle].link) {
         return roles[0].features[envTitle].link;
       }
-      if(!roles[0].features[envTitle].link) {
+      if(roles[0].features[revTitle].link) {
         return roles[0].features[revTitle].link
       }
-      return roles[0].features[title].link;
     } catch (e) {
       console.log(e);
       throw e;
