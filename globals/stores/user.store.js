@@ -139,7 +139,7 @@ export default class UserStore {
   };
 
   @action
-  getUpgradeLinkRole = async () => {
+  getUpgradeLinkRole = async (title,envTitle,revTitle) => {
     let roles;
     try {
       roles = await this.request(`/api/roles?filter={"name":"${this.roles[0].name}"}`, {
@@ -148,7 +148,13 @@ export default class UserStore {
           'on-behalf': this.currentUser.id,
         },
       });
-      return roles[0].upgradeLink;
+      if(!roles[0].features[title].link) {
+        return roles[0].features[envTitle].link;
+      }
+      if(!roles[0].features[envTitle].link) {
+        return roles[0].features[revTitle].link
+      }
+      return roles[0].features[title].link;
     } catch (e) {
       console.log(e);
       throw e;
