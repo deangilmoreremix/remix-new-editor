@@ -29,8 +29,7 @@ const Element = (props) => {
   });
 
   const imageClick =  async () => {
-    const featureDetails = await FEATURES.find(ele => ele.label.trim() == item.label.trim());
-    const tempUpgradeLink = await getUpgradeLinkRole(featureDetails.name,featureDetails.envName,featureDetails.revName);
+    const tempUpgradeLink = await getUpgradeLinkRole();
     await window.open(tempUpgradeLink, '_blank')
   }
 
