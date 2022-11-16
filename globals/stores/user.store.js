@@ -148,9 +148,9 @@ export default class UserStore {
           'on-behalf': this.currentUser.id,
         },
       });
-      let latestDate = Math.max(...userObject.roles.map((ele) => new Date(ele.grantedAt)));
+      let latestDate = Math.max(...userObject.activeRoles.map((ele) => new Date(ele.grantedAt)));
       latestDate = new Date(latestDate);
-      let latestObject = userObject.roles.filter((ele) => {
+      let latestObject = userObject.activeRoles.filter((ele) => {
         let date = new Date(ele.grantedAt);
         return date.getTime() === latestDate.getTime();
       });
@@ -161,13 +161,13 @@ export default class UserStore {
         },
       });
       if(roleObject.features[title].link) {
-        return roleObject.features[title].link;
+        return roleObject.upgradeLink;
       }
       if(roleObject.features[envTitle].link) {
-        return roleObject.features[envTitle].link;
+        return roleObject.upgradeLink;
       }
       if(roleObject.features[revTitle].link) {
-        return roleObject.features[revTitle].link
+        return roleObject.upgradeLink;
       }
     } catch (e) {
       console.log(e);
