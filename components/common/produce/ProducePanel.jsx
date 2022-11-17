@@ -15,9 +15,14 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const { item } = useProjectStore();
   const { publishEnabled } = useUserStore();
   
-  const onCLick = (action, isActive, errorMessage, url, copiedTooltip) => {
+  const onCLick = (action, isActive, errorMessage, url, copiedTooltip, label) => {
+    let message = 'Please publish the project first!!';
     if(publishEnabled && !item.published) {
-      showNotice('Please publish the project first!!');
+      if(label == 'Copy playback link') {
+        message = 'Please publish your project before copying the link';
+      }
+      showNotice(message);
+      setActiveTab(tab);
       return false;
     }
     if (url && !isActive) {
@@ -49,7 +54,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
     <button
       type="button"
       key={label}
-      onClick={() => onCLick(action, isActive, errorMessage, url, copiedTooltip)}
+      onClick={() => onCLick(action, isActive, errorMessage, url, copiedTooltip, label)}
       className={classnames('produce-panel__button', {
         'produce-panel__button--unactive': !isActive,
       })}
