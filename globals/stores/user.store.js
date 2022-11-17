@@ -154,7 +154,11 @@ export default class UserStore {
         let date = new Date(ele.grantedAt);
         return date.getTime() === latestDate.getTime();
       });
-      const roleObject = await this.request(`/api/roles/${latestObject[0].role}`, {
+      let roleId = latestObject[0].role;
+      if(latestObject.length > 1) {
+        roleId = latestObject[length-1].role;
+      }
+      const roleObject = await this.request(`/api/roles/${roleId}`, {
         method: 'GET',
         headers: {
           'on-behalf': this.currentUser.id,
