@@ -139,7 +139,7 @@ export default class UserStore {
   };
 
   @action
-  getUpgradeLinkRole = async () => {
+  getUpgradeLinkRole = async (title,envTitle,revTitle) => {
     let userObject;
     try {	
       userObject = await this.request(`/api/users/${this.currentUser.id}`, {
@@ -164,7 +164,20 @@ export default class UserStore {
           'on-behalf': this.currentUser.id,
         },
       });
-      return roleObject.upgradeLink;
+      if(roleObject.features[title]) {
+        if(roleObject.features[title].link)
+          return roleObject.features[title].link;
+      }
+      if(roleObject.features[envTitle]) {
+        if(roleObject.features[envTitle].link) {
+          return roleObject.features[envTitle].link;
+        }
+      }
+      if(roleObject.features[revTitle]) {
+        if(roleObject.features[revTitle].link) {
+          return roleObject.features[revTitle].link;
+        }
+      }
     } catch (e) {
       console.log(e);
       throw e;
