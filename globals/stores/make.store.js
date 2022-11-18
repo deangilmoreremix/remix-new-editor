@@ -86,6 +86,11 @@ export default class PresetStore extends BaseStore {
     this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_IMAGE_LT_PRESETS }, path: '/api/makes/revolution' })
   );
 
+  getEndScreens = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_END_SCREENS }, path: '/api/makes/revolution' })
+  );
+
+
   getEvolutionTemplatesCTA = ({ page = 1, query = '', perPage = 20 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_CTA }, path: '/api/makes/revolution' })
   );
