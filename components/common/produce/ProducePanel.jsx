@@ -16,7 +16,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const { publishEnabled } = useUserStore();
   
   const onCLick = (action, isActive, errorMessage, url, copiedTooltip, label) => {
-    let message = 'Please publish the project first!!';
+    let message = 'Please save the project first!!';
     if(publishEnabled && !item.published) {
       if(label == 'Copy playback link') {
         message = 'Please publish your project before copying the link';
