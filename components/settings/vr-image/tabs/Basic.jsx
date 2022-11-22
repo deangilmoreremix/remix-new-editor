@@ -45,9 +45,9 @@ const Basic = ({ values, fields, element, onChange }) => {
 
   const onShapeSelect = v => {
     const item = shapeList.find(shapeList => shapeList.value === v).value;
-    let width = '50%';
+    let width = 50;
     if(item == 'circle') {
-      width = '28%';
+      width = 28;
     }
     onChange({
       imageshape:item,
