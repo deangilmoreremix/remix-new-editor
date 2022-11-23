@@ -16,22 +16,24 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const { publishEnabled } = useUserStore();
   
   const onCLick = (action, isActive, errorMessage, url, copiedTooltip, label) => {
-    if(publishEnabled) {
-      let message = 'Please save the project first!!';
-      if(item.published ==  undefined && label == 'Copy playback link') {
-        message = 'Please save your project before copying the link!!';
-  
-      }
-      if(item.published === false) {
-        message = 'Please publish the project first!!';
+      if(publishEnabled && item.published == undefined && label !== 'Copy playback link') {
+        let message = 'Please save the project first!!';
+        showNotice(message);
+        setActiveTab(tab);
+        return false;
       }
       if(label == 'Copy playback link' && item.published === false) {
-        message = 'Please publish your project before copying the link';
+        let message = 'Please publish your project before copying the link';
+        showNotice(message);
+        setActiveTab(tab);
+        return false;
       }
-      showNotice(message);
-      setActiveTab(tab);
-      return false;
-    }
+      if(item.published === false) {
+        let message = 'Please publish the project first!!';
+        showNotice(message);
+        setActiveTab(tab);
+        return false;
+      }
     if (url && !isActive) {
       showInfo(errorMessage);
       setActiveTab(tab);
