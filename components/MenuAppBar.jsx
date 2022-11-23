@@ -97,7 +97,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       await setButtonType("Project will be saved");
     }
     if(!isPublished) {
-      await setIsPublished(false);
+      await setIsPublished(true);
     }
     await getItemTitle({}).then((data) => {
       value = data.title;
