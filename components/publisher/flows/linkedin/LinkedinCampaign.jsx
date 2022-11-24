@@ -3,7 +3,6 @@ import { observer } from 'mobx-react';
 
 import CampaignStage from '../CampaignStage';
 import PropTypes from '../../../../lib/PropTypes';
-import useModalStore from '../../../hooks/useModalStore';
 import useProjectStore from '../../../hooks/useProjectStore';
 import { LINKEDIN_STAGES as STAGES } from '../../../../lib/constants/campaigns/stages';
 import {
@@ -13,9 +12,6 @@ import {
   LINKEDIN_LOGIN,
   LINKEDIN_POST,
 } from '../../../../lib/constants/campaigns/constants';
-
-import { showError, showInfo } from '../../../../lib/services/alertService';
-import { SOCIAL_CAMPAIGN_MODAL } from '../../../../lib/constants/modals';
 
 const LinkedinCampaign = observer(({
   init,
@@ -43,40 +39,37 @@ const LinkedinCampaign = observer(({
     save
   } = useProjectStore();
 
-  const { closeModal } = useModalStore();
-
   const sharePost = async () => {
     setLoading(true);
     const { postData, embedPage, preload } = settings;
+
+    updateItem({
+      name: postData.title,
+      description: postData.description,
+      thumbnail: postData.thumbnail,
+    });
+    await save();
     try {
-      await updateItem({
-        name: postData.title,
-        description: postData.description,
-        thumbnail: postData.thumbnail,
-      });
-      await save();
       await share({
         title: postData.title,
         description: postData.description,
         url: [
-          embedLocation.key === 'default' ? project.url : embedPage, [
+          embedLocation.key === 'default' ? project.make.url : embedPage, [
             !preload ? 'preload=none' : null,
             'preferred_source=linkedin',
           ].filter(item => !!item).join('&'),
         ].join('?'),
         thumbnail: postData.thumbnail,
       });
-      closeModal(SOCIAL_CAMPAIGN_MODAL);
-      showInfo('Success');
     } catch (error) {
-      showError(error.message);
+      console.error(error);
     }
     setLoading(false);
     return project;
   };
 
   const canBypassStage = React.useCallback((stage) => {
-    const { embedPage, postData, userData, authorized } = settings;
+    const { embedPage, postData, userData } = settings;
 
     switch (stage.key) {
       case EMBED_ENGINE:
@@ -84,14 +77,14 @@ const LinkedinCampaign = observer(({
       case EMBED_LOCATION:
         return embedPage && embedPage.length > 0;
       case LINKEDIN_LOGIN: {
-        return authorized;
+        return isAuthorized();
       }
       case LINKEDIN_POST:
         return userData && postData && postData.title && postData.title.length > 0;
       default:
         return false;
     }
-  }, [settings]);
+  }, [isAuthorized, settings]);
 
   const nextStage = React.useCallback(() => {
     if (currentStage.key === STAGES[STAGES.length - 1].key) {
@@ -206,13 +199,9 @@ const LinkedinCampaign = observer(({
   ]);
 
   React.useEffect(() => {
-    setLoading(true);
     setCurrentStage(STAGES[currentStageIndex]);
-    (async function startBootstrap() {
-      await bootstrap(STAGES[currentStageIndex]);
-      setLoading(false);
-    }());
-  }, [bootstrap, currentStageIndex, setLoading]);
+    bootstrap(STAGES[currentStageIndex]);
+  }, [bootstrap, currentStageIndex]);
 
   const bootstrap = React.useCallback((st) => {
     if (st && st.bootstrap) {
