@@ -39,6 +39,7 @@ const LinkedinCampaign = observer(({
 
   const {
     item: project,
+    updateItem,
   } = useProjectStore();
 
   const { closeModal } = useModalStore();
@@ -47,6 +48,11 @@ const LinkedinCampaign = observer(({
     setLoading(true);
     const { postData, embedPage, preload } = settings;
     try {
+      await updateItem({
+        name: postData.title,
+        description: postData.description,
+        thumbnail: postData.thumbnail,
+      });
       await share({
         title: postData.title,
         description: postData.description,
