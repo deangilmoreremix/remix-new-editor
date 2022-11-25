@@ -63,6 +63,7 @@ Element.propTypes = {
     icon: PropTypes.string.isRequired,
     action: PropTypes.func.isRequired,
     disabled: PropTypes.boolean,
+    adminElement:PropTypes.boolean
   }).isRequired,
   onClick: PropTypes.func.isRequired,
 };
