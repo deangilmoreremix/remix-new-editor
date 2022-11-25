@@ -66,16 +66,15 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: transparent !important;
 
         &:hover {
           color: $white;
-          background: #EB5054 !important;
+          background: $secondary-color;
         }
       }
 
       .select__option--is-focused {
-        color: $white;
+        color: $dark-twinlight;
       }
     }
   }
