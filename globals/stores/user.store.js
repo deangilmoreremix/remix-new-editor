@@ -139,6 +139,52 @@ export default class UserStore {
   };
 
   @action
+  getUpgradeLinkRole = async (title,envTitle,revTitle) => {
+    let userObject;
+    try {	
+      userObject = await this.request(`/api/users/${this.currentUser.id}`, {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      let latestDate = Math.max(...userObject.activeRoles.map((ele) => new Date(ele.grantedAt)));
+      latestDate = new Date(latestDate);
+      let latestObject = userObject.activeRoles.filter((ele) => {
+        let date = new Date(ele.grantedAt);
+        return date.getTime() === latestDate.getTime();
+      });
+      let roleId = latestObject[0].role;
+      if(latestObject.length > 1) {
+        roleId = latestObject[length-1].role;
+      }
+      const roleObject = await this.request(`/api/roles/${roleId}`, {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      if(roleObject.features[title]) {
+        if(roleObject.features[title].link)
+          return roleObject.features[title].link;
+      }
+      if(roleObject.features[envTitle]) {
+        if(roleObject.features[envTitle].link) {
+          return roleObject.features[envTitle].link;
+        }
+      }
+      if(roleObject.features[revTitle]) {
+        if(roleObject.features[revTitle].link) {
+          return roleObject.features[revTitle].link;
+        }
+      }
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
   getActiveSubscription = async () => {
     try {
       return await this.request('/api/users/me/active-subscriptions', {

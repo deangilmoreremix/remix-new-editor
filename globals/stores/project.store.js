@@ -1754,7 +1754,8 @@ export default class ProjectStore extends BaseStore {
             }),
           setInitialView();
         }
-      } else if (await showConfirmation(`${this.saveButton}`)) {
+      } 
+      else if (await showConfirmation(`${this.saveButton}`)) {
         closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
