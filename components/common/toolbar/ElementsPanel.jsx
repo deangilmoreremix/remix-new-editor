@@ -21,7 +21,7 @@ const ElementsPanel = observer(({ items }) => {
   } = useUIStore();
 
   const personalizationElements = useMemo(
-    () => items.filter(({ uiSection, adminElement }) => uiSection === SECTIONS.basic && !adminElement),
+    () => items.filter(({ uiSection, adminElement }) => uiSection === SECTIONS.basic && adminElement),
     [items]);
   const leadGenElements = useMemo(
     () => items.filter(({ uiSection }) => uiSection === SECTIONS.leadGeneration
