@@ -91,6 +91,7 @@ const Home = observer(() => {
     evolutionLowerThirdEnabled,
     evolutionCtaEnabled,
     evolutionImageLTPresetEnabled,
+    endScreensEnabled,
     getSvrTerms,
   } = userStore;
   const uiStore = useUIStore();
@@ -205,6 +206,7 @@ const Home = observer(() => {
         evolutionLowerThirdEnabled,
         evolutionCtaEnabled,
         evolutionImageLTPresetEnabled,
+        endScreensEnabled,
       },
     });
 

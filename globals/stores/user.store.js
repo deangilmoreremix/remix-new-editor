@@ -678,4 +678,9 @@ export default class UserStore {
   get evolutionImageLTPresetEnabled() {
     return this.isfeatureEnabled(FEATURES.EVOLUTION_IMAGE_LT_PRESETS);
   }
+
+  @computed
+  get endScreensEnabled() {
+    return this.isfeatureEnabled(FEATURES.END_SCREENS);
+  }
 }
