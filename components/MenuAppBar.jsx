@@ -154,7 +154,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   const saveProjectAsDraft = useCallback(async () => {
     let value = '';
     await setIsPublished(false);
-    await setButtonType('Project should be saved as Draft');
+    await setButtonType('Project should be saved as Draft')
     await getItemTitle({}).then((data) => {
       value = data.title;
     });
