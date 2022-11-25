@@ -64,6 +64,9 @@ const LinkedinProvider = ({ postResponsiveMessage, appId, ...props }) => {
               title: {
                 text: options.title,
               },
+              thumbnails: [{
+                url: options.thumbnail,
+            }]
             },
           ],
         },
