@@ -77,6 +77,9 @@
       .select__option--is-focused {
         color: $white;
       }
+      .select__option--is-selected {
+        background-color: #EB5054 !important;
+      }
     }
   }
 }
