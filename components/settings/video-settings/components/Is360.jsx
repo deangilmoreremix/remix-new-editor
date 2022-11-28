@@ -7,6 +7,7 @@ import FormCheckboxField from '../../../form/FormCheckboxField';
 import VRIcon from '../../../../public/static/images/media/360-degrees.svg';
 import { videoTooltips } from '../../../../lib/constants/tooltips';
 import HelpIconComponent from '../../../common/HelpIcon';
+import HtmlToolTipComponent from '../../../common/HtmlToolTip';
 
 
 const Is360 = React.memo(({
@@ -23,7 +24,7 @@ const Is360 = React.memo(({
         value={value}
         floatClassName={className}
       />
-      <HelpIconComponent noDelay noIcon message={videoTooltips.value
+      <HtmlToolTipComponent noDelay noIcon message={videoTooltips.value
       }>
       <SVGInline
         className={classnames('icon-360', { 'icon-360-active': value })}
@@ -32,7 +33,7 @@ const Is360 = React.memo(({
         cleanup={['title']}
         component="div"
       />
-      </HelpIconComponent>
+      </HtmlToolTipComponent>
     </div>
   </div>
 ));
