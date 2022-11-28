@@ -5,9 +5,6 @@ import classnames from 'classnames';
 import PropTypes from '../../../../lib/PropTypes';
 import FormCheckboxField from '../../../form/FormCheckboxField';
 import VRIcon from '../../../../public/static/images/media/360-degrees.svg';
-import { videoTooltips } from '../../../../lib/constants/tooltips';
-import HelpIconComponent from '../../../common/HelpIcon';
-import HtmlToolTipComponent from '../../../common/HtmlToolTip';
 
 
 const Is360 = React.memo(({
@@ -24,8 +21,6 @@ const Is360 = React.memo(({
         value={value}
         floatClassName={className}
       />
-      <HtmlToolTipComponent noDelay noIcon message={videoTooltips.value
-      }>
       <SVGInline
         className={classnames('icon-360', { 'icon-360-active': value })}
         classSuffix=""
@@ -33,8 +28,25 @@ const Is360 = React.memo(({
         cleanup={['title']}
         component="div"
       />
-      </HtmlToolTipComponent>
     </div>
+    {showHint
+      && (
+        <div className="hint-360">
+          {'For 360 videos, we recommend using only videos \n downloaded from your computer. \n'}
+          &nbsp;
+          {downloaderEnabled && 'You can use '}
+          {downloaderEnabled && (
+            <a
+              href="http://download.vidcloud.io/"
+              className="library__block--title"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+          our downloader
+            </a>
+          ) }
+        </div>
+      )}
   </div>
 ));
 
