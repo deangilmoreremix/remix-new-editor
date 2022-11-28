@@ -37,8 +37,6 @@ const HtmlTooltip = withStyles((theme) => ({
 
 const TooltipProvider = (props) => {
   const { children, placement, title, isDelay } = props;
-  let tempLink = "<a href='google.com' target='blank'>this is test</a>";
-  console.log(">>>>>>>>>>title", title);
   return (
     <MuiThemeProvider theme={blackCloud}>
       {/* <Tooltip

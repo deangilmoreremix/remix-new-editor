@@ -6,7 +6,6 @@ import PropTypes from '../../../../lib/PropTypes';
 import FormCheckboxField from '../../../form/FormCheckboxField';
 import VRIcon from '../../../../public/static/images/media/360-degrees.svg';
 import { videoTooltips } from '../../../../lib/constants/tooltips';
-import HelpIconComponent from '../../../common/HelpIcon';
 import HtmlToolTipComponent from '../../../common/HtmlToolTip';
 
 
@@ -14,8 +13,6 @@ const Is360 = React.memo(({
   value,
   onChange,
   className,
-  showHint,
-  downloaderEnabled,
 }) => (
   <div className="is-360-wrapper">
     <div className="is-360-checkbox">
@@ -24,8 +21,7 @@ const Is360 = React.memo(({
         value={value}
         floatClassName={className}
       />
-      <HtmlToolTipComponent noDelay noIcon message={videoTooltips.value
-      }>
+      <HtmlToolTipComponent noDelay noIcon message={videoTooltips.value}>
       <SVGInline
         className={classnames('icon-360', { 'icon-360-active': value })}
         classSuffix=""
