@@ -69,7 +69,7 @@ const LinkedinCampaign = observer(({
       closeModal(SOCIAL_CAMPAIGN_MODAL);
       showInfo('Success');
     } catch (error) {
-      showError(error.message);
+      showError('This post has already been shared.');
     }
     setLoading(false);
     return project;
