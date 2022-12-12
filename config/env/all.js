@@ -97,7 +97,7 @@ module.exports = {
   },
   pixoEditor: {
     script: 'https://pixoeditor.com/editor/scripts/bridge.m.js',
-    apiKey: process.env.PIXO_API_KEY || '28tlrlpvcvpc',
+    apiKey: process.env.PIXO_API_KEY || '1rdt2n6ctajk',
   },
   image: {
     maxSize: process.env.MAX_IMAGE_SIZE || 5 * 1024 * 1024, // in bytes
