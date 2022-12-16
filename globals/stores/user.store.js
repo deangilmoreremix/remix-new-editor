@@ -148,36 +148,44 @@ export default class UserStore {
           'on-behalf': this.currentUser.id,
         },
       });
-      let latestDate = Math.max(...userObject.activeRoles.map((ele) => new Date(ele.grantedAt)));
-      latestDate = new Date(latestDate);
-      let latestObject = userObject.activeRoles.filter((ele) => {
-        let date = new Date(ele.grantedAt);
-        return date.getTime() === latestDate.getTime();
-      });
-      let roleId = latestObject[0].role;
-      if(latestObject.length > 1) {
-        roleId = latestObject[length-1].role;
+      let sortedArray = userObject.activeRoles.sort(function compare(a,b) {
+        var dateA = new Date(a.grantedAt);
+        var dateB = new Date(b.grantedAt);
+        return dateB - dateA;
+      })
+      let link;
+      const getRoleData = async (id) => {
+        const roleObject = await this.request(`/api/roles/${id}`, {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+        return roleObject;
       }
-      const roleObject = await this.request(`/api/roles/${roleId}`, {
-        method: 'GET',
-        headers: {
-          'on-behalf': this.currentUser.id,
-        },
-      });
-      if(roleObject.features[title]) {
-        if(roleObject.features[title].link)
-          return roleObject.features[title].link;
-      }
-      if(roleObject.features[envTitle]) {
-        if(roleObject.features[envTitle].link) {
-          return roleObject.features[envTitle].link;
+      for(let i=0;i<sortedArray.length;i++) {
+        const roleData = await getRoleData(sortedArray[i].role);
+        if(roleData.features[title]) {
+          if(roleData.features[title].link) {
+            link = roleData.features[title].link;
+            break;
+          }
+        }
+           
+      if(roleData.features[envTitle]) {
+        if(roleData.features[envTitle].link) {
+          link =  roleData.features[envTitle].link;
+          break;
         }
       }
-      if(roleObject.features[revTitle]) {
-        if(roleObject.features[revTitle].link) {
-          return roleObject.features[revTitle].link;
+      if(roleData.features[revTitle]) {
+        if(roleData.features[revTitle].link) {
+          link = roleData.features[revTitle].link;
+          break;
         }
       }
+      }
+      return link
     } catch (e) {
       console.log(e);
       throw e;
