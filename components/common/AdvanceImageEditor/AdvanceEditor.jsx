@@ -19,6 +19,7 @@ import ColorizerSvg from '../../../public/static/AdvanceImageSvg/smartColor.svg'
 import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
 import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
+import PinturaEditorModal from './PinturaImageEditorModal';
 const PhotoAnimer = lazy(() => import( './PhotoAnimer'));
 // import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 // import Retouch from './Retouch';
@@ -120,6 +121,11 @@ const AdvancedImageEditor = observer(({
                   handleClose={handleClose}
                   {...rest}
                 />
+              </TabPane>
+            )}
+              {smartCartoonSelfieEnabled && (
+              <TabPane name="Smart Cartoon Selfie" icon={SelfieSvg} key="9">
+                <PinturaEditorModal />
               </TabPane>
             )}
 
