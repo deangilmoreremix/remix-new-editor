@@ -5,12 +5,13 @@ import SVGInline from 'react-svg-inline';
 import Link from 'next/link';
 
 import { Popper, Button, Grow, ClickAwayListener, Paper } from '@material-ui/core';
+import Shortcuts from './Shortcuts';
 
 import togglerIcon from '../../public/static/svgImages/common/toggler.svg';
 import lineTogglerIcon from '../../public/static/svgImages/common/toggler-2.svg';
 
 import PropTypes from '../../lib/PropTypes';
-import { ACTION_LOGOUT } from '../../lib/constants/ui';
+import { ACTION_LOGOUT ,SHORTCUT_ACTIONS} from '../../lib/constants/ui';
 
 import HelpIconComponent from './HelpIcon';
 
@@ -28,10 +29,14 @@ const Menu = observer((
   }) => {
   const anchorRef = React.useRef(null);
   const [open, setOpen] = React.useState(false);
+  const [showShortcut ,setShowShortcut] = React.useState(false);
 
   const { push } = useRouter();
 
   const handleAction = (arg) => {
+    if(arg == SHORTCUT_ACTIONS) {
+      setShowShortcut(true);
+    }
     if (arg === ACTION_LOGOUT) {
       if (window.HelpCrunch) {
         window.HelpCrunch(arg);
@@ -120,6 +125,9 @@ const Menu = observer((
             </Button>
           )
       }
+      {showShortcut && <Shortcuts showShortcut={showShortcut}
+        setShowShortcut={setShowShortcut}
+      />}
       <Popper
         open={open}
         role={undefined}
