@@ -14,7 +14,7 @@ import useProjectStore from '../../../hooks/useProjectStore';
 import { FEATURES } from '../../../../lib/constants/features';
 import { LIBRARY_TABS } from '../../../../lib/constants/library';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
-import PinturaEditorModal from '../../../modals/PinturaEditorModal';
+// import PinturaEditorModal from '../../../modals/PinturaEditorModal';
 import { PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
 import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
 import { EXTRA_MENU, ADVANCE_IMAGE_EDITOR_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
@@ -303,7 +303,8 @@ const Basic = observer(({
             <button
               className="image-settings__btn"
               onClick={() => {
-                <PinturaEditorModal />
+                alert('call here')
+                // <PinturaEditorModal />
               }}
               disabled={isLoading}
             >
