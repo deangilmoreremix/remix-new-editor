@@ -43,6 +43,8 @@ module.exports = withSass({
     },
   },
   withImages: withImages(),
-  withTM:withTM(),
+  withTM:withTM({
+    swcMinify: false,
+  }),
   compress: false,
 });
