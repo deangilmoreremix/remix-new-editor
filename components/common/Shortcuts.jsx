@@ -1,7 +1,6 @@
 import DialogContent from '@material-ui/core/DialogContent';
-import Dialog from '@material-ui/core/Dialog';
-import classnames from 'classnames';
-
+import closeIcon from '../../public/static/svgImages/Close.svg';
+import SVGInline from 'react-svg-inline';
 
 const Shortcuts = ({ showShortcut, setShowShortcut }) => {
     return (
@@ -9,14 +8,22 @@ const Shortcuts = ({ showShortcut, setShowShortcut }) => {
             {showShortcut && <DialogContent onClick={() => {
                 setShowShortcut(false)
             }} className='modal-container__content_'>
-
                 <div className='content'>
-
                     <table tabIndex={0} className='table-wrapper'>
                         <thead className='table-header'>
                             <tr className='heading-wrapper'>
                                 <td colSpan={2}>
                                     <h1>Shortcuts</h1>
+                                </td>
+                                <td className='close-td'>
+                                    <SVGInline
+                                        className="toggler-icon"
+                                        classSuffix=""
+                                        svg={closeIcon}
+                                        onClick={() => {
+                                            setShowShortcut(false);
+                                        }}
+                                    />
                                 </td>
 
                             </tr>
