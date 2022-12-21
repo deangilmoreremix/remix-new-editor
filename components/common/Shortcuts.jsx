@@ -67,14 +67,6 @@ const Shortcuts = ({ showShortcut, setShowShortcut }) => {
                                 <td>ctrl+d (command+d) </td>
                                 <td>Create active item in new layer</td>
                             </tr>
-                            <tr>
-                                <td>ctrl+o (command+o) </td>
-                                <td>Create Combined Items</td>
-                            </tr>
-                            <tr>
-                                <td>ctrl+p (command+p) </td>
-                                <td>Delete Combined Items</td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
