@@ -15,7 +15,7 @@ import { FEATURES } from '../../../../lib/constants/features';
 import { LIBRARY_TABS } from '../../../../lib/constants/library';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
 // import PinturaEditorModal from '../../../modals/PinturaEditorModal';
-import { PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
+import { PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL, PINTURA_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
 import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
 import { EXTRA_MENU, ADVANCE_IMAGE_EDITOR_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
 //
@@ -123,12 +123,12 @@ const Basic = observer(({
 
   const onImageEdited = (image) => {
     findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
-    closeModal(PIXO_IMAGE_EDITOR_MODAL);
+    closeModal(PINTURA_IMAGE_EDITOR_MODAL);
   };
 
   const onImageEditedValue = (video) => {
     findAndUpdate(element.id, { ...value, src: video });
-    closeModal(PIXO_IMAGE_EDITOR_MODAL);
+    closeModal(PINTURA_IMAGE_EDITOR_MODAL);
   };
 
   const onAdvancedImageEdited = (image) => {
@@ -303,7 +303,14 @@ const Basic = observer(({
             <button
               className="image-settings__btn"
               onClick={() => {
-                alert('call here')
+                openImglyEditor({
+                  src:element.popcornOptions.src,
+                  onImageEdited,
+                  onImageEditedValue,
+                  startUpload: () => setIsLoading(true),
+                  endUpload: () => setIsLoading(false),
+                  menu: PINTURA_IMAGE_EDITOR_MODAL,
+                })
                 // <PinturaEditorModal />
               }}
               disabled={isLoading}
