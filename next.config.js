@@ -27,6 +27,10 @@ module.exports = withSass({
         test: /\.(otf|ttf|woff|woff2)$/,
         loader: 'url-loader',
       },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
     );
     config.resolve.alias = {
       ...config.resolve.alias,
