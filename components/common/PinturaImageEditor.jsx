@@ -90,7 +90,37 @@ const PinturaImageEditor = observer(({
                         'redact',
                         'resize',
                     ]}
-                    stickers={['🎉', '😄', '👍', '👎', '🍕']}
+                    stickers={[
+                        [
+                            // required group label
+                            'Numbers',
+    
+                            // group stickers, can be an empty array
+                            ['./static/svgImages/sticker-one.svg', './static/svgImages/sticker-two.svg', './static/svgImages/sticker-three.svg'],
+    
+                            // optional group properties
+                            {},
+                        ],
+                        [
+                            // group label
+                            'Emoji',
+    
+                            // group stickers
+                            ['🎉', '😄', '👍', '👎', '🍕'],
+    
+                            // group properties
+                            {
+                                // a group icon
+                                icon: '<g><!-- SVG here --></g>',
+    
+                                // hide the group label
+                                hideLabel: false,
+    
+                                // disable the group
+                                disabled: false,
+                            },
+                        ],
+                    ]}
                     onProcess={handleEditorProcess}
                 />
             </div>
