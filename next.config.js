@@ -2,6 +2,10 @@ const path = require('path');
 const glob = require('glob');
 const withSass = require('@zeit/next-sass');
 const withImages = require('next-images');
+const withTM = require('next-transpile-modules')([
+  '@pqina/pintura',
+  '@pqina/react-pintura',
+]);
 
 module.exports = withSass({
   exportPathMap() {
@@ -23,6 +27,10 @@ module.exports = withSass({
         test: /\.(otf|ttf|woff|woff2)$/,
         loader: 'url-loader',
       },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
     );
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -39,5 +47,8 @@ module.exports = withSass({
     },
   },
   withImages: withImages(),
+  withTM:withTM({
+    swcMinify: false,
+  }),
   compress: false,
 });

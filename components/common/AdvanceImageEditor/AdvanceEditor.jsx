@@ -122,7 +122,6 @@ const AdvancedImageEditor = observer(({
                 />
               </TabPane>
             )}
-
             {smartEnhancerEnabled && (
               <TabPane name="Smart Enhancer" icon={EnhancerSvg} key="4">
                 <PhotoEnhancer

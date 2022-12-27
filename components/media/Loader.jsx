@@ -21,3 +21,14 @@ export const LibrarySpinner = () => (
     </div>
   </div>
 );
+
+export const LibrarySpinnerRed = () => (
+  <div className="loader">
+    <div className="lds-ellipsis-red">
+      <div />
+      <div />
+      <div />
+      <div />
+    </div>
+  </div>
+);
