@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { pintura } from '@pqina/pintura/pintura.module.css';
+import '../../styles/PinturaEditor.css';
 import PropTypes from '../../lib/PropTypes';
 
 import { getEditorDefaults,createDefaultImageWriter } from '@pqina/pintura';
