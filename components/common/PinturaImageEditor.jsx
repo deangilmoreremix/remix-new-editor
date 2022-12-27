@@ -90,6 +90,7 @@ const PinturaImageEditor = observer(({
                         'redact',
                         'resize',
                     ]}
+                    stickers={['🎉', '😄', '👍', '👎', '🍕']}
                     onProcess={handleEditorProcess}
                 />
             </div>
