@@ -80,6 +80,16 @@ const PinturaImageEditor = observer(({
                         quality: 80,
                         format: 'file'
                     })}
+                    utils={[
+                        'crop',
+                        'filter',
+                        'finetune',
+                        'annotate',
+                        'sticker',
+                        'frame',
+                        'redact',
+                        'resize',
+                    ]}
                     onProcess={handleEditorProcess}
                 />
             </div>
