@@ -2,15 +2,38 @@ import * as React from 'react';
 import SVGInline from 'react-svg-inline';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
+import useProjectStore from '../../hooks/useProjectStore';
+import useUserStore from '../../hooks/useUserStore';
 
 import PropTypes from '../../../lib/PropTypes';
 
-import { showInfo } from '../../../lib/services/alertService';
+import { showInfo, showNotice } from '../../../lib/services/alertService';
 import HelpIconComponent from '../HelpIcon';
 
 const ProducePanel = observer(({ items, tab, setActiveTab }) => {
   const [isCopied, showIsCopied] = React.useState(false);
-  const onCLick = (action, isActive, errorMessage, url, copiedTooltip) => {
+  const { item } = useProjectStore();
+  const { publishEnabled } = useUserStore();
+  
+  const onCLick = (action, isActive, errorMessage, url, copiedTooltip, label) => {
+      if(publishEnabled && item.published == undefined && label !== 'Copy playback link') {
+        let message = 'Please save the project first!!';
+        showNotice(message);
+        setActiveTab(tab);
+        return false;
+      }
+      if(label == 'Copy playback link' && item.published === false) {
+        let message = 'Please publish your project before copying the link';
+        showNotice(message);
+        setActiveTab(tab);
+        return false;
+      }
+      if(item.published === false) {
+        let message = 'Please publish the project first!!';
+        showNotice(message);
+        setActiveTab(tab);
+        return false;
+      }
     if (url && !isActive) {
       showInfo(errorMessage);
       setActiveTab(tab);
@@ -40,7 +63,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
     <button
       type="button"
       key={label}
-      onClick={() => onCLick(action, isActive, errorMessage, url, copiedTooltip)}
+      onClick={() => onCLick(action, isActive, errorMessage, url, copiedTooltip, label)}
       className={classnames('produce-panel__button', {
         'produce-panel__button--unactive': !isActive,
       })}
@@ -71,7 +94,7 @@ const ProducePanel = observer(({ items, tab, setActiveTab }) => {
         url,
         copiedTooltip,
       }) => (
-        isActive && url && !copiedTooltip ? (
+        isActive && url && !copiedTooltip && item.published ? (
           /* eslint-disable-next-line react/jsx-no-target-blank */
           <a key={`${label}-href`} href={url} target="_blank">
             {svgButton(label, action, isActive, errorMessage, icon, tooltip, url)}

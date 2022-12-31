@@ -1,8 +1,8 @@
 import { action, computed, observable } from 'mobx';
 
 import { GiphyFetch } from '@giphy/js-fetch-api';
+import Bb from 'bluebird';
 import BaseStore from './base.store';
-
 import PexelsProvider from '../../lib/utils/media/PexelsProvider';
 import UserProvider from '../../lib/utils/media/UserProvider';
 import PixabayProvider from '../../lib/utils/media/PixabayProvider';
@@ -80,7 +80,7 @@ export default class Media extends BaseStore {
     }
     return response.slice(count, count + options.perPage);
   }
- 
+
   getPresets = async (assetType, page = 1, filter = {}) => {
     if (!filter.type) {
       filter.type = assetType;
@@ -402,6 +402,18 @@ export default class Media extends BaseStore {
   };
 
   @action
+  deleteMedia = async (id = []) => {
+    const promises = [];
+    promises.push(this.request(`/api/users/me/media-assets/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      },
+    }));
+    return Bb.all(promises);
+  };
+
+  @action
   uploadImageUrl = async (item) => {
     const uploadedItem = await this.uploadMedia(
       { data: item.url, isCrop: true });
@@ -522,7 +534,6 @@ export default class Media extends BaseStore {
         },
       );
     } catch (e) {
-      console.log(e);
       throw new Error(e.message);
     }
     return asset;

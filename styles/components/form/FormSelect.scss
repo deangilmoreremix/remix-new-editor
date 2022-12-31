@@ -1,6 +1,8 @@
 .select-element {
   min-width: 7rem;
-
+  .area_code_class {
+    width: 100px;
+  }
   .select__control {
     background-color: $sidebr-bg;
     border: 0.055rem solid $border-color;
@@ -19,6 +21,7 @@
   }
 
   .select__value-container {
+    width: 100px;
     .select__placeholder {
       color: $white;
     }
@@ -63,15 +66,19 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        background: transparent !important;
 
         &:hover {
           color: $white;
-          background: $secondary-color;
+          background: #EB5054 !important;
         }
       }
 
       .select__option--is-focused {
-        color: $dark-twinlight;
+        color: $white;
+      }
+      .select__option--is-selected {
+        background-color: #EB5054 !important;
       }
     }
   }

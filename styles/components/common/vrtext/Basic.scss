@@ -6,6 +6,7 @@
 .text-container {
   margin-bottom: 1em;
   display: flex;
+  flex: 1;
   justify-content: space-between;
   align-items: flex-end;
 
@@ -46,18 +47,30 @@
       height: 0.6em;
     }
   }
+  .phone-code {
+    width: 100px;
+    margin-right: 20px;
+    margin-top: 1rem;
+  }
 
   .link-url-container {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-top: 1rem;
+    margin-top: 1em;
+    margin-right: 1rem;
+    flex: fit-content;
 
     .input-url-position {
       width: 100%;
     }
   }
-
+  .phone-area-code-container {
+    display: flex;
+  }
+  .link-url-container .input-url-position {
+    width: 100% !important;
+  }
   .email-link-container {
     margin-top: 2em;
     margin-bottom: 2em;
@@ -216,6 +229,12 @@
     justify-content: flex-end;
   }
 }
+.text-cta-container {
+  margin-top: 15px;
+}
+.cta-radio-btn {
+  accent-color: #EB5054;
+}
 
 .open-text-to-speech {
   @include reset-button;
@@ -307,9 +326,7 @@
       flex: none;
     }
 
-    .link-url-container {
-      flex-direction: column;
-    }
+    
 
     .link-url-container .input-url-position {
       width: 100%;

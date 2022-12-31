@@ -14,16 +14,28 @@ import useProjectStore from '../../../hooks/useProjectStore';
 import { FEATURES } from '../../../../lib/constants/features';
 import { LIBRARY_TABS } from '../../../../lib/constants/library';
 import * as popcornConstants from '../../../../lib/constants/popcorn';
-import { PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL, IMGLY_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
+// import PinturaEditorModal from '../../../modals/PinturaEditorModal';
+import { PIXO_IMAGE_EDITOR_MODAL, ADVANCE_IMAGE_EDITOR_MODAL, PINTURA_IMAGE_EDITOR_MODAL } from '../../../../lib/constants/modals';
 import { INITIAL_VALUES } from '../../../../lib/constants/settings/image';
 import { EXTRA_MENU, ADVANCE_IMAGE_EDITOR_MENU } from '../../../../lib/constants/imageEditor/tuiEditor';
+//
+import { INITIAL_VALUES as value } from '../../../../lib/constants/settings/video-transition.js'
 
 import arrowIcon from '../../../../public/static/images/arrow-red.svg';
 
 import PropTypes from '../../../../lib/PropTypes';
+import { COUNTRYCODE } from '../../../../lib/constants/countryCode.js';
 
 import { HINTS } from '../../../../lib/constants/text-info';
 import withValidation from '../../../hoc/withValidation';
+import FormSelect from '../../../form/FormSelect';
+import { useEffect } from 'react';
+
+
+const areaCodeList = [
+  { label: 'All', value: null },
+  ...COUNTRYCODE,
+];
 
 const Basic = observer(({
   values,
@@ -34,6 +46,11 @@ const Basic = observer(({
   element: elementData,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [val, setVal] = useState('URL');
+  const [ctaVal, setCtaVal] = useState("")
+  const [code, setCode] = useState('');
+  const [areaObject, setAreaObject] = useState({});
+  const [areaCode, setAreaCode] = useState('');
   const { setLibraryType, setUpdateElementInLibrary, openAnimation } = useUIStore();
   const { findAndUpdate, element } = useProjectStore();
   const {
@@ -51,7 +68,7 @@ const Basic = observer(({
     smartPassportEnabled,
     smartRetouchEnabled,
   } = useUserStore();
-  const { openImageEditor, openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
+  const { openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
 
   const isCutOutProEnable = () => {
     if (smartBackgroundRemovalEnabled === false && smartFaceCutOutEnabled === false
@@ -59,11 +76,32 @@ const Basic = observer(({
       && smartColorizerEnabled === false && smartCorrectionEnabled === false
       && smartAnimerEnabled === false && smartPassportEnabled === false
       && smartRetouchEnabled === false) {
-      return false;
+      const result = false;
+      return result;
     } else {
       return true;
     }
   };
+
+  useEffect(() => {
+    if (values[popcornConstants.LINKSRC]) {
+      const Country = COUNTRYCODE.find(ele => values[popcornConstants.LINKSRC].includes(ele.value));
+      setAreaObject(Country);
+      if (Country) {
+        const phoneNumber = values[popcornConstants.LINKSRC].replace(Country.value, '');
+        setAreaCode(phoneNumber);
+      }
+      const ctaValue = Number(values[popcornConstants.LINKSRC])
+      if (ctaValue) {
+        setCtaVal("PHONE");
+      }
+      else {
+        setCtaVal("URL");
+      }
+    }
+
+  }, [values])
+
   const backToLibrary = () => {
     handleClose();
     setUpdateElementInLibrary(element.id);
@@ -72,6 +110,9 @@ const Basic = observer(({
 
   const onChangeWithValidation = (v, error) => {
     if (!error) {
+      if (code) {
+        v.linkSrc = `${code + v.linkSrc}`;
+      }
       onChange(v);
     }
   };
@@ -82,16 +123,28 @@ const Basic = observer(({
 
   const onImageEdited = (image) => {
     findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
-    closeModal(PIXO_IMAGE_EDITOR_MODAL);
+    closeModal(PINTURA_IMAGE_EDITOR_MODAL);
+  };
+
+  const onImageEditedValue = (video) => {
+    findAndUpdate(element.id, { ...value, src: video });
+    closeModal(PINTURA_IMAGE_EDITOR_MODAL);
   };
 
   const onAdvancedImageEdited = (image) => {
     findAndUpdate(element.id, { ...INITIAL_VALUES, src: image });
     closeModal(ADVANCE_IMAGE_EDITOR_MODAL);
   };
+  const onChangeHandler = event => {
+    setVal(event.target.value)
+  };
+
+  const onCodeSelect = v => {
+    const item = areaCodeList.find(areaCodeItem => areaCodeItem.value === v).value;
+    setCode(item);
+  };
 
   const hint = useMemo(() => (clickToPhoneCall ? HINTS.LINK_URL_PHONE : HINTS.LINK_URL));
-
   // ToDo add select field "Select the kind of Image you want to add"
   return (
     <Fragment>
@@ -142,19 +195,51 @@ const Basic = observer(({
       </div>
 
       {values.kind !== popcornConstants.BLEND_MODE && (
-        <div className="image-settings__block">
-          <div className="image-settings__cell--first">
-            <FieldBuilder
+        <div>
+          <div className="image-settings__block">
+            <div onChange={onChangeHandler}>
+              <input type="radio" value="URL" name="cta" className="cta-radio-btn" defaultChecked /> URL
+              <input type="radio" value="PHONE" name="cta" className="cta-radio-btn" /> PHONE
+            </div>
+          </div>
+          <div className="image-settings__block">
+
+            {val == 'URL' ? <FieldBuilder
               {...fields[popcornConstants.LINKSRC]}
-              labelHint={hint}
+              labelHint={HINTS.LINK_URL}
               label={user
                 && user.features
                 && checkStateFeature(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL)
-                ? popcornConstants.LABEL_CLICK_TO_PHONE : fields[popcornConstants.LINKSRC].label}
-              value={values[popcornConstants.LINKSRC] || fields[popcornConstants.LINKSRC].default}
+                ? popcornConstants.LABEL_CLICK_TO_URL : fields[popcornConstants.LINKSRC].label}
+              value={ctaVal == 'URL' ? values[popcornConstants.LINKSRC] : ''}
               onChange={onChangeWithValidation}
               checkValue={checkValue}
-            />
+            /> :
+               
+              <div className="phone-area-container">
+               
+                <div className='country-code'>
+                  <FormSelect
+                    label="Phone Number (Click-to-call)"
+                    items={areaCodeList}
+                    value={code}
+                    defaultValue={areaObject}
+                    onChange={onCodeSelect}
+                    selectClassName={'area_code_class'}
+                  />
+                </div>
+                <div className='phone-number'>
+                  <FieldBuilder
+                    {...fields[popcornConstants.LINKSRC]}
+                    label={""}
+                    value={ctaVal == 'PHONE' ? areaCode : ''}
+                    onChange={onChangeWithValidation}
+                    checkValue={checkValue}
+                  />
+                </div>
+
+              </div>
+            }
           </div>
         </div>
       )}
@@ -214,34 +299,19 @@ const Basic = observer(({
 
       <div className="image-settings__block">
         <div className="image-settings__btn--block">
-          {/* <button
-            className="image-settings__btn"
-            onClick={() => {
-              openImageEditor({
-                src: element.popcornOptions.src,
-                onImageEdited,
-                startUpload: () => setIsLoading(true),
-                endUpload: () => setIsLoading(false),
-                menu: EXTRA_MENU,
-              });
-            }}
-            disabled={isLoading}
-          >
-            Image Editor
-          </button> */}
-
           {imglyEditorEnabled && (
             <button
               className="image-settings__btn"
               onClick={() => {
                 openImglyEditor({
-                  src: element.popcornOptions.src,
+                  src:element.popcornOptions.src,
                   onImageEdited,
-                  // onImglyImageEdited,
+                  onImageEditedValue,
                   startUpload: () => setIsLoading(true),
                   endUpload: () => setIsLoading(false),
-                  menu: EXTRA_MENU,
-                });
+                  menu: PINTURA_IMAGE_EDITOR_MODAL,
+                })
+                // <PinturaEditorModal />
               }}
               disabled={isLoading}
             >
@@ -249,7 +319,7 @@ const Basic = observer(({
             </button>
           )}
 
-          {isCutOutProEnable && (
+          {isCutOutProEnable() && (
             <button
               className="image-settings__btn"
               onClick={() => {
@@ -257,6 +327,7 @@ const Basic = observer(({
                   src: element.popcornOptions.src,
                   onAdvancedImageEdited,
                   onImageEdited,
+                  onImageEditedValue,
                   startUpload: () => setIsLoading(true),
                   endUpload: () => setIsLoading(false),
                   menu: ADVANCE_IMAGE_EDITOR_MENU,
@@ -308,6 +379,7 @@ Basic.propTypes = {
   onChange: PropTypes.func.isRequired,
   handleClose: PropTypes.func.isRequired,
   checkValue: PropTypes.func.isRequired,
+  setVal: PropTypes.func.isRequired,
   fields: PropTypes.shape({
     [popcornConstants.START]: PropTypes.shape({
       type: PropTypes.string.isRequired,

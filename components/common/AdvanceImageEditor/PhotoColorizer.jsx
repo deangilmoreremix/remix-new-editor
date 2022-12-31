@@ -8,11 +8,11 @@ import useUserStore from '../../hooks/useUserStore';
 import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
-import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
 import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+import PercentageProgressBar from '../../media/PercentageProgressBar';
 
 const PhotoEnhancer = observer(({
   imageData,
@@ -39,6 +39,8 @@ const PhotoEnhancer = observer(({
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [newImage, setNewImage] = useState('');
   const { source } = useMemo(() => imageData, [imageData]);
+  const [isError, setError] = useState(null);
+
 
 
   const quantify = () => {
@@ -102,9 +104,14 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        setNewImage(resp.data.imageBase64);
-        // talk to backend to reduce the use cutopro credit
-        updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
+        if (resp.msg === 'Processing failed') {
+          setError(resp.msg);
+        } else {
+          setNewImage(resp.data.imageBase64);
+          setError(null);
+          // talk to backend to reduce the use cutoutpro credit
+          updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
+        }
       })
       // eslint-disable-next-line no-unused-vars
       .catch((error) => {
@@ -118,8 +125,24 @@ const PhotoEnhancer = observer(({
   return (
     <>
       <div className="">
+        <div className="">
+          {
+            isError === 'Processing failed' ? (
+              <div>
+                <p className="errorText mb-0"> This picture is not supported and no foreground is not recognized </p>
+                <p className="errorText">
+                  {' '}
+                  Please select a picture with a clear distinction between foreground and background.
+                  For example a picture of a person, a product, an animal, a car or another object
+                  {' '}
+                </p>
+              </div>
+            ) : (
+              null
+            )
+          }
+        </div>
         <div className="flex advance-editor-modal-content">
-
           <div className="content-container">
             <div className="flex justify-content-center items-center  ">
               <div className="original-image-container ">
@@ -146,7 +169,9 @@ const PhotoEnhancer = observer(({
               <div className="result-image-container">
                 <p className="text-center font-weight-bold"> Result Image</p>
                 <div className=" ">
-                  {isLoading ? <LibrarySpinner /> : (
+                  {isLoading ? <div className="progressState">
+                    <PercentageProgressBar/>
+                    </div> : (
                     <div className=" flex justify-content-center">
                       {isProcessImage
                         ? (

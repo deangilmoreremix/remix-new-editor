@@ -36,3 +36,74 @@ div.modal-container__media-content {
 .MuiDialogContent-root.template-generator-modal {
   overflow: hidden;
 }
+
+.modal-container__content_ {
+  color: $white;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  position: fixed;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 99;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.content {
+  background: $sidebr-bg;
+  max-width: 552px;
+  width: 100%;
+  height: auto;
+  padding: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.table-wrapper {
+  border-spacing: 0;
+  position: relative;
+  table-layout: auto;
+  width: 100%;
+}
+
+.table-header {
+  border-bottom: 2px solid #EB5054;
+  color: #7A7A9E;
+  font-weight: bold;
+}
+
+.table-header tr th,
+.table-body tr td {
+  text-align: left;
+  padding: 5px 10px;
+}
+
+.heading-wrapper h1 {
+  font-size: 1.0rem;
+  color: #fff;
+  text-align: center;
+  font-weight: bold;
+  background-color: #EB5054;
+  width: 100%;
+  padding: 10px 0px;
+
+}
+.table-body tr td {
+  text-align: left;
+  padding: 10px 20px;
+}
+.menu-app-bar .container-menu .user-menu .toggler-icon {
+  width: 0.9rem;
+  position: absolute;
+  top: 50%;
+}
+.close-td {
+  position: absolute;
+  right: 7%;
+  top: 2%;
+}

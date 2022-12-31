@@ -200,6 +200,9 @@
         .save-0 {
           fill: $secondary-color;
         }
+        .published-icon-0 {
+          fill: $secondary-color;
+        }
       }
     }
 
@@ -233,8 +236,19 @@
       }
     }
 
-    &__actions {
+    &__saveactions {
       width: 150px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      &__item {
+        position: relative;
+      }
+    }
+
+    &__publishedactions {
+      width: 248px;
       display: flex;
       justify-content: space-between;
       align-items: center;

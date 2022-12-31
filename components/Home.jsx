@@ -8,6 +8,7 @@ import classnames from 'classnames';
 import hotkeys from 'hotkeys-js';
 
 import Loader from './common/Loader';
+import { showInfo } from '../lib/services/alertService';
 import Canvas from './Canvas';
 import Timeline from './Timeline';
 import Library from './media/Library';
@@ -53,6 +54,7 @@ const Home = observer(() => {
     push,
   } = useRouter();
   const projectStore = useProjectStore();
+
   const userStore = useUserStore();
 
   const {
@@ -63,7 +65,7 @@ const Home = observer(() => {
     stickersEnabled,
     lowerThirdsEnabled,
     presetsEnabled,
-    templateGeneratorEnabled,
+    videoAutomationCreatorEnabled,
     linkedinEnabled,
     ctaEnabled,
     blendModeEnabled,
@@ -76,24 +78,28 @@ const Home = observer(() => {
     textToSpeechLimitedEnabled,
     leadGeneratorEnabled,
     googleMapsEnabled,
+    collborateEnabled,
     socialFbEnabled,
     wrapperFeatureEnabled,
     textMaskEnabled,
     roles,
     currentUser,
-
+    publishEnabled,
     evolutionOverlayEnabled,
     evolutionPresetEnabled,
     evolutionBlendModeEnabled,
     evolutionLowerThirdEnabled,
     evolutionCtaEnabled,
     evolutionImageLTPresetEnabled,
+    endScreensEnabled,
+    getSvrTerms,
   } = userStore;
   const uiStore = useUIStore();
   const { openModal, closeModal } = useModalStore();
   const [shouldShowTGModal, setShouldShowTGModal] = useState(
-    templateGeneratorEnabled,
+    videoAutomationCreatorEnabled,
   );
+
   const {
     changeRadioButton,
     secondaryWindowType,
@@ -111,6 +117,8 @@ const Home = observer(() => {
     setInitialView,
     isCanvasPresent,
     toggleLeftBlock,
+    addTogetherJS,
+    isEnabled
   } = uiStore;
   const {
     item: {
@@ -140,6 +148,7 @@ const Home = observer(() => {
     destroyCombinedItem,
     popcorn,
     item,
+    setButtonType
   } = projectStore;
 
   const toolbarContent = React.useMemo(() => {
@@ -158,6 +167,7 @@ const Home = observer(() => {
         toggleRightBlock,
         openUploadTransition,
         toggleLeftBlock,
+        addTogetherJS,
       },
       project: {
         allowedSocials,
@@ -186,6 +196,7 @@ const Home = observer(() => {
         textToSpeechNeuralEnabled,
         textToSpeechLimitedEnabled,
         googleMapsEnabled,
+        collborateEnabled,
         socialFbEnabled,
         wrapperFeatureEnabled,
         textMaskEnabled,
@@ -195,8 +206,10 @@ const Home = observer(() => {
         evolutionLowerThirdEnabled,
         evolutionCtaEnabled,
         evolutionImageLTPresetEnabled,
+        endScreensEnabled,
       },
     });
+
     return items && items.length ? items : [];
   }, [
     openModal,
@@ -214,7 +227,34 @@ const Home = observer(() => {
   ]);
 
   useEffect(() => {
-    if (!project && pathname !== ROUTES.edit) {
+    const script = document.createElement("script");
+    script.src = './static/js/togetherjs/togetherjs-min.js';
+    script.async = true;
+    document.body.appendChild(script)
+  },[])
+
+  useEffect(() => {
+    if(isEnabled == true) {
+      if(!project && !remix ) {
+        showInfo('Please save a project');
+        return false
+      }
+      push(`/edit/?remix=${project ? project : remix}`)
+      TogetherJS();
+    }
+  },[isEnabled])
+ 
+
+  useEffect(() => {
+    if (getSvrTerms === false) {
+      push(
+        {
+          pathname: ROUTES.terms,
+        },
+        undefined,
+        { shallow: true },
+      );
+    } else if (!project && pathname !== ROUTES.edit) {
       push(
         {
           pathname: ROUTES.edit,
@@ -248,10 +288,9 @@ const Home = observer(() => {
     [project || remix, openModal],
   );
 
-
   const { setCopiedItems, pasteElement, isActiveTimeline } = useTimelineStore();
-
   hotkeys.filter = () => true;
+
   const keys = [
     twoKeys.ctrlS,
     twoKeys.ctrlZ,

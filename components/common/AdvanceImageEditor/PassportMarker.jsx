@@ -13,7 +13,6 @@ import { showError } from '../../../lib/services/alertService';
 import useMediaStore from '../../hooks/useMediaStore';
 import useUIStore from '../../hooks/useUIStore';
 import useUserStore from '../../hooks/useUserStore';
-import { LibrarySpinner } from '../../media/Loader';
 import config from '../../../config/config';
 
 import transparent from '../../../public/static/AdvanceImageSvg/background.png';
@@ -59,6 +58,7 @@ import childNine from '../../../public/static/AdvanceImageSvg/idphotodress/child
 import childTen from '../../../public/static/AdvanceImageSvg/idphotodress/child/10.png';
 import childEleven from '../../../public/static/AdvanceImageSvg/idphotodress/child/11.png';
 import childTwelve from '../../../public/static/AdvanceImageSvg/idphotodress/child/12.png';
+import PercentageProgressBar from '../../media/PercentageProgressBar';
 
 
 const PhotoEnhancer = observer(({
@@ -91,6 +91,7 @@ const PhotoEnhancer = observer(({
   const [childActiveSlideIndex, setChildActiveSlideIndex] = useState(0);
   const [color, setColor] = useState('FFFFFF');
   const [dress, setDress] = useState('');
+  const [isError, setError] = useState(null);
 
 
   const { source } = useMemo(() => imageData, [imageData]);
@@ -146,6 +147,7 @@ const PhotoEnhancer = observer(({
         setIsProcessImage(true);
         if (resp.data === null) {
           setNewImage(null);
+          setError('Processing failed');
         } else {
           setNewImage(resp.data.idPhotoImage);
           setPrintLayoutImage(resp.data.printLayoutImage);
@@ -167,9 +169,6 @@ const PhotoEnhancer = observer(({
   };
 
   const changeBackgroundColor = async (val) => {
-    // console.log(val);
-    // setColor(val);
-    // console.log(color);
     setIsLoading(true);
     const total = cutoutProCreditUserUsed + 2;
 
@@ -190,7 +189,6 @@ const PhotoEnhancer = observer(({
       printMmWidth: 150,
       dress,
     };
-    console.log(data);
     fetch(`https://www.cutout.pro/api/v1/idphoto/printLayout`, {
       method: 'post',
       headers: {
@@ -205,10 +203,9 @@ const PhotoEnhancer = observer(({
       ).then(resp => {
         setIsLoading(false);
         setIsProcessImage(true);
-        // setNewImage(resp.data.idPhotoImage);
-        // setPrintLayoutImage(resp.data.printLayoutImage);
         if (resp.data === null) {
           setNewImage(null);
+          setError('Processing failed');
         } else {
           setColor(val);
           setNewImage(resp.data.idPhotoImage);
@@ -223,16 +220,7 @@ const PhotoEnhancer = observer(({
       });
   };
 
-  // useEffect(() => {
-  // console.log(dress);
-  // }, [color, dress]);
-
   const changeDressPhotoImage = async (val) => {
-    // console.log(val, 'This is val');
-    // setDress('');
-    // setDress(val);
-    // console.log(dress, 'this is state');
-
     setIsLoading(true);
     const total = cutoutProCreditUserUsed + 2;
     const base64Response = await fetch(source);
@@ -271,6 +259,7 @@ const PhotoEnhancer = observer(({
         // setPrintLayoutImage(resp.data.printLayoutImage);
         if (resp.data === null) {
           setNewImage(null);
+          setError('Processing failed');
         } else {
           setDress(val);
           setNewImage(resp.data.idPhotoImage);
@@ -334,6 +323,25 @@ const PhotoEnhancer = observer(({
     <>
       <div className="">
 
+        <div className="">
+          {
+            isError === 'Processing failed' ? (
+              <div>
+                <p className="errorText mb-0"> This picture is not supported and no foreground is not recognized </p>
+                <p className="errorText">
+                  {' '}
+                  Please select a picture with a clear distinction between foreground and background.
+                  For example a picture of a person, a product, an animal, a car or another object
+                  {' '}
+                </p>
+              </div>
+            ) : (
+              null
+            )
+          }
+        </div>
+
+
         <div className="flex advance-editor-modal-content">
 
           <div className="content-container">
@@ -356,7 +364,7 @@ const PhotoEnhancer = observer(({
                       )
                       : (
                         <button onClick={() => processImage()} className="btn  btn-outline-danger  btn-sm">
-                          Process Passport Marker
+                          Process Passport Maker
                         </button>
                       )}
                   </div>
@@ -367,7 +375,9 @@ const PhotoEnhancer = observer(({
                 <p className="text-center font-weight-bold"> Result Image </p>
 
                 <div className=" ">
-                  {isLoading ? <LibrarySpinner /> : (
+                  {isLoading ? <div className="progressState">
+                     <PercentageProgressBar/>
+                    </div>: (
                     <div className=" flex justify-content-center">
                       {isProcessImage
                         ? (

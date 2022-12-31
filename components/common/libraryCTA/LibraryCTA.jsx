@@ -41,30 +41,32 @@ const LibraryCTA = ({ className, onSelect }) => {
 
     if (hasMore) {
       try {
+        let results = [];
+        let resultsEvolution = [];
         if (ctaEnabled === true) {
-          const results = await getTemplatesCTA({
+          results = await getTemplatesCTA({
             query: '',
             page,
             perPage,
           });
-          setItems((prevState) => [...prevState, ...results]);
         }
 
         if (evolutionCtaEnabled === true) {
-          const resultsEvolution = await getEvolutionTemplatesCTA({
+          resultsEvolution = await getEvolutionTemplatesCTA({
             query: '',
             page,
             perPage,
           });
-
-          setItems((prevState) => [...prevState, ...resultsEvolution]);
         }
+        const templateCTA = results.concat(resultsEvolution);
+        setItems((prevState) => [...prevState, ...templateCTA]);
+        if (results || resultsEvolution) {
+          const hasNextPage = results.length || resultsEvolution.length === perPage;
+          setHasMore(hasNextPage);
 
-        const hasNextPage = items.length === perPage;
-        setHasMore(hasNextPage);
-
-        if (hasNextPage) {
-          setPage(page + 1);
+          if (hasNextPage) {
+            setPage(page + 1);
+          }
         }
       } catch (e) {
         showError(e.message);

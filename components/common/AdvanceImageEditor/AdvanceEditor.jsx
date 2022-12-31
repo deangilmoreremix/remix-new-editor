@@ -1,16 +1,16 @@
 /* eslint-disable no-var */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo,lazy,Suspense } from 'react';
 import { observer } from 'mobx-react';
 import useUserStore from '../../hooks/useUserStore';
 import Tabs from './Tabs';
 import TabPane from './TabPane';
-import BackgroundRemoval from './BackgroundRemoval';
-import PhotoEnhancer from './PhotoEnhancer';
-import FaceCutOut from './FaceCutOut';
-import PhotoColorizer from './PhotoColorizer';
-import PhotoCorrection from './PhotoCorrection';
-import CartoonSelfie from './CartoonSelfie';
-import PassportMarker from './PassportMarker';
+const BackgroundRemoval = lazy(() => import("./BackgroundRemoval") );
+const PhotoEnhancer = lazy(() => import('./PhotoEnhancer'));
+const FaceCutOut = lazy(() => import('./FaceCutOut'));
+const PhotoColorizer = lazy(() => import('./PhotoColorizer'));
+const PhotoCorrection = lazy(() => import('./PhotoCorrection'));
+const CartoonSelfie = lazy(() => import('./CartoonSelfie'));
+const PassportMarker = lazy(() => import('./PassportMarker'));
 import RemoveBackgroundSvg from '../../../public/static/AdvanceImageSvg/removebackgorund.svg';
 import FaceCutOutSvg from '../../../public/static/AdvanceImageSvg/faceCutOut.svg';
 import SelfieSvg from '../../../public/static/AdvanceImageSvg/selfie.svg';
@@ -18,13 +18,13 @@ import EnhancerSvg from '../../../public/static/AdvanceImageSvg/Enhancer.svg';
 import ColorizerSvg from '../../../public/static/AdvanceImageSvg/smartColor.svg';
 import Passport from '../../../public/static/AdvanceImageSvg/passport.svg';
 import correction from '../../../public/static/AdvanceImageSvg/smartCorrection.svg';
-// import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
-// import PhotoAnimer from './PhotoAnimer';
+import smartMotion from '../../../public/static/AdvanceImageSvg/smartMotion.svg';
+const PhotoAnimer = lazy(() => import( './PhotoAnimer'));
 // import brush from '../../../public/static/AdvanceImageSvg/samrtBrush.svg';
 // import Retouch from './Retouch';
 // import { showError } from '../../../lib/services/alertService';
-import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
-import { showError } from '../../../lib/services/alertService';
+// import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
+// import { showError } from '../../../lib/services/alertService';
 
 
 const AdvancedImageEditor = observer(({
@@ -36,18 +36,10 @@ const AdvancedImageEditor = observer(({
     smartEnhancerEnabled, smartColorizerEnabled,
     smartCorrectionEnabled,
     smartPassportEnabled,
-    //  smartRetouchEnabled,
-    //  smartAnimerEnabled,
-    // userCutOutProBalance,
-    // cutoutProCreditUserUsed,
+    smartAnimerEnabled,
     cutoutProCreditAvailableBalance,
+    //  smartRetouchEnabled,
   } = useUserStore();
-
-  // const quantify = () => {
-  //   userCutOutProBalance()
-  //     .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
-  // };
-  // useEffect(() => quantify(), []);
 
   const { imageMeta, ...rest } = useMemo(
     () => options, [options]);
@@ -61,6 +53,7 @@ const AdvancedImageEditor = observer(({
   return (
     <>
       <div>
+      <Suspense fallback={<div>Loading...</div>}>
         <div className="heading-container">
           <div style={{ display: 'contents' }}>
             <p>
@@ -84,7 +77,7 @@ const AdvancedImageEditor = observer(({
               <div>
                 <p style={{ color: 'red' }} className=" text-danger ">
                   <a style={{ color: 'red' }} className=" text-danger " target="_blank" href="https://videoremix.io/image-pricing/" rel="noopener noreferrer">
-                   You have exhausted your credits. Click here to purchase credits.
+                    You have exhausted your credits. Click here to purchase credits.
                   </a>
                 </p>
               </div>
@@ -129,7 +122,6 @@ const AdvancedImageEditor = observer(({
                 />
               </TabPane>
             )}
-
             {smartEnhancerEnabled && (
               <TabPane name="Smart Enhancer" icon={EnhancerSvg} key="4">
                 <PhotoEnhancer
@@ -176,7 +168,7 @@ const AdvancedImageEditor = observer(({
             )}
 
 
-            {/* {smartAnimerEnabled && (
+            {smartAnimerEnabled && (
               <TabPane name="Smart Animer" icon={smartMotion} key="8">
                 <PhotoAnimer
                   imageData={imageMeta}
@@ -184,7 +176,7 @@ const AdvancedImageEditor = observer(({
                   {...rest}
                 />
               </TabPane>
-            )} */}
+            )}
 
             {/* {
               smartRetouchEnabled && (
@@ -200,6 +192,7 @@ const AdvancedImageEditor = observer(({
 
           </Tabs>
         </div>
+        </Suspense>
       </div>
     </>
   );

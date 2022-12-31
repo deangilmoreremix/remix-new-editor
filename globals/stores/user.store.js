@@ -139,6 +139,60 @@ export default class UserStore {
   };
 
   @action
+  getUpgradeLinkRole = async (title,envTitle,revTitle) => {
+    let userObject;
+    try {	
+      userObject = await this.request(`/api/users/${this.currentUser.id}`, {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      let sortedArray = userObject.activeRoles.sort(function compare(a,b) {
+        var dateA = new Date(a.grantedAt);
+        var dateB = new Date(b.grantedAt);
+        return dateB - dateA;
+      })
+      let link;
+      const getRoleData = async (id) => {
+        const roleObject = await this.request(`/api/roles/${id}`, {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+        return roleObject;
+      }
+      for(let i=0;i<sortedArray.length;i++) {
+        const roleData = await getRoleData(sortedArray[i].role);
+        if(roleData.features[title]) {
+          if(roleData.features[title].link) {
+            link = roleData.features[title].link;
+            break;
+          }
+        }
+           
+      if(roleData.features[envTitle]) {
+        if(roleData.features[envTitle].link) {
+          link =  roleData.features[envTitle].link;
+          break;
+        }
+      }
+      if(roleData.features[revTitle]) {
+        if(roleData.features[revTitle].link) {
+          link = roleData.features[revTitle].link;
+          break;
+        }
+      }
+      }
+      return link
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
   getActiveSubscription = async () => {
     try {
       return await this.request('/api/users/me/active-subscriptions', {
@@ -317,8 +371,6 @@ export default class UserStore {
     return this.currentUser.apiKey || 'Not set';
   }
 
-
-
   @computed
   get externalApiKey() {
     return this.currentUser.externalApiKey || 'Not set';
@@ -328,6 +380,12 @@ export default class UserStore {
   get photo() {
     return this.currentUser.photoUrl || this.currentUser.avatar
       || 'https://stuff.webmaker.org/avatars/webmaker-avatar-200x200.png';
+  }
+
+
+  @computed
+  get getSvrTerms() {
+    return this.currentUser.svrTerms;
   }
 
   isfeatureEnabled = (feature) => this.isSuperAdmin || (
@@ -405,6 +463,11 @@ export default class UserStore {
   }
 
   @computed
+  get videoAutomationCreatorEnabled() {
+    return this.isfeatureEnabled(FEATURES.VIDEO_AUTOMATION_CREATOR);
+  }
+
+  @computed
   get linkedinEnabled() {
     return this.isfeatureEnabled(FEATURES.LINKEDIN);
   }
@@ -437,6 +500,11 @@ export default class UserStore {
   @computed
   get googleMapsEnabled() {
     return this.isfeatureEnabled(FEATURES.GOOGLE_MAPS);
+  }
+
+  @computed
+  get collborateEnabled() {
+    return this.isfeatureEnabled(FEATURES.COLLABORATE_TOGETHERJS);
   }
 
   @computed
@@ -490,6 +558,11 @@ export default class UserStore {
   get video360Enabled() {
     return [FEATURES.OP_360, FEATURES.OWP_360, FEATURES.VIDEO_360]
       .some(feature => this.isfeatureEnabled(feature));
+  }
+
+  @computed
+  get publishEnabled() {
+    return this.isfeatureEnabled(FEATURES.PROJECT_PUBLISHING);
   }
 
   @computed
@@ -612,5 +685,10 @@ export default class UserStore {
   @computed
   get evolutionImageLTPresetEnabled() {
     return this.isfeatureEnabled(FEATURES.EVOLUTION_IMAGE_LT_PRESETS);
+  }
+
+  @computed
+  get endScreensEnabled() {
+    return this.isfeatureEnabled(FEATURES.END_SCREENS);
   }
 }

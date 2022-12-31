@@ -548,7 +548,7 @@ const GoogleTextToSpeech = observer(() => {
             updateCaret={(value) => setCaret(value.caretOffset)}
             maxTextSymbols={maxTextSymbols}
             symbolsCount={textValueAreaLength}
-            disabled={maxTextSymbols}
+            disabled={!maxTextSymbols}
           />
 
           <p className="text-to-speech__information">You can use 70 characters to personalize voice or 150 characters for voice without personalization.</p>

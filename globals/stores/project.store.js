@@ -204,6 +204,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable userStore = {};
 
+  @observable layer = [];
+
   @observable activeElementId;
 
   @observable voiceTextId;
@@ -223,6 +225,8 @@ export default class ProjectStore extends BaseStore {
   @observable isLoading = false;
 
   @observable isLoadingSequencer = false;
+
+  @observable isPublished = false;
 
   @observable projectData = {};
 
@@ -277,6 +281,8 @@ export default class ProjectStore extends BaseStore {
 
   @observable success = null;
 
+  @observable saveButton = "";
+
   @action
   setVoiceTextId = (id = this.activeElementId) => {
     this.voiceTextId = id;
@@ -287,6 +293,11 @@ export default class ProjectStore extends BaseStore {
     this.isRedirect = value;
   };
 
+  @action 
+  setIsPublished = (value =  false) => {
+    this.isPublished =  value;
+  }
+
   @action
   undoRedoAction = (undo = true) => {
     const targetData = undo ? this.undoStore : this.redoStore;
@@ -294,15 +305,35 @@ export default class ProjectStore extends BaseStore {
     if (!targetDataLength) {
       return;
     }
-
     this.modified = true;
     const activeElement = this.activeElementId && this.getElementById(this.activeElementId);
     this.isTransition = activeElement
       && activeElement.type === POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION;
-    const { projectData, duration, retarget, activeElementId } = targetData[targetDataLength - 1];
+
+    // Temporary fix undo action for 2 or 3 elements
+
+    let count = 0;
+    const sortedElements = this.layer[0].trackEvents.sort((a, b) => a.popcornOptions.start - b.popcornOptions.start);
+    // Get count of elements in active layer
+    for (let i = 0; i < sortedElements.length; i++) {
+      console.log(sortedElements[i], sortedElements[i + 1], 'i');
+      if (sortedElements[i] != sortedElements[sortedElements.length - 1]) {
+        if (sortedElements[i].popcornOptions.end == sortedElements[i + 1].popcornOptions.start) {
+          count++;
+        }
+      }
+    }
+    let { projectData, duration, retarget, activeElementId } = targetData[targetDataLength - 1];
+    if (count > 0) {
+      if (targetData.length && activeElement && targetData[targetDataLength - count] && targetData[targetDataLength - count].activeElementId && targetData[targetDataLength - count].activeElementId == activeElement.id) {
+        projectData = targetData[targetDataLength - count].projectData;
+        duration = targetData[targetDataLength - count].duration;
+        retarget = targetData[targetDataLength - count].retarget;
+        activeElementId = targetData[targetDataLength - count].activeElementId;
+      }
+    }
     const snapshot = toJS(this.projectData);
     targetData.pop();
-
     this.setUndoRedoAction({
       projectData: snapshot,
       duration: this.duration,
@@ -1437,6 +1468,16 @@ export default class ProjectStore extends BaseStore {
   setUndoRedoAction = (projectData, undo = true) => {
     const targetData = undo ? this.undoStore : this.redoStore;
     targetData.push(projectData);
+    this.layer = this.projectData.media[0].tracks.filter(
+      (ele) => {
+        if (ele.trackEvents.filter(
+          (element) => element.id == this.activeElementId,
+        ).length > 0) {
+          return ele;
+        }
+      },
+    );
+
     if (targetData.length > NUMBER_OF_STEPS) {
       targetData.shift();
     }
@@ -1505,17 +1546,17 @@ export default class ProjectStore extends BaseStore {
         'on-behalf': this.currentUser.id,
       },
     });
-    const data={
-      "result":result,
-      "cur_item":this.item._id,
-    }
+    const data = {
+      result,
+      cur_item: this.item._id,
+    };
     return data;
   };
 
   getItemTitle = async () => {
-    const data ={
-      "title":this.item.title
-    }
+    const data = {
+      title: this.item.title,
+    };
     return data;
   };
 
@@ -1556,9 +1597,11 @@ export default class ProjectStore extends BaseStore {
 
   @action
   save = async () => {
-    if (!this.modified) {
-      return;
-    }
+    this.item.published = this.isPublished;
+    //Commented to implement draft
+    // if (!this.modified) {
+    //   return;
+    // }
     this.undoStore = [];
     this.redoStore = [];
     this.isLoading = true;
@@ -1690,7 +1733,7 @@ export default class ProjectStore extends BaseStore {
           );
           setInitialView();
         }
-      } else if (await showConfirmation('Project will be saved')) {
+      } else if (this.saveButton == "") {
         closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
@@ -1708,18 +1751,40 @@ export default class ProjectStore extends BaseStore {
               query: {
                 project: project._id,
               },
-            },
-            undefined,
+            }),
+          setInitialView();
+        }
+      } 
+      else if (await showConfirmation(`${this.saveButton}`)) {
+        closeAllWindows();
+        const project = await this.save();
+        if (!this.modified) {
+          if (actionType === ACTION_MAKE_COPY) {
+            afterSave(`/edit?remix=${this.item._id}`);
+          }
+          if (actionType === ACTION_WATCH_VIDEO) {
+            afterSave(this.item.url);
+          }
+        }
+        if (project && project._id) {
+          Router.push(
             {
-              shallow: true,
-            },
-          );
+              pathname: ROUTES.edit,
+              query: {
+                project: project._id,
+              },
+            }),
           setInitialView();
         }
       }
     } catch (e) {
       showError(e.message);
     }
+  }
+
+  @action 
+  setButtonType = (value) => {
+    this.saveButton = value;
   }
 
   @action
@@ -2077,6 +2142,13 @@ export default class ProjectStore extends BaseStore {
 
     if (type === POPCORN_ELEMENT_TYPES.PAUSE) {
       item.stopAction = true;
+    }
+
+    if (type === POPCORN_ELEMENT_TYPES.PERSONALIZED_IMAGE) {
+      item.width = 50;
+      item.height = 50;
+      item.top = 25;
+      item.left = 25;
     }
 
     if (startInDrag) {
