@@ -52,7 +52,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
       let newData = JSON.parse(activeItem.project.data);
       const lastIndexOfTracks = newData.media[0].tracks.length - 1;
       newData.media[0].tracks.reverse();
-      const firstElementType = newData.media[0].tracks[0].trackEvents[0].type;
+      const firstElementType = newData.media[0].tracks[0]?.trackEvents[0]?.type;
       newData = JSON.stringify(newData);
       activeItem.project.data = newData;
       await addData(activeItem, true);
