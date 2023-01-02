@@ -39,6 +39,8 @@ const LinkedinCampaign = observer(({
 
   const {
     item: project,
+    updateItem,
+    save
   } = useProjectStore();
 
   const { closeModal } = useModalStore();
@@ -47,6 +49,12 @@ const LinkedinCampaign = observer(({
     setLoading(true);
     const { postData, embedPage, preload } = settings;
     try {
+      await updateItem({
+        name: postData.title,
+        description: postData.description,
+        thumbnail: postData.thumbnail,
+      });
+      await save();
       await share({
         title: postData.title,
         description: postData.description,
@@ -61,7 +69,7 @@ const LinkedinCampaign = observer(({
       closeModal(SOCIAL_CAMPAIGN_MODAL);
       showInfo('Success');
     } catch (error) {
-      showError(error.message);
+      showError('This post has already been shared.');
     }
     setLoading(false);
     return project;

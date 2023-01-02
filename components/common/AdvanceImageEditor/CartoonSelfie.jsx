@@ -16,6 +16,7 @@ import transparent from '../../../public/static/AdvanceImageSvg/background.png';
 import { tabItems } from '../../../lib/constants/library';
 import { ERROR_CUTOUTPRO_TEXT_SYMBOLS } from '../../../lib/constants/text-info';
 import PercentageProgressBar from '../../media/PercentageProgressBar';
+import Carousel from 'react-simply-carousel';
 
 
 const CartoonSelfie = observer(({
@@ -39,9 +40,23 @@ const CartoonSelfie = observer(({
   } = userStore;
 
   const [isLoading, setIsLoading] = useState(false);
+  const [active, setActive] = useState();
   const [isProcessImage, setIsProcessImage] = useState(false);
   const [isError, setError] = useState(null);
   const [newImage, setNewImage] = useState('');
+  const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+  const cartoonSelfieArray = [
+    { src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/1.jpg', id: 5 },
+    { src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/2.jpg', id: 4 },
+    { src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/3.jpg', id: 0 },
+    { src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/4.jpg', id: 1 },
+    { src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/5.jpg', id: 2 },
+    { src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/6.jpg', id: 3 },
+    { src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/7.jpg', id: 6 },
+    { src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/8.jpg', id: 7 },
+    { src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/9.jpg', id: 8 },
+    { src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/type09.jpg', id: 9 },
+    { src: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFace/type10.jpg', id: 10 },];
 
 
   const { source } = useMemo(() => imageData, [imageData]);
@@ -128,6 +143,7 @@ const CartoonSelfie = observer(({
 
   const ChangeAvatarImage = (val) => {
     setIsLoading(true);
+    setActive(val);
     const total = cutoutProCreditUserUsed + 2;
     fetch(`https://www.cutout.pro/api/v1/cartoonSelfieByUrl?cartoonType=${val}&url=${source}`, {
       method: 'get',
@@ -213,8 +229,8 @@ const CartoonSelfie = observer(({
 
                 <div className=" ">
                   {isLoading ? <div className="progressState">
-                   <PercentageProgressBar/>
-                    </div> : (
+                    <PercentageProgressBar/>
+                  </div> : (
                     <div className=" flex justify-content-center">
                       {isProcessImage
                         ? (
@@ -246,30 +262,61 @@ const CartoonSelfie = observer(({
                 )
                 : (
                   <div className="flex">
-                    {/* <div role="button" onClick={() => ChangeAvatarImage(6)} className="imgS border-sel cartoon-container">
-                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonFull1.jpg" className="carton-avatar" alt="" />
-                    </div> */}
-                    <div role="button" onClick={() => ChangeAvatarImage(5)} className="imgS border-sel cartoon-container">
-                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar5.png" className="carton-avatar" alt="" />
-                    </div>
-                    <div role="button" onClick={() => ChangeAvatarImage(1)} className="imgS border-sel cartoon-container">
-                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar1.png" className="carton-avatar" alt="" />
-                    </div>
-                    <div role="button" onClick={() => ChangeAvatarImage(2)} className="imgS border-sel cartoon-container">
-                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar2.png" className="carton-avatar" alt="" />
-                    </div>
-                    <div role="button" onClick={() => ChangeAvatarImage(3)} className="imgS border-sel cartoon-container">
-                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar3.png" className="carton-avatar" alt="" />
-                    </div>
-                    <div role="button" onClick={() => ChangeAvatarImage(4)} className="imgS border-sel cartoon-container">
-                      <img src="https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/cartoon/cartoonAvatar4.png" className="carton-avatar" alt="" />
-                    </div>
+                    <Carousel
+                      containerProps={{
+                        style: {
+                          width: '100%',
+                          display: 'flex',
+                          justifyContent: '',
+                        },
+                      }}
+                      forwardBtnProps={{
+                        children: '>',
+                        style: {
+                          border: 'none',
+                          height: '20%',
+                          justifyContent: 'center',
+                          marginTop: '5px',
+                          marginRight: '3px',
+                          display: 'flex',
+                          padding: '3px',
+                          background: 'none',
+                          color: '#fff',
+                          outline: 'none',
+                          // alignSelf: 'center',
+                        },
+                      }}
+                      backwardBtnProps={{
+                        children: '<',
+                        style: {
+                          border: 'none',
+                          height: '20%',
+                          justifyContent: 'center',
+                          marginTop: '5px',
+                          display: 'flex',
+                          padding: '3px',
+                          background: 'none',
+                          color: '#fff',
+                          outline: 'none',
+                          // alignSelf: 'center',
+                        },
+                      }}
+                      itemsToShow={10}
+                      itemsToScroll={3}
+                      activeSlideIndex={activeSlideIndex}
+                      onRequestChange={setActiveSlideIndex}
+                    >
+                      {cartoonSelfieArray.map((val) => (
+                        <div role="button" onClick={() => ChangeAvatarImage(val.id)} tabIndex="0" aria-hidden className={val.id === active ? 'carton-active' : 'cartoon-container'}>
+                          <img src={val.src} className="carton-avatar" alt="" style={{ margin: '5px' }} />
+                        </div>
+                      ))}
+                    </Carousel>
                   </div>
-
                 )}
-
-
             </div>
+
+
 
             {cutoutProCreditAvailableBalance <= 0
               ? (

@@ -84,13 +84,14 @@ const Home = observer(() => {
     textMaskEnabled,
     roles,
     currentUser,
-
+    publishEnabled,
     evolutionOverlayEnabled,
     evolutionPresetEnabled,
     evolutionBlendModeEnabled,
     evolutionLowerThirdEnabled,
     evolutionCtaEnabled,
     evolutionImageLTPresetEnabled,
+    endScreensEnabled,
     getSvrTerms,
   } = userStore;
   const uiStore = useUIStore();
@@ -147,6 +148,7 @@ const Home = observer(() => {
     destroyCombinedItem,
     popcorn,
     item,
+    setButtonType
   } = projectStore;
 
   const toolbarContent = React.useMemo(() => {
@@ -204,6 +206,7 @@ const Home = observer(() => {
         evolutionLowerThirdEnabled,
         evolutionCtaEnabled,
         evolutionImageLTPresetEnabled,
+        endScreensEnabled,
       },
     });
 

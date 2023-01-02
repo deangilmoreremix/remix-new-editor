@@ -58,7 +58,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
       await addData(activeItem, true);
       handleClose();
       toggleLeftBlock(false);
-      if(title == "connect form" &&  firstElementType == 'sequencer') {
+      if((title == "connect form" || "End Screens")  &&  firstElementType == 'sequencer') {
         setTimeout(() => {
           moveElements(0,lastIndexOfTracks);
         }, 2000);

@@ -364,7 +364,7 @@ const PhotoEnhancer = observer(({
                       )
                       : (
                         <button onClick={() => processImage()} className="btn  btn-outline-danger  btn-sm">
-                          Process Passport Marker
+                          Process Passport Maker
                         </button>
                       )}
                   </div>

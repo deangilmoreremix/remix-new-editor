@@ -139,6 +139,60 @@ export default class UserStore {
   };
 
   @action
+  getUpgradeLinkRole = async (title,envTitle,revTitle) => {
+    let userObject;
+    try {	
+      userObject = await this.request(`/api/users/${this.currentUser.id}`, {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      let sortedArray = userObject.activeRoles.sort(function compare(a,b) {
+        var dateA = new Date(a.grantedAt);
+        var dateB = new Date(b.grantedAt);
+        return dateB - dateA;
+      })
+      let link;
+      const getRoleData = async (id) => {
+        const roleObject = await this.request(`/api/roles/${id}`, {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+        return roleObject;
+      }
+      for(let i=0;i<sortedArray.length;i++) {
+        const roleData = await getRoleData(sortedArray[i].role);
+        if(roleData.features[title]) {
+          if(roleData.features[title].link) {
+            link = roleData.features[title].link;
+            break;
+          }
+        }
+           
+      if(roleData.features[envTitle]) {
+        if(roleData.features[envTitle].link) {
+          link =  roleData.features[envTitle].link;
+          break;
+        }
+      }
+      if(roleData.features[revTitle]) {
+        if(roleData.features[revTitle].link) {
+          link = roleData.features[revTitle].link;
+          break;
+        }
+      }
+      }
+      return link
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
   getActiveSubscription = async () => {
     try {
       return await this.request('/api/users/me/active-subscriptions', {
@@ -507,6 +561,11 @@ export default class UserStore {
   }
 
   @computed
+  get publishEnabled() {
+    return this.isfeatureEnabled(FEATURES.PROJECT_PUBLISHING);
+  }
+
+  @computed
   get clickToPhoneCall() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL);
   }
@@ -626,5 +685,10 @@ export default class UserStore {
   @computed
   get evolutionImageLTPresetEnabled() {
     return this.isfeatureEnabled(FEATURES.EVOLUTION_IMAGE_LT_PRESETS);
+  }
+
+  @computed
+  get endScreensEnabled() {
+    return this.isfeatureEnabled(FEATURES.END_SCREENS);
   }
 }

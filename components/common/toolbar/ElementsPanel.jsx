@@ -21,23 +21,23 @@ const ElementsPanel = observer(({ items }) => {
   } = useUIStore();
 
   const personalizationElements = useMemo(
-    () => items.filter(({ uiSection, disabled }) => uiSection === SECTIONS.basic && !disabled),
+    () => items.filter(({ uiSection, adminElement }) => uiSection === SECTIONS.basic && adminElement),
     [items]);
   const leadGenElements = useMemo(
-    () => items.filter(({ uiSection, disabled }) => uiSection === SECTIONS.leadGeneration
-      && !disabled), [items]);
+    () => items.filter(({ uiSection }) => uiSection === SECTIONS.leadGeneration
+      ), [items]);
   const advancedElements = useMemo(
-    () => items.filter(({ uiSection, disabled }) => uiSection === SECTIONS.advanced && !disabled),
+    () => items.filter(({ uiSection, }) => uiSection === SECTIONS.advanced ),
     [items]);
 
   // creative elements
   const creativeElements = useMemo(
-    () => items.filter(({ uiSection, disabled }) => uiSection === SECTIONS.creative && !disabled),
+    () => items.filter(({ uiSection, }) => uiSection === SECTIONS.creative ),
     [items]);
 
   // video control
   const videoControlElements = useMemo(
-    () => items.filter(({ uiSection, disabled }) => uiSection === SECTIONS.videoControl && !disabled),
+    () => items.filter(({ uiSection }) => uiSection === SECTIONS.videoControl),
     [items]);
 
   if (!checkboxLeft) {
@@ -96,6 +96,7 @@ ElementsPanel.propTypes = {
     icon: PropTypes.string.isRequired,
     action: PropTypes.func.isRequired,
     disabled: PropTypes.boolean,
+    adminElement:PropTypes.boolean,
   })).isRequired,
 };
 
