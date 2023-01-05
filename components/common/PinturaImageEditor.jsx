@@ -75,11 +75,11 @@ const PinturaImageEditor = observer(({
                     className={pintura}
                     src={options.src}
                     onLoad={(res) => console.log('load inline image', res)}
-                    imageWriter={createDefaultImageWriter({
-                        mimeType: 'image/jpeg',
-                        quality: 80,
-                        format: 'file'
-                    })}
+                    // imageWriter={createDefaultImageWriter({
+                    //     mimeType: 'image/jpeg',
+                    //     quality: 80,
+                    //     format: 'file'
+                    // })}
                     utils={[
                         'crop',
                         'filter',
