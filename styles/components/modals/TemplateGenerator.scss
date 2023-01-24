@@ -299,7 +299,7 @@ $fontSize: 0.9em;
     overflow-x: hidden;
     justify-content: stretch;
     overflow-y: scroll;
-
+    min-width: 100%;
     .list-body {
       height: 100%;
       overflow: hidden;
