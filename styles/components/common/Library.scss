@@ -477,7 +477,7 @@ button.library__tab {
     outline: none !important;
 
     svg path {
-      fill: #9292B5;
+      stroke: #9292B5;
     }
 
     p {
@@ -487,7 +487,7 @@ button.library__tab {
 
   &-active {
     svg path {
-      fill: $white;
+      stroke: $white;
     }
 
     p {
@@ -525,7 +525,6 @@ button.library__tab {
 
   path {
     stroke: none;
-    fill: $btn-gray;
   }
 }
 
@@ -731,6 +730,27 @@ button.library__tab {
   border: 1px solid $secondary-color;
   margin-right: 0.5em;
 }
+.image_lt-use {
+  @include reset-button;
+  height: 2em;
+  flex: 1;
+  background-color: $secondary-color;
+  border-radius: 2.5px;
+  text-transform: uppercase !important;
+  font-size: 12px;
+  padding: 0 5px 0 5px;
+  width: 5.5rem !important;
+  opacity: 1;
+  margin: 0;
+}
+.image_lt-preview {
+  @extend .library__item-use;
+  background: rgba(0, 0, 0, 0);
+  border: 1px solid $secondary-color;
+  margin-right: 0.5em;
+  opacity: 1;
+
+}
 
 .library__item-preview-selected {
   flex: 0;
@@ -845,7 +865,9 @@ button.library__tab {
     margin-bottom: 0;
   }
 }
-
+.library__btn-item.library__btn-active .library__icon-btn svg g {
+  fill: #fff !important;
+}
 .library-voice-filter {
   margin-top: 1rem;
 

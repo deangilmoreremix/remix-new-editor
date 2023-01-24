@@ -27,6 +27,8 @@ const List = observer((
     setStartSearch,
     searchPage,
     blendModeImage,
+    handleClose,
+    query
   }) => {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
@@ -44,6 +46,7 @@ const List = observer((
           item.kind = POPCORN_ELEMENT_TYPES.BLEND_MODE;
         }
         await addData(item);
+        handleClose();
       } else {
         item.src = item.data;
         item.type = type;
@@ -59,6 +62,10 @@ const List = observer((
     setHasMore(true);
     setItems([]);
   };
+  
+  useEffect(() => {
+    getItems();
+  },[query])
 
   useEffect(() => {
     if (setStartSearch && startSearch && searchValue) {
@@ -82,7 +89,7 @@ const List = observer((
       try {
         if (blendModeEnabled === true) {
           const results = await get({
-            query: searchValue,
+            query: query,
             page,
             perPage,
             ...fetchAttributes,
@@ -99,7 +106,7 @@ const List = observer((
 
         if (evolutionBlendModeEnabled === true) {
           const resultEvolution = await getEvolution({
-            query: searchValue,
+            query: query,
             page,
             perPage,
             ...fetchAttributes,
@@ -144,7 +151,7 @@ const List = observer((
     }
   };
 
-  const itemElement = useMemo(() => (props) => <Element handleSelect={handleSelect} {...props} />,
+  const itemElement = useMemo(() => (props) => <Element handleSelect={handleSelect}  {...props} />,
     [Element]);
 
   return (

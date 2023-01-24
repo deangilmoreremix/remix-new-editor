@@ -6,14 +6,16 @@ import useMakeStore from '../hooks/useMakeStore';
 
 import ViewProjectWindowImageLt from './ViewProjectWindow/indexImageLT';
 
-const EndScreens = ({ handleClose }) => {
+const EndScreens = ({ handleClose, className, query }) => {
   const { getEndScreens } = useMakeStore();
 
   return (
     <ViewProjectWindowImageLt
       handleClose={handleClose}
       fetchItems={getEndScreens}
+      className={className}
       title="End Screens"
+      query={query}
     />
   );
 };

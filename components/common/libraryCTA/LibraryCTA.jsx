@@ -5,28 +5,19 @@ import useMakeStore from '../../hooks/useMakeStore';
 import { showError } from '../../../lib/services/alertService';
 
 import PropTypes from '../../../lib/PropTypes';
-import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';
+import { CREATIVES_TABS } from '../../../lib/constants/creatives';
 
 const perPage = 12;
 
-const LibraryCTA = ({ className, onSelect }) => {
+const LibraryCTA = ({ className, onSelect, query }) => {
   const [items, setItems] = React.useState([]);
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
-
   const { getTemplatesCTA, getEvolutionTemplatesCTA } = useMakeStore();
-  const { addData } = useProjectStore();
   const userStore = useUserStore();
   const { evolutionCtaEnabled, ctaEnabled } = userStore;
-  const handleSelect = React.useCallback(async (item) => {
-    try {
-      await addData(item);
-      onSelect();
-    } catch (e) {
-      await showError(e.message);
-    }
-  }, []);
+  const selectMedia = React.useCallback((item) => onSelect(CREATIVES_TABS.CTA_MODES, item), []);
 
   const resetParams = () => {
     setPage(1);
@@ -38,14 +29,13 @@ const LibraryCTA = ({ className, onSelect }) => {
     if (reset) {
       resetParams();
     }
-
     if (hasMore) {
       try {
         let results = [];
         let resultsEvolution = [];
         if (ctaEnabled === true) {
           results = await getTemplatesCTA({
-            query: '',
+            query: query,
             page,
             perPage,
           });
@@ -53,7 +43,7 @@ const LibraryCTA = ({ className, onSelect }) => {
 
         if (evolutionCtaEnabled === true) {
           resultsEvolution = await getEvolutionTemplatesCTA({
-            query: '',
+            query: query,
             page,
             perPage,
           });
@@ -73,7 +63,9 @@ const LibraryCTA = ({ className, onSelect }) => {
       }
     }
   };
-
+  React.useEffect(() => {
+    getItems();
+  }, [query])
   React.useEffect(() => {
     if (page === 1) {
       getItems();
@@ -94,14 +86,13 @@ const LibraryCTA = ({ className, onSelect }) => {
             {items.map((item) => (
               <div key={item._id} className="library-cta-item">
                 <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }} />
-                <button className="btn-add" onClick={() => handleSelect(item)}>+</button>
+                <button className="btn-add" onClick={() => selectMedia(item)}>+</button>
                 <span className="title">{item.title}</span>
               </div>
             ))}
           </React.Fragment>
         )
         : null}
-
       {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
     </div>
   );

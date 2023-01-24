@@ -10,7 +10,9 @@ import useProjectStore from '../hooks/useProjectStore';
 import usePresetStore from '../hooks/usePresetStore';
 import useTimelineStore from '../hooks/useTimelineStore';
 import useUserStore from '../hooks/useUserStore';
-
+import { Waypoint } from 'react-waypoint';
+import { LibrarySpinner } from './Loader';
+import PropTypes from '../../lib/PropTypes';
 
 import Tabs from '../common/overlay/Tabs';
 import CloseButton from '../common/CloseButton';
@@ -20,7 +22,7 @@ import Preview from '../common/projectDataList/Preview';
 
 const perPage = 12;
 
-const OverlayListTransitions = observer(() => {
+const OverlayListTransitions = observer(({className, query, handleClose}) => {
   const [items, setItems] = React.useState([]);
   const [activeItem, setActiveItem] = useState();
   const [preview, setPreview] = useState('');
@@ -51,11 +53,10 @@ const OverlayListTransitions = observer(() => {
     setActiveTab(newTab);
     getItems(newTab, true);
   }, [ratio]);
-
+  
   const previewClass = useMemo(() => {
-    const index = activeTab.indexOf(':');
-    return `project-data-preview-${activeTab.substr(0, index)}`;
-  }, [activeTab]);
+    return `project-data-preview-16`;
+  }, []);
 
   const handleSelect = React.useCallback(async (item) => {
     await setPreviewData(item.project.data);
@@ -64,14 +65,19 @@ const OverlayListTransitions = observer(() => {
     updateTime(0);
   }, []);
 
-  const addDataToCanvas = useCallback(async () => {
+  const addDataToCanvas = useCallback(async (item) => {
     try {
-      let newData = JSON.parse(activeItem.project.data);
+      await setPreviewData(item.project.data);
+      setPreview(item.thumbnail);
+      setActiveItem(item);
+      updateTime(0);
+      let newData = JSON.parse(item.project.data);
       newData.media[0].tracks.reverse();
       newData = JSON.stringify(newData);
-      activeItem.project.data = newData;
+      item.project.data = newData;
 
-      await addData(activeItem);
+      await addData(item);
+      handleClose();
     } catch (e) {
       showError(e.message);
     }
@@ -104,7 +110,7 @@ const OverlayListTransitions = observer(() => {
         if (jsonTransitionEnabled === true) {
 
           results = await getJsonTransitions({
-            query: '',
+            query: query,
             page,
             perPage,
             filter,
@@ -123,7 +129,7 @@ const OverlayListTransitions = observer(() => {
 
         if (evolutionOverlayEnabled === true) {
           resultsEvolution = await getEvolutionJsonTransitionsOverlay({
-            query: '',
+            query: query,
             page,
             perPage,
             filter,
@@ -173,45 +179,73 @@ const OverlayListTransitions = observer(() => {
     }
   }, [page]);
 
+  React.useEffect(() => {
+    getItems();
+  },[query])
+
   const uploadNewItems = () => {
     if (page !== 1) {
       getItems();
     }
   };
 
-  const libraryHeight = useMemo(() => (
-    editorStyles.calculateHeight(timelineHeight)
-  ), [timelineHeight]);
+  // const libraryHeight = useMemo(() => (
+  //   editorStyles.calculateHeight(timelineHeight)
+  // ), [timelineHeight]);
 
   return (
-    <div style={{ height: libraryHeight }} className="overlay">
-      <div className="flex">
-        <header className="overlay__header">Overlays</header>
-        <CloseButton onClick={() => toggleRightBlock(false)} />
-      </div>
-      <Tabs activeTab={activeTab} />
-      <div className="overlay__body">
-        <div className="overlay-container">
-          <List
-            items={items}
-            hasMore={hasMore}
-            uploadNewItems={uploadNewItems}
-            handleSelect={handleSelect}
-            activeItem={activeItem}
-            isLoading={isLoading}
-          />
-        </div>
-        <div className="overlay__control">
+    <div className='image-lt'>
+    <div className={className}>
+      {
+        items.map((item) => (
+          <div key={item._id} className="library-cta-item">
+            <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>
+              <div className='lt-btn'>
+                <div className='action-btn'>
+                  <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
+                  <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preiview</a>
+                </div>
+                <span className="title">{item.title}</span>
+              </div>
+            </div>
+          </div>
+        ))
+      }
+      {isLoading && hasMore && (
+        (
+          <tr>
+            <td className="billing-history-box__table-custom-td">
+              <LibrarySpinner />
+            </td>
+          </tr>
+        ) 
+      )}
+      {!isLoading && hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="project-data-list-waypoint" /></Waypoint>}
+    </div>
+    <div>
+
+      {activeItem &&
+        <div className="preview-image-lt-container">
+          <div><p>{activeItem.title}</p></div>
+
           <Preview
-            preview={preview}
             activeItem={activeItem}
             className={previewClass}
           />
-          <button className="overlay__use" onClick={addDataToCanvas}>Use</button>
+          
+          <button className='preview-image-lt-use-button' onClick={() => addDataToCanvas(activeItem)}>
+            Use
+          </button>
+          <button className='preview-image-lt-cancel-button' onClick={() => setActiveItem(null)}>
+            Cancel
+          </button>
         </div>
-      </div>
+      }
     </div>
+  </div>
   );
 });
-
+OverlayListTransitions.propTypes = {
+  instantStart: PropTypes.bool,
+};
 export default OverlayListTransitions;
