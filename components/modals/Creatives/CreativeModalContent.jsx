@@ -14,6 +14,9 @@ import { STEPS } from '../../../lib/constants/creatives';
 import CreativeProviderList from './CreativeProviderList';
 import PresetModal from '../../modals/Presets';
 import ImageLtPreset from '../../modals/ImageLTPresets';
+import RetroLT from '../RetroLTModal';
+import NeonLT from '../NeonLTModal';
+import NeonSocialMediaLT from '../NeonSocialMediaLTModal';
 import LibraryCTA from '../../common/libraryCTA/LibraryCTA';
 import BlendModeLibrary from '../../media/BlendModeLibrary';
 import OverlayListTransitions from '../../media/OverlayListTransitions';
@@ -53,7 +56,10 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
         [
           <LowerThird className={"lower-third-list"} onSelect={onSelect} query={query} />,
           <PresetModal handleClose={handleClose} className={"lower-third-list"} query={query}/>,
-          <ImageLtPreset handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />
+          <ImageLtPreset handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />,
+          <RetroLT handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />,
+          <NeonLT handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />,
+          <NeonSocialMediaLT handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />
         ]
     },
     {

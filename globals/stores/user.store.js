@@ -688,6 +688,21 @@ export default class UserStore {
   }
 
   @computed
+  get retroLTEnabled() {
+    return this.isfeatureEnabled(FEATURES.RETRO_LT);
+  }
+
+  @computed
+  get neonLTEnabled() {
+    return this.isfeatureEnabled(FEATURES.NEON_LT);
+  }
+
+  @computed
+  get neonSocialMediaLTEnabled() {
+    return this.isfeatureEnabled(FEATURES.NEON_SOCIAL_MEDIA_LT);
+  }
+
+  @computed
   get endScreensEnabled() {
     return this.isfeatureEnabled(FEATURES.END_SCREENS);
   }

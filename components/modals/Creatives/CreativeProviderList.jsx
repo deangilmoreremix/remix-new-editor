@@ -19,7 +19,10 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
     lowerThirdsEnabled, 
     evolutionLowerThirdEnabled, presetsEnabled, 
     evolutionPresetEnabled, 
-    evolutionImageLTPresetEnabled, 
+    evolutionImageLTPresetEnabled,
+    retroLTEnabled,
+    neonLTEnabled,
+    neonSocialMediaLTEnabled, 
     evolutionCtaEnabled, 
     ctaEnabled,
     blendModeEnabled,
@@ -53,6 +56,15 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       }
       if (!evolutionImageLTPresetEnabled) {
         removeArray.push('ImageLT');
+      }
+      if(!retroLTEnabled) {
+        removeArray.push('RetroLT');
+      }
+      if(!neonLTEnabled) {
+        removeArray.push('neonLT');
+      }
+      if(!neonSocialMediaLTEnabled) {
+        removeArray.push('neonSocialMediaLT');
       }
       const newArr = lowerThirdList.filter(i => !removeArray.some(j => j === i.key));
       setList(newArr);

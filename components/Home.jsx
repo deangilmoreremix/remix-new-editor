@@ -91,6 +91,9 @@ const Home = observer(() => {
     evolutionLowerThirdEnabled,
     evolutionCtaEnabled,
     evolutionImageLTPresetEnabled,
+    retroLTEnabled,
+    neonLTEnabled,
+    neonSocialMediaLTEnabled,
     endScreensEnabled,
     getSvrTerms,
   } = userStore;
@@ -206,6 +209,9 @@ const Home = observer(() => {
         evolutionLowerThirdEnabled,
         evolutionCtaEnabled,
         evolutionImageLTPresetEnabled,
+        retroLTEnabled,
+        neonLTEnabled,
+        neonSocialMediaLTEnabled,
         endScreensEnabled,
       },
     });
@@ -243,7 +249,7 @@ const Home = observer(() => {
       TogetherJS();
     }
   },[isEnabled])
- 
+
 
   useEffect(() => {
     if (getSvrTerms === false) {
