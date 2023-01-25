@@ -42,17 +42,6 @@ const OverlayListTransitions = observer(({className, query, handleClose}) => {
     secondaryWindowType: activeTab,
     setOverlayType: setActiveTab,
   } = useUIStore();
-
-  useEffect(() => {
-    const { width, height } = ratio;
-    const newTab = `${width}:${height}`;
-    if (newTab === activeTab) {
-      return;
-    }
-    setActiveItem(null);
-    setActiveTab(newTab);
-    getItems(newTab, true);
-  }, [ratio]);
   
   const previewClass = useMemo(() => {
     return `project-data-preview-16`;
@@ -62,7 +51,6 @@ const OverlayListTransitions = observer(({className, query, handleClose}) => {
     await setPreviewData(item.project.data);
     setPreview(item.thumbnail);
     setActiveItem(item);
-    updateTime(0);
   }, []);
 
   const addDataToCanvas = useCallback(async (item) => {
@@ -70,7 +58,6 @@ const OverlayListTransitions = observer(({className, query, handleClose}) => {
       await setPreviewData(item.project.data);
       setPreview(item.thumbnail);
       setActiveItem(item);
-      updateTime(0);
       let newData = JSON.parse(item.project.data);
       newData.media[0].tracks.reverse();
       newData = JSON.stringify(newData);

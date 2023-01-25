@@ -33,7 +33,8 @@ const Preview = observer(({ preview, activeItem, className, instantStart }) => {
 
   return (
     <div className={classnames('project-data-preview', className)} ref={wrapper} style={{ fontSize }}>
-      {instantStart && !preview ? (
+      {preview && DEFAULT_THUMBNAIL !== preview && <img src={preview} className="project-data-preview__img" alt="preview" />}
+      {instantStart ? (
         <div className="project-data-preview__unselect" />
       ) : (
         <div className={classnames(

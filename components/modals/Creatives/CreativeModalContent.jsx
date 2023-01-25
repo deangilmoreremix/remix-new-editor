@@ -73,7 +73,7 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
   ], [query]);
   const Content = useMemo(() => {
     return steps[activeTab].content[activeItem]
-  }, [activeTab, activeItem]);
+  }, [query,activeTab, activeItem]);
 
   useEffect(() => {
     setHeaderProps({ setTab: setActiveTab });
