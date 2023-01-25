@@ -76,13 +76,16 @@ $fontSize: 0.9em;
 .preview-image-lt-container {
   border: none;
   height: auto;
-  left: 29%;
-  position: absolute;
+  left: 0;
+  position: fixed;
   width: 40%;
   padding: 40px 20px;
   margin-top: 1%;
   background-color: #1b1b26;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 
   .preview-image-lt-cancel-button {
     background-color: #1b1b26;
