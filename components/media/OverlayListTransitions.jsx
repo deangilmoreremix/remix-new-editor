@@ -13,6 +13,7 @@ import useUserStore from '../hooks/useUserStore';
 import { Waypoint } from 'react-waypoint';
 import { LibrarySpinner } from './Loader';
 import PropTypes from '../../lib/PropTypes';
+import CreativePreviewModel from '../modals/Creatives/CreativePreviewModel';
 
 import Tabs from '../common/overlay/Tabs';
 import CloseButton from '../common/CloseButton';
@@ -22,13 +23,14 @@ import Preview from '../common/projectDataList/Preview';
 
 const perPage = 12;
 
-const OverlayListTransitions = observer(({className, query, handleClose}) => {
+const OverlayListTransitions = observer(({ className, query, handleClose }) => {
   const [items, setItems] = React.useState([]);
   const [activeItem, setActiveItem] = useState();
   const [preview, setPreview] = useState('');
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [show,setShow] = React.useState();
 
   const { getJsonTransitions, getEvolutionJsonTransitionsOverlay } = useMakeStore();
   const { setPreviewData, updateTime } = usePresetStore();
@@ -42,12 +44,13 @@ const OverlayListTransitions = observer(({className, query, handleClose}) => {
     secondaryWindowType: activeTab,
     setOverlayType: setActiveTab,
   } = useUIStore();
-  
+
   const previewClass = useMemo(() => {
     return `project-data-preview-16`;
   }, []);
 
   const handleSelect = React.useCallback(async (item) => {
+    setShow(true);
     await setPreviewData(item.project.data);
     setPreview(item.thumbnail);
     setActiveItem(item);
@@ -182,54 +185,39 @@ const OverlayListTransitions = observer(({className, query, handleClose}) => {
 
   return (
     <div className='image-lt'>
-    <div className={className}>
-      {
-        items.map((item) => (
-          <div key={item._id} className="library-cta-item">
-            <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>
-              <div className='lt-btn'>
-                <div className='action-btn'>
-                  <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
-                  <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preiview</a>
+      <div className={className}>
+        {
+          items.map((item) => (
+            <div key={item._id} className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>
+                <div className='lt-btn'>
+                  <div className='action-btn'>
+                    <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
+                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preiview</a>
+                  </div>
+                  <span className="title">{item.title}</span>
                 </div>
-                <span className="title">{item.title}</span>
               </div>
             </div>
-          </div>
-        ))
-      }
-      {isLoading && hasMore && (
-        (
-          <tr>
-            <td className="billing-history-box__table-custom-td">
-              <LibrarySpinner />
-            </td>
-          </tr>
-        ) 
-      )}
-      {!isLoading && hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="project-data-list-waypoint" /></Waypoint>}
+          ))
+        }
+        {isLoading && hasMore && (
+          (
+            <tr>
+              <td className="billing-history-box__table-custom-td">
+                <LibrarySpinner />
+              </td>
+            </tr>
+          )
+        )}
+        {!isLoading && hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="project-data-list-waypoint" /></Waypoint>}
+      </div>
+      <div>
+        {activeItem &&
+          <CreativePreviewModel onUseHandler={() => addDataToCanvas(activeItem)} show={show} setShow={setShow} onCancelHadler={() => setActiveItem(null)} preview={null} activeItem={activeItem} instantStart={false} />
+        }
+      </div>
     </div>
-    <div>
-
-      {activeItem &&
-        <div className="preview-image-lt-container">
-          <div><p>{activeItem.title}</p></div>
-
-          <Preview
-            activeItem={activeItem}
-            className={previewClass}
-          />
-          
-          <button className='preview-image-lt-use-button' onClick={() => addDataToCanvas(activeItem)}>
-            Use
-          </button>
-          <button className='preview-image-lt-cancel-button' onClick={() => setActiveItem(null)}>
-            Cancel
-          </button>
-        </div>
-      }
-    </div>
-  </div>
   );
 });
 OverlayListTransitions.propTypes = {

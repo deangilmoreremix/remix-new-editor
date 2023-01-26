@@ -703,6 +703,36 @@ export default class UserStore {
   }
 
   @computed
+  get locationTitlesEnabled() {
+    return this.isfeatureEnabled(FEATURES.LOCATION_TITLES);
+  }
+
+  @computed
+  get socialMediaIcon3DEnabled() {
+    return this.isfeatureEnabled(FEATURES.SOCIAL_MEDIA_ICON_3D);
+  }
+
+  @computed
+  get callOutTitlePageEnabled() {
+    return this.isfeatureEnabled(FEATURES.CALL_OUT_TITLE_PACKAGE);
+  }
+
+  @computed
+  get neonArrowPackEnabled() {
+    return this.isfeatureEnabled(FEATURES.NEON_ARROW_PACK);
+  }
+
+  @computed
+  get socialMediaPackEnabled() {
+    return this.isfeatureEnabled(FEATURES.SOCIAL_MEDIA_PACK);
+  }
+
+  @computed
+  get socialMediaButtonPackEnabled() {
+    return this.isfeatureEnabled(FEATURES.SOCIAL_MEIDA_BUTTON_PACK);
+  }
+
+  @computed
   get endScreensEnabled() {
     return this.isfeatureEnabled(FEATURES.END_SCREENS);
   }

@@ -22,7 +22,12 @@ import BlendModeLibrary from '../../media/BlendModeLibrary';
 import OverlayListTransitions from '../../media/OverlayListTransitions';
 import EndScreens from '../EndScreen';
 import Connect from '../Connect';
-import { useReducer } from 'react';
+import NeonArraowPack from '../NeonArraowPack';
+import SocialMediaPack from '../SocialMediaPack';
+import SocialMediaButtonPack from '../SocialMediaButtonPack';
+import LocationTitles from '../LocationTitles';
+import SocialMediaIcon3D from '../SocialMediaIcon3D';
+import CallOutTitlePackage from '../CallOutTitlePackage';
 
 
 const VIDEO = 'video';
@@ -63,18 +68,24 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
         ]
     },
     {
-      content: 
-        [ <LibraryCTA onSelect={onSelect} className={"lower-third-list"} query={query}/>,
-          <BlendModeLibrary handleClose={handleClose} query={query}/>,
-          <OverlayListTransitions className={"lower-third-list"} handleClose={handleClose} query={query}/>
+      content:
+        [<LibraryCTA onSelect={onSelect} className={"lower-third-list"} query={query} />,
+        <BlendModeLibrary handleClose={handleClose} query={query} />,
+        <OverlayListTransitions className={"lower-third-list"} handleClose={handleClose} query={query} />,
+        <NeonArraowPack handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />,
+        <SocialMediaPack handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />,
+        <SocialMediaButtonPack handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />
         ]
     },
     {
-      content: 
+      content:
         [
           <Connect onSelect={onSelect} className={"lower-third-list"} />,
-          <EndScreens onSelect={onSelect} className={"lower-third-list"} />
-        ] 
+          <EndScreens onSelect={onSelect} className={"lower-third-list"} />,
+          <LocationTitles onSelect={onSelect} className={"lower-third-list"} />,
+          <SocialMediaIcon3D onSelect={onSelect} className={"lower-third-list"} />,
+          <CallOutTitlePackage onSelect={onSelect} className={"lower-third-list"} />
+        ]
     },
   ], [query]);
   const Content = useMemo(() => {
@@ -130,15 +141,6 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
       <div className="generator-body creative">
         <div className="library__block template__block">
           <CreativeProviderList activeTab={activeTab} handleButtonClick={handleButtonClick} activeItem={activeItem} />
-        </div>
-        <div className="extra-container">
-          <button
-            className={classnames('btn-add', 'next-button', { disabled: disabledButton })}
-            disabled={disabledButton}
-            onClick={onNext}
-          >
-            {'Add to Timeline'}
-          </button>
         </div>
         <div className="search">
           <h4 className="search-title">Choose your script</h4>

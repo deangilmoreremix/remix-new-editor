@@ -8,9 +8,9 @@ import usePresetStore from '../../hooks/usePresetStore';
 import useProjectStore from '../../hooks/useProjectStore';
 import useUIStore from '../../hooks/useUIStore';
 import useModalStore from '../../hooks/useModalStore';
+import CreativePreviewModel from '../Creatives/CreativePreviewModel';
 
 import { showError } from '../../../lib/services/alertService';
-
 import Preview from '../../common/projectDataList/Preview';
 import { LibrarySpinner } from '../../media/Loader';
 import { Waypoint } from 'react-waypoint';
@@ -27,8 +27,10 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
   const { setPreviewData, updateTime } = usePresetStore();
   const { addData, moveElements } = useProjectStore();
   const { toggleLeftBlock } = useUIStore();
+  const [show, setShow] = useState(false);
 
   const handleSelect = React.useCallback(async (item) => {
+    setShow(true);
     let zIndex = 0;
     try {
       let newData = JSON.parse(item.project.data);
@@ -164,20 +166,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
       </div>
       <div>
         {activeItem &&
-          <div className="preview-image-lt-container">
-            <div><p>{activeItem.title}</p></div>
-            <Preview
-              preview={preview}
-              activeItem={activeItem}
-              instantStart={instantStart}
-            />
-            <button className='preview-image-lt-use-button' onClick={() => addDataToCanvas(activeItem)}>
-              Use
-            </button>
-            <button className='preview-image-lt-cancel-button' onClick={() => setActiveItem(null)}>
-              Cancel
-            </button>
-          </div>
+          <CreativePreviewModel onUseHandler={() => addDataToCanvas(activeItem)} show={show} setShow={setShow} onCancelHadler={() => setActiveItem(null)}   preview={null} activeItem={activeItem} instantStart={instantStart}/>
         }
       </div>
     </div>

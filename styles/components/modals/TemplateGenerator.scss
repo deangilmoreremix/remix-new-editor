@@ -72,6 +72,24 @@ $fontSize: 0.9em;
 .image-lt {
   display: flex;
 }
+.preview-model {
+  z-index: 9999;
+}
+.preview-header {
+  justify-content: center;
+background: transparent;
+border: none;
+padding: 4px 0;
+}
+.preview-title {
+  font-size: 16px;
+}
+.preview-footer  {
+  border: none;
+  justify-content: center;
+  padding-top: 0;
+
+}
 
 .preview-image-lt-container {
   border: none;
@@ -88,7 +106,7 @@ $fontSize: 0.9em;
   transform: translate(-50%, -50%);
 
   .preview-image-lt-cancel-button {
-    background-color: #1b1b26;
+    background-color: #1b1b26 !important;
     box-shadow: none;
     outline: none !important;
     padding: 0;
@@ -102,14 +120,14 @@ $fontSize: 0.9em;
   }
 
   .preview-image-lt-use-button {
-    background-color: #EB5054;
+    background-color: #EB5054 !important;
     box-shadow: none;
     outline: none !important;
     padding: 0;
     text-shadow: none;
     padding: 5px 28px;
     font-size: 14px;
-    border-color: transparent;
+    border-color: transparent !important;
     margin: 10px 10px;
     color: #fff;
     border-radius: 4px;

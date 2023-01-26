@@ -15,7 +15,7 @@ const Presets = ({ handleClose ,className, query}) => {
       fetchItems={getConnect}
       title="connect form"
       className={className}
-      instantStart
+      instantStart={false}
       query={query}
     />
   );

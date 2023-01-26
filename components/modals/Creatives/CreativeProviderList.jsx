@@ -16,21 +16,27 @@ import { useEffect } from 'react';
 const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeItem }) => {
 
   const {
-    lowerThirdsEnabled, 
-    evolutionLowerThirdEnabled, presetsEnabled, 
-    evolutionPresetEnabled, 
+    lowerThirdsEnabled,
+    evolutionLowerThirdEnabled, presetsEnabled,
+    evolutionPresetEnabled,
     evolutionImageLTPresetEnabled,
     retroLTEnabled,
     neonLTEnabled,
-    neonSocialMediaLTEnabled, 
-    evolutionCtaEnabled, 
+    neonSocialMediaLTEnabled,
+    evolutionCtaEnabled,
     ctaEnabled,
     blendModeEnabled,
     evolutionBlendModeEnabled,
     evolutionOverlayEnabled,
     jsonTransitionEnabled,
     endScreensEnabled,
-    connectEnabled
+    connectEnabled,
+    locationTitlesEnabled,
+    socialMediaIcon3DEnabled,
+    callOutTitlePageEnabled,
+    neonArrowPackEnabled,
+    socialMediaPackEnabled,
+    socialMediaButtonPackEnabled,
   } = useUserStore();
 
   const [list, setList] = useState([]);
@@ -80,6 +86,15 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       if (!jsonTransitionEnabled && !evolutionOverlayEnabled) {
         removeArray.push('Overlays');
       }
+      if (!neonArrowPackEnabled) {
+        removeArray.push('neonArrowPack');
+      }
+      if (!socialMediaPackEnabled) {
+        removeArray.push('socialMediaPack');
+      }
+      if (!socialMediaButtonPackEnabled) {
+        removeArray.push('socialMediaButtonPack');
+      }
       const newArr = lowerThirdList.filter(i => !removeArray.some(j => j === i.key));
       setList(newArr);
     }
@@ -90,6 +105,15 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       }
       if (!endScreensEnabled) {
         removeArray.push('EndScreens');
+      }
+      if (!locationTitlesEnabled) {
+        removeArray.push('LocationTitles');
+      }
+      if (!socialMediaIcon3DEnabled) {
+        removeArray.push('SocialMediaIcon3D');
+      }
+      if (!callOutTitlePageEnabled) {
+        removeArray.push('CallOutTitlePackage');
       }
       const newArr = lowerThirdList.filter(i => !removeArray.some(j => j === i.key));
       setList(newArr);

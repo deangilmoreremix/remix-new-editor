@@ -97,7 +97,24 @@ export default class PresetStore extends BaseStore {
   getNeonSocialMediaLT = ({ page = 1, query = '', perPage = 12 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_NEON_SOCIAL_MEDIA_LT }, path: '/api/makes/revolution' })
   );
-
+  getLocationTitles =  ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_LOCATION_TITLES }, path: '/api/makes/revolution' })
+  );
+  getSocialMediaIcon3D =  ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_SOCIAL_MEDIA_ICON_3D }, path: '/api/makes/revolution' })
+  );
+  getCallOutTitlePackage =  ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_CALL_OUT_TITLE_PACKAGE }, path: '/api/makes/revolution' })
+  );
+  getNeonArrowPack =  ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_NEON_ARROW_PACK }, path: '/api/makes/revolution' })
+  );
+  getSocialMediaPack =  ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_SOCIAL_MEDIA_PACK }, path: '/api/makes/revolution' })
+  );
+  getSocialMediaButtonPack =  ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_SOCIAL_MEIDA_BUTTON_PACK }, path: '/api/makes/revolution' })
+  );
   getEndScreens = ({ page = 1, query = '', perPage = 12 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_END_SCREENS }, path: '/api/makes/revolution' })
   );
