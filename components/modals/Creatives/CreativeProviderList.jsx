@@ -67,10 +67,10 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
         removeArray.push('RetroLT');
       }
       if(!neonLTEnabled) {
-        removeArray.push('neonLT');
+        removeArray.push('NeonLT');
       }
       if(!neonSocialMediaLTEnabled) {
-        removeArray.push('neonSocialMediaLT');
+        removeArray.push('NeonSocialMediaLT');
       }
       const newArr = lowerThirdList.filter(i => !removeArray.some(j => j === i.key));
       setList(newArr);
@@ -81,21 +81,21 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
         removeArray.push('CTA');
       }
       if (!blendModeEnabled && !evolutionBlendModeEnabled) {
-        removeArray.push('BlendMode');
+        removeArray.push('BlendModes');
       }
       if (!jsonTransitionEnabled && !evolutionOverlayEnabled) {
         removeArray.push('Overlays');
       }
       if (!neonArrowPackEnabled) {
-        removeArray.push('neonArrowPack');
+        removeArray.push('NeonArrowPack');
       }
       if (!socialMediaPackEnabled) {
-        removeArray.push('socialMediaPack');
+        removeArray.push('SocialMediaPack');
       }
       if (!socialMediaButtonPackEnabled) {
-        removeArray.push('socialMediaButtonPack');
+        removeArray.push('SocialMediaButtonPack');
       }
-      const newArr = lowerThirdList.filter(i => !removeArray.some(j => j === i.key));
+      const newArr = ctaList.filter(i => !removeArray.some(j => j.key === i.key));
       setList(newArr);
     }
     if (activeTab == 2) {
@@ -115,10 +115,10 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       if (!callOutTitlePageEnabled) {
         removeArray.push('CallOutTitlePackage');
       }
-      const newArr = lowerThirdList.filter(i => !removeArray.some(j => j === i.key));
+      const newArr = templatePackList.filter(i => !removeArray.some(j => j.key === i.key));
       setList(newArr);
     }
-  }, [])
+  }, [activeTab])
 
   return (
     <div className="library__block-sidebar">
