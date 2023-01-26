@@ -95,7 +95,7 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       if (!socialMediaButtonPackEnabled) {
         removeArray.push('SocialMediaButtonPack');
       }
-      const newArr = ctaList.filter(i => !removeArray.some(j => j.key === i.key));
+      const newArr = ctaList.filter(i => !removeArray.some(j => j === i.key));
       setList(newArr);
     }
     if (activeTab == 2) {
@@ -115,7 +115,7 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       if (!callOutTitlePageEnabled) {
         removeArray.push('CallOutTitlePackage');
       }
-      const newArr = templatePackList.filter(i => !removeArray.some(j => j.key === i.key));
+      const newArr = templatePackList.filter(i => !removeArray.some(j => j === i.key));
       setList(newArr);
     }
   }, [activeTab])
