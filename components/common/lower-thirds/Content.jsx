@@ -145,7 +145,7 @@ const Content = ({ className, onSelect, query }) => {
           </tr>
         )
       )}
-      {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
+      {!isLoading &&hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
     </div>
   );
 };
