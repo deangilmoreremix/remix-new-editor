@@ -13,12 +13,12 @@ import { LibrarySpinner } from '../../media/Loader';
 
 const perPage = 12;
 
-const Content = ({ className, onSelect, query}) => {
+const Content = ({ className, onSelect, query }) => {
   const [items, setItems] = React.useState([]);
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
   const [isLoading, setIsLoading] = React.useState(false);
-
+  const [queryData, setQueryData] = React.useState([]);
   const { getRevolutionLowerThird, getEvolutionLowerThird } = useMakeStore();
   const { getPresets, evolutionPresets } = useMakeStore();
 
@@ -26,7 +26,7 @@ const Content = ({ className, onSelect, query}) => {
   const { addData } = useProjectStore();
   const userStore = useUserStore();
   const { lowerThirdsEnabled, evolutionLowerThirdEnabled } = userStore;
-  const {clearAllSelectedItems} = templateStore;
+  const { clearAllSelectedItems } = templateStore;
 
   const selectMedia = React.useCallback((item) => onSelect(CREATIVES_TABS.LOWER_THIRD, item), []);
 
@@ -35,7 +35,7 @@ const Content = ({ className, onSelect, query}) => {
     setHasMore(true);
     setItems([]);
   };
-  
+
   const getItems = async (reset = false) => {
     if (reset) {
       resetParams();
@@ -48,7 +48,7 @@ const Content = ({ className, onSelect, query}) => {
         let resultsEvolution = [];
         if (lowerThirdsEnabled === true) {
           results = await getRevolutionLowerThird({
-            query: query,
+            query: '',
             page,
             perPage,
           });
@@ -56,7 +56,7 @@ const Content = ({ className, onSelect, query}) => {
 
         if (evolutionLowerThirdEnabled === true) {
           resultsEvolution = await getEvolutionLowerThird({
-            query: query,
+            query: '',
             page,
             perPage,
           });
@@ -79,9 +79,11 @@ const Content = ({ className, onSelect, query}) => {
     }
   };
 
-  React.useEffect(() => {
-    getItems();
-  },[query])
+  function removeDuplicates(myArr, prop) {
+    return myArr.filter((obj, pos, arr) => {
+      return arr.map((mapObj) => mapObj[prop]).indexOf(obj[prop]) === pos;
+    });
+  }
 
   React.useEffect(() => {
     if (page === 1) {
@@ -89,6 +91,15 @@ const Content = ({ className, onSelect, query}) => {
     }
   }, [page]);
 
+  React.useEffect(() => {
+    if (query !== '') {
+      const filterData = items.filter(x => x.title.toLowerCase().includes(query.toLowerCase()));
+      setQueryData(filterData)
+    }
+    else {
+      setQueryData([]);
+    }
+  }, [query])
   const uploadNewItems = () => {
     if (page !== 1) {
       getItems();
@@ -97,29 +108,43 @@ const Content = ({ className, onSelect, query}) => {
 
   return (
     <div className={className}>
-      {items && items.length
-        ? (
-          <React.Fragment>
-            {items.map((item) => (
-              <div key={item._id} className="library-cta-item">
-                <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }} />
+      {queryData.length ? 
+        <React.Fragment>
+        {removeDuplicates(queryData,'title').map((item) => (
+          <div key={item._id} className="library-cta-item">
+            <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }} >
+              <button className="btn-add" onClick={() => selectMedia(item)}>+</button>
+              <span className="title">{item.title}</span>
+            </div>
+          </div>
+        ))}
+        </React.Fragment>
+         : null
+      
+      }
+      {
+        !queryData.length &&
+        <React.Fragment>
+          {items.map((item) => (
+            <div  className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }} >
                 <button className="btn-add" onClick={() => selectMedia(item)}>+</button>
                 <span className="title">{item.title}</span>
               </div>
-            ))}
-          </React.Fragment>
-        )
-        : null}
-        
-        {isLoading && hasMore && (
+            </div>
+          ))}
+        </React.Fragment>
+      }
+
+      {isLoading && hasMore && (
         (
           <tr>
             <td className="billing-history-box__table-custom-td">
               <LibrarySpinner />
             </td>
           </tr>
-        ) 
-      )}        
+        )
+      )}
       {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
     </div>
   );

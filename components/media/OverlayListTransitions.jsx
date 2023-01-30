@@ -29,6 +29,7 @@ const OverlayListTransitions = observer(({ className, query, handleClose }) => {
   const [preview, setPreview] = useState('');
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
+  const [queryData, setQueryData] = React.useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [show,setShow] = React.useState();
 
@@ -55,6 +56,12 @@ const OverlayListTransitions = observer(({ className, query, handleClose }) => {
     setPreview(item.thumbnail);
     setActiveItem(item);
   }, []);
+
+  function removeDuplicates(myArr, prop) {
+    return myArr.filter((obj, pos, arr) => {
+      return arr.map((mapObj) => mapObj[prop]).indexOf(obj[prop]) === pos;
+    });
+  }
 
   const addDataToCanvas = useCallback(async (item) => {
     try {
@@ -100,7 +107,7 @@ const OverlayListTransitions = observer(({ className, query, handleClose }) => {
         if (jsonTransitionEnabled === true) {
 
           results = await getJsonTransitions({
-            query: query,
+            query: '',
             page,
             perPage,
             filter,
@@ -119,7 +126,7 @@ const OverlayListTransitions = observer(({ className, query, handleClose }) => {
 
         if (evolutionOverlayEnabled === true) {
           resultsEvolution = await getEvolutionJsonTransitionsOverlay({
-            query: query,
+            query: '',
             page,
             perPage,
             filter,
@@ -129,7 +136,7 @@ const OverlayListTransitions = observer(({ className, query, handleClose }) => {
           //   setItems(resultsEvolution);
           //   await setPreviewData(resultsEvolution[0].project.data);
           //   setPreview(resultsEvolution[0].thumbnail);
-          //   setActiveItem(resultsEvolution[0]);
+          //   // setActiveItem(resultsEvolution[0]);
           // } else {
           //   setItems(elements => [...elements, ...resultsEvolution]);
           // }
@@ -150,7 +157,7 @@ const OverlayListTransitions = observer(({ className, query, handleClose }) => {
         //   setItems(results);
         //   await setPreviewData(results[0].project.data);
         //   setPreview(results[0].thumbnail);
-        //   setActiveItem(results[0]);
+        //   // setActiveItem(results[0]);
         // } else {
         //   setItems(elements => [...elements, ...results]);
         // }
@@ -169,9 +176,21 @@ const OverlayListTransitions = observer(({ className, query, handleClose }) => {
     }
   }, [page]);
 
+  function removeDuplicates(myArr, prop) {
+    return myArr.filter((obj, pos, arr) => {
+      return arr.map((mapObj) => mapObj[prop]).indexOf(obj[prop]) === pos;
+    });
+  }
+
   React.useEffect(() => {
-    getItems();
-  },[query])
+    if (query !== '') {
+      const filterData = items.filter(x => x.title.toLowerCase().includes(query.toLowerCase()));
+      setQueryData(filterData)
+    }
+    else {
+      setQueryData([]);
+    }
+  }, [query])
 
   const uploadNewItems = () => {
     if (page !== 1) {
@@ -179,14 +198,26 @@ const OverlayListTransitions = observer(({ className, query, handleClose }) => {
     }
   };
 
-  // const libraryHeight = useMemo(() => (
-  //   editorStyles.calculateHeight(timelineHeight)
-  // ), [timelineHeight]);
-
   return (
     <div className='image-lt'>
       <div className={className}>
+      {queryData.length ?
+          removeDuplicates(queryData, "title").map((item) => (
+            <div key={item._id} className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>
+                <div className='lt-btn'>
+                  <div className='action-btn'>
+                    <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
+                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preiview</a>
+                  </div>
+                  <span className="title">{item.title}</span>
+                </div>
+              </div>
+            </div>
+          )) : null
+        }
         {
+          !queryData.length  &&
           items.map((item) => (
             <div key={item._id} className="library-cta-item">
               <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>

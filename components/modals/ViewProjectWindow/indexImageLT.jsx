@@ -20,6 +20,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
   const [activeItem, setActiveItem] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [queryData, setQueryData] = useState([]);
   const [preview, setPreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const { openModal } = useModalStore();
@@ -78,9 +79,9 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
     toggleLeftBlock(false);
     handleClose();
   };
-  React.useEffect(() => {
-    getItems();
-  }, [query])
+  // React.useEffect(() => {
+  //   getItems();
+  // }, [query])
   const resetParams = useCallback(() => {
     setPage(1);
     setHasMore(true);
@@ -96,20 +97,20 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
       setIsLoading(true);
       try {
         const results = await fetchItems({
-          query: query,
+          query: '',
           page,
           perPage,
         });
         setItems(elements => [...elements, ...results]);
-        if (!activeItem) {
-          if (results[0]) {
-            await setPreviewData(results[0].project.data);
-            setPreview(results[0].thumbnail);
-            // setActiveItem(results[0]);
-          }
+        // if (!activeItem) {
+        //   if (results[0]) {
+        //     await setPreviewData(results[0].project.data);
+        //     setPreview(results[0].thumbnail);
+        //     // setActiveItem(results[0]);
+        //   }
 
 
-        }
+        // }
         const hasNextPage = results.length === perPage;
         setHasMore(hasNextPage);
         if (hasNextPage) {
@@ -122,6 +123,26 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
       }
     }
   };
+
+  function removeDuplicates(myArr, prop) {
+    return myArr.filter((obj, pos, arr) => {
+      return arr.map((mapObj) => mapObj[prop]).indexOf(obj[prop]) === pos;
+    });
+  }
+
+  React.useEffect(() => {
+    console.log(items,"items==>>");
+  },[items])
+
+  React.useEffect(() => {
+    if (query !== '') {
+      const filterData = items.filter(x => x.title.toLowerCase().includes(query.toLowerCase()));
+      setQueryData(filterData)
+    }
+    else {
+      setQueryData([]);
+    }
+  }, [query])
 
   React.useEffect(() => {
     if (page === 1) {
@@ -138,7 +159,23 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
   return (
     <div className='image-lt'>
       <div className={className}>
+        {queryData.length ?
+          removeDuplicates(queryData, "title").map((item) => (
+            <div key={item._id} className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>
+                <div className='lt-btn'>
+                  <div className='action-btn'>
+                    <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
+                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preiview</a>
+                  </div>
+                  <span className="title">{item.title}</span>
+                </div>
+              </div>
+            </div>
+          )) : null
+        }
         {
+          !queryData.length &&
           items.map((item) => (
             <div key={item._id} className="library-cta-item">
               <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>

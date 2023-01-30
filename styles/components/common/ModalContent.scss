@@ -1,3 +1,6 @@
+.header_search_wrapper{
+  display: flex;
+}
 .template__block {
   justify-content: unset;
   position: absolute;
@@ -76,3 +79,8 @@
     }
   }
 }
+.creative .template__block {
+  position: unset;
+  max-width: 30%;
+
+} 

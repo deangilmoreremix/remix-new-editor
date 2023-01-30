@@ -139,13 +139,15 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
   return (
     <>
       <div className="generator-body creative">
-        <div className="library__block template__block">
-          <CreativeProviderList activeTab={activeTab} handleButtonClick={handleButtonClick} activeItem={activeItem} />
-        </div>
-        <div className="search">
-          <h4 className="search-title">Choose your script</h4>
-          <div className="library__search-box search-box">
-            <SearchInput onSearch={searchElement} />
+        <div className='header_search_wrapper'>
+          <div className="library__block template__block">
+            <CreativeProviderList activeTab={activeTab} handleButtonClick={handleButtonClick} activeItem={activeItem} />
+          </div>
+          <div className="search">
+            <h4 className="search-title">Choose your script</h4>
+            <div className="library__search-box search-box">
+              <SearchInput onSearch={searchElement} />
+            </div>
           </div>
         </div>
         {isLoading ? <LibrarySpinner /> : Content}

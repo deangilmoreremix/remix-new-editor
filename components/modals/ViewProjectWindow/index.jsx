@@ -28,6 +28,7 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
   const [show,setShow] = React.useState(false);
   const userStore = useUserStore();
   const { toggleLeftBlock } = useUIStore();
+  const [queryData, setQueryData] = useState([]);
 
 
   const { presetsEnabled, evolutionPresetEnabled } = userStore;
@@ -109,16 +110,16 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
         setItems((elements) => [...elements, ...presetsLT]);
 
         // if (!activeItem) {
-          // console.log(items);
-          // await setPreviewData(items[0].project.data);
-          // setPreview(items[0].thumbnail);
-          // setActiveItem(items[0]);
-          // setItems(elements => {
-          //   setPreviewData(elements[0].project.data);
-          //   setPreview(elements[0].thumbnail);
-          //   setActiveItem(elements[0]);
-          //   return [...elements];
-          // });
+        // console.log(items);
+        // await setPreviewData(items[0].project.data);
+        // setPreview(items[0].thumbnail);
+        // setActiveItem(items[0]);
+        // setItems(elements => {
+        //   setPreviewData(elements[0].project.data);
+        //   setPreview(elements[0].thumbnail);
+        //   setActiveItem(elements[0]);
+        //   return [...elements];
+        // });
         // }
         if (results || resultsEvolutions) {
           const hasNextPage = results.length || resultsEvolutions.length === perPage;
@@ -136,6 +137,22 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
     }
   };
 
+  function removeDuplicates(myArr, prop) {
+    return myArr.filter((obj, pos, arr) => {
+      return arr.map((mapObj) => mapObj[prop]).indexOf(obj[prop]) === pos;
+    });
+  }
+
+  React.useEffect(() => {
+    if (query !== '') {
+      const filterData = items.filter(x => x.title.toLowerCase().includes(query.toLowerCase()));
+      setQueryData(filterData)
+    }
+    else {
+      setQueryData([]);
+    }
+  }, [query])
+
   React.useEffect(() => {
     if (page === 1) {
       getItems();
@@ -151,7 +168,23 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
   return (
     <div className='image-lt'>
       <div className={className}>
+        {queryData.length ?
+          removeDuplicates(queryData, "title").map((item) => (
+            <div key={item._id} className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>
+                <div className='lt-btn'>
+                  <div className='action-btn'>
+                    <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
+                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preiview</a>
+                  </div>
+                  <span className="title">{item.title}</span>
+                </div>
+              </div>
+            </div>
+          )) : null
+        }
         {
+          !queryData.length &&
           items.map((item) => (
             <div key={item._id} className="library-cta-item">
               <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>

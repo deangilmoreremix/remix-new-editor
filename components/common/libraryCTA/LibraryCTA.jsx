@@ -14,6 +14,7 @@ const LibraryCTA = ({ className, onSelect, query }) => {
   const [items, setItems] = React.useState([]);
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
+  const [queryData,setQueryData] = React.useState([]);
   const { getTemplatesCTA, getEvolutionTemplatesCTA } = useMakeStore();
   const userStore = useUserStore();
   const { evolutionCtaEnabled, ctaEnabled } = userStore;
@@ -35,7 +36,7 @@ const LibraryCTA = ({ className, onSelect, query }) => {
         let resultsEvolution = [];
         if (ctaEnabled === true) {
           results = await getTemplatesCTA({
-            query: query,
+            query: '',
             page,
             perPage,
           });
@@ -43,7 +44,7 @@ const LibraryCTA = ({ className, onSelect, query }) => {
 
         if (evolutionCtaEnabled === true) {
           resultsEvolution = await getEvolutionTemplatesCTA({
-            query: query,
+            query: '',
             page,
             perPage,
           });
@@ -63,9 +64,23 @@ const LibraryCTA = ({ className, onSelect, query }) => {
       }
     }
   };
+
+  function removeDuplicates(myArr, prop) {
+    return myArr.filter((obj, pos, arr) => {
+      return arr.map((mapObj) => mapObj[prop]).indexOf(obj[prop]) === pos;
+    });
+  }
+
   React.useEffect(() => {
-    getItems();
+    if (query !== '') {
+      const filterData = items.filter(x => x.title.toLowerCase().includes(query.toLowerCase()));
+      setQueryData(filterData)
+    }
+    else {
+      setQueryData([]);
+    }
   }, [query])
+
   React.useEffect(() => {
     if (page === 1) {
       getItems();
@@ -80,19 +95,32 @@ const LibraryCTA = ({ className, onSelect, query }) => {
 
   return (
     <div className={className}>
-      {items && items.length
-        ? (
-          <React.Fragment>
-            {items.map((item) => (
-              <div key={item._id} className="library-cta-item">
-                <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }} />
+      {queryData.length ?
+        <React.Fragment>
+        {removeDuplicates(queryData,'title').map((item) => (
+          <div key={item._id} className="library-cta-item">
+            <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }} >
+              <button className="btn-add" onClick={() => selectMedia(item)}>+</button>
+              <span className="title">{item.title}</span>
+            </div>
+          </div>
+        ))}
+      </React.Fragment>
+      : null
+      }
+      {
+        !queryData.length &&
+        <React.Fragment>
+          {items.map((item) => (
+            <div  className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }} >
                 <button className="btn-add" onClick={() => selectMedia(item)}>+</button>
                 <span className="title">{item.title}</span>
               </div>
-            ))}
-          </React.Fragment>
-        )
-        : null}
+            </div>
+          ))}
+        </React.Fragment>
+      }
       {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
     </div>
   );

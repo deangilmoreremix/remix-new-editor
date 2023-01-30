@@ -53,9 +53,17 @@
     flex-flow: column;
     align-items: center;
     justify-content: center;
-    width: 15%;
-    height: 10.1rem;
-    margin: 1.03%;
+    // width: 15%;
+    width: 17%;
+    // height: 10.1rem;
+    height: auto;
+    margin: 1%;
+    overflow: hidden;
+    border-radius: 10px;
+
+    &:hover {
+      border: 1px solid $secondary-color; 
+    }
 
     .inner-wrapper {
       flex: 1;
@@ -78,6 +86,9 @@
         padding: 10px;
         background-color: rgba(0,0,0,0.5);
         align-items: center;
+        position: absolute;
+        top: 0;
+        bottom: 0;
         opacity: 0;
 
         .action-btn {
@@ -91,11 +102,6 @@
     &:hover {
       &-item {
         opacity: 0.8;
-      }
-      .inner-wrapper {
-        border-color: $secondary-color;
- 
-
       }
 
       .btn-add {
@@ -159,7 +165,20 @@
 
 @media screen and (max-width: 1200px) {
   .library-cta-item {
-    width: 47.94%;
+    width: 17%;
+  }
+  .image_lt-use ,.image_lt-preview{
+    font-size: 10px !important;
+    height: 18px !important;
+
+  }
+  .library-cta-item .title{
+    font-size: 50%;
+  }
+  .library-cta-item .btn-add{
+    width: 20px;
+    height: 20px;
+    font-size: 16px;
   }
 }
 

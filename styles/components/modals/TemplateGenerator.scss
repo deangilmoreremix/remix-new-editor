@@ -61,6 +61,7 @@ $fontSize: 0.9em;
   border: 1px solid transparent;
   transition: 0.25s ease;
   display: flex;
+  padding-top: 57%;
 }
 
 .creative .template_block {
@@ -588,6 +589,20 @@ padding: 4px 0;
     }
 
   }
+}
+.header_search_wrapper .search{
+  width: 28%;
+  margin: 1em 0 0 0;
+
+  @media (max-width : 1450px) {
+    width: 40%;
+  }
+}
+.header_search_wrapper .search-title{
+  margin-bottom: 10px;
+}
+.header_search_wrapper .search-box{
+  width: 100%;
 }
 
 .generator-search {
