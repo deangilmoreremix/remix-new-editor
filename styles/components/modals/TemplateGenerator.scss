@@ -594,10 +594,11 @@ padding: 4px 0;
 .header_search_wrapper .search{
   width: 38%;
   margin: 1em 0 0 0;
-  padding: 2em 2.5em;
+  padding: 2em 0;
 
   @media (max-width : 1450px) {
-    width: 32%;
+    width: 40%;
+    padding: 2em;
   }
 }
 .header_search_wrapper .search-title{
