@@ -5,14 +5,13 @@ import PropTypes from '../../lib/PropTypes';
 import useMakeStore from '../hooks/useMakeStore';
 
 import ViewProjectWindow from './ViewProjectWindow';
-import ViewProjectWindowImageLt from './ViewProjectWindow/indexImageLT';
 
 
 const Presets = ({ handleClose,className,query }) => {
   const { getPresets, evolutionPresets } = useMakeStore();
 
   return (
-    <ViewProjectWindowImageLt
+    <ViewProjectWindow
       handleClose={handleClose}
       fetchItems={getPresets}
       fetchItemsEvolution={evolutionPresets}

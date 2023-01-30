@@ -8,22 +8,24 @@ import usePresetStore from '../../hooks/usePresetStore';
 import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';
 import useUIStore from '../../hooks/useUIStore';
-
-
+import { Waypoint } from 'react-waypoint';
+import { LibrarySpinner } from '../../media/Loader';
 
 import { showError } from '../../../lib/services/alertService';
 
 import List from '../../common/projectDataList/List';
 import Preview from '../../common/projectDataList/Preview';
 import CloseButton from '../../common/CloseButton';
+import CreativePreviewModel from '../Creatives/CreativePreviewModel';
 
-const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetchItemsEvolution }) => {
+const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetchItemsEvolution, query, className }) => {
   const [items, setItems] = useState([]);
   const [activeItem, setActiveItem] = useState();
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [preview, setPreview] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [show,setShow] = React.useState(false);
   const userStore = useUserStore();
   const { toggleLeftBlock } = useUIStore();
 
@@ -33,6 +35,7 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
   const { addData } = useProjectStore();
 
   const handleSelect = React.useCallback(async (item) => {
+    setShow(true);
     let zIndex = 0;
     try {
       let newData = JSON.parse(item.project.data);
@@ -46,7 +49,6 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
       await setPreviewData(newData);
       setPreview(item.thumbnail);
       setActiveItem(item);
-      updateTime(0);
     } catch (e) {
       showError(e.message);
     }
@@ -106,18 +108,18 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
         let presetsLT = results.concat(resultsEvolutions);
         setItems((elements) => [...elements, ...presetsLT]);
 
-        if (!activeItem) {
+        // if (!activeItem) {
           // console.log(items);
           // await setPreviewData(items[0].project.data);
           // setPreview(items[0].thumbnail);
           // setActiveItem(items[0]);
-          setItems(elements => {
-            setPreviewData(elements[0].project.data);
-            setPreview(elements[0].thumbnail);
-            setActiveItem(elements[0]);
-            return [...elements];
-          });
-        }
+          // setItems(elements => {
+          //   setPreviewData(elements[0].project.data);
+          //   setPreview(elements[0].thumbnail);
+          //   setActiveItem(elements[0]);
+          //   return [...elements];
+          // });
+        // }
         if (results || resultsEvolutions) {
           const hasNextPage = results.length || resultsEvolutions.length === perPage;
           setHasMore(hasNextPage);
@@ -147,30 +149,38 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
   };
 
   return (
-    <div className="view-project-window">
-      <div className="flex">
-        <p className="view-project-window__header">{title}</p>
-        <CloseButton className="close-button" onClick={closeButton} />
+    <div className='image-lt'>
+      <div className={className}>
+        {
+          items.map((item) => (
+            <div key={item._id} className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>
+                <div className='lt-btn'>
+                  <div className='action-btn'>
+                    <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
+                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preiview</a>
+                  </div>
+                  <span className="title">{item.title}</span>
+                </div>
+              </div>
+            </div>
+          ))
+        }
+        {isLoading && hasMore && (
+          (
+            <tr>
+              <td className="billing-history-box__table-custom-td">
+                <LibrarySpinner />
+              </td>
+            </tr>
+          )
+        )}
+        {!isLoading && hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="project-data-list-waypoint" /></Waypoint>}
       </div>
-      <div className="view-project-window__body">
-        <div className="view-project-window__container">
-          <List
-            items={items}
-            hasMore={hasMore}
-            uploadNewItems={uploadNewItems}
-            handleSelect={handleSelect}
-            activeItem={activeItem}
-            isLoading={isLoading}
-          />
-        </div>
-        <div className="view-project-window__control">
-          <Preview
-            preview={preview}
-            activeItem={activeItem}
-            instantStart={instantStart}
-          />
-          <button className="view-project-window__use" onClick={addDataToCanvas}>Use</button>
-        </div>
+      <div>
+        {activeItem &&
+          <CreativePreviewModel onUseHandler={() => addDataToCanvas(activeItem)} show={show} setShow={setShow} onCancelHadler={() => setActiveItem(null)} preview={null} activeItem={activeItem} instantStart={instantStart} />
+        }
       </div>
     </div>
   );
