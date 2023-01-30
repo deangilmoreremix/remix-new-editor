@@ -144,7 +144,6 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
             <CreativeProviderList activeTab={activeTab} handleButtonClick={handleButtonClick} activeItem={activeItem} />
           </div>
           <div className="search">
-            <h4 className="search-title">Choose your script</h4>
             <div className="library__search-box search-box">
               <SearchInput onSearch={searchElement} />
             </div>

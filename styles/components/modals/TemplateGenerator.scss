@@ -322,6 +322,7 @@ padding: 4px 0;
     justify-content: stretch;
     overflow-y: scroll;
     min-width: 100%;
+    padding: 2.5%;
     .list-body {
       height: 100%;
       overflow: hidden;
@@ -591,8 +592,9 @@ padding: 4px 0;
   }
 }
 .header_search_wrapper .search{
-  width: 28%;
+  width: 38%;
   margin: 1em 0 0 0;
+  padding: 2em 2em;
 
   @media (max-width : 1450px) {
     width: 40%;

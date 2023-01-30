@@ -143,7 +143,7 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
                   cleanup={[list[element].name]}
                 />
               )}
-              <p>
+              <p className='library__btn-title'>
                 {list[element].name}
               </p>
             </button>
