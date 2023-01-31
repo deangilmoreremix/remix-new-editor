@@ -80,11 +80,11 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
     {
       content:
         [
-          <Connect onSelect={onSelect} className={"lower-third-list"} />,
-          <EndScreens onSelect={onSelect} className={"lower-third-list"} />,
-          <LocationTitles onSelect={onSelect} className={"lower-third-list"} />,
-          <SocialMediaIcon3D onSelect={onSelect} className={"lower-third-list"} />,
-          <CallOutTitlePackage onSelect={onSelect} className={"lower-third-list"} />
+          <Connect onSelect={onSelect} className={"lower-third-list"} activeTab={activeTab} query={query} />,
+          <EndScreens onSelect={onSelect} className={"lower-third-list"} activeTab={activeTab} query={query}/>,
+          <LocationTitles onSelect={onSelect} className={"lower-third-list"} activeTab={activeTab} query={query}/>,
+          <SocialMediaIcon3D onSelect={onSelect} className={"lower-third-list"} activeTab={activeTab} query={query}/>,
+          <CallOutTitlePackage onSelect={onSelect} className={"lower-third-list"} activeTab={activeTab} query={query}/>
         ]
     },
   ], [query]);
