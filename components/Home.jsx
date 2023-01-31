@@ -91,6 +91,15 @@ const Home = observer(() => {
     evolutionLowerThirdEnabled,
     evolutionCtaEnabled,
     evolutionImageLTPresetEnabled,
+    retroLTEnabled,
+    neonLTEnabled,
+    neonSocialMediaLTEnabled,
+    locationTitlesEnabled,
+    socialMediaIcon3DEnabled,
+    callOutTitlePageEnabled,
+    neonArrowPackEnabled,
+    socialMediaPackEnabled,
+    socialMediaButtonPackEnabled,
     endScreensEnabled,
     getSvrTerms,
   } = userStore;
@@ -206,6 +215,15 @@ const Home = observer(() => {
         evolutionLowerThirdEnabled,
         evolutionCtaEnabled,
         evolutionImageLTPresetEnabled,
+        retroLTEnabled,
+        neonLTEnabled,
+        neonSocialMediaLTEnabled,
+        locationTitlesEnabled,
+        socialMediaIcon3DEnabled,
+        callOutTitlePageEnabled,
+        neonArrowPackEnabled,
+        socialMediaPackEnabled,
+        socialMediaButtonPackEnabled,
         endScreensEnabled,
       },
     });
@@ -243,7 +261,7 @@ const Home = observer(() => {
       TogetherJS();
     }
   },[isEnabled])
- 
+
 
   useEffect(() => {
     if (getSvrTerms === false) {

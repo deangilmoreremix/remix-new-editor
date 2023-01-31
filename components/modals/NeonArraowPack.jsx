@@ -6,24 +6,25 @@ import useMakeStore from '../hooks/useMakeStore';
 
 import ViewProjectWindowImageLt from './ViewProjectWindow/indexImageLT';
 
-const ImagePresets = ({ handleClose,className,activeTab ,onSelect, query}) => {
-  const { getImageLTPreset } = useMakeStore();
+const NeonArraowPack = ({ handleClose,className,activeTab ,onSelect, query, onClick}) => {
+  const { getNeonArrowPack } = useMakeStore();
 
   return (
     <ViewProjectWindowImageLt
       handleClose={handleClose}
-      fetchItems={getImageLTPreset}
-      title="Image LT Preset"
+      fetchItems={getNeonArrowPack}
+      title="Neon Arrow Pack"
       className={className}
       activeTab={activeTab}
       onSelect={onSelect}
       query={query}
+      onClick={onClick}
     />
   );
 };
 
-ImagePresets.propTypes = {
+NeonArraowPack.propTypes = {
   handleClose: PropTypes.func.isRequired,
 };
 
-export default ImagePresets;
+export default NeonArraowPack;

@@ -6,7 +6,8 @@ import useMakeStore from '../hooks/useMakeStore';
 
 import ViewProjectWindow from './ViewProjectWindow';
 
-const Presets = ({ handleClose }) => {
+
+const Presets = ({ handleClose,className,query }) => {
   const { getPresets, evolutionPresets } = useMakeStore();
 
   return (
@@ -15,6 +16,8 @@ const Presets = ({ handleClose }) => {
       fetchItems={getPresets}
       fetchItemsEvolution={evolutionPresets}
       title="lower thirds presets"
+      className={className}
+      query={query}
     />
   );
 };

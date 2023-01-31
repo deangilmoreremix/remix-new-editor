@@ -6,14 +6,14 @@ import useMakeStore from '../hooks/useMakeStore';
 
 import ViewProjectWindowImageLt from './ViewProjectWindow/indexImageLT';
 
-const ImagePresets = ({ handleClose,className,activeTab ,onSelect, query}) => {
-  const { getImageLTPreset } = useMakeStore();
+const NeonLT = ({ handleClose,className,activeTab ,onSelect, query}) => {
+  const { getNeonLT } = useMakeStore();
 
   return (
     <ViewProjectWindowImageLt
       handleClose={handleClose}
-      fetchItems={getImageLTPreset}
-      title="Image LT Preset"
+      fetchItems={getNeonLT}
+      title="Neon LT"
       className={className}
       activeTab={activeTab}
       onSelect={onSelect}
@@ -22,8 +22,8 @@ const ImagePresets = ({ handleClose,className,activeTab ,onSelect, query}) => {
   );
 };
 
-ImagePresets.propTypes = {
+NeonLT.propTypes = {
   handleClose: PropTypes.func.isRequired,
 };
 
-export default ImagePresets;
+export default NeonLT;
