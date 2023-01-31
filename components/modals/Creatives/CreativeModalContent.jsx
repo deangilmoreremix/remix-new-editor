@@ -148,6 +148,7 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
               <SearchInput onSearch={searchElement} />
             </div>
           </div>
+          <div className='search'></div>
         </div>
         {isLoading ? <LibrarySpinner /> : Content}
         <div className="gradient" />
