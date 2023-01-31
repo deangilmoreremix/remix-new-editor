@@ -166,7 +166,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
                 <div className='lt-btn'>
                   <div className='action-btn'>
                     <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
-                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preiview</a>
+                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preview</a>
                   </div>
                   <span className="title">{item.title}</span>
                 </div>
@@ -182,7 +182,7 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
                 <div className='lt-btn'>
                   <div className='action-btn'>
                     <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
-                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preiview</a>
+                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preview</a>
                   </div>
                   <span className="title">{item.title}</span>
                 </div>
