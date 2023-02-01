@@ -93,9 +93,11 @@ export default class PresetStore extends BaseStore {
   getRetroLT = ({ page = 1, query = '', perPage = 12 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_RETRO_LT }, path: '/api/makes/revolution' })
   );
-
-  getNeonSocialMediaLT = ({ page = 1, query = '', perPage = 12 }) => (
+  getSocialMediaLT = ({ page = 1, query = '', perPage = 12 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_NEON_SOCIAL_MEDIA_LT }, path: '/api/makes/revolution' })
+  );
+  getNeonSocialMediaLT = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_SOCIAL_MEDIA_LT }, path: '/api/makes/revolution' })
   );
   getLocationTitles =  ({ page = 1, query = '', perPage = 12 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_LOCATION_TITLES }, path: '/api/makes/revolution' })

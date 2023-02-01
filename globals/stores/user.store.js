@@ -703,6 +703,11 @@ export default class UserStore {
   }
 
   @computed
+  get socialMediaLTEnabled() {
+    return this.isfeatureEnabled(FEATURES.SOCIAL_MEDIA_LT);
+  }
+
+  @computed
   get locationTitlesEnabled() {
     return this.isfeatureEnabled(FEATURES.LOCATION_TITLES);
   }
