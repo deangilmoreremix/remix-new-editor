@@ -131,10 +131,6 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
   }
 
   React.useEffect(() => {
-    console.log(items,"items==>>");
-  },[items])
-
-  React.useEffect(() => {
     if (query !== '') {
       const filterData = items.filter(x => x.title.toLowerCase().includes(query.toLowerCase()));
       setQueryData(filterData)
