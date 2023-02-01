@@ -23,6 +23,7 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
     retroLTEnabled,
     neonLTEnabled,
     neonSocialMediaLTEnabled,
+    socialMediaLTEnabled,
     evolutionCtaEnabled,
     ctaEnabled,
     blendModeEnabled,
@@ -71,6 +72,9 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       }
       if(!neonSocialMediaLTEnabled) {
         removeArray.push('NeonSocialMediaLT');
+      }
+      if(!socialMediaLTEnabled) {
+        removeArray.push('SocialMediaLT');
       }
       const newArr = lowerThirdList.filter(i => !removeArray.some(j => j === i.key));
       setList(newArr);

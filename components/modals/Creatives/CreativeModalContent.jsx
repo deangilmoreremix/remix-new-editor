@@ -22,6 +22,7 @@ import BlendModeLibrary from '../../media/BlendModeLibrary';
 import OverlayListTransitions from '../../media/OverlayListTransitions';
 import EndScreens from '../EndScreen';
 import Connect from '../Connect';
+import SocialMediaLT from '../SocialMediaLTModal';
 import NeonArraowPack from '../NeonArraowPack';
 import SocialMediaPack from '../SocialMediaPack';
 import SocialMediaButtonPack from '../SocialMediaButtonPack';
@@ -64,7 +65,8 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
           <ImageLtPreset handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />,
           <RetroLT handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />,
           <NeonLT handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />,
-          <NeonSocialMediaLT handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />
+          <NeonSocialMediaLT handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />,
+          <SocialMediaLT handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} />
         ]
     },
     {
