@@ -6,24 +6,25 @@ import useMakeStore from '../hooks/useMakeStore';
 
 import ViewProjectWindowImageLt from './ViewProjectWindow/indexImageLT';
 
-const ImagePresets = ({ handleClose,className,activeTab ,onSelect, query}) => {
-  const { getImageLTPreset } = useMakeStore();
+const SocialMediaIcon3D = ({ handleClose,className,activeTab ,onSelect, query, onClick}) => {
+  const { getSocialMediaIcon3D } = useMakeStore();
 
   return (
     <ViewProjectWindowImageLt
       handleClose={handleClose}
-      fetchItems={getImageLTPreset}
-      title="Image LT Preset"
+      fetchItems={getSocialMediaIcon3D}
+      title="Social Media Icon 3D"
       className={className}
       activeTab={activeTab}
       onSelect={onSelect}
       query={query}
+      onClick={onClick}
     />
   );
 };
 
-ImagePresets.propTypes = {
+SocialMediaIcon3D.propTypes = {
   handleClose: PropTypes.func.isRequired,
 };
 
-export default ImagePresets;
+export default SocialMediaIcon3D;

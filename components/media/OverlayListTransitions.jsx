@@ -10,7 +10,10 @@ import useProjectStore from '../hooks/useProjectStore';
 import usePresetStore from '../hooks/usePresetStore';
 import useTimelineStore from '../hooks/useTimelineStore';
 import useUserStore from '../hooks/useUserStore';
-
+import { Waypoint } from 'react-waypoint';
+import { LibrarySpinner } from './Loader';
+import PropTypes from '../../lib/PropTypes';
+import CreativePreviewModel from '../modals/Creatives/CreativePreviewModel';
 
 import Tabs from '../common/overlay/Tabs';
 import CloseButton from '../common/CloseButton';
@@ -20,13 +23,15 @@ import Preview from '../common/projectDataList/Preview';
 
 const perPage = 12;
 
-const OverlayListTransitions = observer(() => {
+const OverlayListTransitions = observer(({ className, query, handleClose }) => {
   const [items, setItems] = React.useState([]);
   const [activeItem, setActiveItem] = useState();
   const [preview, setPreview] = useState('');
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
+  const [queryData, setQueryData] = React.useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [show,setShow] = React.useState();
 
   const { getJsonTransitions, getEvolutionJsonTransitionsOverlay } = useMakeStore();
   const { setPreviewData, updateTime } = usePresetStore();
@@ -41,37 +46,35 @@ const OverlayListTransitions = observer(() => {
     setOverlayType: setActiveTab,
   } = useUIStore();
 
-  useEffect(() => {
-    const { width, height } = ratio;
-    const newTab = `${width}:${height}`;
-    if (newTab === activeTab) {
-      return;
-    }
-    setActiveItem(null);
-    setActiveTab(newTab);
-    getItems(newTab, true);
-  }, [ratio]);
-
   const previewClass = useMemo(() => {
-    const index = activeTab.indexOf(':');
-    return `project-data-preview-${activeTab.substr(0, index)}`;
-  }, [activeTab]);
+    return `project-data-preview-16`;
+  }, []);
 
   const handleSelect = React.useCallback(async (item) => {
+    setShow(true);
     await setPreviewData(item.project.data);
     setPreview(item.thumbnail);
     setActiveItem(item);
-    updateTime(0);
   }, []);
 
-  const addDataToCanvas = useCallback(async () => {
+  function removeDuplicates(myArr, prop) {
+    return myArr.filter((obj, pos, arr) => {
+      return arr.map((mapObj) => mapObj[prop]).indexOf(obj[prop]) === pos;
+    });
+  }
+
+  const addDataToCanvas = useCallback(async (item) => {
     try {
-      let newData = JSON.parse(activeItem.project.data);
+      await setPreviewData(item.project.data);
+      setPreview(item.thumbnail);
+      setActiveItem(item);
+      let newData = JSON.parse(item.project.data);
       newData.media[0].tracks.reverse();
       newData = JSON.stringify(newData);
-      activeItem.project.data = newData;
+      item.project.data = newData;
 
-      await addData(activeItem);
+      await addData(item);
+      handleClose();
     } catch (e) {
       showError(e.message);
     }
@@ -133,7 +136,7 @@ const OverlayListTransitions = observer(() => {
           //   setItems(resultsEvolution);
           //   await setPreviewData(resultsEvolution[0].project.data);
           //   setPreview(resultsEvolution[0].thumbnail);
-          //   setActiveItem(resultsEvolution[0]);
+          //   // setActiveItem(resultsEvolution[0]);
           // } else {
           //   setItems(elements => [...elements, ...resultsEvolution]);
           // }
@@ -154,7 +157,7 @@ const OverlayListTransitions = observer(() => {
         //   setItems(results);
         //   await setPreviewData(results[0].project.data);
         //   setPreview(results[0].thumbnail);
-        //   setActiveItem(results[0]);
+        //   // setActiveItem(results[0]);
         // } else {
         //   setItems(elements => [...elements, ...results]);
         // }
@@ -173,45 +176,82 @@ const OverlayListTransitions = observer(() => {
     }
   }, [page]);
 
+  function removeDuplicates(myArr, prop) {
+    return myArr.filter((obj, pos, arr) => {
+      return arr.map((mapObj) => mapObj[prop]).indexOf(obj[prop]) === pos;
+    });
+  }
+
+  React.useEffect(() => {
+    if (query !== '') {
+      const filterData = items.filter(x => x.title.toLowerCase().includes(query.toLowerCase()));
+      setQueryData(filterData)
+    }
+    else {
+      setQueryData([]);
+    }
+  }, [query])
+
   const uploadNewItems = () => {
     if (page !== 1) {
       getItems();
     }
   };
 
-  const libraryHeight = useMemo(() => (
-    editorStyles.calculateHeight(timelineHeight)
-  ), [timelineHeight]);
-
   return (
-    <div style={{ height: libraryHeight }} className="overlay">
-      <div className="flex">
-        <header className="overlay__header">Overlays</header>
-        <CloseButton onClick={() => toggleRightBlock(false)} />
+    <div className='image-lt'>
+      <div className={className}>
+      {queryData.length ?
+          removeDuplicates(queryData, "title").map((item) => (
+            <div key={item._id} className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>
+                <div className='lt-btn'>
+                  <div className='action-btn'>
+                    <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
+                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preview</a>
+                  </div>
+                  <span className="title">{item.title}</span>
+                </div>
+              </div>
+            </div>
+          )) : null
+        }
+        {
+          !queryData.length  &&
+          items.map((item) => (
+            <div key={item._id} className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>
+                <div className='lt-btn'>
+                  <div className='action-btn'>
+                    <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
+                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preview</a>
+                  </div>
+                  <span className="title">{item.title}</span>
+                </div>
+              </div>
+            </div>
+          ))
+        }
+        {isLoading && hasMore && (
+          (
+            <tr>
+              <td className="billing-history-box__table-custom-td">
+                <LibrarySpinner />
+              </td>
+            </tr>
+          )
+        )}
+        {!isLoading && hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="project-data-list-waypoint" /></Waypoint>}
       </div>
-      <Tabs activeTab={activeTab} />
-      <div className="overlay__body">
-        <div className="overlay-container">
-          <List
-            items={items}
-            hasMore={hasMore}
-            uploadNewItems={uploadNewItems}
-            handleSelect={handleSelect}
-            activeItem={activeItem}
-            isLoading={isLoading}
-          />
-        </div>
-        <div className="overlay__control">
-          <Preview
-            preview={preview}
-            activeItem={activeItem}
-            className={previewClass}
-          />
-          <button className="overlay__use" onClick={addDataToCanvas}>Use</button>
-        </div>
+      <div>
+        {activeItem &&
+          <CreativePreviewModel onUseHandler={() => addDataToCanvas(activeItem)} show={show} setShow={setShow} onCancelHadler={() => setActiveItem(null)} preview={null} activeItem={activeItem} instantStart={false} />
+        }
       </div>
     </div>
   );
 });
-
+OverlayListTransitions.propTypes = {
+  instantStart: PropTypes.bool,
+};
 export default OverlayListTransitions;

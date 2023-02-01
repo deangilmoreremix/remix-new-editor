@@ -5,28 +5,20 @@ import useMakeStore from '../../hooks/useMakeStore';
 import { showError } from '../../../lib/services/alertService';
 
 import PropTypes from '../../../lib/PropTypes';
-import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';
+import { CREATIVES_TABS } from '../../../lib/constants/creatives';
 
 const perPage = 12;
 
-const LibraryCTA = ({ className, onSelect }) => {
+const LibraryCTA = ({ className, onSelect, query }) => {
   const [items, setItems] = React.useState([]);
   const [page, setPage] = React.useState(1);
   const [hasMore, setHasMore] = React.useState(true);
-
+  const [queryData,setQueryData] = React.useState([]);
   const { getTemplatesCTA, getEvolutionTemplatesCTA } = useMakeStore();
-  const { addData } = useProjectStore();
   const userStore = useUserStore();
   const { evolutionCtaEnabled, ctaEnabled } = userStore;
-  const handleSelect = React.useCallback(async (item) => {
-    try {
-      await addData(item);
-      onSelect();
-    } catch (e) {
-      await showError(e.message);
-    }
-  }, []);
+  const selectMedia = React.useCallback((item) => onSelect(CREATIVES_TABS.CTA_MODES, item), []);
 
   const resetParams = () => {
     setPage(1);
@@ -38,7 +30,6 @@ const LibraryCTA = ({ className, onSelect }) => {
     if (reset) {
       resetParams();
     }
-
     if (hasMore) {
       try {
         let results = [];
@@ -74,6 +65,22 @@ const LibraryCTA = ({ className, onSelect }) => {
     }
   };
 
+  function removeDuplicates(myArr, prop) {
+    return myArr.filter((obj, pos, arr) => {
+      return arr.map((mapObj) => mapObj[prop]).indexOf(obj[prop]) === pos;
+    });
+  }
+
+  React.useEffect(() => {
+    if (query !== '') {
+      const filterData = items.filter(x => x.title.toLowerCase().includes(query.toLowerCase()));
+      setQueryData(filterData)
+    }
+    else {
+      setQueryData([]);
+    }
+  }, [query])
+
   React.useEffect(() => {
     if (page === 1) {
       getItems();
@@ -88,20 +95,32 @@ const LibraryCTA = ({ className, onSelect }) => {
 
   return (
     <div className={className}>
-      {items && items.length
-        ? (
-          <React.Fragment>
-            {items.map((item) => (
-              <div key={item._id} className="library-cta-item">
-                <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }} />
-                <button className="btn-add" onClick={() => handleSelect(item)}>+</button>
+      {queryData.length ?
+        <React.Fragment>
+        {removeDuplicates(queryData,'title').map((item) => (
+          <div key={item._id} className="library-cta-item">
+            <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }} >
+              <button className="btn-add" onClick={() => selectMedia(item)}>+</button>
+              <span className="title">{item.title}</span>
+            </div>
+          </div>
+        ))}
+      </React.Fragment>
+      : null
+      }
+      {
+        !queryData.length &&
+        <React.Fragment>
+          {items.map((item) => (
+            <div  className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }} >
+                <button className="btn-add" onClick={() => selectMedia(item)}>+</button>
                 <span className="title">{item.title}</span>
               </div>
-            ))}
-          </React.Fragment>
-        )
-        : null}
-
+            </div>
+          ))}
+        </React.Fragment>
+      }
       {hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems} />}
     </div>
   );

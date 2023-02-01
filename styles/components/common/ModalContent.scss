@@ -1,3 +1,6 @@
+.header_search_wrapper{
+  display: flex;
+}
 .template__block {
   justify-content: unset;
   position: absolute;
@@ -7,7 +10,7 @@
   align-items: baseline;
 
   .library__block-sidebar {
-    width: 90%;
+    width: 100%;
     margin-top: 1em;
   }
   .library__btn-item {
@@ -17,6 +20,10 @@
     .library__icon-btn {
       margin-right: 0.3em;
     }
+    
+  }
+  .library__btn-title {
+      font-size: 0.9em;
   }
   .library__btn-user {
     font-size: inherit;
@@ -76,3 +83,8 @@
     }
   }
 }
+.creative .template__block {
+  position: unset;
+  width: 33.33%;
+
+} 
