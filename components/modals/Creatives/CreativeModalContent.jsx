@@ -110,10 +110,10 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
   ])
 
   const Content = useMemo(() => {
-    if (lowerThirdsEnabled && evolutionLowerThirdEnabled) {
+    if (lowerThirdsEnabled || evolutionLowerThirdEnabled) {
       steps[activeTab].content.push({ key: 'LowerThird', val: <LowerThird className={"lower-third-list"} onSelect={onSelect} query={query} key={'LowerThird'} /> });
     }
-    if (presetsEnabled && evolutionPresetEnabled) {
+    if (presetsEnabled || evolutionPresetEnabled) {
       steps[activeTab].content.push({ key: 'LTPreset', val: <PresetModal handleClose={handleClose} className={"lower-third-list"} query={query} /> });
     }
     if (evolutionImageLTPresetEnabled) {
@@ -134,10 +134,10 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
     if (ctaEnabled && evolutionCtaEnabled) {
       steps[activeTab].content.push({ key: 'CTA', val: <LibraryCTA onSelect={onSelect} className={"lower-third-list"} query={query} /> })
     }
-    if (blendModeEnabled && evolutionBlendModeEnabled) {
+    if (blendModeEnabled || evolutionBlendModeEnabled) {
       steps[activeTab].content.push({ key: 'BlendModes', val: <BlendModeLibrary handleClose={handleClose} query={query} /> });
     }
-    if (jsonTransitionEnabled && evolutionOverlayEnabled) {
+    if (jsonTransitionEnabled || evolutionOverlayEnabled) {
       steps[activeTab].content.push({ key: 'Overlays', val: <OverlayListTransitions className={"lower-third-list"} handleClose={handleClose} query={query} /> });
     }
     if (neonArrowPackEnabled) {
