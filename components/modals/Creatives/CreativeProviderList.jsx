@@ -13,7 +13,7 @@ import useUserStore from '../../hooks/useUserStore';
 import addUrlIcon from '../../../public/static/svgImages/addurl.svg';
 import { useEffect } from 'react';
 
-const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeItem }) => {
+const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeItem, func }) => {
 
   const {
     lowerThirdsEnabled,
@@ -39,8 +39,11 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
     socialMediaPackEnabled,
     socialMediaButtonPackEnabled,
   } = useUserStore();
-
   const [list, setList] = useState([]);
+  useEffect(() => {
+      func(list)
+  },[list])
+
   useEffect(() => {
     if (activeTab == 0) {
       setList(lowerThirdList);
@@ -138,7 +141,7 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
                   'library__btn-active': activeItem === list[element].id,
                 },
               )}
-              onClick={() => handleButtonClick(list[element].id)}
+              onClick={() => handleButtonClick(list[element].id,list[element].key)}
             >
               {list[element].icon && (
                 <SVGInline
