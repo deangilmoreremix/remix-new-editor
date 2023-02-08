@@ -182,6 +182,7 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
   useEffect(() => {
     setActiveItem(0);
     setQuery('');
+    setActiveEle("")
   }, [activeTab])
 
 
