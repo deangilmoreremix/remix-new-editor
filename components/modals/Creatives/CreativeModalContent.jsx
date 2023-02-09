@@ -131,7 +131,7 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
     if (socialMediaLTEnabled) {
       steps[activeTab].content.push({ key: 'SocialMediaLT', val: <SocialMediaLT handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} /> });
     }
-    if (ctaEnabled && evolutionCtaEnabled) {
+    if (ctaEnabled || evolutionCtaEnabled) {
       steps[activeTab].content.push({ key: 'CTA', val: <LibraryCTA onSelect={onSelect} className={"lower-third-list"} query={query} /> })
     }
     if (blendModeEnabled || evolutionBlendModeEnabled) {
