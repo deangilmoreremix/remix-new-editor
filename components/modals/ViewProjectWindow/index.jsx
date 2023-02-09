@@ -55,14 +55,14 @@ const ViewProjectWindow = ({ handleClose, fetchItems, title, instantStart, fetch
     }
   }, []);
 
-  const addDataToCanvas = useCallback(async () => {
+  const addDataToCanvas = useCallback(async (item) => {
     try {
-      let newData = JSON.parse(activeItem.project.data);
+      let newData = JSON.parse(item.project.data);
       newData.media[0].tracks.reverse();
       newData = JSON.stringify(newData);
-      activeItem.project.data = newData;
+      item.project.data = newData;
 
-      await addData(activeItem, true);
+      await addData(item, true);
       handleClose();
       toggleLeftBlock(false);
     } catch (e) {
