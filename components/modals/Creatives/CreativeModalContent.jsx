@@ -30,6 +30,14 @@ import LocationTitles from '../LocationTitles';
 import SocialMediaIcon3D from '../SocialMediaIcon3D';
 import CallOutTitlePackage from '../CallOutTitlePackage';
 import useUserStore from '../../hooks/useUserStore';
+import Music from '../Music';
+import Quotes from '../Quotes';
+import SMPvpBundle from '../SMPvpBundle';
+import Ecommerce from '../Ecommerce';
+import YouTubeInterActive from '../YouTubeInterActive';
+import GreatTechLayoff from '../GreatTechLayoff';
+import CountDownTimer from '../CountDownTimer';
+import PriceTags from '../PriceTags';
 
 
 const VIDEO = 'video';
@@ -73,6 +81,14 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
     neonArrowPackEnabled,
     socialMediaPackEnabled,
     socialMediaButtonPackEnabled,
+    musicEnabled,
+    quotesEnabled,
+    SMPvpBundleEnabled,
+    eCommerceEnabled,
+    greatTechLayoffEnabled,
+    youTubeInterActiveEnabled,
+    priceTagsEnabled,
+    countDownTimersEnabled
   } = useUserStore();
 
   const setActiveTab = useCallback(async (tab) => {
@@ -131,6 +147,12 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
     if (socialMediaLTEnabled) {
       steps[activeTab].content.push({ key: 'SocialMediaLT', val: <SocialMediaLT handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} /> });
     }
+    if (musicEnabled) {
+      steps[activeTab].content.push({ key: 'Music', val: <Music handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} /> });
+    }
+    if (quotesEnabled) {
+      steps[activeTab].content.push({ key: 'Quotes', val: <Quotes handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} /> });
+    }
     if (ctaEnabled || evolutionCtaEnabled) {
       steps[activeTab].content.push({ key: 'CTA', val: <LibraryCTA onSelect={onSelect} className={"lower-third-list"} query={query} /> })
     }
@@ -146,6 +168,15 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
     if (socialMediaPackEnabled) {
       steps[activeTab].content.push({ key: 'SocialMediaPack', val: <SocialMediaPack handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} /> });
     }
+    if (countDownTimersEnabled) {
+      steps[activeTab].content.push({ key: 'CountDownTimer', val: <CountDownTimer handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} /> });
+    }
+    if (priceTagsEnabled) {
+      steps[activeTab].content.push({ key: 'PriceTags', val: <PriceTags handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} /> });
+    }
+    if (socialMediaIcon3DEnabled) {
+      steps[activeTab].content.push({key:'SocialMediaIcon3D',val:<SocialMediaIcon3D onSelect={onSelect} handleClose={handleClose} className={"lower-third-list"} activeTab={activeTab} query={query}/>});
+    }
     if (socialMediaButtonPackEnabled) {
       steps[activeTab].content.push({ key: 'SocialMediaButtonPack', val: <SocialMediaButtonPack handleClose={handleClose} className={"lower-third-list"} onSelect={onSelect} activeTab={activeTab} query={query} /> });
     }
@@ -158,8 +189,17 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
     if (locationTitlesEnabled) {
       steps[activeTab].content.push({key:'LocationTitles',val:<LocationTitles onSelect={onSelect} handleClose={handleClose} className={"lower-third-list"} activeTab={activeTab} query={query}/>});
     }
-    if (socialMediaIcon3DEnabled) {
-      steps[activeTab].content.push({key:'SocialMediaIcon3D',val:<SocialMediaIcon3D onSelect={onSelect} handleClose={handleClose} className={"lower-third-list"} activeTab={activeTab} query={query}/>});
+    if (SMPvpBundleEnabled) {
+      steps[activeTab].content.push({key:'SMPvpBunble',val: <SMPvpBundle onSelect={onSelect} handleClose={handleClose} className={"lower-third-list"} activeTab={activeTab} query={query}/>});
+    }
+    if (greatTechLayoffEnabled) {
+      steps[activeTab].content.push({key:'GreatTechLayoff',val: <GreatTechLayoff onSelect={onSelect} handleClose={handleClose} className={"lower-third-list"} activeTab={activeTab} query={query}/>});
+    }
+    if (youTubeInterActiveEnabled) {
+      steps[activeTab].content.push({key:'YouTubeInterActive',val: <YouTubeInterActive onSelect={onSelect} handleClose={handleClose} className={"lower-third-list"} activeTab={activeTab} query={query}/>});
+    }
+    if (eCommerceEnabled) {
+      steps[activeTab].content.push({key:'Ecommerce',val: <Ecommerce onSelect={onSelect} handleClose={handleClose} className={"lower-third-list"} activeTab={activeTab} query={query}/>});
     }
     if (callOutTitlePageEnabled) {
       steps[activeTab].content.push({key:'CallOutTitlePackage',val:<CallOutTitlePackage onSelect={onSelect}  handleClose={handleClose} className={"lower-third-list"} activeTab={activeTab} query={query}/>});

@@ -741,4 +741,39 @@ export default class UserStore {
   get endScreensEnabled() {
     return this.isfeatureEnabled(FEATURES.END_SCREENS);
   }
+
+  @computed
+  get musicEnabled() {
+    return this.isfeatureEnabled(FEATURES.MUSIC);
+  }
+
+  @computed
+  get quotesEnabled() {
+    return this.isfeatureEnabled(FEATURES.QUOTES);
+  }
+
+  @computed
+  get SMPvpBundleEnabled() {
+    return this.isfeatureEnabled(FEATURES.SM_PVP_BUNDLE);
+  }
+  @computed
+  get eCommerceEnabled() {
+    return this.isfeatureEnabled(FEATURES.ECOMMERCE);
+  }
+  @computed
+  get youTubeInterActiveEnabled() {
+    return this.isfeatureEnabled(FEATURES.YOUTUBE_INTERACTIVE);
+  }
+  @computed
+  get greatTechLayoffEnabled() {
+    return this.isfeatureEnabled(FEATURES.GREAT_TECH_LAYOFF);
+  }
+  @computed
+  get priceTagsEnabled() {
+    return this.isfeatureEnabled(FEATURES.PRICE_TAGS);
+  }
+  @computed
+  get countDownTimersEnabled() {
+    return this.isfeatureEnabled(FEATURES.COUNT_DOWN_TIMERS);
+  }
 }
