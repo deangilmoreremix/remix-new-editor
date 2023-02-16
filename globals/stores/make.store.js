@@ -120,6 +120,30 @@ export default class PresetStore extends BaseStore {
   getEndScreens = ({ page = 1, query = '', perPage = 12 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_END_SCREENS }, path: '/api/makes/revolution' })
   );
+  getMusic = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_MUSIC }, path: '/api/makes/revolution' })
+  );
+  getQuotes = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_QUOTES }, path: '/api/makes/revolution' })
+  );
+  getCountDownTimers = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_COUNT_DOWN_TIMERS }, path: '/api/makes/revolution' })
+  );
+  getEcommerce = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_ECOMMERCE }, path: '/api/makes/revolution' })
+  );
+  getPriceTags = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_PRICE_TAGS }, path: '/api/makes/revolution' })
+  );
+  getSMPvpBundle = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_SM_PVP_BUNDLE }, path: '/api/makes/revolution' })
+  );
+  getGreatTechLayoff = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_GREAT_TECH_LAYOFF }, path: '/api/makes/revolution' })
+  )
+  getYouTubeInterActive = ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_YOUTUBE_INTERACTIVE }, path: '/api/makes/revolution' })
+  );
 
 
   getEvolutionTemplatesCTA = ({ page = 1, query = '', perPage = 20 }) => (

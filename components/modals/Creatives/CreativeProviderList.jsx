@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
-import { ctaList, lowerThirdList,templatePackList } from '../../../lib/constants/creatives';
+import { ctaList, lowerThirdList, templatePackList } from '../../../lib/constants/creatives';
 import PropTypes from '../../../lib/PropTypes';
 import { LIBRARY_KEYS, LIBRARY_TABS } from '../../../lib/constants/library';
 import { URL_VIDEO_MODAL } from '../../../lib/constants/modals';
@@ -38,11 +38,20 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
     neonArrowPackEnabled,
     socialMediaPackEnabled,
     socialMediaButtonPackEnabled,
+    musicEnabled,
+    quotesEnabled,
+    SMPvpBundleEnabled,
+    eCommerceEnabled,
+    greatTechLayoffEnabled,
+    youTubeInterActiveEnabled,
+    priceTagsEnabled,
+    countDownTimersEnabled
+
   } = useUserStore();
   const [list, setList] = useState([]);
   useEffect(() => {
-      func(list)
-  },[list])
+    func(list)
+  }, [list])
 
   useEffect(() => {
     if (activeTab == 0) {
@@ -67,17 +76,23 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       if (!evolutionImageLTPresetEnabled) {
         removeArray.push('ImageLT');
       }
-      if(!retroLTEnabled) {
+      if (!retroLTEnabled) {
         removeArray.push('RetroLT');
       }
-      if(!neonLTEnabled) {
+      if (!neonLTEnabled) {
         removeArray.push('NeonLT');
       }
-      if(!neonSocialMediaLTEnabled) {
+      if (!neonSocialMediaLTEnabled) {
         removeArray.push('NeonSocialMediaLT');
       }
-      if(!socialMediaLTEnabled) {
+      if (!socialMediaLTEnabled) {
         removeArray.push('SocialMediaLT');
+      }
+      if (!musicEnabled) {
+        removeArray.push('Music');
+      }
+      if (!quotesEnabled) {
+        removeArray.push('Quotes');
       }
       const newArr = lowerThirdList.filter(i => !removeArray.some(j => j === i.key));
       setList(newArr);
@@ -101,6 +116,15 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       }
       if (!socialMediaButtonPackEnabled) {
         removeArray.push('SocialMediaButtonPack');
+      } 
+      if (!socialMediaIcon3DEnabled) {
+        removeArray.push('SocialMediaIcon3D');
+      }
+      if (!countDownTimersEnabled) {
+        removeArray.push('CountDownTimer');
+      }
+      if (!priceTagsEnabled) {
+        removeArray.push('PriceTags');
       }
       const newArr = ctaList.filter(i => !removeArray.some(j => j === i.key));
       setList(newArr);
@@ -116,11 +140,21 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       if (!locationTitlesEnabled) {
         removeArray.push('LocationTitles');
       }
-      if (!socialMediaIcon3DEnabled) {
-        removeArray.push('SocialMediaIcon3D');
-      }
+      
       if (!callOutTitlePageEnabled) {
         removeArray.push('CallOutTitlePackage');
+      } 
+      if (!eCommerceEnabled) {
+        removeArray.push('Ecommerce');
+      }
+      if (!SMPvpBundleEnabled) {
+        removeArray.push('SMPvpBunble');
+      }
+      if (!greatTechLayoffEnabled) {
+        removeArray.push('GreatTechLayoff');
+      }
+      if (!youTubeInterActiveEnabled) {
+        removeArray.push('YouTubeInterActive');
       }
       const newArr = templatePackList.filter(i => !removeArray.some(j => j === i.key));
       setList(newArr);
@@ -141,7 +175,7 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
                   'library__btn-active': activeItem === list[element].id,
                 },
               )}
-              onClick={() => handleButtonClick(list[element].id,list[element].key)}
+              onClick={() => handleButtonClick(list[element].id, list[element].key)}
             >
               {list[element].icon && (
                 <SVGInline
