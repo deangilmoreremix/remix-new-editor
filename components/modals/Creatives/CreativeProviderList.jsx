@@ -111,12 +111,13 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       if (!neonArrowPackEnabled) {
         removeArray.push('NeonArrowPack');
       }
-      if (!socialMediaPackEnabled) {
-        removeArray.push('SocialMediaPack');
+      if (!locationTitlesEnabled) {
+        removeArray.push('LocationTitles');
       }
-      if (!socialMediaButtonPackEnabled) {
-        removeArray.push('SocialMediaButtonPack');
-      } 
+      
+      if (!callOutTitlePageEnabled) {
+        removeArray.push('CallOutTitlePackage');
+      }
       if (!socialMediaIcon3DEnabled) {
         removeArray.push('SocialMediaIcon3D');
       }
@@ -137,13 +138,13 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       if (!endScreensEnabled) {
         removeArray.push('EndScreens');
       }
-      if (!locationTitlesEnabled) {
-        removeArray.push('LocationTitles');
+      if (!socialMediaPackEnabled) {
+        removeArray.push('SocialMediaPack');
       }
-      
-      if (!callOutTitlePageEnabled) {
-        removeArray.push('CallOutTitlePackage');
+      if (!socialMediaButtonPackEnabled) {
+        removeArray.push('SocialMediaButtonPack');
       } 
+      
       if (!eCommerceEnabled) {
         removeArray.push('Ecommerce');
       }
