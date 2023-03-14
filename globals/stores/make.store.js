@@ -144,7 +144,9 @@ export default class PresetStore extends BaseStore {
   getYouTubeInterActive = ({ page = 1, query = '', perPage = 12 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_YOUTUBE_INTERACTIVE }, path: '/api/makes/revolution' })
   );
-
+  getMillionDollarHack= ({ page = 1, query = '', perPage = 12 }) => (
+    this.getList({ page, query, perPage, params: { segment: makeTypes.ENV_MILLION_DOLLAR_HACK }, path: '/api/makes/revolution' })
+  );
 
   getEvolutionTemplatesCTA = ({ page = 1, query = '', perPage = 20 }) => (
     this.getList({ page, query, perPage, params: { segment: makeTypes.EVN_CTA }, path: '/api/makes/revolution' })

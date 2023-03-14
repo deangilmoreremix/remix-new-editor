@@ -776,4 +776,8 @@ export default class UserStore {
   get countDownTimersEnabled() {
     return this.isfeatureEnabled(FEATURES.COUNT_DOWN_TIMERS);
   }
+  @computed
+  get millionDollarHackEnabled() {
+    return this.isfeatureEnabled(FEATURES.MILLION_DOLLAR_HACK);
+  }
 }
