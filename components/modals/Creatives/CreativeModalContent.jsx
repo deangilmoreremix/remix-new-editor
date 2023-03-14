@@ -38,6 +38,7 @@ import YouTubeInterActive from '../YouTubeInterActive';
 import GreatTechLayoff from '../GreatTechLayoff';
 import CountDownTimer from '../CountDownTimer';
 import PriceTags from '../PriceTags';
+import MillionDollarHack from '../MillionDollarHack';
 
 
 const VIDEO = 'video';
@@ -88,7 +89,8 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
     greatTechLayoffEnabled,
     youTubeInterActiveEnabled,
     priceTagsEnabled,
-    countDownTimersEnabled
+    countDownTimersEnabled,
+    millionDollarHackEnabled
   } = useUserStore();
 
   const setActiveTab = useCallback(async (tab) => {
@@ -203,6 +205,9 @@ const CreativeModalContent = observer(({ setHeaderProps, handleClose }) => {
     }
     if (callOutTitlePageEnabled) {
       steps[activeTab].content.push({key:'CallOutTitlePackage',val:<CallOutTitlePackage onSelect={onSelect}  handleClose={handleClose} className={"lower-third-list"} activeTab={activeTab} query={query}/>});
+    }
+    if (millionDollarHackEnabled) {
+      steps[activeTab].content.push({key:'MillionDollarHack',val: <MillionDollarHack onSelect={onSelect} handleClose={handleClose} className={"lower-third-list"} activeTab={activeTab} query={query}/>});
     }
     const indexOfContent = steps[activeTab].content.findIndex(ele => ele.key === activeEle);
     if (indexOfContent > -1) {

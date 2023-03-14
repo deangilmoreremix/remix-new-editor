@@ -45,8 +45,8 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
     greatTechLayoffEnabled,
     youTubeInterActiveEnabled,
     priceTagsEnabled,
-    countDownTimersEnabled
-
+    countDownTimersEnabled,
+    millionDollarHackEnabled
   } = useUserStore();
   const [list, setList] = useState([]);
   useEffect(() => {
@@ -156,6 +156,9 @@ const CreativeProviderList = observer(({ activeTab, handleButtonClick, activeIte
       }
       if (!youTubeInterActiveEnabled) {
         removeArray.push('YouTubeInterActive');
+      }
+      if (!millionDollarHackEnabled) {
+        removeArray.push('MillionDollarHack');
       }
       const newArr = templatePackList.filter(i => !removeArray.some(j => j === i.key));
       setList(newArr);
