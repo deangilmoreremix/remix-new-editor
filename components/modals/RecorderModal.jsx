@@ -107,18 +107,27 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
       });
 
       player.on('finishRecord', () => {
+        console.log("Call finish record")
         if (mute.current) {
+          console.log("Call if1")
           player.volume(0);
         }
         if (player.recordedData.type.includes('audio')) {
+          console.log("call if2")
           setSaveOptionsVisible(true);
         }
       });
 
       player.on('error', (element, error) => {
-        player.record().stopStream();
-        console.log(error,"error========>>>");
-        showError(error.message);
+        try {
+          player.record().stopStream();
+
+        }
+        catch(err) {  
+          showError(err.message);
+        } 
+      
+       
       });
 
       player.on('deviceError', () => {
