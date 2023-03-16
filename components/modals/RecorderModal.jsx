@@ -62,7 +62,9 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   let { current: player } = playerRef;
 
   const config = React.useMemo(
-    () => RECORDER_VIDEOJS_CONFIG({ type, useAudio, WaveSurfer }),
+    () => {
+      console.log(type,"type",useAudio,"useAudio")
+      RECORDER_VIDEOJS_CONFIG({ type, useAudio, WaveSurfer })},
     [type, useAudio]);
 
   const readAsArrayBuffer = (blob) => (
