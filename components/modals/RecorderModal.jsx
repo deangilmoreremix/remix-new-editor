@@ -140,7 +140,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
       //   showError(`Recording device error, code ${player.deviceErrorCode}`);
       // });
       player.on('finishConvert', () => {
-        console.log("finishcall")
+        console.log("finishcall",player.convertedData)
         setSaveOptionsVisible(true);
       });
     }
@@ -155,6 +155,7 @@ console.log(saveOptionsVisible,"saveOptionsVisible")
   useEffect(() => () => player.record().stopStream(), []);
 
   const handleDownload = useCallback(() => {
+    console.log("call handledownload")
     if (!player) {
       return;
     }
