@@ -86,9 +86,10 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
     console.log(useAudio,"useAudio");
     console.log(type,"type");
     console.log(config,"config")
+    console.log(videoRef,"videoref")
     if (videoRef.current && useAudio !== undefined && type) {
       player = videojs(videoRef.current, config);
-
+      console.log(player,"player===========")
       player.on('deviceReady', () => {
         setShowHiddenButton(true);
         if (config.plugins.record.video !== false) {
@@ -120,7 +121,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
           console.log("Call if1")
           player.volume(0);
         }
-        console.log(player.recordedData.type,"player.recordedData")
+        console.log(player.recordedData,"player.recordedData")
         if (player.recordedData.type.includes('audio') || player.recordedData.type.includes('video')) {
           console.log("call if2")
           setSaveOptionsVisible(true);
