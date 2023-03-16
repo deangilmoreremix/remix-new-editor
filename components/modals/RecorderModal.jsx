@@ -158,10 +158,11 @@ console.log(saveOptionsVisible,"saveOptionsVisible")
 
   const handleDownload = useCallback(() => {
     console.log("call handledownload")
+    console.log(player,"player============")
     if (!player) {
       return;
     }
-
+    
     const blob = player.recordedData;
     const decoder = new Decoder();
     const reader = new Reader();
