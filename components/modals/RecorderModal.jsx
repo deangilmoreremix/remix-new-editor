@@ -121,11 +121,13 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
       });
 
       player.on('error', (element, error) => {
+        console.log(player,"player")
         try {
           player.record().stopStream();
 
         }
         catch(err) {  
+          console.log(err,"er==============")
           showError(err.message);
         } 
       
@@ -133,7 +135,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
       });
 
       player.on('deviceError', () => {
-        console.log(error,"error========>>>2");
+        console.log(player.deviceErrorCode,"error========>>>2");
 
         showError(`Recording device error, code ${player.deviceErrorCode}`);
       });
