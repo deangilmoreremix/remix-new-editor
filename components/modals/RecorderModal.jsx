@@ -108,10 +108,12 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
 
       player.on('finishRecord', () => {
         console.log("Call finish record")
+        console.log(mute,"mute")
         if (mute.current) {
           console.log("Call if1")
           player.volume(0);
         }
+        console.log(player.recordedData,"player.recordedData")
         if (player.recordedData.type.includes('audio')) {
           console.log("call if2")
           setSaveOptionsVisible(true);
