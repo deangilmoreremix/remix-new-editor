@@ -120,25 +120,25 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
         }
       });
 
-      player.on('error', (element, error) => {
-        console.log(player,"player")
-        try {
-          player.record().stopStream();
+      // player.on('error', (element, error) => {
+      //   console.log(player,"player")
+      //   try {
+      //     player.record().stopStream();
 
-        }
-        catch(err) {  
-          console.log(err,"er==============")
-          showError(err.message);
-        } 
+      //   }
+      //   catch(err) {  
+      //     console.log(err,"er==============")
+      //     showError(err.message);
+      //   } 
       
        
-      });
+      // });
 
-      player.on('deviceError', () => {
-        console.log(player.deviceErrorCode,"error========>>>2");
+      // player.on('deviceError', () => {
+      //   console.log(player.deviceErrorCode,"error========>>>2");
 
-        showError(`Recording device error, code ${player.deviceErrorCode}`);
-      });
+      //   showError(`Recording device error, code ${player.deviceErrorCode}`);
+      // });
       player.on('finishConvert', () => {
         console.log("finishcall")
         setSaveOptionsVisible(true);
