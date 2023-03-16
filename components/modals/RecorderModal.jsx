@@ -75,6 +75,10 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   );
 
   useEffect(() => {
+    console.log(showPipButton,"showpipbutton")
+  },[showPipButton])
+
+  useEffect(() => {
     if (videoRef.current && useAudio !== undefined && type) {
       player = videojs(videoRef.current, config);
 
@@ -124,7 +128,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
       });
     }
   }, [videoRef, useAudio, type, config]);
-
+console.log(saveOptionsVisible,"saveOptionsVisible")
   React.useEffect(() => () => () => {
     if (player) {
       player.dispose();
