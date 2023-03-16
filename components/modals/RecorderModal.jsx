@@ -116,7 +116,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
           player.volume(0);
         }
         console.log(player.recordedData.type,"player.recordedData")
-        if (player.recordedData.type.includes('audio')) {
+        if (player.recordedData.type.includes('audio') || player.recordedData.type.includes('video')) {
           console.log("call if2")
           setSaveOptionsVisible(true);
         }
@@ -196,6 +196,7 @@ console.log(saveOptionsVisible,"saveOptionsVisible")
       const libraryType = videoFile ? LIBRARY_TABS.VIDEO : LIBRARY_TABS.AUDIO;
 
       const asset = await uploadMedia({ data: player.recordedData });
+      console.log(asset,"asset")
       if (videoFile) {
         asset.duration = duration;
       }
