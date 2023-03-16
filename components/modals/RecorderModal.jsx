@@ -113,6 +113,9 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
           player.muted(false);
         }
       });
+      player.on('startRecord', function() {
+        console.log('started recording!');
+    });
 
       player.on('finishRecord', () => {
         console.log("Call finish record")
@@ -121,7 +124,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
           console.log("Call if1")
           player.volume(0);
         }
-        console.log(player.recordedData,"player.recordedData")
+        // console.log(player.recordedData,"player.recordedData")
         if (player.recordedData.type.includes('audio') || player.recordedData.type.includes('video')) {
           console.log("call if2")
           setSaveOptionsVisible(true);
