@@ -69,6 +69,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
 
   const readAsArrayBuffer = (blob) => (
     new Promise((resolve, reject) => {
+      console.log("call readbuffer===============>1")
       const reader = new FileReader();
       reader.readAsArrayBuffer(blob);
       reader.onloadend = () => { resolve(reader.result); };
@@ -77,10 +78,14 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   );
 
   useEffect(() => {
-    console.log(showPipButton,"showpipbutton")
+    console.log(showPipButton,"showpipbutton=========>2")
   },[showPipButton])
 
   useEffect(() => {
+    console.log(videoRef,"videoRef");
+    console.log(useAudio,"useAudio");
+    console.log(type,"type");
+    console.log(config,"config")
     if (videoRef.current && useAudio !== undefined && type) {
       player = videojs(videoRef.current, config);
 
@@ -162,7 +167,7 @@ console.log(saveOptionsVisible,"saveOptionsVisible")
     if (!player) {
       return;
     }
-    
+
     const blob = player.recordedData;
     const decoder = new Decoder();
     const reader = new Reader();
