@@ -106,9 +106,9 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
         if (mute.current) {
           player.volume(0);
         }
-        if (player.recordedData.type.includes('audio')) {
+        // if (player.recordedData.type.includes('audio')) {
           setSaveOptionsVisible(true);
-        }
+        // }
       });
 
       player.on('error', (element, error) => {
