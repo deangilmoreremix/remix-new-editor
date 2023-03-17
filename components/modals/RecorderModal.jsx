@@ -106,6 +106,8 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
         if (mute.current) {
           player.volume(0);
         }
+        console.log(player.recordedData)
+        // player.record().saveAs({'video': 'my-video-file-name.webm'});
         if (player.recordedData.type.includes('audio')) {
           setSaveOptionsVisible(true);
         }
