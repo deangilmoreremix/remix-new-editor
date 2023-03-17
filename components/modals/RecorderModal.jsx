@@ -106,9 +106,9 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
         if (mute.current) {
           player.volume(0);
         }
-        console.log(player.recordedData)
-        player.record().saveAs({'video': player.recordedData.name});
-        if (player.recordedData.type.includes('audio')) {
+        
+        
+        if (player.recordedData.type.includes('audio') || player.recordedData.type.includes('video')) {
           setSaveOptionsVisible(true);
         }
       });
@@ -141,7 +141,9 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
     if (!player) {
       return;
     }
-
+    console.log(player.recordedData,"player.recordedData");
+    // player.record().saveAs({'video': player.recordedData.name});
+    
     const blob = player.recordedData;
     const decoder = new Decoder();
     const reader = new Reader();
