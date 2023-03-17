@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import videojs from 'video.js';
+import { Decoder, tools, Reader } from 'ts-ebml';
+import { saveAs } from 'file-saver';
 import { ClipLoader } from 'react-spinners';
 import WaveSurfer from 'wavesurfer.js';
 import MicrophonePlugin from 'wavesurfer.js/dist/plugin/wavesurfer.microphone';
@@ -14,10 +16,12 @@ import 'videojs-record-dealiased/dist/plugins/videojs.record.lamejs';
 
 import useMediaStore from '../hooks/useMediaStore';
 import useUiStore from '../hooks/useUIStore';
+import useProjectStore from '../hooks/useProjectStore';
+import useUserStore from '../hooks/useUserStore';
 
 import { LIBRARY_TABS } from '../../lib/constants/library';
 import { RECORDER_TYPES, RECORDER_VIDEOJS_CONFIG } from '../../lib/constants/recorder';
-import { showError } from '../../lib/services/alertService';
+import { showError, showSuccess } from '../../lib/services/alertService';
 
 WaveSurfer.microphone = MicrophonePlugin;
 
@@ -31,6 +35,8 @@ const timeOut = 3000;
 
 export default observer(({ options: { type, useAudio }, handleClose }) => {
   const mute = useRef(false);
+  const playerRef = useRef(null);
+  const videoRef = useRef(null);
 
   const {
     uploadMedia,
@@ -41,12 +47,17 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
     setLibraryType,
   } = useUiStore();
 
+  const {
+    isSuperAdmin,
+  } = useUserStore();
+
+  const { updateItem } = useProjectStore();
+
   const [saveOptionsVisible, setSaveOptionsVisible] = useState(false);
   const [showHiddenButton, setShowHiddenButton] = useState(false);
   const [time, setTime] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const playerRef = React.useRef(null);
-  const videoRef = React.useRef(null);
+  const [showPipButton, setShowPipButton] = useState(false);
 
   let { current: player } = playerRef;
 
