@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import videojs from 'video.js';
-import { Decoder, tools, Reader } from 'ts-ebml';
-import { saveAs } from 'file-saver';
 import { ClipLoader } from 'react-spinners';
 import WaveSurfer from 'wavesurfer.js';
 import MicrophonePlugin from 'wavesurfer.js/dist/plugin/wavesurfer.microphone';
@@ -16,12 +14,10 @@ import 'videojs-record-dealiased/dist/plugins/videojs.record.lamejs';
 
 import useMediaStore from '../hooks/useMediaStore';
 import useUiStore from '../hooks/useUIStore';
-import useProjectStore from '../hooks/useProjectStore';
-import useUserStore from '../hooks/useUserStore';
 
 import { LIBRARY_TABS } from '../../lib/constants/library';
 import { RECORDER_TYPES, RECORDER_VIDEOJS_CONFIG } from '../../lib/constants/recorder';
-import { showError, showSuccess } from '../../lib/services/alertService';
+import { showError } from '../../lib/services/alertService';
 
 WaveSurfer.microphone = MicrophonePlugin;
 
@@ -35,8 +31,6 @@ const timeOut = 3000;
 
 export default observer(({ options: { type, useAudio }, handleClose }) => {
   const mute = useRef(false);
-  const playerRef = useRef(null);
-  const videoRef = useRef(null);
 
   const {
     uploadMedia,
@@ -47,17 +41,12 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
     setLibraryType,
   } = useUiStore();
 
-  const {
-    isSuperAdmin,
-  } = useUserStore();
-
-  const { updateItem } = useProjectStore();
-
   const [saveOptionsVisible, setSaveOptionsVisible] = useState(false);
   const [showHiddenButton, setShowHiddenButton] = useState(false);
   const [time, setTime] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showPipButton, setShowPipButton] = useState(false);
+  const playerRef = React.useRef(null);
+  const videoRef = React.useRef(null);
 
   let { current: player } = playerRef;
 
@@ -106,9 +95,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
         if (mute.current) {
           player.volume(0);
         }
-        
-        
-        if (player.recordedData.type.includes('audio') || player.recordedData.type.includes('video')) {
+        if (player.recordedData.type.includes('audio')) {
           setSaveOptionsVisible(true);
         }
       });
@@ -127,43 +114,24 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
     }
   }, [videoRef, useAudio, type, config]);
 
-  React.useEffect(() => {
-    return () => {
+  React.useEffect(() => () => () => {
     if (player) {
       player.dispose();
     }
-    };
   }, []);
 
   useEffect(() => () => player.record().stopStream(), []);
 
-  const handleDownload = useCallback(() => {
+  const handleDownload = React.useCallback(async () => {
     if (!player) {
       return;
     }
-    console.log(player.recordedData,"player.recordedData");
-    // player.record().saveAs({'video': player.recordedData.name});
-    
-    const blob = player.recordedData;
-    const decoder = new Decoder();
-    const reader = new Reader();
+    const duration = await getBlobDuration(player.recordedData);
 
-    reader.logging = false;
-    reader.drop_default_duration = false;
-
-    // load webm blob and inject metadata
-    readAsArrayBuffer(blob).then((buffer) => {
-      const elms = decoder.decode(buffer);
-      elms.forEach((elm) => { reader.read(elm); });
-      reader.stop();
-
-      const refinedMetadataBuf = tools.makeMetadataSeekable(
-        reader.metadatas, reader.duration, reader.cues);
-      const body = buffer.slice(reader.metadataSize);
-      const result = new Blob([refinedMetadataBuf, body],
-        { type: blob.type });
-
-      saveAs(result, `${type}.${EXTENSIONS_MAP[type]}`);
+    await player.duration(duration);
+    await player.record().saveAs({
+      [type === RECORDER_TYPES.AUDIO
+        ? RECORDER_TYPES.AUDIO : RECORDER_TYPES.CAMERA]: `${type}.${EXTENSIONS_MAP[type]}`,
     });
   }, [player]);
 
@@ -224,7 +192,6 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   }, [player]);
 
   const handleClick = useCallback(() => {
-    console.log("call hete")
     const recorder = player.record();
     const { title } = document;
     setTime(timeOut / 1000);
