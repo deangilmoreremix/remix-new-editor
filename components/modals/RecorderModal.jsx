@@ -121,10 +121,12 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
     }
   }, [videoRef, useAudio, type, config]);
 
-  React.useEffect(() => () => () => {
-    if (player) {
-      player.dispose();
-    }
+  React.useEffect(() => {
+    return () => {
+      if (player) {
+        player.record().stopStream();
+      }
+    };
   }, []);
 
   useEffect(() => () => player.record().stopStream(), []);
