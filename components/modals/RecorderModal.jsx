@@ -106,9 +106,9 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
         if (mute.current) {
           player.volume(0);
         }
-        if (player.recordedData.type.includes('audio')) {
+        // if (player.recordedData.type.includes('audio')) {
           setSaveOptionsVisible(true);
-        }
+        // }
       });
 
       player.on('error', (element, error) => {
@@ -133,31 +133,16 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
 
   useEffect(() => () => player.record().stopStream(), []);
 
-  const handleDownload = useCallback(() => {
+  const handleDownload = React.useCallback(async () => {
     if (!player) {
       return;
     }
+    const duration = await getBlobDuration(player.recordedData);
 
-    const blob = player.recordedData;
-    const decoder = new Decoder();
-    const reader = new Reader();
-
-    reader.logging = false;
-    reader.drop_default_duration = false;
-
-    // load webm blob and inject metadata
-    readAsArrayBuffer(blob).then((buffer) => {
-      const elms = decoder.decode(buffer);
-      elms.forEach((elm) => { reader.read(elm); });
-      reader.stop();
-
-      const refinedMetadataBuf = tools.makeMetadataSeekable(
-        reader.metadatas, reader.duration, reader.cues);
-      const body = buffer.slice(reader.metadataSize);
-      const result = new Blob([refinedMetadataBuf, body],
-        { type: blob.type });
-
-      saveAs(result, `${type}.${EXTENSIONS_MAP[type]}`);
+    await player.duration(duration);
+    await player.record().saveAs({
+      [type === RECORDER_TYPES.AUDIO
+        ? RECORDER_TYPES.AUDIO : RECORDER_TYPES.CAMERA]: `${type}.${EXTENSIONS_MAP[type]}`,
     });
   }, [player]);
 
