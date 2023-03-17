@@ -57,19 +57,15 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   const [showHiddenButton, setShowHiddenButton] = useState(false);
   const [time, setTime] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showPipButton, setShowPipButton] = useState(false);
 
   let { current: player } = playerRef;
 
   const config = React.useMemo(
-    () => {
-      console.log(type,"type",useAudio,"useAudio")
-      return RECORDER_VIDEOJS_CONFIG({ type, useAudio, WaveSurfer })},
+    () => RECORDER_VIDEOJS_CONFIG({ type, useAudio, WaveSurfer }),
     [type, useAudio]);
 
   const readAsArrayBuffer = (blob) => (
     new Promise((resolve, reject) => {
-      console.log("call readbuffer===============>1")
       const reader = new FileReader();
       reader.readAsArrayBuffer(blob);
       reader.onloadend = () => { resolve(reader.result); };
@@ -78,23 +74,11 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   );
 
   useEffect(() => {
-    console.log(showPipButton,"showpipbutton=========>2")
-  },[showPipButton])
-
-  useEffect(() => {
-    console.log(videoRef,"videoRef");
-    console.log(useAudio,"useAudio");
-    console.log(type,"type");
-    console.log(config,"config")
-    console.log(videoRef,"videoref")
     if (videoRef.current && useAudio !== undefined && type) {
       player = videojs(videoRef.current, config);
-      console.log(player,"player===========")
+
       player.on('deviceReady', () => {
         setShowHiddenButton(true);
-        if (config.plugins.record.video !== false) {
-          setShowPipButton(true);
-        }
       });
 
       player.recordToggle.on('click', () => {
@@ -113,50 +97,30 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
           player.muted(false);
         }
       });
-      player.on('startRecord', function() {
-        console.log('started recording!');
-    });
 
       player.on('finishRecord', () => {
-        console.log("Call finish record")
-        console.log(mute,"mute")
         if (mute.current) {
-          console.log("Call if1")
           player.volume(0);
         }
-        // console.log(player.recordedData,"player.recordedData")
-        if (player.recordedData.type.includes('audio') || player.recordedData.type.includes('video')) {
-          console.log("call if2")
+        if (player.recordedData.type.includes('audio')) {
           setSaveOptionsVisible(true);
         }
       });
 
-      // player.on('error', (element, error) => {
-      //   console.log(player,"player")
-      //   try {
-      //     player.record().stopStream();
+      player.on('error', (element, error) => {
+        player.record().stopStream();
+        showError(error.message);
+      });
 
-      //   }
-      //   catch(err) {  
-      //     console.log(err,"er==============")
-      //     showError(err.message);
-      //   } 
-      
-       
-      // });
-
-      // player.on('deviceError', () => {
-      //   console.log(player.deviceErrorCode,"error========>>>2");
-
-      //   showError(`Recording device error, code ${player.deviceErrorCode}`);
-      // });
+      player.on('deviceError', () => {
+        showError(`Recording device error, code ${player.deviceErrorCode}`);
+      });
       player.on('finishConvert', () => {
-        console.log("finishcall",player.convertedData)
         setSaveOptionsVisible(true);
       });
     }
   }, [videoRef, useAudio, type, config]);
-console.log(saveOptionsVisible,"saveOptionsVisible")
+
   React.useEffect(() => () => () => {
     if (player) {
       player.dispose();
@@ -166,8 +130,6 @@ console.log(saveOptionsVisible,"saveOptionsVisible")
   useEffect(() => () => player.record().stopStream(), []);
 
   const handleDownload = useCallback(() => {
-    console.log("call handledownload")
-    console.log(player,"player============")
     if (!player) {
       return;
     }
@@ -206,7 +168,6 @@ console.log(saveOptionsVisible,"saveOptionsVisible")
       const libraryType = videoFile ? LIBRARY_TABS.VIDEO : LIBRARY_TABS.AUDIO;
 
       const asset = await uploadMedia({ data: player.recordedData });
-      console.log(asset,"asset")
       if (videoFile) {
         asset.duration = duration;
       }
@@ -290,13 +251,13 @@ console.log(saveOptionsVisible,"saveOptionsVisible")
                   playsInline
                 />
                 {showHiddenButton && (
-                  <button className="recorder-button-hidden" onClick={handleClick} />
-                )}
-                {showPipButton && (
-                  <button
-                    onClick={() => videoRef.current.requestPictureInPicture()}
-                    className="pic-to-pic vjs-pip-button vjs-control vjs-button vjs-icon-picture-in-picture-start"
-                  />
+                  <>
+                    <button className="recorder-button-hidden" onClick={handleClick} />
+                    <button
+                      onClick={() => videoRef.current.requestPictureInPicture()}
+                      className="pic-to-pic vjs-pip-button vjs-control vjs-button vjs-icon-picture-in-picture-start"
+                    />
+                  </>
                 )}
               </div>
               <div className={`recorder-modal-options ${saveOptionsVisible ? '' : 'recorder-modal-options_hidden'}`}>
@@ -306,13 +267,13 @@ console.log(saveOptionsVisible,"saveOptionsVisible")
                 >
                   Download
                 </button>
-                {isSuperAdmin
+                { isSuperAdmin
                   ? (
                     <button
                       className="recorder-modal-options__button recorder-modal-options__button_upload"
                       onClick={getLink}
                     >
-                      Get preview link
+                    Get preview link
                     </button>
                   ) : null}
                 <button
