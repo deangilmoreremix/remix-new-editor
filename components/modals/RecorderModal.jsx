@@ -107,7 +107,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
           player.volume(0);
         }
         console.log(player.recordedData)
-        // player.record().saveAs({'video': 'my-video-file-name.webm'});
+        player.record().saveAs({'video': player.recordedData.name});
         if (player.recordedData.type.includes('audio')) {
           setSaveOptionsVisible(true);
         }
@@ -222,6 +222,7 @@ export default observer(({ options: { type, useAudio }, handleClose }) => {
   }, [player]);
 
   const handleClick = useCallback(() => {
+    console.log("call hete")
     const recorder = player.record();
     const { title } = document;
     setTime(timeOut / 1000);
