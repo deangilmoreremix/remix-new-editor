@@ -2145,10 +2145,10 @@ export default class ProjectStore extends BaseStore {
     }
 
     if (type === POPCORN_ELEMENT_TYPES.PERSONALIZED_IMAGE) {
-      item.width = 50;
-      item.height = 50;
-      item.top = 25;
-      item.left = 25;
+      item.width = item.imageshape == "circle" ? item.width : 50;
+      item.height = item.imageshape == "circle" ? item.height : 50;
+      item.top = item.imageshape == "circle" ? item.top : 25;
+      item.left = item.imageshape == "circle" ? item.left : 25;
     }
 
     if (startInDrag) {
