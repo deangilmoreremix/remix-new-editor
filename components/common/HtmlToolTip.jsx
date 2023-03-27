@@ -50,7 +50,7 @@ const TooltipProvider = (props) => {
         <HtmlTooltip
           title={
             <React.Fragment>
-              <em>{"For 360 videos, we recommend using only videos downloaded from your computer.  You can use"}</em> <a href='http://download.vidcloud.io/' target='blank'>our downloader</a>{' '}
+              <em>{"For 360 videos, we recommend using only videos downloaded from your computer.  You can use"}</em> <a href='https://smartdownloader.vidcloud.io/' target='blank'>our downloader</a>{' '}
             </React.Fragment>
           }
           interactive={true}
