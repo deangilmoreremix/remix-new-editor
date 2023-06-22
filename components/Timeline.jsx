@@ -7,6 +7,7 @@ import { useWindowSize } from '@react-hook/window-size';
 import moment from 'moment';
 import Scroll from 'timeline/lib/scroll';
 import useClickOutside from 'use-click-outside';
+import { useRouter } from 'next/router';
 
 import useProjectStore from './hooks/useProjectStore';
 import useUIStore from './hooks/useUIStore';
@@ -77,6 +78,12 @@ const Timeline = observer(() => {
   const { isTimelineOpen, toggleTimeLine } = uiStore;
 
   const {
+    pathname,
+    query: { isTimeLine },
+    push,
+  } = useRouter();
+
+  const {
     contextMenu,
     setIsActiveTimeline,
     setTimelineHeight,
@@ -98,6 +105,13 @@ const Timeline = observer(() => {
       timelineRef.current.style.height = `${editorStyles.timeline.minHeight}px`;
     }
   }, [isTimelineOpen]);
+
+  useEffect(() => {
+    const timeLine = (isTimeLine === "true");
+    if(timeLine) {
+      toggleTimeLine(true)
+    }
+  },[])
 
   // If the slider is out of sight.
   useEffect(() => {

@@ -14,6 +14,7 @@ import { WINDOW_TYPES, TOOLBARS } from '../../../lib/constants/ui';
 
 import AnimatedWindow from '../AnimatedWindow';
 import HelpIconComponent from '../HelpIcon';
+import { useRouter } from 'next/router';
 
 const Toolbar = observer(({ items }) => {
   const userStore = useUserStore();
@@ -21,7 +22,6 @@ const Toolbar = observer(({ items }) => {
   if (videoAutomationCreatorEnabled === false) {
     items = items.filter((e) => e.id !== 'template-generator');
   }
-
   const {
     toolbarItem: {
       id,
@@ -35,6 +35,24 @@ const Toolbar = observer(({ items }) => {
     toggleRightBlock,
 
   } = useUIStore();
+  const {
+    pathname,
+    query: { isCreativePack, isTextToSpeech },
+    push,
+  } = useRouter();
+  useEffect(() => {
+    const creativePack = (isCreativePack === "true");
+    const textToSpeech = (isTextToSpeech === "true");
+
+    if (creativePack) {
+      const data = items.find(ele => ele.id == 'creatives')
+      data.func();
+      setToolbarItem('creatives');
+    }
+    if(textToSpeech) {
+      
+    }
+  }, [])
   const { timelineHeight } = useTimelineStore();
   useEffect(() => {
     if (items && items.length && !id) {
