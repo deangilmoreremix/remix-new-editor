@@ -421,7 +421,7 @@ const BackgroundDeffusion = observer(({
             <div>
               <p className='font-weight-bold'>Erase unwanted parts and describe</p>
               <textarea
-                rows={5}
+                rows={8}
                 // {...getRootProps()}
                 className="text-input full-width-container"
                 value={val}
