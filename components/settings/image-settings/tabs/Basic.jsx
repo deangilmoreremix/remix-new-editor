@@ -67,6 +67,8 @@ const Basic = observer(({
     smartAnimerEnabled,
     smartPassportEnabled,
     smartRetouchEnabled,
+    smartBgDeffusionEnabled,
+    smartAiArtGeneratorEnabled
   } = useUserStore();
   const { openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
 
@@ -75,7 +77,7 @@ const Basic = observer(({
       && smartCartoonSelfieEnabled === false && smartEnhancerEnabled === false
       && smartColorizerEnabled === false && smartCorrectionEnabled === false
       && smartAnimerEnabled === false && smartPassportEnabled === false
-      && smartRetouchEnabled === false) {
+      && smartRetouchEnabled === false && smartBgDeffusionEnabled === false && smartAiArtGeneratorEnabled === false) {
       const result = false;
       return result;
     } else {
@@ -140,8 +142,8 @@ const Basic = observer(({
   };
 
   const onCodeSelect = v => {
-    const item = areaCodeList.find(areaCodeItem => areaCodeItem.value === v).value;
-    setCode(item);
+        const item = areaCodeList.find(areaCodeItem => areaCodeItem.value === v).value;
+        setCode(item);
   };
 
   const hint = useMemo(() => (clickToPhoneCall ? HINTS.LINK_URL_PHONE : HINTS.LINK_URL));
@@ -215,9 +217,9 @@ const Basic = observer(({
               onChange={onChangeWithValidation}
               checkValue={checkValue}
             /> :
-               
+
               <div className="phone-area-container">
-               
+
                 <div className='country-code'>
                   <FormSelect
                     label="Phone Number (Click-to-call)"
@@ -304,7 +306,7 @@ const Basic = observer(({
               className="image-settings__btn"
               onClick={() => {
                 openImglyEditor({
-                  src:element.popcornOptions.src,
+                  src: element.popcornOptions.src,
                   onImageEdited,
                   onImageEditedValue,
                   startUpload: () => setIsLoading(true),

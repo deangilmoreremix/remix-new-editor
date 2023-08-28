@@ -49,6 +49,7 @@
   background-color: #EB5054;
   border: 2px solid #EB5054;
 }
+
 .carton-active .carton-avatar {
   margin: 0px !important;
 }
@@ -57,32 +58,162 @@
   border: none;
 }
 
+
+
 .advance-editor-modal-content {
   margin-top: 3rem;
   width: 100%;
   display: flex;
 }
 
-
+.text-center {
+  text-align: center;
+  margin-top: 10px;
+}
 
 .content-container {
   width: 75%;
+}
+
+.content-container-bgdeffusion {
+  width: 50%;
+
+}
+
+.active-style-senario {
+  background-color: #EB5054;
+}
+
+.btn-padding {
+  width: 460px !important
+}
+
+.inspiration-button {
+  position: absolute !important;
+  top: 200px;
+  right: 10px;
+  background-color: #EB5054 !important;
+  color: #fff !important;
+}
+
+.full-width-container {
+  width: 100%;
+  background-color: #17171C !important;
+}
+
+.size-container {
+  & button {
+    min-width: auto;
+    background: #3E3E51;
+
+    &:focus {
+      background-color: #eb5054;
+      /* Change the background color on focus */
+    }
+  }
+
+  .MuiTabs-flexContainer {
+    justify-content: space-around;
+  }
+
+}
+
+.style-container {
+  padding: 10px;
+  height: 67%;
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px solid #575773;
+  background: #17171C;
+
+  .style-button-container {
+    margin-bottom: 10px;
+    gap: 10px;
+    display: flex;
+
+    &>button {
+      padding: 10px;
+      color: #fff;
+      border-radius: 4px;
+      border: 1px solid #575773;
+    }
+
+    &>button:first-child {
+      background-color: #EB5054;
+    }
+
+    &>button:nth-child(2) {
+      background-color: transparent;
+    }
+
+
+  }
+}
+
+.download-container-bgdeffusion {
+  width: 50%;
 }
 
 .download-container {
   width: 25%;
 }
 
+.button-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.toolip-root {
+  z-index: 999999 !important;
+}
 
 .original-image-container {
   // margin-right: 3rem;
   width: 50%;
+  position: relative;
 }
 
 .result-image-container {
   // margin-right: 3rem;
   width: 50%;
 
+}
+
+.download-button {
+  display: block;
+  margin: auto;
+  width: 70% !important;
+}
+
+.ai-art-generator {
+  height: calc(100vh - 420px);
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
+  grid-gap: 11px;
+
+  &>div {
+    cursor: pointer;
+
+    &>img {
+      border-radius: 5px;
+    }
+  }
+
+  .active-style {
+    border: 2px solid #EB5054,
+  }
+}
+
+.editor-image-bgdeffusion {
+  object-fit: cover;
+  height: 70%;
+  width: 100%;
+  border-radius: 15px;
 }
 
 .editor-image {
