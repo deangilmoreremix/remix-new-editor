@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 import AdvancedImageEditor from '../common/AdvanceImageEditor/AdvanceEditor';
 
 const AdvancedImageEditorModal = observer(({ handleClose, options }) => (
-  <div className="image-editor-modal">
+  <div>
     <AdvancedImageEditor
       options={options}
       handleClose={handleClose}
