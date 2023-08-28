@@ -141,7 +141,7 @@ export default class UserStore {
   @action
   getUpgradeLinkRole = async (title,envTitle,revTitle) => {
     let userObject;
-    try {	
+    try {
       userObject = await this.request(`/api/users/${this.currentUser.id}`, {
         method: 'GET',
         headers: {
@@ -171,19 +171,19 @@ export default class UserStore {
             break;
           }
         }
-           
-      if(roleData.features[envTitle]) {
-        if(roleData.features[envTitle].link) {
-          link =  roleData.features[envTitle].link;
-          break;
+
+        if(roleData.features[envTitle]) {
+          if(roleData.features[envTitle].link) {
+            link =  roleData.features[envTitle].link;
+            break;
+          }
         }
-      }
-      if(roleData.features[revTitle]) {
-        if(roleData.features[revTitle].link) {
-          link = roleData.features[revTitle].link;
-          break;
+        if(roleData.features[revTitle]) {
+          if(roleData.features[revTitle].link) {
+            link = roleData.features[revTitle].link;
+            break;
+          }
         }
-      }
       }
       return link
     } catch (e) {
@@ -645,6 +645,17 @@ export default class UserStore {
   @computed
   get smartAnimerEnabled() {
     return this.isfeatureEnabled(FEATURES.SMART_ANIMER);
+  }
+
+
+  @computed
+  get smartBgDeffusionEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_BG_DEFFUSION);
+  }
+
+  @computed
+  get smartAiArtGeneratorEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_AI_ART_GENERATOR);
   }
 
   @computed
