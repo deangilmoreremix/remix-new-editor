@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 import AudioPlayer from 'react-audio-player';
-import transparent from '../../../public/static/AdvanceImageSvg/background.png';
+import transparent from '../../public/static/AdvanceImageSvg/background.png';
 import { ERROR_TEXT_SYMBOLS } from '../../lib/constants/text-info';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import { saveAs } from 'file-saver';
