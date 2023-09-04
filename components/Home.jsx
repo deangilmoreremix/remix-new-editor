@@ -47,6 +47,7 @@ import {
   SAFARI_WARNING_MODAL,
 } from '../lib/constants/modals';
 import AiArtGenerator from './modals/AiArtGenerator';
+import BackgroundDiffusion from './modals/BackgroundDiffusion';
 
 const Home = observer(() => {
   const {
@@ -80,6 +81,7 @@ const Home = observer(() => {
     leadGeneratorEnabled,
     googleMapsEnabled,
     smartAiArtGeneratorEnabled,
+    smartBgDeffusionEnabled,
     collborateEnabled,
     socialFbEnabled,
     wrapperFeatureEnabled,
@@ -211,6 +213,7 @@ const Home = observer(() => {
         textToSpeechLimitedEnabled,
         googleMapsEnabled,
         smartAiArtGeneratorEnabled,
+        smartBgDeffusionEnabled,
         collborateEnabled,
         socialFbEnabled,
         wrapperFeatureEnabled,
@@ -492,9 +495,10 @@ const Home = observer(() => {
         return <GoogleTextToSpeech />;
       }
       case WINDOW_TYPES.AI_ART_GENERATOR: {
-        return <AiArtGenerator
-          
-        />;
+        return <AiArtGenerator />;
+      }
+      case WINDOW_TYPES.BG_DIFFUSION: {
+        return <BackgroundDiffusion />;
       }
       default: {
         return null;
