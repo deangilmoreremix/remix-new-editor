@@ -721,7 +721,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     const [style, setStyle] = useState(null);
     const [size, setSize] = useState(null);
     const [isProcessImage, setIsProcessImage] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
     const userStore = useUserStore();
     const [imageHeight, setImageHeight] = useState(null);
     const [imageWidth, setImageWidth] = useState(null);
