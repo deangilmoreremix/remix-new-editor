@@ -936,7 +936,6 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
         setIsBgDiffusion(false);
         // const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
         // const blob = await base64Response.blob();
-        console.log(describedImage, "describedImage")
         if (!describedImage) {
             return;
         }
@@ -967,7 +966,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
         } finally {
             setIsDescribedImageLoader(false);
         }
-    }, [newImage]);
+    }, [describedImage]);
 
     const processImage = async () => {
         setIsLoading(true);
@@ -1316,7 +1315,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                                 : <img className="editor-image-bgdeffusion" src={transparent} />}
                         {isProcessImage && describedImage &&
                             <><button className='download-button-container' onClick={downloadImage}>Download Image</button>
-                                <button className='canvas-button-container' onClick={() => onLoadImage()}>Save To Canvas</button></>}
+                                <button className='canvas-button-container' onClick={onLoadImage}>Save To Canvas</button></>}
                     </div>
 
                 </div>
