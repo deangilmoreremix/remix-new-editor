@@ -182,7 +182,7 @@ const AdvancedImageEditor = observer(({
                 </TabPane>
               )}
 
-              {smartAiArtGeneratorEnabled && (
+              {/* {smartAiArtGeneratorEnabled && (
                 <TabPane name="AI Art Generator" icon={smartMotion} key="8">
                    <AIArtGenerator
                     imageData={imageMeta}
@@ -190,9 +190,9 @@ const AdvancedImageEditor = observer(({
                     {...rest}
                   />
                 </TabPane>
-              )}
+              )} */}
 
-              {smartBgDeffusionEnabled && (
+              {/* {smartBgDeffusionEnabled && (
                 <TabPane name="BG Diffusion" icon={smartMotion} key="8">
                   <BackgroundDeffusion
                     imageData={imageMeta}
@@ -200,7 +200,7 @@ const AdvancedImageEditor = observer(({
                     {...rest}
                   />
                 </TabPane>
-              )}
+              )} */}
 
 
               {/* {

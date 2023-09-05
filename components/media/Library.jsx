@@ -14,7 +14,7 @@ import {
   LIBRARY_KEYS,
   resourcesWithValidation,
 } from '../../lib/constants/library';
-import { LOADING_COLOR } from '../../lib/constants/ui';
+import { LOADING_COLOR, WINDOW_TYPES } from '../../lib/constants/ui';
 import { ASSET_TYPES } from '../../lib/constants/media';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 // import { URL_RULE } from '../../lib/constants/regExps';
@@ -77,6 +77,7 @@ const Library = observer((props) => {
     isTimelineOpen,
     // openSecondaryModal,
     toggleVisibleCanvas,
+    openMediaButton
   } = uiStore;
 
   const {
@@ -94,6 +95,8 @@ const Library = observer((props) => {
     checkToken,
     uploadImageUrl,
     deleteMedia,
+    isBgDiffusion,
+    setBgImage,
   } = useMediaStore();
 
   const { downloaderEnabled, video360Enabled, getUserKey, updateUserKeys } = userStore;
@@ -117,6 +120,7 @@ const Library = observer((props) => {
 
   const [items, setItems] = useState([]);
   const [uploadedItems, setUploadedItems] = useState([]);
+  const [isProcessImage, setIsProcessImage] = useState(false);
 
   // const [volume, setVolume] = useState(72);
   const [activeItem, setActiveItem] = useState(null);
@@ -148,6 +152,10 @@ const Library = observer((props) => {
     },
     [],
   );
+
+  useEffect(() => {
+    console.log(isBgDiffusion, "isBgDiffusion==========>>")
+  }, [])
 
   const isVideoTab = React.useMemo(
     () => activeTab === LIBRARY_TABS.VIDEO,
@@ -389,22 +397,21 @@ const Library = observer((props) => {
       }
     });
     const errorFilesText = (errorFiles, text) => `
-    Invalid file ${errorFiles.length > 1 ? `${text}s` : `${text}`} with ${
-  errorFiles.length > 1 ? 'names' : 'name'
-}:
+    Invalid file ${errorFiles.length > 1 ? `${text}s` : `${text}`} with ${errorFiles.length > 1 ? 'names' : 'name'
+      }:
       ${errorFiles.map((file) => ` ${file.name}`)}. \\n`;
 
     const invalidFormatMessage = `${errorFilesText(wrongFormat, 'format')}
       Supported Formats:
       Video: ${tabItems[LIBRARY_TABS.VIDEO].formats.map(
-    (format) => ` ${format}`,
-  )}.
+      (format) => ` ${format}`,
+    )}.
       Image: ${tabItems[LIBRARY_TABS.IMAGE].formats.map(
-    (format) => ` ${format}`,
-  )}.
+      (format) => ` ${format}`,
+    )}.
       Audio: ${tabItems[LIBRARY_TABS.AUDIO].formats.map(
-    (format) => ` ${format}`,
-  )}.
+      (format) => ` ${format}`,
+    )}.
     `;
 
     const invalidSizeMessage = `${errorFilesText(wrongSize, 'size')}
@@ -493,10 +500,9 @@ const Library = observer((props) => {
       listProviders[activeBtn].apiKey = '';
       setIsViewedValidationBlock(true);
       showError(
-        `WRONG CREDENTIALS: ${
-          activeBtn === LIBRARY_KEYS.DROPMOCK
-            ? 'Looks like Your DropMock Fusion key is invalid'
-            : 'Looks like Your TxtVideo key is invalid'
+        `WRONG CREDENTIALS: ${activeBtn === LIBRARY_KEYS.DROPMOCK
+          ? 'Looks like Your DropMock Fusion key is invalid'
+          : 'Looks like Your TxtVideo key is invalid'
         }`,
       );
     }
@@ -538,44 +544,61 @@ const Library = observer((props) => {
   };
 
   const onSelect = async (item) => {
-    if (isLoading) {
-      return;
-    }
     item.src = item.src || item.url;
-    item.is360 = is360;
-    item.type = MEDIA_TYPES[activeTab];
-    item.kind = ASSET_TYPES[activeTab];
-    if (activeTab === LIBRARY_TABS.VOICE) {
-      item.type = MEDIA_TYPES.AUDIO;
-    } else {
+    if (isBgDiffusion) {
+      setBgImage(item.src);
+      setIsLoading(false);
+      setIsInitialLoading(false);
+      clearAllSelectedItems();
+      toggleRightBlock();
+      projectStore.releaseElement();
+      openMediaButton(WINDOW_TYPES.BG_DIFFUSION);
+
+    }
+    else {
+      if (isLoading) {
+        return;
+      }
+      item.src = item.src || item.url;
+      item.is360 = is360;
       item.type = MEDIA_TYPES[activeTab];
-    }
+      item.kind = ASSET_TYPES[activeTab];
+      if (activeTab === LIBRARY_TABS.VOICE) {
+        item.type = MEDIA_TYPES.AUDIO;
+      } else {
+        item.type = MEDIA_TYPES[activeTab];
+      }
 
-    if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
-      projectStore.showWarning(TEXT_TO_SPEECH_WARNING.title);
-    }
+      if (item.kind === ASSET_TYPES.PERSONALIZED_VOICE) {
+        projectStore.showWarning(TEXT_TO_SPEECH_WARNING.title);
+      }
 
-    if (updateElementInLibrary && activeTab === LIBRARY_TABS.IMAGE) {
-      projectStore.findAndUpdate(updateElementInLibrary, item);
-      openSettings();
-      setUpdateElementInLibrary();
-    } else {
-      setIsLoading(true);
-      setIsInitialLoading(true);
-      try {
-        const imageKeys = [LIBRARY_KEYS.PEXELS, LIBRARY_KEYS.PIXABAY];
-        if (activeTab === LIBRARY_TABS.IMAGE && imageKeys.includes(activeBtn)) {
-          item = await uploadImageUrl(item);
+      if (updateElementInLibrary && activeTab === LIBRARY_TABS.IMAGE) {
+        console.log("call if 1=========????")
+        projectStore.findAndUpdate(updateElementInLibrary, item);
+        openSettings();
+        setUpdateElementInLibrary();
+      } else {
+        setIsLoading(true);
+        setIsInitialLoading(true);
+        try {
+          const imageKeys = [LIBRARY_KEYS.PEXELS, LIBRARY_KEYS.PIXABAY];
+          if (activeTab === LIBRARY_TABS.IMAGE && imageKeys.includes(activeBtn)) {
+            item = await uploadImageUrl(item);
+          }
+          console.log("call here=========???", item, "=======>>>>")
+          await projectStore.addElement(item);
+        } catch (e) {
+          setError(e.message);
+        } finally {
+          setIsLoading(false);
+          setIsInitialLoading(false);
+          clearAllSelectedItems();
         }
-        await projectStore.addElement(item);
-      } catch (e) {
-        setError(e.message);
-      } finally {
-        setIsLoading(false);
-        setIsInitialLoading(false);
-        clearAllSelectedItems();
       }
     }
+
+
   };
 
   const onPlay = (item) => {
@@ -583,6 +606,7 @@ const Library = observer((props) => {
   };
 
   const addSelectedElements = async () => {
+    console.log("ca;; to add timlie")
     setIsLoading(true);
     setIsInitialLoading(true);
     try {

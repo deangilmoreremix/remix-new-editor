@@ -218,6 +218,17 @@ export default class UIStore {
     this.toggleVisibleCanvas(false);
   };
 
+
+  @action
+  openAiArtGenerator = (type) => {
+    this.isOpenFullWindow = true;
+    this.projectStore.releaseElement();
+    this.secondaryWindowType = type;
+    this.toggleLeftBlock(false);
+    this.toggleTimeLine(false);
+    this.toggleVisibleCanvas(false);
+  };
+
   @action
   openSettings = () => {
     this.secondaryWindowType = WINDOW_TYPES.SETTING;

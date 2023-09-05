@@ -46,6 +46,8 @@ import {
   TEMPLATE_GENERATOR_MODAL,
   SAFARI_WARNING_MODAL,
 } from '../lib/constants/modals';
+import AiArtGenerator from './modals/AiArtGenerator';
+import BackgroundDiffusion from './modals/BackgroundDiffusion';
 
 const Home = observer(() => {
   const {
@@ -78,6 +80,8 @@ const Home = observer(() => {
     textToSpeechLimitedEnabled,
     leadGeneratorEnabled,
     googleMapsEnabled,
+    smartAiArtGeneratorEnabled,
+    smartBgDeffusionEnabled,
     collborateEnabled,
     socialFbEnabled,
     wrapperFeatureEnabled,
@@ -120,6 +124,7 @@ const Home = observer(() => {
     setListBuilder,
     openCTA,
     openTextToSpeech,
+    openAiArtGenerator,
     toggleRightBlock,
     openUploadTransition,
     showProducePanel,
@@ -174,6 +179,7 @@ const Home = observer(() => {
         openMediaButton,
         openCTA,
         openTextToSpeech,
+        openAiArtGenerator,
         toggleRightBlock,
         openUploadTransition,
         toggleLeftBlock,
@@ -206,6 +212,8 @@ const Home = observer(() => {
         textToSpeechNeuralEnabled,
         textToSpeechLimitedEnabled,
         googleMapsEnabled,
+        smartAiArtGeneratorEnabled,
+        smartBgDeffusionEnabled,
         collborateEnabled,
         socialFbEnabled,
         wrapperFeatureEnabled,
@@ -251,18 +259,18 @@ const Home = observer(() => {
     script.src = './static/js/togetherjs/togetherjs-min.js';
     script.async = true;
     document.body.appendChild(script)
-  },[])
+  }, [])
 
   useEffect(() => {
-    if(isEnabled == true) {
-      if(!project && !remix ) {
+    if (isEnabled == true) {
+      if (!project && !remix) {
         showInfo('Please save a project');
         return false
       }
       push(`/edit/?remix=${project ? project : remix}`)
       TogetherJS();
     }
-  },[isEnabled])
+  }, [isEnabled])
 
 
   useEffect(() => {
@@ -421,6 +429,8 @@ const Home = observer(() => {
     });
   }, [activeElementId, isActiveTimeline]);
 
+
+
   const currentElement = useMemo(() => {
     if (retarget) {
       if (retarget.id !== activeElementId) {
@@ -483,6 +493,12 @@ const Home = observer(() => {
       }
       case WINDOW_TYPES.TEXT_TO_SPEECH: {
         return <GoogleTextToSpeech />;
+      }
+      case WINDOW_TYPES.AI_ART_GENERATOR: {
+        return <AiArtGenerator />;
+      }
+      case WINDOW_TYPES.BG_DIFFUSION: {
+        return <BackgroundDiffusion />;
       }
       default: {
         return null;
