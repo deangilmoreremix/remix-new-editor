@@ -84,11 +84,12 @@
           }
 
           >img {
-            height: 100%;
-            width: 251px;
+            width: auto;
+            height: 350px;
             text-align: center;
             margin: auto;
             border-radius: 12px;
+            object-fit: cover;
           }
 
         }

@@ -388,8 +388,8 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                 setError(e.message);
             } finally {
                 setIsLoading(false);
-                toggleRightBlock();
                 openSettings();
+                toggleVisibleCanvas(true);
                 // setIsInitialLoading(false);
                 // clearAllSelectedItems()
             }

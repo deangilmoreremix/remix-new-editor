@@ -380,7 +380,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
             showError('please enter the content!')
             return
         }
-        setIsDescribedImageLoader(true);
+       
         const total = cutoutProCreditUserUsed + 2;
         const data = {
             text: val,
@@ -408,7 +408,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                 } else {
                     processAIImage(resp.data);
                     setError(null);
-                    setIsDescribedImageLoader(false);
+                    
                     // talk to backend to reduce the use cutoutpro credit
                     updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
                 }
@@ -456,9 +456,9 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                 setError(e.message);
             } finally {
                 setIsLoading(false);
-                toggleRightBlock();
+                // toggleRightBlock();
                 openSettings();
-                // toggleVisibleCanvas(true);
+                toggleVisibleCanvas(true);
                 // setIsInitialLoading(false);
                 clearAllSelectedItems();
             }
@@ -587,7 +587,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     const [active, setActive] = useState(null);
     const [style, setStyle] = useState(null);
     const [size, setSize] = useState(null);
-    const [isProcessImage, setIsProcessImage] = useState(null);
+    const [isProcessImage, setIsProcessImage] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const userStore = useUserStore();
     const [imageHeight, setImageHeight] = useState(null);
@@ -598,6 +598,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [describedImage, setDescribedImage] = useState(null);
     const multiSelectStore = useMultiSelectStore();
+    const [progress,setProgress] = useState(null);
     const {
         updateUserCreditUseAndGetUserCreditBalance,
         userCutOutProBalance,
@@ -731,6 +732,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     }, [size])
 
     const processAIImage = async (val) => {
+        setIsDescribedImageLoader(true);
         const total = cutoutProCreditUserUsed + 2;
         // setIsDescribedImageLoader(true);
         await fetch(`https://www.cutout.pro/api/v1/getPaintResult?taskId=${val}`, {
@@ -751,16 +753,19 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                 processAIImage(val)
             }
             if (resp.data.resultList[0].percentage != 100) {
+                setProgress(resp.data.resultList[0].percentage);
                 processAIImage(val)
 
             }
             if (resp.data.resultList[0].percentage == 100) {
+                setProgress(resp.data.resultList[0].percentage);
                 // setIsDescribedImageLoader(false);
                 setIsProcessImage(true);
                 setError(null);
                 console.log(resp.data.resultList[0].preview, "resp.data.preview")
                 setImageDownloadUrl(resp.data.resultList[0].result)
                 setDescribedImage(resp.data.resultList[0].preview);
+                setIsDescribedImageLoader(false);
                 updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
             }
 
@@ -1197,7 +1202,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                         {describedImage && <h6>AI Image Generator Result</h6>}
                         {
                             isDescribedImageLoader ? <div className="progressState">
-                                <PercentageProgressBar />
+                                <PercentageProgressBar progress={progress} />
                             </div> : isProcessImage && describedImage
                                 ? (
                                     <img
