@@ -37,6 +37,10 @@ export default class Media extends BaseStore {
 
   @observable mediaTypeDetector;
 
+  @observable isBgDiffusion = false;
+
+  @observable imageUrl = null;
+
   getProvider = (providerName, assetType) => {
     try {
       return this.providers[providerName][assetType];
@@ -259,7 +263,7 @@ export default class Media extends BaseStore {
       }
       return { blob, audio };
     } catch (err) {
-      console.log(err);
+      console.log(err,"erp======================");
     }
   };
 
@@ -479,6 +483,17 @@ export default class Media extends BaseStore {
       return Promise.resolve();
     }
   };
+
+  @action 
+  setIsBgDiffusion = async (value) => {
+    this.isBgDiffusion = value;  
+  }
+
+  @action
+  setBgImage = async (value) => {
+    this.imageUrl = value
+  }
+  
 
   @action
   checkToken = async (activeBtn) => {
