@@ -86,7 +86,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     const userVoices = React.useMemo(() => (onlyLimitedTextToSpeech ? LIMITED_VOICES
         : UNLIMITED_VOICES), [onlyLimitedTextToSpeech]);
 
-    const [loading, setLoading] = useState(false);
+  
 
     const [valueTextarea, setValueTextarea] = useState('');
     const [htmlText, setHtmlText] = useState('');
@@ -116,7 +116,6 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [isActivePreview, setIsActivePreview] = useState(false);
-    const [isDisplayingControls, setIsDisplayingControls] = useState(true);
     const [audioFile, setAudioFile] = useState(null);
     const [audio, setAudio] = useState(null);
     const [addedItems, setAddedItems] = useState([]);
@@ -389,251 +388,32 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                 setError(e.message);
             } finally {
                 setIsLoading(false);
+                toggleRightBlock();
+                openSettings();
                 // setIsInitialLoading(false);
-                // clearAllSelectedItems();
+                // clearAllSelectedItems()
             }
         }
     };
 
-    const changePlaying = () => {
-        setIsPlaying(value => {
-            setIsActivePreview(!value);
-            return !value;
-        });
-    };
 
-    const existedAudio = useMemo(() => !!audio, [audio]);
 
-    const existedAudioFile = useMemo(() => !!audioFile, [audioFile]);
-
-    const lastKind = useMemo(() => {
-        if (addedItems.length) {
-            const lastElement = addedItems[0];
-            return lastElement.kind === ASSET_TYPES.VOICE
-                ? LIBRARY_KEYS.VOICE : LIBRARY_KEYS.PERSONALIZED_VOICE;
-        }
-        return null;
-    }, [addedItems]);
-
-    const changeAndPlay = () => {
-        if (state.preview) {
-            setIsActivePreview(true);
-            setIsPlaying(true);
-            if (!isDisplayingControls) {
-                setIsDisplayingControls(true);
-            }
-        } else {
-            setIsDisplayingControls(false);
-        }
-    };
 
     const quantify = () => {
-        getTextSpeechSymbols()
-            .then(value => setSymbols(+value))
-            .catch(() => showError(ERROR_TEXT_SYMBOLS.title));
-    };
-
-    const getValueLength = (value) => unwrapTokens(value).replace(/{{\w+}}/g, '').length;
-
-    const maxCount = (value) => {
-        if (!symbols) {
-            return 0;
-        }
-        return symbols > value ? value : symbols;
-    };
-
-    const playVoice = React.useCallback(() => {
-        if (audio) {
-            const promise = audio.play();
-            if (promise) {
-                promise.catch(() => {
-                    showError('To play audio please press play again');
-                });
-            }
-        }
-    }, [audio]);
-
-    const getVoice = () => {
-        setLoading(true);
-        getTemporaryGoogleTextToSpeech({
-            text: isPersonalizeText ? fallbackValue : valueTextarea,
-            state,
-        },
-        )
-            .then((result) => {
-                setAudioFile(result.blob);
-                setAudio(result.audio);
-            })
-            .catch((e) => {
-                showError((e && e.message) || e);
-            })
-            .finally(() => setLoading(false));
-    };
-
-    const saveVoice = () => {
-        setLoading(true);
-        saveTemporaryTextToSpeech(audioFile)
-            .then((result) => {
-                setAudioFile(null);
-                return saveTextToSpeech({
-                    engine: state.isPro ? ENGINE_TYPE_VALUES.NEURAL : ENGINE_TYPE_VALUES.STANDART,
-                    language: state.language,
-                    voice: state.voice.value,
-                    pitch: state.pitch,
-                    speakingRate: state.speakingRate,
-                    voiceId: state.isPro ? state.voice.pro : state.voice.standard,
-                    url: result.url,
-                    text: valueTextarea,
-                    fallbackValue,
-                    isPersonalizeText,
-                });
-            })
-            .catch((e) => showError((e && (e.message || e.error)) || e))
-            .then((result) => {
-                if (addedItems.length) {
-                    return setAddedItems([result, ...addedItems]);
-                }
-                return setAddedItems([result]);
-            })
-            .then(() => quantify())
-            .finally(() => setLoading(false));
+        userCutOutProBalance()
+            .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
     };
 
     useEffect(() => quantify(), []);
-
-    useEffect(() => changeAndPlay(), [state.preview]);
-
-    const onVoiceSelect = value => {
-        dispatch({ type: ACTION_TYPES.SET_VOICE, value });
-    };
-
-    const onPitchChange = ({ pitch: value }) => {
-        dispatch({ type: ACTION_TYPES.SET_PITCH, value });
-    };
-
-    const onSpeedChange = ({ speakingRate: value }) => {
-        dispatch({ type: ACTION_TYPES.SET_SPEAKING_RATE, value });
-    };
-
-    useEffect(() => {
-        setAudioFile(null);
-        setAudio(null);
-    }, [
-        state.isPro,
-        state.language,
-        state.voice,
-        valueTextarea,
-        fallbackValue,
-        state.pitch,
-        state.speakingRate,
-    ]);
-
-    useEffect(() => playVoice(), [audio]);
-
-    const onLanguageSelect = value => {
-        dispatch({ type: ACTION_TYPES.SET_LANGUAGE, value });
-    };
-
-    const onRadioSelect = () => {
-        dispatch(({ type: ACTION_TYPES.SET_IS_PRO }));
-    };
-
-    const isPersonalizeText = useMemo(() => valueTextarea && valueTextarea.indexOf('{{') !== -1, [valueTextarea]);
-
-    const isDisabledButton = useMemo(() => {
-        if (!symbols) {
-            return true;
-        }
-
-        if (isPersonalizeText) {
-            return !fallbackValue;
-        } else {
-            return !valueTextarea;
-        }
-    }, [valueTextarea, fallbackValue, isPersonalizeText, symbols]);
-
-    const maxTextSymbols = useMemo(() => {
-        const value = isPersonalizeText ? maxSymbols.personalized : maxSymbols.text;
-        return maxCount(value);
-    }, [symbols, isPersonalizeText]);
-
-    const maxFallbackSymbols = useMemo(() => (
-        maxCount(maxSymbols.text)
-    ), [symbols]);
-
-    const textValueAreaLength = useMemo(() => (
-        getValueLength(htmlText)
-    ), [htmlText]);
-
-    const handleChange = useCallback((text, data) => {
-        setValueTextarea(data.text);
-        setHtmlText(text);
-        setCaret(data.caretOffset);
-    }, [maxTextSymbols]);
-
-    const handleChangeFallback = useCallback((text) => {
-        setFallbackValue(text);
-    }, [maxFallbackSymbols]);
-
-    const disabledPersonalizedVoice = useMemo(() => {
-        if (!symbols) {
-            return true;
-        }
-
-        return (
-            getValueLength(htmlText) >= maxTextSymbols
-            || getValueLength(htmlText) >= maxSymbols.personalized
-        );
-    }, [htmlText, symbols, maxTextSymbols]);
-
-    const onAddTextToken = useCallback((token) => {
-        if (disabledPersonalizedVoice) {
-            return;
-        }
-        const result = addToken(valueTextarea, token, caret);
-        setValueTextarea(result);
-        setHtmlText(wrapTokens(result));
-    }, [valueTextarea, caret, maxTextSymbols]);
 
     const closeWindow = () => {
         toggleRightBlock(false);
         toggleVisibleCanvas(true);
     };
 
-    const disabledProButton = useMemo(() => !textToSpeechNeuralEnabled
-        || !state.voice?.pro, [state.voice, textToSpeechNeuralEnabled]);
 
-    const disabledStandardButton = useMemo(() => !state.voice?.standard,
-        [state.voice, textToSpeechNeuralEnabled]);
 
-    const currentVoiceImage = useMemo(() => state.voice?.img, [state.voice]);
 
-    const sliderClick = (isPrev) => {
-        const currentIndex = state.selectedVoices.findIndex(({ value }) => value === state.voice.value);
-        const lastIndex = state.selectedVoices.length - 1;
-        let item;
-        if (isPrev) {
-            item = currentIndex === 0
-                ? state.selectedVoices[lastIndex].value : state.selectedVoices[currentIndex - 1].value;
-        } else {
-            item = currentIndex === lastIndex
-                ? state.selectedVoices[0].value : state.selectedVoices[currentIndex + 1].value;
-        }
-        dispatch({ type: ACTION_TYPES.SET_VOICE, value: item });
-    };
-
-    const warningMessage = useMemo(() => {
-        if (!symbols) {
-            return 'You have reached the maximum number of characters.';
-        }
-        if (getValueLength(htmlText) >= maxTextSymbols) {
-            if (isPersonalizeText) {
-                return 'You have reached the maximum number of characters for Personalization. You can personalize this voice up to 70 characters.';
-            }
-            return 'You\'ve reached the maximum number of characters. You are allowed up to 150 characters for each voice scene.';
-        }
-        return null;
-    }, [maxTextSymbols, htmlText, isPersonalizeText, symbols]);
 
     const libraryHeight = useMemo(() => (
         editorStyles.calculateHeight(timelineHeight)
@@ -964,7 +744,25 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     return (
         <div style={{ height: libraryHeight }} className="text-to-speech">
             <div className="ai-art-generator__body">
-                <p className='mt-2'>Ai Art Generator</p>
+                <div className='ai-art-generator__header'>
+                    <p className='mt-2'>AI Art Generator</p>
+                    <p>
+                        User available Credit
+                        {' '}
+
+                        {cutoutProCreditAvailableBalance <= 0 ? (
+                            <span style={{ color: 'red' }}>
+                                0
+                            </span>
+                        ) : (
+                            <span style={{ color: 'red' }}>
+                                {' '}
+                                {`${cutoutProCreditAvailableBalance}`}
+                                {' '}
+                            </span>
+                        )}
+                    </p>
+                </div>
                 <div className='ai-art-generator__content'>
                     <div className='ai-art-generator__content-first'>
                         <div>
@@ -1053,10 +851,13 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                                 <div   {...getRootProps()} style={{ backgroundColor: '#000', cursor: 'pointer' }}>
                                     <input {...getInputProps()} />
                                     <p>Reference <span>(Optional)</span></p>
-                                    <SVGInline
+                                    {!imageUploadedUrl && <SVGInline
                                         svg={textSpeechIcon}
                                         cleanup={['title']}
-                                    />
+                                    />}
+                                    {imageUploadedUrl &&
+                                        <img width={'80px'} height={'80px'} src={imageUploadedUrl} />
+                                    }
                                 </div>
                             </div>
                             <div>
@@ -1108,66 +909,36 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                         {isProcessImage && <hr />}
                         {isProcessImage && <p>Generate an image of the Sci-fi scene set in future world.</p>}
                         {!isProcessImage && <p>No Image Generated. Please Generate Image Using Prompt to check the Results.</p>}
+                        {console.log(isLoading,"isLoading")}
                         {isLoading && <div className="progressState" style={{ width: "500px" }}>
                             <PercentageProgressBar />
                         </div>}
-                        {!isLoading && isProcessImage
-                            ? (
-                                <img
-                                    src={newImage}
-                                />
-                            )
-                            : <img src={transparent} />}
-                        {isProcessImage && <button onClick={() => downloadImage()} style={{ backgroundColor: '#eb5054', border: 0 }}>Download Image</button>
+                        {isLoading == false ?
+                            isProcessImage ? (
+                            <img
+                                src={newImage}
+                            />
+                        ) :
+                            <img src={transparent} /> : null
 
                         }
-                        {isProcessImage && <button onClick={() => onLoadImage(newImage)} style={{ backgroundColor: 'transparent', border: "1px solid #575773" }}>Save to Canvas</button>
+                      
+                        {isProcessImage && !isLoading && <button onClick={() => downloadImage()} style={{ backgroundColor: '#eb5054', border: 0 }}>Download Image</button>
+
+                        }
+                        {isProcessImage && !isLoading && <button onClick={() => onLoadImage(newImage)} style={{ backgroundColor: 'transparent', border: "1px solid #575773" }}>Save to Canvas</button>
 
                         }
                     </div>
                 </div>
-                {/* <FormTokensTextArea
-            label="Text"
-            inputClassName="text-to-speech__textarea"
-            value={htmlText}
-            onChange={handleChange}
-            additionalFieldName="text"
-            caretName="caretOffset"
-            variant="multiline"
-            updateCaret={(value) => setCaret(value.caretOffset)}
-            maxTextSymbols={maxTextSymbols}
-            symbolsCount={textValueAreaLength}
-            disabled={!maxTextSymbols}
-          /> */}
+
 
                 {/* <p className="text-to-speech__information">You can use 70 characters to personalize voice or 150 characters for voice without personalization.</p> */}
 
                 {/* {warningMessage && <p className="text-to-speech__warning">{warningMessage}</p>} */}
 
                 {/* <div className="text-to-speech__footer">
-            <div className="text-to-speech__notification">
-              {symbols !== undefined && (
-                <div className="text-to-speech__notification-top">
-                  <p>
-                    The number of characters remaining is
-                    <span>{` ${symbols.toLocaleString('en')}`}</span>
-                    .
-                  </p>
-                  <div className="text-to-speech__icon">
-                    <SVGInline
-                      svg={textSpeechIcon}
-                      cleanup={['title']}
-                    />
-                  </div>
-                </div>
-              )}
-              {isPersonalizeText && (
-                <p className="text-to-speech__notification-bottom">
-                  The number of available characters will decrease each time
-                  the video is viewed on playback by individual persons.
-                </p>
-              )}
-            </div>
+           
 
             <div className="text-to-speech__buttons">
               <PersonalizeButton

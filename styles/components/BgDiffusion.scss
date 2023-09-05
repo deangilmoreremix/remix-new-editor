@@ -10,6 +10,12 @@
   background: $light-twinlight;
   transition: 0.3s all;
 
+  &__credit-container {
+    position: absolute;
+    top: 15px;
+    right: 10px;
+  }
+
   &__head {
     h6 {
       font-weight: bold;
@@ -164,7 +170,7 @@
           width: 348px;
           height: 348px;
           border-radius: 12px;
-          margin-bottom:10px;
+          margin-bottom: 10px;
         }
 
         .download-button-container {

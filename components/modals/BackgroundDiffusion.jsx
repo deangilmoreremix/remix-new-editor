@@ -56,6 +56,7 @@ import { useDropzone } from 'react-dropzone';
 import { CircleLoader } from 'react-spinners';
 import { LOADING_COLOR } from '../../lib/constants/ui';
 import PercentageProgressBar from '../media/PercentageProgressBar';
+import useMultiSelectStore from '../hooks/useMultiSelectStore';
 
 const BackgroundDiffusion = observer(({ startUpload, options }) => {
     const { voiceTextId, setVoiceTextId, findElement, findAndUpdate, element, showWarning, addElement, releaseElement } = useProjectStore();
@@ -399,7 +400,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                 // eslint-disable-next-line implicit-arrow-linebreak
                 data.json(),
             ).then(resp => {
-                setIsDescribedImageLoader(false);
+
                 setIsProcessImage(true);
 
                 if (resp.msg === 'Processing failed') {
@@ -407,6 +408,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                 } else {
                     processAIImage(resp.data);
                     setError(null);
+                    setIsDescribedImageLoader(false);
                     // talk to backend to reduce the use cutoutpro credit
                     updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
                 }
@@ -449,14 +451,16 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                 // if (activeTab === LIBRARY_TABS.IMAGE && imageKeys.includes(activeBtn)) {
                 //     item = await uploadImageUrl(item);
                 // }
-                console.log("clll here")
                 await addElement(item);
             } catch (e) {
                 setError(e.message);
             } finally {
                 setIsLoading(false);
+                toggleRightBlock();
+                openSettings();
+                // toggleVisibleCanvas(true);
                 // setIsInitialLoading(false);
-                // clearAllSelectedItems();
+                clearAllSelectedItems();
             }
         }
     };
@@ -493,11 +497,6 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
         }
     };
 
-    const quantify = () => {
-        getTextSpeechSymbols()
-            .then(value => setSymbols(+value))
-            .catch(() => showError(ERROR_TEXT_SYMBOLS.title));
-    };
 
     const getValueLength = (value) => unwrapTokens(value).replace(/{{\w+}}/g, '').length;
 
@@ -519,82 +518,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
         }
     }, [audio]);
 
-    const getVoice = () => {
-        setLoading(true);
-        getTemporaryGoogleTextToSpeech({
-            text: isPersonalizeText ? fallbackValue : valueTextarea,
-            state,
-        },
-        )
-            .then((result) => {
-                setAudioFile(result.blob);
-                setAudio(result.audio);
-            })
-            .catch((e) => {
-                showError((e && e.message) || e);
-            })
-            .finally(() => setLoading(false));
-    };
 
-    const saveVoice = () => {
-        setLoading(true);
-        saveTemporaryTextToSpeech(audioFile)
-            .then((result) => {
-                setAudioFile(null);
-                return saveTextToSpeech({
-                    engine: state.isPro ? ENGINE_TYPE_VALUES.NEURAL : ENGINE_TYPE_VALUES.STANDART,
-                    language: state.language,
-                    voice: state.voice.value,
-                    pitch: state.pitch,
-                    speakingRate: state.speakingRate,
-                    voiceId: state.isPro ? state.voice.pro : state.voice.standard,
-                    url: result.url,
-                    text: valueTextarea,
-                    fallbackValue,
-                    isPersonalizeText,
-                });
-            })
-            .catch((e) => showError((e && (e.message || e.error)) || e))
-            .then((result) => {
-                if (addedItems.length) {
-                    return setAddedItems([result, ...addedItems]);
-                }
-                return setAddedItems([result]);
-            })
-            .then(() => quantify())
-            .finally(() => setLoading(false));
-    };
-
-    useEffect(() => quantify(), []);
-
-    useEffect(() => changeAndPlay(), [state.preview]);
-
-    const onVoiceSelect = value => {
-        dispatch({ type: ACTION_TYPES.SET_VOICE, value });
-    };
-
-    const onPitchChange = ({ pitch: value }) => {
-        dispatch({ type: ACTION_TYPES.SET_PITCH, value });
-    };
-
-    const onSpeedChange = ({ speakingRate: value }) => {
-        dispatch({ type: ACTION_TYPES.SET_SPEAKING_RATE, value });
-    };
-
-    useEffect(() => {
-        setAudioFile(null);
-        setAudio(null);
-    }, [
-        state.isPro,
-        state.language,
-        state.voice,
-        valueTextarea,
-        fallbackValue,
-        state.pitch,
-        state.speakingRate,
-    ]);
-
-    useEffect(() => playVoice(), [audio]);
 
     useEffect(() => {
         if (currentState == 'removedBackground') {
@@ -605,32 +529,8 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
         }
     }, [currentState])
 
-    const onLanguageSelect = value => {
-        dispatch({ type: ACTION_TYPES.SET_LANGUAGE, value });
-    };
 
-    const onRadioSelect = () => {
-        dispatch(({ type: ACTION_TYPES.SET_IS_PRO }));
-    };
 
-    const isPersonalizeText = useMemo(() => valueTextarea && valueTextarea.indexOf('{{') !== -1, [valueTextarea]);
-
-    const isDisabledButton = useMemo(() => {
-        if (!symbols) {
-            return true;
-        }
-
-        if (isPersonalizeText) {
-            return !fallbackValue;
-        } else {
-            return !valueTextarea;
-        }
-    }, [valueTextarea, fallbackValue, isPersonalizeText, symbols]);
-
-    const maxTextSymbols = useMemo(() => {
-        const value = isPersonalizeText ? maxSymbols.personalized : maxSymbols.text;
-        return maxCount(value);
-    }, [symbols, isPersonalizeText]);
 
     const maxFallbackSymbols = useMemo(() => (
         maxCount(maxSymbols.text)
@@ -640,35 +540,13 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
         getValueLength(htmlText)
     ), [htmlText]);
 
-    const handleChange = useCallback((text, data) => {
-        setValueTextarea(data.text);
-        setHtmlText(text);
-        setCaret(data.caretOffset);
-    }, [maxTextSymbols]);
 
     const handleChangeFallback = useCallback((text) => {
         setFallbackValue(text);
     }, [maxFallbackSymbols]);
 
-    const disabledPersonalizedVoice = useMemo(() => {
-        if (!symbols) {
-            return true;
-        }
 
-        return (
-            getValueLength(htmlText) >= maxTextSymbols
-            || getValueLength(htmlText) >= maxSymbols.personalized
-        );
-    }, [htmlText, symbols, maxTextSymbols]);
 
-    const onAddTextToken = useCallback((token) => {
-        if (disabledPersonalizedVoice) {
-            return;
-        }
-        const result = addToken(valueTextarea, token, caret);
-        setValueTextarea(result);
-        setHtmlText(wrapTokens(result));
-    }, [valueTextarea, caret, maxTextSymbols]);
 
     const closeWindow = () => {
         setIsBgDiffusion(false);
@@ -698,18 +576,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
         dispatch({ type: ACTION_TYPES.SET_VOICE, value: item });
     };
 
-    const warningMessage = useMemo(() => {
-        if (!symbols) {
-            return 'You have reached the maximum number of characters.';
-        }
-        if (getValueLength(htmlText) >= maxTextSymbols) {
-            if (isPersonalizeText) {
-                return 'You have reached the maximum number of characters for Personalization. You can personalize this voice up to 70 characters.';
-            }
-            return 'You\'ve reached the maximum number of characters. You are allowed up to 150 characters for each voice scene.';
-        }
-        return null;
-    }, [maxTextSymbols, htmlText, isPersonalizeText, symbols]);
+
 
     const libraryHeight = useMemo(() => (
         editorStyles.calculateHeight(timelineHeight)
@@ -730,12 +597,16 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     const [activeOpt, setActiveOpt] = useState(null);
     const [anchorEl, setAnchorEl] = useState(null);
     const [describedImage, setDescribedImage] = useState(null);
+    const multiSelectStore = useMultiSelectStore();
     const {
         updateUserCreditUseAndGetUserCreditBalance,
         userCutOutProBalance,
         cutoutProCreditUserUsed,
         cutoutProCreditAvailableBalance,
     } = userStore;
+    const {
+        clearAllSelectedItems
+    } = multiSelectStore
     const sizeHandler = (event, newValue) => {
         setSize(newValue);
     }
@@ -1071,11 +942,33 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
         releaseElement();
         openMediaButton(LIBRARY_TABS.IMAGE);
     };
+
+    const quantify = () => {
+        userCutOutProBalance()
+            .catch(() => showError(ERROR_CUTOUTPRO_TEXT_SYMBOLS.title));
+    };
+    useEffect(() => quantify(), []);
     const base64 = `data:image/png;base64,${newImage}`;
     const open = Boolean(anchorEl);
     const id = open ? 'simple-popover' : undefined;
     return (
         <div style={{ height: libraryHeight, padding: '40px 60px' }} className="text-to-speech">
+            <p className="bg-diffusion__credit-container">
+                User available Credit
+                {' '}
+
+                {cutoutProCreditAvailableBalance <= 0 ? (
+                    <span style={{ color: 'red' }}>
+                        0
+                    </span>
+                ) : (
+                    <span style={{ color: 'red' }}>
+                        {' '}
+                        {`${cutoutProCreditAvailableBalance}`}
+                        {' '}
+                    </span>
+                )}
+            </p>
             <div className="bg-diffusion__head">
                 <h6 className='mt-2'>Background Diffusion</h6>
                 <p>Al Photo Editing Background Using Text</p>
@@ -1313,7 +1206,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                                     />
                                 )
                                 : <img className="editor-image-bgdeffusion" src={transparent} />}
-                        {isProcessImage && describedImage &&
+                        {isProcessImage && describedImage && !isDescribedImageLoader &&
                             <><button className='download-button-container' onClick={downloadImage}>Download Image</button>
                                 <button className='canvas-button-container' onClick={onLoadImage}>Save To Canvas</button></>}
                     </div>
