@@ -10,6 +10,11 @@
   background: $light-twinlight;
   transition: 0.3s all;
 
+  &__main-container {
+    background: #1C1C26;
+    padding: 10px 0px 20px 20px;
+  }
+
   &__credit-container {
     position: absolute;
     top: 15px;
@@ -49,6 +54,7 @@
         display: flex;
         padding: 10px;
         gap: 10px;
+        height: calc(100vh - 330px);
 
         >div {
           display: flex;
@@ -77,6 +83,11 @@
             }
           }
 
+          .loader-container {
+            flex-direction: column;
+            margin: auto;
+          }
+
           .progress-width {
             >div>div {
               width: 251px !important;
@@ -84,12 +95,13 @@
           }
 
           >img {
-            width: auto;
-            height: 350px;
+            // width: 80%;
+            height: calc(100vh - 610px);
             text-align: center;
             margin: auto;
             border-radius: 12px;
             object-fit: cover;
+            margin: auto
           }
 
         }
@@ -143,12 +155,17 @@
         background: #1C1C26;
         padding: 10px;
         color: #fff;
+        height: 100%;
+
+
+
       }
     }
 
     &-second {
       width: 30%;
       text-align: center;
+      padding: 10px 3%;
 
       >div {
         >p {
@@ -168,10 +185,15 @@
         }
 
         >img {
-          width: 348px;
-          height: 348px;
+          width: 100%;
+          height: calc(100vh - 350px);
+          text-align: center;
+          margin: auto;
+          margin-top: auto;
           border-radius: 12px;
-          margin-bottom: 10px;
+          -o-object-fit: cover;
+          object-fit: cover;
+          margin-top: 0;
         }
 
         .download-button-container {
@@ -574,10 +596,10 @@
   }
 
   &__body {
-    justify-content: space-between;
-    height: 100%;
-    padding: 0 2.62rem 1rem 1rem;
-    overflow: hidden;
+    // justify-content: space-between;
+    // height: 100%;
+    // padding: 0 2.62rem 1rem 1rem;
+    // overflow: hidden;
     position: relative;
   }
 

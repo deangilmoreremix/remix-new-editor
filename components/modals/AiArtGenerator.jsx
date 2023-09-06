@@ -86,7 +86,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     const userVoices = React.useMemo(() => (onlyLimitedTextToSpeech ? LIMITED_VOICES
         : UNLIMITED_VOICES), [onlyLimitedTextToSpeech]);
 
-  
+
 
     const [valueTextarea, setValueTextarea] = useState('');
     const [htmlText, setHtmlText] = useState('');
@@ -563,7 +563,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
 
     const processAIImage = async (val) => {
         const total = cutoutProCreditUserUsed + 2;
-      
+
         await fetch(`https://www.cutout.pro/api/v1/getText2imageResult?taskId=${val}`, {
             method: 'get',
             headers: {
@@ -886,7 +886,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                                 ))
                                 }
                             </div>
-                            <button onClick={() => processImage()}>Generate Image</button>
+                            {<button disabled={isLoading} onClick={() => processImage()}>Generate Image</button>}
                         </div>
                         <div>
                             <p className='text-center'>Size</p>
@@ -908,21 +908,23 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                         {isProcessImage && <h1>AI Image Generator Results</h1>}
                         {isProcessImage && <hr />}
                         {isProcessImage && <p>Generate an image of the Sci-fi scene set in future world.</p>}
-                        {!isProcessImage && <p>No Image Generated. Please Generate Image Using Prompt to check the Results.</p>}
-                        {console.log(isLoading,"isLoading")}
-                        {isLoading && <div className="progressState" style={{ width: "500px" }}>
-                            <PercentageProgressBar />
-                        </div>}
+                        {!isProcessImage && !isLoading && <p>No Image Generated. Please Generate Image Using Prompt to check the Results.</p>}
+                        {isLoading &&
+                            <>
+                                <p>Please be patient while Videoremix AI does its Magic</p>
+                                <div className="progressState" style={{ width: "500px", marginTop: 0 }}>
+                                    <PercentageProgressBar />
+                                </div></>}
                         {isLoading == false ?
                             isProcessImage ? (
-                            <img
-                                src={newImage}
-                            />
-                        ) :
-                            <img src={transparent} /> : null
+                                <img
+                                    src={newImage}
+                                />
+                            ) :
+                                <img src={transparent} /> : null
 
                         }
-                      
+
                         {isProcessImage && !isLoading && <button onClick={() => downloadImage()} style={{ backgroundColor: '#eb5054', border: 0 }}>Download Image</button>
 
                         }
