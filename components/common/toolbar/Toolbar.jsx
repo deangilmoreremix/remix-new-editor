@@ -66,7 +66,7 @@ const Toolbar = observer(({ items }) => {
   } = items.find(i => i.id === id) || {};
 
   const onClick = (label, func) => {
-    if ((secondaryWindowType !== WINDOW_TYPES.TEXT_TO_SPEECH && !isCanvasPresent)
+        if ((secondaryWindowType !== WINDOW_TYPES.TEXT_TO_SPEECH && !isCanvasPresent)
       || label !== TOOLBARS.MEDIA) {
       toggleVisibleCanvas(true);
     }
@@ -74,7 +74,9 @@ const Toolbar = observer(({ items }) => {
     if ((secondaryWindowType === WINDOW_TYPES.TEXT_TO_SPEECH
       || secondaryWindowType === WINDOW_TYPES.IMAGE
       || secondaryWindowType === WINDOW_TYPES.VIDEO
-      || secondaryWindowType === WINDOW_TYPES.AUDIO) && !isCanvasPresent) {
+      || secondaryWindowType === WINDOW_TYPES.AUDIO
+      || secondaryWindowType === WINDOW_TYPES.AI_ART_GENERATOR
+      || secondaryWindowType === WINDOW_TYPES.BG_DIFFUSION) && !isCanvasPresent) {
       toggleRightBlock(false);
     }
 
