@@ -381,7 +381,6 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
             return
         }
         setIsDescribedImageLoader(true);
-        const total = cutoutProCreditUserUsed + 2;
         const data = {
             text: val,
         }
@@ -409,8 +408,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                     processAIImage(resp.data);
                     setError(null);
 
-                    // talk to backend to reduce the use cutoutpro credit
-                    updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
+                    
                 }
             })
             // eslint-disable-next-line no-unused-vars
@@ -732,7 +730,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     }, [size])
 
     const processAIImage = async (val) => {
-        const total = cutoutProCreditUserUsed + 2;
+        const total = cutoutProCreditUserUsed + 5;
         // setIsDescribedImageLoader(true);
         await fetch(`https://www.cutout.pro/api/v1/getPaintResult?taskId=${val}`, {
             method: 'get',
@@ -778,7 +776,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
 
     const processImageFaceCoutOut = async () => {
         setIsLoading(true);
-        const total = cutoutProCreditUserUsed + 2;
+        const total = cutoutProCreditUserUsed + 3;
         fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${imageUrl}&mattingType=3`, {
             method: 'get',
             headers: {
@@ -845,7 +843,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
 
     const processImage = async () => {
         setIsLoading(true);
-        const total = cutoutProCreditUserUsed + 2;
+        const total = cutoutProCreditUserUsed + 3;
         fetch(`https://www.cutout.pro/api/v1/mattingByUrl?url=${imageUrl}&mattingType=6`, {
             method: 'get',
             headers: {

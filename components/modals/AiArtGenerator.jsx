@@ -562,7 +562,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     }, [size])
 
     const processAIImage = async (val) => {
-        const total = cutoutProCreditUserUsed + 2;
+        const total = cutoutProCreditUserUsed + 5;
 
         await fetch(`https://www.cutout.pro/api/v1/getText2imageResult?taskId=${val}`, {
             method: 'get',
@@ -635,13 +635,13 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
 
     const processImage = async () => {
         setIsLoading(true);
-        const total = cutoutProCreditUserUsed + 2;
+        // const total = cutoutProCreditUserUsed + 2;
         const data = {
             prompt: description,
             ...(imageWidth && { width: imageWidth }),
             ...(imageHeight && { height: imageHeight }),
             ...(style && { style: style }),
-            ...(imageUploadedUrl && { imageUrl: imageUploadedUrl.url }),
+            ...(imageUploadedUrl && { imageUrl: imageUploadedUrl }),
         }
         fetch(`https://www.cutout.pro/api/v1/text2imageAsync`, {
             method: 'post',
@@ -665,7 +665,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                     processAIImage(resp.data);
                     setError(null);
                     // talk to backend to reduce the use cutoutpro credit
-                    updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
+                    // updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
                 }
             })
             // eslint-disable-next-line no-unused-vars
