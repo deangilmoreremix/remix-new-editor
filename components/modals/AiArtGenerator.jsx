@@ -563,7 +563,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
 
     const processAIImage = async (val) => {
         const total = cutoutProCreditUserUsed + 2;
-        setIsLoading(true);
+      
         await fetch(`https://www.cutout.pro/api/v1/getText2imageResult?taskId=${val}`, {
             method: 'get',
             headers: {
@@ -656,7 +656,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                 // eslint-disable-next-line implicit-arrow-linebreak
                 data.json(),
             ).then(resp => {
-                setIsLoading(false);
+
                 setIsProcessImage(true);
 
                 if (resp.msg === 'Processing failed') {
