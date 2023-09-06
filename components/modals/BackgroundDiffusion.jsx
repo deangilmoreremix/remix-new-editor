@@ -408,7 +408,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                 } else {
                     processAIImage(resp.data);
                     setError(null);
-                    
+
                     // talk to backend to reduce the use cutoutpro credit
                     updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
                 }
@@ -956,7 +956,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     const open = Boolean(anchorEl);
     const id = open ? 'simple-popover' : undefined;
     return (
-        <div style={{ height: libraryHeight, padding: '40px 60px' }} className="text-to-speech">
+        <div className="bg-diffusion__main-container">
             <p className="bg-diffusion__credit-container">
                 User available Credit
                 {' '}
@@ -1146,7 +1146,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                                     Original
                                 </button>
                                 <button onClick={() => setCurrentState('removedBackground')} className={currentState == 'removedBackground' ? 'active-button' : ''} >
-                                    Removed Background
+                                    Remove Background
                                 </button>
                                 <button onClick={() => setCurrentState('facecutout')} className={currentState == 'facecutout' ? 'active-button' : ''}>
                                     Face Cutout
@@ -1156,17 +1156,23 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                                 <img src={imageUrl ? imageUrl : transparent} />
                             }
                             {currentState == 'removedBackground' || currentState == 'facecutout' ?
-                                isLoading ? <div className="progressState progress-width">
-                                    <PercentageProgressBar />
-                                </div> : isProcessImage
-                                    ? (
-                                        <img
-                                            className="editor-image-bgdeffusion"
-                                            src={`data:image/png;base64,${newImage}`}
-                                            style={{ backgroundImage: 'url(https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/background/transparent.jpg)' }}
-                                        />
-                                    )
-                                    : <img className="editor-image-bgdeffusion" src={transparent} /> : null}
+                                isLoading ?
+                                    <>
+                                        <div className='loader-container'>
+                                            <p style={{ textAlign: 'center' }}>Please be patient while Videoremix AI does its Magic</p>
+                                            <div style={{ marginTop: 0 }} className="progressState">
+                                                <PercentageProgressBar progress={progress} width={'100%'} />
+                                            </div>
+                                        </div>
+                                    </> : isProcessImage
+                                        ? (
+                                            <img
+                                                className="editor-image-bgdeffusion"
+                                                src={`data:image/png;base64,${newImage}`}
+                                                style={{ backgroundImage: 'url(https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/background/transparent.jpg)' }}
+                                            />
+                                        )
+                                        : <img className="editor-image-bgdeffusion" src={transparent} /> : null}
                         </div>
                         <div>
                             <div>
@@ -1178,38 +1184,41 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                                         />
                                         Upload Image
                                     </button>
-                                    <p>or drop a file here
-                                        CTRL+V to paste image or URL</p>
+                                    <p>Upload an image from the media library</p>
                                 </div>
 
 
                             </div>
                             <p>Erase unwanted parts and describe</p>
                             <textarea
-                                rows={10}
                                 className='textarea-container'
                                 onChange={onChange}
                                 value={val}
                             />
-                            <button className='button' onClick={imageGenerateHandler}>Generate Image</button>
+                            <button disabled={isDescribedImageLoader} className='button' onClick={imageGenerateHandler}>Generate Image</button>
                         </div>
                     </div>
                 </div>
                 <div className='bg-diffusion__body-second'>
                     <div>
-                        {!describedImage && <p>No Image Generated. Please Generate Image Using Prompt to check the Results.</p>}
+                        {!isDescribedImageLoader && !describedImage && <p>No Image Generated. Please Generate Image Using Prompt to check the Results.</p>}
                         {describedImage && <h6>AI Image Generator Result</h6>}
                         {
-                            isDescribedImageLoader ? <div className="progressState">
-                                <PercentageProgressBar progress={progress} />
-                            </div> : isProcessImage && describedImage
-                                ? (
-                                    <img
-                                        className="editor-image-bgdeffusion"
-                                        src={`${describedImage}`}
-                                    />
-                                )
-                                : <img className="editor-image-bgdeffusion" src={transparent} />}
+                            isDescribedImageLoader ?
+                                <>
+                                    <p>Please be patient while Videoremix AI does its Magic</p>
+                                    <div style={{ marginTop: 0 }} className="progressState">
+                                        <PercentageProgressBar progress={progress} />
+                                    </div>
+                                </>
+                                : isProcessImage && describedImage
+                                    ? (
+                                        <img
+                                            className="editor-image-bgdeffusion"
+                                            src={`${describedImage}`}
+                                        />
+                                    )
+                                    : <img className="editor-image-bgdeffusion" src={transparent} />}
                         {isProcessImage && describedImage && !isDescribedImageLoader &&
                             <><button className='download-button-container' onClick={downloadImage}>Download Image</button>
                                 <button className='canvas-button-container' onClick={onLoadImage}>Save To Canvas</button></>}
