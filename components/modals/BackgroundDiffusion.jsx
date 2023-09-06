@@ -380,7 +380,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
             showError('please enter the content!')
             return
         }
-       
+        setIsDescribedImageLoader(true);
         const total = cutoutProCreditUserUsed + 2;
         const data = {
             text: val,
@@ -732,7 +732,6 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     }, [size])
 
     const processAIImage = async (val) => {
-        setIsDescribedImageLoader(true);
         const total = cutoutProCreditUserUsed + 2;
         // setIsDescribedImageLoader(true);
         await fetch(`https://www.cutout.pro/api/v1/getPaintResult?taskId=${val}`, {
