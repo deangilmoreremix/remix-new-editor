@@ -530,6 +530,12 @@ const Library = observer((props) => {
   //   }
   // };
 
+  useEffect(() => {
+    if (isBgDiffusion) {
+      clearAllSelectedItems();
+    }
+  }, [])
+
   const toogleSelectItem = (e, item) => {
     e.stopPropagation();
     if (isItemPresent(item)) {
