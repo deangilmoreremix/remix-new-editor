@@ -109,7 +109,12 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
         }
     }, []);
 
+    const imageResList = [
+        { label: 'Low (5 credts)', value: { height: 512, width: 512 } },
+        { label: 'Medium (8 credts)', value: { height: 1024, width: 1024 } },
+        { label: 'High (12 credts)', value: { height: 1920, width: 1080 } },
 
+    ];
 
     const [caret, setCaret] = useState();
     const [symbols, setSymbols] = useState();
@@ -121,6 +126,15 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     const [addedItems, setAddedItems] = useState([]);
     const [imageUploadedUrl, setImageUploadedUrl] = useState(null);
     const addFileInputRef = useRef();
+    const [imageRes, setImageRes] = React.useState('');
+
+    const handleChange = (v) => {
+        const item = imageResList.find(languageItem => languageItem.value === v).value;
+        console.log(item,"item")
+        setImageHeight(item.height);
+        setImageWidth(item.width);
+        setImageRes(item);
+    };
 
     useEffect(() => {
         if (voiceTextId && symbols) {
@@ -427,8 +441,8 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     const [isProcessImage, setIsProcessImage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const userStore = useUserStore();
-    const [imageHeight, setImageHeight] = useState(null);
-    const [imageWidth, setImageWidth] = useState(null);
+    const [imageHeight, setImageHeight] = useState(512);
+    const [imageWidth, setImageWidth] = useState(512);
     const [error, setError] = useState(null)
     const [inspiration, setInspiration] = useState('celebraties')
     const [activeOpt, setActiveOpt] = useState(null);
@@ -562,7 +576,14 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     }, [size])
 
     const processAIImage = async (val) => {
-        const total = cutoutProCreditUserUsed + 5;
+        let credit = 5;
+        if (imageRes.width == 1024 && imageRes.height == 1024) {
+            credit = 8;
+        }
+        if (imageRes.width == 1920 && imageRes.height == 1080) {
+            credit = 14;
+        }
+        const total = cutoutProCreditUserUsed + credit;
 
         await fetch(`https://www.cutout.pro/api/v1/getText2imageResult?taskId=${val}`, {
             method: 'get',
@@ -886,7 +907,15 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                                 ))
                                 }
                             </div>
-                            {<button disabled={isLoading} onClick={() => processImage()}>Generate Image</button>}
+
+                            {<div><button disabled={isLoading} onClick={() => processImage()}>Generate Image</button>
+                                <FormSelect
+                                    items={imageResList}
+                                    className="text-to-speech__select"
+                                    value={imageRes}
+                                    onChange={handleChange}
+                                /></div>
+                            }
                         </div>
                         <div>
                             <p className='text-center'>Size</p>

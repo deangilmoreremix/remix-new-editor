@@ -50,7 +50,7 @@ import { AI_ART_GENERATOR_MODAL } from '../../lib/constants/modals';
 import arrowIcon from '../../public/static/svgImages/common/arrow-back.svg';
 import { LIBRARY_KEYS, LIBRARY_TABS, tabItems } from '../../lib/constants/library';
 import { ACTION_TYPES } from '../../lib/constants/reducers/voiceReducer';
-import { Button, Popover, Tab, Tabs } from '@material-ui/core';
+import { Button, MenuItem, Popover, Select, Tab, Tabs } from '@material-ui/core';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import { useDropzone } from 'react-dropzone';
 import { CircleLoader } from 'react-spinners';
@@ -359,7 +359,20 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                 .finally();
         }
     };
+    const imageResList = [
+        { label: 'Low (5 credts)', value: { height: 512, width: 512 } },
+        { label: 'Medium (8 credts)', value: { height: 1024, width: 1024 } },
+        { label: 'High (12 credts)', value: { height: 1920, width: 1080 } },
 
+    ];
+
+    const handleChange = (v) => {
+        const item = imageResList.find(languageItem => languageItem.value === v).value;
+        console.log(item,"item")
+        setImageHeight(item.height);
+        setImageWidth(item.width);
+        setImageRes(item);
+    };
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         accept: mediaConstants.ACCEPTED_MEDIA_TYPES,
@@ -383,6 +396,8 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
         setIsDescribedImageLoader(true);
         const data = {
             text: val,
+            ...(imageWidth && { width: imageWidth }),
+            ...(imageHeight && { height: imageHeight }),
         }
         currentState == 'original' ? data.imgUrl = imageUrl : data.imgBase64 = newImage
         fetch(`https://www.cutout.pro/api/v1/paintAsync`, {
@@ -408,7 +423,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
                     processAIImage(resp.data);
                     setError(null);
 
-                    
+
                 }
             })
             // eslint-disable-next-line no-unused-vars
@@ -596,7 +611,11 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [describedImage, setDescribedImage] = useState(null);
     const multiSelectStore = useMultiSelectStore();
-    const [progress,setProgress] = useState(null);
+    const [progress, setProgress] = useState(null);
+    const [imageRes, setImageRes] = React.useState('');
+
+   
+
     const {
         updateUserCreditUseAndGetUserCreditBalance,
         userCutOutProBalance,
@@ -730,7 +749,14 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     }, [size])
 
     const processAIImage = async (val) => {
-        const total = cutoutProCreditUserUsed + 5;
+        let credit = 5;
+        if (imageRes.width == 1024 && imageRes.height == 1024) {
+            credit = 8;
+        }
+        if (imageRes.width == 1920 && imageRes.height == 1080) {
+            credit = 14;
+        }
+        const total = cutoutProCreditUserUsed + credit;
         // setIsDescribedImageLoader(true);
         await fetch(`https://www.cutout.pro/api/v1/getPaintResult?taskId=${val}`, {
             method: 'get',
@@ -1187,13 +1213,21 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
 
 
                             </div>
-                            <p>Erase unwanted parts and describe</p>
                             <textarea
                                 className='textarea-container'
                                 onChange={onChange}
                                 value={val}
+                                placeholder={`Please describe the image you want to generate here.
+For example: A young man with briefcase in the middle of New York Street.
+                                `}
                             />
                             <button disabled={isDescribedImageLoader} className='button' onClick={imageGenerateHandler}>Generate Image</button>
+                            <FormSelect
+                                    items={imageResList}
+                                    className="text-to-speech__select"
+                                    value={imageRes}
+                                    onChange={handleChange}
+                                />
                         </div>
                     </div>
                 </div>

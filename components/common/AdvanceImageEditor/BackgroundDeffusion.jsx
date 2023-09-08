@@ -419,7 +419,6 @@ const BackgroundDeffusion = observer(({
 
           <div className="download-container-bgdeffusion">
             <div>
-              <p className='font-weight-bold'>Erase unwanted parts and describe</p>
               <textarea
                 rows={8}
                 // {...getRootProps()}
