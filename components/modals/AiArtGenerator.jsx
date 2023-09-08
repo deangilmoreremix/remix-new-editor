@@ -441,8 +441,8 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     const [isProcessImage, setIsProcessImage] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const userStore = useUserStore();
-    const [imageHeight, setImageHeight] = useState(512);
-    const [imageWidth, setImageWidth] = useState(512);
+    const [imageHeight, setImageHeight] = useState(1024);
+    const [imageWidth, setImageWidth] = useState(1024);
     const [error, setError] = useState(null)
     const [inspiration, setInspiration] = useState('celebraties')
     const [activeOpt, setActiveOpt] = useState(null);

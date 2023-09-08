@@ -603,8 +603,8 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     const [isProcessImage, setIsProcessImage] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const userStore = useUserStore();
-    const [imageHeight, setImageHeight] = useState(null);
-    const [imageWidth, setImageWidth] = useState(null);
+    const [imageHeight, setImageHeight] = useState(1024);
+    const [imageWidth, setImageWidth] = useState(1024);
     const [error, setError] = useState(null)
     const [inspiration, setInspiration] = useState('celebraties')
     const [activeOpt, setActiveOpt] = useState(null);
