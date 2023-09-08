@@ -10,7 +10,7 @@
   background: $light-twinlight;
   transition: 0.3s all;
 
-
+  
   &__header {
     display: flex;
     justify-content: space-between;
@@ -129,17 +129,55 @@
 
         }
 
-        >button {
-          display: block;
-          margin: auto;
-          border-radius: 5px;
-          background: #EB5054;
-          width: 216px;
-          height: 34px;
-          border: 0;
-          color: #fff;
-          margin-top: 30px;
+        >div:nth-child(4) {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          align-items: center;
+         
+
+          >button {
+
+            border-radius: 5px;
+            background: #EB5054;
+            width: 216px;
+            height: 34px;
+            border: 0;
+            color: #fff;
+
+          }
         }
+
+        .image-resolution-container {
+          background-color: #EB5054;
+          color: #fff;
+          border-radius: 5px;
+          padding: 10px;
+          width: 216px;
+          border: 0;
+
+          option {
+            background-color: #EB5054; // Red background for the selected option
+            color: #fff;
+            border: 0;
+            outline: none; // Remove the default select box outline
+            width: 100%;
+            cursor: pointer;
+
+            // Style the dropdown arrow (optional)
+            &::-ms-expand {
+              display: none; // Hide the default arrow in IE
+            }
+
+            -webkit-appearance: none;
+            appearance: none;
+          }
+
+
+        }
+
+
+
       }
 
       >div:nth-child(2) {
