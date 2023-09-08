@@ -22,7 +22,7 @@ const ElementsPanel = observer(({ items }) => {
   } = useUIStore();
   const {
     pathname,
-    query: { isRecorder, isTextToSpeech, isListBuilder, isLeadGenerator, isGoogleMap },
+    query: { isRecorder, isTextToSpeech, isListBuilder, isLeadGenerator, isGoogleMap, isAiArtGenerator, isBgDiffusion },
     push,
   } = useRouter();
 
@@ -34,6 +34,8 @@ const ElementsPanel = observer(({ items }) => {
     const listBuilder = (isListBuilder === "true");
     const leadGenerator = (isLeadGenerator === "true");
     const googleMap = (isGoogleMap === "true");
+    const aiArtGenerator = (isAiArtGenerator === 'true');
+    const bgDiffusion = (isBgDiffusion === 'true');
 
     if (recorder) {
       const recorderData = items.find((ele) => ele.label == "ScreenRec");
@@ -58,6 +60,18 @@ const ElementsPanel = observer(({ items }) => {
     if (googleMap) {
       const googleMapData = items.find((ele) => ele.label == "Google Map");
       const { action } = googleMapData;
+      action();
+    }
+    if (aiArtGenerator) {
+      const aiArtGeneratorData = items.find((ele) => ele.label == "AI Art Generator");
+      const { action } = aiArtGeneratorData;
+      toggleRightBlock();
+      action();
+    }
+    if (bgDiffusion) {
+      const bgDiffusionData = items.find((ele) => ele.label == "BG Diffusion");
+      const { action } = bgDiffusionData;
+      toggleRightBlock();
       action();
     }
   }, [])
