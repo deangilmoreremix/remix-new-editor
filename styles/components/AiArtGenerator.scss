@@ -10,7 +10,7 @@
   background: $light-twinlight;
   transition: 0.3s all;
 
-  
+
   &__header {
     display: flex;
     justify-content: space-between;
@@ -114,6 +114,8 @@
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
           grid-gap: 10px;
+          max-height: calc(100vh - 520px);
+          overflow-y: auto;
 
           >div>img {
             width: 86px;
@@ -134,7 +136,7 @@
           justify-content: center;
           gap: 10px;
           align-items: center;
-         
+          margin-top: 20px;
 
           >button {
 
@@ -186,12 +188,15 @@
         >div>div>div {
           flex-direction: column;
           gap: 10px;
+          max-height: calc(100vh - 320px);
+          overflow-y: auto;
+          overflow-x: hidden;
 
           >button {
             width: 81px;
             height: 84px;
             background: #3E3E51;
-            min-width: 81px;
+            min-width: 65px;
             border-radius: 5.855px;
             padding-top: 30px;
 
@@ -231,14 +236,11 @@
     }
 
     &-second {
-      width: 40%;
-      text-align: center;
-      margin: auto;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
+      width: 40%;
+      text-align: center;
+      padding: 10px 3%;
 
       hr {
         border: 2px solid #eb5054;
@@ -260,10 +262,16 @@
       }
 
       >img {
-        width: 364px;
-        height: 364px;
+        width: 80%;
+        height: calc(100vh - 450px);
+        text-align: center;
+        margin: auto;
+        margin-top: auto;
+        border-radius: 12px;
+        -o-object-fit: cover;
         object-fit: cover;
-        border-radius: 15px;
+        margin-top: 0;
+        max-height: 400px;
       }
 
       >button {

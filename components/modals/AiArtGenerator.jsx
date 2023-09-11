@@ -112,7 +112,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     const imageResList = [
         { label: 'Low (5 credts)', value: { height: 512, width: 512 } },
         { label: 'Medium (8 credts)', value: { height: 1024, width: 1024 } },
-        { label: 'High (12 credts)', value: { height: 1920, width: 1080 } },
+        { label: 'High (14 credts)', value: { height: 1920, width: 1080 } },
 
     ];
 
@@ -127,7 +127,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     const [imageUploadedUrl, setImageUploadedUrl] = useState(null);
     const addFileInputRef = useRef();
     const [imageRes, setImageRes] = React.useState('');
-
+  
     const handleChange = (v) => {
         const item = imageResList.find(languageItem => languageItem.value === v).value;
         console.log(item,"item")
@@ -136,7 +136,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
         setImageRes(item);
     };
 
-    useEffect(() => {
+      useEffect(() => {
         if (voiceTextId && symbols) {
             let activeTextElement;
 
@@ -914,6 +914,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                                     className="text-to-speech__select"
                                     value={imageRes}
                                     onChange={handleChange}
+                                    menuPlacement={'auto'}
                                 /></div>
                             }
                         </div>
