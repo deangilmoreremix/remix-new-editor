@@ -52,7 +52,7 @@ import BackgroundDiffusion from './modals/BackgroundDiffusion';
 const Home = observer(() => {
   const {
     pathname,
-    query: { project, remix },
+    query: { project, remix,  isAiArtGenerator, isBgDiffusion },
     push,
   } = useRouter();
   const projectStore = useProjectStore();
@@ -290,7 +290,7 @@ const Home = observer(() => {
         undefined,
         { shallow: true },
       ).finally(() => {
-        if (shouldShowTGModal) {
+        if (shouldShowTGModal && !isAiArtGenerator && !isBgDiffusion) {
           openModal(TEMPLATE_GENERATOR_MODAL);
         }
         setShouldShowTGModal(false);
@@ -304,7 +304,7 @@ const Home = observer(() => {
           openModal(SAFARI_WARNING_MODAL);
         }
       }
-      if (shouldShowTGModal && !project && !remix) {
+      if (shouldShowTGModal && !project && !remix && !isAiArtGenerator && !isBgDiffusion) {
         openModal(TEMPLATE_GENERATOR_MODAL);
       }
       setShouldShowTGModal(false);
