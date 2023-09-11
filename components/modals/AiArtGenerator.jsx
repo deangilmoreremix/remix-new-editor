@@ -915,6 +915,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                                     value={imageRes}
                                     onChange={handleChange}
                                     menuPlacement={'auto'}
+                                    menuPosition={'fixed'}
                                 /></div>
                             }
                         </div>

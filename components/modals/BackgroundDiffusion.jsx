@@ -1228,6 +1228,7 @@ For example: A young man with briefcase in the middle of New York Street.
                                     value={imageRes}
                                     onChange={handleChange}
                                     menuPlacement={'auto'}
+                                    menuPosition={'fixed'}
                                 />
                         </div>
                     </div>
