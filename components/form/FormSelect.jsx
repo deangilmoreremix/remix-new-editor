@@ -20,6 +20,7 @@ const FormSelect = React.forwardRef((props, ref) => {
     selectClassName,
     disabled,
     menuPlacement,
+    menuPosition,
     ...rest
   } = props;
 
@@ -58,7 +59,7 @@ const FormSelect = React.forwardRef((props, ref) => {
           isDisabled={disabled}
           menuPlacement={menuPlacement}
           maxMenuHeight={400}
-          menuPosition={'fixed'}
+          menuPosition={menuPosition}
           {...rest}
         />
       </Box>
