@@ -112,7 +112,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     const imageResList = [
         { label: 'Low (5 credts)', value: { height: 512, width: 512 } },
         { label: 'Medium (8 credts)', value: { height: 1024, width: 1024 } },
-        { label: 'High (14 credts)', value: { height: 1920, width: 1080 } },
+        { label: 'High (14 credts)', value: { width: 1920, height: 1080 } },
 
     ];
 
@@ -126,8 +126,8 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     const [addedItems, setAddedItems] = useState([]);
     const [imageUploadedUrl, setImageUploadedUrl] = useState(null);
     const addFileInputRef = useRef();
-    const [imageRes, setImageRes] = React.useState('');
-  
+    const [imageRes, setImageRes] = React.useState({ width: 1024, height: 1024 });
+
     const handleChange = (v) => {
         const item = imageResList.find(languageItem => languageItem.value === v).value;
         console.log(item,"item")
@@ -136,7 +136,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
         setImageRes(item);
     };
 
-      useEffect(() => {
+    useEffect(() => {
         if (voiceTextId && symbols) {
             let activeTextElement;
 
@@ -603,12 +603,16 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                 // setProgressState(100 - resp.data.waitNumber)
                 processAIImage(val)
             }
-            if (resp.data.status == 1) {
+                        if (resp.data.status == 1) {
                 setIsLoading(false);
                 setIsProcessImage(true);
                 // setProgressState(0);
                 setNewImage(resp.data.resultUrl);
-                updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
+                                updateUserCreditUseAndGetUserCreditBalance({ cutOutProCredit: total });
+            }
+            if(resp.data.percentage == 100 && !resp.data.resultUrl) {
+                setIsLoading(false);
+                showError('Network Error!');
             }
         })
             .catch((error) => {
