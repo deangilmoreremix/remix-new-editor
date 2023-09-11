@@ -362,7 +362,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     const imageResList = [
         { label: 'Low (5 credts)', value: { height: 512, width: 512 } },
         { label: 'Medium (8 credts)', value: { height: 1024, width: 1024 } },
-        { label: 'High (14 credts)', value: { height: 1920, width: 1080 } },
+        { label: 'High (14 credts)', value: { width: 1920, height: 1080 } },
 
     ];
 
@@ -612,7 +612,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     const [describedImage, setDescribedImage] = useState(null);
     const multiSelectStore = useMultiSelectStore();
     const [progress, setProgress] = useState(null);
-    const [imageRes, setImageRes] = React.useState('');
+    const [imageRes, setImageRes] = React.useState({ width: 1024, height:1024 });
 
    
 
