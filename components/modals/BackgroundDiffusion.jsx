@@ -362,7 +362,7 @@ const BackgroundDiffusion = observer(({ startUpload, options }) => {
     const imageResList = [
         { label: 'Low (5 credts)', value: { height: 512, width: 512 } },
         { label: 'Medium (8 credts)', value: { height: 1024, width: 1024 } },
-        { label: 'High (12 credts)', value: { height: 1920, width: 1080 } },
+        { label: 'High (14 credts)', value: { height: 1920, width: 1080 } },
 
     ];
 
@@ -1227,6 +1227,7 @@ For example: A young man with briefcase in the middle of New York Street.
                                     className="text-to-speech__select"
                                     value={imageRes}
                                     onChange={handleChange}
+                                    menuPlacement={'auto'}
                                 />
                         </div>
                     </div>
