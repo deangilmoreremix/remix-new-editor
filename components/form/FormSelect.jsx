@@ -19,6 +19,7 @@ const FormSelect = React.forwardRef((props, ref) => {
     labelClassName,
     selectClassName,
     disabled,
+    menuPlacement,
     ...rest
   } = props;
 
@@ -55,6 +56,9 @@ const FormSelect = React.forwardRef((props, ref) => {
           value={items.find(i => i.value === value)}
           styles={rest.name === FONT_FAMILY && fontFamily}
           isDisabled={disabled}
+          menuPlacement={menuPlacement}
+          maxMenuHeight={400}
+          menuPosition={'fixed'}
           {...rest}
         />
       </Box>
