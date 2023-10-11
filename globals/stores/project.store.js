@@ -1668,6 +1668,8 @@ export default class ProjectStore extends BaseStore {
           },
         });
       const publishedMake = await this.publish(result._id);
+      await this.updateIOSVideo(result._id,serializedData.data)
+      await 
       runInAction(() => {
         this.item = { ...this.item, ...result };
         if (this.item.project.allowedSocials) {
@@ -1710,7 +1712,7 @@ export default class ProjectStore extends BaseStore {
       } else if (actionType === ACTION_MAKE_COPY || actionType === ACTION_WATCH_VIDEO) {
         closeAllWindows();
         const project = await this.save();
-        if (!this.modified) {
+                if (!this.modified) {
           if (actionType === ACTION_MAKE_COPY) {
             afterSave(`/edit?remix=${this.item._id}`);
           }
@@ -1804,6 +1806,18 @@ export default class ProjectStore extends BaseStore {
         'on-behalf': this.currentUser.id,
       },
     });
+  
+    updateIOSVideo = (id,data) => this.request(
+      `/api/projects/update-revolution-video`, {
+        method: 'POST',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+        body: {
+          id:id,
+          data:data
+        },
+      });
 
   fromTemplate = async (makeTemplate = {}, video = null, isSource) => {
     this.item.allowedSocials = ['facebook'];
