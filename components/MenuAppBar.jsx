@@ -46,8 +46,8 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
 
   const [isProjectTitle, setProjectTitle] = useState(false);
   const [userItems, setUserItems] = useState([]);
-  const [disabledDraft,setDisabledDraft] = useState(false);
-  const [disabledPublish,setDisabledPublish] = useState(false);
+  const [disabledDraft, setDisabledDraft] = useState(false);
+  const [disabledPublish, setDisabledPublish] = useState(false);
 
   const {
     modified,
@@ -65,7 +65,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   } = useProjectStore();
 
   const common = useCommonStore();
-  const { oneOfFeatureEnabled, publishEnabled } = useUserStore();
+  const { oneOfFeatureEnabled, publishEnabled, smartaimentorsEnabled } = useUserStore();
   const {
     showProducePanel,
     setInitialView,
@@ -74,29 +74,32 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   } = useUIStore();
 
   useEffect(() => {
-    if(item.published == false) {
+    if (item.published == false) {
       setDisabledDraft(true);
       setDisabledPublish(false);
     }
-    if(item.published == true) {
+    if (item.published == true) {
       setDisabledPublish(true);
       setDisabledDraft(false);
     }
-  },[item.published])
+  }, [item.published])
 
   useEffect(() => {
     if (USER_MENU_ITEMS(common)) {
       const items = USER_MENU_ITEMS(common);
       setUserItems(oneOfFeatureEnabled ? items : items.filter((i) => !i.isFeatureDependence));
+      setUserItems(smartaimentorsEnabled ? items : items.filter(function (item, index) {
+        return index !== 1
+      }))
     }
   }, []);
   const saveProject = useCallback(async () => {
     let value = '';
     await setButtonType("");
-    if(!publishEnabled) {
+    if (!publishEnabled) {
       await setButtonType("Project will be saved");
     }
-    if(isPublished || !publishEnabled) {
+    if (isPublished || !publishEnabled) {
       await setIsPublished(true);
     }
     await getItemTitle({}).then((data) => {
@@ -106,7 +109,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     let verify_duplicate = 0;
     let key = "togetherjs-session.status";
     let sessionVal = sessionStorage.getItem(key);
-    if(!sessionVal) {
+    if (!sessionVal) {
       await verifyTitle({}).then((data) => {
         for (let i = 0; i < data.result.length; i++) {
           if (data.cur_item !== data.result[i]._id && data.result[i].title.toUpperCase() === value.toUpperCase()) {
@@ -115,13 +118,13 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
         }
       });
     }
-   
+
     if (verify_duplicate === 0) {
       checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
     } else {
       swal('Error', 'Project name already exists!', 'error');
     }
-  },[setInitialView, showProducePanel])
+  }, [setInitialView, showProducePanel])
 
   const saveProjectAsPublished = useCallback(async () => {
     let value = '';
@@ -134,7 +137,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     let verify_duplicate = 0;
     let key = "togetherjs-session.status";
     let sessionVal = sessionStorage.getItem(key);
-    if(!sessionVal) {
+    if (!sessionVal) {
       await verifyTitle({}).then((data) => {
         for (let i = 0; i < data.result.length; i++) {
           if (data.cur_item !== data.result[i]._id && data.result[i].title.toUpperCase() === value.toUpperCase()) {
@@ -143,13 +146,13 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
         }
       });
     }
-   
+
     if (verify_duplicate === 0) {
       checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
     } else {
       swal('Error', 'Project name already exists!', 'error');
     }
-  },[setInitialView, showProducePanel])
+  }, [setInitialView, showProducePanel])
 
   const saveProjectAsDraft = useCallback(async () => {
     let value = '';
@@ -162,7 +165,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     let verify_duplicate = 0;
     let key = "togetherjs-session.status";
     let sessionVal = sessionStorage.getItem(key);
-    if(!sessionVal) {
+    if (!sessionVal) {
       await verifyTitle({}).then((data) => {
         for (let i = 0; i < data.result.length; i++) {
           if (data.cur_item !== data.result[i]._id && data.result[i].title.toUpperCase() === value.toUpperCase()) {
@@ -171,7 +174,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
         }
       });
     }
-   
+
     if (verify_duplicate === 0) {
       checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
     } else {
@@ -300,10 +303,10 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                 </div>
               </HelpIconComponent>
             </div>}
-            {publishEnabled &&  <div className="container-menu__actions__item">
+            {publishEnabled && <div className="container-menu__actions__item">
               <HelpIconComponent noDelay noIcon message={headerTooltips.publish}>
                 <div>
-                <SVGInline
+                  <SVGInline
                     className={`icon icon-button ${!disabledPublish ? 'active-save' : ''}`}
                     classSuffix=""
                     svg={publishIcon}
