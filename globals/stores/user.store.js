@@ -423,6 +423,11 @@ export default class UserStore {
   }
 
   @computed
+  get smartaimentorsEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_AI_MENTORS);
+  }
+
+  @computed
   get optinCodeEnabled() {
     return this.isfeatureEnabled(FEATURES.OPTIN_CODE);
   }
