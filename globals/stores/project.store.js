@@ -293,9 +293,9 @@ export default class ProjectStore extends BaseStore {
     this.isRedirect = value;
   };
 
-  @action 
-  setIsPublished = (value =  false) => {
-    this.isPublished =  value;
+  @action
+  setIsPublished = (value = false) => {
+    this.isPublished = value;
   }
 
   @action
@@ -413,7 +413,7 @@ export default class ProjectStore extends BaseStore {
             const isAudio = AUDIO_KINDS.includes(item.kind);
             fileMeta = await this.mediaTypeDetector.getMetadata(source[0], isAudio
               ? ASSET_TYPES.AUDIO : ASSET_TYPES.VIDEO, fileDuration,
-            this.userStore.video360Enabled);
+              this.userStore.video360Enabled);
           } catch (e) {
             // if there is no error, then loading will hide, after adding the item to the popcorn
             this.isLoadingSequencer = false;
@@ -764,7 +764,7 @@ export default class ProjectStore extends BaseStore {
     const oldAnimation = isRetarget ? this.retarget.options.animation
       : (this.element && this.element.popcornOptions.animation);
     const durationOut = isRetarget
-    || (this.element && this.element.type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR) ? 2 : 1;
+      || (this.element && this.element.type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR) ? 2 : 1;
 
     const animation = {
       ...(oldAnimation ? { ...oldAnimation } : {}),
@@ -1001,11 +1001,11 @@ export default class ProjectStore extends BaseStore {
       try {
         const result = await this.request(
           path, {
-            method: 'GET',
-            headers: {
-              'on-behalf': this.currentUser.id,
-            },
-          });
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
 
         const { scenario } = result;
 
@@ -1069,11 +1069,11 @@ export default class ProjectStore extends BaseStore {
     try {
       const result = await this.request(
         path, {
-          method: 'POST',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+        method: 'POST',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
       this.fillMakeData(result, needData);
     } catch (e) {
       this.item = DEFAULT_ITEM;
@@ -1095,11 +1095,11 @@ export default class ProjectStore extends BaseStore {
     try {
       const result = await this.request(
         path, {
-          method: 'GET',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
       this.fillMakeData(result, isRemix);
     } catch (e) {
       this.item = DEFAULT_ITEM;
@@ -1408,7 +1408,7 @@ export default class ProjectStore extends BaseStore {
 
   isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'
     || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
-    && element.popcornOptions.contentType.indexOf('video/') === 0));
+      && element.popcornOptions.contentType.indexOf('video/') === 0));
 
   isAudio = (element) => !!((element.popcornOptions.type === 'SoundCloud')
     || (element.popcornOptions.contentType
@@ -1427,11 +1427,11 @@ export default class ProjectStore extends BaseStore {
     try {
       this.item = await this.request(
         path, {
-          method: 'GET',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
       this.setProjectData(JSON.parse(this.item.project.data), true);
       if (this.item.project && this.item.project.allowedSocials) {
         this.item.allowedSocials = this.item.project.allowedSocials;
@@ -1651,24 +1651,59 @@ export default class ProjectStore extends BaseStore {
       }
       const result = await this.request(
         path, {
-          method: this.item._id ? 'PATCH' : 'POST',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-          body: {
-            ...this.item,
-            title: serializedData.name,
-            description: serializedData.description,
-            project: serializedData,
-            thumbnail: serializedData.thumbnail,
-            remixedFrom: serializedData.source,
-            tags: serializedData.tags,
-            disabledPlaybar: serializedData.disabledPlaybar,
-            categories: serializedData.categories,
-          },
-        });
+        method: this.item._id ? 'PATCH' : 'POST',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+        body: {
+          ...this.item,
+          title: serializedData.name,
+          description: serializedData.description,
+          project: serializedData,
+          thumbnail: serializedData.thumbnail,
+          remixedFrom: serializedData.source,
+          tags: serializedData.tags,
+          disabledPlaybar: serializedData.disabledPlaybar,
+          categories: serializedData.categories,
+        },
+      });
+      serializedData.data = JSON.parse(serializedData.data);
+      serializedData.data = {
+        ...serializedData.data,
+        media: serializedData.data.media.map(item => ({
+          ...item,
+          tracks: item.tracks.map(track => ({
+            ...track,
+            trackEvents: track.trackEvents.filter(event => event.type === "sequencer")
+          }))
+        }))
+      };
+      serializedData.data = JSON.stringify(serializedData.data)
+      const rendomTitle = Math.random().toString(36).substring(2, 7);
+      const result1 = await this.request(
+        path, {
+        method: 'POST',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+        body: {
+          ...this.item,
+          title: rendomTitle,
+          description: serializedData.description,
+          project: serializedData,
+          thumbnail: serializedData.thumbnail,
+          remixedFrom: serializedData.source,
+          tags: serializedData.tags,
+          disabledPlaybar: serializedData.disabledPlaybar,
+          categories: serializedData.categories,
+        },
+      });
+      console.log(result1, "result1========>>")
+      console.log(result, "result============?jshhdf")
+      const publishedMakeIos = await this.publish(result1._id);
+      console.log(publishedMakeIos, "publishedMakeIos")
+      await this.updateIOSVideo(result, publishedMakeIos)
       const publishedMake = await this.publish(result._id);
-      await this.updateIOSVideo(result._id,serializedData.data)
       await 
       runInAction(() => {
         this.item = { ...this.item, ...result };
@@ -1712,7 +1747,7 @@ export default class ProjectStore extends BaseStore {
       } else if (actionType === ACTION_MAKE_COPY || actionType === ACTION_WATCH_VIDEO) {
         closeAllWindows();
         const project = await this.save();
-                if (!this.modified) {
+        if (!this.modified) {
           if (actionType === ACTION_MAKE_COPY) {
             afterSave(`/edit?remix=${this.item._id}`);
           }
@@ -1754,9 +1789,9 @@ export default class ProjectStore extends BaseStore {
                 project: project._id,
               },
             }),
-          setInitialView();
+            setInitialView();
         }
-      } 
+      }
       else if (await showConfirmation(`${this.saveButton}`)) {
         closeAllWindows();
         const project = await this.save();
@@ -1776,7 +1811,7 @@ export default class ProjectStore extends BaseStore {
                 project: project._id,
               },
             }),
-          setInitialView();
+            setInitialView();
         }
       }
     } catch (e) {
@@ -1784,7 +1819,7 @@ export default class ProjectStore extends BaseStore {
     }
   }
 
-  @action 
+  @action
   setButtonType = (value) => {
     this.saveButton = value;
   }
@@ -1792,32 +1827,34 @@ export default class ProjectStore extends BaseStore {
   @action
   invalidateFbCache = (url) => this.request(
     '/api/makes/update-fb-cache', {
-      method: 'POST',
-      headers: {
-        'on-behalf': this.currentUser.id,
-      },
-      body: { publishUrl: url },
-    });
+    method: 'POST',
+    headers: {
+      'on-behalf': this.currentUser.id,
+    },
+    body: { publishUrl: url },
+  });
 
   publish = (id) => this.request(
     `/api/users/me/makes/${id}/publish`, {
-      method: 'POST',
-      headers: {
-        'on-behalf': this.currentUser.id,
-      },
-    });
-  
-    updateIOSVideo = (id,data) => this.request(
+    method: 'POST',
+    headers: {
+      'on-behalf': this.currentUser.id,
+    },
+  });
+
+  updateIOSVideo = (result, data) => {
+    console.log(result,data,"fkhdjklhglgfhgj")
+    this.request(
       `/api/projects/update-revolution-video`, {
-        method: 'POST',
-        headers: {
-          'on-behalf': this.currentUser.id,
-        },
-        body: {
-          id:id,
-          data:data
-        },
-      });
+    method: 'POST',
+    headers: {
+      'on-behalf': this.currentUser.id,
+    },
+    body: {
+      acutalMake: result,
+      RecordedMakedata: data
+    },
+  })};
 
   fromTemplate = async (makeTemplate = {}, video = null, isSource) => {
     this.item.allowedSocials = ['facebook'];
