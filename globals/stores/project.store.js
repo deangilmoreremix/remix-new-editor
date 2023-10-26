@@ -1637,6 +1637,7 @@ export default class ProjectStore extends BaseStore {
     }
 
     try {
+      console.log(this.item._id,"this.item._id")
       const path = this.item._id
         ? `/api/users/me/makes/${this.item._id}`
         : '/api/users/me/makes';
@@ -1649,7 +1650,7 @@ export default class ProjectStore extends BaseStore {
         };
         serializedData = { retargetForm, ...serializedData };
       }
-      const result = await this.request(
+            const result = await this.request(
         path, {
         method: this.item._id ? 'PATCH' : 'POST',
         headers: {
@@ -1678,16 +1679,15 @@ export default class ProjectStore extends BaseStore {
           }))
         }))
       };
-      serializedData.data = JSON.stringify(serializedData.data)
+          serializedData.data = JSON.stringify(serializedData.data)
       const rendomTitle = Math.random().toString(36).substring(2, 7);
-      const result1 = await this.request(
-        path, {
+            const result1 = await this.request(
+        '/api/users/me/makes', {
         method: 'POST',
         headers: {
           'on-behalf': this.currentUser.id,
         },
         body: {
-          ...this.item,
           title: rendomTitle,
           description: serializedData.description,
           project: serializedData,
