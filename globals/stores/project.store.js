@@ -1637,7 +1637,7 @@ export default class ProjectStore extends BaseStore {
     }
 
     try {
-      console.log(this.item._id,"this.item._id")
+      console.log(this.item,"this.item._id")
       const path = this.item._id
         ? `/api/users/me/makes/${this.item._id}`
         : '/api/users/me/makes';
@@ -1681,6 +1681,24 @@ export default class ProjectStore extends BaseStore {
       };
           serializedData.data = JSON.stringify(serializedData.data)
       const rendomTitle = Math.random().toString(36).substring(2, 7);
+      const newItem = {
+        allowedSocials : this.item.allowedSocials,
+        background: this.item.background,
+        categories:this.item.categories,
+        description:this.item.description,
+        disabledPlaybar:this.item.disabledPlaybar,
+        project: {
+          data:this.item.project.data
+        },
+        published:true,
+        ratio:this.item.project.ratio,
+        remixedFrom:this.item.project.remixedFrom,
+        tags:this.item.project.tags,
+        thumbnail:this.item.project.thumbnail,
+        title:this.item.project.title,
+
+      }
+
             const result1 = await this.request(
         '/api/users/me/makes', {
         method: 'POST',
@@ -1688,6 +1706,7 @@ export default class ProjectStore extends BaseStore {
           'on-behalf': this.currentUser.id,
         },
         body: {
+          ...newItem,
           title: rendomTitle,
           description: serializedData.description,
           project: serializedData,
