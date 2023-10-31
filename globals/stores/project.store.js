@@ -1594,6 +1594,20 @@ export default class ProjectStore extends BaseStore {
       });
     });
   };
+  processRunning = async (id) => {
+    const result  = await  this.request(
+      `/api/users/me/makes/${id}`, {
+      method: 'GET',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      }
+    })
+    console.log(result);
+    if(result.isVideoMergeProcess) {
+      console.log("call jdjhfgd")
+      setTimeout(processRunning(id), 10000); // Call the function again after 10 seconds
+    }
+  };
 
   @action
   save = async () => {
@@ -1637,7 +1651,6 @@ export default class ProjectStore extends BaseStore {
     }
 
     try {
-      console.log(this.item,"this.item._id")
       const path = this.item._id
         ? `/api/users/me/makes/${this.item._id}`
         : '/api/users/me/makes';
@@ -1650,7 +1663,7 @@ export default class ProjectStore extends BaseStore {
         };
         serializedData = { retargetForm, ...serializedData };
       }
-            const result = await this.request(
+      const result = await this.request(
         path, {
         method: this.item._id ? 'PATCH' : 'POST',
         headers: {
@@ -1668,7 +1681,7 @@ export default class ProjectStore extends BaseStore {
           categories: serializedData.categories,
         },
       });
-      serializedData.data = JSON.parse(serializedData.data);
+serializedData.data = JSON.parse(serializedData.data);
       serializedData.data = {
         ...serializedData.data,
         media: serializedData.data.media.map(item => ({
@@ -1723,7 +1736,8 @@ export default class ProjectStore extends BaseStore {
       console.log(publishedMakeIos, "publishedMakeIos")
       await this.updateIOSVideo(result, publishedMakeIos)
       const publishedMake = await this.publish(result._id);
-      await 
+      await processRunning(result._id);
+     
       runInAction(() => {
         this.item = { ...this.item, ...result };
         if (this.item.project.allowedSocials) {
