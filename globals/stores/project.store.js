@@ -1682,7 +1682,7 @@ export default class ProjectStore extends BaseStore {
           categories: serializedData.categories,
         },
       });
-serializedData.data = JSON.parse(serializedData.data);
+      serializedData.data = JSON.parse(serializedData.data);
       serializedData.data = {
         ...serializedData.data,
         media: serializedData.data.media.map(item => ({
@@ -1693,7 +1693,7 @@ serializedData.data = JSON.parse(serializedData.data);
           }))
         }))
       };
-          serializedData.data = JSON.stringify(serializedData.data)
+      serializedData.data = JSON.stringify(serializedData.data)
       const rendomTitle = Math.random().toString(36).substring(2, 7);
       const newItem = {
         allowedSocials : this.item.allowedSocials,
@@ -1713,7 +1713,7 @@ serializedData.data = JSON.parse(serializedData.data);
 
       }
 
-            const result1 = await this.request(
+      const result1 = await this.request(
         '/api/users/me/makes', {
         method: 'POST',
         headers: {
@@ -1731,14 +1731,12 @@ serializedData.data = JSON.parse(serializedData.data);
           categories: serializedData.categories,
         },
       });
-      console.log(result1, "result1========>>")
-      console.log(result, "result============?jshhdf")
       const publishedMakeIos = await this.publish(result1._id);
       console.log(publishedMakeIos, "publishedMakeIos")
       await this.updateIOSVideo(result, publishedMakeIos)
       const publishedMake = await this.publish(result._id);
       await this.processRunning(result._id);
-     
+
       runInAction(() => {
         this.item = { ...this.item, ...result };
         if (this.item.project.allowedSocials) {
@@ -1779,7 +1777,7 @@ serializedData.data = JSON.parse(serializedData.data);
           }
         }
       } else if (actionType === ACTION_MAKE_COPY || actionType === ACTION_WATCH_VIDEO) {
-        closeAllWindows();
+                closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
           if (actionType === ACTION_MAKE_COPY) {
@@ -1805,7 +1803,7 @@ serializedData.data = JSON.parse(serializedData.data);
           setInitialView();
         }
       } else if (this.saveButton == "") {
-        closeAllWindows();
+                closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
           if (actionType === ACTION_MAKE_COPY) {
@@ -1827,25 +1825,27 @@ serializedData.data = JSON.parse(serializedData.data);
         }
       }
       else if (await showConfirmation(`${this.saveButton}`)) {
-        closeAllWindows();
-        const project = await this.save();
-        if (!this.modified) {
-          if (actionType === ACTION_MAKE_COPY) {
-            afterSave(`/edit?remix=${this.item._id}`);
+        if (!this.isLoading) {
+          closeAllWindows();
+          const project = await this.save();
+          if (!this.modified) {
+            if (actionType === ACTION_MAKE_COPY) {
+              afterSave(`/edit?remix=${this.item._id}`);
+            }
+            if (actionType === ACTION_WATCH_VIDEO) {
+              afterSave(this.item.url);
+            }
           }
-          if (actionType === ACTION_WATCH_VIDEO) {
-            afterSave(this.item.url);
+          if (project && project._id) {
+            Router.push(
+              {
+                pathname: ROUTES.edit,
+                query: {
+                  project: project._id,
+                },
+              }),
+              setInitialView();
           }
-        }
-        if (project && project._id) {
-          Router.push(
-            {
-              pathname: ROUTES.edit,
-              query: {
-                project: project._id,
-              },
-            }),
-            setInitialView();
         }
       }
     } catch (e) {
@@ -1880,15 +1880,15 @@ serializedData.data = JSON.parse(serializedData.data);
     console.log(result,data,"fkhdjklhglgfhgj")
     this.request(
       `/api/projects/update-revolution-video`, {
-    method: 'POST',
-    headers: {
-      'on-behalf': this.currentUser.id,
-    },
-    body: {
-      acutalMake: result,
-      RecordedMakedata: data
-    },
-  })};
+      method: 'POST',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      },
+      body: {
+        acutalMake: result,
+        RecordedMakedata: data
+      },
+    })};
 
   fromTemplate = async (makeTemplate = {}, video = null, isSource) => {
     this.item.allowedSocials = ['facebook'];
