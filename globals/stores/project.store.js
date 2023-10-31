@@ -1606,7 +1606,7 @@ export default class ProjectStore extends BaseStore {
     console.log(result);
     if(result.isVideoMergeProcess) {
       console.log("call jdjhfgd")
-      setTimeout(this.processRunning(id), 10000); // Call the function again after 10 seconds
+      setTimeout(await this.processRunning(id), 10000); // Call the function again after 10 seconds
     }
   };
 
