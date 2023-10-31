@@ -49,7 +49,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   const [userItems, setUserItems] = useState([]);
   const [disabledDraft,setDisabledDraft] = useState(false);
   const [disabledPublish,setDisabledPublish] = useState(false);
-
+  const [progress,setProgress] = useState(0);
   const {
     modified,
     undoRedoAction,
@@ -192,6 +192,12 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     }
   };
 
+  useEffect(() => {
+    if(progress < 100 && isLoadingIosProcess) {
+        setProgress(progress + 1)
+    }
+  },[isLoadingIosProcess,progress])
+
   return (
     <div className="container-header" ref={anchorRef}>
       <AppBar position="static" className="app-bar">
@@ -326,7 +332,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
             </div>
             }
            {isLoadingIosProcess && <div className="container-menu__actions__item">
-              <PercentageProgressBar width={250} />
+              <PercentageProgressBar width={250} progress={progress}/>
             </div>}
           </div>
 
