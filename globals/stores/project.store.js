@@ -1594,6 +1594,7 @@ export default class ProjectStore extends BaseStore {
       });
     });
   };
+
   processRunning = async (id) => {
     const result  = await  this.request(
       `/api/users/me/makes/${id}`, {
@@ -1736,7 +1737,7 @@ serializedData.data = JSON.parse(serializedData.data);
       console.log(publishedMakeIos, "publishedMakeIos")
       await this.updateIOSVideo(result, publishedMakeIos)
       const publishedMake = await this.publish(result._id);
-      await processRunning(result._id);
+      await this.processRunning(result._id);
      
       runInAction(() => {
         this.item = { ...this.item, ...result };
