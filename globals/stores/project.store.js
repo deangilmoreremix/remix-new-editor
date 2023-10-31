@@ -224,6 +224,9 @@ export default class ProjectStore extends BaseStore {
 
   @observable isLoading = false;
 
+  @observable isLoadingIosProcess = false;
+
+
   @observable isLoadingSequencer = false;
 
   @observable isPublished = false;
@@ -1595,6 +1598,7 @@ export default class ProjectStore extends BaseStore {
     });
   };
 
+  @action
   processRunning = async (id) => {
     const result  = await  this.request(
       `/api/users/me/makes/${id}`, {
@@ -1606,7 +1610,10 @@ export default class ProjectStore extends BaseStore {
     console.log(result);
     if(result.isVideoMergeProcess) {
       console.log("call jdjhfgd")
-      setTimeout(await this.processRunning(id), 10000); // Call the function again after 10 seconds
+      setTimeout(this.processRunning(id), 10000); // Call the function again after 10 seconds
+    }
+    if(!result.isVideoMergeProcess) {
+      this.isLoadingIosProcess = false;
     }
   };
 
@@ -1620,7 +1627,7 @@ export default class ProjectStore extends BaseStore {
     this.undoStore = [];
     this.redoStore = [];
     this.isLoading = true;
-
+    this.isLoadingIosProcess = true;
     const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
 
     // crop video

@@ -248,11 +248,11 @@
     }
 
     &__publishedactions {
-      width: 248px;
+      width: 325px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-
+      gap: 10px;
       &__item {
         position: relative;
       }

@@ -32,6 +32,7 @@ import useMediaStore from './hooks/useMediaStore';
 import Sidebar from './Sidebar';
 
 import PropTypes from '../lib/PropTypes';
+import PercentageProgressBar from './media/PercentageProgressBar';
 
 const {
   REDO,
@@ -61,7 +62,8 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     getItemTitle,
     setIsPublished,
     isPublished,
-    setButtonType
+    setButtonType,
+    isLoadingIosProcess
   } = useProjectStore();
 
   const common = useCommonStore();
@@ -115,7 +117,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
         }
       });
     }
-   
+
     if (verify_duplicate === 0) {
       checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
     } else {
@@ -143,7 +145,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
         }
       });
     }
-   
+
     if (verify_duplicate === 0) {
       checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
     } else {
@@ -171,7 +173,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
         }
       });
     }
-   
+
     if (verify_duplicate === 0) {
       checkAndSave({ changeRadioButton, showProducePanel, closeAllWindows, setInitialView });
     } else {
@@ -303,7 +305,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
             {publishEnabled &&  <div className="container-menu__actions__item">
               <HelpIconComponent noDelay noIcon message={headerTooltips.publish}>
                 <div>
-                <SVGInline
+                  <SVGInline
                     className={`icon icon-button ${!disabledPublish ? 'active-save' : ''}`}
                     classSuffix=""
                     svg={publishIcon}
@@ -321,6 +323,10 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                   </button>
                 </div>
               </HelpIconComponent>
+            </div>
+            }
+           {isLoadingIosProcess && <div className="container-menu__actions__item">
+              <PercentageProgressBar width={250} />
             </div>}
           </div>
 
