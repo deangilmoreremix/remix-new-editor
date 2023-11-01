@@ -194,9 +194,14 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
 
   useEffect(() => {
     if(progress < 100 && isLoadingIosProcess) {
+      setTimeout(() => {
         setProgress(progress + 1)
+      },10000)
     }
   },[isLoadingIosProcess,progress])
+  useEffect(() => {
+    console.log(progress,"progress==========>>>")
+  },[progress])
 
   return (
     <div className="container-header" ref={anchorRef}>
