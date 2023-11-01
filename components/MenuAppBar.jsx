@@ -191,22 +191,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       setProjectTitle(false);
     }
   };
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prevProgress) => {
-        if (prevProgress >= 100) {
-          clearInterval(interval); // Stop the progress bar when it reaches 100%
-          return 100;
-        }
-        return prevProgress + 1;
-      });
-    }, 1200); // Increment progress every 1200ms (2 minutes)
-
-    return () => {
-      clearInterval(interval); // Clean up the interval on component unmount
-    };
-  }, [progress]); 
+ 
 
 
   return (
@@ -342,9 +327,6 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               </HelpIconComponent>
             </div>
             }
-           {isLoadingIosProcess && <div className="container-menu__actions__item">
-              <PercentageProgressBar width={250} progress={progress}/>
-            </div>}
           </div>
 
           <div className="container-menu__project-name">

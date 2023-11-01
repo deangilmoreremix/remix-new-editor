@@ -1,11 +1,16 @@
 .guidelines-activation {
-  width: 100%;
+  width: 80%;
   display: flex;
   align-items: center;
   position: absolute;
   padding: 1rem 0;
+  justify-content: space-between;
 }
-
+.guideline-component {
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
 .guidelines-icon {
   width: 1.8rem;
   height: 1.8rem;
