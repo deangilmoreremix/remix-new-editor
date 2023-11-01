@@ -193,15 +193,21 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   };
 
   useEffect(() => {
-    if(progress < 100 && isLoadingIosProcess) {
-      setTimeout(() => {
-        setProgress(progress + 1)
-      },10000)
-    }
-  },[isLoadingIosProcess,progress])
-  useEffect(() => {
-    console.log(progress,"progress==========>>>")
-  },[progress])
+    const interval = setInterval(() => {
+      setProgress((prevProgress) => {
+        if (prevProgress >= 100) {
+          clearInterval(interval); // Stop the progress bar when it reaches 100%
+          return 100;
+        }
+        return prevProgress + 1;
+      });
+    }, 1200); // Increment progress every 1200ms (2 minutes)
+
+    return () => {
+      clearInterval(interval); // Clean up the interval on component unmount
+    };
+  }, [progress]); 
+
 
   return (
     <div className="container-header" ref={anchorRef}>
