@@ -32,7 +32,6 @@ import useMediaStore from './hooks/useMediaStore';
 import Sidebar from './Sidebar';
 
 import PropTypes from '../lib/PropTypes';
-import PercentageProgressBar from './media/PercentageProgressBar';
 
 const {
   REDO,
