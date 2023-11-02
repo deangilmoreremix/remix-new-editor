@@ -277,21 +277,24 @@ const Home = observer(() => {
   }, [isEnabled])
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgressMessage('Project is saving...');
-      setProgress((prevProgress) => {
-        if (prevProgress >= 100) {
-          setProgressMessage('Project saved, ready for sharing.')
-          clearInterval(interval); // Stop the progress bar when it reaches 100%
-          return 100;
-        }
-        return prevProgress + 2;
-      });
-    }, 1200); // Increment progress every 1200ms (2 minutes)
-
-    return () => {
-      clearInterval(interval); // Clean up the interval on component unmount
-    };
+    if(isLoadingIosProcess) {
+      console.log(progress,"progress")
+      const interval = setInterval(() => {
+        setProgressMessage('Project is saving...');
+        setProgress((prevProgress) => {
+          if (prevProgress >= 100) {
+            setProgressMessage('Project saved, ready for sharing.')
+            clearInterval(interval); // Stop the progress bar when it reaches 100%
+            return 100;
+          }
+          return prevProgress + 2;
+        });
+      }, 1200); // Increment progress every 1200ms (2 minutes)
+  
+      return () => {
+        clearInterval(interval); // Clean up the interval on component unmount
+      };
+    }
   }, [progress]);
 
 
