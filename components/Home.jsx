@@ -295,7 +295,7 @@ const Home = observer(() => {
         clearInterval(interval); // Clean up the interval on component unmount
       };
     }
-  }, [progress]);
+  }, [progress,isLoadingIosProcess]);
 
 
   useEffect(() => {
