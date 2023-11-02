@@ -285,12 +285,11 @@ const Home = observer(() => {
           clearInterval(interval); // Stop the progress bar when it reaches 100%
           return 100;
         }
-        return prevProgress + 10;
+        return prevProgress + 2;
       });
-    }, 60000); // Increment progress every 1200ms (2 minutes)
+    }, 1200); // Increment progress every 1200ms (2 minutes)
 
     return () => {
-
       clearInterval(interval); // Clean up the interval on component unmount
     };
   }, [progress]);
