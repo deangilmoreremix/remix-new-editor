@@ -287,7 +287,7 @@ const Home = observer(() => {
         }
         return prevProgress + 1;
       });
-    }, 1200); // Increment progress every 1200ms (2 minutes)
+    }, 1000); // Increment progress every 1200ms (2 minutes)
 
     return () => {
 
