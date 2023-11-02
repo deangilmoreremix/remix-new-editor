@@ -62,7 +62,6 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     setIsPublished,
     isPublished,
     setButtonType,
-    isLoadingIosProcess
   } = useProjectStore();
 
   const common = useCommonStore();
