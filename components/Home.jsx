@@ -285,9 +285,9 @@ const Home = observer(() => {
           clearInterval(interval); // Stop the progress bar when it reaches 100%
           return 100;
         }
-        return prevProgress + 1;
+        return prevProgress + 10;
       });
-    }, 1000); // Increment progress every 1200ms (2 minutes)
+    }, 1200); // Increment progress every 1200ms (2 minutes)
 
     return () => {
 
