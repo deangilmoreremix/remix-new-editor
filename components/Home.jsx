@@ -291,7 +291,7 @@ const Home = observer(() => {
           return prevProgress + 5;
         });
       }, 1200); // Increment progress every 1200ms (2 minutes)
-  
+
       return () => {
         clearInterval(interval); // Clean up the interval on component unmount
       };
@@ -602,9 +602,9 @@ const Home = observer(() => {
             active={{ width, height }}
           />
           {isLoadingIosProcess &&
-            <div style={{ position: 'absolute', bottom: '60px', right: '20px' }}>
+            <div style={{ position: 'absolute', bottom: '60px', right: '23px' }}>
               <Typography style={{ width: 200, fontSize: '12px', fontWeight: 'bold' }}>{progressMessage}</Typography>
-              <PercentageProgressBar  progress={progress} width={200} />
+              <PercentageProgressBar progress={progress} width={200} />
             </div>
           }
           <Timeline />
