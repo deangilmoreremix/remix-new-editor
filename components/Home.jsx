@@ -298,6 +298,12 @@ const Home = observer(() => {
     }
   }, [progress,isLoadingIosProcess]);
 
+  useEffect(() => {
+    if(!isLoadingIosProcess) {
+      setProgress(0);
+    }
+  },[isLoadingIosProcess])
+
 
   useEffect(() => {
     if (getSvrTerms === false) {
