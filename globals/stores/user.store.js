@@ -566,6 +566,12 @@ export default class UserStore {
   }
 
   @computed
+  get revolutionDownloadVideoEnabled() {
+    console.log( this.isfeatureEnabled(FEATURES.REVOLUTION_DOWNLOAD_VIDEO),"dfkdfdhfjdfhjd")
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_DOWNLOAD_VIDEO);
+  }
+  
+  @computed
   get clickToPhoneCall() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL);
   }

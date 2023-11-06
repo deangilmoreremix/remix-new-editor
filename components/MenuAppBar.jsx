@@ -76,7 +76,8 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   
 
   const common = useCommonStore();
-  const { oneOfFeatureEnabled, publishEnabled } = useUserStore();
+  const { oneOfFeatureEnabled, publishEnabled, currentUser, revolutionDownloadVideoEnabled } = useUserStore();
+  console.log(revolutionDownloadVideoEnabled,"revolutionDownloadVideoEnabled")
   const {
     showProducePanel,
     setInitialView,
@@ -101,6 +102,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       setUserItems(oneOfFeatureEnabled ? items : items.filter((i) => !i.isFeatureDependence));
     }
   }, []);
+  console.log(currentUser,"current-user")
   const saveProject = useCallback(async () => {
     let value = '';
     await setButtonType("");
@@ -343,7 +345,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               </HelpIconComponent>
             </div>
             }
-            {publishEnabled &&  <div className="container-menu__actions__item">
+            {revolutionDownloadVideoEnabled &&  <div className="container-menu__actions__item">
                 <div>
                   <SVGInline
                     className={`icon icon-button ${project ? 'active-save' : ''}`}
