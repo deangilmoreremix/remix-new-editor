@@ -22,6 +22,8 @@ import draftIcon from '../public/static/svgImages/header/draft-icon.svg';
 
 import publishIcon from '../public/static/svgImages/header/published-icon.svg';
 import editIcon from '../public/static/svgImages/header/edit-project.svg';
+import downloadIcon from '../public/static/svgImages/header/download.svg';
+
 
 import useProjectStore from './hooks/useProjectStore';
 import useCommonStore from './hooks/useCommonStore';
@@ -32,13 +34,15 @@ import useMediaStore from './hooks/useMediaStore';
 import Sidebar from './Sidebar';
 
 import PropTypes from '../lib/PropTypes';
+import { useRouter } from 'next/router';
 
 const {
   REDO,
   UNDO,
   SAVE,
   DRAFT,
-  SAVEASPUBLISH
+  SAVEASPUBLISH,
+  DOWNLOAD
 } = HEADER_ACTIONS;
 
 const MenuAppBar = observer(({ whiteLabelManager }) => {
@@ -63,6 +67,13 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     isPublished,
     setButtonType,
   } = useProjectStore();
+  const {
+    pathname,
+    query: { project },
+    push,
+  } = useRouter();
+
+  
 
   const common = useCommonStore();
   const { oneOfFeatureEnabled, publishEnabled } = useUserStore();
@@ -73,16 +84,16 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     closeAllWindows,
   } = useUIStore();
 
-  useEffect(() => {
-    if(item.published == false) {
-      setDisabledDraft(true);
-      setDisabledPublish(false);
-    }
-    if(item.published == true) {
-      setDisabledPublish(true);
-      setDisabledDraft(false);
-    }
-  },[item.published])
+    useEffect(() => {
+      if(item.published == false) {
+        setDisabledDraft(true);
+        setDisabledPublish(false);
+      }
+      if(item.published == true) {
+        setDisabledPublish(true);
+        setDisabledDraft(false);
+      }
+    },[item.published])
 
   useEffect(() => {
     if (USER_MENU_ITEMS(common)) {
@@ -150,6 +161,13 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       swal('Error', 'Project name already exists!', 'error');
     }
   },[setInitialView, showProducePanel])
+
+  console.log(item,"item==============>>>")
+  const downloadVideo = () => {
+    saveAs(item.iosurl, 'video.mp4');
+  };
+
+
 
   const saveProjectAsDraft = useCallback(async () => {
     let value = '';
@@ -325,8 +343,29 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               </HelpIconComponent>
             </div>
             }
+            {publishEnabled &&  <div className="container-menu__actions__item">
+                <div>
+                  <SVGInline
+                    className={`icon icon-button ${project ? 'active-save' : ''}`}
+                    classSuffix=""
+                    svg={downloadIcon}
+                    cleanup={['title']}
+                    component="button"
+                    onClick={downloadVideo}
+                    disabled={!project}
+                  />
+                  <button
+                    className={`icon-button container-menu__button-text ${project ? 'active-save' : ''}`}
+                    onClick={downloadVideo}
+                    disabled={!project}
+                  >
+                    {DOWNLOAD}
+                  </button>
+                </div>
+            </div>
+            }
           </div>
-
+          
           <div className="container-menu__project-name">
             {isProjectTitle ? (
               <input

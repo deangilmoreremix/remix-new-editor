@@ -319,7 +319,6 @@ export default class ProjectStore extends BaseStore {
     const sortedElements = this.layer[0].trackEvents.sort((a, b) => a.popcornOptions.start - b.popcornOptions.start);
     // Get count of elements in active layer
     for (let i = 0; i < sortedElements.length; i++) {
-      console.log(sortedElements[i], sortedElements[i + 1], 'i');
       if (sortedElements[i] != sortedElements[sortedElements.length - 1]) {
         if (sortedElements[i].popcornOptions.end == sortedElements[i + 1].popcornOptions.start) {
           count++;
@@ -1600,19 +1599,17 @@ export default class ProjectStore extends BaseStore {
 
   @action
   processRunning = async (id) => {
-    const result  = await  this.request(
+    const result = await this.request(
       `/api/users/me/makes/${id}`, {
       method: 'GET',
       headers: {
         'on-behalf': this.currentUser.id,
       }
     })
-    console.log(result);
-    if(result.isVideoMergeProcess) {
-      console.log("call jdjhfgd")
+    if (result.isVideoMergeProcess) {
       setTimeout(this.processRunning(id), 10000); // Call the function again after 10 seconds
     }
-    if(!result.isVideoMergeProcess) {
+    if (!result.isVideoMergeProcess) {
       this.isLoadingIosProcess = false;
     }
   };
@@ -1689,6 +1686,65 @@ export default class ProjectStore extends BaseStore {
           categories: serializedData.categories,
         },
       });
+      let downloadVideoData = serializedData;
+      downloadVideoData.data = JSON.parse(downloadVideoData.data);
+      console.log(downloadVideoData.data, " downloadVideoData.data before")
+      downloadVideoData.data = {
+        ...downloadVideoData.data,
+        media: downloadVideoData.data.media.map(item => ({
+          ...item,
+          tracks: item.tracks.map(track => ({
+            ...track,
+            trackEvents: track.trackEvents.filter(event => {
+              if (event.type === "sequencer" || event.type === 'image' || event.type === 'text') {
+                return event;
+              }
+            })
+          }))
+        }))
+      };
+      console.log(downloadVideoData.data, "downloadVideoData.data")
+      downloadVideoData.data = JSON.stringify(downloadVideoData.data)
+      let rendomTitle = Math.random().toString(36).substring(2, 7);
+      let newItem = {
+        allowedSocials: this.item.allowedSocials,
+        background: this.item.background,
+        categories: this.item.categories,
+        description: this.item.description,
+        disabledPlaybar: this.item.disabledPlaybar,
+        project: {
+          data: this.item.project.data
+        },
+        published: true,
+        ratio: this.item.project.ratio,
+        remixedFrom: this.item.project.remixedFrom,
+        tags: this.item.project.tags,
+        thumbnail: this.item.project.thumbnail,
+        title: this.item.project.title,
+
+      }
+
+      const downloadVideoMake = await this.request(
+        '/api/users/me/makes', {
+        method: 'POST',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+        body: {
+          ...newItem,
+          title: rendomTitle,
+          description: serializedData.description,
+          project: downloadVideoData,
+          thumbnail: serializedData.thumbnail,
+          remixedFrom: serializedData.source,
+          tags: serializedData.tags,
+          disabledPlaybar: serializedData.disabledPlaybar,
+          categories: serializedData.categories,
+        },
+      });
+      console.log(downloadVideoMake._id, "downloadVideoData.data")
+      const publishDownloadVideoMake = await this.publish(downloadVideoMake._id);
+      console.log(publishDownloadVideoMake, "publishDownloadVideoMake")
       serializedData.data = JSON.parse(serializedData.data);
       serializedData.data = {
         ...serializedData.data,
@@ -1701,22 +1757,22 @@ export default class ProjectStore extends BaseStore {
         }))
       };
       serializedData.data = JSON.stringify(serializedData.data)
-      const rendomTitle = Math.random().toString(36).substring(2, 7);
-      const newItem = {
-        allowedSocials : this.item.allowedSocials,
+      rendomTitle = Math.random().toString(36).substring(2, 7);
+      newItem = {
+        allowedSocials: this.item.allowedSocials,
         background: this.item.background,
-        categories:this.item.categories,
-        description:this.item.description,
-        disabledPlaybar:this.item.disabledPlaybar,
+        categories: this.item.categories,
+        description: this.item.description,
+        disabledPlaybar: this.item.disabledPlaybar,
         project: {
-          data:this.item.project.data
+          data: this.item.project.data
         },
-        published:true,
-        ratio:this.item.project.ratio,
-        remixedFrom:this.item.project.remixedFrom,
-        tags:this.item.project.tags,
-        thumbnail:this.item.project.thumbnail,
-        title:this.item.project.title,
+        published: true,
+        ratio: this.item.project.ratio,
+        remixedFrom: this.item.project.remixedFrom,
+        tags: this.item.project.tags,
+        thumbnail: this.item.project.thumbnail,
+        title: this.item.project.title,
 
       }
 
@@ -1739,8 +1795,8 @@ export default class ProjectStore extends BaseStore {
         },
       });
       const publishedMakeIos = await this.publish(result1._id);
-      console.log(publishedMakeIos, "publishedMakeIos")
-      await this.updateIOSVideo(result, publishedMakeIos)
+
+      await this.updateIOSVideo(result, publishedMakeIos, publishDownloadVideoMake)
       const publishedMake = await this.publish(result._id);
       await this.processRunning(result._id);
 
@@ -1784,7 +1840,7 @@ export default class ProjectStore extends BaseStore {
           }
         }
       } else if (actionType === ACTION_MAKE_COPY || actionType === ACTION_WATCH_VIDEO) {
-                closeAllWindows();
+        closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
           if (actionType === ACTION_MAKE_COPY) {
@@ -1810,7 +1866,7 @@ export default class ProjectStore extends BaseStore {
           setInitialView();
         }
       } else if (this.saveButton == "") {
-                closeAllWindows();
+        closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
           if (actionType === ACTION_MAKE_COPY) {
@@ -1883,8 +1939,7 @@ export default class ProjectStore extends BaseStore {
     },
   });
 
-  updateIOSVideo = (result, data) => {
-    console.log(result,data,"fkhdjklhglgfhgj")
+  updateIOSVideo = (result, data, publishDownloadVideoMake) => {
     this.request(
       `/api/projects/update-revolution-video`, {
       method: 'POST',
@@ -1893,9 +1948,11 @@ export default class ProjectStore extends BaseStore {
       },
       body: {
         acutalMake: result,
-        RecordedMakedata: data
+        RecordedMakedata: data,
+        downloadVideoMake: publishDownloadVideoMake
       },
-    })};
+    })
+  };
 
   fromTemplate = async (makeTemplate = {}, video = null, isSource) => {
     this.item.allowedSocials = ['facebook'];
