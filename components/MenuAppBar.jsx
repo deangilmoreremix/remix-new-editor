@@ -166,7 +166,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   },[setInitialView, showProducePanel])
 
   const downloadVideo = useCallback(async () => {
-    saveAs(item.iosurl, 'video.mp4');
+    saveAs(item.iosurl, item.title);
   },[item.iosurl]);
 
 
