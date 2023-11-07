@@ -300,7 +300,7 @@ const Home = observer(() => {
 
   useEffect(() => {
     if(!isLoadingIosProcess) {
-      setProgress(0);
+      setProgress(1);
     }
   },[isLoadingIosProcess])
 

@@ -66,6 +66,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     setIsPublished,
     isPublished,
     setButtonType,
+    isLoadingIosProcess
   } = useProjectStore();
   const {
     pathname,
@@ -347,18 +348,18 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
             {revolutionDownloadVideoEnabled &&  <div className="container-menu__actions__item">
                 <div>
                   <SVGInline
-                    className={`icon icon-button ${project ? 'active-save' : ''}`}
+                    className={`icon icon-button ${!isLoadingIosProcess && project ? 'active-save' : ''}`}
                     classSuffix=""
                     svg={downloadIcon}
                     cleanup={['title']}
                     component="button"
                     onClick={downloadVideo}
-                    disabled={!project}
+                    disabled={isLoadingIosProcess && !project}
                   />
                   <button
-                    className={`icon-button container-menu__button-text ${project ? 'active-save' : ''}`}
+                    className={`icon-button container-menu__button-text ${!isLoadingIosProcess && project ? 'active-save' : ''}`}
                     onClick={downloadVideo}
-                    disabled={!project}
+                    disabled={isLoadingIosProcess && !project}
                   >
                     {DOWNLOAD}
                   </button>
