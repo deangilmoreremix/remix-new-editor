@@ -1708,7 +1708,7 @@ export default class ProjectStore extends BaseStore {
       downloadVideoData.data = JSON.stringify(downloadVideoData.data)
       let rendomTitle = Math.random().toString(36).substring(2, 7);
       let newItem = {
-        allowedSocials: this.item.allowedSocials,
+        allowedSocials: [],
         background: this.item.background,
         categories: this.item.categories,
         description: this.item.description,
