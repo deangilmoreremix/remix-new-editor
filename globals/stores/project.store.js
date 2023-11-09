@@ -1688,6 +1688,7 @@ export default class ProjectStore extends BaseStore {
         },
       });
       let downloadVideoData = serializedData;
+      downloadVideoData.allowedSocials = [];
       downloadVideoData.data = JSON.parse(downloadVideoData.data);
       console.log(downloadVideoData.data, " downloadVideoData.data before")
       downloadVideoData.data = {
@@ -1704,7 +1705,7 @@ export default class ProjectStore extends BaseStore {
           }))
         }))
       };
-      console.log(downloadVideoData.data, "downloadVideoData.data")
+      console.log(downloadVideoData, "downloadVideoData.data")
       downloadVideoData.data = JSON.stringify(downloadVideoData.data)
       let rendomTitle = Math.random().toString(36).substring(2, 7);
       let newItem = {
