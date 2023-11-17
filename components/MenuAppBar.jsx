@@ -215,7 +215,6 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   };
  
 
-
   return (
     <div className="container-header" ref={anchorRef}>
       <AppBar position="static" className="app-bar">
@@ -349,10 +348,10 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               </HelpIconComponent>
             </div>
             }
-            {revolutionDownloadVideoEnabled &&  <div className="container-menu__actions__item">
+            {revolutionDownloadVideoEnabled && item.iosurl &&  <div className="container-menu__actions__item">
                 <div>
                   <SVGInline
-                    className={`icon icon-button ${!isLoadingIosProcess && project ? 'active-save' : ''}`}
+                    className={`icon icon-button ${!isLoadingIosProcess && project  ? 'active-save' : ''}`}
                     classSuffix=""
                     svg={downloadIcon}
                     cleanup={['title']}
@@ -361,7 +360,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                     disabled={isLoadingIosProcess && !project}
                   />
                   <button
-                    className={`icon-button container-menu__button-text ${!isLoadingIosProcess && project ? 'active-save' : ''}`}
+                    className={`icon-button container-menu__button-text ${!isLoadingIosProcess && project  ? 'active-save' : ''}`}
                     onClick={downloadVideo}
                     disabled={isLoadingIosProcess && !project}
                   >
