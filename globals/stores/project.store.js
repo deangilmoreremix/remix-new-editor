@@ -1611,7 +1611,7 @@ export default class ProjectStore extends BaseStore {
     }
     if (!result.isVideoMergeProcess) {
       this.isLoadingIosProcess = false;
-      this.item.iosurl  = result.iosurl;
+      this.item.iosurl = result.iosurl;
     }
   };
 
@@ -1625,7 +1625,7 @@ export default class ProjectStore extends BaseStore {
     this.undoStore = [];
     this.redoStore = [];
     this.isLoading = true;
-    this.isLoadingIosProcess = true;
+
     const { byEnd } = this.popcorn && this.popcorn.data.trackEvents;
 
     // crop video
@@ -1688,119 +1688,132 @@ export default class ProjectStore extends BaseStore {
         },
       });
       let downloadVideoData = serializedData;
-      downloadVideoData.allowedSocials = [];
       downloadVideoData.data = JSON.parse(downloadVideoData.data);
-      console.log(downloadVideoData.data, " downloadVideoData.data before")
-      downloadVideoData.data = {
-        ...downloadVideoData.data,
-        media: downloadVideoData.data.media.map(item => ({
-          ...item,
-          tracks: item.tracks.map(track => ({
-            ...track,
-            trackEvents: track.trackEvents.filter(event => {
-              if (event.type === "sequencer" || event.type === 'image' || event.type === 'text') {
-                return event;
-              }
-            })
+      const hasNonEmptyTrackEvents = downloadVideoData.data.media.some(
+        mediaItem => mediaItem.tracks.some(track => track.trackEvents.length > 0)
+      );
+      const hasSequencer = downloadVideoData.data.media.some(mediaItem =>
+        mediaItem.tracks.some(track =>
+          track.trackEvents.some(event =>
+            event.type === "sequencer"
+          )
+        )
+      );
+      if (hasNonEmptyTrackEvents && hasSequencer) {
+        this.isLoadingIosProcess = true;
+        downloadVideoData.allowedSocials = [];
+        downloadVideoData.data = {
+          ...downloadVideoData.data,
+          media: downloadVideoData.data.media.map(item => ({
+            ...item,
+            tracks: item.tracks.map(track => ({
+              ...track,
+              trackEvents: track.trackEvents.filter(event => {
+                if (event.type === "sequencer" || event.type === 'image' || event.type === 'text') {
+                  return event;
+                }
+              })
+            }))
           }))
-        }))
-      };
-      console.log(downloadVideoData, "downloadVideoData.data")
-      downloadVideoData.data = JSON.stringify(downloadVideoData.data)
-      let rendomTitle = Math.random().toString(36).substring(2, 7);
-      let newItem = {
-        allowedSocials: [],
-        background: this.item.background,
-        categories: this.item.categories,
-        description: this.item.description,
-        disabledPlaybar: this.item.disabledPlaybar,
-        project: {
-          data: this.item.project.data
-        },
-        published: true,
-        ratio: this.item.project.ratio,
-        remixedFrom: this.item.project.remixedFrom,
-        tags: this.item.project.tags,
-        thumbnail: this.item.project.thumbnail,
-        title: this.item.project.title,
+        };
+        let rendomTitle = Math.random().toString(36).substring(2, 7);
+        downloadVideoData.data = JSON.stringify(downloadVideoData.data)
+        let newItem = {
+          allowedSocials: [],
+          background: this.item.background,
+          categories: this.item.categories,
+          description: this.item.description,
+          disabledPlaybar: this.item.disabledPlaybar,
+          project: {
+            data: this.item.project.data
+          },
+          published: true,
+          ratio: this.item.project.ratio,
+          remixedFrom: this.item.project.remixedFrom,
+          tags: this.item.project.tags,
+          thumbnail: this.item.project.thumbnail,
+          title: this.item.project.title,
 
-      }
+        }
 
-      const downloadVideoMake = await this.request(
-        '/api/users/me/makes', {
-        method: 'POST',
-        headers: {
-          'on-behalf': this.currentUser.id,
-        },
-        body: {
-          ...newItem,
-          title: rendomTitle,
-          description: serializedData.description,
-          project: downloadVideoData,
-          thumbnail: serializedData.thumbnail,
-          remixedFrom: serializedData.source,
-          tags: serializedData.tags,
-          disabledPlaybar: serializedData.disabledPlaybar,
-          categories: serializedData.categories,
-        },
-      });
-      console.log(downloadVideoMake._id, "downloadVideoData.data")
-      const publishDownloadVideoMake = await this.publish(downloadVideoMake._id);
-      console.log(publishDownloadVideoMake, "publishDownloadVideoMake")
-      serializedData.data = JSON.parse(serializedData.data);
-      serializedData.data = {
-        ...serializedData.data,
-        media: serializedData.data.media.map(item => ({
-          ...item,
-          tracks: item.tracks.map(track => ({
-            ...track,
-            trackEvents: track.trackEvents.filter(event => event.type === "sequencer")
+        const downloadVideoMake = await this.request(
+          '/api/users/me/makes', {
+          method: 'POST',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+          body: {
+            ...newItem,
+            title: rendomTitle,
+            description: serializedData.description,
+            project: downloadVideoData,
+            thumbnail: serializedData.thumbnail,
+            remixedFrom: serializedData.source,
+            tags: serializedData.tags,
+            disabledPlaybar: serializedData.disabledPlaybar,
+            categories: serializedData.categories,
+          },
+        });
+
+        console.log(downloadVideoMake._id, "fjsdjfdsds")
+        const publishDownloadVideoMake = await this.publish(downloadVideoMake._id);
+        serializedData.data = JSON.parse(serializedData.data);
+        serializedData.data = {
+          ...serializedData.data,
+          media: serializedData.data.media.map(item => ({
+            ...item,
+            tracks: item.tracks.map(track => ({
+              ...track,
+              trackEvents: track.trackEvents.filter(event => event.type === "sequencer")
+            }))
           }))
-        }))
-      };
-      serializedData.data = JSON.stringify(serializedData.data)
-      rendomTitle = Math.random().toString(36).substring(2, 7);
-      newItem = {
-        allowedSocials: this.item.allowedSocials,
-        background: this.item.background,
-        categories: this.item.categories,
-        description: this.item.description,
-        disabledPlaybar: this.item.disabledPlaybar,
-        project: {
-          data: this.item.project.data
-        },
-        published: true,
-        ratio: this.item.project.ratio,
-        remixedFrom: this.item.project.remixedFrom,
-        tags: this.item.project.tags,
-        thumbnail: this.item.project.thumbnail,
-        title: this.item.project.title,
+        };
+        serializedData.data = JSON.stringify(serializedData.data)
+        rendomTitle = Math.random().toString(36).substring(2, 7);
+        newItem = {
+          allowedSocials: this.item.allowedSocials,
+          background: this.item.background,
+          categories: this.item.categories,
+          description: this.item.description,
+          disabledPlaybar: this.item.disabledPlaybar,
+          project: {
+            data: this.item.project.data
+          },
+          published: true,
+          ratio: this.item.project.ratio,
+          remixedFrom: this.item.project.remixedFrom,
+          tags: this.item.project.tags,
+          thumbnail: this.item.project.thumbnail,
+          title: this.item.project.title,
 
+        }
+
+        const result1 = await this.request(
+          '/api/users/me/makes', {
+          method: 'POST',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+          body: {
+            ...newItem,
+            title: rendomTitle,
+            description: serializedData.description,
+            project: serializedData,
+            thumbnail: serializedData.thumbnail,
+            remixedFrom: serializedData.source,
+            tags: serializedData.tags,
+            disabledPlaybar: serializedData.disabledPlaybar,
+            categories: serializedData.categories,
+          },
+        });
+        const publishedMakeIos = await this.publish(result1._id);
+
+        await this.updateIOSVideo(result, publishedMakeIos, publishDownloadVideoMake)
       }
-
-      const result1 = await this.request(
-        '/api/users/me/makes', {
-        method: 'POST',
-        headers: {
-          'on-behalf': this.currentUser.id,
-        },
-        body: {
-          ...newItem,
-          title: rendomTitle,
-          description: serializedData.description,
-          project: serializedData,
-          thumbnail: serializedData.thumbnail,
-          remixedFrom: serializedData.source,
-          tags: serializedData.tags,
-          disabledPlaybar: serializedData.disabledPlaybar,
-          categories: serializedData.categories,
-        },
-      });
-      const publishedMakeIos = await this.publish(result1._id);
-
-      await this.updateIOSVideo(result, publishedMakeIos, publishDownloadVideoMake)
       const publishedMake = await this.publish(result._id);
-      await this.processRunning(result._id);
+      if (hasNonEmptyTrackEvents) {
+        await this.processRunning(result._id);
+      }
 
       runInAction(() => {
         this.item = { ...this.item, ...result };
