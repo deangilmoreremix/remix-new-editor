@@ -1732,7 +1732,7 @@ export default class ProjectStore extends BaseStore {
           remixedFrom: this.item.project.remixedFrom,
           tags: this.item.project.tags,
           thumbnail: this.item.project.thumbnail,
-          title: this.item.project.title,
+          title: rendomTitle,
 
         }
 
@@ -1784,7 +1784,7 @@ export default class ProjectStore extends BaseStore {
           remixedFrom: this.item.project.remixedFrom,
           tags: this.item.project.tags,
           thumbnail: this.item.project.thumbnail,
-          title: this.item.project.title,
+          title: rendomTitle,
 
         }
 
