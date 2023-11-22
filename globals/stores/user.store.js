@@ -14,6 +14,8 @@ export default class UserStore {
     this.selfRequest = requestCreator(hostname, null, isServer, () => { });
     this.currentUser.cutoutproCreditUsed = 0;
     this.currentUser.cutoutProCreditAvailableBalance = 0;
+    this.currentUser.videoDownloadCreditUsed = 0;
+    this.currentUser.videoDownloadAvailableCredit = 0;
   }
 
   @computed
@@ -244,6 +246,25 @@ export default class UserStore {
   };
 
   @action
+  userVideoDownloadBalance = async () => {
+    let user;
+    try {
+      user = await this.request('/api/users/me?getVideoDownload=true', {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      this.currentUser.downloadVideoLimitUsed = user.videoDownloadCredit;
+      this.currentUser.availableDownloadVideoLimit = user.ttsAmountOfAvailableCredit;
+      // return user.ttsAmountOfAvailableCredit;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
   updateUserCreditUseAndGetUserCreditBalance = async (body) => {
     try {
       const response = await this.selfRequest('/users/me', {
@@ -274,6 +295,37 @@ export default class UserStore {
     }
   };
 
+  @action
+  updateDownloadVideoAndGetDownloadVideoLimit = async (body) => {
+    try {
+      const response = await this.selfRequest('/users/me', {
+        method: 'PATCH',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      if (response) {
+        this.currentUser[Object.keys(body)[0]] = response.body.user[Object.keys(body)[0]];
+        // let user;
+        const user = await this.request('/api/users/me?getVideoDownload=true', {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+        this.currentUser.downloadVideoLimitUsed = user.videoDownloadCredit;
+        this.currentUser.availableDownloadVideoLimit = user.ttsAmountOfAvailableCredit;
+        // cutoutProCreditUserUsed();
+        // cutoutProCreditAvailableBalance();
+        // return user.ttsAmountOfAvailableCredit;
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
   @computed
   get cutoutProCreditUserUsed() {
     return this.currentUser.cutoutproCreditUsed || 0;
@@ -285,6 +337,16 @@ export default class UserStore {
     return this.currentUser.cutoutProCreditAvailableBalance || 0;
   }
 
+  @computed
+  get downloadVideoLimitUsed() {
+    return this.currentUser.downloadVideoLimitUsed || 0;
+  }
+
+
+  @computed
+  get availableDownloadVideoLimit() {
+    return this.currentUser.availableDownloadVideoLimit || 0;
+  }
 
   @action
   getUserKey = (activeBtn) => {

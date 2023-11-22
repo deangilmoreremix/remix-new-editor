@@ -50,9 +50,9 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
 
   const [isProjectTitle, setProjectTitle] = useState(false);
   const [userItems, setUserItems] = useState([]);
-  const [disabledDraft,setDisabledDraft] = useState(false);
-  const [disabledPublish,setDisabledPublish] = useState(false);
-  const [progress,setProgress] = useState(0);
+  const [disabledDraft, setDisabledDraft] = useState(false);
+  const [disabledPublish, setDisabledPublish] = useState(false);
+  const [progress, setProgress] = useState(0);
   const {
     modified,
     undoRedoAction,
@@ -74,11 +74,10 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     push,
   } = useRouter();
 
-  
+
 
   const common = useCommonStore();
-  const { oneOfFeatureEnabled, publishEnabled, currentUser, revolutionDownloadVideoEnabled,smartaimentorsEnabled } = useUserStore();
-  console.log(revolutionDownloadVideoEnabled,"revolutionDownloadVideoEnabled")
+  const { oneOfFeatureEnabled, publishEnabled, currentUser, revolutionDownloadVideoEnabled, smartaimentorsEnabled, availableDownloadVideoLimit, userVideoDownloadBalance, downloadVideoLimitUsed, updateDownloadVideoAndGetDownloadVideoLimit } = useUserStore();
 
   const {
     showProducePanel,
@@ -86,17 +85,17 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     changeRadioButton,
     closeAllWindows,
   } = useUIStore();
-
-    useEffect(() => {
-      if(item.published == false) {
-        setDisabledDraft(true);
-        setDisabledPublish(false);
-      }
-      if(item.published == true) {
-        setDisabledPublish(true);
-        setDisabledDraft(false);
-      }
-    },[item.published])
+  console.log(downloadVideoLimitUsed, "downloadVideoLimitUsed=>");
+  useEffect(() => {
+    if (item.published == false) {
+      setDisabledDraft(true);
+      setDisabledPublish(false);
+    }
+    if (item.published == true) {
+      setDisabledPublish(true);
+      setDisabledDraft(false);
+    }
+  }, [item.published])
 
   useEffect(() => {
     if (USER_MENU_ITEMS(common)) {
@@ -107,7 +106,15 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       }))
     }
   }, []);
-  console.log(currentUser,"current-user")
+
+  const quantify = () => {
+    userVideoDownloadBalance()
+      .catch(() => showError('Limit Exceeded!'));
+  };
+
+  useEffect(() => quantify(), []);
+
+  console.log(currentUser, "current-user")
   const saveProject = useCallback(async () => {
     let value = '';
     await setButtonType("");
@@ -170,8 +177,10 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   }, [setInitialView, showProducePanel])
 
   const downloadVideo = useCallback(async () => {
+    const total = downloadVideoLimitUsed + 1;
     saveAs(item.iosurl, item.title);
-  },[item.iosurl]);
+    updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
+  }, [item.iosurl,downloadVideoLimitUsed]);
 
 
 
@@ -213,7 +222,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       setProjectTitle(false);
     }
   };
- 
+
 
   return (
     <div className="container-header" ref={anchorRef}>
@@ -348,29 +357,29 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               </HelpIconComponent>
             </div>
             }
-            {revolutionDownloadVideoEnabled && item.iosurl &&  <div className="container-menu__actions__item">
-                <div>
-                  <SVGInline
-                    className={`icon icon-button ${!isLoadingIosProcess && project  ? 'active-save' : ''}`}
-                    classSuffix=""
-                    svg={downloadIcon}
-                    cleanup={['title']}
-                    component="button"
-                    onClick={downloadVideo}
-                    disabled={isLoadingIosProcess && !project}
-                  />
-                  <button
-                    className={`icon-button container-menu__button-text ${!isLoadingIosProcess && project  ? 'active-save' : ''}`}
-                    onClick={downloadVideo}
-                    disabled={isLoadingIosProcess && !project}
-                  >
-                    {DOWNLOAD}
-                  </button>
-                </div>
+            {revolutionDownloadVideoEnabled && item.iosurl && <div className="container-menu__actions__item">
+              <div>
+                <SVGInline
+                  className={`icon icon-button ${!isLoadingIosProcess && project && availableDownloadVideoLimit > 0 ? 'active-save' : ''}`}
+                  classSuffix=""
+                  svg={downloadIcon}
+                  cleanup={['title']}
+                  component="button"
+                  onClick={downloadVideo}
+                  disabled={(isLoadingIosProcess && !project) || availableDownloadVideoLimit <= 0}
+                />
+                <button
+                  className={`icon-button container-menu__button-text ${!isLoadingIosProcess && project && availableDownloadVideoLimit > 0 ? 'active-save' : ''}`}
+                  onClick={downloadVideo}
+                  disabled={(isLoadingIosProcess && !project) || availableDownloadVideoLimit <= 0}
+                >
+                  {DOWNLOAD}
+                </button>
+              </div>
             </div>
             }
           </div>
-          
+
           <div className="container-menu__project-name">
             {isProjectTitle ? (
               <input
