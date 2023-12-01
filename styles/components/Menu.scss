@@ -33,7 +33,60 @@ button.menu__open {
       background: $btn-gray;
   }
 }
+.qualitymenu__item{
+  @include reset-button;
+  text-align: start;
+  display: flex;
+  align-items: center;
+  width: 270px;
+  margin: auto;
+  // height: 2.8rem;
+  gap: 5px;
+  padding: 10px 10px 10px 10px;
+  border-bottom: 0.5px solid #777370;
+  height: max-content;
+  justify-content: flex-start;
+  font-size: 0.86rem;
+  cursor: pointer;
+  color: $white;
+  &:hover {
+    background: $secondary-color;
+    .menu__item-icon path, .menu__item-icon polyline {
+      stroke: $white;
+    }
+  }
+  &.inactive:hover {
+      background: $btn-gray;
+  }
+  &:last-child{
+    border: none;
+  }
+}
+.qualitymenu__item>input{
+  cursor: pointer;
 
+}
+.qualitymenu_chip{
+  position: absolute !important;
+  right: 10px !important;
+  color: #42c775 !important;
+  border-color: #42c775 !important;
+  padding: 0px 4px !important;
+  height: 26px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+}
+.qualitymenu_chip:hover{
+  background-color: #42c775 !important;
+  color: rgba(255, 255, 255, 0.863) !important;
+}
+.qualitytype{
+  font-size: 16px;
+}
+.qualitymenu__itemdiv{
+ line-height: 1.22rem; 
+}
 .menu__item + a {
   text-decoration: none;
 }
