@@ -16,6 +16,7 @@ export default class UserStore {
     this.currentUser.cutoutProCreditAvailableBalance = 0;
     this.currentUser.videoDownloadCreditUsed = 0;
     this.currentUser.videoDownloadAvailableCredit = 0;
+    this.downloadVideoUrl = ''
   }
 
   @computed
@@ -141,6 +142,24 @@ export default class UserStore {
   };
 
   @action
+  getVideo = async (body) => {
+    let url;
+    try {
+      url  = await this.request('/api/projects/update-video-quality', {
+        method: 'POST',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      this.downloadVideoUrl = url;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
   getUpgradeLinkRole = async (title,envTitle,revTitle) => {
     let userObject;
     try {
@@ -257,7 +276,7 @@ export default class UserStore {
       });
       this.currentUser.downloadVideoLimitUsed = user.videoDownloadCredit;
       this.currentUser.availableDownloadVideoLimit = user.ttsAmountOfAvailableCredit;
-      // return user.ttsAmountOfAvailableCredit;
+            // return user.ttsAmountOfAvailableCredit;
     } catch (e) {
       console.log(e);
       throw e;
