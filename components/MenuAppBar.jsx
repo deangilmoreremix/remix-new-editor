@@ -99,7 +99,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     changeRadioButton,
     closeAllWindows,
   } = useUIStore();
-  console.log(downloadVideoLimitUsed, "downloadVideoLimitUsed=>");
+  console.log(availableDownloadVideoLimit, "downloadVideoLimitUsed=>");
   useEffect(() => {
     if (item.published == false) {
       setDisabledDraft(true);
@@ -125,7 +125,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     userVideoDownloadBalance()
       .catch(() => showError('Limit Exceeded!'));
   };
-
+  console.log(item, "item=")
   useEffect(() => quantify(), []);
 
   console.log(currentUser, "current-user")
@@ -190,11 +190,11 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     }
   }, [setInitialView, showProducePanel])
 
-  const downloadVideo = useCallback(async (quality) => {
-    const total = downloadVideoLimitUsed + 1;
-    saveAs(item.iosurl, item.title);
-    updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
-  }, [item.iosurl, downloadVideoLimitUsed]);
+  // const downloadVideo = useCallback(async (quality) => {
+  //   const total = downloadVideoLimitUsed + 1;
+  //   saveAs(item.iosurl, item.title);
+  //   updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
+  // }, [item.iosurl, downloadVideoLimitUsed]);
 
 
 
@@ -240,20 +240,27 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     setValue(event);
     // setValue(event.target.value);
   };
-  useEffect(() => {
-    if (downloadVideoUrl) {
-      saveAs(downloadVideoUrl, item.title)
-    }
-  }, [downloadVideoUrl])
+  // useEffect(() => {
+  //   if (downloadVideoUrl) {
+  //     saveAs(downloadVideoUrl, item.title)
+  //   }
+  // }, [downloadVideoUrl])
   const download360 = useCallback(async (quality) => {
-    console.log(quality,"quality==>>>")
     if (!isLoadingIosProcess && project && item.iosurl && availableDownloadVideoLimit > 0) {
-      await getVideo({ quality: quality, url: item.iosurl })
+      if (quality == 480) {
+        saveAs(item.goodQualityUrl, item.title)
+      }
+      else if (quality == 720) {
+        saveAs(item.standardQualityUrl, item.title)
+      }
+      else if (quality == 1080) {
+        saveAs(item.iosurl, item.title)
+      }
       const total = downloadVideoLimitUsed + 1;
-      updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
+      await updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
       setOpen(false)
     }
-  }, [item.iosurl, downloadVideoLimitUsed, availableDownloadVideoLimit])
+  }, [item.iosurl, item.standardQualityUrl, item.goodQualityUrl, downloadVideoLimitUsed, availableDownloadVideoLimit])
   return (
     <div className="container-header" ref={anchorRef}>
       <AppBar position="static" className="app-bar">
@@ -387,7 +394,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
               </HelpIconComponent>
             </div>
             }
-            {console.log((isLoadingIosProcess && !project && !item.iosurl),"(isLoadingIosProcess && !project && !item.iosurl) || availableDownloadVideoLimit <= 0",availableDownloadVideoLimit <= 0)}
+            {console.log((isLoadingIosProcess && !project && !item.iosurl), "(isLoadingIosProcess && !project && !item.iosurl) || availableDownloadVideoLimit <= 0", availableDownloadVideoLimit <= 0)}
             {revolutionDownloadVideoEnabled && <div className="container-menu__actions__item">
               <div ref={buttonref}>
                 {console.log("availableDownloadVideoLimit:" + availableDownloadVideoLimit, !isLoadingIosProcess, project, item.iosurl)}
@@ -398,12 +405,12 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                   cleanup={['title']}
                   component="button"
                   onClick={() => setOpen(true)}
-                  disabled={(!project && !item.iosurl) || isLoadingIosProcess   || availableDownloadVideoLimit <= 0}
+                  disabled={(!project && !item.iosurl) || isLoadingIosProcess || availableDownloadVideoLimit <= 0}
                 />
                 <button
                   className={`icon-button container-menu__button-text ${!isLoadingIosProcess && project && availableDownloadVideoLimit > 0 && item.iosurl ? 'active-save' : ''}`}
                   onClick={() => setOpen(true)}
-                  disabled={(!project && !item.iosurl) || isLoadingIosProcess  || availableDownloadVideoLimit <= 0}
+                  disabled={(!project && !item.iosurl) || isLoadingIosProcess || availableDownloadVideoLimit <= 0}
                 >
                   {DOWNLOAD}
                 </button>
@@ -449,7 +456,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                               }}
                               checked={value == item.qua ? true : false}
                               checkedIcon={<CheckCircleIcon style={{ color: "#d17504" }} />}
-                            /> */}  
+                            /> */}
                             <div className='qualitymenu__itemdiv' onClick={() => download360(item.qua)}  ><span><span className='qualitytype'>{item.qua}{item.tag}</span> <br /><span>{item.desc}</span></span></div>
                             {/* {item.qua === 1080 && <Chip label="Plus" className='qualitymenu_chip' variant="outlined" />} */}
                           </div>
@@ -528,7 +535,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
             className="user-menu flex-center"
             needEndIcon
           />
-         
+
         </Toolbar>
 
       </AppBar>
