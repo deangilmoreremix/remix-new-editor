@@ -1612,6 +1612,8 @@ export default class ProjectStore extends BaseStore {
     if (!result.isVideoMergeProcess) {
       this.isLoadingIosProcess = false;
       this.item.iosurl = result.iosurl;
+      this.item.standardQualityUrl = result.standardQualityUrl;
+      this.item.goodQualityUrl = result.goodQualityUrl;
     }
   };
 
