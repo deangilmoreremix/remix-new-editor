@@ -1810,7 +1810,67 @@ export default class ProjectStore extends BaseStore {
         });
         const publishedMakeIos = await this.publish(result1._id);
 
-        await this.updateIOSVideo(result, publishedMakeIos, publishDownloadVideoMake)
+        await this.updateIOSVideo(result,publishDownloadVideoMake,  publishedMakeIos,)
+      }
+      else if (hasNonEmptyTrackEvents && !hasSequencer) {
+        this.isLoadingIosProcess = true;
+        downloadVideoData.allowedSocials = [];
+        downloadVideoData.data = {
+          ...downloadVideoData.data,
+          media: downloadVideoData.data.media.map(item => ({
+            ...item,
+            tracks: item.tracks.map(track => ({
+              ...track,
+              trackEvents: track.trackEvents.filter(event => {
+                if (event.type === "sequencer" || event.type === 'image' || event.type === 'text') {
+                  return event;
+                }
+              })
+            }))
+          }))
+        };
+        let rendomTitle = Math.random().toString(36).substring(2, 7);
+        downloadVideoData.data = JSON.stringify(downloadVideoData.data)
+        let newItem = {
+          allowedSocials: [],
+          background: this.item.background,
+          categories: this.item.categories,
+          description: this.item.description,
+          disabledPlaybar: this.item.disabledPlaybar,
+          project: {
+            data: this.item.project.data
+          },
+          published: true,
+          ratio: this.item.project.ratio,
+          remixedFrom: this.item.project.remixedFrom,
+          tags: this.item.project.tags,
+          thumbnail: this.item.project.thumbnail,
+          title: rendomTitle,
+
+        }
+
+        const downloadVideoMake = await this.request(
+          '/api/users/me/makes', {
+          method: 'POST',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+          body: {
+            ...newItem,
+            title: rendomTitle,
+            description: serializedData.description,
+            project: downloadVideoData,
+            thumbnail: serializedData.thumbnail,
+            remixedFrom: serializedData.source,
+            tags: serializedData.tags,
+            disabledPlaybar: serializedData.disabledPlaybar,
+            categories: serializedData.categories,
+          },
+        });
+
+        const publishDownloadVideoMake = await this.publish(downloadVideoMake._id);
+
+        await this.updateIOSVideo(result,publishDownloadVideoMake)
       }
       const publishedMake = await this.publish(result._id);
       if (hasNonEmptyTrackEvents) {
@@ -1956,7 +2016,7 @@ export default class ProjectStore extends BaseStore {
     },
   });
 
-  updateIOSVideo = (result, data, publishDownloadVideoMake) => {
+  updateIOSVideo = (result, publishDownloadVideoMake, data) => {
     this.request(
       `/api/projects/update-revolution-video`, {
       method: 'POST',
