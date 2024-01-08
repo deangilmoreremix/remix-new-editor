@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import SVGInline from 'react-svg-inline';
 import { observer } from 'mobx-react';
 
@@ -11,6 +11,8 @@ import FieldBuilder from '../form/FieldBuilder';
 import guidelinesIcon from '../../public/static/svgImages/guidlines.svg';
 import { mainTooltips } from '../../lib/constants/tooltips';
 import HelpIconComponent from './HelpIcon';
+import PercentageProgressBar from '../media/PercentageProgressBar';
+import useProjectStore from '../hooks/useProjectStore';
 
 const GuidelinesActivation = observer(({ marginLeft }) => {
   const { hasGuidLines, setGuideLines } = useUIStore();
@@ -20,24 +22,26 @@ const GuidelinesActivation = observer(({ marginLeft }) => {
       className="guidelines-activation"
       style={marginLeft && { marginLeft }}
     >
-      <HelpIconComponent
-        noIcon
-        message={mainTooltips.guideline}
-      >
-        <SVGInline
-          svg={guidelinesIcon}
-          className="guidelines-icon"
-          cleanup={['guidelines']}
+      <div className='guideline-component'>
+        <HelpIconComponent
+          noIcon
+          message={mainTooltips.guideline}
+        >
+          <SVGInline
+            svg={guidelinesIcon}
+            className="guidelines-icon"
+            cleanup={['guidelines']}
+          />
+        </HelpIconComponent>
+        <FieldBuilder
+          type="checkbox"
+          label="Guideline"
+          value={hasGuidLines}
+          onChange={() => setGuideLines(!hasGuidLines)}
+          name="guidelines"
+          floatClassName="guidelines-field"
         />
-      </HelpIconComponent>
-      <FieldBuilder
-        type="checkbox"
-        label="Guideline"
-        value={hasGuidLines}
-        onChange={() => setGuideLines(!hasGuidLines)}
-        name="guidelines"
-        floatClassName="guidelines-field"
-      />
+      </div>
     </div>
   );
 });

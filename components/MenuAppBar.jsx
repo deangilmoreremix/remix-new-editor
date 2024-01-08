@@ -1,4 +1,10 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react';
+import { Popper, Grow, ClickAwayListener, Paper } from '@material-ui/core';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import Chip from '@material-ui/core/Chip';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
@@ -22,6 +28,8 @@ import draftIcon from '../public/static/svgImages/header/draft-icon.svg';
 
 import publishIcon from '../public/static/svgImages/header/published-icon.svg';
 import editIcon from '../public/static/svgImages/header/edit-project.svg';
+import downloadIcon from '../public/static/svgImages/header/download.svg';
+
 
 import useProjectStore from './hooks/useProjectStore';
 import useCommonStore from './hooks/useCommonStore';
@@ -32,23 +40,33 @@ import useMediaStore from './hooks/useMediaStore';
 import Sidebar from './Sidebar';
 
 import PropTypes from '../lib/PropTypes';
+import { useRouter } from 'next/router';
+import { Button } from 'react-bootstrap';
+import { saveAs } from 'file-saver';
+import { isNumber } from 'lodash';
 
 const {
   REDO,
   UNDO,
   SAVE,
   DRAFT,
-  SAVEASPUBLISH
+  SAVEASPUBLISH,
+  DOWNLOAD
 } = HEADER_ACTIONS;
 
 const MenuAppBar = observer(({ whiteLabelManager }) => {
   const anchorRef = useRef(null);
+  const buttonref = useRef(null);
+  const [open, setOpen] = React.useState(false);
+  const qualities = [{ qua: 480, tag: "p", desc: "Standard quality" }, { qua: 720, tag: "p", desc: "Good quality" }, { qua: 1080, tag: <span>p<sup>HD</sup></span>, desc: "High quality" }]
+  const [value, setValue] = React.useState('');
 
   const [isProjectTitle, setProjectTitle] = useState(false);
   const [userItems, setUserItems] = useState([]);
   const [disabledDraft, setDisabledDraft] = useState(false);
   const [disabledPublish, setDisabledPublish] = useState(false);
-
+  const [progress, setProgress] = useState(0);
+  const [url, setUrl] = useState();
   const {
     modified,
     undoRedoAction,
@@ -61,18 +79,27 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     getItemTitle,
     setIsPublished,
     isPublished,
-    setButtonType
+    setButtonType,
+    isLoadingIosProcess
   } = useProjectStore();
+  const {
+    pathname,
+    query: { project },
+    push,
+  } = useRouter();
+
+
 
   const common = useCommonStore();
-  const { oneOfFeatureEnabled, publishEnabled, smartaimentorsEnabled } = useUserStore();
+  const { oneOfFeatureEnabled, publishEnabled, currentUser, revolutionDownloadVideoEnabled, smartaimentorsEnabled, availableDownloadVideoLimit, userVideoDownloadBalance, downloadVideoLimitUsed, updateDownloadVideoAndGetDownloadVideoLimit, getVideo, downloadVideoUrl } = useUserStore();
+
   const {
     showProducePanel,
     setInitialView,
     changeRadioButton,
     closeAllWindows,
   } = useUIStore();
-
+  console.log(availableDownloadVideoLimit, "downloadVideoLimitUsed=>");
   useEffect(() => {
     if (item.published == false) {
       setDisabledDraft(true);
@@ -93,6 +120,15 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       }))
     }
   }, []);
+
+  const quantify = () => {
+    userVideoDownloadBalance()
+      .catch(() => showError('Limit Exceeded!'));
+  };
+  console.log(item, "item=")
+  useEffect(() => quantify(), []);
+
+  console.log(currentUser, "current-user")
   const saveProject = useCallback(async () => {
     let value = '';
     await setButtonType("");
@@ -154,6 +190,14 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     }
   }, [setInitialView, showProducePanel])
 
+  // const downloadVideo = useCallback(async (quality) => {
+  //   const total = downloadVideoLimitUsed + 1;
+  //   saveAs(item.iosurl, item.title);
+  //   updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
+  // }, [item.iosurl, downloadVideoLimitUsed]);
+
+
+
   const saveProjectAsDraft = useCallback(async () => {
     let value = '';
     await setIsPublished(false);
@@ -192,7 +236,31 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       setProjectTitle(false);
     }
   };
-
+  const handleRadioChange = (event) => {
+    setValue(event);
+    // setValue(event.target.value);
+  };
+  // useEffect(() => {
+  //   if (downloadVideoUrl) {
+  //     saveAs(downloadVideoUrl, item.title)
+  //   }
+  // }, [downloadVideoUrl])
+  const download360 = useCallback(async (quality) => {
+    if (!isLoadingIosProcess && project && item.iosurl && availableDownloadVideoLimit > 0) {
+      if (quality == 480) {
+        saveAs(item.goodQualityUrl, item.title)
+      }
+      else if (quality == 720) {
+        saveAs(item.standardQualityUrl, item.title)
+      }
+      else if (quality == 1080) {
+        saveAs(item.iosurl, item.title)
+      }
+      const total = downloadVideoLimitUsed + 1;
+      await updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
+      setOpen(false)
+    }
+  }, [item.iosurl, item.standardQualityUrl, item.goodQualityUrl, downloadVideoLimitUsed, availableDownloadVideoLimit])
   return (
     <div className="container-header" ref={anchorRef}>
       <AppBar position="static" className="app-bar">
@@ -324,8 +392,114 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                   </button>
                 </div>
               </HelpIconComponent>
-            </div>}
+            </div>
+            }
+            {console.log((isLoadingIosProcess && !project && !item.iosurl), "(isLoadingIosProcess && !project && !item.iosurl) || availableDownloadVideoLimit <= 0", availableDownloadVideoLimit <= 0)}
+            {revolutionDownloadVideoEnabled && <div className="container-menu__actions__item">
+              <div ref={buttonref}>
+                {console.log("availableDownloadVideoLimit:" + availableDownloadVideoLimit, !isLoadingIosProcess, project, item.iosurl)}
+                <SVGInline
+                  className={`icon icon-button ${!isLoadingIosProcess && project && availableDownloadVideoLimit > 0 && item.iosurl ? 'active-save' : ''}`}
+                  classSuffix=""
+                  svg={downloadIcon}
+                  cleanup={['title']}
+                  component="button"
+                  onClick={() => setOpen(true)}
+                  disabled={(!project && !item.iosurl) || isLoadingIosProcess || availableDownloadVideoLimit <= 0}
+                />
+                <button
+                  className={`icon-button container-menu__button-text ${!isLoadingIosProcess && project && availableDownloadVideoLimit > 0 && item.iosurl ? 'active-save' : ''}`}
+                  onClick={() => setOpen(true)}
+                  disabled={(!project && !item.iosurl) || isLoadingIosProcess || availableDownloadVideoLimit <= 0}
+                >
+                  {DOWNLOAD}
+                </button>
+              </div>
+            </div>
+            }
           </div>
+
+          {/* <Button onClick={() => setOpen(true)}  >360Quality</Button> */}
+          <Popper
+            open={open}
+            role={undefined}
+            transition
+            disablePortal
+            className="popover"
+            placement="bottom"
+            anchorEl={buttonref.current}
+            style={{ border: "none", backgroundColor: '#4B4B61' }}
+          >
+            {({ TransitionProps, placement: currentPlacement }) => (
+              <Grow
+                {...TransitionProps}
+                style={{ transformOrigin: currentPlacement === 'bottom' ? 'center top' : 'center bottom' }}
+              >
+                <Paper>
+                  <ClickAwayListener onClickAway={() => { setOpen(false); }}>
+                    <div
+                      className="menu__list "
+                      id="menu-list-grow"
+                      style={{ backgroundColor: "#4B4B61", borderRadius: "3px" }}
+                    >
+                      {qualities.map((item) => {
+                        return (
+                          <div className='qualitymenu__item' onClick={() => download360(item.qua)}>
+                            {/* <Radio
+                              value={item.qua}
+                              sx={{
+                                "&.MuiSvgIcon-root": {
+                                  color: "#c2bfbc",
+                                  backgroundColor: "#e3e0dc",
+                                  fontSize: "1.2em"
+                                },
+                              }}
+                              checked={value == item.qua ? true : false}
+                              checkedIcon={<CheckCircleIcon style={{ color: "#d17504" }} />}
+                            /> */}
+                            <div className='qualitymenu__itemdiv' onClick={() => download360(item.qua)}  ><span><span className='qualitytype'>{item.qua}{item.tag}</span> <br /><span>{item.desc}</span></span></div>
+                            {/* {item.qua === 1080 && <Chip label="Plus" className='qualitymenu_chip' variant="outlined" />} */}
+                          </div>
+                        )
+                      })}
+                      {/* <RadioGroup aria-label="quality" name="quality" value={value} onChange={handleRadioChange}>
+                        {qualities.map((item) => (
+                          <FormControlLabel
+                          className='qualitymenu__item'
+                            key={item.qua}
+                            value={item.qua}
+                            control={
+                              <Radio
+                                sx={{
+                                  "& .MuiSvgIcon-root": {
+                                    color: "#c2bfbc",
+                                    backgroundColor: "#e3e0dc",
+                                    fontSize: "1.2em"
+                                  },
+                                }}
+                                checked={value == item.qua ? true :false}
+                                checkedIcon={<CheckCircleIcon style={{ color: "#d17504" }} />}
+                              />
+                            }
+                            label={
+                                <div className='qualitymenu__itemdiv' onClick={() => download360(item.qua)}>
+                                  <span>
+                                    <span className='qualitytype'>{item.qua}{item.tag}</span>
+                                    <br />
+                                    {item.desc}
+                                  </span>
+                                  {item.qua === 1080 && <Chip label="Plus" className='qualitymenu_chip' variant="outlined" />}
+                                </div>
+                            }
+                          />
+                        ))}
+                      </RadioGroup> */}
+                    </div>
+                  </ClickAwayListener>
+                </Paper>
+              </Grow>
+            )}
+          </Popper>
 
           <div className="container-menu__project-name">
             {isProjectTitle ? (
@@ -361,7 +535,9 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
             className="user-menu flex-center"
             needEndIcon
           />
+
         </Toolbar>
+
       </AppBar>
     </div>
   );

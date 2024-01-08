@@ -224,6 +224,9 @@ export default class ProjectStore extends BaseStore {
 
   @observable isLoading = false;
 
+  @observable isLoadingIosProcess = false;
+
+
   @observable isLoadingSequencer = false;
 
   @observable isPublished = false;
@@ -293,9 +296,9 @@ export default class ProjectStore extends BaseStore {
     this.isRedirect = value;
   };
 
-  @action 
-  setIsPublished = (value =  false) => {
-    this.isPublished =  value;
+  @action
+  setIsPublished = (value = false) => {
+    this.isPublished = value;
   }
 
   @action
@@ -316,7 +319,6 @@ export default class ProjectStore extends BaseStore {
     const sortedElements = this.layer[0].trackEvents.sort((a, b) => a.popcornOptions.start - b.popcornOptions.start);
     // Get count of elements in active layer
     for (let i = 0; i < sortedElements.length; i++) {
-      console.log(sortedElements[i], sortedElements[i + 1], 'i');
       if (sortedElements[i] != sortedElements[sortedElements.length - 1]) {
         if (sortedElements[i].popcornOptions.end == sortedElements[i + 1].popcornOptions.start) {
           count++;
@@ -413,7 +415,7 @@ export default class ProjectStore extends BaseStore {
             const isAudio = AUDIO_KINDS.includes(item.kind);
             fileMeta = await this.mediaTypeDetector.getMetadata(source[0], isAudio
               ? ASSET_TYPES.AUDIO : ASSET_TYPES.VIDEO, fileDuration,
-            this.userStore.video360Enabled);
+              this.userStore.video360Enabled);
           } catch (e) {
             // if there is no error, then loading will hide, after adding the item to the popcorn
             this.isLoadingSequencer = false;
@@ -764,7 +766,7 @@ export default class ProjectStore extends BaseStore {
     const oldAnimation = isRetarget ? this.retarget.options.animation
       : (this.element && this.element.popcornOptions.animation);
     const durationOut = isRetarget
-    || (this.element && this.element.type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR) ? 2 : 1;
+      || (this.element && this.element.type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR) ? 2 : 1;
 
     const animation = {
       ...(oldAnimation ? { ...oldAnimation } : {}),
@@ -1001,11 +1003,11 @@ export default class ProjectStore extends BaseStore {
       try {
         const result = await this.request(
           path, {
-            method: 'GET',
-            headers: {
-              'on-behalf': this.currentUser.id,
-            },
-          });
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
 
         const { scenario } = result;
 
@@ -1069,11 +1071,11 @@ export default class ProjectStore extends BaseStore {
     try {
       const result = await this.request(
         path, {
-          method: 'POST',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+        method: 'POST',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
       this.fillMakeData(result, needData);
     } catch (e) {
       this.item = DEFAULT_ITEM;
@@ -1095,11 +1097,11 @@ export default class ProjectStore extends BaseStore {
     try {
       const result = await this.request(
         path, {
-          method: 'GET',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
       this.fillMakeData(result, isRemix);
     } catch (e) {
       this.item = DEFAULT_ITEM;
@@ -1408,7 +1410,7 @@ export default class ProjectStore extends BaseStore {
 
   isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'
     || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
-    && element.popcornOptions.contentType.indexOf('video/') === 0));
+      && element.popcornOptions.contentType.indexOf('video/') === 0));
 
   isAudio = (element) => !!((element.popcornOptions.type === 'SoundCloud')
     || (element.popcornOptions.contentType
@@ -1427,11 +1429,11 @@ export default class ProjectStore extends BaseStore {
     try {
       this.item = await this.request(
         path, {
-          method: 'GET',
-          headers: {
-            'on-behalf': this.currentUser.id,
-          },
-        });
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
       this.setProjectData(JSON.parse(this.item.project.data), true);
       if (this.item.project && this.item.project.allowedSocials) {
         this.item.allowedSocials = this.item.project.allowedSocials;
@@ -1596,6 +1598,26 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  processRunning = async (id) => {
+    const result = await this.request(
+      `/api/users/me/makes/${id}`, {
+      method: 'GET',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      }
+    })
+    if (result.isVideoMergeProcess) {
+      setTimeout(this.processRunning(id), 10000); // Call the function again after 10 seconds
+    }
+    if (!result.isVideoMergeProcess) {
+      this.isLoadingIosProcess = false;
+      this.item.iosurl = result.iosurl;
+      this.item.standardQualityUrl = result.standardQualityUrl;
+      this.item.goodQualityUrl = result.goodQualityUrl;
+    }
+  };
+
+  @action
   save = async () => {
     this.item.published = this.isPublished;
     //Commented to implement draft
@@ -1651,13 +1673,132 @@ export default class ProjectStore extends BaseStore {
       }
       const result = await this.request(
         path, {
-          method: this.item._id ? 'PATCH' : 'POST',
+        method: this.item._id ? 'PATCH' : 'POST',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+        body: {
+          ...this.item,
+          title: serializedData.name,
+          description: serializedData.description,
+          project: serializedData,
+          thumbnail: serializedData.thumbnail,
+          remixedFrom: serializedData.source,
+          tags: serializedData.tags,
+          disabledPlaybar: serializedData.disabledPlaybar,
+          categories: serializedData.categories,
+        },
+      });
+      let downloadVideoData = serializedData;
+      downloadVideoData.data = JSON.parse(downloadVideoData.data);
+      const hasNonEmptyTrackEvents = downloadVideoData.data.media.some(
+        mediaItem => mediaItem.tracks.some(track => track.trackEvents.length > 0)
+      );
+      const hasSequencer = downloadVideoData.data.media.some(mediaItem =>
+        mediaItem.tracks.some(track =>
+          track.trackEvents.some(event =>
+            event.type === "sequencer"
+          )
+        )
+      );
+      if (hasNonEmptyTrackEvents && hasSequencer) {
+        this.isLoadingIosProcess = true;
+        downloadVideoData.allowedSocials = [];
+        downloadVideoData.data = {
+          ...downloadVideoData.data,
+          media: downloadVideoData.data.media.map(item => ({
+            ...item,
+            tracks: item.tracks.map(track => ({
+              ...track,
+              trackEvents: track.trackEvents.filter(event => {
+                if (event.type === "sequencer" || event.type === 'image' || event.type === 'text') {
+                  return event;
+                }
+              })
+            }))
+          }))
+        };
+        let rendomTitle = Math.random().toString(36).substring(2, 7);
+        downloadVideoData.data = JSON.stringify(downloadVideoData.data)
+        let newItem = {
+          allowedSocials: [],
+          background: this.item.background,
+          categories: this.item.categories,
+          description: this.item.description,
+          disabledPlaybar: this.item.disabledPlaybar,
+          project: {
+            data: this.item.project.data
+          },
+          published: true,
+          ratio: this.item.project.ratio,
+          remixedFrom: this.item.project.remixedFrom,
+          tags: this.item.project.tags,
+          thumbnail: this.item.project.thumbnail,
+          title: rendomTitle,
+
+        }
+
+        const downloadVideoMake = await this.request(
+          '/api/users/me/makes', {
+          method: 'POST',
           headers: {
             'on-behalf': this.currentUser.id,
           },
           body: {
-            ...this.item,
-            title: serializedData.name,
+            ...newItem,
+            title: rendomTitle,
+            description: serializedData.description,
+            project: downloadVideoData,
+            thumbnail: serializedData.thumbnail,
+            remixedFrom: serializedData.source,
+            tags: serializedData.tags,
+            disabledPlaybar: serializedData.disabledPlaybar,
+            categories: serializedData.categories,
+          },
+        });
+
+        console.log(downloadVideoMake._id, "fjsdjfdsds")
+        const publishDownloadVideoMake = await this.publish(downloadVideoMake._id);
+        serializedData.data = JSON.parse(serializedData.data);
+        serializedData.data = {
+          ...serializedData.data,
+          media: serializedData.data.media.map(item => ({
+            ...item,
+            tracks: item.tracks.map(track => ({
+              ...track,
+              trackEvents: track.trackEvents.filter(event => ((event.type === "sequencer") || (event.type == "image" && event.popcornOptions.url.includes('gif'))))
+            }))
+          }))
+        };
+        serializedData.data = JSON.stringify(serializedData.data)
+        rendomTitle = Math.random().toString(36).substring(2, 7);
+        newItem = {
+          allowedSocials: this.item.allowedSocials,
+          background: this.item.background,
+          categories: this.item.categories,
+          description: this.item.description,
+          disabledPlaybar: this.item.disabledPlaybar,
+          project: {
+            data: this.item.project.data
+          },
+          published: true,
+          ratio: this.item.project.ratio,
+          remixedFrom: this.item.project.remixedFrom,
+          tags: this.item.project.tags,
+          thumbnail: this.item.project.thumbnail,
+          title: rendomTitle,
+
+        }
+
+        const result1 = await this.request(
+          '/api/users/me/makes', {
+          method: 'POST',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+          body: {
+            ...newItem,
+            title: rendomTitle,
             description: serializedData.description,
             project: serializedData,
             thumbnail: serializedData.thumbnail,
@@ -1667,7 +1808,75 @@ export default class ProjectStore extends BaseStore {
             categories: serializedData.categories,
           },
         });
+        const publishedMakeIos = await this.publish(result1._id);
+
+        await this.updateIOSVideo(result,publishDownloadVideoMake,  publishedMakeIos,)
+      }
+      else if (hasNonEmptyTrackEvents && !hasSequencer) {
+        this.isLoadingIosProcess = true;
+        downloadVideoData.allowedSocials = [];
+        downloadVideoData.data = {
+          ...downloadVideoData.data,
+          media: downloadVideoData.data.media.map(item => ({
+            ...item,
+            tracks: item.tracks.map(track => ({
+              ...track,
+              trackEvents: track.trackEvents.filter(event => {
+                if (event.type === "sequencer" || event.type === 'image' || event.type === 'text') {
+                  return event;
+                }
+              })
+            }))
+          }))
+        };
+        let rendomTitle = Math.random().toString(36).substring(2, 7);
+        downloadVideoData.data = JSON.stringify(downloadVideoData.data)
+        let newItem = {
+          allowedSocials: [],
+          background: this.item.background,
+          categories: this.item.categories,
+          description: this.item.description,
+          disabledPlaybar: this.item.disabledPlaybar,
+          project: {
+            data: this.item.project.data
+          },
+          published: true,
+          ratio: this.item.project.ratio,
+          remixedFrom: this.item.project.remixedFrom,
+          tags: this.item.project.tags,
+          thumbnail: this.item.project.thumbnail,
+          title: rendomTitle,
+
+        }
+
+        const downloadVideoMake = await this.request(
+          '/api/users/me/makes', {
+          method: 'POST',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+          body: {
+            ...newItem,
+            title: rendomTitle,
+            description: serializedData.description,
+            project: downloadVideoData,
+            thumbnail: serializedData.thumbnail,
+            remixedFrom: serializedData.source,
+            tags: serializedData.tags,
+            disabledPlaybar: serializedData.disabledPlaybar,
+            categories: serializedData.categories,
+          },
+        });
+
+        const publishDownloadVideoMake = await this.publish(downloadVideoMake._id);
+
+        await this.updateIOSVideo(result,publishDownloadVideoMake)
+      }
       const publishedMake = await this.publish(result._id);
+      if (hasNonEmptyTrackEvents) {
+        await this.processRunning(result._id);
+      }
+
       runInAction(() => {
         this.item = { ...this.item, ...result };
         if (this.item.project.allowedSocials) {
@@ -1752,29 +1961,31 @@ export default class ProjectStore extends BaseStore {
                 project: project._id,
               },
             }),
-          setInitialView();
+            setInitialView();
         }
-      } 
+      }
       else if (await showConfirmation(`${this.saveButton}`)) {
-        closeAllWindows();
-        const project = await this.save();
-        if (!this.modified) {
-          if (actionType === ACTION_MAKE_COPY) {
-            afterSave(`/edit?remix=${this.item._id}`);
+        if (!this.isLoading) {
+          closeAllWindows();
+          const project = await this.save();
+          if (!this.modified) {
+            if (actionType === ACTION_MAKE_COPY) {
+              afterSave(`/edit?remix=${this.item._id}`);
+            }
+            if (actionType === ACTION_WATCH_VIDEO) {
+              afterSave(this.item.url);
+            }
           }
-          if (actionType === ACTION_WATCH_VIDEO) {
-            afterSave(this.item.url);
+          if (project && project._id) {
+            Router.push(
+              {
+                pathname: ROUTES.edit,
+                query: {
+                  project: project._id,
+                },
+              }),
+              setInitialView();
           }
-        }
-        if (project && project._id) {
-          Router.push(
-            {
-              pathname: ROUTES.edit,
-              query: {
-                project: project._id,
-              },
-            }),
-          setInitialView();
         }
       }
     } catch (e) {
@@ -1782,7 +1993,7 @@ export default class ProjectStore extends BaseStore {
     }
   }
 
-  @action 
+  @action
   setButtonType = (value) => {
     this.saveButton = value;
   }
@@ -1790,20 +2001,35 @@ export default class ProjectStore extends BaseStore {
   @action
   invalidateFbCache = (url) => this.request(
     '/api/makes/update-fb-cache', {
-      method: 'POST',
-      headers: {
-        'on-behalf': this.currentUser.id,
-      },
-      body: { publishUrl: url },
-    });
+    method: 'POST',
+    headers: {
+      'on-behalf': this.currentUser.id,
+    },
+    body: { publishUrl: url },
+  });
 
   publish = (id) => this.request(
     `/api/users/me/makes/${id}/publish`, {
+    method: 'POST',
+    headers: {
+      'on-behalf': this.currentUser.id,
+    },
+  });
+
+  updateIOSVideo = (result, publishDownloadVideoMake, data) => {
+    this.request(
+      `/api/projects/update-revolution-video`, {
       method: 'POST',
       headers: {
         'on-behalf': this.currentUser.id,
       },
-    });
+      body: {
+        acutalMake: result,
+        RecordedMakedata: data,
+        downloadVideoMake: publishDownloadVideoMake
+      },
+    })
+  };
 
   fromTemplate = async (makeTemplate = {}, video = null, isSource) => {
     this.item.allowedSocials = ['facebook'];

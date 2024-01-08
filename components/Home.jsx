@@ -48,6 +48,8 @@ import {
 } from '../lib/constants/modals';
 import AiArtGenerator from './modals/AiArtGenerator';
 import BackgroundDiffusion from './modals/BackgroundDiffusion';
+import PercentageProgressBar from './media/PercentageProgressBar';
+import { Typography } from '@material-ui/core';
 
 const Home = observer(() => {
   const {
@@ -113,7 +115,9 @@ const Home = observer(() => {
   const [shouldShowTGModal, setShouldShowTGModal] = useState(
     videoAutomationCreatorEnabled,
   );
-
+  const [progress, setProgress] = useState(1);
+  const [progressMessage, setProgressMessage] = useState('');
+  const { isLoadingIosProcess } = useProjectStore();
   const {
     changeRadioButton,
     secondaryWindowType,
@@ -271,6 +275,34 @@ const Home = observer(() => {
       TogetherJS();
     }
   }, [isEnabled])
+
+  useEffect(() => {
+    if(isLoadingIosProcess) {
+      console.log(progress,"progress")
+      const interval = setInterval(() => {
+        setProgressMessage('Project is saving...');
+        setProgress((prevProgress) => {
+          console.log(prevProgress,"prevProgress=>")
+          if (prevProgress >= 100) {
+            setProgressMessage('Project saved, ready for sharing.')
+            clearInterval(interval); // Stop the progress bar when it reaches 100%
+            return 100;
+          }
+          return prevProgress + 1;
+        });
+      }, 1200); // Increment progress every 1200ms (2 minutes)
+
+      return () => {
+        clearInterval(interval); // Clean up the interval on component unmount
+      };
+    }
+  }, [progress,isLoadingIosProcess]);
+
+  useEffect(() => {
+    if(!isLoadingIosProcess) {
+      setProgress(1);
+    }
+  },[isLoadingIosProcess])
 
 
   useEffect(() => {
@@ -575,6 +607,12 @@ const Home = observer(() => {
             onChange={updateItem}
             active={{ width, height }}
           />
+          {isLoadingIosProcess &&
+            <div style={{ position: 'absolute', bottom: '60px', right: '23px' }}>
+              <Typography style={{ width: 200, fontSize: '12px', fontWeight: 'bold' }}>{progressMessage}</Typography>
+              <PercentageProgressBar progress={progress} width={200} />
+            </div>
+          }
           <Timeline />
         </div>
       )}
