@@ -79,11 +79,9 @@ const Toolbar = observer(({ items }) => {
       || secondaryWindowType === WINDOW_TYPES.BG_DIFFUSION) && !isCanvasPresent) {
       toggleRightBlock(false);
     }
-
     func();
     setToolbarItem(label);
   };
-
   const libraryHeight = useMemo(() => (
     editorStyles.calculateHeight(timelineHeight - editorStyles.toolbar.differencePX)
   ), [timelineHeight]);

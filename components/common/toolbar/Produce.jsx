@@ -18,10 +18,8 @@ const Produce = observer(({ items, options: { tab, ...options } = {} }) => {
     checkboxLeft,
     closeProduceWindow,
   } = useUIStore();
-
   const activeTabItem = items.find(i => i.id === activeTab);
   const { renderer: Panel, items: panelItems = [] } = activeTabItem;
-
   if (!radioButtonBottom) {
     return null;
   }

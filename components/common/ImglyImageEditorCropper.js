@@ -7,7 +7,7 @@ import useMediaStore from '../hooks/useMediaStore';
 import useUIStore from '../hooks/useUIStore';
 import PropTypes from '../../lib/PropTypes';
 import { tabItems } from '../../lib/constants/library';
-
+import useProjectStore from '../hooks/useProjectStore';
 
 const license = { api_token: "Bmz_MBXK-7Rqsro1eLceKg", app_identifiers: ["revolution.videoremix.io", "dev-revolution.videoremix.io", "local-smart-video.videoremix.io"], available_actions: [], domains: ["https://api.photoeditorsdk.com"], enterprise_license: false, expires_at: null, features: ["camera", "library", "export", "customassets", "whitelabel", "adjustment", "brush", "filter", "focus", "frame", "overlay", "sticker", "text", "textdesign", "transform"], issued_at: 1648560818, minimum_sdk_version: "1.0", owner: "VideoRemix", platform: "HTML5", products: ["pesdk"], version: "2.4", signature: "aTxspPl/8xoZ7PgshpJWadw14FyTNqPONPd9aLv1tM0FxPbnZ9SLZ1dy/kkdUfu5E+jIt1DOio6CsBhF+tzmnG/OO06T57DT+p4OiHZfZWIy0StukcbZp/neAg7/bF9joXayKMBAi1r8Vcd5dMiGLYwyTe4znGrSZPxvTmaRrixBxDFCXPNMJFyziTeFa9+WlEG8duw0TSqYsaQkqZmw0/QIhiusBTRuy3W/HqUn074UpGtJ1CT7qbUhr2bFvwuE4HgbhlNn939VzF/wsMA79sML8GimpQKBhMuZOIR+wDbG8yT80/JHCcKIKqP3xujJzG7RPCZ0pmwr4nrfYu+r7HZ8y5LBRllLhQJZsXs3zxUn+FzQj61u0r1yeuCQOjyYrFqCV+5qAiS85UdYzsFiYLV3rYv0HxffM+LFhmJzCY5tivLTKuwYoIBtLmD5bne+Pke8anBZM8TCvu+2hVA0HHvVPkQTkjLd7nbFmLwQ885tUdotogJ6D7/Eg5Yi/GJ+Pi32NMGOVNhWPYF470wGd2e/CnyPvylTh4IS6FM2rrI1PvmJnOKTRhsuO5luw+E9Gc8ZxKWAOYDALWzUQjILtQLOS8XFadPuFjlGu248bmiozExfzTt2hupb0PZrCHm4GvcGgPSLiobYeXuBqXEycmsSFUjR4JPtypw9Jv0Qq2o=" };
 const PhotoEditorSDK = observer(({
@@ -19,6 +19,7 @@ const PhotoEditorSDK = observer(({
 }) => {
   const { source } = useMemo(() => imageData, [imageData]);
   const { uploadMedia, storeAsset } = useMediaStore();
+  const { setSettingImageUplode } = useProjectStore();
 
   const {
     secondaryWindowType: activeTab,
@@ -37,6 +38,7 @@ const PhotoEditorSDK = observer(({
     } finally {
       // setIsLoading(false);
       image = media && media.url;
+      setSettingImageUplode(image)
       if (!hasError) {
         onImageEdited(image);
       }
