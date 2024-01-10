@@ -1766,7 +1766,7 @@ export default class ProjectStore extends BaseStore {
             ...item,
             tracks: item.tracks.map(track => ({
               ...track,
-              trackEvents: track.trackEvents.filter(event => ((event.type === "sequencer") || (event.type == "image" && event.popcornOptions.url.includes('gif'))))
+              trackEvents: track.trackEvents.filter(event => ((event.type === "sequencer") || (event.type == "image" && (event?.popcornOptions?.src?.includes('gif') || event?.popcornOptions?.url?.includes('gif')))))
             }))
           }))
         };
