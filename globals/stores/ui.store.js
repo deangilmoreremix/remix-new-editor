@@ -221,6 +221,7 @@ export default class UIStore {
 
   @action
   openAiArtGenerator = (type) => {
+    console.log("type>>>>",type)
     this.isOpenFullWindow = true;
     this.projectStore.releaseElement();
     this.secondaryWindowType = type;
@@ -254,6 +255,7 @@ export default class UIStore {
 
   @action
   toggleRightBlock = (isOpen = true) => {
+    console.log("isOpen",isOpen)
     if (!this.checkboxLeft && !isOpen && !this.isTimelineOpen) {
       this.toggleIsExpand();
     }

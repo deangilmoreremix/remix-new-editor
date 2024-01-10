@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { observer } from 'mobx-react';
-
+import { useRouter } from 'next/router';
 import Button from '@material-ui/core/Button';
 import PropTypes from '../../../lib/PropTypes';
 import { rgba2hex } from '../../../lib/lottie/utils';
@@ -8,7 +8,7 @@ import { rgba2hex } from '../../../lib/lottie/utils';
 import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';
 import useModalStore from '../../hooks/useModalStore';
-
+import useUIStore from '../../hooks/useUIStore';
 import FieldBuilder from '../../form/FieldBuilder';
 
 import { CROP_RECOMMENDED_RESOLUTION } from '../../../lib/constants/settings/image';
@@ -19,41 +19,45 @@ import { DEFAULT_THUMBNAIL } from '../../../lib/constants/project';
 
 import DropAndEditButton from '../../media/DropAndEditButton';
 import HelpIconComponent from '../HelpIcon';
+import { WINDOW_TYPES } from '../../../lib/constants/ui';
 
-const SettingPanel = observer(() => {
+const SettingPanel = observer(({ action }) => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
 
   const titleRef = React.useRef(null);
 
-  const { linkedinEnabled, isSuperAdmin } = useUserStore();
+  const { linkedinEnabled, isSuperAdmin, smartAiArtGeneratorEnabled } =
+    useUserStore();
   const {
     item,
     updateItem,
     updateCategories,
     clearAllCategories,
     removeCategory,
+    releaseElement,
+    AiGeneratoreImage,
+    SettingImageUploded
   } = useProjectStore();
-  let { item: { allowedSocials = [] } } = useProjectStore();
-  const { openImageEditor, closeModal, openImglyEditorCropper } = useModalStore();
-
+  let {
+    item: { allowedSocials = [] },
+  } = useProjectStore();
+  const { openImageEditor, closeModal, openImglyEditorCropper } =
+    useModalStore();
+  const { openAiArtGenerator, openMediaButton } = useUIStore();
   const categories = useMemo(() => item.categories, [item.categories]);
-
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
     const socialKey = Object.keys(data)[0];
 
-    if (socialValue
-      && !allowedSocials.includes(socialKey)) {
+    if (socialValue && !allowedSocials.includes(socialKey)) {
       allowedSocials.push(socialKey);
-    } else if (!socialValue
-      && allowedSocials.includes(socialKey)) {
+    } else if (!socialValue && allowedSocials.includes(socialKey)) {
       allowedSocials = allowedSocials.filter(
-        allowedSocial => allowedSocial !== socialKey,
+        (allowedSocial) => allowedSocial !== socialKey
       );
     }
     updateItem({ allowedSocials });
   };
-
   const onUploadedImage = (image, type) => {
     updateItem({ thumbnail: image.url, type });
   };
@@ -74,9 +78,15 @@ const SettingPanel = observer(() => {
   };
 
   const handleChangeColor = (rgbColor) => {
-    updateItem({ [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()) });
+    updateItem({
+      [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()),
+    });
   };
 
+  const handleGotoAIGenerator = () => {
+    releaseElement();
+    openMediaButton(WINDOW_TYPES.AI_ART_GENERATOR);
+  };
   return (
     <div className="produce-block settings-panel">
       <div className="settings__inputs">
@@ -128,7 +138,9 @@ const SettingPanel = observer(() => {
           name="disabledPlaybar"
           label="Show playbar"
           value={!item.disabledPlaybar}
-          onChange={() => updateItem({ disabledPlaybar: !item.disabledPlaybar })}
+          onChange={() =>
+            updateItem({ disabledPlaybar: !item.disabledPlaybar })
+          }
           floatClassName="settings-checkbox settings-checkbox-playbar"
         />
       </div>
@@ -170,33 +182,41 @@ const SettingPanel = observer(() => {
             type="checkbox"
             name="facebook"
             label="Facebook"
-            value={item.allowedSocials && item.allowedSocials.some(s => s === 'facebook')}
+            value={
+              item.allowedSocials &&
+              item.allowedSocials.some((s) => s === 'facebook')
+            }
             onChange={updateSocials}
             floatClassName="settings-checkbox"
           />
-          {
-            linkedinEnabled
-            && (
-              <FieldBuilder
-                type="checkbox"
-                name="linkedin"
-                label="LinkedIn"
-                value={item.allowedSocials && item.allowedSocials.some(s => s === 'linkedin')}
-                onChange={updateSocials}
-                floatClassName="settings-checkbox"
-              />
-            )
-          }
+          {linkedinEnabled && (
+            <FieldBuilder
+              type="checkbox"
+              name="linkedin"
+              label="LinkedIn"
+              value={
+                item.allowedSocials &&
+                item.allowedSocials.some((s) => s === 'linkedin')
+              }
+              onChange={updateSocials}
+              floatClassName="settings-checkbox"
+            />
+          )}
         </div>
 
         <div className="settings__row">
           <div className="settings__row-block">
             <div className="settings__row-img">
               <p className="settings__row-text">Thumbnail</p>
-              <div className="settings-img-preview"><img src={item.thumbnail} alt="" /></div>
+              <div className="settings-img-preview">
+                <img
+                  src={item.thumbnail}
+                  alt=""
+                />
+              </div>
             </div>
           </div>
-          <div className="settings__row-block">
+          <div className="settings__row-block" style={{display:"flex",gap:"10px",flexDirection:"column"}}>
             {item.thumbnail && item.type !== GIF_FORMAT ? (
               <Button
                 onClick={() => openEditor()}
@@ -210,6 +230,12 @@ const SettingPanel = observer(() => {
             ) : (
               <span className="settings__gif-message">{GIF_WARNING}</span>
             )}
+            {SettingImageUploded && <Button
+              onClick={() => handleGotoAIGenerator()}
+              className="settings__edit-file"
+            >
+              AI Thumbnail
+            </Button>}
           </div>
         </div>
         <div className="settings__row">
@@ -228,8 +254,7 @@ const SettingPanel = observer(() => {
             </div>
             <p className="settings__row-text-2">
               recommended image resolution
-              {CROP_RECOMMENDED_RESOLUTION.width}
-              x
+              {CROP_RECOMMENDED_RESOLUTION.width}x
               {CROP_RECOMMENDED_RESOLUTION.height}
             </p>
           </div>
@@ -246,9 +271,24 @@ const SettingPanel = observer(() => {
               endUpload={() => setIsDisabledUpload(false)}
               needSaveAsset={false}
               openImageEditor={(image) => openEditor(image)}
+              AiGeneratoreImage={AiGeneratoreImage}
             />
           </div>
         </div>
+      </div>
+      <div style={{display:"flex",gap:"10px" ,width:"100%",justifyContent:"left",marginTop:"10px"}}>
+      <Button
+      style={{width:"max-content",padding:"0px 10px"}}
+        className="settings__edit-file"
+      >
+        AI Email Subject
+      </Button>
+      <Button
+      style={{width:"max-content",padding:"0px 10px"}}
+        className="settings__edit-file"
+      >
+        AI Mail-Tester
+      </Button>
       </div>
     </div>
   );

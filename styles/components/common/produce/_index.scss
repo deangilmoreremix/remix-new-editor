@@ -57,8 +57,11 @@ textarea {
   .settings__row-block:first-child {
     width: 45%;
   }
-
+  // .settings__row-block{
+  //   flex-direction: row !important;
+  // }
   .settings__inputs {
+    width: 100% !important;
     &:first-child {
       width: 100%;
       margin-right: 0;

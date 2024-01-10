@@ -527,6 +527,7 @@ const Home = observer(() => {
         return <GoogleTextToSpeech />;
       }
       case WINDOW_TYPES.AI_ART_GENERATOR: {
+        console.log("WINDOW_TYPES.AI_ART_GENERATOR",WINDOW_TYPES.AI_ART_GENERATOR)
         return <AiArtGenerator />;
       }
       case WINDOW_TYPES.BG_DIFFUSION: {
