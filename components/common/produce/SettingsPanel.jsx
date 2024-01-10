@@ -23,6 +23,8 @@ import { WINDOW_TYPES } from '../../../lib/constants/ui';
 
 const SettingPanel = observer(({ action }) => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
+  const [showAibutton, setShowAibutton] = useState(false);
+
 
   const titleRef = React.useRef(null);
 
@@ -36,7 +38,8 @@ const SettingPanel = observer(({ action }) => {
     removeCategory,
     releaseElement,
     AiGeneratoreImage,
-    SettingImageUploded
+    SettingImageUploded,
+    setSettingImageUplode
   } = useProjectStore();
   let {
     item: { allowedSocials = [] },
@@ -83,7 +86,20 @@ const SettingPanel = observer(({ action }) => {
     });
   };
 
+  useEffect(()=>{
+    if (window.location.pathname === "/edit" && window.location.search !== "") {
+      if (item.thumbnail || SettingImageUploded) {
+        setShowAibutton(true)
+      }
+    }else{
+      if (SettingImageUploded) {
+        setShowAibutton(true)
+      }
+    }
+  },[item,item.thumbnail,SettingImageUploded,showAibutton,window.location.pathname])
+
   const handleGotoAIGenerator = () => {
+    setSettingImageUplode()
     releaseElement();
     openMediaButton(WINDOW_TYPES.AI_ART_GENERATOR);
   };
@@ -230,7 +246,7 @@ const SettingPanel = observer(({ action }) => {
             ) : (
               <span className="settings__gif-message">{GIF_WARNING}</span>
             )}
-            {SettingImageUploded && <Button
+            {showAibutton && <Button
               onClick={() => handleGotoAIGenerator()}
               className="settings__edit-file"
             >
