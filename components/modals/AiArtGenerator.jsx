@@ -83,7 +83,8 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     addElement,
     checkAndSave,
     setAiGeneratorImage,
-    SettingImageUploded
+    SettingImageUploded,
+    Aiedited
   } = useProjectStore();
   const {
     toggleRightBlock,
@@ -291,7 +292,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
   }, [voiceTextId, symbols]);
 
 useEffect(()=>{
-  if (SettingImageUploded && SettingImageUploded.length > 0) {
+  if (SettingImageUploded && SettingImageUploded.length > 0 && Aiedited) {
     setImageUploadedUrl(SettingImageUploded)
   }
 },[SettingImageUploded])
@@ -685,7 +686,7 @@ useEffect(()=>{
   
   const handleProduceSetting = async () => {
     if (!newImage) {
-        return;
+      openSettings()
       }
 
       let media;
@@ -715,15 +716,16 @@ useEffect(()=>{
       } finally {
         setIsLoading(false);
       }
-
-    openSettings()
-    showProducePanel({ tab: PRODUCE_TABS.SETTINGS })
-    checkAndSave({
-        changeRadioButton,
-        showProducePanel,
-        closeAllWindows,
-        setInitialView,
-      });
+    // openSettings()
+    // showProducePanel({ tab: PRODUCE_TABS.SETTINGS })
+    // checkAndSave({
+    //     changeRadioButton,
+    //     showProducePanel,
+    //     closeAllWindows,
+    //     setInitialView,
+    //   });
+    changeRadioButton('bottom');
+   showProducePanel({ tab: PRODUCE_TABS.SETTINGS })
     
 }
   const onLoadImage = useCallback(
@@ -1449,7 +1451,7 @@ useEffect(()=>{
              >
              Add Thumbnail
              </button>
-            )}
+            )} 
           </div>
         </div>
 
