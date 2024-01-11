@@ -883,4 +883,8 @@ export default class UserStore {
   get millionDollarHackEnabled() {
     return this.isfeatureEnabled(FEATURES.MILLION_DOLLAR_HACK);
   }
+  @computed
+  get aiThumbnailEnabled() {
+    return this.isfeatureEnabled(FEATURES.AI_THUMBNAIL);
+  }
 }

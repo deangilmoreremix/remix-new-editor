@@ -80,6 +80,9 @@ const SettingPanel = observer(({ action }) => {
     });
   };
 
+  const { aiThumbnailEnabled } = useUserStore()
+  console.log(aiThumbnailEnabled,"sjaj")
+
   const handleChangeColor = (rgbColor) => {
     updateItem({
       [Object.keys(rgbColor).join()]: rgba2hex(Object.values(rgbColor).join()),
@@ -97,6 +100,8 @@ const SettingPanel = observer(({ action }) => {
       }
     }
   },[item,item.thumbnail,SettingImageUploded,showAibutton,window.location.pathname])
+
+
 
   const handleGotoAIGenerator = () => {
     setSettingImageUplode(item.thumbnail)
@@ -246,7 +251,7 @@ const SettingPanel = observer(({ action }) => {
             ) : (
               <span className="settings__gif-message">{GIF_WARNING}</span>
             )}
-            {showAibutton && <Button
+            {aiThumbnailEnabled && showAibutton && <Button
               onClick={() => handleGotoAIGenerator()}
               className="settings__edit-file"
             >
