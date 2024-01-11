@@ -248,13 +248,13 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   const download360 = useCallback(async (quality) => {
     if (!isLoadingIosProcess && project && item.iosurl && availableDownloadVideoLimit > 0) {
       if (quality == 480) {
-        saveAs(item.goodQualityUrl, item.title)
+        saveAs(item.goodQualityUrl, `${item.title}_480px_${Date.now()}`)
       }
       else if (quality == 720) {
-        saveAs(item.standardQualityUrl, item.title)
+        saveAs(item.standardQualityUrl, `${item.title}_720px_${Date.now()}`)
       }
       else if (quality == 1080) {
-        saveAs(item.iosurl, item.title)
+        saveAs(item.iosurl, `${item.title}_1080px_${Date.now()}`)
       }
       const total = downloadVideoLimitUsed + 1;
       await updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
