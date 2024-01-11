@@ -259,8 +259,19 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
       const total = downloadVideoLimitUsed + 1;
       await updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
       setOpen(false)
+    }else{
+      window.open("https://videoremix.io/smartvideo-pricing-page/","_blank")
     }
   }, [item.iosurl, item.standardQualityUrl, item.goodQualityUrl, downloadVideoLimitUsed, availableDownloadVideoLimit])
+
+const handleDownload = () =>{
+  if (availableDownloadVideoLimit > 0) {
+    setOpen(true)
+  }else{
+    window.open("https://videoremix.io/smartvideo-pricing-page/","_blank")
+  }
+}
+
   return (
     <div className="container-header" ref={anchorRef}>
       <AppBar position="static" className="app-bar">
@@ -404,13 +415,13 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                   svg={downloadIcon}
                   cleanup={['title']}
                   component="button"
-                  onClick={() => setOpen(true)}
-                  disabled={(!project && !item.iosurl) || isLoadingIosProcess || availableDownloadVideoLimit <= 0}
+                  onClick={() => handleDownload()}
+                  disabled={(!project && !item.iosurl ) || isLoadingIosProcess}
                 />
                 <button
                   className={`icon-button container-menu__button-text ${!isLoadingIosProcess && project && availableDownloadVideoLimit > 0 && item.iosurl ? 'active-save' : ''}`}
-                  onClick={() => setOpen(true)}
-                  disabled={(!project && !item.iosurl) || isLoadingIosProcess || availableDownloadVideoLimit <= 0}
+                  onClick={() => handleDownload()}
+                  disabled={(!project && !item.iosurl) || isLoadingIosProcess}
                 >
                   {DOWNLOAD}
                 </button>
@@ -442,6 +453,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                       id="menu-list-grow"
                       style={{ backgroundColor: "#4B4B61", borderRadius: "3px" }}
                     >
+                      <p className='AgeavailableDownload'>Age Available Download: <b>{availableDownloadVideoLimit}</b></p>
                       {qualities.map((item) => {
                         return (
                           <div className='qualitymenu__item' onClick={() => download360(item.qua)}>
