@@ -277,7 +277,6 @@ export default class ProjectStore extends BaseStore {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
     [POPCORN_ELEMENT_TYPES.IMAGE]: {},
   };
-
   getPersonalization = (data) => getCustomVarsFromMediaArr(data || this.projectData.media)
 
   generateUid = () => `${Date.now()}/${Math.random()}/${Date.now() * Math.random()}`;

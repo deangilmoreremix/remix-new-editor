@@ -99,7 +99,7 @@ const SettingPanel = observer(({ action }) => {
   },[item,item.thumbnail,SettingImageUploded,showAibutton,window.location.pathname])
 
   const handleGotoAIGenerator = () => {
-    setSettingImageUplode()
+    setSettingImageUplode(item.thumbnail)
     releaseElement();
     openMediaButton(WINDOW_TYPES.AI_ART_GENERATOR);
   };
