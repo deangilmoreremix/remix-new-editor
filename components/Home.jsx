@@ -117,7 +117,7 @@ const Home = observer(() => {
   );
   const [progress, setProgress] = useState(1);
   const [progressMessage, setProgressMessage] = useState('');
-  const { isLoadingIosProcess } = useProjectStore();
+  const { isLoadingIosProcess,setAiGeneratorImage } = useProjectStore();
   const {
     changeRadioButton,
     secondaryWindowType,
@@ -188,6 +188,7 @@ const Home = observer(() => {
         openUploadTransition,
         toggleLeftBlock,
         addTogetherJS,
+        setAiGeneratorImage
       },
       project: {
         allowedSocials,
