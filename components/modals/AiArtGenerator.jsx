@@ -168,7 +168,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
   const [imageUploadedUrl, setImageUploadedUrl] = useState(null);
   const addFileInputRef = useRef();
   const [imageRes, setImageRes] = React.useState({ width: 1024, height: 1024 });
-
+  const [imageDimension, setImageDimension] = useState(null)
   const handleChange = (v) => {
     const item = imageResList.find(
       (languageItem) => languageItem.value === v
@@ -302,11 +302,53 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     const wrongSize = [];
     const files = [];
 
+    const loadImageDimensions = (file) => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+
+        img.onload = () => {
+          const dimensions = {
+            width: img.width,
+            height: img.height,
+          };
+          resolve(dimensions);
+        };
+
+        img.onerror = (error) => {
+          reject(error);
+        };
+      });
+    };
+
+    const processFiles = async () => {
+      for (const file of files) {
+        try {
+          const dimensions = await loadImageDimensions(file);
+          console.log(`${file.name} - Width: ${dimensions.width}, Height: ${dimensions.height}`);
+          if (dimensions.width == dimensions.height) {
+            setImageDimension({ width: '50%', height: '50%' })
+          }
+          else if (dimensions.width > dimensions.height) {
+            setImageDimension({ width: '90%',height:'auto' })
+          }
+          else {
+            setImageDimension({ width: 'auto', height: '100px' })
+          }
+          // Do something with the dimensions, such as storing them or displaying them
+        } catch (error) {
+          console.error(`Error loading dimensions for ${file.name}: ${error.message}`);
+        }
+      }
+    };
+
+
     if (addFileInputRef.current) {
       addFileInputRef.current.value = '';
     }
 
     acceptedFiles.forEach((file) => {
+
       const validFormat = Object.keys(tabItems).some((item) =>
         tabItems[item].formats.some(
           (format) => format === file.name.match(/\.[0-9a-z]{1,5}$/)[0]
@@ -392,6 +434,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
           if (asset.url) {
             setImageUploadedUrl(asset.url);
           }
+          await processFiles();
           // const item = await storeAsset(asset, fileType);
           // elements.push(item);
           // elementsIds.push(item._id);
@@ -1204,10 +1247,9 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                   {!imageUploadedUrl && (
                     <SVGInline svg={textSpeechIcon} cleanup={['title']} />
                   )}
-                  {imageUploadedUrl && (
+                  {imageUploadedUrl && imageDimension && (
                     <img
-                      width={'80px'}
-                      height={'80px'}
+                    style={{ width:imageDimension.width, height : imageDimension.height ? imageDimension.height: ''  }}
                       src={imageUploadedUrl}
                     />
                   )}
