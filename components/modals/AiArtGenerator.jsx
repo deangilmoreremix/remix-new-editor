@@ -69,7 +69,7 @@ import { Button, Popover, Tab, Tabs } from '@material-ui/core';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import { useDropzone } from 'react-dropzone';
 import { CircleLoader } from 'react-spinners';
-import { LOADING_COLOR,PRODUCE_TABS } from '../../lib/constants/ui';
+import { LOADING_COLOR, PRODUCE_TABS } from '../../lib/constants/ui';
 import PercentageProgressBar from '../media/PercentageProgressBar';
 
 const AiArtGenerator = observer(({ startUpload, options }) => {
@@ -291,11 +291,11 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     }
   }, [voiceTextId, symbols]);
 
-useEffect(()=>{
-  if (SettingImageUploded && SettingImageUploded.length > 0 && Aiedited) {
-    setImageUploadedUrl(SettingImageUploded)
-  }
-},[SettingImageUploded])
+  useEffect(() => {
+    if (SettingImageUploded && SettingImageUploded.length > 0 && Aiedited) {
+      setImageUploadedUrl(SettingImageUploded)
+    }
+  }, [SettingImageUploded])
 
   const onDrop = (acceptedFiles) => {
     const wrongFormat = [];
@@ -343,22 +343,21 @@ useEffect(()=>{
       files.push(file);
     });
     const errorFilesText = (errorFiles, text) => `
-        Invalid file ${errorFiles.length > 1 ? `${text}s` : `${text}`} with ${
-      errorFiles.length > 1 ? 'names' : 'name'
-    }:
+        Invalid file ${errorFiles.length > 1 ? `${text}s` : `${text}`} with ${errorFiles.length > 1 ? 'names' : 'name'
+      }:
           ${errorFiles.map((file) => ` ${file.name}`)}. \\n`;
 
     const invalidFormatMessage = `${errorFilesText(wrongFormat, 'format')}
           Supported Formats:
           Video: ${tabItems[LIBRARY_TABS.VIDEO].formats.map(
-            (format) => ` ${format}`
-          )}.
+      (format) => ` ${format}`
+    )}.
           Image: ${tabItems[LIBRARY_TABS.IMAGE].formats.map(
-            (format) => ` ${format}`
-          )}.
+      (format) => ` ${format}`
+    )}.
           Audio: ${tabItems[LIBRARY_TABS.AUDIO].formats.map(
-            (format) => ` ${format}`
-          )}.
+      (format) => ` ${format}`
+    )}.
         `;
 
     // const invalidSizeMessage = `${errorFilesText(wrongSize, 'size')}
@@ -683,39 +682,39 @@ useEffect(()=>{
         showError('Something went wrong. Please try again later.');
       });
   };
-  
+
   const handleProduceSetting = async () => {
     if (!newImage) {
       openSettings()
-      }
+    }
 
-      let media;
-      let hasError;
+    let media;
+    let hasError;
 
-      try {
-        setIsLoading(true);
-        const data = {
-          url: newImage,
-        };
-        media = await uploadImageUrl(data);
-        const fileExtension = media.url.match(/\.[0-9a-z]{1,5}$/)[0];
-        let fileType = activeTab;
-        Object.keys(tabItems).forEach((item) => {
-          tabItems[item].formats.forEach((format) => {
-            if (format === fileExtension) {
-              fileType = item;
-            }
-          });
+    try {
+      setIsLoading(true);
+      const data = {
+        url: newImage,
+      };
+      media = await uploadImageUrl(data);
+      const fileExtension = media.url.match(/\.[0-9a-z]{1,5}$/)[0];
+      let fileType = activeTab;
+      Object.keys(tabItems).forEach((item) => {
+        tabItems[item].formats.forEach((format) => {
+          if (format === fileExtension) {
+            fileType = item;
+          }
         });
-        setAiGeneratorImage(media.url)
-        // const imgItems = await storeAsset(media, fileType);
-        // await onSelect(imgItems);
-      } catch (e) {
-        hasError = true;
-        showError(e.message);
-      } finally {
-        setIsLoading(false);
-      }
+      });
+      setAiGeneratorImage(media.url)
+      // const imgItems = await storeAsset(media, fileType);
+      // await onSelect(imgItems);
+    } catch (e) {
+      hasError = true;
+      showError(e.message);
+    } finally {
+      setIsLoading(false);
+    }
     // openSettings()
     // showProducePanel({ tab: PRODUCE_TABS.SETTINGS })
     // checkAndSave({
@@ -725,9 +724,9 @@ useEffect(()=>{
     //     setInitialView,
     //   });
     changeRadioButton('bottom');
-   showProducePanel({ tab: PRODUCE_TABS.SETTINGS })
-    
-}
+    showProducePanel({ tab: PRODUCE_TABS.SETTINGS })
+
+  }
   const onLoadImage = useCallback(
     async (image) => {
       // const base64Response = await fetch(`data:image/jpeg;base64,${image}`);
@@ -1019,7 +1018,7 @@ useEffect(()=>{
                   value={description}
                   // onKeyPress={onKeyPress}
                   onChange={onChange}
-                  // placeholder={placeholder}
+                // placeholder={placeholder}
                 />
                 <button onClick={handleClick}>
                   <SVGInline svg={highLightIcon} cleanup={['title']} />
@@ -1118,9 +1117,8 @@ useEffect(()=>{
                         celebratiesArr.map((ele, index) => (
                           <div
                             style={{ cursor: 'pointer', padding: '5px 0px' }}
-                            className={`${
-                              index == activeOpt ? 'active-style-senario' : ''
-                            }`}
+                            className={`${index == activeOpt ? 'active-style-senario' : ''
+                              }`}
                             onClick={() => {
                               setDescription(ele);
                               setActiveOpt(index);
@@ -1145,9 +1143,8 @@ useEffect(()=>{
                         characterArr.map((ele, index) => (
                           <div
                             style={{ cursor: 'pointer', padding: '5px 0px' }}
-                            className={`${
-                              index == activeOpt ? 'active-style-senario' : ''
-                            }`}
+                            className={`${index == activeOpt ? 'active-style-senario' : ''
+                              }`}
                             onClick={() => {
                               setDescription(ele);
                               setActiveOpt(index);
@@ -1172,9 +1169,8 @@ useEffect(()=>{
                         scenarioArr.map((ele, index) => (
                           <div
                             style={{ cursor: 'pointer', padding: '5px 0px' }}
-                            className={`${
-                              index == activeOpt ? 'active-style-senario' : ''
-                            }`}
+                            className={`${index == activeOpt ? 'active-style-senario' : ''
+                              }`}
                             onClick={() => {
                               setDescription(ele);
                               setActiveOpt(index);
@@ -1425,7 +1421,7 @@ useEffect(()=>{
               )
             ) : null}
 
-            {isProcessImage && !isLoading && (
+            {isProcessImage && !isLoading && !Aiedited && (
               <button
                 onClick={() => downloadImage()}
                 style={{ backgroundColor: '#eb5054', border: 0 }}
@@ -1433,7 +1429,7 @@ useEffect(()=>{
                 Download Image
               </button>
             )}
-            {isProcessImage && !isLoading && (
+            {isProcessImage && !isLoading && !Aiedited && (
               <button
                 onClick={() => onLoadImage(newImage)}
                 style={{
@@ -1444,14 +1440,14 @@ useEffect(()=>{
                 Save to Canvas
               </button>
             )}
-            {isProcessImage && !isLoading &&  (
-               <button
-               onClick={()=>handleProduceSetting()}
-               style={{ backgroundColor: '#eb5054', border: 0 }}
-             >
-             Add Thumbnail
-             </button>
-            )} 
+            {Aiedited && isProcessImage && !isLoading && (
+              <button
+                onClick={() => handleProduceSetting()}
+                style={{ backgroundColor: '#eb5054', border: 0 }}
+              >
+                Add Thumbnail
+              </button>
+            )}
           </div>
         </div>
 
