@@ -16,7 +16,7 @@ import ExpandButton from './common/ExpandButton';
 import HelpIconComponent from './common/HelpIcon';
 
 import { HEADER_ACTIONS, USER_MENU_ITEMS } from '../lib/constants/ui';
-import { headerTooltips } from '../lib/constants/tooltips';
+import { headerTooltips,downloadTooltips } from '../lib/constants/tooltips';
 import { DOMAIN_VIDEOREMIX } from '../lib/constants/project';
 import { ENTER_KEY } from '../lib/constants/keyCodes';
 
@@ -407,6 +407,7 @@ const handleDownload = () =>{
             }
             {console.log((isLoadingIosProcess && !project && !item.iosurl), "(isLoadingIosProcess && !project && !item.iosurl) || availableDownloadVideoLimit <= 0", availableDownloadVideoLimit <= 0)}
             {revolutionDownloadVideoEnabled && <div className="container-menu__actions__item">
+            <HelpIconComponent noDelay noIcon message={`${downloadTooltips.value}${availableDownloadVideoLimit <= 0 ? 0 : availableDownloadVideoLimit}`}>
               <div ref={buttonref}>
                 {console.log("availableDownloadVideoLimit:" + availableDownloadVideoLimit, !isLoadingIosProcess, project, item.iosurl)}
                 <SVGInline
@@ -421,11 +422,12 @@ const handleDownload = () =>{
                 <button
                   className={`icon-button container-menu__button-text ${!isLoadingIosProcess && project && availableDownloadVideoLimit > 0 && item.iosurl ? 'active-save' : ''}`}
                   onClick={() => handleDownload()}
-                  disabled={(!project && !item.iosurl) || isLoadingIosProcess}
+                  disabled={(!project && !item.iosurl ) || isLoadingIosProcess}
                 >
                   {DOWNLOAD}
                 </button>
               </div>
+              </HelpIconComponent>
             </div>
             }
           </div>
@@ -453,7 +455,6 @@ const handleDownload = () =>{
                       id="menu-list-grow"
                       style={{ backgroundColor: "#4B4B61", borderRadius: "3px" }}
                     >
-                      <p className='AgeavailableDownload'>Age Available Download: <b>{availableDownloadVideoLimit}</b></p>
                       {qualities.map((item) => {
                         return (
                           <div className='qualitymenu__item' onClick={() => download360(item.qua)}>
