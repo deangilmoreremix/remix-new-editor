@@ -25,7 +25,6 @@ const SettingPanel = observer(({ action }) => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
   const [showAibutton, setShowAibutton] = useState(false);
 
-
   const titleRef = React.useRef(null);
 
   const { linkedinEnabled, isSuperAdmin, smartAiArtGeneratorEnabled } =
@@ -39,7 +38,7 @@ const SettingPanel = observer(({ action }) => {
     releaseElement,
     AiGeneratoreImage,
     SettingImageUploded,
-    setSettingImageUplode
+    setSettingImageUplode,
   } = useProjectStore();
   let {
     item: { allowedSocials = [] },
@@ -80,8 +79,8 @@ const SettingPanel = observer(({ action }) => {
     });
   };
 
-  const { aiThumbnailEnabled } = useUserStore()
-  console.log(aiThumbnailEnabled,"sjaj")
+  const { aiThumbnailEnabled } = useUserStore();
+  console.log(aiThumbnailEnabled, 'sjaj');
 
   const handleChangeColor = (rgbColor) => {
     updateItem({
@@ -89,22 +88,26 @@ const SettingPanel = observer(({ action }) => {
     });
   };
 
-  useEffect(()=>{
-    if (window.location.pathname === "/edit" && window.location.search !== "") {
+  useEffect(() => {
+    if (window.location.pathname === '/edit' && window.location.search !== '') {
       if (item.thumbnail || SettingImageUploded) {
-        setShowAibutton(true)
+        setShowAibutton(true);
       }
-    }else{
+    } else {
       if (SettingImageUploded) {
-        setShowAibutton(true)
+        setShowAibutton(true);
       }
     }
-  },[item,item.thumbnail,SettingImageUploded,showAibutton,window.location.pathname])
-
-
+  }, [
+    item,
+    item.thumbnail,
+    SettingImageUploded,
+    showAibutton,
+    window.location.pathname,
+  ]);
 
   const handleGotoAIGenerator = () => {
-    setSettingImageUplode(item.thumbnail)
+    setSettingImageUplode(item.thumbnail);
     releaseElement();
     openMediaButton(WINDOW_TYPES.AI_ART_GENERATOR);
   };
@@ -164,8 +167,30 @@ const SettingPanel = observer(({ action }) => {
           }
           floatClassName="settings-checkbox settings-checkbox-playbar"
         />
+        <div
+          style={{
+            display: 'flex',
+            gap: '10px',
+            width: '100%',
+            justifyContent: 'left',
+            margin:"25px 0px"
+          }}
+        >
+          <Button
+            style={{ width: '100%', padding: '0px 10px' }}
+            className="settings__edit-file"
+          >
+            AI Email Subject
+          </Button>
+          <Button
+            style={{ width: '100%', padding: '0px 10px' }}
+            className="settings__edit-file"
+          >
+            AI Mail-Tester
+          </Button>
+        </div>
       </div>
-      <div className="settings__inputs" style={{flex:1}}>
+      <div className="settings__inputs" style={{ flex: 1 }}>
         <FieldBuilder
           type="tags"
           name="tags"
@@ -230,14 +255,14 @@ const SettingPanel = observer(({ action }) => {
             <div className="settings__row-img">
               <p className="settings__row-text">Thumbnail</p>
               <div className="settings-img-preview">
-                <img
-                  src={item.thumbnail}
-                  alt=""
-                />
+                <img src={item.thumbnail} alt="" />
               </div>
             </div>
           </div>
-          <div className="settings__row-block" style={{display:"flex",gap:"10px",flexDirection:"column"}}>
+          <div
+            className="settings__row-block"
+            style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}
+          >
             {item.thumbnail && item.type !== GIF_FORMAT ? (
               <Button
                 onClick={() => openEditor()}
@@ -251,12 +276,14 @@ const SettingPanel = observer(({ action }) => {
             ) : (
               <span className="settings__gif-message">{GIF_WARNING}</span>
             )}
-            {aiThumbnailEnabled && showAibutton && <Button
-              onClick={() => handleGotoAIGenerator()}
-              className="settings__edit-file"
-            >
-              AI Thumbnail
-            </Button>}
+            {aiThumbnailEnabled && showAibutton && (
+              <Button
+                onClick={() => handleGotoAIGenerator()}
+                className="settings__edit-file"
+              >
+                AI Thumbnail
+              </Button>
+            )}
           </div>
         </div>
         <div className="settings__row">
@@ -296,20 +323,6 @@ const SettingPanel = observer(({ action }) => {
             />
           </div>
         </div>
-      </div>
-      <div style={{display:"flex",gap:"10px" ,width:"100%",justifyContent:"left",marginTop:"10px"}}>
-      <Button
-      style={{width:"max-content",padding:"0px 10px"}}
-        className="settings__edit-file"
-      >
-        AI Email Subject
-      </Button>
-      <Button
-      style={{width:"max-content",padding:"0px 10px"}}
-        className="settings__edit-file"
-      >
-        AI Mail-Tester
-      </Button>
       </div>
     </div>
   );
