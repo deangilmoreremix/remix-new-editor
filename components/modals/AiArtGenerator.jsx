@@ -65,7 +65,7 @@ import {
   tabItems,
 } from '../../lib/constants/library';
 import { ACTION_TYPES } from '../../lib/constants/reducers/voiceReducer';
-import { Button, Popover, Tab, Tabs } from '@material-ui/core';
+import { Button, Popover, Tab, Tabs, Typography } from '@material-ui/core';
 import { MEDIA_TYPES } from '../../lib/constants/popcorn';
 import { useDropzone } from 'react-dropzone';
 import { CircleLoader } from 'react-spinners';
@@ -330,10 +330,10 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
             setImageDimension({ width: '50%', height: '50%' })
           }
           else if (dimensions.width > dimensions.height) {
-            setImageDimension({ width: '90%',height:'auto' })
+            setImageDimension({ width: '90%', height: 'auto' })
           }
           else {
-            setImageDimension({ width: 'auto', height: '100px' })
+            setImageDimension({ width: 'auto', height: '90px' })
           }
           // Do something with the dimensions, such as storing them or displaying them
         } catch (error) {
@@ -812,13 +812,22 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
   const processImage = async () => {
     setIsLoading(true);
     // const total = cutoutProCreditUserUsed + 2;
-    const data = {
+    let data = {
       prompt: description,
       ...(imageWidth && { width: imageWidth }),
       ...(imageHeight && { height: imageHeight }),
       ...(style && { style: style }),
       ...(imageUploadedUrl && { imageUrl: imageUploadedUrl }),
     };
+    if (Aiedited) {
+      data = {
+        prompt: description,
+        ...(imageWidth && { width: 500 }),
+        ...(imageHeight && { height: 500 }),
+        ...(style && { style: style }),
+        ...(imageUploadedUrl && !description && { imageUrl: imageUploadedUrl }),
+      }
+    }
     fetch(`https://www.cutout.pro/api/v1/text2imageAsync`, {
       method: 'post',
       body: JSON.stringify(data),
@@ -1247,9 +1256,14 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                   {!imageUploadedUrl && (
                     <SVGInline svg={textSpeechIcon} cleanup={['title']} />
                   )}
-                  {imageUploadedUrl && imageDimension && (
+                  {imageUploadedUrl && imageDimension ? (
                     <img
-                    style={{ width:imageDimension.width, height : imageDimension.height ? imageDimension.height: ''  }}
+                      style={{ width: imageDimension.width, height: imageDimension.height ? imageDimension.height : '' }}
+                      src={imageUploadedUrl}
+                    />
+                  ) : (
+                    <img
+                      style={{ maxWidth: '90%', maxHeight: '90%' }}
                       src={imageUploadedUrl}
                     />
                   )}
@@ -1309,14 +1323,18 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                   <button disabled={isLoading} onClick={() => processImage()}>
                     Generate Image
                   </button>
-                  <FormSelect
-                    items={imageResList}
-                    className="text-to-speech__select"
-                    value={imageRes}
-                    onChange={handleChange}
-                    menuPlacement={'auto'}
-                    menuPosition={'fixed'}
-                  />
+                  {Aiedited ?
+                    <div style={{ border:'1px solid #575773',borderRadius:'5px', padding:'4px'}}>
+                      <Typography>5 Credits</Typography>
+                    </div> :
+                    <FormSelect
+                      items={imageResList}
+                      className="text-to-speech__select"
+                      value={imageRes}
+                      onChange={handleChange}
+                      menuPlacement={'auto'}
+                      menuPosition={'fixed'}
+                    />}
                 </div>
               }
             </div>
