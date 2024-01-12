@@ -165,7 +165,7 @@ const SettingPanel = observer(({ action }) => {
           floatClassName="settings-checkbox settings-checkbox-playbar"
         />
       </div>
-      <div className="settings__inputs">
+      <div className="settings__inputs" style={{flex:1}}>
         <FieldBuilder
           type="tags"
           name="tags"
