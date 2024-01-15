@@ -176,7 +176,7 @@ const SettingPanel = observer(({ action }) => {
             margin:"25px 0px"
           }}
         >
-          <Button
+          {/* <Button
             style={{ width: '100%', padding: '0px 10px' }}
             className="settings__edit-file"
           >
@@ -187,7 +187,7 @@ const SettingPanel = observer(({ action }) => {
             className="settings__edit-file"
           >
             AI Mail-Tester
-          </Button>
+          </Button> */}
         </div>
       </div>
       <div className="settings__inputs" style={{ flex: 1 }}>
