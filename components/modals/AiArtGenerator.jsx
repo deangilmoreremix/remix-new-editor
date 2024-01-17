@@ -935,26 +935,26 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
       img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/15-small.png',
       name: 'Blue Rhapsody',
     },
-    {
-      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/16-small.png',
-      name: 'Graffiti',
-    },
-    {
-      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/17-small.png',
-      name: 'Clown',
-    },
-    {
-      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/18-small.png',
-      name: 'Flat Comic',
-    },
-    {
-      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/19-small.png',
-      name: 'R&M',
-    },
-    {
-      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/20-small.png',
-      name: 'Shooter',
-    },
+    // {
+    //   img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/16-small.png',
+    //   name: 'Graffiti',
+    // },
+    // {
+    //   img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/17-small.png',
+    //   name: 'Clown',
+    // },
+    // {
+    //   img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/18-small.png',
+    //   name: 'Flat Comic',
+    // },
+    // {
+    //   img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/19-small.png',
+    //   name: 'R&M',
+    // },
+    // {
+    //   img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/20-small.png',
+    //   name: 'Shooter',
+    // },
     // 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/1-small.png'
   ];
   const scenarioStyle = [
@@ -1018,26 +1018,26 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
       img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/15-small.png',
       name: 'Battle',
     },
-    {
-      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/16-small.png',
-      name: 'Cyber Room',
-    },
-    {
-      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/17-small.png',
-      name: 'Adventure',
-    },
-    {
-      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/18-small.png',
-      name: 'Chinese Style',
-    },
-    {
-      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/19-small.png',
-      name: 'Fantasia',
-    },
-    {
-      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/20-small.png',
-      name: 'Blue Flame',
-    },
+    // {
+    //   img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/16-small.png',
+    //   name: 'Cyber Room',
+    // },
+    // {
+    //   img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/17-small.png',
+    //   name: 'Adventure',
+    // },
+    // {
+    //   img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/18-small.png',
+    //   name: 'Chinese Style',
+    // },
+    // {
+    //   img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/19-small.png',
+    //   name: 'Fantasia',
+    // },
+    // {
+    //   img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/20-small.png',
+    //   name: 'Blue Flame',
+    // },
   ];
   const base64 = `data:image/png;base64,${newImage}`;
   const open = Boolean(anchorEl);
@@ -1297,7 +1297,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                         src={ele?.img}
                         className={`${index == active ? 'active-style' : ''}`}
                       />
-                      <p style={{ fontSize: '11px' }}>{ele?.name}</p>
+                      <p style={{ fontSize: '13px' }}>{ele?.name}</p>
                     </div>
                   ))}
                 {activeButton == 'scenario' &&
@@ -1313,7 +1313,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                         src={ele?.img}
                         className={`${index == active ? 'active-style' : ''}`}
                       />
-                      <p style={{ fontSize: '11px' }}>{ele?.name}</p>
+                      <p style={{ fontSize: '13px' }}>{ele?.name}</p>
                     </div>
                   ))}
               </div>
