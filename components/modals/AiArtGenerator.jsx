@@ -874,7 +874,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     setDescription(value);
   };
 
-  const characterArray = [
+  const characterArrAiEdited = [
     {
       img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/1-small.png',
       name: 'Photographic',
@@ -955,9 +955,8 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     //   img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/20-small.png',
     //   name: 'Shooter',
     // },
-    // 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/1-small.png'
-  ];
-  const scenarioStyle = [
+  ]
+  const scenarioStyleAiEdited = [
     {
       img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/1-small.png',
       name: 'Realistic',
@@ -1037,7 +1036,172 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
     // {
     //   img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/20-small.png',
     //   name: 'Blue Flame',
-    // },
+    // }
+  ]
+  const characterArray = [
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/1-small.png',
+      name: 'Photographic',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/2-small.png',
+      name: 'Oil Painting',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/3-small.png',
+      name: 'J-Manga',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/4-small.png',
+      name: 'Elf',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/5-small.png',
+      name: 'Princess',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/6-small.png',
+      name: 'LoL',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/7-small.png',
+      name: 'Realistic Anime',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/8-small.png',
+      name: 'Matte Painting',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/9-small.png',
+      name: 'Dragon Horns',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/10-small.png',
+      name: 'Glowing Forest',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/11-small.png',
+      name: 'Office Lady',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/12-small.png',
+      name: 'Suit Thug',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/13-small.png',
+      name: 'Vector Art',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/14-small.png',
+      name: 'West Coast',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/15-small.png',
+      name: 'Blue Rhapsody',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/16-small.png',
+      name: 'Graffiti',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/17-small.png',
+      name: 'Clown',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/18-small.png',
+      name: 'Flat Comic',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/19-small.png',
+      name: 'R&M',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/20-small.png',
+      name: 'Shooter',
+    },
+    // 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/chara/1-small.png'
+  ];
+  const scenarioStyle = [
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/1-small.png',
+      name: 'Realistic',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/2-small.png',
+      name: 'Concept Art',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/3-small.png',
+      name: 'Illustration',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/4-small.png',
+      name: 'Cartoon Store',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/5-small.png',
+      name: '3D Game',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/6-small.png',
+      name: '3D Room',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/7-small.png',
+      name: 'Poly',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/8-small.png',
+      name: 'Interior',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/9-small.png',
+      name: 'Ghibli',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/10-small.png',
+      name: 'Coffee Shop',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/11-small.png',
+      name: 'Sci-Fi',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/12-small.png',
+      name: 'Mechanical',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/13-small.png',
+      name: 'Starship',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/14-small.png',
+      name: 'Utopia',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/15-small.png',
+      name: 'Battle',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/16-small.png',
+      name: 'Cyber Room',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/17-small.png',
+      name: 'Adventure',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/18-small.png',
+      name: 'Chinese Style',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/19-small.png',
+      name: 'Fantasia',
+    },
+    {
+      img: 'https://d38b044pevnwc9.cloudfront.net/cutout-nuxt/art/border/scene/20-small.png',
+      name: 'Blue Flame',
+    },
   ];
   const base64 = `data:image/png;base64,${newImage}`;
   const open = Boolean(anchorEl);
@@ -1283,8 +1447,26 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                   Scenario Style
                 </button>
               </div>
-              <div>
-                {activeButton == 'character' &&
+              <div style={{ gridTemplateColumns: Aiedited ? 'repeat(auto-fit, minmax(122px, 1fr))' : '', maxHeight: Aiedited ? 'calc(100vh - 560px)' : '' }}>
+                {Aiedited ?
+                  activeButton == 'character' &&
+                  characterArrAiEdited.length &&
+                  characterArray.map((ele, index) => (
+                    <div
+                      onClick={() => {
+                        setStyle(ele?.name);
+                        setActive(index);
+                      }}
+                    >
+                      <img
+                        style={{ width: Aiedited ? '122px' : '', height: Aiedited ? '97px' : '' }}
+                        src={ele?.img}
+                        className={`${index == active ? 'active-style' : ''}`}
+                      />
+                      <p style={{ fontSize: '13px' }}>{ele?.name}</p>
+                    </div>
+                  )) :
+                  activeButton == 'character' &&
                   characterArray.length &&
                   characterArray.map((ele, index) => (
                     <div
@@ -1297,10 +1479,33 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                         src={ele?.img}
                         className={`${index == active ? 'active-style' : ''}`}
                       />
+                      <p style={{ fontSize: '11px' }}>{ele?.name}</p>
+                    </div>
+                  ))
+                }
+                {Aiedited ?
+                  activeButton == 'scenario' &&
+                  scenarioStyleAiEdited.length &&
+                  scenarioStyle.map((ele, index) => (
+                    <div
+
+                      onClick={() => {
+                        setStyle(ele?.name);
+                        setActive(index);
+                      }}
+                    >
+                      <img
+                        src={ele?.img}
+                        style={{
+                          width: '122px',
+                          height: '97px'
+                        }}
+                        className={`${index == active ? 'active-style' : ''}`}
+                      />
                       <p style={{ fontSize: '13px' }}>{ele?.name}</p>
                     </div>
-                  ))}
-                {activeButton == 'scenario' &&
+                  )) :
+                  activeButton == 'scenario' &&
                   scenarioStyle.length &&
                   scenarioStyle.map((ele, index) => (
                     <div
@@ -1313,9 +1518,10 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                         src={ele?.img}
                         className={`${index == active ? 'active-style' : ''}`}
                       />
-                      <p style={{ fontSize: '13px' }}>{ele?.name}</p>
+                      <p style={{ fontSize: '11px' }}>{ele?.name}</p>
                     </div>
-                  ))}
+                  ))
+                }
               </div>
 
               {
@@ -1324,7 +1530,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                     Generate Image
                   </button>
                   {Aiedited ?
-                    <div style={{ border:'1px solid #575773',borderRadius:'5px', padding:'4px'}}>
+                    <div style={{ border: '1px solid #575773', borderRadius: '5px', padding: '4px' }}>
                       <Typography>5 Credits</Typography>
                     </div> :
                     <FormSelect

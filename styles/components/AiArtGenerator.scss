@@ -112,14 +112,14 @@
         >div:nth-child(3) {
           margin-top: 20px;
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
           grid-gap: 10px;
           max-height: calc(100vh - 520px);
           overflow-y: auto;
 
           >div>img {
-            width: 122px;
-            height: 97px;
+            width: 86px;
+            height: 72px;
             border-radius: 2.641px;
             cursor: pointer;
 
