@@ -1451,7 +1451,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                 {Aiedited ?
                   activeButton == 'character' &&
                   characterArrAiEdited.length &&
-                  characterArray.map((ele, index) => (
+                  characterArrAiEdited.map((ele, index) => (
                     <div
                       onClick={() => {
                         setStyle(ele?.name);
@@ -1486,7 +1486,7 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                 {Aiedited ?
                   activeButton == 'scenario' &&
                   scenarioStyleAiEdited.length &&
-                  scenarioStyle.map((ele, index) => (
+                  scenarioStyleAiEdited.map((ele, index) => (
                     <div
 
                       onClick={() => {
