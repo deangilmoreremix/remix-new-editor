@@ -35,14 +35,14 @@ const DropAndEditButton = (
     openImageEditor,
     allowedGif,
     fallbackValue,
+    AiGeneratoreImage,
     ...rest
   }) => {
   const { uploadMedia, saveFile } = useMediaStore();
   const { openCropper } = useModalStore();
-  const { showWarning } = useProjectStore();
+  const { showWarning,setSettingImageUplode } = useProjectStore();
 
   const uploadButtonRef = useRef();
-
   const props = useMemo(() => ({
     multiple: false,
     accept: allowedGif ? IMAGE_FORMATS_WITH_GIF : IMAGE_FORMATS,
@@ -67,7 +67,9 @@ const DropAndEditButton = (
       try {
         startUpload();
         const media = await uploadMedia({ data: image });
+        console.log("media>>",media)
         await save(media && media.url, image.type);
+        console.log("media>>",media,media.url,image.type)
         endUpload();
         showWarning(GIF_WARNING);
       } catch (e) {
@@ -93,6 +95,7 @@ const DropAndEditButton = (
     }
     const result = await saveFile(src, needSaveAsset, ASSET_TYPES.IMAGE);
     onUploaded(result, type);
+    setSettingImageUplode(result.url)
     if (endUpload) {
       endUpload();
     }

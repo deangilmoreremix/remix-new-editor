@@ -106,6 +106,7 @@ const ElementsPanel = observer(({ items }) => {
   }
 
   const onClick = (action) => {
+    console.log("action>>>",action)
     toggleRightBlock();
     action();
   };

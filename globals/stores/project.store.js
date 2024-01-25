@@ -267,11 +267,16 @@ export default class ProjectStore extends BaseStore {
 
   @observable removedTransition = null;
 
+  @observable AiGeneratoreImage = '';
+  
+  @observable SettingImageUploded = ''
+
+  @observable Aiedited = false
+
   @observable pluginDefaults = {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
     [POPCORN_ELEMENT_TYPES.IMAGE]: {},
   };
-
   getPersonalization = (data) => getCustomVarsFromMediaArr(data || this.projectData.media)
 
   generateUid = () => `${Date.now()}/${Math.random()}/${Date.now() * Math.random()}`;
@@ -290,6 +295,27 @@ export default class ProjectStore extends BaseStore {
   setVoiceTextId = (id = this.activeElementId) => {
     this.voiceTextId = id;
   };
+  
+  @action 
+  setAiGeneratorImage = (newValue) => {
+  this.Aiedited = false
+  if (newValue) {
+    this.AiGeneratoreImage = newValue;
+    this.SettingImageUploded = newValue
+    this.item.thumbnail = newValue
+    console.log("AiGeneratoreImage>>",newValue,this.AiGeneratoreImage)
+  }
+  }
+
+@action
+setSettingImageUplode = (value) => {
+  this.Aiedited = true
+  if (value) {
+    this.SettingImageUploded = value
+    this.item.thumbnail = value
+    console.log("value???",value,this.SettingImageUploded)
+  }
+}
 
   @action
   setIsRedirect = (value = false) => {

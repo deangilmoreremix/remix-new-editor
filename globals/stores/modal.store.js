@@ -90,6 +90,7 @@ export default () => {
     if (saveFile) {
       try {
         image.src = await saveFile(image.src);
+        console.log("imagesrc>>>",saveFile(image.src))
       } catch (e) {
         if (setError) {
           setError(e.message);
@@ -117,6 +118,7 @@ export default () => {
     if (!src) {
       return;
     }
+    console.log("src>>>",src)
     const metadata = { source: src };
     openModal(PINTURA_IMAGE_EDITOR_MODAL,
       {

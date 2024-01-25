@@ -16,7 +16,7 @@ import ExpandButton from './common/ExpandButton';
 import HelpIconComponent from './common/HelpIcon';
 
 import { HEADER_ACTIONS, USER_MENU_ITEMS } from '../lib/constants/ui';
-import { headerTooltips } from '../lib/constants/tooltips';
+import { headerTooltips,downloadTooltips } from '../lib/constants/tooltips';
 import { DOMAIN_VIDEOREMIX } from '../lib/constants/project';
 import { ENTER_KEY } from '../lib/constants/keyCodes';
 
@@ -248,19 +248,30 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   const download360 = useCallback(async (quality) => {
     if (!isLoadingIosProcess && project && item.iosurl && availableDownloadVideoLimit > 0) {
       if (quality == 480) {
-        saveAs(item.goodQualityUrl, item.title)
+        saveAs(item.goodQualityUrl, `${item.title}_480px_${Date.now()}`)
       }
       else if (quality == 720) {
-        saveAs(item.standardQualityUrl, item.title)
+        saveAs(item.standardQualityUrl, `${item.title}_720px_${Date.now()}`)
       }
       else if (quality == 1080) {
-        saveAs(item.iosurl, item.title)
+        saveAs(item.iosurl, `${item.title}_1080px_${Date.now()}`)
       }
       const total = downloadVideoLimitUsed + 1;
       await updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
       setOpen(false)
+    }else{
+      window.open("https://videoremix.io/smartvideo-pricing-page/","_blank")
     }
   }, [item.iosurl, item.standardQualityUrl, item.goodQualityUrl, downloadVideoLimitUsed, availableDownloadVideoLimit])
+
+const handleDownload = () =>{
+  if (availableDownloadVideoLimit > 0) {
+    setOpen(true)
+  }else{
+    window.open("https://videoremix.io/smartvideo-pricing-page/","_blank")
+  }
+}
+
   return (
     <div className="container-header" ref={anchorRef}>
       <AppBar position="static" className="app-bar">
@@ -396,6 +407,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
             }
             {console.log((isLoadingIosProcess && !project && !item.iosurl), "(isLoadingIosProcess && !project && !item.iosurl) || availableDownloadVideoLimit <= 0", availableDownloadVideoLimit <= 0)}
             {revolutionDownloadVideoEnabled && <div className="container-menu__actions__item">
+            <HelpIconComponent noDelay noIcon message={`${downloadTooltips.value}${availableDownloadVideoLimit <= 0 ? 0 : availableDownloadVideoLimit}`}>
               <div ref={buttonref}>
                 {console.log("availableDownloadVideoLimit:" + availableDownloadVideoLimit, !isLoadingIosProcess, project, item.iosurl)}
                 <SVGInline
@@ -404,17 +416,18 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
                   svg={downloadIcon}
                   cleanup={['title']}
                   component="button"
-                  onClick={() => setOpen(true)}
-                  disabled={(!project && !item.iosurl) || isLoadingIosProcess || availableDownloadVideoLimit <= 0}
+                  onClick={() => handleDownload()}
+                  disabled={(!project && !item.iosurl ) || isLoadingIosProcess}
                 />
                 <button
                   className={`icon-button container-menu__button-text ${!isLoadingIosProcess && project && availableDownloadVideoLimit > 0 && item.iosurl ? 'active-save' : ''}`}
-                  onClick={() => setOpen(true)}
-                  disabled={(!project && !item.iosurl) || isLoadingIosProcess || availableDownloadVideoLimit <= 0}
+                  onClick={() => handleDownload()}
+                  disabled={(!project && !item.iosurl ) || isLoadingIosProcess}
                 >
                   {DOWNLOAD}
                 </button>
               </div>
+              </HelpIconComponent>
             </div>
             }
           </div>
