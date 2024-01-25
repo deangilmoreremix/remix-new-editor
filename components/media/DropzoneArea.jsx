@@ -20,14 +20,13 @@ const DropzoneArea = (
     value,
     className,
     isArrows,
-    onDrop,
+    onDrop
   }) => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: accept && accept.length ? accept : mediaConstants.ACCEPTED_MEDIA_TYPES,
     onDrop,
     disabled: isDisabled,
   });
-
   if (inline) {
     return (
       <div

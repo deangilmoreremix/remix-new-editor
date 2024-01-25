@@ -33,6 +33,11 @@ button.menu__open {
       background: $btn-gray;
   }
 }
+.AgeavailableDownload{
+  text-align: center;
+  color: white;
+  margin: 7px auto;
+}
 .qualitymenu__item{
   @include reset-button;
   text-align: start;

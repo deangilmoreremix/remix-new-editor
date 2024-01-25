@@ -66,6 +66,7 @@ const Home = observer(() => {
     isSuperAdmin,
     isfeatureEnabled,
     recorderEnabled,
+    aiThumbnailEnabled,
     stickersEnabled,
     lowerThirdsEnabled,
     presetsEnabled,
@@ -117,7 +118,7 @@ const Home = observer(() => {
   );
   const [progress, setProgress] = useState(1);
   const [progressMessage, setProgressMessage] = useState('');
-  const { isLoadingIosProcess } = useProjectStore();
+  const { isLoadingIosProcess,setAiGeneratorImage } = useProjectStore();
   const {
     changeRadioButton,
     secondaryWindowType,
@@ -188,6 +189,7 @@ const Home = observer(() => {
         openUploadTransition,
         toggleLeftBlock,
         addTogetherJS,
+        setAiGeneratorImage
       },
       project: {
         allowedSocials,
@@ -199,6 +201,7 @@ const Home = observer(() => {
         isSuperAdmin,
         isfeatureEnabled,
         recorderEnabled,
+        aiThumbnailEnabled,
         stickersEnabled,
         lowerThirdsEnabled,
         presetsEnabled,
@@ -527,6 +530,7 @@ const Home = observer(() => {
         return <GoogleTextToSpeech />;
       }
       case WINDOW_TYPES.AI_ART_GENERATOR: {
+        console.log("WINDOW_TYPES.AI_ART_GENERATOR",WINDOW_TYPES.AI_ART_GENERATOR)
         return <AiArtGenerator />;
       }
       case WINDOW_TYPES.BG_DIFFUSION: {
