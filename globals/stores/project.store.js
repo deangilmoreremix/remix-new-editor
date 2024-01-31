@@ -1727,6 +1727,8 @@ setSettingImageUplode = (value) => {
           )
         )
       );
+      const publishedMake = await this.publish(result._id);
+     
       if (hasNonEmptyTrackEvents && hasSequencer) {
         this.isLoadingIosProcess = true;
         downloadVideoData.allowedSocials = [];
@@ -1898,7 +1900,7 @@ setSettingImageUplode = (value) => {
 
         await this.updateIOSVideo(result,publishDownloadVideoMake)
       }
-      const publishedMake = await this.publish(result._id);
+      
       if (hasNonEmptyTrackEvents) {
         await this.processRunning(result._id);
       }
