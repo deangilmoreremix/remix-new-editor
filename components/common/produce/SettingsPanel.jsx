@@ -4,6 +4,8 @@ import { useRouter } from 'next/router';
 import SVGInline from 'react-svg-inline';
 import aiPromptIcon from '../../../public/static/svgImages/aiPrompt.svg';
 import AiPoint from '../../../public/static/svgImages/AiPoint.svg';
+import { LibrarySpinner } from '../../../components/media/Loader';
+import PercentageProgressBar from '../../../components/media/PercentageProgressBar';
 import AiPointImage from '../../../public/static/images/aiPoint.png';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { withStyles } from '@material-ui/core/styles';
@@ -49,11 +51,21 @@ const SettingPanel = observer(({ action }) => {
   const [aiPromptinput, setAiPromptinput] = useState(
     'Personalized video content for doctors'
   );
-  const [aiTitleSugeests,setAiTitleSugeests] = useState([])
-  const [aiTitlePoints,setAiTitlePoints] = useState({})
-const aiTitleSugeest = [{type:1,text:"Exclusive Video Invitation for Doctors: Elevate Your Practice"},
-{type:2,text:"Exclusive Invitation: Elevate Your Medical Practice."},
-{type:3,text:"Revolutionize paient care with our personalized videocampaign!"}]
+  const [aiTitleSugeests, setAiTitleSugeests] = useState([]);
+  const [aiTitlePoints, setAiTitlePoints] = useState({});
+  const [openloader, setOpenloader] = useState(false);
+
+  const aiTitleSugeest = [
+    {
+      type: 1,
+      text: 'Exclusive Video Invitation for Doctors: Elevate Your Practice',
+    },
+    { type: 2, text: 'Exclusive Invitation: Elevate Your Medical Practice.' },
+    {
+      type: 3,
+      text: 'Revolutionize paient care with our personalized videocampaign!',
+    },
+  ];
 
   const [showAiTitleSuggestion, setShowAiTitleSuggestion] = useState(false);
 
@@ -74,14 +86,15 @@ const aiTitleSugeest = [{type:1,text:"Exclusive Video Invitation for Doctors: El
     SuggestEmailSubject,
     setSuggestEmailSubject,
     getSuggestEmailPoint,
-    SuggestEmailPoint
+    SuggestEmailPoint,
   } = useProjectStore();
   let {
     item: { allowedSocials = [] },
   } = useProjectStore();
   const { openImageEditor, closeModal, openImglyEditorCropper } =
     useModalStore();
-  const { openAiArtGenerator, openMediaButton,setradiobuttonfalse } = useUIStore();
+  const { openAiArtGenerator, openMediaButton, setradiobuttonfalse } =
+    useUIStore();
   const categories = useMemo(() => item.categories, [item.categories]);
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -153,62 +166,67 @@ const aiTitleSugeest = [{type:1,text:"Exclusive Video Invitation for Doctors: El
   };
   const handlSaveAiPrompt = () => {
     setOpenAiPrompt(false);
-    SuggestEmailSubject(aiPromptinput)
+    setOpenloader(true);
+    SuggestEmailSubject(aiPromptinput);
   };
   const handleaiPromptInput = (e) => {
     setAiPromptinput(e.target.value);
   };
   const handleshowAiPoints = (item) => {
-    setOpenAiPoint(true)
-    getSuggestEmailPoint(item)
-  }
-  React.useEffect(()=>{
-    const data = JSON.parse(JSON.stringify(SuggestEmailPoint))
+    setOpenAiPoint(true);
+    getSuggestEmailPoint(item);
+  };
+  React.useEffect(() => {
+    const data = JSON.parse(JSON.stringify(SuggestEmailPoint));
 
-if (data) {
-  setAiTitlePoints(data)
-}
-  },[SuggestEmailPoint])
+    if (data) {
+      setAiTitlePoints(data);
+    }
+  }, [SuggestEmailPoint]);
+  console.log('aiTitleSugeests>>', aiTitleSugeests.length);
+  React.useEffect(() => {
+    const data = JSON.parse(JSON.stringify(setSuggestEmailSubject));
+    console.log('data>>>', data, data.length);
+    if (data && data.length > 0) {
+      setAiTitleSugeests(data);
+      setShowAiTitleSuggestion(true);
+      setOpenloader(false);
+      setradiobuttonfalse(false);
+    }
+  }, [setSuggestEmailSubject]);
 
-React.useEffect(()=>{
-  const data = JSON.parse(JSON.stringify(setSuggestEmailSubject))
-  console.log("data>>>",data,data.length)
-  if (data && data.length > 0) {
-    setAiTitleSugeests(data)
-    setShowAiTitleSuggestion(true)
-    setradiobuttonfalse(false)
-  }
-},[setSuggestEmailSubject])
+  const handleCLoseAiSuggestion = () => {
+    setShowAiTitleSuggestion(false);
+    setOpenloader(false);
+    setradiobuttonfalse(true);
+  };
 
-const handleCLoseAiSuggestion = () =>{
-  setShowAiTitleSuggestion(false)
-  setradiobuttonfalse(true)
-}
-
-  
   React.useEffect(() => {
     const produceTab = document.getElementsByClassName('produce__tab')[0];
-      if (showAiTitleSuggestion ) {
-        produceTab.style.minWidth = '60%';
-      } else {
-        produceTab.style.minWidth = '45%';
-      }
-  }, [showAiTitleSuggestion]);
+    if (showAiTitleSuggestion || openloader) {
+      produceTab.style.minWidth = '60%';
+    } else {
+      produceTab.style.minWidth = '45%';
+    }
+  }, [showAiTitleSuggestion, openloader]);
   return (
     <div className="produce-block settings-panel">
       <div
         className={
-          showAiTitleSuggestion
+          showAiTitleSuggestion || openloader
             ? 'settings__inputs showAiTitleSuggestion'
             : 'settings__inputs'
         }
       >
-        <div style={{ width: showAiTitleSuggestion && '100lvh' }}>
+        <div
+          style={{ width: showAiTitleSuggestion || (openloader && '100lvh') }}
+        >
           <FieldBuilder
             ref={titleRef}
             type="input"
             name="title"
             label="Title"
+            handlSaveAiPrompt={handlSaveAiPrompt}
             onChange={updateItem}
             value={item.title}
             className="settings-input"
@@ -263,10 +281,10 @@ const handleCLoseAiSuggestion = () =>{
               gap: '10px',
               width: '100%',
               justifyContent: 'left',
-              marginTop:"25px"
+              marginTop: '25px',
             }}
           >
-            <Button
+            {/* <Button
               style={{ width: '100%', padding: '0px 10px' }}
               className="settings__edit-file"
               onClick={handleAIPrompt}
@@ -278,7 +296,7 @@ const handleCLoseAiSuggestion = () =>{
               className="settings__edit-file"
             >
               AI Mail-Tester
-            </Button>
+            </Button> */}
           </div>
         </div>
         {showAiTitleSuggestion && aiTitleSugeests.length > 0 && (
@@ -286,31 +304,51 @@ const handleCLoseAiSuggestion = () =>{
             <div>
               <p className="AITitle">AI Title Suggestions</p>
               <ol className="AISuggestions">
-                {aiTitleSugeests.map((item)=>{
-                 return <li onClick={()=>handleshowAiPoints(item)}>{item}</li>
+                {aiTitleSugeests.map((item) => {
+                  return (
+                    <li onClick={() => handleshowAiPoints(item)}>{item}</li>
+                  );
                 })}
               </ol>
             </div>
-              {openAiPoint && aiTitlePoints.points && <div className="AiPointSuggestion">
+            {openAiPoint && (
+              <div className="AiPointSuggestion">
                 <div className="backpoint"></div>
-                <img style={{ height: '100%',marginRight:"10px",filter:"brightness(1)" }} src={AiPointImage} alt="pic" />
+                <img
+                  style={{
+                    height: '100%',
+                    marginRight: '10px',
+                    filter: 'brightness(1)',
+                  }}
+                  src={AiPointImage}
+                  alt="pic"
+                />
                 <div className="pointContainer">
-                  <p>{ aiTitlePoints.points } Points</p>
-                  <BorderLinearProgress variant="determinate" value={aiTitlePoints.points} />
-                  <p>
-                    {aiTitlePoints.text}
-                  </p>
+                  <p>{aiTitlePoints.points ? aiTitlePoints.points : "..."} Points</p>
+                  {aiTitlePoints.points ? (
+                    <BorderLinearProgress
+                      variant="determinate"
+                      value={aiTitlePoints.points}
+                    />
+                  ) : (
+                    <PercentageProgressBar width="100%"/>
+                  )}
+                  <p>{aiTitlePoints.text}</p>
                 </div>
-              </div>}
-              <p className='Viewfullscore'>
-                View full score report and possible improvements
-                </p>
-                <Button
+              </div>
+            )}
+
+            <Button
               className="settings__edit-file AiTitleClose"
               onClick={handleCLoseAiSuggestion}
             >
               Close
             </Button>
+          </div>
+        )}
+        {openloader && (
+          <div style={{ margin: 'auto', width: '100lvh' }}>
+            <LibrarySpinner />
           </div>
         )}
       </div>
@@ -451,7 +489,7 @@ const handleCLoseAiSuggestion = () =>{
       {openAiPrompt && (
         <Modal
           show={openAiPrompt}
-          onHide={()=>setOpenAiPrompt(false)}
+          onHide={() => setOpenAiPrompt(false)}
           animation={false}
           className={'preview-model'}
         >
@@ -492,7 +530,7 @@ const handleCLoseAiSuggestion = () =>{
             >
               <Button
                 className="preview-image-lt-use-button aipromptbutton"
-                onClick={handlSaveAiPrompt}
+               
               >
                 Generate
               </Button>

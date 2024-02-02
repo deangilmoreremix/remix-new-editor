@@ -34,7 +34,8 @@ const FormTextField = React.forwardRef(
       error,
       helperText,
       onEdit: defaultOnEdit,
-      inputClass
+      inputClass,
+      handlSaveAiPrompt
     },
     ref
   ) => {
@@ -78,7 +79,7 @@ const FormTextField = React.forwardRef(
         return {
           endAdornment: (
             <React.Fragment>
-              <img style={{height:"20px",width:"20px",cursor:"pointer"}} src={vrAilogo} alt="pic" />
+              <img onClick={()=>handlSaveAiPrompt()} style={{height:"20px",width:"20px",cursor:"pointer"}} src={vrAilogo} alt="pic" />
             </React.Fragment>
           ),
         };
