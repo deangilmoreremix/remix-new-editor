@@ -1,16 +1,22 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { useRouter } from 'next/router';
+import SVGInline from 'react-svg-inline';
+import aiPromptIcon from '../../../public/static/svgImages/aiPrompt.svg';
+import AiPoint from '../../../public/static/svgImages/AiPoint.svg';
+import AiPointImage from '../../../public/static/images/aiPoint.png';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import PropTypes from '../../../lib/PropTypes';
 import { rgba2hex } from '../../../lib/lottie/utils';
-
+import Modal from 'react-bootstrap/Modal';
 import useProjectStore from '../../hooks/useProjectStore';
 import useUserStore from '../../hooks/useUserStore';
 import useModalStore from '../../hooks/useModalStore';
 import useUIStore from '../../hooks/useUIStore';
 import FieldBuilder from '../../form/FieldBuilder';
-
+import { Divider } from '@material-ui/core';
 import { CROP_RECOMMENDED_RESOLUTION } from '../../../lib/constants/settings/image';
 import { IMAGE_CROPPER_MODAL } from '../../../lib/constants/modals';
 import { GIF_FORMAT, GIF_WARNING } from '../../../lib/constants/media';
@@ -21,9 +27,35 @@ import DropAndEditButton from '../../media/DropAndEditButton';
 import HelpIconComponent from '../HelpIcon';
 import { WINDOW_TYPES } from '../../../lib/constants/ui';
 
+const BorderLinearProgress = withStyles((theme) => ({
+  root: {
+    height: 10,
+    borderRadius: 5,
+  },
+  colorPrimary: {
+    backgroundColor:
+      theme.palette.grey[theme.palette.type === 'light' ? 200 : 700],
+  },
+  bar: {
+    borderRadius: 5,
+    backgroundColor: '#52B52C',
+  },
+}))(LinearProgress);
 const SettingPanel = observer(({ action }) => {
   const [isDisabledUpload, setIsDisabledUpload] = useState(false);
   const [showAibutton, setShowAibutton] = useState(false);
+  const [openAiPrompt, setOpenAiPrompt] = useState(false);
+  const [openAiPoint, setOpenAiPoint] = useState(false);
+  const [aiPromptinput, setAiPromptinput] = useState(
+    'Personalized video content for doctors'
+  );
+  const [aiTitleSugeests,setAiTitleSugeests] = useState([])
+  const [aiTitlePoints,setAiTitlePoints] = useState({})
+const aiTitleSugeest = [{type:1,text:"Exclusive Video Invitation for Doctors: Elevate Your Practice"},
+{type:2,text:"Exclusive Invitation: Elevate Your Medical Practice."},
+{type:3,text:"Revolutionize paient care with our personalized videocampaign!"}]
+
+  const [showAiTitleSuggestion, setShowAiTitleSuggestion] = useState(false);
 
   const titleRef = React.useRef(null);
 
@@ -39,13 +71,17 @@ const SettingPanel = observer(({ action }) => {
     AiGeneratoreImage,
     SettingImageUploded,
     setSettingImageUplode,
+    SuggestEmailSubject,
+    setSuggestEmailSubject,
+    getSuggestEmailPoint,
+    SuggestEmailPoint
   } = useProjectStore();
   let {
     item: { allowedSocials = [] },
   } = useProjectStore();
   const { openImageEditor, closeModal, openImglyEditorCropper } =
     useModalStore();
-  const { openAiArtGenerator, openMediaButton } = useUIStore();
+  const { openAiArtGenerator, openMediaButton,setradiobuttonfalse } = useUIStore();
   const categories = useMemo(() => item.categories, [item.categories]);
   const updateSocials = (data) => {
     const socialValue = data[Object.keys(data)[0]];
@@ -111,84 +147,172 @@ const SettingPanel = observer(({ action }) => {
     releaseElement();
     openMediaButton(WINDOW_TYPES.AI_ART_GENERATOR);
   };
+
+  const handleAIPrompt = () => {
+    setOpenAiPrompt(true);
+  };
+  const handlSaveAiPrompt = () => {
+    setOpenAiPrompt(false);
+    SuggestEmailSubject(aiPromptinput)
+  };
+  const handleaiPromptInput = (e) => {
+    setAiPromptinput(e.target.value);
+  };
+  const handleshowAiPoints = (item) => {
+    setOpenAiPoint(true)
+    getSuggestEmailPoint(item)
+  }
+  React.useEffect(()=>{
+    const data = JSON.parse(JSON.stringify(SuggestEmailPoint))
+
+if (data) {
+  setAiTitlePoints(data)
+}
+  },[SuggestEmailPoint])
+
+React.useEffect(()=>{
+  const data = JSON.parse(JSON.stringify(setSuggestEmailSubject))
+  console.log("data>>>",data,data.length)
+  if (data && data.length > 0) {
+    setAiTitleSugeests(data)
+    setShowAiTitleSuggestion(true)
+    setradiobuttonfalse(false)
+  }
+},[setSuggestEmailSubject])
+
+const handleCLoseAiSuggestion = () =>{
+  setShowAiTitleSuggestion(false)
+  setradiobuttonfalse(true)
+}
+
+  
+  React.useEffect(() => {
+    const produceTab = document.getElementsByClassName('produce__tab')[0];
+      if (showAiTitleSuggestion ) {
+        produceTab.style.minWidth = '60%';
+      } else {
+        produceTab.style.minWidth = '45%';
+      }
+  }, [showAiTitleSuggestion]);
   return (
     <div className="produce-block settings-panel">
-      <div className="settings__inputs">
-        <FieldBuilder
-          ref={titleRef}
-          type="input"
-          name="title"
-          label="Title"
-          onChange={updateItem}
-          value={item.title}
-          className="settings-input"
-          labelClassName="settings-panel-text"
-          placeholder="My Perfect Videos"
-        />
-        <FieldBuilder
-          type="textarea"
-          name="description"
-          label="Description"
-          text
-          value={item.description}
-          onChange={updateItem}
-          className="settings-input"
-          textClassName="settings-panel-text"
-          placeholder="A project about"
-          rows={5}
-        />
-        {isSuperAdmin && (
+      <div
+        className={
+          showAiTitleSuggestion
+            ? 'settings__inputs showAiTitleSuggestion'
+            : 'settings__inputs'
+        }
+      >
+        <div style={{ width: showAiTitleSuggestion && '100lvh' }}>
           <FieldBuilder
+            ref={titleRef}
             type="input"
-            name="preview"
-            label="Preview"
-            value={item.preview}
+            name="title"
+            label="Title"
+            onChange={updateItem}
+            value={item.title}
+            className="settings-input"
+            labelClassName="settings-panel-text"
+            placeholder="My Perfect Videos"
+          />
+          <FieldBuilder
+            type="textarea"
+            name="description"
+            label="Description"
+            text
+            value={item.description}
             onChange={updateItem}
             className="settings-input"
             textClassName="settings-panel-text"
-            placeholder="Preview link"
+            placeholder="A project about"
+            rows={5}
           />
-        )}
-        <FieldBuilder
-          type="color"
-          name="background"
-          onChange={handleChangeColor}
-          value={item.background}
-          label="Background Color"
-          className="settings-formcolor"
-        />
-        <FieldBuilder
-          type="checkbox"
-          name="disabledPlaybar"
-          label="Show playbar"
-          value={!item.disabledPlaybar}
-          onChange={() =>
-            updateItem({ disabledPlaybar: !item.disabledPlaybar })
-          }
-          floatClassName="settings-checkbox settings-checkbox-playbar"
-        />
-        <div
-          style={{
-            display: 'flex',
-            gap: '10px',
-            width: '100%',
-            justifyContent: 'left',
-            margin:"25px 0px"
-          }}
-        >
-          {/* <Button
-            style={{ width: '100%', padding: '0px 10px' }}
-            className="settings__edit-file"
+          {isSuperAdmin && (
+            <FieldBuilder
+              type="input"
+              name="preview"
+              label="Preview"
+              value={item.preview}
+              onChange={updateItem}
+              className="settings-input"
+              textClassName="settings-panel-text"
+              placeholder="Preview link"
+            />
+          )}
+          <FieldBuilder
+            type="color"
+            name="background"
+            onChange={handleChangeColor}
+            value={item.background}
+            label="Background Color"
+            className="settings-formcolor"
+          />
+          <FieldBuilder
+            type="checkbox"
+            name="disabledPlaybar"
+            label="Show playbar"
+            value={!item.disabledPlaybar}
+            onChange={() =>
+              updateItem({ disabledPlaybar: !item.disabledPlaybar })
+            }
+            floatClassName="settings-checkbox settings-checkbox-playbar"
+          />
+          <div
+            style={{
+              display: 'flex',
+              gap: '10px',
+              width: '100%',
+              justifyContent: 'left',
+              marginTop:"25px"
+            }}
           >
-            AI Email Subject
-          </Button>
-          <Button
-            style={{ width: '100%', padding: '0px 10px' }}
-            className="settings__edit-file"
-          >
-            AI Mail-Tester
-          </Button> */}
+            <Button
+              style={{ width: '100%', padding: '0px 10px' }}
+              className="settings__edit-file"
+              onClick={handleAIPrompt}
+            >
+              AI Email Subject
+            </Button>
+            <Button
+              style={{ width: '100%', padding: '0px 10px' }}
+              className="settings__edit-file"
+            >
+              AI Mail-Tester
+            </Button>
+          </div>
         </div>
+        {showAiTitleSuggestion && aiTitleSugeests.length > 0 && (
+          <div className="AiTitleSuggestion">
+            <div>
+              <p className="AITitle">AI Title Suggestions</p>
+              <ol className="AISuggestions">
+                {aiTitleSugeests.map((item)=>{
+                 return <li onClick={()=>handleshowAiPoints(item)}>{item}</li>
+                })}
+              </ol>
+            </div>
+              {openAiPoint && aiTitlePoints.points && <div className="AiPointSuggestion">
+                <div className="backpoint"></div>
+                <img style={{ height: '100%',marginRight:"10px",filter:"brightness(1)" }} src={AiPointImage} alt="pic" />
+                <div className="pointContainer">
+                  <p>{ aiTitlePoints.points } Points</p>
+                  <BorderLinearProgress variant="determinate" value={aiTitlePoints.points} />
+                  <p>
+                    {aiTitlePoints.text}
+                  </p>
+                </div>
+              </div>}
+              <p className='Viewfullscore'>
+                View full score report and possible improvements
+                </p>
+                <Button
+              className="settings__edit-file AiTitleClose"
+              onClick={handleCLoseAiSuggestion}
+            >
+              Close
+            </Button>
+          </div>
+        )}
       </div>
       <div className="settings__inputs" style={{ flex: 1 }}>
         <FieldBuilder
@@ -324,6 +448,58 @@ const SettingPanel = observer(({ action }) => {
           </div>
         </div>
       </div>
+      {openAiPrompt && (
+        <Modal
+          show={openAiPrompt}
+          onHide={()=>setOpenAiPrompt(false)}
+          animation={false}
+          className={'preview-model'}
+        >
+          <div
+            className="preview-image-lt-container"
+            style={{ padding: '10px 0px', marginTop: '0px', width: '30%' }}
+          >
+            <Modal.Header
+              className="preview-header"
+              style={{ paddingBottom: '10px' }}
+            >
+              <Modal.Title
+                className="preview-title"
+                style={{ display: 'flex', alignItems: 'center' }}
+              >
+                <SVGInline
+                  className="library__icon-btn"
+                  style={{ height: '40px', width: '41px' }}
+                  svg={aiPromptIcon}
+                />{' '}
+                <span style={{ fontWeight: 600 }}>AI Prompt</span>
+              </Modal.Title>
+            </Modal.Header>
+            <Divider style={{ height: '6px', background: '#2D2D3D' }} />
+            <Modal.Body style={{ padding: '25px' }}>
+              <p>Title Line Generator</p>
+              <input
+                className="library__search white-text-input Titlelinegenerator"
+                type="text"
+                value={aiPromptinput}
+                onChange={handleaiPromptInput}
+                placeholder="Type your prompt"
+              />
+            </Modal.Body>
+            <Modal.Footer
+              className="preview-footer"
+              style={{ padding: '10px 20px', marginTop: '50px' }}
+            >
+              <Button
+                className="preview-image-lt-use-button aipromptbutton"
+                onClick={handlSaveAiPrompt}
+              >
+                Generate
+              </Button>
+            </Modal.Footer>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 });

@@ -138,7 +138,8 @@ const Home = observer(() => {
     isCanvasPresent,
     toggleLeftBlock,
     addTogetherJS,
-    isEnabled
+    isEnabled,
+    handlewidthofai
   } = uiStore;
   const {
     item: {
@@ -564,7 +565,6 @@ const Home = observer(() => {
       console.error(e);
     }
   }, [item?.tags, roles]);
-
   return (
     <React.Fragment>
       {(asyncHero.loading || isRedirect) && <Loader isLoading preloader />}
@@ -578,7 +578,7 @@ const Home = observer(() => {
               className={classnames('controls-block', {
                 'controls-block-library': !isCanvasPresent,
               })}
-              style={{ width: radioButtonBottom ? '60%' : 'auto' }}
+              style={{ width: !handlewidthofai ? 'auto' : radioButtonBottom ? '60%' : 'auto' }}
             >
               <div className="controls-block__sidebar">
                 <div
