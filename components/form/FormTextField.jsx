@@ -5,9 +5,10 @@ import TextField from '@material-ui/core/TextField';
 import classnames from 'classnames';
 import MaskedFormControl from 'react-bootstrap-maskedinput';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
-import vrAilogo  from "../../public/static/svgImages/vrAilogo.png"
+import vrAilogo from "../../public/static/svgImages/vrAilogo.png"
 
 import PropTypes from '../../lib/PropTypes';
+import useUserStore from '../hooks/useUserStore';
 
 const FormTextField = React.forwardRef(
   (
@@ -17,6 +18,7 @@ const FormTextField = React.forwardRef(
       mask,
       label,
       name,
+      isAiSuggesstionVisible,
       onChange,
       onEnter,
       onBlur,
@@ -40,9 +42,9 @@ const FormTextField = React.forwardRef(
     ref
   ) => {
     const conditionalProps = {};
-
+    console.log(isAiSuggesstionVisible, "isAiSuggesstionVisible12")
     const [isHint, setIsHint] = useState(false);
-
+    const { aiTitleSuggestionsEnabled } = useUserStore()
     const InputProps = {
       ...(readOnly ? { readOnly } : {}),
     };
@@ -74,16 +76,29 @@ const FormTextField = React.forwardRef(
         setIsHint((prevIsHint) => !prevIsHint);
       }
     };
-    const handleInputProps = () => {
-      if (name === 'title') {
+    const handleTextareaInputProps = () => {
+      if (isAiSuggesstionVisible) {
         return {
           endAdornment: (
             <React.Fragment>
-              <img onClick={()=>handlSaveAiPrompt()} style={{height:"20px",width:"20px",cursor:"pointer"}} src={vrAilogo} alt="pic" />
+              <img onClick={() => handlSaveAiPrompt()} style={{ height: "20px", width: "20px", cursor: "pointer" }} src={vrAilogo} alt="pic" />
             </React.Fragment>
           ),
         };
-      }else{
+      } else {
+        return {}; // Return an empty object if the condition is not met
+      }
+    };
+    const handleInputProps = () => {
+      if (isAiSuggesstionVisible && aiTitleSuggestionsEnabled) {
+        return {
+          endAdornment: (
+            <React.Fragment>
+              <img onClick={() => handlSaveAiPrompt()} style={{ height: "20px", width: "20px", cursor: "pointer" }} src={vrAilogo} alt="pic" />
+            </React.Fragment>
+          ),
+        };
+      } else {
         return InputProps
       }
     };
@@ -158,6 +173,8 @@ const FormTextField = React.forwardRef(
             rowsMin={rowsMin}
             rowsMax={rowsMax}
             readOnly={readOnly}
+            InputProps={handleTextareaInputProps()}
+
           />
         )}
       </FormGroup>
@@ -204,7 +221,7 @@ FormTextField.defaultProps = {
   labelClassName: '',
   className: '',
   readOnly: false,
-  onBlur: () => {},
+  onBlur: () => { },
   labelHint: '',
 };
 

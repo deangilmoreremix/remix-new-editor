@@ -3,6 +3,9 @@ import TextField from '@material-ui/core/TextField';
 import classnames from 'classnames';
 
 import PropTypes from '../../lib/PropTypes';
+import { IconButton, InputAdornment } from '@material-ui/core';
+import vrAilogo  from "../../public/static/svgImages/vrAilogo.png"
+import useUserStore from '../hooks/useUserStore';
 
 const FormTextArea = (props) => {
   const {
@@ -13,15 +16,18 @@ const FormTextArea = (props) => {
     textClassName,
     placeholder,
     value,
+    isAiSuggesstionVisible,
     rows,
     variant,
     inputRef,
     maxTextSymbols,
     languageValidator,
+    handlSaveAiPrompt
   } = props;
+  console.log(isAiSuggesstionVisible,"isAiSuggesstionVisible123")
 
   const [symbolsCount, setSymbolsCount] = useState(0);
-
+  const  {   aiDescriptionEnabled } = useUserStore()
   const onEdit = ({ target: { value: v } }) => {
     if (languageValidator) {
       v = v.replace(languageValidator, '');
@@ -33,6 +39,20 @@ const FormTextArea = (props) => {
     } else {
       setSymbolsCount(maxTextSymbols);
       onChange(v.slice(0, maxTextSymbols));
+    }
+  };
+
+  const handleTextareaInputProps = () => {
+    if (isAiSuggesstionVisible && aiDescriptionEnabled) {
+      return {
+        endAdornment: (
+          <InputAdornment position='top' style={{ padding:'18.5px 14px', position:'absolute', top:'5px',right:'0px'}}>
+            <img onClick={() => handlSaveAiPrompt()} style={{ height: "20px", width: "20px", cursor: "pointer" }} src={vrAilogo} alt="pic" />
+          </InputAdornment>
+        ),
+      };
+    } else {
+      return {}; // Return an empty object if the condition is not met
     }
   };
 
@@ -48,6 +68,7 @@ const FormTextArea = (props) => {
       </div>
       <TextField
         id={label}
+        style={{padding: isAiSuggesstionVisible ? '14px 10px' : '' }}
         className={classnames(inputClassName, 'text-area')}
         value={value || ''}
         placeholder={placeholder}
@@ -56,6 +77,8 @@ const FormTextArea = (props) => {
         rows={rows}
         variant={variant}
         inputRef={inputRef}
+        InputProps={handleTextareaInputProps()}
+       
       />
     </div>
   );
