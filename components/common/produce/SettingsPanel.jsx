@@ -70,7 +70,8 @@ const SettingPanel = observer(({ action }) => {
   const [showAiTitleSuggestion, setShowAiTitleSuggestion] = useState(false);
 
   const titleRef = React.useRef(null);
-
+  const [promptType, setPromptType] = useState('')
+  const [activeTitlePoint,setActiveTitlePoint] = useState(null)
   const { linkedinEnabled, isSuperAdmin, smartAiArtGeneratorEnabled, aiTitleSuggestionsEnabled, aiDescriptionEnabled } =
     useUserStore();
 
@@ -86,6 +87,7 @@ const SettingPanel = observer(({ action }) => {
     SettingImageUploded,
     setSettingImageUplode,
     SuggestEmailSubject,
+    suggestDescription,
     setSuggestEmailSubject,
     getSuggestEmailPoint,
     SuggestEmailPoint,
@@ -170,7 +172,8 @@ const SettingPanel = observer(({ action }) => {
     }
   }, [aiDescriptionEnabled, aiTitleSuggestionsEnabled])
 
-  const handleAIPrompt = (text, suggText) => {
+  const handleAIPrompt = (text, suggText, promptType) => {
+    setPromptType(promptType)
     if (showAiTitleSuggestion) {
       setShowAiTitleSuggestion(false)
       setAiTitlePoints({})
@@ -184,12 +187,18 @@ const SettingPanel = observer(({ action }) => {
   const handlSaveAiPrompt = () => {
     setOpenAiPrompt(false);
     setOpenloader(true);
-    SuggestEmailSubject(aiPromptinput);
+    if (promptType == 'title') {
+      SuggestEmailSubject(aiPromptinput);
+    }
+    else {
+      suggestDescription(aiPromptinput);
+    }
   };
   const handleaiPromptInput = (e) => {
     setAiPromptinput(e.target.value);
   };
   const handleshowAiPoints = (item) => {
+    setActiveTitlePoint(item)
     setLoader(true)
     getSuggestEmailPoint(item);
   };
@@ -259,7 +268,7 @@ const SettingPanel = observer(({ action }) => {
             type="input"
             name="title"
             label="Title"
-            handlSaveAiPrompt={() => handleAIPrompt('Title Line Generator', 'AI Title Suggestions')}
+            handlSaveAiPrompt={() => handleAIPrompt('Title Line Generator', 'AI Title Suggestions', 'title')}
             onChange={updateItem}
             value={item.title}
             className="settings-input"
@@ -271,7 +280,7 @@ const SettingPanel = observer(({ action }) => {
             name="description"
             label="Description"
             isAiSuggesstionVisible={isAiSuggesstionVisible}
-            handlSaveAiPrompt={() => handleAIPrompt('Description Line Generator', 'AI Description Suggestions')}
+            handlSaveAiPrompt={() => handleAIPrompt('Description Line Generator', 'AI Description Suggestions', 'description')}
             text
             value={item.description}
             onChange={updateItem}
@@ -338,13 +347,18 @@ const SettingPanel = observer(({ action }) => {
           <div style={{ width: '50%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }} className="AiTitleSuggestion">
             <div>
               <p className="AITitle">{suggestionText}</p>
-              <ol className="AISuggestions">
+              {promptType == 'description' &&
+                <p style={{ color: '#EB5054' }}>{aiTitleSugeests}</p>
+              }
+              {promptType == 'title' && <ol className="AISuggestions">
                 {aiTitleSugeests.map((item) => {
                   return (
-                    <li onClick={() => handleshowAiPoints(item)}>{item}</li>
+                    <li style={{ color: activeTitlePoint == item ? '#fff':'' }} onClick={() => {
+                      handleshowAiPoints(item)
+                    }}>{item}</li>
                   );
                 })}
-              </ol>
+              </ol>}
             </div>
             {loader ?
               <PercentageProgressBar width="100%" /> :
@@ -378,12 +392,29 @@ const SettingPanel = observer(({ action }) => {
                 </div>
               </div>
             }
+            <div style={{ display:'flex', gap:'10px'}}>
+            <Button
+              className="settings__edit-file AiTitleClose"
+              onClick={() => {
+                if (promptType == 'title') {
+                  updateItem({ title: aiTitlePoints.text })
+                  handleCLoseAiSuggestion()
+                }
+                else {
+                  updateItem({ description: aiTitleSugeests })
+                  handleCLoseAiSuggestion()
+                }
+              }}
+            >
+              Use
+            </Button>
             <Button
               className="settings__edit-file AiTitleClose"
               onClick={handleCLoseAiSuggestion}
             >
               Close
             </Button>
+            </div>
           </div>
         )}
         {openloader && (
