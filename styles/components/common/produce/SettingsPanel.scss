@@ -26,7 +26,12 @@ label.settings-panel-text {
   display: flex;
   text-align: center;
 }
+.text-area-field {
+  .MuiInputBase-root {
+    padding: 18.5px 14px !important
 
+  }
+}
 .settings-input,
 .settings-formcolor {
   display: flex;

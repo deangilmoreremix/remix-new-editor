@@ -68,7 +68,6 @@ const FormTextArea = (props) => {
       </div>
       <TextField
         id={label}
-        style={{padding: isAiSuggesstionVisible ? '14px 10px' : '' }}
         className={classnames(inputClassName, 'text-area')}
         value={value || ''}
         placeholder={placeholder}

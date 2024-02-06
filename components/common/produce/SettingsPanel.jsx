@@ -48,9 +48,8 @@ const SettingPanel = observer(({ action }) => {
   const [showAibutton, setShowAibutton] = useState(false);
   const [openAiPrompt, setOpenAiPrompt] = useState(false);
   const [openAiPoint, setOpenAiPoint] = useState(false);
-  const [aiPromptinput, setAiPromptinput] = useState(
-    'Personalized video content for doctors'
-  );
+  const [isAiSuggesstionVisible, setIsAiSuggesstionVisible] = useState(false)
+  const [aiPromptinput, setAiPromptinput] = useState(null);
   const [aiTitleSugeests, setAiTitleSugeests] = useState([]);
   const [aiTitlePoints, setAiTitlePoints] = useState({});
   const [openloader, setOpenloader] = useState(false);
@@ -74,6 +73,8 @@ const SettingPanel = observer(({ action }) => {
 
   const { linkedinEnabled, isSuperAdmin, smartAiArtGeneratorEnabled, aiTitleSuggestionsEnabled, aiDescriptionEnabled } =
     useUserStore();
+
+
   const {
     item,
     updateItem,
@@ -114,6 +115,7 @@ const SettingPanel = observer(({ action }) => {
     updateItem({ thumbnail: image.url, type });
   };
 
+  const [loader, setLoader] = useState(false)
   const onImageEdited = (thumbnail) => {
     updateItem({ thumbnail });
   };
@@ -162,6 +164,12 @@ const SettingPanel = observer(({ action }) => {
     openMediaButton(WINDOW_TYPES.AI_ART_GENERATOR);
   };
 
+  useEffect(() => {
+    if (aiDescriptionEnabled || aiTitleSuggestionsEnabled) {
+      setIsAiSuggesstionVisible(true)
+    }
+  }, [aiDescriptionEnabled, aiTitleSuggestionsEnabled])
+
   const handleAIPrompt = (text, suggText) => {
     if (showAiTitleSuggestion) {
       setShowAiTitleSuggestion(false)
@@ -182,13 +190,14 @@ const SettingPanel = observer(({ action }) => {
     setAiPromptinput(e.target.value);
   };
   const handleshowAiPoints = (item) => {
-    setOpenAiPoint(true);
+    setLoader(true)
     getSuggestEmailPoint(item);
   };
   React.useEffect(() => {
     const data = JSON.parse(JSON.stringify(SuggestEmailPoint));
     if (data) {
       setAiTitlePoints(data);
+      setLoader(false)
     }
   }, [SuggestEmailPoint]);
 
@@ -207,6 +216,7 @@ const SettingPanel = observer(({ action }) => {
     const data = JSON.parse(JSON.stringify(setSuggestEmailSubject));
     console.log('data>>>', data, data.length);
     if (data && data.length > 0) {
+      setOpenAiPoint(true);
       setAiTitleSugeests(data);
       toggleVisibleCanvas(false)
       setShowAiTitleSuggestion(true);
@@ -244,7 +254,7 @@ const SettingPanel = observer(({ action }) => {
         >
           <FieldBuilder
             ref={titleRef}
-            isAiSuggesstionVisible={true}
+            isAiSuggesstionVisible={isAiSuggesstionVisible}
             type="input"
             name="title"
             label="Title"
@@ -259,12 +269,12 @@ const SettingPanel = observer(({ action }) => {
             type="textarea"
             name="description"
             label="Description"
-            isAiSuggesstionVisible={true}
+            isAiSuggesstionVisible={isAiSuggesstionVisible}
             handlSaveAiPrompt={() => handleAIPrompt('Description Line Generator', 'AI Description Suggestions')}
             text
             value={item.description}
             onChange={updateItem}
-            className="settings-input"
+            className={`settings-input ${isAiSuggesstionVisible ? 'text-area-field' : ''}`}
             textClassName="settings-panel-text"
             placeholder="A project about"
             rows={5}
@@ -335,46 +345,38 @@ const SettingPanel = observer(({ action }) => {
                 })}
               </ol>
             </div>
-            {
-              (openAiPoint) &&
-                isPercentageLoader ?
-                (<>
-                  <PercentageProgressBar width="100%" /> </>) :
-                aiTitlePoints.points && <div className="AiPointSuggestion">
-                  <div className="backpoint"></div>
-                  <img
-                    style={{
-                      height: '100%',
-                      marginRight: '10px',
-                      filter: 'brightness(1)',
-                    }}
-                    src={AiPointImage}
-                    alt="pic"
-                  />
-                  <div className="pointContainer">
-                    <>
-                      {
-                        <>
-                          <p>{aiTitlePoints.points ? aiTitlePoints.points : "..."} Points</p>
-                          {(
-                            <BorderLinearProgress
-                              variant="determinate"
-                              value={aiTitlePoints.points}
-                            />
-                          )}
-                          <p>{aiTitlePoints.text}</p></>
+            {loader ?
+              <PercentageProgressBar width="100%" /> :
+              aiTitlePoints.points &&
+              <div className="AiPointSuggestion">
+                <div className="backpoint"></div>
+                <img
+                  style={{
+                    height: '100%',
+                    marginRight: '10px',
+                    filter: 'brightness(1)',
+                  }}
+                  src={AiPointImage}
+                  alt="pic"
+                />
+                <div className="pointContainer">
+                  <>
+                    {
+                      <>
+                        <p>{aiTitlePoints.points ? aiTitlePoints.points : "..."} Points</p>
+                        {(
+                          <BorderLinearProgress
+                            variant="determinate"
+                            value={aiTitlePoints.points}
+                          />
+                        )}
+                        <p>{aiTitlePoints.text}</p></>
 
-                      }
-                    </>
-                  </div>
+                    }
+                  </>
                 </div>
+              </div>
             }
-
-
-
-
-
-
             <Button
               className="settings__edit-file AiTitleClose"
               onClick={handleCLoseAiSuggestion}
@@ -558,7 +560,7 @@ const SettingPanel = observer(({ action }) => {
                 type="text"
                 value={aiPromptinput}
                 onChange={handleaiPromptInput}
-                placeholder="Type your prompt"
+                placeholder="E.g. Personalized video content for doctors"
               />
             </Modal.Body>
             <Modal.Footer
@@ -568,6 +570,7 @@ const SettingPanel = observer(({ action }) => {
               <Button
                 className="preview-image-lt-use-button aipromptbutton"
                 onClick={handlSaveAiPrompt}
+                disabled={!aiPromptinput}
               >
                 Generate
               </Button>
