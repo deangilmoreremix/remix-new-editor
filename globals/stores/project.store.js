@@ -1,4 +1,11 @@
-import { observable, action, computed, reaction, runInAction, toJS } from 'mobx';
+import {
+  observable,
+  action,
+  computed,
+  reaction,
+  runInAction,
+  toJS,
+} from 'mobx';
 import arrayMove from 'array-move';
 import size from 'lodash/size';
 import Bb from 'bluebird';
@@ -30,9 +37,15 @@ import {
 } from '../../lib/constants/popcorn';
 import { isLayerFulfilled, validateBeforeSave } from '../../lib/utils/project';
 import { NONE_CLASS, ANIMATION_TYPES } from '../../lib/constants/animations';
-import { DEFAULT_OPTIONS, DEFAULT_OPTIONS_OPTIN } from '../../lib/constants/settings/retarget-settings';
+import {
+  DEFAULT_OPTIONS,
+  DEFAULT_OPTIONS_OPTIN,
+} from '../../lib/constants/settings/retarget-settings';
 import { FB_PLUGINS } from '../../lib/constants/settings/social';
-import { createItemsInCombinedElement, destroyCombined } from '../../lib/utils/combinedUtils';
+import {
+  createItemsInCombinedElement,
+  destroyCombined,
+} from '../../lib/utils/combinedUtils';
 
 import {
   SANTISECOND,
@@ -50,7 +63,11 @@ import {
 import MediaTypeDetector from '../../lib/utils/mediaTypeDetector';
 import { getCustomVarsFromMediaArr } from '../../lib/utils/tokens-helper';
 import { NUMBER_OF_STEPS } from '../../lib/constants/actions';
-import { showConfirmation, showError, showInfo } from '../../lib/services/alertService';
+import {
+  showConfirmation,
+  showError,
+  showInfo,
+} from '../../lib/services/alertService';
 import {
   CONFIRMATION_DELETE_LAYER,
   FORM_ONE_LG,
@@ -58,7 +75,11 @@ import {
   WARNINGS,
 } from '../../lib/constants/text-info';
 import { radioButton } from '../../lib/constants/windowsLogics';
-import { ACTION_MAKE_COPY, ACTION_WATCH_VIDEO, PRODUCE_TABS } from '../../lib/constants/ui';
+import {
+  ACTION_MAKE_COPY,
+  ACTION_WATCH_VIDEO,
+  PRODUCE_TABS,
+} from '../../lib/constants/ui';
 import { ROUTES } from '../../lib/constants/routing';
 import { video360prefix, REGEX_MAP } from '../../lib/constants/settings/video';
 import { recompressProject } from '../../lib/utils/popcorn-helper';
@@ -116,10 +137,10 @@ export default class ProjectStore extends BaseStore {
           this.popcorn.on('play', () => {
             this.isPlayed = true;
           });
-        },
+        }
       );
 
-      emitter.on(emitterActions.SELECT, data => {
+      emitter.on(emitterActions.SELECT, (data) => {
         let id = data;
         let isCtrlKey = false;
         if (typeof data === 'object') {
@@ -132,9 +153,13 @@ export default class ProjectStore extends BaseStore {
           if (element) {
             const { popcornOptions } = element;
             const currentTime = this.time / SANTISECOND;
-            if (currentTime < popcornOptions.start || currentTime > popcornOptions.end) {
-              const idleTime = popcornOptions.start
-                + (popcornOptions.end - popcornOptions.start) / 2;
+            if (
+              currentTime < popcornOptions.start ||
+              currentTime > popcornOptions.end
+            ) {
+              const idleTime =
+                popcornOptions.start +
+                (popcornOptions.end - popcornOptions.start) / 2;
               this.updateTime(idleTime * SANTISECOND);
             }
 
@@ -154,7 +179,7 @@ export default class ProjectStore extends BaseStore {
         }
       });
 
-      emitter.on(emitterActions.DELETE, id => {
+      emitter.on(emitterActions.DELETE, (id) => {
         this.removeElement(id);
       });
       emitter.on(emitterActions.SEQUENCES_LOADING, () => {
@@ -164,7 +189,7 @@ export default class ProjectStore extends BaseStore {
         this.isLoadingSequencer = false;
       });
       emitter.on(emitterActions.VIDEO_READY, ({ id, width, height }) => {
-        this.elements = this.elements.map(el => {
+        this.elements = this.elements.map((el) => {
           if (el.id === id) {
             return {
               ...el,
@@ -179,14 +204,18 @@ export default class ProjectStore extends BaseStore {
       });
 
       reaction(
-        () => this.item.allowedSocials
-          && this.item.allowedSocials.some(allowedSocial => allowedSocial === SOCIALS.LINKEDIN),
+        () =>
+          this.item.allowedSocials &&
+          this.item.allowedSocials.some(
+            (allowedSocial) => allowedSocial === SOCIALS.LINKEDIN
+          ),
         () => {
           if (!this.userStore.linkedinEnabled) {
-            this.item.allowedSocials = this.item.allowedSocials
-              .filter(allowedSocial => allowedSocial !== SOCIALS.LINKEDIN);
+            this.item.allowedSocials = this.item.allowedSocials.filter(
+              (allowedSocial) => allowedSocial !== SOCIALS.LINKEDIN
+            );
           }
-        },
+        }
       );
     }
   }
@@ -225,7 +254,6 @@ export default class ProjectStore extends BaseStore {
   @observable isLoading = false;
 
   @observable isLoadingIosProcess = false;
-
 
   @observable isLoadingSequencer = false;
 
@@ -268,18 +296,24 @@ export default class ProjectStore extends BaseStore {
   @observable removedTransition = null;
 
   @observable AiGeneratoreImage = '';
-  
-  @observable SettingImageUploded = ''
 
-  @observable Aiedited = false
+  @observable SettingImageUploded = '';
+
+  @observable setSuggestEmailSubject = [];
+
+  @observable SuggestEmailPoint = {};
+
+  @observable Aiedited = false;
 
   @observable pluginDefaults = {
     [POPCORN_ELEMENT_TYPES.TEXT]: {},
     [POPCORN_ELEMENT_TYPES.IMAGE]: {},
   };
-  getPersonalization = (data) => getCustomVarsFromMediaArr(data || this.projectData.media)
+  getPersonalization = (data) =>
+    getCustomVarsFromMediaArr(data || this.projectData.media);
 
-  generateUid = () => `${Date.now()}/${Math.random()}/${Date.now() * Math.random()}`;
+  generateUid = () =>
+    `${Date.now()}/${Math.random()}/${Date.now() * Math.random()}`;
 
   @observable duration = 30 * SANTISECOND;
 
@@ -289,33 +323,75 @@ export default class ProjectStore extends BaseStore {
 
   @observable success = null;
 
-  @observable saveButton = "";
+  @observable saveButton = '';
 
   @action
   setVoiceTextId = (id = this.activeElementId) => {
     this.voiceTextId = id;
   };
-  
-  @action 
-  setAiGeneratorImage = (newValue) => {
-  this.Aiedited = false
-  if (newValue) {
-    this.AiGeneratoreImage = newValue;
-    this.SettingImageUploded = newValue
-    this.item.thumbnail = newValue
-    console.log("AiGeneratoreImage>>",newValue,this.AiGeneratoreImage)
-  }
-  }
 
-@action
-setSettingImageUplode = (value) => {
-  this.Aiedited = true
-  if (value) {
-    this.SettingImageUploded = value
-    this.item.thumbnail = value
-    console.log("value???",value,this.SettingImageUploded)
+  @action
+  setAiGeneratorImage = (newValue) => {
+    this.Aiedited = false;
+    if (newValue) {
+      this.AiGeneratoreImage = newValue;
+      this.SettingImageUploded = newValue;
+      this.item.thumbnail = newValue;
+      console.log('AiGeneratoreImage>>', newValue, this.AiGeneratoreImage);
+    }
+  };
+  @action
+  SuggestEmailSubject = async (subject) => {
+    const path = '/api/projects/suggest-email-subject';
+
+    const result = await this.request(path, {
+      method: 'POST',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      },
+      body: {
+        subject: subject,
+      },
+    });
+    if (result.status === true) {
+      const lines = await result.response
+      console.log("lines>>>",result.response)
+      const resultArray = lines.match(/"([^"]+)"/g).map(match => match.slice(1, -1));
+      console.log("resultArray>>",resultArray);
+      this.setSuggestEmailSubject = resultArray;
+    }
+    return result;
+  };
+
+  @action
+  getSuggestEmailPoint = async (subject) => {
+   const path = 'api/projects/email-subject-point';
+
+   const result = await this.request(path,{
+    method:'POST',
+    headers:{
+      'on-behalf':this.currentUser.id,
+    },
+    body:{
+      subject:subject
+    }
+   })
+   if (result.status === true) {
+    console.log("result>>>",result.response)
+    this.SuggestEmailPoint = await result.response
+    console.log("SuggestEmailPoint>>>",this.SuggestEmailPoint)
+   }
+   return result
   }
-}
+  @action
+  setSettingImageUplode = (value) => {
+    this.Aiedited = true;
+    if (value) {
+      this.SettingImageUploded = value;
+      this.item.thumbnail = value;
+      console.log('value???', value, this.SettingImageUploded);
+    }
+  };
 
   @action
   setIsRedirect = (value = false) => {
@@ -325,7 +401,7 @@ setSettingImageUplode = (value) => {
   @action
   setIsPublished = (value = false) => {
     this.isPublished = value;
-  }
+  };
 
   @action
   undoRedoAction = (undo = true) => {
@@ -335,25 +411,39 @@ setSettingImageUplode = (value) => {
       return;
     }
     this.modified = true;
-    const activeElement = this.activeElementId && this.getElementById(this.activeElementId);
-    this.isTransition = activeElement
-      && activeElement.type === POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION;
+    const activeElement =
+      this.activeElementId && this.getElementById(this.activeElementId);
+    this.isTransition =
+      activeElement &&
+      activeElement.type === POPCORN_ELEMENT_TYPES.VIDEO_TRANSITION;
 
     // Temporary fix undo action for 2 or 3 elements
 
     let count = 0;
-    const sortedElements = this.layer[0].trackEvents.sort((a, b) => a.popcornOptions.start - b.popcornOptions.start);
+    const sortedElements = this.layer[0].trackEvents.sort(
+      (a, b) => a.popcornOptions.start - b.popcornOptions.start
+    );
     // Get count of elements in active layer
     for (let i = 0; i < sortedElements.length; i++) {
       if (sortedElements[i] != sortedElements[sortedElements.length - 1]) {
-        if (sortedElements[i].popcornOptions.end == sortedElements[i + 1].popcornOptions.start) {
+        if (
+          sortedElements[i].popcornOptions.end ==
+          sortedElements[i + 1].popcornOptions.start
+        ) {
           count++;
         }
       }
     }
-    let { projectData, duration, retarget, activeElementId } = targetData[targetDataLength - 1];
+    let { projectData, duration, retarget, activeElementId } =
+      targetData[targetDataLength - 1];
     if (count > 0) {
-      if (targetData.length && activeElement && targetData[targetDataLength - count] && targetData[targetDataLength - count].activeElementId && targetData[targetDataLength - count].activeElementId == activeElement.id) {
+      if (
+        targetData.length &&
+        activeElement &&
+        targetData[targetDataLength - count] &&
+        targetData[targetDataLength - count].activeElementId &&
+        targetData[targetDataLength - count].activeElementId == activeElement.id
+      ) {
         projectData = targetData[targetDataLength - count].projectData;
         duration = targetData[targetDataLength - count].duration;
         retarget = targetData[targetDataLength - count].retarget;
@@ -362,16 +452,19 @@ setSettingImageUplode = (value) => {
     }
     const snapshot = toJS(this.projectData);
     targetData.pop();
-    this.setUndoRedoAction({
-      projectData: snapshot,
-      duration: this.duration,
-      retarget: _.isEmpty(this.retarget) ? null : { ...this.retarget },
-      activeElementId: this.activeElementId,
-    }, !undo);
+    this.setUndoRedoAction(
+      {
+        projectData: snapshot,
+        duration: this.duration,
+        retarget: _.isEmpty(this.retarget) ? null : { ...this.retarget },
+        activeElementId: this.activeElementId,
+      },
+      !undo
+    );
     if (this.activeElementId !== activeElementId) {
       this.releaseElement();
     }
-    this.elements.map(event => this.popcorn.removeTrackEvent(event.id));
+    this.elements.map((event) => this.popcorn.removeTrackEvent(event.id));
     this.setProjectData(projectData);
     this.attach(this.popcorn.target);
     this.retarget = retarget;
@@ -397,22 +490,25 @@ setSettingImageUplode = (value) => {
   @action
   setIsAddingTransition = (value) => {
     this.isAddingTransition = value;
-  }
+  };
 
   @action
   setRemovedTransition = (value) => {
     this.removedTransition = value;
-  }
+  };
 
   setElementOptions = async (item) => {
     const { track, type } = item || {};
-    const options = this.pluginDefaults && this.pluginDefaults[type]
-      ? { ...this.pluginDefaults[type].popcornOptions } || {} : {};
-    options.start = item.start ?? (Math.ceil(this.time) / SANTISECOND);
+    const options =
+      this.pluginDefaults && this.pluginDefaults[type]
+        ? { ...this.pluginDefaults[type].popcornOptions } || {}
+        : {};
+    options.start = item.start ?? Math.ceil(this.time) / SANTISECOND;
     const duration = item.duration || DEFAULT_DURATION;
-    options.end = item.end || (options.start + duration);
+    options.end = item.end || options.start + duration;
     options.id = `0.${this.generateUid()}`;
-    options.zindex = track && track.order ? MAX_ZINDEX - track.order : MAX_ZINDEX;
+    options.zindex =
+      track && track.order ? MAX_ZINDEX - track.order : MAX_ZINDEX;
     options.opacity = 100;
     options.left = item?.left;
     options.top = item?.top;
@@ -439,16 +535,20 @@ setSettingImageUplode = (value) => {
         if (!fileMeta) {
           try {
             const isAudio = AUDIO_KINDS.includes(item.kind);
-            fileMeta = await this.mediaTypeDetector.getMetadata(source[0], isAudio
-              ? ASSET_TYPES.AUDIO : ASSET_TYPES.VIDEO, fileDuration,
-              this.userStore.video360Enabled);
+            fileMeta = await this.mediaTypeDetector.getMetadata(
+              source[0],
+              isAudio ? ASSET_TYPES.AUDIO : ASSET_TYPES.VIDEO,
+              fileDuration,
+              this.userStore.video360Enabled
+            );
           } catch (e) {
             // if there is no error, then loading will hide, after adding the item to the popcorn
             this.isLoadingSequencer = false;
             throw e;
           }
         }
-        options.end = item.end || (options.start + (fileMeta?.duration ?? item.duration));
+        options.end =
+          item.end || options.start + (fileMeta?.duration ?? item.duration);
         options.source = source;
         options.title = fileMeta?.title ?? item.title;
         options.duration = fileMeta?.duration ?? item.duration;
@@ -475,11 +575,13 @@ setSettingImageUplode = (value) => {
           options.duration = maxDuration;
         }
         if (options.end * SANTISECOND > MAX_DURATION) {
-          options.start = (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
+          options.start =
+            (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
           options.end = maxDuration;
         }
         if (options.out * SANTISECOND > MAX_DURATION) {
-          options.in = (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
+          options.in =
+            (MAX_DURATION - options.duration * SANTISECOND) / SANTISECOND;
           options.out = maxDuration;
         }
         break;
@@ -521,9 +623,10 @@ setSettingImageUplode = (value) => {
     if (this.retarget && this.retarget.options) {
       options = { ...this.retarget.options, ...DEFAULT_OPTIONS };
     } else {
-      options = (kind === POPCORN_ELEMENT_TYPES.RETARGET
-        ? { ...DEFAULT_OPTIONS }
-        : { ...DEFAULT_OPTIONS_OPTIN });
+      options =
+        kind === POPCORN_ELEMENT_TYPES.RETARGET
+          ? { ...DEFAULT_OPTIONS }
+          : { ...DEFAULT_OPTIONS_OPTIN };
     }
 
     const retargetOptions = {
@@ -553,20 +656,27 @@ setSettingImageUplode = (value) => {
   };
 
   @action
-  isDefaultRetargetElement = ({ key, currentValue, defaultValue, isAdvancedOptin }) => {
+  isDefaultRetargetElement = ({
+    key,
+    currentValue,
+    defaultValue,
+    isAdvancedOptin,
+  }) => {
     let result;
     if (!isAdvancedOptin) {
-      result = key === ELEMENTS
-        ? JSON.stringify(currentValue) === JSON.stringify(DEFAULT_OPTIONS_OPTIN[key])
-        : currentValue === DEFAULT_OPTIONS_OPTIN[key];
+      result =
+        key === ELEMENTS
+          ? JSON.stringify(currentValue) ===
+            JSON.stringify(DEFAULT_OPTIONS_OPTIN[key])
+          : currentValue === DEFAULT_OPTIONS_OPTIN[key];
     } else {
-      result = key === ELEMENTS
-        ? JSON.stringify(currentValue) === JSON.stringify(defaultValue)
-        : currentValue === defaultValue;
+      result =
+        key === ELEMENTS
+          ? JSON.stringify(currentValue) === JSON.stringify(defaultValue)
+          : currentValue === defaultValue;
     }
     return result;
-  }
-
+  };
 
   @action
   addRetargetForm = ({ kind, showed, noUndo, isPersonalizer }) => {
@@ -575,25 +685,42 @@ setSettingImageUplode = (value) => {
     }
     if (this.retarget && this.retarget.options && this.retarget.id) {
       const isAdvancedOptin = kind === POPCORN_ELEMENT_TYPES.ADVANCED_OPTIN;
-      Object.keys(DEFAULT_OPTIONS_OPTIN).forEach(key => {
-        const defaultValue = DEFAULT_OPTIONS[key] || (this.retarget.manifest.options[key].default
-          ?? this.retarget.options[key]);
+      Object.keys(DEFAULT_OPTIONS_OPTIN).forEach((key) => {
+        const defaultValue =
+          DEFAULT_OPTIONS[key] ||
+          (this.retarget.manifest.options[key].default ??
+            this.retarget.options[key]);
         let currentValue = this.retarget.options[key];
         // eslint-disable-next-line no-prototype-builtins
         if (this.retarget.options.hasOwnProperty(key)) {
-          if (this.isDefaultRetargetElement({ key, currentValue, defaultValue, isAdvancedOptin })) {
-            currentValue = isAdvancedOptin ? DEFAULT_OPTIONS_OPTIN[key] : defaultValue;
+          if (
+            this.isDefaultRetargetElement({
+              key,
+              currentValue,
+              defaultValue,
+              isAdvancedOptin,
+            })
+          ) {
+            currentValue = isAdvancedOptin
+              ? DEFAULT_OPTIONS_OPTIN[key]
+              : defaultValue;
             this.retarget.options[key] = currentValue;
           }
         }
       });
       this.retarget.isPersonalizer = isPersonalizer;
-      if (this.retarget.options.webhook2 && !this.retarget.options.webhook2.value
-        && !this.retarget.options.webhook2.hidden) {
+      if (
+        this.retarget.options.webhook2 &&
+        !this.retarget.options.webhook2.value &&
+        !this.retarget.options.webhook2.hidden
+      ) {
         this.retarget.options.webhook2.hidden = true;
       }
-      if (this.retarget.options.webhook3 && !this.retarget.options.webhook3.value
-        && !this.retarget.options.webhook3.hidden) {
+      if (
+        this.retarget.options.webhook3 &&
+        !this.retarget.options.webhook3.value &&
+        !this.retarget.options.webhook3.hidden
+      ) {
         this.retarget.options.webhook3.hidden = true;
       }
       // eslint-disable-next-line no-underscore-dangle
@@ -619,9 +746,12 @@ setSettingImageUplode = (value) => {
 
   @action
   editElement = (elementId) => {
-    if (this.retarget
-      && this.retarget.id
-      && this.retarget.id !== elementId && this.retarget.end) {
+    if (
+      this.retarget &&
+      this.retarget.id &&
+      this.retarget.id !== elementId &&
+      this.retarget.end
+    ) {
       this.retarget.end();
     }
     this.activeElementId = elementId;
@@ -634,7 +764,10 @@ setSettingImageUplode = (value) => {
 
   @action
   updateDefaultsPlugin = (options) => {
-    if (!this.element || !ALLOWED_SAVE_AS.some(type => type === this.element.type)) {
+    if (
+      !this.element ||
+      !ALLOWED_SAVE_AS.some((type) => type === this.element.type)
+    ) {
       return;
     }
     const { type } = this.element;
@@ -651,19 +784,28 @@ setSettingImageUplode = (value) => {
         zIndex: null,
       };
     }
-  }
+  };
 
   @action
   findAndUpdate = (elementId, options = {}, setUndo = true) => {
     const newValues = Object.keys(options);
-    if (setUndo && newValues && newValues.length
-      && !newValues.every(key => caretNames.includes(key))) {
+    if (
+      setUndo &&
+      newValues &&
+      newValues.length &&
+      !newValues.every((key) => caretNames.includes(key))
+    ) {
       this.setUndo();
     }
     if (this.retarget && elementId === this.retarget.id) {
       this.modified = true;
-      if (!options.animation && !options.webhook2 && !options.webhook3
-        && !options.addWebhook && !options.removeWebhook) {
+      if (
+        !options.animation &&
+        !options.webhook2 &&
+        !options.webhook3 &&
+        !options.addWebhook &&
+        !options.removeWebhook
+      ) {
         this.retarget.options = {
           ...this.retarget.options,
           ...options,
@@ -677,14 +819,23 @@ setSettingImageUplode = (value) => {
         media.tracks.forEach((track) => {
           track.trackEvents = track.trackEvents.map((trackEvent) => {
             if (trackEvent.id === elementId) {
-              if (trackEvent.type === POPCORN_ELEMENT_TYPES.COMBINED && options.combinedItemId) {
+              if (
+                trackEvent.type === POPCORN_ELEMENT_TYPES.COMBINED &&
+                options.combinedItemId
+              ) {
                 trackEvent.popcornOptions.items.forEach((combinedItem, i) => {
                   if (combinedItem.id === options.combinedItemId) {
-                    trackEvent.popcornOptions.items[i] = { ...combinedItem, ...options };
+                    trackEvent.popcornOptions.items[i] = {
+                      ...combinedItem,
+                      ...options,
+                    };
                   }
                 });
               } else {
-                trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...options };
+                trackEvent.popcornOptions = {
+                  ...trackEvent.popcornOptions,
+                  ...options,
+                };
               }
             }
             return trackEvent;
@@ -701,8 +852,9 @@ setSettingImageUplode = (value) => {
   updateElement = (elementId, options) => {
     // we need to update the elements, if the user updates the start,
     // end or animation, this is necessary to rerender the elements
-    const { start, end, animation, title, duration, htmlText, loop, type } = options;
-    this.elements = this.elements.map(element => {
+    const { start, end, animation, title, duration, htmlText, loop, type } =
+      options;
+    this.elements = this.elements.map((element) => {
       if (element.id === elementId && !options.combinedItemId) {
         const newOptions = {};
         if (start !== undefined && start !== element.popcornOptions.start) {
@@ -711,7 +863,10 @@ setSettingImageUplode = (value) => {
         if (end !== undefined && end !== element.popcornOptions.end) {
           newOptions.end = end;
         }
-        if (duration !== undefined && duration !== element.popcornOptions.duration) {
+        if (
+          duration !== undefined &&
+          duration !== element.popcornOptions.duration
+        ) {
           newOptions.duration = duration;
         }
         if (loop !== undefined && loop !== element.popcornOptions.loop) {
@@ -728,7 +883,7 @@ setSettingImageUplode = (value) => {
         }
         if (type !== undefined && type !== element.popcornOptions.type) {
           newOptions.type = type;
-          Object.values(SOCIAL_TYPES).forEach(item => {
+          Object.values(SOCIAL_TYPES).forEach((item) => {
             if (item === type) {
               newOptions.title = FB_PLUGINS[item].title;
             }
@@ -763,17 +918,24 @@ setSettingImageUplode = (value) => {
   @action
   updatePopcorn = (element, options) => {
     const elementId = (element && element.id) || element;
-    element = typeof element === 'string' ? this.getElementById(elementId) : element;
+    element =
+      typeof element === 'string' ? this.getElementById(elementId) : element;
 
-    if (options.start !== undefined || options.end !== undefined
-      || Object.values(SOCIAL_TYPES).some(t => t === element.popcornOptions.type)) {
+    if (
+      options.start !== undefined ||
+      options.end !== undefined ||
+      Object.values(SOCIAL_TYPES).some((t) => t === element.popcornOptions.type)
+    ) {
       this.popcorn.removeTrackEvent(elementId);
       element.popcornOptions = { ...element.popcornOptions, ...options };
       this.popcorn[element.type](element.popcornOptions);
     }
 
     if (options.zindex) {
-      element.popcornOptions = { ...element.popcornOptions, zindex: options.zindex };
+      element.popcornOptions = {
+        ...element.popcornOptions,
+        zindex: options.zindex,
+      };
     }
 
     const trackEvent = this.popcorn.getTrackEvent(elementId);
@@ -787,12 +949,19 @@ setSettingImageUplode = (value) => {
 
   @action
   updateAnimation = async (type, animationName = NONE_CLASS) => {
-    const isRetarget = this.retarget && this.retarget.id
-      && this.retarget.id === this.activeElementId;
-    const oldAnimation = isRetarget ? this.retarget.options.animation
-      : (this.element && this.element.popcornOptions.animation);
-    const durationOut = isRetarget
-      || (this.element && this.element.type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR) ? 2 : 1;
+    const isRetarget =
+      this.retarget &&
+      this.retarget.id &&
+      this.retarget.id === this.activeElementId;
+    const oldAnimation = isRetarget
+      ? this.retarget.options.animation
+      : this.element && this.element.popcornOptions.animation;
+    const durationOut =
+      isRetarget ||
+      (this.element &&
+        this.element.type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR)
+        ? 2
+        : 1;
 
     const animation = {
       ...(oldAnimation ? { ...oldAnimation } : {}),
@@ -803,35 +972,53 @@ setSettingImageUplode = (value) => {
       },
     };
 
-    const layerElements = this.elements.filter(el => el.track === this.element.track
-      && el.popcornOptions.start >= this.element.popcornOptions.end);
+    const layerElements = this.elements.filter(
+      (el) =>
+        el.track === this.element.track &&
+        el.popcornOptions.start >= this.element.popcornOptions.end
+    );
 
-    layerElements.sort((a, b) => a.popcornOptions.start - b.popcornOptions.start);
+    layerElements.sort(
+      (a, b) => a.popcornOptions.start - b.popcornOptions.start
+    );
 
-    const isFreeSpace = !(layerElements.length
-      && layerElements[0].popcornOptions.start - durationOut
-      < this.element.popcornOptions.end);
+    const isFreeSpace = !(
+      layerElements.length &&
+      layerElements[0].popcornOptions.start - durationOut <
+        this.element.popcornOptions.end
+    );
 
-    if (type === ANIMATION_TYPES.OUT && animationName !== NONE_CLASS && !isRetarget) {
-      const needUpdateDuration = [this.element, ...layerElements].some(el => {
-        const animationOut = el.popcornOptions.animation && el.popcornOptions.animation.out
-          ? el.popcornOptions.animation.out.duration : 0;
+    if (
+      type === ANIMATION_TYPES.OUT &&
+      animationName !== NONE_CLASS &&
+      !isRetarget
+    ) {
+      const needUpdateDuration = [this.element, ...layerElements].some((el) => {
+        const animationOut =
+          el.popcornOptions.animation && el.popcornOptions.animation.out
+            ? el.popcornOptions.animation.out.duration
+            : 0;
         return (
-          (el.popcornOptions.end + durationOut + animationOut) > (this.duration / SANTISECOND)
+          el.popcornOptions.end + durationOut + animationOut >
+          this.duration / SANTISECOND
         );
       });
 
       if (needUpdateDuration) {
-        await this.updateVideoDuration((this.duration / SANTISECOND) + durationOut);
+        await this.updateVideoDuration(
+          this.duration / SANTISECOND + durationOut
+        );
       }
 
       if (!isFreeSpace) {
-        layerElements.map(item => this.updateElementFromTimeline({
-          needUpdateStartEnd: true,
-          elementId: item.id,
-          start: item.popcornOptions.start + durationOut,
-          end: item.popcornOptions.end + durationOut,
-        }));
+        layerElements.map((item) =>
+          this.updateElementFromTimeline({
+            needUpdateStartEnd: true,
+            elementId: item.id,
+            start: item.popcornOptions.start + durationOut,
+            end: item.popcornOptions.end + durationOut,
+          })
+        );
       }
     }
 
@@ -852,8 +1039,11 @@ setSettingImageUplode = (value) => {
       window.Popcorn.destroy(this.popcorn);
     }
 
-    this.popcorn = window.Popcorn.smart(target,
-      this.popcornObject.mediaUrlsString, this.popcornObject.mediaPopcornOptions);
+    this.popcorn = window.Popcorn.smart(
+      target,
+      this.popcornObject.mediaUrlsString,
+      this.popcornObject.mediaPopcornOptions
+    );
     this.attach(target);
 
     if (time !== undefined || this.time) {
@@ -867,7 +1057,14 @@ setSettingImageUplode = (value) => {
       this.setUndo();
     }
     this.modified = true;
-    const { needUpdateLayer, needUpdateStartEnd, elementId, start, end, layerLevel } = options;
+    const {
+      needUpdateLayer,
+      needUpdateStartEnd,
+      elementId,
+      start,
+      end,
+      layerLevel,
+    } = options;
     if (needUpdateLayer) {
       this.setLayer(elementId, layerLevel);
     }
@@ -881,7 +1078,10 @@ setSettingImageUplode = (value) => {
     this.projectData.media.forEach((currentMedia) => {
       // We expect a string (one url) or an array of url strings.
       // Turn a single url into an array of 1 string.
-      const mediaUrls = typeof currentMedia.url === 'string' ? [currentMedia.url] : currentMedia.url;
+      const mediaUrls =
+        typeof currentMedia.url === 'string'
+          ? [currentMedia.url]
+          : currentMedia.url;
       const mediaUrlsString = `[ '${mediaUrls.join('')}' ]`;
 
       const mediaPopcornOptions = currentMedia.popcornOptions || {};
@@ -918,8 +1118,11 @@ setSettingImageUplode = (value) => {
           track.trackEvents = _.uniqWith(track.trackEvents, _.isEqual);
         }
         track.trackEvents.forEach((trackEvent) => {
-          if ((trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
-            || trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT) && trackEvent.popcornOptions) {
+          if (
+            (trackEvent.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION ||
+              trackEvent.type === POPCORN_ELEMENT_TYPES.TEXT) &&
+            trackEvent.popcornOptions
+          ) {
             const { isSuperAdmin } = this.userStore;
             trackEvent.popcornOptions.isSuperAdmin = isSuperAdmin;
           }
@@ -974,11 +1177,15 @@ setSettingImageUplode = (value) => {
     let newElementFields;
     if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR) {
       this.projectData.media.forEach((media) => {
-        media.tracks.forEach(track => {
-          track.trackEvents.forEach(elem => {
+        media.tracks.forEach((track) => {
+          track.trackEvents.forEach((elem) => {
             if (elem.type === type) {
               newElementFields = [...elem.popcornOptions.elements];
-              newElementFields = arrayMove(newElementFields, oldIndex, newIndex);
+              newElementFields = arrayMove(
+                newElementFields,
+                oldIndex,
+                newIndex
+              );
             }
           });
         });
@@ -1010,25 +1217,25 @@ setSettingImageUplode = (value) => {
   };
 
   @action
-  orderItems = (items, updateTracks) => items.map((track, index) => {
-    track.defaultName = `Layer ${index}`;
-    if (updateTracks) {
-      const zindex = MAX_ZINDEX - index;
-      track.trackEvents.forEach(element => {
-        this.updatePopcorn(element, { zindex });
-      });
-    }
-    track.order = index;
-    return track;
-  });
+  orderItems = (items, updateTracks) =>
+    items.map((track, index) => {
+      track.defaultName = `Layer ${index}`;
+      if (updateTracks) {
+        const zindex = MAX_ZINDEX - index;
+        track.trackEvents.forEach((element) => {
+          this.updatePopcorn(element, { zindex });
+        });
+      }
+      track.order = index;
+      return track;
+    });
 
   @action
   preRemix = async (projectId, openModal) => {
     if (projectId) {
       const path = `/api/makes/${projectId}/pre-remix`;
       try {
-        const result = await this.request(
-          path, {
+        const result = await this.request(path, {
           method: 'GET',
           headers: {
             'on-behalf': this.currentUser.id,
@@ -1061,7 +1268,7 @@ setSettingImageUplode = (value) => {
     this.item = { ...DEFAULT_ITEM, project: { data } };
     this.setProjectData(JSON.parse(this.item.project.data));
     this.setPopcorn();
-  }
+  };
 
   @action
   fillMakeData = (result, isRemix = false) => {
@@ -1075,7 +1282,8 @@ setSettingImageUplode = (value) => {
       this.setPopcorn();
     }
     if (result.project && result.project.retargetForm) {
-      this.retarget = this.item.project.retargetForm || result.project.retargetForm;
+      this.retarget =
+        this.item.project.retargetForm || result.project.retargetForm;
       if (this.retarget && !this.retarget.kind) {
         this.retarget.kind = POPCORN_ELEMENT_TYPES.RETARGET;
       }
@@ -1095,8 +1303,7 @@ setSettingImageUplode = (value) => {
     }
     const path = `/api/makes/${projectId}/remix-personalized`;
     try {
-      const result = await this.request(
-        path, {
+      const result = await this.request(path, {
         method: 'POST',
         headers: {
           'on-behalf': this.currentUser.id,
@@ -1121,8 +1328,7 @@ setSettingImageUplode = (value) => {
     }
     const path = `/api/makes/${projectId}/remix`;
     try {
-      const result = await this.request(
-        path, {
+      const result = await this.request(path, {
         method: 'GET',
         headers: {
           'on-behalf': this.currentUser.id,
@@ -1144,7 +1350,7 @@ setSettingImageUplode = (value) => {
     this.releaseElement();
     if (this.projectData.media) {
       this.removeTrackEvent(id);
-      this.elements = this.elements.filter(element => element.id !== id);
+      this.elements = this.elements.filter((element) => element.id !== id);
     }
   };
 
@@ -1162,18 +1368,22 @@ setSettingImageUplode = (value) => {
       this.setRemovedTransition({ ...transition });
       return;
     }
-    const duration = +((transition.end - transition.start).toFixed(2));
+    const duration = +(transition.end - transition.start).toFixed(2);
     const layer = transition.track?.id || transition.track;
 
     if (!isRemoved) {
       this.setUndo(transition.id);
       this.releaseElement();
     }
-    this.elements = this.elements.slice().map(event => this.popcorn.removeTrackEvent(event.id));
-    this.projectData.media[0].tracks.forEach(track => {
+    this.elements = this.elements
+      .slice()
+      .map((event) => this.popcorn.removeTrackEvent(event.id));
+    this.projectData.media[0].tracks.forEach((track) => {
       if (track.id === layer) {
-        track.trackEvents = track.trackEvents.filter(trackEvent => trackEvent.id !== transition.id);
-        track.trackEvents = track.trackEvents.map(trackEvent => {
+        track.trackEvents = track.trackEvents.filter(
+          (trackEvent) => trackEvent.id !== transition.id
+        );
+        track.trackEvents = track.trackEvents.map((trackEvent) => {
           if (trackEvent.popcornOptions.start >= transition.start) {
             trackEvent.popcornOptions.start -= duration;
             trackEvent.popcornOptions.end -= duration;
@@ -1197,7 +1407,9 @@ setSettingImageUplode = (value) => {
   removeTrackEvent = (id) => {
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
-        track.trackEvents = track.trackEvents.filter(trackEvent => trackEvent.id !== id);
+        track.trackEvents = track.trackEvents.filter(
+          (trackEvent) => trackEvent.id !== id
+        );
         this.popcorn.removeTrackEvent(id);
       });
     });
@@ -1205,16 +1417,20 @@ setSettingImageUplode = (value) => {
 
   @action
   removeLayer = async (id) => {
-    const currentLayerByOrder = this.layers.find(layer => layer.id === id);
-    const layerName = currentLayerByOrder.name || currentLayerByOrder.defaultName;
-    const confirmDelete = await showConfirmation(`${CONFIRMATION_DELETE_LAYER.text} ${layerName}?`, '');
+    const currentLayerByOrder = this.layers.find((layer) => layer.id === id);
+    const layerName =
+      currentLayerByOrder.name || currentLayerByOrder.defaultName;
+    const confirmDelete = await showConfirmation(
+      `${CONFIRMATION_DELETE_LAYER.text} ${layerName}?`,
+      ''
+    );
     if (this.layers.length <= 1 || !confirmDelete) {
       return;
     }
     this.setUndo();
     this.modified = true;
     this.projectData.media.forEach((media) => {
-      const removedTrack = media.tracks.find(track => track.id === id);
+      const removedTrack = media.tracks.find((track) => track.id === id);
       if (removedTrack && removedTrack.trackEvents.length) {
         removedTrack.trackEvents.forEach((trackEvent) => {
           this.popcorn.removeTrackEvent(trackEvent.id);
@@ -1222,14 +1438,14 @@ setSettingImageUplode = (value) => {
             this.releaseElement();
           }
         });
-        this.elements = this.elements.filter(element => element.track !== id);
+        this.elements = this.elements.filter((element) => element.track !== id);
       }
-      media.tracks = media.tracks.filter(track => track.id !== id);
+      media.tracks = media.tracks.filter((track) => track.id !== id);
       media.tracks = this.orderItems(media.tracks, true);
     });
-    this.layers = this.layers.filter(track => track.id !== id);
+    this.layers = this.layers.filter((track) => track.id !== id);
     this.layers = this.orderItems(this.layers);
-    this.elements = this.elements.filter(item => item.track !== id);
+    this.elements = this.elements.filter((item) => item.track !== id);
   };
 
   @action
@@ -1237,14 +1453,14 @@ setSettingImageUplode = (value) => {
     this.modified = true;
     this.setUndo();
     this.projectData.media.forEach((media) => {
-      media.tracks = media.tracks.map(track => {
+      media.tracks = media.tracks.map((track) => {
         if (track.id === id) {
           track = { ...track, ...options };
         }
         return track;
       });
     });
-    this.layers = this.layers.map(track => {
+    this.layers = this.layers.map((track) => {
       if (track.id === id) {
         track = { ...track, ...options };
       }
@@ -1257,8 +1473,8 @@ setSettingImageUplode = (value) => {
     const element = this.getElementById(elementId);
     let newElement;
     this.modified = true;
-    const layer = this.layers.find(item => item.order === newLayerLevel);
-    this.elements = this.elements.map(item => {
+    const layer = this.layers.find((item) => item.order === newLayerLevel);
+    this.elements = this.elements.map((item) => {
       if (item.id === elementId) {
         item.track = layer.id;
         item.popcornOptions.blendMode = layer.blendMode;
@@ -1277,7 +1493,7 @@ setSettingImageUplode = (value) => {
     });
 
     this.projectData.media.forEach((media) => {
-      media.tracks = media.tracks.map(track => {
+      media.tracks = media.tracks.map((track) => {
         if (track.order === newLayerLevel) {
           const zindex = MAX_ZINDEX - track.order;
           const { blendMode, opacity } = newElement.popcornOptions;
@@ -1294,7 +1510,9 @@ setSettingImageUplode = (value) => {
           track.trackEvents.push(element);
           this.updatePopcorn(element.id, { zindex, blendMode, opacity });
         } else {
-          track.trackEvents = track.trackEvents.filter(item => item.id !== elementId);
+          track.trackEvents = track.trackEvents.filter(
+            (item) => item.id !== elementId
+          );
         }
         return track;
       });
@@ -1326,10 +1544,13 @@ setSettingImageUplode = (value) => {
       return this.addRelativeElements(newData);
     }
 
-    newData.media.map((media) => media.tracks
-      .map((track) => {
-        if ((track.blendMode && track.blendMode !== blendModeConstants.normal.value)
-          || (track.opacity && track.opacity !== 100)) {
+    newData.media.map((media) =>
+      media.tracks.map((track) => {
+        if (
+          (track.blendMode &&
+            track.blendMode !== blendModeConstants.normal.value) ||
+          (track.opacity && track.opacity !== 100)
+        ) {
           this.addLayer({
             blendMode: track.blendMode || blendModeConstants.normal.value,
             opacity: track.opacity || 100,
@@ -1344,32 +1565,40 @@ setSettingImageUplode = (value) => {
             start: null,
             end: null,
             zindex: null,
-            duration: trackEvent.popcornOptions.end - trackEvent.popcornOptions.start,
+            duration:
+              trackEvent.popcornOptions.end - trackEvent.popcornOptions.start,
             kind: makeTemplate.kind || trackEvent.popcornOptions.kind,
           };
           return this.createNewElement(item);
         });
-      }));
+      })
+    );
   };
 
-  addRelativeElements = data => {
+  addRelativeElements = (data) => {
     let firstElementStart = null;
 
-    data.media.forEach((media) => media.tracks
-      .forEach((track) => track.trackEvents.forEach((trackEvent) => {
-        if (!firstElementStart) {
-          firstElementStart = trackEvent.popcornOptions.start;
-        }
+    data.media.forEach((media) =>
+      media.tracks.forEach((track) =>
+        track.trackEvents.forEach((trackEvent) => {
+          if (!firstElementStart) {
+            firstElementStart = trackEvent.popcornOptions.start;
+          }
 
-        if (parseFloat(trackEvent.popcornOptions.start) < firstElementStart) {
-          firstElementStart = trackEvent.popcornOptions.start;
-        }
-      })));
+          if (parseFloat(trackEvent.popcornOptions.start) < firstElementStart) {
+            firstElementStart = trackEvent.popcornOptions.start;
+          }
+        })
+      )
+    );
 
-    data.media.forEach((media) => media.tracks
-      .forEach((track) => {
-        if ((track.blendMode && track.blendMode !== blendModeConstants.normal.value)
-          || (track.opacity && track.opacity !== 100)) {
+    data.media.forEach((media) =>
+      media.tracks.forEach((track) => {
+        if (
+          (track.blendMode &&
+            track.blendMode !== blendModeConstants.normal.value) ||
+          (track.opacity && track.opacity !== 100)
+        ) {
           this.addLayer({
             blendMode: track.blendMode || blendModeConstants.normal.value,
             opacity: track.opacity || 100,
@@ -1389,28 +1618,34 @@ setSettingImageUplode = (value) => {
           if (trackEvent.popcornOptions.start === firstElementStart) {
             item.start = this.time / SANTISECOND;
           } else if (trackEvent.popcornOptions.start < firstElementStart) {
-            item.start = (this.time / SANTISECOND)
-              - (firstElementStart - trackEvent.popcornOptions.start);
+            item.start =
+              this.time / SANTISECOND -
+              (firstElementStart - trackEvent.popcornOptions.start);
             if (item.start < 0) {
               item.start = 0;
             }
           } else {
-            item.start = (this.time / SANTISECOND)
-              + (trackEvent.popcornOptions.start - firstElementStart);
+            item.start =
+              this.time / SANTISECOND +
+              (trackEvent.popcornOptions.start - firstElementStart);
           }
 
-          item.end = (trackEvent.popcornOptions.end - trackEvent.popcornOptions.start) + item.start;
+          item.end =
+            trackEvent.popcornOptions.end -
+            trackEvent.popcornOptions.start +
+            item.start;
 
           return this.addElement(item);
         });
-      }));
-  }
+      })
+    );
+  };
 
   @action
   updateStartEnd = (elementId, start, end) => {
     start = Math.ceil(start * SANTISECOND) / SANTISECOND;
     end = Math.ceil(end * SANTISECOND) / SANTISECOND;
-    this.elements = this.elements.map(element => {
+    this.elements = this.elements.map((element) => {
       if (element.id === elementId) {
         element.popcornOptions.start = start;
         element.popcornOptions.end = end;
@@ -1422,7 +1657,10 @@ setSettingImageUplode = (value) => {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
           if (trackEvent.id === elementId) {
-            trackEvent.popcornOptions = { ...trackEvent.popcornOptions, ...{ start, end } };
+            trackEvent.popcornOptions = {
+              ...trackEvent.popcornOptions,
+              ...{ start, end },
+            };
           }
         });
       });
@@ -1430,18 +1668,26 @@ setSettingImageUplode = (value) => {
     this.updatePopcorn(elementId, {
       start,
       end,
-      stopAction: this.getElementById(elementId).type === POPCORN_ELEMENT_TYPES.PAUSE,
+      stopAction:
+        this.getElementById(elementId).type === POPCORN_ELEMENT_TYPES.PAUSE,
     });
   };
 
-  isVideo = (element) => !!((element.popcornOptions.type === 'YouTube'
-    || element.popcornOptions.type === 'Vimeo') || (element.popcornOptions.contentType
-      && element.popcornOptions.contentType.indexOf('video/') === 0));
+  isVideo = (element) =>
+    !!(
+      element.popcornOptions.type === 'YouTube' ||
+      element.popcornOptions.type === 'Vimeo' ||
+      (element.popcornOptions.contentType &&
+        element.popcornOptions.contentType.indexOf('video/') === 0)
+    );
 
-  isAudio = (element) => !!((element.popcornOptions.type === 'SoundCloud')
-    || (element.popcornOptions.contentType
-      && (element.popcornOptions.contentType.indexOf('audio/') === 0
-        || element.popcornOptions.contentType.indexOf('application/ogg') === 0)));
+  isAudio = (element) =>
+    !!(
+      element.popcornOptions.type === 'SoundCloud' ||
+      (element.popcornOptions.contentType &&
+        (element.popcornOptions.contentType.indexOf('audio/') === 0 ||
+          element.popcornOptions.contentType.indexOf('application/ogg') === 0))
+    );
 
   @action
   getOne = async (projectId) => {
@@ -1453,8 +1699,7 @@ setSettingImageUplode = (value) => {
     }
     const path = `/api/users/me/makes/${projectId}`;
     try {
-      this.item = await this.request(
-        path, {
+      this.item = await this.request(path, {
         method: 'GET',
         headers: {
           'on-behalf': this.currentUser.id,
@@ -1474,11 +1719,11 @@ setSettingImageUplode = (value) => {
 
   @action
   updateCategories = (category) => {
-    if (!this.item.categories.some(_id => _id === category._id)) {
+    if (!this.item.categories.some((_id) => _id === category._id)) {
       this.item.categories = [...this.item.categories, category];
     }
     this.modified = true;
-  }
+  };
 
   @action
   clearAllCategories = () => {
@@ -1488,7 +1733,9 @@ setSettingImageUplode = (value) => {
 
   @action
   removeCategory = (id) => {
-    this.item.categories = this.item.categories.filter(category => category._id !== id);
+    this.item.categories = this.item.categories.filter(
+      (category) => category._id !== id
+    );
     this.modified = true;
   };
 
@@ -1496,15 +1743,14 @@ setSettingImageUplode = (value) => {
   setUndoRedoAction = (projectData, undo = true) => {
     const targetData = undo ? this.undoStore : this.redoStore;
     targetData.push(projectData);
-    this.layer = this.projectData.media[0].tracks.filter(
-      (ele) => {
-        if (ele.trackEvents.filter(
-          (element) => element.id == this.activeElementId,
-        ).length > 0) {
-          return ele;
-        }
-      },
-    );
+    this.layer = this.projectData.media[0].tracks.filter((ele) => {
+      if (
+        ele.trackEvents.filter((element) => element.id == this.activeElementId)
+          .length > 0
+      ) {
+        return ele;
+      }
+    });
 
     if (targetData.length > NUMBER_OF_STEPS) {
       targetData.shift();
@@ -1539,16 +1785,19 @@ setSettingImageUplode = (value) => {
     return resultOptions;
   }
 
-  findMediaSource = (sources, acceptableSources) => sources.filter((source) => {
-    const extension = source.split('.').reverse()[0];
-    return acceptableSources.includes(extension);
-  })[0];
+  findMediaSource = (sources, acceptableSources) =>
+    sources.filter((source) => {
+      const extension = source.split('.').reverse()[0];
+      return acceptableSources.includes(extension);
+    })[0];
 
   @action
   attach = (target) => {
-    this.popcornObject.popcornElements.forEach((element) => this.popcorn[element.type](target
-      ? { ...element.popcornOptions, target }
-      : element.popcornOptions));
+    this.popcornObject.popcornElements.forEach((element) =>
+      this.popcorn[element.type](
+        target ? { ...element.popcornOptions, target } : element.popcornOptions
+      )
+    );
     this.popcorn.target = target;
     return this.popcorn;
   };
@@ -1615,7 +1864,7 @@ setSettingImageUplode = (value) => {
     }
     this.popcorn[type]({ id, ...popcornOptions });
     this.projectData.media.forEach((media) => {
-      media.tracks.forEach(track => {
+      media.tracks.forEach((track) => {
         if (track.id === trackEvent.track) {
           track.trackEvents.push(trackEvent);
         }
@@ -1625,13 +1874,12 @@ setSettingImageUplode = (value) => {
 
   @action
   processRunning = async (id) => {
-    const result = await this.request(
-      `/api/users/me/makes/${id}`, {
+    const result = await this.request(`/api/users/me/makes/${id}`, {
       method: 'GET',
       headers: {
         'on-behalf': this.currentUser.id,
-      }
-    })
+      },
+    });
     if (result.isVideoMergeProcess) {
       setTimeout(this.processRunning(id), 10000); // Call the function again after 10 seconds
     }
@@ -1661,10 +1909,14 @@ setSettingImageUplode = (value) => {
       const lastEvent = byEnd[byEnd.length - 2];
       let lastEnd = lastEvent.end;
 
-      byEnd.forEach(element => {
-        const shift = element.outDuration
-          || (element.animation && element.animation.out && element.animation.out.duration) || 0;
-        if (shift && (element.end + shift) > lastEnd) {
+      byEnd.forEach((element) => {
+        const shift =
+          element.outDuration ||
+          (element.animation &&
+            element.animation.out &&
+            element.animation.out.duration) ||
+          0;
+        if (shift && element.end + shift > lastEnd) {
           lastEnd = element.end + shift;
         }
       });
@@ -1697,8 +1949,7 @@ setSettingImageUplode = (value) => {
         };
         serializedData = { retargetForm, ...serializedData };
       }
-      const result = await this.request(
-        path, {
+      const result = await this.request(path, {
         method: this.item._id ? 'PATCH' : 'POST',
         headers: {
           'on-behalf': this.currentUser.id,
@@ -1718,13 +1969,12 @@ setSettingImageUplode = (value) => {
       let downloadVideoData = serializedData;
       downloadVideoData.data = JSON.parse(downloadVideoData.data);
       const hasNonEmptyTrackEvents = downloadVideoData.data.media.some(
-        mediaItem => mediaItem.tracks.some(track => track.trackEvents.length > 0)
+        (mediaItem) =>
+          mediaItem.tracks.some((track) => track.trackEvents.length > 0)
       );
-      const hasSequencer = downloadVideoData.data.media.some(mediaItem =>
-        mediaItem.tracks.some(track =>
-          track.trackEvents.some(event =>
-            event.type === "sequencer"
-          )
+      const hasSequencer = downloadVideoData.data.media.some((mediaItem) =>
+        mediaItem.tracks.some((track) =>
+          track.trackEvents.some((event) => event.type === 'sequencer')
         )
       );
       const publishedMake = await this.publish(result._id);
@@ -1734,20 +1984,24 @@ setSettingImageUplode = (value) => {
         downloadVideoData.allowedSocials = [];
         downloadVideoData.data = {
           ...downloadVideoData.data,
-          media: downloadVideoData.data.media.map(item => ({
+          media: downloadVideoData.data.media.map((item) => ({
             ...item,
-            tracks: item.tracks.map(track => ({
+            tracks: item.tracks.map((track) => ({
               ...track,
-              trackEvents: track.trackEvents.filter(event => {
-                if (event.type === "sequencer" || event.type === 'image' || event.type === 'text') {
+              trackEvents: track.trackEvents.filter((event) => {
+                if (
+                  event.type === 'sequencer' ||
+                  event.type === 'image' ||
+                  event.type === 'text'
+                ) {
                   return event;
                 }
-              })
-            }))
-          }))
+              }),
+            })),
+          })),
         };
         let rendomTitle = Math.random().toString(36).substring(2, 7);
-        downloadVideoData.data = JSON.stringify(downloadVideoData.data)
+        downloadVideoData.data = JSON.stringify(downloadVideoData.data);
         let newItem = {
           allowedSocials: [],
           background: this.item.background,
@@ -1755,7 +2009,7 @@ setSettingImageUplode = (value) => {
           description: this.item.description,
           disabledPlaybar: this.item.disabledPlaybar,
           project: {
-            data: this.item.project.data
+            data: this.item.project.data,
           },
           published: true,
           ratio: this.item.project.ratio,
@@ -1763,11 +2017,9 @@ setSettingImageUplode = (value) => {
           tags: this.item.project.tags,
           thumbnail: this.item.project.thumbnail,
           title: rendomTitle,
+        };
 
-        }
-
-        const downloadVideoMake = await this.request(
-          '/api/users/me/makes', {
+        const downloadVideoMake = await this.request('/api/users/me/makes', {
           method: 'POST',
           headers: {
             'on-behalf': this.currentUser.id,
@@ -1785,20 +2037,28 @@ setSettingImageUplode = (value) => {
           },
         });
 
-        console.log(downloadVideoMake._id, "fjsdjfdsds")
-        const publishDownloadVideoMake = await this.publish(downloadVideoMake._id);
+        console.log(downloadVideoMake._id, 'fjsdjfdsds');
+        const publishDownloadVideoMake = await this.publish(
+          downloadVideoMake._id
+        );
         serializedData.data = JSON.parse(serializedData.data);
         serializedData.data = {
           ...serializedData.data,
-          media: serializedData.data.media.map(item => ({
+          media: serializedData.data.media.map((item) => ({
             ...item,
-            tracks: item.tracks.map(track => ({
+            tracks: item.tracks.map((track) => ({
               ...track,
-              trackEvents: track.trackEvents.filter(event => ((event.type === "sequencer") || (event.type == "image" && (event?.popcornOptions?.src?.includes('gif') || event?.popcornOptions?.url?.includes('gif')))))
-            }))
-          }))
+              trackEvents: track.trackEvents.filter(
+                (event) =>
+                  event.type === 'sequencer' ||
+                  (event.type == 'image' &&
+                    (event?.popcornOptions?.src?.includes('gif') ||
+                      event?.popcornOptions?.url?.includes('gif')))
+              ),
+            })),
+          })),
         };
-        serializedData.data = JSON.stringify(serializedData.data)
+        serializedData.data = JSON.stringify(serializedData.data);
         rendomTitle = Math.random().toString(36).substring(2, 7);
         newItem = {
           allowedSocials: this.item.allowedSocials,
@@ -1807,7 +2067,7 @@ setSettingImageUplode = (value) => {
           description: this.item.description,
           disabledPlaybar: this.item.disabledPlaybar,
           project: {
-            data: this.item.project.data
+            data: this.item.project.data,
           },
           published: true,
           ratio: this.item.project.ratio,
@@ -1815,11 +2075,9 @@ setSettingImageUplode = (value) => {
           tags: this.item.project.tags,
           thumbnail: this.item.project.thumbnail,
           title: rendomTitle,
+        };
 
-        }
-
-        const result1 = await this.request(
-          '/api/users/me/makes', {
+        const result1 = await this.request('/api/users/me/makes', {
           method: 'POST',
           headers: {
             'on-behalf': this.currentUser.id,
@@ -1838,27 +2096,34 @@ setSettingImageUplode = (value) => {
         });
         const publishedMakeIos = await this.publish(result1._id);
 
-        await this.updateIOSVideo(result,publishDownloadVideoMake,  publishedMakeIos,)
-      }
-      else if (hasNonEmptyTrackEvents && !hasSequencer) {
+        await this.updateIOSVideo(
+          result,
+          publishDownloadVideoMake,
+          publishedMakeIos
+        );
+      } else if (hasNonEmptyTrackEvents && !hasSequencer) {
         this.isLoadingIosProcess = true;
         downloadVideoData.allowedSocials = [];
         downloadVideoData.data = {
           ...downloadVideoData.data,
-          media: downloadVideoData.data.media.map(item => ({
+          media: downloadVideoData.data.media.map((item) => ({
             ...item,
-            tracks: item.tracks.map(track => ({
+            tracks: item.tracks.map((track) => ({
               ...track,
-              trackEvents: track.trackEvents.filter(event => {
-                if (event.type === "sequencer" || event.type === 'image' || event.type === 'text') {
+              trackEvents: track.trackEvents.filter((event) => {
+                if (
+                  event.type === 'sequencer' ||
+                  event.type === 'image' ||
+                  event.type === 'text'
+                ) {
                   return event;
                 }
-              })
-            }))
-          }))
+              }),
+            })),
+          })),
         };
         let rendomTitle = Math.random().toString(36).substring(2, 7);
-        downloadVideoData.data = JSON.stringify(downloadVideoData.data)
+        downloadVideoData.data = JSON.stringify(downloadVideoData.data);
         let newItem = {
           allowedSocials: [],
           background: this.item.background,
@@ -1866,7 +2131,7 @@ setSettingImageUplode = (value) => {
           description: this.item.description,
           disabledPlaybar: this.item.disabledPlaybar,
           project: {
-            data: this.item.project.data
+            data: this.item.project.data,
           },
           published: true,
           ratio: this.item.project.ratio,
@@ -1874,11 +2139,9 @@ setSettingImageUplode = (value) => {
           tags: this.item.project.tags,
           thumbnail: this.item.project.thumbnail,
           title: rendomTitle,
+        };
 
-        }
-
-        const downloadVideoMake = await this.request(
-          '/api/users/me/makes', {
+        const downloadVideoMake = await this.request('/api/users/me/makes', {
           method: 'POST',
           headers: {
             'on-behalf': this.currentUser.id,
@@ -1896,9 +2159,11 @@ setSettingImageUplode = (value) => {
           },
         });
 
-        const publishDownloadVideoMake = await this.publish(downloadVideoMake._id);
+        const publishDownloadVideoMake = await this.publish(
+          downloadVideoMake._id
+        );
 
-        await this.updateIOSVideo(result,publishDownloadVideoMake)
+        await this.updateIOSVideo(result, publishDownloadVideoMake);
       }
       
       if (hasNonEmptyTrackEvents) {
@@ -1944,7 +2209,10 @@ setSettingImageUplode = (value) => {
             return showError('The project is not valid.');
           }
         }
-      } else if (actionType === ACTION_MAKE_COPY || actionType === ACTION_WATCH_VIDEO) {
+      } else if (
+        actionType === ACTION_MAKE_COPY ||
+        actionType === ACTION_WATCH_VIDEO
+      ) {
         closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
@@ -1966,11 +2234,11 @@ setSettingImageUplode = (value) => {
             undefined,
             {
               shallow: true,
-            },
+            }
           );
           setInitialView();
         }
-      } else if (this.saveButton == "") {
+      } else if (this.saveButton == '') {
         closeAllWindows();
         const project = await this.save();
         if (!this.modified) {
@@ -1982,17 +2250,15 @@ setSettingImageUplode = (value) => {
           }
         }
         if (project && project._id) {
-          Router.push(
-            {
-              pathname: ROUTES.edit,
-              query: {
-                project: project._id,
-              },
-            }),
+          Router.push({
+            pathname: ROUTES.edit,
+            query: {
+              project: project._id,
+            },
+          }),
             setInitialView();
         }
-      }
-      else if (await showConfirmation(`${this.saveButton}`)) {
+      } else if (await showConfirmation(`${this.saveButton}`)) {
         if (!this.isLoading) {
           closeAllWindows();
           const project = await this.save();
@@ -2005,13 +2271,12 @@ setSettingImageUplode = (value) => {
             }
           }
           if (project && project._id) {
-            Router.push(
-              {
-                pathname: ROUTES.edit,
-                query: {
-                  project: project._id,
-                },
-              }),
+            Router.push({
+              pathname: ROUTES.edit,
+              query: {
+                project: project._id,
+              },
+            }),
               setInitialView();
           }
         }
@@ -2019,34 +2284,33 @@ setSettingImageUplode = (value) => {
     } catch (e) {
       showError(e.message);
     }
-  }
+  };
 
   @action
   setButtonType = (value) => {
     this.saveButton = value;
-  }
+  };
 
   @action
-  invalidateFbCache = (url) => this.request(
-    '/api/makes/update-fb-cache', {
-    method: 'POST',
-    headers: {
-      'on-behalf': this.currentUser.id,
-    },
-    body: { publishUrl: url },
-  });
+  invalidateFbCache = (url) =>
+    this.request('/api/makes/update-fb-cache', {
+      method: 'POST',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      },
+      body: { publishUrl: url },
+    });
 
-  publish = (id) => this.request(
-    `/api/users/me/makes/${id}/publish`, {
-    method: 'POST',
-    headers: {
-      'on-behalf': this.currentUser.id,
-    },
-  });
+  publish = (id) =>
+    this.request(`/api/users/me/makes/${id}/publish`, {
+      method: 'POST',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      },
+    });
 
   updateIOSVideo = (result, publishDownloadVideoMake, data) => {
-    this.request(
-      `/api/projects/update-revolution-video`, {
+    this.request(`/api/projects/update-revolution-video`, {
       method: 'POST',
       headers: {
         'on-behalf': this.currentUser.id,
@@ -2054,9 +2318,9 @@ setSettingImageUplode = (value) => {
       body: {
         acutalMake: result,
         RecordedMakedata: data,
-        downloadVideoMake: publishDownloadVideoMake
+        downloadVideoMake: publishDownloadVideoMake,
       },
-    })
+    });
   };
 
   fromTemplate = async (makeTemplate = {}, video = null, isSource) => {
@@ -2084,8 +2348,11 @@ setSettingImageUplode = (value) => {
     this.projectData.media.forEach((media) => {
       media.tracks.forEach((track) => {
         track.trackEvents.forEach((trackEvent) => {
-          if (trackEvent.type === 'sequencer'
-            && trackEvent.popcornOptions.subtype !== 'audio' && !sequencerElement) {
+          if (
+            trackEvent.type === 'sequencer' &&
+            trackEvent.popcornOptions.subtype !== 'audio' &&
+            !sequencerElement
+          ) {
             sequencerElement = trackEvent;
           }
         });
@@ -2097,7 +2364,9 @@ setSettingImageUplode = (value) => {
         type: videoMeta.type,
         title: videoMeta.title,
         from: trimming ? trimming.min : 0,
-        end: (trimming ? trimming.max : videoMeta.duration) - (trimming ? trimming.min : 0),
+        end:
+          (trimming ? trimming.max : videoMeta.duration) -
+          (trimming ? trimming.min : 0),
         duration: videoMeta.duration,
       });
     } else {
@@ -2109,39 +2378,45 @@ setSettingImageUplode = (value) => {
             name: `${media.tracks.length}`,
             id: layerId,
             order: media.tracks.length,
-            trackEvents: [{
-              id: elementId,
-              type: 'sequencer',
-              popcornOptions: {
-                start: 0,
-                source: [value],
-                fallback: '',
-                denied: false,
-                from: trimming ? trimming.min : 0,
-                end: (trimming ? trimming.max : videoMeta.duration) - (trimming ? trimming.min : 0),
-                title: videoMeta.title,
-                duration: videoMeta.duration,
-                type: videoMeta.type,
-                hidden: false,
-                target: 'video-container',
-                mobile: true,
-                width: 100,
-                height: 100,
-                top: 0,
-                left: 0,
-                volume: 100,
-                mute: false,
-                zindex: MAX_ZINDEX - media.tracks.length,
+            trackEvents: [
+              {
                 id: elementId,
+                type: 'sequencer',
+                popcornOptions: {
+                  start: 0,
+                  source: [value],
+                  fallback: '',
+                  denied: false,
+                  from: trimming ? trimming.min : 0,
+                  end:
+                    (trimming ? trimming.max : videoMeta.duration) -
+                    (trimming ? trimming.min : 0),
+                  title: videoMeta.title,
+                  duration: videoMeta.duration,
+                  type: videoMeta.type,
+                  hidden: false,
+                  target: 'video-container',
+                  mobile: true,
+                  width: 100,
+                  height: 100,
+                  top: 0,
+                  left: 0,
+                  volume: 100,
+                  mute: false,
+                  zindex: MAX_ZINDEX - media.tracks.length,
+                  id: elementId,
+                },
+                track: layerId,
+                name: elementId,
               },
-              track: layerId,
-              name: elementId,
-            }],
+            ],
           });
         }
       });
     }
-    this.recompressProject(trimming ? (trimming.max - trimming.min) : videoMeta.duration);
+    this.recompressProject(
+      trimming ? trimming.max - trimming.min : videoMeta.duration
+    );
   };
 
   @computed
@@ -2149,8 +2424,9 @@ setSettingImageUplode = (value) => {
     if (!this.activeElementId) {
       return null;
     }
-    const currentElement = this.popcornElements
-      .find(element => element.id === this.activeElementId);
+    const currentElement = this.popcornElements.find(
+      (element) => element.id === this.activeElementId
+    );
     if (!currentElement) {
       return null;
     }
@@ -2169,7 +2445,10 @@ setSettingImageUplode = (value) => {
 
   @action
   setAsDefault = (reset) => {
-    if (!this.element || !ALLOWED_SAVE_AS.some(type => type === this.element.type)) {
+    if (
+      !this.element ||
+      !ALLOWED_SAVE_AS.some((type) => type === this.element.type)
+    ) {
       return;
     }
     if (reset) {
@@ -2190,7 +2469,8 @@ setSettingImageUplode = (value) => {
     };
   };
 
-  getElementById = id => this.popcornElements.find(element => element.id === id);
+  getElementById = (id) =>
+    this.popcornElements.find((element) => element.id === id);
 
   @computed
   get canUndo() {
@@ -2204,14 +2484,20 @@ setSettingImageUplode = (value) => {
 
   @action
   runTextfill = () => {
-    this.popcornElements.forEach(element => {
-      if (element.popcornOptions.fontDecorations
-        && element.popcornOptions.fontDecorations.responsive) {
+    this.popcornElements.forEach((element) => {
+      if (
+        element.popcornOptions.fontDecorations &&
+        element.popcornOptions.fontDecorations.responsive
+      ) {
         // we need to recount the fontsize. This is done in the update method.
-        this.updatePopcorn(element, { fontDecorations: element.popcornOptions.fontDecorations });
+        this.updatePopcorn(element, {
+          fontDecorations: element.popcornOptions.fontDecorations,
+        });
       }
-      if ((element.type === POPCORN_ELEMENT_TYPES.TEXT_MASK
-        || element.type === POPCORN_ELEMENT_TYPES.COMBINED)) {
+      if (
+        element.type === POPCORN_ELEMENT_TYPES.TEXT_MASK ||
+        element.type === POPCORN_ELEMENT_TYPES.COMBINED
+      ) {
         this.updatePopcorn(element, { newSize: true });
       }
     });
@@ -2219,10 +2505,12 @@ setSettingImageUplode = (value) => {
 
   @action
   runMapResize = () => {
-    this.popcornElements.forEach(element => {
-      if (element.type === POPCORN_ELEMENT_TYPES.GOOGLE_MAP
-        && (element.popcornOptions.type === GOOGLE_MAP_VALUES.STREETVIEW
-          || element.popcornOptions.type === GOOGLE_MAP_VALUES.SIDEBYSIDE)) {
+    this.popcornElements.forEach((element) => {
+      if (
+        element.type === POPCORN_ELEMENT_TYPES.GOOGLE_MAP &&
+        (element.popcornOptions.type === GOOGLE_MAP_VALUES.STREETVIEW ||
+          element.popcornOptions.type === GOOGLE_MAP_VALUES.SIDEBYSIDE)
+      ) {
         this.updatePopcorn(element, { runResize: true });
       }
     });
@@ -2249,11 +2537,13 @@ setSettingImageUplode = (value) => {
 
     this.setUndo();
     this.modified = true;
-    const elements = this.popcornElements.filter(element => element.track === layerId);
-    elements.forEach(element => {
+    const elements = this.popcornElements.filter(
+      (element) => element.track === layerId
+    );
+    elements.forEach((element) => {
       this.updatePopcorn(element, { [name]: value });
     });
-    this.layers = this.layers.map(layer => {
+    this.layers = this.layers.map((layer) => {
       if (layer.id === layerId) {
         layer[name] = value;
       }
@@ -2267,7 +2557,7 @@ setSettingImageUplode = (value) => {
         if (track.id === layerId) {
           track[name] = value;
         }
-        track.trackEvents.forEach(trackEvent => {
+        track.trackEvents.forEach((trackEvent) => {
           if (trackEvent.track === layerId) {
             if (trackEvent.popcornOptions.animation) {
               itemOnLayerWithAnimation = true;
@@ -2296,7 +2586,8 @@ setSettingImageUplode = (value) => {
     this.modified = true;
     if (lastEnd < duration) {
       elements.forEach(({ popcornOptions: { end }, type }) => {
-        if (type === SEQUENCER) { // element is image or audio
+        if (type === SEQUENCER) {
+          // element is image or audio
           if (lastEnd < end * SANTISECOND) {
             lastEnd = end * SANTISECOND;
           }
@@ -2334,28 +2625,44 @@ setSettingImageUplode = (value) => {
     // we add images on the new layer
     if (kind === ASSET_TYPES.IMAGE) {
       // to check if the first track is empty
-      if (this.layers.length > 1 || this.isFirstTrackFull || this.elements.length) {
+      if (
+        this.layers.length > 1 ||
+        this.isFirstTrackFull ||
+        this.elements.length
+      ) {
         this.createNewLayer();
       }
       const [track] = [...this.layers];
       this.isFirstTrackFull = true;
       return { track, end: 0 };
     }
-    const findElement = this.elements.find(element => element.popcornOptions.kind === kind);
+    const findElement = this.elements.find(
+      (element) => element.popcornOptions.kind === kind
+    );
     if (findElement) {
-      const currentTrack = (findElement.track && findElement.track.id) || findElement.track;
-      const track = { ...this.layers.find(element => element.id === currentTrack) };
+      const currentTrack =
+        (findElement.track && findElement.track.id) || findElement.track;
+      const track = {
+        ...this.layers.find((element) => element.id === currentTrack),
+      };
       let layerElements;
       if (this.elements) {
-        layerElements = this.elements.filter((element) => element.track === currentTrack);
+        layerElements = this.elements.filter(
+          (element) => element.track === currentTrack
+        );
       }
-      const sortedElements = layerElements
-        .sort((a, b) => b.popcornOptions.end - a.popcornOptions.end);
+      const sortedElements = layerElements.sort(
+        (a, b) => b.popcornOptions.end - a.popcornOptions.end
+      );
       const lastElement = sortedElements[0];
       return { track, end: lastElement.popcornOptions.end };
     }
     // add video or audio to the new layer if the first is present or full
-    if (this.layers.length > 1 || this.isFirstTrackFull || this.elements.length) {
+    if (
+      this.layers.length > 1 ||
+      this.isFirstTrackFull ||
+      this.elements.length
+    ) {
       this.createNewLayer();
     }
     const [track] = [...this.layers];
@@ -2388,8 +2695,10 @@ setSettingImageUplode = (value) => {
       item.items = null;
     }
 
-    if (type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR
-      && this.elements.some(el => el.type === type)) {
+    if (
+      type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR &&
+      this.elements.some((el) => el.type === type)
+    ) {
       this.releaseElement();
       return showInfo(FORM_ONE_LG.text, FORM_ONE_LG.title);
     }
@@ -2399,10 +2708,10 @@ setSettingImageUplode = (value) => {
     }
 
     if (type === POPCORN_ELEMENT_TYPES.PERSONALIZED_IMAGE) {
-      item.width = item.imageshape == "circle" ? item.width : 50;
-      item.height = item.imageshape == "circle" ? item.height : 50;
-      item.top = item.imageshape == "circle" ? item.top : 25;
-      item.left = item.imageshape == "circle" ? item.left : 25;
+      item.width = item.imageshape == 'circle' ? item.width : 50;
+      item.height = item.imageshape == 'circle' ? item.height : 50;
+      item.top = item.imageshape == 'circle' ? item.top : 25;
+      item.left = item.imageshape == 'circle' ? item.left : 25;
     }
 
     if (startInDrag) {
@@ -2418,7 +2727,9 @@ setSettingImageUplode = (value) => {
     // get first track
     let track = item.track || trackInDrag || { ...this.layers[0] };
 
-    const layerElements = this.elements.filter(element => element.track === track.id);
+    const layerElements = this.elements.filter(
+      (element) => element.track === track.id
+    );
     if (isLayerFulfilled(options, layerElements)) {
       this.createNewLayer();
       [track] = [...this.layers];
@@ -2440,8 +2751,12 @@ setSettingImageUplode = (value) => {
       options.opacity = track.opacity;
     }
 
-    const dropTop = !item.isSocial ? position?.top - (item.height / 2) : position?.top;
-    const dropLeft = !item.isSocial ? position?.left - (item.width / 2) : position?.left;
+    const dropTop = !item.isSocial
+      ? position?.top - item.height / 2
+      : position?.top;
+    const dropLeft = !item.isSocial
+      ? position?.left - item.width / 2
+      : position?.left;
 
     const droppedOptions = {
       top: position ? dropTop : options.top ?? item.top,
@@ -2449,7 +2764,10 @@ setSettingImageUplode = (value) => {
       dropped: position?.dropped,
     };
 
-    if (type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION || type === POPCORN_ELEMENT_TYPES.TEXT) {
+    if (
+      type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION ||
+      type === POPCORN_ELEMENT_TYPES.TEXT
+    ) {
       const { isSuperAdmin } = this.userStore;
       options.isSuperAdmin = isSuperAdmin;
     }
@@ -2459,7 +2777,12 @@ setSettingImageUplode = (value) => {
       type,
       track: track.id,
       name: options.id,
-      popcornOptions: { ...item, ...options, ...droppedOptions, type: undefined },
+      popcornOptions: {
+        ...item,
+        ...options,
+        ...droppedOptions,
+        type: undefined,
+      },
     };
 
     if (combinedItems) {
@@ -2471,7 +2794,10 @@ setSettingImageUplode = (value) => {
     // update duration
     if (options.end > this.duration / SANTISECOND) {
       this.recompressProject(options.end, false);
-      this.setPopcorn(this.popcorn.target, Math.ceil(options.start * SANTISECOND));
+      this.setPopcorn(
+        this.popcorn.target,
+        Math.ceil(options.start * SANTISECOND)
+      );
       this.duration = Math.ceil(options.end * SANTISECOND);
     } else if (this.time === 0) {
       this.updateTime(0.01 * SANTISECOND);
@@ -2491,14 +2817,16 @@ setSettingImageUplode = (value) => {
     this.setUndo();
     await this.updateEnd(end);
     this.isFirstTrackFull = false;
-    await Bb.all(elements.map(item => this.createNewElement(item)));
+    await Bb.all(elements.map((item) => this.createNewElement(item)));
     if (this.elements.length) {
       const current = this.elements[this.elements.length - 1];
       this.editElement(current.id);
       this.updateTime(
-        ((current.popcornOptions.start + current.popcornOptions.end) / 2) * SANTISECOND);
+        ((current.popcornOptions.start + current.popcornOptions.end) / 2) *
+          SANTISECOND
+      );
     }
-  }
+  };
 
   updateEnd = (end) => {
     if (end > this.duration / SANTISECOND) {
@@ -2511,8 +2839,10 @@ setSettingImageUplode = (value) => {
   // analog for addLayer
   @action
   createNewLayer = (options) => {
-    const blendMode = options && options.blendMode
-      ? options.blendMode : blendModeConstants.normal.value;
+    const blendMode =
+      options && options.blendMode
+        ? options.blendMode
+        : blendModeConstants.normal.value;
     const opacity = options && options.opacity ? options.opacity : 100;
 
     this.modified = true;
@@ -2520,10 +2850,10 @@ setSettingImageUplode = (value) => {
     const newId = this.generateUid();
 
     this.projectData.media.forEach((media) => {
-      media.tracks = media.tracks.map(track => {
+      media.tracks = media.tracks.map((track) => {
         track.order += 1;
         const zindex = MAX_ZINDEX - track.order;
-        track.trackEvents.forEach(element => {
+        track.trackEvents.forEach((element) => {
           element.popcornOptions.zindex = zindex;
           this.updatePopcorn(element, { zindex });
         });
@@ -2532,7 +2862,7 @@ setSettingImageUplode = (value) => {
       media.tracks.unshift({ ...DEFAULT_LAYER, id: newId, blendMode, opacity });
     });
 
-    this.layers = this.layers.map(track => {
+    this.layers = this.layers.map((track) => {
       track.order += 1;
       track.defaultName = `Layer ${track.order}`;
       return track;
@@ -2563,35 +2893,40 @@ setSettingImageUplode = (value) => {
     } else {
       this.retarget.end();
     }
-  }
+  };
 
   @action
   updateLayerElements = async (newEnd, element) => {
     if (newEnd < element.popcornOptions.end) {
       return null;
     }
-    const elementAnimationOut = element.popcornOptions.animation?.out?.duration || 0;
-    const differenceLength = +((newEnd - element.popcornOptions.end).toFixed(2));
+    const elementAnimationOut =
+      element.popcornOptions.animation?.out?.duration || 0;
+    const differenceLength = +(newEnd - element.popcornOptions.end).toFixed(2);
     const elementsForUpdate = [];
     const elementsEnds = [];
     let animationOut = 0;
     let itemStartAfterToVideo = null;
     let animationOutInLastItem = 0;
 
-    this.projectData.media.forEach(media => {
-      media.tracks.forEach(track => {
-        track.trackEvents.forEach(trackEvent => {
+    this.projectData.media.forEach((media) => {
+      media.tracks.forEach((track) => {
+        track.trackEvents.forEach((trackEvent) => {
           if (trackEvent.track === element.track) {
             if (trackEvent.popcornOptions.end > Math.max(...elementsEnds)) {
-              animationOutInLastItem = trackEvent.popcornOptions.animation?.out?.duration || 0;
+              animationOutInLastItem =
+                trackEvent.popcornOptions.animation?.out?.duration || 0;
             }
             elementsEnds.push(trackEvent.popcornOptions.end);
             if (element.popcornOptions.end <= trackEvent.popcornOptions.start) {
               elementsForUpdate.push(trackEvent);
-              if (trackEvent.popcornOptions.animation
-                && trackEvent.popcornOptions.animation.out) {
+              if (
+                trackEvent.popcornOptions.animation &&
+                trackEvent.popcornOptions.animation.out
+              ) {
                 // eslint-disable-next-line max-len
-                animationOut += trackEvent.popcornOptions.animation.out.duration;
+                animationOut +=
+                  trackEvent.popcornOptions.animation.out.duration;
               }
             }
           }
@@ -2600,30 +2935,36 @@ setSettingImageUplode = (value) => {
     });
 
     if (elementsForUpdate && elementsForUpdate.length) {
-      elementsForUpdate.forEach(item => {
-        if (item.popcornOptions.start
-          <= itemStartAfterToVideo || !itemStartAfterToVideo) {
+      elementsForUpdate.forEach((item) => {
+        if (
+          item.popcornOptions.start <= itemStartAfterToVideo ||
+          !itemStartAfterToVideo
+        ) {
           itemStartAfterToVideo = item.popcornOptions.start;
         }
       });
     }
 
     if (newEnd + elementAnimationOut > itemStartAfterToVideo) {
-      if (this.duration < (Math.max(...elementsEnds)
-        + differenceLength + animationOut) * SANTISECOND) {
+      if (
+        this.duration <
+        (Math.max(...elementsEnds) + differenceLength + animationOut) *
+          SANTISECOND
+      ) {
         await this.updateVideoDuration(
-          Math.max(...elementsEnds) + animationOutInLastItem + differenceLength,
+          Math.max(...elementsEnds) + animationOutInLastItem + differenceLength
         );
       }
 
       if (elementsForUpdate && elementsForUpdate.length) {
-        elementsForUpdate.forEach(item => (
+        elementsForUpdate.forEach((item) =>
           this.updateElementFromTimeline({
             needUpdateStartEnd: true,
             elementId: item.id,
             start: item.popcornOptions.start + differenceLength,
             end: item.popcornOptions.end + differenceLength,
-          })));
+          })
+        );
       }
     }
 
@@ -2653,7 +2994,7 @@ setSettingImageUplode = (value) => {
     let width = null;
     let height = null;
 
-    this.combinedItems.forEach(id => {
+    this.combinedItems.forEach((id) => {
       const elementById = this.getElementById(id);
 
       const item = {
@@ -2672,8 +3013,13 @@ setSettingImageUplode = (value) => {
       if (item.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION) {
         shift = JSON_ANIMATION_OUT_DURATION;
         item.zindex = 1;
-      } else if (item.animation && item.animation.out && item.animation.out.duration) {
-        shift = item.animation && item.animation.out && item.animation.out.duration;
+      } else if (
+        item.animation &&
+        item.animation.out &&
+        item.animation.out.duration
+      ) {
+        shift =
+          item.animation && item.animation.out && item.animation.out.duration;
       }
 
       if (item.end + shift > end || !end) {
@@ -2695,7 +3041,10 @@ setSettingImageUplode = (value) => {
         widthtAfterMinLeft = item.width;
       }
 
-      if (item.left !== undefined && (item.left > maxLeft || maxLeft === null)) {
+      if (
+        item.left !== undefined &&
+        (item.left > maxLeft || maxLeft === null)
+      ) {
         maxLeft = item.left;
         widthAfterMaxLeft = item.width;
       }
@@ -2703,16 +3052,16 @@ setSettingImageUplode = (value) => {
       items.push(item);
     });
 
-    if (heightAfterMinTop > ((maxTop - top) + heightAfterMaxTop)) {
+    if (heightAfterMinTop > maxTop - top + heightAfterMaxTop) {
       height = heightAfterMinTop;
     } else {
-      height = (maxTop - top) + heightAfterMaxTop;
+      height = maxTop - top + heightAfterMaxTop;
     }
 
-    if (widthtAfterMinLeft > ((maxLeft - left) + widthAfterMaxLeft)) {
+    if (widthtAfterMinLeft > maxLeft - left + widthAfterMaxLeft) {
       width = widthtAfterMinLeft;
     } else {
-      width = (maxLeft - left) + widthAfterMaxLeft;
+      width = maxLeft - left + widthAfterMaxLeft;
     }
 
     createItemsInCombinedElement({
@@ -2726,7 +3075,7 @@ setSettingImageUplode = (value) => {
         start,
         end,
       },
-      action: elementId => this.removeElement(elementId),
+      action: (elementId) => this.removeElement(elementId),
     });
 
     this.combinedItems = [];
@@ -2745,7 +3094,7 @@ setSettingImageUplode = (value) => {
     this.addElement(options);
   };
 
-  getLayerByTrackEventId = (id) => this.layers.find(layer => layer.id === id)
+  getLayerByTrackEventId = (id) => this.layers.find((layer) => layer.id === id);
 
   @action
   destroyCombinedItem = () => {
@@ -2761,7 +3110,7 @@ setSettingImageUplode = (value) => {
       items: element.popcornOptions.items,
       videoContainer: this.popcorn.target,
       blockOptions: element.popcornOptions,
-      action: item => this.addElement(item),
+      action: (item) => this.addElement(item),
     });
   };
 }
