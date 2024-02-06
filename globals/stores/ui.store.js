@@ -65,6 +65,9 @@ export default class UIStore {
 
   @observable isOpenFullWindow = false;
 
+  @observable handlewidthofai = true;
+
+
   @computed
   get templatesMenuItems() {
     return [
@@ -103,6 +106,11 @@ export default class UIStore {
       },
     ];
   }
+
+@action
+setradiobuttonfalse = (n) => {
+  this.handlewidthofai = n;
+}
 
   @action
   closeAllWindows = () => {

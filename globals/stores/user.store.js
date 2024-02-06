@@ -887,4 +887,14 @@ export default class UserStore {
   get aiThumbnailEnabled() {
     return this.isfeatureEnabled(FEATURES.AI_THUMBNAIL);
   }
+
+  @computed
+  get aiTitleSuggestionsEnabled() {
+    return this.isfeatureEnabled(FEATURES.AI_TITLE_SUGGESTIONS);
+  }
+
+  @computed
+  get aiDescriptionEnabled() {
+    return this.isfeatureEnabled(FEATURES.AI_DESCRIPTION_SUGGESTIONS);
+  }
 }

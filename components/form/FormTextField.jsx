@@ -5,86 +5,118 @@ import TextField from '@material-ui/core/TextField';
 import classnames from 'classnames';
 import MaskedFormControl from 'react-bootstrap-maskedinput';
 import TextareaAutosize from '@material-ui/core/TextareaAutosize';
+import vrAilogo from "../../public/static/svgImages/vrAilogo.png"
 
 import PropTypes from '../../lib/PropTypes';
+import useUserStore from '../hooks/useUserStore';
 
-const FormTextField = React.forwardRef(({
-  id,
-  type,
-  mask,
-  label,
-  name,
-  onChange,
-  onEnter,
-  onBlur,
-  disabled,
-  inputClassName,
-  labelClassName,
-  className,
-  placeholder,
-  value,
-  multiline,
-  rowsMin,
-  rowsMax,
-  readOnly,
-  labelHint,
-  error,
-  helperText,
-  onEdit: defaultOnEdit,
-  inputClass,
-}, ref) => {
-  const conditionalProps = {};
+const FormTextField = React.forwardRef(
+  (
+    {
+      id,
+      type,
+      mask,
+      label,
+      name,
+      isAiSuggesstionVisible,
+      onChange,
+      onEnter,
+      onBlur,
+      disabled,
+      inputClassName,
+      labelClassName,
+      className,
+      placeholder,
+      value,
+      multiline,
+      rowsMin,
+      rowsMax,
+      readOnly,
+      labelHint,
+      error,
+      helperText,
+      onEdit: defaultOnEdit,
+      inputClass,
+      handlSaveAiPrompt
+    },
+    ref
+  ) => {
+    const conditionalProps = {};
+    console.log(isAiSuggesstionVisible, "isAiSuggesstionVisible12")
+    const [isHint, setIsHint] = useState(false);
+    const { aiTitleSuggestionsEnabled } = useUserStore()
+    const InputProps = {
+      ...(readOnly ? { readOnly } : {}),
+    };
 
-  const [isHint, setIsHint] = useState(false);
+    if (onEnter) {
+      conditionalProps.onKeyPress = ({ which, target: { value: v } }) => {
+        if (which === 13) {
+          onEnter(v);
+        }
+      };
+    }
 
-  const InputProps = {
-    ...(readOnly ? { readOnly } : {}),
-  };
+    if (error) {
+      conditionalProps.error = error;
+    }
+    if (helperText) {
+      conditionalProps.helperText = helperText;
+    }
+    if (inputClass) {
+      InputProps.className = `${inputClass} text-input`;
+    }
 
-  if (onEnter) {
-    conditionalProps.onKeyPress = ({ which, target: { value: v } }) => {
-      if (which === 13) {
-        onEnter(v);
+    const onEdit = ({ target: { value: v } }) => {
+      onChange(v);
+    };
+
+    const handleShowHint = () => {
+      if (labelHint) {
+        setIsHint((prevIsHint) => !prevIsHint);
       }
     };
-  }
-
-  if (error) {
-    conditionalProps.error = error;
-  }
-  if (helperText) {
-    conditionalProps.helperText = helperText;
-  }
-  if (inputClass) {
-    InputProps.className = `${inputClass} text-input`;
-  }
-
-  const onEdit = ({ target: { value: v } }) => {
-    onChange(v);
-  };
-
-  const handleShowHint = () => {
-    if (labelHint) {
-      setIsHint((prevIsHint) => !prevIsHint);
-    }
-  };
-
-  return (
-    <FormGroup
-      className={classnames(className)}
-      onBlur={onBlur}
-    >
-      {
-        label && (
-          <InputLabel key="label-key" className={classnames('form-control-label', labelClassName)}>
+    const handleTextareaInputProps = () => {
+      if (isAiSuggesstionVisible) {
+        return {
+          endAdornment: (
+            <React.Fragment>
+              <img onClick={() => handlSaveAiPrompt()} style={{ height: "20px", width: "20px", cursor: "pointer" }} src={vrAilogo} alt="pic" />
+            </React.Fragment>
+          ),
+        };
+      } else {
+        return {}; // Return an empty object if the condition is not met
+      }
+    };
+    const handleInputProps = () => {
+      if (isAiSuggesstionVisible && aiTitleSuggestionsEnabled) {
+        return {
+          endAdornment: (
+            <React.Fragment>
+              <img onClick={() => handlSaveAiPrompt()} style={{ height: "20px", width: "20px", cursor: "pointer" }} src={vrAilogo} alt="pic" />
+            </React.Fragment>
+          ),
+        };
+      } else {
+        return InputProps
+      }
+    };
+    return (
+      <FormGroup className={classnames(className)} onBlur={onBlur}>
+        {label && (
+          <InputLabel
+            key="label-key"
+            className={classnames('form-control-label', labelClassName)}
+          >
             {label}
           </InputLabel>
-        )
-      }
-      {labelHint && isHint && <span className="label-input-hint">{labelHint}</span>}
-      { type !== 'text' && (
-        mask
-          ? (
+        )}
+        {labelHint && isHint && (
+          <span className="label-input-hint">{labelHint}</span>
+        )}
+        {type !== 'text' &&
+          (mask ? (
             <MaskedFormControl
               ref={ref}
               mask={mask}
@@ -100,14 +132,17 @@ const FormTextField = React.forwardRef(({
               InputProps={InputProps}
               {...conditionalProps}
             />
-          )
-          : (
+          ) : (
             <TextField
               inputRef={ref}
               key="input-key"
               id={id || name}
               name={name}
-              className={classnames(inputClassName, { 'text-input': !inputClass }, { 'input-disabled': disabled })}
+              className={classnames(
+                inputClassName,
+                { 'text-input': !inputClass },
+                { 'input-disabled': disabled }
+              )}
               value={value || (value === 0 && type === 'number') ? value : ''}
               placeholder={placeholder}
               onChange={defaultOnEdit || onEdit}
@@ -115,33 +150,37 @@ const FormTextField = React.forwardRef(({
               disabled={disabled}
               {...conditionalProps}
               multiline={multiline}
-              InputProps={InputProps}
+              InputProps={handleInputProps()}
               onFocus={handleShowHint}
               onBlur={handleShowHint}
             />
           ))}
-      {type === 'text' && (
-        <TextareaAutosize
-          ref={ref}
-          key="input-key"
-          id={id || name}
-          name={name}
-          className={classnames('text-input', inputClassName, { 'text-input-disabled': readOnly })}
-          value={value || ''}
-          placeholder={placeholder}
-          onChange={defaultOnEdit || onEdit}
-          disabled={disabled}
-          {...conditionalProps}
-          multiline={multiline}
-          rowsMin={rowsMin}
-          rowsMax={rowsMax}
-          readOnly={readOnly}
-        />
-      )}
+        {type === 'text' && (
+          <TextareaAutosize
+            ref={ref}
+            key="input-key"
+            id={id || name}
+            name={name}
+            className={classnames('text-input', inputClassName, {
+              'text-input-disabled': readOnly,
+            })}
+            value={value || ''}
+            placeholder={placeholder}
+            onChange={defaultOnEdit || onEdit}
+            disabled={disabled}
+            {...conditionalProps}
+            multiline={multiline}
+            rowsMin={rowsMin}
+            rowsMax={rowsMax}
+            readOnly={readOnly}
+            InputProps={handleTextareaInputProps()}
 
-    </FormGroup>
-  );
-});
+          />
+        )}
+      </FormGroup>
+    );
+  }
+);
 
 FormTextField.propTypes = {
   onChange: PropTypes.func,
@@ -163,7 +202,11 @@ FormTextField.propTypes = {
   labelClassName: PropTypes.string,
   placeholder: PropTypes.string,
   type: PropTypes.oneOf(['input', 'text', 'number', 'password']),
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.shape({})]),
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.shape({}),
+  ]),
   multiline: PropTypes.bool,
   rowsMin: PropTypes.number,
   rowsMax: PropTypes.number,
@@ -178,7 +221,7 @@ FormTextField.defaultProps = {
   labelClassName: '',
   className: '',
   readOnly: false,
-  onBlur: () => {},
+  onBlur: () => { },
   labelHint: '',
 };
 
