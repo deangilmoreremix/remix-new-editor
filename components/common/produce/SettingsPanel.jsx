@@ -334,7 +334,7 @@ const SettingPanel = observer(({ action }) => {
           </div>
         </div>
         {showAiTitleSuggestion && aiTitleSugeests.length > 0 && (
-          <div style={{ width: '50%' }} className="AiTitleSuggestion">
+          <div style={{ width: '50%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }} className="AiTitleSuggestion">
             <div>
               <p className="AITitle">{suggestionText}</p>
               <ol className="AISuggestions">

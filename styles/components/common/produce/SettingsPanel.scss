@@ -355,6 +355,10 @@ line-height: normal;
   padding: 10px 25px 25px 25px;
   font-family: 'Proxima Nova', sans-serif !important;
   background-color: #1C1C26;
+
+  .suggestion-container {
+    height: calc(100% - 40px);
+  }
 }
 
 .AiPointSuggestion {
@@ -409,12 +413,9 @@ line-height: normal;
   -webkit-box-orient: vertical;
 }
 .AiTitleClose{
-  position: absolute !important;
-  bottom: 20px !important;
   font-weight: 700 !important;
   padding: 22px !important;
   max-width: -moz-available !important;
-  margin-right: 20px !important;
 }
 @media screen and (max-width: 1703px) {
   .pointContainer>p:last-child{
