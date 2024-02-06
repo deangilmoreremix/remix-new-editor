@@ -207,7 +207,6 @@ const SettingPanel = observer(({ action }) => {
     if (data) {
       setAiTitlePoints(data);
       setLoader(false)
-      setAiPromptinput(null)
     }
   }, [SuggestEmailPoint]);
 
@@ -240,6 +239,7 @@ const SettingPanel = observer(({ action }) => {
     setShowAiTitleSuggestion(false);
     setOpenloader(false);
     setradiobuttonfalse(true);
+    setAiPromptinput(null)
   };
 
   React.useEffect(() => {
