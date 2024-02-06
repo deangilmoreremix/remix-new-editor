@@ -364,6 +364,29 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  suggestDescription = async (subject) => {
+    const path = '/api/projects/description-suggestion';
+
+    const result = await this.request(path, {
+      method: 'POST',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      },
+      body: {
+        subject: subject,
+      },
+    });
+    if (result.status === true) {
+      const lines = await result.response
+      console.log("lines>>>",result.response)
+      // const resultArray = lines.match(/"([^"]+)"/g).map(match => match.slice(1, -1));
+      // console.log("resultArray>>",resultArray);
+      this.setSuggestEmailSubject = lines;
+    }
+    return result;
+  };
+
+  @action
   getSuggestEmailPoint = async (subject) => {
    const path = 'api/projects/email-subject-point';
 
