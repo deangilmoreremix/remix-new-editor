@@ -355,7 +355,7 @@ export default class ProjectStore extends BaseStore {
     });
     if (result.status === true) {
       const lines = await result.response
-     console.log("lines>>>",result.response)
+      console.log("lines>>>",result.response)
       const resultArray = lines.match(/"([^"]+)"/g).map(match => match.slice(1, -1));
       console.log("resultArray>>",resultArray);
       this.setSuggestEmailSubject = resultArray;
@@ -377,15 +377,25 @@ export default class ProjectStore extends BaseStore {
       },
     });
     if (result.status === true) {
-      const lines = await result.response
+      const lines = result.response.split('\n').filter(line => line.trim().length > 0); // Split by newline and filter out empty strings
       let resultArray;
-     
+
       if (result.response.includes('"')) {
         // If there are double quotes, we assume the format is "text"
         resultArray = result.response.match(/"([^"]+)"/g).map(match => match.slice(1, -1));
       } else {
+        if (lines.some(line => /^\d+\)/.test(line))) {
+          // If lines contain numbers followed by a closing parenthesis (1) or 1))
+          resultArray = lines.map(line => line.replace(/^\d+\)\s*/, ''));
+        } else if (lines.some(line => /^\d+\./.test(line))) {
+          // If lines contain numbers followed by a period (1.)
+          resultArray = lines.map(line => line.replace(/^\d+\.\s*/, ''));
+        } else {
+          // If lines do not contain numbers or periods, assume the format is "text" enclosed in double quotes
+          resultArray = lines.map(line => line.replace(/"([^"]+)"/g, '$1'));
+        }
         // If there are no double quotes, we assume the format is 1. text
-        resultArray = result.response.split('\n').map(item => item.replace(/^\d+\.\s*/, ''));
+        // resultArray = lines.map(line => line.split('\n').map(item => item.replace(/^\d+\.\s*/, '')));
       }
       console.log("resultArray>>", resultArray);
       // console.log("resultArray>>",resultArray);
