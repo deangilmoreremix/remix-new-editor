@@ -355,7 +355,7 @@ export default class ProjectStore extends BaseStore {
     });
     if (result.status === true) {
       const lines = await result.response
-      console.log("lines>>>",result.response)
+     console.log("lines>>>",result.response)
       const resultArray = lines.match(/"([^"]+)"/g).map(match => match.slice(1, -1));
       console.log("resultArray>>",resultArray);
       this.setSuggestEmailSubject = resultArray;
@@ -378,33 +378,41 @@ export default class ProjectStore extends BaseStore {
     });
     if (result.status === true) {
       const lines = await result.response
-      console.log("lines>>>",result.response)
-      // const resultArray = lines.match(/"([^"]+)"/g).map(match => match.slice(1, -1));
+      let resultArray;
+     
+      if (result.response.includes('"')) {
+        // If there are double quotes, we assume the format is "text"
+        resultArray = result.response.match(/"([^"]+)"/g).map(match => match.slice(1, -1));
+      } else {
+        // If there are no double quotes, we assume the format is 1. text
+        resultArray = result.response.split('\n').map(item => item.replace(/^\d+\.\s*/, ''));
+      }
+      console.log("resultArray>>", resultArray);
       // console.log("resultArray>>",resultArray);
-      this.setSuggestEmailSubject = lines;
+      this.setSuggestEmailSubject = resultArray;
     }
     return result;
   };
 
   @action
   getSuggestEmailPoint = async (subject) => {
-   const path = 'api/projects/email-subject-point';
+    const path = 'api/projects/email-subject-point';
 
-   const result = await this.request(path,{
-    method:'POST',
-    headers:{
-      'on-behalf':this.currentUser.id,
-    },
-    body:{
-      subject:subject
+    const result = await this.request(path, {
+      method: 'POST',
+      headers: {
+        'on-behalf': this.currentUser.id,
+      },
+      body: {
+        subject: subject
+      }
+    })
+    if (result.status === true) {
+      console.log("result>>>", result.response)
+      this.SuggestEmailPoint = await result.response
+      console.log("SuggestEmailPoint>>>", this.SuggestEmailPoint)
     }
-   })
-   if (result.status === true) {
-    console.log("result>>>",result.response)
-    this.SuggestEmailPoint = await result.response
-    console.log("SuggestEmailPoint>>>",this.SuggestEmailPoint)
-   }
-   return result
+    return result
   }
   @action
   setSettingImageUplode = (value) => {
@@ -690,7 +698,7 @@ export default class ProjectStore extends BaseStore {
       result =
         key === ELEMENTS
           ? JSON.stringify(currentValue) ===
-            JSON.stringify(DEFAULT_OPTIONS_OPTIN[key])
+          JSON.stringify(DEFAULT_OPTIONS_OPTIN[key])
           : currentValue === DEFAULT_OPTIONS_OPTIN[key];
     } else {
       result =
@@ -981,8 +989,8 @@ export default class ProjectStore extends BaseStore {
       : this.element && this.element.popcornOptions.animation;
     const durationOut =
       isRetarget ||
-      (this.element &&
-        this.element.type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR)
+        (this.element &&
+          this.element.type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR)
         ? 2
         : 1;
 
@@ -1008,7 +1016,7 @@ export default class ProjectStore extends BaseStore {
     const isFreeSpace = !(
       layerElements.length &&
       layerElements[0].popcornOptions.start - durationOut <
-        this.element.popcornOptions.end
+      this.element.popcornOptions.end
     );
 
     if (
@@ -2001,7 +2009,7 @@ export default class ProjectStore extends BaseStore {
         )
       );
       const publishedMake = await this.publish(result._id);
-     
+
       if (hasNonEmptyTrackEvents && hasSequencer) {
         this.isLoadingIosProcess = true;
         downloadVideoData.allowedSocials = [];
@@ -2188,7 +2196,7 @@ export default class ProjectStore extends BaseStore {
 
         await this.updateIOSVideo(result, publishDownloadVideoMake);
       }
-      
+
       if (hasNonEmptyTrackEvents) {
         await this.processRunning(result._id);
       }
@@ -2846,7 +2854,7 @@ export default class ProjectStore extends BaseStore {
       this.editElement(current.id);
       this.updateTime(
         ((current.popcornOptions.start + current.popcornOptions.end) / 2) *
-          SANTISECOND
+        SANTISECOND
       );
     }
   };
@@ -2972,7 +2980,7 @@ export default class ProjectStore extends BaseStore {
       if (
         this.duration <
         (Math.max(...elementsEnds) + differenceLength + animationOut) *
-          SANTISECOND
+        SANTISECOND
       ) {
         await this.updateVideoDuration(
           Math.max(...elementsEnds) + animationOutInLastItem + differenceLength

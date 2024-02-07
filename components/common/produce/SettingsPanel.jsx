@@ -71,7 +71,11 @@ const SettingPanel = observer(({ action }) => {
 
   const titleRef = React.useRef(null);
   const [promptType, setPromptType] = useState('')
-  const [activeTitlePoint,setActiveTitlePoint] = useState(null)
+  const [activeTitlePoint, setActiveTitlePoint] = useState(null)
+  const [firstTitlePoint, setFirstTitlePoint] = useState(null)
+  const [secondTitlePoint, setSecondTitlePoint] = useState(null)
+  const [thirdTitlePoint, setThirdTitlePoint] = useState(null)
+  const [selectedDescription,setSelectedDescription] = useState(null)
   const { linkedinEnabled, isSuperAdmin, smartAiArtGeneratorEnabled, aiTitleSuggestionsEnabled, aiDescriptionEnabled } =
     useUserStore();
 
@@ -132,7 +136,14 @@ const SettingPanel = observer(({ action }) => {
       noCrop: true,
     });
   };
-
+  useEffect(() => {
+    if (openAiPrompt && promptType == 'title') {
+      setAiPromptinput(item.title)
+    }
+    if (openAiPrompt && promptType == 'description') {
+      setAiPromptinput(item.description)
+    }
+  }, [openAiPrompt])
   const { aiThumbnailEnabled } = useUserStore();
   console.log(aiThumbnailEnabled, 'sjaj');
 
@@ -159,6 +170,8 @@ const SettingPanel = observer(({ action }) => {
     showAibutton,
     window.location.pathname,
   ]);
+
+  const [titleIndex, setTitleIndex] = useState(null)
 
   const handleGotoAIGenerator = () => {
     setSettingImageUplode(item.thumbnail);
@@ -197,15 +210,52 @@ const SettingPanel = observer(({ action }) => {
   const handleaiPromptInput = (e) => {
     setAiPromptinput(e.target.value);
   };
-  const handleshowAiPoints = (item) => {
+  const handleshowAiPoints = (item, index) => {
     setActiveTitlePoint(item)
-    setLoader(true)
-    getSuggestEmailPoint(item);
+    console.log(firstTitlePoint, secondTitlePoint, thirdTitlePoint, "thirdTitlePoint", index, "inde")
+    if (index == 0 && !firstTitlePoint) {
+      setLoader(true)
+      setTitleIndex(0)
+      getSuggestEmailPoint(item);
+    }
+    else if (index == 1 && !secondTitlePoint) {
+      setLoader(true)
+      setTitleIndex(1)
+      getSuggestEmailPoint(item);
+    }
+    else if (index == 2 && !thirdTitlePoint) {
+      setLoader(true)
+      setTitleIndex(2)
+      getSuggestEmailPoint(item);
+    }
+    else if (index == 0 && firstTitlePoint) {
+      setTitleIndex(0)
+      setAiTitlePoints(firstTitlePoint)
+    }
+    else if (index == 1 && secondTitlePoint) {
+      setTitleIndex(1)
+      setAiTitlePoints(secondTitlePoint)
+    }
+    else if (index == 2 && thirdTitlePoint) {
+      setTitleIndex(2)
+      setAiTitlePoints(thirdTitlePoint)
+    }
   };
   React.useEffect(() => {
     const data = JSON.parse(JSON.stringify(SuggestEmailPoint));
     if (data) {
-      setAiTitlePoints(data);
+      if (titleIndex == 0) {
+        setFirstTitlePoint(data)
+      }
+      else if (titleIndex == 1) {
+        setSecondTitlePoint(data)
+      }
+      else if (titleIndex == 2) {
+        setThirdTitlePoint(data)
+      }
+      else {
+        setAiTitlePoints(data);
+      }
       setLoader(false)
     }
   }, [SuggestEmailPoint]);
@@ -220,10 +270,9 @@ const SettingPanel = observer(({ action }) => {
       }
     }
   }, [openAiPoint, aiTitlePoints])
-  console.log('aiTitleSugeests>>', aiTitleSugeests.length);
+
   React.useEffect(() => {
     const data = JSON.parse(JSON.stringify(setSuggestEmailSubject));
-    console.log('data>>>', data, data.length);
     if (data && data.length > 0) {
       setOpenAiPoint(true);
       setAiTitleSugeests(data);
@@ -239,9 +288,13 @@ const SettingPanel = observer(({ action }) => {
     setShowAiTitleSuggestion(false);
     setOpenloader(false);
     setradiobuttonfalse(true);
-    setAiPromptinput(null)
-  };
+    setAiPromptinput(null);
+    setAiTitlePoints({});
+    setTitleIndex(null);
+    toggleVisibleCanvas(true);
 
+  };
+  console.log(item.title, "title-")
   React.useEffect(() => {
     const produceTab = document.getElementsByClassName('produce__tab')[0];
     if (showAiTitleSuggestion || openloader) {
@@ -348,72 +401,177 @@ const SettingPanel = observer(({ action }) => {
             <div>
               <p className="AITitle">{suggestionText}</p>
               {promptType == 'description' &&
-                <p style={{ color: '#EB5054' }}>{aiTitleSugeests}</p>
+                <ol className="AISuggestions">
+                  {aiTitleSugeests.map((item, index) => {
+                    return (
+                      <li style={{ fontSize:'14px', color: activeTitlePoint == item ? '#fff' : '' }} onClick={() => {
+                        setActiveTitlePoint(item)
+                        setSelectedDescription(item)
+                      }}>{item}</li>
+                    );
+                  })}
+                </ol>
               }
-              {promptType == 'title' && <ol className="AISuggestions">
-                {aiTitleSugeests.map((item) => {
-                  return (
-                    <li style={{ color: activeTitlePoint == item ? '#fff':'' }} onClick={() => {
-                      handleshowAiPoints(item)
-                    }}>{item}</li>
-                  );
-                })}
-              </ol>}
+              {promptType == 'title' &&
+                <ol className="AISuggestions">
+                  {aiTitleSugeests.map((item, index) => {
+                    return (
+                      <li style={{ color: activeTitlePoint == item ? '#fff' : '' }} onClick={() => {
+                        handleshowAiPoints(item, index)
+                      }}>{item}</li>
+                    );
+                  })}
+                </ol>}
             </div>
             {loader ?
               <PercentageProgressBar width="100%" /> :
-              aiTitlePoints.points &&
-              <div className="AiPointSuggestion">
-                <div className="backpoint"></div>
-                <img
-                  style={{
-                    height: '100%',
-                    marginRight: '10px',
-                    filter: 'brightness(1)',
-                  }}
-                  src={AiPointImage}
-                  alt="pic"
-                />
-                <div className="pointContainer">
-                  <>
-                    {
+              <>
+                {titleIndex == 0 && firstTitlePoint &&
+                  <div className="AiPointSuggestion">
+                    {console.log('call first titlr point')}
+                    <div className="backpoint"></div>
+                    <img
+                      style={{
+                        height: '100%',
+                        marginRight: '10px',
+                        filter: 'brightness(1)',
+                      }}
+                      src={AiPointImage}
+                      alt="pic"
+                    />
+                    <div className="pointContainer">
                       <>
-                        <p>{aiTitlePoints.points ? aiTitlePoints.points : "..."} Points</p>
-                        {(
-                          <BorderLinearProgress
-                            variant="determinate"
-                            value={aiTitlePoints.points}
-                          />
-                        )}
-                        <p>{aiTitlePoints.text}</p></>
+                        {
+                          <>
+                            <p>{firstTitlePoint.points ? firstTitlePoint.points : "..."} Points</p>
+                            {(
+                              <BorderLinearProgress
+                                variant="determinate"
+                                value={firstTitlePoint.points}
+                              />
+                            )}
+                            <p>{firstTitlePoint.text}</p></>
 
-                    }
-                  </>
-                </div>
-              </div>
+                        }
+                      </>
+                    </div>
+                  </div>}
+                {titleIndex == 1 && secondTitlePoint &&
+                  <div className="AiPointSuggestion">
+                    {console.log('call second titlr point', secondTitlePoint, "titleIndex")}
+                    <div className="backpoint"></div>
+                    <img
+                      style={{
+                        height: '100%',
+                        marginRight: '10px',
+                        filter: 'brightness(1)',
+                      }}
+                      src={AiPointImage}
+                      alt="pic"
+                    />
+                    <div className="pointContainer">
+                      <>
+                        {
+                          <>
+                            <p>{secondTitlePoint.points ? secondTitlePoint.points : "..."} Points</p>
+                            {(
+                              <BorderLinearProgress
+                                variant="determinate"
+                                value={secondTitlePoint.points}
+                              />
+                            )}
+                            <p>{secondTitlePoint.text}</p></>
+
+                        }
+                      </>
+                    </div>
+                  </div>}
+                {titleIndex == 2 && thirdTitlePoint &&
+                  <div className="AiPointSuggestion">
+                    {console.log('call third titlr point')}
+                    <div className="backpoint"></div>
+                    <img
+                      style={{
+                        height: '100%',
+                        marginRight: '10px',
+                        filter: 'brightness(1)',
+                      }}
+                      src={AiPointImage}
+                      alt="pic"
+                    />
+                    <div className="pointContainer">
+                      <>
+                        {
+                          <>
+                            <p>{thirdTitlePoint.points ? thirdTitlePoint.points : "..."} Points</p>
+                            {(
+                              <BorderLinearProgress
+                                variant="determinate"
+                                value={thirdTitlePoint.points}
+                              />
+                            )}
+                            <p>{thirdTitlePoint.text}</p></>
+
+                        }
+                      </>
+                    </div>
+                  </div>}
+                {promptType == 'title' && aiTitlePoints.points && !firstTitlePoint && !secondTitlePoint && !thirdTitlePoint &&
+                  <div className="AiPointSuggestion">
+                    {console.log(aiTitlePoints.points, "aiTitlePoints.points")}
+
+                    <div className="backpoint"></div>
+                    <img
+                      style={{
+                        height: '100%',
+                        marginRight: '10px',
+                        filter: 'brightness(1)',
+                      }}
+                      src={AiPointImage}
+                      alt="pic"
+                    />
+                    <div className=
+                    "pointContainer">
+                      <>
+                        {
+                          <>
+                            <p>{aiTitlePoints.points ? aiTitlePoints.points : "..."} Points</p>
+                            {(
+                              <BorderLinearProgress
+                                variant="determinate"
+                                value={aiTitlePoints.points}
+                              />
+                            )}
+                            <p>{aiTitlePoints.text}</p></>
+
+                        }
+                      </>
+                    </div>
+                  </div>}
+              </>
             }
-            <div style={{ display:'flex', gap:'10px'}}>
-            <Button
-              className="settings__edit-file AiTitleClose"
-              onClick={() => {
-                if (promptType == 'title') {
-                  updateItem({ title: aiTitlePoints.text })
-                  handleCLoseAiSuggestion()
-                }
-                else {
-                  updateItem({ description: aiTitleSugeests })
-                  handleCLoseAiSuggestion()
-                }
-              }}
-            >
-              Use
-            </Button>
-            <Button
-              className="settings__edit-file AiTitleClose"
-              onClick={handleCLoseAiSuggestion}
-            >
-              Close
-            </Button>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <Button
+                className="settings__edit-file AiTitleClose"
+                onClick={() => {
+                  if (promptType == 'title') {
+                    updateItem({ title: activeTitlePoint })
+                    handleCLoseAiSuggestion()
+                  }
+                  else {
+                    updateItem({ description: activeTitlePoint })
+                    handleCLoseAiSuggestion()
+                  }
+                }}
+              >
+                Use
+              </Button>
+              <Button
+                className="settings__edit-file AiTitleClose"
+                onClick={handleCLoseAiSuggestion}
+              >
+                Close
+              </Button>
             </div>
           </div>
         )}
