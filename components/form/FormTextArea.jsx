@@ -46,7 +46,7 @@ const FormTextArea = (props) => {
     if (isAiSuggesstionVisible && aiDescriptionEnabled) {
       return {
         endAdornment: (
-          <InputAdornment position='top' style={{ padding:'18.5px 14px', position:'absolute', top:'5px',right:'0px'}}>
+          <InputAdornment position='top' style={{ padding:'18.5px 14px', position:'absolute', bottom:'5px',right:'0px'}}>
             <img onClick={() => handlSaveAiPrompt()} style={{ height: "20px", width: "20px", cursor: "pointer" }} src={vrAilogo} alt="pic" />
           </InputAdornment>
         ),
