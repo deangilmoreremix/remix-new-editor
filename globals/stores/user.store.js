@@ -19,7 +19,7 @@ export default class UserStore {
     this.downloadVideoUrl = ''
   }
 
-  @computed
+    @computed
   get isSuperAdmin() {
     return this.currentUser && this.currentUser.authorityLevel === 0;
   }
@@ -469,6 +469,10 @@ export default class UserStore {
     return this.currentUser.svrTerms;
   }
 
+  isfeatureEnabledForAdmin = (feature) => (
+    this.currentUser.features && this.currentUser.features[feature]
+    && this.currentUser.features[feature].state === STATE.ENABLED);
+
   isfeatureEnabled = (feature) => this.isSuperAdmin || (
     this.currentUser.features && this.currentUser.features[feature]
     && this.currentUser.features[feature].state === STATE.ENABLED);
@@ -890,11 +894,11 @@ export default class UserStore {
 
   @computed
   get aiTitleSuggestionsEnabled() {
-    return this.isfeatureEnabled(FEATURES.AI_TITLE_SUGGESTIONS);
+    return this.isfeatureEnabledForAdmin(FEATURES.AI_TITLE_SUGGESTIONS);
   }
 
   @computed
   get aiDescriptionEnabled() {
-    return this.isfeatureEnabled(FEATURES.AI_DESCRIPTION_SUGGESTIONS);
+    return this.isfeatureEnabledForAdmin(FEATURES.AI_DESCRIPTION_SUGGESTIONS);
   }
 }
