@@ -8,7 +8,6 @@ import TextareaAutosize from '@material-ui/core/TextareaAutosize';
 import vrAilogo from "../../public/static/svgImages/vrAilogo.png"
 
 import PropTypes from '../../lib/PropTypes';
-import useUserStore from '../hooks/useUserStore';
 
 const FormTextField = React.forwardRef(
   (
@@ -44,7 +43,6 @@ const FormTextField = React.forwardRef(
     const conditionalProps = {};
     console.log(isAiSuggesstionVisible, "isAiSuggesstionVisible12")
     const [isHint, setIsHint] = useState(false);
-    const { aiTitleSuggestionsEnabled } = useUserStore()
     const InputProps = {
       ...(readOnly ? { readOnly } : {}),
     };
@@ -90,7 +88,7 @@ const FormTextField = React.forwardRef(
       }
     };
     const handleInputProps = () => {
-      if (isAiSuggesstionVisible && aiTitleSuggestionsEnabled) {
+      if (isAiSuggesstionVisible) {
         return {
           endAdornment: (
             <React.Fragment>

@@ -5,7 +5,6 @@ import classnames from 'classnames';
 import PropTypes from '../../lib/PropTypes';
 import { IconButton, InputAdornment } from '@material-ui/core';
 import vrAilogo  from "../../public/static/svgImages/vrAilogo.png"
-import useUserStore from '../hooks/useUserStore';
 
 const FormTextArea = (props) => {
   const {
@@ -27,7 +26,6 @@ const FormTextArea = (props) => {
   console.log(isAiSuggesstionVisible,"isAiSuggesstionVisible123")
 
   const [symbolsCount, setSymbolsCount] = useState(0);
-  const  {   aiDescriptionEnabled } = useUserStore()
   const onEdit = ({ target: { value: v } }) => {
     if (languageValidator) {
       v = v.replace(languageValidator, '');
@@ -43,7 +41,7 @@ const FormTextArea = (props) => {
   };
 
   const handleTextareaInputProps = () => {
-    if (isAiSuggesstionVisible && aiDescriptionEnabled) {
+    if (isAiSuggesstionVisible) {
       return {
         endAdornment: (
           <InputAdornment position='top' style={{ padding:'18.5px 14px', position:'absolute', bottom:'5px',right:'0px'}}>
