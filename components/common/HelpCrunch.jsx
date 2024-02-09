@@ -24,6 +24,10 @@ export default class HelpCrunch extends Component {
   static displayName = 'HelpCrunch';
   constructor(props) {
     super(props);
+    this.state = {
+      roleNames: '',
+      // any other state variables you want to initialize
+    };
     const { applicationId, applicationSecret, userStore: { currentUser: user } } = props;
     if (!applicationId || !applicationSecret || !canUseDOM) {
       return;
@@ -33,9 +37,9 @@ export default class HelpCrunch extends Component {
       (function () {
         var w = window;
         var ic = w.HelpCrunch;
-        console.log(typeof(ic),"check type of")
+        console.log(typeof (ic), "check type of")
         if (typeof ic === "function") {
-          console.log('call update jhdjj',helpCrunchSettings)
+          console.log('call update jhdjj', helpCrunchSettings)
           ic('updateUser', helpCrunchSettings);
         } else {
           var d = document;
@@ -47,12 +51,12 @@ export default class HelpCrunch extends Component {
             i.q.push(args)
           };
           w.HelpCrunch = i;
-          function r(){
+          function r() {
             var s = d.createElement('script');
             s.async = 1;
             s.type = 'text/javascript';
             s.src = 'https://widget.helpcrunch.com/';
-            (d.body||d.head).appendChild(s);
+            (d.body || d.head).appendChild(s);
           }
 
           if (w.attachEvent) {
@@ -89,7 +93,7 @@ export default class HelpCrunch extends Component {
       return;
     }
     const { userStore } = this.props;
-    await userStore.setRoles(); 
+    await userStore.setRoles();
     // await userStore.userCutOutProBalance();
 
 
@@ -97,39 +101,30 @@ export default class HelpCrunch extends Component {
     window.HelpCrunch('onReady', () => {
       window.HelpCrunch('showChatWidget');
       window.HelpCrunch('updateUserData', {
-        active_roles: roles && roles.map(({ name }) => name).join(', '),
+        active_roles: Array.isArray(roles) ? roles.map(({ name }) => name).join(', ') : '',
       });
     });
   }
 
-  getDerivedStateFromProps(nextProps) {
-    const { userStore: { currentUser: user, roles = [] } } = nextProps;
+  static getDerivedStateFromProps(nextProps, prevState) {
+    // Extract necessary properties from nextProps
+    const { userStore: { currentUser: user } } = nextProps;
+    const roles = nextProps.userStore.roles || [];
+    // Prepare the roles string
+    const roleNames = Array.isArray(roles) ? roles.map(({ name }) => name).join(', ') : '';
 
-    if (!canUseDOM) {
-      return;
+    // Check if roleNames have changed
+    if (roleNames !== prevState.roleNames) {
+      // Return new state object with updated roleNames
+      return {
+        roleNames: roleNames,
+      };
     }
 
-    const roleNames = roles && roles.map(({ name }) => name).join(', ');
-    console.log(roleNames,"roleNames===>>")
-    window.helpCrunchSettings = {
-      email: user.email,
-      name: user.fullName,
-      user_id: user.hash,
-      active_roles: roleNames,
-    };
-
-    if (window.HelpCrunch) {
-      console.log('call update user')
-      window.HelpCrunch('updateUser', {
-        email: user.email,
-        name: user.fullName,
-        user_id: user.hash,
-        custom_data: {
-          active_roles: roleNames,
-        },
-      });
-    }
+    // No state update necessary
+    return null;
   }
+
 
   shouldComponentUpdate() {
     return false;
