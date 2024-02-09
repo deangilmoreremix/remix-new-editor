@@ -260,17 +260,17 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
         const total = downloadVideoLimitUsed + 1;
         await updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
         setOpen(false)
-      }else{
-        window.open("https://videoremix.io/smartvideo-pricing-page/","_blank")
       }
     }
   }, [item.iosurl, item.standardQualityUrl, item.goodQualityUrl, downloadVideoLimitUsed, availableDownloadVideoLimit])
 
 const handleDownload = () =>{
-  if (availableDownloadVideoLimit > 0) {
+  if (availableDownloadVideoLimit > 0 && item.iosurl) {
     setOpen(true)
   }else{
+    if(item.iosurl) {
       window.open("https://videoremix.io/smartvideo-pricing-page/","_blank")
+    }
   }
 }
 
