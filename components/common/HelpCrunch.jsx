@@ -63,6 +63,7 @@ export default class HelpCrunch extends Component {
     }
 
     if (window.HelpCrunch) {
+      console.log('call 66');
       window.HelpCrunch('init', 'videoremix', {
         applicationId,
         applicationSecret,
@@ -73,7 +74,7 @@ export default class HelpCrunch extends Component {
         }
       });
     }
-
+    console.log('call 67');
     window.helpCrunchSettings = {
       email: user.email,
       name: user.fullName,
@@ -86,7 +87,7 @@ export default class HelpCrunch extends Component {
       return;
     }
     const { userStore } = this.props;
-    await userStore.setRoles();
+    await userStore.setRoles(); 
     // await userStore.userCutOutProBalance();
 
 
@@ -107,7 +108,7 @@ export default class HelpCrunch extends Component {
     }
 
     const roleNames = roles && roles.map(({ name }) => name).join(', ');
-
+    console.log(roleNames,"roleNames===>>")
     window.helpCrunchSettings = {
       email: user.email,
       name: user.fullName,
@@ -116,6 +117,7 @@ export default class HelpCrunch extends Component {
     };
 
     if (window.HelpCrunch) {
+      console.log('call update user')
       window.HelpCrunch('updateUser', {
         email: user.email,
         name: user.fullName,
