@@ -30,7 +30,6 @@ export default class HelpCrunch extends Component {
     }
 
     if (!window.HelpCrunch) {
-      console.log('call here => 33')
       (function () {
         var w = window;
         var ic = w.HelpCrunch;
