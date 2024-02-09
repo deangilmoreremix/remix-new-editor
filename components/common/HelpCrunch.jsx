@@ -103,7 +103,7 @@ export default class HelpCrunch extends Component {
     });
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
+  getDerivedStateFromProps(nextProps) {
     const { userStore: { currentUser: user, roles = [] } } = nextProps;
 
     if (!canUseDOM) {
