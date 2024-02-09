@@ -246,29 +246,31 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   //   }
   // }, [downloadVideoUrl])
   const download360 = useCallback(async (quality) => {
-    if (!isLoadingIosProcess && project && item.iosurl && availableDownloadVideoLimit > 0) {
-      if (quality == 480) {
-        saveAs(item.goodQualityUrl, `${item.title}_480px_${Date.now()}`)
+    if(!isLoadingIosProcess) {
+      if (project && item.iosurl && availableDownloadVideoLimit > 0) {
+        if (quality == 480) {
+          saveAs(item.goodQualityUrl, `${item.title}_480px_${Date.now()}`)
+        }
+        else if (quality == 720) {
+          saveAs(item.standardQualityUrl, `${item.title}_720px_${Date.now()}`)
+        }
+        else if (quality == 1080) {
+          saveAs(item.iosurl, `${item.title}_1080px_${Date.now()}`)
+        }
+        const total = downloadVideoLimitUsed + 1;
+        await updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
+        setOpen(false)
+      }else{
+        window.open("https://videoremix.io/smartvideo-pricing-page/","_blank")
       }
-      else if (quality == 720) {
-        saveAs(item.standardQualityUrl, `${item.title}_720px_${Date.now()}`)
-      }
-      else if (quality == 1080) {
-        saveAs(item.iosurl, `${item.title}_1080px_${Date.now()}`)
-      }
-      const total = downloadVideoLimitUsed + 1;
-      await updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
-      setOpen(false)
-    }else{
-      window.open("https://videoremix.io/smartvideo-pricing-page/","_blank")
     }
   }, [item.iosurl, item.standardQualityUrl, item.goodQualityUrl, downloadVideoLimitUsed, availableDownloadVideoLimit])
 
 const handleDownload = () =>{
-  if (availableDownloadVideoLimit > 0 && item.iosurl) {
+  if (availableDownloadVideoLimit > 0) {
     setOpen(true)
   }else{
-    window.open("https://videoremix.io/smartvideo-pricing-page/","_blank")
+      window.open("https://videoremix.io/smartvideo-pricing-page/","_blank")
   }
 }
 
