@@ -128,7 +128,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   console.log(item, "item=")
   useEffect(() => quantify(), []);
 
-  console.log(currentUser, "current-user")
+
   const saveProject = useCallback(async () => {
     let value = '';
     await setButtonType("");
