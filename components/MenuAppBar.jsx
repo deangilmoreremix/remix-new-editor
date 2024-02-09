@@ -265,7 +265,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
   }, [item.iosurl, item.standardQualityUrl, item.goodQualityUrl, downloadVideoLimitUsed, availableDownloadVideoLimit])
 
 const handleDownload = () =>{
-  if (availableDownloadVideoLimit > 0) {
+  if (availableDownloadVideoLimit > 0 && item.iosurl) {
     setOpen(true)
   }else{
     window.open("https://videoremix.io/smartvideo-pricing-page/","_blank")
