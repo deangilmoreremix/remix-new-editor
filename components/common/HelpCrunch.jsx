@@ -30,10 +30,13 @@ export default class HelpCrunch extends Component {
     }
 
     if (!window.HelpCrunch) {
+      console.log('call here => 33')
       (function () {
         var w = window;
         var ic = w.HelpCrunch;
+        console.log(typeof(ic),"check type of")
         if (typeof ic === "function") {
+          console.log('call update jhdjj',helpCrunchSettings)
           ic('updateUser', helpCrunchSettings);
         } else {
           var d = document;
