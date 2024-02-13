@@ -1,54 +1,52 @@
-/*eslint-disable */
-import React, { Component } from "react";
+import React, { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
+import useUserStore from '../hooks/useUserStore';
+// Assuming `UserStoreContext` is the context for userStore if it's provided via Context API
+// If not, you will pass userStore as a prop as before
+// import UserStoreContext from 'path-to-userstore-context';
 
 const canUseDOM = !!(
   (typeof window !== 'undefined' &&
     window.document && window.document.createElement)
 );
 
-export default class HelpCrunch extends Component {
-  static propTypes = {
-    applicationId: PropTypes.string.isRequired,
-    applicationSecret: PropTypes.string.isRequired,
-    userStore: PropTypes.shape({
-      roleNames: PropTypes.string,
-      currentUser: PropTypes.shape({
-        hash: PropTypes.string.isRequired,
-        email: PropTypes.string.isRequired,
-        fullName: PropTypes.string.isRequired,
-      }).isRequired,
-    }),
-  };
+const HelpCrunch = ({ applicationId, applicationSecret, userStore }) => {
+  const [roleNames, setRoleNames] = useState('');
+  const [userData, setUserData] = useState('');
 
-  static displayName = 'HelpCrunch';
-  constructor(props) {
-    super(props);
-    this.state = {
-      roleNames: '',
-      // any other state variables you want to initialize
-    };
-    const { applicationId, applicationSecret, userStore: { currentUser: user } } = props;
-    if (!applicationId || !applicationSecret || !canUseDOM) {
-      return;
-    }
+  const userStoreData = useUserStore()
+  // If userStore is provided via context, use the useContext hook to get it
+  // const userStore = useContext(UserStoreContext);
 
+  const getUserData = async () => {
+    const userData =  await userStoreData.getUserAllDetails()
+    console.log(userData,"userData") 
+    setUserData(userData)
+  }
+
+  useEffect(() => {
+    if (!canUseDOM) return;
+
+    const user = userStore.currentUser;
+    console.log(user, "user=============>>");
+
+    getUserData()
+    console.log(userData,"userData")
     if (!window.HelpCrunch) {
       (function () {
         var w = window;
         var ic = w.HelpCrunch;
-        console.log(typeof (ic), "check type of")
+        console.log(typeof (ic), "check type of");
         if (typeof ic === "function") {
-          console.log('call update jhdjj', helpCrunchSettings)
-          ic('updateUser', helpCrunchSettings);
+          ic('updateUser', window.helpCrunchSettings);
         } else {
           var d = document;
           var i = function () {
-            i.c(arguments)
+            i.c(arguments);
           };
           i.q = [];
           i.c = function (args) {
-            i.q.push(args)
+            i.q.push(args);
           };
           w.HelpCrunch = i;
           function r() {
@@ -65,11 +63,10 @@ export default class HelpCrunch extends Component {
             w.addEventListener('load', r, false);
           }
         }
-      })()
+      })();
     }
 
     if (window.HelpCrunch) {
-      console.log('call 66');
       window.HelpCrunch('init', 'videoremix', {
         applicationId,
         applicationSecret,
@@ -77,60 +74,49 @@ export default class HelpCrunch extends Component {
           email: user.email,
           name: user.fullName,
           user_id: user.hash,
-        }
+        },
       });
     }
-    console.log('call 67');
+
     window.helpCrunchSettings = {
       email: user.email,
       name: user.fullName,
       user_id: user.hash,
     };
-  }
 
-  async componentDidMount() {
-    if (!canUseDOM) {
-      return;
-    }
-    const { userStore } = this.props;
-    await userStore.setRoles();
-    // await userStore.userCutOutProBalance();
+    // fetchData function could be defined here or outside the component if it does not use any props or state
 
 
-    const { roles = [] } = userStore;
-    window.HelpCrunch('onReady', () => {
-      window.HelpCrunch('showChatWidget');
-      window.HelpCrunch('updateUserData', {
-        active_roles: Array.isArray(roles) ? roles.map(({ name }) => name).join(', ') : '',
+    userStore.setRoles().then(() => {
+      const roles = userStore.roles || [];
+      window.HelpCrunch('onReady', () => {
+        window.HelpCrunch('showChatWidget');
+        window.HelpCrunch('updateUserData', {
+          active_roles: Array.isArray(roles) ? roles.map(({ name }) => name).join(', ') : '',
+          signed_up:userData && userData.createdAt
+        });
       });
     });
-  }
 
-  static getDerivedStateFromProps(nextProps, prevState) {
-    // Extract necessary properties from nextProps
-    const { userStore: { currentUser: user } } = nextProps;
-    const roles = nextProps.userStore.roles || [];
-    // Prepare the roles string
-    const roleNames = Array.isArray(roles) ? roles.map(({ name }) => name).join(', ') : '';
+  }, [applicationId, applicationSecret, userStore]);
 
-    // Check if roleNames have changed
-    if (roleNames !== prevState.roleNames) {
-      // Return new state object with updated roleNames
-      return {
-        roleNames: roleNames,
-      };
-    }
+  // getDerivedStateFromProps logic here if necessary, using useEffect with specific dependencies
 
-    // No state update necessary
-    return null;
-  }
+  // Render nothing since the original component returned false in render
+  return null;
+};
 
+HelpCrunch.propTypes = {
+  applicationId: PropTypes.string.isRequired,
+  applicationSecret: PropTypes.string.isRequired,
+  userStore: PropTypes.shape({
+    roleNames: PropTypes.string,
+    currentUser: PropTypes.shape({
+      hash: PropTypes.string.isRequired,
+      email: PropTypes.string.isRequired,
+      fullName: PropTypes.string.isRequired,
+    }).isRequired,
+  }),
+};
 
-  shouldComponentUpdate() {
-    return false;
-  }
-
-  render() {
-    return false;
-  }
-}
+export default HelpCrunch;
