@@ -160,6 +160,24 @@ export default class UserStore {
   };
 
   @action
+  getUserAllDetails = async (body) => {
+    let details;
+    try {
+      details  = await this.request(`/api/users/${this.currentUser.id}`, {
+        method: 'GET',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      return details
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
   getUpgradeLinkRole = async (title,envTitle,revTitle) => {
     let userObject;
     try {
