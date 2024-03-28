@@ -1915,11 +1915,11 @@ export default class ProjectStore extends BaseStore {
         'on-behalf': this.currentUser.id,
       },
     });
-    console.log(result.isVideoMergeProcess,"result.isVideoMergeProcess=>")
+    console.log(result.isVideoMergeProcess, "result.isVideoMergeProcess=>")
     if (result.isVideoMergeProcess) {
       setTimeout(this.processRunning(id), 10000); // Call the function again after 10 seconds
     }
-    if (!result.isVideoMergeProcess) {
+    else {
       this.isLoadingIosProcess = false;
       this.item.iosurl = result.iosurl;
       this.item.standardQualityUrl = result.standardQualityUrl;
@@ -2136,6 +2136,7 @@ export default class ProjectStore extends BaseStore {
           publishDownloadVideoMake,
           publishedMakeIos
         );
+        await this.processRunning(result._id);
       } else if (hasNonEmptyTrackEvents && !hasSequencer) {
         this.isLoadingIosProcess = true;
         downloadVideoData.allowedSocials = [];
@@ -2199,10 +2200,6 @@ export default class ProjectStore extends BaseStore {
         );
 
         await this.updateIOSVideo(result, publishDownloadVideoMake);
-      }
-
-      if (hasNonEmptyTrackEvents) {
-        console.log('call hasNonEmptyTrackEvents=>')
         await this.processRunning(result._id);
       }
 
