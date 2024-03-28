@@ -2325,6 +2325,11 @@ export default class ProjectStore extends BaseStore {
   };
 
   @action
+  setIosLoadingProcess = (value) => {
+    this.isLoadingIosProcess = value;
+  };
+
+  @action
   invalidateFbCache = (url) =>
     this.request('/api/makes/update-fb-cache', {
       method: 'POST',

@@ -80,7 +80,8 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
     setIsPublished,
     isPublished,
     setButtonType,
-    isLoadingIosProcess
+    isLoadingIosProcess,
+    setIosLoadingProcess
   } = useProjectStore();
   const {
     pathname,
@@ -260,6 +261,7 @@ const MenuAppBar = observer(({ whiteLabelManager }) => {
         const total = downloadVideoLimitUsed + 1;
         await updateDownloadVideoAndGetDownloadVideoLimit({ videoDownloadCredit: total })
         setOpen(false)
+        setIosLoadingProcess(false)
       }
     }
   }, [item.iosurl, item.standardQualityUrl, item.goodQualityUrl, downloadVideoLimitUsed, availableDownloadVideoLimit])
@@ -413,18 +415,18 @@ const handleDownload = () =>{
               <div ref={buttonref}>
                 {console.log("availableDownloadVideoLimit:" + availableDownloadVideoLimit, !isLoadingIosProcess, project, item.iosurl)}
                 <SVGInline
-                  className={`icon icon-button ${!isLoadingIosProcess && project && availableDownloadVideoLimit > 0 && item.iosurl ? 'active-save' : ''}`}
+                  className={`icon icon-button ${!isLoadingIosProcess && project && availableDownloadVideoLimit > 0 && item.iosurl && item.goodQualityUrl && item.standardQualityUrl ? 'active-save' : ''}`}
                   classSuffix=""
                   svg={downloadIcon}
                   cleanup={['title']}
                   component="button"
                   onClick={() => handleDownload()}
-                  disabled={(!project && !item.iosurl ) || isLoadingIosProcess}
+                  disabled={(!project && !item.iosurl && !item.goodQualityUrl && !item.standardQualityUrl ) || isLoadingIosProcess}
                 />
                 <button
-                  className={`icon-button container-menu__button-text ${!isLoadingIosProcess && project && availableDownloadVideoLimit > 0 && item.iosurl ? 'active-save' : ''}`}
+                  className={`icon-button container-menu__button-text ${!isLoadingIosProcess && project && availableDownloadVideoLimit > 0 && item.iosurl && item.goodQualityUrl && item.standardQualityUrl ? 'active-save' : ''}`}
                   onClick={() => handleDownload()}
-                  disabled={(!project && !item.iosurl ) || isLoadingIosProcess}
+                  disabled={(!project && !item.iosurl && !item.goodQualityUrl && !item.standardQualityUrl ) || isLoadingIosProcess}
                 >
                   {DOWNLOAD}
                 </button>
@@ -459,7 +461,11 @@ const handleDownload = () =>{
                     >
                       {qualities.map((item) => {
                         return (
-                          <div className='qualitymenu__item' onClick={() => download360(item.qua)}>
+                          <div className='qualitymenu__item' onClick={() => {
+                            download360(item.qua)
+                            setIosLoadingProcess(true)
+                          }
+                          }>
                             {/* <Radio
                               value={item.qua}
                               sx={{
