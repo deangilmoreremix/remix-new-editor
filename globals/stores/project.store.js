@@ -337,7 +337,6 @@ export default class ProjectStore extends BaseStore {
       this.AiGeneratoreImage = newValue;
       this.SettingImageUploded = newValue;
       this.item.thumbnail = newValue;
-      console.log('AiGeneratoreImage>>', newValue, this.AiGeneratoreImage);
     }
   };
   @action
@@ -355,9 +354,7 @@ export default class ProjectStore extends BaseStore {
     });
     if (result.status === true) {
       const lines = await result.response
-      console.log("lines>>>",result.response)
       const resultArray = lines.match(/"([^"]+)"/g).map(match => match.slice(1, -1));
-      console.log("resultArray>>",resultArray);
       this.setSuggestEmailSubject = resultArray;
     }
     return result;
@@ -397,7 +394,6 @@ export default class ProjectStore extends BaseStore {
         // If there are no double quotes, we assume the format is 1. text
         // resultArray = lines.map(line => line.split('\n').map(item => item.replace(/^\d+\.\s*/, '')));
       }
-      console.log("resultArray>>", resultArray);
       // console.log("resultArray>>",resultArray);
       this.setSuggestEmailSubject = resultArray;
     }
@@ -418,9 +414,7 @@ export default class ProjectStore extends BaseStore {
       }
     })
     if (result.status === true) {
-      console.log("result>>>", result.response)
       this.SuggestEmailPoint = await result.response
-      console.log("SuggestEmailPoint>>>", this.SuggestEmailPoint)
     }
     return result
   }
@@ -430,7 +424,6 @@ export default class ProjectStore extends BaseStore {
     if (value) {
       this.SettingImageUploded = value;
       this.item.thumbnail = value;
-      console.log('value???', value, this.SettingImageUploded);
     }
   };
 
@@ -1915,12 +1908,14 @@ export default class ProjectStore extends BaseStore {
 
   @action
   processRunning = async (id) => {
+    console.log('call processRunning')
     const result = await this.request(`/api/users/me/makes/${id}`, {
       method: 'GET',
       headers: {
         'on-behalf': this.currentUser.id,
       },
     });
+    console.log(result.isVideoMergeProcess,"result.isVideoMergeProcess=>")
     if (result.isVideoMergeProcess) {
       setTimeout(this.processRunning(id), 10000); // Call the function again after 10 seconds
     }
@@ -2078,7 +2073,6 @@ export default class ProjectStore extends BaseStore {
           },
         });
 
-        console.log(downloadVideoMake._id, 'fjsdjfdsds');
         const publishDownloadVideoMake = await this.publish(
           downloadVideoMake._id
         );
@@ -2208,6 +2202,7 @@ export default class ProjectStore extends BaseStore {
       }
 
       if (hasNonEmptyTrackEvents) {
+        console.log('call hasNonEmptyTrackEvents=>')
         await this.processRunning(result._id);
       }
 
