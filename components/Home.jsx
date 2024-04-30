@@ -54,7 +54,7 @@ import { Typography } from '@material-ui/core';
 const Home = observer(() => {
   const {
     pathname,
-    query: { project, remix,  isAiArtGenerator, isBgDiffusion },
+    query: { project, remix, isAiArtGenerator, isBgDiffusion },
     push,
   } = useRouter();
   const projectStore = useProjectStore();
@@ -120,7 +120,7 @@ const Home = observer(() => {
   );
   const [progress, setProgress] = useState(1);
   const [progressMessage, setProgressMessage] = useState('');
-  const { isLoadingIosProcess,setAiGeneratorImage } = useProjectStore();
+  const { isLoadingIosProcess, setAiGeneratorImage } = useProjectStore();
   const {
     changeRadioButton,
     secondaryWindowType,
@@ -285,12 +285,13 @@ const Home = observer(() => {
   }, [isEnabled])
 
   useEffect(() => {
-    if(isLoadingIosProcess) {
-      console.log(progress,"progress")
+    console.log(isLoadingIosProcess, "isLoadingIosProcess=>")
+    if (isLoadingIosProcess) {
+      console.log(progress, "progress")
       const interval = setInterval(() => {
         setProgressMessage('Project is saving...');
         setProgress((prevProgress) => {
-          console.log(prevProgress,"prevProgress=>")
+          console.log(prevProgress, "prevProgress=>")
           if (prevProgress >= 100) {
             setProgressMessage('Project saved, ready for sharing.')
             clearInterval(interval); // Stop the progress bar when it reaches 100%
@@ -304,13 +305,13 @@ const Home = observer(() => {
         clearInterval(interval); // Clean up the interval on component unmount
       };
     }
-  }, [progress,isLoadingIosProcess]);
+  }, [progress, isLoadingIosProcess]);
 
   useEffect(() => {
-    if(!isLoadingIosProcess) {
+    if (!isLoadingIosProcess) {
       setProgress(1);
     }
-  },[isLoadingIosProcess])
+  }, [isLoadingIosProcess])
 
 
   useEffect(() => {
@@ -535,7 +536,7 @@ const Home = observer(() => {
         return <GoogleTextToSpeech />;
       }
       case WINDOW_TYPES.AI_ART_GENERATOR: {
-        console.log("WINDOW_TYPES.AI_ART_GENERATOR",WINDOW_TYPES.AI_ART_GENERATOR)
+        console.log("WINDOW_TYPES.AI_ART_GENERATOR", WINDOW_TYPES.AI_ART_GENERATOR)
         return <AiArtGenerator />;
       }
       case WINDOW_TYPES.BG_DIFFUSION: {
@@ -571,6 +572,14 @@ const Home = observer(() => {
   }, [item?.tags, roles]);
   return (
     <React.Fragment>
+      <zapier-full-experience
+        sign-up-email={currentUser.email}
+        sign-up-first-name={currentUser.fullName}
+        sign-up-last-name={currentUser.username}
+        client-id="pfsveoJrxZXuSWROVKxFnLK15mVqlvWeml1wSt0Y"
+        theme="light"
+        app-search-bar-display="show"
+      />
       {(asyncHero.loading || isRedirect) && <Loader isLoading preloader />}
       {asyncHero.error && <div>Error</div>}
       {(!asyncHero.loading || isLoaded) && (
