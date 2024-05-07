@@ -16,6 +16,7 @@ import trashIcon from '../../../../public/static/svgImages/common/trash.svg';
 import { TYPES } from '../../../../lib/constants/validator';
 import withValidation from '../../../hoc/withValidation';
 import { POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
+import router from 'next/router';
 
 const IntegrationsTab = observer(({ values, fields, onChange, checkValue, type }) => {
   const { item: { project } } = useProjectStore();
@@ -43,8 +44,8 @@ const IntegrationsTab = observer(({ values, fields, onChange, checkValue, type }
 
   const idPixelAvailable = useMemo(() => (
     (fbLbPixelEnabled && type === POPCORN_ELEMENT_TYPES.RETARGET)
-        || (fbLgPixelEnabled && type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR)),
-  [fbLbPixelEnabled, fbLgPixelEnabled]);
+    || (fbLgPixelEnabled && type === POPCORN_ELEMENT_TYPES.LEAD_GENERATOR)),
+    [fbLbPixelEnabled, fbLgPixelEnabled]);
 
   return (
     <div className="integrations-container">
@@ -72,63 +73,63 @@ const IntegrationsTab = observer(({ values, fields, onChange, checkValue, type }
         {...fields.webhook}
       />
       {type === POPCORN_ELEMENT_TYPES.RETARGET && !values.webhook2.hidden
-      && (
-        <div className="webhook-container">
-          <FieldBuilder
-            disabled={!values.webhookEnabled}
-            onChange={onChangeWebhook}
-            {...fields.webhook2}
-            inputClassName="item-retarget-container-input"
-            value={values.webhook2.value}
-          />
-          <div className="item-delete">
-            <SVGInline
-              className="icon trash"
-              classSuffix=""
-              svg={trashIcon}
-              cleanup={['title']}
-              alt="Remove item"
-              data-tip="Remove item"
-              onClick={() => onChange({ removeWebhook: 2 })}
+        && (
+          <div className="webhook-container">
+            <FieldBuilder
+              disabled={!values.webhookEnabled}
+              onChange={onChangeWebhook}
+              {...fields.webhook2}
+              inputClassName="item-retarget-container-input"
+              value={values.webhook2.value}
             />
+            <div className="item-delete">
+              <SVGInline
+                className="icon trash"
+                classSuffix=""
+                svg={trashIcon}
+                cleanup={['title']}
+                alt="Remove item"
+                data-tip="Remove item"
+                onClick={() => onChange({ removeWebhook: 2 })}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
       {type === POPCORN_ELEMENT_TYPES.RETARGET && !values.webhook3.hidden
-      && (
-        <div className="webhook-container">
-          <FieldBuilder
-            disabled={!values.webhookEnabled}
-            onChange={onChangeWebhook}
-            {...fields.webhook3}
-            inputClassName="item-retarget-container-input"
-            value={values.webhook3.value}
-          />
-          <div className="item-delete">
-            <SVGInline
-              className="icon trash"
-              classSuffix=""
-              svg={trashIcon}
-              cleanup={['title']}
-              alt="Remove item"
-              data-tip="Remove item"
-              onClick={() => onChange({ removeWebhook: 3 })}
+        && (
+          <div className="webhook-container">
+            <FieldBuilder
+              disabled={!values.webhookEnabled}
+              onChange={onChangeWebhook}
+              {...fields.webhook3}
+              inputClassName="item-retarget-container-input"
+              value={values.webhook3.value}
             />
+            <div className="item-delete">
+              <SVGInline
+                className="icon trash"
+                classSuffix=""
+                svg={trashIcon}
+                cleanup={['title']}
+                alt="Remove item"
+                data-tip="Remove item"
+                onClick={() => onChange({ removeWebhook: 3 })}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
       {type === POPCORN_ELEMENT_TYPES.RETARGET
-      && (
-      <div className="add-field-container">
-        <button
-          className={classnames('btn-custom', { 'button-disabled': hasMaxWebhooks })}
-          onClick={() => { onChange({ addWebhook: true }); }}
-          disabled={hasMaxWebhooks}
-        >
-          +Add Webhook Address
-        </button>
-      </div>
-      )}
+        && (
+          <div className="add-field-container">
+            <button
+              className={classnames('btn-custom', { 'button-disabled': hasMaxWebhooks })}
+              onClick={() => { onChange({ addWebhook: true }); }}
+              disabled={hasMaxWebhooks}
+            >
+              +Add Webhook Address
+            </button>
+          </div>
+        )}
       {/* <FieldBuilder */}
       {/*  value={values.dialEnabled ?? fields.dialEnabled.default} */}
       {/*  onChange={onChange} */}
@@ -174,6 +175,18 @@ const IntegrationsTab = observer(({ values, fields, onChange, checkValue, type }
           Download leads
         </button>
       </div>
+      <a href='https://zapier.com/apps/videoremix/integrations' target='_blank' style={{ textDecoration:'none'}}>
+        <button
+          className={classnames('btn-custom zap-btn', { 'button-disabled': !project._id })}
+          // onClick={() => router.push('https://zapier.com/apps/videoremix/integrations')}
+          disabled={!project._id}
+          title={!project._id ? buttonText.title : ''}
+        >
+
+          Zapier Integration
+
+        </button>
+      </a>
     </div>
   );
 });
