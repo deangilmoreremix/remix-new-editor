@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+// ScreenAppPlugin.jsx
+import React, { useEffect } from 'react';
 
-const ScreenAppPlugin = () => {
+const ScreenAppPlugin = ({ onRecordingComplete }) => {
   useEffect(() => {
     const loadScreenAppScript = () => {
       const script = document.createElement('script');
@@ -10,6 +11,7 @@ const ScreenAppPlugin = () => {
       script.onload = () => {
         const screenApp = new window.ScreenApp('667de452336ca9be3b3beb51', ({ id, url }) => {
           console.log('Recording completed', { id, url });
+          onRecordingComplete({ id, url });
         });
         screenApp.mount('#screenapp-plugin');
       };
@@ -17,17 +19,9 @@ const ScreenAppPlugin = () => {
     };
 
     loadScreenAppScript();
+  }, [onRecordingComplete]);
 
-    // Cleanup to remove the script if component unmounts
-    return () => {
-      const existingScript = document.querySelector('script[src="https://screenapp.io/app/plugin.js"]');
-      if (existingScript) {
-        existingScript.remove();
-      }
-    };
-  }, []);
-
-  return <div id="screenapp-plugin" style={{ height: '100%', width: '100%' }}></div>;
+  return <div id="screenapp-plugin" />;
 };
 
 export default ScreenAppPlugin;

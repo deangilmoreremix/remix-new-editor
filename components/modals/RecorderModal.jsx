@@ -58,6 +58,7 @@ const RecorderModal = observer(({ options: { type, useAudio }, handleClose }) =>
   const [time, setTime] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPipButton, setShowPipButton] = useState(false);
+  const [screenRecordingData, setScreenRecordingData] = useState(null);
 
   let { current: player } = playerRef;
 
@@ -225,15 +226,41 @@ const RecorderModal = observer(({ options: { type, useAudio }, handleClose }) =>
     }, [1000]);
   }, [player]);
 
+  const handleScreenRecordingComplete = ({ id, url }) => {
+    console.log(id,url,"url=>>>>")
+    setScreenRecordingData({ id, url });
+    setSaveOptionsVisible(true);
+  };
+
   return (
     <div className={isLoading ? 'recorder-await' : ''}>
       {isLoading ? (
         <ClipLoader size={150} loading />
       ) : (
         <div>
-          {type === RECORDER_TYPES.SCREEN ? (<>
-            {console.log("cakk ScreenAppPlugin")}
-            <ScreenAppPlugin /></>
+          {type === RECORDER_TYPES.SCREEN ? (
+            <>
+              <ScreenAppPlugin onRecordingComplete={handleScreenRecordingComplete} />
+              {screenRecordingData && (
+                <div className={`recorder-modal-options ${saveOptionsVisible ? '' : 'recorder-modal-options_hidden'}`}>
+                  <a
+                    className="recorder-modal-options__button recorder-modal-options__button_download"
+                    href={screenRecordingData.url}
+                    download={`screen_${screenRecordingData.id}.webm`}
+                  >
+                    Download
+                  </a>
+                  {isSuperAdmin && (
+                    <button
+                      className="recorder-modal-options__button recorder-modal-options__button_upload"
+                      onClick={() => uploadMedia({ data: screenRecordingData.url })}
+                    >
+                      Upload
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
           ) : (
             <div data-vjs-player>
               <video
