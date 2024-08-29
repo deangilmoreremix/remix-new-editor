@@ -227,83 +227,67 @@ const RecorderModal = observer(({ options: { type, useAudio }, handleClose }) =>
   }, [player]);
 
   const handleScreenRecordingComplete = ({ id, url }) => {
-    console.log(id,url,"url=>>>>")
     setScreenRecordingData({ id, url });
     setSaveOptionsVisible(true);
   };
 
   return (
-    <div className={isLoading ? 'recorder-await' : ''}>
-      {isLoading ? (
-        <ClipLoader size={150} loading />
-      ) : (
-        <div>
-          {type === RECORDER_TYPES.SCREEN ? (
-            <>
-              <ScreenAppPlugin onRecordingComplete={handleScreenRecordingComplete} />
-              {screenRecordingData && (
-                <div className={`recorder-modal-options ${saveOptionsVisible ? '' : 'recorder-modal-options_hidden'}`}>
-                  <a
-                    className="recorder-modal-options__button recorder-modal-options__button_download"
-                    href={screenRecordingData.url}
-                    download={`screen_${screenRecordingData.id}.webm`}
-                  >
-                    Download
-                  </a>
-                  {isSuperAdmin && (
-                    <button
-                      className="recorder-modal-options__button recorder-modal-options__button_upload"
-                      onClick={() => uploadMedia({ data: screenRecordingData.url })}
-                    >
-                      Upload
-                    </button>
-                  )}
-                </div>
-              )}
-            </>
+    <>
+      {type === RECORDER_TYPES.SCREEN ?
+        <ScreenAppPlugin onRecordingComplete={handleScreenRecordingComplete} /> :
+        <div className={isLoading ? 'recorder-await' : ''}>
+          {isLoading ? (
+            <ClipLoader size={150} loading />
           ) : (
-            <div data-vjs-player>
-              <video
-                ref={videoRef}
-                className="video-js vjs-default-skin pic-to-pic-disable"
-                playsInline
-              />
-              {showHiddenButton && (
-                <button className="recorder-button-hidden" onClick={handleClick} />
-              )}
-              {showPipButton && (
+            <div>
+              {
+                (
+                  <div data-vjs-player>
+                    <video
+                      ref={videoRef}
+                      className="video-js vjs-default-skin pic-to-pic-disable"
+                      playsInline
+                    />
+                    {showHiddenButton && (
+                      <button className="recorder-button-hidden" onClick={handleClick} />
+                    )}
+                    {showPipButton && (
+                      <button
+                        onClick={() => videoRef.current.requestPictureInPicture()}
+                        className="pic-to-pic vjs-pip-button vjs-control vjs-button vjs-icon-picture-in-picture-start"
+                      />
+                    )}
+                  </div>
+                )}
+              <div className={`recorder-modal-options ${saveOptionsVisible ? '' : 'recorder-modal-options_hidden'}`}>
                 <button
-                  onClick={() => videoRef.current.requestPictureInPicture()}
-                  className="pic-to-pic vjs-pip-button vjs-control vjs-button vjs-icon-picture-in-picture-start"
-                />
-              )}
+                  className="recorder-modal-options__button recorder-modal-options__button_save"
+                  onClick={handleDownload}
+                >
+                  Download
+                </button>
+                {isSuperAdmin && (
+                  <button
+                    className="recorder-modal-options__button recorder-modal-options__button_upload"
+                    onClick={getLink}
+                  >
+                    Get preview link
+                  </button>
+                )}
+                <button
+                  className="recorder-modal-options__button recorder-modal-options__button_upload"
+                  onClick={handleUpload}
+                >
+                  Upload
+                </button>
+              </div>
             </div>
           )}
-          <div className={`recorder-modal-options ${saveOptionsVisible ? '' : 'recorder-modal-options_hidden'}`}>
-            <button
-              className="recorder-modal-options__button recorder-modal-options__button_save"
-              onClick={handleDownload}
-            >
-              Download
-            </button>
-            {isSuperAdmin && (
-              <button
-                className="recorder-modal-options__button recorder-modal-options__button_upload"
-                onClick={getLink}
-              >
-                Get preview link
-              </button>
-            )}
-            <button
-              className="recorder-modal-options__button recorder-modal-options__button_upload"
-              onClick={handleUpload}
-            >
-              Upload
-            </button>
-          </div>
         </div>
-      )}
-    </div>
+
+      }
+    </>
+
   );
 });
 
