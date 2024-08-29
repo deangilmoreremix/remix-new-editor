@@ -70,7 +70,7 @@ export default observer(() => {
               label="Microphone"
             />
           </div>
-          <div id="screenapp-plugin" />;
+       
         </div>
       </div>
     </div>
