@@ -38,7 +38,7 @@ const ElementsPanel = observer(({ items }) => {
     const bgDiffusion = (isBgDiffusion === 'true');
 
     if (recorder) {
-      const recorderData = items.find((ele) => ele.label == "ScreenRec");
+      const recorderData = items.find((ele) => ele.label == "AI Screen Recorder");
       recorderData.action();
     }
     if (textToSpeech) {
