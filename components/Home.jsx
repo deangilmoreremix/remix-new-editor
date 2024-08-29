@@ -624,6 +624,7 @@ const Home = observer(() => {
             onChange={updateItem}
             active={{ width, height }}
           />
+          <div id="screenapp-plugin" />;
           {isLoadingIosProcess &&
             <div style={{ position: 'absolute', bottom: '60px', right: '23px' }}>
               <Typography style={{ width: 200, fontSize: '12px', fontWeight: 'bold' }}>{progressMessage}</Typography>
