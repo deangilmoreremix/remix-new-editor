@@ -7,6 +7,7 @@ import { ClipLoader } from 'react-spinners';
 import WaveSurfer from 'wavesurfer.js';
 import MicrophonePlugin from 'wavesurfer.js/dist/plugin/wavesurfer.microphone';
 import getBlobDuration from 'get-blob-duration';
+
 import 'recordrtc';
 import 'videojs-wavesurfer-dealiased/dist/videojs.wavesurfer.min';
 import 'videojs-record-dealiased/dist/videojs.record.min';
@@ -21,7 +22,6 @@ import useUserStore from '../hooks/useUserStore';
 import { LIBRARY_TABS } from '../../lib/constants/library';
 import { RECORDER_TYPES, RECORDER_VIDEOJS_CONFIG } from '../../lib/constants/recorder';
 import { showError, showSuccess } from '../../lib/services/alertService';
-import ScreenAppPlugin from './ScreenAppPlugin';
 
 WaveSurfer.microphone = MicrophonePlugin;
 
@@ -33,7 +33,7 @@ const EXTENSIONS_MAP = {
 
 const timeOut = 3000;
 
-const RecorderModal = observer(({ options: { type, useAudio }, handleClose }) => {
+export default observer(({ options: { type, useAudio }, handleClose }) => {
   const mute = useRef(false);
   const playerRef = useRef(null);
   const videoRef = useRef(null);
@@ -58,7 +58,6 @@ const RecorderModal = observer(({ options: { type, useAudio }, handleClose }) =>
   const [time, setTime] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPipButton, setShowPipButton] = useState(false);
-  const [screenRecordingData, setScreenRecordingData] = useState(null);
 
   let { current: player } = playerRef;
 
@@ -76,11 +75,6 @@ const RecorderModal = observer(({ options: { type, useAudio }, handleClose }) =>
   );
 
   useEffect(() => {
-    if (type === RECORDER_TYPES.SCREEN) {
-      setIsLoading(false)
-      return; // Skip setting up videojs for screen recording, ScreenAppPlugin will handle this
-    }
-
     if (videoRef.current && useAudio !== undefined && type) {
       player = videojs(videoRef.current, config);
 
@@ -112,7 +106,9 @@ const RecorderModal = observer(({ options: { type, useAudio }, handleClose }) =>
         if (mute.current) {
           player.volume(0);
         }
-        setSaveOptionsVisible(true);
+        // if (player.recordedData.type.includes('audio')) {
+          setSaveOptionsVisible(true);
+        // }
       });
 
       player.on('error', (element, error) => {
@@ -129,13 +125,13 @@ const RecorderModal = observer(({ options: { type, useAudio }, handleClose }) =>
     }
   }, [videoRef, useAudio, type, config]);
 
-  React.useEffect(() => () => {
+  React.useEffect(() => () => () => {
     if (player) {
       player.dispose();
     }
   }, []);
 
-  useEffect(() => () => player?.record().stopStream(), []);
+  useEffect(() => () => player.record().stopStream(), []);
 
   const handleDownload = React.useCallback(async () => {
     if (!player) {
@@ -226,39 +222,33 @@ const RecorderModal = observer(({ options: { type, useAudio }, handleClose }) =>
     }, [1000]);
   }, [player]);
 
-  const handleScreenRecordingComplete = ({ id, url }) => {
-    setScreenRecordingData({ id, url });
-    setSaveOptionsVisible(true);
-  };
-
   return (
-    <>
-      {type === RECORDER_TYPES.SCREEN ?
-        <ScreenAppPlugin onRecordingComplete={handleScreenRecordingComplete} /> :
-        <div className={isLoading ? 'recorder-await' : ''}>
-          {isLoading ? (
-            <ClipLoader size={150} loading />
+    <div className={isLoading ? 'recorder-await' : ''}>
+      {
+        isLoading
+          ? (
+            <ClipLoader
+              size={150}
+              loading
+            />
           ) : (
             <div>
-              {
-                (
-                  <div data-vjs-player>
-                    <video
-                      ref={videoRef}
-                      className="video-js vjs-default-skin pic-to-pic-disable"
-                      playsInline
-                    />
-                    {showHiddenButton && (
-                      <button className="recorder-button-hidden" onClick={handleClick} />
-                    )}
-                    {showPipButton && (
-                      <button
-                        onClick={() => videoRef.current.requestPictureInPicture()}
-                        className="pic-to-pic vjs-pip-button vjs-control vjs-button vjs-icon-picture-in-picture-start"
-                      />
-                    )}
-                  </div>
+              <div data-vjs-player>
+                <video
+                  ref={videoRef}
+                  className="video-js vjs-default-skin pic-to-pic-disable"
+                  playsInline
+                />
+                {showHiddenButton && (
+                  <button className="recorder-button-hidden" onClick={handleClick} />
                 )}
+                {showPipButton && (
+                  <button
+                    onClick={() => videoRef.current.requestPictureInPicture()}
+                    className="pic-to-pic vjs-pip-button vjs-control vjs-button vjs-icon-picture-in-picture-start"
+                  />
+                )}
+              </div>
               <div className={`recorder-modal-options ${saveOptionsVisible ? '' : 'recorder-modal-options_hidden'}`}>
                 <button
                   className="recorder-modal-options__button recorder-modal-options__button_save"
@@ -266,29 +256,26 @@ const RecorderModal = observer(({ options: { type, useAudio }, handleClose }) =>
                 >
                   Download
                 </button>
-                {isSuperAdmin && (
-                  <button
-                    className="recorder-modal-options__button recorder-modal-options__button_upload"
-                    onClick={getLink}
-                  >
-                    Get preview link
-                  </button>
-                )}
+                {isSuperAdmin
+                  ? (
+                    <button
+                      className="recorder-modal-options__button recorder-modal-options__button_upload"
+                      onClick={getLink}
+                    >
+                      Get preview link
+                    </button>
+                  ) : null}
                 <button
                   className="recorder-modal-options__button recorder-modal-options__button_upload"
                   onClick={handleUpload}
                 >
-                  Upload
+                  Add in media
                 </button>
               </div>
+              {time ? <div className="recorder-hidden-block">{time}</div> : null}
             </div>
-          )}
-        </div>
-
+          )
       }
-    </>
-
+    </div>
   );
 });
-
-export default RecorderModal;
