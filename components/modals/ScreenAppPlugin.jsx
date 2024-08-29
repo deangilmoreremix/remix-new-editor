@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 
 const ScreenAppPlugin = ({ onRecordingComplete, handleClose }) => {
   useEffect(() => {
-    handleClose()
+    
     const loadScreenAppScript = () => {
       const script = document.createElement('script');
       script.src = 'https://screenapp.io/app/plugin.js';
@@ -17,9 +17,11 @@ const ScreenAppPlugin = ({ onRecordingComplete, handleClose }) => {
         screenApp.mount('#screenapp-plugin');
       };
       document.body.appendChild(script);
+      handleClose()
     };
 
     loadScreenAppScript();
+   
   }, [onRecordingComplete]);
 
   return <div id="screenapp-plugin" />;
