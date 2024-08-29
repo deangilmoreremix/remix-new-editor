@@ -234,7 +234,7 @@ const RecorderModal = observer(({ options: { type, useAudio }, handleClose }) =>
   return (
     <>
       {type === RECORDER_TYPES.SCREEN ?
-        <ScreenAppPlugin onRecordingComplete={handleScreenRecordingComplete} /> :
+        <ScreenAppPlugin onRecordingComplete={handleScreenRecordingComplete} handleClose={handleClose}/> :
         <div className={isLoading ? 'recorder-await' : ''}>
           {isLoading ? (
             <ClipLoader size={150} loading />

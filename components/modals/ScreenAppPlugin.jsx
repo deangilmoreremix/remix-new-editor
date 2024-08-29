@@ -1,8 +1,9 @@
 // ScreenAppPlugin.jsx
 import React, { useEffect } from 'react';
 
-const ScreenAppPlugin = ({ onRecordingComplete }) => {
+const ScreenAppPlugin = ({ onRecordingComplete, handleClose }) => {
   useEffect(() => {
+    handleClose()
     const loadScreenAppScript = () => {
       const script = document.createElement('script');
       script.src = 'https://screenapp.io/app/plugin.js';
