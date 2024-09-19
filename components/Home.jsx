@@ -57,7 +57,6 @@ const Home = observer(() => {
     query: { project, remix, isAiArtGenerator, isBgDiffusion },
     push,
   } = useRouter();
-  console.log(proecess.env.APP_PREFIX,"APP_PREFIX==>>")
   const projectStore = useProjectStore();
 
   const userStore = useUserStore();
