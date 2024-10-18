@@ -324,6 +324,9 @@ const FacebookCampaign = observer(({
     <CampaignStage
       index={currentStageIndex}
       stage={currentStage}
+      project={project}
+      closeModal={closeModal}
+      showInfo={showInfo}
       {...stageProps}
     />
   );
