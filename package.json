@@ -130,6 +130,7 @@
     "react-number-format": "4.4.1",
     "react-popupbox": "2.0.8",
     "react-select": "3.0.8",
+    "react-share": "^3.0.1",
     "react-simply-carousel": "^5.1.4",
     "react-sketch-canvas": "^6.1.0",
     "react-sortable-hoc": "1.11.0",
