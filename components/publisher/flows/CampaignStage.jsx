@@ -63,7 +63,7 @@ const CampaignStage = ({
           Back
         </button>
         {console.log(isLoading, "isLoading=>", !canBypassStage(stage), "!canBypassStage(stage)", stage)}
-        {completionPercentage == 75 ?
+        {(key == 'facebook-post' && completionPercentage == 75) ?
         <button>
           <FacebookShareButton 
              url={project.url}
