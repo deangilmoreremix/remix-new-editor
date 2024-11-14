@@ -228,7 +228,7 @@ class Layout extends Component {
                       }
                       />
                     ) : null}
-                  {this.stores.userStore.currentUser
+                  {/* {this.stores.userStore.currentUser
                     && whiteLabelManager
                     && whiteLabelManager.domain === DOMAIN_VIDEOREMIX ? (
                       <Intercom
@@ -243,7 +243,7 @@ class Layout extends Component {
                         }}
                         domain={DOMAIN_VIDEOREMIX}
                       />
-                    ) : null}
+                    ) : null} */}
                 </div>
               ) : (
                 <UnauthorizedView />
