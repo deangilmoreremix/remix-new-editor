@@ -6,11 +6,11 @@ import { FACEBOOK_STAGES as STAGES } from '../../../lib/constants/campaigns/stag
 import { SERVICE_PROVIDER } from '../../../lib/constants/campaigns/constants';
 import { FacebookShareButton } from 'react-share';
 import { SOCIAL_CAMPAIGN_MODAL } from '../../../lib/constants/modals';
+import useProjectStore from '../../hooks/useProjectStore';
 
 const CampaignStage = ({
   index,
   stage,
-  project,
   closeModal,
   showInfo,
   handleBackButtonClick,
@@ -31,7 +31,6 @@ const CampaignStage = ({
   } = stage;
 
   const [link, setLink] = useState();
-  console.log(project,"project=>>>")
   const closeAndSave = useCallback(() => {
     link.select();
     document.execCommand('copy');
@@ -43,7 +42,7 @@ const CampaignStage = ({
     await closeModal(SOCIAL_CAMPAIGN_MODAL)
     await showInfo('Success');
   }
-
+  const { item : project } = useProjectStore()
   return (
     <Fragment>
       {
