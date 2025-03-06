@@ -4,8 +4,8 @@
   "description": "VideoRemix Smart Video 2.0",
   "main": "index.js",
   "engines": {
-    "node": "16.17.0",
-    "npm": "8.15.0"
+    "node": "14.15.1",
+    "npm": "6.14.8"
   },
   "husky": {
     "hooks": {
