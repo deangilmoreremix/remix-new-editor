@@ -5,8 +5,8 @@ module.exports = {
     prefix: process.env.APP_PREFIX || 'local-smart-video',
   },
   aws: {
-    accessKeyId: '' || process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: '' || process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: 'AKIAZIC4SYEXP4EFAPP6' || process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: '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' || process.env.AWS_SECRET_ACCESS_KEY,
   },
   backend: {
     socketPort: process.env.NEXT_PUBLIC_SOCKET_PORT || '',
