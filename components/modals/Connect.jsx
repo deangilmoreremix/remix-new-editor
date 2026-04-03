@@ -6,7 +6,7 @@ import useMakeStore from '../hooks/useMakeStore';
 
 import ViewProjectWindow from './ViewProjectWindow/indexImageLT';
 
-const Presets = ({ handleClose }) => {
+const Connect = ({ handleClose }) => {
   const { getConnect } = useMakeStore();
 
   return (

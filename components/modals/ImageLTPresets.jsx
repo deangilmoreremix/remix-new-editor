@@ -6,7 +6,7 @@ import useMakeStore from '../hooks/useMakeStore';
 
 import ViewProjectWindowImageLt from './ViewProjectWindow/indexImageLT';
 
-const ImagePresets = ({ handleClose }) => {
+const ImageLTPresetModal = ({ handleClose }) => {
   const { getImageLTPreset } = useMakeStore();
 
   return (
@@ -22,4 +22,4 @@ ImagePresets.propTypes = {
   handleClose: PropTypes.func.isRequired,
 };
 
-export default ImagePresets;
+export default ImageLTPresetModal;

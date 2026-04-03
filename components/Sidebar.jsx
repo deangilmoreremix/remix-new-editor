@@ -16,7 +16,7 @@ import {
   PRODUCE_TABS,
   SIDEBAR_MENU_ITEMS,
 } from '../lib/constants/ui';
-import { SAVE_PROJECT_MODAL } from '../lib/constants/modals';
+import { SAVE_PROJECT_MODAL, PAGE_SHOT_MODAL, ENHANCED_RECORDER_MODAL } from '../lib/constants/modals';
 
 import hamburgerIcon from '../public/static/svgImages/header/hamburger.svg';
 
@@ -74,6 +74,8 @@ const Sidebar = observer(() => {
     setOpen(false);
     switch (arg) {
       case SAVE_PROJECT_MODAL:
+      case PAGE_SHOT_MODAL:
+      case ENHANCED_RECORDER_MODAL:
         openModal(arg);
         break;
       case ACTION_SAVE_PROJECT:

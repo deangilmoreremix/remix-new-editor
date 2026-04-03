@@ -23,7 +23,7 @@ const VoiceModal = ({ handleClose }) => {
 
   return (
     <div className="voice-modal__container">
-      <div className="voice-modal__header">Text to speach</div>
+      <div className="voice-modal__header">Text to speech</div>
       <div className="voice-modal__body">
         <SVGInline
           className="voice-modal__icon"
