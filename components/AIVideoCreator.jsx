@@ -1,4 +1,4 @@
-// AI Video Creator Component - Sendspark-style video creation from scripts
+// AI Video Creator Component - Uses Open-Higgsfield-AI for avatar generation
 import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
@@ -8,6 +8,7 @@ import { showError, showSuccess } from '../../lib/services/alertService';
 import { createPersonalizedVideo } from '../../lib/videoPersonalizationEngine.js';
 import { getMuapiClient } from '../../lib/muapi.js';
 import { getTTSService } from '../../lib/ttsService.js';
+import { AVATAR_TEMPLATES, SCRIPT_TEMPLATES } from '../../lib/templates.js';
 
 import scriptIcon from '../../public/static/svgImages/script.svg';
 import avatarIcon from '../../public/static/svgImages/avatar.svg';
@@ -27,46 +28,11 @@ const AIVideoCreator = ({
   const [progress, setProgress] = useState(0);
   const [apiKey, setApiKey] = useState('');
   const [generatedVideos, setGeneratedVideos] = useState([]);
+  const [avatarPreviews, setAvatarPreviews] = useState({}); // Store generated avatar images
+  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
 
-  // Available avatars
-  const avatars = [
-    {
-      id: 'professional-male',
-      name: 'Professional Male',
-      description: 'Corporate executive, CEO, manager',
-      preview: '👨‍💼'
-    },
-    {
-      id: 'professional-female',
-      name: 'Professional Female',
-      description: 'Business leader, consultant, director',
-      preview: '👩‍💼'
-    },
-    {
-      id: 'friendly-male',
-      name: 'Friendly Male',
-      description: 'Sales rep, customer service, trainer',
-      preview: '🙋‍♂️'
-    },
-    {
-      id: 'friendly-female',
-      name: 'Friendly Female',
-      description: 'Marketing, HR, community manager',
-      preview: '🙋‍♀️'
-    },
-    {
-      id: 'tech-professional',
-      name: 'Tech Professional',
-      description: 'Developer, engineer, analyst',
-      preview: '👨‍💻'
-    },
-    {
-      id: 'healthcare-professional',
-      name: 'Healthcare Professional',
-      description: 'Doctor, nurse, healthcare worker',
-      preview: '👨‍⚕️'
-    }
-  ];
+  // Use Higgsfield avatar templates
+  const avatars = AVATAR_TEMPLATES;
 
   // Available voices
   const voices = [
@@ -76,8 +42,55 @@ const AIVideoCreator = ({
     { id: 'friendly-female', name: 'Friendly Female', provider: 'openai', voice: 'nova' }
   ];
 
-  // Script templates
-  const scriptTemplates = [
+  // Generate avatar preview using Higgsfield AI (Flux)
+  const generateAvatarPreview = async (avatar) => {
+    if (!apiKey) {
+      showError('Please enter your API key first');
+      return;
+    }
+
+    if (avatarPreviews[avatar.id]) {
+      return; // Already generated
+    }
+
+    setIsGeneratingAvatar(true);
+    
+    try {
+      const muapi = getMuapiClient(apiKey);
+      
+      // Use the avatar's prompt from Higgsfield templates
+      const result = await muapi.generateImage({
+        model: 'flux-dev',
+        prompt: avatar.prompt,
+        aspect_ratio: '1:1',
+        resolution: '1024x1024'
+      });
+
+      setAvatarPreviews(prev => ({
+        ...prev,
+        [avatar.id]: result.url
+      }));
+      
+    } catch (error) {
+      console.error('Avatar generation failed:', error);
+      showError('Failed to generate avatar preview');
+    } finally {
+      setIsGeneratingAvatar(false);
+    }
+  };
+
+  // Handle avatar selection
+  const handleAvatarSelect = async (avatar) => {
+    setSelectedAvatar(avatar);
+    
+    // Generate preview if not already done
+    if (!avatarPreviews[avatar.id] && apiKey) {
+      await generateAvatarPreview(avatar);
+    }
+  };
+
+  // Use Higgsfield script templates
+  const scriptTemplates = SCRIPT_TEMPLATES.filter(t => t.category === 'sales').slice(0, 3) || [
     {
       name: 'Sales Introduction',
       template: `Hi {{firstName}},
@@ -156,11 +169,25 @@ Warm regards,
     try {
       const videos = [];
 
+      // Ensure avatar image is generated
+      let avatarImageUrl = avatarPreviews[selectedAvatar.id];
+      if (!avatarImageUrl) {
+        showError('Please wait for avatar preview to generate');
+        setIsGenerating(false);
+        return;
+      }
+
+      // Create enhanced avatar object with generated image
+      const enhancedAvatar = {
+        ...selectedAvatar,
+        imageUrl: avatarImageUrl
+      };
+
       for (let i = 0; i < contacts.length; i++) {
         const contact = contacts[i];
 
         try {
-          console.log(`Generating AI video for ${contact.email}...`);
+          console.log(`Generating AI video for ${contact.email} using Higgsfield...`);
 
           const result = await createPersonalizedVideo(null, contact, {
             '{{firstName}}': 'firstName',
@@ -174,7 +201,7 @@ Warm regards,
           }, {
             mode: 'ai-generated',
             script: script,
-            avatar: selectedAvatar,
+            avatar: enhancedAvatar,
             apiKey: apiKey
           });
 
@@ -321,7 +348,29 @@ Warm regards,
         {activeStep === 2 && (
           <div className="avatar-step">
             <h3>Choose Your AI Avatar</h3>
-            <p>Select the presenter that best fits your message</p>
+            <p>Select the presenter that best fits your message. Powered by Higgsfield AI.</p>
+
+            {!apiKey && (
+              <div className="api-key-notice">
+                <p>⚠️ Please enter your API key above to generate AI avatar previews</p>
+              </div>
+            )}
+
+            {apiKey && Object.keys(avatarPreviews).length < avatars.length && (
+              <button 
+                className="generate-all-avatars-btn"
+                onClick={async () => {
+                  for (const avatar of avatars) {
+                    if (!avatarPreviews[avatar.id]) {
+                      await generateAvatarPreview(avatar);
+                    }
+                  }
+                }}
+                disabled={isGeneratingAvatar}
+              >
+                {isGeneratingAvatar ? 'Generating Avatars...' : '✨ Generate All Avatar Previews'}
+              </button>
+            )}
 
             <div className="avatar-grid">
               {avatars.map((avatar) => (
@@ -330,10 +379,26 @@ Warm regards,
                   className={classnames('avatar-card', {
                     'selected': selectedAvatar?.id === avatar.id
                   })}
-                  onClick={() => setSelectedAvatar(avatar)}
+                  onClick={() => handleAvatarSelect(avatar)}
                 >
                   <div className="avatar-preview">
-                    <span className="avatar-emoji">{avatar.preview}</span>
+                    {avatarPreviews[avatar.id] ? (
+                      <img 
+                        src={avatarPreviews[avatar.id]} 
+                        alt={avatar.name}
+                        className="avatar-image"
+                      />
+                    ) : (
+                      <div className="avatar-placeholder">
+                        {isGeneratingAvatar && selectedAvatar?.id === avatar.id ? (
+                          <span className="generating-text">Generating...</span>
+                        ) : (
+                          <span className="avatar-emoji">
+                            {avatar.gender === 'male' ? '👤' : '👩'}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="avatar-info">
                     <h4 className="avatar-name">{avatar.name}</h4>
@@ -463,3 +528,72 @@ AIVideoCreator.propTypes = {
 };
 
 export default AIVideoCreator;
+
+// Additional styles for Higgsfield avatar integration
+const additionalStyles = `
+  .api-key-notice {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+  }
+
+  .api-key-notice p {
+    margin: 0;
+    color: #856404;
+  }
+
+  .generate-all-avatars-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: all 0.2s;
+  }
+
+  .generate-all-avatars-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  .generate-all-avatars-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    border-radius: 8px;
+  }
+
+  .generating-text {
+    font-size: 12px;
+    color: #666;
+  }
+
+  .avatar-card {
+    transition: all 0.2s;
+  }
+
+  .avatar-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+`;
