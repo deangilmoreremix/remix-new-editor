@@ -209,7 +209,7 @@ const VideoPersonalizationHub = () => {
       <div className="hub-sidebar">
         <div className="sidebar-header">
           <h1 className="hub-title">Personalizer</h1>
-          <p className="hub-subtitle">Create personalized videos at scale like Sendspark</p>
+          <p className="hub-subtitle">Create personalized videos at scale with the Personalization Suite</p>
         </div>
 
         <div className="sidebar-navigation">

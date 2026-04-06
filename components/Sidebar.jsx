@@ -13,10 +13,11 @@ import {
   ACTION_SAVE_PROJECT,
   ACTION_ARCHIVE,
   ACTION_WATCH_VIDEO,
+  ACTION_PERSONALIZATION_SUITE,
   PRODUCE_TABS,
   SIDEBAR_MENU_ITEMS,
 } from '../lib/constants/ui';
-import { SAVE_PROJECT_MODAL, PAGE_SHOT_MODAL, ENHANCED_RECORDER_MODAL } from '../lib/constants/modals';
+import { SAVE_PROJECT_MODAL, PAGE_SHOT_MODAL, ENHANCED_RECORDER_MODAL, VIDEO_PERSONALIZER_MODAL } from '../lib/constants/modals';
 
 import hamburgerIcon from '../public/static/svgImages/header/hamburger.svg';
 
@@ -95,6 +96,9 @@ const Sidebar = observer(() => {
         if (options.disabled) {
           showInfo('Project not saved');
         }
+        break;
+      case ACTION_PERSONALIZATION_SUITE:
+        openModal(VIDEO_PERSONALIZER_MODAL);
         break;
       default:
         if (typeof arg === 'function') {

@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   plugins: [
     // eslint-disable-next-line global-require
     require('postcss-easy-import')({ prefix: '_' }), // keep this first
