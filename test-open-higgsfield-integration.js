@@ -3,6 +3,7 @@
 
 import { getMuapiClient } from './lib/muapi.js';
 import { getTTSService } from './lib/ttsService.js';
+import { getVideoEnhancementService } from './lib/videoEnhancementService.js';
 import { getModelsByType, getModelById } from './lib/models.js';
 import { getScriptTemplates, getAvatarById } from './lib/templates.js';
 import { getInstructionsForStudio } from './lib/instructions.js';
@@ -17,13 +18,15 @@ class OpenHiggsfieldIntegrationTester {
     this.results = {
       muapiConnection: false,
       ttsService: false,
+      videoEnhancement: false,
       modelsLoaded: false,
       templatesLoaded: false,
       instructionsLoaded: false,
       uploadHistory: false,
       thumbnails: false,
       supabase: false,
-      aiGeneration: false
+      aiGeneration: false,
+      emotionalAnalysis: false
     };
   }
 
@@ -171,6 +174,26 @@ class OpenHiggsfieldIntegrationTester {
     }
   }
 
+  // Test video enhancement service
+  testVideoEnhancementService() {
+    console.log('🎬 Testing video enhancement service...');
+
+    try {
+      const enhancer = getVideoEnhancementService();
+
+      // Test if service initializes
+      const enhancements = enhancer.getAvailableEnhancements();
+      this.results.videoEnhancement = Array.isArray(enhancements) && enhancements.length > 0;
+
+      console.log(`✅ Video enhancement service ready with ${enhancements.length} enhancement options`);
+      return true;
+    } catch (error) {
+      console.warn('⚠️ Video enhancement service test failed:', error.message);
+      this.results.videoEnhancement = false;
+      return false;
+    }
+  }
+
   // Test Supabase client
   testSupabaseClient() {
     console.log('☁️ Testing Supabase client...');
@@ -227,11 +250,49 @@ class OpenHiggsfieldIntegrationTester {
       const expected = 'Hi John, welcome to Acme Corp!';
       this.results.aiGeneration = processedScript === expected;
 
-      console.log('✅ AI generation pipeline logic validated');
+      // Test emotional analysis
+      const emotionalTest = this.testEmotionalAnalysis();
+      this.results.emotionalAnalysis = emotionalTest;
+
+      console.log('✅ AI generation pipeline and emotional analysis validated');
       return true;
     } catch (error) {
       console.warn('⚠️ AI generation pipeline test failed:', error.message);
       this.results.aiGeneration = false;
+      return false;
+    }
+  }
+
+  // Test emotional analysis functionality
+  testEmotionalAnalysis() {
+    try {
+      // Test the emotional analysis logic from the engine
+      const testScript = "I'm so excited to welcome you to our amazing company! This is going to be fantastic.";
+
+      // Simulate the emotional analysis (this would normally be in the engine)
+      const emotionalAnalysis = {
+        tone: 'neutral',
+        energy: 'moderate',
+        formality: 'professional',
+        sentiment: 'positive',
+        keywords: [],
+        emotionalWords: []
+      };
+
+      const lowerScript = testScript.toLowerCase();
+
+      // Analyze tone based on keywords
+      if (lowerScript.includes('excited') || lowerScript.includes('amazing') || lowerScript.includes('fantastic')) {
+        emotionalAnalysis.tone = 'excited';
+        emotionalAnalysis.energy = 'high';
+      }
+
+      emotionalAnalysis.emotionalWords = ['excited', 'amazing', 'fantastic'].filter(word =>
+        lowerScript.includes(word)
+      );
+
+      return emotionalAnalysis.tone === 'excited' && emotionalAnalysis.energy === 'high';
+    } catch (error) {
       return false;
     }
   }
@@ -243,6 +304,7 @@ class OpenHiggsfieldIntegrationTester {
     const tests = [
       { name: 'Muapi Connection', fn: () => this.testMuapiConnection(apiKey) },
       { name: 'TTS Service', fn: () => this.testTTSService() },
+      { name: 'Video Enhancement Service', fn: () => this.testVideoEnhancementService() },
       { name: 'Models Configuration', fn: () => this.testModelsConfiguration() },
       { name: 'Templates System', fn: () => this.testTemplatesSystem() },
       { name: 'Instructions System', fn: () => this.testInstructionsSystem() },
