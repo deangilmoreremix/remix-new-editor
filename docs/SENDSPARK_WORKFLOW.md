@@ -60,7 +60,7 @@ The main 5-step workflow component:
 
 #### Step 3: Clone Voice
 - Extracts audio from recorded video
-- Uses ElevenLabs voice cloning API
+- Uses Muapi voice cloning API (ElevenLabs models)
 - User enters script with personalization tokens
 - Available tokens: `{{firstName}}`, `{{lastName}}`, `{{company}}`, `{{email}}`, `{{website}}`, `{{industry}}`, `{{title}}`
 
@@ -168,15 +168,13 @@ A standalone page with:
 ### Required Services
 
 1. **Muapi.ai** (or compatible)
-   - Voice cloning (ElevenLabs)
+   - Voice cloning (ElevenLabs models via Muapi)
+   - Text-to-speech with cloned voices
    - Image generation (Flux)
    - Video generation (Kling)
+   - Lip-sync animation
 
-2. **ElevenLabs** (for voice cloning)
-   - Voice clone creation
-   - Text-to-speech with custom voices
-
-3. **PageShot** (optional, for website screenshots)
+2. **PageShot** (optional, for website screenshots)
    - Website to image capture
 
 ### Environment Variables
@@ -184,7 +182,6 @@ A standalone page with:
 ```bash
 # .env.local
 MUAPI_KEY=your_muapi_key
-ELEVENLABS_API_KEY=your_elevenlabs_key
 PAGESHOT_API_KEY=your_pageshot_key
 ```
 
@@ -272,9 +269,9 @@ User saves or re-records
 ```
 Extract audio from video
     ↓
-Upload to ElevenLabs API
+Upload to Muapi API
     ↓
-Create voice clone
+Clone voice (ElevenLabs via Muapi)
     ↓
 Store voice ID
     ↓

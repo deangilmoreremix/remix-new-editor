@@ -308,7 +308,8 @@ const SendsparkWorkflow = ({
                 <div className="script-editor">
                   <h4>Enter Your Script</h4>
                   <p className="script-help">
-                    Use tokens like {'{{firstName}}'}, {'{{company}}'} for personalization
+                    Use tokens like {'{{firstName}}'}, {'{{company}}'} for personalization.
+                    Powered by Muapi voice cloning.
                   </p>
                   <textarea
                     value={script}

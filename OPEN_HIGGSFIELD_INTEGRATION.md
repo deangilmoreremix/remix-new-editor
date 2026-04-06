@@ -46,11 +46,12 @@
 
 ## 🎯 SENDSPARK FEATURES IMPLEMENTED
 
-### AI Video Generation (Using Higgsfield)
+### AI Video Generation (Using Higgsfield/Muapi)
 - ✅ Script-to-video creation
-- ✅ AI avatar generation (8 styles) - Uses Flux model via Higgsfield
-- ✅ Neural text-to-speech (3 providers) - OpenAI, ElevenLabs
-- ✅ Lip-sync technology (LTX 2.3 via Higgsfield)
+- ✅ AI avatar generation (8 styles) - Uses Flux model via Muapi
+- ✅ Neural text-to-speech - Via Muapi TTS API
+- ✅ Voice cloning - Via Muapi voice cloning API
+- ✅ Lip-sync technology (LTX 2.3 via Muapi)
 - ✅ Dynamic scene backgrounds - AI-generated or website screenshots
 - ✅ Emotional context analysis
 - ✅ Professional cinematography
