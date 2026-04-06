@@ -1,4 +1,5 @@
 // Personalizer Hub - Main component for video personalization platform
+// Supports both overlay-based and AI-generated video creation (Sendspark-style)
 import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
 import { observer } from 'mobx-react';
@@ -7,26 +8,39 @@ import ContactImporterModal from '../components/modals/ContactImporterModal';
 import VideoUploader from '../components/VideoUploader';
 import VideoPersonalizer from '../components/VideoPersonalizer';
 import TokenEditor from '../components/TokenEditor';
+import AIVideoCreator from '../components/AIVideoCreator';
 import Sidebar from '../components/Sidebar';
 
 import PropTypes from '../lib/PropTypes';
 import { showError, showSuccess } from '../lib/services/alertService';
 
 const VideoPersonalizationHub = () => {
-  const [activeTab, setActiveTab] = useState('upload'); // upload, contacts, tokens, personalize
+  const [mode, setMode] = useState('overlay'); // 'overlay' or 'ai-generated'
+  const [activeTab, setActiveTab] = useState('contacts'); // contacts, overlay-upload, overlay-tokens, overlay-personalize, ai-create
   const [baseVideo, setBaseVideo] = useState(null);
   const [contacts, setContacts] = useState([]);
   const [tokens, setTokens] = useState({});
   const [showContactImporter, setShowContactImporter] = useState(false);
   const [generatedVideos, setGeneratedVideos] = useState([]);
 
-  // Available tabs for the personalization workflow
-  const tabs = [
-    { id: 'upload', label: 'Upload Video', icon: 'video' },
-    { id: 'contacts', label: 'Import Contacts', icon: 'users' },
-    { id: 'tokens', label: 'Manage Tokens', icon: 'tag' },
-    { id: 'personalize', label: 'Generate Videos', icon: 'play' }
-  ];
+  // Available tabs based on selected mode
+  const getTabsForMode = () => {
+    if (mode === 'ai-generated') {
+      return [
+        { id: 'contacts', label: 'Import Contacts', icon: 'users' },
+        { id: 'ai-create', label: 'Create AI Videos', icon: 'robot' }
+      ];
+    } else {
+      return [
+        { id: 'contacts', label: 'Import Contacts', icon: 'users' },
+        { id: 'overlay-upload', label: 'Upload Video', icon: 'video' },
+        { id: 'overlay-tokens', label: 'Manage Tokens', icon: 'tag' },
+        { id: 'overlay-personalize', label: 'Generate Videos', icon: 'play' }
+      ];
+    }
+  };
+
+  const tabs = getTabsForMode();
 
   const handleVideoSelected = (video) => {
     setBaseVideo(video);
@@ -57,19 +71,15 @@ const VideoPersonalizationHub = () => {
     return baseVideo && contacts.length > 0;
   };
 
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    setActiveTab('contacts'); // Reset to contacts tab when changing modes
+    setBaseVideo(null); // Clear base video when switching modes
+    setTokens({}); // Reset tokens
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'upload':
-        return (
-          <div className="tab-content">
-            <VideoUploader
-              onVideoSelected={handleVideoSelected}
-              maxFileSize={500}
-              acceptedFormats={['mp4', 'mov', 'avi', 'webm']}
-            />
-          </div>
-        );
-
       case 'contacts':
         return (
           <div className="tab-content">
@@ -159,43 +169,48 @@ const VideoPersonalizationHub = () => {
           </div>
         );
 
-      case 'personalize':
+      case 'overlay-upload':
         return (
           <div className="tab-content">
-            {!canProceedToPersonalize() ? (
-              <div className="requirements-notice">
-                <h3>Requirements Not Met</h3>
-                <p>Please complete the following before generating videos:</p>
-                <ul>
-                  {!baseVideo && <li>Upload a base video</li>}
-                  {contacts.length === 0 && <li>Import contacts</li>}
-                </ul>
-                <div className="requirements-actions">
-                  {!baseVideo && (
-                    <button
-                      className="primary-btn"
-                      onClick={() => setActiveTab('upload')}
-                    >
-                      Upload Video
-                    </button>
-                  )}
-                  {contacts.length === 0 && (
-                    <button
-                      className="primary-btn"
-                      onClick={() => setActiveTab('contacts')}
-                    >
-                      Import Contacts
-                    </button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <VideoPersonalizer
-                baseVideo={baseVideo}
-                contacts={contacts}
-                onVideoGenerated={handleVideoGenerationComplete}
-              />
-            )}
+            <VideoUploader
+              onVideoSelected={handleVideoSelected}
+              maxFileSize={500}
+              acceptedFormats={['mp4', 'mov', 'avi', 'webm']}
+            />
+          </div>
+        );
+
+      case 'overlay-tokens':
+        return (
+          <div className="tab-content">
+            <TokenEditor
+              onTokensChange={handleTokensChange}
+              initialTokens={tokens}
+            />
+          </div>
+        );
+
+      case 'overlay-personalize':
+        return (
+          <div className="tab-content">
+            <VideoPersonalizer
+              baseVideo={baseVideo}
+              contacts={contacts}
+              tokens={tokens}
+              onVideoGenerated={handleVideoGenerationComplete}
+              onProgressUpdate={(progress, videos) => setGeneratedVideos(videos)}
+            />
+          </div>
+        );
+
+      case 'ai-create':
+        return (
+          <div className="tab-content">
+            <AIVideoCreator
+              contacts={contacts}
+              onVideoGenerated={handleVideoGenerationComplete}
+              onProgressUpdate={(progress, videos) => setGeneratedVideos(videos)}
+            />
           </div>
         );
 
@@ -212,23 +227,52 @@ const VideoPersonalizationHub = () => {
           <p className="hub-subtitle">Create personalized videos at scale like Sendspark</p>
         </div>
 
+        {/* Mode Selector */}
+        <div className="mode-selector">
+          <h3 className="mode-title">Creation Mode</h3>
+          <div className="mode-options">
+            <button
+              className={classnames('mode-btn', { 'active': mode === 'overlay' })}
+              onClick={() => handleModeChange('overlay')}
+            >
+              <div className="mode-icon">🎬</div>
+              <div className="mode-info">
+                <h4>Overlay Personalization</h4>
+                <p>Replace text in existing videos</p>
+              </div>
+            </button>
+            <button
+              className={classnames('mode-btn', { 'active': mode === 'ai-generated' })}
+              onClick={() => handleModeChange('ai-generated')}
+            >
+              <div className="mode-icon">🤖</div>
+              <div className="mode-info">
+                <h4>AI Video Generation</h4>
+                <p>Create videos from scratch with AI avatars</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
         <div className="sidebar-navigation">
           {tabs.map(tab => (
             <button
               key={tab.id}
               className={classnames('nav-item', {
                 'active': activeTab === tab.id,
-                'disabled': tab.id === 'personalize' && !canProceedToPersonalize()
+                'disabled': (tab.id === 'overlay-personalize' && !canProceedToPersonalize()) ||
+                           (tab.id === 'ai-create' && contacts.length === 0)
               })}
               onClick={() => setActiveTab(tab.id)}
-              disabled={tab.id === 'personalize' && !canProceedToPersonalize()}
+              disabled={(tab.id === 'overlay-personalize' && !canProceedToPersonalize()) ||
+                       (tab.id === 'ai-create' && contacts.length === 0)}
             >
               <span className="nav-icon">{tab.icon}</span>
               <span className="nav-label">{tab.label}</span>
               {tab.id === 'contacts' && contacts.length > 0 && (
                 <span className="nav-badge">{contacts.length}</span>
               )}
-              {tab.id === 'personalize' && generatedVideos.length > 0 && (
+              {(tab.id === 'overlay-personalize' || tab.id === 'ai-create') && generatedVideos.length > 0 && (
                 <span className="nav-badge">{generatedVideos.length}</span>
               )}
             </button>
@@ -237,17 +281,33 @@ const VideoPersonalizationHub = () => {
 
         <div className="sidebar-status">
           <div className="status-item">
-            <span className={classnames('status-dot', { 'complete': baseVideo })}></span>
-            <span>Base Video</span>
-          </div>
-          <div className="status-item">
             <span className={classnames('status-dot', { 'complete': contacts.length > 0 })}></span>
             <span>Contacts</span>
           </div>
-          <div className="status-item">
-            <span className={classnames('status-dot', { 'complete': Object.keys(tokens).length > 0 })}></span>
-            <span>Tokens</span>
-          </div>
+          {mode === 'overlay' && (
+            <>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': baseVideo })}></span>
+                <span>Base Video</span>
+              </div>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': Object.keys(tokens).length > 0 })}></span>
+                <span>Tokens</span>
+              </div>
+            </>
+          )}
+          {mode === 'ai-generated' && (
+            <>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': true })}></span>
+                <span>AI Services</span>
+              </div>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': true })}></span>
+                <span>Avatar & Voice</span>
+              </div>
+            </>
+          )}
           <div className="status-item">
             <span className={classnames('status-dot', { 'complete': generatedVideos.length > 0 })}></span>
             <span>Generated Videos</span>
