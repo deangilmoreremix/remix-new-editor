@@ -9,14 +9,15 @@ import VideoUploader from '../components/VideoUploader';
 import VideoPersonalizer from '../components/VideoPersonalizer';
 import TokenEditor from '../components/TokenEditor';
 import AIVideoCreator from '../components/AIVideoCreator';
+import SendsparkWorkflow from '../components/SendsparkWorkflow';
 import Sidebar from '../components/Sidebar';
 
 import PropTypes from '../lib/PropTypes';
 import { showError, showSuccess } from '../lib/services/alertService';
 
 const VideoPersonalizationHub = () => {
-  const [mode, setMode] = useState('overlay'); // 'overlay' or 'ai-generated'
-  const [activeTab, setActiveTab] = useState('contacts'); // contacts, overlay-upload, overlay-tokens, overlay-personalize, ai-create
+  const [mode, setMode] = useState('sendspark'); // 'sendspark', 'overlay', or 'ai-generated'
+  const [activeTab, setActiveTab] = useState('contacts'); // contacts, overlay-upload, overlay-tokens, overlay-personalize, ai-create, sendspark-workflow
   const [baseVideo, setBaseVideo] = useState(null);
   const [contacts, setContacts] = useState([]);
   const [tokens, setTokens] = useState({});
@@ -25,7 +26,11 @@ const VideoPersonalizationHub = () => {
 
   // Available tabs based on selected mode
   const getTabsForMode = () => {
-    if (mode === 'ai-generated') {
+    if (mode === 'sendspark') {
+      return [
+        { id: 'sendspark-workflow', label: 'Sendspark Workflow', icon: 'sparkles' }
+      ];
+    } else if (mode === 'ai-generated') {
       return [
         { id: 'contacts', label: 'Import Contacts', icon: 'users' },
         { id: 'ai-create', label: 'Create AI Videos', icon: 'robot' }
@@ -214,6 +219,16 @@ const VideoPersonalizationHub = () => {
           </div>
         );
 
+      case 'sendspark-workflow':
+        return (
+          <div className="tab-content">
+            <SendsparkWorkflow
+              apiKey="" // API key should be passed from settings
+              onWorkflowComplete={handleVideoGenerationComplete}
+            />
+          </div>
+        );
+
       default:
         return null;
     }
@@ -223,14 +238,24 @@ const VideoPersonalizationHub = () => {
     <div className="video-personalization-hub">
       <div className="hub-sidebar">
         <div className="sidebar-header">
-          <h1 className="hub-title">Personalizer</h1>
-          <p className="hub-subtitle">Create personalized videos at scale like Sendspark</p>
+          <h1 className="hub-title">Video Personalizer</h1>
+          <p className="hub-subtitle">Sendspark-style video personalization platform</p>
         </div>
 
         {/* Mode Selector */}
         <div className="mode-selector">
           <h3 className="mode-title">Creation Mode</h3>
           <div className="mode-options">
+            <button
+              className={classnames('mode-btn', { 'active': mode === 'sendspark' })}
+              onClick={() => handleModeChange('sendspark')}
+            >
+              <div className="mode-icon">✨</div>
+              <div className="mode-info">
+                <h4>Sendspark Workflow (Recommended)</h4>
+                <p>Record once, personalize for each contact with voice cloning</p>
+              </div>
+            </button>
             <button
               className={classnames('mode-btn', { 'active': mode === 'overlay' })}
               onClick={() => handleModeChange('overlay')}
@@ -280,12 +305,28 @@ const VideoPersonalizationHub = () => {
         </div>
 
         <div className="sidebar-status">
-          <div className="status-item">
-            <span className={classnames('status-dot', { 'complete': contacts.length > 0 })}></span>
-            <span>Contacts</span>
-          </div>
+          {mode === 'sendspark' && (
+            <>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': baseVideo })}></span>
+                <span>Recording</span>
+              </div>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': contacts.length > 0 })}></span>
+                <span>Contacts</span>
+              </div>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': generatedVideos.length > 0 })}></span>
+                <span>Generated</span>
+              </div>
+            </>
+          )}
           {mode === 'overlay' && (
             <>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': contacts.length > 0 })}></span>
+                <span>Contacts</span>
+              </div>
               <div className="status-item">
                 <span className={classnames('status-dot', { 'complete': baseVideo })}></span>
                 <span>Base Video</span>
@@ -294,10 +335,18 @@ const VideoPersonalizationHub = () => {
                 <span className={classnames('status-dot', { 'complete': Object.keys(tokens).length > 0 })}></span>
                 <span>Tokens</span>
               </div>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': generatedVideos.length > 0 })}></span>
+                <span>Generated Videos</span>
+              </div>
             </>
           )}
           {mode === 'ai-generated' && (
             <>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': contacts.length > 0 })}></span>
+                <span>Contacts</span>
+              </div>
               <div className="status-item">
                 <span className={classnames('status-dot', { 'complete': true })}></span>
                 <span>AI Services</span>
@@ -306,12 +355,12 @@ const VideoPersonalizationHub = () => {
                 <span className={classnames('status-dot', { 'complete': true })}></span>
                 <span>Avatar & Voice</span>
               </div>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': generatedVideos.length > 0 })}></span>
+                <span>Generated Videos</span>
+              </div>
             </>
           )}
-          <div className="status-item">
-            <span className={classnames('status-dot', { 'complete': generatedVideos.length > 0 })}></span>
-            <span>Generated Videos</span>
-          </div>
         </div>
       </div>
 
