@@ -1,0 +1,247 @@
+{
+  "extends": "lighthouse:default",
+  "settings": {
+    "formFactor": "desktop",
+    "screenEmulation": {
+      "mobile": false,
+      "width": 1920,
+      "height": 1080,
+      "deviceScaleFactor": 1,
+      "disabled": false
+    },
+    "emulatedUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4595.0 Safari/537.36",
+    "throttling": {
+      "rttMs": 40,
+      "throughputKbps": 10240,
+      "cpuSlowdownMultiplier": 1
+    }
+  },
+  "passes": [
+    {
+      "passName": "defaultPass",
+      "recordTrace": true,
+      "useThrottling": true,
+      "pauseAfterLoadMs": 1000,
+      "networkQuietThresholdMs": 1000,
+      "cpuQuietThresholdMs": 1000,
+      "gatherers": [
+        "css-usage",
+        "js-usage",
+        "viewport-dimensions",
+        "runtime-exceptions",
+        "console-messages",
+        "anchor-elements",
+        "image-elements",
+        "link-elements",
+        "meta-elements",
+        "script-elements",
+        "iframe-elements",
+        "form-elements",
+        "list-items",
+        "input-elements",
+        "button-elements",
+        "video-elements",
+        "accessibility"
+      ]
+    }
+  ],
+  "audits": [
+    "accessibility",
+    "best-practices",
+    "performance",
+    "seo",
+    "pwa"
+  ],
+  "categories": {
+    "performance": {
+      "title": "Performance",
+      "description": "These encapsulate your web app's performance.",
+      "auditRefs": [
+        { "id": "largest-contentful-paint", "weight": 25 },
+        { "id": "interactive", "weight": 15 },
+        { "id": "speed-index", "weight": 15 },
+        { "id": "total-blocking-time", "weight": 25 },
+        { "id": "cumulative-layout-shift", "weight": 20 },
+        { "id": "first-contentful-paint", "weight": 0 },
+        { "id": "max-potential-fid", "weight": 0 },
+        { "id": "first-meaningful-paint", "weight": 0 }
+      ]
+    },
+    "accessibility": {
+      "title": "Accessibility",
+      "description": "These checks highlight opportunities to improve the accessibility of your web app.",
+      "manualDescription": "These items address areas which an automated testing tool cannot cover. Learn more in our guide on [conducting an accessibility review](https://developers.google.com/web/fundamentals/accessibility/how-to-review).",
+      "auditRefs": [
+        { "id": "accesskeys", "weight": 0, "group": "a11y-navigation" },
+        { "id": "aria-allowed-attr", "weight": 3, "group": "a11y-aria" },
+        { "id": "aria-hidden-body", "weight": 3, "group": "a11y-aria" },
+        { "id": "aria-hidden-focus", "weight": 3, "group": "a11y-aria" },
+        { "id": "aria-input-field-name", "weight": 3, "group": "a11y-aria" },
+        { "id": "aria-required-attr", "weight": 3, "group": "a11y-aria" },
+        { "id": "aria-required-children", "weight": 3, "group": "a11y-aria" },
+        { "id": "aria-required-parent", "weight": 3, "group": "a11y-aria" },
+        { "id": "aria-roles", "weight": 3, "group": "a11y-aria" },
+        { "id": "aria-toggle-field-name", "weight": 3, "group": "a11y-aria" },
+        { "id": "aria-valid-attr-value", "weight": 3, "group": "a11y-aria" },
+        { "id": "aria-valid-attr", "weight": 3, "group": "a11y-aria" },
+        { "id": "button-name", "weight": 3, "group": "a11y-names-labels" },
+        { "id": "bypass", "weight": 3, "group": "a11y-navigation" },
+        { "id": "color-contrast", "weight": 3, "group": "a11y-color-contrast" },
+        { "id": "definition-list", "weight": 3, "group": "a11y-tables-lists" },
+        { "id": "dlitem", "weight": 3, "group": "a11y-tables-lists" },
+        { "id": "document-title", "weight": 3, "group": "a11y-names-labels" },
+        { "id": "duplicate-id-active", "weight": 3, "group": "a11y-navigation" },
+        { "id": "duplicate-id-aria", "weight": 3, "group": "a11y-aria" },
+        { "id": "form-field-multiple-labels", "weight": 3, "group": "a11y-names-labels" },
+        { "id": "frame-title", "weight": 3, "group": "a11y-names-labels" },
+        { "id": "heading-order", "weight": 3, "group": "a11y-navigation" },
+        { "id": "html-has-lang", "weight": 3, "group": "a11y-language" },
+        { "id": "html-lang-valid", "weight": 3, "group": "a11y-language" },
+        { "id": "image-alt", "weight": 3, "group": "a11y-names-labels" },
+        { "id": "input-image-alt", "weight": 3, "group": "a11y-names-labels" },
+        { "id": "label", "weight": 3, "group": "a11y-names-labels" },
+        { "id": "link-name", "weight": 3, "group": "a11y-names-labels" },
+        { "id": "list", "weight": 3, "group": "a11y-tables-lists" },
+        { "id": "listitem", "weight": 3, "group": "a11y-tables-lists" },
+        { "id": "meta-viewport", "weight": 3, "group": "a11y-best-practices" },
+        { "id": "object-alt", "weight": 3, "group": "a11y-names-labels" },
+        { "id": "tabindex", "weight": 3, "group": "a11y-navigation" },
+        { "id": "td-has-header", "weight": 3, "group": "a11y-tables-lists" },
+        { "id": "th-has-data-cells", "weight": 3, "group": "a11y-tables-lists" },
+        { "id": "valid-lang", "weight": 0, "group": "a11y-language" },
+        { "id": "video-caption", "weight": 0, "group": "a11y-media" }
+      ]
+    },
+    "best-practices": {
+      "title": "Best Practices",
+      "description": "These encapsulate your web app's current best practices.",
+      "auditRefs": [
+        { "id": "errors-in-console", "weight": 0, "group": "best-practices-trust-safety" },
+        { "id": "geolocation-on-start", "weight": 0, "group": "best-practices-ux" },
+        { "id": "notification-on-start", "weight": 0, "group": "best-practices-ux" },
+        { "id": "no-document-write", "weight": 0, "group": "best-practices-ux" },
+        { "id": "no-vulnerable-libraries", "weight": 0, "group": "best-practices-trust-safety" },
+        { "id": "password-inputs-can-be-pasted-into", "weight": 0, "group": "best-practices-ux" },
+        { "id": "uses-http2", "weight": 0, "group": "best-practices-trust-safety" },
+        { "id": "uses-passive-event-listeners", "weight": 0, "group": "best-practices-ux" }
+      ]
+    },
+    "seo": {
+      "title": "SEO",
+      "description": "These checks ensure that your page is optimized for search engine results ranking.",
+      "auditRefs": [
+        { "id": "meta-description", "weight": 0, "group": "seo-meta" },
+        { "id": "http-status-code", "weight": 0, "group": "seo-crawl" },
+        { "id": "link-text", "weight": 0, "group": "seo-content" },
+        { "id": "crawlable-anchors", "weight": 0, "group": "seo-crawl" },
+        { "id": "is-crawlable", "weight": 0, "group": "seo-crawl" },
+        { "id": "robots-txt", "weight": 0, "group": "seo-crawl" },
+        { "id": "tap-targets", "weight": 0, "group": "seo-mobile" },
+        { "id": "font-size", "weight": 0, "group": "seo-content" },
+        { "id": "plugins", "weight": 0, "group": "seo-crawl" },
+        { "id": "viewport", "weight": 0, "group": "seo-mobile" }
+      ]
+    },
+    "pwa": {
+      "title": "Progressive Web App",
+      "description": "These checks validate the aspects of a Progressive Web App.",
+      "auditRefs": [
+        { "id": "webapp-install-banner", "weight": 0, "group": "pwa-installable" },
+        { "id": "service-worker", "weight": 0, "group": "pwa-optimized" },
+        { "id": "splash-screen", "weight": 0, "group": "pwa-installable" },
+        { "id": "themed-omnibox", "weight": 0, "group": "pwa-installable" },
+        { "id": "content-width", "weight": 0, "group": "pwa-optimized" },
+        { "id": "viewport", "weight": 0, "group": "pwa-optimized" }
+      ]
+    }
+  },
+  "groups": {
+    "metrics": {
+      "title": "Metrics"
+    },
+    "load-opportunities": {
+      "title": "Opportunities",
+      "description": "These suggestions can help your page load faster. They don't [directly affect](https://web.dev/performance-scoring/) the Performance score."
+    },
+    "budgets": {
+      "title": "Budgets",
+      "description": "Performance budgets set standards for the quantity and size of page resources."
+    },
+    "diagnostics": {
+      "title": "Diagnostics",
+      "description": "More information about the performance of your application."
+    },
+    "pwa-installable": {
+      "title": "PWA Optimized",
+      "description": "Required checks for installability."
+    },
+    "pwa-optimized": {
+      "title": "PWA Optimized",
+      "description": "Optional checks to improve installability."
+    },
+    "a11y-best-practices": {
+      "title": "Best Practices",
+      "description": "Additional accessibility checks."
+    },
+    "a11y-color-contrast": {
+      "title": "Color and Contrast",
+      "description": "These checks test the color and contrast of foreground and background elements."
+    },
+    "a11y-names-labels": {
+      "title": "Names and Labels",
+      "description": "These checks test the names and labels of elements."
+    },
+    "a11y-navigation": {
+      "title": "Navigation",
+      "description": "These checks test the navigation of the page."
+    },
+    "a11y-aria": {
+      "title": "ARIA",
+      "description": "These checks test the ARIA of the page."
+    },
+    "a11y-language": {
+      "title": "Language",
+      "description": "These checks test the language of the page."
+    },
+    "a11y-audio-video": {
+      "title": "Audio and Video",
+      "description": "These checks test the audio and video of the page."
+    },
+    "a11y-tables-lists": {
+      "title": "Tables and Lists",
+      "description": "These checks test the tables and lists of the page."
+    },
+    "seo-mobile": {
+      "title": "Mobile Friendly",
+      "description": "These checks test how mobile-friendly the page is."
+    },
+    "seo-content": {
+      "title": "Content Best Practices",
+      "description": "These checks test the content of the page."
+    },
+    "seo-crawl": {
+      "title": "Crawling and Indexing",
+      "description": "These checks test how easily search engines can crawl and index the page."
+    },
+    "seo-meta": {
+      "title": "Meta Tags",
+      "description": "These checks test the meta tags of the page."
+    },
+    "best-practices-trust-safety": {
+      "title": "Trust and Safety",
+      "description": "These checks test the trust and safety of the page."
+    },
+    "best-practices-ux": {
+      "title": "User Experience",
+      "description": "These checks test the user experience of the page."
+    },
+    "best-practices-browser-compat": {
+      "title": "Browser Compatibility",
+      "description": "These checks test the browser compatibility of the page."
+    },
+    "best-practices-general": {
+      "title": "General",
+      "description": "General best practice checks."
+    }
+  }
+}

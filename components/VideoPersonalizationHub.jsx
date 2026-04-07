@@ -15,6 +15,8 @@ import Sidebar from '../components/Sidebar';
 
 import PropTypes from '../lib/PropTypes';
 import { showError, showSuccess } from '../lib/services/alertService';
+import { initAnalytics, trackEvent, trackPageView } from '../lib/analytics';
+import { createPerformanceService } from '../lib/performance';
 
 const VideoPersonalizationHub = () => {
   const [mode, setMode] = useState('sendspark'); // 'sendspark', 'overlay', 'ai-generated', or 'landing-pages'
@@ -24,6 +26,25 @@ const VideoPersonalizationHub = () => {
   const [tokens, setTokens] = useState({});
   const [showContactImporter, setShowContactImporter] = useState(false);
   const [generatedVideos, setGeneratedVideos] = useState([]);
+  const [performanceService] = useState(() => createPerformanceService({
+    cacheEnabled: true,
+    compressionEnabled: true,
+    cdnEnabled: process.env.NEXT_PUBLIC_CDN_ENABLED === 'true',
+    cdnUrl: process.env.NEXT_PUBLIC_CDN_URL
+  }));
+
+  // Initialize analytics and performance services
+  useEffect(() => {
+    initAnalytics();
+    trackPageView('/personalize', 'Video Personalization Hub');
+
+    // Start performance monitoring
+    performanceService.startPerformanceMonitoring();
+    performanceService.monitorMemoryUsage();
+
+    // Register service worker for caching
+    performanceService.registerServiceWorker();
+  }, [performanceService]);
 
   // Available tabs based on selected mode
   const getTabsForMode = () => {
@@ -55,12 +76,18 @@ const VideoPersonalizationHub = () => {
   const handleVideoSelected = (video) => {
     setBaseVideo(video);
     showSuccess('Video uploaded successfully!');
+    trackEvent('video_uploaded', { mode, videoSize: video.size });
   };
 
   const handleContactsImported = (importedContacts) => {
+    // Cache the imported contacts for performance
+    const cacheKey = `contacts_${importedContacts.length}_${Date.now()}`;
+    performanceService.setCache(cacheKey, importedContacts, 3600000); // Cache for 1 hour
+
     setContacts(importedContacts);
     showSuccess(`Imported ${importedContacts.length} contacts`);
     setShowContactImporter(false);
+    trackEvent('contacts_imported', { count: importedContacts.length, mode, cached: true });
 
     // Auto-advance to tokens tab if video is already uploaded
     if (baseVideo) {
@@ -72,9 +99,25 @@ const VideoPersonalizationHub = () => {
     setTokens(updatedTokens);
   };
 
-  const handleVideoGenerationComplete = (videos) => {
-    setGeneratedVideos(videos);
-    showSuccess(`Generated ${videos.length} personalized videos!`);
+  const handleVideoGenerationComplete = async (videos) => {
+    // Optimize videos for performance
+    const optimizedVideos = await Promise.all(
+      videos.map(async (video) => {
+        if (video.blob) {
+          const optimized = await performanceService.optimizeVideo(video.blob, {
+            quality: 'medium',
+            maxWidth: 1280,
+            maxHeight: 720
+          });
+          return { ...video, optimized };
+        }
+        return video;
+      })
+    );
+
+    setGeneratedVideos(optimizedVideos);
+    showSuccess(`Generated and optimized ${optimizedVideos.length} personalized videos!`);
+    trackEvent('videos_generated', { count: optimizedVideos.length, mode, totalContacts: contacts.length, optimized: true });
   };
 
   const canProceedToPersonalize = () => {
@@ -82,6 +125,7 @@ const VideoPersonalizationHub = () => {
   };
 
   const handleModeChange = (newMode) => {
+    trackEvent('mode_changed', { fromMode: mode, toMode: newMode });
     setMode(newMode);
     setActiveTab('contacts'); // Reset to contacts tab when changing modes
     setBaseVideo(null); // Clear base video when switching modes
