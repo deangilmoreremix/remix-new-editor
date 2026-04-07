@@ -2,6 +2,7 @@
   "name": "video-personalization-demo",
   "version": "1.0.0",
   "description": "Video Personalization Feature Demo",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
@@ -40,7 +41,6 @@
     "grapesjs-custom-code": "^0.1.3",
     "grapesjs-parser-postcss": "^0.1.1",
     "grapesjs-typed": "^1.0.5",
-    "grapesjs-lory-slider": "^0.1.5",
     "mitt": "^3.0.0",
     "interactjs": "^1.10.17",
     "lodash": "^4.17.21",
