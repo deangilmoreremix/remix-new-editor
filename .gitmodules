@@ -1,3 +1,12 @@
-[submodule "superpowers"]
-	path = superpowers
-	url = https://github.com/deangilmoreremix/superpowers.git
+[submodule "modules/rendiv"]
+	path = modules/rendiv
+	url = https://github.com/deangilmoreremix/rendiv.git
+[submodule "modules/LTX-Desktop"]
+	path = modules/LTX-Desktop
+	url = https://github.com/deangilmoreremix/LTX-Desktop.git
+[submodule "modules/chatvideo-yucut"]
+	path = modules/chatvideo-yucut
+	url = https://github.com/laozuzhen/chatvideo-yucut.git
+[submodule "modules/CineGen"]
+	path = modules/CineGen
+	url = https://github.com/deangilmoreremix/CineGen.git

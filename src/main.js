@@ -1,104 +1,181 @@
-// Main entry point for the vanilla JS video personalization platform
-import Router from './lib/router.js';
-import App from './components/App.js';
-import { initAnalytics } from './lib/analytics.js';
-import { createPerformanceService } from './lib/performance.js';
-import VideoCreationEngine from './lib/VideoCreationEngine.js';
+import './style.css';
+import { Header } from './components/Header.js';
+import { Sidebar } from './components/Sidebar.js';
+import { initRouter, navigate } from './lib/router.js';
+import { perfMonitor } from './lib/performance.js';
+import { analytics } from './lib/analytics.js';
+import { showToast } from './lib/loading.js';
 
-// Initialize services
-const performanceService = createPerformanceService({
-  cacheEnabled: true,
-  compressionEnabled: true,
-  cdnEnabled: false, // Can be enabled via environment
-});
+console.log('[App] Starting initialization...');
 
-// Initialize analytics
-initAnalytics();
+// Track initialization performance
+const initStart = performance.now();
 
-// Initialize performance monitoring
-performanceService.startPerformanceMonitoring();
-performanceService.monitorMemoryUsage();
-
-// Global video creation engine instance
-let videoEngine = null;
-
-// Initialize the application
-document.addEventListener('DOMContentLoaded', () => {
-  const app = new App({
-    performanceService,
-    router: Router,
-    onComponentsReady: (components) => {
-      // Initialize video creation engine when components are ready
-      videoEngine = new VideoCreationEngine({
-        canvas: components.canvas,
-        timeline: components.timeline,
-        sidebar: components.sidebar,
-        analytics: window.analyticsService,
-        performance: performanceService,
-        onProgress: (progress) => {
-          console.log(`Video render progress: ${progress.toFixed(1)}%`);
-          // Update UI progress indicators
-          updateRenderProgress(progress);
-        },
-        onComplete: (videoBlob, contactData) => {
-          console.log('Video render completed!', videoBlob);
-          handleVideoComplete(videoBlob, contactData);
-        },
-        onError: (error) => {
-          console.error('Video render failed:', error);
-          handleVideoError(error);
-        }
-      });
-
-      // Make engine globally available
-      window.videoEngine = videoEngine;
-    }
-  });
-
-  app.init();
-});
-
-// Progress update handler
-function updateRenderProgress(progress) {
-  // Update progress bars in UI
-  const progressBars = document.querySelectorAll('.render-progress');
-  progressBars.forEach(bar => {
-    bar.style.width = `${progress}%`;
-    bar.textContent = `${progress.toFixed(1)}%`;
-  });
-
-  const progressTexts = document.querySelectorAll('.render-progress-text');
-  progressTexts.forEach(text => {
-    text.textContent = `Rendering video... ${progress.toFixed(1)}%`;
-  });
-}
-
-// Video completion handler
-function handleVideoComplete(videoBlob, contactData) {
-  // Create download link
-  const url = URL.createObjectURL(videoBlob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `personalized-video-${contactData.firstName || 'video'}.webm`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-
-  // Show success message
-  alert(`Video generated successfully for ${contactData.firstName || 'contact'}!`);
-
-  // Track analytics
-  if (window.analyticsService) {
-    window.analyticsService.trackEvent('video_downloaded', {
-      contactId: contactData.id,
-      fileSize: videoBlob.size
-    });
+// Global error handlers for uncaught exceptions
+window.addEventListener('error', (event) => {
+  console.error('[Global Error]', event.error);
+  
+  // Don't show error UI for known benign errors
+  if (event.message?.includes('ResizeObserver') || 
+      event.message?.includes('passive event listener') ||
+      event.message?.includes('non-passive')) {
+    return;
   }
+  
+  // Track error
+  analytics.trackError('uncaught_exception', event.message || 'Unknown error', {
+    filename: event.filename,
+    lineno: event.lineno
+  });
+  
+  // Show error toast notification instead of full page crash
+  showToast('Something went wrong. Please refresh the page.', 'error', 10000);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[Unhandled Promise Rejection]', event.reason);
+  
+  // Only show UI for significant errors (not API cancellations)
+  if (event.reason?.name === 'AbortError' || 
+      event.reason?.message?.includes('cancelled') ||
+      event.reason?.message?.includes('Request cancelled')) {
+    return;
+  }
+  
+  analytics.trackError('unhandled_rejection', event.reason?.message || String(event.reason));
+  showToast('An operation failed. Please try again.', 'error', 5000);
+});
+
+// Service worker registration for offline support (production)
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.log('[SW] Registration failed:', err);
+    });
+  });
 }
 
-// Error handler
-function handleVideoError(error) {
-  alert(`Video generation failed: ${error.message}`);
-  console.error('Video generation error:', error);
+// Visibility change handler - pause/resume operations when tab is hidden
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    // Page is hidden - pause non-essential operations
+    console.log('[App] Page hidden, pausing operations');
+  } else {
+    // Page is visible again
+    console.log('[App] Page visible, resuming operations');
+  }
+});
+
+// Online/offline detection
+window.addEventListener('online', () => {
+  showToast('Connection restored', 'success', 3000);
+});
+
+window.addEventListener('offline', () => {
+  showToast('You are offline. Some features may not work.', 'warning', 10000);
+});
+
+try {
+  const app = document.querySelector('#app');
+  if (!app) {
+    throw new Error('App container not found');
+  }
+
+  app.innerHTML = '';
+
+  const headerEl = Header((page) => navigate(page));
+  app.appendChild(headerEl);
+
+  const body = document.createElement('div');
+  body.className = 'flex flex-1';
+
+  const sidebar = Sidebar((page) => navigate(page));
+  body.appendChild(sidebar);
+
+  const contentArea = document.createElement('main');
+  contentArea.id = 'content-area';
+  contentArea.className = 'flex-1 relative w-full flex flex-col bg-app-bg';
+  body.appendChild(contentArea);
+
+  app.appendChild(body);
+
+  initRouter(contentArea, (page) => {
+    headerEl.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
+    sidebar.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
+  });
+
+  // Track initialization time
+  const initDuration = performance.now() - initStart;
+  perfMonitor.trackPageLoad('initialization', initDuration);
+  
+  console.log(`[App] Initialized in ${initDuration.toFixed(2)}ms`);
+  
+  // Navigate to initial page
+  // Check URL for deep linking
+  const path = window.location.pathname;
+  let initialPage = 'image';
+  
+  if (path === '/' || path === '') {
+    initialPage = 'image';
+  } else if (path.startsWith('/')) {
+    initialPage = path.slice(1);
+  }
+  
+  // Handle studio query param
+  const studioParam = new URLSearchParams(window.location.search).get('studio');
+  if (studioParam) {
+    initialPage = studioParam;
+  }
+  
+  console.log('[App] Navigating to initial page:', initialPage);
+  navigate(initialPage);
+  
+} catch (error) {
+  console.error('[App] Fatal initialization error:', error);
+  
+  // Track fatal error
+  analytics.trackError('fatal_init', error.message);
+  
+  document.body.innerHTML = `
+    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #000; color: #fff; flex-direction: column; padding: 20px; text-align: center;">
+      <div style="font-size: 48px; margin-bottom: 20px;">😕</div>
+      <h1 style="color: #ff4444; margin-bottom: 20px;">Application Error</h1>
+      <p style="color: #aaa; max-width: 600px; margin-bottom: 20px;">${escapeHtml(error.message)}</p>
+      <p style="color: #666; font-size: 12px; margin-bottom: 20px;">Please try refreshing the page. If the problem persists, clear your browser cache.</p>
+      <button onclick="location.reload()" style="padding: 12px 24px; background: #3b82f6; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold;">Reload Page</button>
+    </div>
+  `;
+}
+
+window.addEventListener('navigate', (e) => {
+  if (e.detail.page === 'settings') {
+    import('./components/SettingsModal.js').then(({ SettingsModal }) => {
+      document.body.appendChild(SettingsModal());
+    });
+  } else {
+    navigate(e.detail.page);
+  }
+});
+
+// Wrap navigate to add mobile menu cleanup - use a function wrapper instead of reassignment
+const wrapNavigate = (navigateFn) => {
+  return (page, params) => {
+    // Remove any existing mobile menu before navigation
+    const existingMobileMenu = document.querySelector('[data-mobile-menu]');
+    if (existingMobileMenu) {
+      existingMobileMenu.classList.add('opacity-0', 'pointer-events-none');
+      setTimeout(() => existingMobileMenu.remove(), 300);
+    }
+    return navigateFn(page, params);
+  };
+};
+
+// Note: The wrapper is applied inside initRouter in the router module
+// Expose navigate globally for debugging
+window.navigate = navigate;
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
 }

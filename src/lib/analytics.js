@@ -1,267 +1,169 @@
-// Analytics service for tracking video engagement and user behavior
-// Uses PostHog for event tracking and analytics - vanilla JS version
+/**
+ * Analytics and Event Tracking
+ * Lightweight analytics implementation (replace with your preferred analytics service)
+ */
 
-import posthog from 'posthog-js';
+// Event types for tracking
+const EVENT_TYPES = {
+    PAGE_VIEW: 'page_view',
+    GENERATION_START: 'generation_start',
+    GENERATION_COMPLETE: 'generation_complete',
+    GENERATION_ERROR: 'generation_error',
+    BUTTON_CLICK: 'button_click',
+    SETTINGS_CHANGE: 'settings_change',
+    ERROR: 'error'
+};
 
-class AnalyticsService {
-  constructor(apiKey, options = {}) {
-    this.apiKey = apiKey;
-    this.options = {
-      host: options.host || 'https://app.posthog.com',
-      loaded: false,
-      ...options
-    };
-
-    this.init();
-  }
-
-  // Initialize PostHog
-  init() {
-    if (typeof window !== 'undefined') {
-      // Load PostHog script
-      this.loadPostHog();
+class Analytics {
+    constructor() {
+        this.enabled = import.meta.env.VITE_ENABLE_ANALYTICS === 'true' && import.meta.env.PROD;
+        this.queue = [];
+        this.sessionId = this.generateSessionId();
+        this.sessionStart = Date.now();
+        this.userId = this.getUserId();
     }
-  }
 
-  // Load PostHog script dynamically
-  loadPostHog() {
-    if (this.options.loaded) return;
+    generateSessionId() {
+        return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
 
-    try {
-      // PostHog is imported at the top, so initialize directly
-      posthog.init(this.apiKey, {
-        api_host: this.options.host,
-        capture_pageview: true,
-        capture_pageleave: true,
-        persistence: 'localStorage',
-        loaded: () => {
-          this.options.loaded = true;
-          console.log('PostHog analytics initialized');
+    getUserId() {
+        // Use a hash of the API key or generate an anonymous ID
+        const key = localStorage.getItem('muapi_key');
+        if (key) {
+            let hash = 0;
+            for (let i = 0; i < key.length; i++) {
+                hash = ((hash << 5) - hash) + key.charCodeAt(i);
+                hash |= 0;
+            }
+            return `user_${Math.abs(hash).toString(36)}`;
         }
-      });
-
-      // Store reference for later use
-      this.posthog = posthog;
-    } catch (error) {
-      console.warn('Failed to load PostHog:', error);
+        return `anon_${Math.random().toString(36).substr(2, 9)}`;
     }
-  }
 
-  // Track video events
-  trackVideoEvent(eventType, properties = {}) {
-    if (!this.posthog) return;
+    track(eventType, properties = {}) {
+        if (!this.enabled) {
+            if (import.meta.env.DEV) {
+                console.log(`[Analytics] ${eventType}`, properties);
+            }
+            return;
+        }
 
-    const eventData = {
-      video_id: properties.videoId,
-      contact_id: properties.contactId,
-      campaign_id: properties.campaignId,
-      timestamp: new Date().toISOString(),
-      user_agent: navigator.userAgent,
-      ...properties
-    };
+        const event = {
+            type: eventType,
+            properties: {
+                ...properties,
+                url: window.location.pathname,
+                referrer: document.referrer,
+                userAgent: navigator.userAgent,
+                sessionId: this.sessionId,
+                userId: this.userId
+            },
+            timestamp: Date.now()
+        };
 
-    this.posthog.capture(`video_${eventType}`, eventData);
-  }
+        // Add to queue for batch sending
+        this.queue.push(event);
 
-  // Video-specific tracking methods
-  trackVideoPlay(videoId, contactId, metadata = {}) {
-    this.trackVideoEvent('play', {
-      videoId,
-      contactId,
-      ...metadata
-    });
-  }
+        // Flush if queue is large
+        if (this.queue.length >= 10) {
+            this.flush();
+        }
 
-  trackVideoPause(videoId, contactId, currentTime, metadata = {}) {
-    this.trackVideoEvent('pause', {
-      videoId,
-      contactId,
-      current_time: currentTime,
-      ...metadata
-    });
-  }
-
-  trackVideoComplete(videoId, contactId, watchTime, metadata = {}) {
-    this.trackVideoEvent('complete', {
-      videoId,
-      contactId,
-      watch_time: watchTime,
-      completion_rate: metadata.duration ? (watchTime / metadata.duration) * 100 : null,
-      ...metadata
-    });
-  }
-
-  trackVideoSeek(videoId, contactId, fromTime, toTime, metadata = {}) {
-    this.trackVideoEvent('seek', {
-      videoId,
-      contactId,
-      from_time: fromTime,
-      to_time: toTime,
-      seek_distance: Math.abs(toTime - fromTime),
-      ...metadata
-    });
-  }
-
-  // Landing page tracking
-  trackLandingPageView(pageId, contactId, campaignId, metadata = {}) {
-    if (!this.posthog) return;
-
-    this.posthog.capture('landing_page_view', {
-      page_id: pageId,
-      contact_id: contactId,
-      campaign_id: campaignId,
-      referrer: document.referrer,
-      user_agent: navigator.userAgent,
-      ...metadata
-    });
-  }
-
-  trackLandingPageCTA(pageId, contactId, ctaType, ctaText, destination, metadata = {}) {
-    if (!this.posthog) return;
-
-    this.posthog.capture('landing_page_cta_click', {
-      page_id: pageId,
-      contact_id: contactId,
-      cta_type: ctaType,
-      cta_text: ctaText,
-      destination,
-      ...metadata
-    });
-  }
-
-  // Campaign tracking
-  trackCampaignView(campaignId, contactId, source, metadata = {}) {
-    if (!this.posthog) return;
-
-    this.posthog.capture('campaign_view', {
-      campaign_id: campaignId,
-      contact_id: contactId,
-      source, // 'email', 'direct', 'social'
-      ...metadata
-    });
-  }
-
-  // User identification
-  identifyUser(userId, traits = {}) {
-    if (!this.posthog) return;
-
-    this.posthog.identify(userId, traits);
-  }
-
-  // Custom event tracking
-  trackEvent(eventName, properties = {}) {
-    if (!this.posthog) return;
-
-    this.posthog.capture(eventName, properties);
-  }
-
-  // Performance tracking
-  trackPerformance(metric, value, metadata = {}) {
-    if (!this.posthog) return;
-
-    this.posthog.capture('performance_metric', {
-      metric,
-      value,
-      timestamp: Date.now(),
-      ...metadata
-    });
-  }
-
-  // Error tracking
-  trackError(error, context = {}) {
-    if (!this.posthog) return;
-
-    this.posthog.capture('error', {
-      error_message: error.message,
-      error_stack: error.stack,
-      context,
-      timestamp: Date.now()
-    });
-  }
-
-  // Funnel analysis
-  trackFunnelStep(stepName, stepNumber, funnelName, metadata = {}) {
-    if (!this.posthog) return;
-
-    this.posthog.capture('funnel_step', {
-      step_name: stepName,
-      step_number: stepNumber,
-      funnel_name: funnelName,
-      ...metadata
-    });
-  }
-
-  // A/B testing
-  trackABTest(testName, variant, userId, metadata = {}) {
-    if (!this.posthog) return;
-
-    this.posthog.capture('ab_test', {
-      test_name: testName,
-      variant,
-      user_id: userId,
-      ...metadata
-    });
-  }
-
-  // Session tracking
-  startSession(metadata = {}) {
-    if (!this.posthog) return;
-
-    this.posthog.capture('session_start', {
-      session_id: this.generateSessionId(),
-      start_time: Date.now(),
-      ...metadata
-    });
-  }
-
-  endSession(sessionId, duration, metadata = {}) {
-    if (!this.posthog) return;
-
-    this.posthog.capture('session_end', {
-      session_id: sessionId,
-      duration,
-      end_time: Date.now(),
-      ...metadata
-    });
-  }
-
-  // Utility methods
-  generateSessionId() {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  // Check if analytics is enabled
-  isEnabled() {
-    return this.options.loaded && this.posthog;
-  }
-
-  // Disable tracking (GDPR compliance)
-  disable() {
-    if (this.posthog) {
-      this.posthog.opt_out_capturing();
+        // Development logging
+        if (import.meta.env.DEV) {
+            console.log(`[Analytics] ${eventType}`, properties);
+        }
     }
-  }
 
-  // Re-enable tracking
-  enable() {
-    if (this.posthog) {
-      this.posthog.opt_in_capturing();
+    // Flush queue to analytics endpoint
+    async flush() {
+        if (this.queue.length === 0) return;
+
+        const events = [...this.queue];
+        this.queue = [];
+
+        try {
+            // Replace with your analytics endpoint
+            // await fetch('/api/analytics', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ events })
+            // });
+            
+            // For now, just log in development
+            if (import.meta.env.DEV) {
+                console.log('[Analytics] Flushed events:', events);
+            }
+        } catch (error) {
+            // Re-add events to queue on failure
+            this.queue.unshift(...events);
+            console.error('[Analytics] Flush failed:', error);
+        }
     }
-  }
+
+    // Convenience methods
+    trackPageView(page) {
+        this.track(EVENT_TYPES.PAGE_VIEW, { page });
+    }
+
+    trackGeneration(model, type, params = {}) {
+        this.track(EVENT_TYPES.GENERATION_START, { model, type, ...params });
+    }
+
+    trackGenerationComplete(model, type, duration, success = true) {
+        this.track(EVENT_TYPES.GENERATION_COMPLETE, { 
+            model, 
+            type, 
+            duration,
+            success 
+        });
+    }
+
+    trackGenerationError(model, type, error) {
+        this.track(EVENT_TYPES.GENERATION_ERROR, { 
+            model, 
+            type, 
+            error: error.message || String(error) 
+        });
+    }
+
+    trackButtonClick(buttonId, page) {
+        this.track(EVENT_TYPES.BUTTON_CLICK, { buttonId, page });
+    }
+
+    trackError(errorType, message, context = {}) {
+        this.track(EVENT_TYPES.ERROR, { errorType, message, ...context });
+    }
+
+    // Session duration tracking
+    getSessionDuration() {
+        return Date.now() - this.sessionStart;
+    }
+
+    // Flush on page unload
+    sendBeacon() {
+        if (this.queue.length > 0 && navigator.sendBeacon) {
+            const data = JSON.stringify({ events: this.queue });
+            navigator.sendBeacon('/api/analytics', data);
+        }
+    }
 }
 
-// Factory function to create analytics service
-export function createAnalyticsService(apiKey, options = {}) {
-  return new AnalyticsService(apiKey, options);
-}
+export const analytics = new Analytics();
 
-// Initialize function for easy setup
-export function initAnalytics() {
-  // Create default analytics service
-  window.analyticsService = new AnalyticsService('phc_test_key', {
-    host: 'https://app.posthog.com'
-  });
-}
+// Listen for pageview events from router
+window.addEventListener('pageview', (e) => {
+    analytics.trackPageView(e.detail.page);
+});
 
-// Export default
-export default AnalyticsService;
+// Flush on page unload
+window.addEventListener('beforeunload', () => {
+    analytics.sendBeacon();
+});
+
+// Periodic flush every 30 seconds
+setInterval(() => analytics.flush(), 30000);
+
+// Export for manual tracking
+window.analytics = analytics;

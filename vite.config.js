@@ -1,22 +1,88 @@
 import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
+
+// Security headers middleware
+function securityHeaders() {
+    return {
+        name: 'security-headers',
+        configureServer(server) {
+            server.middlewares.use((req, res, next) => {
+                // Content Security Policy
+                res.setHeader(
+                    'Content-Security-Policy',
+                    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + "; media-src 'self' https: blob:;"
+                );
+                
+                // Prevent clickjacking
+                res.setHeader('X-Frame-Options', 'DENY');
+                
+                // Prevent MIME type sniffing
+                res.setHeader('X-Content-Type-Options', 'nosniff');
+                
+                // Enable XSS filter
+                res.setHeader('X-XSS-Protection', '1; mode=block');
+                
+                // Referrer Policy
+                res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+                
+                // Permissions Policy
+                res.setHeader(
+                    'Permissions-Policy',
+                    'camera=(), microphone=(), geolocation=()'
+                );
+                
+                next();
+            });
+        }
+    };
+}
 
 export default defineConfig({
-  root: '.',
-  publicDir: 'public',
-  server: {
-    port: 3000,
-    host: true,
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: true,
-    rollupOptions: {
-      input: {
-        main: './index.html',
-      },
+    plugins: [
+        tailwindcss(),
+        securityHeaders(),
+    ],
+    server: {
+        port: 3000,
+        proxy: {
+            '/api': {
+                target: process.env.VITE_MUAPI_URL || 'https://api.muapi.ai',
+                changeOrigin: true,
+                secure: true,
+                rewrite: (path) => path.replace(/^\/api/, '')
+            }
+        }
     },
-  },
-  optimizeDeps: {
-    include: ['axios', 'posthog-js', 'uuid', 'lodash', 'moment'],
-  },
+    build: {
+        target: 'esnext',
+        minify: 'terser',
+        terserOptions: {
+            compress: {
+                drop_console: true,
+                drop_debugger: true
+            }
+        },
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'vendor': ['@supabase/supabase-js'],
+                },
+                entryFileNames: 'assets/[name]-[hash].js',
+                chunkFileNames: 'assets/[name]-[hash].js',
+                assetFileNames: 'assets/[name]-[hash].[ext]'
+            }
+        },
+        sourcemap: process.env.NODE_ENV !== 'production',
+        chunkSizeWarningLimit: 1000
+    },
+    preview: {
+        port: 3000,
+        headers: {
+            'Cache-Control': 'public, max-age=31536000',
+            'X-Frame-Options': 'DENY',
+            'X-Content-Type-Options': 'nosniff',
+            'X-XSS-Protection': '1; mode=block',
+            'Referrer-Policy': 'strict-origin-when-cross-origin'
+        }
+    }
 });
