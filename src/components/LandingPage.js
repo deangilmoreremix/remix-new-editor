@@ -25,7 +25,8 @@ export default class LandingPage {
           </p>
 
           <div class="hero-buttons">
-            <a href="/personalize" class="btn-primary">Start Creating Videos</a>
+            <a href="/editor" class="btn-primary">Start Creating Videos</a>
+            <a href="/personalize" class="btn-secondary">Bulk Personalization</a>
             <a href="/open-higgsfield-demo" class="btn-secondary">View Demo</a>
           </div>
 

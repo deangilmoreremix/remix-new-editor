@@ -2,7 +2,7 @@
 // Handles video rendering, overlays, and interactive elements
 
 import Component from '../base/Component.js';
-import { createElementFromHTML, jsx } from '../../utils/jsx.js';
+import { createElementFromHTML } from '../../utils/jsx.js';
 
 export default class Canvas extends Component {
   constructor(props = {}) {

@@ -2,17 +2,20 @@
 import Router from '../lib/router.js';
 import LandingPage from './LandingPage.js';
 import PersonalizePage from './PersonalizePage.js';
+import VideoEditorPage from './VideoEditorPage.js';
 
 export default class App {
   constructor(options = {}) {
     this.performanceService = options.performanceService;
     this.router = options.router || Router;
+    this.onComponentsReady = options.onComponentsReady;
     this.currentPage = null;
     this.container = document.getElementById('app');
 
     this.routes = {
       '/': LandingPage,
       '/personalize': PersonalizePage,
+      '/editor': VideoEditorPage,
       '/open-higgsfield-demo': () => this.renderDemoPage(),
     };
 
@@ -45,10 +48,14 @@ export default class App {
 
       this.currentPage = new PageComponent({
         performanceService: this.performanceService,
-        router: this.router
+        router: this.router,
+        onComponentsReady: this.onComponentsReady
       });
 
       this.render();
+    } else {
+      // Default to landing page
+      this.navigate('/');
     }
   }
 
