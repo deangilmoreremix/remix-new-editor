@@ -2,12 +2,16 @@
   "name": "video-personalization-demo",
   "version": "1.0.0",
   "description": "Video Personalization Feature Demo",
-  "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
+    "dev": "NODE_OPTIONS='--openssl-legacy-provider' next dev",
+    "build": "NODE_OPTIONS='--openssl-legacy-provider' next build",
+    "start": "NODE_OPTIONS='--openssl-legacy-provider' next start",
+    "dev:legacy": "next dev",
+    "build:legacy": "next build",
+    "start:legacy": "next start",
+    "verify": "node verify-deployment.js",
+    "deploy:check": "npm run build && npm run verify"
   },
   "dependencies": {
     "next": "^10.0.1",
