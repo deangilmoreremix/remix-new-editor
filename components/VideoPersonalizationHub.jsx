@@ -10,14 +10,15 @@ import VideoPersonalizer from '../components/VideoPersonalizer';
 import TokenEditor from '../components/TokenEditor';
 import AIVideoCreator from '../components/AIVideoCreator';
 import SendsparkWorkflow from '../components/SendsparkWorkflow';
+import EnhancedLandingPageBuilder from '../components/EnhancedLandingPageBuilder';
 import Sidebar from '../components/Sidebar';
 
 import PropTypes from '../lib/PropTypes';
 import { showError, showSuccess } from '../lib/services/alertService';
 
 const VideoPersonalizationHub = () => {
-  const [mode, setMode] = useState('sendspark'); // 'sendspark', 'overlay', or 'ai-generated'
-  const [activeTab, setActiveTab] = useState('contacts'); // contacts, overlay-upload, overlay-tokens, overlay-personalize, ai-create, sendspark-workflow
+  const [mode, setMode] = useState('sendspark'); // 'sendspark', 'overlay', 'ai-generated', or 'landing-pages'
+  const [activeTab, setActiveTab] = useState('contacts'); // contacts, overlay-upload, overlay-tokens, overlay-personalize, ai-create, sendspark-workflow, landing-builder
   const [baseVideo, setBaseVideo] = useState(null);
   const [contacts, setContacts] = useState([]);
   const [tokens, setTokens] = useState({});
@@ -29,6 +30,10 @@ const VideoPersonalizationHub = () => {
     if (mode === 'sendspark') {
       return [
         { id: 'sendspark-workflow', label: 'Sendspark Workflow', icon: 'sparkles' }
+      ];
+    } else if (mode === 'landing-pages') {
+      return [
+        { id: 'landing-builder', label: 'Landing Page Builder', icon: 'globe' }
       ];
     } else if (mode === 'ai-generated') {
       return [
@@ -229,6 +234,22 @@ const VideoPersonalizationHub = () => {
           </div>
         );
 
+      case 'landing-builder':
+        return (
+          <div className="tab-content">
+            <EnhancedLandingPageBuilder
+              video={baseVideo}
+              contact={contacts.length > 0 ? contacts[0] : {}}
+              onLandingPageCreated={(pageData) => {
+                showSuccess('Landing page created successfully!');
+                console.log('Landing page created:', pageData);
+                // Here you could save the page data to a database
+                // or show a preview modal
+              }}
+            />
+          </div>
+        );
+
       default:
         return null;
     }
@@ -274,6 +295,16 @@ const VideoPersonalizationHub = () => {
               <div className="mode-info">
                 <h4>AI Video Generation</h4>
                 <p>Create videos from scratch with AI avatars</p>
+              </div>
+            </button>
+            <button
+              className={classnames('mode-btn', { 'active': mode === 'landing-pages' })}
+              onClick={() => handleModeChange('landing-pages')}
+            >
+              <div className="mode-icon">🌐</div>
+              <div className="mode-info">
+                <h4>Landing Page Builder</h4>
+                <p>Create professional pages for your personalized videos</p>
               </div>
             </button>
           </div>
@@ -358,6 +389,26 @@ const VideoPersonalizationHub = () => {
               <div className="status-item">
                 <span className={classnames('status-dot', { 'complete': generatedVideos.length > 0 })}></span>
                 <span>Generated Videos</span>
+              </div>
+            </>
+          )}
+          {mode === 'landing-pages' && (
+            <>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': baseVideo })}></span>
+                <span>Video</span>
+              </div>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': contacts.length > 0 })}></span>
+                <span>Contact</span>
+              </div>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': true })}></span>
+                <span>GrapesJS Editor</span>
+              </div>
+              <div className="status-item">
+                <span className={classnames('status-dot', { 'complete': false })}></span>
+                <span>Landing Page</span>
               </div>
             </>
           )}
