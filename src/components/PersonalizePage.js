@@ -1,4 +1,6 @@
 // Personalize Page component - vanilla JS version
+import ContactImporterModal from './ContactImporterModal.js';
+
 export default class PersonalizePage {
   constructor(options = {}) {
     this.performanceService = options.performanceService;
@@ -7,6 +9,10 @@ export default class PersonalizePage {
     this.activeTab = 'contacts';
     this.contacts = [];
     this.generatedVideos = [];
+    this.contactImporterModal = new ContactImporterModal({
+      onClose: () => this.closeContactImporter(),
+      onContactsImported: (contacts) => this.handleContactsImported(contacts)
+    });
   }
 
   render() {
@@ -48,16 +54,13 @@ export default class PersonalizePage {
               </div>
 
               <div class="contacts-content">
-                <div class="upload-area">
-                  <div class="upload-icon">📁</div>
-                  <h3>Upload Contacts CSV</h3>
-                  <p>Drag and drop your CSV file here, or click to browse</p>
-                  <input type="file" id="contacts-file" accept=".csv" style="display: none;">
-                  <button class="btn-upload" onclick="document.getElementById('contacts-file').click()">Browse Files</button>
+                <div class="contacts-actions">
+                  <button class="btn btn-primary" onclick="this.contactImporterModal.show()">Import Contacts</button>
+                  ${this.contacts.length > 0 ? `<button class="btn btn-secondary" onclick="this.clearContacts()">Clear Contacts</button>` : ''}
                 </div>
 
                 <div class="contacts-list" id="contacts-list">
-                  <p class="empty-state">No contacts imported yet. Upload a CSV file to get started.</p>
+                  <p class="empty-state">No contacts imported yet. Click "Import Contacts" to get started.</p>
                 </div>
               </div>
             </div>
@@ -128,17 +131,59 @@ export default class PersonalizePage {
       });
     });
 
-    // File upload
-    const fileInput = this.container.querySelector('#contacts-file');
-    fileInput.addEventListener('change', (e) => {
-      this.handleFileUpload(e.target.files[0]);
-    });
+    this.attachDynamicEventListeners();
+  }
+
+  // Attach event listeners for dynamically created elements
+  attachDynamicEventListeners() {
+    // Import contacts button
+    const importBtn = this.container.querySelector('.contacts-actions .btn-primary');
+    if (importBtn) {
+      importBtn.addEventListener('click', () => {
+        this.contactImporterModal.show();
+      });
+    }
+
+    // Clear contacts button
+    const clearBtn = this.container.querySelector('.contacts-actions .btn-secondary');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        this.clearContacts();
+      });
+    }
 
     // Generate videos button
     const generateBtn = this.container.querySelector('.btn-generate');
-    generateBtn.addEventListener('click', () => {
-      this.generateVideos();
-    });
+    if (generateBtn) {
+      generateBtn.addEventListener('click', () => {
+        this.generateVideos();
+      });
+    }
+  }
+
+  // Render contacts tab (for re-rendering after contact import)
+  renderContactsTab() {
+    const contactsTab = this.container.querySelector('#contacts-tab .contacts-content');
+    if (contactsTab) {
+      contactsTab.innerHTML = `
+        <div class="contacts-actions">
+          <button class="btn btn-primary">Import Contacts</button>
+          ${this.contacts.length > 0 ? `<button class="btn btn-secondary">Clear Contacts</button>` : ''}
+        </div>
+
+        <div class="contacts-list" id="contacts-list">
+          <p class="empty-state">No contacts imported yet. Click "Import Contacts" to get started.</p>
+        </div>
+      `;
+
+      // Update contacts list if we have contacts
+      if (this.contacts.length > 0) {
+        this.updateContactsList();
+      }
+
+      // Re-attach event listeners
+      this.attachDynamicEventListeners();
+    }
   }
 
   switchTab(tabId) {
@@ -277,6 +322,62 @@ export default class PersonalizePage {
   showGenerationResults() {
     // This would show download links, preview videos, etc.
     console.log('Video generation completed');
+  }
+
+  // Handle contacts imported from modal
+  handleContactsImported(contacts) {
+    this.contacts = contacts;
+    this.updateContactsList();
+
+    // Re-render the contacts tab to show the clear button
+    this.renderContactsTab();
+
+    // Track analytics
+    if (window.analyticsService) {
+      window.analyticsService.trackEvent('contacts_imported', { count: contacts.length });
+    }
+
+    alert(`Successfully imported ${contacts.length} contacts!`);
+  }
+
+  // Close contact importer modal
+  closeContactImporter() {
+    // Modal handles its own closing
+  }
+
+  // Clear all contacts
+  clearContacts() {
+    if (confirm('Are you sure you want to clear all contacts?')) {
+      this.contacts = [];
+      this.updateContactsList();
+    }
+  }
+
+  // Update contacts display
+  updateContactsList() {
+    const contactsList = this.container.querySelector('#contacts-list');
+
+    if (this.contacts.length === 0) {
+      contactsList.innerHTML = '<p class="empty-state">No contacts imported yet. Click "Import Contacts" to get started.</p>';
+      return;
+    }
+
+    const contactsHTML = `
+      <div class="contacts-summary">
+        <h4>${this.contacts.length} Contacts Imported</h4>
+        <div class="contacts-preview">
+          ${this.contacts.slice(0, 5).map(contact => `
+            <div class="contact-item">
+              <span>${contact.firstName || contact.name || 'N/A'} ${contact.lastName || ''}</span>
+              <span>${contact.email || 'N/A'}</span>
+            </div>
+          `).join('')}
+          ${this.contacts.length > 5 ? `<p>...and ${this.contacts.length - 5} more</p>` : ''}
+        </div>
+      </div>
+    `;
+
+    contactsList.innerHTML = contactsHTML;
   }
 
   destroy() {
