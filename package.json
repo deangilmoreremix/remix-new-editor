@@ -12,14 +12,16 @@
       "pre-push": "npm run eslint"
     }
   },
+  "type": "module",
   "scripts": {
-    "dev": "node runner.js",
-    "build": "next build && next export",
-    "eslint": "eslint --ext .js,.jsx .",
-    "export": "cross-env NODE_ENV=production next export",
-    "postinstall": "npm run build",
-    "start": "cross-env NODE_ENV=production node runner.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src/**/*.js --ext .js",
+    "test": "echo \"No tests yet\"",
+    "next:dev": "node runner.js",
+    "next:build": "next build && next export",
+    "next:start": "cross-env NODE_ENV=production node runner.js"
   },
   "keywords": [],
   "author": "Digital Strategies",
@@ -29,6 +31,7 @@
     "isomorphic-fetch": false
   },
   "dependencies": {
+    "papaparse": "^5.4.1",
     "@giphy/js-fetch-api": "1.6.0",
     "@google-cloud/text-to-speech": "3.1.3",
     "@material-ui/core": "4.9.10",
@@ -169,6 +172,9 @@
     "yup": "0.32.9"
   },
   "devDependencies": {
+    "vite": "^5.4.10",
+    "@vitejs/plugin-legacy": "^5.4.2",
+    "eslint": "^8.57.0",
     "@babel/plugin-proposal-class-properties": "7.8.3",
     "@babel/plugin-proposal-decorators": "7.8.3",
     "babel-eslint": "10.0.3",
