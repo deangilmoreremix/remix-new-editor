@@ -1,23 +1,44 @@
-import * as React from 'react';
-import { observer } from 'mobx-react';
+import classnames from 'classnames';
+import Component from '../../base/Component';
 
-import useProjectStore from '../../hooks/useProjectStore';
-import FormCheckboxField from '../../form/FormCheckboxField';
+export class SetAsDefaultCheckbox extends Component {
+  constructor(props = {}) {
+    super(props);
+    this.handleChange = this.handleChange.bind(this);
+  }
 
+  get value() {
+    const { store, element } = this.props;
+    const { pluginDefaults, activeElementId } = store || {};
+    return pluginDefaults && element ? pluginDefaults[element.type].id === activeElementId : false;
+  }
 
-const SetAsDefaultCheckbox = observer(({ floatClassName }) => {
-  const { pluginDefaults, element, activeElementId, setAsDefault } = useProjectStore();
-  const value = React.useMemo(() => pluginDefaults[element.type].id === activeElementId,
-    [activeElementId, pluginDefaults[element.type].id]);
+  handleChange() {
+    const { store } = this.props;
+    const { setAsDefault } = store || {};
+    if (setAsDefault) {
+      setAsDefault(this.value);
+    }
+  }
 
-  return (
-    <FormCheckboxField
-      value={value}
-      label="Set as Default"
-      onChange={() => setAsDefault(value)}
-      floatClassName={floatClassName}
-    />
-  );
-});
+  render() {
+    const { floatClassName } = this.props;
+    const container = document.createElement('div');
+    container.className = classnames('checkbox-field', floatClassName);
+
+    const label = document.createElement('label');
+    label.textContent = 'Set as Default';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = this.value;
+    checkbox.addEventListener('change', this.handleChange);
+
+    label.appendChild(checkbox);
+    container.appendChild(label);
+
+    return container;
+  }
+}
 
 export default SetAsDefaultCheckbox;

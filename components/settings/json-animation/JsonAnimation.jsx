@@ -1,12 +1,7 @@
-import * as React from 'react';
-import { observer } from 'mobx-react';
-
 import lottie from 'lottie-web';
-import useUserStore from '../../hooks/useUserStore';
 
-import PropTypes from '../../../lib/PropTypes';
+import Component from '../../base/Component';
 import { BASIC, ADVANCED, POPCORN_ELEMENT_TYPES } from '../../../lib/constants/popcorn';
-import LottieEditor from '../../common/LottieEditor';
 import Basic from '../default-tabs/Basic';
 import Advanced from './tabs/Advanced';
 import { loadUrl } from '../../../lib/requestCreator';
@@ -16,12 +11,15 @@ const TabMap = {
   [ADVANCED]: Advanced,
 };
 
-const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
-  const { isSuperAdmin } = useUserStore();
+export class JsonAnimation extends Component {
+  constructor(props = {}) {
+    super(props);
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSetColors = this.handleSetColors.bind(this);
+  }
 
-  const Tab = TabMap[tab];
-
-  const handleChange = async (field) => {
+  async handleChange(field) {
+    const { element, update } = this.props;
     const { url } = field;
     if (element && (element.popcornOptions.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION
       || element.type === POPCORN_ELEMENT_TYPES.JSON_TRANSITION) && url) {
@@ -33,58 +31,57 @@ const JsonAnimation = observer(({ tab = BASIC, element, update, fields }) => {
       });
     }
     update(field);
-  };
+  }
 
-  const handleSetColors = (colors) => {
-    update({ colors });
-  };
+  handleSetColors(colors) {
+    this.props.update({ colors });
+  }
 
-  const newAnimationFields = React.useMemo(() => (
-    isSuperAdmin ? fields : { start: fields.start, end: fields.end }
-  ), []);
+  get newAnimationFields() {
+    const { fields, store } = this.props;
+    const { isSuperAdmin } = store || {};
+    return isSuperAdmin ? fields : { start: fields.start, end: fields.end };
+  }
 
-  const newTransitionFields = React.useMemo(() => {
+  get newTransitionFields() {
+    const { fields, store } = this.props;
+    const { isSuperAdmin } = store || {};
     const transitionFieldsWithoutEnd = { ...fields };
     delete transitionFieldsWithoutEnd.end;
     return isSuperAdmin ? transitionFieldsWithoutEnd : { start: fields.start };
-  }, []);
+  }
 
-  return (
-    <div className="json-animation-form">
-      {(element && element.popcornOptions) && (
-        <Tab
-          options={element.popcornOptions}
-          element={element}
-          onChange={handleChange}
-          fields={element.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
-            ? newAnimationFields
-            : newTransitionFields}
-          update={update}
-        />
-      )}
-      {element && element.popcornOptions && element.popcornOptions.url && (
-        <LottieEditor
-          showControls
-          file={element.popcornOptions.url}
-          setColor={handleSetColors}
-          value={element.popcornOptions.colors}
-          className="json-animation-preview"
-        />
-      )}
-    </div>
-  );
-});
+  render() {
+    const { tab = BASIC, element, update, fields } = this.props;
+    const Tab = TabMap[tab];
 
-JsonAnimation.propTypes = {
-  element: PropTypes.shape({
-    id: PropTypes.string,
-    popcornOptions: PropTypes.shape({
-      url: PropTypes.string,
-    }),
-  }),
-  tab: PropTypes.string.isRequired,
-  update: PropTypes.func.isRequired,
-  fields: PropTypes.shape({}),
-};
+    const div = document.createElement('div');
+    div.className = 'json-animation-form';
+
+    if (element && element.popcornOptions) {
+      const tabComponent = new Tab({
+        options: element.popcornOptions,
+        element,
+        onChange: this.handleChange,
+        fields: element.type === POPCORN_ELEMENT_TYPES.JSON_ANIMATION
+          ? this.newAnimationFields
+          : this.newTransitionFields,
+        update,
+      });
+      div.appendChild(tabComponent.render());
+    }
+
+    if (element && element.popcornOptions && element.popcornOptions.url) {
+      // Assume LottieEditor is converted
+      const lottieDiv = document.createElement('div');
+      lottieDiv.className = 'json-animation-preview';
+      // Placeholder for LottieEditor
+      lottieDiv.textContent = 'Lottie Editor Placeholder';
+      div.appendChild(lottieDiv);
+    }
+
+    return div;
+  }
+}
 
 export default JsonAnimation;

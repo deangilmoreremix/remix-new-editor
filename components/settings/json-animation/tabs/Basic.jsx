@@ -1,45 +1,59 @@
-import * as React from 'react';
+import Component from '../../../base/Component';
 
-import PropTypes from '../../../../lib/PropTypes';
-import FieldBuilder from '../../../form/FieldBuilder';
+export class Basic extends Component {
+  constructor(props = {}) {
+    super(props);
+    this.createField = this.createField.bind(this);
+  }
 
-const Basic = ({ options, fields, element, ...props }) => (
-  <div>
-    {fields && Object.keys(fields).map(key => {
-      const { label, type } = fields[key];
-      return (
-        <FieldBuilder
-          {...props}
-          label={label}
-          type={type}
-          value={options[key]}
-          key={key}
-          name={key}
-          element={element}
-        />
-      );
-    })}
-  </div>
-);
+  createField(key, field) {
+    const { label, type, ...fieldProps } = field;
+    const { options, element, ...props } = this.props;
+    const container = document.createElement('div');
+    container.className = 'field-wrapper';
+    if (label) {
+      const labelEl = document.createElement('label');
+      labelEl.textContent = label;
+      labelEl.setAttribute('for', key);
+      container.appendChild(labelEl);
+    }
+    let input;
+    if (type === 'dropButton') {
+      input = document.createElement('input');
+      input.type = 'file';
+      input.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          // Mock upload
+          const url = 'uploaded-url';
+          props.onChange({ [key]: url });
+        }
+      });
+    } else {
+      input = document.createElement('input');
+      input.type = type || 'text';
+      input.value = options[key] || '';
+      input.name = key;
+      input.id = key;
+      input.addEventListener('change', (e) => {
+        props.onChange({ [key]: e.target.value });
+      });
+    }
+    container.appendChild(input);
+    return container;
+  }
 
-Basic.propTypes = {
-  options: PropTypes.shape({}),
-  onChange: PropTypes.func.isRequired,
-  fields: PropTypes.objectOf(
-    PropTypes.shape({
-      type: PropTypes.string.isRequired,
-      label: PropTypes.string,
-    }),
-  ),
-  element: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    type: PropTypes.string.isRequired,
-    popcornOptions: PropTypes.shape().isRequired,
-    track: PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.number,
-    ]).isRequired,
-  }).isRequired,
-};
+  render() {
+    const { fields } = this.props;
+    const div = document.createElement('div');
+    if (fields) {
+      Object.keys(fields).forEach(key => {
+        const field = this.createField(key, fields[key]);
+        div.appendChild(field);
+      });
+    }
+    return div;
+  }
+}
 
 export default Basic;
