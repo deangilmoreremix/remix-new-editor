@@ -46,6 +46,7 @@ export class PopcornElements extends Component {
     this.onItemContextClick = this.onItemContextClick.bind(this);
     this.handleInteraction = this.handleInteraction.bind(this);
     this.onDropElement = this.onDropElement.bind(this);
+    this.handleElementChange = this.handleElementChange.bind(this);
   }
 
   componentDidMount() {
@@ -305,6 +306,13 @@ export class PopcornElements extends Component {
     action(data);
   }
 
+  handleElementChange(elementId, changes) {
+    this.projectStore.updateElementFromTimeline({
+      elementId,
+      ...changes,
+    });
+  }
+
   render() {
     const { layers, elements, duration: cols, activeElementId } = this.projectStore;
     const { timelineSelectedItems } = this.timelineStore;
@@ -379,7 +387,12 @@ export class PopcornElements extends Component {
         span.className = classnames('timeline-grid-item', item.type);
         Object.assign(span, props);
 
-        const popcornElement = new PopcornElement({ item });
+        const popcornElement = new PopcornElement({
+          item,
+          onChange: this.handleElementChange.bind(this, item.i),
+          fields: this.props.fields || {},
+          element: item,
+        });
         span.appendChild(popcornElement.render());
 
         if (transitionButtons && transitionButtons.length) {
