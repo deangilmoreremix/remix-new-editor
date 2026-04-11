@@ -3,10 +3,50 @@ import { observer } from 'mobx-react';
 import { Provider } from 'mobx-react';
 import VideoTransitionSettings from '../../components/settings/video-transition-settings/VideoTransitionSettings';
 import OverlayListTransitions from '../../components/media/OverlayListTransitions';
+import useTimelineStore from '../../components/hooks/useTimelineStore';
 
+/**
+ * TimelineEditorPage - Enhanced with deep timeline store integration
+ * Single source of truth for all timeline state
+ */
 export const TimelineEditorPage = observer(() => {
+  // Use enhanced timeline store hook
+  const {
+    // Playback state
+    playback,
+    setPlaying,
+    togglePlayback,
+    setCurrentTime,
+    setPlaybackRate,
+    toggleLoop,
+    
+    // Zoom state
+    zoom,
+    setZoom,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    
+    // Selection
+    timelineSelectedItems,
+    addToSelection,
+    removeFromSelection,
+    clearSelection,
+    
+    // Element editing
+    setElementEditingState,
+    syncElementState,
+    
+    // Undo/Redo
+    undo,
+    redo,
+  } = useTimelineStore();
+
   // State for timeline editor
   const [selectedTransitionElement, setSelectedTransitionElement] = React.useState(null);
+  const [playheadPercent, setPlayheadPercent] = React.useState(32);
+  const [selectedTool, setSelectedTool] = React.useState('Select');
+  
   const [timelineState, setTimelineState] = React.useState({
     tracks: [
       { id: 'video-1', name: 'Video', muted: false, solo: false, locked: true, clips: [
@@ -35,8 +75,6 @@ export const TimelineEditorPage = observer(() => {
     }]
   });
 
-  const [playheadPercent, setPlayheadPercent] = React.useState(32);
-  const [selectedTool, setSelectedTool] = React.useState('Select');
   const [overlayTransitions, setOverlayTransitions] = React.useState([
     {
       id: 'overlay-1',
@@ -53,7 +91,18 @@ export const TimelineEditorPage = observer(() => {
       thumbnail: 'wipe.jpg'
     }
   ]);
-  const [selectedClips, setSelectedClips] = React.useState([]);
+
+  // Sync timeline elements with store
+  React.useEffect(() => {
+    timelineState.tracks.forEach(track => {
+      track.clips.forEach(clip => {
+        syncElementState?.({
+          id: clip.id,
+          ...clip,
+        });
+      });
+    });
+  }, [timelineState, syncElementState]);
 
   // Handler for overlay transition selection
   const handleTransitionSelect = React.useCallback((transition) => {
@@ -166,6 +215,70 @@ export const TimelineEditorPage = observer(() => {
     }
   };
 
+  // Playback control handlers
+  const handlePlayPause = React.useCallback(() => {
+    togglePlayback?.();
+  }, [togglePlayback]);
+
+  const handleStop = React.useCallback(() => {
+    setPlaying?.(false);
+    setCurrentTime?.(0);
+  }, [setPlaying, setCurrentTime]);
+
+  const handleSeek = React.useCallback((percent) => {
+    setPlayheadPercent(percent);
+    const totalTime = 60; // Assuming 60 seconds total
+    setCurrentTime?.((percent / 100) * totalTime);
+  }, [setCurrentTime]);
+
+  // Zoom handlers
+  const handleZoomIn = React.useCallback(() => {
+    zoomIn?.();
+  }, [zoomIn]);
+
+  const handleZoomOut = React.useCallback(() => {
+    zoomOut?.();
+  }, [zoomOut]);
+
+  const handleZoomReset = React.useCallback(() => {
+    resetZoom?.();
+  }, [resetZoom]);
+
+  // Clip selection handler
+  const handleClipClick = React.useCallback((clip, e) => {
+    if (e.ctrlKey || e.metaKey) {
+      if (timelineSelectedItems?.includes(clip.id)) {
+        removeFromSelection?.(clip.id);
+      } else {
+        addToSelection?.(clip.id);
+      }
+    } else {
+      clearSelection?.();
+      addToSelection?.(clip.id);
+    }
+    
+    // If this is a transition between clips, select it
+    if (clip.type === 'transition') {
+      setSelectedTransitionElement({
+        id: clip.id,
+        popcornOptions: {
+          kind: clip.transitionType || 'fade',
+          start: clip.start,
+          end: clip.end,
+          from: clip.fromClip,
+          to: clip.toClip,
+          fromUrl: clip.fromUrl,
+          toUrl: clip.toUrl,
+          width: 400,
+          height: 300
+        }
+      });
+      setElementEditingState?.(clip.id, { isEditing: true, mode: 'transition' });
+    } else {
+      setElementEditingState?.(clip.id, { isEditing: true, mode: 'clip' });
+    }
+  }, [addToSelection, removeFromSelection, clearSelection, timelineSelectedItems, setElementEditingState]);
+
   return (
     <div className="timeline-editor-container" style={{
       width: '100%',
@@ -213,12 +326,63 @@ export const TimelineEditorPage = observer(() => {
             <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '.25em', color: 'rgba(255,255,255,0.4)' }}>AI Video Editor</div>
           </div>
         </div>
+        
+        {/* Zoom Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
+            Zoom: {Math.round((zoom || 1) * 100)}%
+          </span>
+          <button onClick={handleZoomOut} style={{
+            padding: '8px 12px',
+            borderRadius: '8px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'rgba(255,255,255,0.05)',
+            color: 'white',
+            cursor: 'pointer'
+          }}>-</button>
+          <button onClick={handleZoomReset} style={{
+            padding: '8px 12px',
+            borderRadius: '8px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'rgba(255,255,255,0.05)',
+            color: 'white',
+            cursor: 'pointer'
+          }}>⟲</button>
+          <button onClick={handleZoomIn} style={{
+            padding: '8px 12px',
+            borderRadius: '8px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'rgba(255,255,255,0.05)',
+            color: 'white',
+            cursor: 'pointer'
+          }}>+</button>
+        </div>
+        
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '16px', fontWeight: '700' }}>Untitled Project</div>
-          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>Working timeline preview</div>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+            {timelineSelectedItems?.length > 0 ? `${timelineSelectedItems.length} items selected` : 'Working timeline preview'}
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '420px' }}>
-          {/* Top actions */}
+        
+        {/* Undo/Redo Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button onClick={undo} style={{
+            padding: '8px 12px',
+            borderRadius: '8px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'rgba(255,255,255,0.05)',
+            color: 'white',
+            cursor: 'pointer'
+          }}>↶ Undo</button>
+          <button onClick={redo} style={{
+            padding: '8px 12px',
+            borderRadius: '8px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            background: 'rgba(255,255,255,0.05)',
+            color: 'white',
+            cursor: 'pointer'
+          }}>↷ Redo</button>
         </div>
       </header>
 
@@ -271,7 +435,7 @@ export const TimelineEditorPage = observer(() => {
               background: 'linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.2), transparent)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
-                <span>00:12.40</span>
+                <span>{formatTime(playback?.currentTime || 0)}</span>
                 <span>01:00.00</span>
               </div>
               <div style={{ height: '6px', borderRadius: '999px', background: 'rgba(255,255,255,0.2)', overflow: 'hidden', marginBottom: '12px' }}>
@@ -283,7 +447,7 @@ export const TimelineEditorPage = observer(() => {
                 }}></div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                <button style={{
+                <button onClick={handleStop} style={{
                   width: '40px',
                   height: '40px',
                   borderRadius: '999px',
@@ -291,8 +455,8 @@ export const TimelineEditorPage = observer(() => {
                   background: 'rgba(255,255,255,0.1)',
                   color: 'white',
                   cursor: 'pointer'
-                }}>⏮</button>
-                <button style={{
+                }}>⏹</button>
+                <button onClick={handlePlayPause} style={{
                   width: '48px',
                   height: '48px',
                   borderRadius: '999px',
@@ -302,16 +466,16 @@ export const TimelineEditorPage = observer(() => {
                   fontWeight: '800',
                   boxShadow: '0 10px 30px rgba(255,255,255,0.15)',
                   cursor: 'pointer'
-                }}>▶</button>
-                <button style={{
+                }}>{playback?.isPlaying ? '⏸' : '▶'}</button>
+                <button onClick={() => toggleLoop?.()} style={{
                   width: '40px',
                   height: '40px',
                   borderRadius: '999px',
                   border: '1px solid transparent',
-                  background: 'rgba(255,255,255,0.1)',
+                  background: playback?.loop ? 'rgba(34,211,238,0.3)' : 'rgba(255,255,255,0.1)',
                   color: 'white',
                   cursor: 'pointer'
-                }}>⏹</button>
+                }}>🔁</button>
               </div>
             </div>
           </div>
@@ -420,37 +584,23 @@ export const TimelineEditorPage = observer(() => {
                           left: `${clip.left}%`,
                           width: `${clip.width}%`,
                           borderRadius: '12px',
-                          border: '1px solid rgba(255,255,255,0.1)',
+                          border: timelineSelectedItems?.includes(clip.id) 
+                            ? '2px solid #22d3ee' 
+                            : '1px solid rgba(255,255,255,0.1)',
                           padding: '8px 10px',
                           fontSize: '10px',
                           fontWeight: '600',
                           color: 'rgba(255,255,255,0.86)',
-                          background: 'rgba(255,255,255,0.1)',
+                          background: timelineSelectedItems?.includes(clip.id) 
+                            ? 'rgba(34,211,238,0.2)' 
+                            : 'rgba(255,255,255,0.1)',
                           boxShadow: '0 10px 24px rgba(0,0,0,0.25)',
                           display: 'flex',
                           alignItems: 'center',
                           overflow: 'hidden',
                           cursor: 'pointer'
                         }}
-                        onClick={() => {
-                          // If this is a transition between clips, select it
-                          if (clip.type === 'transition') {
-                            setSelectedTransitionElement({
-                              id: clip.id,
-                              popcornOptions: {
-                                kind: clip.transitionType || 'fade',
-                                start: clip.start,
-                                end: clip.end,
-                                from: clip.fromClip,
-                                to: clip.toClip,
-                                fromUrl: clip.fromUrl,
-                                toUrl: clip.toUrl,
-                                width: 400,
-                                height: 300
-                              }
-                            });
-                          }
-                        }}
+                        onClick={(e) => handleClipClick(clip, e)}
                       >
                         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {clip.name}
@@ -670,3 +820,13 @@ export const TimelineEditorPage = observer(() => {
     </div>
   );
 });
+
+// Helper function to format time
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  const ms = Math.floor((seconds % 1) * 100);
+  return `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+}
+
+export default TimelineEditorPage;

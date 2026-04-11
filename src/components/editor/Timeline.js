@@ -1,60 +1,162 @@
 // Timeline Component - Video timeline with playback controls and layer management
+// Fully integrated with timeline store for state management
 
 import Component from '../base/Component.js';
 import { createElementFromHTML } from '../../utils/jsx.js';
+import { getStore } from '../../stores/base/Store.js';
 
 export default class Timeline extends Component {
   constructor(props = {}) {
     super(props);
 
-    this.currentTime = 0;
-    this.duration = 0;
-    this.zoom = 1;
-    this.scrollLeft = 0;
-    this.isPlaying = false;
+    this.timelineStore = getStore('timelineStore');
+
+    // Initialize from timeline store if available
+    const storeState = this.timelineStore?.getState?.() || {};
+
+    this.currentTime = storeState.playback?.currentTime || 0;
+    this.duration = props.duration || 0;
+    this.zoom = storeState.zoom || 1;
+    this.scrollLeft = storeState.view?.scrollLeft || 0;
+    this.isPlaying = storeState.playback?.isPlaying || false;
     this.selectedClip = null;
     this.draggedClip = null;
     this.dragStartX = 0;
 
     // Timeline layers
-    this.layers = [];
+    this.layers = props.layers || [];
     this.tracks = [];
 
-    // Playback state
-    this.playbackRate = 1;
-    this.loop = false;
+    // Playback state from store
+    this.playbackRate = storeState.playback?.playbackRate || 1;
+    this.loop = storeState.playback?.loop || false;
     this.markers = [];
+
+    // Bind methods
+    this.syncWithStore = this.syncWithStore.bind(this);
+    this.handleStoreUpdate = this.handleStoreUpdate.bind(this);
   }
 
   beforeMount() {
     this.layers = this.props.layers || [];
     this.duration = this.props.duration || 0;
-    this.currentTime = this.props.currentTime || 0;
+    
+    // Sync with store
+    this.syncWithStore();
   }
 
   mounted() {
     this.setupTimeline();
     this.setupEventListeners();
     this.renderTimeline();
+    
+    // Subscribe to timeline store
+    if (this.timelineStore?.subscribe) {
+      this.unsubscribeFromStore = this.timelineStore.subscribe((state) => {
+        this.handleStoreUpdate(state);
+      });
+    }
+  }
+
+  destroyed() {
+    if (this.unsubscribeFromStore) {
+      this.unsubscribeFromStore();
+    }
+  }
+
+  /**
+   * Sync component state with timeline store
+   */
+  syncWithStore() {
+    if (!this.timelineStore) return;
+    
+    const storeState = this.timelineStore.getState?.() || {};
+    
+    this.zoom = storeState.zoom || this.zoom;
+    this.currentTime = storeState.playback?.currentTime || this.currentTime;
+    this.isPlaying = storeState.playback?.isPlaying || this.isPlaying;
+    this.playbackRate = storeState.playback?.playbackRate || this.playbackRate;
+    this.loop = storeState.playback?.loop || this.loop;
+    this.scrollLeft = storeState.view?.scrollLeft || this.scrollLeft;
+  }
+
+  /**
+   * Handle updates from timeline store
+   */
+  handleStoreUpdate(storeState) {
+    let needsUpdate = false;
+    
+    if (storeState.zoom !== undefined && storeState.zoom !== this.zoom) {
+      this.zoom = storeState.zoom;
+      needsUpdate = true;
+    }
+    
+    if (storeState.playback?.currentTime !== undefined && 
+        storeState.playback.currentTime !== this.currentTime) {
+      this.currentTime = storeState.playback.currentTime;
+      needsUpdate = true;
+    }
+    
+    if (storeState.playback?.isPlaying !== undefined && 
+        storeState.playback.isPlaying !== this.isPlaying) {
+      this.isPlaying = storeState.playback.isPlaying;
+      needsUpdate = true;
+    }
+    
+    if (storeState.view?.scrollLeft !== undefined && 
+        storeState.view.scrollLeft !== this.scrollLeft) {
+      this.scrollLeft = storeState.view.scrollLeft;
+      needsUpdate = true;
+    }
+    
+    if (needsUpdate) {
+      this.renderTimeline();
+    }
+  }
+
+  /**
+   * Update timeline store with current state
+   */
+  updateStoreState(updates) {
+    if (!this.timelineStore) return;
+    
+    if (updates.zoom !== undefined && this.timelineStore.setZoom) {
+      this.timelineStore.setZoom(updates.zoom);
+    }
+    
+    if (updates.currentTime !== undefined && this.timelineStore.setCurrentTime) {
+      this.timelineStore.setCurrentTime(updates.currentTime);
+    }
+    
+    if (updates.isPlaying !== undefined && this.timelineStore.setPlaying) {
+      this.timelineStore.setPlaying(updates.isPlaying);
+    }
+    
+    if (updates.scrollLeft !== undefined && this.timelineStore.setScrollPosition) {
+      this.timelineStore.setScrollPosition(updates.scrollLeft);
+    }
   }
 
   render() {
+    const storeState = this.timelineStore?.getState?.() || {};
+    const selectedItems = storeState.timelineSelectedItems || [];
+
     return createElementFromHTML(`
       <div class="timeline-container">
         <!-- Timeline Header -->
         <div class="timeline-header">
           <div class="timeline-controls">
-            <button class="control-btn" data-action="play-pause" title="Play/Pause">
+            <button class="control-btn ${this.isPlaying ? 'playing' : ''}" data-action="play-pause" title="Play/Pause">
               ${this.isPlaying ? '⏸️' : '▶️'}
             </button>
             <button class="control-btn" data-action="stop" title="Stop">⏹️</button>
-            <button class="control-btn" data-action="loop" title="Loop" class="${this.loop ? 'active' : ''}">🔁</button>
+            <button class="control-btn ${this.loop ? 'active' : ''}" data-action="loop" title="Loop">🔁</button>
 
             <div class="playback-rate">
-              <select class="rate-select">
+              <select class="rate-select" value="${this.playbackRate}">
                 <option value="0.25">0.25x</option>
                 <option value="0.5">0.5x</option>
-                <option value="1" selected>1x</option>
+                <option value="1" ${this.playbackRate === 1 ? 'selected' : ''}>1x</option>
                 <option value="1.5">1.5x</option>
                 <option value="2">2x</option>
               </select>
@@ -65,6 +167,7 @@ export default class Timeline extends Component {
             <button class="zoom-btn" data-action="zoom-out">-</button>
             <span class="zoom-level">${Math.round(this.zoom * 100)}%</span>
             <button class="zoom-btn" data-action="zoom-in">+</button>
+            <button class="zoom-btn" data-action="zoom-reset" title="Reset Zoom">⟲</button>
           </div>
 
           <div class="time-display">
@@ -112,16 +215,19 @@ export default class Timeline extends Component {
   }
 
   renderTracks() {
+    const storeState = this.timelineStore?.getState?.() || {};
+    const selectedItems = storeState.timelineSelectedItems || [];
+
     return this.layers.map((layer, index) => `
-      <div class="timeline-track" data-layer-id="${layer.id}">
+      <div class="timeline-track ${storeState.activeRow?.id === layer.id ? 'active' : ''}" data-layer-id="${layer.id}">
         <div class="track-header">
           <span class="track-name">${layer.name}</span>
           <span class="track-type">${layer.type}</span>
           <div class="track-controls">
-            <button class="track-btn" data-action="mute" title="Mute/Unmute">
+            <button class="track-btn ${layer.muted ? 'muted' : ''}" data-action="mute" title="Mute/Unmute">
               ${layer.muted ? '🔇' : '🔊'}
             </button>
-            <button class="track-btn" data-action="solo" title="Solo">
+            <button class="track-btn ${layer.solo ? 'solo' : ''}" data-action="solo" title="Solo">
               🎯
             </button>
             <button class="track-btn" data-action="delete" title="Delete Track">
@@ -130,16 +236,16 @@ export default class Timeline extends Component {
           </div>
         </div>
         <div class="track-content">
-          ${this.renderClipsForTrack(layer)}
+          ${this.renderClipsForTrack(layer, selectedItems)}
         </div>
       </div>
     `).join('');
   }
 
-  renderClipsForTrack(layer) {
+  renderClipsForTrack(layer, selectedItems) {
     const clips = layer.clips || [];
     return clips.map(clip => `
-      <div class="timeline-clip ${this.selectedClip === clip ? 'selected' : ''}"
+      <div class="timeline-clip ${selectedItems.includes(clip.id) ? 'selected' : ''} ${this.selectedClip === clip ? 'active' : ''}"
            data-clip-id="${clip.id}"
            data-layer-id="${layer.id}"
            style="left: ${this.getClipPosition(clip)}px; width: ${this.getClipWidth(clip)}px;">
@@ -226,13 +332,24 @@ export default class Timeline extends Component {
 
   onZoomClick(e) {
     const action = e.currentTarget.dataset.action;
-    const zoomFactor = action === 'zoom-in' ? 1.2 : 0.8;
-
-    this.zoomTimeline(zoomFactor);
+    
+    switch (action) {
+      case 'zoom-in':
+        this.zoomTimeline(1.2);
+        break;
+      case 'zoom-out':
+        this.zoomTimeline(0.8);
+        break;
+      case 'zoom-reset':
+        this.resetZoom();
+        break;
+    }
   }
 
   onRateChange(e) {
     this.playbackRate = parseFloat(e.target.value);
+    this.updateStoreState({ playbackRate: this.playbackRate });
+    
     if (this.props.onPlaybackRateChange) {
       this.props.onPlaybackRateChange(this.playbackRate);
     }
@@ -295,6 +412,7 @@ export default class Timeline extends Component {
   togglePlayback() {
     this.isPlaying = !this.isPlaying;
     this.updatePlayButton();
+    this.updateStoreState({ isPlaying: this.isPlaying });
 
     if (this.props.onPlayPause) {
       this.props.onPlayPause(this.isPlaying);
@@ -306,6 +424,7 @@ export default class Timeline extends Component {
     this.currentTime = 0;
     this.updatePlayButton();
     this.updatePlayhead();
+    this.updateStoreState({ isPlaying: false, currentTime: 0 });
 
     if (this.props.onStop) {
       this.props.onStop();
@@ -325,14 +444,26 @@ export default class Timeline extends Component {
   }
 
   zoomTimeline(factor) {
-    this.zoom *= factor;
-    this.zoom = Math.max(0.1, Math.min(5, this.zoom)); // Clamp zoom
+    const newZoom = this.zoom * factor;
+    this.zoom = Math.max(0.1, Math.min(5, newZoom)); // Clamp zoom
 
     this.resizeTimeline();
     this.updateZoomDisplay();
+    this.updateStoreState({ zoom: this.zoom });
 
     if (this.props.onZoomChange) {
       this.props.onZoomChange(this.zoom);
+    }
+  }
+
+  resetZoom() {
+    this.zoom = 1;
+    this.resizeTimeline();
+    this.updateZoomDisplay();
+    this.updateStoreState({ zoom: 1 });
+
+    if (this.props.onZoomChange) {
+      this.props.onZoomChange(1);
     }
   }
 
@@ -340,6 +471,7 @@ export default class Timeline extends Component {
     const time = x / this.getPixelsPerSecond();
     this.currentTime = Math.max(0, Math.min(this.duration, time));
     this.updatePlayhead();
+    this.updateStoreState({ currentTime: this.currentTime });
 
     if (this.props.onSeek) {
       this.props.onSeek(this.currentTime);
@@ -360,6 +492,11 @@ export default class Timeline extends Component {
     this.selectedClip = clip;
 
     clipEl.classList.add('dragging');
+
+    // Add to timeline store selection
+    if (this.timelineStore?.addToSelection) {
+      this.timelineStore.addToSelection(clipId);
+    }
   }
 
   updateClipDrag(x) {
@@ -377,11 +514,12 @@ export default class Timeline extends Component {
   endClipDrag() {
     if (this.draggedClip) {
       this.$$('.timeline-clip.dragging').forEach(el => el.classList.remove('dragging'));
-      this.draggedClip = null;
-
+      
       if (this.props.onClipMoved) {
         this.props.onClipMoved(this.selectedClip);
       }
+      
+      this.draggedClip = null;
     }
   }
 
@@ -413,6 +551,7 @@ export default class Timeline extends Component {
       const muteBtn = trackEl.querySelector('[data-action="mute"]');
       if (muteBtn) {
         muteBtn.textContent = layer.muted ? '🔇' : '🔊';
+        muteBtn.classList.toggle('muted', layer.muted);
       }
     }
   }
@@ -509,6 +648,7 @@ export default class Timeline extends Component {
     const playBtn = this.$('[data-action="play-pause"]');
     if (playBtn) {
       playBtn.innerHTML = this.isPlaying ? '⏸️' : '▶️';
+      playBtn.classList.toggle('playing', this.isPlaying);
     }
   }
 
@@ -554,6 +694,7 @@ export default class Timeline extends Component {
   setCurrentTime(time) {
     this.currentTime = Math.max(0, Math.min(this.duration, time));
     this.updatePlayhead();
+    this.updateStoreState({ currentTime: this.currentTime });
   }
 
   setDuration(duration) {
@@ -577,5 +718,10 @@ export default class Timeline extends Component {
       }
     });
     this.renderTimeline();
+    
+    // Remove from timeline store selection
+    if (this.timelineStore?.removeFromSelection) {
+      this.timelineStore.removeFromSelection(clipId);
+    }
   }
 }

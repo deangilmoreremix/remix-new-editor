@@ -6,14 +6,20 @@ import { POPCORN_ELEMENT_LABELS, POPCORN_ELEMENT_TYPES } from '../../../../lib/c
 import { wrapTokens } from '../../../../lib/utils/tokens-helper';
 import { generationService, createTextToVideoRequest, createImageToVideoRequest } from '../../../../lib/editor/generationService.js';
 
+/**
+ * Enhanced AnimatableElement with deep timeline store integration
+ * AI generation, editing, and state management fully synchronized through the store
+ */
 export class AnimatableElement extends Component {
   constructor(props = {}) {
     super(props);
     this.projectStore = getStore('projectStore');
+    this.timelineStore = getStore('timelineStore');
 
     this.state = {
       onSelect: props.onSelect,
       item: props.item,
+      elementId: props.item?.id || props.item?.i,
     };
 
     this.removeAnimation = this.removeAnimation.bind(this);
@@ -24,15 +30,119 @@ export class AnimatableElement extends Component {
     this.showAISuggestions = this.showAISuggestions.bind(this);
     this.applyAISuggestion = this.applyAISuggestion.bind(this);
     this.closeAISuggestions = this.closeAISuggestions.bind(this);
+    
+    // Bind store integration methods
+    this.syncWithTimelineStore = this.syncWithTimelineStore.bind(this);
+    this.updateTimelineStoreState = this.updateTimelineStoreState.bind(this);
+    this.handleAIStateUpdate = this.handleAIStateUpdate.bind(this);
+  }
+
+  componentDidMount() {
+    // Sync with timeline store on mount
+    this.syncWithTimelineStore();
+    
+    // Subscribe to timeline store for AI state updates
+    if (this.timelineStore?.subscribe) {
+      this.unsubscribeFromStore = this.timelineStore.subscribe((state) => {
+        this.handleStoreUpdate(state);
+      });
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.unsubscribeFromStore) {
+      this.unsubscribeFromStore();
+    }
+  }
+
+  /**
+   * Sync element state with timeline store
+   */
+  syncWithTimelineStore() {
+    const { item, elementId } = this.state;
+    if (elementId && this.timelineStore?.syncElementState) {
+      this.timelineStore.syncElementState({
+        id: elementId,
+        ...item,
+      });
+    }
+  }
+
+  /**
+   * Handle updates from timeline store
+   */
+  handleStoreUpdate(storeState) {
+    const { elementId } = this.state;
+    if (!elementId || !this.timelineStore?.getElementState) return;
+    
+    const elementState = this.timelineStore.getElementState(elementId);
+    if (elementState?.ai) {
+      this.handleAIStateUpdate(elementState.ai);
+    }
+  }
+
+  /**
+   * Handle AI state updates from store
+   */
+  handleAIStateUpdate(aiState) {
+    const { item } = this.state;
+    
+    this.setState({
+      item: {
+        ...item,
+        isGenerating: aiState.isGenerating,
+        generationError: aiState.generationError,
+        generationId: aiState.generationId,
+        generated: aiState.generated,
+        assetId: aiState.assetId,
+      },
+    });
+  }
+
+  /**
+   * Update timeline store with current state
+   */
+  updateTimelineStoreState(updates) {
+    const { elementId } = this.state;
+    if (!elementId || !this.timelineStore) return;
+
+    // Update AI state in timeline store
+    if (updates.ai) {
+      this.timelineStore.setElementAIState?.(elementId, updates.ai);
+    }
+    
+    // Update trim state
+    if (updates.trim) {
+      this.timelineStore.setElementTrimState?.(elementId, updates.trim);
+    }
+    
+    // Update property state
+    if (updates.properties) {
+      this.timelineStore.setElementPropertyState?.(elementId, updates.properties);
+    }
+    
+    // Update transition state
+    if (updates.transitions) {
+      this.timelineStore.setElementTransitionState?.(elementId, updates.transitions);
+    }
   }
 
   removeAnimation(e, animationType) {
     e.stopPropagation();
+    
+    // Push undo state before change
+    const { elementId } = this.state;
+    if (this.timelineStore?.pushUndoState) {
+      this.timelineStore.pushUndoState({
+        animationRemoved: { elementId, animationType },
+      });
+    }
+    
     this.projectStore.updateAnimation(animationType);
   }
 
   // ============================================================================
-  // AI CONTENT GENERATION METHODS
+  // AI CONTENT GENERATION METHODS (with store integration)
   // ============================================================================
 
   /**
@@ -42,7 +152,14 @@ export class AnimatableElement extends Component {
    * @returns {Promise<Object>} Generation result
    */
   async generateTextContent(prompt, options = {}) {
+    const { elementId } = this.state;
+    
     try {
+      // Set generating state in timeline store
+      if (this.timelineStore?.setElementGenerating) {
+        this.timelineStore.setElementGenerating(elementId, true);
+      }
+
       const request = createTextToVideoRequest(prompt, {
         duration: options.duration || 5,
         aspectRatio: options.aspectRatio || '16:9',
@@ -55,10 +172,18 @@ export class AnimatableElement extends Component {
 
       if (result.status === 'completed') {
         await this.handleGenerationComplete(result);
+      } else if (result.generationId) {
+        // Update store with generation ID for polling
+        if (this.timelineStore?.setElementGenerating) {
+          this.timelineStore.setElementGenerating(elementId, true, result.generationId);
+        }
       }
 
       return result;
     } catch (error) {
+      if (this.timelineStore?.setElementGenerationError) {
+        this.timelineStore.setElementGenerationError(elementId, error.message);
+      }
       this.setState({ generationError: error.message });
       throw error;
     }
@@ -71,7 +196,14 @@ export class AnimatableElement extends Component {
    * @returns {Promise<Object>} Generation result
    */
   async generateImageContent(prompt, options = {}) {
+    const { elementId } = this.state;
+    
     try {
+      // Set generating state in timeline store
+      if (this.timelineStore?.setElementGenerating) {
+        this.timelineStore.setElementGenerating(elementId, true);
+      }
+
       const request = createImageToVideoRequest('', prompt, {
         duration: options.duration || 3,
         aspectRatio: options.aspectRatio || '16:9',
@@ -83,10 +215,17 @@ export class AnimatableElement extends Component {
 
       if (result.status === 'completed') {
         await this.handleGenerationComplete(result);
+      } else if (result.generationId) {
+        if (this.timelineStore?.setElementGenerating) {
+          this.timelineStore.setElementGenerating(elementId, true, result.generationId);
+        }
       }
 
       return result;
     } catch (error) {
+      if (this.timelineStore?.setElementGenerationError) {
+        this.timelineStore.setElementGenerationError(elementId, error.message);
+      }
       this.setState({ generationError: error.message });
       throw error;
     }
@@ -99,7 +238,14 @@ export class AnimatableElement extends Component {
    * @returns {Promise<Object>} Generation result
    */
   async generateVideoContent(prompt, options = {}) {
+    const { elementId } = this.state;
+    
     try {
+      // Set generating state in timeline store
+      if (this.timelineStore?.setElementGenerating) {
+        this.timelineStore.setElementGenerating(elementId, true);
+      }
+
       const request = createTextToVideoRequest(prompt, {
         duration: options.duration || 5,
         aspectRatio: options.aspectRatio || '16:9',
@@ -112,10 +258,17 @@ export class AnimatableElement extends Component {
 
       if (result.status === 'completed') {
         await this.handleGenerationComplete(result);
+      } else if (result.generationId) {
+        if (this.timelineStore?.setElementGenerating) {
+          this.timelineStore.setElementGenerating(elementId, true, result.generationId);
+        }
       }
 
       return result;
     } catch (error) {
+      if (this.timelineStore?.setElementGenerationError) {
+        this.timelineStore.setElementGenerationError(elementId, error.message);
+      }
       this.setState({ generationError: error.message });
       throw error;
     }
@@ -129,11 +282,16 @@ export class AnimatableElement extends Component {
    * @returns {Promise<Object>} Generation result
    */
   async generateVideoContentWithRetry(prompt, maxRetries = 3, options = {}) {
+    const { elementId } = this.state;
+    
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await this.generateVideoContent(prompt, options);
       } catch (error) {
         if (attempt === maxRetries) {
+          if (this.timelineStore?.setElementGenerationError) {
+            this.timelineStore.setElementGenerationError(elementId, error.message);
+          }
           throw error;
         }
         // Wait before retry (exponential backoff)
@@ -147,25 +305,31 @@ export class AnimatableElement extends Component {
    * @param {Object} result - Generation result
    */
   async handleGenerationComplete(result) {
-    const { item } = this.state;
+    const { item, elementId } = this.state;
 
-    this.setState({
-      item: {
-        ...item,
-        assetId: result.assetIds?.[0],
-        previewUrl: result.previewUrl,
-        generated: true,
-        generationId: result.generationId,
-        generationError: null,
-      },
-    });
+    const updatedItem = {
+      ...item,
+      assetId: result.assetIds?.[0],
+      previewUrl: result.previewUrl,
+      generated: true,
+      generationId: result.generationId,
+      generationError: null,
+      isGenerating: false,
+    };
+
+    this.setState({ item: updatedItem });
+
+    // Update timeline store
+    if (this.timelineStore?.setElementGenerationComplete) {
+      this.timelineStore.setElementGenerationComplete(elementId, result.assetIds?.[0]);
+    }
 
     // Update project store with new asset
-    this.projectStore.updateElement(item.i, this.state.item);
+    this.projectStore.updateElement(item.i, updatedItem);
   }
 
   // ============================================================================
-  // AI-POWERED EDITING METHODS
+  // AI-POWERED EDITING METHODS (with store integration)
   // ============================================================================
 
   /**
@@ -173,18 +337,34 @@ export class AnimatableElement extends Component {
    * @param {Object} suggestion - AI trimming suggestion {startTime, endTime}
    */
   applyAISuggestedTrim(suggestion) {
-    const { item } = this.state;
+    const { item, elementId } = this.state;
 
-    this.setState({
-      item: {
-        ...item,
-        startTime: suggestion.startTime,
-        endTime: suggestion.endTime,
+    // Push undo state before change
+    if (this.timelineStore?.pushUndoState) {
+      this.timelineStore.pushUndoState({
+        elementTrim: { [elementId]: { trimStart: item.startTime, trimEnd: item.endTime } },
+      });
+    }
+
+    const updatedItem = {
+      ...item,
+      startTime: suggestion.startTime,
+      endTime: suggestion.endTime,
+      duration: suggestion.endTime - suggestion.startTime,
+    };
+
+    this.setState({ item: updatedItem });
+
+    // Update timeline store
+    this.updateTimelineStoreState({
+      trim: {
+        trimStart: suggestion.startTime,
+        trimEnd: suggestion.endTime,
         duration: suggestion.endTime - suggestion.startTime,
       },
     });
 
-    this.projectStore.updateElement(item.i, this.state.item);
+    this.projectStore.updateElement(item.i, updatedItem);
   }
 
   /**
@@ -192,19 +372,31 @@ export class AnimatableElement extends Component {
    * @param {Object} enhancements - AI property suggestions
    */
   applyAIPropertyEnhancements(enhancements) {
-    const { item } = this.state;
+    const { item, elementId } = this.state;
 
-    this.setState({
-      item: {
-        ...item,
-        properties: {
-          ...item.properties,
-          ...enhancements,
-        },
+    // Push undo state before change
+    if (this.timelineStore?.pushUndoState) {
+      this.timelineStore.pushUndoState({
+        elementProperties: { [elementId]: { ...item.properties } },
+      });
+    }
+
+    const updatedItem = {
+      ...item,
+      properties: {
+        ...item.properties,
+        ...enhancements,
       },
+    };
+
+    this.setState({ item: updatedItem });
+
+    // Update timeline store
+    this.updateTimelineStoreState({
+      properties: updatedItem.properties,
     });
 
-    this.projectStore.updateElement(item.i, this.state.item);
+    this.projectStore.updateElement(item.i, updatedItem);
   }
 
   /**
@@ -212,19 +404,34 @@ export class AnimatableElement extends Component {
    * @param {Object} transitions - AI transition suggestions {in: string, out: string}
    */
   applyAITransitions(transitions) {
-    const { item } = this.state;
+    const { item, elementId } = this.state;
 
-    this.setState({
-      item: {
-        ...item,
-        transitions: {
-          ...item.transitions,
-          ...transitions,
-        },
+    // Push undo state before change
+    if (this.timelineStore?.pushUndoState) {
+      this.timelineStore.pushUndoState({
+        elementTransitions: { [elementId]: { ...item.transitions } },
+      });
+    }
+
+    const updatedItem = {
+      ...item,
+      transitions: {
+        ...item.transitions,
+        ...transitions,
+      },
+    };
+
+    this.setState({ item: updatedItem });
+
+    // Update timeline store
+    this.updateTimelineStoreState({
+      transitions: {
+        transitionIn: transitions.in,
+        transitionOut: transitions.out,
       },
     });
 
-    this.projectStore.updateElement(item.i, this.state.item);
+    this.projectStore.updateElement(item.i, updatedItem);
   }
 
   // ============================================================================
@@ -238,7 +445,7 @@ export class AnimatableElement extends Component {
    * @returns {Promise<Object>} Workflow result
    */
   async runAIWorkflow(workflowType, params = {}) {
-    const { item } = this.state;
+    const { item, elementId } = this.state;
 
     switch (workflowType) {
       case 'text-to-video':
@@ -249,6 +456,10 @@ export class AnimatableElement extends Component {
 
       case 'retake':
         // Implement retake workflow
+        if (this.timelineStore?.setElementGenerating) {
+          this.timelineStore.setElementGenerating(elementId, true);
+        }
+        
         const retakeRequest = {
           mode: 'retake',
           prompt: params.prompt || 'Improve this video segment',
@@ -257,39 +468,71 @@ export class AnimatableElement extends Component {
           duration: params.duration || item.duration || 5,
           stylePreset: params.stylePreset || 'cinematic',
         };
-        const retakeResult = await generationService.submit(retakeRequest, 'ltx');
-        if (retakeResult.status === 'completed') {
-          await this.handleGenerationComplete(retakeResult);
+        
+        try {
+          const retakeResult = await generationService.submit(retakeRequest, 'ltx');
+          if (retakeResult.status === 'completed') {
+            await this.handleGenerationComplete(retakeResult);
+          }
+          return retakeResult;
+        } catch (error) {
+          if (this.timelineStore?.setElementGenerationError) {
+            this.timelineStore.setElementGenerationError(elementId, error.message);
+          }
+          throw error;
         }
-        return retakeResult;
 
       case 'extend':
         // Implement extend workflow
+        if (this.timelineStore?.setElementGenerating) {
+          this.timelineStore.setElementGenerating(elementId, true);
+        }
+        
         const extendRequest = {
           mode: 'extend',
           prompt: params.prompt || 'Continue this video',
           sourceAssetId: item.assetId,
           duration: params.extendDuration || 5,
         };
-        const extendResult = await generationService.submit(extendRequest, 'ltx');
-        if (extendResult.status === 'completed') {
-          await this.handleGenerationComplete(extendResult);
+        
+        try {
+          const extendResult = await generationService.submit(extendRequest, 'ltx');
+          if (extendResult.status === 'completed') {
+            await this.handleGenerationComplete(extendResult);
+          }
+          return extendResult;
+        } catch (error) {
+          if (this.timelineStore?.setElementGenerationError) {
+            this.timelineStore.setElementGenerationError(elementId, error.message);
+          }
+          throw error;
         }
-        return extendResult;
 
       case 'broll':
         // Implement b-roll workflow
+        if (this.timelineStore?.setElementGenerating) {
+          this.timelineStore.setElementGenerating(elementId, true);
+        }
+        
         const brollRequest = {
           mode: 'broll',
           prompt: params.prompt || 'Generate complementary footage',
           duration: params.duration || 3,
           aspectRatio: params.aspectRatio || '16:9',
         };
-        const brollResult = await generationService.submit(brollRequest, 'ltx');
-        if (brollResult.status === 'completed') {
-          await this.handleGenerationComplete(brollResult);
+        
+        try {
+          const brollResult = await generationService.submit(brollRequest, 'ltx');
+          if (brollResult.status === 'completed') {
+            await this.handleGenerationComplete(brollResult);
+          }
+          return brollResult;
+        } catch (error) {
+          if (this.timelineStore?.setElementGenerationError) {
+            this.timelineStore.setElementGenerationError(elementId, error.message);
+          }
+          throw error;
         }
-        return brollResult;
 
       default:
         throw new Error(`Unknown workflow type: ${workflowType}`);
@@ -345,9 +588,9 @@ export class AnimatableElement extends Component {
         const animated = item.animation && item.animation[animationType]
           && item.animation[animationType].type !== NONE_CLASS;
         if (animated && isViewCloseButton) {
-          return `<div class="${classnames('popcorn-element-part', { [\`${animationType}-animation-element\`]: animated })}"><button class="icon-button" onclick="this.removeAnimation(event, '${animationType}')">x</button></div>`;
+          return `<div class="${classnames('popcorn-element-part', { [\`\${animationType}-animation-element\`]: animated })}"><button class="icon-button" onclick="this.removeAnimation(event, '${animationType}')">x</button></div>`;
         } else {
-          return `<div class="${classnames('popcorn-element-part', { [\`${animationType}-animation-element\`]: animated })}"></div>`;
+          return `<div class="${classnames('popcorn-element-part', { [\`\${animationType}-animation-element\`]: animated })}"></div>`;
         }
       }
       default: {
@@ -374,8 +617,12 @@ export class AnimatableElement extends Component {
       <div class="ai-error">${generationError}</div>
     ` : '';
 
+    const generatingIndicator = item.isGenerating ? `
+      <div class="generating-indicator">Generating...</div>
+    ` : '';
+
     const html = `
-      <div class="popcorn-element ${item.generated ? 'ai-generated' : ''}" title="${item.type || item.title || item.htmlText}" tabindex="-1" onclick="${onSelect ? onSelect.name : ''}">
+      <div class="popcorn-element ${item.generated ? 'ai-generated' : ''} ${item.isGenerating ? 'ai-generating' : ''}" title="${item.type || item.title || item.htmlText}" tabindex="-1" onclick="${onSelect ? onSelect.name : ''}">
         <span class="popcorn-element-name">
           ${item.htmlText ? `<span class="popcorn-element-text" contenteditable="true">${wrapTokens(item.htmlText)}</span>` : POPCORN_ELEMENT_LABELS[item.type]}
           ${item.generated ? '<span class="ai-indicator">🤖</span>' : ''}
@@ -384,6 +631,7 @@ export class AnimatableElement extends Component {
         ${this.getGridItem(ANIMATION_TYPES.IDLE)}
         ${this.getGridItem(ANIMATION_TYPES.OUT)}
         ${aiControls}
+        ${generatingIndicator}
         ${errorDisplay}
       </div>
     `;
@@ -487,3 +735,5 @@ export class AnimatableElement extends Component {
     // Close overlay logic would go here
   }
 }
+
+export default AnimatableElement;

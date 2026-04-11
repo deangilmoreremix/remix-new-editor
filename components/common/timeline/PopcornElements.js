@@ -21,6 +21,10 @@ import TransitionButton from './TransitionButton.js';
 
 const timelineRowHeight = 35;
 
+/**
+ * Enhanced PopcornElements Component with deep timeline store integration
+ * Full state synchronization for all timeline operations
+ */
 export class PopcornElements extends Component {
   constructor(props = {}) {
     super(props);
@@ -47,10 +51,91 @@ export class PopcornElements extends Component {
     this.handleInteraction = this.handleInteraction.bind(this);
     this.onDropElement = this.onDropElement.bind(this);
     this.handleElementChange = this.handleElementChange.bind(this);
+    
+    // Bind new store-integrated methods
+    this.syncElementWithStore = this.syncElementWithStore.bind(this);
+    this.handleElementSelect = this.handleElementSelect.bind(this);
+    this.handleBatchElementUpdate = this.handleBatchElementUpdate.bind(this);
+    this.getElementStateFromStore = this.getElementStateFromStore.bind(this);
   }
 
   componentDidMount() {
     arrayDeleteListener();
+    
+    // Subscribe to timeline store for reactive updates
+    this.unsubscribeFromTimelineStore = this.timelineStore?.subscribe?.((state) => {
+      this.handleStoreUpdate(state);
+    });
+  }
+
+  componentWillUnmount() {
+    // Clean up subscription
+    if (this.unsubscribeFromTimelineStore) {
+      this.unsubscribeFromTimelineStore();
+    }
+  }
+
+  /**
+   * Handle updates from timeline store
+   */
+  handleStoreUpdate(storeState) {
+    // Trigger re-render when store state changes
+    this.forceUpdate();
+  }
+
+  /**
+   * Sync element state with timeline store
+   */
+  syncElementWithStore(element) {
+    if (this.timelineStore?.syncElementState) {
+      this.timelineStore.syncElementState(element);
+    }
+  }
+
+  /**
+   * Get element state from timeline store
+   */
+  getElementStateFromStore(elementId) {
+    if (this.timelineStore?.getElementState) {
+      return this.timelineStore.getElementState(elementId);
+    }
+    return null;
+  }
+
+  /**
+   * Handle element selection from store
+   */
+  handleElementSelect(elementId, isMultiSelect = false) {
+    if (this.timelineStore) {
+      if (isMultiSelect) {
+        this.timelineStore.toggleItemSelection?.(elementId);
+      } else {
+        this.timelineStore.setTimelineSelectedItems?.([elementId]);
+      }
+    }
+  }
+
+  /**
+   * Handle batch element updates through store
+   */
+  handleBatchElementUpdate(updates) {
+    if (this.timelineStore?.batchUpdates) {
+      this.timelineStore.batchUpdates(() => {
+        updates.forEach(({ elementId, changes }) => {
+          this.projectStore.updateElementFromTimeline({
+            elementId,
+            ...changes,
+          });
+        });
+      });
+    } else {
+      updates.forEach(({ elementId, changes }) => {
+        this.projectStore.updateElementFromTimeline({
+          elementId,
+          ...changes,
+        });
+      });
+    }
   }
 
   getExtraDuration(animation, outDuration) {
@@ -69,7 +154,26 @@ export class PopcornElements extends Component {
   }
 
   async insertTransition({ transition, element }) {
-    const { setIsAddingTransition, removeTransition, removedTransition, setUndo, projectData, updateVideoDuration, updateElementFromTimeline, createNewElement, elements, duration: cols } = this.projectStore;
+    const { 
+      setIsAddingTransition, 
+      removeTransition, 
+      removedTransition, 
+      setUndo, 
+      projectData, 
+      updateVideoDuration, 
+      updateElementFromTimeline, 
+      createNewElement, 
+      elements, 
+      duration: cols 
+    } = this.projectStore;
+    
+    // Push undo state for transition creation
+    if (this.timelineStore?.pushUndoState) {
+      this.timelineStore.pushUndoState({
+        transition: { transition, element },
+      });
+    }
+    
     setIsAddingTransition(true);
     const transitionDuration = +((transition.end - transition.start).toFixed(2));
     transition.start = +(transition.start.toFixed(2)) + TRANSITION_TIMELINE_OFFSET;
@@ -147,18 +251,31 @@ export class PopcornElements extends Component {
 
   handleRowClick(e, rowIndex, currentTime) {
     const { layers } = this.projectStore;
-    const { setTimelineSelectedItems, setActiveRow, setTimeOnClick, setContextMenu, releaseElement } = this.timelineStore;
+    const { 
+      setTimelineSelectedItems, 
+      setActiveRow, 
+      setTimeOnClick, 
+      setContextMenu, 
+      releaseElement 
+    } = this.timelineStore;
     const row = layers.find(item => item.order === rowIndex);
-    releaseElement();
-    setTimelineSelectedItems([]);
-    setActiveRow(row);
-    setTimeOnClick(currentTime.diff(this.state.startDate) / ONE_SECOND);
-    setContextMenu({ isOpen: false });
+    
+    releaseElement?.();
+    setTimelineSelectedItems?.([]);
+    setActiveRow?.(row);
+    setTimeOnClick?.(currentTime.diff(this.state.startDate) / ONE_SECOND);
+    setContextMenu?.({ isOpen: false });
   }
 
   onRowContextClick(e, rowIndex, currentTime) {
     const { layers } = this.projectStore;
-    const { setActiveRow, setTimeOnClick, setContextMenu, contextMenu, copiedItems } = this.timelineStore;
+    const { 
+      setActiveRow, 
+      setTimeOnClick, 
+      setContextMenu, 
+      contextMenu, 
+      copiedItems 
+    } = this.timelineStore;
     const row = layers.find(item => Number(item.order) === Number(rowIndex));
     const posX = e.screenX;
     const posY = e.clientY;
@@ -172,9 +289,9 @@ export class PopcornElements extends Component {
       buttons.push(contextButtons.PASTE);
     }
 
-    setActiveRow(row);
-    setTimeOnClick(currentTime.diff(this.state.startDate) / ONE_SECOND);
-    setContextMenu({ posX, posY, isClickOnRow: true, buttons, isOpen: true });
+    setActiveRow?.(row);
+    setTimeOnClick?.(currentTime.diff(this.state.startDate) / ONE_SECOND);
+    setContextMenu?.({ posX, posY, isClickOnRow: true, buttons, isOpen: true });
   }
 
   onItemContextClick(e, itemKey) {
@@ -192,23 +309,37 @@ export class PopcornElements extends Component {
     }
 
     selectItem({ type: emitterActions.SELECT }, itemKey);
-    setContextMenu({ posX, posY, isClickOnRow: false, buttons, isOpen: true });
+    setContextMenu?.({ posX, posY, isClickOnRow: false, buttons, isOpen: true });
   }
 
   handleInteraction(type, changes, newElements) {
-    const { setIsActiveTimeline, timelineSelectedItems, setTimelineSelectedItems, setContextMenu, activeElementId, releaseElement, setTimeOnClick } = this.timelineStore;
+    const { 
+      setIsActiveTimeline, 
+      timelineSelectedItems, 
+      setTimelineSelectedItems, 
+      setContextMenu, 
+      activeElementId, 
+      releaseElement, 
+      setTimeOnClick,
+      pushUndoState,
+      batchUpdates,
+    } = this.timelineStore;
     const { startDate } = this.state;
-    setIsActiveTimeline(true);
+    
+    setIsActiveTimeline?.(true);
+    
     switch (type) {
       case Timeline.changeTypes.oneItemSelected: {
-        setTimeOnClick(changes.currentTime.diff(startDate) / ONE_SECOND);
+        setTimeOnClick?.(changes.currentTime.diff(startDate) / ONE_SECOND);
         changes.e.stopPropagation();
-        const newSelection = timelineSelectedItems.slice();
-        const idx = timelineSelectedItems.indexOf(changes.item.id);
+        const newSelection = timelineSelectedItems?.slice() || [];
+        const idx = timelineSelectedItems?.indexOf(changes.item.id) ?? -1;
+        
         if (changes.e.ctrlKey || changes.e.shiftKey || changes.e.metaKey) {
+          // Multi-select
           if (idx >= 0) {
             if (activeElementId === changes.item.id) {
-              releaseElement();
+              releaseElement?.();
             }
             newSelection.splice(idx, 1);
           } else {
@@ -217,30 +348,41 @@ export class PopcornElements extends Component {
               selectItem(changes.e, changes.item.i);
             }
           }
-          setTimelineSelectedItems(newSelection);
-          setContextMenu({ isOpen: false });
+          setTimelineSelectedItems?.(newSelection);
+          setContextMenu?.({ isOpen: false });
         } else {
+          // Single select
           if (activeElementId !== changes.item.id) {
             selectItem(changes.e, changes.item.i);
-            setTimelineSelectedItems([changes.item.id]);
-            setContextMenu({ isOpen: false });
+            setTimelineSelectedItems?.([changes.item.id]);
+            setContextMenu?.({ isOpen: false });
           } else {
-            setTimelineSelectedItems();
-            setContextMenu({ isOpen: false });
-            releaseElement();
+            setTimelineSelectedItems?.([]);
+            setContextMenu?.({ isOpen: false });
+            releaseElement?.();
           }
           return null;
         }
         break;
       }
+      
       case Timeline.changeTypes.dragStart:
       case Timeline.changeTypes.resizeStart: {
+        // Push undo state before drag/resize
+        if (pushUndoState) {
+          pushUndoState({
+            elements: newElements?.map(el => ({ id: el.id, start: el.start, end: el.end, row: el.row })),
+          });
+        }
         return timelineSelectedItems;
       }
+      
       case Timeline.changeTypes.dragEnd:
       case Timeline.changeTypes.resizeEnd: {
         const { updateElementFromTimeline } = this.projectStore;
         const returnSelectedItems = [];
+        const updates = [];
+        
         newElements.forEach(item => {
           let needUpdateLayer = false;
           let needUpdateStartEnd = false;
@@ -270,23 +412,47 @@ export class PopcornElements extends Component {
           }
 
           if (needUpdateLayer || needUpdateStartEnd) {
-            updateElementFromTimeline({
-              end,
-              start,
-              needUpdateLayer,
-              needUpdateStartEnd,
+            updates.push({
               elementId: item.id,
-              layerLevel: item.row,
+              changes: {
+                end,
+                start,
+                needUpdateLayer,
+                needUpdateStartEnd,
+                layerLevel: item.row,
+              },
             });
           }
         });
-        setTimelineSelectedItems(returnSelectedItems);
+        
+        // Use batch updates if available
+        if (batchUpdates && updates.length > 1) {
+          batchUpdates(() => {
+            updates.forEach(({ elementId, changes }) => {
+              updateElementFromTimeline({
+                elementId,
+                ...changes,
+              });
+            });
+          });
+        } else {
+          updates.forEach(({ elementId, changes }) => {
+            updateElementFromTimeline({
+              elementId,
+              ...changes,
+            });
+          });
+        }
+        
+        setTimelineSelectedItems?.(returnSelectedItems);
         break;
       }
+      
       case Timeline.changeTypes.itemsSelected: {
-        setTimelineSelectedItems(_.map(changes, 'key'));
+        setTimelineSelectedItems?.(_.map(changes, 'key'));
         break;
       }
+      
       default:
         return changes;
     }
@@ -307,6 +473,14 @@ export class PopcornElements extends Component {
   }
 
   handleElementChange(elementId, changes) {
+    // Push undo state before change
+    if (this.timelineStore?.pushUndoState) {
+      const currentState = this.getElementStateFromStore(elementId);
+      this.timelineStore.pushUndoState({
+        elementState: { [elementId]: currentState },
+      });
+    }
+    
     this.projectStore.updateElementFromTimeline({
       elementId,
       ...changes,
@@ -325,6 +499,9 @@ export class PopcornElements extends Component {
     }
 
     const layouts = elements.map(element => {
+      // Sync element with timeline store
+      this.syncElementWithStore(element);
+      
       const {
         popcornOptions,
         popcornOptions: { id, start, animation, title, outDuration, duration, kind },
@@ -382,22 +559,55 @@ export class PopcornElements extends Component {
 
     const components = layouts.map((item, index, array) => {
       const transitionButtons = getTransitionButtons(item, index, array);
+      
+      // Get element state from store for rendering
+      const elementState = this.getElementStateFromStore(item.i);
+      
       item.render = (props) => {
         const span = document.createElement('span');
-        span.className = classnames('timeline-grid-item', item.type);
+        span.className = classnames('timeline-grid-item', item.type, {
+          'timeline-item-selected': timelineSelectedItems?.includes(item.key),
+          'timeline-item-generated': elementState?.ai?.generated,
+          'timeline-item-generating': elementState?.ai?.isGenerating,
+        });
         Object.assign(span, props);
 
         const popcornElement = new PopcornElement({
-          item,
+          item: {
+            ...item,
+            // Merge store state with item props
+            popcornOptions: {
+              ...item,
+              ...(elementState?.trim && {
+                from: elementState.trim.trimStart,
+                to: elementState.trim.trimEnd,
+              }),
+              ...(elementState?.properties),
+            },
+            transitions: {
+              in: elementState?.transitions?.transitionIn,
+              out: elementState?.transitions?.transitionOut,
+            },
+            overlays: elementState?.overlays?.overlays,
+            generated: elementState?.ai?.generated,
+          },
           onChange: this.handleElementChange.bind(this, item.i),
           fields: this.props.fields || {},
-          element: item,
+          element: {
+            ...item,
+            elementState,
+          },
         });
         span.appendChild(popcornElement.render());
 
         if (transitionButtons && transitionButtons.length) {
           transitionButtons.forEach(({ transition, element: el, type, key, from, to }) => {
-            const button = new TransitionButton({ type, onClick: () => this.insertTransition({ transition, element: el }), from, to });
+            const button = new TransitionButton({ 
+              type, 
+              onClick: () => this.insertTransition({ transition, element: el }), 
+              from, 
+              to 
+            });
             span.appendChild(button.render());
           });
         }
@@ -445,3 +655,5 @@ export class PopcornElements extends Component {
     return null;
   }
 }
+
+export default PopcornElements;

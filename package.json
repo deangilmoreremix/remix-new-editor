@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@testing-library/react": "^16.3.2",
     "@vitest/ui": "^4.1.2",
     "autoprefixer": "^10.4.24",
     "canvas": "^3.2.3",
@@ -38,7 +39,9 @@
     "@higgsfield/tokens": "file:packages/tokens",
     "@supabase/supabase-js": "^2.99.0",
     "@tailwindcss/postcss": "^4.1.18",
-    "@tailwindcss/vite": "^4.1.18"
+    "@tailwindcss/vite": "^4.1.18",
+    "mobx": "^6.15.0",
+    "mobx-react": "^9.2.1"
   },
   "engines": {
     "node": ">=18.0.0"
