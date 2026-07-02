@@ -23,6 +23,31 @@ const NICHE_THUMBNAILS = {
   'Luxury & Premium Alt': '/thumbnails/templates/luxury_brand_style.webp.png',
 };
 
+// Some template sources use lowercase/hyphenated niche keys (e.g. templateMatrix.js).
+// Normalize them to the display names above so fallback lookups work.
+const NICHE_ALIASES = {
+  restaurant: 'Restaurant & Cafe',
+  'med-spa': 'Med Spa & Beauty',
+  salon: 'Salon & Barbershop',
+  fitness: 'Gym & Fitness',
+  'real-estate': 'Real Estate',
+  dental: 'Dental Office',
+  chiropractic: 'Chiropractic & Wellness',
+  legal: 'Legal & Attorney',
+  automotive: 'Automotive & Car',
+  fashion: 'Fashion & Style',
+  events: 'Events & Celebrations',
+  luxury: 'Luxury & Premium',
+  'general-business': null,
+};
+
+function normalizeNiche(niche) {
+  if (!niche) return null;
+  if (NICHE_THUMBNAILS[niche]) return niche;
+  if (NICHE_ALIASES[niche] !== undefined) return NICHE_ALIASES[niche];
+  return null;
+}
+
 // Cycle through these for each template so cards in the same niche look visually distinct
 const NICHE_ROTATION = {
   'Restaurant & Cafe': [
@@ -187,8 +212,9 @@ export function getTemplateThumbnailCandidates(template) {
   if (id) candidates.push(`/thumbnails/templates/${id}.webp.png`);
 
   // 3) Niche/industry thumbnail rotation (reuses existing industry files)
-  if (niche && NICHE_ROTATION[niche]) {
-    const rotation = NICHE_ROTATION[niche];
+  const normalizedNiche = normalizeNiche(niche);
+  if (normalizedNiche && NICHE_ROTATION[normalizedNiche]) {
+    const rotation = NICHE_ROTATION[normalizedNiche];
     // Deterministic rotation based on the template id so each card looks distinct
     let offset = 0;
     if (id) {
@@ -205,8 +231,8 @@ export function getTemplateThumbnailCandidates(template) {
       const path = NICHE_THUMBNAILS[key];
       if (path && !candidates.includes(path)) candidates.push(path);
     }
-  } else if (niche && NICHE_THUMBNAILS[niche]) {
-    candidates.push(NICHE_THUMBNAILS[niche]);
+  } else if (normalizedNiche && NICHE_THUMBNAILS[normalizedNiche]) {
+    candidates.push(NICHE_THUMBNAILS[normalizedNiche]);
   }
 
   // 4) Category thumbnail (works for standard templates too)

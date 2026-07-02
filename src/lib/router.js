@@ -15,6 +15,12 @@ const ROUTE_MAP = {
   'Community': 'community',
   'Avatar': 'avatar',
   'Audio': 'audio',
+  'Settings': 'timeline',
+  'Personalizer': 'timeline',
+  'Contacts': 'timeline',
+  'Media Lib': 'timeline',
+  'Social': 'timeline',
+  'Landing': 'timeline',
 };
 
 export function getRouteForItem(item) {
@@ -63,6 +69,7 @@ const pageLoaders = {
   director: () => import('../components/DirectorPage.js').then(m => m.DirectorPage()),
   timeline: () => import('../components/TimelineEditorPage.js').then(m => m.TimelineEditorPage()),
   'remix-go': () => import('../components/RemixGoPage.js').then(m => m.RemixGoPage()),
+  'timeline-iframe-warning': () => Promise.resolve(document.createElement('div'))
 };
 
 let currentPage = null;

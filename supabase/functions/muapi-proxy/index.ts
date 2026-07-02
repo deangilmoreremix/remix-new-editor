@@ -1,9 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://your-production-domain.com", // Replace with actual domain
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey, X-Webhook-Signature",
 };
 
 // Rate limiting - simple in-memory store (use Redis for multi-instance deployments)
@@ -30,22 +30,57 @@ function checkRateLimit(clientId: string): boolean {
 
 interface GenerateRequest {
   endpoint: string;
-  params: Record<string, any>;
-  generationType: 'image' | 'video' | 'i2i' | 'i2v' | 'v2v';
+  params?: Record<string, any>;
+  generationType?: 'image' | 'video' | 'i2i' | 'i2v' | 'v2v' | 'poll' | 'upload' | 'audio' | 'avatar' | 'text' | 'train' | 'video-tool' | 'lipsync';
   studioType?: string;
 }
 
+function unwrapResponse(body: any): any {
+  if (!body || typeof body !== 'object') return body;
+  if (body.data && typeof body.data === 'object') {
+    const unwrapped = { ...body.data };
+    // Preserve sibling fields like video, audio, urls, etc. that live next to `data`
+    Object.keys(body).forEach((key) => {
+      if (key !== 'data') {
+        (unwrapped as any)[key] = (body as any)[key];
+      }
+    });
+    return unwrapped;
+  }
+  return body;
+}
+
 function validateEndpoint(endpoint: string): boolean {
-  // Only allow specific endpoints to prevent SSRF
-  const allowedPatterns = [
-    /^predictions(\/.*)?$/,
-    /^image-generation(\/.*)?$/,
-    /^video-generation(\/.*)?$/,
-    /^image-to-image(\/.*)?$/,
-    /^image-to-video(\/.*)?$/,
-    /^video-to-video(\/.*)?$/,
-  ];
-  return allowedPatterns.some(pattern => pattern.test(endpoint));
+  // Allow standard muapi endpoint paths while preventing path traversal / SSRF.
+  // Supported shapes include:
+  //   - predictions/<id>/result
+  //   - <model-name>
+  //   - <category>-<model>
+  //   - specialized app endpoints like ai-image-upscale, generate_wan_ai_effects, suno-create-music
+  if (!endpoint || typeof endpoint !== 'string') return false;
+  const trimmed = endpoint.trim();
+  if (!trimmed) return false;
+  // Block path traversal but allow dots, hyphens, underscores, and slashes
+  if (trimmed.includes('..') || trimmed.startsWith('/') || trimmed.includes('//')) return false;
+  return /^[a-z0-9][a-z0-9_.\/-]*$/.test(trimmed);
+}
+
+// Map legacy endpoint names to current muapi API names
+function normalizeLegacyEndpoint(endpoint: string): string {
+  const map: Record<string, string> = {
+    // Image generation - codebase adds -image suffix, muapi doesn't
+    'flux-dev-image': 'flux-dev',
+    'flux-schnell-image': 'flux-schnell',
+    'flux-dev-lora': 'flux-dev-lora',
+    // Video / I2V routes - already mostly correct
+    'latentsync-video': 'latent-sync',
+    'generate_wan_ai_effects': 'ai-video-effects',
+    // Upscalers - muapi uses -er suffix
+    'ai-image-upscale': 'ai-image-upscaler',
+    'ai-video-upscaler': 'ai-video-upscaler',
+    'video-watermark-remover': 'video-watermark-remover',
+  };
+  return map[endpoint] || endpoint;
 }
 
 function getClientId(req: Request): string {
@@ -109,6 +144,9 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Normalize legacy endpoint names to match current muapi API
+    const normalizedEndpoint = normalizeLegacyEndpoint(endpoint);
+
     const muapiKey = Deno.env.get('MUAPI_API_KEY');
     if (!muapiKey) {
       return new Response(
@@ -120,21 +158,26 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const muapiUrl = `https://api.muapi.ai/api/v1/${endpoint}`;
+    const muapiUrl = `https://api.muapi.ai/api/v1/${normalizedEndpoint}`;
 
-    console.log(`[muapi-proxy] Forwarding ${generationType} request to ${endpoint}`);
+    console.log(`[muapi-proxy] Forwarding ${generationType ?? 'request'} to ${endpoint} (normalized: ${normalizedEndpoint})`);
 
+    const contentType = req.headers.get('content-type') || '';
+    const isMultipart = contentType.startsWith('multipart/');
     const method = generationType === 'poll' ? 'GET' : 'POST';
     const fetchOptions: RequestInit = {
       method,
       headers: {
-        'Content-Type': 'application/json',
         'x-api-key': muapiKey
       }
     };
 
-    if (method === 'POST') {
-      fetchOptions.body = JSON.stringify(params);
+    if (isMultipart) {
+      fetchOptions.body = req.body;
+      (fetchOptions.headers as Record<string, string>)['content-type'] = contentType;
+    } else if (method === 'POST') {
+      fetchOptions.headers['content-type'] = 'application/json';
+      fetchOptions.body = JSON.stringify(params ?? {});
     }
 
     const muapiResponse = await fetch(muapiUrl, fetchOptions);
@@ -155,7 +198,8 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const result = await muapiResponse.json();
+    let result = await muapiResponse.json();
+    result = unwrapResponse(result);
 
     console.log(`[muapi-proxy] Success: ${JSON.stringify(result).slice(0, 100)}`);
 

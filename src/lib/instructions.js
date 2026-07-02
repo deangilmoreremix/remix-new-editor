@@ -151,7 +151,7 @@ const STUDIO_INSTRUCTIONS = {
       'Start with lower epochs to test, then increase for final training',
     ],
   },
-  'video-tools': {
+  'videotools': {
     title: 'Video Tools',
     steps: [
       { number: 1, heading: 'Upload your video', description: 'Select a video file (MP4, WebM) to process. Videos should be under 30 seconds for best results.' },
@@ -179,6 +179,63 @@ const STUDIO_INSTRUCTIONS = {
       'Use system prompts to set the AI\'s persona or tone',
       'Break complex tasks into multiple messages',
       'Context helps the AI understand your needs better',
+    ],
+  },
+  audio: {
+    title: 'Audio Studio',
+    steps: [
+      { number: 1, heading: 'Choose audio type', description: 'Select between music generation, speech synthesis, or sound effects based on your needs.' },
+      { number: 2, heading: 'Describe or configure', description: 'Write a descriptive prompt for music/sound effects, or enter text for speech synthesis.' },
+      { number: 3, heading: 'Select voice or model', description: 'Choose from available AI voices for speech, or models for music/sound effects.' },
+      { number: 4, heading: 'Generate and download', description: 'Create your audio and download the result when ready.' },
+    ],
+    quickTips: [
+      'Be specific with music genres and moods',
+      'Use SSML tags for advanced speech control',
+      'Combine multiple sound effects for ambience',
+    ],
+  },
+  avatar: {
+    title: 'Avatar Studio',
+    steps: [
+      { number: 1, heading: 'Select avatar type', description: 'Choose from AI avatars, photo avatar, or upload your own avatar.' },
+      { number: 2, heading: 'Configure avatar', description: 'Set personality, voice, and appearance for AI avatars or upload a reference for photo avatars.' },
+      { number: 3, heading: 'Add script or prompt', description: 'Enter what you want the avatar to say or generate a script for AI-driven content.' },
+      { number: 4, heading: 'Generate and export', description: 'Create your avatar video and download or share the result.' },
+    ],
+    quickTips: [
+      'Use concise, clear scripts for best avatar performance',
+      'Photo avatars work best with well-lit, front-facing photos',
+      'Preview avatar movements before final generation',
+    ],
+  },
+  lipsync: {
+    title: 'Lip Sync',
+    steps: [
+      { number: 1, heading: 'Choose input mode', description: 'Select Image mode for portrait animation or Video mode for existing video lipsync.' },
+      { number: 2, heading: 'Upload media', description: 'For Image mode, upload a clear portrait. For Video mode, upload your source video.' },
+      { number: 3, heading: 'Add audio', description: 'Upload an audio file that will drive the lip sync animation.' },
+      { number: 4, heading: 'Select model and settings', description: 'Choose from available lipsync models and configure resolution if supported.' },
+      { number: 5, heading: 'Generate and preview', description: 'Click Generate to create your lipsync animation. Review and download the result.' },
+    ],
+    quickTips: [
+      'Clear, front-facing portraits work best for lipsync',
+      'Keep audio files under 60 seconds for best results',
+      'Higher resolution models take longer but produce better quality',
+    ],
+  },
+  render: {
+    title: 'Video Render',
+    steps: [
+      { number: 1, heading: 'Select your project', description: 'Choose a video project from your library or create a new one.' },
+      { number: 2, heading: 'Configure render settings', description: 'Set output format, quality, and resolution for your rendered video.' },
+      { number: 3, heading: 'Start rendering', description: 'Click Render to start processing. This may take several minutes depending on complexity.' },
+      { number: 4, heading: 'Download the result', description: 'Once rendering is complete, download your final video file.' },
+    ],
+    quickTips: [
+      'Use higher quality settings for final exports',
+      'Render in the background while you work on other projects',
+      'Check render progress in the notification center',
     ],
   },
 };

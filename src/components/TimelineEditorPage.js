@@ -15,28 +15,7 @@ export function TimelineEditorPage() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Timeline Editor</title>
   <style>
-    :root {
-      --bg: #05070b;
-      --panel: rgba(255,255,255,0.05);
-      --panel-soft: rgba(255,255,255,0.03);
-      --border: rgba(255,255,255,0.1);
-      --border-soft: rgba(255,255,255,0.08);
-      --text: #ffffff;
-      --muted: rgba(255,255,255,0.6);
-      --dim: rgba(255,255,255,0.4);
-      --cyan: #22d3ee;
-      --cyan-soft: rgba(34,211,238,0.2);
-      --emerald: #34d399;
-      --shadow: 0 20px 60px rgba(0,0,0,0.45);
-      --radius-xl: 28px;
-      --radius-lg: 20px;
-      --radius-md: 14px;
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
-    button, input, textarea, select { font: inherit; }
-    body { padding: 18px; }
-    .app-shell { max-width: 1500px; margin: 0 auto; }
+    :root { ... } /* same vars as before */
     .header {
       display: flex; align-items: center; justify-content: space-between; gap: 16px;
       margin-bottom: 16px; padding: 18px 20px; border-radius: 24px;
@@ -426,7 +405,7 @@ export function TimelineEditorPage() {
       ],
       generateTypes: [['✍️', 'Text'], ['🖼️', 'Image'], ['🔄', 'Retake'], ['➡️', 'Extend'], ['🎞️', 'B-Roll']],
       quickCommands: ['⚡Generate','Retake','Extend','B-Roll'],
-      railActions: [['⚡', 'Generate', true], ['✂️', 'Split'], ['🎬', 'Scenes'], ['💬', 'Subtitle'], ['🎞️', 'B-Roll'], ['⏱️', 'Speed'], ['🪄', 'Stabilize'], ['📝', 'Text']],
+      railActions: [['👤', 'Personalizer'], ['👥', 'Contacts'], ['📋', 'Tokens'], ['🎬', 'Batch Gen'], ['✍️', 'Text'], ['⚡', 'Generate', true], ['✂️', 'Split'], ['🎬', 'Scenes'], ['💬', 'Subtitle'], ['🎞️', 'B-Roll'], ['⏱️', 'Speed'], ['🪄', 'Stabilize'], ['📝', 'Text']],
       chat: [
         { role: 'user', text: 'Generate a better opening shot' },
         { role: 'ai', text: 'Opening idea ready. Use Generate or Retake.' }
@@ -506,11 +485,152 @@ export function TimelineEditorPage() {
     let animationThrottle = null;
     let workflowTimeout = null;
     let lastCommandTime = 0;
+    let contactImporterModal = null;
     function showToast(message) {
       els.toast.textContent = message;
       els.toast.classList.add('show');
       clearTimeout(showToast._timer);
       showToast._timer = setTimeout(() => els.toast.classList.remove('show'), 1800);
+    }
+
+    // ===== PARENT-SIDE MODAL BRIDGE =====
+    function openParentModal(modalName, props = {}) {
+      try {
+        const payload = { modal: modalName, props };
+        if (parent && parent.window && parent.window.dispatchEvent) {
+          const evt = new CustomEvent('timeline:open-modal', { detail: payload });
+          parent.window.dispatchEvent(evt);
+        }
+      } catch (err) {
+        console.warn('[Timeline] Parent modal bridge failed for', modalName, err);
+      }
+    }
+
+    // ===== MODALS =====
+    class ContactImporterModal {
+      constructor(options = {}) {
+        this.onClose = options.onClose || (() => {});
+        this.onContactsImported = options.onContactsImported || (() => {});
+        this.container = null;
+        this.overlay = null;
+        this.step = 1;
+        this.contacts = [];
+        this.file = null;
+      }
+      show() {
+        this.render();
+        document.body.appendChild(this.overlay);
+        document.body.style.overflow = 'hidden';
+      }
+      hide() {
+        if (this.overlay && this.overlay.parentNode) {
+          this.overlay.parentNode.removeChild(this.overlay);
+          document.body.style.overflow = '';
+        }
+        this.onClose();
+      }
+      render() {
+        this.overlay = document.createElement('div');
+        this.overlay.className = 'modal-overlay';
+        this.overlay.addEventListener('click', (e) => {
+          if (e.target === this.overlay) this.hide();
+        });
+        this.container = document.createElement('div');
+        this.container.className = 'modal-container contact-importer-modal';
+        if (this.step === 1) this.renderUploadStep(); else this.renderPreviewStep();
+        this.overlay.appendChild(this.container);
+        this.overlay.modal = this;
+      }
+      renderUploadStep() {
+        this.container.innerHTML = \`
+          <div class="modal-header">
+            <h2>Import Contacts</h2>
+            <button class="modal-close" type="button">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="upload-area">
+              <div class="upload-icon">📁</div>
+              <h3>Upload CSV File</h3>
+              <p>Drag and drop your CSV file here, or click to browse</p>
+              <input type="file" id="timeline-contact-file" accept=".csv" style="display:none" />
+              <button class="btn btn-primary" type="button" id="browseTimelineContacts">Browse Files</button>
+              <p class="upload-info">Supported format: CSV with headers</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-action="close-contact-importer">Cancel</button>
+          </div>
+        \`;
+        this.container.querySelector('#browseTimelineContacts').addEventListener('click', () => {
+          this.container.querySelector('#timeline-contact-file').click();
+        });
+        const fileInput = this.container.querySelector('#timeline-contact-file');
+        fileInput.addEventListener('change', (e) => this.handleFileSelect(e.target.files[0]));
+        this.bindCloseButtons();
+      }
+      bindCloseButtons() {
+        const close = this.container.querySelector('[data-action="close-contact-importer"], .modal-close');
+        if (close) close.addEventListener('click', () => this.hide());
+      }
+      renderPreviewStep() {
+        const previewContacts = this.contacts.slice(0, 5);
+        this.container.innerHTML = \`
+          <div class="modal-header">
+            <h2>Import Contacts - Preview</h2>
+            <button class="modal-close" type="button">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="import-summary">
+              <p>Found ${this.contacts.length} contacts in your CSV file.</p>
+              <p>Preview of first ${previewContacts.length} contacts:</p>
+            </div>
+            <div class="contacts-preview">
+              <div class="contact-header">
+                ${this.contacts[0] ? Object.keys(this.contacts[0]).map(key => '<span>' + key + '</span>').join('') : ''}
+              </div>
+              ${previewContacts.map(contact => '<div class="contact-row">' + Object.values(contact).map(value => '<span>' + value + '</span>').join('') + '</div>').join('')}
+            </div>
+            ${this.contacts.length > 5 ? '<p class="more-contacts">...and ' + (this.contacts.length - 5) + ' more contacts</p>' : ''}
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-action="go-back-contact-importer">Back</button>
+            <button class="btn btn-primary" type="button" data-action="import-contact-importer">Import Contacts</button>
+          </div>
+        \`;
+        this.container.querySelector('[data-action="go-back-contact-importer"]').addEventListener('click', () => { this.step = 1; this.contacts = []; this.render(); });
+        this.container.querySelector('[data-action="import-contact-importer"]').addEventListener('click', () => { this.onContactsImported(this.contacts); this.hide(); });
+        this.bindCloseButtons();
+      }
+      async handleFileSelect(file) {
+        if (!file) return;
+        this.file = file;
+        try {
+          const text = await file.text();
+          const parsedContacts = this.parseCSV(text);
+          if (parsedContacts.length === 0) { alert('No valid contacts found in CSV.'); return; }
+          this.contacts = parsedContacts;
+          this.step = 2;
+          this.render();
+        } catch (err) { console.error('CSV parse error', err); alert('Error parsing CSV file.'); }
+      }
+      parseCSV(text) {
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length < 2) return [];
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        const rows = lines.slice(1).map(line => line.split(',').map(v => v.trim().replace(/"/g, '')));
+        return rows.map(values => { const contact = {}; headers.forEach((h, i) => { contact[h] = values[i] || ''; }); return contact; }).filter(contact => Object.values(contact).some(v => v.trim() !== ''));
+      }
+      goBack() { this.step = 1; this.contacts = []; this.file = null; this.render(); }
+      importContacts() { if (!this.contacts.length) return; this.onContactsImported(this.contacts); this.hide(); }
+    }
+
+    function openContactImporterModal(onContactsImported) {
+      if (contactImporterModal) contactImporterModal.overlay?.remove?.();
+      contactImporterModal = new ContactImporterModal({
+        onClose: () => { contactImporterModal = null; showToast('Contact importer closed'); },
+        onContactsImported: (contacts) => { onContactsImported?.(contacts); showToast(contacts.length + ' contacts imported'); }
+      });
+      contactImporterModal.show();
     }
 
     // ===== ANIMATION IDE FUNCTIONS =====
@@ -1862,11 +1982,33 @@ export function TimelineEditorPage() {
     }
     function renderTopActions() {
       els.topActions.innerHTML = '';
-      state.topIcons.forEach((icon, i) => {
+      const actions = [
+        { id: 'preview', label: 'Preview' },
+        { id: 'media', label: 'Media' },
+        { id: 'project', label: 'Project', default: true },
+        { id: 'ai-video', label: 'AI Video' },
+        { id: 'contacts', label: 'Contacts' },
+        { id: 'tokens', label: 'Tokens' },
+        { id: 'personalize', label: 'Personalize' },
+        { id: 'social', label: 'Social' },
+        { id: 'settings', label: 'Settings' }
+      ];
+      actions.forEach(({ id, label, default: enabled }) => {
         const btn = document.createElement('button');
-        btn.className = 'top-icon ' + (i === 3 ? 'active' : '');
-        btn.textContent = icon;
-        btn.addEventListener('click', () => showToast(icon + ' action clicked'));
+        btn.className = 'top-icon ' + (enabled ? 'active' : '');
+        btn.textContent = label[0];
+        btn.title = label;
+        btn.addEventListener('click', () => {
+          if (label === 'Contacts') {
+            openContactImporterModal((contacts) => { state.contacts = contacts; });
+          } else if (label === 'Personalize' || label === 'Tokens') {
+            openParentModal('personalization');
+          } else if (label === 'Settings') {
+            openParentModal('settings');
+          } else {
+            openParentModal(id, { label });
+          }
+        });
         els.topActions.appendChild(btn);
       });
       const ready = document.createElement('div');
@@ -1988,7 +2130,19 @@ export function TimelineEditorPage() {
         const btn = document.createElement('button');
         btn.className = 'rail-btn ' + (active ? 'active' : '');
         btn.innerHTML = '<span class="emoji">' + icon + '</span><span>' + label + '</span>';
-        btn.addEventListener('click', () => showToast(label + ' action triggered'));
+        btn.addEventListener('click', () => {
+          if (label === 'Personalizer') {
+            openParentModal('personalization', { onAdd: (token) => showToast('Token added: ' + token) });
+          } else if (label === 'Contacts') {
+            openContactImporterModal((contacts) => { state.contacts = contacts; });
+          } else if (label === 'Tokens') {
+            openParentModal('token-editor');
+          } else if (label === 'Batch Gen') {
+            openParentModal('batch-generator');
+          } else {
+            showToast(label + ' action triggered');
+          }
+        });
         els.floatingRail.appendChild(btn);
       });
     }

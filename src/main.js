@@ -102,6 +102,9 @@ try {
   initRouter(contentArea, (page) => {
     headerEl.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
     sidebar.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
+    if (typeof activeTimelineModal?.unmount === 'function') {
+      activeTimelineModal.unmount();
+    }
   });
 
   // Track initialization time
@@ -169,6 +172,125 @@ const wrapNavigate = (navigateFn) => {
     return navigateFn(page, params);
   };
 };
+
+const timelineModalRoot = document.createElement('div');
+timelineModalRoot.id = 'timeline-modal-root';
+timelineModalRoot.style.cssText = 'position:fixed;inset:0;z-index:9999;pointer-events:none;';
+document.body.appendChild(timelineModalRoot);
+
+const activeTimelineModal = {
+  instance: null,
+  container: null,
+  unmount() {
+    if (this.container && this.container.parentNode) {
+      this.container.parentNode.removeChild(this.container);
+    }
+    this.container = null;
+    this.instance = null;
+  },
+};
+
+async function renderParentTimelineModal(modal, props = {}) {
+  try {
+    activeTimelineModal.unmount();
+    const app = document.querySelector('#app');
+    if (!app) return;
+    const container = document.createElement('div');
+    container.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;pointer-events:auto;';
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);';
+    const content = document.createElement('div');
+    content.style.cssText = 'position:relative;z-index:1;max-width:520px;width:100%;max-height:88vh;overflow:auto;border-radius:24px;border:1px solid rgba(255,255,255,0.08);background:linear-gradient(180deg,#0b0f1920,#0a0d16f0);box-shadow:0 20px 60px rgba(0,0,0,0.45);';
+    overlay.addEventListener('click', () => activeTimelineModal.unmount());
+    container.appendChild(overlay);
+    container.appendChild(content);
+    app.appendChild(container);
+    activeTimelineModal.container = container;
+
+    if (modal === 'personalization') {
+      const { PersonalizationModal } = await import('../components/modals/PersonalizationModal.jsx');
+      content.innerHTML = '';
+      const { createRoot } = await import('react-dom/client');
+      const root = createRoot(content);
+      activeTimelineModal.instance = { root };
+      try {
+        const mod = await import('react');
+        root.render(mod.createElement(PersonalizationModal, {
+          handleClose: () => { root.unmount?.(); activeTimelineModal.unmount?.(); },
+          options: { elementType: props.elementType, onAdd: props.onAdd, tokenModes: props.tokenModes }
+        }));
+      } catch (err) {
+        content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Personalizer</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Open the timeline Personalizer inside the editor.</p></div>';
+        console.warn('[TimelineModalBridge] React unavailable for Personalization modal', err);
+      }
+      return;
+    }
+
+    if (modal === 'token-editor') {
+      const { default: TokenEditor } = await import('../components/TokenEditor.jsx');
+      content.innerHTML = '';
+      const { createRoot } = await import('react-dom/client').catch(() => ({}));
+      const root = createRoot?.(content);
+      if (root) {
+        activeTimelineModal.instance = { root };
+        try {
+          const mod = await import('react');
+          root.render(mod.createElement(TokenEditor, {
+            onTokensChange: (tokens) => console.log('[TokenEditor]', tokens),
+            initialTokens: props.tokens || {}
+          }));
+        } catch (err) {
+          content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Tokens</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Token editor requires React runtime.</p></div>';
+          console.warn('[TimelineModalBridge] React unavailable for TokenEditor modal', err);
+        }
+      } else {
+        content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Tokens</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Token editor will load once React is mounted.</p></div>';
+      }
+      return;
+    }
+
+    if (modal === 'batch-generator') {
+      content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Batch Generator</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Select a base video and import contacts before running batch generation.</p></div>';
+      return;
+    }
+
+    if (modal === 'social-publisher') {
+      content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Social Publisher</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Connect a platform account to publish from the timeline.</p></div>';
+      return;
+    }
+
+    if (modal === 'settings') {
+      const { default: SettingsModal } = await import('../components/modals/SettingsModal.js');
+      new SettingsModal().open();
+      activeTimelineModal.unmount();
+      return;
+    }
+
+    if (modal === 'project') {
+      const { default: CreateProjectModal } = await import('../components/modals/CreateProjectModal.js');
+      new CreateProjectModal().open();
+      activeTimelineModal.unmount();
+      return;
+    }
+
+    content.innerHTML = `<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;font-weight:700;">${String(modal)}</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Modal coming online.</p></div>`;
+  } catch (err) {
+    console.error('[TimelineModalBridge] Failed to show modal', modal, err);
+    activeTimelineModal.unmount();
+  }
+}
+
+window.__timelineModalBus = timelineModalBus;
+window.addEventListener('timeline:open-modal', (event) => {
+  try {
+    const { modal, props = {} } = event.detail || {};
+    if (modal) {
+      renderParentTimelineModal(modal, props);
+    }
+  } catch (err) {
+    console.warn('[TimelineModalBridge] Failed to route modal request', err);
+  }
+});
 
 // Note: The wrapper is applied inside initRouter in the router module
 // Expose navigate globally for debugging

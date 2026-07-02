@@ -1,5 +1,5 @@
-import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById } from './models.js';
-import { uploadFileToStorage } from './supabase.js';
+import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById } from './models.js';
+import { apiKeyManager } from './apiKeyManager.js';
 
 export class MuapiClient {
     constructor() {
@@ -12,17 +12,11 @@ export class MuapiClient {
             this.proxyUrl = `${supabaseUrl}/functions/v1/muapi-proxy`;
         }
         this.activeControllers = new Map(); // For request cancellation
+        this.apiKeyManager = apiKeyManager;
     }
 
     getKey() {
-        const key = localStorage.getItem('muapi_key');
-        if (!key) {
-            // Set default API key if not configured
-            const defaultKey = 'd370ae6ecc87e99654ed2220fba0d1511224f41623867aedc2c2a0a06f15b208';
-            localStorage.setItem('muapi_key', defaultKey);
-            return defaultKey;
-        }
-        return key;
+        return this.apiKeyManager.getKey();
     }
 
     // Cancel a specific request
@@ -372,7 +366,29 @@ export class MuapiClient {
     }
 
     async uploadFile(file) {
-        return uploadFileToStorage(file);
+        const key = this.getKey();
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('https://api.muapi.ai/api/v1/upload_file', {
+            method: 'POST',
+            headers: {
+                'x-api-key': key,
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Upload Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+        }
+
+        const result = await response.json();
+        if (result.error) {
+            throw new Error(`Upload Failed: ${result.error}`);
+        }
+
+        return result.url || result.data?.url;
     }
 
     async processV2V(params, signal) {
@@ -625,10 +641,8 @@ export class MuapiClient {
     }
 
     async processLipSync(params) {
-        const key = this.getKey();
         const modelInfo = getLipSyncModelById(params.model);
         const endpoint = modelInfo?.endpoint || params.model;
-        const url = `${this.baseUrl}/api/v1/${endpoint}`;
 
         const finalPayload = {};
 
@@ -639,15 +653,18 @@ export class MuapiClient {
         if (params.resolution) finalPayload.resolution = params.resolution;
         if (params.seed !== undefined && params.seed !== -1) finalPayload.seed = params.seed;
 
-
-        console.log('[Muapi] LipSync Request:', url);
-        console.log('[Muapi] LipSync Payload:', finalPayload);
+        console.log('[Muapi] LipSync Request:', endpoint, finalPayload);
 
         try {
-            const response = await fetch(url, {
+            const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'x-api-key': key },
-                body: JSON.stringify(finalPayload)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    endpoint,
+                    params: finalPayload,
+                    generationType: 'lipsync',
+                    studioType: 'lipsync'
+                })
             });
 
             if (!response.ok) {
@@ -664,7 +681,7 @@ export class MuapiClient {
 
             if (params.onRequestId) params.onRequestId(requestId);
 
-            const result = await this.pollForResult(requestId, key, 900, 2000);
+            const result = await this.pollForResult(requestId, 900, 2000);
             const videoUrl = result.outputs?.[0] || result.url || result.output?.url;
             console.log('[Muapi] LipSync Result URL:', videoUrl);
             return { ...result, url: videoUrl };
