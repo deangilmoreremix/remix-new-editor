@@ -122,6 +122,10 @@ const TOOL_THUMBNAILS = {
   'ai-skin-enhancer': '/thumbnails/tools/skin-enhance.webp',
   'ai-color-photo': '/thumbnails/tools/colorize.webp',
   'add-image-watermark': '/thumbnails/tools/watermark.webp',
+  'ai-image-upscaler': '/thumbnails/tools/upscale.webp',
+  'ai-image-face-swap': '/thumbnails/tools/face-swap.webp',
+  'ai-product-shot': '/thumbnails/tools/product-shot.webp',
+  'ai-ghibli-style': '/thumbnails/tools/ghibli-style.webp',
 };
 
 const CATEGORY_THUMBNAILS = {
