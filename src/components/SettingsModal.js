@@ -1,3 +1,5 @@
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+
 export function SettingsModal(onClose) {
     const overlay = document.createElement('div');
     overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-6';
@@ -21,8 +23,20 @@ export function SettingsModal(onClose) {
     const input = document.createElement('input');
     input.type = 'password';
     input.className = 'w-full mb-6 bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors shadow-inner';
-    input.value = localStorage.getItem('muapi_key') || '';
+    input.value = apiKeyManager.getKey() || '';
     input.placeholder = 'sk-...';
+
+    const status = document.createElement('p');
+    status.className = 'text-[11px] text-muted mb-4';
+
+    const refreshKeyStatus = () => {
+        const key = apiKeyManager.getKey();
+        if (key) {
+            status.textContent = 'API key is configured.';
+        } else {
+            status.textContent = 'No API key configured.';
+        }
+    };
 
     const btnContainer = document.createElement('div');
     btnContainer.className = 'flex justify-end gap-3';
@@ -36,17 +50,31 @@ export function SettingsModal(onClose) {
     saveBtn.textContent = 'Save';
     saveBtn.className = 'px-6 py-2.5 rounded-xl bg-primary text-black font-black text-sm hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all';
 
-    saveBtn.onclick = () => {
+    saveBtn.onclick = async () => {
         const key = input.value.trim();
-        if (key) {
-            localStorage.setItem('muapi_key', key);
+        if (!key) {
+            apiKeyManager.clearKey();
+            refreshKeyStatus();
             removeModal();
+            return;
+        }
+        if (key.length < 10) {
+            alert('API key appears too short. Please check it and try again.');
+            return;
+        }
+        try {
+            await apiKeyManager.setKey(key, true);
+            refreshKeyStatus();
+            removeModal();
+        } catch (e) {
+            alert('Failed to save API key: ' + e.message);
         }
     };
 
     modal.appendChild(title);
     modal.appendChild(label);
     modal.appendChild(input);
+    modal.appendChild(status);
 
     btnContainer.appendChild(cancelBtn);
     btnContainer.appendChild(saveBtn);
@@ -57,6 +85,8 @@ export function SettingsModal(onClose) {
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) removeModal();
     });
+
+    refreshKeyStatus();
 
     return overlay;
 }

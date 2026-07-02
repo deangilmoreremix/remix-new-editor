@@ -94,7 +94,7 @@ export function VideoToolsStudio() {
   container.appendChild(formCard);
 
   // Instructions
-  const inlineInstructions = createInlineInstructions('video-tools');
+  const inlineInstructions = createInlineInstructions('videotools');
   inlineInstructions.classList.add('max-w-md', 'mt-6');
   container.appendChild(inlineInstructions);
 

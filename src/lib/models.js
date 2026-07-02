@@ -3339,7 +3339,7 @@ export const i2iModels = [
         "name": "name",
         "description": "The type of effect to apply to the image.",
         "enum": [
-          "Acryclic Ornaments",
+          "Acrylic Ornaments",
           "Advanced Photography",
           "American Comic Style",
           "Angel Figurine",
@@ -4981,7 +4981,7 @@ export const i2vModels = [
           "Human Timelapse",
           "Landscape Timelapse",
           "Lazy Susan",
-          "Lens Crac",
+          "Lens Crack",
           "Lens Flare",
           "Matrix Shot",
           "Motion Blur",

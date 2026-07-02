@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "https://your-production-domain.com", // Replace with actual domain
+  "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey, X-Webhook-Signature",
 };
@@ -14,7 +14,8 @@ if (!MUAPI_WEBHOOK_SECRET) {
 }
 
 interface WebhookPayload {
-  request_id: string;
+  request_id?: string;
+  id?: string;
   status: string;
   output?: any;
   outputs?: string[];
@@ -96,10 +97,12 @@ Deno.serve(async (req: Request) => {
       payload = await req.json();
     }
     
-    const { request_id, status, outputs, url, output, error, metadata } = payload;
+    const { request_id, id, status, outputs, url, output, error, metadata } = payload;
+
+    const resolvedRequestId = request_id || id;
 
     // Validate required fields
-    if (!request_id || !status) {
+    if (!resolvedRequestId || !status) {
       return new Response(
         JSON.stringify({ error: 'Invalid payload - missing required fields' }),
         {
@@ -109,11 +112,11 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    console.log(`[muapi-webhook] Received: request_id=${request_id}, status=${status}`);
+    console.log(`[muapi-webhook] Received: request_id=${resolvedRequestId}, status=${status}`);
 
     const outputUrl = outputs?.[0] || url || output?.url || null;
 
-    console.log(`[muapi-webhook] Processing webhook for ${request_id}: ${status}`);
+    console.log(`[muapi-webhook] Processing webhook for ${resolvedRequestId}: ${status}`);
 
     if (outputUrl) {
       console.log(`[muapi-webhook] Output URL: ${outputUrl.slice(0, 50)}...`);
@@ -127,7 +130,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         success: true,
         message: 'Webhook received and logged',
-        request_id
+        request_id: resolvedRequestId
       }),
       {
         status: 200,

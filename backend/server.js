@@ -8,6 +8,7 @@ import aiAgentService from './services/aiAgentService.js';
 import sceneDetectionService from './services/sceneDetectionService.js';
 import semanticSearchService from './services/semanticSearchService.js';
 import speechTranscriptionService from './services/speechTranscriptionService.js';
+import videoAgentService from './services/videoAgentService.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -22,6 +23,7 @@ app.use('/api/ai-agent', aiAgentService);
 app.use('/api/scene-detection', sceneDetectionService);
 app.use('/api/semantic-search', semanticSearchService);
 app.use('/api/speech-transcription', speechTranscriptionService);
+app.use('/videoagent', videoAgentService);
 
 // Health check
 app.get('/health', (req, res) => {
