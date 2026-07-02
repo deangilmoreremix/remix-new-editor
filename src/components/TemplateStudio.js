@@ -1,5 +1,5 @@
 import { getTemplateById } from '../lib/templates.js';
-import { getTemplateThumbnail } from '../lib/thumbnails.js';
+import { getTemplateThumbnailCandidates } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
 import { AuthModal } from './AuthModal.js';
@@ -100,20 +100,27 @@ export function TemplateStudio(templateId) {
   heroSection.className = 'flex flex-col items-center text-center';
 
   // Thumbnail
-  const thumbnailUrl = getTemplateThumbnail(template.id);
   const thumbnailEl = document.createElement('div');
-  thumbnailEl.className = 'mb-6 h-24 w-24 rounded-[28px] border border-emerald-400/20 shadow-[0_0_40px_rgba(16,185,129,0.10)] overflow-hidden';
+  thumbnailEl.className = 'mb-6 h-24 w-24 rounded-[28px] border border-emerald-400/20 shadow-[0_0_40px_rgba(16,185,129,0.10)] overflow-hidden flex items-center justify-center';
   
-  if (thumbnailUrl) {
-    const img = document.createElement('img');
-    img.src = thumbnailUrl;
-    img.alt = template.name;
-    img.className = 'w-full h-full object-cover';
-    thumbnailEl.appendChild(img);
-  } else {
-    thumbnailEl.className += ' bg-[radial-gradient(circle_at_50%_40%,rgba(99,102,241,0.38),transparent_45%),radial-gradient(circle_at_60%_60%,rgba(34,211,238,0.22),transparent_42%),linear-gradient(180deg,#0e0d1b,#15122a)] flex items-center justify-center text-4xl';
+  const img = document.createElement('img');
+  img.alt = template.name;
+  img.className = 'w-full h-full object-cover';
+  // Try per-template paths first, then industry fallbacks, then category
+  const candidates = getTemplateThumbnailCandidates(template);
+  let candidateIndex = 0;
+  img.src = candidates[0];
+  img.onerror = () => {
+    candidateIndex++;
+    if (candidateIndex < candidates.length) {
+      img.src = candidates[candidateIndex];
+      return;
+    }
+    img.style.display = 'none';
+    thumbnailEl.classList.add('thumb-fallback');
     thumbnailEl.textContent = template.icon || '🎬';
-  }
+  };
+  thumbnailEl.appendChild(img);
   heroSection.appendChild(thumbnailEl);
 
   // Title

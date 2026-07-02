@@ -118,6 +118,24 @@
     display: none;
 }
 
+/* When no thumbnail image could be loaded, show a styled placeholder
+   gradient on the card content area so the layout still looks intentional. */
+.thumb-fallback {
+    position: relative;
+}
+
+.thumb-fallback::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8rem;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(34, 211, 238, 0.10) 50%, rgba(217, 255, 0, 0.08) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+}
+
 .hero-banner img {
     transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
 }

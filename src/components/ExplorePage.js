@@ -47,7 +47,7 @@ export function ExplorePage() {
     const heroWrapper = document.createElement('div');
     heroWrapper.className = 'thumb-hero h-36 relative';
     heroWrapper.innerHTML = '<div class="thumb-skeleton absolute inset-0"></div>';
-    const img = createThumbnailImg(thumbSrc, t.name, 'w-full h-full object-cover');
+    const img = createThumbnailImg(thumbSrc, t.name, 'w-full h-full object-cover', t);
     heroWrapper.appendChild(img);
     card.appendChild(heroWrapper);
     const info = document.createElement('div');

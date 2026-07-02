@@ -1,3 +1,76 @@
+// Map each niche display name to an existing industry thumbnail file
+// These are reused across templates within the same niche since individual
+// per-template thumbnails were not generated for the niche catalog.
+const NICHE_THUMBNAILS = {
+  'Restaurant & Cafe': '/thumbnails/templates/restaurant_cafe_cinematic.webp.png',
+  'Med Spa & Beauty': '/thumbnails/templates/med_spa_explainer.webp.png',
+  'Med Spa & Beauty Alt': '/thumbnails/templates/med_spa_treatment_reel.webp.png',
+  'Salon & Barbershop': '/thumbnails/templates/salon_story_film.webp.png',
+  'Salon & Barbershop Alt': '/thumbnails/templates/salon_transformation_story.webp.png',
+  'Gym & Fitness': '/thumbnails/templates/fitness_transformation.webp.png',
+  'Real Estate': '/thumbnails/templates/real_estate_cinematic.webp.png',
+  'Dental Office': '/thumbnails/templates/dental_chair_showcase.webp.png',
+  'Dental Office Alt': '/thumbnails/templates/dental_patient_story.webp.png',
+  'Chiropractic & Wellness': '/thumbnails/templates/wellness_chiropractic_trailer.webp.png',
+  'Chiropractic & Wellness Alt': '/thumbnails/templates/chiropractic_clinic_film.webp.png',
+  'Legal & Attorney': '/thumbnails/templates/corporate_event_film.webp.png',
+  'Automotive & Car': '/thumbnails/templates/automotive_cinematic.webp.png',
+  'Fashion & Style': '/thumbnails/templates/editorial_fashion_film.webp.png',
+  'Fashion & Style Alt': '/thumbnails/templates/fashion_lifestyle.webp.png',
+  'Events & Celebrations': '/thumbnails/templates/corporate_event_film.webp.png',
+  'Events & Celebrations Alt': '/thumbnails/templates/event_recap_film.webp.png',
+  'Luxury & Premium': '/thumbnails/templates/luxury_brand.webp.png',
+  'Luxury & Premium Alt': '/thumbnails/templates/luxury_brand_style.webp.png',
+};
+
+// Cycle through these for each template so cards in the same niche look visually distinct
+const NICHE_ROTATION = {
+  'Restaurant & Cafe': [
+    'Restaurant & Cafe',
+  ],
+  'Med Spa & Beauty': [
+    'Med Spa & Beauty',
+    'Med Spa & Beauty Alt',
+  ],
+  'Salon & Barbershop': [
+    'Salon & Barbershop',
+    'Salon & Barbershop Alt',
+  ],
+  'Gym & Fitness': [
+    'Gym & Fitness',
+  ],
+  'Real Estate': [
+    'Real Estate',
+  ],
+  'Dental Office': [
+    'Dental Office',
+    'Dental Office Alt',
+  ],
+  'Chiropractic & Wellness': [
+    'Chiropractic & Wellness',
+    'Chiropractic & Wellness Alt',
+  ],
+  'Legal & Attorney': [
+    'Legal & Attorney',
+    'Events & Celebrations',
+  ],
+  'Automotive & Car': [
+    'Automotive & Car',
+  ],
+  'Fashion & Style': [
+    'Fashion & Style',
+    'Fashion & Style Alt',
+  ],
+  'Events & Celebrations': [
+    'Events & Celebrations',
+    'Events & Celebrations Alt',
+  ],
+  'Luxury & Premium': [
+    'Luxury & Premium',
+    'Luxury & Premium Alt',
+  ],
+};
+
 const STUDIO_THUMBNAILS = {
   image: '/thumbnails/studios/image.webp',
   video: '/thumbnails/studios/video.webp',
@@ -12,6 +85,8 @@ const STUDIO_THUMBNAILS = {
   avatar: '/thumbnails/studios/avatar.webp',
   training: '/thumbnails/studios/training.webp',
   videotools: '/thumbnails/studios/videotools.webp',
+  lipsync: '/thumbnails/studios/lipsync.webp',
+  render: '/thumbnails/studios/render.webp',
   chat: '/thumbnails/studios/chat.webp',
 };
 
@@ -92,6 +167,57 @@ export function getTemplateThumbnail(templateId) {
   return `/thumbnails/templates/${templateId}.webp`;
 }
 
+// Get a list of all candidate paths to try for a template, in priority order.
+// Used by createThumbnailImg so niche templates can fall back to industry
+// thumbnails when their individual file is missing.
+export function getTemplateThumbnailCandidates(template) {
+  const candidates = [];
+  const id = typeof template === 'string' ? template : template?.id;
+  const niche = typeof template === 'object' ? template?.niche : null;
+  const category = typeof template === 'object' ? template?.category : null;
+
+  // 1) Per-template .webp (standard templates)
+  if (id) candidates.push(`/thumbnails/templates/${id}.webp`);
+
+  // 2) Per-template .webp.png (niche templates that were generated)
+  if (id) candidates.push(`/thumbnails/templates/${id}.webp.png`);
+
+  // 3) Niche/industry thumbnail rotation (reuses existing industry files)
+  if (niche && NICHE_ROTATION[niche]) {
+    const rotation = NICHE_ROTATION[niche];
+    // Deterministic rotation based on the template id so each card looks distinct
+    let offset = 0;
+    if (id) {
+      let hash = 0;
+      for (let i = 0; i < id.length; i++) {
+        hash = ((hash << 5) - hash) + id.charCodeAt(i);
+        hash |= 0;
+      }
+      offset = Math.abs(hash) % rotation.length;
+    }
+    // Push every rotation option in the best order first
+    for (let i = 0; i < rotation.length; i++) {
+      const key = rotation[(offset + i) % rotation.length];
+      const path = NICHE_THUMBNAILS[key];
+      if (path && !candidates.includes(path)) candidates.push(path);
+    }
+  } else if (niche && NICHE_THUMBNAILS[niche]) {
+    candidates.push(NICHE_THUMBNAILS[niche]);
+  }
+
+  // 4) Category thumbnail (works for standard templates too)
+  if (category) {
+    const catPath = CATEGORY_THUMBNAILS[category];
+    if (catPath && !candidates.includes(catPath)) candidates.push(catPath);
+  }
+
+  // 5) Generic placeholder
+  const placeholder = PAGE_THUMBNAILS.placeholder || '/thumbnails/pages/placeholder.webp';
+  if (!candidates.includes(placeholder)) candidates.push(placeholder);
+
+  return candidates;
+}
+
 export function getTemplateThumbnailWithFallback(templateId) {
   // For cinematic templates that may have .webp.png extension
   const webpPath = `/thumbnails/templates/${templateId}.webp`;
@@ -99,34 +225,36 @@ export function getTemplateThumbnailWithFallback(templateId) {
   return { webpPath, pngPath };
 }
 
-export function createThumbnailImg(src, alt, className = '') {
+export function createThumbnailImg(src, alt, className = '', fallbackTemplate = null) {
   const img = document.createElement('img');
-  img.src = src;
   img.alt = alt;
   img.loading = 'lazy';
   img.className = className;
+
+  // If a template was provided, use the full candidate chain so missing
+  // per-template thumbnails can fall back to industry/category files.
+  let candidates;
+  if (fallbackTemplate) {
+    candidates = getTemplateThumbnailCandidates(fallbackTemplate);
+  } else {
+    candidates = [src];
+    // Preserve the legacy .webp -> .webp.png fallback for static paths
+    if (src && src.endsWith('.webp')) candidates.push(src + '.png');
+  }
+
+  let index = 0;
+  img.src = candidates[0];
+
   img.onerror = () => {
-    // Try fallback for template thumbnails (some are .webp.png format)
-    if (src.includes('/thumbnails/templates/') && src.endsWith('.webp')) {
-      img.src = src + '.png';
-      img.onerror = () => {
-        img.style.display = 'none';
-        const parent = img.parentElement;
-        if (parent) parent.classList.add('thumb-fallback');
-      };
-    } else if ((src.includes('/thumbnails/heroes/') || src.includes('/thumbnails/pages/') || src.includes('/thumbnails/videoagent/') || src.includes('/thumbnails/studios/')) && src.endsWith('.webp')) {
-      // Try fallback for hero, page, videoagent, and studio thumbnails (generated as .webp.png)
-      img.src = src + '.png';
-      img.onerror = () => {
-        img.style.display = 'none';
-        const parent = img.parentElement;
-        if (parent) parent.classList.add('thumb-fallback');
-      };
-    } else {
-      img.style.display = 'none';
-      const parent = img.parentElement;
-      if (parent) parent.classList.add('thumb-fallback');
+    index++;
+    if (index < candidates.length) {
+      img.src = candidates[index];
+      return;
     }
+    // All candidates failed — hide the image and mark the parent
+    img.style.display = 'none';
+    const parent = img.parentElement;
+    if (parent) parent.classList.add('thumb-fallback');
   };
   img.onload = () => {
     const skeleton = img.parentElement?.querySelector('.thumb-skeleton');

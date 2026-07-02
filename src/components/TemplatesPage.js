@@ -223,7 +223,7 @@ function createTemplateSection(category, catTemplates, isNiche) {
       skeleton.className = 'thumb-skeleton absolute inset-0';
       heroWrapper.appendChild(skeleton);
 
-      const img = createThumbnailImg(thumbnail, t.name, 'absolute inset-0');
+      const img = createThumbnailImg(thumbnail, t.name, 'absolute inset-0', t);
       heroWrapper.appendChild(img);
       card.appendChild(heroWrapper);
     }
