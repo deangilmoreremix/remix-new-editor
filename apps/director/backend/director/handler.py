@@ -26,6 +26,15 @@ from director.agents.code_assistant import CodeAssistantAgent
 from director.agents.web_search_agent import WebSearchAgent
 from director.agents.clone_voice import CloneVoiceAgent
 from director.agents.voice_replacement import VoiceReplacementAgent
+from director.agents.highlight_reel import HighlightReelAgent
+from director.agents.slide_extraction import SlideExtractionAgent
+from director.agents.copyright_detection import CopyrightDetectionAgent
+from director.agents.content_moderation import ContentModerationAgent
+from director.agents.annual_recap import AnnualRecapAgent
+from director.agents.lyric_video import LyricVideoAgent
+from director.agents.word_counter import WordCounterAgent
+from director.agents.branding import BrandingAgent
+from director.agents.ad_insertion import AdInsertionAgent
 
 
 from director.core.session import Session, InputMessage, MsgStatus
@@ -71,6 +80,15 @@ class ChatHandler:
             WebSearchAgent,
             VoiceReplacementAgent,
             PricingAgent,
+            HighlightReelAgent,
+            SlideExtractionAgent,
+            CopyrightDetectionAgent,
+            ContentModerationAgent,
+            AnnualRecapAgent,
+            LyricVideoAgent,
+            WordCounterAgent,
+            BrandingAgent,
+            AdInsertionAgent,
         ]
 
     def add_videodb_state(self, session):
