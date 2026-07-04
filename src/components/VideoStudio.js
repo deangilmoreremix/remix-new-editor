@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createSafeVideo } from '../lib/security.js';
 import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
@@ -184,7 +185,7 @@ export function VideoStudio() {
         const file = e.target.files[0];
         if (!file) return;
 
-        const apiKey = localStorage.getItem('muapi_key');
+        const apiKey = apiKeyManager.getKey();
         if (!apiKey) {
             AuthModal(() => videoFileInput.click());
             return;
@@ -781,7 +782,11 @@ export function VideoStudio() {
     // --- Helper: Add to history ---
     const addToHistory = (entry) => {
         generationHistory.unshift(entry);
-        localStorage.setItem('video_history', JSON.stringify(generationHistory.slice(0, 30)));
+        try {
+            localStorage.setItem('video_history', JSON.stringify(generationHistory.slice(0, 30)));
+        } catch (e) {
+            // Ignore storage errors (private mode, quota exceeded, etc.)
+        }
         historySidebar.classList.remove('translate-x-full', 'opacity-0');
         historySidebar.classList.add('translate-x-0', 'opacity-100');
         renderHistory();
@@ -947,7 +952,7 @@ export function VideoStudio() {
             }
         }
 
-        const apiKey = localStorage.getItem('muapi_key');
+        const apiKey = apiKeyManager.getKey();
         if (!apiKey) {
             AuthModal(() => generateBtn.click());
             return;

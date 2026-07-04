@@ -562,7 +562,11 @@ export function CinemaStudio() {
 
     const addToHistory = (entry) => {
         generationHistory.unshift(entry);
-        localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50)));
+        try {
+            localStorage.setItem('cinema_history', JSON.stringify(generationHistory.slice(0, 50)));
+        } catch (e) {
+            // Ignore storage errors (private mode, quota exceeded, etc.)
+        }
         renderHistory();
     };
 
@@ -666,7 +670,7 @@ export function CinemaStudio() {
         const basePrompt = textarea.value.trim();
         if (!basePrompt) return;
 
-        const apiKey = localStorage.getItem('muapi_key');
+        const apiKey = apiKeyManager.getKey();
         if (!apiKey) {
             AuthModal(() => generateBtn.click());
             return;

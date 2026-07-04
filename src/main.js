@@ -15,15 +15,26 @@ const initStart = performance.now();
 window.addEventListener('error', (event) => {
   console.error('[Global Error]', event.error);
   
-  // Don't show error UI for known benign errors
-  if (event.message?.includes('ResizeObserver') || 
-      event.message?.includes('passive event listener') ||
-      event.message?.includes('non-passive')) {
+  // Don't show the global error toast for common non-fatal errors
+  const message = event.message || '';
+  if (
+    message.includes('ResizeObserver') ||
+    message.includes('passive event listener') ||
+    message.includes('non-passive') ||
+    message.includes('QuotaExceededError') ||
+    message.includes('NS_ERROR_DOM_QUOTA_REACHED') ||
+    message.includes('SecurityError') ||
+    message.includes('DOM Exception 18') ||
+    message.includes('Failed to construct \'Worker\'') ||
+    message.includes('Script at') ||
+    message.includes('Load failed') ||
+    message.includes('Script error.')
+  ) {
     return;
   }
   
   // Track error
-  analytics.trackError('uncaught_exception', event.message || 'Unknown error', {
+  analytics.trackError('uncaught_exception', message || 'Unknown error', {
     filename: event.filename,
     lineno: event.lineno
   });
@@ -260,14 +271,14 @@ async function renderParentTimelineModal(modal, props = {}) {
     }
 
     if (modal === 'settings') {
-      const { default: SettingsModal } = await import('../components/modals/SettingsModal.js');
+      const { default: SettingsModal } = await import('./components/modals/SettingsModal.js');
       new SettingsModal().open();
       activeTimelineModal.unmount();
       return;
     }
 
     if (modal === 'project') {
-      const { default: CreateProjectModal } = await import('../components/modals/CreateProjectModal.js');
+      const { default: CreateProjectModal } = await import('./components/modals/CreateProjectModal.js');
       new CreateProjectModal().open();
       activeTimelineModal.unmount();
       return;
@@ -280,7 +291,6 @@ async function renderParentTimelineModal(modal, props = {}) {
   }
 }
 
-window.__timelineModalBus = timelineModalBus;
 window.addEventListener('timeline:open-modal', (event) => {
   try {
     const { modal, props = {} } = event.detail || {};
@@ -295,9 +305,3 @@ window.addEventListener('timeline:open-modal', (event) => {
 // Note: The wrapper is applied inside initRouter in the router module
 // Expose navigate globally for debugging
 window.navigate = navigate;
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}

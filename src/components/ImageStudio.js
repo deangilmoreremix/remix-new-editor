@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createSafeImage } from '../lib/security.js';
 import {
     t2iModels, getAspectRatiosForModel, getResolutionsForModel, getQualityFieldForModel,
@@ -884,8 +885,12 @@ export function ImageStudio() {
     const addToHistory = (entry) => {
         generationHistory.unshift(entry);
 
-        // Save to localStorage
-        localStorage.setItem('muapi_history', JSON.stringify(generationHistory.slice(0, 50)));
+        try {
+            // Save to localStorage
+            localStorage.setItem('muapi_history', JSON.stringify(generationHistory.slice(0, 50)));
+        } catch (e) {
+            // Ignore storage errors (private mode, quota exceeded, etc.)
+        }
 
         // Show sidebar
         historySidebar.classList.remove('translate-x-full', 'opacity-0');
@@ -1021,7 +1026,7 @@ export function ImageStudio() {
             }
         }
 
-        const apiKey = localStorage.getItem('muapi_key');
+        const apiKey = apiKeyManager.getKey();
         if (!apiKey) {
             AuthModal(() => generateBtn.click());
             return;
