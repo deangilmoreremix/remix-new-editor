@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
 
 // Security headers middleware
 function securityHeaders() {
@@ -10,7 +11,7 @@ function securityHeaders() {
                 // Content Security Policy
                 res.setHeader(
                     'Content-Security-Policy',
-                    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + "; media-src 'self' https: blob:;"
+                    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + "; media-src 'self' https: blob:;"
                 );
                 
                 // Prevent clickjacking
@@ -28,7 +29,7 @@ function securityHeaders() {
                 // Permissions Policy
                 res.setHeader(
                     'Permissions-Policy',
-                    'camera=(), microphone=(), geolocation=()'
+                    'camera=(), microphone=()'
                 );
                 
                 next();
@@ -42,20 +43,52 @@ export default defineConfig({
         tailwindcss(),
         securityHeaders(),
     ],
+    resolve: {
+        alias: {
+            'react-svg-inline': path.resolve(__dirname, 'src/lib/react-svg-inline.jsx'),
+        },
+    },
     server: {
-        port: 3000,
+        port: 3004,
         proxy: {
+            '/api/ai-agent': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
+            '/api/scene-detection': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
+            '/api/semantic-search': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
+            '/api/speech-transcription': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
+            '/videoagent': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
+            '/mcp': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
             '/api': {
                 target: process.env.VITE_MUAPI_URL || 'https://api.muapi.ai',
                 changeOrigin: true,
                 secure: true,
-                rewrite: (path) => path.replace(/^\/api/, '')
-            }
-        }
+                rewrite: (path) => path.replace(/^\/api/, ''),
+            },
+        },
     },
     build: {
         target: 'esnext',
         minify: 'terser',
+        esbuild: {
+            jsx: 'preserve',
+        },
         terserOptions: {
             compress: {
                 drop_console: true,
