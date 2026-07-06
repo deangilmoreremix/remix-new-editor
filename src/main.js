@@ -91,6 +91,7 @@ window.addEventListener('offline', () => {
   showToast('You are offline. Some features may not work.', 'warning', 10000);
 });
 
+(async () => {
 try {
   const app = document.querySelector('#app');
   if (!app) {
@@ -98,6 +99,47 @@ try {
   }
 
   app.innerHTML = '';
+
+  // Compute initial page from URL (deep linking + studio query param)
+  const path = window.location.pathname;
+  const hash = window.location.hash;
+  let initialPage = 'landing';
+
+  if (path === '/' || path === '') {
+    initialPage = 'landing';
+  } else if (path.startsWith('/')) {
+    initialPage = path.slice(1);
+  }
+
+  // Hash-based routing (e.g. /#/signin)
+  if (hash && hash.startsWith('#/')) {
+    const hashPage = hash.slice(2);
+    if (hashPage) initialPage = hashPage;
+  }
+
+  // Handle studio query param
+  const studioParam = new URLSearchParams(window.location.search).get('studio');
+  if (studioParam) {
+    initialPage = studioParam;
+  }
+
+  // Full-page landing route — no header/sidebar shell
+  if (initialPage === 'landing') {
+    const { default: LandingPage } = await import('./components/landing/LandingPage.jsx');
+    const landingPage = await LandingPage();
+    app.appendChild(landingPage);
+    console.log('[App] Landing page rendered');
+    return;
+  }
+
+  // Full-page sign-in route — no header/sidebar shell
+  if (initialPage === 'signin') {
+    const { SignInPage } = await import('./components/landing/SignInPage.jsx');
+    const signInPage = SignInPage();
+    app.appendChild(signInPage);
+    console.log('[App] Sign in page rendered');
+    return;
+  }
 
   const headerEl = Header((page) => navigate(page));
   app.appendChild(headerEl);
@@ -129,23 +171,6 @@ try {
   
   console.log(`[App] Initialized in ${initDuration.toFixed(2)}ms`);
   
-  // Navigate to initial page
-  // Check URL for deep linking
-  const path = window.location.pathname;
-  let initialPage = 'image';
-  
-  if (path === '/' || path === '') {
-    initialPage = 'image';
-  } else if (path.startsWith('/')) {
-    initialPage = path.slice(1);
-  }
-  
-  // Handle studio query param
-  const studioParam = new URLSearchParams(window.location.search).get('studio');
-  if (studioParam) {
-    initialPage = studioParam;
-  }
-  
   console.log('[App] Navigating to initial page:', initialPage);
   navigate(initialPage);
   
@@ -165,6 +190,7 @@ try {
     </div>
   `;
 }
+})();
 
 window.addEventListener('navigate', (e) => {
   if (e.detail.page === 'settings') {
