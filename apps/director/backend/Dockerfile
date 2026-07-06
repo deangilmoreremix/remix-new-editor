@@ -4,11 +4,12 @@ WORKDIR /app
 
 COPY . /app/
 
-COPY ./requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN [ ! -f director.db ] && python director/db/sqlite/initialize.py || echo "Database already initialized."
 
-EXPOSE 8000 
+EXPOSE 10000
 
-CMD ["python", "director/entrypoint/api/server.py"]
+# Render assigns a dynamic port via the PORT env var; map it to SERVER_PORT
+# (which server.py reads) so the Flask process binds to the expected port.
+CMD ["sh", "-c", "export SERVER_PORT=${PORT:-10000} && python director/entrypoint/api/server.py"]
