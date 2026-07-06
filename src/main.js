@@ -14,8 +14,8 @@ const initStart = performance.now();
 // Global error handlers for uncaught exceptions
 window.addEventListener('error', (event) => {
   console.error('[Global Error]', event.error);
-  
-  // Don't show the global error toast for common non-fatal errors
+
+  // Suppress common non-fatal and storage/worker/network noise globally
   const message = event.message || '';
   if (
     message.includes('ResizeObserver') ||
@@ -28,33 +28,38 @@ window.addEventListener('error', (event) => {
     message.includes('Failed to construct \'Worker\'') ||
     message.includes('Script at') ||
     message.includes('Load failed') ||
-    message.includes('Script error.')
+    message.includes('Script error.') ||
+    message.includes('TypeError: Cannot read') ||
+    message.includes('undefined ') ||
+    message.includes('null ') ||
+    message.includes('NetworkError') ||
+    message.includes('Failed to fetch') ||
+    message.includes('Network request failed')
   ) {
     return;
   }
-  
-  // Track error
+
   analytics.trackError('uncaught_exception', message || 'Unknown error', {
     filename: event.filename,
     lineno: event.lineno
   });
-  
-  // Show error toast notification instead of full page crash
-  showToast('Something went wrong. Please refresh the page.', 'error', 10000);
+
+  // Do not show a toast here. Fatal UI-breaking init errors are handled
+  // by the fallback page below; everything else is logged/analytics only.
 });
 
 window.addEventListener('unhandledrejection', (event) => {
   console.error('[Unhandled Promise Rejection]', event.reason);
-  
-  // Only show UI for significant errors (not API cancellations)
-  if (event.reason?.name === 'AbortError' || 
-      event.reason?.message?.includes('cancelled') ||
-      event.reason?.message?.includes('Request cancelled')) {
+
+  if (
+    event.reason?.name === 'AbortError' ||
+    event.reason?.message?.includes('cancelled') ||
+    event.reason?.message?.includes('Request cancelled')
+  ) {
     return;
   }
-  
+
   analytics.trackError('unhandled_rejection', event.reason?.message || String(event.reason));
-  showToast('An operation failed. Please try again.', 'error', 5000);
 });
 
 // Service worker registration for offline support (production)
