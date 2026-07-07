@@ -22,12 +22,18 @@ const stubLegacy = () => ({
     if (source.startsWith('\0')) return null;
     const importerIsLegacy = STUB_IMPORTER_PREFIXES.some(p => importer.includes(p));
     if (!importerIsLegacy) return null;
+    // Never stub imports from the landing page — those are new-style
+    // modules that must resolve to their real files.
+    if (importer.includes('src/components/landing/')) return null;
     // Try Vite's full resolution. If the source resolves to a file
     // outside the legacy tree (e.g. an npm package in node_modules),
     // let Vite handle it normally.
     const resolved = await this.resolve(source, importer, { skipSelf: true });
     if (resolved) {
       const resolvedId = typeof resolved === 'string' ? resolved : resolved.id;
+      // Never stub landing-page modules even if they resolve under
+      // src/components/landing/ (which technically contains 'components/').
+      if (resolvedId.includes('src/components/landing/')) return null;
       const resolvedIsLegacy = STUB_IMPORTER_PREFIXES.some(p => resolvedId.includes(p));
       if (!resolvedIsLegacy) return null;
     }
