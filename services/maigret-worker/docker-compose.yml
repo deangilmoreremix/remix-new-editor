@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  maigret-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: maigret-worker
+    ports:
+      - "8000:8000"
+    environment:
+      - MAIGRET_API_KEY=${MAIGRET_API_KEY:-devkey-change-me}
+      - MAIGRET_ADMIN_KEY=${MAIGRET_ADMIN_KEY:-devadmin-change-me}
+      - MAIGRET_CACHE_BACKEND=${MAIGRET_CACHE_BACKEND:-redis}
+      - REDIS_URL=redis://redis:6379/0
+      - MAIGRET_CACHE_TTL_SECONDS=${MAIGRET_CACHE_TTL_SECONDS:-86400}
+      - MAIGRET_MAX_CONCURRENT=${MAIGRET_MAX_CONCURRENT:-4}
+      - MAIGRET_PER_KEY_LIMIT=${MAIGRET_PER_KEY_LIMIT:-100}
+      - MAIGRET_SCAN_TIMEOUT=${MAIGRET_SCAN_TIMEOUT:-90}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: maigret-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  redis-data:

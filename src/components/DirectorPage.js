@@ -1,6 +1,7 @@
 import { navigate } from '../lib/router.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
+import { StoryboardPanel } from './StoryboardPanel.js';
 
 const DIRECTOR_AGENTS = [
     { id: 'summarizer', name: 'Video Summarizer', icon: '📝', description: 'Summarize video content', category: 'analysis' },
@@ -224,6 +225,12 @@ export function DirectorPage() {
             
             <!-- Right: Tools Panel -->
             <div class="w-80 border-l border-white/5 p-4 overflow-auto bg-black/30">
+                <!-- Tab toggle: Tools / Storyboard -->
+                <div class="flex border-b border-white/10 mb-4 -mx-4 px-4" id="right-tab-bar">
+                    <button class="right-tab flex-1 py-2 text-xs font-bold text-primary border-b-2 border-primary" data-tab="tools">TOOLS</button>
+                    <button class="right-tab flex-1 py-2 text-xs font-bold text-muted hover:text-white" data-tab="storyboard">STORYBOARD</button>
+                </div>
+                <div id="right-tab-tools">
                 <!-- Processing Status -->
                 <div id="processing-status" class="hidden mb-6">
                     <h4 class="font-bold text-white text-sm mb-3 flex items-center gap-2">
@@ -361,6 +368,8 @@ export function DirectorPage() {
                         </button>
                     </div>
                 </div>
+                </div><!-- /right-tab-tools -->
+                <div id="right-tab-storyboard" class="hidden"></div>
             </div>
         </div>
     `;
@@ -369,6 +378,33 @@ export function DirectorPage() {
     container.querySelector('#back-btn').onclick = () => {
         navigate('render', { videoId, videoUrl });
     };
+
+    // Right-column tab toggle: Tools ↔ Storyboard
+    const tabTools = container.querySelector('#right-tab-tools');
+    const tabStoryboard = container.querySelector('#right-tab-storyboard');
+    let storyboardMounted = false;
+    container.querySelectorAll('.right-tab').forEach((btn) => {
+        btn.onclick = () => {
+            const tab = btn.dataset.tab;
+            container.querySelectorAll('.right-tab').forEach((b) => {
+                b.classList.remove('text-primary', 'border-primary');
+                b.classList.add('text-muted');
+            });
+            btn.classList.remove('text-muted');
+            btn.classList.add('text-primary', 'border-primary');
+            if (tab === 'tools') {
+                tabTools.classList.remove('hidden');
+                tabStoryboard.classList.add('hidden');
+            } else {
+                tabTools.classList.add('hidden');
+                tabStoryboard.classList.remove('hidden');
+                if (!storyboardMounted) {
+                    storyboardMounted = true;
+                    StoryboardPanel({ appendTo: tabStoryboard });
+                }
+            }
+        };
+    });
     
     container.querySelector('#clear-chat-btn').onclick = () => {
         const chatMessages = container.querySelector('#chat-messages');

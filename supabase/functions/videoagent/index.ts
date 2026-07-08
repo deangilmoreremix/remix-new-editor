@@ -61,8 +61,32 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: 'Invalid JSON body' }, 400);
     }
 
+    // Quick actions (the 10 DirectorPage actions) — pass straight through
+    // so the Express router can handle them directly.
+    const QUICK_ACTIONS = new Set([
+      'summarize-video',
+      'extract-highlights',
+      'detect-scenes',
+      'generate-subtitles',
+      'dub-video',
+      'add-broll',
+      'add-voiceover',
+      'create-shorts',
+      'color-correct',
+      'stabilize',
+    ]);
+
     if (req.url.includes('/workflow')) {
       return proxyRequest('/videoagent/workflow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    }
+
+    // Cancel endpoint forwarded for symmetry with the Express router.
+    if (req.url.includes('/cancel/')) {
+      return proxyRequest(req.url.split('/functions/v1/')[1] || '', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

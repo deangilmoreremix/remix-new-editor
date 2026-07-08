@@ -6,6 +6,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -221,6 +222,7 @@ export function VideoStudio() {
     topRow.appendChild(videoPickerBtn);
 
     const textarea = document.createElement('textarea');
+    textarea.id = 'v-prompt-textarea';
     textarea.placeholder = 'Describe the video you want to create';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.rows = 1;
@@ -242,7 +244,67 @@ export function VideoStudio() {
     }
 
     topRow.appendChild(textarea);
+
+    // Premium GTM Boost entry point — opens the cinematic prompt enhancer
+    // themed for video creation and loads the result straight into this prompt.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('video-studio', (prompt) => {
+          textarea.value = prompt;
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          textarea.focus();
+          textarea.style.height = 'auto';
+          textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
+        });
+      }).catch((err) => console.error('[VideoStudio] GTM Boost failed:', err));
+    });
+    topRow.appendChild(gtmBtn);
+
     bar.appendChild(topRow);
+
+    // Personalized chip — shows when a contact is active
+    const personalizedChip = document.createElement('div');
+    personalizedChip.id = 'v-personalized-chip';
+    personalizedChip.className = 'hidden items-center gap-2 px-3 py-2 mx-2 mt-2 bg-primary/10 border border-primary/20 rounded-xl text-xs text-primary';
+    bar.appendChild(personalizedChip);
+
+    function refreshPersonalizedChip() {
+      const id = (() => { try { return localStorage.getItem('remix_selected_contact_id'); } catch { return null; } })();
+      if (!id) {
+        personalizedChip.classList.add('hidden');
+        personalizedChip.classList.remove('flex');
+        return;
+      }
+      try {
+        const contacts = JSON.parse(localStorage.getItem('remix_contacts') || '[]');
+        const contact = contacts.find(c => c.id === id);
+        if (contact) {
+          personalizedChip.classList.remove('hidden');
+          personalizedChip.classList.add('flex');
+          personalizedChip.innerHTML = `
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>Personalized for <strong>${escapeHtml(contact.name)}</strong>${contact.company ? ` at ${escapeHtml(contact.company)}` : ''}</span>
+            <button id="v-clear-contact" class="ml-2 text-primary/60 hover:text-primary" title="Remove personalization">✕</button>
+          `;
+          const clearBtn = personalizedChip.querySelector('#v-clear-contact');
+          if (clearBtn) {
+            clearBtn.onclick = (e) => {
+              e.stopPropagation();
+              localStorage.removeItem('remix_selected_contact_id');
+              refreshPersonalizedChip();
+              refreshPopoverForSelectedContact();
+            };
+          }
+        }
+      } catch {}
+    }
+    refreshPersonalizedChip();
 
     // Extend mode banner (shown when extend model is active, not editable by user)
     const extendBanner = document.createElement('div');
@@ -303,9 +365,23 @@ export function VideoStudio() {
     
     // Advanced options toggle button
     const advancedBtn = createControlBtn(`
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 001.82-.33 1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-1.82.33A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51-1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
     `, 'Advanced', 'v-advanced-btn', 'Show advanced options');
     controlsLeft.appendChild(advancedBtn);
+
+    // Personalize button + inline popover (shared module, reusable across AI apps)
+    const personalizeHandle = mountPersonalizePopover({
+      controlsContainer: controlsLeft,
+      label: 'Personalize',
+      tooltip: 'Personalize with a discovered contact',
+      appId: 'ai-video-agency',
+      getTextarea: () => document.getElementById('v-prompt-textarea'),
+    });
+    // Refresh the personalized chip when the active contact changes
+    window.addEventListener('remix:contact-changed', () => {
+      try { refreshPersonalizedChip(); } catch {}
+    });
+
 
     // Initial visibility (t2v mode)
     const initDurations = getDurationsForModel(defaultModel.id);
@@ -926,9 +1002,82 @@ export function VideoStudio() {
     // 5. GENERATION LOGIC
     // ==========================================
     generateBtn.onclick = async () => {
-        const prompt = textarea.value.trim();
+        let prompt = textarea.value.trim();
         const model = getCurrentModel();
         const isExtendMode = model?.requiresRequestId;
+
+        // Enrich prompt with contact intelligence if a contact is selected
+        const selectedContactId = (() => {
+            try { return localStorage.getItem('remix_selected_contact_id'); } catch { return null; }
+        })();
+        let activeProfile = null;
+        if (selectedContactId && !v2vMode) {
+            try {
+                const profiles = JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]');
+                activeProfile = profiles.find((p) => p.id === selectedContactId) || null;
+
+                // Step 1: Replace any {{token}} placeholders the user inserted via the
+                // personalize popover. This gives the user fine-grained control over
+                // what gets injected (firstName, company, painPoint, etc.) and where
+                // in the prompt it lands.
+                if (prompt && activeProfile) {
+                    prompt = replaceTokensInPrompt(prompt, activeProfile);
+                }
+
+                if (activeProfile) {
+                    const contact = activeProfile.contact || {};
+                    const intel = activeProfile.intelligence || {};
+                    const brand = activeProfile.brand || {};
+                    const assets = activeProfile.assets || {};
+
+                    // Step 2: If the user did NOT insert any tokens, fall back to a
+                    // prepended context block that summarizes the discovered data.
+                    // If they DID insert tokens, the resolved prompt is already
+                    // personalized — don't double-inject the summary block.
+                    const hadTokens = /\{\{[^}]+\}\}/.test(textarea.value);
+                    if (!hadTokens) {
+                        const contextParts = [];
+                        if (contact.firstName) contextParts.push(`Personalized for ${contact.firstName}${contact.company ? ` at ${contact.company}` : ''}`);
+                        if (intel.summary) contextParts.push(`Context: ${intel.summary}`);
+                        if (intel.painPoints?.length) contextParts.push(`Pain points: ${intel.painPoints.join(', ')}`);
+                        if (intel.products?.length) contextParts.push(`Products: ${intel.products.join(', ')}`);
+                        if (intel.tone) contextParts.push(`Tone: ${intel.tone}`);
+                        if (brand.colors?.primary) contextParts.push(`Brand color: ${brand.colors.primary}`);
+
+                        if (contextParts.length > 0 && prompt) {
+                            prompt = `[${contextParts.join('. ')}] ${prompt}`;
+                        } else if (contextParts.length > 0) {
+                            prompt = contextParts.join('. ');
+                        }
+                    }
+
+                    // Offer reference image if available
+                    if (!uploadedImageUrl && assets.avatar?.[0] && imageMode === false) {
+                        // For t2v, we can't easily inject a reference image without switching mode,
+                        // but we can note it in the prompt
+                        if (!prompt.includes('avatar') && !prompt.includes('portrait')) {
+                            prompt += `. Reference style: portrait of ${contact.firstName || 'the contact'}.`;
+                        }
+                    }
+
+                    // Record this generation against the contact's history (server-side; local fallback)
+                    try {
+                        const history = activeProfile.history || { discoveries: [], generations: [], interactions: [] };
+                        history.generations = history.generations || [];
+                        history.generations.unshift({ prompt, model: selectedModel, timestamp: new Date().toISOString() });
+                        history.generations = history.generations.slice(0, 20);
+                        activeProfile.history = history;
+                        activeProfile.updatedAt = new Date().toISOString();
+                        const allProfiles = JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]');
+                        const idx = allProfiles.findIndex(p => p.id === selectedContactId);
+                        if (idx >= 0) {
+                            allProfiles[idx] = activeProfile;
+                            localStorage.setItem('remix_contact_profiles', JSON.stringify(allProfiles));
+                        }
+                    } catch {}
+                }
+            } catch {}
+        }
 
         if (v2vMode) {
             if (!uploadedVideoUrl) {
@@ -1080,4 +1229,20 @@ export function VideoStudio() {
     };
 
     return container;
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+async function getSession() {
+    try {
+        const { createClient } = await import('../lib/supabase.js');
+        const supabase = createClient();
+        const { data } = await supabase.auth.getSession();
+        return data.session;
+    } catch {
+        return null;
+    }
 }

@@ -1,0 +1,30 @@
+{
+  "name": "@remix/assets",
+  "version": "0.1.0",
+  "description": "Asset discovery (logo, brand colors, avatar, screenshot) and storage for the personalizer platform",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./storage": "./src/storage.ts",
+    "./extractors/logo": "./src/extractors/logo.ts",
+    "./extractors/colors": "./src/extractors/colors.ts",
+    "./extractors/avatar": "./src/extractors/avatar.ts",
+    "./extractors/screenshot": "./src/extractors/screenshot.ts"
+  },
+  "scripts": {
+    "test": "echo 'No tests yet — see packages/assets/README.md' && exit 0"
+  },
+  "keywords": [
+    "personalizer",
+    "assets",
+    "logo",
+    "brand",
+    "supabase",
+    "maigret",
+    "openai"
+  ],
+  "license": "UNLICENSED",
+  "private": true
+}

@@ -17,7 +17,7 @@ const ROUTE_MAP = {
   'Audio': 'audio',
   'Settings': 'timeline',
   'Personalizer': 'timeline',
-  'Contacts': 'timeline',
+  'Contacts': 'contacts',
   'Media Lib': 'timeline',
   'Social': 'timeline',
   'Landing': 'timeline',
@@ -74,6 +74,7 @@ const pageLoaders = {
 };
 
 let currentPage = null;
+let currentPageEl = null;
 let contentArea = null;
 let onNavigateCallback = null;
 let isNavigating = false;
@@ -94,6 +95,9 @@ export async function navigate(page, params = {}) {
 
   isNavigating = true;
   currentPage = page;
+
+  currentPageEl?.cleanup?.();
+  currentPageEl = null;
 
   // Update URL with params so components can read them via URLSearchParams
   const searchParams = new URLSearchParams(params).toString();
@@ -128,6 +132,7 @@ export async function navigate(page, params = {}) {
 
     contentArea.innerHTML = '';
     contentArea.appendChild(element);
+    currentPageEl = element;
   } catch (err) {
     console.error(`[Router] Failed to load page: ${page}`, err);
     contentArea.innerHTML = '';
