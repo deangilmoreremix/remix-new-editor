@@ -11,6 +11,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 export function ImageStudio() {
     const container = document.createElement('div');
@@ -121,6 +122,7 @@ export function ImageStudio() {
     container.appendChild(picker.panel);
 
     const textarea = document.createElement('textarea');
+    textarea.id = 'i-prompt-textarea';
     textarea.placeholder = 'Describe the image you want to create';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.rows = 1;
@@ -142,6 +144,28 @@ export function ImageStudio() {
     }
 
     topRow.appendChild(textarea);
+
+    // Premium GTM Boost entry point — opens the cinematic prompt enhancer
+    // themed for image creation and loads the result straight into this prompt.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('image-studio', (prompt) => {
+          textarea.value = prompt;
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          textarea.focus();
+          textarea.style.height = 'auto';
+          textarea.style.height = Math.min(textarea.scrollHeight, 250) + 'px';
+        });
+      }).catch((err) => console.error('[ImageStudio] GTM Boost failed:', err));
+    });
+    topRow.appendChild(gtmBtn);
+
     bar.appendChild(topRow);
 
     // Bottom Row: Controls
@@ -193,6 +217,15 @@ export function ImageStudio() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
     `, 'Tools', 'tools-btn', 'Quick starters & prompt enhancer');
     controlsLeft.appendChild(toolsBtn);
+
+    // Personalize button + inline popover (shared module)
+    const personalizeHandle = mountPersonalizePopover({
+      controlsContainer: controlsLeft,
+      label: 'Personalize',
+      tooltip: 'Personalize with a discovered contact',
+      appId: 'ai-image-studio',
+      getTextarea: () => document.getElementById('i-prompt-textarea'),
+    });
     // Show quality button if the default model has quality/resolution options
     const _initResolutions = getResolutionsForModel(defaultModel.id);
     qualityBtn.style.display = _initResolutions.length > 0 ? 'flex' : 'none';
@@ -1013,7 +1046,22 @@ export function ImageStudio() {
     // 5. GENERATION LOGIC
     // ==========================================
     generateBtn.onclick = async () => {
-        const prompt = textarea.value.trim();
+        let prompt = textarea.value.trim();
+
+        // Replace any {{token}} placeholders the user inserted via the
+        // personalize popover. Tokens resolve to the active contact's
+        // variables (firstName, company, painPoint, etc.) at generation time.
+        try {
+          const selectedId = localStorage.getItem('remix_selected_contact_id');
+          if (selectedId && prompt) {
+            const profiles = JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]');
+            const profile = profiles.find(p => p.id === selectedId);
+            if (profile) {
+              prompt = replaceTokensInPrompt(prompt, profile);
+            }
+          }
+        } catch {}
+
         if (imageMode) {
             if (uploadedImageUrls.length === 0) {
                 alert('Please upload a reference image first.');

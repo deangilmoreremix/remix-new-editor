@@ -127,7 +127,7 @@ function securityHeaders() {
                 // Content Security Policy
                 res.setHeader(
                     'Content-Security-Policy',
-                    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + "; media-src 'self' https: blob:;"
+                    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai; media-src 'self' https: blob:;"
                 );
                 
                 // Prevent clickjacking
@@ -201,6 +201,20 @@ export default defineConfig({
             '/mcp': {
                 target: 'http://localhost:3001',
                 changeOrigin: true,
+            },
+            // Personalization/intelligence API must come BEFORE the generic /api
+            // rule so it isn't routed to the MuAPI backend. In dev, serve from the
+            // Netlify functions CLI on :8888 if available; otherwise fall back to
+            // a same-origin placeholder so the dev server doesn't crash.
+            '/api/intelligence': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api\/intelligence/, '/.netlify/functions/intelligence-api'),
+            },
+            '/api/personalizer': {
+                target: process.env.VITE_INTELLIGENCE_API_URL || 'http://localhost:8888',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api\/personalizer/, '/.netlify/functions/personalizer-api'),
             },
             '/api': {
                 target: process.env.VITE_MUAPI_URL || 'https://api.muapi.ai',
