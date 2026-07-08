@@ -33,7 +33,7 @@ export function HeroSection() {
       </div>
 
       <!-- Main Headline with typewriter effect -->
-      <h1 id="hero-headline" class="hero-headline mb-6 leading-tight" style="max-width: 100%;">
+      <h1 id="hero-headline" class="hero-headline mb-6 leading-tight text-4xl md:text-5xl lg:text-6xl xl:text-7xl" style="max-width: 100%; font-size: clamp(2.5rem, 8vw, 4.5rem);">
         <span class="text-cyan-400 italic font-black" id="headline-part-1">Create Cinematic AI Videos,</span><br/>
         <span class="text-white font-black" id="headline-part-2">Images, VFX, Commercials,</span><br/>
         <span class="text-cyan-400 italic font-black" id="headline-part-3">Characters, Agents &</span><br/>
