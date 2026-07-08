@@ -1,0 +1,37 @@
+# Render Blueprint — deploys the Maigret worker as a single Docker web service.
+#
+# Apply with:  render blueprint launch
+# or push to a Git remote connected at https://dashboard.render.com/
+
+services:
+  - type: web
+    name: maigret-worker
+    region: oregon
+    runtime: docker
+    plan: starter
+    rootDir: services/maigret-worker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: MAIGRET_API_KEY
+        generateValue: true
+        description: "API key clients must send in X-API-Key. Generated on first apply."
+      - key: MAIGRET_ADMIN_KEY
+        sync: false
+        description: "Separate admin key for /cache DELETE and /stats. Optional but recommended."
+      - key: MAIGRET_CACHE_BACKEND
+        value: memory
+      - key: MAIGRET_CACHE_TTL_SECONDS
+        value: "86400"
+      - key: MAIGRET_MAX_CONCURRENT
+        value: "4"
+      - key: MAIGRET_PER_KEY_LIMIT
+        value: "100"
+      - key: MAIGRET_SCAN_TIMEOUT
+        value: "90"
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: PYTHONUNBUFFERED
+        value: "1"
