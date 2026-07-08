@@ -1,0 +1,15 @@
+# Netlify build configuration
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Pass --include=optional to the install step (npm ci) so that
+# @tailwindcss/oxide's platform-specific native binary is fetched.
+# This works around the npm optional-dependency bug where platform
+# bindings get dropped from the install tree.
+# See: https://github.com/npm/cli/issues/4828
+[build.environment]
+  NPM_FLAGS = "--include=optional"
+  NODE_VERSION = "20"
