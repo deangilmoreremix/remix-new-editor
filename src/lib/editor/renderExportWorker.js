@@ -144,4 +144,19 @@ self.onmessage = async (event) => {
   } catch (err) {
     self.postMessage({ type: 'error', message: err.message || String(err) });
   }
-};
+}
+
+export function createExportWorker() {
+  const worker = new Worker(new URL('./renderExportWorker.js', import.meta.url).href, { type: 'module' });
+  return {
+    postMessage: (msg) => worker.postMessage(msg),
+    addEventListener: (event, cb) => worker.addEventListener(event, cb),
+    terminate: () => worker.terminate(),
+  };
+}
+
+export function terminateExportWorker(worker) {
+  if (worker && typeof worker.terminate === 'function') {
+    worker.terminate();
+  }
+}

@@ -4,6 +4,7 @@ import { createHeroSection } from '../lib/thumbnails.js';
 import { escapeHtml } from '../lib/security.js';
 import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTemplate, duplicateTemplate, listTemplates, listDrafts, sendToStoryboard } from '../lib/editor/renderActions.js';
 import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue } from '../lib/editor/renderQueueStore.js';
+import { createExportWorker, terminateExportWorker } from '../lib/editor/renderExportWorker.js';
 
 // Repository endpoints
 const REPO_ENDPOINTS = {
@@ -587,6 +588,44 @@ export function RenderPage() {
 
   void initAssetResolve();
 
+  async function runExportWorker(payload, statusLabel, actionName, onDone) {
+    const worker = createExportWorker();
+    const progressBar = container.querySelector('#progressBar');
+    const progressPercent = container.querySelector('#progressPercent');
+    const progressStatus = container.querySelector('#progressStatus');
+
+    try {
+      if (progressStatus) progressStatus.textContent = statusLabel;
+      if (progressBar) progressBar.style.width = '0%';
+      if (progressPercent) progressPercent.textContent = '0%';
+
+      const result = await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('Export timed out')), 60000);
+        worker.addEventListener('message', (e) => {
+          const { type, percent, url, message } = e.data || {};
+          if (type === 'progress') {
+            if (progressBar) progressBar.style.width = `${percent}%`;
+            if (progressPercent) progressPercent.textContent = `${percent}%`;
+          } else if (type === 'complete') {
+            clearTimeout(timer);
+            resolve(e.data);
+          } else if (type === 'error') {
+            clearTimeout(timer);
+            reject(new Error(message));
+          }
+        });
+        worker.postMessage(payload);
+      });
+
+      if (onDone) onDone(result);
+    } catch (err) {
+      console.error(`[RenderPage] Action "${actionName}" failed:`, err);
+      showToast(`${actionName} failed: ${err.message}`);
+    } finally {
+      terminateExportWorker(worker);
+    }
+  }
+
   const ACTION_HANDLERS = {
     'Download Frame': async () => {
       if (!videoElement || !videoElement.src) { showToast('Load a video first'); return; }
@@ -622,6 +661,138 @@ export function RenderPage() {
     },
     'Send to Storyboard': async () => {
       sendToStoryboard(resolvedVideoId, resolvedVideoUrl);
+    },
+    'Export Video': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      await runExportWorker(
+        { action: 'export-video', videoUrl: resolvedVideoUrl, settings: getOutputSettings() },
+        'Exporting master video',
+        'Export Video',
+        (result) => {
+          const a = document.createElement('a');
+          a.href = result.url;
+          a.download = `${resolvedVideoId || 'export'}_master.mp4`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+          showToast('Video exported successfully');
+        }
+      );
+    },
+    'Export Variations': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      const formats = [
+        { label: 'MP4 (H.264)', format: 'mp4', ext: 'mp4' },
+        { label: 'MP4 (H.265)', format: 'mp4', ext: 'mp4' },
+        { label: 'WebM (VP9)', format: 'webm', ext: 'webm' },
+      ];
+      for (const fmt of formats) {
+        await new Promise((resolve, reject) => {
+          runExportWorker(
+            { action: 'export-video', videoUrl: resolvedVideoUrl, settings: getOutputSettings() },
+            `Exporting ${fmt.label}`,
+            'Export Variations',
+            (result) => {
+              const a = document.createElement('a');
+              a.href = result.url;
+              a.download = `${resolvedVideoId || 'export'}_${fmt.label.toLowerCase().replace(/[() ]/g, '')}.${fmt.ext}`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+              resolve();
+            }
+          ).then(() => {}, reject);
+        });
+      }
+      showToast('All variations exported');
+    },
+    'Trailer Cut': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      await runExportWorker(
+        { action: 'trailer-cut', videoUrl: resolvedVideoUrl, timeRange: { start: 0, end: 30 } },
+        'Building trailer cut',
+        'Trailer Cut',
+        (result) => {
+          const a = document.createElement('a');
+          a.href = result.url;
+          a.download = `${resolvedVideoId || 'export'}_trailer.mp4`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+          showToast('Trailer cut exported');
+        }
+      );
+    },
+    'Social Resize': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      const aspects = ['9:16', '1:1', '4:5'];
+      for (const aspect of aspects) {
+        await new Promise((resolve, reject) => {
+          runExportWorker(
+            { action: 'social-resize', videoUrl: resolvedVideoUrl, settings: { aspectRatio: aspect } },
+            `Exporting ${aspect}`,
+            'Social Resize',
+            (result) => {
+              const a = document.createElement('a');
+              a.href = result.url;
+              a.download = `${resolvedVideoId || 'export'}_${aspect.replace(':', 'x')}.mp4`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+              resolve();
+            }
+          ).then(() => {}, reject);
+        });
+      }
+      showToast('Social variants exported');
+    },
+    'Remix Scene': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      await runExportWorker(
+        { action: 'remix-scene', videoUrl: resolvedVideoUrl, effects: { brightness: 1.1, contrast: 1.2 } },
+        'Remixing scene',
+        'Remix Scene',
+        (result) => {
+          const a = document.createElement('a');
+          a.href = result.url;
+          a.download = `${resolvedVideoId || 'export'}_remix.mp4`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+          showToast('Remix exported');
+        }
+      );
+    },
+    'Publish / Deliver': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      const formats = ['mp4', 'webm'];
+      const outputs = [];
+      for (const fmt of formats) {
+        await new Promise((resolve, reject) => {
+          runExportWorker(
+            { action: 'export-video', videoUrl: resolvedVideoUrl, settings: { ...getOutputSettings(), format: fmt } },
+            `Packaging ${fmt}`,
+            'Publish / Deliver',
+            (result) => {
+              outputs.push({ format: fmt, url: result.url });
+              resolve();
+            }
+          ).then(() => {}, reject);
+        });
+      }
+      const manifest = {
+        videoId: resolvedVideoId,
+        title: resolvedTitle,
+        exportedAt: new Date().toISOString(),
+        files: outputs.map((o) => ({ format: o.format, url: o.url })),
+      };
+      console.log('Delivery manifest:', manifest);
+      showToast('Delivery package ready');
     },
   };
 

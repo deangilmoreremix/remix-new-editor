@@ -64,13 +64,17 @@ describe('renderExportWorker', () => {
     };
     global.URL = { ...global.URL, ...urlFactory };
     
+    const firstExportIndex = workerSource.split('\n').findIndex((line) => line.trimStart().startsWith('export'));
+    const workerSourceForExecution = firstExportIndex >= 0
+      ? workerSource.split('\n').slice(0, firstExportIndex).join('\n')
+      : workerSource;
     const fn = new Function(
       'self',
       'OffscreenCanvas',
       'MediaRecorder',
       'fetch',
       'URL',
-      workerSource
+      workerSourceForExecution
     );
     fn(selfMock, global.OffscreenCanvas, global.MediaRecorder, global.fetch, global.URL);
   });
