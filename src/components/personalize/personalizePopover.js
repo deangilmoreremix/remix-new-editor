@@ -24,7 +24,37 @@
 // Token replacement at generation time is the host's responsibility —
 // this module only handles insertion. See `replaceTokensInPrompt()`.
 
-import { listContacts as _listContacts, getContact as _getContact, getProfile as _getProfile, setSelectedContactId, getSelectedContactId } from '../../lib/contactStore.js';
+// The popover is self-contained: it reads/writes localStorage directly
+// using the same key shape as the rest of the personalizer code. The
+// functions below are intentionally tiny so they can be inlined without
+// pulling in src/lib/contactStore.js.
+const CONTACTS_KEY = 'remix_contacts';
+const PROFILES_KEY = 'remix_contact_profiles';
+const SELECTED_CONTACT_KEY = 'remix_selected_contact_id';
+
+function _listContacts() {
+  try { return JSON.parse(localStorage.getItem(CONTACTS_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function _getContact(id) {
+  return _listContacts().find((c) => c.id === id);
+}
+
+function _getProfile(id) {
+  try {
+    const profiles = JSON.parse(localStorage.getItem(PROFILES_KEY) || '[]');
+    return profiles.find((p) => p.id === id) || null;
+  } catch { return null; }
+}
+
+function getSelectedContactId() {
+  try { return localStorage.getItem(SELECTED_CONTACT_KEY); } catch { return null; }
+}
+
+function setSelectedContactId(contactId) {
+  try { localStorage.setItem(SELECTED_CONTACT_KEY, contactId || ''); } catch {}
+}
 
 const POPOVER_HTML = `
   <div class="p-4 border-b border-white/5">
