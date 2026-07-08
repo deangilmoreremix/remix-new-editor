@@ -2,8 +2,8 @@ import { navigate } from '../lib/router.js';
 import { showToast, createLoadingSpinner } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { escapeHtml } from '../lib/security.js';
-import { getVideoMetadata, downloadFrame } from '../lib/editor/renderActions.js';
-import { listRenderQueue, subscribe, removeFromRenderQueue } from '../lib/editor/renderQueueStore.js';
+import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTemplate, duplicateTemplate, listTemplates, listDrafts, sendToStoryboard } from '../lib/editor/renderActions.js';
+import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue } from '../lib/editor/renderQueueStore.js';
 
 // Repository endpoints
 const REPO_ENDPOINTS = {
@@ -55,6 +55,54 @@ const ACTION_TILES = [
   { title: 'Trailer Cut', desc: 'Build a teaser or fast-paced trailer version.', icon: '🎞️', accent: 'from-rose-500/16 via-pink-500/8 to-fuchsia-500/12', iconBg: 'bg-rose-500/16', iconBorder: 'border-rose-400/25' },
   { title: 'Social Resize', desc: 'Reframe for feed, story, reel, and ad formats.', icon: '📱', accent: 'from-indigo-500/16 via-violet-500/8 to-blue-500/12', iconBg: 'bg-indigo-500/16', iconBorder: 'border-indigo-400/25' },
 ];
+
+const PHASE_MAP = {
+  'AI Auto-Edit': 3, 'Agentic Editor': 4, 'Full Editor': 4,
+  'Create Shorts': 3, 'Generate Highlights': 3, 'Add Subtitles': 3,
+  'Dub / Voiceover': 3, 'Export Variations': 2, 'Trailer Cut': 2,
+  'Social Resize': 2, 'Remix Scene': 2, 'Export Video': 2,
+  'Download Frame': 1, 'Queue Render': 1, 'Copy Prompt': 1,
+  'Duplicate Render': 1, 'Save as Template': 1, 'Send to Storyboard': 1,
+  'Publish / Deliver': 2,
+};
+
+const ACTION_HANDLERS = {
+  'Download Frame': async () => {
+    if (!videoElement || !videoElement.src) { showToast('Load a video first'); return; }
+    await downloadFrame(videoElement, { filename: `${resolvedVideoId}_frame.png` });
+    showToast('Frame downloaded');
+  },
+  'Queue Render': async () => {
+    const entry = enqueueRender({ videoId: resolvedVideoId, videoUrl: resolvedVideoUrl, title: resolvedTitle, preset: selectedPreset, outputSettings: getOutputSettings() });
+    showToast(`Queued: ${entry.id.slice(0, 12)}…`);
+    renderQueue();
+  },
+  'Copy Prompt': async () => {
+    const ok = await copyToClipboard(resolvedTitle);
+    showToast(ok ? 'Prompt copied to clipboard' : 'Copy failed — please copy manually');
+  },
+  'Duplicate Render': async () => {
+    const templates = listTemplates();
+    const last = templates[templates.length - 1];
+    if (!last) { showToast('Nothing to duplicate yet — save a template first'); return; }
+    duplicateTemplate(last.id);
+    renderSavedItems();
+    showToast('Render duplicated');
+  },
+  'Save as Template': async () => {
+    saveTemplate({ videoId: resolvedVideoId, videoUrl: resolvedVideoUrl, title: resolvedTitle, preset: selectedPreset, outputSettings: getOutputSettings() });
+    renderSavedItems();
+    showToast('Saved as template');
+  },
+  'Save Draft': async () => {
+    saveDraft({ videoId: resolvedVideoId, videoUrl: resolvedVideoUrl, title: resolvedTitle, preset: selectedPreset, outputSettings: getOutputSettings() });
+    renderSavedItems();
+    showToast('Draft saved');
+  },
+  'Send to Storyboard': async () => {
+    sendToStoryboard(resolvedVideoId, resolvedVideoUrl);
+  },
+};
 
 const NEXT_ACTIONS = [
   { title: 'AI Auto-Edit', desc: 'Automatic scene detection, highlights, subtitles, and finishing passes.', icon: '⚡' },
@@ -278,7 +326,7 @@ export function RenderPage() {
   const previewBadge = document.createElement('div');
   previewBadge.id = 'previewBadge';
   previewBadge.className = 'absolute left-4 top-4 rounded-full border border-emerald-400/18 bg-black/45 px-3 py-1 text-xs text-emerald-100/80 shadow-[0_0_24px_rgba(16,185,129,0.14)] backdrop-blur';
-  previewBadge.textContent = `${selectedPreset} • ${progress}% • ${currentStage}`;
+  previewBadge.textContent = `${selectedPreset}`;
   previewArea.appendChild(previewBadge);
 
   const actionBadgeEl = document.createElement('div');
@@ -319,7 +367,7 @@ export function RenderPage() {
     const btn = document.createElement('button');
     btn.className = `rounded-2xl px-5 py-3 text-sm font-medium transition ${action === 'Export Video' ? 'bg-white text-black shadow-xl hover:opacity-90' : 'border border-white/10 bg-white/[0.04] text-zinc-100 hover:bg-white/[0.08]'}`;
     btn.textContent = action;
-    btn.onclick = () => runAction(action);
+    btn.onclick = () => dispatchAction(action);
     actionBtnsRow.appendChild(btn);
   });
   leftSection.appendChild(actionBtnsRow);
@@ -351,7 +399,7 @@ export function RenderPage() {
         </div>
       </div>
     `;
-    tileBtn.onclick = () => runAction(tile.title);
+    tileBtn.onclick = () => dispatchAction(tile.title);
     tilesGrid.appendChild(tileBtn);
   });
   actionTilesSection.appendChild(tilesGrid);
@@ -367,7 +415,7 @@ export function RenderPage() {
     const btn = document.createElement('button');
     btn.className = 'rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/75 hover:bg-white/[0.08] transition';
     btn.textContent = action;
-    btn.onclick = () => runAction(action);
+    btn.onclick = () => dispatchAction(action);
     quickBtnsDiv.appendChild(btn);
   });
   quickActionsDiv.querySelector('div').appendChild(quickBtnsDiv);
@@ -481,9 +529,9 @@ export function RenderPage() {
   const progressSection = document.createElement('div');
   progressSection.className = 'mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4';
   progressSection.innerHTML = `
-    <div class="mb-4 flex items-center gap-3"><div class="h-5 w-5 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent"></div><div class="font-black" id="progressStatus">Exporting master video</div></div>
-    <div class="mb-4"><div class="flex items-center justify-between text-xs"><span class="text-white/45">Progress</span><span class="font-bold text-emerald-200" id="progressPercent">${progress}%</span></div>
-    <div class="mt-2 h-2 overflow-hidden rounded-full bg-white/10"><div class="h-full rounded-full bg-[linear-gradient(90deg,#10b981,#60a5fa)]" id="progressBar" style="width: ${progress}%"></div></div></div>
+    <div class="mb-4 flex items-center gap-3"><div class="h-5 w-5 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" id="progressSpinner" hidden></div><div class="font-black" id="progressStatus">Exporting master video</div></div>
+    <div class="mb-4"><div class="flex items-center justify-between text-xs"><span class="text-white/45">Progress</span><span class="font-bold text-emerald-200" id="progressPercent">0%</span></div>
+    <div class="mt-2 h-2 overflow-hidden rounded-full bg-white/10"><div class="h-full rounded-full bg-[linear-gradient(90deg,#10b981,#60a5fa)]" id="progressBar" style="width: 0%"></div></div></div>
     <div class="space-y-2 text-sm" id="progressSteps">
       <div class="flex items-center gap-3 text-emerald-200"><div class="h-2.5 w-2.5 rounded-full bg-emerald-400"></div><span class="font-semibold">Scene Detection</span></div>
       <div class="flex items-center gap-3 text-emerald-200"><div class="h-2.5 w-2.5 rounded-full bg-emerald-400"></div><span class="font-semibold">Highlight Detection</span></div>
@@ -545,41 +593,26 @@ export function RenderPage() {
   void initAssetResolve();
 
   // Action handler
-  function runAction(action) {
-    if (isRunning) return;
-    isRunning = true;
-    activeAction = action;
-
-    const actionBadge = container.querySelector('#actionBadge');
-    if (actionBadge) actionBadge.textContent = action;
-
-    const pipeline = ACTION_PIPELINES[action];
-    if (pipeline) {
-      const statusLabel = container.querySelector('#statusLabel');
-      const progressStatus = container.querySelector('#progressStatus');
-      if (statusLabel) statusLabel.textContent = pipeline.statusLabel;
-      if (progressStatus) progressStatus.textContent = pipeline.statusLabel;
+  async function dispatchAction(action) {
+    const spinner = container.querySelector('#progressSpinner');
+    const progressStatus = container.querySelector('#progressStatus');
+    const handler = ACTION_HANDLERS[action];
+    if (handler) {
+      if (spinner) spinner.hidden = false;
+      if (progressStatus) progressStatus.textContent = `${action} — processing`;
+      try { await handler(); }
+      catch (err) { console.error(`[RenderPage] Action "${action}" failed:`, err); showToast(`${action} failed: ${err.message}`); }
+      finally { if (spinner) spinner.hidden = true; }
+      return;
     }
-
-    showToast(`${action} started`);
-
-    // Simulate progress
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += Math.random() * 15;
-      if (currentProgress >= 100) {
-        currentProgress = 100;
-        clearInterval(interval);
-        activeIntervals = activeIntervals.filter(i => i !== interval);
-        isRunning = false;
-        showToast(`${action} completed!`);
-      }
-      const progressBar = container.querySelector('#progressBar');
-      const progressPercent = container.querySelector('#progressPercent');
-      if (progressBar) progressBar.style.width = `${currentProgress}%`;
-      if (progressPercent) progressPercent.textContent = `${Math.round(currentProgress)}%`;
-    }, 500);
-    activeIntervals.push(interval);
+    const phase = PHASE_MAP[action];
+    if (phase) {
+      const phaseLabel = phase === 2 ? 'Phase 2' : phase === 3 ? 'Phase 3' : 'Phase 4';
+      if (progressStatus) progressStatus.textContent = `${action} — ${phaseLabel}: coming soon`;
+      showToast(`${action} — ${phaseLabel}: coming soon`);
+      return;
+    }
+    console.warn(`[RenderPage] Unknown action: ${action}`);
   }
 
   // Preset selector
@@ -590,7 +623,7 @@ export function RenderPage() {
     const presetDetailsEl = container.querySelector('#presetDetails');
 
     if (presetLabel) presetLabel.textContent = preset;
-    if (previewBadge) previewBadge.textContent = `${preset} • ${progress}% • ${currentStage}`;
+    if (previewBadge) previewBadge.textContent = preset;
 
     // Update preset buttons
     const presetsContainer = container.querySelector('#presetsContainer');
