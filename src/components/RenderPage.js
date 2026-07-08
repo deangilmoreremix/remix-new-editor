@@ -126,10 +126,6 @@ export function RenderPage() {
 
   let selectedPreset = 'Luxury Brand Grade';
   let activeAction = 'Export Video';
-  let activeIntervals = [];
-  let isRunning = false;
-  let progress = 0;
-  let currentStage = 'finishing';
 
   const inner = document.createElement('div');
   inner.className = 'w-full';
