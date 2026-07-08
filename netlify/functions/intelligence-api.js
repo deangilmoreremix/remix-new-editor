@@ -203,6 +203,74 @@ export async function handler(event, context) {
       return { statusCode: 200, headers, body: JSON.stringify({ variables: data?.variables || {} }) };
     }
 
+    // POST /api/intelligence/assets/:contactId
+    // Runs the asset discovery orchestrator (logo / colors / avatar /
+    // screenshot), re-uploads to Supabase storage when configured, and
+    // merges the discovered assets + brand colors into the contact profile.
+    if (path.startsWith('/assets/') && event.httpMethod === 'POST') {
+      const contactId = path.replace('/assets/', '').split('?')[0];
+      const { data: contact } = await supabaseService.from('contacts').select('id, user_id').eq('id', contactId).eq('user_id', userId).single();
+      if (!contact) return { statusCode: 404, headers, body: JSON.stringify({ error: 'Contact not found' }) };
+
+      const { data: profileRow } = await supabaseService
+        .from('contact_profiles')
+        .select('profile')
+        .eq('contact_id', contactId)
+        .single();
+      const profile = profileRow?.profile || {};
+
+      const websiteUrl = profile.website?.url;
+      const websiteHtml = profile.website?.pages?.[0]?.text
+        ? `<html><head>${profile.website.pages[0].title ? `<title>${profile.website.pages[0].title}</title>` : ''}</head><body>${profile.website.pages[0].text}</body></html>`
+        : undefined;
+
+      const maigretPlatforms = (profile.history?.discoveries || [])
+        .filter((d) => d.source === 'maigret' && d.success)
+        .map((d) => d.data?.platforms)
+        .filter(Boolean)
+        .flat();
+
+      const result = await runAssetDiscovery({
+        websiteUrl,
+        websiteHtml,
+        maigretAvatars: maigretPlatforms.map((p) => p.ids_data?.avatar_url).filter(Boolean),
+        githubAvatarUrl: profile.contact?.avatarUrl,
+        contactAvatarUrl: profile.contact?.avatarUrl,
+      });
+
+      const allDiscovered = [...result.logos, ...result.avatars, ...result.screenshots];
+      for (const a of allDiscovered) {
+        await supabaseService.from('contact_assets').insert({
+          contact_id: contactId,
+          asset_type: a.assetType,
+          url: a.url,
+          storage_path: a.storagePath || null,
+          metadata: { ...(a.metadata || {}), discoveredFrom: a.source },
+        });
+      }
+
+      const newAssets = {
+        avatar: dedupe([...(profile.assets?.avatar || []), ...result.avatars.map((a) => a.url)]),
+        logos: dedupe([...(profile.assets?.logos || []), ...result.logos.map((a) => a.url)]),
+        productImages: dedupe([...(profile.assets?.productImages || [])]),
+        icons: dedupe([...(profile.assets?.icons || [])]),
+        videos: dedupe([...(profile.assets?.videos || [])]),
+      };
+      const newBrandColors = {
+        ...(profile.brand?.colors || {}),
+        ...(result.brandColors.primary ? { primary: result.brandColors.primary } : {}),
+        ...(result.brandColors.secondary ? { secondary: result.brandColors.secondary } : {}),
+        ...(result.brandColors.accent ? { accent: result.brandColors.accent } : {}),
+      };
+      profile.assets = newAssets;
+      profile.brand = { ...(profile.brand || {}), colors: newBrandColors };
+      profile.updatedAt = new Date().toISOString();
+
+      await supabaseService.from('contact_profiles').update({ profile, updated_at: profile.updatedAt }).eq('contact_id', contactId);
+
+      return { statusCode: 200, headers, body: JSON.stringify({ contactId, ...result, assets: newAssets, brandColors: newBrandColors }) };
+    }
+
     // POST /api/intelligence/auto-timeline/:contactId
     if (path.startsWith('/auto-timeline/') && event.httpMethod === 'POST') {
       const contactId = path.replace('/auto-timeline/', '').split('?')[0];
@@ -598,6 +666,61 @@ async function runDiscoveryPipeline(contactId, sources) {
   });
 
   profile.variables = variables;
+
+  // Optional: run the asset discovery orchestrator (logo / colors /
+  // avatar / screenshot). Best-effort — failure here doesn't fail the
+  // overall discovery pipeline. Re-uploads to Supabase storage when
+  // SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY + ASSETS_BUCKET are set.
+  try {
+    const assets = await runAssetDiscovery({
+      websiteUrl: profile.website?.url,
+      websiteHtml: profile.website?.pages?.[0]?.text
+        ? `<html><head>${profile.website.pages[0].title ? `<title>${profile.website.pages[0].title}</title>` : ''}</head><body>${profile.website.pages[0].text}</body></html>`
+        : undefined,
+      maigretAvatars: (profile.history?.discoveries || [])
+        .filter((d) => d.source === 'maigret' && d.success)
+        .map((d) => d.data?.platforms)
+        .filter(Boolean)
+        .flat()
+        .map((p) => p.ids_data?.avatar_url)
+        .filter(Boolean),
+      githubAvatarUrl: profile.contact?.avatarUrl,
+      contactAvatarUrl: profile.contact?.avatarUrl,
+    });
+
+    // Persist to contact_assets
+    for (const a of [...assets.logos, ...assets.avatars, ...assets.screenshots]) {
+      try {
+        await supabaseService.from('contact_assets').insert({
+          contact_id: contactId,
+          asset_type: a.assetType,
+          url: a.url,
+          storage_path: a.storagePath || null,
+          metadata: { ...(a.metadata || {}), discoveredFrom: a.source },
+        });
+      } catch {}
+    }
+
+    profile.assets = {
+      avatar: dedupe([...(profile.assets?.avatar || []), ...assets.avatars.map((a) => a.url)]),
+      logos: dedupe([...(profile.assets?.logos || []), ...assets.logos.map((a) => a.url)]),
+      productImages: dedupe([...(profile.assets?.productImages || [])]),
+      icons: dedupe([...(profile.assets?.icons || [])]),
+      videos: dedupe([...(profile.assets?.videos || [])]),
+    };
+    profile.brand = { ...(profile.brand || {}), colors: {
+      ...(profile.brand?.colors || {}),
+      ...(assets.brandColors.primary ? { primary: assets.brandColors.primary } : {}),
+      ...(assets.brandColors.secondary ? { secondary: assets.brandColors.secondary } : {}),
+      ...(assets.brandColors.accent ? { accent: assets.brandColors.accent } : {}),
+    } };
+    if (assets.brandColors.primary) variables.brandColor = assets.brandColors.primary;
+
+    addDiscovery(contactId, 'assets', assets.errors.length ? 'failed' : 'success', { logoCount: assets.logos.length, avatarCount: assets.avatars.length, screenshotCount: assets.screenshots.length }, assets.errors.length ? assets.errors[0].error : undefined, assets.durationMs);
+  } catch (err) {
+    addDiscovery(contactId, 'assets', 'failed', null, err.message);
+  }
+
   profile.discovery_status = 'complete';
   profile.last_discovered_at = new Date().toISOString();
 
@@ -664,4 +787,157 @@ function buildAutoTimelineScenes(profile, opts) {
   });
 
   return scenes;
+}
+
+// ---------------------------------------------------------------------------
+// Asset discovery (inlined JS port of packages/assets/src/extractors/*
+// so the Netlify function doesn't need a TS build step)
+// ---------------------------------------------------------------------------
+
+function dedupe(arr) {
+  return Array.from(new Set((arr || []).filter(Boolean)));
+}
+
+async function runAssetDiscovery({ websiteUrl, websiteHtml, maigretAvatars = [], githubAvatarUrl, contactAvatarUrl }) {
+  const logos = [];
+  const avatars = [];
+  const screenshots = [];
+  const brandColors = {};
+  const errors = [];
+  const started = Date.now();
+
+  // 1. Logo from website HTML
+  if (websiteHtml) {
+    try {
+      const candidates = detectLogoCandidates(websiteHtml, websiteUrl || '');
+      if (candidates[0]) logos.push({ assetType: 'logo', url: candidates[0], source: { source: 'website', sourceUrl: candidates[0], discoveredAt: new Date().toISOString() } });
+    } catch (err) { errors.push({ source: 'logo', error: err.message }); }
+
+    try {
+      const colors = extractColorsFromHtml(websiteHtml);
+      if (colors.primary) brandColors.primary = colors.primary;
+      if (colors.secondary) brandColors.secondary = colors.secondary;
+      if (colors.accent) brandColors.accent = colors.accent;
+    } catch (err) { errors.push({ source: 'colors', error: err.message }); }
+  }
+
+  // 2. Avatars (deduped, maigret first then github then manual)
+  const seen = new Set();
+  const pushAvatar = (url, source) => {
+    if (!url || seen.has(url)) return;
+    seen.add(url);
+    avatars.push({ assetType: 'headshot', url, source: { source, sourceUrl: url, discoveredAt: new Date().toISOString() } });
+  };
+  for (const url of maigretAvatars) pushAvatar(url, 'maigret');
+  pushAvatar(githubAvatarUrl, 'github');
+  pushAvatar(contactAvatarUrl, 'manual');
+
+  // 3. Screenshot (OG image fallback)
+  if (websiteHtml) {
+    const og = websiteHtml.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+    if (og) {
+      const url = resolveUrl(websiteUrl || '', og[1]);
+      screenshots.push({ assetType: 'screenshot', url, source: { source: 'website', sourceUrl: url, discoveredAt: new Date().toISOString() }, metadata: { source: 'og:image' } });
+    }
+  }
+
+  return { logos, avatars, screenshots, brandColors, errors, durationMs: Date.now() - started };
+}
+
+function detectLogoCandidates(html, baseUrl) {
+  const candidates = [];
+  const resolve = (raw) => resolveUrl(baseUrl, raw);
+  const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
+  if (ogImage) candidates.push({ url: resolve(ogImage[1]), score: 70 });
+  const appleMatches = html.matchAll(/<link[^>]+rel=["']apple-touch-icon["'][^>]+href=["']([^"']+)["']/gi);
+  for (const m of appleMatches) candidates.push({ url: resolve(m[1]), score: 80 });
+  const iconMatches = html.matchAll(/<link[^>]+rel=["'](?:shortcut )?icon["'][^>]*?>/gi);
+  for (const m of iconMatches) {
+    const tag = m[0];
+    const href = tag.match(/href=["']([^"']+)["']/i);
+    if (!href) continue;
+    const sizes = tag.match(/sizes=["'](\d+)x(\d+)["']/i);
+    const size = sizes ? parseInt(sizes[1], 10) * parseInt(sizes[2], 10) : 16;
+    candidates.push({ url: resolve(href[1]), score: 30 + Math.min(60, Math.round(size / 100)) });
+  }
+  const logoImgs = html.matchAll(/<img[^>]+(?:class|alt)=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/gi);
+  for (const m of logoImgs) candidates.push({ url: resolve(m[1]), score: 85 });
+  const seen = new Set();
+  const uniq = candidates.filter((c) => {
+    if (seen.has(c.url)) return false;
+    seen.add(c.url);
+    return true;
+  });
+  uniq.sort((a, b) => b.score - a.score);
+  return uniq.map((c) => c.url);
+}
+
+function extractColorsFromHtml(html) {
+  const out = {};
+  const theme = html.match(/<meta[^>]+name=["']theme-color["'][^>]+content=["']([^"']+)["']/i);
+  if (theme) {
+    const norm = normalizeColor(theme[1]);
+    if (norm) out.primary = norm;
+  }
+  const styles = [];
+  for (const m of html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)) if (m[1]) styles.push(m[1]);
+  const freq = new Map();
+  for (const css of styles) {
+    for (const m of css.matchAll(/#([0-9a-f]{3}|[0-9a-f]{6})\b/gi)) {
+      const norm = normalizeColor(`#${m[1]}`);
+      if (norm && isBrandWorthy(norm)) freq.set(norm, (freq.get(norm) || 0) + 1);
+    }
+    for (const m of css.matchAll(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/gi)) {
+      const norm = rgbToHex(+m[1], +m[2], +m[3]);
+      if (norm && isBrandWorthy(norm)) freq.set(norm, (freq.get(norm) || 0) + 1);
+    }
+  }
+  const sorted = [...freq.entries()].sort((a, b) => b[1] - a[1]);
+  if (!out.primary && sorted[0]) out.primary = sorted[0][0];
+  if (sorted[1]) out.secondary = sorted[1][0];
+  for (const [color] of sorted) {
+    if (color !== out.primary && colorDistance(color, out.primary || '#000000') > 80) {
+      out.accent = color;
+      break;
+    }
+  }
+  return out;
+}
+
+function normalizeColor(raw) {
+  if (!raw) return undefined;
+  const s = raw.trim().toLowerCase();
+  if (/^#[0-9a-f]{3}$/.test(s)) return `#${s[1]}${s[1]}${s[2]}${s[2]}${s[3]}${s[3]}`;
+  if (/^#[0-9a-f]{6}$/.test(s)) return s;
+  if (/^#[0-9a-f]{8}$/.test(s)) return s.slice(0, 7);
+  const named = { black: '#000000', white: '#ffffff', red: '#ff0000', green: '#008000', blue: '#0000ff' };
+  return named[s];
+}
+
+function isBrandWorthy(hex) {
+  const m = hex.replace('#', '');
+  const r = parseInt(m.slice(0, 2), 16);
+  const g = parseInt(m.slice(2, 4), 16);
+  const b = parseInt(m.slice(4, 6), 16);
+  const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+  if (luma < 25 || luma > 235) return false;
+  if (Math.max(r, g, b) - Math.min(r, g, b) < 12) return false;
+  return true;
+}
+
+function colorDistance(a, b) {
+  const ma = a.replace('#', ''); const mb = b.replace('#', '');
+  const dr = parseInt(ma.slice(0, 2), 16) - parseInt(mb.slice(0, 2), 16);
+  const dg = parseInt(ma.slice(2, 4), 16) - parseInt(mb.slice(2, 4), 16);
+  const db = parseInt(ma.slice(4, 6), 16) - parseInt(mb.slice(4, 6), 16);
+  return Math.sqrt(dr * dr + dg * dg + db * db);
+}
+
+function rgbToHex(r, g, b) {
+  const to = (n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+  return `#${to(r)}${to(g)}${to(b)}`;
+}
+
+function resolveUrl(base, relative) {
+  try { return new URL(relative, base).toString(); } catch { return relative; }
 }
