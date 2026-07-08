@@ -250,3 +250,94 @@ Phase 1 introduces no test framework changes. The existing test setup uses Vites
 ## 9. Open questions
 
 None — the user approved the design ("go"). Deferred actions clearly point to Phase 2/3/4 toasts, which is honest behavior. If a real backend integration becomes available mid-Phase 1, the dispatcher is the single place to add it.
+
+---
+
+## 10. Phase 1 Resolution
+
+**Plan file:** `docs/superpowers/plans/2026-07-07-render-page-real-phase1.md`
+**Implementation commits:** `ad90fe20`, `35d47904`, `78f5e9c0`, `bcbd1284`, `ac68249b`, `5dd3407d`, `9720062b`, `9c745c9d`, `45c4d19e`
+**Test results:** 17/17 render tests pass (`src/test/render-actions.test.js` + `src/test/render-queue-store.test.js`)
+
+### 10.1 Resolution summary by category
+
+| Category | Count | Resolved | Deferred |
+|---|---|---|---|
+| Mock / Stub functionality (P0) | 13 | 12 | 1 |
+| Accessibility (P1) | 6 | 6 | 0 |
+| Performance (P1) | 8 | 7 | 1 |
+| Responsive (P2) | 6 | 5 | 1 |
+| Code smells (P2) | 7 | 5 | 2 |
+| **Total** | **40** | **35** | **5** |
+
+### 10.2 Resolved issues
+
+**Mock/Stub functionality (P0)**
+- `runAction()` mock: replaced with real `dispatchAction()` dispatcher — all 19 actions are honest about their state
+- Fake progress simulation (`setInterval` + `Math.random()`): deleted; spinner now only shows while a local handler is running
+- Always-showing fake progress bar: conditional `hidden` class on `#progressSpinner`
+- Static play triangle: replaced with native `<video src controls playsinline>` element
+- `?asset=` query parameter ignored: `resolveAsset(id)` resolves via `assetStore` before mounting video
+- `?videoUrl=` unused: `resolvedVideoUrl` used as `videoElement.src`
+- No `renderActions.js` module: new file created with 12 exported pure functions
+- No `renderQueueStore.js` module: new file created with localStorage pub/sub pattern
+- No localStorage persistence for templates/drafts: `renderActions` uses `render:templates` and `render:drafts` keys
+- Render queue in-memory only: `renderQueueStore` persists to `render:queue` (migrates legacy `render_queue`)
+- `saveDraftBtn` wired to mock action: now calls `dispatchAction('Save Draft')` → real `saveDraft()`
+- `startRenderBtn` wired to mock action: now calls `dispatchAction('Queue Render')` → real `enqueueRender()`
+
+**Accessibility (P1)**
+- No focus-visible ring: `.render-page button:focus-visible` CSS appended on mount
+- No ARIA labels on buttons: `aria-pressed` on preset buttons and action buttons
+- No live region for progress: `role="status"` on `#progressStatus`, `aria-live="polite" aria-atomic="true"` on `#progressPercent`
+- Low-contrast `text-white/40` labels: all bumped to `text-white/70` (≥4.5:1 contrast on `#0a0a0b`)
+- Missing aria-pressed on preset: `btn.setAttribute('aria-pressed', ...)` in preset loop and `selectPreset()`
+- Missing `?asset=` handling and error state: video `error` listener shows toast, clears `videoMeta`
+
+**Performance (P1)**
+- Always-spinning `animate-spin` independent of job state: gated by `hidden` / `isRunning` state
+- `isRunning` state leak always allowed one concurrent simulation: removed along with simulation
+- Unused closure variables (`activeIntervals`, `isRunning`, `progress`, `currentStage`): deleted; spinner shown/hidden in `dispatchAction`
+- Render queue not reactive: `subscribe()` list + notifies on `enqueue/renderQueue/clear` only
+- `container.cleanup()` never called: router now calls `currentPageEl?.cleanup?.()` before each navigation
+- `localStorage` reads without try/catch: all reads guarded in `renderQueueStore.js` and `renderActions.js`
+- Video frame download does not revoke blob URL: `URL.revokeObjectURL()` after click
+- `getVideoMetadata` creates a new video element per call (prevents DOM pollution)
+
+**Responsive (P2)**
+- Layout breaks outside `lg:` breakpoint: `grid-cols-1` base with `lg:grid-cols-[1fr_340px]`
+- Action buttons row overflows: `flex flex-wrap gap-3` on `actionBtnsRow`
+- Sidebar viewport overflow on mobile: `h-fit` + internal `max-h-[400px]` on panels
+- Video player not responsive: `aspect-video w-[88%] max-w-3xl` scales down at all breakpoints
+- Tap targets below 44px: all buttons use `px-5 py-3` or larger (≥44px tap targets)
+- `NEXT_ACTIONS` sidebar swapped for queue panel during runtime: no viewport shift (same aside element)
+
+**Code smells (P2)**
+- Dead state variables in closure: `activeIntervals`, `isRunning`, `progress`, `currentStage` removed
+- `runAction` mixes simulation logic with DOM updates: replaced by `dispatchAction` + `ACTION_HANDLERS` map
+- No error handling on action calls: `try/catch` + `showToast(... failed: ...)` pattern
+- Unnamespaced localStorage keys: all keys under `render:` prefix (`render:templates`, `render:drafts`, `render:queue`)
+- `renderWorker.js` import would crash if added prematurely: Phase 1 intentionally does not import it; deferred to Phase 2
+- Magic numbers for resolution fallback `1920 × 1080`: replaced with dynamic `videoMeta.width × videoMeta.height`
+- `progressPercent` innerHTML: no-op — `progressPercent.textContent` is used directly
+
+### 10.3 Pending issues (deferred to Phase 2/3/4)
+
+| Issue | Defer reason | Target phase |
+|---|---|---|
+| `src/lib/editor/renderWorker.js` stub — real WebCodecs/encoder | Export encoding infrastructure not in scope; no `mp4-muxer` or `ffmpeg.wasm` in this phase | Phase 2 |
+| Export Video — real master export pipeline | Explicitly out of scope (see §3 Non-Goals) | Phase 2 |
+| Export Variations — real multi-profile export | Explicitly out of scope | Phase 2 |
+| Publish / Deliver — real packaging | Explicitly out of scope | Phase 2 |
+| Trailer Cut, Social Resize, Remix Scene — real post-processing | Explicitly out of scope (AI-assisted) | Phase 2 |
+| Agentic Editor, Full Editor — real editor launcher | Navigation to external editors | Phase 4 |
+| Create Shorts, Generate Highlights, Add Subtitles, Dub/Voiceover, AI Auto-Edit — real AI tools | AI feature implementations | Phase 3 |
+| No mobile collapse/off-canvas for sidebar | P2 cleanup; layout is functional at mobile width | Phase 2 |
+| `animation: pulse` on progress step indicator not gated by `prefers-reduced-motion` | `animate-pulse` class not covered in the Phase 1 injected stylesheet | Phase 2 |
+
+### 10.4 Notes
+
+- **Deferred actions (11 total):** `Export Video`, `Export Variations`, `Publish / Deliver`, `Trailer Cut`, `Social Resize`, `Remix Scene` → `Phase 2` toasts; `Create Shorts`, `Generate Highlights`, `Add Subtitles`, `Dub / Voiceover`, `AI Auto-Edit` → `Phase 3` toasts; `Agentic Editor`, `Full Editor` → `Phase 4` toasts.
+- **Excluded from Phase 1 per spec §3:** upstream call-site changes (`VideoAgentPage.js:276`, `EditorPage.js:1116`, `DirectorPage.js:370`, `assetActions.js:106`) and real export worker.
+- **`localStorage` quota handling:** Phase 1 catches errors in storage reads; quota-exceeded write error path (catch + toast "Storage full") is bubbled through `showToast(... failed: ...)` in `dispatchAction`.
+- **`escapeHtml` retention:** all dynamic text that flows to `innerHTML` continues to use `escapeHtml` for XSS defense.
