@@ -2,7 +2,7 @@ import { navigate } from '../lib/router.js';
 import { showToast, createLoadingSpinner } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { escapeHtml } from '../lib/security.js';
-import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTemplate, duplicateTemplate, listTemplates, listDrafts, sendToStoryboard } from '../lib/editor/renderActions.js';
+import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTemplate, duplicateTemplate, listTemplates, sendToStoryboard } from '../lib/editor/renderActions.js';
 import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue } from '../lib/editor/renderQueueStore.js';
 
 // Repository endpoints
@@ -66,43 +66,7 @@ const PHASE_MAP = {
   'Publish / Deliver': 2,
 };
 
-const ACTION_HANDLERS = {
-  'Download Frame': async () => {
-    if (!videoElement || !videoElement.src) { showToast('Load a video first'); return; }
-    await downloadFrame(videoElement, { filename: `${resolvedVideoId}_frame.png` });
-    showToast('Frame downloaded');
-  },
-  'Queue Render': async () => {
-    const entry = enqueueRender({ videoId: resolvedVideoId, videoUrl: resolvedVideoUrl, title: resolvedTitle, preset: selectedPreset, outputSettings: getOutputSettings() });
-    showToast(`Queued: ${entry.id.slice(0, 12)}…`);
-    renderQueue();
-  },
-  'Copy Prompt': async () => {
-    const ok = await copyToClipboard(resolvedTitle);
-    showToast(ok ? 'Prompt copied to clipboard' : 'Copy failed — please copy manually');
-  },
-  'Duplicate Render': async () => {
-    const templates = listTemplates();
-    const last = templates[templates.length - 1];
-    if (!last) { showToast('Nothing to duplicate yet — save a template first'); return; }
-    duplicateTemplate(last.id);
-    renderSavedItems();
-    showToast('Render duplicated');
-  },
-  'Save as Template': async () => {
-    saveTemplate({ videoId: resolvedVideoId, videoUrl: resolvedVideoUrl, title: resolvedTitle, preset: selectedPreset, outputSettings: getOutputSettings() });
-    renderSavedItems();
-    showToast('Saved as template');
-  },
-  'Save Draft': async () => {
-    saveDraft({ videoId: resolvedVideoId, videoUrl: resolvedVideoUrl, title: resolvedTitle, preset: selectedPreset, outputSettings: getOutputSettings() });
-    renderSavedItems();
-    showToast('Draft saved');
-  },
-  'Send to Storyboard': async () => {
-    sendToStoryboard(resolvedVideoId, resolvedVideoUrl);
-  },
-};
+
 
 const NEXT_ACTIONS = [
   { title: 'AI Auto-Edit', desc: 'Automatic scene detection, highlights, subtitles, and finishing passes.', icon: '⚡' },
@@ -223,6 +187,23 @@ export function RenderPage() {
       quality: qualityEl ? parseInt(qualityEl.value, 10) : 82,
     };
   }
+
+  function renderSavedItems() {
+    const savedList = sidebar.querySelector('#savedPanel');
+    if (!savedList) {
+      renderSavedItemsPanel();
+      return;
+    }
+    savedList.innerHTML = '';
+    const savedItems = ['Luxury Brand Grade', 'Film Trailer Punch', 'Emotional Story Tone'];
+    savedItems.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm text-white/75';
+      row.textContent = item;
+      savedList.appendChild(row);
+    });
+  }
+
   const hero = document.createElement('div');
   hero.className = 'relative mb-8 overflow-hidden rounded-[28px] md:mb-10';
   const heroBanner = createHeroSection('render', 'h-44 md:h-60');
@@ -591,6 +572,44 @@ export function RenderPage() {
   }
 
   void initAssetResolve();
+
+  const ACTION_HANDLERS = {
+    'Download Frame': async () => {
+      if (!videoElement || !videoElement.src) { showToast('Load a video first'); return; }
+      await downloadFrame(videoElement, { filename: `${resolvedVideoId}_frame.png` });
+      showToast('Frame downloaded');
+    },
+    'Queue Render': async () => {
+      const entry = enqueueRender({ videoId: resolvedVideoId, videoUrl: resolvedVideoUrl, title: resolvedTitle, preset: selectedPreset, outputSettings: getOutputSettings() });
+      showToast(`Queued: ${entry.id.slice(0, 12)}…`);
+      renderQueue();
+    },
+    'Copy Prompt': async () => {
+      const ok = await copyToClipboard(resolvedTitle);
+      showToast(ok ? 'Prompt copied to clipboard' : 'Copy failed — please copy manually');
+    },
+    'Duplicate Render': async () => {
+      const templates = listTemplates();
+      const last = templates[templates.length - 1];
+      if (!last) { showToast('Nothing to duplicate yet — save a template first'); return; }
+      duplicateTemplate(last.id);
+      renderSavedItems();
+      showToast('Render duplicated');
+    },
+    'Save as Template': async () => {
+      saveTemplate({ videoId: resolvedVideoId, videoUrl: resolvedVideoUrl, title: resolvedTitle, preset: selectedPreset, outputSettings: getOutputSettings() });
+      renderSavedItems();
+      showToast('Saved as template');
+    },
+    'Save Draft': async () => {
+      saveDraft({ videoId: resolvedVideoId, videoUrl: resolvedVideoUrl, title: resolvedTitle, preset: selectedPreset, outputSettings: getOutputSettings() });
+      renderSavedItems();
+      showToast('Draft saved');
+    },
+    'Send to Storyboard': async () => {
+      sendToStoryboard(resolvedVideoId, resolvedVideoUrl);
+    },
+  };
 
   // Action handler
   async function dispatchAction(action) {
