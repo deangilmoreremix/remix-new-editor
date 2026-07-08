@@ -19,10 +19,19 @@ class OpenAIConfig {
       // Thumbnail overrides used by ThumbnailService / ai-thumbnail-generator
       thumbnailModel: 'gpt-image-2',
       thumbnailDefaultSize: '1792x1024',
-      thumbnailQuality: 'hd',
+      thumbnailAspectRatios: ['16:9', '9:16', '1:1', '4:3', '3:4'],
+      thumbnailQuality: 'high',
+      thumbnailQualities: ['low', 'medium', 'high', 'auto'],
       thumbnailStyle: 'vivid',
+      thumbnailStyles: ['vivid', 'natural'],
+      thumbnailBackground: 'auto',
+      thumbnailBackgrounds: ['auto', 'opaque'], // gpt-image-2: no transparent
       thumbnailFormat: 'webp',
-      thumbnailCompression: 80
+      thumbnailFormats: ['webp', 'jpeg', 'png'],
+      thumbnailCompression: 80,
+      thumbnailPartialImages: 1,
+      thumbnailStoreResponses: true,
+      thumbnailInclude: ['reasoning.encrypted_content'],
     };
 
     this.currentImageModel = this.defaultConfig.imageModel;
@@ -175,10 +184,19 @@ class OpenAIConfig {
     return {
       model: this.defaultConfig.thumbnailModel,
       size: this.defaultConfig.thumbnailDefaultSize,
+      aspectRatios: [...this.defaultConfig.thumbnailAspectRatios],
       quality: this.defaultConfig.thumbnailQuality,
+      qualities: [...this.defaultConfig.thumbnailQualities],
       style: this.defaultConfig.thumbnailStyle,
+      styles: [...this.defaultConfig.thumbnailStyles],
+      background: this.defaultConfig.thumbnailBackground,
+      backgrounds: [...this.defaultConfig.thumbnailBackgrounds],
       format: this.defaultConfig.thumbnailFormat,
+      formats: [...this.defaultConfig.thumbnailFormats],
       compression: this.defaultConfig.thumbnailCompression,
+      partialImages: this.defaultConfig.thumbnailPartialImages,
+      store: this.defaultConfig.thumbnailStoreResponses,
+      include: [...this.defaultConfig.thumbnailInclude],
     };
   }
 }
