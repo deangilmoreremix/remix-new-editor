@@ -4717,6 +4717,7 @@ export function TimelineEditorPage() {
       renderAll();
       bindEvents();
       setupEnhancedTooltips();
+      initializeMediaLibraryDragDrop(state, els.mediaGrid, { showToast });
       setupUploadSources({ state, showToast });
 
       // Initialize media ingest components
