@@ -2,6 +2,8 @@ import { getTemplateById } from '../lib/templates.js';
 import { getTemplateThumbnailCandidates } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
+import { getNicheTerms } from '../lib/templateEngine.js';
+import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
@@ -90,6 +92,52 @@ export function TemplateStudio(templateId) {
   backBtn.innerHTML = '&larr; Back to Apps';
   backBtn.onclick = () => navigate('templates');
   contentArea.appendChild(backBtn);
+
+  // Cinematic wizard CTA: opt-in alternative flow for templates flagged
+  // `cinematic: true`. Hidden by default; clicking mounts the wizard inline
+  // in place of the standard form.
+  let wizardMounted = false;
+  let wizardContainer = null;
+  if (template.cinematic) {
+    const wizardRow = document.createElement('div');
+    wizardRow.className = 'mb-6 flex items-center gap-3 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl';
+    wizardRow.innerHTML = `
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-bold text-white">Cinematic wizard available</div>
+        <div class="text-xs text-secondary">Step-by-step storyboard builder with scene structure, visual style, and brand context.</div>
+      </div>
+      <button id="open-wizard-btn" class="px-4 py-2 bg-emerald-500 text-black font-black rounded-xl text-sm hover:scale-[1.02] transition-transform">Open wizard</button>
+    `;
+    contentArea.appendChild(wizardRow);
+
+    wizardRow.querySelector('#open-wizard-btn').onclick = () => {
+      if (wizardMounted) return;
+      wizardMounted = true;
+      // Import the wizard lazily so non-cinematic templates don't pull it in
+      import('./CinematicTemplateWizard.js').then(({ CinematicTemplateWizard }) => {
+        wizardContainer = CinematicTemplateWizard({
+          template,
+          onCancel: () => {
+            if (wizardContainer && wizardContainer.parentNode) wizardContainer.parentNode.removeChild(wizardContainer);
+            wizardMounted = false;
+            wizardContainer = null;
+            wizardRow.style.display = '';
+          },
+          onGenerate: (result) => {
+            // Hand the result back to TemplateStudio's render flow by stashing
+            // it on the container. Future enhancement: render the player in
+            // the existing result area.
+            container.__wizardResult = result;
+          },
+        });
+        wizardContainer.className = 'mb-8';
+        contentArea.insertBefore(wizardContainer, centeredContainer);
+        wizardRow.style.display = 'none';
+      }).catch((e) => {
+        console.error('[TemplateStudio] wizard load failed:', e);
+      });
+    };
+  }
 
   // Centered template container
   const centeredContainer = document.createElement('div');
@@ -509,7 +557,16 @@ export function TemplateStudio(templateId) {
 
     try {
       const params = { model: template.model, ...(template.defaultParams || {}) };
-      if (template.aspectRatio) params.aspect_ratio = template.aspectRatio;
+
+      // Normalize aspect ratio for standard and matrix templates
+      const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
+      if (aspectRatio) params.aspect_ratio = aspectRatio;
+
+      // Normalize duration from template or defaultParams
+      const duration = template.duration
+        ? (typeof template.duration === 'object' ? template.duration.default : template.duration)
+        : template.defaultParams?.duration;
+      if (duration) params.duration = duration;
 
       allInputs.forEach(input => {
         if (formState[input.name]) {
@@ -517,14 +574,8 @@ export function TemplateStudio(templateId) {
         }
       });
 
-      // Build enhanced prompt if AI enhancer is on
-      if (aiEnhancer && specs.enhancerKeywords && params.prompt) {
-        params.prompt = `${params.prompt}, ${specs.enhancerKeywords}`;
-      } else if (template.basePrompt && params.prompt) {
-        params.prompt = template.basePrompt.replace('{prompt}', params.prompt);
-      } else if (template.basePrompt && !params.prompt) {
-        params.prompt = template.basePrompt.replace('{prompt}', '');
-      }
+      // Build prompt from all available template metadata and advanced options
+      params.prompt = buildEnrichedPrompt(template, specs, formState, params.prompt);
 
       let result;
       if (template.modelType === 'i2v') {
@@ -555,6 +606,107 @@ export function TemplateStudio(templateId) {
     genBtn.disabled = false;
     genBtn.textContent = 'Generate';
   };
+
+  function buildEnrichedPrompt(template, specs, formState, userPrompt) {
+    const parts = [];
+
+    // Subject from advanced field
+    const subject = formState['subject'];
+    if (subject) parts.push(subject);
+
+    // User prompt
+    if (userPrompt) parts.push(userPrompt);
+
+    // Base prompt substitution
+    if (template.basePrompt) {
+      const promptSubstitute = userPrompt || '';
+      const base = template.basePrompt.replace('{prompt}', promptSubstitute);
+      if (base) parts.push(base);
+    }
+
+    // Scene blueprint from enhanced specs
+    if (specs.sceneBlueprint && specs.sceneBlueprint.length) {
+      parts.push(`Scene structure: ${specs.sceneBlueprint.join(' → ')}`);
+    }
+
+    // Cinematography from enhanced specs
+    if (specs.cinematography) {
+      parts.push(specs.cinematography);
+    }
+
+    // Visual style from enhanced specs or advanced fields
+    if (specs.visualStyle) {
+      parts.push(`Visual style: ${specs.visualStyle}`);
+    } else if (formState['visualStyle']) {
+      parts.push(`Visual style: ${formState['visualStyle']}`);
+    }
+
+    // Niche enrichment from matrix templates or template engine
+    const niche = formState['niche'];
+    if (niche && niche !== 'auto-detect') {
+      if (NICHE_ENRICHMENT[niche]) {
+        parts.push(NICHE_ENRICHMENT[niche].slice(0, 5).join(', '));
+      } else {
+        const nicheTerms = getNicheTerms(niche);
+        if (nicheTerms && nicheTerms.length) {
+          parts.push(nicheTerms.slice(0, 5).join(', '));
+        }
+      }
+    } else if (template.niche && NICHE_ENRICHMENT[template.niche]) {
+      parts.push(NICHE_ENRICHMENT[template.niche].slice(0, 5).join(', '));
+    }
+
+    // Matrix-specific: storyBlueprint and filmFamily direction
+    if (template.storyBlueprint && template.storyBlueprint.length) {
+      parts.push(`Story beats: ${template.storyBlueprint.join(' → ')}`);
+    }
+    if (template.filmFamily && FILM_FAMILIES[template.filmFamily]) {
+      parts.push(FILM_FAMILIES[template.filmFamily].direction);
+    }
+    if (template.promptDirection) {
+      parts.push(template.promptDirection);
+    }
+
+    // CTA from advanced field
+    const cta = formState['cta'];
+    if (cta) {
+      parts.push(`Call to action: ${cta}`);
+    }
+
+    // Setting from advanced field
+    const setting = formState['setting'];
+    if (setting) {
+      parts.push(`Setting: ${setting}`);
+    }
+
+    // Audience from advanced field
+    const audience = formState['audience'];
+    if (audience) {
+      parts.push(`Target audience: ${audience}`);
+    }
+
+    // Extra instructions
+    const extraInstructions = formState['extraInstructions'];
+    if (extraInstructions) {
+      parts.push(extraInstructions);
+    }
+
+    // Core use case from specs
+    if (specs.coreUseCase) {
+      parts.push(specs.coreUseCase);
+    }
+
+    // Enhancer keywords when AI enhancer is enabled
+    if (aiEnhancer && specs.enhancerKeywords && userPrompt) {
+      parts.push(specs.enhancerKeywords);
+    }
+
+    // Join, clean up duplicates and extra whitespace
+    let prompt = parts.filter(Boolean).join('. ');
+    prompt = prompt.replace(/\s*\.\s*/g, '. ').replace(/\.{2,}/g, '.').trim();
+    if (!prompt.endsWith('.')) prompt += '.';
+    return prompt;
+  }
 
   function showResult(url) {
     const previewArea = document.getElementById('previewArea');

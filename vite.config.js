@@ -127,7 +127,7 @@ function securityHeaders() {
                 // Content Security Policy
                 res.setHeader(
                     'Content-Security-Policy',
-                    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + "; media-src 'self' https: blob:;"
+                    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + "; media-src 'self' https: blob:;"
                 );
                 
                 // Prevent clickjacking
@@ -185,9 +185,18 @@ export default defineConfig({
                 target: 'http://localhost:3001',
                 changeOrigin: true,
             },
+            '/api/agents': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
             '/videoagent': {
                 target: 'http://localhost:3001',
                 changeOrigin: true,
+            },
+            '/director-api': {
+                target: process.env.VITE_DIRECTOR_API_URL || 'http://localhost:8000',
+                changeOrigin: true,
+                rewrite: (p) => p.replace(/^\/director-api/, ''),
             },
             '/mcp': {
                 target: 'http://localhost:3001',

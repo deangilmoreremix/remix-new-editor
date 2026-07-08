@@ -814,6 +814,7 @@ export const templates = [
     model: 'motion-controls',
     modelType: 'i2v',
     aspectRatio: '16:9',
+    cinematic: true,
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload landscape or scene' },
       { name: 'prompt', type: 'text', label: 'Flight path', placeholder: 'e.g. through a forest canopy' },
@@ -832,6 +833,7 @@ export const templates = [
     model: 'motion-controls',
     modelType: 'i2v',
     aspectRatio: '16:9',
+    cinematic: true,
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Scene description', placeholder: 'e.g. dramatic hallway reveal' },
@@ -850,6 +852,7 @@ export const templates = [
     model: 'motion-controls',
     modelType: 'i2v',
     aspectRatio: '16:9',
+    cinematic: true,
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload car or street photo' },
       { name: 'prompt', type: 'text', label: 'Chase description', placeholder: 'e.g. high speed through city streets' },
@@ -868,6 +871,7 @@ export const templates = [
     model: 'motion-controls',
     modelType: 'i2v',
     aspectRatio: '16:9',
+    cinematic: true,
     inputs: [
       { name: 'image_url', type: 'image', label: 'Upload your photo' },
       { name: 'prompt', type: 'text', label: 'Action', placeholder: 'e.g. mid-air jump kick' },
@@ -921,6 +925,14 @@ export function getTemplatesByCategory(category) {
 
 export function getAllCategories() {
   return [...new Set(allTemplates.map(t => t.category))];
+}
+
+/**
+ * Templates opted into the CinematicTemplateWizard. Filter by the
+ * `cinematic: true` flag. Other templates fall through to the simple form.
+ */
+export function getCinematicTemplates() {
+  return allTemplates.filter((t) => t && t.cinematic === true);
 }
 
 export { ALL_NICHE_TEMPLATES, RESTAURANT_TEMPLATES, MED_SPA_TEMPLATES, SALON_TEMPLATES, FITNESS_TEMPLATES, REAL_ESTATE_TEMPLATES, DENTAL_TEMPLATES, CHIROPRACTIC_TEMPLATES, LEGAL_TEMPLATES, AUTOMOTIVE_TEMPLATES, FASHION_TEMPLATES, EVENT_TEMPLATES, LUXURY_TEMPLATES, MATRIX_TEMPLATES };

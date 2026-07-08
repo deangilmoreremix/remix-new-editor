@@ -321,9 +321,19 @@ export function VideoAgentPage() {
     };
     
     // Cancel processing
-    container.querySelector('#cancel-processing').onclick = () => {
+    container.querySelector('#cancel-processing').onclick = async () => {
         container.querySelector('#processing-modal').classList.add('hidden');
         isProcessing = false;
+        abortController.abort();
+        if (currentJobId) {
+            try { await fetch(`/videoagent/cancel/${currentJobId}`, { method: 'POST' }); } catch (_) {}
+            try {
+                if (isSupabaseConfigured()) {
+                    await fetch(`${getSupabaseUrl()}/functions/v1/videoagent?jobId=${currentJobId}&cancel=1`, { method: 'POST' });
+                }
+            } catch (_) {}
+            currentJobId = null;
+        }
         showToast('Processing cancelled', 'info');
     };
     
@@ -332,85 +342,112 @@ export function VideoAgentPage() {
             showToast('Already processing', 'error');
             return;
         }
-        
-        // Check if Supabase is configured
-        if (!isSupabaseConfigured()) {
-            showToast('Backend not configured. Using offline mode.', 'info');
-            await simulateToolProcessing(tool);
-            return;
-        }
-        
-        // Validate video is loaded
-        if (!videoId && !videoUrl) {
+
+        // Validate video is loaded (whisper tolerates audioUrl-only)
+        if (!videoId && !videoUrl && tool.id !== 'whisper') {
             showToast('Please load a video first', 'error');
             return;
         }
-        
+
         isProcessing = true;
         addToQueue(tool.name, 'pending');
-        
+
         const modal = container.querySelector('#processing-modal');
         const nameEl = container.querySelector('#processing-name');
         const stepsEl = container.querySelector('#processing-steps');
         const progressBar = container.querySelector('#modal-progress-bar');
         const percentEl = container.querySelector('#processing-percent');
-        
+
         nameEl.textContent = tool.description;
         modal.classList.remove('hidden');
-        
-        try {
-            // Call the videoagent API
-            const supabaseUrl = getSupabaseUrl();
-            const response = await fetch(`${supabaseUrl}/functions/v1/videoagent`, {
+
+        // Try Express direct (real OpenAI Whisper, TTS, agent orchestrator).
+        // Fall back to Supabase edge function (which proxies to Express).
+        // Fall back to simulation ONLY if both fail.
+        const directEndpoint = '/videoagent/process';
+        const supabaseEndpoint = isSupabaseConfigured()
+            ? `${getSupabaseUrl()}/functions/v1/videoagent`
+            : null;
+
+        const callProcess = async (endpoint) => {
+            return await fetch(endpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'process-tool',
                     tool: tool.id,
                     toolName: tool.name,
-                    videoId: videoId,
-                    videoUrl: videoUrl,
+                    videoId,
+                    videoUrl,
+                    text: tool.description,
                     settings: {
                         quality: container.querySelector('select')?.value || '1080p',
-                        format: container.querySelectorAll('select')[1]?.value || 'MP4'
-                    }
-                })
+                        format: container.querySelectorAll('select')[1]?.value || 'MP4',
+                    },
+                }),
             });
-            
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
+        };
+
+        let response = null;
+        let usedEndpoint = null;
+        try {
+            response = await callProcess(directEndpoint);
+            usedEndpoint = 'direct';
+            if (!response.ok) throw new Error(`Direct: ${response.status}`);
+        } catch (_) {
+            if (supabaseEndpoint) {
+                try {
+                    response = await callProcess(supabaseEndpoint);
+                    usedEndpoint = 'supabase';
+                    if (!response.ok) throw new Error(`Supabase: ${response.status}`);
+                } catch (e) {
+                    response = null;
+                }
             }
-            
-            const result = await response.json();
-            
-            // If we get a jobId, poll for completion
-            if (result.jobId) {
-                await pollToolJob(result.jobId, tool, stepsEl, progressBar, percentEl, abortController.signal);
-            } else if (result.status === 'completed') {
-                // Direct completion
-                updateProgress(stepsEl, progressBar, percentEl, 100);
-                await new Promise(r => setTimeout(r, 500));
-            } else {
-                // Fallback to simulation if no proper response
-                throw new Error('Invalid response');
-            }
-            
-            modal.classList.add('hidden');
-            isProcessing = false;
-            updateQueueItem(tool.name, 'complete');
-            showResults(tool);
-            showToast(`${tool.name} completed!`, 'success');
-            
-        } catch (error) {
-            console.error('[VideoAgent] Tool error:', error);
-            showToast('Processing failed. Using offline mode.', 'error');
-            modal.classList.add('hidden');
-            
-            // Fallback to simulation
-            await simulateToolProcessing(tool);
         }
+
+        if (!response) {
+            // Both backends down — fall through to simulation
+            showToast('Backends unavailable. Using offline mode.', 'info');
+            modal.classList.add('hidden');
+            await simulateToolProcessing(tool);
+            return;
+        }
+
+        const result = await response.json();
+
+        if (result.jobId) {
+            setCurrentJob(result.jobId);
+            // Poll for completion. Use the same endpoint that returned the job.
+            const pollUrl = usedEndpoint === 'direct'
+                ? `/videoagent/job/${result.jobId}`
+                : `${supabaseEndpoint}?jobId=${result.jobId}`;
+            try {
+                await pollJob(pollUrl, result.steps || getToolSteps(tool.id), stepsEl, progressBar, percentEl, abortController.signal);
+            } catch (e) {
+                showToast('Polling failed. Using offline mode.', 'error');
+                modal.classList.add('hidden');
+                setCurrentJob(null);
+                await simulateToolProcessing(tool);
+                return;
+            }
+            setCurrentJob(null);
+        } else if (result.status === 'completed' || result.success) {
+            updateProgress(stepsEl, progressBar, percentEl, 100);
+            await new Promise((r) => setTimeout(r, 300));
+        } else {
+            // No jobId and no completion — treat as failure and simulate
+            showToast('Backend returned no job. Using offline mode.', 'info');
+            modal.classList.add('hidden');
+            await simulateToolProcessing(tool);
+            return;
+        }
+
+        modal.classList.add('hidden');
+        isProcessing = false;
+        updateQueueItem(tool.name, 'complete');
+        showResults(tool, result.result || result);
+        showToast(`${tool.name} completed!`, 'success');
     };
     
     const runUseCase = async (usecase) => {
@@ -418,150 +455,193 @@ export function VideoAgentPage() {
             showToast('Already processing', 'error');
             return;
         }
-        
-        // Check if Supabase is configured
-        if (!isSupabaseConfigured()) {
-            showToast('Backend not configured. Using offline mode.', 'info');
-            await simulateUseCaseProcessing(usecase);
-            return;
-        }
-        
-        // Validate video is loaded
+
         if (!videoId && !videoUrl) {
             showToast('Please load a video first', 'error');
             return;
         }
-        
+
         isProcessing = true;
         addToQueue(usecase.name, 'pending');
-        
+
         const modal = container.querySelector('#processing-modal');
         const nameEl = container.querySelector('#processing-name');
         const stepsEl = container.querySelector('#processing-steps');
         const progressBar = container.querySelector('#modal-progress-bar');
         const percentEl = container.querySelector('#processing-percent');
-        
+
         nameEl.textContent = usecase.description;
         modal.classList.remove('hidden');
-        
-        try {
-            const supabaseUrl = getSupabaseUrl();
-            const response = await fetch(`${supabaseUrl}/functions/v1/videoagent`, {
+
+        const directEndpoint = '/videoagent/process';
+        const supabaseEndpoint = isSupabaseConfigured()
+            ? `${getSupabaseUrl()}/functions/v1/videoagent`
+            : null;
+
+        const callProcess = async (endpoint) =>
+            await fetch(endpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'process-usecase',
                     usecase: usecase.id,
                     usecaseName: usecase.name,
-                    videoId: videoId,
-                    videoUrl: videoUrl
-                })
+                    videoId,
+                    videoUrl,
+                }),
             });
-            
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
+
+        let response = null;
+        let usedEndpoint = null;
+        try {
+            response = await callProcess(directEndpoint);
+            usedEndpoint = 'direct';
+            if (!response.ok) throw new Error(`Direct: ${response.status}`);
+        } catch (_) {
+            if (supabaseEndpoint) {
+                try {
+                    response = await callProcess(supabaseEndpoint);
+                    usedEndpoint = 'supabase';
+                    if (!response.ok) throw new Error(`Supabase: ${response.status}`);
+                } catch (e) {
+                    response = null;
+                }
             }
-            
-            const result = await response.json();
-            
-            if (result.jobId) {
-                await pollToolJob(result.jobId, { name: usecase.name }, stepsEl, progressBar, percentEl, abortController.signal);
-            } else if (result.status === 'completed') {
-                updateProgress(stepsEl, progressBar, percentEl, 100);
-                await new Promise(r => setTimeout(r, 500));
-            } else {
-                throw new Error('Invalid response');
-            }
-            
-            modal.classList.add('hidden');
-            isProcessing = false;
-            updateQueueItem(usecase.name, 'complete');
-            showResults({ name: usecase.name, icon: usecase.icon });
-            showToast(`${usecase.name} completed!`, 'success');
-            
-        } catch (error) {
-            console.error('[VideoAgent] UseCase error:', error);
-            showToast('Processing failed. Using offline mode.', 'error');
+        }
+
+        if (!response) {
+            showToast('Backends unavailable. Using offline mode.', 'info');
             modal.classList.add('hidden');
             await simulateUseCaseProcessing(usecase);
+            return;
         }
+
+        const result = await response.json();
+        if (result.jobId) {
+            setCurrentJob(result.jobId);
+            const pollUrl = usedEndpoint === 'direct'
+                ? `/videoagent/job/${result.jobId}`
+                : `${supabaseEndpoint}?jobId=${result.jobId}`;
+            try {
+                await pollJob(pollUrl, getUseCaseSteps(usecase.id), stepsEl, progressBar, percentEl, abortController.signal);
+            } catch (e) {
+                showToast('Polling failed. Using offline mode.', 'error');
+                modal.classList.add('hidden');
+                setCurrentJob(null);
+                await simulateUseCaseProcessing(usecase);
+                return;
+            }
+            setCurrentJob(null);
+        } else if (result.status === 'completed' || result.success) {
+            updateProgress(stepsEl, progressBar, percentEl, 100);
+            await new Promise((r) => setTimeout(r, 300));
+        } else {
+            showToast('Backend returned no job. Using offline mode.', 'info');
+            modal.classList.add('hidden');
+            await simulateUseCaseProcessing(usecase);
+            return;
+        }
+
+        modal.classList.add('hidden');
+        isProcessing = false;
+        updateQueueItem(usecase.name, 'complete');
+        showResults({ name: usecase.name, icon: usecase.icon }, result.result || result);
+        showToast(`${usecase.name} completed!`, 'success');
     };
-    
+
     const runFullPipeline = async () => {
         if (isProcessing) {
             showToast('Already processing', 'error');
             return;
         }
-        
-        // Check if Supabase is configured
-        if (!isSupabaseConfigured()) {
-            showToast('Backend not configured. Using offline mode.', 'info');
-            await simulateFullPipeline();
-            return;
-        }
-        
-        // Validate video is loaded
+
         if (!videoId && !videoUrl) {
             showToast('Please load a video first', 'error');
             return;
         }
-        
+
         isProcessing = true;
-        
+
         const modal = container.querySelector('#processing-modal');
         const nameEl = container.querySelector('#processing-name');
         const stepsEl = container.querySelector('#processing-steps');
         const progressBar = container.querySelector('#modal-progress-bar');
         const percentEl = container.querySelector('#processing-percent');
-        
+
         nameEl.textContent = 'Running full AI processing pipeline';
         modal.classList.remove('hidden');
-        
-        try {
-            const supabaseUrl = getSupabaseUrl();
-            const response = await fetch(`${supabaseUrl}/functions/v1/videoagent`, {
+
+        const directEndpoint = '/videoagent/process';
+        const supabaseEndpoint = isSupabaseConfigured()
+            ? `${getSupabaseUrl()}/functions/v1/videoagent`
+            : null;
+
+        const callProcess = async (endpoint) =>
+            await fetch(endpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'full-pipeline',
-                    videoId: videoId,
-                    videoUrl: videoUrl,
-                    settings: {
-                        quality: '1080p',
-                        format: 'MP4'
-                    }
-                })
+                    videoId,
+                    videoUrl,
+                    settings: { quality: '1080p', format: 'MP4' },
+                }),
             });
-            
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
+
+        let response = null;
+        let usedEndpoint = null;
+        try {
+            response = await callProcess(directEndpoint);
+            usedEndpoint = 'direct';
+            if (!response.ok) throw new Error(`Direct: ${response.status}`);
+        } catch (_) {
+            if (supabaseEndpoint) {
+                try {
+                    response = await callProcess(supabaseEndpoint);
+                    usedEndpoint = 'supabase';
+                    if (!response.ok) throw new Error(`Supabase: ${response.status}`);
+                } catch (e) {
+                    response = null;
+                }
             }
-            
-            const result = await response.json();
-            
-            if (result.jobId) {
-                await pollPipelineJob(result.jobId, stepsEl, progressBar, percentEl, abortController.signal);
-            } else if (result.status === 'completed') {
-                updateProgress(stepsEl, progressBar, percentEl, 100);
-                await new Promise(r => setTimeout(r, 500));
-            } else {
-                throw new Error('Invalid response');
-            }
-            
-            modal.classList.add('hidden');
-            isProcessing = false;
-            showToast('Full pipeline completed!', 'success');
-            
-        } catch (error) {
-            console.error('[VideoAgent] Pipeline error:', error);
-            showToast('Pipeline failed. Using offline mode.', 'error');
+        }
+
+        if (!response) {
+            showToast('Backends unavailable. Using offline mode.', 'info');
             modal.classList.add('hidden');
             await simulateFullPipeline();
+            return;
         }
+
+        const result = await response.json();
+        if (result.jobId) {
+            setCurrentJob(result.jobId);
+            const pollUrl = usedEndpoint === 'direct'
+                ? `/videoagent/job/${result.jobId}`
+                : `${supabaseEndpoint}?jobId=${result.jobId}`;
+            try {
+                await pollJob(pollUrl, getUseCaseSteps('overview'), stepsEl, progressBar, percentEl, abortController.signal);
+            } catch (e) {
+                showToast('Polling failed. Using offline mode.', 'error');
+                modal.classList.add('hidden');
+                setCurrentJob(null);
+                await simulateFullPipeline();
+                return;
+            }
+            setCurrentJob(null);
+        } else if (result.status === 'completed' || result.success) {
+            updateProgress(stepsEl, progressBar, percentEl, 100);
+            await new Promise((r) => setTimeout(r, 300));
+        } else {
+            showToast('Backend returned no job. Using offline mode.', 'info');
+            modal.classList.add('hidden');
+            await simulateFullPipeline();
+            return;
+        }
+
+        modal.classList.add('hidden');
+        isProcessing = false;
+        showToast('Full pipeline completed!', 'success');
     };
     
     const addToQueue = (name, status) => {
@@ -599,23 +679,36 @@ export function VideoAgentPage() {
         `).join('');
     };
     
-    const showResults = (tool) => {
+    const showResults = (tool, payload) => {
         const resultsPanel = container.querySelector('#results-panel');
         const resultsContent = container.querySelector('#results-content');
-        
+
         resultsPanel.classList.remove('hidden');
-        
+
+        // Build a short summary from the backend payload so users can see
+        // what was actually produced (e.g. transcription text, scene count).
+        let summary = 'Completed successfully';
+        if (payload && typeof payload === 'object') {
+            if (payload.transcription) summary = `Transcript: "${String(payload.transcription).slice(0, 80)}…"`;
+            else if (payload.summary) summary = String(payload.summary).slice(0, 120);
+            else if (Array.isArray(payload.scenes)) summary = `${payload.scenes.length} scenes detected`;
+            else if (Array.isArray(payload.highlights)) summary = `${payload.highlights.length} highlights found`;
+            else if (Array.isArray(payload.segments)) summary = `${payload.segments.length} subtitle segments`;
+            else if (payload.audioBase64) summary = `Voice generated (${payload.mimeType || 'audio'}, ${Math.round((payload.audioBase64.length * 3) / 4 / 1024)} KB)`;
+            else if (payload.note) summary = String(payload.note);
+        }
+
         const resultEl = document.createElement('div');
         resultEl.className = 'p-3 bg-white/5 rounded-xl flex items-center gap-3';
         resultEl.innerHTML = `
             <div class="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
                 <span class="text-lg">${tool.icon || '✓'}</span>
             </div>
-            <div class="flex-1">
-                <div class="text-sm text-white font-bold">${tool.name}</div>
-                <div class="text-xs text-secondary">Completed successfully</div>
+            <div class="flex-1 min-w-0">
+                <div class="text-sm text-white font-bold truncate">${tool.name}</div>
+                <div class="text-xs text-secondary truncate">${summary}</div>
             </div>
-            <button class="p-2 hover:bg-white/10 rounded-lg">
+            <button class="p-2 hover:bg-white/10 rounded-lg flex-shrink-0" title="Download result">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="text-secondary">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                     <polyline points="7 10 12 15 17 10"/>
@@ -623,7 +716,25 @@ export function VideoAgentPage() {
                 </svg>
             </button>
         `;
-        
+
+        // Wire the download button when the payload contains a downloadable
+        // artifact (audioBase64 from TTS, or transcription text).
+        if (payload && typeof payload === 'object' && payload.audioBase64) {
+            const btn = resultEl.querySelector('button');
+            btn.onclick = () => {
+                try {
+                    const bytes = Uint8Array.from(atob(payload.audioBase64), (c) => c.charCodeAt(0));
+                    const blob = new Blob([bytes], { type: payload.mimeType || 'audio/mpeg' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${tool.id || 'audio'}.${(payload.mimeType || 'audio/mpeg').split('/')[1] || 'mp3'}`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } catch (_) {}
+            };
+        }
+
         resultsContent.insertBefore(resultEl, resultsContent.firstChild);
     };
     
@@ -674,82 +785,45 @@ export function VideoAgentPage() {
         };
     }
     
-    // Poll for tool/job completion
-    async function pollToolJob(jobId, tool, stepsEl, progressBar, percentEl, abortSignal) {
-        const supabaseUrl = getSupabaseUrl();
-        const maxAttempts = 60;
-        const steps = getToolSteps(tool.id || '');
-
+    // Generic job poller (used by both tool and pipeline flows).
+    let currentJobId = null;
+    async function pollJob(pollUrl, steps, stepsEl, progressBar, percentEl, abortSignal) {
+        const maxAttempts = 90;
+        const stepList = steps || ['Processing...'];
         for (let i = 0; i < maxAttempts; i++) {
             if (abortSignal?.aborted) return;
             try {
-                if (abortSignal?.aborted) return;
-                const response = await fetch(`${supabaseUrl}/functions/v1/videoagent?jobId=${jobId}`);
+                const response = await fetch(pollUrl);
+                if (!response.ok) throw new Error(`Poll: ${response.status}`);
                 const result = await response.json();
-                
-                if (result.status === 'completed') {
+                if (result.status === 'completed' || result.status === 'cancelled') {
                     updateProgress(stepsEl, progressBar, percentEl, 100);
+                    if (result.result) {
+                        try {
+                            updateStepsDisplay(stepsEl, stepList, stepList.length - 1);
+                        } catch (_) {}
+                    }
                     return;
                 } else if (result.status === 'failed') {
                     throw new Error(result.error || 'Job failed');
                 } else if (result.currentStep) {
-                    const stepIndex = Math.min(result.currentStep - 1, steps.length - 1);
-                    updateStepsDisplay(stepsEl, steps, stepIndex);
-                    const percent = Math.round(((stepIndex + 1) / steps.length) * 100);
+                    const stepIndex = Math.min(result.currentStep - 1, stepList.length - 1);
+                    updateStepsDisplay(stepsEl, stepList, stepIndex);
+                    const percent = Math.round(((stepIndex + 1) / stepList.length) * 100);
                     updateProgress(stepsEl, progressBar, percentEl, percent);
                 }
-                
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise((resolve) => setTimeout(resolve, 1500));
             } catch (error) {
-                console.error('[VideoAgent] Poll error:', error);
-                throw error;
+                if (i === maxAttempts - 1) throw error;
+                await new Promise((resolve) => setTimeout(resolve, 1500));
             }
         }
-        
         throw new Error('Job timed out');
     }
-    
-    // Poll for pipeline completion
-    async function pollPipelineJob(jobId, stepsEl, progressBar, percentEl, abortSignal) {
-        const supabaseUrl = getSupabaseUrl();
-        const maxAttempts = 120;
-        const pipelineSteps = [
-            { name: 'Scene Detection', steps: ['Analyzing frames...', 'Identifying boundaries...', 'Labeling scenes...'] },
-            { name: 'Clip Segmentation', steps: ['Splitting video...', 'Creating segments...', 'Optimizing cuts...'] },
-            { name: 'Highlight Detection', steps: ['Finding key moments...', 'Scoring highlights...', 'Ranking clips...'] },
-            { name: 'Transcription', steps: ['Audio extraction...', 'Whisper transcription...', 'Text formatting...'] },
-            { name: 'Color Correction', steps: ['Analyzing colors...', 'Balancing tones...', 'Applying LUTs...'] },
-            { name: 'Final Export', steps: ['Merging outputs...', 'Encoding video...', 'Finalizing...'] }
-        ];
-        
-        let totalSteps = pipelineSteps.reduce((sum, j) => sum + j.steps.length, 0);
-        
-        for (let i = 0; i < maxAttempts; i++) {
-            if (abortSignal?.aborted) return;
-            try {
-                if (abortSignal?.aborted) return;
-                const response = await fetch(`${supabaseUrl}/functions/v1/videoagent?jobId=${jobId}`);
-                const result = await response.json();
-                
-                if (result.status === 'completed') {
-                    updateProgress(stepsEl, progressBar, percentEl, 100);
-                    return;
-                } else if (result.status === 'failed') {
-                    throw new Error(result.error || 'Job failed');
-                } else if (result.currentStep) {
-                    const stepIndex = Math.min(result.currentStep - 1, totalSteps - 1);
-                    const percent = Math.round(((stepIndex + 1) / totalSteps) * 100);
-                    updateProgress(stepsEl, progressBar, percentEl, percent);
-                }
-                
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            } catch (error) {
-                console.error('[VideoAgent] Pipeline poll error:', error);
-                throw error;
-            }
-        }
-        
-        throw new Error('Pipeline job timed out');
+
+    // Track the active jobId so the cancel button can call /cancel.
+    function setCurrentJob(jobId) {
+        currentJobId = jobId;
     }
     
     // Update progress bar and percentage
