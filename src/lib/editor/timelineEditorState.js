@@ -50,6 +50,55 @@ export const createTimelineState = () => {
     return false;
   };
 
+  // Add legacy addTrack method
+  state.addTrack = function(type, name) {
+    const track = {
+      id: `${(type || 'track').toLowerCase()}-${Date.now()}`,
+      type: type || 'video',
+      name: name || `${type || 'Track'} Track`,
+      muted: false,
+      solo: false,
+      locked: false,
+      clips: []
+    };
+    state.project.tracks.push(track);
+    return track;
+  };
+
+  // Add legacy addClip method
+  state.addClip = function(trackId, clipData) {
+    const clip = {
+      id: clipData.id || `clip-${Date.now()}`,
+      assetId: clipData.assetId || null,
+      type: clipData.type || 'video',
+      start: clipData.start || 0,
+      end: clipData.end || (clipData.start || 0) + (clipData.duration || 5),
+      sourceStart: clipData.sourceStart || 0,
+      sourceEnd: clipData.sourceEnd || clipData.duration || 5,
+      lane: clipData.lane || 0,
+      trimIn: clipData.trimIn ?? 0,
+      trimOut: clipData.trimOut ?? (clipData.duration || 5),
+      volume: clipData.volume ?? 1,
+      playbackRate: clipData.playbackRate ?? 1,
+      effects: clipData.effects || [],
+      opacity: clipData.opacity ?? 1,
+      transform: clipData.transform || { x: 0, y: 0, scale: 1, rotation: 0 },
+      name: clipData.name || 'Untitled Clip',
+      ...(clipData.text && { text: clipData.text }),
+      ...(clipData.style && { style: clipData.style })
+    };
+
+    const tracks = state.project.tracks.map(track => {
+      if (track.id === trackId) {
+        return { ...track, items: [...track.items, clip] };
+      }
+      return track;
+    });
+
+    state.project = { ...state.project, tracks };
+    return clip.id;
+  };
+
   // Add multi-camera methods
   state.addCameraAngle = function(name, color = '#3b82f6') {
     const angle = {

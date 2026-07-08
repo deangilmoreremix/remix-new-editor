@@ -13,12 +13,13 @@ const NICHE_THUMBNAILS = {
   'Dental Office Alt': '/thumbnails/templates/dental_patient_story.webp.png',
   'Chiropractic & Wellness': '/thumbnails/templates/wellness_chiropractic_trailer.webp.png',
   'Chiropractic & Wellness Alt': '/thumbnails/templates/chiropractic_clinic_film.webp.png',
-  'Legal & Attorney': '/thumbnails/templates/corporate_event_film.webp.png',
+  'Legal & Attorney': '/thumbnails/templates/authority_case_film.webp.png',
+  'Legal & Attorney Alt': '/thumbnails/templates/team_of_experts_promo.webp.png',
   'Automotive & Car': '/thumbnails/templates/automotive_cinematic.webp.png',
   'Fashion & Style': '/thumbnails/templates/editorial_fashion_film.webp.png',
   'Fashion & Style Alt': '/thumbnails/templates/fashion_lifestyle.webp.png',
-  'Events & Celebrations': '/thumbnails/templates/corporate_event_film.webp.png',
-  'Events & Celebrations Alt': '/thumbnails/templates/event_recap_film.webp.png',
+  'Events & Celebrations': '/thumbnails/templates/event_recap_film.webp.png',
+  'Events & Celebrations Alt': '/thumbnails/templates/corporate_event_film.webp.png',
   'Luxury & Premium': '/thumbnails/templates/luxury_brand.webp.png',
   'Luxury & Premium Alt': '/thumbnails/templates/luxury_brand_style.webp.png',
 };
@@ -77,7 +78,7 @@ const NICHE_ROTATION = {
   ],
   'Legal & Attorney': [
     'Legal & Attorney',
-    'Events & Celebrations',
+    'Legal & Attorney Alt',
   ],
   'Automotive & Car': [
     'Automotive & Car',
@@ -241,11 +242,48 @@ export function getTemplateThumbnailCandidates(template) {
     if (catPath && !candidates.includes(catPath)) candidates.push(catPath);
   }
 
-  // 5) Generic placeholder
+  // 5) User-custom thumbnail (fetched from Supabase, cached in sessionStorage)
+  const custom = loadCustomThumbnailFromCache(id);
+  if (custom && !candidates.includes(custom)) candidates.unshift(custom);
+
+  // 6) Generic placeholder
   const placeholder = PAGE_THUMBNAILS.placeholder || '/thumbnails/pages/placeholder.webp';
   if (!candidates.includes(placeholder)) candidates.push(placeholder);
 
   return candidates;
+}
+
+const CUSTOM_THUMB_CACHE_KEY = (templateId) => `thumb:custom:${templateId}`;
+
+export function loadCustomThumbnailFromCache(templateId) {
+  try {
+    const raw = sessionStorage.getItem(CUSTOM_THUMB_CACHE_KEY(templateId));
+    if (!raw) return null;
+    const entry = JSON.parse(raw);
+    if (entry && entry.fetchedAt && Date.now() - entry.fetchedAt > 7 * 24 * 60 * 60 * 1000) {
+      sessionStorage.removeItem(CUSTOM_THUMB_CACHE_KEY(templateId));
+      return null;
+    }
+    return entry?.path || null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveCustomThumbnailToCache(templateId, path) {
+  try {
+    sessionStorage.setItem(CUSTOM_THUMB_CACHE_KEY(templateId), JSON.stringify({ path, fetchedAt: Date.now() }));
+  } catch {
+    // storage may be unavailable in some contexts
+  }
+}
+
+export function clearCustomThumbnailCache(templateId) {
+  try {
+    sessionStorage.removeItem(CUSTOM_THUMB_CACHE_KEY(templateId));
+  } catch {
+    // noop
+  }
 }
 
 export function getTemplateThumbnailWithFallback(templateId) {

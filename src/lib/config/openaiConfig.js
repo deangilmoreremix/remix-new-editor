@@ -15,7 +15,14 @@ class OpenAIConfig {
         'gpt-image-1.5',
         'gpt-image-1',
         'gpt-image-1-mini'
-      ]
+      ],
+      // Thumbnail overrides used by ThumbnailService / ai-thumbnail-generator
+      thumbnailModel: 'gpt-image-2',
+      thumbnailDefaultSize: '1792x1024',
+      thumbnailQuality: 'hd',
+      thumbnailStyle: 'vivid',
+      thumbnailFormat: 'webp',
+      thumbnailCompression: 80
     };
 
     this.currentImageModel = this.defaultConfig.imageModel;
@@ -158,6 +165,21 @@ class OpenAIConfig {
     }
 
     return true;
+  }
+
+  /**
+   * Thumbnail-specific output settings
+   * @returns {object} Thumbnail default settings
+   */
+  getThumbnailOutputSettings() {
+    return {
+      model: this.defaultConfig.thumbnailModel,
+      size: this.defaultConfig.thumbnailDefaultSize,
+      quality: this.defaultConfig.thumbnailQuality,
+      style: this.defaultConfig.thumbnailStyle,
+      format: this.defaultConfig.thumbnailFormat,
+      compression: this.defaultConfig.thumbnailCompression,
+    };
   }
 }
 

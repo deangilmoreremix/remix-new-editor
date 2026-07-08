@@ -1,5 +1,5 @@
 import { getTemplateById } from '../lib/templates.js';
-import { getTemplateThumbnailCandidates } from '../lib/thumbnails.js';
+import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
 import { getNicheTerms } from '../lib/templateEngine.js';
@@ -8,6 +8,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
 import { sanitizeUrl } from '../lib/security.js';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 
 export function TemplateStudio(templateId) {
   const template = getTemplateById(templateId);
@@ -149,9 +150,10 @@ export function TemplateStudio(templateId) {
 
   // Thumbnail
   const thumbnailEl = document.createElement('div');
-  thumbnailEl.className = 'mb-6 h-24 w-24 rounded-[28px] border border-emerald-400/20 shadow-[0_0_40px_rgba(16,185,129,0.10)] overflow-hidden flex items-center justify-center';
+  thumbnailEl.className = 'mb-4 h-24 w-24 rounded-[28px] border border-emerald-400/20 shadow-[0_0_40px_rgba(16,185,129,0.10)] overflow-hidden flex items-center justify-center';
   
   const img = document.createElement('img');
+  img.id = 'template-hero-thumb';
   img.alt = template.name;
   img.className = 'w-full h-full object-cover';
   // Try per-template paths first, then industry fallbacks, then category
@@ -170,6 +172,27 @@ export function TemplateStudio(templateId) {
   };
   thumbnailEl.appendChild(img);
   heroSection.appendChild(thumbnailEl);
+
+  // Thumbnail action button
+  const thumbAction = document.createElement('button');
+  thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-zinc-400 hover:text-white hover:border-emerald-400/30 transition';
+  thumbAction.textContent = '🖼 Thumbnail';
+  thumbAction.onclick = () => {
+    const modal = new TemplateThumbnailModal({
+      appTheme: 'template-studio',
+      template,
+      onApply: ({ imageUrl }) => {
+        img.src = imageUrl + '?v=' + Date.now();
+        saveCustomThumbnailToCache(template.id, imageUrl);
+      },
+      onClear: () => {
+        clearCustomThumbnailCache(template.id);
+      },
+    });
+    mountThumbnailModal(modal);
+    modal.open();
+  };
+  heroSection.appendChild(thumbAction);
 
   // Title
   const title = document.createElement('h1');
