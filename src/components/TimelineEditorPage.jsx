@@ -14,7 +14,7 @@ import { TransitionEditor } from '../lib/editor/transitionEditor.js';
 import { TimelineTransitions } from '../lib/editor/timelineTransitions.js';
 import { SceneDetector } from './timeline/SceneDetector.js';
 import { CameraEffects } from './timeline/CameraEffects.js';
-import { AIChatPanel } from './timeline/AIChatPanel.js';
+import AIChatPanel from './timeline/AIChatPanel.js';
 import TIMELINE_DESIGN_SYSTEM, { enforceDesignSystem } from '../lib/designSystemEnforcer.js';
 import { createVideoPreview } from '../lib/videoPlayer.js';
 // Import rendiv animation primitives
