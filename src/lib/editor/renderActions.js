@@ -154,7 +154,7 @@ export async function copyToClipboard(text) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     try {
       await navigator.clipboard.writeText(text);
-      return;
+      return true;
     } catch {
       // fallback
     }
@@ -166,7 +166,7 @@ export async function copyToClipboard(text) {
   textarea.style.opacity = '0';
   document.body.appendChild(textarea);
   textarea.select();
-  document.execCommand('copy');
+  return Boolean(document.execCommand('copy'));
   document.body.removeChild(textarea);
 }
 

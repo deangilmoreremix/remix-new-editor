@@ -35,6 +35,7 @@ describe('renderActions', () => {
   });
 
   afterEach(() => {
+    localStorageMock.clear();
     global.localStorage = originalLocalStorage;
     vi.restoreAllMocks();
   });

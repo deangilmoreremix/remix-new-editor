@@ -96,14 +96,13 @@ export async function navigate(page, params = {}) {
   isNavigating = true;
   currentPage = page;
 
-  currentPageEl?.cleanup?.();
-  currentPageEl = null;
-
   // Update URL with params so components can read them via URLSearchParams
   const searchParams = new URLSearchParams(params).toString();
   const newUrl = searchParams ? `/?${searchParams}#/${page}` : `/#/${page}`;
   history.pushState({}, '', newUrl);
 
+  currentPageEl?.cleanup?.();
+  currentPageEl = null;
   contentArea.innerHTML = '';
 
   const loading = document.createElement('div');
@@ -136,6 +135,8 @@ export async function navigate(page, params = {}) {
   } catch (err) {
     console.error(`[Router] Failed to load page: ${page}`, err);
     contentArea.innerHTML = '';
+    currentPageEl?.cleanup?.();
+    currentPageEl = null;
     const errEl = document.createElement('div');
     errEl.className = 'w-full h-full flex items-center justify-center text-red-400 text-sm';
     errEl.textContent = `Failed to load ${page}: ${err.message}`;
