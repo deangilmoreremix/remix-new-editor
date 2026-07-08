@@ -29,6 +29,7 @@ describe('renderQueueStore', () => {
   });
 
   afterEach(() => {
+    localStorageMock.clear();
     global.localStorage = originalLocalStorage;
     vi.restoreAllMocks();
   });

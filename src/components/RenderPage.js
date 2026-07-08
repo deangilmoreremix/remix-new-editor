@@ -2,7 +2,7 @@ import { navigate } from '../lib/router.js';
 import { showToast, createLoadingSpinner } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { escapeHtml } from '../lib/security.js';
-import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTemplate, duplicateTemplate, listTemplates, sendToStoryboard } from '../lib/editor/renderActions.js';
+import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTemplate, duplicateTemplate, listTemplates, listDrafts, sendToStoryboard } from '../lib/editor/renderActions.js';
 import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue } from '../lib/editor/renderQueueStore.js';
 
 // Repository endpoints
@@ -118,9 +118,9 @@ export function RenderPage() {
       const { assetStore } = require('../lib/assets/assetStore.js');
       const asset = assetStore.findById(assetId);
       if (asset) {
-        resolve({ url: asset.url || asset.src, id: asset.id, title: asset.title || videoTitle });
+        return resolve({ url: asset.url || asset.src, id: asset.id, title: asset.title || videoTitle });
       } else {
-        resolve({ url: videoUrl, id: videoId, title: videoTitle });
+        return resolve({ url: videoUrl, id: videoId, title: videoTitle });
       }
     });
   }
@@ -203,7 +203,9 @@ export function RenderPage() {
       return;
     }
     savedList.innerHTML = '';
-    const savedItems = ['Luxury Brand Grade', 'Film Trailer Punch', 'Emotional Story Tone'];
+    const drafts = listDrafts();
+    const templates = listTemplates();
+    const savedItems = [...drafts.map(d => d.label), ...templates.map(t => t.label)];
     savedItems.forEach(item => {
       const row = document.createElement('div');
       row.className = 'rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm text-white/75';
@@ -315,7 +317,7 @@ export function RenderPage() {
   const previewBadge = document.createElement('div');
   previewBadge.id = 'previewBadge';
   previewBadge.className = 'absolute left-4 top-4 rounded-full border border-emerald-400/18 bg-black/45 px-3 py-1 text-xs text-emerald-100/80 shadow-[0_0_24px_rgba(16,185,129,0.14)] backdrop-blur';
-  previewBadge.textContent = `${selectedPreset}`;
+  previewBadge.textContent = `${selectedPreset} · Ready`;
   previewArea.appendChild(previewBadge);
 
   const actionBadgeEl = document.createElement('div');
@@ -462,7 +464,9 @@ export function RenderPage() {
     const panel = document.createElement('div');
     panel.id = 'savedPanel';
     panel.className = 'space-y-3 overflow-y-auto pr-1 max-h-[400px]';
-    const savedItems = ['Luxury Brand Grade', 'Film Trailer Punch', 'Emotional Story Tone'];
+    const drafts = listDrafts();
+    const templates = listTemplates();
+    const savedItems = [...drafts.map(d => d.label), ...templates.map(t => t.label)];
     savedItems.forEach(item => {
       const row = document.createElement('div');
       row.className = 'rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm text-white/75';
@@ -626,17 +630,22 @@ export function RenderPage() {
     activeAction = action;
     const spinner = container.querySelector('#progressSpinner');
     const progressStatus = container.querySelector('#progressStatus');
+    const previewBadge = container.querySelector('#previewBadge');
     const handler = ACTION_HANDLERS[action];
     if (handler) {
+      if (previewBadge) previewBadge.textContent = `${selectedPreset} · ${action}`;
       if (spinner) spinner.hidden = false;
-      if (progressStatus) progressStatus.textContent = `${action} — processing`;
       try { await handler(); }
       catch (err) { console.error(`[RenderPage] Action "${action}" failed:`, err); showToast(`${action} failed: ${err.message}`); }
-      finally { if (spinner) spinner.hidden = true; }
+      finally {
+        if (spinner) spinner.hidden = true;
+        if (previewBadge) previewBadge.textContent = `${selectedPreset} · Ready`;
+      }
       return;
     }
     const phase = PHASE_MAP[action];
     if (phase) {
+      if (previewBadge) previewBadge.textContent = `${selectedPreset} · ${action}`;
       const phaseLabel = phase === 2 ? 'Phase 2' : phase === 3 ? 'Phase 3' : 'Phase 4';
       if (progressStatus) progressStatus.textContent = `${action} — ${phaseLabel}: coming soon`;
       showToast(`${action} — ${phaseLabel}: coming soon`);
@@ -653,7 +662,7 @@ export function RenderPage() {
     const presetDetailsEl = container.querySelector('#presetDetails');
 
     if (presetLabel) presetLabel.textContent = preset;
-    if (previewBadge) previewBadge.textContent = preset;
+    if (previewBadge) previewBadge.textContent = `${preset} · Ready`;
 
     // Update preset buttons
     const presetsContainer = container.querySelector('#presetsContainer');
