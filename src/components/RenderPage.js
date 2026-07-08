@@ -92,6 +92,14 @@ export function RenderPage() {
   const container = document.createElement('div');
   container.className = 'min-h-screen w-full bg-[#0a0a0b] p-4 text-white md:p-8 overflow-y-auto custom-scrollbar';
 
+  const style = document.createElement('style');
+  style.textContent = `
+    .render-page button:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(255,255,255,0.4), 0 0 0 4px rgba(0,0,0,0.6); }
+    @media (prefers-reduced-motion: reduce) { .render-page .animate-spin, .render-page .animate-pulse { animation: none !important; } }
+  `;
+  container.appendChild(style);
+  container.classList.add('render-page');
+
   const urlParams = new URLSearchParams(window.location.search);
   const videoId = urlParams.get('videoId') || 'vid_preview';
   const videoUrl = urlParams.get('videoUrl') || '';
@@ -125,7 +133,7 @@ export function RenderPage() {
     currentVideoUrl = resolvedVideoUrl;
     if (headerDiv) {
       const titleEl = headerDiv.querySelector('.text-xl');
-      const idEl = headerDiv.querySelector('.text-white\\/45');
+      const idEl = headerDiv.querySelector('.text-white\\/70');
       if (titleEl) titleEl.textContent = resolvedTitle;
       if (idEl) idEl.textContent = `ID: ${resolvedVideoId}`;
     }
@@ -214,7 +222,7 @@ export function RenderPage() {
     heroOverlay.innerHTML = `
       <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p class="mb-3 text-xs uppercase tracking-[0.28em] text-white/45">AI Film Studio</p>
+          <p class="mb-3 text-xs uppercase tracking-[0.28em] text-white/70">AI Film Studio</p>
           <h1 class="text-3xl font-black tracking-tight md:text-5xl text-white">Video Render</h1>
           <p class="mt-2 max-w-2xl text-sm text-white/60 md:text-base">Review, refine, and process your generated video with a cinematic render workflow.</p>
         </div>
@@ -233,7 +241,7 @@ export function RenderPage() {
       <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-6 md:p-8">
         <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p class="mb-3 text-xs uppercase tracking-[0.28em] text-white/45">AI Film Studio</p>
+            <p class="mb-3 text-xs uppercase tracking-[0.28em] text-white/70">AI Film Studio</p>
             <h1 class="text-3xl font-black tracking-tight md:text-5xl">Video Render</h1>
             <p class="mt-2 max-w-2xl text-sm text-white/60 md:text-base">Review, refine, and process your generated video with a cinematic render workflow.</p>
           </div>
@@ -261,7 +269,7 @@ export function RenderPage() {
   headerDiv.innerHTML = `
     <div>
       <div class="truncate text-xl font-black md:text-2xl">${escapeHtml(videoTitle)}</div>
-      <div class="mt-1 text-sm text-white/45">ID: ${escapeHtml(videoId)}</div>
+      <div class="mt-1 text-sm text-white/70">ID: ${escapeHtml(videoId)}</div>
     </div>
     <div class="flex w-fit items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-300">
       <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
@@ -276,9 +284,9 @@ export function RenderPage() {
   pipelineInfo.innerHTML = `
     <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div>
-        <p class="text-xs uppercase tracking-[0.22em] text-white/40">Connected Pipeline</p>
+        <p class="text-xs uppercase tracking-[0.22em] text-white/70">Connected Pipeline</p>
         <h3 class="mt-2 text-lg font-black" id="statusLabel">Exporting master video</h3>
-        <p class="mt-1 text-sm text-white/50">Rendiv</p>
+        <p class="mt-1 text-sm text-white/70">Rendiv</p>
       </div>
       <div class="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/75">
         Preset: <span class="font-semibold text-white" id="presetLabel">${escapeHtml(selectedPreset)}</span>
@@ -349,6 +357,7 @@ export function RenderPage() {
     btn.className = `rounded-2xl px-5 py-3 text-sm font-medium transition ${action === 'Export Video' ? 'bg-white text-black shadow-xl hover:opacity-90' : 'border border-white/10 bg-white/[0.04] text-zinc-100 hover:bg-white/[0.08]'}`;
     btn.textContent = action;
     btn.onclick = () => dispatchAction(action);
+    btn.setAttribute('aria-pressed', String(action === activeAction));
     actionBtnsRow.appendChild(btn);
   });
   leftSection.appendChild(actionBtnsRow);
@@ -358,8 +367,8 @@ export function RenderPage() {
   actionTilesSection.className = 'mt-6 rounded-[28px] border border-white/10 bg-white/[0.03] p-5 md:p-6';
   actionTilesSection.innerHTML = `
     <div class="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-      <div><p class="text-xs uppercase tracking-[0.24em] text-white/40">Repurpose & Enhance</p><h3 class="mt-2 text-xl font-black">Action Tiles</h3></div>
-      <p class="max-w-xl text-sm text-white/45">Compact action modules with cinematic glow and color accents.</p>
+      <div><p class="text-xs uppercase tracking-[0.24em] text-white/70">Repurpose & Enhance</p><h3 class="mt-2 text-xl font-black">Action Tiles</h3></div>
+      <p class="max-w-xl text-sm text-white/70">Compact action modules with cinematic glow and color accents.</p>
     </div>
   `;
 
@@ -389,7 +398,7 @@ export function RenderPage() {
   // Quick actions
   const quickActionsDiv = document.createElement('div');
   quickActionsDiv.className = 'mt-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4';
-  quickActionsDiv.innerHTML = '<div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><p class="text-xs uppercase tracking-[0.24em] text-white/40">Quick Utilities</p><h3 class="mt-2 text-lg font-black">Post-Render Commands</h3></div></div>';
+  quickActionsDiv.innerHTML = '<div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><p class="text-xs uppercase tracking-[0.24em] text-white/70">Quick Utilities</p><h3 class="mt-2 text-lg font-black">Post-Render Commands</h3></div></div>';
   const quickBtnsDiv = document.createElement('div');
   quickBtnsDiv.className = 'flex flex-wrap gap-2 mt-3 md:mt-0';
   QUICK_ACTIONS.forEach(action => {
@@ -405,7 +414,7 @@ export function RenderPage() {
   // Presets section
   const presetsDiv = document.createElement('div');
   presetsDiv.className = 'mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4';
-  presetsDiv.innerHTML = '<div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><p class="text-xs uppercase tracking-[0.24em] text-white/40">Look & Finish</p><h3 class="mt-2 text-lg font-black">Cinematic Presets</h3></div></div>';
+  presetsDiv.innerHTML = '<div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><p class="text-xs uppercase tracking-[0.24em] text-white/70">Look & Finish</p><h3 class="mt-2 text-lg font-black">Cinematic Presets</h3></div></div>';
   const presetsBtnsDiv = document.createElement('div');
   presetsBtnsDiv.className = 'flex flex-wrap gap-2 mt-3 md:mt-0';
   presetsBtnsDiv.id = 'presetsContainer';
@@ -414,6 +423,7 @@ export function RenderPage() {
     btn.className = `rounded-full border px-3 py-2 text-xs font-semibold transition ${preset === selectedPreset ? 'border-white bg-white text-black' : 'border-white/10 bg-white/[0.04] text-white/75 hover:bg-white/[0.08]'}`;
     btn.textContent = preset;
     btn.onclick = () => selectPreset(preset);
+    btn.setAttribute('aria-pressed', String(preset === selectedPreset));
     presetsBtnsDiv.appendChild(btn);
   });
   presetsDiv.querySelector('div').appendChild(presetsBtnsDiv);
@@ -424,9 +434,9 @@ export function RenderPage() {
   presetDetails.id = 'presetDetails';
   const activePreset = PRESET_CONFIG[selectedPreset];
   presetDetails.innerHTML = `
-    <div class="rounded-2xl border border-white/10 bg-black/20 p-3"><p class="text-[11px] uppercase tracking-[0.18em] text-white/40">Color Profile</p><p class="mt-2 text-sm font-semibold text-white">${activePreset.colorProfile}</p></div>
-    <div class="rounded-2xl border border-white/10 bg-black/20 p-3"><p class="text-[11px] uppercase tracking-[0.18em] text-white/40">Pacing</p><p class="mt-2 text-sm font-semibold text-white">${activePreset.pacing}</p></div>
-    <div class="rounded-2xl border border-white/10 bg-black/20 p-3"><p class="text-[11px] uppercase tracking-[0.18em] text-white/40">Export Profile</p><p class="mt-2 text-sm font-semibold text-white">${activePreset.exportProfile}</p></div>
+    <div class="rounded-2xl border border-white/10 bg-black/20 p-3"><p class="text-[11px] uppercase tracking-[0.18em] text-white/70">Color Profile</p><p class="mt-2 text-sm font-semibold text-white">${activePreset.colorProfile}</p></div>
+    <div class="rounded-2xl border border-white/10 bg-black/20 p-3"><p class="text-[11px] uppercase tracking-[0.18em] text-white/70">Pacing</p><p class="mt-2 text-sm font-semibold text-white">${activePreset.pacing}</p></div>
+    <div class="rounded-2xl border border-white/10 bg-black/20 p-3"><p class="text-[11px] uppercase tracking-[0.18em] text-white/70">Export Profile</p><p class="mt-2 text-sm font-semibold text-white">${activePreset.exportProfile}</p></div>
   `;
   presetsDiv.appendChild(presetDetails);
   leftSection.appendChild(presetsDiv);
@@ -471,7 +481,7 @@ export function RenderPage() {
     const queue = listRenderQueue();
     if (!queue.length) {
       const empty = document.createElement('p');
-      empty.className = 'text-sm text-white/50';
+      empty.className = 'text-sm text-white/70';
       empty.textContent = 'No jobs in queue';
       panel.appendChild(empty);
     } else {
@@ -510,8 +520,8 @@ export function RenderPage() {
   const progressSection = document.createElement('div');
   progressSection.className = 'mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4';
   progressSection.innerHTML = `
-    <div class="mb-4 flex items-center gap-3"><div class="h-5 w-5 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" id="progressSpinner" hidden></div><div class="font-black" id="progressStatus">Exporting master video</div></div>
-    <div class="mb-4"><div class="flex items-center justify-between text-xs"><span class="text-white/45">Progress</span><span class="font-bold text-emerald-200" id="progressPercent">0%</span></div>
+    <div class="mb-4 flex items-center gap-3"><div class="h-5 w-5 animate-spin rounded-full border-2 border-indigo-400 border-t-transparent" id="progressSpinner" hidden></div><div class="font-black" id="progressStatus" role="status">Exporting master video</div></div>
+    <div class="mb-4"><div class="flex items-center justify-between text-xs"><span class="text-white/70">Progress</span><span class="font-bold text-emerald-200" id="progressPercent" aria-live="polite" aria-atomic="true">0%</span></div>
     <div class="mt-2 h-2 overflow-hidden rounded-full bg-white/10"><div class="h-full rounded-full bg-[linear-gradient(90deg,#10b981,#60a5fa)]" id="progressBar" style="width: 0%"></div></div></div>
     <div class="space-y-2 text-sm" id="progressSteps">
       <div class="flex items-center gap-3 text-emerald-200"><div class="h-2.5 w-2.5 rounded-full bg-emerald-400"></div><span class="font-semibold">Scene Detection</span></div>
@@ -527,23 +537,23 @@ export function RenderPage() {
   const outputSettings = document.createElement('div');
   outputSettings.className = 'mt-6 space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4';
   outputSettings.innerHTML = `
-    <div><label class="mb-2 block text-sm text-white/50" for="outputFormat">Output Format</label><select id="outputFormat" class="w-full rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 text-sm text-zinc-200 outline-none"><option value="mp4">MP4 (H.264)</option><option value="webm">WebM (VP9)</option><option value="mov">MOV (ProRes)</option></select></div>
-    <div><label class="mb-2 block text-sm text-white/50" for="frameRate">Frame Rate</label><select id="frameRate" class="w-full rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 text-sm text-zinc-200 outline-none"><option value="24">24 FPS Cinematic</option><option value="30">30 FPS Standard</option><option value="60">60 FPS Smooth</option></select></div>
-    <div><label class="mb-2 block text-sm text-white/50" for="quality">Quality</label><input id="quality" type="range" min="1" max="100" value="82" class="w-full accent-white"><p class="mt-2 text-xs text-white/50" id="qualityLabel">High quality master export</p></div>
+    <div><label class="mb-2 block text-sm text-white/70" for="outputFormat">Output Format</label><select id="outputFormat" class="w-full rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 text-sm text-zinc-200 outline-none"><option value="mp4">MP4 (H.264)</option><option value="webm">WebM (VP9)</option><option value="mov">MOV (ProRes)</option></select></div>
+    <div><label class="mb-2 block text-sm text-white/70" for="frameRate">Frame Rate</label><select id="frameRate" class="w-full rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 text-sm text-zinc-200 outline-none"><option value="24">24 FPS Cinematic</option><option value="30">30 FPS Standard</option><option value="60">60 FPS Smooth</option></select></div>
+    <div><label class="mb-2 block text-sm text-white/70" for="quality">Quality</label><input id="quality" type="range" min="1" max="100" value="82" class="w-full accent-white"><p class="mt-2 text-xs text-white/70" id="qualityLabel">High quality master export</p></div>
   `;
   sidebar.appendChild(outputSettings);
 
   // Repo handlers
   const repoSection = document.createElement('div');
   repoSection.className = 'mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-4';
-  repoSection.innerHTML = '<p class="text-xs uppercase tracking-[0.22em] text-white/40">Repo Handlers</p><div class="mt-3 space-y-2" id="repoHandlers"></div>';
+  repoSection.innerHTML = '<p class="text-xs uppercase tracking-[0.22em] text-white/70">Repo Handlers</p><div class="mt-3 space-y-2" id="repoHandlers"></div>';
   const repoHandlers = repoSection.querySelector('#repoHandlers');
   ['open-higgsfield', 'rendiv'].forEach(repoKey => {
     const repo = REPO_ENDPOINTS[repoKey];
     repoHandlers.innerHTML += `
       <div class="rounded-xl border border-white/10 bg-black/20 p-3">
         <div class="flex items-center justify-between gap-3">
-          <div><p class="text-sm font-semibold text-white">${repo.label}</p><p class="mt-1 text-xs text-white/45">${repo.description}</p></div>
+          <div><p class="text-sm font-semibold text-white">${repo.label}</p><p class="mt-1 text-xs text-white/70">${repo.description}</p></div>
           <span class="rounded-full border border-emerald-400/25 bg-emerald-500/12 px-2.5 py-1 text-[10px] uppercase tracking-[0.18em] text-emerald-200">${repo.status}</span>
         </div>
       </div>
@@ -660,9 +670,9 @@ export function RenderPage() {
     const config = PRESET_CONFIG[preset];
     if (presetDetailsEl && config) {
       presetDetailsEl.innerHTML = `
-        <div class="rounded-2xl border border-white/10 bg-black/20 p-3"><p class="text-[11px] uppercase tracking-[0.18em] text-white/40">Color Profile</p><p class="mt-2 text-sm font-semibold text-white">${config.colorProfile}</p></div>
-        <div class="rounded-2xl border border-white/10 bg-black/20 p-3"><p class="text-[11px] uppercase tracking-[0.18em] text-white/40">Pacing</p><p class="mt-2 text-sm font-semibold text-white">${config.pacing}</p></div>
-        <div class="rounded-2xl border border-white/10 bg-black/20 p-3"><p class="text-[11px] uppercase tracking-[0.18em] text-white/40">Export Profile</p><p class="mt-2 text-sm font-semibold text-white">${config.exportProfile}</p></div>
+        <div class="rounded-2xl border border-white/10 bg-black/20 p-3"><p class="text-[11px] uppercase tracking-[0.18em] text-white/70">Color Profile</p><p class="mt-2 text-sm font-semibold text-white">${config.colorProfile}</p></div>
+        <div class="rounded-2xl border border-white/10 bg-black/20 p-3"><p class="text-[11px] uppercase tracking-[0.18em] text-white/70">Pacing</p><p class="mt-2 text-sm font-semibold text-white">${config.pacing}</p></div>
+        <div class="rounded-2xl border border-white/10 bg-black/20 p-3"><p class="text-[11px] uppercase tracking-[0.18em] text-white/70">Export Profile</p><p class="mt-2 text-sm font-semibold text-white">${config.exportProfile}</p></div>
       `;
     }
 
