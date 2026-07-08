@@ -94,7 +94,7 @@ async function persistThumbnailRow(params: {
         user_id: params.userId,
         is_custom: true,
       },
-      { onConflict: "target_type, target_id, user_id" }
+      { onConflict: "user_id, target_id" }
     );
   if (error) console.error("[ai-thumbnail-generator] persist error", error);
 }
