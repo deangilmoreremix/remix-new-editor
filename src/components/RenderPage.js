@@ -623,6 +623,7 @@ export function RenderPage() {
 
   // Action handler
   async function dispatchAction(action) {
+    activeAction = action;
     const spinner = container.querySelector('#progressSpinner');
     const progressStatus = container.querySelector('#progressStatus');
     const handler = ACTION_HANDLERS[action];
@@ -660,8 +661,10 @@ export function RenderPage() {
       presetsContainer.querySelectorAll('button').forEach(btn => {
         if (btn.textContent === preset) {
           btn.className = 'rounded-full border border-white bg-white text-black px-3 py-2 text-xs font-semibold transition';
+          btn.setAttribute('aria-pressed', 'true');
         } else {
           btn.className = 'rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-semibold text-white/75 hover:bg-white/[0.08] transition';
+          btn.setAttribute('aria-pressed', 'false');
         }
       });
     }
