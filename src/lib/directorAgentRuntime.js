@@ -4,6 +4,7 @@
 // Import MUAPI client and Supabase for backend integration
 import { MuapiClient } from './muapi.js';
 import { supabase } from './supabase.js';
+import { browserVideoProcessor } from './browserVideoProcessor.js';
 
 // Storyboard presets from the React code
 const STORYBOARD_PRESETS = [
@@ -658,6 +659,29 @@ class DirectorAgentRuntime {
           }
         } catch (e) {
           console.warn('[DirectorRuntime] Director API call failed:', e.message);
+        }
+      }
+
+      // 4) Browser fallback (FFmpeg-free, in-tab processing). Kicks in when no
+      //    remote backend answered AND we can access the video bytes locally
+      //    (blob: URL or CORS-enabled source). Produces WebM for visual ops and
+      //    JSON metadata for analysis ops — no native dependency required.
+      if (!result && browserVideoProcessor.supports(command.action)) {
+        try {
+          const browserResult = await browserVideoProcessor.processInBrowser({
+            action: command.action,
+            videoUrl: params.videoUrl,
+            file: params.file,
+            settings: params.settings || {},
+            onProgress: (p) => this.notifyProgress?.(p),
+          });
+          if (browserResult) {
+            result = browserResult;
+            source = 'browser';
+            console.log('[DirectorRuntime] Agent command executed in-browser:', agentId);
+          }
+        } catch (e) {
+          console.warn('[DirectorRuntime] Browser fallback unavailable:', e.message);
         }
       }
 

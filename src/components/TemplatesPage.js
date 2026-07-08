@@ -3,6 +3,7 @@ import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
 import { navigate } from '../lib/router.js';
 import { getTemplateThumbnail, createThumbnailImg, createHeroSection } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
+import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 
 export function TemplatesPage() {
   const container = document.createElement('div');
@@ -214,10 +215,16 @@ function createTemplateSection(category, catTemplates, isNiche) {
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
 
-    const thumbnail = getTemplateThumbnail(t.id);
+    const thumbnail = (() => {
+      try {
+        const cached = sessionStorage.getItem(`templatesThumbCache:${t.id}`);
+        if (cached) return cached;
+      } catch { /* ignore */ }
+      return getTemplateThumbnail(t.id);
+    })();
     if (thumbnail) {
       const heroWrapper = document.createElement('div');
-      heroWrapper.className = 'thumb-hero h-32';
+      heroWrapper.className = 'thumb-hero h-32 relative';
 
       const skeleton = document.createElement('div');
       skeleton.className = 'thumb-skeleton absolute inset-0';
@@ -225,6 +232,29 @@ function createTemplateSection(category, catTemplates, isNiche) {
 
       const img = createThumbnailImg(thumbnail, t.name, 'absolute inset-0', t);
       heroWrapper.appendChild(img);
+
+      // Thumbnail studio button (shown on hover)
+      const thumbsBtn = document.createElement('button');
+      thumbsBtn.className = 'absolute bottom-2 right-2 z-10 hidden group-hover:flex items-center gap-1 rounded-full border border-white/10 bg-black/80 px-2 py-1 text-[10px] font-semibold text-zinc-300 hover:text-white hover:border-emerald-400/40 transition';
+      thumbsBtn.textContent = '🖼';
+      thumbsBtn.title = 'Custom thumbnail';
+      thumbsBtn.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const modal = new TemplateThumbnailModal({
+          appTheme: 'template-studio',
+          template: t,
+          onApply: ({ imageUrl }) => {
+            // Update the cached thumbnail in the background
+            const key = `templatesThumbCache:${t.id}`;
+            try { sessionStorage.setItem(key, imageUrl); } catch { /* ignore */ }
+          },
+        });
+        mountThumbnailModal(modal);
+        modal.open();
+      };
+      heroWrapper.appendChild(thumbsBtn);
+
       card.appendChild(heroWrapper);
     }
 

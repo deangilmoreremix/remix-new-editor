@@ -4,6 +4,8 @@ import { createHeroSection } from '../lib/thumbnails.js';
 import { escapeHtml } from '../lib/security.js';
 import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTemplate, duplicateTemplate, listTemplates, listDrafts, sendToStoryboard } from '../lib/editor/renderActions.js';
 import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue } from '../lib/editor/renderQueueStore.js';
+import { createExportWorker, terminateExportWorker } from '../lib/editor/renderExportWorker.js';
+import { generateSubtitles, generateHighlights, generateVoiceover, createShorts, runAiAutoEdit } from '../lib/editor/renderAiActions.js';
 
 // Repository endpoints
 const REPO_ENDPOINTS = {
@@ -587,6 +589,44 @@ export function RenderPage() {
 
   void initAssetResolve();
 
+  async function runExportWorker(payload, statusLabel, actionName, onDone) {
+    const worker = createExportWorker();
+    const progressBar = container.querySelector('#progressBar');
+    const progressPercent = container.querySelector('#progressPercent');
+    const progressStatus = container.querySelector('#progressStatus');
+
+    try {
+      if (progressStatus) progressStatus.textContent = statusLabel;
+      if (progressBar) progressBar.style.width = '0%';
+      if (progressPercent) progressPercent.textContent = '0%';
+
+      const result = await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('Export timed out')), 60000);
+        worker.addEventListener('message', (e) => {
+          const { type, percent, url, message } = e.data || {};
+          if (type === 'progress') {
+            if (progressBar) progressBar.style.width = `${percent}%`;
+            if (progressPercent) progressPercent.textContent = `${percent}%`;
+          } else if (type === 'complete') {
+            clearTimeout(timer);
+            resolve(e.data);
+          } else if (type === 'error') {
+            clearTimeout(timer);
+            reject(new Error(message));
+          }
+        });
+        worker.postMessage(payload);
+      });
+
+      if (onDone) onDone(result);
+    } catch (err) {
+      console.error(`[RenderPage] Action "${actionName}" failed:`, err);
+      showToast(`${actionName} failed: ${err.message}`);
+    } finally {
+      terminateExportWorker(worker);
+    }
+  }
+
   const ACTION_HANDLERS = {
     'Download Frame': async () => {
       if (!videoElement || !videoElement.src) { showToast('Load a video first'); return; }
@@ -622,6 +662,289 @@ export function RenderPage() {
     },
     'Send to Storyboard': async () => {
       sendToStoryboard(resolvedVideoId, resolvedVideoUrl);
+    },
+    'Export Video': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      await runExportWorker(
+        { action: 'export-video', videoUrl: resolvedVideoUrl, settings: getOutputSettings() },
+        'Exporting master video',
+        'Export Video',
+        (result) => {
+          const a = document.createElement('a');
+          a.href = result.url;
+          a.download = `${resolvedVideoId || 'export'}_master.mp4`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+          showToast('Video exported successfully');
+        }
+      );
+    },
+    'Export Variations': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      const formats = [
+        { label: 'MP4 (H.264)', format: 'mp4', ext: 'mp4' },
+        { label: 'MP4 (H.265)', format: 'mp4', ext: 'mp4' },
+        { label: 'WebM (VP9)', format: 'webm', ext: 'webm' },
+      ];
+      for (const fmt of formats) {
+        await new Promise((resolve, reject) => {
+          runExportWorker(
+            { action: 'export-video', videoUrl: resolvedVideoUrl, settings: getOutputSettings() },
+            `Exporting ${fmt.label}`,
+            'Export Variations',
+            (result) => {
+              const a = document.createElement('a');
+              a.href = result.url;
+              a.download = `${resolvedVideoId || 'export'}_${fmt.label.toLowerCase().replace(/[() ]/g, '')}.${fmt.ext}`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+              resolve();
+            }
+          ).then(() => {}, reject);
+        });
+      }
+      showToast('All variations exported');
+    },
+    'Trailer Cut': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      await runExportWorker(
+        { action: 'trailer-cut', videoUrl: resolvedVideoUrl, timeRange: { start: 0, end: 30 } },
+        'Building trailer cut',
+        'Trailer Cut',
+        (result) => {
+          const a = document.createElement('a');
+          a.href = result.url;
+          a.download = `${resolvedVideoId || 'export'}_trailer.mp4`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+          showToast('Trailer cut exported');
+        }
+      );
+    },
+    'Social Resize': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      const aspects = ['9:16', '1:1', '4:5'];
+      for (const aspect of aspects) {
+        await new Promise((resolve, reject) => {
+          runExportWorker(
+            { action: 'social-resize', videoUrl: resolvedVideoUrl, settings: { aspectRatio: aspect } },
+            `Exporting ${aspect}`,
+            'Social Resize',
+            (result) => {
+              const a = document.createElement('a');
+              a.href = result.url;
+              a.download = `${resolvedVideoId || 'export'}_${aspect.replace(':', 'x')}.mp4`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+              resolve();
+            }
+          ).then(() => {}, reject);
+        });
+      }
+      showToast('Social variants exported');
+    },
+    'Remix Scene': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      await runExportWorker(
+        { action: 'remix-scene', videoUrl: resolvedVideoUrl, effects: { brightness: 1.1, contrast: 1.2 } },
+        'Remixing scene',
+        'Remix Scene',
+        (result) => {
+          const a = document.createElement('a');
+          a.href = result.url;
+          a.download = `${resolvedVideoId || 'export'}_remix.mp4`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+          showToast('Remix exported');
+        }
+      );
+    },
+    'Publish / Deliver': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      const formats = ['mp4', 'webm'];
+      const outputs = [];
+      for (const fmt of formats) {
+        await new Promise((resolve, reject) => {
+          runExportWorker(
+            { action: 'export-video', videoUrl: resolvedVideoUrl, settings: { ...getOutputSettings(), format: fmt } },
+            `Packaging ${fmt}`,
+            'Publish / Deliver',
+            (result) => {
+              outputs.push({ format: fmt, url: result.url });
+              resolve();
+            }
+          ).then(() => {}, reject);
+        });
+      }
+      const manifest = {
+        videoId: resolvedVideoId,
+        title: resolvedTitle,
+        exportedAt: new Date().toISOString(),
+        files: outputs.map((o) => ({ format: o.format, url: o.url })),
+      };
+      console.log('Delivery manifest:', manifest);
+      showToast('Delivery package ready');
+    },
+    // ── Phase 3 AI handlers ────────────────────────────────────────────────────
+    'Add Subtitles': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      if (spinner) spinner.hidden = false;
+      if (progressStatus) progressStatus.textContent = 'Generating subtitles...';
+      try {
+        const result = await generateSubtitles(resolvedVideoUrl);
+        if (result.error) {
+          showToast('Service unavailable — please check configuration');
+          return;
+        }
+        const downloadSrt = () => {
+          const blob = new Blob([result.srt], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${resolvedVideoId || 'subtitles'}.srt`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        };
+        const downloadVtt = () => {
+          const blob = new Blob([result.vtt], { type: 'text/vtt' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${resolvedVideoId || 'subtitles'}.vtt`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        };
+        downloadSrt();
+        showToast(`Subtitles generated — ${(result.segments || []).length} segments. SRT downloaded.`);
+        downloadVtt();
+        showToast(`VTT also available (${resolvedVideoId || 'subtitles'}.vtt)`);
+      } catch (err) {
+        console.error('[RenderPage] Add Subtitles failed:', err);
+        showToast('Service unavailable — please check configuration');
+      } finally {
+        if (spinner) spinner.hidden = true;
+      }
+    },
+    'Generate Highlights': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      if (spinner) spinner.hidden = false;
+      if (progressStatus) progressStatus.textContent = 'Detecting highlights...';
+      try {
+        const scenes = await generateHighlights(resolvedVideoUrl);
+        if (!scenes || scenes.length === 0) {
+          showToast('No highlight scenes detected');
+          return;
+        }
+        const sceneList = scenes
+          .map(
+            (s, i) =>
+              `  ${i + 1}. ${s.type || 'Scene'} @ ${s.startTime.toFixed(1)}s–${s.endTime.toFixed(1)}s (confidence: ${(s.confidence * 100).toFixed(0)}%)`
+          )
+          .join('\n');
+        console.log('[RenderPage] Highlight scenes:\n' + sceneList);
+        showToast(`${scenes.length} highlight scenes found — check console for details`);
+      } catch (err) {
+        console.error('[RenderPage] Generate Highlights failed:', err);
+        showToast('Service unavailable — please check configuration');
+      } finally {
+        if (spinner) spinner.hidden = true;
+      }
+    },
+    'Dub / Voiceover': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      const script = window.prompt('Enter voiceover script:');
+      if (!script || !script.trim()) { showToast('Script is required for voiceover'); return; }
+      if (spinner) spinner.hidden = false;
+      if (progressStatus) progressStatus.textContent = 'Generating voiceover...';
+      try {
+        const audioUrl = await generateVoiceover(script.trim());
+        if (!audioUrl) {
+          showToast('Service unavailable — please check configuration');
+          return;
+        }
+        const audio = document.createElement('audio');
+        audio.src = audioUrl;
+        audio.controls = true;
+        audio.className = 'mt-3 w-full rounded-2xl border border-white/10 bg-black/30 p-2';
+        const badge = document.querySelector('#previewBadge');
+        if (badge) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'mt-3';
+          wrapper.appendChild(document.createTextNode('🎙️ Voiceover: '));
+          wrapper.appendChild(audio);
+          badge.after(wrapper);
+        }
+        showToast('Voiceover generated — use the player below to preview');
+      } catch (err) {
+        console.error('[RenderPage] Dub / Voiceover failed:', err);
+        showToast('Service unavailable — please check configuration');
+      } finally {
+        if (spinner) spinner.hidden = true;
+      }
+    },
+    'Create Shorts': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      if (spinner) spinner.hidden = false;
+      if (progressStatus) progressStatus.textContent = 'Planning short clips...';
+      try {
+        const shortPlan = await createShorts(resolvedVideoUrl);
+        if (!shortPlan) {
+          showToast('Could not generate short — no suitable scenes found');
+          return;
+        }
+        console.log('[RenderPage] Short plan:', shortPlan);
+        const previewBadgeEl = document.querySelector('#previewBadge');
+        if (previewBadgeEl) {
+          const shortBadge = document.createElement('div');
+          shortBadge.className = 'mt-3 rounded-2xl border border-fuchsia-400/25 bg-fuchsia-500/10 px-4 py-3 text-xs text-fuchsia-100/80';
+          shortBadge.innerHTML =
+            `Short: ${shortPlan.aspectRatio} · ` +
+            `${shortPlan.startTime.toFixed(1)}s – ${shortPlan.endTime.toFixed(1)}s · ` +
+            `${shortPlan.duration.toFixed(1)}s duration · ` +
+            `${shortPlan.scenes.length} scene(s)`;
+          previewBadgeEl.after(shortBadge);
+        }
+        showToast(`Short planned: ${shortPlan.aspectRatio}, ${shortPlan.duration.toFixed(1)}s`);
+      } catch (err) {
+        console.error('[RenderPage] Create Shorts failed:', err);
+        showToast('Service unavailable — please check configuration');
+      } finally {
+        if (spinner) spinner.hidden = true;
+      }
+    },
+    'AI Auto-Edit': async () => {
+      if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
+      if (spinner) spinner.hidden = false;
+      if (progressStatus) progressStatus.textContent = 'Running AI auto-edit...';
+      try {
+        const plan = await runAiAutoEdit(resolvedVideoUrl);
+        const sceneCount = (plan.scenes || []).length;
+        const highlightCount = (plan.highlights || []).length;
+        const subtitleCount = (plan.subtitles?.segments || []).length;
+        console.log('[RenderPage] AI Auto-Edit plan:', plan);
+        showToast(
+          `AI Auto-Edit complete: ${sceneCount} scenes, ${highlightCount} highlights, ${subtitleCount} subtitles`
+        );
+      } catch (err) {
+        console.error('[RenderPage] AI Auto-Edit failed:', err);
+        showToast('Service unavailable — please check configuration');
+      } finally {
+        if (spinner) spinner.hidden = true;
+      }
     },
   };
 

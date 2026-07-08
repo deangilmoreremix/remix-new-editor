@@ -2,6 +2,7 @@ import { navigate } from '../lib/router.js';
 import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { getSupabaseUrl, isSupabaseConfigured } from '../lib/supabase.js';
+import { browserVideoProcessor } from '../lib/browserVideoProcessor.js';
 
 const AI_TOOLS = [
     { id: 'scene-detection', name: 'Scene Detection', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'blue', description: 'Identify scene boundaries', category: 'understanding' },
@@ -410,7 +411,7 @@ export function VideoAgentPage() {
             // Both backends down — fall through to simulation
             showToast('Backends unavailable. Using offline mode.', 'info');
             modal.classList.add('hidden');
-            await simulateToolProcessing(tool);
+            await fallbackOrSimulate(tool, simulateToolProcessing);
             return;
         }
 
@@ -428,7 +429,7 @@ export function VideoAgentPage() {
                 showToast('Polling failed. Using offline mode.', 'error');
                 modal.classList.add('hidden');
                 setCurrentJob(null);
-                await simulateToolProcessing(tool);
+                await fallbackOrSimulate(tool, simulateToolProcessing);
                 return;
             }
             setCurrentJob(null);
@@ -439,7 +440,7 @@ export function VideoAgentPage() {
             // No jobId and no completion — treat as failure and simulate
             showToast('Backend returned no job. Using offline mode.', 'info');
             modal.classList.add('hidden');
-            await simulateToolProcessing(tool);
+            await fallbackOrSimulate(tool, simulateToolProcessing);
             return;
         }
 
@@ -718,9 +719,19 @@ export function VideoAgentPage() {
         `;
 
         // Wire the download button when the payload contains a downloadable
-        // artifact (audioBase64 from TTS, or transcription text).
-        if (payload && typeof payload === 'object' && payload.audioBase64) {
-            const btn = resultEl.querySelector('button');
+        // artifact (audioBase64 from TTS, or a browser-produced WebM url).
+        const btn = resultEl.querySelector('button');
+        const videoUrl = payload && typeof payload === 'object' ? (payload.url || (payload.shorts && payload.shorts[0] && payload.shorts[0].url)) : null;
+        if (videoUrl) {
+            btn.onclick = () => {
+                try {
+                    const a = document.createElement('a');
+                    a.href = videoUrl;
+                    a.download = `${tool.id || 'video'}.webm`;
+                    a.click();
+                } catch (_) {}
+            };
+        } else if (payload && typeof payload === 'object' && payload.audioBase64) {
             btn.onclick = () => {
                 try {
                     const bytes = Uint8Array.from(atob(payload.audioBase64), (c) => c.charCodeAt(0));
@@ -844,6 +855,37 @@ export function VideoAgentPage() {
     }
     
     // Fallback simulation for tool processing
+    // Try to process a tool entirely in the browser (FFmpeg-free fallback).
+    // Returns true if it produced a result, false if it couldn't (e.g. the
+    // video bytes aren't locally accessible or the browser lacks MediaRecorder).
+    const tryBrowserProcessing = async (item) => {
+        if (!browserVideoProcessor.supports(item.id)) return false;
+        try {
+            const result = await browserVideoProcessor.processInBrowser({
+                action: item.id,
+                videoUrl,
+                settings: {
+                    quality: container.querySelector('select')?.value || '1080p',
+                    format: container.querySelectorAll('select')[1]?.value || 'MP4',
+                },
+            });
+            if (!result) return false;
+            getModalElements().modal.classList.add('hidden');
+            isProcessing = false;
+            updateQueueItem(item.name, 'complete');
+            showResults(item, result);
+            showToast(`${item.name} done in your browser!`, 'success');
+            return true;
+        } catch (e) {
+            console.warn('[VideoAgentPage] browser processing failed:', e.message);
+            return false;
+        }
+    };
+
+    const fallbackOrSimulate = async (item, simulateFn) => {
+        if (!(await tryBrowserProcessing(item))) await simulateFn(item);
+    };
+
     async function simulateToolProcessing(tool) {
         const m = getModalElements();
         isProcessing = true;
