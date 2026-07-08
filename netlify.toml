@@ -1,0 +1,17 @@
+# Netlify build configuration
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+  # Explicitly run `npm ci --include=optional` as part of the build command.
+  # The auto-install step that Netlify runs before this command does NOT
+  # reliably forward NPM_FLAGS to `npm ci`, and `npm ci` without
+  # --include=optional drops optional platform packages (npm/cli#4828).
+  # Running the install ourselves inside the build command guarantees the
+  # @tailwindcss/oxide native binary is present before Vite loads its config.
+  command = "npm ci --include=optional && npm run build"
+  publish = "dist"
+
+# Defense in depth: also pass --include=optional to the auto-install step.
+[build.environment]
+  NPM_FLAGS = "--include=optional"
+  NODE_VERSION = "20"
