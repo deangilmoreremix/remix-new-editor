@@ -2,6 +2,8 @@ import { navigate } from '../lib/router.js';
 import { showToast, createLoadingSpinner } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { escapeHtml } from '../lib/security.js';
+import { getVideoMetadata, downloadFrame } from '../lib/editor/renderActions.js';
+import { listRenderQueue, subscribe, removeFromRenderQueue } from '../lib/editor/renderQueueStore.js';
 
 // Repository endpoints
 const REPO_ENDPOINTS = {
@@ -82,6 +84,45 @@ export function RenderPage() {
   const videoId = urlParams.get('videoId') || 'vid_preview';
   const videoUrl = urlParams.get('videoUrl') || '';
   const videoTitle = urlParams.get('prompt') || 'Generated Video Prompt Title';
+  const rawAssetId = urlParams.get('asset');
+  let resolvedVideoUrl = videoUrl;
+  let resolvedVideoId = videoId;
+  let resolvedTitle = videoTitle;
+
+  function resolveAsset(assetId) {
+    return new Promise((resolve) => {
+      if (!assetId) {
+        resolve({ url: videoUrl, id: videoId, title: videoTitle });
+        return;
+      }
+      const { assetStore } = require('../lib/assets/assetStore.js');
+      const asset = assetStore.findById(assetId);
+      if (asset) {
+        resolve({ url: asset.url || asset.src, id: asset.id, title: asset.title || videoTitle });
+      } else {
+        resolve({ url: videoUrl, id: videoId, title: videoTitle });
+      }
+    });
+  }
+
+  async function initAssetResolve() {
+    const resolved = await resolveAsset(rawAssetId);
+    resolvedVideoUrl = resolved.url;
+    resolvedVideoId = resolved.id;
+    resolvedTitle = resolved.title;
+    currentVideoUrl = resolvedVideoUrl;
+    if (headerDiv) {
+      const titleEl = headerDiv.querySelector('.text-xl');
+      const idEl = headerDiv.querySelector('.text-white\\/45');
+      if (titleEl) titleEl.textContent = resolvedTitle;
+      if (idEl) idEl.textContent = `ID: ${resolvedVideoId}`;
+    }
+    if (videoElement && resolvedVideoUrl) {
+      videoElement.src = resolvedVideoUrl;
+      videoElement.load();
+    }
+    updateStatsFromMeta();
+  }
 
   let selectedPreset = 'Luxury Brand Grade';
   let activeAction = 'Export Video';
@@ -93,7 +134,51 @@ export function RenderPage() {
   const inner = document.createElement('div');
   inner.className = 'w-full';
 
-  // Hero section
+  let videoElement = null;
+  let currentVideoUrl = videoUrl;
+  let videoMeta = null;
+
+  function loadVideo(url) {
+    currentVideoUrl = url || videoUrl;
+  }
+
+  async function updateStatsFromMeta() {
+    const resolved = currentVideoUrl || videoUrl;
+    videoMeta = await getVideoMetadata(resolved);
+    renderStats();
+    if (videoMeta) {
+      const resolutionEl = container.querySelector('#statResolution');
+      if (resolutionEl) resolutionEl.textContent = `${videoMeta.width} × ${videoMeta.height}`;
+    }
+  }
+
+  function renderStats() {
+    const durationEl = container.querySelector('#statDuration');
+    const estimatedEl = container.querySelector('#statEstimated');
+    if (durationEl && videoMeta) {
+      const mins = Math.floor(videoMeta.duration / 60);
+      const secs = Math.floor(videoMeta.duration % 60);
+      durationEl.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    } else if (durationEl) {
+      durationEl.textContent = '--:--';
+    }
+    if (estimatedEl && videoMeta) {
+      estimatedEl.textContent = `${Math.max(1, Math.round(videoMeta.duration / 5))}:00`;
+    } else if (estimatedEl) {
+      estimatedEl.textContent = '--:--';
+    }
+  }
+
+  function getOutputSettings() {
+    const formatEl = container.querySelector('#outputFormat');
+    const frameRateEl = container.querySelector('#frameRate');
+    const qualityEl = container.querySelector('#quality');
+    return {
+      format: formatEl ? formatEl.value : 'mp4',
+      frameRate: frameRateEl ? frameRateEl.value : '24',
+      quality: qualityEl ? parseInt(qualityEl.value, 10) : 82,
+    };
+  }
   const hero = document.createElement('div');
   hero.className = 'relative mb-8 overflow-hidden rounded-[28px] md:mb-10';
   const heroBanner = createHeroSection('render', 'h-44 md:h-60');
@@ -180,27 +265,53 @@ export function RenderPage() {
   // Video preview area
   const previewArea = document.createElement('div');
   previewArea.className = 'relative flex min-h-[320px] items-center justify-center overflow-hidden rounded-2xl border border-white/5 bg-black shadow-[0_0_120px_rgba(16,185,129,0.18),0_0_90px_rgba(99,102,241,0.14)] md:min-h-[460px]';
-  previewArea.innerHTML = `
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.10),transparent_38%),radial-gradient(circle_at_50%_58%,rgba(16,185,129,0.20),transparent_34%)]"></div>
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(120,119,198,0.24),transparent_28%),radial-gradient(circle_at_50%_78%,rgba(16,185,129,0.24),transparent_26%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.09),transparent_24%)]"></div>
-    <div class="relative flex aspect-video w-[88%] max-w-3xl items-center justify-center overflow-hidden rounded-2xl border border-emerald-400/12 bg-[linear-gradient(135deg,#101114_0%,#191b20_50%,#0c0d10_100%)] shadow-[0_25px_80px_rgba(0,0,0,0.5),0_0_110px_rgba(16,185,129,0.20),0_0_70px_rgba(99,102,241,0.12)]">
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(99,102,241,0.22),transparent_26%),radial-gradient(circle_at_50%_82%,rgba(16,185,129,0.22),transparent_24%)]"></div>
-      <div class="absolute left-4 top-4 rounded-full border border-emerald-400/18 bg-black/45 px-3 py-1 text-xs text-emerald-100/80 shadow-[0_0_24px_rgba(16,185,129,0.14)] backdrop-blur" id="previewBadge">${escapeHtml(selectedPreset)} • ${progress}% • ${currentStage}</div>
-      <div class="absolute bottom-4 right-4 rounded-full border border-white/10 bg-black/45 px-3 py-1 text-xs text-white/75 backdrop-blur" id="actionBadge">Export Video</div>
-      <div class="flex h-20 w-20 items-center justify-center rounded-full border border-white/15 bg-white/10 backdrop-blur-md">
-        <div class="ml-1 h-0 w-0 border-y-[14px] border-y-transparent border-l-[22px] border-l-white"></div>
-      </div>
-    </div>
-  `;
+  const bgRadial1 = document.createElement('div');
+  bgRadial1.className = 'absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.10),transparent_38%),radial-gradient(circle_at_50%_58%,rgba(16,185,129,0.20),transparent_34%)]';
+  previewArea.appendChild(bgRadial1);
+  const bgRadial2 = document.createElement('div');
+  bgRadial2.className = 'absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(120,119,198,0.24),transparent_28%),radial-gradient(circle_at_50%_78%,rgba(16,185,129,0.24),transparent_26%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.09),transparent_24%)]';
+  previewArea.appendChild(bgRadial2);
+
+  const videoEl = document.createElement('video');
+  videoEl.id = 'previewVideo';
+  videoEl.controls = true;
+  videoEl.playsInline = true;
+  videoEl.className = 'relative aspect-video w-[88%] max-w-3xl overflow-hidden rounded-2xl border border-emerald-400/12 bg-[linear-gradient(135deg,#101114_0%,#191b20_50%,#0c0d10_100%)] shadow-[0_25px_80px_rgba(0,0,0,0.5),0_0_110px_rgba(16,185,129,0.20),0_0_70px_rgba(99,102,241,0.12)]';
+  previewArea.appendChild(videoEl);
+
+  const previewBadge = document.createElement('div');
+  previewBadge.id = 'previewBadge';
+  previewBadge.className = 'absolute left-4 top-4 rounded-full border border-emerald-400/18 bg-black/45 px-3 py-1 text-xs text-emerald-100/80 shadow-[0_0_24px_rgba(16,185,129,0.14)] backdrop-blur';
+  previewBadge.textContent = `${selectedPreset} • ${progress}% • ${currentStage}`;
+  previewArea.appendChild(previewBadge);
+
+  const actionBadgeEl = document.createElement('div');
+  actionBadgeEl.id = 'actionBadge';
+  actionBadgeEl.className = 'absolute bottom-4 right-4 rounded-full border border-white/10 bg-black/45 px-3 py-1 text-xs text-white/75 backdrop-blur';
+  actionBadgeEl.textContent = activeAction;
+  previewArea.appendChild(actionBadgeEl);
+
   leftSection.appendChild(previewArea);
+
+  videoElement = videoEl;
+  if (videoElement && resolvedVideoUrl) {
+    videoElement.src = resolvedVideoUrl;
+    videoElement.load();
+    videoElement.addEventListener('loadedmetadata', () => updateStatsFromMeta());
+    videoElement.addEventListener('error', () => {
+      showToast('Could not load video preview');
+      videoMeta = null;
+      renderStats();
+    });
+  }
 
   // Stats row
   const statsRow = document.createElement('div');
   statsRow.className = 'mt-5 grid grid-cols-1 gap-4 md:grid-cols-3';
   statsRow.innerHTML = `
-    <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4"><p class="text-xs uppercase tracking-[0.2em] text-white/40">Duration</p><p class="mt-2 text-lg font-semibold">--:--</p></div>
-    <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4"><p class="text-xs uppercase tracking-[0.2em] text-white/40">Resolution</p><p class="mt-2 text-lg font-semibold">1920 × 1080</p></div>
-    <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4"><p class="text-xs uppercase tracking-[0.2em] text-white/40">Estimated Time</p><p class="mt-2 text-lg font-semibold">--:--</p></div>
+    <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4"><p class="text-xs uppercase tracking-[0.2em] text-white/70">Duration</p><p class="mt-2 text-lg font-semibold" id="statDuration">--:--</p></div>
+    <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4"><p class="text-xs uppercase tracking-[0.2em] text-white/70">Resolution</p><p class="mt-2 text-lg font-semibold" id="statResolution">1920 × 1080</p></div>
+    <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4"><p class="text-xs uppercase tracking-[0.2em] text-white/70">Estimated Time</p><p class="mt-2 text-lg font-semibold" id="statEstimated">--:--</p></div>
   `;
   leftSection.appendChild(statsRow);
 
@@ -300,23 +411,75 @@ export function RenderPage() {
   // Right sidebar
   const sidebar = document.createElement('aside');
   sidebar.className = 'h-fit rounded-[28px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.45),0_0_55px_rgba(99,102,241,0.08)] backdrop-blur-xl md:p-6';
-  sidebar.innerHTML = '<h2 class="text-2xl font-black tracking-tight">NEXT ACTIONS</h2><p class="mb-6 mt-1 text-sm text-white/50">Choose how to proceed with your video</p>';
+  sidebar.innerHTML = `
+    <div class="mb-4 flex items-center justify-between">
+      <h2 class="text-xl font-black tracking-tight">RENDER QUEUE</h2>
+      <button id="savedToggleBtn" class="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/75 hover:bg-white/[0.08] transition">Saved</button>
+    </div>
+  `;
 
-  const actionsContainer = document.createElement('div');
-  actionsContainer.className = 'max-h-[540px] space-y-3 overflow-y-auto pr-1';
-  NEXT_ACTIONS.forEach(item => {
-    const btn = document.createElement('button');
-    btn.className = 'w-full rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.028))] p-4 text-left shadow-[0_10px_30px_rgba(0,0,0,0.22)] transition-all hover:bg-white/[0.06]';
-    btn.innerHTML = `
-      <div class="flex items-center gap-4">
-        <div class="flex h-12 w-12 items-center justify-center rounded-xl border border-indigo-400/20 bg-indigo-500/20 text-xl shadow-[0_0_22px_rgba(99,102,241,0.18)]">${item.icon}</div>
-        <div><div class="text-lg font-black leading-tight">${item.title}</div><div class="mt-1 text-sm text-white/50">${item.desc}</div></div>
-      </div>
-    `;
-    btn.onclick = () => runAction(item.title);
-    actionsContainer.appendChild(btn);
-  });
-  sidebar.appendChild(actionsContainer);
+  let queueUnsubscribe = null;
+  let showSavedItems = false;
+
+  function renderSavedItemsPanel() {
+    const existing = sidebar.querySelector('#savedPanel');
+    if (existing) existing.remove();
+    const panel = document.createElement('div');
+    panel.id = 'savedPanel';
+    panel.className = 'space-y-3 overflow-y-auto pr-1 max-h-[400px]';
+    const savedItems = ['Luxury Brand Grade', 'Film Trailer Punch', 'Emotional Story Tone'];
+    savedItems.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm text-white/75';
+      row.textContent = item;
+      panel.appendChild(row);
+    });
+    sidebar.appendChild(panel);
+  }
+
+  function renderQueue() {
+    const existing = sidebar.querySelector('#queuePanel');
+    if (existing) existing.remove();
+    const panel = document.createElement('div');
+    panel.id = 'queuePanel';
+    panel.className = 'space-y-3 overflow-y-auto pr-1 max-h-[400px]';
+    const queue = listRenderQueue();
+    if (!queue.length) {
+      const empty = document.createElement('p');
+      empty.className = 'text-sm text-white/50';
+      empty.textContent = 'No jobs in queue';
+      panel.appendChild(empty);
+    } else {
+      queue.forEach(entry => {
+        const row = document.createElement('div');
+        row.className = 'rounded-2xl border border-white/10 bg-white/[0.03] p-3';
+        row.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-sm font-semibold text-white truncate">${escapeHtml(entry.label || entry.action || 'Render job')}</p>
+            <button id="remove-queue-${entry.id}" class="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px] uppercase tracking-wider text-white/60 hover:bg-white/[0.08] transition">Remove</button>
+          </div>
+        `;
+        row.querySelector('button').addEventListener('click', () => removeFromRenderQueue(entry.id));
+        panel.appendChild(row);
+      });
+    }
+    sidebar.appendChild(panel);
+  }
+
+  function updateSidebarView() {
+    const queuePanel = sidebar.querySelector('#queuePanel');
+    const savedPanel = sidebar.querySelector('#savedPanel');
+    if (showSavedItems) {
+      if (queuePanel) queuePanel.remove();
+      renderSavedItemsPanel();
+    } else {
+      if (savedPanel) savedPanel.remove();
+      renderQueue();
+    }
+  }
+
+   queueUnsubscribe = subscribe(() => renderQueue());
+  renderQueue();
 
   // Progress section
   const progressSection = document.createElement('div');
@@ -339,9 +502,9 @@ export function RenderPage() {
   const outputSettings = document.createElement('div');
   outputSettings.className = 'mt-6 space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4';
   outputSettings.innerHTML = `
-    <div><label class="mb-2 block text-sm text-white/50">Output Format</label><div class="rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 text-sm text-zinc-200">MP4 (H.264)</div></div>
-    <div><label class="mb-2 block text-sm text-white/50">Frame Rate</label><div class="rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 text-sm text-zinc-200">24 FPS Cinematic</div></div>
-    <div><label class="mb-2 block text-sm text-white/50">Quality</label><div class="h-2 rounded-full bg-white/10"><div class="h-2 w-[82%] rounded-full bg-white"></div></div><p class="mt-2 text-xs text-white/40">High quality master export</p></div>
+    <div><label class="mb-2 block text-sm text-white/50" for="outputFormat">Output Format</label><select id="outputFormat" class="w-full rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 text-sm text-zinc-200 outline-none"><option value="mp4">MP4 (H.264)</option><option value="webm">WebM (VP9)</option><option value="mov">MOV (ProRes)</option></select></div>
+    <div><label class="mb-2 block text-sm text-white/50" for="frameRate">Frame Rate</label><select id="frameRate" class="w-full rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 text-sm text-zinc-200 outline-none"><option value="24">24 FPS Cinematic</option><option value="30">30 FPS Standard</option><option value="60">60 FPS Smooth</option></select></div>
+    <div><label class="mb-2 block text-sm text-white/50" for="quality">Quality</label><input id="quality" type="range" min="1" max="100" value="82" class="w-full accent-white"><p class="mt-2 text-xs text-white/50" id="qualityLabel">High quality master export</p></div>
   `;
   sidebar.appendChild(outputSettings);
 
@@ -366,6 +529,24 @@ export function RenderPage() {
   mainGrid.appendChild(sidebar);
   inner.appendChild(mainGrid);
   container.appendChild(inner);
+
+  container.querySelector('#quality')?.addEventListener('input', (e) => {
+    const qualityLabel = container.querySelector('#qualityLabel');
+    const val = parseInt(e.target.value, 10);
+    if (qualityLabel) {
+      qualityLabel.textContent = val >= 85 ? 'High quality master export' : val >= 60 ? 'Standard quality' : 'Low quality draft';
+    }
+  });
+
+  const savedToggleBtn = container.querySelector('#savedToggleBtn');
+  if (savedToggleBtn) {
+    savedToggleBtn.addEventListener('click', () => {
+      showSavedItems = !showSavedItems;
+      updateSidebarView();
+    });
+  }
+
+  void initAssetResolve();
 
   // Action handler
   function runAction(action) {
@@ -440,14 +621,18 @@ export function RenderPage() {
     showToast(`Preset: ${preset}`);
   }
 
-  // Bind events
-  container.querySelector('#saveDraftBtn')?.addEventListener('click', () => runAction('Save as Template'));
-  container.querySelector('#startRenderBtn')?.addEventListener('click', () => runAction('Queue Render'));
-
-  // Cleanup function to clear active intervals
+  // Cleanup function
   container.cleanup = () => {
-    activeIntervals.forEach(interval => clearInterval(interval));
-    activeIntervals = [];
+    if (videoElement) {
+      videoElement.pause();
+      videoElement.removeAttribute('src');
+      videoElement.load();
+      videoElement = null;
+    }
+    if (queueUnsubscribe) {
+      queueUnsubscribe();
+      queueUnsubscribe = null;
+    }
   };
 
   return container;
