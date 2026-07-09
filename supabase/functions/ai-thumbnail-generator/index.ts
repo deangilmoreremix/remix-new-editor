@@ -110,6 +110,30 @@ async function persistThumbnailRow(params: {
   if (error) console.error("[ai-thumbnail-generator] persist error", error);
 }
 
+async function persistJob(params: {
+  templateId: string;
+  userId: string;
+  presetKey?: string;
+  promptUsed: string;
+  imageUrl: string;
+  imagePath: string;
+  status: "draft" | "completed" | "archived";
+}): Promise<void> {
+  if (!supabase) return;
+  const row: Record<string, unknown> = {
+    template_id: params.templateId,
+    user_id: params.userId,
+    preset_key: params.presetKey || null,
+    prompt_used: params.promptUsed,
+    image_url: params.imageUrl,
+    image_path: params.imagePath,
+    status: params.status,
+  };
+  if (params.status === "completed") row.completed_at = new Date().toISOString();
+  const { error } = await supabase.from("template_thumbnail_jobs").insert(row);
+  if (error) console.error("[ai-thumbnail-generator] job persist error", error);
+}
+
 async function base64ToUint8Array(b64: string): Promise<Uint8Array> {
   const binary = atob(b64);
   const bytes = new Uint8Array(binary.length);
@@ -217,7 +241,7 @@ function validateBody(body: unknown): RequestBody {
 async function handlePrompts(body: PromptsRequest) {
   if (!openai) return jsonResponse({ error: "Server not configured" }, 500);
 
-  const brief =
+  const baseBrief =
     body.brief ||
     buildPromptBrief(body.template?.name || body.templateId, {
       visualStyle: body.template?.visualStyle,
@@ -227,7 +251,13 @@ async function handlePrompts(body: PromptsRequest) {
       outputType: body.template?.outputType || "video",
     });
 
-  const instruction = `You are a thumbnail prompt engineer for gpt-image-2.
+  const modifier = body.presetKey && PRESET_MODIFIERS[body.presetKey]
+    ? body.presetModifier || PRESET_MODIFIERS[body.presetKey]
+    : "";
+
+  const brief = modifier ? `${baseBrief}\n\nStyle direction: ${modifier}` : baseBrief;
+
+  const systemInstruction = `You are a thumbnail prompt engineer for gpt-image-2.
 Using the template context below, write 3 DISTINCT thumbnail prompts.
 Each prompt must:
 - Lead with a single hero subject/scene
@@ -235,31 +265,53 @@ Each prompt must:
 - End with quality/style tokens (e.g. "editorial, 4K, high contrast")
 - AVOID text, logos, watermarks, UI elements
 
-Return ONLY valid JSON: {"prompts": ["...", "...", "..."]}
+Return JSON matching the provided schema.`;
 
-TEMPLATE CONTEXT:
-${brief}`;
+  const userInstruction = `TEMPLATE CONTEXT:\n${brief}`;
+
+  const promptVariantsSchema = {
+    type: "object",
+    properties: {
+      prompts: {
+        type: "array",
+        minItems: 3,
+        maxItems: 3,
+        items: { type: "string", minLength: 20 },
+      },
+    },
+    required: ["prompts"],
+    additionalProperties: false,
+  };
 
   try {
     const completion = await openai.responses.create({
       model: IMG_GEN_MAINLINE_MODEL,
-      input: instruction,
+      instructions: systemInstruction,
+      input: userInstruction,
+      store: true,
+      text: {
+        format: {
+          type: "json_schema",
+          name: "thumbnail_prompt_variants",
+          strict: true,
+          schema: promptVariantsSchema,
+        },
+      },
     });
 
-    const text = (completion.output_text as string) || "";
     let parsed: { prompts?: string[] } = {};
+    const text = (completion.output_text as string) || "";
     try {
+      parsed = JSON.parse(text);
+    } catch {
       const match = text.match(/\{[\s\S]*\}/);
       parsed = match ? JSON.parse(match[0]) : { prompts: [] };
-    } catch {
-      parsed.prompts = text
-        .split("\n")
-        .map((l) => l.replace(/^["\-\s]+/, "").trim())
-        .filter((l) => l.length > 20)
-        .slice(0, 3);
     }
 
-    return jsonResponse({ variants: parsed.prompts || [] });
+    return jsonResponse({
+      variants: parsed.prompts || [],
+      response_id: completion.id,
+    });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Prompt generation failed" }, 502);
   }
