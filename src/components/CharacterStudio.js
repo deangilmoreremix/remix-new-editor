@@ -3,6 +3,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt' },
@@ -87,6 +88,16 @@ export function CharacterStudio() {
   promptInput.rows = 3;
   promptInput.placeholder = 'e.g. wearing a leather jacket, standing in a neon-lit alley, cyberpunk style';
   formCard.appendChild(promptInput);
+
+  // Personalize trigger (opens PersonalizeModal as a pop-up)
+  const personalizeControls = document.createElement('div');
+  personalizeControls.className = 'flex items-center gap-2';
+  mountPersonalizeTrigger({
+      controlsContainer: personalizeControls,
+      getTextarea: () => promptInput,
+      appId: 'character-studio',
+  });
+  formCard.appendChild(personalizeControls);
 
   const genBtn = document.createElement('button');
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
@@ -189,10 +200,11 @@ export function CharacterStudio() {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
+      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
       const params = {
         model: selectedModel.id,
         image_url: uploadedUrl,
-        prompt: promptInput.value.trim() || 'professional portrait photo',
+        prompt: replaceTokensInPrompt(promptInput.value.trim(), activeProfile) || 'professional portrait photo',
       };
       const result = await muapi.generateI2I(params);
       if (result?.url) {

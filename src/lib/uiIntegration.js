@@ -5,6 +5,76 @@
 
 import { isFeatureEnabled } from '../lib/featureFlags.js';
 import { loadAdaptedComponent } from '../lib/componentAdapter.js';
+import { GTMPromptModal } from '../components/modals/GTMPromptModal.jsx';
+
+/**
+ * Default GTM → Thumbnail bridge.
+ * Lazily imports ThumbnailService, generates a single candidate from the
+ * GTM-enhanced prompt, and dispatches a `gtm:thumbnail-generated` window event
+ * with the first candidate so any studio can display/save it.
+ * Studios can pass their own `onGenerateThumbnail` to override this default.
+ */
+async function defaultGenerateThumbnail(prompt) {
+  const mod = await import('../lib/thumbnailService.js');
+  const { ThumbnailService } = mod;
+  const service = new ThumbnailService({
+    templateId: 'gtm-generated',
+    templateName: 'GTM Generated',
+    aspectRatio: '16:9',
+  });
+  const candidates = await service.generateCandidates(prompt, 1);
+  const first = Array.isArray(candidates) && candidates.length > 0 ? candidates[0] : null;
+  if (!first) throw new Error('No thumbnail candidates returned');
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('gtm:thumbnail-generated', {
+      detail: { prompt, candidate: first }
+    }));
+  }
+  return first;
+}
+
+/**
+ * Open the GTM Prompt Enhancer modal
+ * Shared utility used by all apps (timeline-editor, image-studio, video-studio, etc.)
+ * @param {string} appTheme - The app theme identifier for color customization
+ * @param {Function} onPromptGenerated - Callback when a prompt is generated
+ * @param {Function} [onGenerateThumbnail] - Optional override for thumbnail generation;
+ *        defaults to defaultGenerateThumbnail which calls the ai-thumbnail-generator
+ *        edge function and dispatches a `gtm:thumbnail-generated` window event.
+ * @returns {GTMPromptModal|null} The modal instance or null on error
+ */
+export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGenerated = null, onGenerateThumbnail = null) {
+  try {
+    const defaultPromptCallback = (generatedPrompt) => {
+      const promptInput = document.querySelector(
+        '#generation-prompt, textarea[placeholder*="Describe"], input[placeholder*="Describe"], textarea[placeholder*="prompt"], textarea[placeholder*="Prompt"], .studio-prompt-textarea, [data-prompt-input]'
+      );
+      if (promptInput) {
+        promptInput.value = generatedPrompt;
+        promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+        promptInput.dispatchEvent(new Event('change', { bubbles: true }));
+      } else {
+        navigator.clipboard.writeText(generatedPrompt).catch(() => {});
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('gtm:prompt-generated', {
+          detail: { prompt: generatedPrompt, appTheme }
+        }));
+      }
+    };
+
+    const modal = new GTMPromptModal({
+      appTheme,
+      onPromptGenerated: onPromptGenerated || defaultPromptCallback,
+      onGenerateThumbnail: onGenerateThumbnail || defaultGenerateThumbnail,
+    });
+    modal.open();
+    return modal;
+  } catch (error) {
+    console.error('GTM Prompt Modal error:', error);
+    return null;
+  }
+}
 
 /**
  * Extend context menus for clips with enhancement options
@@ -183,7 +253,9 @@ export function extendTopActions(topActions, state, showToast) {
     gtmIcon.textContent = '🎯';
     gtmIcon.title = 'GTM Prompt Enhancer - Create conversion-optimized prompts';
     gtmIcon.setAttribute('aria-label', 'GTM Prompt Enhancer - Create conversion-optimized prompts');
-    gtmIcon.addEventListener('click', () => openGTMPromptModal(state, showToast));
+    gtmIcon.addEventListener('click', () => openGTMPromptModal('timeline-editor', (generatedPrompt) => {
+      if (showToast) showToast('GTM prompt generated! Loaded into prompt input.', 'success');
+    }));
     topActions.appendChild(gtmIcon);
   }
 }

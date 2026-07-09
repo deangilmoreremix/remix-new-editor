@@ -2,6 +2,7 @@ import { muapi } from '../lib/muapi.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up', 'POV', 'Overhead', 'Low Angle'];
 const LAYOUTS = ['Horizontal', 'Grid', 'Story'];
@@ -68,6 +69,7 @@ export function StoryboardStudio() {
   genAllBtn.className = 'px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
   genAllBtn.textContent = 'Generate All Frames';
   controlBar.appendChild(genAllBtn);
+  mountPersonalizeTrigger({ controlsContainer: controlBar, appId: 'storyboard' });
 
   // Export button
   const exportBtn = document.createElement('button');

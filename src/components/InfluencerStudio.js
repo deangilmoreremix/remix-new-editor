@@ -2,6 +2,7 @@ import { muapi } from '../lib/muapi.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 const STYLE_PRESETS = [
   'Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach',
@@ -118,6 +119,7 @@ export function InfluencerStudio() {
   promptInput.rows = 2;
   promptInput.placeholder = 'Additional instructions (optional)';
   formCard.appendChild(promptInput);
+  mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'influencer-studio' });
 
   const genBtn = document.createElement('button');
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
@@ -138,7 +140,8 @@ export function InfluencerStudio() {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
-      const prompt = `Style preset: ${selectedStyle}. ${promptInput.value.trim() || 'Fashion editorial photo, professional quality'}`;
+      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+      const prompt = `Style preset: ${selectedStyle}. ${replaceTokensInPrompt(promptInput.value.trim(), activeProfile) || 'Fashion editorial photo, professional quality'}`;
       const params = {
         model: 'higgsfield-soul-image-to-image',
         image_url: uploadedUrl,

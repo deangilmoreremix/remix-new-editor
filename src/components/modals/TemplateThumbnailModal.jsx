@@ -1,6 +1,8 @@
 import { BaseModal } from './BaseModal.jsx';
 import { supabase } from '../../lib/supabase.js';
 import { ThumbnailService } from '../../lib/thumbnailService.js';
+import { openaiConfig } from '../../lib/config/openaiConfig.js';
+import { PRESET_LIST, getPresetForTemplate, applyPresetToControls, applyPresetToBrief } from '../../lib/thumbnailPresets.js';
 
 const THUMB_STYLES = `
 .thumb-modal__section {
@@ -97,7 +99,37 @@ const THUMB_STYLES = `
 }
 .thumb-modal__error { color: #fca5a5; font-size: 12px; margin-top: 6px; }
 .thumb-modal__refine-bar { display: flex; gap: 8px; align-items: center; }
-@keyframes thumb-modal-spin { to { transform: rotate(360deg); } }
+.thumb-modal__layout { display: grid; grid-template-columns: 1fr 220px; gap: 16px; min-height: 0; }
+.thumb-modal__main { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; }
+.thumb-modal__sidebar { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.025); }
+.thumb-modal__sidebar-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: #71717a; }
+.thumb-modal__field { display: flex; flex-direction: column; gap: 4px; }
+.thumb-modal__field label { font-size: 10px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.12em; }
+.thumb-modal__select, .thumb-modal__input {
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08);
+  color: #d4d4d8; font-size: 12px; padding: 6px 8px; border-radius: 8px; font-family: inherit;
+}
+.thumb-modal__select:focus, .thumb-modal__input:focus { outline: none; border-color: #22d3ee; }
+.thumb-modal__presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.thumb-modal__preset-chip {
+  display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
+  color: #a1a1aa; font-size: 11px; cursor: pointer; font-family: inherit;
+  transition: all 120ms ease;
+}
+.thumb-modal__preset-chip:hover { border-color: #22d3ee; color: white; }
+.thumb-modal__preset-chip--active { border-color: #22d3ee; background: rgba(34,211,238,0.12); color: white; }
+.thumb-modal__revised {
+  font-size: 10px; color: #71717a; line-height: 1.4;
+  padding: 6px 8px; border-radius: 8px; background: rgba(0,0,0,0.25);
+  border: 1px dashed rgba(255,255,255,0.06); max-height: 60px; overflow: auto;
+}
+.thumb-modal__partial {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.4); color: #a1a1aa; font-size: 11px; letter-spacing: 0.08em;
+}
+.thumb-modal__partial img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+.thumb-modal__ref-upload { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #a1a1aa; }
 `;
 
 let thumbStylesInjected = false;
@@ -164,8 +196,23 @@ export class TemplateThumbnailModal extends BaseModal {
     this.savedImageUrl = '';
     this.savedPromptUsed = '';
     this._error = null;
+    this.preset = null;
+    this.presetKey = null;
+    this.controls = {
+      quality: openaiConfig.defaultConfig.thumbnailQuality,
+      style: openaiConfig.defaultConfig.thumbnailStyle,
+      background: openaiConfig.defaultConfig.thumbnailBackground,
+      outputFormat: openaiConfig.defaultConfig.thumbnailFormat,
+      outputCompression: openaiConfig.defaultConfig.thumbnailCompression,
+      aspectRatio: this.template?.aspectRatio || '16:9',
+    };
+    this.referenceImage = null;
+    this.imageDetail = 'auto';
+    this.partialPreview = null;
+    this.completedAt = null;
     this.maskCanvas = null;
     this.maskB64 = '';
+    this.lastParams = null;
   }
 
   // -------------------------------------------------------------------------
@@ -196,18 +243,25 @@ export class TemplateThumbnailModal extends BaseModal {
     if (this._error) return this.renderError();
     if (this.isGenerating) return this.renderLoading();
 
+    let main = '';
     switch (this.step) {
       case 'brief':
-        return this.renderBrief();
+        main = this.renderBrief();
+        break;
       case 'generate':
-        return this.renderGenerate();
+        main = this.renderGenerate();
+        break;
       case 'refine':
-        return this.renderRefine();
+        main = this.renderRefine();
+        break;
       case 'saved':
-        return this.renderSaved();
+        main = this.renderSaved();
+        break;
       default:
-        return this.renderBrief();
+        main = this.renderBrief();
     }
+
+    return `<div class="thumb-modal__layout"><div class="thumb-modal__main">${main}</div>${this.renderSidebar()}</div>`;
   }
 
   renderBrief() {
@@ -246,6 +300,7 @@ export class TemplateThumbnailModal extends BaseModal {
       ? this.renderSkeletons(3)
       : this.candidates.map((c, i) => {
           const src = c.dataUrl || ThumbnailService.b64ToDataUrl(c.b64_json);
+          const revised = c.revised_prompt ? `<div class="thumb-modal__revised" title="Revised by the model">${this.escapeHtml(c.revised_prompt)}</div>` : '';
           return `
             <div class="thumb-modal__candidate ${i === this.selectedIndex ? 'thumb-modal__candidate--selected' : ''} ${this.isGenerating ? 'thumb-modal__candidate--busy' : ''}"
                  onclick="window._thumbModal.selectCandidate(${i})">
@@ -256,6 +311,7 @@ export class TemplateThumbnailModal extends BaseModal {
                   Refine
                 </button>
               </div>
+              ${revised}
             </div>
           `;
         }).join('');
@@ -302,6 +358,7 @@ export class TemplateThumbnailModal extends BaseModal {
           <div class="thumb-modal__label">Selected Image</div>
           <div class="thumb-modal__preview">
             ${selected ? `<img src="${imgSrc}" alt="Selected" />` : '<div class="thumb-modal__empty">No image selected</div>'}
+            ${this.partialPreview ? `<div class="thumb-modal__partial"><img src="${this.partialPreview}" alt="Partial preview" /></div>` : ''}
           </div>
         </div>
         <div class="thumb-modal__section">
@@ -340,16 +397,19 @@ export class TemplateThumbnailModal extends BaseModal {
   }
 
   renderSaved() {
+    const presetLabel = this.preset ? this.preset.name : 'Default';
+    const completedLabel = this.completedAt ? new Date(this.completedAt).toLocaleString() : 'just now';
     return `
       <div class="thumb-modal">
         <div class="thumb-modal__empty" style="padding:24px;">
           <div class="thumb-modal__empty-icon">✅</div>
           <div style="font-size:14px;color:#d4d4d8;font-weight:600;">Thumbnail saved</div>
-          <div style="font-size:12px;color:#71717a;">Applied to this template. Close this modal to see it in the studio.</div>
+          <div style="font-size:12px;color:#71717a;">Preset: ${presetLabel} · Completed ${completedLabel}</div>
         </div>
         <div class="thumb-modal__preview" style="margin-top:8px;">
           ${this.savedImageUrl ? `<img src="${this.savedImageUrl}" alt="Saved thumbnail" />` : ''}
         </div>
+        ${this.revisedPrompt ? `<div class="thumb-modal__revised" style="margin-top:8px;"><strong>Revised prompt:</strong> ${this.escapeHtml(this.revisedPrompt)}</div>` : ''}
         <div style="margin-top:auto; display:flex; flex-direction:column; gap:10px;">
           <button class="thumb-modal__btn thumb-modal__btn--primary" data-action="apply" onclick="window._thumbModal.confirmApply()">
             Apply to Template
@@ -358,6 +418,75 @@ export class TemplateThumbnailModal extends BaseModal {
             🔄 Regenerate
           </button>
         </div>
+      </div>
+    `;
+  }
+
+  renderSidebar() {
+    const opts = openaiConfig.getThumbnailOutputSettings();
+    const c = this.controls;
+    return `
+      <div class="thumb-modal__sidebar">
+        <div class="thumb-modal__sidebar-title">Presets</div>
+        <div class="thumb-modal__presets">
+          ${PRESET_LIST.map((p) => `
+            <button class="thumb-modal__preset-chip ${p.key === this.presetKey ? 'thumb-modal__preset-chip--active' : ''}"
+                    onclick="window._thumbModal.selectPreset('${p.key}')">${p.name}</button>
+          `).join('')}
+        </div>
+        <div class="thumb-modal__sidebar-title" style="margin-top:8px;">Output</div>
+        <div class="thumb-modal__field">
+          <label>Aspect ratio</label>
+          <select class="thumb-modal__select" onchange="window._thumbModal.updateControl('aspectRatio', this.value)">
+            ${opts.aspectRatios.map((r) => `<option value="${r}" ${c.aspectRatio === r ? 'selected' : ''}>${r}</option>`).join('')}
+          </select>
+        </div>
+        <div class="thumb-modal__field">
+          <label>Quality</label>
+          <select class="thumb-modal__select" onchange="window._thumbModal.updateControl('quality', this.value)">
+            ${opts.qualities.map((q) => `<option value="${q}" ${c.quality === q ? 'selected' : ''}>${q}</option>`).join('')}
+          </select>
+        </div>
+        <div class="thumb-modal__field">
+          <label>Style</label>
+          <select class="thumb-modal__select" onchange="window._thumbModal.updateControl('style', this.value)">
+            ${opts.styles.map((s) => `<option value="${s}" ${c.style === s ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="thumb-modal__field">
+          <label>Background</label>
+          <select class="thumb-modal__select" onchange="window._thumbModal.updateControl('background', this.value)">
+            ${opts.backgrounds.map((b) => `<option value="${b}" ${c.background === b ? 'selected' : ''}>${b}</option>`).join('')}
+          </select>
+        </div>
+        <div class="thumb-modal__field">
+          <label>Format</label>
+          <select class="thumb-modal__select" onchange="window._thumbModal.updateControl('outputFormat', this.value)">
+            ${opts.formats.map((f) => `<option value="${f}" ${c.outputFormat === f ? 'selected' : ''}>${f}</option>`).join('')}
+          </select>
+        </div>
+        <div class="thumb-modal__field">
+          <label>Compression</label>
+          <input class="thumb-modal__input" type="number" min="0" max="100" value="${c.outputCompression}"
+                 onchange="window._thumbModal.updateControl('outputCompression', Number(this.value))" />
+        </div>
+        <div class="thumb-modal__sidebar-title" style="margin-top:8px;">Refine</div>
+        <div class="thumb-modal__field">
+          <label>Reference image (optional)</label>
+          <input type="file" accept="image/*" onchange="window._thumbModal.loadReferenceFile(this)" />
+        </div>
+        <div class="thumb-modal__field">
+          <label>Detail</label>
+          <select class="thumb-modal__select" onchange="window._thumbModal.updateControl('imageDetail', this.value)">
+            ${['low', 'high', 'original', 'auto'].map((d) => `<option value="${d}" ${this.imageDetail === d ? 'selected' : ''}>${d}</option>`).join('')}
+          </select>
+        </div>
+        ${this.referenceImage ? `
+          <div class="thumb-modal__ref-upload">
+            <span>Reference set</span>
+            <button class="thumb-modal__btn thumb-modal__btn--ghost" style="height:24px;font-size:10px;padding:0 6px;" onclick="window._thumbModal.clearReference()">Clear</button>
+          </div>
+        ` : ''}
       </div>
     `;
   }
@@ -444,8 +573,9 @@ export class TemplateThumbnailModal extends BaseModal {
     this.setLoading('Drafting prompt variants…');
 
     try {
-      const variants = await this.thumbnailService.buildPromptVariants(briefText);
-      this.variants = variants;
+      const presetKey = this.presetKey || 'default';
+      const result = await this.thumbnailService.buildPromptVariants(briefText, presetKey);
+      this.variants = result.variants || [];
       this.selectedVariantIndex = variants.length > 0 ? 0 : -1;
       this.isGenerating = false;
       this.updateBody(this.renderBody());
@@ -460,7 +590,9 @@ export class TemplateThumbnailModal extends BaseModal {
     this.setLoading('Generating candidates…');
 
     try {
-      const candidates = await this.thumbnailService.generateCandidates(promptText, 3);
+      const controls = this.controls || {};
+      this.lastParams = { presetKey: this.presetKey, controls, prompt: promptText };
+      const candidates = await this.thumbnailService.generateCandidates(promptText, 3, this.presetKey, controls);
       this.candidates = candidates.map((c) => ({ ...c, dataUrl: ThumbnailService.b64ToDataUrl(c.b64_json) }));
       this.selectedIndex = candidates.length > 0 ? 0 : -1;
       this.step = 'generate';
@@ -478,6 +610,40 @@ export class TemplateThumbnailModal extends BaseModal {
 
   selectCandidate(index) {
     this.selectedIndex = index;
+    this.updateBody(this.renderBody());
+  }
+
+  selectPreset(presetKey) {
+    const preset = PRESET_LIST.find((p) => p.key === presetKey);
+    if (!preset) return;
+    this.preset = preset;
+    this.presetKey = presetKey;
+    this.brief = applyPresetToBrief(preset, this.buildInitialBrief());
+    this.controls = applyPresetToControls(preset, { ...this.controls, aspectRatio: this.template?.aspectRatio || '16:9' });
+    this.updateBody(this.renderBody());
+  }
+
+  updateControl(key, value) {
+    this.controls = { ...this.controls, [key]: value };
+    if (key === 'imageDetail') this.imageDetail = value;
+    this.updateBody(this.renderBody());
+  }
+
+  async loadReferenceFile(input) {
+    const file = input.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || '');
+      const b64 = dataUrl.split(',')[1] || '';
+      this.referenceImage = { source: 'b64', value: b64, previewDataUrl: dataUrl };
+      this.updateBody(this.renderBody());
+    };
+    reader.readAsDataURL(file);
+  }
+
+  clearReference() {
+    this.referenceImage = null;
     this.updateBody(this.renderBody());
   }
 
@@ -502,7 +668,9 @@ export class TemplateThumbnailModal extends BaseModal {
     this.setLoading('Refining…');
 
     try {
-      const result = await this.thumbnailService.refineLastImage(instruction, this.lastResponseId || '');
+      const controls = this.controls || {};
+      const referenceImage = this.referenceImage || selected.b64_json;
+      const result = await this.thumbnailService.refineLastImage(instruction, this.lastResponseId || '', controls, referenceImage);
       selected.b64_json = result.b64_json;
       selected.revised_prompt = result.revised_prompt;
       selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
@@ -531,7 +699,8 @@ export class TemplateThumbnailModal extends BaseModal {
     this.setLoading('Inpainting…');
 
     try {
-      const result = await this.thumbnailService.inpaint(prompt, selected.b64_json, this.maskB64);
+      const controls = this.controls || {};
+      const result = await this.thumbnailService.inpaint(prompt, selected.b64_json, this.maskB64, controls);
       selected.b64_json = result.b64_json;
       selected.revised_prompt = result.revised_prompt;
       selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
@@ -555,7 +724,15 @@ export class TemplateThumbnailModal extends BaseModal {
     this.setLoading('Saving thumbnail…');
 
     try {
-      const { imageUrl, path } = await this.thumbnailService.saveToStorage(selected.b64_json, this.selectedPromptText());
+      const selectedCandidate = this.candidates[this.selectedIndex];
+      const completedAt = new Date().toISOString();
+      const revisedPrompt = selectedCandidate?.revised_prompt || this.selectedPromptText();
+      const { imageUrl, path } = await this.thumbnailService.saveToStorage(selected.b64_json, this.selectedPromptText(), {
+        presetKey: this.presetKey,
+        controls: this.controls || {},
+        completedAt,
+        revisedPrompt,
+      });
       this.savedImageUrl = imageUrl;
       this.savedPromptUsed = selected.revised_prompt || this.selectedPromptText();
       this.step = 'saved';
@@ -726,6 +903,16 @@ export class TemplateThumbnailModal extends BaseModal {
     this.savedPromptUsed = '';
     this.maskCanvas = null;
     this.maskB64 = '';
+    this.partialPreview = null;
+    this.referenceImage = null;
+    this.completedAt = null;
+    this.revisedPrompt = '';
+
+    this.preset = getPresetForTemplate(this.template);
+    this.presetKey = this.preset.key;
+    this.brief = applyPresetToBrief(this.preset, this.brief);
+    this.controls = applyPresetToControls(this.preset, { ...this.controls, aspectRatio: this.template?.aspectRatio || '16:9' });
+
     super.open();
   }
 

@@ -6,6 +6,7 @@ import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTUR
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 export function CinemaStudio() {
     const container = document.createElement('div');
@@ -312,6 +313,13 @@ export function CinemaStudio() {
     cameraBuilderBtn.setAttribute('data-tooltip', 'Quick camera builder');
     cameraBuilderBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg> Builder`;
     settingsToolbar.appendChild(cameraBuilderBtn);
+
+    // Personalize trigger (opens PersonalizeModal as a pop-up)
+    mountPersonalizeTrigger({
+        controlsContainer: settingsToolbar,
+        getTextarea: () => textarea,
+        appId: 'cinema-studio',
+    });
 
     leftColumn.appendChild(settingsToolbar);
     promptBar.appendChild(leftColumn);
@@ -667,7 +675,8 @@ export function CinemaStudio() {
     // 5. GENERATION LOGIC UPDATE
     // ==========================================
     generateBtn.onclick = async () => {
-        const basePrompt = textarea.value.trim();
+        const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+        const basePrompt = replaceTokensInPrompt(textarea.value.trim(), activeProfile);
         if (!basePrompt) return;
 
         const apiKey = apiKeyManager.getKey();

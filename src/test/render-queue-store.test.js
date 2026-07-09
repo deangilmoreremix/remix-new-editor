@@ -5,6 +5,9 @@ import {
   removeFromRenderQueue,
   clearRenderQueue,
   subscribe,
+  processNextJob,
+  startProcessor,
+  stopProcessor,
 } from '../lib/editor/renderQueueStore.js';
 
 describe('renderQueueStore', () => {
@@ -99,6 +102,62 @@ describe('renderQueueStore', () => {
         'render:queue',
         JSON.stringify(legacyData)
       );
+    });
+  });
+
+  describe('processNextJob', () => {
+    it('updates job status from queued to completed', () => {
+      const entry = enqueueRender({ payload: 'test' });
+      const result = processNextJob();
+
+      expect(result).not.toBeNull();
+      expect(result.status).toBe('completed');
+      const updated = listRenderQueue();
+      expect(updated[0].status).toBe('completed');
+    });
+
+    it('returns null when queue is empty', () => {
+      expect(processNextJob()).toBeNull();
+    });
+
+    it('returns null when no queued jobs remain', () => {
+      enqueueRender({ payload: 'a' });
+      processNextJob();
+      expect(processNextJob()).toBeNull();
+    });
+  });
+
+  describe('startProcessor', () => {
+    it('returns a stop function', () => {
+      const stop = startProcessor(1000);
+      expect(typeof stop).toBe('function');
+      stop();
+    });
+
+    it('does not create multiple intervals', () => {
+      const stop1 = startProcessor(1000);
+      expect(typeof stop1).toBe('function');
+      stop1();
+    });
+  });
+
+  describe('stopProcessor', () => {
+    it('stops the processing interval', () => {
+      startProcessor(1000);
+      stopProcessor();
+      const entry = enqueueRender({ payload: 'after-stop' });
+      processNextJob();
+      expect(listRenderQueue()[0].status).toBe('completed');
+    });
+  });
+
+  describe('concurrent processing guard', () => {
+    it('does not process when already processing', () => {
+      enqueueRender({ payload: 'a' });
+      enqueueRender({ payload: 'b' });
+
+      processNextJob();
+      expect(listRenderQueue().filter((e) => e.status === 'queued')).toHaveLength(1);
     });
   });
 });

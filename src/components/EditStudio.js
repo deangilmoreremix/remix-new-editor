@@ -3,6 +3,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getToolThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 const EDIT_TOOLS = [
   { id: 'ai-object-eraser', name: 'Remove Object', description: 'Erase unwanted objects from images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 5H9l-7 7 7 7h11a2 2 0 002-2V7a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>', hasPrompt: true, promptPlaceholder: 'What to remove...' },
@@ -73,6 +74,12 @@ export function EditStudio() {
   topBar.appendChild(inlineInstructions);
 
   container.appendChild(topBar);
+
+  // Personalize trigger (opens PersonalizeModal as a pop-up)
+  const personalizeRow = document.createElement('div');
+  personalizeRow.className = 'flex items-center gap-2 px-4 md:px-8 pt-4';
+  mountPersonalizeTrigger({ controlsContainer: personalizeRow, getTextarea: () => promptField, appId: 'edit-studio' });
+  container.appendChild(personalizeRow);
 
   const workArea = document.createElement('div');
   workArea.className = 'flex-1 px-4 md:px-8 pb-8';
@@ -192,8 +199,9 @@ export function EditStudio() {
 
     try {
       const params = { model: activeTool.id, image_url: uploadedUrl };
+      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
       if (activeTool.hasPrompt && promptField.value.trim()) {
-        params.prompt = promptField.value.trim();
+        params.prompt = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
       }
       const result = await muapi.generateI2I(params);
       if (result?.url) {

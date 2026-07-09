@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import OpenAI from "openai";
+import OpenAI from "npm:openai";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,6 +26,17 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 // Mainline model for Responses API image_generation tool.
 // Override via env if needed: IMG_GEN_MAINLINE_MODEL=gpt-5.5
 const IMG_GEN_MAINLINE_MODEL = Deno.env.get("IMG_GEN_MAINLINE_MODEL") || "gpt-4.1-mini";
+
+// Server-side preset definitions — keep in sync with src/lib/thumbnailPresets.js.
+// The brief modifier is appended to the auto-composed brief.
+const PRESET_MODIFIERS: Record<string, string> = {
+  cinematic: 'widescreen cinematic composition, shallow depth of field, anamorphic lens, color graded, 24fps, editorial framing',
+  productCutout: 'isolated product on plain background, centered, crisp silhouette, no halos, label legible, soft contact shadow',
+  lifestyle: 'lifestyle photography, warm natural light, candid moment, real-people feel, gentle color palette, inviting atmosphere',
+  boldText: 'high-contrast composition, single dominant subject, large negative space for headline overlay, punchy colors, thumbnail-readable from arm\'s length',
+  minimal: 'minimal composition, generous negative space, restrained palette, single subtle subject, professional restraint',
+  vertical: 'vertical 9:16 framing, top-of-frame subject, lower-third space for caption, mobile-readable',
+};
 
 const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
 const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
@@ -94,9 +105,33 @@ async function persistThumbnailRow(params: {
         user_id: params.userId,
         is_custom: true,
       },
-      { onConflict: "target_type, target_id, user_id" }
+      { onConflict: "user_id, target_id" }
     );
   if (error) console.error("[ai-thumbnail-generator] persist error", error);
+}
+
+async function persistJob(params: {
+  templateId: string;
+  userId: string;
+  presetKey?: string;
+  promptUsed: string;
+  imageUrl: string;
+  imagePath: string;
+  status: "draft" | "completed" | "archived";
+}): Promise<void> {
+  if (!supabase) return;
+  const row: Record<string, unknown> = {
+    template_id: params.templateId,
+    user_id: params.userId,
+    preset_key: params.presetKey || null,
+    prompt_used: params.promptUsed,
+    image_url: params.imageUrl,
+    image_path: params.imagePath,
+    status: params.status,
+  };
+  if (params.status === "completed") row.completed_at = new Date().toISOString();
+  const { error } = await supabase.from("template_thumbnail_jobs").insert(row);
+  if (error) console.error("[ai-thumbnail-generator] job persist error", error);
 }
 
 async function base64ToUint8Array(b64: string): Promise<Uint8Array> {
@@ -126,6 +161,8 @@ interface PromptsRequest {
     cinematography?: string;
     niche?: string;
   };
+  presetKey?: string;
+  presetModifier?: string;
 }
 
 interface GenerateRequest {
@@ -133,12 +170,30 @@ interface GenerateRequest {
   prompt: string;
   aspectRatio: string;
   n?: number;
+  quality?: "low" | "medium" | "high" | "auto";
+  style?: "vivid" | "natural";
+  background?: "transparent" | "opaque" | "auto";
+  outputFormat?: "png" | "webp" | "jpeg";
+  outputCompression?: number;
 }
 
 interface RefineRequest {
   action: "refine";
   prompt: string;
   previousResponseId: string;
+  size?: string;
+  quality?: "low" | "medium" | "high" | "auto";
+  background?: "transparent" | "opaque" | "auto";
+  outputFormat?: "png" | "webp" | "jpeg";
+  outputCompression?: number;
+  partialImages?: number;
+  store?: boolean;
+  include?: string[];
+  // For reference-image input on multi-modal refine
+  referenceImageB64?: string;
+  referenceImageUrl?: string;
+  referenceImageFileId?: string;
+  imageDetail?: "low" | "high" | "original" | "auto";
 }
 
 interface InpaintRequest {
@@ -147,6 +202,10 @@ interface InpaintRequest {
   imageB64: string;
   maskB64: string;
   aspectRatio?: string;
+  quality?: "low" | "medium" | "high" | "auto";
+  style?: "vivid" | "natural";
+  background?: "transparent" | "opaque" | "auto";
+  outputFormat?: "png" | "webp" | "jpeg";
 }
 
 interface SaveRequest {
@@ -156,6 +215,15 @@ interface SaveRequest {
   altText: string;
   userId: string;
   promptUsed: string;
+  presetKey?: string;
+  controls?: {
+    quality?: string;
+    style?: string;
+    background?: string;
+    outputFormat?: string;
+    outputCompression?: number;
+    aspectRatio?: string;
+  };
 }
 
 type RequestBody = PromptsRequest | GenerateRequest | RefineRequest | InpaintRequest | SaveRequest;
@@ -173,7 +241,7 @@ function validateBody(body: unknown): RequestBody {
 async function handlePrompts(body: PromptsRequest) {
   if (!openai) return jsonResponse({ error: "Server not configured" }, 500);
 
-  const brief =
+  const baseBrief =
     body.brief ||
     buildPromptBrief(body.template?.name || body.templateId, {
       visualStyle: body.template?.visualStyle,
@@ -183,7 +251,13 @@ async function handlePrompts(body: PromptsRequest) {
       outputType: body.template?.outputType || "video",
     });
 
-  const instruction = `You are a thumbnail prompt engineer for gpt-image-2.
+  const modifier = body.presetKey && PRESET_MODIFIERS[body.presetKey]
+    ? body.presetModifier || PRESET_MODIFIERS[body.presetKey]
+    : "";
+
+  const brief = modifier ? `${baseBrief}\n\nStyle direction: ${modifier}` : baseBrief;
+
+  const systemInstruction = `You are a thumbnail prompt engineer for gpt-image-2.
 Using the template context below, write 3 DISTINCT thumbnail prompts.
 Each prompt must:
 - Lead with a single hero subject/scene
@@ -191,31 +265,53 @@ Each prompt must:
 - End with quality/style tokens (e.g. "editorial, 4K, high contrast")
 - AVOID text, logos, watermarks, UI elements
 
-Return ONLY valid JSON: {"prompts": ["...", "...", "..."]}
+Return JSON matching the provided schema.`;
 
-TEMPLATE CONTEXT:
-${brief}`;
+  const userInstruction = `TEMPLATE CONTEXT:\n${brief}`;
+
+  const promptVariantsSchema = {
+    type: "object",
+    properties: {
+      prompts: {
+        type: "array",
+        minItems: 3,
+        maxItems: 3,
+        items: { type: "string", minLength: 20 },
+      },
+    },
+    required: ["prompts"],
+    additionalProperties: false,
+  };
 
   try {
     const completion = await openai.responses.create({
       model: IMG_GEN_MAINLINE_MODEL,
-      input: instruction,
+      instructions: systemInstruction,
+      input: userInstruction,
+      store: true,
+      text: {
+        format: {
+          type: "json_schema",
+          name: "thumbnail_prompt_variants",
+          strict: true,
+          schema: promptVariantsSchema,
+        },
+      },
     });
 
-    const text = (completion.output_text as string) || "";
     let parsed: { prompts?: string[] } = {};
+    const text = (completion.output_text as string) || "";
     try {
+      parsed = JSON.parse(text);
+    } catch {
       const match = text.match(/\{[\s\S]*\}/);
       parsed = match ? JSON.parse(match[0]) : { prompts: [] };
-    } catch {
-      parsed.prompts = text
-        .split("\n")
-        .map((l) => l.replace(/^["\-\s]+/, "").trim())
-        .filter((l) => l.length > 20)
-        .slice(0, 3);
     }
 
-    return jsonResponse({ variants: parsed.prompts || [] });
+    return jsonResponse({
+      variants: parsed.prompts || [],
+      response_id: completion.id,
+    });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Prompt generation failed" }, 502);
   }
@@ -226,6 +322,12 @@ async function handleGenerate(body: GenerateRequest) {
 
   const size = mapAspectToSize(body.aspectRatio);
   const n = Math.min(body.n || 3, 3);
+  const quality = body.quality || "high";
+  const style = body.style || "vivid";
+  // gpt-image-2 does not support transparent — clamp to auto if requested
+  const background = body.background === "transparent" ? "auto" : (body.background || "auto");
+  const outputFormat = body.outputFormat || "webp";
+  const outputCompression = body.outputCompression ?? 80;
 
   try {
     const result = await openai!.images.generate({
@@ -233,10 +335,11 @@ async function handleGenerate(body: GenerateRequest) {
       prompt: body.prompt,
       n,
       size,
-      quality: "hd",
-      style: "vivid",
-      output_format: "webp",
-      output_compression: 80,
+      quality,
+      style,
+      background,
+      output_format: outputFormat,
+      output_compression: outputCompression,
       response_format: "b64_json",
       moderation: "auto",
     });
@@ -246,7 +349,7 @@ async function handleGenerate(body: GenerateRequest) {
       revised_prompt: (img as { revised_prompt?: string }).revised_prompt ?? "",
     }));
 
-    return jsonResponse({ candidates });
+    return jsonResponse({ candidates, params: { quality, style, background, outputFormat, outputCompression, size } });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Image generation failed" }, 502);
   }
@@ -255,26 +358,62 @@ async function handleGenerate(body: GenerateRequest) {
 async function handleRefine(body: RefineRequest) {
   if (!openai) return jsonResponse({ error: "Server not configured" }, 500);
 
-  try {
-    const completion = await openai.responses.create({
-      model: IMG_GEN_MAINLINE_MODEL,
-      input: [
-        {
-          role: "user",
-          content: [{ type: "input_text", text: body.prompt }],
-        },
-      ],
-      tools: [{ type: "image_generation" }],
-      previous_response_id: body.previousResponseId,
+  const imageGenTool: Record<string, unknown> = { type: "image_generation" };
+  if (body.size) imageGenTool.size = body.size;
+  if (body.quality) imageGenTool.quality = body.quality;
+  if (body.background) {
+    imageGenTool.background = body.background === "transparent" ? "auto" : body.background;
+  }
+  if (body.outputFormat) imageGenTool.output_format = body.outputFormat;
+  if (typeof body.outputCompression === "number") imageGenTool.output_compression = body.outputCompression;
+  if (typeof body.partialImages === "number" && body.partialImages > 0) {
+    imageGenTool.partial_images = Math.min(body.partialImages, 3);
+  }
+
+  // Build the input content. If a reference image is supplied, attach it as
+  // an input_image alongside the text.
+  const userContent: Array<Record<string, unknown>> = [
+    { type: "input_text", text: body.prompt },
+  ];
+  if (body.referenceImageB64) {
+    userContent.push({
+      type: "input_image",
+      image_url: `data:image/png;base64,${body.referenceImageB64}`,
+      detail: body.imageDetail || "auto",
     });
+  } else if (body.referenceImageUrl) {
+    userContent.push({
+      type: "input_image",
+      image_url: body.referenceImageUrl,
+      detail: body.imageDetail || "auto",
+    });
+  } else if (body.referenceImageFileId) {
+    userContent.push({
+      type: "input_image",
+      file_id: body.referenceImageFileId,
+      detail: body.imageDetail || "auto",
+    });
+  }
+
+  const reqBody: Record<string, unknown> = {
+    model: IMG_GEN_MAINLINE_MODEL,
+    input: [{ role: "user", content: userContent }],
+    tools: [imageGenTool],
+  };
+  if (body.previousResponseId) reqBody.previous_response_id = body.previousResponseId;
+  if (typeof body.store === "boolean") reqBody.store = body.store;
+  if (Array.isArray(body.include) && body.include.length > 0) reqBody.include = body.include;
+
+  try {
+    const completion = await openai.responses.create(reqBody as Parameters<typeof openai.responses.create>[0]);
 
     const imageCalls = completion.output.filter((o) => o.type === "image_generation_call");
-    const result = imageCalls[0] as { result?: string };
+    const first = imageCalls[0] as { result?: string; revised_prompt?: string } | undefined;
 
     return jsonResponse({
       result: {
-        b64_json: result?.result ?? "",
-        revised_prompt: "",
+        b64_json: first?.result ?? "",
+        revised_prompt: (first as { revised_prompt?: string })?.revised_prompt ?? "",
         response_id: completion.id,
       },
     });
@@ -287,6 +426,10 @@ async function handleInpaint(body: InpaintRequest) {
   if (!OPENAI_API_KEY) return jsonResponse({ error: "Server not configured" }, 500);
 
   const size = mapAspectToSize(body.aspectRatio || "16:9");
+  const quality = body.quality || "high";
+  const style = body.style || "vivid";
+  const background = body.background === "transparent" ? "auto" : (body.background || "auto");
+  const outputFormat = body.outputFormat || "webp";
 
   try {
     const imageBytes = await base64ToUint8Array(body.imageB64);
@@ -302,9 +445,10 @@ async function handleInpaint(body: InpaintRequest) {
       prompt: body.prompt,
       n: 1,
       size,
-      quality: "hd",
-      style: "vivid",
-      output_format: "webp",
+      quality,
+      style,
+      background,
+      output_format: outputFormat,
       response_format: "b64_json",
     });
 
@@ -315,6 +459,7 @@ async function handleInpaint(body: InpaintRequest) {
         revised_prompt: (img as { revised_prompt?: string }).revised_prompt ?? "",
         response_id: "",
       },
+      params: { quality, style, background, outputFormat, size },
     });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Inpaint failed" }, 502);
@@ -326,7 +471,7 @@ async function handleSave(body: SaveRequest) {
 
   try {
     const imageBuffer = await base64ToUint8Array(body.imageB64);
-    const filename = `${body.templateId}/${crypto.randomUUID()}.webp`;
+    const filename = `${body.templateId}/${crypto.randomUUID()}.${body.controls?.outputFormat || "webp"}`;
     const imageUrl = await uploadBufferToStorage(imageBuffer, filename);
 
     await persistThumbnailRow({
@@ -337,7 +482,26 @@ async function handleSave(body: SaveRequest) {
       userId: body.userId,
     });
 
-    return jsonResponse({ imageUrl, path: filename });
+    await persistJob({
+      templateId: body.templateId,
+      userId: body.userId,
+      presetKey: body.presetKey,
+      promptUsed: body.promptUsed,
+      imageUrl,
+      imagePath: filename,
+      status: "completed",
+    });
+
+    return jsonResponse({
+      imageUrl,
+      path: filename,
+      job: {
+        templateId: body.templateId,
+        presetKey: body.presetKey,
+        controls: body.controls,
+        completedAt: new Date().toISOString(),
+      },
+    });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Save failed" }, 502);
   }

@@ -4,6 +4,7 @@ import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getLipSyncModelB
 import { AuthModal } from './AuthModal.js';
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -204,6 +205,7 @@ export function LipSyncStudio() {
     bottomRow.appendChild(modelBtn);
     bottomRow.appendChild(resolutionBtn);
     bottomRow.appendChild(generateBtn);
+    mountPersonalizeTrigger({ controlsContainer: bottomRow, getTextarea: () => textarea, appId: 'lip-sync' });
     bar.appendChild(bottomRow);
 
     promptWrapper.appendChild(bar);
@@ -706,7 +708,8 @@ export function LipSyncStudio() {
     // ==========================================
     generateBtn.onclick = async () => {
         const model = getCurrentModel();
-        const prompt = textarea.value.trim();
+        const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+        const prompt = replaceTokensInPrompt(textarea.value.trim(), activeProfile);
 
         // Validation
         if (!uploadedAudioUrl) {

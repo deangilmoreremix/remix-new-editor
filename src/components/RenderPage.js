@@ -3,7 +3,7 @@ import { showToast, createLoadingSpinner } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { escapeHtml } from '../lib/security.js';
 import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTemplate, duplicateTemplate, listTemplates, listDrafts, sendToStoryboard } from '../lib/editor/renderActions.js';
-import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue } from '../lib/editor/renderQueueStore.js';
+import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue, startProcessor, stopProcessor } from '../lib/editor/renderQueueStore.js';
 import { createExportWorker, terminateExportWorker } from '../lib/editor/renderExportWorker.js';
 import { generateSubtitles, generateHighlights, generateVoiceover, createShorts, runAiAutoEdit } from '../lib/editor/renderAiActions.js';
 
@@ -459,6 +459,7 @@ export function RenderPage() {
 
   let queueUnsubscribe = null;
   let showSavedItems = false;
+  let stopBackgroundProcessor = null;
 
   function renderSavedItemsPanel() {
     const existing = sidebar.querySelector('#savedPanel');
@@ -520,7 +521,8 @@ export function RenderPage() {
   }
 
    queueUnsubscribe = subscribe(() => renderQueue());
-  renderQueue();
+   renderQueue();
+   stopBackgroundProcessor = startProcessor(5000);
 
   // Progress section
   const progressSection = document.createElement('div');
@@ -795,6 +797,13 @@ export function RenderPage() {
       console.log('Delivery manifest:', manifest);
       showToast('Delivery package ready');
     },
+    // ── Phase 4 handlers ───────────────────────────────────────────────────────
+    'Agentic Editor': async () => {
+      navigate('edit', { videoId: resolvedVideoId, videoUrl: resolvedVideoUrl });
+    },
+    'Full Editor': async () => {
+      navigate('timeline', { videoId: resolvedVideoId, videoUrl: resolvedVideoUrl });
+    },
     // ── Phase 3 AI handlers ────────────────────────────────────────────────────
     'Add Subtitles': async () => {
       if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
@@ -1025,6 +1034,10 @@ export function RenderPage() {
     if (queueUnsubscribe) {
       queueUnsubscribe();
       queueUnsubscribe = null;
+    }
+    if (stopBackgroundProcessor) {
+      stopBackgroundProcessor();
+      stopBackgroundProcessor = null;
     }
   };
 

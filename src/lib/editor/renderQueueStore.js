@@ -2,6 +2,8 @@ const STORE_KEY = 'render:queue';
 const LEGACY_KEY = 'render_queue';
 
 const listeners = new Set();
+let processing = false;
+let processorInterval = null;
 
 function migrate() {
   try {
@@ -13,6 +15,15 @@ function migrate() {
   } catch {
     // ignore migration errors
   }
+}
+
+function notify(queue) {
+  listeners.forEach((fn) => fn(queue));
+}
+
+function updateQueue(updated) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(updated));
+  notify(updated);
 }
 
 export function listRenderQueue() {
@@ -29,26 +40,68 @@ export function enqueueRender(job) {
   const entry = {
     id: crypto.randomUUID(),
     timestamp: Date.now(),
+    status: 'queued',
     ...job,
   };
   queue.push(entry);
-  localStorage.setItem(STORE_KEY, JSON.stringify(queue));
-  listeners.forEach((fn) => fn(queue));
+  updateQueue(queue);
   return entry;
 }
 
 export function removeFromRenderQueue(id) {
   const queue = listRenderQueue().filter((entry) => entry.id !== id);
-  localStorage.setItem(STORE_KEY, JSON.stringify(queue));
-  listeners.forEach((fn) => fn(queue));
+  updateQueue(queue);
 }
 
 export function clearRenderQueue() {
-  localStorage.setItem(STORE_KEY, JSON.stringify([]));
-  listeners.forEach((fn) => fn([]));
+  updateQueue([]);
 }
 
 export function subscribe(listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
+}
+
+export function processNextJob() {
+  if (processing) return null;
+  const queue = listRenderQueue();
+  const next = queue.find((entry) => entry.status === 'queued');
+  if (!next) return null;
+
+  processing = true;
+  next.status = 'processing';
+  updateQueue(queue);
+
+  try {
+    const jobIndex = queue.findIndex((entry) => entry.id === next.id);
+    queue[jobIndex].status = 'completed';
+    updateQueue(queue);
+  } catch (error) {
+    const jobIndex = queue.findIndex((entry) => entry.id === next.id);
+    queue[jobIndex].status = 'failed';
+    queue[jobIndex].error = error.message;
+    updateQueue(queue);
+  } finally {
+    processing = false;
+  }
+
+  return next;
+}
+
+export function startProcessor(intervalMs = 5000) {
+  if (processorInterval) return () => stopProcessor();
+  processorInterval = setInterval(() => {
+    const queue = listRenderQueue();
+    if (queue.some((entry) => entry.status === 'queued')) {
+      processNextJob();
+    }
+  }, intervalMs);
+  return () => stopProcessor();
+}
+
+export function stopProcessor() {
+  if (processorInterval) {
+    clearInterval(processorInterval);
+    processorInterval = null;
+  }
 }

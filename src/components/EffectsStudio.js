@@ -5,6 +5,7 @@ import { createMediaPreview, createFullscreenPreview } from './MediaPreview.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { i2iModels, i2vModels } from '../lib/models.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -167,8 +168,9 @@ export function EffectsStudio() {
   const generateBtn = document.createElement('button');
   generateBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow transition-all whitespace-nowrap';
   generateBtn.textContent = 'Apply Effect';
-  promptRow.appendChild(generateBtn);
-  previewTop.appendChild(promptRow);
+    promptRow.appendChild(generateBtn);
+    mountPersonalizeTrigger({ controlsContainer: promptRow, getTextarea: () => promptInput, appId: 'effects-studio' });
+    previewTop.appendChild(promptRow);
 
   previewPanel.appendChild(previewTop);
 
@@ -375,7 +377,8 @@ export function EffectsStudio() {
         image_url: uploadedUrl,
         [activeTab.field]: selectedEffect,
       };
-      const prompt = promptInput.value.trim() || mobilePrompt.value.trim();
+      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+      const prompt = replaceTokensInPrompt(promptInput.value.trim() || mobilePrompt.value.trim(), activeProfile);
       if (prompt) params.prompt = prompt;
 
       let result;
