@@ -4,13 +4,14 @@ import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
 import { getNicheTerms } from '../lib/templateEngine.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
-import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
+import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
 import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
+import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
 
 export function TemplateStudio(templateId) {
   const template = getTemplateById(templateId);
@@ -309,7 +310,7 @@ export function TemplateStudio(templateId) {
     `;
     const modelSelect = modelWrapper.querySelector('#templateModelSelect');
     modelSelect.onchange = () => { selectedModel = modelSelect.value; };
-    leftPanel.insertBefore(modelWrapper, enhancerSection);
+    leftPanel.appendChild(modelWrapper);
 
     let fallbackList = [];
     if (template.modelType === 'i2v') fallbackList = i2vModels;
@@ -413,6 +414,7 @@ export function TemplateStudio(templateId) {
   genBtn.className = 'mt-6 flex h-14 w-full items-center justify-center rounded-[20px] bg-white text-lg font-semibold text-black shadow-xl transition hover:opacity-90';
   genBtn.textContent = 'Generate';
   leftPanel.appendChild(genBtn);
+  mountPersonalizeTrigger({ controlsContainer: leftPanel, appId: 'template-studio', getTextarea: () => document.getElementById('outputTextarea') || null });
 
   // Creative Intelligence section
   const intelligenceSection = document.createElement('div');

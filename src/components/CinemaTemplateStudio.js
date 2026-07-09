@@ -6,6 +6,7 @@
 import { navigate } from '../lib/router.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { 
   getTemplateRegistry,
   CINEMATIC_CATEGORIES,
@@ -261,6 +262,7 @@ export function CinemaTemplateStudio() {
         <button id="generate-btn" class="w-full py-3 bg-primary text-black font-black text-sm rounded-xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
           <span>✨</span> Generate Video
         </button>
+        <div id="personalize-trigger" class="mt-3"></div>
       </div>
     `;
     content.appendChild(previewPanel);
@@ -302,6 +304,13 @@ export function CinemaTemplateStudio() {
     container.querySelector('#generate-btn').onclick = () => {
       generateVideo();
     };
+
+    // Personalize trigger into the dedicated div below the generate button
+    const personalizeEl = container.querySelector('#personalize-trigger');
+    if (personalizeEl) {
+      personalizeEl.innerHTML = '';
+      mountPersonalizeTrigger({ controlsContainer: personalizeEl, appId: 'cinema-template' });
+    }
 
     if (currentTemplate.sceneBuilder && container.querySelector('#open-storyboard-btn')) {
       container.querySelector('#open-storyboard-btn').onclick = () => {

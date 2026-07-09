@@ -4,6 +4,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 export function VideoToolsStudio() {
   const container = document.createElement('div');
@@ -85,6 +86,7 @@ export function VideoToolsStudio() {
   promptInput.oninput = (e) => { prompt = e.target.value; };
   promptGroup.appendChild(promptInput);
   formCard.appendChild(promptGroup);
+  mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'video-tools' });
 
   // Generate button
   const genBtn = document.createElement('button');
@@ -141,8 +143,9 @@ export function VideoToolsStudio() {
         [selectedModel.videoField]: uploadedVideoUrl,
       };
 
+      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
       if (prompt && selectedModel.hasPrompt) {
-        params.prompt = prompt;
+        params.prompt = replaceTokensInPrompt(prompt, activeProfile);
       }
 
        const result = await muapi.processVideoTool(params);

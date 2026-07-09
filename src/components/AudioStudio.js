@@ -2,6 +2,7 @@ import { muapi } from '../lib/muapi.js';
 import { audioModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 
 export function AudioStudio() {
@@ -64,6 +65,7 @@ export function AudioStudio() {
   promptInput.placeholder = 'Describe the music you want to generate...';
   promptInput.oninput = (e) => { prompt = e.target.value; };
   promptGroup.appendChild(promptInput);
+  mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'audio-studio' });
   formCard.appendChild(promptGroup);
 
   // Style selector (for music models)
@@ -163,9 +165,10 @@ export function AudioStudio() {
 
   // Generate button handler
   genBtn.onclick = async () => {
-    if (!prompt && selectedModel.hasPrompt) {
-      alert('Enter a prompt');
-      return;
+    if (selectedModel.hasPrompt) {
+      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+      prompt = replaceTokensInPrompt(prompt, activeProfile);
+      if (!prompt) { alert('Enter a prompt'); return; }
     }
     const apiKey = localStorage.getItem('muapi_key');
     if (!apiKey) { 

@@ -3,6 +3,7 @@ import { avatarModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 
 export function AvatarStudio() {
@@ -106,6 +107,7 @@ export function AvatarStudio() {
   promptInput.oninput = (e) => { prompt = e.target.value; };
   promptGroup.appendChild(promptInput);
   formCard.appendChild(promptGroup);
+  mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
 
   // Generate button
   const genBtn = document.createElement('button');
@@ -165,13 +167,14 @@ export function AvatarStudio() {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
-      const params = { 
+      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+      const params = {
         model: selectedModel.id,
         video_url: uploadedVideoUrl,
       };
-      
+
       if (uploadedAudioUrl) params.audio_url = uploadedAudioUrl;
-      if (prompt) params.prompt = prompt;
+      if (prompt) params.prompt = replaceTokensInPrompt(prompt, activeProfile);
       
       const result = await muapi.generateAvatar(params);
       if (result?.url) {
