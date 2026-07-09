@@ -126,9 +126,9 @@ const THUMB_STYLES = `
 }
 .thumb-modal__partial {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.4); color: #a1a1aa; font-size: 11px; letter-spacing: 0.08em;
+  pointer-events: none; color: #a1a1aa; font-size: 11px; letter-spacing: 0.08em;
 }
-.thumb-modal__partial img { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+.thumb-modal__partial img { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
 .thumb-modal__ref-upload { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #a1a1aa; }
 `;
 
@@ -573,10 +573,10 @@ export class TemplateThumbnailModal extends BaseModal {
     this.setLoading('Drafting prompt variants…');
 
     try {
-      const presetKey = this.presetKey || 'default';
-      const result = await this.thumbnailService.buildPromptVariants(briefText, presetKey);
-      this.variants = result.variants || [];
-      this.selectedVariantIndex = variants.length > 0 ? 0 : -1;
+      const { variants, responseId } = await this.thumbnailService.buildPromptVariants(briefText, this.presetKey);
+      this.variants = variants || [];
+      this.selectedVariantIndex = this.variants.length > 0 ? 0 : -1;
+      if (responseId) this.lastResponseId = responseId;
       this.isGenerating = false;
       this.updateBody(this.renderBody());
     } catch (err) {
@@ -590,11 +590,19 @@ export class TemplateThumbnailModal extends BaseModal {
     this.setLoading('Generating candidates…');
 
     try {
-      const controls = this.controls || {};
-      this.lastParams = { presetKey: this.presetKey, controls, prompt: promptText };
-      const candidates = await this.thumbnailService.generateCandidates(promptText, 3, this.presetKey, controls);
-      this.candidates = candidates.map((c) => ({ ...c, dataUrl: ThumbnailService.b64ToDataUrl(c.b64_json) }));
-      this.selectedIndex = candidates.length > 0 ? 0 : -1;
+      const { candidates, params } = await this.thumbnailService.generateCandidates(promptText, {
+        n: 3,
+        presetKey: this.presetKey,
+        aspectRatio: this.controls.aspectRatio,
+        quality: this.controls.quality,
+        style: this.controls.style,
+        background: this.controls.background,
+        outputFormat: this.controls.outputFormat,
+        outputCompression: this.controls.outputCompression,
+      });
+      this.candidates = (candidates || []).map((c) => ({ ...c, dataUrl: ThumbnailService.b64ToDataUrl(c.b64_json) }));
+      this.selectedIndex = this.candidates.length > 0 ? 0 : -1;
+      if (params) this.lastParams = params;
       this.step = 'generate';
       this.isGenerating = false;
       this.updateBody(this.renderBody());
@@ -666,17 +674,33 @@ export class TemplateThumbnailModal extends BaseModal {
     if (!selected) return;
 
     this.setLoading('Refining…');
+    this.partialPreview = null;
 
     try {
-      const controls = this.controls || {};
-      const referenceImage = this.referenceImage || selected.b64_json;
-      const result = await this.thumbnailService.refineLastImage(instruction, this.lastResponseId || '', controls, referenceImage);
-      selected.b64_json = result.b64_json;
-      selected.revised_prompt = result.revised_prompt;
-      selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
-      this.lastResponseId = result.response_id || this.lastResponseId;
+      const result = await this.thumbnailService.refineLastImage({
+        prompt: instruction,
+        previousResponseId: this.lastResponseId || '',
+        quality: this.controls.quality,
+        background: this.controls.background,
+        outputFormat: this.controls.outputFormat,
+        outputCompression: this.controls.outputCompression,
+        partialImages: 1,
+        store: true,
+        include: ['reasoning.encrypted_content'],
+        referenceImageB64: this.referenceImage?.source === 'b64' ? this.referenceImage.value : undefined,
+        referenceImageUrl: this.referenceImage?.source === 'url' ? this.referenceImage.value : undefined,
+        imageDetail: this.imageDetail,
+      });
+      if (result?.b64_json) {
+        selected.b64_json = result.b64_json;
+        selected.revised_prompt = result.revised_prompt;
+        selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
+      }
+      if (result?.response_id) this.lastResponseId = result.response_id;
+      this.revisedPrompt = selected.revised_prompt || '';
       this.isGenerating = false;
       this._error = null;
+      this.partialPreview = null;
       this.updateBody(this.renderBody());
       setTimeout(() => this.initMaskCanvas(), 50);
     } catch (err) {
@@ -699,11 +723,22 @@ export class TemplateThumbnailModal extends BaseModal {
     this.setLoading('Inpainting…');
 
     try {
-      const controls = this.controls || {};
-      const result = await this.thumbnailService.inpaint(prompt, selected.b64_json, this.maskB64, controls);
-      selected.b64_json = result.b64_json;
-      selected.revised_prompt = result.revised_prompt;
-      selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
+      const result = await this.thumbnailService.inpaint({
+        prompt,
+        imageB64: selected.b64_json,
+        maskB64: this.maskB64,
+        aspectRatio: this.controls.aspectRatio,
+        quality: this.controls.quality,
+        style: this.controls.style,
+        background: this.controls.background,
+        outputFormat: this.controls.outputFormat,
+      });
+      if (result?.b64_json) {
+        selected.b64_json = result.b64_json;
+        selected.revised_prompt = result.revised_prompt;
+        selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
+      }
+      this.revisedPrompt = selected.revised_prompt || '';
       this.maskB64 = '';
       this.isGenerating = false;
       this.updateBody(this.renderBody());
@@ -724,17 +759,16 @@ export class TemplateThumbnailModal extends BaseModal {
     this.setLoading('Saving thumbnail…');
 
     try {
-      const selectedCandidate = this.candidates[this.selectedIndex];
-      const completedAt = new Date().toISOString();
-      const revisedPrompt = selectedCandidate?.revised_prompt || this.selectedPromptText();
-      const { imageUrl, path } = await this.thumbnailService.saveToStorage(selected.b64_json, this.selectedPromptText(), {
+      const result = await this.thumbnailService.saveToStorage({
+        imageB64: selected.b64_json,
+        promptUsed: selected.revised_prompt || this.selectedPromptText(),
         presetKey: this.presetKey,
-        controls: this.controls || {},
-        completedAt,
-        revisedPrompt,
+        controls: { ...this.controls },
       });
-      this.savedImageUrl = imageUrl;
+      this.savedImageUrl = result?.imageUrl || '';
       this.savedPromptUsed = selected.revised_prompt || this.selectedPromptText();
+      this.completedAt = result?.job?.completedAt || new Date().toISOString();
+      this.revisedPrompt = selected.revised_prompt || '';
       this.step = 'saved';
       this.isGenerating = false;
       this.updateBody(this.renderBody());
