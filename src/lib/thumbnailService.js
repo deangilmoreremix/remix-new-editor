@@ -74,7 +74,7 @@ export class ThumbnailService {
     return { candidates: data?.candidates || [], params: data?.params || null };
   }
 
-  async refineLastImage(opts) {
+  async refineLastImage(opts = {}) {
     const body = {
       action: 'refine',
       prompt: opts.prompt,
@@ -98,7 +98,7 @@ export class ThumbnailService {
     return data?.result;
   }
 
-  async inpaint(opts) {
+  async inpaint(opts = {}) {
     const body = {
       action: 'inpaint',
       prompt: opts.prompt,
@@ -116,7 +116,7 @@ export class ThumbnailService {
     return data?.result;
   }
 
-  async saveToStorage(opts) {
+  async saveToStorage(opts = {}) {
     const userId = this.options.userId || await this.currentUserId();
     if (!userId) throw new Error('User not authenticated');
 

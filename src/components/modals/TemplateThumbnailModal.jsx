@@ -210,6 +210,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.imageDetail = 'auto';
     this.partialPreview = null;
     this.completedAt = null;
+    this.revisedPrompt = '';
     this.maskCanvas = null;
     this.maskB64 = '';
     this.lastParams = null;
@@ -592,7 +593,6 @@ export class TemplateThumbnailModal extends BaseModal {
     try {
       const { candidates, params } = await this.thumbnailService.generateCandidates(promptText, {
         n: 3,
-        presetKey: this.presetKey,
         aspectRatio: this.controls.aspectRatio,
         quality: this.controls.quality,
         style: this.controls.style,
@@ -626,7 +626,11 @@ export class TemplateThumbnailModal extends BaseModal {
     if (!preset) return;
     this.preset = preset;
     this.presetKey = presetKey;
-    this.brief = applyPresetToBrief(preset, this.buildInitialBrief());
+    // Preserve any edits the user typed into the brief textarea; fall back to
+    // the auto-composed brief only when the textarea is empty.
+    const currentBrief = document.getElementById('thumb-brief')?.value || '';
+    const base = currentBrief.trim() ? currentBrief : this.buildInitialBrief();
+    this.brief = applyPresetToBrief(preset, base);
     this.controls = applyPresetToControls(preset, { ...this.controls, aspectRatio: this.template?.aspectRatio || '16:9' });
     this.updateBody(this.renderBody());
   }
