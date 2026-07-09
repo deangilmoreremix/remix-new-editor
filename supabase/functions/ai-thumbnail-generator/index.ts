@@ -189,6 +189,9 @@ interface RefineRequest {
   partialImages?: number;
   store?: boolean;
   include?: string[];
+  // When true, the function streams SSE partial-image events instead of a
+  // single buffered JSON response.
+  stream?: boolean;
   // For reference-image input on multi-modal refine
   referenceImageB64?: string;
   referenceImageUrl?: string;
@@ -355,9 +358,7 @@ async function handleGenerate(body: GenerateRequest) {
   }
 }
 
-async function handleRefine(body: RefineRequest) {
-  if (!openai) return jsonResponse({ error: "Server not configured" }, 500);
-
+function buildRefineReqBody(body: RefineRequest): Record<string, unknown> {
   const imageGenTool: Record<string, unknown> = { type: "image_generation" };
   if (body.size) imageGenTool.size = body.size;
   if (body.quality) imageGenTool.quality = body.quality;
@@ -403,23 +404,65 @@ async function handleRefine(body: RefineRequest) {
   if (body.previousResponseId) reqBody.previous_response_id = body.previousResponseId;
   if (typeof body.store === "boolean") reqBody.store = body.store;
   if (Array.isArray(body.include) && body.include.length > 0) reqBody.include = body.include;
+  return reqBody;
+}
+
+function extractImageResult(completion: { output: Array<{ type?: string; result?: string; revised_prompt?: string }>; id: string }) {
+  const imageCalls = completion.output.filter((o) => o.type === "image_generation_call");
+  const first = imageCalls[0];
+  return {
+    b64_json: first?.result ?? "",
+    revised_prompt: first?.revised_prompt ?? "",
+    response_id: completion.id,
+  };
+}
+
+async function handleRefine(body: RefineRequest) {
+  if (!openai) return jsonResponse({ error: "Server not configured" }, 500);
 
   try {
-    const completion = await openai.responses.create(reqBody as Parameters<typeof openai.responses.create>[0]);
-
-    const imageCalls = completion.output.filter((o) => o.type === "image_generation_call");
-    const first = imageCalls[0] as { result?: string; revised_prompt?: string } | undefined;
-
-    return jsonResponse({
-      result: {
-        b64_json: first?.result ?? "",
-        revised_prompt: (first as { revised_prompt?: string })?.revised_prompt ?? "",
-        response_id: completion.id,
-      },
-    });
+    const completion = await openai.responses.create(buildRefineReqBody(body) as Parameters<typeof openai.responses.create>[0]);
+    return jsonResponse({ result: extractImageResult(completion as never) });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Refine failed" }, 502);
   }
+}
+
+/**
+ * Streaming refine: returns an SSE response. Emits one event per partial image
+ * (`type: partial`) followed by the final result (`type: done`) or a terminal
+ * `type: error`. Relies on OpenAI streaming + `partial_images` on the
+ * image_generation tool.
+ */
+function streamRefine(body: RefineRequest): Response {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (obj: unknown) => controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
+      try {
+        if (!openai) throw new Error("Server not configured");
+        const run = openai.responses.stream(buildRefineReqBody(body) as Parameters<typeof openai.responses.stream>[0]);
+        run.on("response.image_generation_call.partial_image", (ev: { partial_image_b64?: string }) => {
+          if (ev?.partial_image_b64) send({ type: "partial", b64: ev.partial_image_b64 });
+        });
+        const completion = await run.finalResponse();
+        send({ type: "done", result: extractImageResult(completion as never) });
+      } catch (err) {
+        send({ type: "error", message: err instanceof Error ? err.message : "Refine stream failed" });
+      } finally {
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
 }
 
 async function handleInpaint(body: InpaintRequest) {
@@ -534,6 +577,7 @@ Deno.serve(async (req: Request) => {
       case "generate":
         return handleGenerate(parsed as GenerateRequest);
       case "refine":
+        if ((parsed as RefineRequest).stream) return streamRefine(parsed as RefineRequest);
         return handleRefine(parsed as RefineRequest);
       case "inpaint":
         return handleInpaint(parsed as InpaintRequest);

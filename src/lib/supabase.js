@@ -49,6 +49,10 @@ export function getSupabaseUrl() {
   return supabaseUrl || '';
 }
 
+export function getSupabaseAnonKey() {
+  return import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+}
+
 export function getUserKey() {
   let key = localStorage.getItem('muapi_key');
   if (!key) return 'anonymous';
