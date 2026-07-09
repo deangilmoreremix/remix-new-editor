@@ -90,24 +90,18 @@ export class GTMPromptModal extends BaseModal {
 
   renderBody() {
     return `
-      <div class="gtm-prompt-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-secondary: ${this.appColors.secondary}">
-        <div class="gtm-header">
-          <div class="gtm-icon">🚀</div>
-          <div class="gtm-intro">
-            <h3>🚀 GTM Boost - Cinematic Prompt Enhancement</h3>
-            <p>Transform basic prompts into professional cinematic videos with GTM methodologies and storytelling mastery</p>
-          </div>
-        </div>
+      <div class="gtm-prompt-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}">
+        <p class="gtm-subtitle">Transform basic prompts into professional cinematic videos with GTM methodologies and storytelling mastery</p>
         <div class="gtm-form">
           ${this.errorMessage ? `<div class="error-message" role="alert">⚠ ${this.errorMessage}</div>` : ''}
           <div class="form-section">
-            <label for="base-prompt">Base Prompt</label>
-            <textarea id="base-prompt" placeholder="Describe your video idea..." style="border-color: var(--app-secondary);">${this.basePrompt}</textarea>
+            <label for="gtm-base-prompt">Base Prompt</label>
+            <textarea id="gtm-base-prompt" placeholder="Describe your video idea...">${this.basePrompt}</textarea>
           </div>
           <div class="form-grid">
             <div class="form-section">
-              <label>Target Role</label>
-              <select id="role-select" style="border-color: var(--app-secondary);">
+              <label for="gtm-role-select">Target Role</label>
+              <select id="gtm-role-select">
                 <option value="">Select Role...</option>
                 <option value="sdr">SDR/BDR (Prospecting)</option>
                 <option value="ae">Account Executive (Discovery)</option>
@@ -118,8 +112,8 @@ export class GTMPromptModal extends BaseModal {
               </select>
             </div>
             <div class="form-section">
-              <label>Industry</label>
-              <select id="industry-select" style="border-color: var(--app-secondary);">
+              <label for="gtm-industry-select">Industry</label>
+              <select id="gtm-industry-select">
                 <option value="">Select Industry...</option>
                 <option value="saas">SaaS</option>
                 <option value="fintech">FinTech</option>
@@ -132,8 +126,8 @@ export class GTMPromptModal extends BaseModal {
               </select>
             </div>
             <div class="form-section">
-              <label>Sales Methodology</label>
-              <select id="methodology-select" style="border-color: var(--app-secondary);">
+              <label for="gtm-methodology-select">Sales Methodology</label>
+              <select id="gtm-methodology-select">
                 <option value="">Select Methodology...</option>
                 <option value="meddpicc">MEDDPICC (Enterprise)</option>
                 <option value="spin">SPIN Selling</option>
@@ -144,8 +138,8 @@ export class GTMPromptModal extends BaseModal {
               </select>
             </div>
             <div class="form-section">
-              <label>Writing Style</label>
-              <select id="tonality-select" style="border-color: var(--app-secondary);">
+              <label for="gtm-tonality-select">Writing Style</label>
+              <select id="gtm-tonality-select">
                 <option value="">Select Style...</option>
                 <option value="executive">Executive Gravitas</option>
                 <option value="challenger">Challenger Bold</option>
@@ -156,28 +150,28 @@ export class GTMPromptModal extends BaseModal {
               </select>
             </div>
           </div>
-          <button class="toggle-advanced" data-action="toggle-advanced">${this.showAdvanced ? '▼' : '▶'} Advanced Options</button>
+          <button type="button" class="toggle-advanced" data-action="toggle-advanced" aria-expanded="${this.showAdvanced}">${this.showAdvanced ? '▼' : '▶'} Advanced Options</button>
           ${this.showAdvanced ? `
             <div class="advanced-options">
               <div class="option-group">
                 <label>Conversion Focus</label>
-                <div class="checkbox-group">
-                  <label><input type="checkbox" name="focus" value="lead-gen" ${this.focusAreas.includes('lead-gen') ? 'checked' : ''}> Lead Generation</label>
-                  <label><input type="checkbox" name="focus" value="awareness" ${this.focusAreas.includes('awareness') ? 'checked' : ''}> Brand Awareness</label>
-                  <label><input type="checkbox" name="focus" value="education" ${this.focusAreas.includes('education') ? 'checked' : ''}> Education</label>
-                  <label><input type="checkbox" name="focus" value="demo" ${this.focusAreas.includes('demo') ? 'checked' : ''}> Product Demo</label>
+                <div class="checkbox-group" role="group" aria-label="Conversion focus">
+                  <label><input type="checkbox" name="focus" value="lead-gen" ${this.focusAreas.includes('lead-gen') ? 'checked' : ''}><span>Lead Generation</span></label>
+                  <label><input type="checkbox" name="focus" value="awareness" ${this.focusAreas.includes('awareness') ? 'checked' : ''}><span>Brand Awareness</span></label>
+                  <label><input type="checkbox" name="focus" value="education" ${this.focusAreas.includes('education') ? 'checked' : ''}><span>Education</span></label>
+                  <label><input type="checkbox" name="focus" value="demo" ${this.focusAreas.includes('demo') ? 'checked' : ''}><span>Product Demo</span></label>
                 </div>
               </div>
               <div class="option-group">
                 <label>Cinematic Enhancement Elements</label>
-                <div class="checkbox-group">
-                  <label><input type="checkbox" name="cinematic" value="openingHook" ${this.cinematicOptions.openingHook ? 'checked' : ''}> Opening Hooks</label>
-                  <label><input type="checkbox" name="cinematic" value="storytellingStructure" ${this.cinematicOptions.storytellingStructure ? 'checked' : ''}> Storytelling Structure</label>
-                  <label><input type="checkbox" name="cinematic" value="visualElements" ${this.cinematicOptions.visualElements ? 'checked' : ''}> Visual Cinematography</label>
-                  <label><input type="checkbox" name="cinematic" value="audioElements" ${this.cinematicOptions.audioElements ? 'checked' : ''}> Audio Excellence</label>
-                  <label><input type="checkbox" name="cinematic" value="pacingEditing" ${this.cinematicOptions.pacingEditing ? 'checked' : ''}> Pacing & Editing</label>
-                  <label><input type="checkbox" name="cinematic" value="emotionalEngagement" ${this.cinematicOptions.emotionalEngagement ? 'checked' : ''}> Emotional Engagement</label>
-                  <label><input type="checkbox" name="cinematic" value="ctaIntegration" ${this.cinematicOptions.ctaIntegration ? 'checked' : ''}> CTA Integration</label>
+                <div class="checkbox-group" role="group" aria-label="Cinematic enhancements">
+                  <label><input type="checkbox" name="cinematic" value="openingHook" ${this.cinematicOptions.openingHook ? 'checked' : ''}><span>Opening Hooks</span></label>
+                  <label><input type="checkbox" name="cinematic" value="storytellingStructure" ${this.cinematicOptions.storytellingStructure ? 'checked' : ''}><span>Storytelling Structure</span></label>
+                  <label><input type="checkbox" name="cinematic" value="visualElements" ${this.cinematicOptions.visualElements ? 'checked' : ''}><span>Visual Cinematography</span></label>
+                  <label><input type="checkbox" name="cinematic" value="audioElements" ${this.cinematicOptions.audioElements ? 'checked' : ''}><span>Audio Excellence</span></label>
+                  <label><input type="checkbox" name="cinematic" value="pacingEditing" ${this.cinematicOptions.pacingEditing ? 'checked' : ''}><span>Pacing &amp; Editing</span></label>
+                  <label><input type="checkbox" name="cinematic" value="emotionalEngagement" ${this.cinematicOptions.emotionalEngagement ? 'checked' : ''}><span>Emotional Engagement</span></label>
+                  <label><input type="checkbox" name="cinematic" value="ctaIntegration" ${this.cinematicOptions.ctaIntegration ? 'checked' : ''}><span>CTA Integration</span></label>
                 </div>
               </div>
             </div>
@@ -187,6 +181,22 @@ export class GTMPromptModal extends BaseModal {
         </div>
       </div>
     `;
+  }
+
+  /**
+   * Convert a hex color (#rrggbb / #rgb) to an rgba() string with the given alpha.
+   * Used to derive soft tints from the per-app primary/accent at render time.
+   */
+  hexToRgba(hex, alpha) {
+    if (typeof hex !== 'string') return `rgba(59, 130, 246, ${alpha})`;
+    const m = hex.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (!m) return `rgba(59, 130, 246, ${alpha})`;
+    let h = m[1];
+    if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
   renderGenerationProgress() {
@@ -209,16 +219,16 @@ export class GTMPromptModal extends BaseModal {
 
   renderGeneratedPrompt() {
     const thumbnailBtn = this.onGenerateThumbnail
-      ? `<button class="thumbnail-prompt-btn" data-action="generate-thumbnail" style="background: var(--app-accent);">🎨 Generate Thumbnail</button>`
+      ? `<button type="button" class="gtm-action thumbnail-prompt-btn" data-action="generate-thumbnail">🎨 Generate Thumbnail</button>`
       : '';
     return `
       <div class="generated-prompt-section">
-        <label>Generated Cinematic Prompt</label>
+        <label for="gtm-generated-prompt">Generated Cinematic Prompt</label>
         <div class="generated-prompt-container">
-          <textarea readonly class="generated-prompt">${this.generatedPrompt}</textarea>
+          <textarea id="gtm-generated-prompt" readonly class="generated-prompt" aria-label="Generated cinematic prompt">${this.generatedPrompt}</textarea>
           <div class="generated-prompt-actions">
             ${thumbnailBtn}
-            <button class="copy-prompt-btn" data-action="copy-prompt" style="background: var(--app-primary);">📋 Copy & Use</button>
+            <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt">📋 Copy &amp; Use</button>
           </div>
         </div>
       </div>
@@ -262,15 +272,15 @@ export class GTMPromptModal extends BaseModal {
     const scope = this.overlay.querySelector('.modal-body');
     if (!scope) return;
 
-    const basePromptEl = scope.querySelector('#base-prompt');
+    const basePromptEl = scope.querySelector('#gtm-base-prompt');
     if (basePromptEl) {
       basePromptEl.addEventListener('input', (e) => { this.basePrompt = e.target.value; });
     }
 
-    const roleSelect = scope.querySelector('#role-select');
-    const industrySelect = scope.querySelector('#industry-select');
-    const methodologySelect = scope.querySelector('#methodology-select');
-    const tonalitySelect = scope.querySelector('#tonality-select');
+    const roleSelect = scope.querySelector('#gtm-role-select');
+    const industrySelect = scope.querySelector('#gtm-industry-select');
+    const methodologySelect = scope.querySelector('#gtm-methodology-select');
+    const tonalitySelect = scope.querySelector('#gtm-tonality-select');
     if (roleSelect) roleSelect.addEventListener('change', (e) => this.selectedRole = e.target.value);
     if (industrySelect) industrySelect.addEventListener('change', (e) => this.selectedIndustry = e.target.value);
     if (methodologySelect) methodologySelect.addEventListener('change', (e) => this.selectedMethodology = e.target.value);
