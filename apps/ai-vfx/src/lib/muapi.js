@@ -1,5 +1,17 @@
 const MUAPI_BASE_URL = 'https://api.muapi.ai/api/v1'
 
+// Authoritative allowlist for generate_wan_ai_effects `name` values.
+// Sourced from src/lib/models.js enums (ai-video-effects: 64, motion-controls: 47, vfx: 9).
+// Kept in sync with the live API schema — update when models.js is regenerated.
+const ALLOWED_WAN_EFFECT_NAMES = new Set([
+  // ai-video-effects (64)
+  "360 Rotation","Abandoned Places","Angry","Animal Documentary","Assassin It","Baby It","Boxing","Bride It","Cakeify","Cartoon Jaw Drop","Cats","Crush It","Crying","Cyberpunk 2077","Deflate It","Disney Princess It","Dogs","Eye Close-Up","Fantasy Landscapes","Film Noir","Fire","Glamor","Goblin","Gun Reveal","Hug Jesus","Hulk Transformation","Inflate It","Jungle It","Jumpscare","Kamehameha","Kiss Cam","Kissing","Lego","Laughing","Little Planet","Live Wallpaper","Looping Pixel Art","Melt It","Mona Lisa It","Museum It","Muscle Show Off","Orc","Pixar","Pirate Captain","POV Driving","Princess It","Puppy it","Robotic Face Reveal","Samurai It","Sharingan Eyes","Skyrim Fus-Ro-Dah","Snow White It","Squish It","Steamboat Willie","Super Saiyan Transformation","Tsunami","Ultra Wide","VHS Footage","VIP It","Warrior It","Wind Blast","Younger Self Selfie","Zen It","Zoom Call",
+  // motion-controls (47)
+  "360 Orbit","Arc Shot","Car Chase","Car Mount Cam","Crash Zoom In","Crash Zoom Out","Crane Down","Crane Overhead","Crane Punch-In","Crane Up","Dirty Lens","Dolly In","Dolly Left","Dolly Out","Dolly Right","Dolly Zoom In","Dolly Zoom Out","Dutch Angle","Fast Dolly Zoom In","Fast Dolly Zoom Out","Fisheye Lens","Focus Shift","FPV Drone Cam","Handheld Cam","Head Tracking","Hero Run","Human Timelapse","Landscape Timelapse","Lazy Susan","Lens Crack","Lens Flare","Matrix Shot","Motion Blur","Object POV","Overhead","Rap Video Cam","Robotic Cam","Snorricam","Tilt Down","Tilt Up","Whip Pan","Wiggle","Zoom In","Zoom In Through Object","Zoom Into Mouth","Zoom Out","Zoom Out Through Object",
+  // vfx (9)
+  "Building Explosion","Car Explosion","Decay Time-Lapse","Disintegration","Electricity","Flying","Huge Explosion","Levitate","Tornado"
+])
+
 const getApiKey = () => import.meta.env.VITE_MUAPI_KEY
 
 const headers = () => ({
@@ -104,9 +116,13 @@ function normalizeWanParams(name, options = {}) {
   if (!name || typeof name !== 'string' || !name.trim()) {
     throw new Error('An effect name is required to apply a video effect.')
   }
+  const trimmed = name.trim()
+  if (!ALLOWED_WAN_EFFECT_NAMES.has(trimmed)) {
+    throw new Error(`Effect "${trimmed}" is not supported by the API. Pick a preset from the studio's effect list.`)
+  }
   const resolution = WAN_VALID_RESOLUTIONS.includes(options.resolution) ? options.resolution : '480p'
   const quality = WAN_VALID_QUALITIES.includes(options.quality) ? options.quality : 'medium'
-  return { name: name.trim(), resolution, quality }
+  return { name: trimmed, resolution, quality }
 }
 
 async function submitWanEffect(imageUrl, prompt, name, options = {}) {

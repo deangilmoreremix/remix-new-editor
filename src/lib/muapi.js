@@ -1,5 +1,15 @@
-import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById, getAvatarModelById, getTextModelById, getTrainingModelById } from './models.js';
+import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById, getAvatarModelById, getTextModelById, getTrainingModelById, i2vModels } from './models.js';
 import { apiKeyManager } from './apiKeyManager.js';
+
+// Authoritative allowlist for generate_wan_ai_effects `name` values.
+// Built from the live API schema enums in i2vModels (ai-video-effects: 64, motion-controls: 47, vfx: 9).
+// Kept in sync with models.js — no hand-curated drift.
+const WAN_EFFECT_MODEL_IDS = ['ai-video-effects', 'motion-controls', 'vfx'];
+const ALLOWED_WAN_EFFECT_NAMES = new Set(
+  i2vModels
+    .filter(m => WAN_EFFECT_MODEL_IDS.includes(m.id))
+    .flatMap(m => m.inputs.name.enum)
+);
 
 export class MuapiClient {
     constructor() {
@@ -576,6 +586,10 @@ export class MuapiClient {
         if (!params.name || typeof params.name !== 'string' || !params.name.trim()) {
             throw new Error('generateVideoEffect requires a non-empty `name` (effect preset).');
         }
+        const trimmedName = params.name.trim();
+        if (!ALLOWED_WAN_EFFECT_NAMES.has(trimmedName)) {
+            throw new Error(`Effect "${trimmedName}" is not supported by the API. Use a preset from the studio's effect list.`);
+        }
         const resolution = ['480p', '720p'].includes(params.resolution) ? params.resolution : '480p';
         const quality = ['medium', 'high'].includes(params.quality) ? params.quality : 'medium';
 
@@ -584,7 +598,7 @@ export class MuapiClient {
         if (params.prompt) finalPayload.prompt = params.prompt;
         if (params.image_url) finalPayload.image_url = params.image_url;
         if (params.video_url) finalPayload.video_url = params.video_url;
-        finalPayload.name = params.name.trim();
+        finalPayload.name = trimmedName;
         if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
         finalPayload.resolution = resolution;
         finalPayload.quality = quality;
