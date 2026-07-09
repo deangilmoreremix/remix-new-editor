@@ -397,16 +397,19 @@ export class TemplateThumbnailModal extends BaseModal {
   }
 
   renderSaved() {
+    const presetLabel = this.preset ? this.preset.name : 'Default';
+    const completedLabel = this.completedAt ? new Date(this.completedAt).toLocaleString() : 'just now';
     return `
       <div class="thumb-modal">
         <div class="thumb-modal__empty" style="padding:24px;">
           <div class="thumb-modal__empty-icon">✅</div>
           <div style="font-size:14px;color:#d4d4d8;font-weight:600;">Thumbnail saved</div>
-          <div style="font-size:12px;color:#71717a;">Applied to this template. Close this modal to see it in the studio.</div>
+          <div style="font-size:12px;color:#71717a;">Preset: ${presetLabel} · Completed ${completedLabel}</div>
         </div>
         <div class="thumb-modal__preview" style="margin-top:8px;">
           ${this.savedImageUrl ? `<img src="${this.savedImageUrl}" alt="Saved thumbnail" />` : ''}
         </div>
+        ${this.revisedPrompt ? `<div class="thumb-modal__revised" style="margin-top:8px;"><strong>Revised prompt:</strong> ${this.escapeHtml(this.revisedPrompt)}</div>` : ''}
         <div style="margin-top:auto; display:flex; flex-direction:column; gap:10px;">
           <button class="thumb-modal__btn thumb-modal__btn--primary" data-action="apply" onclick="window._thumbModal.confirmApply()">
             Apply to Template
