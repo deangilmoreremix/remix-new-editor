@@ -57,6 +57,8 @@ describe('renderExportWorker', () => {
         return mimeType.includes('webm');
       }
     };
+
+    global.createImageBitmap = vi.fn(async () => ({}));
     
     const urlFactory = {
       createObjectURL: vi.fn(() => 'blob:test-url'),
@@ -74,9 +76,10 @@ describe('renderExportWorker', () => {
       'MediaRecorder',
       'fetch',
       'URL',
+      'createImageBitmap',
       workerSourceForExecution
     );
-    fn(selfMock, global.OffscreenCanvas, global.MediaRecorder, global.fetch, global.URL);
+    fn(selfMock, global.OffscreenCanvas, global.MediaRecorder, global.fetch, global.URL, global.createImageBitmap);
   });
   
   afterEach(() => {
@@ -131,17 +134,16 @@ describe('renderExportWorker', () => {
       ok: true,
       blob: async () => new Blob(['video-content']),
     });
-    
+
     const msgs = await runWorker({
       action: 'export-video',
       videoUrl: 'http://example.com/video.mp4',
       settings: { duration: 1000 },
     });
-    
+
     const completeMsg = msgs.find((m) => m.type === 'complete');
     expect(completeMsg).toBeDefined();
-    expect(completeMsg.blob).toBeInstanceOf(ArrayBuffer);
-    expect(completeMsg.url).toBe('blob:test-url');
+    expect(completeMsg.blob).toBeInstanceOf(Blob);
   });
   
   it('handles invalid videoUrl', async () => {

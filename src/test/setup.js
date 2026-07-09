@@ -1,7 +1,6 @@
 // Test setup for Vitest
 // Mock browser APIs and global objects
 
-// Mock localStorage
 const localStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
@@ -10,7 +9,6 @@ const localStorageMock = {
 };
 global.localStorage = localStorageMock;
 
-// Mock sessionStorage
 const sessionStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
@@ -18,6 +16,19 @@ const sessionStorageMock = {
   clear: vi.fn(),
 };
 global.sessionStorage = sessionStorageMock;
+
+// Stub indexedDB so modules that call it during eval do not crash
+if (typeof globalThis.indexedDB === 'undefined') {
+  globalThis.indexedDB = {
+    open: () => ({
+      result: null,
+      onerror: null,
+      onsuccess: null,
+      onupgradeneeded: null,
+      setTransaction() {},
+    }),
+  };
+}
 
 // Mock fetch
 global.fetch = vi.fn();

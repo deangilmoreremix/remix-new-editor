@@ -101,7 +101,6 @@ describe('Unified Timeline Editor - Phase 4 Integration Testing', () => {
         const modalComponents = [
           'AdvanceImageEditorModal',
           'AIVideoCreator',
-          'BillingModal',
           'ConnectModal',
           'ContactImporterModal',
           'EmailCampaignModal',

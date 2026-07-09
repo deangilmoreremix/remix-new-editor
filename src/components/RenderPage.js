@@ -605,13 +605,13 @@ export function RenderPage() {
       const result = await new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error('Export timed out')), 60000);
         worker.addEventListener('message', (e) => {
-          const { type, percent, url, message } = e.data || {};
+          const { type, percent, blob, url, message } = e.data || {};
           if (type === 'progress') {
             if (progressBar) progressBar.style.width = `${percent}%`;
             if (progressPercent) progressPercent.textContent = `${percent}%`;
           } else if (type === 'complete') {
             clearTimeout(timer);
-            resolve(e.data);
+            resolve({ ...e.data, url: url || (blob ? URL.createObjectURL(blob) : null) });
           } else if (type === 'error') {
             clearTimeout(timer);
             reject(new Error(message));
@@ -783,6 +783,7 @@ export function RenderPage() {
             'Publish / Deliver',
             (result) => {
               outputs.push({ format: fmt, url: result.url });
+              setTimeout(() => URL.revokeObjectURL(result.url), 1000);
               resolve();
             }
           ).then(() => {}, reject);

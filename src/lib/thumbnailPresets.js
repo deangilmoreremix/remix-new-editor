@@ -87,7 +87,19 @@ export function getPresetForTemplate(template) {
  * Pure function; returns a new controls object.
  */
 export function applyPresetToControls(preset, currentControls = {}) {
-  return { ...currentControls, ...preset.controls };
+  // Preset control keys use `format`/`compression` (see preset schema); the
+  // active control state and ThumbnailService use `outputFormat`/`outputCompression`.
+  // Normalize so preset selections actually take effect in the modal + service.
+  const merged = { ...currentControls, ...(preset?.controls || {}) };
+  if ('format' in merged) {
+    merged.outputFormat = merged.format;
+    delete merged.format;
+  }
+  if ('compression' in merged) {
+    merged.outputCompression = merged.compression;
+    delete merged.compression;
+  }
+  return merged;
 }
 
 /**

@@ -27,23 +27,32 @@ function applyRemixFilters(ctx, effects, width, height) {
   ctx.filter = 'none';
 }
 
-async function createRecording(canvas, durationMs, onProgress) {
+async function createRecording(canvas, videoBitmap, durationMs, onProgress) {
   const ctx = canvas.getContext('2d');
+
+  if (videoBitmap) {
+    try {
+      ctx.drawImage(videoBitmap, 0, 0, canvas.width, canvas.height);
+    } catch {
+      // skip single frame draw errors
+    }
+  }
+
   const stream = canvas.captureStream(30);
-  
+
   const mimeType = typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
     ? 'video/webm;codecs=vp9'
     : 'video/webm';
-  
+
   const recorder = new MediaRecorder(stream, { mimeType });
   const chunks = [];
-  
+
   recorder.ondataavailable = (e) => {
     if (e.data && e.data.size > 0) {
       chunks.push(e.data);
     }
   };
-  
+
   return new Promise((resolve, reject) => {
     recorder.onstop = () => {
       stream.getTracks().forEach((t) => t.stop());
@@ -51,7 +60,7 @@ async function createRecording(canvas, durationMs, onProgress) {
       resolve(blob);
     };
     recorder.onerror = (e) => reject(e.error || new Error('MediaRecorder failed'));
-    
+
     try {
       recorder.start(100);
     } catch (e) {
@@ -59,18 +68,18 @@ async function createRecording(canvas, durationMs, onProgress) {
       reject(e);
       return;
     }
-    
+
     let elapsed = 0;
     const interval = PROGRESS_INTERVAL_MS;
-    
+
     const timer = setInterval(() => {
       elapsed += interval;
       const progress = Math.min(100, Math.round((elapsed / durationMs) * 100));
       onProgress(progress);
-      
+
       ctx.fillStyle = '#1a1a1a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
+
       if (elapsed >= durationMs) {
         clearInterval(timer);
         try {
@@ -99,8 +108,9 @@ self.onmessage = async (event) => {
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
-    
-    await response.blob();
+
+    const videoBlob = await response.blob();
+    const videoBitmap = videoBlob ? await createImageBitmap(videoBlob) : null;
     
     let width = settings.width || 1920;
     let height = settings.height || 1080;
@@ -129,18 +139,14 @@ self.onmessage = async (event) => {
     
     self.postMessage({ type: 'progress', percent: 0 });
     
-    const recordedBlob = await createRecording(canvas, durationMs, (percent) => {
+    const recordedBlob = await createRecording(canvas, videoBitmap, durationMs, (percent) => {
       self.postMessage({ type: 'progress', percent });
     });
     
-    const arrayBuffer = await recordedBlob.arrayBuffer();
-    const blobUrl = URL.createObjectURL(recordedBlob);
-    
     self.postMessage({
       type: 'complete',
-      blob: arrayBuffer,
-      url: blobUrl,
-    });
+      blob: recordedBlob,
+    }, [recordedBlob]);
   } catch (err) {
     self.postMessage({ type: 'error', message: err.message || String(err) });
   }

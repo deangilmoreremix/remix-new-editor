@@ -3,6 +3,8 @@
  * Centralized configuration for OpenAI API integration
  */
 
+import { apiKeyManager } from '../apiKeyManager.js';
+
 class OpenAIConfig {
   constructor() {
     this.defaultConfig = {
@@ -58,15 +60,34 @@ class OpenAIConfig {
    * @returns {string|null} API key or null if not set
    */
   getApiKey() {
-    // Safely get API key from environment, handling browser vs Node.js
+    // Server-side: Deno/Node environment variable
+    try {
+      if (typeof Deno !== 'undefined' && Deno.env) {
+        const key = Deno.env.get('OPENAI_API_KEY');
+        if (key) return key;
+      }
+    } catch (e) {
+      // Deno not available
+    }
+
     try {
       if (typeof process !== 'undefined' && process.env) {
-        return process.env.OPENAI_API_KEY || null;
+        const key = process.env.OPENAI_API_KEY;
+        if (key) return key;
       }
     } catch (e) {
       // In browser environment, process might not be available
-      console.warn('Cannot access environment variables in browser context');
     }
+
+    // Browser-side: fall back to apiKeyManager (MuAPI key stored in localStorage)
+    try {
+      if (typeof apiKeyManager !== 'undefined') {
+        return apiKeyManager.getKey();
+      }
+    } catch (e) {
+      // apiKeyManager not loaded
+    }
+
     return null;
   }
 

@@ -1,4 +1,4 @@
-import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById } from './models.js';
+import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById, getAvatarModelById, getTextModelById, getTrainingModelById } from './models.js';
 import { apiKeyManager } from './apiKeyManager.js';
 
 export class MuapiClient {
@@ -434,6 +434,8 @@ export class MuapiClient {
     }
 
     async generateAvatar(params, signal) {
+        const modelInfo = getAvatarModelById(params.model);
+        const endpoint = modelInfo?.endpoint || params.model || 'avatar';
         const finalPayload = {};
 
         if (params.model) finalPayload.model = params.model;
@@ -446,7 +448,7 @@ export class MuapiClient {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    endpoint: 'avatar',
+                    endpoint,
                     params: finalPayload,
                     generationType: 'avatar',
                     studioType: 'avatar'
@@ -477,19 +479,23 @@ export class MuapiClient {
     }
 
     async generateAudio(params, signal) {
+        const modelInfo = getAudioModelById(params.model);
+        const endpoint = modelInfo?.endpoint || params.model || 'audio';
+
         const finalPayload = {};
 
         if (params.model) finalPayload.model = params.model;
         if (params.prompt) finalPayload.prompt = params.prompt;
         if (params.duration) finalPayload.duration = params.duration;
         if (params.style) finalPayload.style = params.style;
+        if (params.audio_url) finalPayload.audio_url = params.audio_url;
 
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    endpoint: 'audio',
+                    endpoint,
                     params: finalPayload,
                     generationType: 'audio',
                     studioType: 'audio'
@@ -512,14 +518,174 @@ export class MuapiClient {
             const audioUrl = result.outputs?.[0] || result.url || result.output?.url;
             return { ...result, url: audioUrl };
         } catch (error) {
-            if (error.name === 'AbortError') {
-                throw new Error('Request cancelled by user');
+            if (error.name === 'AbortError') throw new Error('Request cancelled by user');
+            throw error;
+        }
+    }
+
+    async generateMusic(params, signal) {
+        const modelInfo = getAudioModelById(params.model);
+        const endpoint = modelInfo?.endpoint || params.model || 'suno-create-music';
+
+        const finalPayload = {};
+
+        if (params.prompt) finalPayload.prompt = params.prompt;
+        if (params.duration) finalPayload.duration = params.duration;
+        if (params.style) finalPayload.style = params.style;
+        if (params.audio_url) finalPayload.audio_url = params.audio_url;
+        if (params.instrumental !== undefined) finalPayload.instrumental = params.instrumental;
+
+        try {
+            const response = await fetch(this.proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    endpoint,
+                    params: finalPayload,
+                    generationType: 'music',
+                    studioType: 'audio'
+                }),
+                signal
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
             }
+
+            const submitData = await response.json();
+            this.validateResponse(submitData, 'submit');
+
+            const requestId = submitData.request_id || submitData.id;
+            if (!requestId) return submitData;
+
+            const result = await this.pollForResult(requestId, 180, 3000, signal);
+            const audioUrl = result.outputs?.[0] || result.url || result.output?.url || result.audio?.url;
+            return { ...result, url: audioUrl };
+        } catch (error) {
+            if (error.name === 'AbortError') throw new Error('Request cancelled by user');
+            throw error;
+        }
+    }
+
+    async generateVideoEffect(params, signal) {
+        const endpoint = 'generate_wan_ai_effects';
+
+        const finalPayload = {};
+
+        if (params.prompt) finalPayload.prompt = params.prompt;
+        if (params.image_url) finalPayload.image_url = params.image_url;
+        if (params.video_url) finalPayload.video_url = params.video_url;
+        if (params.name) finalPayload.name = params.name;
+        if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
+        if (params.resolution) finalPayload.resolution = params.resolution;
+        if (params.quality) finalPayload.quality = params.quality;
+        if (params.duration) finalPayload.duration = params.duration;
+
+        try {
+            const response = await fetch(this.proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    endpoint,
+                    params: finalPayload,
+                    generationType: 'video-effect',
+                    studioType: 'video-tools'
+                }),
+                signal
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+            }
+
+            const submitData = await response.json();
+            this.validateResponse(submitData, 'submit');
+
+            const requestId = submitData.request_id || submitData.id;
+            if (!requestId) return submitData;
+
+            const result = await this.pollForResult(requestId, 120, 2000, signal);
+            const videoUrl = result.outputs?.[0] || result.url || result.output?.url || result.video?.url;
+            return { ...result, url: videoUrl };
+        } catch (error) {
+            if (error.name === 'AbortError') throw new Error('Request cancelled by user');
+            throw error;
+        }
+    }
+
+    async listAssets(params, signal) {
+        // NOTE: asset listing is a FIRST-PARTY Open Higgsfield service, NOT a
+        // muapi endpoint (muapi exposes no asset-list route). Route to the
+        // app's own backend, never the muapi proxy.
+        const base = this.proxyUrl.replace(/\/functions\/v1\/muapi-proxy$/, '') || import.meta.env.VITE_SUPABASE_URL;
+        if (!base) {
+            throw new Error('App backend URL not configured');
+        }
+        const finalPayload = {};
+
+        if (params.project) finalPayload.project = params.project;
+        if (params.category) finalPayload.category = params.category;
+        if (params.type) finalPayload.type = params.type;
+
+        try {
+            const response = await fetch(`${base}/functions/v1/assets`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(finalPayload),
+                signal
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Asset Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+            }
+
+            const data = await response.json();
+            this.validateResponse(data, 'list');
+            return data;
+        } catch (error) {
+            if (error.name === 'AbortError') throw new Error('Request cancelled by user');
+            throw error;
+        }
+    }
+
+    async makeRequest(endpoint, params, signal) {
+        if (!endpoint || typeof endpoint !== 'string') {
+            throw new Error('Endpoint is required for makeRequest');
+        }
+
+        try {
+            const response = await fetch(this.proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    endpoint,
+                    params: params || {},
+                    generationType: 'custom',
+                    studioType: 'custom'
+                }),
+                signal
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+            }
+
+            const data = await response.json();
+            this.validateResponse(data, 'custom');
+            return data;
+        } catch (error) {
+            if (error.name === 'AbortError') throw new Error('Request cancelled by user');
             throw error;
         }
     }
 
     async generateText(params, signal) {
+        const modelInfo = getTextModelById(params.model);
+        const endpoint = modelInfo?.endpoint || params.model || 'text';
         const finalPayload = {};
 
         if (params.model) finalPayload.model = params.model;
@@ -533,7 +699,7 @@ export class MuapiClient {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    endpoint: 'text',
+                    endpoint,
                     params: finalPayload,
                     generationType: 'text',
                     studioType: 'chat'
@@ -558,6 +724,8 @@ export class MuapiClient {
     }
 
     async trainLora(params, signal) {
+        const modelInfo = getTrainingModelById(params.model);
+        const endpoint = modelInfo?.endpoint || params.model || 'flux-lora-trainer';
         const finalPayload = {};
 
         if (params.images) finalPayload.images = params.images;
@@ -569,7 +737,7 @@ export class MuapiClient {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    endpoint: 'train',
+                    endpoint,
                     params: finalPayload,
                     generationType: 'train',
                     studioType: 'training'
@@ -599,6 +767,8 @@ export class MuapiClient {
     }
 
     async processVideoTool(params, signal) {
+        const modelInfo = getVideoToolById(params.model);
+        const endpoint = modelInfo?.endpoint || params.model || 'video-tool';
         const finalPayload = {};
 
         if (params.model) finalPayload.model = params.model;
@@ -610,7 +780,7 @@ export class MuapiClient {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    endpoint: 'video-tool',
+                    endpoint,
                     params: finalPayload,
                     generationType: 'video-tool',
                     studioType: 'video-tools'

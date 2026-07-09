@@ -205,7 +205,6 @@ class EnhancedModalManager {
       const modalMap = {
         'AdvanceImageEditorModal': () => import('../components/modals/AdvanceImageEditorModal.jsx'),
         'AIVideoCreator': () => import('../components/modals/AIVideoCreator.jsx'),
-        'BillingModal': () => import('../components/modals/BillingModal.jsx'),
         'ConnectModal': () => import('../components/modals/ConnectModal.jsx'),
         'ContactImporterModal': () => import('../components/modals/ContactImporterModal.jsx'),
         'EmailCampaignModal': () => import('../components/modals/EmailCampaignModal.jsx'),
@@ -266,7 +265,6 @@ class EnhancedModalManager {
 
       // Category J: Modals/Editing Workflows
       'AdvanceImageEditorModal': 'CATEGORY_J_MODALS_WORKFLOWS',
-      'BillingModal': 'CATEGORY_J_MODALS_WORKFLOWS',
       'ConnectModal': 'CATEGORY_J_MODALS_WORKFLOWS',
       'ContactImporterModal': 'CATEGORY_J_MODALS_WORKFLOWS',
       'EmailCampaignModal': 'CATEGORY_J_MODALS_WORKFLOWS',
@@ -298,7 +296,6 @@ class EnhancedModalManager {
     const titles = {
       'AdvanceImageEditorModal': 'Advanced Image Editor',
       'AIVideoCreator': 'AI Video Creator',
-      'BillingModal': 'Billing & Subscriptions',
       'ConnectModal': 'Connect Services',
       'ContactImporterModal': 'Import Contacts',
       'EmailCampaignModal': 'Email Campaign',

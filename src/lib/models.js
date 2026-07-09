@@ -82,87 +82,6 @@ export const t2iModels = [
     }
   },
   {
-    "id": "flux-dev-lora",
-    "name": "Flux Dev Lora",
-    "inputs": {
-      "prompt": {
-        "examples": [
-          "A female warrior in ornate armor standing on a cliff during sunset, flowing cape, wind blowing through her hair, detailed fantasy art style."
-        ],
-        "description": "Text prompt describing the image. The length of the prompt must be between 2 and 3000 characters.",
-        "type": "string",
-        "title": "Prompt",
-        "name": "prompt"
-      },
-      "model_id": {
-        "examples": [
-          {
-            "model": "civitai:119351@317153",
-            "weight": 1
-          }
-        ],
-        "title": "LoRA Ids",
-        "name": "model_id",
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "model": {
-              "type": "string",
-              "format": "url",
-              "title": "Model ID",
-              "description": "The Civitai LoRA model ID."
-            },
-            "weight": {
-              "type": "number",
-              "title": "Weight",
-              "description": "A list of LoRA models to use for generation. Each item must include an `id` (e.g., \"civitai:1642876@1864626\") and a `weight` between 0 and 4. You can include up to 4 models. The `id` can be found in the Civitai model URL. These models will be applied with the specified weights by the Flux Dev system during image generation.",
-              "minValue": 0,
-              "maxValue": 4,
-              "step": 0.01,
-              "default": 1
-            }
-          }
-        },
-        "description": "The unique identifier of a LoRA model hosted on Civitai, used by the Flux Dev image generation system. This ID tells Flux Dev which specific LoRA model to apply during generation. You can find the model ID in the Civitai model URL (e.g., model_id: civitai:1642876@1864626).",
-        "maxItems": 4
-      },
-      "width": {
-        "title": "Width",
-        "name": "width",
-        "type": "int",
-        "description": "Width of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
-        "default": 1024,
-        "minValue": 128,
-        "maxValue": 2048,
-        "step": 64,
-        "isEdit": true
-      },
-      "height": {
-        "title": "Height",
-        "name": "height",
-        "type": "int",
-        "description": "Height of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
-        "default": 1024,
-        "minValue": 128,
-        "maxValue": 2048,
-        "step": 64,
-        "isEdit": true
-      },
-      "num_images": {
-        "title": "Number of images",
-        "name": "num_images",
-        "type": "int",
-        "description": "Number of images generated in single request. Each number will charge separately",
-        "default": 1,
-        "minValue": 1,
-        "maxValue": 4,
-        "step": 1,
-        "isEdit": true
-      }
-    }
-  },
-  {
     "id": "flux-kontext-dev-t2i",
     "name": "Flux Kontext Dev T2I",
     "inputs": {
@@ -203,141 +122,6 @@ export const t2iModels = [
         "maxValue": 4,
         "step": 1,
         "isEdit": true
-      }
-    }
-  },
-  {
-    "id": "hidream-i1-fast",
-    "name": "Hidream I1 Fast",
-    "inputs": {
-      "prompt": {
-        "examples": [
-          "A colorful cartoon-style cat sitting on a skateboard, wide smile, playful background, 2D flat illustration style."
-        ],
-        "description": "Text prompt describing the image. The length of the prompt must be between 2 and 3000 characters.",
-        "type": "string",
-        "title": "Prompt",
-        "name": "prompt"
-      },
-      "width": {
-        "title": "Width",
-        "name": "width",
-        "type": "int",
-        "description": "Width of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
-        "default": 1024,
-        "minValue": 128,
-        "maxValue": 2048,
-        "step": 64
-      },
-      "height": {
-        "title": "Height",
-        "name": "height",
-        "type": "int",
-        "description": "Height of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
-        "default": 1024,
-        "minValue": 128,
-        "maxValue": 2048,
-        "step": 64
-      },
-      "num_images": {
-        "title": "Number of images",
-        "name": "num_images",
-        "type": "int",
-        "description": "Number of images generated in single request. Each number will charge separately",
-        "default": 1,
-        "minValue": 1,
-        "maxValue": 4,
-        "step": 1
-      }
-    }
-  },
-  {
-    "id": "hidream-i1-dev",
-    "name": "Hidream I1 Dev",
-    "inputs": {
-      "prompt": {
-        "examples": [
-          "A colorful cartoon-style cat sitting on a skateboard, wide smile, playful background, 2D flat illustration style."
-        ],
-        "description": "Text prompt describing the image. The length of the prompt must be between 2 and 3000 characters.",
-        "type": "string",
-        "title": "Prompt",
-        "name": "prompt"
-      },
-      "width": {
-        "title": "Width",
-        "name": "width",
-        "type": "int",
-        "description": "Width of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
-        "default": 1024,
-        "minValue": 128,
-        "maxValue": 2048,
-        "step": 64
-      },
-      "height": {
-        "title": "Height",
-        "name": "height",
-        "type": "int",
-        "description": "Height of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
-        "default": 1024,
-        "minValue": 128,
-        "maxValue": 2048,
-        "step": 64
-      },
-      "num_images": {
-        "title": "Number of images",
-        "name": "num_images",
-        "type": "int",
-        "description": "Number of images generated in single request. Each number will charge separately",
-        "default": 1,
-        "minValue": 1,
-        "maxValue": 4,
-        "step": 1
-      }
-    }
-  },
-  {
-    "id": "hidream-i1-full",
-    "name": "Hidream I1 Full",
-    "inputs": {
-      "prompt": {
-        "examples": [
-          "A majestic elven queen standing in a glowing forest, wearing intricate golden armor with emerald details, sunlight rays filtering through the trees, ultra-detailed fantasy concept art."
-        ],
-        "description": "Text prompt describing the image. The length of the prompt must be between 2 and 3000 characters.",
-        "type": "string",
-        "title": "Prompt",
-        "name": "prompt"
-      },
-      "width": {
-        "title": "Width",
-        "name": "width",
-        "type": "int",
-        "description": "Width of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
-        "default": 1024,
-        "minValue": 128,
-        "maxValue": 2048,
-        "step": 64
-      },
-      "height": {
-        "title": "Height",
-        "name": "height",
-        "type": "int",
-        "description": "Height of the output image. The value must be divisible by 64, eg: 128...512, 576, 640...2048.",
-        "default": 1024,
-        "minValue": 128,
-        "maxValue": 2048,
-        "step": 64
-      },
-      "num_images": {
-        "title": "Number of images",
-        "name": "num_images",
-        "type": "int",
-        "description": "Number of images generated in single request. Each number will charge separately",
-        "default": 1,
-        "minValue": 1,
-        "maxValue": 4,
-        "step": 1
       }
     }
   },
@@ -634,35 +418,6 @@ export const t2iModels = [
         "minValue": 1,
         "maxValue": 4,
         "step": 1
-      }
-    }
-  },
-  {
-    "id": "bytedance-seedream-v3",
-    "name": "Bytedance Seedream v3",
-    "inputs": {
-      "prompt": {
-        "examples": [
-          "A magical forest with glowing mushrooms and a crystal river under a starry sky, dreamy and ethereal style."
-        ],
-        "description": "Text prompt describing the image.",
-        "type": "string",
-        "title": "Prompt",
-        "name": "prompt"
-      },
-      "aspect_ratio": {
-        "enum": [
-          "1:1",
-          "16:9",
-          "9:16",
-          "3:4",
-          "4:3"
-        ],
-        "title": "Aspect Ratio",
-        "name": "aspect_ratio",
-        "type": "string",
-        "description": "Aspect ratio of the output image.",
-        "default": "1:1"
       }
     }
   },
@@ -2023,8 +1778,21 @@ export const t2iModels = [
       },
       "aspect_ratio": {
         "enum": [
-          "1:1", "1:4", "1:8", "2:3", "3:2", "3:4", "4:1", "4:3", "4:5",
-          "5:4", "8:1", "9:16", "16:9", "21:9", "auto"
+          "1:1",
+          "1:4",
+          "1:8",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:1",
+          "4:3",
+          "4:5",
+          "5:4",
+          "8:1",
+          "9:16",
+          "16:9",
+          "21:9",
+          "auto"
         ],
         "title": "Aspect Ratio",
         "name": "aspect_ratio",
@@ -2033,7 +1801,11 @@ export const t2iModels = [
         "default": "auto"
       },
       "resolution": {
-        "enum": ["1k", "2k", "4k"],
+        "enum": [
+          "1k",
+          "2k",
+          "4k"
+        ],
         "title": "Resolution",
         "name": "resolution",
         "type": "string",
@@ -2048,7 +1820,10 @@ export const t2iModels = [
         "default": false
       },
       "output_format": {
-        "enum": ["jpg", "png"],
+        "enum": [
+          "jpg",
+          "png"
+        ],
         "title": "Output Format",
         "name": "output_format",
         "type": "string",
@@ -2073,7 +1848,16 @@ export const t2iModels = [
         ]
       },
       "aspect_ratio": {
-        "enum": ["1:1", "16:9", "9:16", "4:3", "3:4", "2:3", "3:2", "21:9"],
+        "enum": [
+          "1:1",
+          "16:9",
+          "9:16",
+          "4:3",
+          "3:4",
+          "2:3",
+          "3:2",
+          "21:9"
+        ],
         "title": "Aspect Ratio",
         "name": "aspect_ratio",
         "type": "string",
@@ -2081,7 +1865,10 @@ export const t2iModels = [
         "default": "1:1"
       },
       "quality": {
-        "enum": ["basic", "high"],
+        "enum": [
+          "basic",
+          "high"
+        ],
         "title": "Quality",
         "name": "quality",
         "type": "string",
@@ -2090,7 +1877,7 @@ export const t2iModels = [
       }
     }
   }
-];
+];;
 
 export const getModelById = (id) => t2iModels.find(m => m.id === id);
 
@@ -3745,179 +3532,6 @@ export const i2iModels = [
     }
   },
   {
-    "id": "higgsfield-soul-image-to-image",
-    "name": "Higgsfield Soul Image To Image",
-    "endpoint": "higgsfield-soul-image-to-image",
-    "family": "higgsfield",
-    "imageField": "image_url",
-    "hasPrompt": true,
-    "inputs": {
-      "prompt": {
-        "type": "string",
-        "title": "Prompt",
-        "name": "prompt",
-        "description": "Text prompt describing the image (max 1500 characters).",
-        "examples": [
-          "Transform into a cinematic editorial portrait — same woman now in a Parisian café at dusk, with soft neon reflections on the window, elegant lighting, subtle film grain. Style preset: Evening Editorial."
-        ]
-      },
-      "style": {
-        "type": "string",
-        "title": "Style",
-        "name": "style",
-        "description": "Choose preset for soul image generation.",
-        "enum": [
-          "Creatures",
-          "Medieval",
-          "Spotlight",
-          "Giant People",
-          "Red balloon",
-          "green editorial",
-          "Subway",
-          "Library",
-          "Realistic",
-          "DigitalCam",
-          "Grillz Selfie",
-          "Bleached Brows",
-          "Sitting on the Street",
-          "Crossing the street",
-          "Angel Wings",
-          "Duplicate",
-          "cocktail",
-          "Quiet luxury",
-          "Fireproof",
-          "Elevator Mirror",
-          "360 cam",
-          "Glitch",
-          "FashionShow",
-          "PixeletedFace",
-          "Sunbathing",
-          "Paper Face",
-          "90s Grain",
-          "Geominimal",
-          "Foggy Morning",
-          "Overexposed",
-          "Sunset beach",
-          "Giant Accessory",
-          "RingSelfie",
-          "Street view",
-          "90’s Editorial",
-          "Rhyme & blues",
-          "2000s Cam",
-          "CCTV",
-          "0.5 Outfit",
-          "Amalfi Summer",
-          "Bimbocore",
-          "0.5 Selfie",
-          "Sand",
-          "Vintage PhotoBooth",
-          "afterparty cam",
-          "Babydoll MakeUp",
-          "Through The Glass",
-          "Gallery",
-          "Eating Food",
-          "Swords Hill",
-          "Office beach",
-          "Help It's Too Big",
-          "Japandi",
-          "iPhone",
-          "Gorpcore",
-          "Indie sleaze",
-          "Fairycore",
-          "Tumblr",
-          "Avant-garde",
-          "HairClips",
-          "birthday mess",
-          "Clouded Dream",
-          "Y2K Posters",
-          "tokyo drift",
-          "Object Makeup",
-          "Graffiti",
-          "Sunburnt",
-          "hallway noir",
-          "2000s Fashion",
-          "Night Beach",
-          "Movie",
-          "Long legs",
-          "7\\",
-          "General",
-          "Nail Check",
-          "Coquette core",
-          "Mixed Media",
-          "Selfcare",
-          "Grunge",
-          "Double take",
-          "505room",
-          "Flight mode",
-          "Escalator",
-          "burgundy suit",
-          "Fisheye",
-          "Shoe Check",
-          "Rainy Day",
-          "Mt. Fuji",
-          "Sea breeze",
-          "Invertethereal",
-          "Y2K",
-          "Tokyo Streetstyle",
-          "chrome exit",
-          "Night rider",
-          "Artwork",
-          "Glazed doll skin makeup",
-          "mount view",
-          "2049",
-          "blackout fit",
-          "Bike mafia",
-          "static glow",
-          "Nicotine glow",
-          "brick shade",
-          "dmv",
-          "Fish-eye twin",
-          "It’s french"
-        ],
-        "default": "DigitalCam"
-      },
-      "aspect_ratio": {
-        "type": "string",
-        "title": "Aspect Ratio",
-        "name": "aspect_ratio",
-        "description": "Aspect ratio of the output image.",
-        "enum": [
-          "16:9",
-          "9:16",
-          "1:1",
-          "4:3",
-          "3:4",
-          "4:5",
-          "5:4",
-          "21:9",
-          "9:21"
-        ],
-        "default": "9:16"
-      },
-      "strength": {
-        "type": "int",
-        "title": "Strength",
-        "name": "strength",
-        "description": "The strength to use for the style.",
-        "default": 0.5,
-        "minValue": 0,
-        "maxValue": 1,
-        "step": 0.01
-      },
-      "quality": {
-        "type": "string",
-        "title": "Quality",
-        "name": "quality",
-        "description": "The resolution of the output image.",
-        "enum": [
-          "medium",
-          "high"
-        ],
-        "default": "medium"
-      }
-    }
-  },
-  {
     "id": "reve-image-edit",
     "name": "Reve Image Edit",
     "endpoint": "reve-image-edit",
@@ -4097,22 +3711,6 @@ export const i2iModels = [
           "4k"
         ],
         "default": "1k"
-      }
-    }
-  },
-  {
-    "id": "image-passthrough",
-    "name": "Image Passthrough",
-    "endpoint": "image-passthrough",
-    "family": "image",
-    "imageField": "image_url",
-    "hasPrompt": false,
-    "inputs": {
-      "make_input": {
-        "type": "boolean",
-        "title": "Make Input",
-        "name": "make_input",
-        "default": true
       }
     }
   },
@@ -4562,34 +4160,6 @@ export const i2iModels = [
     }
   },
   {
-    "id": "Api Node",
-    "name": "Api Node",
-    "endpoint": "Api Node",
-    "family": "wavespeed",
-    "imageField": "image_url",
-    "hasPrompt": false,
-    "inputs": {
-      "model_url": {
-        "type": "string",
-        "title": "Model URL",
-        "name": "model_url",
-        "description": "Url of the wavespeed model",
-        "examples": [
-          ""
-        ]
-      },
-      "api_key": {
-        "type": "string",
-        "title": "API Key",
-        "name": "api_key",
-        "description": "API key for authentication",
-        "examples": [
-          ""
-        ]
-      }
-    }
-  },
-  {
     "id": "flux-2-klein-4b-edit",
     "name": "Flux 2 Klein 4b Edit",
     "endpoint": "flux-2-klein-4b-edit",
@@ -4719,8 +4289,21 @@ export const i2iModels = [
       },
       "aspect_ratio": {
         "enum": [
-          "1:1", "1:4", "1:8", "2:3", "3:2", "3:4", "4:1", "4:3", "4:5",
-          "5:4", "8:1", "9:16", "16:9", "21:9", "auto"
+          "1:1",
+          "1:4",
+          "1:8",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:1",
+          "4:3",
+          "4:5",
+          "5:4",
+          "8:1",
+          "9:16",
+          "16:9",
+          "21:9",
+          "auto"
         ],
         "title": "Aspect Ratio",
         "name": "aspect_ratio",
@@ -4729,7 +4312,11 @@ export const i2iModels = [
         "default": "auto"
       },
       "resolution": {
-        "enum": ["1k", "2k", "4k"],
+        "enum": [
+          "1k",
+          "2k",
+          "4k"
+        ],
         "title": "Resolution",
         "name": "resolution",
         "type": "string",
@@ -4744,7 +4331,10 @@ export const i2iModels = [
         "default": false
       },
       "output_format": {
-        "enum": ["jpg", "png"],
+        "enum": [
+          "jpg",
+          "png"
+        ],
         "title": "Output Format",
         "name": "output_format",
         "type": "string",
@@ -4771,7 +4361,16 @@ export const i2iModels = [
         ]
       },
       "aspect_ratio": {
-        "enum": ["1:1", "16:9", "9:16", "4:3", "3:4", "2:3", "3:2", "21:9"],
+        "enum": [
+          "1:1",
+          "16:9",
+          "9:16",
+          "4:3",
+          "3:4",
+          "2:3",
+          "3:2",
+          "21:9"
+        ],
         "title": "Aspect Ratio",
         "name": "aspect_ratio",
         "type": "string",
@@ -4779,7 +4378,10 @@ export const i2iModels = [
         "default": "1:1"
       },
       "quality": {
-        "enum": ["basic", "high"],
+        "enum": [
+          "basic",
+          "high"
+        ],
         "title": "Quality",
         "name": "quality",
         "type": "string",
@@ -4788,7 +4390,7 @@ export const i2iModels = [
       }
     }
   }
-];
+];;
 
 // Auto-generated from schema_data.json — Image to Video models
 export const i2vModels = [
@@ -6431,177 +6033,6 @@ export const i2vModels = [
     }
   },
   {
-    "id": "higgsfield-dop-image-to-video",
-    "name": "Higgsfield Dop Image To Video",
-    "endpoint": "higgsfield-dop-image-to-video",
-    "family": "higgsfield",
-    "imageField": "image_url",
-    "hasPrompt": true,
-    "inputs": {
-      "prompt": {
-        "type": "string",
-        "title": "Prompt",
-        "name": "prompt",
-        "description": "Text prompt describing the video.",
-        "examples": [
-          "Rotate the camera around the scene."
-        ]
-      },
-      "motion": {
-        "type": "string",
-        "title": "Motion",
-        "name": "motion",
-        "description": "Terminoogies to use for transform.",
-        "enum": [
-          "360 Orbit",
-          "3D Rotation",
-          "Abstract",
-          "Action Run",
-          "Agent Reveal",
-          "Angel Wings",
-          "Arc Left",
-          "Arc Right",
-          "Baseball Kick",
-          "Basketball Dunks",
-          "Black Tears",
-          "Bloom Mouth",
-          "Boxing",
-          "Buckle Up",
-          "Building Explosion",
-          "Bullet Time",
-          "Car Chasing",
-          "Car Explosion",
-          "Car Grip",
-          "Catwalk",
-          "Clone Explosion",
-          "Crane Down",
-          "Crane Over The Head",
-          "Crane Up",
-          "Crash Zoom In",
-          "Crash Zoom Out",
-          "Datamosh",
-          "Diamond",
-          "Dirty Lens",
-          "Disintegration",
-          "Dolly In",
-          "Dolly Left",
-          "Dolly Out",
-          "Dolly Right",
-          "Dolly Zoom In",
-          "Dolly Zoom Out",
-          "Double Dolly",
-          "Downhill POV",
-          "Duplicate",
-          "Dutch Angle",
-          "Earth Zoom Out",
-          "Eyes In",
-          "Face Punch",
-          "Fire Breathe",
-          "Fisheye",
-          "Floating Fish",
-          "Flood",
-          "Floral Eyes",
-          "Flying",
-          "Focus Change",
-          "FPV Drone",
-          "Freezing",
-          "Garden Bloom",
-          "General",
-          "Glam",
-          "Glowing Fish",
-          "Glowshift",
-          "Handheld",
-          "Head Explosion",
-          "Head Off",
-          "Head Tracking",
-          "Hyperlapse",
-          "Incline",
-          "Innerlight",
-          "Invisible",
-          "Jelly Drift",
-          "Jib Down",
-          "Jib Up",
-          "Kiss",
-          "Lazy Susan",
-          "Lens Crack",
-          "Lens Flare",
-          "Levitation",
-          "Low Shutter",
-          "Medusa Gorgona",
-          "Melting",
-          "Moonwalk Left",
-          "Moonwalk Right",
-          "Morphskin",
-          "Mouth In",
-          "Object POV",
-          "Overhead",
-          "Paint Splash",
-          "Paparazzi",
-          "Powder Explosion",
-          "Push To Glass",
-          "Rap Flex",
-          "Robo Arm",
-          "Roll Transition",
-          "Sand Storm",
-          "Set on Fire",
-          "Skateboard Glide",
-          "Skateboard Ollie",
-          "Skate Cruise",
-          "Ski Carving",
-          "Skin Surge",
-          "Ski Powder",
-          "Snorricam",
-          "Snowboard Carving",
-          "Snowboard Powder",
-          "Soul Jump",
-          "Static",
-          "Super 8MM",
-          "Super Dolly In",
-          "Super Dolly Out",
-          "Tentacles",
-          "Through Object In",
-          "Through Object Out",
-          "Thunder God",
-          "Tilt Down",
-          "Tilt up",
-          "Timelapse Human",
-          "Timelapse Landscape",
-          "Turning Metal",
-          "VHS",
-          "Whip Pan",
-          "Wiggle",
-          "Wind to Face",
-          "YoYo Zoom",
-          "Zoom In",
-          "Zoom Out"
-        ],
-        "default": "Bullet Time"
-      },
-      "strength": {
-        "type": "int",
-        "title": "Strength",
-        "name": "strength",
-        "description": "The strength to use for the motion.",
-        "default": 1,
-        "minValue": 0,
-        "maxValue": 1,
-        "step": 0.01
-      },
-      "options": {
-        "type": "string",
-        "title": "Options",
-        "name": "options",
-        "description": "Model versions.",
-        "enum": [
-          "dop-lite",
-          "dop-turbo",
-          "dop-preview"
-        ],
-        "default": "dop-lite"
-      }
-    }
-  },
-  {
     "id": "veo3.1-image-to-video",
     "name": "Veo3.1 Image To Video",
     "endpoint": "veo3.1-image-to-video",
@@ -7896,7 +7327,12 @@ export const i2vModels = [
         "title": "Aspect Ratio",
         "name": "aspect_ratio",
         "description": "Aspect ratio of the output video.",
-        "enum": ["16:9", "9:16", "4:3", "3:4"],
+        "enum": [
+          "16:9",
+          "9:16",
+          "4:3",
+          "3:4"
+        ],
         "default": "16:9"
       },
       "duration": {
@@ -7904,7 +7340,11 @@ export const i2vModels = [
         "title": "Duration",
         "name": "duration",
         "description": "The duration of the generated video in seconds",
-        "enum": [5, 10, 15],
+        "enum": [
+          5,
+          10,
+          15
+        ],
         "default": 5
       },
       "quality": {
@@ -7912,12 +7352,15 @@ export const i2vModels = [
         "title": "Quality",
         "name": "quality",
         "description": "Quality of the generated video.",
-        "enum": ["high", "basic"],
+        "enum": [
+          "high",
+          "basic"
+        ],
         "default": "basic"
       }
     }
   }
-];
+];;
 
 export const getI2IModelById = (id) => i2iModels.find(m => m.id === id);
 export const getI2VModelById = (id) => i2vModels.find(m => m.id === id);
@@ -8187,23 +7630,13 @@ export const audioModels = [
     "hasPrompt": true,
     "hasAudio": true,
     "description": "Remix audio in a new style"
-  },
-  {
-    "id": "mmaudio-v2-text-to-audio",
-    "name": "MMAudio V2 Text-to-Audio",
-    "endpoint": "mmaudio-v2-text-to-audio",
-    "family": "audio",
-    "type": "tts",
-    "hasPrompt": true,
-    "description": "AI-powered text-to-audio generation"
   }
-];
+];;
 
 export const getAudioModelById = (id) => audioModels.find(m => m.id === id);
 
 // ─── Avatar models (Audio-to-Video, Lip Sync, AI Avatars) ─────────────────────────────────
 export const avatarModels = [
-  // Lip Sync
   {
     "id": "ltx-2.3-lipsync",
     "name": "LTX LipSync",
@@ -8251,7 +7684,7 @@ export const avatarModels = [
   {
     "id": "latent-sync",
     "name": "LatentSync",
-    "endpoint": "latent-sync",
+    "endpoint": "latentsync-video",
     "family": "avatar",
     "subtype": "lipsync",
     "hasVideo": true,
@@ -8259,7 +7692,6 @@ export const avatarModels = [
     "hasPrompt": false,
     "description": "Advanced latent space lip synchronization"
   },
-  // AI Avatars
   {
     "id": "kling-v2-avatar-pro",
     "name": "Kling Avatar v2 Pro",
@@ -8304,7 +7736,6 @@ export const avatarModels = [
     "hasPrompt": false,
     "description": "Standard AI avatar v1"
   },
-  // Speech to Video
   {
     "id": "wan2.2-speech-to-video",
     "name": "WAN 2.2 Speech to Video",
@@ -8316,7 +7747,6 @@ export const avatarModels = [
     "hasPrompt": false,
     "description": "Animate image from audio speech"
   },
-  // Talking Media
   {
     "id": "infinitetalk-image-to-video",
     "name": "InfiniteTalk Image to Video",
@@ -8338,35 +7768,13 @@ export const avatarModels = [
     "hasAudio": true,
     "hasPrompt": false,
     "description": "Lip sync video to video"
-  },
-  {
-    "id": "mmaudio-v2-video-to-video",
-    "name": "MMAudio V2 Video to Video",
-    "endpoint": "mmaudio-v2-video-to-video",
-    "family": "avatar",
-    "subtype": "audio-to-video",
-    "hasVideo": true,
-    "hasAudio": true,
-    "hasPrompt": false,
-    "description": "Generate video from audio"
   }
-];
+];;
 
 export const getAvatarModelById = (id) => avatarModels.find(m => m.id === id);
 
 // ─── Training models (LoRA Training) ─────────────────────────────────
 export const trainingModels = [
-  {
-    "id": "sdxl-lora",
-    "name": "SDXL LoRA",
-    "endpoint": "sdxl-lora",
-    "family": "training",
-    "subtype": "sdxl",
-    "hasImages": true,
-    "hasPrompt": false,
-    "description": "Train custom LoRA model for SDXL",
-    "requiresImages": true
-  },
   {
     "id": "wan2.1-lora-t2v",
     "name": "WAN 2.1 LoRA T2V",
@@ -8388,19 +7796,8 @@ export const trainingModels = [
     "hasPrompt": false,
     "description": "Train LoRA for image-to-video generation",
     "requiresImages": true
-  },
-  {
-    "id": "flux-dev-lora",
-    "name": "Flux LoRA",
-    "endpoint": "flux-dev-lora",
-    "family": "training",
-    "subtype": "flux",
-    "hasImages": true,
-    "hasPrompt": false,
-    "description": "Train custom LoRA for Flux models",
-    "requiresImages": true
   }
-];
+];;
 
 export const getTrainingModelById = (id) => trainingModels.find(m => m.id === id);
 
@@ -8545,15 +7942,6 @@ export const textModels = [
     "description": "Ultra-fast GPT-5 for simple tasks"
   },
   {
-    "id": "any-llm",
-    "name": "Any LLM",
-    "endpoint": "any-llm",
-    "family": "llm",
-    "type": "chat",
-    "hasPrompt": true,
-    "description": "Universal LLM endpoint for any model"
-  },
-  {
     "id": "openrouter-vision",
     "name": "OpenRouter Vision",
     "endpoint": "openrouter-vision",
@@ -8562,6 +7950,6 @@ export const textModels = [
     "hasPrompt": true,
     "description": "LLM with vision capabilities"
   }
-];
+];;
 
 export const getTextModelById = (id) => textModels.find(m => m.id === id);

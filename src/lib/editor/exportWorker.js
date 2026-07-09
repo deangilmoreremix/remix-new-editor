@@ -55,7 +55,7 @@ self.onmessage = async (event) => {
 
         if (videoBitmap) {
           try {
-            drawVideoFrame({ currentTime: i / totalFrames }, canvas, i / totalFrames);
+            drawVideoFrame(videoBitmap, canvas, i / totalFrames);
           } catch {
             // skip single frame draw errors
           }

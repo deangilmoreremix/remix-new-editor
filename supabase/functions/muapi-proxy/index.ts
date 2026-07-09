@@ -31,7 +31,7 @@ function checkRateLimit(clientId: string): boolean {
 interface GenerateRequest {
   endpoint: string;
   params?: Record<string, any>;
-  generationType?: 'image' | 'video' | 'i2i' | 'i2v' | 'v2v' | 'poll' | 'upload' | 'audio' | 'avatar' | 'text' | 'train' | 'video-tool' | 'lipsync';
+  generationType?: 'image' | 'video' | 'i2i' | 'i2v' | 'v2v' | 'poll' | 'upload' | 'audio' | 'avatar' | 'text' | 'train' | 'video-tool' | 'lipsync' | 'list';
   studioType?: string;
 }
 
@@ -65,20 +65,19 @@ function validateEndpoint(endpoint: string): boolean {
   return /^[a-z0-9][a-z0-9_.\/-]*$/.test(trimmed);
 }
 
-// Map legacy endpoint names to current muapi API names
+// Map legacy/short endpoint names to the real muapi API names.
+// IMPORTANT: the client already sends the canonical muapi route names
+// (e.g. `flux-dev-image`, `latentsync-video`, `generate_wan_ai_effects`,
+// `ai-image-upscale`). The earlier mapping stripped suffixes *away* from the
+// real names, which 404'd. This map only helps if a caller passes the old
+// short form; canonical names pass straight through.
 function normalizeLegacyEndpoint(endpoint: string): string {
   const map: Record<string, string> = {
-    // Image generation - codebase adds -image suffix, muapi doesn't
-    'flux-dev-image': 'flux-dev',
-    'flux-schnell-image': 'flux-schnell',
-    'flux-dev-lora': 'flux-dev-lora',
-    // Video / I2V routes - already mostly correct
-    'latentsync-video': 'latent-sync',
-    'generate_wan_ai_effects': 'ai-video-effects',
-    // Upscalers - muapi uses -er suffix
-    'ai-image-upscale': 'ai-image-upscaler',
-    'ai-video-upscaler': 'ai-video-upscaler',
-    'video-watermark-remover': 'video-watermark-remover',
+    'flux-dev': 'flux-dev-image',
+    'flux-schnell': 'flux-schnell-image',
+    'latent-sync': 'latentsync-video',
+    'ai-video-effects': 'generate_wan_ai_effects',
+    'ai-image-upscaler': 'ai-image-upscale',
   };
   return map[endpoint] || endpoint;
 }
@@ -164,7 +163,7 @@ Deno.serve(async (req: Request) => {
 
     const contentType = req.headers.get('content-type') || '';
     const isMultipart = contentType.startsWith('multipart/');
-    const method = generationType === 'poll' ? 'GET' : 'POST';
+    const method = (generationType === 'poll' || generationType === 'list') ? 'GET' : 'POST';
     const fetchOptions: RequestInit = {
       method,
       headers: {

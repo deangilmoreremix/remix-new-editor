@@ -4,18 +4,36 @@
  */
 
 import { openaiConfig } from './config/openaiConfig.js';
+import { apiKeyManager } from './apiKeyManager.js';
+import { muapi } from './muapi.js';
 
-const MUAPI_API_URL = 'https://api.muapi.ai/api/v1/chat/completions';
-const MUAPI_IMAGES_URL = 'https://api.muapi.ai/api/v1/images';
-const MUAPI_RESPONSES_URL = 'https://api.muapi.ai/api/v1/responses';
+const MUAPI_PROXY_URL = (typeof window !== 'undefined' && window.__MUAPI_PROXY_URL__)
+  || (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL
+    ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/muapi-proxy`
+    : '/functions/v1/muapi-proxy');
 
 class OpenAIService {
   constructor() {
-    // Use centralized configuration
     this.config = openaiConfig;
-    this.model = 'gpt-4'; // Can be configured
+    this.model = 'gpt-4';
     this.maxTokens = 2000;
     this.temperature = 0.7;
+  }
+
+  _getKey() {
+    return apiKeyManager.getKey();
+  }
+
+  _hasKey() {
+    return apiKeyManager.hasKey();
+  }
+
+  _headers() {
+    const key = this._getKey();
+    return {
+      'Content-Type': 'application/json',
+      ...(key ? { 'x-api-key': key } : {}),
+    };
   }
 
   /**
@@ -38,7 +56,9 @@ class OpenAIService {
     focus = [],
     cinematicOptions = {}
   }) {
-    this.config.validateApiKey();
+    if (!this._hasKey()) {
+      throw new Error('MuAPI key not configured. Please set your API key in Settings.');
+    }
 
     const systemPrompt = this.buildSystemPrompt(role, industry, methodology, tonality, focus, cinematicOptions);
     const userPrompt = `Base prompt: "${basePrompt}"
@@ -46,40 +66,39 @@ class OpenAIService {
 Please enhance this prompt using the specified GTM methodologies and create a comprehensive, conversion-optimized prompt for video generation.`;
 
     try {
-      const response = await fetch(OPENAI_API_URL, {
+      const response = await fetch(MUAPI_PROXY_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.getApiKey()}`
-        },
+        headers: this._headers(),
         body: JSON.stringify({
-          model: this.model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          max_tokens: this.maxTokens,
-          temperature: this.temperature
+          endpoint: 'text',
+          params: {
+            prompt: userPrompt,
+            system_prompt: systemPrompt,
+            model: this.config.getImageModel?.() || 'gpt-4',
+            temperature: this.temperature,
+            max_tokens: this.maxTokens,
+          },
+          generationType: 'text',
+          studioType: 'chat'
         })
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
+        const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+        throw new Error(`API error: ${error.error?.message || 'Unknown error'}`);
       }
 
       const data = await response.json();
-      const enhancedPrompt = data.choices[0]?.message?.content?.trim();
+      const enhancedPrompt = data.outputs?.[0] || data.output?.text || data.text;
 
       if (!enhancedPrompt) {
-        throw new Error('No response generated from OpenAI');
+        throw new Error('No response generated');
       }
 
       return this.formatEnhancedPrompt(enhancedPrompt, basePrompt);
 
     } catch (error) {
-      console.error('OpenAI generation failed:', error);
-      // Fallback to template-based generation
+      console.error('GTM prompt generation failed:', error);
       return this.generateFallbackPrompt({
         basePrompt,
         role,
@@ -491,56 +510,106 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     background = "auto",
     output_format = "png",
     output_compression,
-    moderation = "auto"
+    moderation = "auto",
+    model
   }) {
-    this.config.validateApiKey();
+    if (!this._hasKey()) {
+      throw new Error('MuAPI key not configured. Please set your API key in Settings.');
+    }
 
-     try {
-       const requestBody = {
-         model: this.config.getImageModel(),
-         prompt,
-         n,
-         size,
-         quality,
-         style,
-         background,
-         output_format,
-         response_format: 'b64_json',
-         moderation
-       };
+    const imageModel = model || this.config.getImageModel?.() || 'flux-schnell';
 
-       // Only include compression if specified and format supports it
-       if (output_compression !== undefined && ['jpeg', 'webp'].includes(output_format)) {
-         requestBody.output_compression = output_compression;
-       }
+    try {
+      const requestBody = {
+        model: imageModel,
+        prompt,
+        n,
+        size,
+        quality,
+        style,
+        background,
+        output_format,
+        response_format: 'b64_json',
+        moderation
+      };
 
-       const response = await fetch(`${OPENAI_IMAGES_URL}/generations`, {
-         method: 'POST',
-         headers: {
-           'Content-Type': 'application/json',
-           'Authorization': `Bearer ${this.config.getApiKey()}`
-         },
-         body: JSON.stringify(requestBody)
-       });
+      if (output_compression !== undefined && ['jpeg', 'webp'].includes(output_format)) {
+        requestBody.output_compression = output_compression;
+      }
+
+      const response = await fetch(MUAPI_PROXY_URL, {
+        method: 'POST',
+        headers: this._headers(),
+        body: JSON.stringify({
+          endpoint: imageModel,
+          params: requestBody,
+          generationType: 'image',
+          studioType: 'image'
+        })
+      });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`OpenAI Image API error: ${error.error?.message || 'Unknown error'}`);
+        const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+        throw new Error(`Image generation failed: ${error.error?.message || error.details || 'Unknown error'}`);
       }
 
       const data = await response.json();
+      const requestId = data.request_id || data.id;
+      if (!requestId) {
+        return {
+          images: (data.outputs || data.data || []).map(url => ({ url })),
+          usage: data.usage
+        };
+      }
+
+      const result = await this._pollImageResult(requestId);
       return {
-        images: data.data.map(img => ({
-          base64: img.b64_json,
-          revised_prompt: img.revised_prompt
-        })),
-        usage: data.usage
+        images: (result.outputs || []).map(url => ({ url })),
+        usage: result.usage
       };
 
     } catch (error) {
-      console.error('OpenAI image generation failed:', error);
+      console.error('Image generation failed:', error);
       throw error;
     }
+  }
+
+  async _pollImageResult(requestId, maxAttempts = 60, baseInterval = 2000) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      await new Promise(resolve => setTimeout(resolve, baseInterval));
+
+      try {
+        const response = await fetch(MUAPI_PROXY_URL, {
+          method: 'POST',
+          headers: this._headers(),
+          body: JSON.stringify({
+            endpoint: `predictions/${requestId}/result`,
+            params: {},
+            generationType: 'poll'
+          })
+        });
+
+        if (!response.ok) {
+          if (response.status >= 500) continue;
+          throw new Error(`Poll failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const status = data.status?.toLowerCase();
+
+        if (status === 'completed' || status === 'succeeded' || status === 'success') {
+          return data;
+        }
+
+        if (status === 'failed' || status === 'error') {
+          throw new Error(`Generation failed: ${data.error || 'Unknown error'}`);
+        }
+      } catch (error) {
+        if (attempt === maxAttempts) throw error;
+      }
+    }
+
+    throw new Error('Image generation timed out after polling.');
   }
 
   /**
@@ -555,7 +624,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
    */
   async editImage({
     image,
-    images = [], // Array of additional reference images
+    images = [],
     mask,
     prompt,
     n = 1,
@@ -568,66 +637,67 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     input_fidelity = "auto",
     moderation = "auto"
   }) {
-    this.config.validateApiKey();
+    if (!this._hasKey()) {
+      throw new Error('MuAPI key not configured. Please set your API key in Settings.');
+    }
 
     try {
-      const formData = new FormData();
+      const imagePayload = {
+        prompt,
+        n,
+        size,
+        quality,
+        style,
+        background,
+        output_format,
+        response_format: 'b64_json',
+        input_fidelity,
+        moderation
+      };
 
-      // Convert base64 to blob for FormData
-      const imageBlob = this.base64ToBlob(image);
-      const maskBlob = mask ? this.base64ToBlob(mask) : null;
-
-      formData.append('model', this.config.getImageModel());
-      formData.append('image', imageBlob, 'image.png');
-
-      // Add additional reference images if provided
-      if (images && images.length > 0) {
-        images.forEach((img, index) => {
-          const imgBlob = this.base64ToBlob(img);
-          formData.append('image', imgBlob, `reference_${index}.png`);
-        });
-      }
-
-      if (maskBlob) {
-        formData.append('mask', maskBlob, 'mask.png');
-      }
-
-      formData.append('prompt', prompt);
-      formData.append('n', n.toString());
-      formData.append('size', size);
-      formData.append('quality', quality);
-      formData.append('style', style);
-      formData.append('background', background);
-       formData.append('output_format', output_format);
-       formData.append('response_format', 'b64_json');
-       formData.append('input_fidelity', input_fidelity);
-      formData.append('moderation', moderation);
-
-      // Only include compression if specified and format supports it
       if (output_compression !== undefined && ['jpeg', 'webp'].includes(output_format)) {
-        formData.append('output_compression', output_compression.toString());
+        imagePayload.output_compression = output_compression;
       }
 
-      const response = await fetch(`${OPENAI_IMAGES_URL}/edits`, {
+      if (mask) {
+        imagePayload.mask_image = mask;
+      }
+
+      const primaryImage = images.length > 0 ? images[0] : image;
+
+      const response = await fetch(MUAPI_PROXY_URL, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.config.getApiKey()}`
-        },
-        body: formData
+        headers: this._headers(),
+        body: JSON.stringify({
+          endpoint: 'i2i',
+          params: {
+            ...imagePayload,
+            image_url: primaryImage,
+            images_list: images.length > 0 ? images : undefined,
+          },
+          generationType: 'i2i',
+          studioType: 'edit'
+        })
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`OpenAI Image Edit API error: ${error.error?.message || 'Unknown error'}`);
+        const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+        throw new Error(`Image edit failed: ${error.error?.message || error.details || 'Unknown error'}`);
       }
 
-      const data = await response.json();
+      const submitData = await response.json();
+      const requestId = submitData.request_id || submitData.id;
+      if (!requestId) {
+        return {
+          images: (submitData.outputs || submitData.data || []).map(url => ({ url })),
+          usage: submitData.usage
+        };
+      }
+
+      const result = await this._pollImageResult(requestId);
       return {
-        images: data.data.map(img => ({
-          base64: img.b64_json,
-          revised_prompt: img.revised_prompt
-        })),
-        usage: data.usage
+        images: (result.outputs || []).map(url => ({ url })),
+        usage: result.usage
       };
 
     } catch (error) {
@@ -636,14 +706,6 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     }
   }
 
-  /**
-   * Generate variations of an existing image
-   * @param {Object} params - Variation parameters
-   * @param {string} params.image - Base64 encoded image
-   * @param {number} params.n - Number of variations (1-10)
-   * @param {string} params.size - Image size
-   * @returns {Promise<Object>} Image variations
-   */
   async generateVariations({
     image,
     n = 1,
@@ -651,43 +713,56 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     output_format = "png",
     output_compression
   }) {
-    this.config.validateApiKey();
+    if (!this._hasKey()) {
+      throw new Error('MuAPI key not configured. Please set your API key in Settings.');
+    }
 
     try {
-      const formData = new FormData();
-      const imageBlob = this.base64ToBlob(image);
+      const requestBody = {
+        model: this.config.getImageModel?.(),
+        n,
+        size,
+        output_format,
+        response_format: 'b64_json'
+      };
 
-      formData.append('model', this.config.getImageModel());
-      formData.append('image', imageBlob, 'image.png');
-      formData.append('n', n.toString());
-      formData.append('size', size);
-       formData.append('output_format', output_format);
-       formData.append('response_format', 'b64_json');
-
-       // Only include compression if specified and format supports it
       if (output_compression !== undefined && ['jpeg', 'webp'].includes(output_format)) {
-        formData.append('output_compression', output_compression.toString());
+        requestBody.output_compression = output_compression;
       }
 
-      const response = await fetch(`${OPENAI_IMAGES_URL}/variations`, {
+      const response = await fetch(MUAPI_PROXY_URL, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.config.getApiKey()}`
-        },
-        body: formData
+        headers: this._headers(),
+        body: JSON.stringify({
+          endpoint: 'i2i',
+          params: {
+            ...requestBody,
+            image_url: image,
+            strength: 0.7,
+          },
+          generationType: 'i2i',
+          studioType: 'edit'
+        })
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`OpenAI Image Variations API error: ${error.error?.message || 'Unknown error'}`);
+        const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+        throw new Error(`Image variations failed: ${error.error?.message || error.details || 'Unknown error'}`);
       }
 
-      const data = await response.json();
+      const submitData = await response.json();
+      const requestId = submitData.request_id || submitData.id;
+      if (!requestId) {
+        return {
+          images: (submitData.outputs || submitData.data || []).map(url => ({ url })),
+          usage: submitData.usage
+        };
+      }
+
+      const result = await this._pollImageResult(requestId);
       return {
-        images: data.data.map(img => ({
-          base64: img.b64_json
-        })),
-        usage: data.usage
+        images: (result.outputs || []).map(url => ({ url })),
+        usage: result.usage
       };
 
     } catch (error) {
@@ -696,14 +771,6 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     }
   }
 
-  /**
-   * Stream image generation for real-time feedback
-   * @param {Object} params - Streaming parameters
-   * @param {string} params.prompt - Generation prompt
-   * @param {Function} params.onPartialImage - Callback for partial images
-   * @param {number} params.partialImages - Number of partial images (0-3)
-   * @returns {Promise<Object>} Final generated images
-   */
   async streamImageGeneration({
     prompt,
     onPartialImage,
@@ -716,146 +783,66 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     output_compression,
     moderation = "auto"
   }) {
-    this.config.validateApiKey();
-
-     try {
-       const requestBody = {
-         model: this.config.getImageModel(),
-         prompt,
-         stream: true,
-         partial_images: partialImages,
-         size,
-         quality,
-         style,
-         background,
-         output_format,
-         response_format: 'b64_json',
-         moderation
-       };
-
-       // Only include compression if specified and format supports it
-       if (output_compression !== undefined && ['jpeg', 'webp'].includes(output_format)) {
-         requestBody.output_compression = output_compression;
-       }
-
-       const response = await fetch(`${OPENAI_IMAGES_URL}/generations`, {
-         method: 'POST',
-         headers: {
-           'Content-Type': 'application/json',
-           'Authorization': `Bearer ${this.config.getApiKey()}`
-         },
-         body: JSON.stringify(requestBody)
-       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`OpenAI Streaming API error: ${error.error?.message || 'Unknown error'}`);
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let finalImages = [];
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n').filter(line => line.trim());
-
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.type === 'image_generation.partial_image') {
-                onPartialImage?.(parsed);
-              } else if (parsed.type === 'image_generation.complete') {
-                finalImages = parsed.data.map(img => ({
-                  base64: img.b64_json,
-                  revised_prompt: img.revised_prompt
-                }));
-              }
-            } catch (e) {
-              console.warn('Failed to parse streaming data:', e);
-            }
-          }
-        }
-      }
-
-      return { images: finalImages };
-
-    } catch (error) {
-      console.error('OpenAI streaming failed:', error);
-      throw error;
-    }
+    throw new Error('Streaming image generation is not supported via the native MuAPI. Use the ai-thumbnail-generator edge function for streaming responses.');
   }
 
-  /**
-   * Multi-turn image editing using Responses API for conversational editing
-   * @param {Object} params - Multi-turn parameters
-   * @param {string} params.input - User instruction for editing
-   * @param {string} params.previousResponseId - ID from previous response (for continuation)
-   * @param {Array} params.imageInputs - Previous images in context
-   * @returns {Promise<Object>} Edited images with conversation context
-   */
   async multiTurnImageEditing({
     input,
     previousResponseId,
     imageInputs = []
   }) {
-    this.config.validateApiKey();
+    if (!this._hasKey()) {
+      throw new Error('MuAPI key not configured. Please set your API key in Settings.');
+    }
 
-    try {
-      const messages = [];
-      const tools = [{ type: "image_generation" }];
+    const imageGenTool = { type: "image_generation" };
 
-      // Add previous images to context
-      if (imageInputs.length > 0) {
-        messages.push({
-          role: "user",
-          content: imageInputs.map(img => ({
-            type: "image_url",
-            image_url: { url: `data:image/png;base64,${img.base64}` }
-          }))
-        });
-      }
-
+    const messages = [];
+    if (imageInputs.length > 0) {
       messages.push({
         role: "user",
-        content: [{ type: "input_text", text: input }]
+        content: imageInputs.map(img => ({
+          type: "image_url",
+          image_url: { url: `data:image/png;base64,${img.base64}` }
+        }))
       });
+    }
 
-      const requestBody = {
-        model: "gpt-4.1", // Updated to valid model for Responses API
-        input: messages,
-        tools
-      };
+    messages.push({
+      role: "user",
+      content: [{ type: "input_text", text: input }]
+    });
 
-      if (previousResponseId) {
-        requestBody.previous_response_id = previousResponseId;
-      }
+    const reqBody = {
+      model: "gpt-4.1",
+      input: messages,
+      tools: [imageGenTool]
+    };
 
-      const response = await fetch(OPENAI_RESPONSES_URL, {
+    if (previousResponseId) {
+      reqBody.previous_response_id = previousResponseId;
+    }
+
+    try {
+      const response = await fetch(MUAPI_PROXY_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.getApiKey()}`
-        },
-        body: JSON.stringify(requestBody)
+        headers: this._headers(),
+        body: JSON.stringify({
+          endpoint: 'responses',
+          params: reqBody,
+          generationType: 'responses',
+          studioType: 'image'
+        })
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`OpenAI Responses API error: ${error.error?.message || 'Unknown error'}`);
+        const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+        throw new Error(`Responses API error: ${error.error?.message || error.details || 'Unknown error'}`);
       }
 
       const data = await response.json();
 
-      // Extract image generation results
-      const imageResults = data.output
+      const imageResults = (data.output || [])
         .filter(output => output.type === 'image_generation_call')
         .map(output => ({
           base64: output.result,
@@ -870,7 +857,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
       };
 
     } catch (error) {
-      console.error('OpenAI multi-turn editing failed:', error);
+      console.error('Multi-turn editing failed:', error);
       throw error;
     }
   }

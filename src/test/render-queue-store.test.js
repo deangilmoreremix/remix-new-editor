@@ -29,13 +29,20 @@ describe('renderQueueStore', () => {
     };
 
     global.localStorage = localStorageMock;
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
     localStorageMock.clear();
     global.localStorage = originalLocalStorage;
+    vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.clearAllTimers();
   });
+
+  async function waitForJobCompletion() {
+    await vi.advanceTimersByTimeAsync(1100);
+  }
 
   describe('listRenderQueue', () => {
     it('returns empty queue when nothing stored', () => {
@@ -106,12 +113,13 @@ describe('renderQueueStore', () => {
   });
 
   describe('processNextJob', () => {
-    it('updates job status from queued to completed', () => {
+    it('updates job status from queued to processing then completed', async () => {
       const entry = enqueueRender({ payload: 'test' });
       const result = processNextJob();
 
       expect(result).not.toBeNull();
-      expect(result.status).toBe('completed');
+      expect(result.status).toBe('processing');
+      await waitForJobCompletion();
       const updated = listRenderQueue();
       expect(updated[0].status).toBe('completed');
     });
@@ -120,9 +128,10 @@ describe('renderQueueStore', () => {
       expect(processNextJob()).toBeNull();
     });
 
-    it('returns null when no queued jobs remain', () => {
+    it('returns null when no queued jobs remain', async () => {
       enqueueRender({ payload: 'a' });
       processNextJob();
+      await waitForJobCompletion();
       expect(processNextJob()).toBeNull();
     });
   });
@@ -142,22 +151,26 @@ describe('renderQueueStore', () => {
   });
 
   describe('stopProcessor', () => {
-    it('stops the processing interval', () => {
+    it('stops the processing interval', async () => {
       startProcessor(1000);
       stopProcessor();
       const entry = enqueueRender({ payload: 'after-stop' });
       processNextJob();
+      await waitForJobCompletion();
       expect(listRenderQueue()[0].status).toBe('completed');
     });
   });
 
   describe('concurrent processing guard', () => {
-    it('does not process when already processing', () => {
+    it('does not process when already processing', async () => {
       enqueueRender({ payload: 'a' });
       enqueueRender({ payload: 'b' });
 
       processNextJob();
-      expect(listRenderQueue().filter((e) => e.status === 'queued')).toHaveLength(1);
+      await waitForJobCompletion();
+      const queue = listRenderQueue();
+      const stillQueued = queue.filter((e) => e.status === 'queued');
+      expect(stillQueued).toHaveLength(1);
     });
   });
 });

@@ -40,7 +40,6 @@ import { whisperService } from '../services/whisper-client.js';
 import { EndScreenModal } from './modals/EndScreenModal.jsx';
 import { SaveProjectModal } from './modals/SaveProjectModal.jsx';
 import { SettingsModal } from './modals/SettingsModal.jsx';
-import { BillingModal } from './modals/BillingModal.jsx';
 import { ConnectModal } from './modals/ConnectModal.jsx';
 import { PreviewMediaModal } from './modals/PreviewMediaModal.jsx';
 import { VideoPlayerModal } from './modals/VideoPlayerModal.jsx';
@@ -1247,20 +1246,6 @@ export function TimelineEditorPage() {
       }
     }
 
-    function openBillingModal(state, showToast) {
-      try {
-        const modal = new BillingModal({
-          onComplete: (result) => {
-  // DISABLED:             
-          },
-          onError: (error) => console.log(`Billing update failed: ${error}`, 'error')
-        });
-        modal.open();
-      } catch (error) {
-  // DISABLED:         
-      }
-    }
-
     function openConnectModal(state, showToast) {
       try {
         const modal = new ConnectModal({
@@ -1404,12 +1389,9 @@ export function TimelineEditorPage() {
                openSaveProjectModal(state, showToast);
                break;
              // Duplicate case removed
-            case '💳':
-              openBillingModal(state, showToast);
-              break;
-            case '🔗':
-              openConnectModal(state, showToast);
-              break;
+             case '🔗':
+               openConnectModal(state, showToast);
+               break;
             case '👀':
               openPreviewMediaModal(state, showToast);
               break;

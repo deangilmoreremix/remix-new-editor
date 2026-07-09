@@ -154,12 +154,64 @@ function securityHeaders() {
     };
 }
 
+// Resolve the project root for use by plugins below
+const PROJECT_ROOT = __dirname;
+
+/**
+ * modelCatalogBuildPlugin — runs at build time (vite build).
+ *
+ * Reads src/lib/models.js and src/lib/modelDescriptions.js and emits
+ * public/api/model-catalog.json so Netlify can serve /api/model-catalog
+ * as a static file without a running backend process.
+ */
+function modelCatalogBuildPlugin() {
+  return {
+    name: 'model-catalog-build',
+    enforce: 'post',
+    generateBundle(_options, _bundle) {
+      try {
+        const modelsMod = require(path.join(PROJECT_ROOT, 'src/lib/models.js'));
+        const descMod   = require(path.join(PROJECT_ROOT, 'src/lib/modelDescriptions.js'));
+        const DESCRIPTIONS = descMod.DESCRIPTIONS || {};
+
+        const seen = new Set();
+        const unique = (list, type) => {
+          const out = [];
+          for (const m of list) {
+            if (seen.has(m.id)) continue;
+            seen.add(m.id);
+            const desc = (DESCRIPTIONS[type] || {})[m.id] || null;
+            out.push({ id: m.id, name: m.name, ...(desc ? { description: desc } : {}) });
+          }
+          return out;
+        };
+
+        const catalog = {
+          t2i: unique(modelsMod.t2iModels || [], 't2i'),
+          i2i: unique(modelsMod.i2iModels || [], 'i2i'),
+          i2v: unique(modelsMod.i2vModels || [], 'i2v'),
+        };
+        const total = catalog.t2i.length + catalog.i2i.length + catalog.i2v.length;
+        this.emitFile({
+          type: 'asset',
+          fileName: 'api/model-catalog.json',
+          source: JSON.stringify(catalog),
+        });
+        console.log(`[model-catalog] Emitted api/model-catalog.json (${total} models)`);
+      } catch (e) {
+        console.warn('[model-catalog] Build plugin skipped:', e.message);
+      }
+    },
+  };
+}
+
 export default defineConfig({
     plugins: [
         tailwindcss(),
         react(),
         securityHeaders(),
         stubLegacy(),
+        modelCatalogBuildPlugin(),
     ],
     resolve: {
         alias: {
@@ -190,6 +242,10 @@ export default defineConfig({
                 changeOrigin: true,
             },
             '/videoagent': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
+            '/api/model-catalog': {
                 target: 'http://localhost:3001',
                 changeOrigin: true,
             },

@@ -5,7 +5,7 @@
  * Provides five actions: prompts, generate, refine, inpaint, save.
  */
 
-import { supabase } from './supabase.js';
+import { supabase, getSupabaseUrl, getSupabaseAnonKey } from './supabase.js';
 
 const EDGE_FUNCTION = 'ai-thumbnail-generator';
 
@@ -74,7 +74,7 @@ export class ThumbnailService {
     return { candidates: data?.candidates || [], params: data?.params || null };
   }
 
-  async refineLastImage(opts) {
+  async refineLastImage(opts = {}) {
     const body = {
       action: 'refine',
       prompt: opts.prompt,
@@ -98,7 +98,96 @@ export class ThumbnailService {
     return data?.result;
   }
 
-  async inpaint(opts) {
+  /**
+   * Streaming variant of `refineLastImage`.
+   *
+   * Since `@supabase/functions-js` (v2.110.1) has no streaming callback support,
+   * we call the Edge Function directly with `fetch` and read the SSE body
+   * stream ourselves. The Edge Function emits newline-delimited SSE events:
+   *   { type: 'partial', b64 }       — incremental partial-image preview
+   *   { type: 'done',    result }    — final image_generation result
+   *   { type: 'error',   message }   — terminal error
+   *
+   * @param {Object} opts              same control object as refineLastImage
+   * @param {Object} callbacks         { onPartial(b64), onDone(result), onError(err) }
+   * @returns {Promise<void>}
+   */
+  async refineLastImageStream(opts, callbacks = {}) {
+    const { onPartial, onDone, onError } = callbacks;
+    const url = `${getSupabaseUrl()}/functions/v1/${EDGE_FUNCTION}`;
+
+    const body = {
+      action: 'refine',
+      prompt: opts.prompt,
+      previousResponseId: opts.previousResponseId || '',
+      stream: true,
+    };
+    if (opts.quality) body.quality = opts.quality;
+    if (opts.background) body.background = opts.background;
+    if (opts.outputFormat) body.outputFormat = opts.outputFormat;
+    if (typeof opts.outputCompression === 'number') body.outputCompression = opts.outputCompression;
+    if (typeof opts.partialImages === 'number') body.partialImages = opts.partialImages;
+    if (typeof opts.store === 'boolean') body.store = opts.store;
+    if (Array.isArray(opts.include) && opts.include.length) body.include = opts.include;
+    if (opts.referenceImageB64) body.referenceImageB64 = opts.referenceImageB64;
+    if (opts.referenceImageUrl) body.referenceImageUrl = opts.referenceImageUrl;
+    if (opts.referenceImageFileId) body.referenceImageFileId = opts.referenceImageFileId;
+    if (opts.imageDetail) body.imageDetail = opts.imageDetail;
+
+    let res;
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getSupabaseAnonKey()}`,
+          apikey: getSupabaseAnonKey(),
+        },
+        body: JSON.stringify(body),
+      });
+    } catch (err) {
+      onError?.(err);
+      return;
+    }
+
+    if (!res.ok || !res.body) {
+      let detail = '';
+      try { detail = await res.text(); } catch { /* ignore */ }
+      onError?.(new Error(detail || `Refine stream failed (${res.status})`));
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let sep;
+        while ((sep = buffer.indexOf('\n\n')) !== -1) {
+          const raw = buffer.slice(0, sep);
+          buffer = buffer.slice(sep + 2);
+          const dataLine = raw.split('\n').find((l) => l.startsWith('data:'));
+          if (!dataLine) continue;
+          const payload = dataLine.slice(5).trim();
+          if (!payload) continue;
+          let evt;
+          try { evt = JSON.parse(payload); } catch { continue; }
+          if (evt.type === 'partial') onPartial?.(evt.b64);
+          else if (evt.type === 'done') onDone?.(evt.result);
+          else if (evt.type === 'error') onError?.(new Error(evt.message));
+        }
+      }
+    } catch (err) {
+      onError?.(err);
+    }
+  }
+
+  async inpaint(opts = {}) {
     const body = {
       action: 'inpaint',
       prompt: opts.prompt,
@@ -116,7 +205,7 @@ export class ThumbnailService {
     return data?.result;
   }
 
-  async saveToStorage(opts) {
+  async saveToStorage(opts = {}) {
     const userId = this.options.userId || await this.currentUserId();
     if (!userId) throw new Error('User not authenticated');
 
