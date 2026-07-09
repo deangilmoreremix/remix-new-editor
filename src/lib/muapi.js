@@ -571,15 +571,23 @@ export class MuapiClient {
     async generateVideoEffect(params, signal) {
         const endpoint = 'generate_wan_ai_effects';
 
+        // Enforce the documented contract up front so we never send an
+        // invalid `name`/`resolution` and get an opaque "Invalid input" 400.
+        if (!params.name || typeof params.name !== 'string' || !params.name.trim()) {
+            throw new Error('generateVideoEffect requires a non-empty `name` (effect preset).');
+        }
+        const resolution = ['480p', '720p'].includes(params.resolution) ? params.resolution : '480p';
+        const quality = ['medium', 'high'].includes(params.quality) ? params.quality : 'medium';
+
         const finalPayload = {};
 
         if (params.prompt) finalPayload.prompt = params.prompt;
         if (params.image_url) finalPayload.image_url = params.image_url;
         if (params.video_url) finalPayload.video_url = params.video_url;
-        if (params.name) finalPayload.name = params.name;
+        finalPayload.name = params.name.trim();
         if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
-        if (params.resolution) finalPayload.resolution = params.resolution;
-        if (params.quality) finalPayload.quality = params.quality;
+        finalPayload.resolution = resolution;
+        finalPayload.quality = quality;
         if (params.duration) finalPayload.duration = params.duration;
 
         try {

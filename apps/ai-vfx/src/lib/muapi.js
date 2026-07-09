@@ -94,9 +94,26 @@ export async function imageToVideo(imageUrl, options = {}) {
   return response.json()
 }
 
-export async function applyVFX(imageUrl, prompt, name, options = {}) {
+const WAN_VALID_RESOLUTIONS = ['480p', '720p']
+const WAN_VALID_QUALITIES = ['medium', 'high']
+
+// Validate and normalize params for the generate_wan_ai_effects endpoint.
+// Prevents the API's opaque "Invalid input" 400/422 by enforcing the documented
+// contract up front and surfacing a clear, actionable error otherwise.
+function normalizeWanParams(name, options = {}) {
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    throw new Error('An effect name is required to apply a video effect.')
+  }
+  const resolution = WAN_VALID_RESOLUTIONS.includes(options.resolution) ? options.resolution : '480p'
+  const quality = WAN_VALID_QUALITIES.includes(options.quality) ? options.quality : 'medium'
+  return { name: name.trim(), resolution, quality }
+}
+
+async function submitWanEffect(imageUrl, prompt, name, options = {}) {
   const apiKey = getApiKey()
   if (!apiKey) throw new Error('VITE_MUAPI_KEY not configured')
+
+  const { resolution, quality } = normalizeWanParams(name, options)
 
   const response = await fetch(`${MUAPI_BASE_URL}/generate_wan_ai_effects`, {
     method: 'POST',
@@ -106,58 +123,33 @@ export async function applyVFX(imageUrl, prompt, name, options = {}) {
       prompt,
       name,
       aspect_ratio: options.aspectRatio || '16:9',
-      resolution: options.resolution || '480p',
-      quality: options.quality || 'medium',
+      resolution,
+      quality,
       duration: options.duration || 5
     })
   })
 
-  if (!response.ok) throw new Error(`VFX generation failed: ${response.status}`)
+  if (!response.ok) {
+    let detail = ''
+    try {
+      const body = await response.json()
+      detail = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail || '')
+    } catch { /* ignore parse errors */ }
+    throw new Error(`Video effect "${name}" failed (${response.status}). ${detail || 'The effect may be unavailable.'}`)
+  }
   return response.json()
+}
+
+export async function applyVFX(imageUrl, prompt, name, options = {}) {
+  return submitWanEffect(imageUrl, prompt, name, options)
 }
 
 export async function applyMotion(imageUrl, prompt, name, options = {}) {
-  const apiKey = getApiKey()
-  if (!apiKey) throw new Error('VITE_MUAPI_KEY not configured')
-
-  const response = await fetch(`${MUAPI_BASE_URL}/generate_wan_ai_effects`, {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({
-      image_url: imageUrl,
-      prompt,
-      name,
-      aspect_ratio: options.aspectRatio || '16:9',
-      resolution: options.resolution || '480p',
-      quality: options.quality || 'medium',
-      duration: options.duration || 5
-    })
-  })
-
-  if (!response.ok) throw new Error(`Motion generation failed: ${response.status}`)
-  return response.json()
+  return submitWanEffect(imageUrl, prompt, name, options)
 }
 
 export async function applyAIEffects(imageUrl, prompt, name, options = {}) {
-  const apiKey = getApiKey()
-  if (!apiKey) throw new Error('VITE_MUAPI_KEY not configured')
-
-  const response = await fetch(`${MUAPI_BASE_URL}/generate_wan_ai_effects`, {
-    method: 'POST',
-    headers: headers(),
-    body: JSON.stringify({
-      image_url: imageUrl,
-      prompt,
-      name,
-      aspect_ratio: options.aspectRatio || '16:9',
-      resolution: options.resolution || '480p',
-      quality: options.quality || 'medium',
-      duration: options.duration || 5
-    })
-  })
-
-  if (!response.ok) throw new Error(`AI effects failed: ${response.status}`)
-  return response.json()
+  return submitWanEffect(imageUrl, prompt, name, options)
 }
 
 export async function generateSpeech(text, options = {}) {
