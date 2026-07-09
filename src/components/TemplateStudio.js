@@ -4,6 +4,8 @@ import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
 import { getNicheTerms } from '../lib/templateEngine.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
+import { getEnrichedModels } from '../lib/modelCatalog.js';
+import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
@@ -38,6 +40,7 @@ export function TemplateStudio(templateId) {
   let showAdvanced = false;
   let uploadedUrl = null;
   let isGenerating = false;
+  let selectedModel = template.model;
 
   // Create full-page wrapper
   const container = document.createElement('div');
@@ -290,6 +293,50 @@ export function TemplateStudio(templateId) {
 
     leftPanel.appendChild(fieldWrapper);
   });
+
+  // Model selector (async - fetches enriched catalog with descriptions)
+  const outputType = template.outputType || (template.modelType === 't2i' ? 'image' : 'video');
+  if (outputType === 'video' || template.modelType === 'i2i' || template.modelType === 't2i') {
+    const modelWrapper = document.createElement('div');
+    modelWrapper.className = 'mt-6';
+    modelWrapper.innerHTML = `
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Model</div>
+      </div>
+      <select id="templateModelSelect" class="h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50 appearance-none cursor-pointer">
+        <option value="" class="bg-zinc-950 text-white" disabled selected>Loading models...</option>
+      </select>
+    `;
+    const modelSelect = modelWrapper.querySelector('#templateModelSelect');
+    modelSelect.onchange = () => { selectedModel = modelSelect.value; };
+    leftPanel.insertBefore(modelWrapper, enhancerSection);
+
+    let fallbackList = [];
+    if (template.modelType === 'i2v') fallbackList = i2vModels;
+    else if (template.modelType === 'i2i') fallbackList = i2iModels;
+    else if (template.modelType === 't2i') fallbackList = t2iModels;
+
+    getEnrichedModels(template.modelType)
+      .then(enriched => {
+        const models = enriched && enriched.length > 0 ? enriched : fallbackList;
+        modelSelect.innerHTML = models.map(m => {
+          const desc = m.description ? ` — ${m.description.slice(0, 80)}${m.description.length > 80 ? '...' : ''}` : '';
+          return `<option value="${m.id}" class="bg-zinc-950 text-white">${m.name}${desc} (${m.id})</option>`;
+        }).join('');
+        if (models.find(m => m.id === template.model)) {
+          modelSelect.value = template.model;
+        }
+      })
+      .catch(err => {
+        console.warn('[TemplateStudio] Failed to load enriched model catalog, using fallback:', err);
+        modelSelect.innerHTML = fallbackList.map(m => {
+          return `<option value="${m.id}" class="bg-zinc-950 text-white">${m.name} (${m.id})</option>`;
+        }).join('');
+        if (fallbackList.find(m => m.id === template.model)) {
+          modelSelect.value = template.model;
+        }
+      });
+  }
 
   // AI Enhancer section
   const enhancerSection = document.createElement('div');
@@ -579,7 +626,7 @@ export function TemplateStudio(templateId) {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
-      const params = { model: template.model, ...(template.defaultParams || {}) };
+      const params = { model: selectedModel || template.model, ...(template.defaultParams || {}) };
 
       // Normalize aspect ratio for standard and matrix templates
       const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);

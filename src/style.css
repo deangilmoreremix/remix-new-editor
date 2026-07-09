@@ -2,6 +2,7 @@
 @import './styles/global.css';
 @import './styles/studio.css';
 
+@import './styles/gtm-prompt-modal.css';
 #app {
   display: flex;
   flex-direction: column;
