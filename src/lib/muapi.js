@@ -1,4 +1,4 @@
-import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById } from './models.js';
+import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById, getAvatarModelById, getTextModelById, getTrainingModelById } from './models.js';
 import { apiKeyManager } from './apiKeyManager.js';
 
 export class MuapiClient {
@@ -434,6 +434,8 @@ export class MuapiClient {
     }
 
     async generateAvatar(params, signal) {
+        const modelInfo = getAvatarModelById(params.model);
+        const endpoint = modelInfo?.endpoint || params.model || 'avatar';
         const finalPayload = {};
 
         if (params.model) finalPayload.model = params.model;
@@ -446,7 +448,7 @@ export class MuapiClient {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    endpoint: 'avatar',
+                    endpoint,
                     params: finalPayload,
                     generationType: 'avatar',
                     studioType: 'avatar'
@@ -614,6 +616,13 @@ export class MuapiClient {
     }
 
     async listAssets(params, signal) {
+        // NOTE: asset listing is a FIRST-PARTY Open Higgsfield service, NOT a
+        // muapi endpoint (muapi exposes no asset-list route). Route to the
+        // app's own backend, never the muapi proxy.
+        const base = this.proxyUrl.replace(/\/functions\/v1\/muapi-proxy$/, '') || import.meta.env.VITE_SUPABASE_URL;
+        if (!base) {
+            throw new Error('App backend URL not configured');
+        }
         const finalPayload = {};
 
         if (params.project) finalPayload.project = params.project;
@@ -621,21 +630,16 @@ export class MuapiClient {
         if (params.type) finalPayload.type = params.type;
 
         try {
-            const response = await fetch(this.proxyUrl, {
+            const response = await fetch(`${base}/functions/v1/assets`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    endpoint: 'list-assets',
-                    params: finalPayload,
-                    generationType: 'list',
-                    studioType: 'assets'
-                }),
+                body: JSON.stringify(finalPayload),
                 signal
             });
 
             if (!response.ok) {
                 const errText = await response.text();
-                throw new Error(`API Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+                throw new Error(`Asset Request Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
             }
 
             const data = await response.json();
@@ -680,6 +684,8 @@ export class MuapiClient {
     }
 
     async generateText(params, signal) {
+        const modelInfo = getTextModelById(params.model);
+        const endpoint = modelInfo?.endpoint || params.model || 'text';
         const finalPayload = {};
 
         if (params.model) finalPayload.model = params.model;
@@ -693,7 +699,7 @@ export class MuapiClient {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    endpoint: 'text',
+                    endpoint,
                     params: finalPayload,
                     generationType: 'text',
                     studioType: 'chat'
@@ -718,6 +724,8 @@ export class MuapiClient {
     }
 
     async trainLora(params, signal) {
+        const modelInfo = getTrainingModelById(params.model);
+        const endpoint = modelInfo?.endpoint || params.model || 'flux-lora-trainer';
         const finalPayload = {};
 
         if (params.images) finalPayload.images = params.images;
@@ -729,7 +737,7 @@ export class MuapiClient {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    endpoint: 'train',
+                    endpoint,
                     params: finalPayload,
                     generationType: 'train',
                     studioType: 'training'
@@ -759,6 +767,8 @@ export class MuapiClient {
     }
 
     async processVideoTool(params, signal) {
+        const modelInfo = getVideoToolById(params.model);
+        const endpoint = modelInfo?.endpoint || params.model || 'video-tool';
         const finalPayload = {};
 
         if (params.model) finalPayload.model = params.model;
@@ -770,7 +780,7 @@ export class MuapiClient {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    endpoint: 'video-tool',
+                    endpoint,
                     params: finalPayload,
                     generationType: 'video-tool',
                     studioType: 'video-tools'

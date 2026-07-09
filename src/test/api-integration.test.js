@@ -79,7 +79,7 @@ describe('MuapiClient new methods', () => {
     expect(result.url).toBe('https://cdn.muapi.ai/effect.mp4');
   });
 
-  test('listAssets posts to list-assets endpoint', async () => {
+  test('listAssets posts to the first-party /assets backend (not muapi)', async () => {
     global.fetch = vi.fn()
       .mockResolvedValueOnce({
         ok: true,
@@ -88,10 +88,10 @@ describe('MuapiClient new methods', () => {
 
     const result = await client.listAssets({ project: 'proj-1', category: 'element' });
 
-    const callBody = JSON.parse(fetch.mock.calls[0][1].body);
-    expect(callBody.endpoint).toBe('list-assets');
-    expect(callBody.params.project).toBe('proj-1');
-    expect(callBody.params.category).toBe('element');
+    const [url, init] = fetch.mock.calls[0];
+    expect(url).toMatch(/\/functions\/v1\/assets$/);
+    expect(JSON.parse(init.body).project).toBe('proj-1');
+    expect(JSON.parse(init.body).category).toBe('element');
     expect(result.assets[0].name).toBe('test');
   });
 
