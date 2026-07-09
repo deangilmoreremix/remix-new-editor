@@ -22,7 +22,7 @@ async function defaultGenerateThumbnail(prompt) {
     templateName: 'GTM Generated',
     aspectRatio: '16:9',
   });
-  const candidates = await service.generateCandidates(prompt, 1);
+  const { candidates } = await service.generateCandidates(prompt, { n: 1 });
   const first = Array.isArray(candidates) && candidates.length > 0 ? candidates[0] : null;
   if (!first) throw new Error('No thumbnail candidates returned');
   if (typeof window !== 'undefined') {

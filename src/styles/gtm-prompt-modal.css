@@ -1,51 +1,44 @@
 /* ============================================
    GTM Prompt Modal Styles
-   Styles for the GTM Boost - Cinematic Prompt Enhancement Modal
+   Design System Aligned
+   --------------------------------------------
+   Uses tokens from src/styles/variables.css and
+   src/styles/global.css. Color/radius/font values
+   follow the same scale as the Templates page and
+   other BaseModal consumers.
    ============================================ */
 
 .gtm-prompt-modal {
   --app-primary: #3b82f6;
   --app-accent: #06b6d4;
-  --app-secondary: #64748b;
+  --app-soft: rgba(59, 130, 246, 0.12);
+  --app-soft-accent: rgba(6, 182, 212, 0.12);
+
+  color: var(--text-primary);
+  font-family: var(--font-family);
   padding: 0;
-  color: #e2e8f0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-/* Header */
-.gtm-prompt-modal .gtm-header {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 20px 24px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px 12px 0 0;
+  flex-direction: column;
+  gap: 20px;
+  animation: gtm-fade-in 280ms ease-out;
 }
 
-.gtm-prompt-modal .gtm-icon {
-  font-size: 36px;
-  line-height: 1;
-  flex-shrink: 0;
+@keyframes gtm-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.gtm-prompt-modal .gtm-intro h3 {
-  margin: 0 0 6px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #f1f5f9;
-}
-
-.gtm-prompt-modal .gtm-intro p {
-  margin: 0;
+/* Subtle subtitle below the BaseModal title */
+.gtm-prompt-modal .gtm-subtitle {
+  margin: -8px 0 0 0;
   font-size: 13px;
-  color: #94a3b8;
   line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 56ch;
 }
 
 /* Form */
 .gtm-prompt-modal .gtm-form {
-  padding: 20px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -57,55 +50,71 @@
   gap: 6px;
 }
 
-.gtm-prompt-modal .form-section label {
-  font-size: 12px;
+.gtm-prompt-modal .form-section > label,
+.gtm-prompt-modal .option-group > label,
+.gtm-prompt-modal .generated-prompt-section > label {
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #94a3b8;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.gtm-prompt-modal .option-group > label,
+.gtm-prompt-modal .generated-prompt-section > label {
+  color: var(--app-accent);
 }
 
 .gtm-prompt-modal .form-section textarea,
 .gtm-prompt-modal .form-section select,
 .gtm-prompt-modal .form-section input[type="text"] {
   width: 100%;
+  min-height: 40px;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #e2e8f0;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  color: var(--text-primary);
   font-size: 14px;
   font-family: inherit;
+  line-height: 1.5;
   outline: none;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
   box-sizing: border-box;
 }
 
 .gtm-prompt-modal .form-section textarea {
-  min-height: 80px;
+  min-height: 88px;
   resize: vertical;
-  line-height: 1.5;
-}
-
-.gtm-prompt-modal .form-section textarea:focus,
-.gtm-prompt-modal .form-section select:focus,
-.gtm-prompt-modal .form-section input[type="text"]:focus {
-  border-color: var(--app-primary);
-  background: rgba(255, 255, 255, 0.06);
 }
 
 .gtm-prompt-modal .form-section select {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a1a1aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 10px center;
-  padding-right: 32px;
+  background-position: right 12px center;
+  padding-right: 36px;
 }
 
 .gtm-prompt-modal .form-section select option {
-  background: #1e293b;
-  color: #e2e8f0;
+  background: var(--bg-panel);
+  color: var(--text-primary);
+}
+
+.gtm-prompt-modal .form-section textarea::placeholder,
+.gtm-prompt-modal .form-section input[type="text"]::placeholder {
+  color: var(--text-muted);
+}
+
+/* Focus ring — visible on every focusable control */
+.gtm-prompt-modal .form-section textarea:focus,
+.gtm-prompt-modal .form-section select:focus,
+.gtm-prompt-modal .form-section input[type="text"]:focus {
+  border-color: var(--app-primary);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px var(--app-soft);
 }
 
 /* Form Grid */
@@ -115,30 +124,40 @@
   gap: 14px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .gtm-prompt-modal .form-grid {
     grid-template-columns: 1fr;
   }
 }
 
-/* Toggle Advanced */
+/* Toggle Advanced — matches templates page filter chip aesthetic */
 .gtm-prompt-modal .toggle-advanced {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #94a3b8;
-  font-size: 13px;
-  font-weight: 500;
-  padding: 8px 14px;
-  cursor: pointer;
-  transition: all 0.2s;
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 8px 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-md);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
 }
 
 .gtm-prompt-modal .toggle-advanced:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: #e2e8f0;
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--app-primary);
+}
+
+.gtm-prompt-modal .toggle-advanced:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px var(--app-primary);
 }
 
 /* Advanced Options */
@@ -147,23 +166,15 @@
   flex-direction: column;
   gap: 16px;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
 }
 
 .gtm-prompt-modal .option-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.gtm-prompt-modal .option-group > label {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--app-accent);
 }
 
 .gtm-prompt-modal .checkbox-group {
@@ -173,32 +184,47 @@
 }
 
 .gtm-prompt-modal .checkbox-group label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-full);
   font-size: 12px;
-  color: #cbd5e1;
+  font-weight: 500;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
+  user-select: none;
 }
 
 .gtm-prompt-modal .checkbox-group label:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--app-soft);
+  border-color: var(--app-primary);
+  color: var(--text-primary);
 }
 
+.gtm-prompt-modal .checkbox-group label:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px var(--app-primary);
+}
+
+/* Checked state — both the box and the label text get the accent tint */
 .gtm-prompt-modal .checkbox-group input[type="checkbox"] {
   margin: 0;
+  width: 14px;
+  height: 14px;
   accent-color: var(--app-primary);
   cursor: pointer;
 }
 
-.gtm-prompt-modal .checkbox-group input[type="checkbox"]:checked + * {
+.gtm-prompt-modal .checkbox-group input[type="checkbox"]:checked + span,
+.gtm-prompt-modal .checkbox-group label:has(input:checked) {
   color: var(--app-accent);
+  border-color: var(--app-accent);
+  background: var(--app-soft-accent);
 }
 
 /* Generation Progress */
@@ -207,29 +233,29 @@
   flex-direction: column;
   gap: 8px;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
 }
 
 .gtm-prompt-modal .progress-bar {
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
+  background: var(--bg-card);
+  border-radius: var(--border-radius-full);
   overflow: hidden;
 }
 
 .gtm-prompt-modal .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--app-primary) 0%, var(--app-accent) 100%);
-  border-radius: 3px;
+  background: linear-gradient(90deg, var(--app-primary), var(--app-accent));
+  border-radius: var(--border-radius-full);
   transition: width 0.4s ease;
 }
 
 .gtm-prompt-modal .progress-text {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   text-align: center;
   font-weight: 500;
 }
@@ -238,23 +264,18 @@
 .gtm-prompt-modal .generated-prompt-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   padding: 16px;
-  background: rgba(16, 185, 129, 0.05);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  border-radius: 10px;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: var(--border-radius-lg);
 }
 
 .gtm-prompt-modal .generated-prompt-section > label {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .gtm-prompt-modal .generated-prompt-container {
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -264,129 +285,159 @@
   width: 100%;
   min-height: 180px;
   padding: 12px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #e2e8f0;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  color: var(--text-primary);
   font-size: 13px;
   line-height: 1.6;
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-family: 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
   resize: vertical;
   box-sizing: border-box;
+  outline: none;
+}
+
+.gtm-prompt-modal .generated-prompt:focus {
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.18);
+}
+
+/* Action row: Copy + Generate Thumbnail (or just Copy) */
+.gtm-prompt-modal .generated-prompt-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ============================================
+   Footer / Inline Action Buttons
+   --------------------------------------------
+   These use a class prefix to avoid clashing
+   with BaseModal's .modal-btn* rules.
+   ============================================ */
+
+.gtm-prompt-modal .gtm-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gtm-prompt-modal .gtm-action:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px var(--app-primary);
+}
+
+.gtm-prompt-modal .gtm-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 .gtm-prompt-modal .copy-prompt-btn {
-  align-self: flex-end;
-  padding: 8px 16px;
   background: var(--app-primary);
-  border: none;
-  border-radius: 8px;
   color: #ffffff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
 }
 
-.gtm-prompt-modal .copy-prompt-btn:hover {
-  opacity: 0.9;
-}
-
-.gtm-prompt-modal .copy-prompt-btn:active {
-  transform: scale(0.98);
-}
-
-/* Modal Footer Buttons */
-.modal-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
-}
-
-.modal-btn-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.modal-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.modal-btn-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-}
-
-.modal-btn-primary:hover {
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+.gtm-prompt-modal .copy-prompt-btn:hover:not(:disabled) {
   transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
 }
 
-.modal-btn-primary:active {
+.gtm-prompt-modal .copy-prompt-btn:active:not(:disabled) {
   transform: translateY(0);
 }
 
-/* Error state */
+.gtm-prompt-modal .thumbnail-prompt-btn {
+  background: var(--app-accent);
+  color: #03131a;
+}
+
+.gtm-prompt-modal .thumbnail-prompt-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(6, 182, 212, 0.3);
+}
+
+.gtm-prompt-modal .thumbnail-prompt-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* ============================================
+   Error banner
+   ============================================ */
+
 .gtm-prompt-modal .error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 12px 16px;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 8px;
+  border-radius: var(--border-radius-md);
   color: #fca5a5;
   font-size: 13px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .gtm-prompt-modal .gtm-header {
-    padding: 16px;
-  }
+/* ============================================
+   Mobile
+   ============================================ */
 
-  .gtm-prompt-modal .gtm-form {
-    padding: 16px;
+@media (max-width: 640px) {
+  .gtm-prompt-modal {
+    gap: 16px;
   }
-
-  .gtm-prompt-modal .gtm-icon {
-    font-size: 28px;
+  .gtm-prompt-modal .form-section textarea {
+    min-height: 72px;
   }
-
-  .gtm-prompt-modal .gtm-intro h3 {
-    font-size: 16px;
+  .gtm-prompt-modal .generated-prompt-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .gtm-prompt-modal .generated-prompt-actions .gtm-action {
+    width: 100%;
   }
 }
 
 /* ============================================
    GTM Boost Trigger Button (premium entry point)
-   Used in Image / Video studios next to the prompt input
+   --------------------------------------------
+   Used in Image / Video studios next to the prompt input.
+   Colors itself per active studio via data-app or ancestor class.
    ============================================ */
 
 .gtm-boost-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-height: 40px;
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
-  color: #ffffff;
-  background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
+  font-family: var(--font-family);
+  color: #04111a;
+  background: linear-gradient(135deg, var(--app-primary), var(--app-accent));
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-lg);
   cursor: pointer;
   white-space: nowrap;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.25);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
 }
 
 .gtm-boost-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
   opacity: 0.95;
 }
 
@@ -394,57 +445,37 @@
   transform: translateY(0);
 }
 
-/* Color the boost button to match the active studio theme */
+.gtm-boost-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-app), 0 0 0 4px var(--app-primary);
+}
+
+/* Per-studio theming for the boost button.
+   The studio sets --app-primary / --app-accent inline,
+   so the button background automatically picks those up.
+   These are fallbacks / explicit overrides for studios
+   that don't set the variables. */
 .image-studio .gtm-boost-btn,
 [data-app="image"] .gtm-boost-btn {
-  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25);
+  --app-primary: #f59e0b;
+  --app-accent: #fbbf24;
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: #1a0f00;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
 }
 
 .video-studio .gtm-boost-btn,
 [data-app="video"] .gtm-boost-btn {
-  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
-  box-shadow: 0 2px 10px rgba(139, 92, 246, 0.25);
+  --app-primary: #8b5cf6;
+  --app-accent: #a855f7;
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .gtm-boost-btn {
     padding: 8px 10px;
     font-size: 12px;
   }
 }
-
-/* ============================================
-   GTM generated-prompt actions row + thumbnail button
-   ============================================ */
-
-.gtm-prompt-modal .generated-prompt-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  align-self: flex-end;
-  flex-wrap: wrap;
-}
-
-.gtm-prompt-modal .generated-prompt-actions .copy-prompt-btn,
-.gtm-prompt-modal .generated-prompt-actions .thumbnail-prompt-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.gtm-prompt-modal .thumbnail-prompt-btn {
-  align-self: flex-end;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
-}
-
-.gtm-prompt-modal .thumbnail-prompt-btn:hover { opacity: 0.9; }
-.gtm-prompt-modal .thumbnail-prompt-btn:active { transform: scale(0.98); }
-.gtm-prompt-modal .thumbnail-prompt-btn[disabled] { opacity: 0.6; cursor: progress; }

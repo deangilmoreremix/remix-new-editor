@@ -377,8 +377,15 @@ export class BaseModal {
     this.footerContent = options.footerContent || null;
     this.onOpen = options.onOpen || (() => {});
     this.onClose = options.onClose || (() => {});
-    this.onConfirm = options.onConfirm || (() => {});
+    // Bridge: timeline editor passes onComplete/onError; modals fire onConfirm/onCancel.
+    // If only one of the pairs is provided, alias so the modal still notifies the caller.
+    this.onConfirm = options.onConfirm || options.onComplete || (() => {});
+    // Only alias onCancel → onError if onError was explicitly provided AND onCancel wasn't.
+    // This prevents user-cancellations from being logged as errors.
     this.onCancel = options.onCancel || (() => {});
+    this.onError = options.onError || (() => {});
+    // Also expose the original names so direct listeners still work.
+    this.onComplete = options.onComplete || (() => {});
     
     this.state = 'closed';
     this.loading = options.loading || false;
