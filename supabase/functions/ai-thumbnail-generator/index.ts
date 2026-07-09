@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import OpenAI from "openai";
+import OpenAI from "npm:openai";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -471,7 +471,7 @@ async function handleSave(body: SaveRequest) {
 
   try {
     const imageBuffer = await base64ToUint8Array(body.imageB64);
-    const filename = `${body.templateId}/${crypto.randomUUID()}.webp`;
+    const filename = `${body.templateId}/${crypto.randomUUID()}.${body.controls?.outputFormat || "webp"}`;
     const imageUrl = await uploadBufferToStorage(imageBuffer, filename);
 
     await persistThumbnailRow({
@@ -482,7 +482,26 @@ async function handleSave(body: SaveRequest) {
       userId: body.userId,
     });
 
-    return jsonResponse({ imageUrl, path: filename });
+    await persistJob({
+      templateId: body.templateId,
+      userId: body.userId,
+      presetKey: body.presetKey,
+      promptUsed: body.promptUsed,
+      imageUrl,
+      imagePath: filename,
+      status: "completed",
+    });
+
+    return jsonResponse({
+      imageUrl,
+      path: filename,
+      job: {
+        templateId: body.templateId,
+        presetKey: body.presetKey,
+        controls: body.controls,
+        completedAt: new Date().toISOString(),
+      },
+    });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Save failed" }, 502);
   }
