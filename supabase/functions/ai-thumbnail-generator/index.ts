@@ -27,6 +27,17 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 // Override via env if needed: IMG_GEN_MAINLINE_MODEL=gpt-5.5
 const IMG_GEN_MAINLINE_MODEL = Deno.env.get("IMG_GEN_MAINLINE_MODEL") || "gpt-4.1-mini";
 
+// Server-side preset definitions — keep in sync with src/lib/thumbnailPresets.js.
+// The brief modifier is appended to the auto-composed brief.
+const PRESET_MODIFIERS: Record<string, string> = {
+  cinematic: 'widescreen cinematic composition, shallow depth of field, anamorphic lens, color graded, 24fps, editorial framing',
+  productCutout: 'isolated product on plain background, centered, crisp silhouette, no halos, label legible, soft contact shadow',
+  lifestyle: 'lifestyle photography, warm natural light, candid moment, real-people feel, gentle color palette, inviting atmosphere',
+  boldText: 'high-contrast composition, single dominant subject, large negative space for headline overlay, punchy colors, thumbnail-readable from arm\'s length',
+  minimal: 'minimal composition, generous negative space, restrained palette, single subtle subject, professional restraint',
+  vertical: 'vertical 9:16 framing, top-of-frame subject, lower-third space for caption, mobile-readable',
+};
+
 const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
 const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
   ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
@@ -126,6 +137,8 @@ interface PromptsRequest {
     cinematography?: string;
     niche?: string;
   };
+  presetKey?: string;
+  presetModifier?: string;
 }
 
 interface GenerateRequest {
@@ -133,12 +146,30 @@ interface GenerateRequest {
   prompt: string;
   aspectRatio: string;
   n?: number;
+  quality?: "low" | "medium" | "high" | "auto";
+  style?: "vivid" | "natural";
+  background?: "transparent" | "opaque" | "auto";
+  outputFormat?: "png" | "webp" | "jpeg";
+  outputCompression?: number;
 }
 
 interface RefineRequest {
   action: "refine";
   prompt: string;
   previousResponseId: string;
+  size?: string;
+  quality?: "low" | "medium" | "high" | "auto";
+  background?: "transparent" | "opaque" | "auto";
+  outputFormat?: "png" | "webp" | "jpeg";
+  outputCompression?: number;
+  partialImages?: number;
+  store?: boolean;
+  include?: string[];
+  // For reference-image input on multi-modal refine
+  referenceImageB64?: string;
+  referenceImageUrl?: string;
+  referenceImageFileId?: string;
+  imageDetail?: "low" | "high" | "original" | "auto";
 }
 
 interface InpaintRequest {
@@ -147,6 +178,10 @@ interface InpaintRequest {
   imageB64: string;
   maskB64: string;
   aspectRatio?: string;
+  quality?: "low" | "medium" | "high" | "auto";
+  style?: "vivid" | "natural";
+  background?: "transparent" | "opaque" | "auto";
+  outputFormat?: "png" | "webp" | "jpeg";
 }
 
 interface SaveRequest {
@@ -156,6 +191,15 @@ interface SaveRequest {
   altText: string;
   userId: string;
   promptUsed: string;
+  presetKey?: string;
+  controls?: {
+    quality?: string;
+    style?: string;
+    background?: string;
+    outputFormat?: string;
+    outputCompression?: number;
+    aspectRatio?: string;
+  };
 }
 
 type RequestBody = PromptsRequest | GenerateRequest | RefineRequest | InpaintRequest | SaveRequest;
@@ -226,6 +270,12 @@ async function handleGenerate(body: GenerateRequest) {
 
   const size = mapAspectToSize(body.aspectRatio);
   const n = Math.min(body.n || 3, 3);
+  const quality = body.quality || "high";
+  const style = body.style || "vivid";
+  // gpt-image-2 does not support transparent — clamp to auto if requested
+  const background = body.background === "transparent" ? "auto" : (body.background || "auto");
+  const outputFormat = body.outputFormat || "webp";
+  const outputCompression = body.outputCompression ?? 80;
 
   try {
     const result = await openai!.images.generate({
@@ -233,10 +283,11 @@ async function handleGenerate(body: GenerateRequest) {
       prompt: body.prompt,
       n,
       size,
-      quality: "hd",
-      style: "vivid",
-      output_format: "webp",
-      output_compression: 80,
+      quality,
+      style,
+      background,
+      output_format: outputFormat,
+      output_compression: outputCompression,
       response_format: "b64_json",
       moderation: "auto",
     });
@@ -246,7 +297,7 @@ async function handleGenerate(body: GenerateRequest) {
       revised_prompt: (img as { revised_prompt?: string }).revised_prompt ?? "",
     }));
 
-    return jsonResponse({ candidates });
+    return jsonResponse({ candidates, params: { quality, style, background, outputFormat, outputCompression, size } });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Image generation failed" }, 502);
   }
@@ -255,26 +306,62 @@ async function handleGenerate(body: GenerateRequest) {
 async function handleRefine(body: RefineRequest) {
   if (!openai) return jsonResponse({ error: "Server not configured" }, 500);
 
-  try {
-    const completion = await openai.responses.create({
-      model: IMG_GEN_MAINLINE_MODEL,
-      input: [
-        {
-          role: "user",
-          content: [{ type: "input_text", text: body.prompt }],
-        },
-      ],
-      tools: [{ type: "image_generation" }],
-      previous_response_id: body.previousResponseId,
+  const imageGenTool: Record<string, unknown> = { type: "image_generation" };
+  if (body.size) imageGenTool.size = body.size;
+  if (body.quality) imageGenTool.quality = body.quality;
+  if (body.background) {
+    imageGenTool.background = body.background === "transparent" ? "auto" : body.background;
+  }
+  if (body.outputFormat) imageGenTool.output_format = body.outputFormat;
+  if (typeof body.outputCompression === "number") imageGenTool.output_compression = body.outputCompression;
+  if (typeof body.partialImages === "number" && body.partialImages > 0) {
+    imageGenTool.partial_images = Math.min(body.partialImages, 3);
+  }
+
+  // Build the input content. If a reference image is supplied, attach it as
+  // an input_image alongside the text.
+  const userContent: Array<Record<string, unknown>> = [
+    { type: "input_text", text: body.prompt },
+  ];
+  if (body.referenceImageB64) {
+    userContent.push({
+      type: "input_image",
+      image_url: `data:image/png;base64,${body.referenceImageB64}`,
+      detail: body.imageDetail || "auto",
     });
+  } else if (body.referenceImageUrl) {
+    userContent.push({
+      type: "input_image",
+      image_url: body.referenceImageUrl,
+      detail: body.imageDetail || "auto",
+    });
+  } else if (body.referenceImageFileId) {
+    userContent.push({
+      type: "input_image",
+      file_id: body.referenceImageFileId,
+      detail: body.imageDetail || "auto",
+    });
+  }
+
+  const reqBody: Record<string, unknown> = {
+    model: IMG_GEN_MAINLINE_MODEL,
+    input: [{ role: "user", content: userContent }],
+    tools: [imageGenTool],
+  };
+  if (body.previousResponseId) reqBody.previous_response_id = body.previousResponseId;
+  if (typeof body.store === "boolean") reqBody.store = body.store;
+  if (Array.isArray(body.include) && body.include.length > 0) reqBody.include = body.include;
+
+  try {
+    const completion = await openai.responses.create(reqBody as Parameters<typeof openai.responses.create>[0]);
 
     const imageCalls = completion.output.filter((o) => o.type === "image_generation_call");
-    const result = imageCalls[0] as { result?: string };
+    const first = imageCalls[0] as { result?: string; revised_prompt?: string } | undefined;
 
     return jsonResponse({
       result: {
-        b64_json: result?.result ?? "",
-        revised_prompt: "",
+        b64_json: first?.result ?? "",
+        revised_prompt: (first as { revised_prompt?: string })?.revised_prompt ?? "",
         response_id: completion.id,
       },
     });
@@ -287,6 +374,10 @@ async function handleInpaint(body: InpaintRequest) {
   if (!OPENAI_API_KEY) return jsonResponse({ error: "Server not configured" }, 500);
 
   const size = mapAspectToSize(body.aspectRatio || "16:9");
+  const quality = body.quality || "high";
+  const style = body.style || "vivid";
+  const background = body.background === "transparent" ? "auto" : (body.background || "auto");
+  const outputFormat = body.outputFormat || "webp";
 
   try {
     const imageBytes = await base64ToUint8Array(body.imageB64);
@@ -302,9 +393,10 @@ async function handleInpaint(body: InpaintRequest) {
       prompt: body.prompt,
       n: 1,
       size,
-      quality: "hd",
-      style: "vivid",
-      output_format: "webp",
+      quality,
+      style,
+      background,
+      output_format: outputFormat,
       response_format: "b64_json",
     });
 
@@ -315,6 +407,7 @@ async function handleInpaint(body: InpaintRequest) {
         revised_prompt: (img as { revised_prompt?: string }).revised_prompt ?? "",
         response_id: "",
       },
+      params: { quality, style, background, outputFormat, size },
     });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Inpaint failed" }, 502);
