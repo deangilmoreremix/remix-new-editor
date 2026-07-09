@@ -349,6 +349,127 @@ Open Higgsfield AI is an open-source AI image, video, and cinema studio that bri
 - **Responsive Design** — Dark glassmorphism UI, works on desktop and mobile
 - **One-Click Download** — Full resolution image/video download
 
+#### Video Agent Features
+
+The Video Agent is an AI-powered video processing and enhancement workspace for analyzing, transforming, and repurposing generated or uploaded video. It is reachable from the sidebar and the landing page.
+
+- **Sidebar navigation entry** — dedicated "Video Agent" launcher in the app sidebar
+- **Landing page card** — "Video Agent" tile describing AI-assisted creation, editing decisions, creative direction, workflow steps, and content generation
+- **Video preview player** — loads a source video (via `videoId` / `videoUrl` query params) with native playback controls; shows an empty-state placeholder when no video is loaded
+- **Back button** — returns to the Render workspace, preserving the loaded video context
+- **AI Processing Tools grid** — 12 tools grouped by category:
+  - *Understand* — Scene Detection, Highlight Detection, ImageBind (multimodal understanding)
+  - *Edit* — Clip Segmentation
+  - *Audio* — CosyVoice (voice cloning & TTS), Fish Speech (voice synthesis), Seed-VC (voice conversion), Whisper (audio transcription), Cross-lingual Dub (translate & dub)
+  - *Enhance* — Color Correction, Video Upscale, Stabilize
+- **AI Use Cases grid** — 6 one-click creative workflows:
+  - Stand-up Comedy (comedy timing), Commentary (AI commentary overlay), Video Overview (summary overview), Meme Generator, Music Video (beat-synced), Video Q&A (interactive)
+- **Category filter tabs** — ALL / UNDERSTAND / EDIT / AUDIO to filter the tools grid
+- **Processing Queue** — live list of jobs with pending / running (spinner) / complete (check) status indicators
+- **Run Full Pipeline button** — chains Scene Detection → Clip Segmentation → Highlight Detection → Transcription → Color Correction → Final Export as a single orchestrated job
+- **Settings panel**:
+  - Output Quality selector (720p / 1080p / 4K)
+  - Output Format selector (MP4 / WebM / MOV)
+  - Auto-save results toggle
+- **Processing Modal** — full-screen overlay with spinner, job name, animated progress bar + percentage, ordered step list (e.g. "Analyzing video frames… → Detecting scene changes… → Labeling scenes… → Generating scene map…"), and a **Cancel** button
+- **Results Panel** — lists each completed job with a summary derived from the actual payload (transcript text, scene count, highlight count, subtitle segment count, generated voice size, etc.) and a **Download result** button (downloads WebM video or audio from `audioBase64`)
+- **Cancellation** — aborts the in-flight job via `AbortController` and calls the cancel endpoint
+- **Multi-backend orchestration** — tries the Express backend (`/videoagent/process`) → Supabase edge function → in-browser FFmpeg-free fallback (`browserVideoProcessor`) → offline simulation, in that order
+- **In-browser fallback processor** — decodes frames, transforms them in a Web Worker, and re-encodes to WebM via `MediaRecorder` for color-correct, stabilize, upscale, and create-shorts; frame-sampling analysis for detect-scenes / extract-highlights
+
+##### Video Agent Backend Actions
+
+Server-side orchestration endpoints and per-action step lists exposed to the UI:
+
+- **AI Tools** (12): scene-detection, clip-segmentation, highlight-detection, cosyvoice, fish-speech, seed-vc, whisper, imagebind, dubbing, color-correct, upscale, stabilize
+- **Use Cases** (6): standup, commentary, overview, meme, music-video, qa
+- **Quick Actions**: summarize-video, extract-highlights, detect-scenes, generate-subtitles, dub-video, add-broll, add-voiceover, create-shorts
+- **Processing endpoints**: `/process` (process-tool / process-usecase / full-pipeline), `/job/:jobId` (poll status), `/workflow` (batched multi-step), `/cancel/:jobId`, `/transcribe` (Whisper), `/tts/synthesize` (OpenAI TTS)
+- **Bridge service** implements detect-scenes, extract-highlights, add-broll, create-shorts, color-correct, upscale, stabilize, dub-video, add-voiceover, generate-subtitles, summarize-video, scene-detection, highlight-detection, clip-segmentation with real Whisper/TTS/FFmpeg/MuAPI/Director backends and graceful placeholders
+
+#### Timeline Editor Features
+
+The Timeline Editor is a full non-linear video editing surface with multi-track timelines, AI agent integration, keyframe animation, multi-camera compositing, and a large catalog of integrated modals and editing tools.
+
+- **Sidebar navigation entry** — dedicated "Timeline" launcher
+- **Hero banner** — timeline-branded hero section
+- **Design system enforcement** — a shared design system (CSS variables, modal/button/card classes, animations, drag-and-drop styling, loading states, and validators) applied to every integrated feature and modal
+- **Feature flags** — toggleable gates: color correction, CutAI storyboard, CineGen tools, agent integration, subtitle generation
+- **Drag-and-drop media ingest** — upload sources, media library grid, drag media onto tracks
+- **Subtitle system** — Whisper-based subtitle generation, subtitle timeline tracks, subtitle controls, and subtitle editor modal
+- **Retake panel** — generate, compare, select, and delete multiple AI takes per clip
+- **IC LoRA panel** — inject custom LoRA references for generation
+- **Import timeline modal** — import external timeline projects
+
+##### AI Feature Panel (side panel)
+
+Six AI feature buttons, each opening a dedicated modal:
+
+1. **AI Workflow** — node-based generation pipeline canvas supporting 50+ models for image/video/audio generation
+2. **AI Tools** — Fill Gap (model + duration), Extend Clip (before/after/both + duration), Generate Music (genre + mood presets), SAM3 Masking (text / bounding-box / click segmentation)
+3. **Elements Library** — reusable Characters, Locations, Props, Vehicles elements with create-new-element workflow
+4. **AI Assistant** — context-aware chat with modes: Ask, Search, Cut, Timeline
+5. **NLE Tools** — 10 professional editing tools (Select, Blade, Ripple, Roll, Slip, Slide) + viewer modes (Source, Timeline, Split View) + New Timeline Tab
+6. **Export** — quality presets (Draft 720p@24fps / Standard 1080p@30fps / High 4K@60fps), aspect ratio (16:9, 4:3, 21:9, 1:1, 9:16), format (MP4/WebM/MOV)
+
+##### Multi-Camera & Compositing
+
+- **Multi-Camera Mode** toggle
+- **PIP (Picture-in-Picture)** mode toggle with PIP window controls (position: top-left/top-right/bottom-left/bottom-right/custom; per-window opacity; add/remove PIP windows)
+- **Split Screen** mode toggle (horizontal / vertical / quad) with adjustable split ratio
+- **Camera Angles** panel — add, switch, and remove camera angles (each with color and tracked clips)
+- **Compositing modes** — normal and other blend/composite options
+
+##### Keyframe Animation System
+
+- **Animatable properties** — Position (X/Y), Scale (uniform + independent X/Y 0–500%), Rotation, Opacity, Crop/Mask, Color Effects (brightness/contrast/saturation), Motion Blur, Playback Rate (speed ramping)
+- **Keyframe editor** — timeline-based diamonds, property curves, click-to-add keyframes, multi-selection, property panel
+- **Animation controls** — play / pause / stop / rewind, easing curves (linear, ease-in/out, custom Bézier), interpolation modes (smooth / step / hold), keyframe copy/paste, speed 0.1x–4x, loop/reverse
+- **Motion graphics** — motion blur simulation, speed ramping, layer parenting, anchor-point manipulation, drop shadows/glows/filters
+- **Timeline integration** — keyframe indicators, context-sensitive property panel, keyframe scrubbing, zoom/pan
+
+##### Agent System (ViMax-inspired)
+
+- **Agent panel** with Timeline Analysis (Full Analysis, Structure, Gap Detection), Content Generation (Generate Takes, Fill Gaps, Transitions), and Character Tracking (Track Characters, Consistency) sections
+- **Agents**: Director, CharacterExtractor, Screenwriter, CameraOperator, Editor, CineGen, plus an Agent Orchestrator
+- **Workflows**: analyze_timeline, full_timeline_review, script_assistance, camera_analysis, cinegen_edit
+- **Timeline hooks** — auto-suggest gap fills, gap-fill previews, director analysis, character-consistency checks, initial-analysis on load, take tracking on retakes
+- **Take selector** — generate, compare, select, delete takes
+- **CineGen tools**: gap_fill, extend, music_generation, mask_tool, element_create, llm_chat, fill_gap, extend_clip, sam3_segment, audio_sync, layer_decompose, shot_board, proxy_playback, composition_plan
+
+##### Project Persistence
+
+- **Save / Load / Autosave / Restore** across localStorage, IndexedDB, and optional Supabase cloud sync
+- **Versioning** — every save records a version (max 10); load returns latest
+- **Migration** — on load, automatically migrates older project schemas (left/width → start/end, legacy clips → items, etc.)
+- **State manager** — centralized timeline state with subscription pattern, snap, auto-scroll, ruler, waveform toggles, track lock/mute/solo/visible, markers, captions, effects
+
+##### Integrated Modals & Components
+
+The Timeline Editor surfaces the following modals and panels:
+
+- **End Screen Modal** — end-card / outro builder
+- **Save Project Modal** — save/name/version the current project
+- **Settings Modal** — editor and account settings
+- **Connect Modal** — connect external services / API keys
+- **Preview Media Modal** — preview individual media assets
+- **Video Player Modal** — full video player overlay
+- **Recorder Modal** — basic media recorder
+- **Enhanced Recorder Modal** — advanced recorder with teleprompter support
+- **Template Generator Modal** — generate templates from content
+- **Template Preview Modal** — preview a template before use
+- **Social Publisher Modal** — publish to social platforms
+- **Email Campaign Modal** — embed personalized video in email campaigns
+- **URL Video Modal** — import video from a URL
+- **Page Shot Modal** — capture webpage screenshots as backgrounds
+- **Contact Importer Modal** — import CSV / CRM / manual contacts
+- **AI Video Creator Modal** — AI-assisted video creation
+- **Video Personalization Hub** — orchestration hub with tabs: Upload Video, Import Contacts, Configure Tokens, Generate Videos, Create Landing Pages, View Analytics; content-type buttons (Greeting, Product Offer, Testimonial, Import Contacts); overlay/lead-form buttons (Add Text Overlay, Add Image Overlay, Add Voice Narration, Add Lead Form); landing-page template picker (Professional/Corporate/Modern/Minimal); analytics dashboard (views, engagement, retention, shares, performance chart, AI insights)
+- **Landing Page Builder Modal** — drag-and-drop landing page builder with template selector, page canvas, branding panel
+- **Lead Generator Modal** — capture lead forms
+- **Subtitle Editor Modal** — edit generated subtitle tracks
+- **CutAI Storyboard integration** — draggable scene/shot cards dropped directly onto the timeline, plus a "Send to Timeline" button that converts a storyboard into timeline clips
+
 ---
 
 ## Technology Stack
