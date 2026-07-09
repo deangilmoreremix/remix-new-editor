@@ -72,18 +72,19 @@ export function processNextJob() {
   next.status = 'processing';
   updateQueue(queue);
 
-  try {
-    const jobIndex = queue.findIndex((entry) => entry.id === next.id);
-    queue[jobIndex].status = 'completed';
-    updateQueue(queue);
-  } catch (error) {
-    const jobIndex = queue.findIndex((entry) => entry.id === next.id);
-    queue[jobIndex].status = 'failed';
-    queue[jobIndex].error = error.message;
-    updateQueue(queue);
-  } finally {
-    processing = false;
-  }
+  const jobIndex = queue.findIndex((entry) => entry.id === next.id);
+
+  setTimeout(() => {
+    try {
+      queue[jobIndex].status = 'completed';
+    } catch (error) {
+      queue[jobIndex].status = 'failed';
+      queue[jobIndex].error = error.message;
+    } finally {
+      updateQueue(queue);
+      processing = false;
+    }
+  }, 1000);
 
   return next;
 }

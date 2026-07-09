@@ -1,4 +1,4 @@
-import { WhisperService, whisperService } from '../services/whisper-client.js';
+import { WhisperService, whisperService } from '../../services/whisper-client.js';
 import { SceneDetector } from '../../components/timeline/SceneDetector.js';
 import { aiService } from '../services/aiService.js';
 
@@ -234,7 +234,7 @@ export async function runAiAutoEdit(videoUrl, options = {}) {
       subtitlesPromise,
     ]);
 
-    const highlights = generateHighlights(videoUrl, sensitivity);
+    const highlights = await generateHighlights(videoUrl, sensitivity);
 
     return { scenes, highlights, subtitles };
   } catch (error) {

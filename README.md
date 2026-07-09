@@ -57,22 +57,289 @@ Open Higgsfield AI is an open-source AI image, video, and cinema studio that bri
 
 ## Features
 
-### Core Studios
+### Studios
 
 | Studio | Description |
 |--------|-------------|
-| **Image Studio** | Dual-mode t2i/i2i generation with 50+ t2i and 55+ i2i models |
-| **Video Studio** | Dual-mode t2v/i2v generation with 40+ t2v and 60+ i2v models |
-| **Cinema Studio** | Professional camera controls with lens, focal length, aperture |
-| **Effects Studio** | 350+ visual effects and motion controls |
-| **Edit Studio** | Image editing tools (upscale, background removal, object eraser) |
-| **Character Studio** | Consistent character generation with reference images |
-| **Storyboard Studio** | Multi-frame storyboard creation |
-| **Commercial Studio** | Product photography and advertising content |
-| **Upscale Studio** | AI image enhancement (2x-4x) |
-| **Influencer Studio** | Social media optimized generation |
+| **Image Studio** | Dual-mode Text-to-Image and Image-to-Image generation with 50+ t2i models and 55+ i2i models |
+| **Video Studio** | Triple-mode Text-to-Video, Image-to-Video, and Video-to-Video generation with 40+ t2v, 60+ i2v, and v2v models |
+| **Cinema Studio** | Professional cinematography controls with Cinema Prompt Builder, Camera Builder, lens, focal length, and aperture settings |
+| **Effects Studio** | 350+ visual effects and motion controls across Image Effects, Nano Banana, Kontext Effects, AI Video Effects, Motion Controls, and Video FX v2 tabs |
+| **Edit Studio** | 13 AI-powered editing tools: Remove Object, Remove Background, Extend Image, AI Edit, Reframe, Change Dress, Enhance Skin, Colorize, Add Watermark, Upscale, Face Swap, Product Shot, and Ghibli Style |
+| **Character Studio** | Consistent character generation using Flux PuLID and Subject Reference models with Expression Presets and a saved Character Library |
+| **Storyboard Studio** | Multi-frame storyboard creation with add/remove frames, shot type selectors, narration inputs, and JSON export |
+| **Commercial Studio** | Product photography and advertising content with scene presets and format presets |
+| **Upscale Suite** | AI image enhancement using 3 methods: AI Upscaler (2x/4x), Topaz Upscale, and Seed Upscale |
+| **AI Influencer Studio** | Social media optimized generation with 20+ style presets and format presets |
+| **Audio Studio** | Music and speech generation with style selectors, duration controls, and model selection |
+| **Avatar Studio** | Talking avatars and lip sync video generation with source video/image and audio uploads |
+| **Training Studio** | Train custom LoRA models from images with LoRA name, trigger word, epoch selection, and multi-image upload |
+| **Video Tools Studio** | Enhance, edit, and transform videos with AI including watermark removal and upscaling |
+| **Chat Studio** | AI-powered text generation and conversation with system prompts, advanced parameters (Temperature, Max Tokens), and chat history |
+| **Lip Sync Studio** | Animate portraits or sync lips to audio with AI using dual input modes (Portrait Image or Video), audio upload, and resolution selection |
+| **Video Render** | Review, refine, and process generated videos with cinematic presets, render queue management, action tiles (Create Shorts, Generate Highlights, Add Subtitles, Dub, etc.), quick utilities, and export settings |
+| **Cinema Template Studio** | Cinematic template system with Browse, Create, Storyboard, and Preview views; Quick Mode and Advanced Mode; scene builders; brand context inputs; and extensive cinematic categories including Cinematic Films, Business & Brand, Commercial & Ads, Social Media, Documentary, and industry-specific verticals |
 
-### Key Capabilities
+#### Image Studio Features
+
+- **Dual-mode generation**: Text-to-Image (50+ models) and Image-to-Image (55+ models)
+- **Multi-image input**: Upload up to 14 reference images for compatible models
+- **Advanced parameters**: Negative prompt, guidance scale, steps, seed, custom width/height
+- **Reference strength**: Style reference control (0-100) for supported models
+- **LoRA support**: Load custom LoRA models from Civitai with adjustable weight
+- **Batch count**: Generate multiple variations in one request
+- **Quick tools panel**: Fast access to common editing operations
+- **Aspect ratios**: 1:1, 16:9, 9:16, 4:3, 3:4, 3:2, 2:3, 21:9
+- **Resolution/Quality pickers**: Dynamic model-specific options
+- **GTM Boost prompt enhancer modal**: AI-powered prompt optimization
+- **Personalize popover**: Inject contact context into prompts
+- **Auth modal**: Secure API key management
+- **Upload history**: Reuse previously uploaded images
+
+#### Video Studio Features
+
+- **Triple-mode generation**: Text-to-Video (40+ models), Image-to-Video (60+ models), Video-to-Video (watermark remover)
+- **Duration selector**: 3-15 seconds (model dependent)
+- **Resolution picker**: 480p, 720p, 1080p (model dependent)
+- **Quality selector**: Basic and High
+- **Aspect ratio selector**: Model-specific options
+- **Advanced options panel**: Negative prompt and seed controls
+- **Seedance 2.0 Extend**: Seamlessly extend previous Seedance 2.0 generations
+- **Regenerate and Extend buttons**: One-click iteration on past results
+- **Video upload**: Supports v2v mode for watermark removal
+- **GTM Boost prompt enhancer modal**: AI-powered prompt optimization
+- **Personalize popover**: Inject contact context into prompts
+- **Auth modal**: Secure API key management
+
+#### Cinema Studio Features
+
+- **Cinema Prompt Builder**: Collapsible panel to build prompts with camera and lens metadata
+- **Camera Builder**: Select camera type, lens, focal length, and aperture
+- **Camera overlay**: Full-screen camera controls overlay with live preview
+- **Camera types**: Modular 8K Digital, Full-Frame Cine Digital, Grand Format 70mm Film, Studio Digital S35, Classic 16mm Film, Premium Large Format Digital
+- **Lens options**: Creative Tilt, Compact Anamorphic, Extreme Macro, 70s Cinema Prime, Classic Anamorphic, Premium Modern Prime, Warm Cinema Prime, Swirl Bokeh Portrait, Vintage Prime, Halation Diffusion, Clinical Sharp Prime
+- **Focal lengths**: 8mm through 85mm
+- **Apertures**: f/1.4, f/4, f/11
+- **Aspect ratios**: 16:9, 21:9, 9:16, 1:1, 4:5
+- **Resolution picker**: 1K, 2K, 4K
+- **Summary card**: Live display of current camera settings
+- **Personalize trigger**: Inject contact context into prompts
+- **Auth modal**: Secure API key management
+
+#### Effects Studio Features
+
+- **350+ effects and motion controls** organized across 6 tabs:
+  - Image Effects
+  - Nano Banana
+  - Kontext Effects
+  - AI Video Effects
+  - Motion Controls
+  - Video FX v2
+- **Effect search**: Real-time search across all effects
+- **Split preview panel**: Input and Output side-by-side comparison
+- **Mobile responsive controls**: Dedicated mobile upload and preview layout
+- **Prompt input**: Optional prompt to guide effect application
+- **Apply Effect button**: One-click effect processing
+- **Personalize trigger**: Inject contact context into prompts
+- **Auth modal**: Secure API key management
+
+#### Edit Studio Features
+
+- **13 AI-powered editing tools**:
+  1. **Remove Object** — Erase unwanted objects with AI
+  2. **Remove Background** — Clean background removal
+  3. **Extend Image** — AI outpainting to expand canvas
+  4. **AI Edit** — Instruction-based image editing (Seedream 5.0)
+  5. **Reframe** — Change aspect ratio intelligently (Ideogram v3)
+  6. **Change Dress** — AI outfit and clothing swap
+  7. **Enhance Skin** — Professional skin retouching
+  8. **Colorize** — Add color to black and white photos
+  9. **Add Watermark** — Overlay custom watermark text
+  10. **Upscale** — AI image upscaling to higher resolution
+  11. **Face Swap** — Swap faces between images
+  12. **Product Shot** — Create professional product images
+  13. **Ghibli Style** — Transform into Studio Ghibli art style
+- **Tool grid**: Visual card-based tool selection with thumbnails
+- **Upload image/video**: Supports both image and video sources
+- **Prompt field**: Dynamic prompt input for tools that require text guidance
+- **Download result**: One-click download of edited media
+- **Personalize trigger**: Inject contact context into prompts
+- **Auth modal**: Secure API key management
+
+#### Character Studio Features
+
+- **2 character preservation models**: Flux PuLID and Subject Reference
+- **Reference face upload**: Upload a clear face photo or video
+- **Character description prompt**: Text guidance for generation
+- **Expression Presets**: Happy, Sad, Angry, Surprised, Neutral — one-click prompt injection
+- **Character Library**: Save and load saved characters from localStorage with thumbnails and descriptions
+- **Download result**: Save generated character images
+- **Generate Again**: Quick regeneration without re-entering data
+- **Personalize trigger**: Inject contact context into prompts
+- **Auth modal**: Secure API key management
+
+#### Storyboard Studio Features
+
+- **Multi-frame generation**: Create storyboards with unlimited frames
+- **Add/Remove frames**: Dynamic frame management
+- **Shot type selector**: Wide Shot, Medium Shot, Close-Up, Extreme Close-Up, POV, Overhead, Low Angle
+- **Layout selector**: Horizontal, Grid, or Story layout
+- **Per-frame inputs**: Individual scene description and narration text for each frame
+- **Generate Frame**: Generate individual frames on demand
+- **Generate All Frames**: Batch generate all populated frames
+- **Export JSON**: Download storyboard data as JSON
+- **Personalize trigger**: Inject contact context into prompts
+- **Auth modal**: Secure API key management
+
+#### Commercial Studio Features
+
+- **2 product models**: Product Shot and Product Photography
+- **Product media upload**: Upload product image or video
+- **9 Scene Presets**: Studio white background, Luxury marble surface, Outdoor natural light, Lifestyle kitchen counter, Neon tech showroom, Wooden table cozy, Minimalist gradient, Beach sand and waves, Office desk setup
+- **4 Output Formats**: Ad Banner (16:9), Social Post (1:1), Story (9:16), Billboard (21:9)
+- **Generate Product Shot**: One-click commercial content generation
+- **Download result**: Save generated product images
+- **Generate Again**: Quick regeneration
+- **Auth modal**: Secure API key management
+
+#### Upscale Suite Features
+
+- **3 upscaling methods**:
+  1. **AI Upscaler** — General-purpose AI upscaling with 2x and 4x factors
+  2. **Topaz Upscale** — Premium Topaz-quality enhancement
+  3. **Seed Upscale** — SeedVR2 high-fidelity upscaling
+- **Factor selection**: 2x or 4x upscale (for AI Upscaler method)
+- **Upload image/video**: Supports both image and video sources
+- **Upscale Image button**: One-click enhancement
+- **Download result**: Save upscaled media
+- **Auth modal**: Secure API key management
+
+#### AI Influencer Studio Features
+
+- **20+ Style Presets**: Realistic, DigitalCam, Quiet luxury, FashionShow, 90s Grain, Sunset beach, Amalfi Summer, Bimbocore, Vintage PhotoBooth, Gorpcore, Indie sleaze, Fairycore, Avant-garde, Y2K Posters, Grunge, Coquette core, Tokyo Streetstyle, 2049, Night rider, Glazed doll skin makeup
+- **4 Output Formats**: Instagram Post (1:1), Story/Reel (9:16), YouTube Thumb (16:9), Pinterest Pin (2:3)
+- **Reference upload**: Upload reference photo or video
+- **Additional instructions prompt**: Optional text guidance
+- **Generate Content button**: One-click social content generation
+- **Download result**: Save generated images
+- **Generate Again**: Quick regeneration
+- **Personalize trigger**: Inject contact context into prompts
+- **Auth modal**: Secure API key management
+
+#### Audio Studio Features
+
+- **Music and speech generation**: Multiple AI audio models
+- **Prompt input**: Describe the music or speech you want
+- **Style selector**: Pop, Rock, Electronic, Classical, Jazz, Hip Hop, Ambient
+- **Duration selector**: 15s, 30s, 60s, 120s
+- **Model selector**: Choose between available audio models
+- **Generate Audio button**: One-click audio generation
+- **Download Audio**: Save generated audio files
+- **Personalize trigger**: Inject contact context into prompts
+- **Auth modal**: Secure API key management
+
+#### Avatar Studio Features
+
+- **Multiple avatar models**: Various avatar generation models with different capabilities
+- **Source video/image upload**: Upload source video or image for avatar generation
+- **Audio upload**: Upload audio file for lip sync models
+- **Prompt input**: Optional text guidance for some models
+- **Model selector**: Switch between avatar models
+- **Dynamic form visibility**: Form adapts based on selected model requirements (video required, audio required, prompt required)
+- **Generate Avatar Video button**: One-click avatar generation
+- **Download Video**: Save generated avatar videos
+- **Auth modal**: Secure API key management
+
+#### Training Studio Features
+
+- **Custom LoRA training**: Train LoRA models from your own images
+- **LoRA Name**: Custom name for the trained model
+- **Trigger Word**: Optional trigger word for activating the LoRA
+- **Training Epochs**: Choose 5, 10, 20, or 30 epochs
+- **Multi-image upload**: Upload 10-20 training images (recommended)
+- **Image count display**: Shows number of selected images
+- **Model selector**: Choose training model
+- **Train LoRA button**: Start training process
+- **Auth modal**: Secure API key management
+
+#### Video Tools Studio Features
+
+- **Video enhancement models**: Upscale, edit, translate, and transform videos with AI
+- **Source video upload**: Upload video for processing
+- **Prompt input**: Optional text guidance for some models
+- **Model selector**: Switch between video tool models
+- **Dynamic form visibility**: Shows prompt only when model supports it
+- **Process Video button**: One-click video processing
+- **Download result**: Save processed videos
+- **Personalize trigger**: Inject contact context into prompts
+- **Auth modal**: Secure API key management
+
+#### Chat Studio Features
+
+- **AI-powered text generation**: Multiple LLM models
+- **Model selector**: Switch between text models
+- **Chat history**: Conversation display with user and AI message bubbles
+- **System prompt**: Optional system prompt input
+- **Message textarea**: Multi-line input with Shift+Enter support
+- **Advanced Options**: Temperature (0-2) and Max Tokens (1-4096) controls
+- **Send button**: Submit messages with keyboard shortcut (Enter)
+- **Loading indicator**: Animated bounce dots while generating
+- **Auth modal**: Secure API key management
+
+#### Lip Sync Studio Features
+
+- **Dual input modes**: Portrait Image mode and Video mode
+- **Image mode**: Upload portrait image + audio to animate
+- **Video mode**: Upload video + audio to sync lips
+- **Audio upload**: Upload audio file for lip sync
+- **Prompt input**: Optional description of talking style or motion
+- **Model selector**: Choose between lip sync models
+- **Resolution selector**: Select output resolution (480p and up, model dependent)
+- **Mode switching**: Toggle between image and video modes
+- **Upload state indicators**: Idle, Spinner, and Ready states for all uploads
+- **Generate button**: One-click lip sync generation
+- **Personalize trigger**: Inject contact context into prompts
+- **Auth modal**: Secure API key management
+
+#### Video Render Features
+
+- **Video preview player**: Full video playback with custom controls
+- **Connected Pipeline info**: Shows active processing pipeline and preset
+- **Action Tiles**: Create Shorts, Generate Highlights, Add Subtitles, Dub/Voiceover, Trailer Cut, Social Resize
+- **Quick Utilities**: AI Auto-Edit, Agentic Editor, Full Editor, Copy Prompt, Duplicate Render, Save as Template, Send to Storyboard, Publish/Deliver
+- **Cinematic Presets**: Luxury Brand Grade, Documentary Contrast, Film Trailer Punch, Emotional Story Tone
+- **Preset details**: Color Profile, Pacing, Export Profile
+- **Render Queue**: Visual job queue with remove capability
+- **Saved items panel**: Drafts and saved templates
+- **Stats display**: Duration, Resolution, Estimated Time
+- **Export settings**: Format, Frame Rate, Quality
+- **Action buttons**: Export Video, Download Frame, Queue Render, Trailer Cut, Social Resize, Remix Scene
+- **Preset configuration**: Color profile, pacing, music mood, caption style, export profile, finish
+
+#### Cinema Template Studio Features
+
+- **Browse View**: Template library with Favorites, Recent, and My Templates filters
+- **Create View**: Two modes — Quick Mode and Advanced Mode
+- **Quick Mode**: Simple inputs for fast template generation
+- **Advanced Mode**: Full Scene Builder and Shot Builder control
+- **Brand Context Inputs**: Add brand details for consistent messaging (when applicable)
+- **Scene Builder**: Structure video into scenes with timing and sequencing
+- **Storyboard View**: Visual storyboard editor for template planning
+- **Preview Panel**: Real-time preview of generated content
+- **Save functionality**: Save custom templates
+- **Cinematic Categories**: Cinematic Films, Business & Brand, Commercial & Ads, Social Media, Documentary, Personal Story, Industry Specific, Creative & Artistic, Narrative & Story, Film Genres, Scene Construction, Movie Poster & Promo, and niche verticals (Restaurant, Med Spa, Salon, Fitness, Real Estate, Dental, Chiropractic, Legal, Automotive, Fashion, Event, Luxury)
+- **Output Styles**: Cinematic Commercial, Documentary, Emotional Brand Story, Bold Direct Response Ad, Luxury Brand Promo, Dramatic Trailer, Inspirational Founder Film, Customer Transformation Story, Cinematic Social Short
+- **Template customization**: Visual styles, shot types, camera movements, pacing options, CTA types, ending types, brand voices, target audiences, and scene structures
+
+#### Modal Features
+
+- **Auth Modal**: API key entry and validation, shown when authentication is required
+- **Personalize Modal**: Contact profile selection and prompt personalization popover used across studios
+- **GTM Prompt Modal**: AI-powered prompt enhancement using GTM conversion frameworks (available in Image Studio and Video Studio)
+- **Template Thumbnail Modal**: Custom thumbnail selection and upload for templates
+- **Cinematic Template Wizard**: Step-by-step cinematic template builder (accessible from TemplateStudio for cinematic-tagged templates)
+
+#### Shared Capabilities
 
 - **Multi-Image Input** — Upload up to 14 reference images for compatible models
 - **Upload History** — Local storage of uploaded images with reuse capability

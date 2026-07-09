@@ -31,7 +31,7 @@ function checkRateLimit(clientId: string): boolean {
 interface GenerateRequest {
   endpoint: string;
   params?: Record<string, any>;
-  generationType?: 'image' | 'video' | 'i2i' | 'i2v' | 'v2v' | 'poll' | 'upload' | 'audio' | 'avatar' | 'text' | 'train' | 'video-tool' | 'lipsync';
+  generationType?: 'image' | 'video' | 'i2i' | 'i2v' | 'v2v' | 'poll' | 'upload' | 'audio' | 'avatar' | 'text' | 'train' | 'video-tool' | 'lipsync' | 'list';
   studioType?: string;
 }
 
@@ -164,7 +164,7 @@ Deno.serve(async (req: Request) => {
 
     const contentType = req.headers.get('content-type') || '';
     const isMultipart = contentType.startsWith('multipart/');
-    const method = generationType === 'poll' ? 'GET' : 'POST';
+    const method = (generationType === 'poll' || generationType === 'list') ? 'GET' : 'POST';
     const fetchOptions: RequestInit = {
       method,
       headers: {

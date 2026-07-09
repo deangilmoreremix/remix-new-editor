@@ -158,16 +158,19 @@ describe('renderFrameProcessor', () => {
       expect(drawImage).toHaveBeenCalledWith(mockVideo, 0, 0, 1280, 720);
     });
 
-    it('sets video currentTime when time is provided', () => {
+    it('sets video.currentTime only when video is an HTMLVideoElement', () => {
       const mockVideo = {
-        currentTime: undefined,
+        currentTime: 0,
       };
+      // Make the mock pass the `instanceof HTMLVideoElement` guard
+      Object.setPrototypeOf(mockVideo, HTMLVideoElement.prototype);
 
+      const drawImage = vi.fn();
       const canvas = {
         width: 1280,
         height: 720,
         getContext: vi.fn(() => ({
-          drawImage: vi.fn(),
+          drawImage,
         })),
       };
 

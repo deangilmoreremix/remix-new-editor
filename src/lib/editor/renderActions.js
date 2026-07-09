@@ -166,8 +166,11 @@ export async function copyToClipboard(text) {
   textarea.style.opacity = '0';
   document.body.appendChild(textarea);
   textarea.select();
-  return Boolean(document.execCommand('copy'));
-  document.body.removeChild(textarea);
+  try {
+    return Boolean(document.execCommand('copy'));
+  } finally {
+    document.body.removeChild(textarea);
+  }
 }
 
 export function sendToStoryboard(videoId, videoUrl) {

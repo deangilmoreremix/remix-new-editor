@@ -200,7 +200,6 @@ class TimelineIntegrationCoordinator {
 
       // Category J mappings (all other modals)
       'AdvanceImageEditorModal': 'J',
-      'BillingModal': 'J',
       'ConnectModal': 'J',
       'ContactImporterModal': 'J',
       'EmailCampaignModal': 'J',

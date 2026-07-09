@@ -127,7 +127,7 @@ export function resizeCanvas(canvas, targetWidth, targetHeight, preserveAspect) 
 
 export function drawVideoFrame(video, canvas, time) {
   const ctx = canvas.getContext('2d');
-  if (typeof time === 'number') {
+  if (typeof time === 'number' && video instanceof HTMLVideoElement) {
     video.currentTime = time;
   }
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);

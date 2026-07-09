@@ -15,3 +15,12 @@
 [build.environment]
   NPM_FLAGS = "--include=optional"
   NODE_VERSION = "20"
+
+# Serve the model catalog as a static file in production.
+# The vite build plugin emits dist/api/model-catalog.json containing all
+# three pools (t2i / i2i / i2v); the frontend filters by modelType client-side.
+[[redirects]]
+  from = "/api/model-catalog"
+  to = "/api/model-catalog.json"
+  status = 200
+  force = true
