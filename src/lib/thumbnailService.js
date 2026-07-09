@@ -35,7 +35,7 @@ export class ThumbnailService {
   }
 
   // 1) Build prompt variants
-  async buildPromptVariants(brief) {
+  async buildPromptVariants(brief, presetKey) {
     const body = {
       action: 'prompts',
       templateId: this.templateId,
@@ -49,67 +49,87 @@ export class ThumbnailService {
         niche: this.options.niche,
       },
     };
+    if (presetKey) body.presetKey = presetKey;
 
     const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
     if (error) throw new Error(error.message || 'Failed to build prompt variants');
-    return data?.variants || [];
+    return { variants: data?.variants || [], responseId: data?.response_id || null };
   }
 
-  // 2) Generate N candidates from a prompt
-  async generateCandidates(prompt, n = 3) {
+  async generateCandidates(prompt, opts = {}) {
     const body = {
       action: 'generate',
       prompt,
-      aspectRatio: this.aspectRatio,
-      n: Math.min(n, 3),
+      aspectRatio: opts.aspectRatio || this.aspectRatio,
+      n: Math.min(opts.n ?? 3, 3),
     };
+    if (opts.quality) body.quality = opts.quality;
+    if (opts.style) body.style = opts.style;
+    if (opts.background) body.background = opts.background;
+    if (opts.outputFormat) body.outputFormat = opts.outputFormat;
+    if (typeof opts.outputCompression === 'number') body.outputCompression = opts.outputCompression;
 
     const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
     if (error) throw new Error(error.message || 'Failed to generate candidates');
-    return data?.candidates || [];
+    return { candidates: data?.candidates || [], params: data?.params || null };
   }
 
-  // 3) Refine using Responses API multi-turn
-  async refineLastImage(instruction, previousResponseId) {
+  async refineLastImage(opts) {
     const body = {
       action: 'refine',
-      prompt: instruction,
-      previousResponseId,
+      prompt: opts.prompt,
+      previousResponseId: opts.previousResponseId || '',
     };
+    if (opts.size) body.size = opts.size;
+    if (opts.quality) body.quality = opts.quality;
+    if (opts.background) body.background = opts.background;
+    if (opts.outputFormat) body.outputFormat = opts.outputFormat;
+    if (typeof opts.outputCompression === 'number') body.outputCompression = opts.outputCompression;
+    if (typeof opts.partialImages === 'number') body.partialImages = opts.partialImages;
+    if (typeof opts.store === 'boolean') body.store = opts.store;
+    if (Array.isArray(opts.include) && opts.include.length) body.include = opts.include;
+    if (opts.referenceImageB64) body.referenceImageB64 = opts.referenceImageB64;
+    if (opts.referenceImageUrl) body.referenceImageUrl = opts.referenceImageUrl;
+    if (opts.referenceImageFileId) body.referenceImageFileId = opts.referenceImageFileId;
+    if (opts.imageDetail) body.imageDetail = opts.imageDetail;
 
     const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
     if (error) throw new Error(error.message || 'Failed to refine image');
     return data?.result;
   }
 
-  // 3b) Inpaint with a brush mask
-  async inpaint(prompt, imageB64, maskB64) {
+  async inpaint(opts) {
     const body = {
       action: 'inpaint',
-      prompt,
-      imageB64,
-      maskB64,
-      aspectRatio: this.aspectRatio,
+      prompt: opts.prompt,
+      imageB64: opts.imageB64,
+      maskB64: opts.maskB64,
+      aspectRatio: opts.aspectRatio || this.aspectRatio,
     };
+    if (opts.quality) body.quality = opts.quality;
+    if (opts.style) body.style = opts.style;
+    if (opts.background) body.background = opts.background;
+    if (opts.outputFormat) body.outputFormat = opts.outputFormat;
 
     const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
     if (error) throw new Error(error.message || 'Failed to inpaint image');
     return data?.result;
   }
 
-  // 4) Save to storage + DB
-  async saveToStorage(imageB64, promptUsed) {
+  async saveToStorage(opts) {
     const userId = this.options.userId || await this.currentUserId();
     if (!userId) throw new Error('User not authenticated');
 
     const body = {
       action: 'save',
       templateId: this.templateId,
-      imageB64,
+      imageB64: opts.imageB64,
       altText: this.options.altText || this.templateId,
       userId,
-      promptUsed,
+      promptUsed: opts.promptUsed || '',
     };
+    if (opts.presetKey) body.presetKey = opts.presetKey;
+    if (opts.controls) body.controls = opts.controls;
 
     const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
     if (error) throw new Error(error.message || 'Failed to save thumbnail');
