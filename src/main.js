@@ -134,8 +134,17 @@ try {
     return;
   }
 
-  // Full-page sign-in route — no header/sidebar shell
-  if (initialPage === 'signin') {
+  // Full-page auth routes — mounted with Clerk (scaffold).
+  // Falls back to the existing Supabase SignInPage when the Clerk key is absent.
+  if (initialPage === 'signin' || initialPage === 'signup') {
+    if (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
+      const { mountClerkPage } = await import('./components/auth/ClerkAuth.jsx');
+      const rootEl = document.createElement('div');
+      app.appendChild(rootEl);
+      mountClerkPage(initialPage, rootEl);
+      console.log('[App] Clerk ' + initialPage + ' page rendered');
+      return;
+    }
     const { SignInPage } = await import('./components/landing/SignInPage.jsx');
     const signInPage = SignInPage();
     app.appendChild(signInPage);
