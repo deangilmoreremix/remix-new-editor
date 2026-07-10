@@ -24,7 +24,23 @@
       "@higgsfield/tokens": ["./packages/tokens/src"],
       "@higgsfield/tokens/*": ["./packages/tokens/src/*"],
       "@higgsfield/navigation": ["./packages/navigation/src"],
-      "@higgsfield/navigation/*": ["./packages/navigation/src/*"]
+      "@higgsfield/navigation/*": ["./packages/navigation/src/*"],
+      "@higgsfield/timeline-editor": ["./packages/timeline-editor/src"],
+      "@higgsfield/timeline-editor/*": ["./packages/timeline-editor/src/*"],
+      "@higgsfield/color-grading": ["./packages/color-grading/src"],
+      "@higgsfield/color-grading/*": ["./packages/color-grading/src/*"],
+      "@higgsfield/audio-mixer": ["./packages/audio-mixer/src"],
+      "@higgsfield/audio-mixer/*": ["./packages/audio-mixer/src/*"],
+      "@higgsfield/transitions": ["./packages/transitions/src"],
+      "@higgsfield/transitions/*": ["./packages/transitions/src/*"],
+      "@higgsfield/subtitles": ["./packages/subtitles/src"],
+      "@higgsfield/subtitles/*": ["./packages/subtitles/src/*"],
+      "@higgsfield/style-templates": ["./packages/style-templates/src"],
+      "@higgsfield/style-templates/*": ["./packages/style-templates/src/*"],
+      "@higgsfield/video-compiler": ["./packages/video-compiler/src"],
+      "@higgsfield/video-compiler/*": ["./packages/video-compiler/src/*"],
+      "@higgsfield/ai-chat": ["./packages/ai-chat/src"],
+      "@higgsfield/ai-chat/*": ["./packages/ai-chat/src/*"]
     }
   },
   "exclude": ["node_modules", "dist", "build"]

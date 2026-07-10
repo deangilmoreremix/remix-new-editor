@@ -1,4 +1,4 @@
-import { BaseModal } from './BaseModal';
+import { BaseModal } from './BaseModal.jsx';
 
 export class TemplatePreviewModal extends BaseModal {
   constructor(options = {}) {

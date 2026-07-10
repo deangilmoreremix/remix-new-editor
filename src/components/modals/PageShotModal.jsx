@@ -1,4 +1,4 @@
-import { BaseModal } from './BaseModal';
+import { BaseModal } from './BaseModal.jsx';
 
 const ANNOTATION_TOOLS = [
   { id: 'rectangle', name: 'Rectangle', icon: '▢' },

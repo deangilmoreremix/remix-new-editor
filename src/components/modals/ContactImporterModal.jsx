@@ -1,4 +1,4 @@
-import { BaseModal } from './BaseModal';
+import { BaseModal } from './BaseModal.jsx';
 
 const SAMPLE_CONTACTS = [
   { firstName: 'John', lastName: 'Smith', email: 'john.smith@example.com', phone: '+1 555-0101', company: 'Acme Corp' },

@@ -1,6 +1,6 @@
 // CreateProjectModal - Modal for creating new video projects
 
-import BaseModal from './BaseModal.js';
+import BaseModal from './BaseModal.react.js';
 
 export default class CreateProjectModal extends BaseModal {
   constructor(props = {}) {

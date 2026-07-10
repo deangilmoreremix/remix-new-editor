@@ -1,10 +1,12 @@
 import './style.css';
+import './components/modals/modal-styles.css';
 import { Header } from './components/Header.js';
 import { Sidebar } from './components/Sidebar.js';
 import { initRouter, navigate } from './lib/router.js';
 import { perfMonitor } from './lib/performance.js';
 import { analytics } from './lib/analytics.js';
 import { showToast } from './lib/loading.js';
+import { escapeHtml } from './lib/security.js';
 
 console.log('[App] Starting initialization...');
 

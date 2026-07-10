@@ -1,4 +1,4 @@
-import { BaseModal } from './BaseModal';
+import { BaseModal } from './BaseModal.jsx';
 
 const PLATFORMS = [
   { id: 'youtube', name: 'YouTube', icon: '▶', color: '#FF0000', description: 'Video sharing platform' },

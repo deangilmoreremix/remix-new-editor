@@ -65,5 +65,31 @@ export default [
       'no-case-declarations': 'error',
       'preserve-caught-error': 'warn'
     }
+  },
+  {
+    files: ['backend/**/*.js', 'scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        require: 'readonly',
+        module: 'readonly',
+        exports: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        Buffer: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        globalThis: 'readonly',
+      }
+    },
+    rules: {
+      'no-unused-vars': 'warn',
+      'no-console': 'off',
+    }
   }
 ];

@@ -71,3 +71,18 @@ I read the package diffs first, then cross-checked the **final** state of `thumb
 The Tasks 10–13 implementation is functionally coherent, all five acceptance checks pass, and every global constraint is satisfied. The follow-up fix (`99276a92`) correctly repairs the positional-argument and ReferenceError regressions that the intermediate Task 11+13 commit introduced.
 
 One correctness defect worth fixing before relying on presets in production: the **preset control key mismatch** (`format`/`compression` vs `outputFormat`/`outputCompression`, Medium) means preset compression/format values never take effect. It is non-crashing and inherited from the plan spec, so it does not block, but it undermines the preset feature and should be scheduled. The remaining findings are Low (defaults, dead param, inert partial-preview overlay, uninitialized `revisedPrompt`, brief-edit loss on preset switch).
+
+## Remediation (all findings resolved)
+
+All six findings have been remediated and committed:
+
+- `4415f00a` fix(thumbnail): address review findings — preset control-key mapping, opts defaults, partial-preview wiring
+  - **Medium** preset key mismatch: `applyPresetToControls` (thumbnailPresets.js) now normalizes `format`→`outputFormat` / `compression`→`outputCompression`, so preset compression/format values take effect.
+  - **Low** `opts = {}` defaults added to `refineLastImage`, `inpaint`, `saveToStorage` (symmetry with `generateCandidates`).
+  - **Low** dead `presetKey` removed from `goGenerate`'s `generateCandidates` opts.
+  - **Low** `this.revisedPrompt = ''` initialized in the constructor.
+  - **Low** `selectPreset` now preserves user-typed brief edits (reads `#thumb-brief` before reapplying the preset modifier).
+- `9547d022` feat(thumbnail): stream partial-image previews during refine via SSE
+  - **Low** partial-preview overlay is no longer inert: `refineLastImageStream` wires the SSE partial-image stream into `this.partialPreview`, so `.thumb-modal__partial` actually renders progressive previews.
+
+Verified: ESLint reports 0 errors on the changed `.js` files; esbuild transform reports no syntax errors in `TemplateThumbnailModal.jsx`. Final verdict: **APPROVE**, all findings closed.

@@ -1,4 +1,4 @@
-import { BaseModal } from './BaseModal';
+import { BaseModal } from './BaseModal.jsx';
 
 const PROJECT_TEMPLATES = [
   { id: 'blank', name: 'Blank Project', icon: '📄', description: 'Start from scratch' },

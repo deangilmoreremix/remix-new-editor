@@ -11,29 +11,9 @@
       "description": "High-quality Flux-based image generation with full parameter control."
     },
     {
-      "id": "flux-dev-lora",
-      "name": "Flux Dev Lora",
-      "description": "Flux Dev with LoRA support for fine-tuned style injection."
-    },
-    {
       "id": "flux-kontext-dev-t2i",
       "name": "Flux Kontext Dev T2I",
       "description": "Context-aware Flux image generation for complex scene prompts."
-    },
-    {
-      "id": "hidream-i1-fast",
-      "name": "Hidream I1 Fast",
-      "description": "HiDream I1 fast inference for quick high-quality image generation."
-    },
-    {
-      "id": "hidream-i1-dev",
-      "name": "Hidream I1 Dev",
-      "description": "HiDream I1 development model with full dimension control."
-    },
-    {
-      "id": "hidream-i1-full",
-      "name": "Hidream I1 Full",
-      "description": "HiDream I1 full-quality generation with width and height control."
     },
     {
       "id": "ai-anime-generator",
@@ -69,11 +49,6 @@
       "id": "flux-schnell",
       "name": "Flux Schnell",
       "description": "Ultra-fast Flux image generation for rapid prototyping and iteration."
-    },
-    {
-      "id": "bytedance-seedream-v3",
-      "name": "Bytedance Seedream v3",
-      "description": "ByteDance Seedream v3 — high-quality text-to-image synthesis."
     },
     {
       "id": "qwen-image",
@@ -275,22 +250,22 @@
     {
       "id": "ai-background-remover",
       "name": "AI Background Remover",
-      "description": "AI background removal and replacement tool."
+      "description": "AI-powered background removal from any source image."
     },
     {
       "id": "ai-product-shot",
       "name": "AI Product Shot",
-      "description": "Quick AI product shot generation for e-commerce."
+      "description": "Quick AI product shot generation for e-commerce catalogs."
     },
     {
       "id": "ai-skin-enhancer",
       "name": "AI Skin Enhancer",
-      "description": "AI skin retouching and portrait enhancement."
+      "description": "AI skin retouching and portrait enhancement tool."
     },
     {
       "id": "ai-color-photo",
       "name": "AI Color Photo",
-      "description": "AI colourisation and restoration for old photographs."
+      "description": "AI colourisation and enhancement for black and white photographs."
     },
     {
       "id": "flux-kontext-dev-i2i",
@@ -300,12 +275,12 @@
     {
       "id": "ai-product-photography",
       "name": "AI Product Photography",
-      "description": "AI product photo generation and enhancement."
+      "description": "AI product photography generation with professional lighting."
     },
     {
       "id": "ai-ghibli-style",
       "name": "AI Ghibli Style",
-      "description": "Ghibli art style filter for image transformation."
+      "description": "Ghibli art style filter and transformation for any image."
     },
     {
       "id": "ai-image-extension",
@@ -315,7 +290,7 @@
     {
       "id": "ai-object-eraser",
       "name": "AI Object Eraser",
-      "description": "AI object removal and inpainting for images."
+      "description": "AI-powered object removal and inpainting from images."
     },
     {
       "id": "flux-kontext-pro-i2i",
@@ -335,7 +310,7 @@
     {
       "id": "gpt4o-edit",
       "name": "GPT-4o Edit",
-      "description": "GPT-4o image editing with configurable denoising strength."
+      "description": "GPT-4o image editing with configurable strength and aspect ratio."
     },
     {
       "id": "midjourney-v7-image-to-image",
@@ -365,17 +340,17 @@
     {
       "id": "ideogram-character",
       "name": "Ideogram Character",
-      "description": "Ideogram consistent character image-to-image editing."
+      "description": "Ideogram v3 consistent character generation and reference."
     },
     {
       "id": "qwen-image-edit",
       "name": "Qwen Image Edit",
-      "description": "Alibaba Qwen image editing with aspect ratio control."
+      "description": "Alibaba Qwen image editing with aspect ratio controls."
     },
     {
       "id": "image-effects",
       "name": "Image Effects",
-      "description": "General image effects and enhancement processing."
+      "description": "General image effects processing and enhancement."
     },
     {
       "id": "nano-banana-edit",
@@ -413,11 +388,6 @@
       "description": "Wan 2.5 image editing with strength and resolution control."
     },
     {
-      "id": "higgsfield-soul-image-to-image",
-      "name": "Higgsfield Soul Image To Image",
-      "description": "Higgsfield Soul artistic image-to-image transformation."
-    },
-    {
       "id": "reve-image-edit",
       "name": "Reve Image Edit",
       "description": "REVE image editing and transformation toolkit."
@@ -435,32 +405,27 @@
     {
       "id": "qwen-image-edit-plus-lora",
       "name": "Qwen Image Edit Plus Lora",
-      "description": "Qwen image editing with LoRA weight injection."
+      "description": "Qwen image editing with LoRA model weight injection."
     },
     {
       "id": "nano-banana-pro-edit",
       "name": "Nano Banana Pro Edit",
-      "description": "Nano Banana Pro high-fidelity image editing."
-    },
-    {
-      "id": "image-passthrough",
-      "name": "Image Passthrough",
-      "description": "Direct pass-through with no model-side processing."
+      "description": "Nano Banana Pro image editing with higher fidelity."
     },
     {
       "id": "kling-o1-edit-image",
       "name": "Kling O1 Edit Image",
-      "description": "Kling O1 image editing and object inpainting."
+      "description": "Kling O1 image editing and inpainting with object control."
     },
     {
       "id": "flux-2-dev-edit",
       "name": "Flux 2 Dev Edit",
-      "description": "Flux 2 Dev image-to-image editing with strength control."
+      "description": "Flux 2 Dev image editing with strength and size controls."
     },
     {
       "id": "flux-2-flex-edit",
       "name": "Flux 2 Flex Edit",
-      "description": "Flux 2 Flex image-to-image with aspect ratio control."
+      "description": "Flux 2 Flex image editing with aspect ratio and strength."
     },
     {
       "id": "flux-2-pro-edit",
@@ -490,32 +455,27 @@
     {
       "id": "gpt-image-1.5-edit",
       "name": "Gpt Image 1.5 Edit",
-      "description": "OpenAI GPT Image 1.5 image-to-image with strength control."
+      "description": "OpenAI GPT Image 1.5 image editing with strength control."
     },
     {
       "id": "grok-imagine-image-to-image",
       "name": "Grok Imagine Image To Image",
-      "description": "xAI Grok Imagine image-to-image style variation."
-    },
-    {
-      "id": "Api Node",
-      "name": "Api Node",
-      "description": "Generic API node for custom model routing."
+      "description": "xAI Grok Imagine image-to-image style transfer."
     },
     {
       "id": "flux-2-klein-4b-edit",
       "name": "Flux 2 Klein 4b Edit",
-      "description": "Flux 2 Klein 4B lightweight image-to-image editing."
+      "description": "Flux 2 Klein 4B lightweight image editing."
     },
     {
       "id": "flux-2-klein-9b-edit",
       "name": "Flux 2 Klein 9b Edit",
-      "description": "Flux 2 Klein 9B balanced image-to-image editing."
+      "description": "Flux 2 Klein 9B balanced parameter-efficient image editing."
     },
     {
       "id": "add-image-watermark",
       "name": "Add Image Watermark",
-      "description": "Batch watermark overlay and branding tool."
+      "description": "Batch image watermark overlay and branding tool."
     },
     {
       "id": "nano-banana-2-edit",
@@ -532,17 +492,17 @@
     {
       "id": "ai-video-effects",
       "name": "AI Video Effects",
-      "description": "AI video effects processing and compositing pipeline."
+      "description": "AI video effects processing and enhancement pipeline."
     },
     {
       "id": "motion-controls",
       "name": "Motion Controls",
-      "description": "Motion parameter controls for animation and camera movement."
+      "description": "Motion parameter control overlay for image-to-video pipelines."
     },
     {
       "id": "vfx",
       "name": "VFX",
-      "description": "Visual effects processing and compositing for video and images."
+      "description": "Visual effects processing and compositing for images and video."
     },
     {
       "id": "veo3-image-to-video",
@@ -627,7 +587,7 @@
     {
       "id": "video-effects",
       "name": "Video Effects",
-      "description": "Video effects processing and transition generation."
+      "description": "Video effects processing, filters and transitions."
     },
     {
       "id": "seedance-lite-i2v",
@@ -688,11 +648,6 @@
       "id": "leonardoai-motion-2.0",
       "name": "Leonardoai Motion 2.0",
       "description": "Leonardo AI Motion 2.0 image animation and motion generation."
-    },
-    {
-      "id": "higgsfield-dop-image-to-video",
-      "name": "Higgsfield Dop Image To Video",
-      "description": "Higgsfield DOP cinematic image-to-video generation."
     },
     {
       "id": "veo3.1-image-to-video",

@@ -1,4 +1,4 @@
-import { BaseModal } from './BaseModal';
+import { BaseModal } from './BaseModal.jsx';
 
 const QUALITY_OPTIONS = [
   { id: '1080p', name: '1080p HD', resolution: '1920x1080', fps: 30 },

@@ -1,4 +1,4 @@
-import { BaseModal } from './BaseModal';
+import { BaseModal } from './BaseModal.jsx';
 import { addVideoErrorRecovery } from '../../lib/videoPlayer.js';
 
 export class VideoPlayerModal extends BaseModal {
