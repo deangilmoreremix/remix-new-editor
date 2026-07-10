@@ -36,3 +36,9 @@ dist-ssr
 .audit/
 muapi-audit-results.json
 
+# Clerk auth test/debug scaffolding — never commit.
+.agents/
+clerk_e2e_test.cjs
+debug_signin.cjs
+skills-lock.json
+

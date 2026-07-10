@@ -6,8 +6,15 @@
  * with optional localStorage backup that is obfuscated.
  */
 
-const API_KEY_STORAGE = 'muapi_key';
-const API_KEY_HASH_STORAGE = 'muapi_key_hash';
+// Storage keys for the two supported providers.
+const KEY_STORAGE = {
+  muapi: 'muapi_key',
+  openai: 'openai_key',
+};
+const KEY_HASH_STORAGE = {
+  muapi: 'muapi_key_hash',
+  openai: 'openai_key_hash',
+};
 
 // Simple obfuscation - NOT encryption, but adds a layer against casual reading
 const OBFUSCATION_SALT = 'muapi_2024_';
@@ -39,17 +46,16 @@ async function hashKey(key) {
 
 export class ApiKeyManager {
     constructor() {
-        this._cachedKey = null;
-        this._cachedHash = null;
+        // Per-provider cached key/hash. `muapi` and `openai` are kept separate.
+        this._cache = {
+            muapi: { key: null, hash: null },
+            openai: { key: null, hash: null },
+        };
         this._listeners = new Set();
     }
 
-    /**
-     * Set the API key
-     * @param {string} key - The API key
-     * @param {boolean} persist - Whether to persist to localStorage (default: true)
-     */
-    async setKey(key, persist = true) {
+    async _setKeyFor(kind, key, persist = true) {
+        if (!KEY_STORAGE[kind]) throw new Error(`Unknown key kind: ${kind}`);
         if (!key || typeof key !== 'string') {
             throw new Error('Invalid API key');
         }
@@ -59,62 +65,95 @@ export class ApiKeyManager {
             throw new Error('API key too short');
         }
 
-        this._cachedKey = trimmedKey;
-        this._cachedHash = await hashKey(trimmedKey);
+        const hash = await hashKey(trimmedKey);
+        this._cache[kind].key = trimmedKey;
+        this._cache[kind].hash = hash;
 
         // Store in sessionStorage (primary - cleared on tab close)
-        sessionStorage.setItem(API_KEY_STORAGE, obfuscate(trimmedKey));
-        sessionStorage.setItem(API_KEY_HASH_STORAGE, this._cachedHash);
+        sessionStorage.setItem(KEY_STORAGE[kind], obfuscate(trimmedKey));
+        sessionStorage.setItem(KEY_HASH_STORAGE[kind], hash);
 
         // Optionally persist to localStorage with obfuscation
         if (persist) {
-            localStorage.setItem(API_KEY_STORAGE, obfuscate(trimmedKey));
-            localStorage.setItem(API_KEY_HASH_STORAGE, this._cachedHash);
+            localStorage.setItem(KEY_STORAGE[kind], obfuscate(trimmedKey));
+            localStorage.setItem(KEY_HASH_STORAGE[kind], hash);
         }
 
         this._notifyListeners();
     }
 
-    /**
-     * Get the API key
-     * @returns {string|null}
-     */
-    getKey() {
-        if (this._cachedKey) {
-            return this._cachedKey;
-        }
+    _getKeyFor(kind) {
+        if (this._cache[kind].key) return this._cache[kind].key;
 
         // Try sessionStorage first
-        const sessionKey = sessionStorage.getItem(API_KEY_STORAGE);
+        const sessionKey = sessionStorage.getItem(KEY_STORAGE[kind]);
         if (sessionKey) {
-            this._cachedKey = deobfuscate(sessionKey);
-            return this._cachedKey;
+            this._cache[kind].key = deobfuscate(sessionKey);
+            return this._cache[kind].key;
         }
 
         // Fall back to localStorage
-        const localKey = localStorage.getItem(API_KEY_STORAGE);
+        const localKey = localStorage.getItem(KEY_STORAGE[kind]);
         if (localKey) {
-            this._cachedKey = deobfuscate(localKey);
-            if (this._cachedKey) {
+            const decoded = deobfuscate(localKey);
+            if (decoded) {
+                this._cache[kind].key = decoded;
                 // Restore to sessionStorage
-                sessionStorage.setItem(API_KEY_STORAGE, localKey);
-                return this._cachedKey;
+                sessionStorage.setItem(KEY_STORAGE[kind], localKey);
+                return decoded;
             }
         }
 
         return null;
     }
 
-    /**
-     * Check if API key exists (sync, fast)
-     */
-    hasKey() {
-        if (this._cachedKey) return true;
-        
+    _hasKeyFor(kind) {
+        if (this._cache[kind].key) return true;
         return !!(
-            sessionStorage.getItem(API_KEY_STORAGE) ||
-            localStorage.getItem(API_KEY_STORAGE)
+            sessionStorage.getItem(KEY_STORAGE[kind]) ||
+            localStorage.getItem(KEY_STORAGE[kind])
         );
+    }
+
+    _getStoredHashFor(kind) {
+        return sessionStorage.getItem(KEY_HASH_STORAGE[kind]) ||
+               localStorage.getItem(KEY_HASH_STORAGE[kind]);
+    }
+
+    _clearKeyFor(kind) {
+        this._cache[kind].key = null;
+        this._cache[kind].hash = null;
+        sessionStorage.removeItem(KEY_STORAGE[kind]);
+        sessionStorage.removeItem(KEY_HASH_STORAGE[kind]);
+        localStorage.removeItem(KEY_STORAGE[kind]);
+        localStorage.removeItem(KEY_HASH_STORAGE[kind]);
+        this._notifyListeners();
+    }
+
+    // ---- Muapi (legacy default) key ----
+    setKey(key, persist = true) { return this.setMuapiKey(key, persist); }
+    getKey() { return this.getMuapiKey(); }
+    hasKey() { return this.hasMuapiKey(); }
+    clearKey() { return this.clearMuapiKey(); }
+
+    async setMuapiKey(key, persist = true) { return this._setKeyFor('muapi', key, persist); }
+    getMuapiKey() { return this._getKeyFor('muapi'); }
+    hasMuapiKey() { return this._hasKeyFor('muapi'); }
+    getMuapiHash() { return this._getStoredHashFor('muapi'); }
+    clearMuapiKey() { return this._clearKeyFor('muapi'); }
+
+    // ---- OpenAI key ----
+    async setOpenAIKey(key, persist = true) { return this._setKeyFor('openai', key, persist); }
+    getOpenAIKey() { return this._getKeyFor('openai'); }
+    hasOpenAIKey() { return this._hasKeyFor('openai'); }
+    getOpenAIHash() { return this._getStoredHashFor('openai'); }
+    clearOpenAIKey() { return this._clearKeyFor('openai'); }
+
+    /**
+     * Whether any provider key is configured.
+     */
+    hasAnyKey() {
+        return this.hasMuapiKey() || this.hasOpenAIKey();
     }
 
     /**
@@ -122,26 +161,9 @@ export class ApiKeyManager {
      */
     async validateKey(key) {
         const hash = await hashKey(key);
-        const storedHash = this._getStoredHash();
-        return hash === storedHash;
-    }
-
-    _getStoredHash() {
-        return sessionStorage.getItem(API_KEY_HASH_STORAGE) ||
-               localStorage.getItem(API_KEY_HASH_STORAGE);
-    }
-
-    /**
-     * Clear the API key
-     */
-    clearKey() {
-        this._cachedKey = null;
-        this._cachedHash = null;
-        sessionStorage.removeItem(API_KEY_STORAGE);
-        sessionStorage.removeItem(API_KEY_HASH_STORAGE);
-        localStorage.removeItem(API_KEY_STORAGE);
-        localStorage.removeItem(API_KEY_HASH_STORAGE);
-        this._notifyListeners();
+        const muapiHash = this._getStoredHashFor('muapi');
+        const openaiHash = this._getStoredHashFor('openai');
+        return hash === muapiHash || hash === openaiHash;
     }
 
     /**
@@ -166,14 +188,8 @@ export class ApiKeyManager {
      * Migrate old localStorage key to new format
      */
     migrateFromLegacy() {
-        const legacyKey = localStorage.getItem('muapi_key');
-        if (legacyKey && !localStorage.getItem(API_KEY_STORAGE)) {
-            // Clear legacy key first
-            localStorage.removeItem('muapi_key');
-            // Set in new format
-            this.setKey(legacyKey, true).catch(console.error);
-            return true;
-        }
+        // No-op: the legacy key name (`muapi_key`) is identical to the current
+        // muapi storage key, so nothing needs to be migrated. Kept for compatibility.
         return false;
     }
 }

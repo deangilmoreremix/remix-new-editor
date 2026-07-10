@@ -146,6 +146,18 @@ Deno.serve(async (req: Request) => {
     // Normalize legacy endpoint names to match current muapi API
     const normalizedEndpoint = normalizeLegacyEndpoint(endpoint);
 
+    // If the client supplied a user-owned OpenAI key (Settings > OpenAI API Key),
+    // extract it and forward it as a header to muapi.ai so OpenAI-backed models
+    // are billed against the user's own OpenAI account. It is stripped from the
+    // request body so it isn't sent as a model parameter.
+    let openaiApiKey: string | undefined;
+    if (typeof body.openai_api_key === 'string') {
+      openaiApiKey = body.openai_api_key;
+    } else if (params && typeof (params as Record<string, unknown>).openai_api_key === 'string') {
+      openaiApiKey = (params as Record<string, unknown>).openai_api_key as string;
+      delete (params as Record<string, unknown>).openai_api_key;
+    }
+
     const muapiKey = Deno.env.get('MUAPI_API_KEY');
     if (!muapiKey) {
       return new Response(
@@ -167,7 +179,8 @@ Deno.serve(async (req: Request) => {
     const fetchOptions: RequestInit = {
       method,
       headers: {
-        'x-api-key': muapiKey
+        'x-api-key': muapiKey,
+        ...(openaiApiKey ? { 'openai-api-key': openaiApiKey } : {}),
       }
     };
 

@@ -18,14 +18,22 @@ class OpenAIService {
     this.model = 'gpt-4';
     this.maxTokens = 2000;
     this.temperature = 0.7;
+    this.missingKeyMessage = 'OpenAI API key not configured. Add your OpenAI API key in Settings.';
   }
 
   _getKey() {
-    return apiKeyManager.getKey();
+    // The muapi proxy identifies the caller via x-api-key; OpenAI requests use
+    // the user's OpenAI key (a separate credential from the MuAPI key).
+    return apiKeyManager.getOpenAIKey();
+  }
+
+  _getOpenAIKey() {
+    return apiKeyManager.getOpenAIKey();
   }
 
   _hasKey() {
-    return apiKeyManager.hasKey();
+    // OpenAI features require the user's own OpenAI key.
+    return apiKeyManager.hasOpenAIKey();
   }
 
   _headers() {
@@ -34,6 +42,15 @@ class OpenAIService {
       'Content-Type': 'application/json',
       ...(key ? { 'x-api-key': key } : {}),
     };
+  }
+
+  /**
+   * Merge the user-configured OpenAI key into the request params so the muapi
+   * proxy can use it for OpenAI-backed model calls.
+   */
+  _withOpenAIKey(params = {}) {
+    const openaiKey = this._getOpenAIKey();
+    return openaiKey ? { ...params, openai_api_key: openaiKey } : params;
   }
 
   /**
@@ -57,7 +74,7 @@ class OpenAIService {
     cinematicOptions = {}
   }) {
     if (!this._hasKey()) {
-      throw new Error('MuAPI key not configured. Please set your API key in Settings.');
+      throw new Error(this.missingKeyMessage);
     }
 
     const systemPrompt = this.buildSystemPrompt(role, industry, methodology, tonality, focus, cinematicOptions);
@@ -71,13 +88,13 @@ Please enhance this prompt using the specified GTM methodologies and create a co
         headers: this._headers(),
         body: JSON.stringify({
           endpoint: 'text',
-          params: {
+          params: this._withOpenAIKey({
             prompt: userPrompt,
             system_prompt: systemPrompt,
             model: this.config.getImageModel?.() || 'gpt-4',
             temperature: this.temperature,
             max_tokens: this.maxTokens,
-          },
+          }),
           generationType: 'text',
           studioType: 'chat'
         })
@@ -514,7 +531,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     model
   }) {
     if (!this._hasKey()) {
-      throw new Error('MuAPI key not configured. Please set your API key in Settings.');
+      throw new Error(this.missingKeyMessage);
     }
 
     const imageModel = model || this.config.getImageModel?.() || 'flux-schnell';
@@ -540,12 +557,12 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
       const response = await fetch(MUAPI_PROXY_URL, {
         method: 'POST',
         headers: this._headers(),
-        body: JSON.stringify({
-          endpoint: imageModel,
-          params: requestBody,
-          generationType: 'image',
-          studioType: 'image'
-        })
+          body: JSON.stringify({
+            endpoint: imageModel,
+            params: this._withOpenAIKey(requestBody),
+            generationType: 'image',
+            studioType: 'image'
+          })
       });
 
       if (!response.ok) {
@@ -638,7 +655,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     moderation = "auto"
   }) {
     if (!this._hasKey()) {
-      throw new Error('MuAPI key not configured. Please set your API key in Settings.');
+      throw new Error(this.missingKeyMessage);
     }
 
     try {
@@ -670,11 +687,11 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
         headers: this._headers(),
         body: JSON.stringify({
           endpoint: 'i2i',
-          params: {
+          params: this._withOpenAIKey({
             ...imagePayload,
             image_url: primaryImage,
             images_list: images.length > 0 ? images : undefined,
-          },
+          }),
           generationType: 'i2i',
           studioType: 'edit'
         })
@@ -714,7 +731,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     output_compression
   }) {
     if (!this._hasKey()) {
-      throw new Error('MuAPI key not configured. Please set your API key in Settings.');
+      throw new Error(this.missingKeyMessage);
     }
 
     try {
@@ -735,11 +752,11 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
         headers: this._headers(),
         body: JSON.stringify({
           endpoint: 'i2i',
-          params: {
+          params: this._withOpenAIKey({
             ...requestBody,
             image_url: image,
             strength: 0.7,
-          },
+          }),
           generationType: 'i2i',
           studioType: 'edit'
         })
@@ -792,7 +809,7 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     imageInputs = []
   }) {
     if (!this._hasKey()) {
-      throw new Error('MuAPI key not configured. Please set your API key in Settings.');
+      throw new Error(this.missingKeyMessage);
     }
 
     const imageGenTool = { type: "image_generation" };
@@ -827,12 +844,12 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
       const response = await fetch(MUAPI_PROXY_URL, {
         method: 'POST',
         headers: this._headers(),
-        body: JSON.stringify({
-          endpoint: 'responses',
-          params: reqBody,
-          generationType: 'responses',
-          studioType: 'image'
-        })
+          body: JSON.stringify({
+            endpoint: 'responses',
+            params: this._withOpenAIKey(reqBody),
+            generationType: 'responses',
+            studioType: 'image'
+          })
       });
 
       if (!response.ok) {

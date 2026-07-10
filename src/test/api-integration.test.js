@@ -149,25 +149,25 @@ describe('openaiService fixes', () => {
   test('generateImage throws when no key configured', async () => {
     const { openaiService } = await import('../lib/openaiService.js');
     await expect(openaiService.generateImage({ prompt: 'test' }))
-      .rejects.toThrow('MuAPI key not configured');
+      .rejects.toThrow('OpenAI API key not configured');
   });
 
   test('editImage throws when no key configured', async () => {
     const { openaiService } = await import('../lib/openaiService.js');
     await expect(openaiService.editImage({ image: 'base64', prompt: 'test' }))
-      .rejects.toThrow('MuAPI key not configured');
+      .rejects.toThrow('OpenAI API key not configured');
   });
 
   test('generateVariations throws when no key configured', async () => {
     const { openaiService } = await import('../lib/openaiService.js');
     await expect(openaiService.generateVariations({ image: 'base64' }))
-      .rejects.toThrow('MuAPI key not configured');
+      .rejects.toThrow('OpenAI API key not configured');
   });
 
   test('multiTurnImageEditing throws when no key configured', async () => {
     const { openaiService } = await import('../lib/openaiService.js');
     await expect(openaiService.multiTurnImageEditing({ input: 'test' }))
-      .rejects.toThrow('MuAPI key not configured');
+      .rejects.toThrow('OpenAI API key not configured');
   });
 });
 
