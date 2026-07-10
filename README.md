@@ -1,6 +1,6 @@
-# Open Higgsfield AI
+# SmartVideo
 
-> **The free, open-source alternative to Higgsfield AI.** Generate AI images and videos using 200+ state-of-the-art models — without the closed ecosystem or subscription fees.
+> **The free, open-source AI studio for images, video, and cinema.** Generate AI images and videos using 200+ state-of-the-art models — without the closed ecosystem or subscription fees.
 
 ![Studio Demo](docs/assets/studio_demo.webp)
 
@@ -33,7 +33,7 @@
 
 ## Project Overview
 
-Open Higgsfield AI is an open-source AI image, video, and cinema studio that brings Higgsfield-style creative workflows to everyone. Powered by [Muapi.ai](https://muapi.ai), it supports:
+SmartVideo is an open-source AI image, video, and cinema studio that brings cinematic AI creative workflows to everyone. Powered by [Muapi.ai](https://muapi.ai), it supports:
 
 - **Text-to-Image** generation (50+ models)
 - **Image-to-Image** transformation (55+ models)
@@ -41,9 +41,9 @@ Open Higgsfield AI is an open-source AI image, video, and cinema studio that bri
 - **Image-to-Video** animation (60+ models)
 - **Video-to-Video** processing
 
-### Why Open Higgsfield AI?
+### Why SmartVideo?
 
-| Feature | Higgsfield AI | Open Higgsfield AI |
+| Feature | Commercial Tools | SmartVideo |
 |---------|---------------|---------------------|
 | **Cost** | Subscription-based | Free (open-source) |
 | **Models** | Proprietary | 200+ open & commercial models |
@@ -496,8 +496,8 @@ The Timeline Editor surfaces the following modals and panels:
 
 ```bash
 # Clone the repository
-git clone https://github.com/Anil-matcha/Open-Higgsfield-AI.git
-cd Open-Higgsfield-AI
+git clone https://github.com/Anil-matcha/SmartVideo.git
+cd SmartVideo
 
 # Install dependencies
 npm install
@@ -605,7 +605,7 @@ src/
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Open Higgsfield AI                        │
+│                        SmartVideo                        │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
 │  │   Header     │  │   Sidebar    │  │    Content Area      │  │
@@ -1280,7 +1280,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ### Getting Help
 
-- [GitHub Issues](https://github.com/Anil-matcha/Open-Higgsfield-AI/issues)
+- [GitHub Issues](https://github.com/Anil-matcha/SmartVideo/issues)
 - [Muapi.ai Documentation](https://muapi.ai/docs)
 
 ---
@@ -1289,9 +1289,9 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 Built with [Muapi.ai](https://muapi.ai) — the unified API for AI image and video generation models.
 
-- [Project Repository](https://github.com/Anil-matcha/Open-Higgsfield-AI)
-- [Technical Deep Dive](https://medium.com/@anilmatcha/building-open-higgsfield-ai-an-open-source-ai-cinema-studio-83c1e0a2a5f1)
+- [Project Repository](https://github.com/Anil-matcha/SmartVideo)
+- [Technical Deep Dive](https://medium.com/@anilmatcha/building-smartvideo-an-open-source-ai-cinema-studio-83c1e0a2a5f1)
 
 ---
 
-*Open Higgsfield AI — The free, open-source alternative to Higgsfield AI for unlimited creative possibilities.*
+*SmartVideo — The free, open-source AI studio for unlimited creative possibilities.*

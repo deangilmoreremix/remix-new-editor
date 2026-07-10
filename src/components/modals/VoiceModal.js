@@ -1,6 +1,6 @@
 // VoiceModal - Modal for voice selection and text-to-speech settings
 
-import BaseModal from './BaseModal.js';
+import BaseModal from './BaseModal.react.js';
 
 export default class VoiceModal extends BaseModal {
   constructor(props = {}) {

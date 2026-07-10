@@ -19,9 +19,11 @@
     <link rel="icon" type="image/webp" href="/favicon.webp" />
     <link rel="apple-touch-icon" href="/favicon.webp" />
     
-    <!-- Security Headers (via meta tags - full headers set via server) -->
+    <!-- Security Headers (via meta tags - full headers set via server).
+         X-Frame-Options is intentionally omitted: browsers ignore it when set
+         in a <meta> and only honor it as an HTTP header (set by the dev server
+         in vite.config.js and by Netlify headers in netlify.toml). -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="X-Frame-Options" content="DENY" />
     <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
     

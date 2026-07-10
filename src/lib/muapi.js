@@ -1,5 +1,15 @@
-import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById, getAvatarModelById, getTextModelById, getTrainingModelById } from './models.js';
+import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById, getAvatarModelById, getTextModelById, getTrainingModelById, i2vModels } from './models.js';
 import { apiKeyManager } from './apiKeyManager.js';
+
+// Authoritative allowlist for generate_wan_ai_effects `name` values.
+// Built from the live API schema enums in i2vModels (ai-video-effects: 64, motion-controls: 47, vfx: 9).
+// Kept in sync with models.js — no hand-curated drift.
+const WAN_EFFECT_MODEL_IDS = ['ai-video-effects', 'motion-controls', 'vfx'];
+const ALLOWED_WAN_EFFECT_NAMES = new Set(
+  i2vModels
+    .filter(m => WAN_EFFECT_MODEL_IDS.includes(m.id))
+    .flatMap(m => m.inputs.name.enum)
+);
 
 export class MuapiClient {
     constructor() {
@@ -272,16 +282,22 @@ export class MuapiClient {
         if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
         if (params.resolution) finalPayload.resolution = params.resolution;
         if (params.quality) finalPayload.quality = params.quality;
+        // Effect endpoints (generate_wan_ai_effects / video-effects) REQUIRE `name`.
+        // The caller (Effects Studio / Templates video) sets it; forward it or the
+        // API returns 422 "Field required: name" and video creation silently fails.
+        if (params.name) finalPayload.name = params.name;
 
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({
                     endpoint,
                     params: finalPayload,
-                    generationType: 'i2i',
-                    studioType: params.studioType || 'edit'
+                    generationType: 'i2v',
+                    studioType: params.studioType || 'video'
                 }),
                 signal
             });
@@ -571,15 +587,27 @@ export class MuapiClient {
     async generateVideoEffect(params, signal) {
         const endpoint = 'generate_wan_ai_effects';
 
+        // Enforce the documented contract up front so we never send an
+        // invalid `name`/`resolution` and get an opaque "Invalid input" 400.
+        if (!params.name || typeof params.name !== 'string' || !params.name.trim()) {
+            throw new Error('generateVideoEffect requires a non-empty `name` (effect preset).');
+        }
+        const trimmedName = params.name.trim();
+        if (!ALLOWED_WAN_EFFECT_NAMES.has(trimmedName)) {
+            throw new Error(`Effect "${trimmedName}" is not supported by the API. Use a preset from the studio's effect list.`);
+        }
+        const resolution = ['480p', '720p'].includes(params.resolution) ? params.resolution : '480p';
+        const quality = ['medium', 'high'].includes(params.quality) ? params.quality : 'medium';
+
         const finalPayload = {};
 
         if (params.prompt) finalPayload.prompt = params.prompt;
         if (params.image_url) finalPayload.image_url = params.image_url;
         if (params.video_url) finalPayload.video_url = params.video_url;
-        if (params.name) finalPayload.name = params.name;
+        finalPayload.name = trimmedName;
         if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
-        if (params.resolution) finalPayload.resolution = params.resolution;
-        if (params.quality) finalPayload.quality = params.quality;
+        finalPayload.resolution = resolution;
+        finalPayload.quality = quality;
         if (params.duration) finalPayload.duration = params.duration;
 
         try {

@@ -1,4 +1,4 @@
-import { BaseModal } from './BaseModal';
+import { BaseModal } from './BaseModal.jsx';
 
 const PLAYBACK_SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 const VOLUME_PRESETS = [0, 25, 50, 75, 100];

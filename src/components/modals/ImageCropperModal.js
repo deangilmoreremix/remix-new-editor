@@ -1,6 +1,6 @@
 // ImageCropperModal - Modal for cropping and adjusting images
 
-import BaseModal from './BaseModal.js';
+import BaseModal from './BaseModal.react.js';
 
 export default class ImageCropperModal extends BaseModal {
   constructor(props = {}) {

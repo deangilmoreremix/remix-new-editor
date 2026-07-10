@@ -125,9 +125,16 @@ function securityHeaders() {
         configureServer(server) {
             server.middlewares.use((req, res, next) => {
                 // Content Security Policy
+                // NOTE: `script-src` must allow Vite's React Refresh preamble, which
+                // is injected as an INLINE <script> in dev. Without the preamble's
+                // hash the CSP blocks it, `window.__vite_plugin_react_preamble_installed__`
+                // is never set, and every .jsx module fails with
+                // "@vitejs/plugin-react can't detect preamble". The sha256 below is the
+                // stable hash of that preamble for @vitejs/plugin-react.
+                const reactPreambleHash = "'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk='";
                 res.setHeader(
                     'Content-Security-Policy',
-                    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai; media-src 'self' https: blob:;"
+                    "default-src 'self'; script-src 'self' " + reactPreambleHash + "; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai; media-src 'self' https: blob:;"
                 );
                 
                 // Prevent clickjacking
@@ -216,6 +223,14 @@ export default defineConfig({
     resolve: {
         alias: {
             'react-svg-inline': path.resolve(__dirname, 'src/lib/react-svg-inline.jsx'),
+            '@higgsfield/timeline-editor': path.resolve(__dirname, 'packages/timeline-editor/src'),
+            '@higgsfield/color-grading': path.resolve(__dirname, 'packages/color-grading/src'),
+            '@higgsfield/audio-mixer': path.resolve(__dirname, 'packages/audio-mixer/src'),
+            '@higgsfield/transitions': path.resolve(__dirname, 'packages/transitions/src'),
+            '@higgsfield/subtitles': path.resolve(__dirname, 'packages/subtitles/src'),
+            '@higgsfield/style-templates': path.resolve(__dirname, 'packages/style-templates/src'),
+            '@higgsfield/video-compiler': path.resolve(__dirname, 'packages/video-compiler/src'),
+            '@higgsfield/ai-chat': path.resolve(__dirname, 'packages/ai-chat/src'),
         },
     },
     server: {

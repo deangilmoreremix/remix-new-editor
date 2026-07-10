@@ -1,6 +1,6 @@
 // SettingsModal - Modal for application and project settings
 
-import BaseModal from './BaseModal.js';
+import BaseModal from './BaseModal.react.js';
 
 export default class SettingsModal extends BaseModal {
   constructor(props = {}) {
@@ -12,6 +12,8 @@ export default class SettingsModal extends BaseModal {
       general: 'General',
       appearance: 'Appearance',
       audio: 'Audio',
+      video: 'Video',
+      keyboard: 'Keyboard',
       export: 'Export',
       account: 'Account',
       advanced: 'Advanced'
@@ -43,6 +45,13 @@ export default class SettingsModal extends BaseModal {
         compressionLevel: 'medium',
         normalizeAudio: true,
         removeSilence: false
+      },
+      video: {
+        gpuAcceleration: true,
+        hardwareDecoding: true,
+        previewQuality: 'high',
+        renderQuality: 'high',
+        defaultResolution: '1080p'
       },
       export: {
         defaultFormat: 'mp4',
@@ -101,6 +110,10 @@ export default class SettingsModal extends BaseModal {
         return this.renderAppearanceSettings();
       case 'audio':
         return this.renderAudioSettings();
+      case 'video':
+        return this.renderVideoSettings();
+      case 'keyboard':
+        return this.renderKeyboardSettings();
       case 'export':
         return this.renderExportSettings();
       case 'account':
@@ -272,6 +285,112 @@ export default class SettingsModal extends BaseModal {
             </label>
           </div>
         </div>
+      </div>
+    `;
+  }
+
+  renderVideoSettings() {
+    const s = this.settings.video;
+    return `
+      <div class="settings-section">
+        <h3>Performance</h3>
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" ${s.gpuAcceleration ? 'checked' : ''} data-setting="video.gpuAcceleration">
+            GPU Acceleration
+          </label>
+        </div>
+        <div class="setting-item">
+          <label class="setting-label">
+            <input type="checkbox" ${s.hardwareDecoding ? 'checked' : ''} data-setting="video.hardwareDecoding">
+            Hardware Decoding
+          </label>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>Quality</h3>
+        <div class="setting-item">
+          <label for="preview-quality" class="setting-label">Preview Quality</label>
+          <select id="preview-quality" class="setting-select" data-setting="video.previewQuality">
+            <option value="low" ${s.previewQuality === 'low' ? 'selected' : ''}>Low</option>
+            <option value="medium" ${s.previewQuality === 'medium' ? 'selected' : ''}>Medium</option>
+            <option value="high" ${s.previewQuality === 'high' ? 'selected' : ''}>High</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label for="render-quality" class="setting-label">Render Quality</label>
+          <select id="render-quality" class="setting-select" data-setting="video.renderQuality">
+            <option value="standard" ${s.renderQuality === 'standard' ? 'selected' : ''}>Standard</option>
+            <option value="high" ${s.renderQuality === 'high' ? 'selected' : ''}>High</option>
+            <option value="maximum" ${s.renderQuality === 'maximum' ? 'selected' : ''}>Maximum</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label for="default-resolution" class="setting-label">Default Resolution</label>
+          <select id="default-resolution" class="setting-select" data-setting="video.defaultResolution">
+            <option value="4k" ${s.defaultResolution === '4k' ? 'selected' : ''}>4K (3840×2160)</option>
+            <option value="1080p" ${s.defaultResolution === '1080p' ? 'selected' : ''}>Full HD (1920×1080)</option>
+            <option value="720p" ${s.defaultResolution === '720p' ? 'selected' : ''}>HD (1280×720)</option>
+            <option value="480p" ${s.defaultResolution === '480p' ? 'selected' : ''}>SD (854×480)</option>
+            <option value="9:16" ${s.defaultResolution === '9:16' ? 'selected' : ''}>Vertical (1080×1920)</option>
+            <option value="1:1" ${s.defaultResolution === '1:1' ? 'selected' : ''}>Square (1080×1080)</option>
+          </select>
+        </div>
+      </div>
+    `;
+  }
+
+  renderKeyboardSettings() {
+    const shortcuts = [
+      { category: 'Playback', items: [
+        { action: 'Play/Pause', keys: ['Space'] },
+        { action: 'Skip Forward', keys: ['→'] },
+        { action: 'Skip Backward', keys: ['←'] },
+        { action: 'Jump to Start', keys: ['Home'] },
+        { action: 'Jump to End', keys: ['End'] }
+      ]},
+      { category: 'Editing', items: [
+        { action: 'Undo', keys: ['Ctrl', 'Z'] },
+        { action: 'Redo', keys: ['Ctrl', 'Y'] },
+        { action: 'Cut', keys: ['Ctrl', 'X'] },
+        { action: 'Copy', keys: ['Ctrl', 'C'] },
+        { action: 'Paste', keys: ['Ctrl', 'V'] },
+        { action: 'Delete', keys: ['Delete'] },
+        { action: 'Duplicate', keys: ['Ctrl', 'D'] }
+      ]},
+      { category: 'Timeline', items: [
+        { action: 'Zoom In', keys: ['+', '='] },
+        { action: 'Zoom Out', keys: ['-'] },
+        { action: 'Split Clip', keys: ['S'] },
+        { action: 'Add Track', keys: ['Ctrl', 'T'] }
+      ]},
+      { category: 'Export', items: [
+        { action: 'Export', keys: ['Ctrl', 'E'] },
+        { action: 'Quick Export', keys: ['Ctrl', 'Shift', 'E'] }
+      ]}
+    ];
+
+    return `
+      <div class="settings-section">
+        <div class="shortcuts-header">
+          <h3>Keyboard Shortcuts</h3>
+          <button class="text-btn">Reset to Defaults</button>
+        </div>
+        ${shortcuts.map(cat => `
+          <div class="shortcut-category">
+            <h4>${cat.category}</h4>
+            <div class="shortcut-list">
+              ${cat.items.map(item => `
+                <div class="shortcut-row">
+                  <span class="shortcut-action">${item.action}</span>
+                  <div class="shortcut-keys">
+                    ${item.keys.map(key => `<kbd class="key">${key}</kbd>`).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
       </div>
     `;
   }
@@ -460,6 +579,19 @@ export default class SettingsModal extends BaseModal {
     this.setupSettingsEventListeners();
   }
 
+  setupEventListeners() {
+    super.setupEventListeners();
+    const confirmBtn = this.overlay.querySelector('.modal-confirm');
+    if (confirmBtn && this.boundHandlers.confirm) {
+      confirmBtn.removeEventListener('click', this.boundHandlers.confirm);
+    }
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', () => {
+        this.handleConfirm();
+      });
+    }
+  }
+
   setupSettingsEventListeners() {
     // Tab switching
     const tabs = this.overlay.querySelectorAll('.settings-tab');
@@ -640,10 +772,13 @@ export default class SettingsModal extends BaseModal {
   }
 
   handleConfirm() {
-    // Save settings (could persist to localStorage or send to server)
-    localStorage.setItem('video-editor-settings', JSON.stringify(this.settings));
-
-    this.onConfirm(this.settings);
+    this.onConfirm({
+      action: 'settingsSaved',
+      general: this.settings.general,
+      audio: this.settings.audio,
+      video: this.settings.video,
+      export: this.settings.export
+    });
     this.close();
   }
 

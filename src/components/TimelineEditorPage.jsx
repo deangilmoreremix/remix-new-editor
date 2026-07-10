@@ -693,7 +693,6 @@ export function TimelineEditorPage() {
       }
     } catch (err) {
       console.error('Failed to load project:', err);
-  // DISABLED:       
     }
     return createState();
   }
@@ -714,7 +713,6 @@ export function TimelineEditorPage() {
 
   function undo(state) {
     if (state.undoStack.length === 0) {
-  // DISABLED:       
       return false;
     }
     const snapshot = state.undoStack.pop();
@@ -725,13 +723,11 @@ export function TimelineEditorPage() {
       playheadPercent: state.playheadPercent
     })));
     Object.assign(state, snapshot);
-  // DISABLED:     
     return true;
   }
 
   function redo(state) {
     if (state.redoStack.length === 0) {
-  // DISABLED:       
       return false;
     }
     const snapshot = state.redoStack.pop();
@@ -742,7 +738,6 @@ export function TimelineEditorPage() {
       playheadPercent: state.playheadPercent
     })));
     Object.assign(state, snapshot);
-  // DISABLED:     
     return true;
   }
 
@@ -1126,13 +1121,11 @@ export function TimelineEditorPage() {
       const previewCard = els.previewStage.closest('.preview-card');
       if (previewCard) {
         previewCard.style.display = previewCard.style.display === 'none' ? 'block' : 'none';
-  // DISABLED:         
       }
     }
 
     function openMonitorSettings() {
       // Could open a modal with monitor/display settings
-  // DISABLED:       
     }
 
     function openMediaLibrary() {
@@ -1140,7 +1133,6 @@ export function TimelineEditorPage() {
       const mediaGrid = els.mediaGrid;
       if (mediaGrid) {
         mediaGrid.scrollIntoView({ behavior: 'smooth' });
-  // DISABLED:         
       }
     }
 
@@ -1149,7 +1141,6 @@ export function TimelineEditorPage() {
       const quickCommands = els.quickCommands;
       if (quickCommands) {
         quickCommands.style.display = quickCommands.style.display === 'none' ? 'flex' : 'none';
-  // DISABLED:         
       }
     }
 
@@ -1157,43 +1148,35 @@ export function TimelineEditorPage() {
       // Focus on audio track or open music tools
       const audioTrack = state.tracks.find(t => t.name === 'Audio');
       if (audioTrack) {
-  // DISABLED:         
       } else {
-  // DISABLED:         
       }
     }
 
     function openAudioControls() {
       // Open audio mixer or controls
-  // DISABLED:       
     }
 
     function openVideoTools() {
       // Open video editing tools
-  // DISABLED:       
     }
 
     function openProfileTools() {
       // Open user profile or project settings
-  // DISABLED:       
     }
 
     function openEditorSettings() {
       // Open editor preferences/settings
-  // DISABLED:       
     }
 
     function focusChatInput() {
       // Focus the chat input field
       if (els.chatInput) {
         els.chatInput.focus();
-  // DISABLED:         
       }
     }
 
     function openProjectNotes() {
       // Open project notes or clipboard
-  // DISABLED:       
     }
 
     // Modal functions for timeline-specific triggers
@@ -1204,13 +1187,11 @@ export function TimelineEditorPage() {
           onComplete: (result) => {
             // Add end screen elements to timeline
             addEndScreenToTimeline(result, state);
-  // DISABLED:             
           },
           onError: (error) => console.log(`End screen creation failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -1220,13 +1201,11 @@ export function TimelineEditorPage() {
           projectData: state,
           onComplete: (result) => {
             state.projectId = result.projectId;
-  // DISABLED:             
           },
           onError: (error) => console.log(`Project save failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -1236,13 +1215,11 @@ export function TimelineEditorPage() {
           settings: state.settings || {},
           onComplete: (result) => {
             state.settings = result;
-  // DISABLED:             
           },
           onError: (error) => console.log(`Settings update failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -1251,13 +1228,11 @@ export function TimelineEditorPage() {
         const modal = new ConnectModal({
           onComplete: (result) => {
             state.connections = result.connections;
-  // DISABLED:             
           },
           onError: (error) => console.log(`Connection setup failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -1266,13 +1241,11 @@ export function TimelineEditorPage() {
         const modal = new PreviewMediaModal({
           mediaData: state.tracks.flatMap(t => t.clips),
           onComplete: (result) => {
-  // DISABLED:             
           },
           onError: (error) => console.log(`Media preview failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -1281,13 +1254,11 @@ export function TimelineEditorPage() {
         const modal = new VideoPlayerModal({
           timelineData: state,
           onComplete: (result) => {
-  // DISABLED:             
           },
           onError: (error) => console.log(`Video player error: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -1408,7 +1379,6 @@ export function TimelineEditorPage() {
               openTimelineAnalysisPanel(state, showToast);
               break;
             default:
-  // DISABLED:               
           }
         });
 
@@ -1459,7 +1429,6 @@ export function TimelineEditorPage() {
           state.selectedTool = label;
           renderTools();
           updatePreview();
-  // DISABLED:           
         });
         els.toolGroup.appendChild(button);
       });
@@ -2046,7 +2015,6 @@ export function TimelineEditorPage() {
             state.selectedClipId = clip.id;
             updatePreview(clip);
             renderTracks();
-  // DISABLED:             
           }, true); // Use capture to override the default handler
 
           lane.appendChild(clipEl);
@@ -2162,7 +2130,6 @@ export function TimelineEditorPage() {
         button.addEventListener('click', () => {
           state.generateType = label;
           renderGenerateTypes();
-  // DISABLED:           
         });
         els.generateTypes.appendChild(button);
       });
@@ -2350,7 +2317,6 @@ export function TimelineEditorPage() {
       if (!transitionEditor) {
         transitionEditor = new TransitionEditor(els.transitionEditorContainer, (transition, params, duration) => {
           // Handle transition application from editor
-  // DISABLED:           
         });
       }
     }
@@ -2584,7 +2550,6 @@ export function TimelineEditorPage() {
     function splitClipAtPlayhead() {
       const selectedClip = findSelectedClip();
       if (!selectedClip) {
-  // DISABLED:         
         return;
       }
 
@@ -2597,7 +2562,6 @@ export function TimelineEditorPage() {
       const splitPosition = (state.playheadPercent / 100) * 100; // Convert to clip width percentage
 
       if (splitPosition <= selectedClip.left || splitPosition >= selectedClip.left + selectedClip.width) {
-  // DISABLED:         
         return;
       }
 
@@ -2621,7 +2585,6 @@ export function TimelineEditorPage() {
 
       renderTracks();
       updatePreview();
-  // DISABLED:       
     }
 
     async function detectScenes() {
@@ -2709,7 +2672,6 @@ export function TimelineEditorPage() {
     }
 
     async function suggestBRoll() {
-  // DISABLED:       
 
       try {
         const { data, error } = await supabase.functions.invoke('frame-agent', {
@@ -2726,18 +2688,15 @@ export function TimelineEditorPage() {
 
         if (data.suggestions) {
           // Add suggested B-Roll clips
-  // DISABLED:           
         }
       } catch (err) {
         console.error('B-Roll suggestion error:', err);
-  // DISABLED:         
       }
     }
 
     function adjustSpeed() {
       const selectedClip = findSelectedClip();
       if (!selectedClip) {
-  // DISABLED:         
         return;
       }
 
@@ -2746,18 +2705,15 @@ export function TimelineEditorPage() {
       if (newSpeed && !isNaN(parseFloat(newSpeed))) {
         saveStateSnapshot(state);
         selectedClip.speed = parseFloat(newSpeed);
-  // DISABLED:         
       }
     }
 
     async function stabilizeFootage() {
       const selectedClip = findSelectedClip();
       if (!selectedClip || selectedClip.type !== 'video') {
-  // DISABLED:         
         return;
       }
 
-  // DISABLED:       
 
       try {
         const { data, error } = await supabase.functions.invoke('frame-agent', {
@@ -2772,10 +2728,8 @@ export function TimelineEditorPage() {
 
         if (error) throw error;
 
-  // DISABLED:         
       } catch (err) {
         console.error('Stabilization error:', err);
-  // DISABLED:         
       }
     }
 
@@ -2794,7 +2748,6 @@ export function TimelineEditorPage() {
         };
 
         insertClipIntoTrack(clip, 'Text');
-  // DISABLED:         
       }
     }
 
@@ -2804,13 +2757,11 @@ export function TimelineEditorPage() {
         const modal = new AIVideoCreator({
           onComplete: (result) => {
             addVideoToTimeline(result, state);
-  // DISABLED:             
           },
           onError: (error) => console.log(`AI Video creation failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -2819,13 +2770,11 @@ export function TimelineEditorPage() {
         const modal = new RecorderModal({
           onComplete: (result) => {
             addVideoToTimeline(result, state);
-  // DISABLED:             
           },
           onError: (error) => console.log(`Recording failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -2834,13 +2783,11 @@ export function TimelineEditorPage() {
         const modal = new EnhancedRecorderModal({
           onComplete: (result) => {
             addVideoToTimeline(result, state);
-  // DISABLED:             
           },
           onError: (error) => console.log(`Enhanced recording failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -2850,13 +2797,11 @@ export function TimelineEditorPage() {
           onComplete: (result) => {
             // Apply template to timeline
             applyTemplateToTimeline(result, state);
-  // DISABLED:             
           },
           onError: (error) => console.log(`Template generation failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -2865,13 +2810,11 @@ export function TimelineEditorPage() {
         const modal = new TemplatePreviewModal({
           onComplete: (result) => {
             applyTemplateToTimeline(result, state);
-  // DISABLED:             
           },
           onError: (error) => console.log(`Template preview failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -2880,13 +2823,11 @@ export function TimelineEditorPage() {
         const modal = new SocialPublisherModal({
           projectData: state,
           onComplete: (result) => {
-  // DISABLED:             
           },
           onError: (error) => console.log(`Publishing failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -2895,13 +2836,11 @@ export function TimelineEditorPage() {
         const modal = new EmailCampaignModal({
           projectData: state,
           onComplete: (result) => {
-  // DISABLED:             
           },
           onError: (error) => console.log(`Email campaign creation failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -2910,13 +2849,11 @@ export function TimelineEditorPage() {
         const modal = new UrlVideoModal({
           onComplete: (result) => {
             addVideoToTimeline(result, state);
-  // DISABLED:             
           },
           onError: (error) => console.log(`URL video import failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -2925,13 +2862,11 @@ export function TimelineEditorPage() {
         const modal = new PageShotModal({
           onComplete: (result) => {
             addImageToTimeline(result, state);
-  // DISABLED:             
           },
           onError: (error) => console.log(`Page screenshot failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -2941,13 +2876,11 @@ export function TimelineEditorPage() {
           onComplete: (result) => {
             // Store contacts for personalization
             state.contacts = result.contacts;
-  // DISABLED:             
           },
           onError: (error) => console.log(`Contact import failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -2959,20 +2892,17 @@ export function TimelineEditorPage() {
             // After personalization, offer landing page builder
             if (result && result.generations && result.generations.length > 0) {
               setTimeout(() => {
-  // DISABLED:                 
                 setTimeout(() => {
                   openLandingPageBuilderModal(state, showToast);
                 }, 1500);
               }, 1000);
             } else {
-  // DISABLED:               
             }
           },
           onError: (error) => console.log(`Personalization Suite error: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -2996,7 +2926,6 @@ export function TimelineEditorPage() {
         position: 'center'
       };
       insertClipIntoTrack(overlayClip, 'Text');
-  // DISABLED:       
     };
     TLEditor.addPersonalizationOverlay = window.addPersonalizationOverlay;
 
@@ -3020,7 +2949,6 @@ export function TimelineEditorPage() {
         ctaText: 'Download Now'
       };
       insertClipIntoTrack(leadClip, 'Text');
-  // DISABLED:       
     };
     TLEditor.addLeadCapture = window.addLeadCapture;
 
@@ -3064,7 +2992,6 @@ export function TimelineEditorPage() {
         overlayText: 'Welcome {first_name} from {company}!'
       };
       insertClipIntoTrack(imageClip, 'Video');
-  // DISABLED:       
     };
     TLEditor.addPersonalizationImage = window.addPersonalizationImage;
 
@@ -3082,7 +3009,6 @@ export function TimelineEditorPage() {
         personalizationTokens: ['first_name', 'company']
       };
       insertClipIntoTrack(audioClip, 'Audio');
-  // DISABLED:       
     };
     TLEditor.addPersonalizationAudio = window.addPersonalizationAudio;
 
@@ -3144,7 +3070,6 @@ export function TimelineEditorPage() {
       }
 
       insertClipIntoTrack(contentClip, 'Text');
-  // DISABLED:       
     };
 
     function openLandingPageBuilderModal(state, showToast) {
@@ -3154,20 +3079,17 @@ export function TimelineEditorPage() {
             // After landing pages, offer lead generation
             if (result && result.pages && result.pages > 0) {
               setTimeout(() => {
-  // DISABLED:                 
                 setTimeout(() => {
                   openLeadGeneratorModal(state, showToast);
                 }, 1500);
               }, 1000);
             } else {
-  // DISABLED:               
             }
           },
           onError: (error) => console.log(`Landing page generation failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -3176,13 +3098,11 @@ export function TimelineEditorPage() {
         const modal = new LeadGeneratorModal({
           onComplete: (result) => {
             // Handle lead saving
-  // DISABLED:             
           },
           onError: (error) => console.log(`Lead generation failed: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
-  // DISABLED:         
       }
     }
 
@@ -3387,7 +3307,6 @@ export function TimelineEditorPage() {
               window.dispatchEvent(new CustomEvent('open-personalizer'));
               break;
             default:
-  // DISABLED:               
           }
         });
 
@@ -3398,13 +3317,11 @@ export function TimelineEditorPage() {
     function addTrack(type) {
       state.tracks.push({ id: `${type.toLowerCase()}-${Date.now()}`, name: type, muted: false, solo: false, locked: false, clips: [] });
       renderTracks();
-  // DISABLED:       
     }
 
     function showClipEditor(clipId) {
       els.clipSettingsPanel.style.display = 'block';
       renderClipEditor(clipId);
-  // DISABLED:       
     }
 
     function showTransitionSettings() {
@@ -3608,7 +3525,6 @@ export function TimelineEditorPage() {
           </div>
         `;
       }
-  // DISABLED:       
     }
 
     function showTokenEditorPanel() {
@@ -3771,7 +3687,6 @@ export function TimelineEditorPage() {
           });
         }
       }
-  // DISABLED:       
     }
 
     function showBatchGeneratorPanel() {
@@ -3819,7 +3734,6 @@ export function TimelineEditorPage() {
           batchItems.appendChild(itemDiv);
         });
       }
-  // DISABLED:       
     }
 
     function showWorkflowPanel() {
@@ -3851,7 +3765,6 @@ export function TimelineEditorPage() {
           </div>
         `;
       }
-  // DISABLED:       
     }
 
     function showPersonalizationPanel() {
@@ -3890,7 +3803,6 @@ export function TimelineEditorPage() {
           </div>
         `;
       }
-  // DISABLED:       
     }
 
     function showPersonalizationEditorPanel() {
@@ -3912,7 +3824,6 @@ export function TimelineEditorPage() {
           </div>
         `;
       }
-  // DISABLED:       
     }
 
     function hideAllEditorPanels() {
@@ -3953,17 +3864,14 @@ export function TimelineEditorPage() {
       const style = els.styleSelect.value;
 
       if (!prompt) {
-  // DISABLED:         
         return;
       }
 
       if (state.isProcessing) {
-  // DISABLED:         
         return;
       }
 
       state.isProcessing = true;
-  // DISABLED:       
 
       try {
         let generationResult;
@@ -3982,7 +3890,6 @@ export function TimelineEditorPage() {
             body: negativePrompt || `Generated text content for: ${prompt}`
           };
           insertClipIntoTrack(clip, 'Text');
-  // DISABLED:           
           return;
         }
 
@@ -4085,7 +3992,6 @@ export function TimelineEditorPage() {
             prompt: prompt
           });
 
-  // DISABLED:           
 
           // Offer personalization suite for video generation
           if (state.generateType !== 'Image' && state.generateType !== 'Text') {
@@ -4174,15 +4080,10 @@ export function TimelineEditorPage() {
          const msg = error.message || '';
          
          if (msg.includes('401') || msg.includes('auth')) {
-  // DISABLED:            
          } else if (msg.includes('Supabase') || msg.includes('configuration')) {
-  // DISABLED:            
          } else if (msg.includes('fetch') || msg.includes('network') || msg.includes('Network')) {
-  // DISABLED:            
          } else if (msg.includes('API key not configured') || msg.includes('service is not configured')) {
-  // DISABLED:            
          } else {
-  // DISABLED:            
          }
        } finally {
          state.isProcessing = false;
@@ -4824,7 +4725,6 @@ export function TimelineEditorPage() {
             return selectedClip ? [selectedClip] : [];
           },
           showNotification: (options) => {
-  // DISABLED:             
           }
         };
 

@@ -2,8 +2,8 @@
  * generate-model-catalog.mjs
  *
  * Generates public/api/model-catalog.json from:
- *   - src/lib/models.js   (the canonical model registry)
- *   - src/lib/modelDescriptions.js  (human-readable descriptions)
+ *   - src/lib/models.js              (the canonical model registry)
+ *   - src/lib/modelDescriptions.js   (human-readable descriptions)
  *
  * Run this script before `npm run build` and before starting the backend.
  * It is also invoked automatically by the vite build plugin (enforce: 'post')
@@ -23,11 +23,16 @@ function load(modPath) {
 }
 
 async function main() {
-  const [{ t2iModels: t2i = [], i2iModels: i2i = [], i2vModels: i2v = [] } = {}, {}] = await Promise.all([
+  // Load models and descriptions in parallel; we only need the models from
+  // the first module's destructured arrays, and the descriptions as a whole.
+  const [modelsModule, descModule] = await Promise.all([
     load(join(PROJECT_ROOT, 'src/lib/models.js')),
     load(join(PROJECT_ROOT, 'src/lib/modelDescriptions.js')),
   ]);
-  const DESCRIPTIONS = (await load(join(PROJECT_ROOT, 'src/lib/modelDescriptions.js'))).DESCRIPTIONS || {};
+  const t2i = Array.isArray(modelsModule.t2iModels) ? modelsModule.t2iModels : [];
+  const i2i = Array.isArray(modelsModule.i2iModels) ? modelsModule.i2iModels : [];
+  const i2v = Array.isArray(modelsModule.i2vModels) ? modelsModule.i2vModels : [];
+  const DESCRIPTIONS = (descModule && descModule.DESCRIPTIONS) || {};
 
   const seen = new Set();
   const unique = (list, type) => {

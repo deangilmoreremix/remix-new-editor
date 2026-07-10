@@ -23,37 +23,36 @@ const CAMERA_EFFECTS = [
   { id: 'hero_run', name: 'Hero Run', icon: '🏃', prompt: 'hero running camera follow' },
   { id: 'matrix_shot', name: 'Matrix Shot', icon: '💫', prompt: 'matrix bullet time effect' },
   { id: 'car_chase', name: 'Car Chase', icon: '🚗', prompt: 'car chase camera movement' },
-  { id: 'vertigo_effect', name: 'Vertigo Effect', icon: '🌀', prompt: 'vertigo dolly zoom effect' },
+  { id: 'dolly_zoom_in', name: 'Dolly Zoom In', icon: '🎥', prompt: 'dolly zoom in vertigo effect' },
 ]
 
 const VFX_EFFECTS = [
   { id: 'building_explosion', name: 'Building Explosion', icon: '💥', prompt: 'building explosion' },
   { id: 'car_explosion', name: 'Car Explosion', icon: '🚙', prompt: 'car explosion' },
   { id: 'fire', name: 'Fire', icon: '🔥', prompt: 'fire flames surrounding' },
-  { id: 'lightning', name: 'Lightning', icon: '⚡', prompt: 'lightning strike' },
+  { id: 'electricity', name: 'Electricity', icon: '⚡', prompt: 'electricity strike' },
   { id: 'tornado', name: 'Tornado', icon: '🌪️', prompt: 'tornado destruction' },
   { id: 'tsunami', name: 'Tsunami', icon: '🌊', prompt: 'tsunami wave' },
   { id: 'disintegration', name: 'Disintegration', icon: '✨', prompt: 'person disintegrating' },
   { id: 'decay_timelapse', name: 'Decay Time-Lapse', icon: '💀', prompt: 'decay time-lapse effect' },
   { id: 'levitate', name: 'Levitate', icon: '🧘', prompt: 'person levitating' },
   { id: 'flying', name: 'Flying', icon: '🦅', prompt: 'person flying' },
-  { id: 'invisibility', name: 'Invisibility', icon: '👻', prompt: 'becoming invisible' },
-  { id: 'tentacles', name: 'Tentacles', icon: '🐙', prompt: 'tentacles appearing' },
+  { id: 'invisibility', name: 'Disintegration', icon: '👻', prompt: 'the person completely fades away and vanishes, becoming fully transparent and invisible, body disappearing into nothing' },
+  { id: 'tentacles', name: 'Flying', icon: '🐙', prompt: 'dark tentacles emerge from the character and wrap around the scene, slithering motion' },
 ]
 
 const AI_EFFECTS = [
-  { id: 'kiss_me', name: 'Kiss Me AI', icon: '💋', prompt: 'kiss me ai effect' },
-  { id: 'venom', name: 'Venom', icon: '🕷️', prompt: 'venom transformation' },
-  { id: 'hulk', name: 'Hulk', icon: '💪', prompt: 'hulk transformation' },
-  { id: 'muscle_surge', name: 'Muscle Surge', icon: '🏋️', prompt: 'muscle surge effect' },
-  { id: 'tiger_touch', name: 'Tiger Touch', icon: '🐯', prompt: 'tiger touch effect' },
+  { id: 'kissing', name: 'Kissing', icon: '💋', prompt: 'kissing effect' },
+  { id: 'hulk_transformation', name: 'Hulk Transformation', icon: '💪', prompt: 'hulk transformation' },
+  { id: 'muscle_show_off', name: 'Muscle Show Off', icon: '🏋️', prompt: 'muscle show off' },
   { id: 'cakeify', name: 'Cakeify', icon: '🎂', prompt: 'cakeify effect' },
-  { id: 'robotic_reveal', name: 'Robotic Face Reveal', icon: '🤖', prompt: 'robotic face reveal' },
-  { id: 'turning_metal', name: 'Turning Metal', icon: '🔩', prompt: 'turning into metal' },
+  { id: 'robotic_face_reveal', name: 'Robotic Face Reveal', icon: '🤖', prompt: 'robotic face reveal' },
   { id: 'vhs_footage', name: 'VHS Footage', icon: '📼', prompt: 'vhs retro footage' },
   { id: 'samurai', name: 'Samurai It', icon: '⚔️', prompt: 'samurai style' },
   { id: 'film_noir', name: 'Film Noir', icon: '🎬', prompt: 'film noir style' },
   { id: 'inflate_it', name: 'Inflate It', icon: '🎈', prompt: 'inflate effect' },
+  { id: 'venom', name: 'Robotic Face Reveal', icon: '🕷️', prompt: 'a black symbiote spreads across the face and body like venom, oily organic transformation' },
+  { id: 'tiger_touch', name: 'Samurai It', icon: '🐯', prompt: 'tiger stripes and fur cover the body, tiger face transformation, animalistic features emerging' },
 ]
 
 function EffectCard({ effect, onClick, selected }) {

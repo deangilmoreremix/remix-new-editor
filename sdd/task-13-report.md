@@ -1,5 +1,7 @@
 # Task 13 — Report
 
+> **Review package:** `sdd/review-tasks-10-13.diff` (covers Tasks 10-13 + follow-up fix `99276a92`).
+
 - **Commit hash:** `92a24773`
 - **`git log --oneline -1`:** `92a24773 feat(thumbnail): pass full controls + presetKey + reference image to all service calls`
 - **`git diff --stat HEAD~1 HEAD`:** `src/components/modals/TemplateThumbnailModal.jsx | 208 +++++++++++++++++++++--`

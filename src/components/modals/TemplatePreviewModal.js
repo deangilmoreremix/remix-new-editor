@@ -1,6 +1,6 @@
 // TemplatePreviewModal - Preview and select templates for video creation
 
-import BaseModal from './BaseModal.js';
+import BaseModal from './BaseModal.react.js';
 import { createElementFromHTML } from '../../utils/jsx.js';
 
 export default class TemplatePreviewModal extends BaseModal {

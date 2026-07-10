@@ -1,4 +1,4 @@
-import { BaseModal } from './BaseModal';
+import { BaseModal } from './BaseModal.jsx';
 
 const END_SCREEN_PRESETS = [
   { id: 'subscribe', name: 'Subscribe CTA', icon: 'bell', description: 'Encourage viewers to subscribe' },

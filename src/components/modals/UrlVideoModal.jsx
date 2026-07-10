@@ -1,4 +1,4 @@
-import { BaseModal } from './BaseModal';
+import { BaseModal } from './BaseModal.jsx';
 
 export class UrlVideoModal extends BaseModal {
   constructor(options = {}) {

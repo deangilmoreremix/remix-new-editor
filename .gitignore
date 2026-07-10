@@ -31,3 +31,8 @@ dist-ssr
 # in git history. Adding it here prevents future re-commits of the token.
 # The include=optional setting needed for builds is in netlify.toml instead.
 .npmrc
+
+# Audit / test scaffolding — contains the sandboxed muapi key; never commit.
+.audit/
+muapi-audit-results.json
+

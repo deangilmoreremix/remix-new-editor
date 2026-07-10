@@ -1,4 +1,4 @@
-import { BaseModal } from './BaseModal';
+import { BaseModal } from './BaseModal.jsx';
 
 const QUALITY_PRESETS = [
   { id: '720p', name: '720p HD', resolution: '1280x720', fps: 30, bitrate: '5 Mbps' },

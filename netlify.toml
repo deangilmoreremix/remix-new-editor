@@ -24,3 +24,15 @@
   to = "/api/model-catalog.json"
   status = 200
   force = true
+
+# Security headers sent as HTTP headers (X-Frame-Options cannot be set via
+# <meta>, so it lives here). Kept off the Content-Security-Policy so the built
+# bundle's inline runtime snippets are not blocked in production.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=()"

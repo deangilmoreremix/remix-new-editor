@@ -1,4 +1,4 @@
-import { BaseModal } from './BaseModal';
+import { BaseModal } from './BaseModal.jsx';
 
 const EMAIL_TEMPLATES = [
   { id: 'welcome', name: 'Welcome Series', description: '3-email onboarding sequence', emails: 3 },
