@@ -147,7 +147,6 @@ export function ScrollingAppStrip() {
 
   const appStrip = [...APPS, ...APPS, ...APPS];
   const featureStrip = [...ALL_FEATURES, ...ALL_FEATURES, ...ALL_FEATURES];
-  const featureStripReversed = [...featureStrip].reverse();
 
   const appChip = (app) => `
     <div
@@ -218,15 +217,6 @@ export function ScrollingAppStrip() {
           ${featureStrip.map((feature, i) => featureChip(feature, i)).join('')}
         </div>
       </div>
-
-      <!-- Row 4: 60+ features (reverse, smaller pills) -->
-      <div class="feature-strip-wrapper-reverse overflow-hidden py-3 mt-1 relative">
-        <div class="absolute left-0 top-0 bottom-0 w-40 bg-gradient-to-r from-[#020205] via-[#020205]/80 to-transparent z-20 pointer-events-none"></div>
-        <div class="absolute right-0 top-0 bottom-0 w-40 bg-gradient-to-l from-[#020205] via-[#020205]/80 to-transparent z-20 pointer-events-none"></div>
-        <div class="feature-strip-reverse flex gap-4 animate-scroll-reverse-slow will-change-transform">
-          ${featureStripReversed.map((feature, i) => featureChip(feature, i)).join('')}
-        </div>
-      </div>
     </div>
 
     <style>
@@ -242,10 +232,6 @@ export function ScrollingAppStrip() {
         0% { transform: translateX(0); }
         100% { transform: translateX(calc(-100% / 3)); }
       }
-      @keyframes scroll-reverse-slow {
-        0% { transform: translateX(calc(-100% / 3)); }
-        100% { transform: translateX(0); }
-      }
       .animate-scroll {
         animation: scroll 60s linear infinite;
       }
@@ -254,9 +240,6 @@ export function ScrollingAppStrip() {
       }
       .animate-scroll-slow {
         animation: scroll-slow 90s linear infinite;
-      }
-      .animate-scroll-reverse-slow {
-        animation: scroll-reverse-slow 100s linear infinite;
       }
       .app-chip:hover {
         background-color: rgba(34, 211, 238, 0.12);
@@ -270,8 +253,8 @@ export function ScrollingAppStrip() {
         transform: translateY(-1px);
       }
       @media (prefers-reduced-motion: reduce) {
-        .animate-scroll, .animate-scroll-reverse, .animate-scroll-slow, .animate-scroll-reverse-slow { animation: none; }
-        .app-strip, .app-strip-reverse, .feature-strip, .feature-strip-reverse { flex-wrap: wrap; justify-content: center; }
+        .animate-scroll, .animate-scroll-reverse, .animate-scroll-slow { animation: none; }
+        .app-strip, .app-strip-reverse, .feature-strip { flex-wrap: wrap; justify-content: center; }
         .app-chip:hover, .feature-chip:hover { transform: none; }
       }
     </style>

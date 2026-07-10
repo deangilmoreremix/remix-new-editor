@@ -134,7 +134,7 @@ function securityHeaders() {
                 const reactPreambleHash = "'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk='";
                 res.setHeader(
                     'Content-Security-Policy',
-                    "default-src 'self'; script-src 'self' " + reactPreambleHash + "; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai; media-src 'self' https: blob:;"
+                    "default-src 'self'; script-src 'self' " + reactPreambleHash + " https://clerk.smartvid.app blob:; worker-src 'self' blob: https://clerk.smartvid.app; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app; frame-src 'self' https://clerk.smartvid.app; media-src 'self' https: blob:;"
                 );
                 
                 // Prevent clickjacking

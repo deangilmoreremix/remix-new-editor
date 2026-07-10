@@ -79,10 +79,12 @@ class OpenAIConfig {
       // In browser environment, process might not be available
     }
 
-    // Browser-side: fall back to apiKeyManager (MuAPI key stored in localStorage)
+    // Browser-side: use ONLY the user-configured OpenAI key (Settings menu).
+    // The MuAPI key is a separate credential and is intentionally NOT used here.
     try {
       if (typeof apiKeyManager !== 'undefined') {
-        return apiKeyManager.getKey();
+        const openaiKey = apiKeyManager.getOpenAIKey();
+        if (openaiKey) return openaiKey;
       }
     } catch (e) {
       // apiKeyManager not loaded

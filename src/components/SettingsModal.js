@@ -1,5 +1,90 @@
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 
+/**
+ * Build a self-contained settings form for a single provider.
+ * Each provider gets its own <form> so the Muapi and OpenAI keys are
+ * configured and saved completely independently.
+ */
+function buildProviderForm({ title, description, getKey, setKey, clearKey, placeholder }) {
+    const form = document.createElement('form');
+    form.className = 'w-full bg-black/30 border border-white/5 rounded-2xl p-5 mb-4';
+    form.autocomplete = 'off';
+
+    const heading = document.createElement('h3');
+    heading.textContent = title;
+    heading.className = 'text-sm font-black text-white mb-1';
+
+    const desc = document.createElement('p');
+    desc.textContent = description;
+    desc.className = 'text-[11px] text-muted mb-3';
+
+    const input = document.createElement('input');
+    input.type = 'password';
+    input.name = title.toLowerCase().replace(/\s+/g, '_') + '_key';
+    input.className = 'w-full mb-2 bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-white placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors shadow-inner';
+    input.value = getKey() || '';
+    input.placeholder = placeholder;
+
+    const status = document.createElement('p');
+    status.className = 'text-[11px] text-muted mb-3';
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'flex items-center gap-2';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'submit';
+    saveBtn.textContent = 'Save ' + title;
+    saveBtn.className = 'px-4 py-2 rounded-xl bg-primary text-black font-black text-xs hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all';
+
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.textContent = 'Clear';
+    clearBtn.className = 'px-3 py-2 rounded-xl text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 transition-all';
+
+    const refreshStatus = () => {
+        const key = getKey();
+        status.textContent = key ? `${title} is configured.` : `No ${title} configured.`;
+    };
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const value = input.value.trim();
+        try {
+            if (value) {
+                if (value.length < 10) {
+                    throw new Error(`${title} appears too short. Please check it and try again.`);
+                }
+                await setKey(value, true);
+            } else {
+                clearKey();
+            }
+            refreshStatus();
+            saveBtn.textContent = 'Saved ✓';
+            setTimeout(() => { saveBtn.textContent = 'Save ' + title; }, 1500);
+        } catch (err) {
+            alert('Failed to save ' + title + ': ' + err.message);
+        }
+    });
+
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        clearKey();
+        refreshStatus();
+    });
+
+    btnRow.appendChild(saveBtn);
+    btnRow.appendChild(clearBtn);
+
+    form.appendChild(heading);
+    form.appendChild(desc);
+    form.appendChild(input);
+    form.appendChild(status);
+    form.appendChild(btnRow);
+
+    refreshStatus();
+    return form;
+}
+
 export function SettingsModal(onClose) {
     const overlay = document.createElement('div');
     overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm px-6';
@@ -10,83 +95,50 @@ export function SettingsModal(onClose) {
     };
 
     const modal = document.createElement('div');
-    modal.className = 'w-full max-w-sm bg-panel-bg border border-white/10 rounded-3xl p-8 shadow-3xl animate-fade-in-up';
+    modal.className = 'w-full max-w-md bg-panel-bg border border-white/10 rounded-3xl p-8 shadow-3xl animate-fade-in-up';
 
     const title = document.createElement('h2');
     title.textContent = 'Settings';
-    title.className = 'text-xl font-black text-white mb-6';
+    title.className = 'text-xl font-black text-white mb-1';
 
-    const label = document.createElement('label');
-    label.textContent = 'Muapi API Key';
-    label.className = 'block text-[10px] font-bold text-muted uppercase tracking-widest mb-2 ml-1';
+    const subtitle = document.createElement('p');
+    subtitle.textContent = 'Add your provider API keys to create content. Each key is stored separately on this device.';
+    subtitle.className = 'text-[12px] text-muted mb-6';
 
-    const input = document.createElement('input');
-    input.type = 'password';
-    input.className = 'w-full mb-6 bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-white placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors shadow-inner';
-    input.value = apiKeyManager.getKey() || '';
-    input.placeholder = 'sk-...';
+    const muapiForm = buildProviderForm({
+        title: 'Muapi API Key',
+        description: 'Used for video generation and Muapi-powered effects.',
+        getKey: () => apiKeyManager.getMuapiKey(),
+        setKey: (k, p) => apiKeyManager.setMuapiKey(k, p),
+        clearKey: () => apiKeyManager.clearMuapiKey(),
+        placeholder: 'sk-... (Muapi key)',
+    });
 
-    const status = document.createElement('p');
-    status.className = 'text-[11px] text-muted mb-4';
+    const openaiForm = buildProviderForm({
+        title: 'OpenAI API Key',
+        description: 'Used for image and text generation via OpenAI models.',
+        getKey: () => apiKeyManager.getOpenAIKey(),
+        setKey: (k, p) => apiKeyManager.setOpenAIKey(k, p),
+        clearKey: () => apiKeyManager.clearOpenAIKey(),
+        placeholder: 'sk-... (OpenAI key)',
+    });
 
-    const refreshKeyStatus = () => {
-        const key = apiKeyManager.getKey();
-        if (key) {
-            status.textContent = 'API key is configured.';
-        } else {
-            status.textContent = 'No API key configured.';
-        }
-    };
-
-    const btnContainer = document.createElement('div');
-    btnContainer.className = 'flex justify-end gap-3';
-
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = 'Cancel';
-    cancelBtn.className = 'px-5 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:text-white hover:bg-white/5 transition-all';
-    cancelBtn.onclick = removeModal;
-
-    const saveBtn = document.createElement('button');
-    saveBtn.textContent = 'Save';
-    saveBtn.className = 'px-6 py-2.5 rounded-xl bg-primary text-black font-black text-sm hover:shadow-glow hover:scale-[1.02] active:scale-[0.98] transition-all';
-
-    saveBtn.onclick = async () => {
-        const key = input.value.trim();
-        if (!key) {
-            apiKeyManager.clearKey();
-            refreshKeyStatus();
-            removeModal();
-            return;
-        }
-        if (key.length < 10) {
-            alert('API key appears too short. Please check it and try again.');
-            return;
-        }
-        try {
-            await apiKeyManager.setKey(key, true);
-            refreshKeyStatus();
-            removeModal();
-        } catch (e) {
-            alert('Failed to save API key: ' + e.message);
-        }
-    };
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Close';
+    closeBtn.className = 'mt-2 w-full px-6 py-2.5 rounded-xl text-sm font-bold text-white/60 hover:text-white hover:bg-white/5 transition-all';
+    closeBtn.onclick = removeModal;
 
     modal.appendChild(title);
-    modal.appendChild(label);
-    modal.appendChild(input);
-    modal.appendChild(status);
-
-    btnContainer.appendChild(cancelBtn);
-    btnContainer.appendChild(saveBtn);
-    modal.appendChild(btnContainer);
+    modal.appendChild(subtitle);
+    modal.appendChild(muapiForm);
+    modal.appendChild(openaiForm);
+    modal.appendChild(closeBtn);
 
     overlay.appendChild(modal);
 
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) removeModal();
     });
-
-    refreshKeyStatus();
 
     return overlay;
 }
