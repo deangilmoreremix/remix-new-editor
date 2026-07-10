@@ -134,21 +134,20 @@ try {
     return;
   }
 
-  // Full-page auth routes — mounted with Clerk (scaffold).
-  // Falls back to the existing Supabase SignInPage when the Clerk key is absent.
-  if (initialPage === 'signin' || initialPage === 'signup') {
-    if (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
-      const { mountClerkPage } = await import('./components/auth/ClerkAuth.jsx');
-      const rootEl = document.createElement('div');
-      app.appendChild(rootEl);
-      mountClerkPage(initialPage, rootEl);
-      console.log('[App] Clerk ' + initialPage + ' page rendered');
+  // Auth + account pages are owned by Clerk (Option A: replaces Supabase
+  // sign-in). Clerk natively handles sign-in, sign-up, and the forgot/reset
+  // password flow. /account and /profile render Clerk-protected pages.
+  const CLERK_PAGES = ['signin', 'signup', 'forgot-password', 'reset-password', 'account', 'profile'];
+  if (CLERK_PAGES.includes(initialPage)) {
+    if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
+      app.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#020205;color:#fff;flex-direction:column;padding:20px;text-align:center;"><h1 style="color:#ff4444;margin-bottom:16px;">Clerk not configured</h1><p style="color:#aaa;">Set VITE_CLERK_PUBLISHABLE_KEY to enable authentication.</p></div>';
       return;
     }
-    const { SignInPage } = await import('./components/landing/SignInPage.jsx');
-    const signInPage = SignInPage();
-    app.appendChild(signInPage);
-    console.log('[App] Sign in page rendered');
+    const { mountClerkRoute } = await import('./components/auth/ClerkAuth.jsx');
+    const rootEl = document.createElement('div');
+    app.appendChild(rootEl);
+    mountClerkRoute(initialPage, rootEl);
+    console.log('[App] Clerk page rendered: ' + initialPage);
     return;
   }
 
