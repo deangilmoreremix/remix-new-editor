@@ -6,7 +6,7 @@
 export class OfflineStorageService {
   constructor() {
     this.db = null;
-    this.dbName = 'OpenHiggsfieldOfflineDB';
+    this.dbName = 'SmartVideoOfflineDB';
     this.version = 1;
     this.stores = {
       projects: 'projects',

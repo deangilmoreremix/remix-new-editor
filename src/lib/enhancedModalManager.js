@@ -362,4 +362,4 @@ export function getModalManager(container) {
 }
 
 export { EnhancedModalManager };</content>
-<parameter name="filePath">/workspaces/Open-Higgsfield-AI/src/lib/enhancedModalManager.js
+<parameter name="filePath">/workspaces/SmartVideo/src/lib/enhancedModalManager.js

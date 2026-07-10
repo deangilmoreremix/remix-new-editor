@@ -16,6 +16,8 @@ import {
   useUser,
   UserButton,
 } from '@clerk/react';
+import { SignInPage } from '../landing/SignInPage.jsx';
+import { SignUpPage } from '../landing/SignUpPage.jsx';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -34,7 +36,13 @@ export function ClerkSignIn() {
   return (
     <ClerkGate>
       <div className="min-h-screen flex items-center justify-center bg-[#020205]">
-        <SignIn routing="path" path="/signin" signUpUrl="/signup" />
+        <SignIn
+          routing="path"
+          path="/signin"
+          signUpUrl="/signup"
+          afterSignInUrl="/#/image"
+          afterSignUpUrl="/#/image"
+        />
       </div>
     </ClerkGate>
   );
@@ -44,7 +52,13 @@ export function ClerkSignUp() {
   return (
     <ClerkGate>
       <div className="min-h-screen flex items-center justify-center bg-[#020205]">
-        <SignUp routing="path" path="/signup" signInUrl="/signin" />
+        <SignUp
+          routing="path"
+          path="/signup"
+          signInUrl="/signin"
+          afterSignInUrl="/#/image"
+          afterSignUpUrl="/#/image"
+        />
       </div>
     </ClerkGate>
   );
@@ -60,7 +74,7 @@ function AccountShell() {
       <p className="text-slate-300 mb-6">
         Signed in as {user?.primaryEmailAddress?.emailAddress || user?.username || 'user'}
       </p>
-      <UserButton />
+      <UserButton afterSignOutUrl="/" />
     </div>
   );
 }
@@ -76,7 +90,7 @@ function ProfileShell() {
       <p className="text-slate-300 mb-6">
         Email: {user?.primaryEmailAddress?.emailAddress || '—'}
       </p>
-      <UserButton />
+      <UserButton afterSignOutUrl="/" />
     </div>
   );
 }
@@ -90,11 +104,14 @@ export function ClerkProfile() {
 }
 
 // Mount the correct Clerk page for a given route (called from main.js).
+// /signin and /signup render the custom, app-styled pages (SignInPage /
+// SignUpPage) backed by Clerk's useSignIn / useSignUp hooks. The remaining
+// routes fall back to Clerk's prebuilt components.
 export function mountClerkRoute(route, container) {
   const root = createRoot(container);
   const pages = {
-    signin: <ClerkSignIn />,
-    signup: <ClerkSignUp />,
+    signin: <ClerkGate><SignInPage /></ClerkGate>,
+    signup: <ClerkGate><SignUpPage /></ClerkGate>,
     'forgot-password': <ClerkSignIn />,
     'reset-password': <ClerkSignIn />,
     account: <ClerkAccount />,

@@ -276,5 +276,5 @@ When extending the animation system:
 
 ## License
 
-This animation system is part of the Open Higgsfield AI project and follows the same licensing terms.</content>
-<parameter name="filePath">/workspaces/Open-Higgsfield-AI/src/lib/editor/README.md
+This animation system is part of the SmartVideo project and follows the same licensing terms.</content>
+<parameter name="filePath">/workspaces/SmartVideo/src/lib/editor/README.md

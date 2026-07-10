@@ -1,4 +1,4 @@
-// Demo Page - Open-Higgsfield-AI Integration Showcase
+// Demo Page - SmartVideo Integration Showcase
 // Complete demonstration of all AI video personalization features
 
 import React, { useState, useEffect } from 'react';
@@ -11,7 +11,7 @@ import { getVideoEnhancementService } from '../lib/videoEnhancementService.js';
 import { getModelsByType } from '../lib/models.js';
 import { SCRIPT_TEMPLATES, AVATAR_TEMPLATES } from '../lib/templates.js';
 
-const OpenHiggsfieldDemo = () => {
+const SmartVideoDemo = () => {
   const [activeDemo, setActiveDemo] = useState('overview');
   const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +30,7 @@ const OpenHiggsfieldDemo = () => {
   // Render overview section
   const renderOverview = () => (
     <div className="demo-section">
-      <h2>🎯 Open-Higgsfield-AI Integration Overview</h2>
+      <h2>🎯 SmartVideo Integration Overview</h2>
       <p className="section-description">
         Complete Sendspark-style video personalization platform with AI-powered video generation,
         neural text-to-speech, and professional avatar creation.
@@ -371,13 +371,13 @@ const OpenHiggsfieldDemo = () => {
   return (
     <>
       <Head>
-        <title>Open-Higgsfield-AI Integration Demo</title>
+        <title>SmartVideo Integration Demo</title>
         <meta name="description" content="Complete AI video personalization platform demo" />
       </Head>
 
-      <div className="open-higgsfield-demo">
+      <div className="smartvideo-demo">
         <div className="demo-sidebar">
-          <h1>Open-Higgsfield-AI</h1>
+          <h1>SmartVideo</h1>
           <p className="demo-subtitle">Complete Integration Demo</p>
 
           <nav className="demo-nav">
@@ -405,7 +405,7 @@ const OpenHiggsfieldDemo = () => {
       </div>
 
       <style jsx>{`
-        .open-higgsfield-demo {
+        .smartvideo-demo {
           display: flex;
           min-height: 100vh;
           background: #0f172a;
@@ -775,4 +775,4 @@ const OpenHiggsfieldDemo = () => {
   );
 };
 
-export default OpenHiggsfieldDemo;
+export default SmartVideoDemo;

@@ -19,7 +19,7 @@ try {
     },
     global: {
       headers: {
-        'X-Client-Info': 'open-higgsfield-ai'
+        'X-Client-Info': 'smartvideo'
       }
     }
   });

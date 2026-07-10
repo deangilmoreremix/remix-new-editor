@@ -13,7 +13,7 @@ export default class LandingPage {
       <!-- Hero Section -->
       <section class="hero">
         <div class="hero-content">
-          <div class="badge">🚀 Open-Higgsfield-AI Integration Complete</div>
+          <div class="badge">🚀 SmartVideo Integration Complete</div>
           <h1>Create Personalized Videos at Scale</h1>
           <p class="hero-subtitle">
             AI-powered video personalization platform with professional avatars,
@@ -27,7 +27,7 @@ export default class LandingPage {
           <div class="hero-buttons">
             <a href="/editor" class="btn-primary">Start Creating Videos</a>
             <a href="/personalize" class="btn-secondary">Bulk Personalization</a>
-            <a href="/open-higgsfield-demo" class="btn-secondary">View Demo</a>
+            <a href="/smartvideo-demo" class="btn-secondary">View Demo</a>
           </div>
 
           <div class="stats-row">
@@ -144,7 +144,7 @@ export default class LandingPage {
         <p>Start generating professional AI videos for your contacts today.</p>
         <div class="cta-buttons">
           <a href="/personalize" class="btn-cta-primary">Get Started Free</a>
-          <a href="/open-higgsfield-demo" class="btn-cta-secondary">Explore Features</a>
+          <a href="/smartvideo-demo" class="btn-cta-secondary">Explore Features</a>
         </div>
       </section>
 
@@ -153,7 +153,7 @@ export default class LandingPage {
         <p>© 2024 Video Personalization Platform. Open-source alternative to Sendspark.</p>
         <div class="footer-links">
           <a href="/personalize">Personalizer</a>
-          <a href="/open-higgsfield-demo">Demo</a>
+            <a href="/smartvideo-demo">Demo</a>
           <a href="/account">Account</a>
         </div>
       </footer>

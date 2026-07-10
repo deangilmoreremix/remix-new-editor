@@ -644,7 +644,7 @@ export class MuapiClient {
     }
 
     async listAssets(params, signal) {
-        // NOTE: asset listing is a FIRST-PARTY Open Higgsfield service, NOT a
+        // NOTE: asset listing is a FIRST-PARTY SmartVideo service, NOT a
         // muapi endpoint (muapi exposes no asset-list route). Route to the
         // app's own backend, never the muapi proxy.
         const base = this.proxyUrl.replace(/\/functions\/v1\/muapi-proxy$/, '') || import.meta.env.VITE_SUPABASE_URL;

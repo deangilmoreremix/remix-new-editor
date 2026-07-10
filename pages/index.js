@@ -15,7 +15,7 @@ const LandingPage = () => {
         {/* Hero Section */}
         <section className="hero">
           <div className="hero-content">
-            <div className="badge">🚀 Open-Higgsfield-AI Integration Complete</div>
+            <div className="badge">🚀 SmartVideo Integration Complete</div>
             <h1>Create Personalized Videos at Scale</h1>
             <p className="hero-subtitle">
               AI-powered video personalization platform with professional avatars,
@@ -30,7 +30,7 @@ const LandingPage = () => {
               <Link href="/personalize">
                 <a className="btn-primary">Start Creating Videos</a>
               </Link>
-              <Link href="/open-higgsfield-demo">
+              <Link href="/smartvideo-demo">
                 <a className="btn-secondary">View Demo</a>
               </Link>
             </div>
@@ -151,7 +151,7 @@ const LandingPage = () => {
 
         {/* Integration Status */}
         <section className="integration-section">
-          <h2>✅ Open-Higgsfield-AI Integration Complete</h2>
+          <h2>✅ SmartVideo Integration Complete</h2>
           <p className="section-subtitle">All Sendspark features are now implemented and available</p>
 
           <div className="integration-grid">
@@ -210,7 +210,7 @@ const LandingPage = () => {
             <Link href="/personalize">
               <a className="btn-cta-primary">Get Started Free</a>
             </Link>
-            <Link href="/open-higgsfield-demo">
+            <Link href="/smartvideo-demo">
               <a className="btn-cta-secondary">Explore Features</a>
             </Link>
           </div>
@@ -221,7 +221,7 @@ const LandingPage = () => {
           <p>© 2024 Video Personalization Platform. Open-source alternative to Sendspark.</p>
           <div className="footer-links">
             <Link href="/personalize"><a>Personalizer</a></Link>
-            <Link href="/open-higgsfield-demo"><a>Demo</a></Link>
+            <Link href="/smartvideo-demo"><a>Demo</a></Link>
             <Link href="/account"><a>Account</a></Link>
           </div>
         </footer>

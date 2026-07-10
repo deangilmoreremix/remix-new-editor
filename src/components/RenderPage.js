@@ -9,7 +9,7 @@ import { generateSubtitles, generateHighlights, generateVoiceover, createShorts,
 
 // Repository endpoints
 const REPO_ENDPOINTS = {
-  'open-higgsfield': { label: 'Open Higgsfield', status: 'connected', description: 'Primary orchestration layer for render workflows.' },
+  'smartvideo': { label: 'SmartVideo', status: 'connected', description: 'Primary orchestration layer for render workflows.' },
   director: { label: 'Director', status: 'connected', description: 'Prompt-based cinematic editing and agentic scene direction.' },
   vimax: { label: 'ViMax', status: 'connected', description: 'Enhancement, optimization, and cinematic finishing passes.' },
   rendiv: { label: 'Rendiv', status: 'connected', description: 'Render/export pipeline for final outputs and format variants.' },

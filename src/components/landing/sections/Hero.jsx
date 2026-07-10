@@ -1,4 +1,4 @@
-// Landing Page Hero Section - Higgsfield.ai style
+// Landing Page Hero Section - SmartVideo style
 // Large typography, gradient text, prominent CTAs
 
 export function Hero() {

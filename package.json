@@ -1,6 +1,6 @@
 {
-  "name": "open-higgsfield-ai",
-  "description": "Open-source alternative to Higgsfield AI — AI image generation and cinema studio with 20+ models",
+  "name": "smartvideo",
+  "description": "SmartVideo — AI video generation studio with 20+ models",
   "private": true,
   "version": "1.0.0",
   "type": "module",

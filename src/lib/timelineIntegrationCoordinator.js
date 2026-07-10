@@ -457,4 +457,4 @@ export function getTimelineCoordinator(timelineState, container) {
 }
 
 export { TimelineIntegrationCoordinator };</content>
-<parameter name="filePath">/workspaces/Open-Higgsfield-AI/src/lib/timelineIntegrationCoordinator.js
+<parameter name="filePath">/workspaces/SmartVideo/src/lib/timelineIntegrationCoordinator.js
