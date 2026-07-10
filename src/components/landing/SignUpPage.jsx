@@ -262,13 +262,6 @@ export function SignUpPage() {
               </>
             )}
           </div>
-
-          {/* Trust indicators */}
-          <div className="mt-8 flex items-center justify-center gap-6 text-xs text-slate-400">
-            <span>✓ No credit card required</span>
-            <span>✓ 7-day free trial</span>
-            <span>✓ Cancel anytime</span>
-          </div>
         </div>
       </main>
     </div>
