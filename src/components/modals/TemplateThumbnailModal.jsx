@@ -99,7 +99,6 @@ const THUMB_STYLES = `
 }
 .thumb-modal__error { color: #fca5a5; font-size: 12px; margin-top: 6px; }
 .thumb-modal__refine-bar { display: flex; gap: 8px; align-items: center; }
-.thumb-modal__refining { font-size: 11px; color: #22d3ee; letter-spacing: 0.04em; margin-top: 6px; }
 .thumb-modal__layout { display: grid; grid-template-columns: 1fr 220px; gap: 16px; min-height: 0; }
 .thumb-modal__main { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; }
 .thumb-modal__sidebar { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.025); }
@@ -210,9 +209,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.referenceImage = null;
     this.imageDetail = 'auto';
     this.partialPreview = null;
-    this.isRefining = false;
     this.completedAt = null;
-    this.revisedPrompt = '';
     this.maskCanvas = null;
     this.maskB64 = '';
     this.lastParams = null;
@@ -361,9 +358,7 @@ export class TemplateThumbnailModal extends BaseModal {
           <div class="thumb-modal__label">Selected Image</div>
           <div class="thumb-modal__preview">
             ${selected ? `<img src="${imgSrc}" alt="Selected" />` : '<div class="thumb-modal__empty">No image selected</div>'}
-            ${this.partialPreview
-              ? `<div class="thumb-modal__partial"><img src="${this.partialPreview}" alt="Partial preview" /></div>`
-              : (this.isRefining ? `<div class="thumb-modal__partial"><span>Refining…</span></div>` : '')}
+            ${this.partialPreview ? `<div class="thumb-modal__partial"><img src="${this.partialPreview}" alt="Partial preview" /></div>` : ''}
           </div>
         </div>
         <div class="thumb-modal__section">
@@ -375,7 +370,6 @@ export class TemplateThumbnailModal extends BaseModal {
                     onclick="window._thumbModal.applyRefine()">Send →</button>
           </div>
           ${this._error ? `<div class="thumb-modal__error">${this.escapeHtml(this._error)}</div>` : ''}
-          ${this.isRefining ? '<div class="thumb-modal__refining">Streaming partial previews…</div>' : ''}
         </div>
         <div class="thumb-modal__section">
           <div class="thumb-modal__label">Inpaint Brush</div>
@@ -598,6 +592,7 @@ export class TemplateThumbnailModal extends BaseModal {
     try {
       const { candidates, params } = await this.thumbnailService.generateCandidates(promptText, {
         n: 3,
+        presetKey: this.presetKey,
         aspectRatio: this.controls.aspectRatio,
         quality: this.controls.quality,
         style: this.controls.style,
@@ -631,11 +626,7 @@ export class TemplateThumbnailModal extends BaseModal {
     if (!preset) return;
     this.preset = preset;
     this.presetKey = presetKey;
-    // Preserve any edits the user typed into the brief textarea; fall back to
-    // the auto-composed brief only when the textarea is empty.
-    const currentBrief = document.getElementById('thumb-brief')?.value || '';
-    const base = currentBrief.trim() ? currentBrief : this.buildInitialBrief();
-    this.brief = applyPresetToBrief(preset, base);
+    this.brief = applyPresetToBrief(preset, this.buildInitialBrief());
     this.controls = applyPresetToControls(preset, { ...this.controls, aspectRatio: this.template?.aspectRatio || '16:9' });
     this.updateBody(this.renderBody());
   }
@@ -682,35 +673,11 @@ export class TemplateThumbnailModal extends BaseModal {
     const selected = this.candidates[this.selectedIndex];
     if (!selected) return;
 
-    // Streaming refine: keep the refine view on screen so the partial-image
-    // overlay can paint progressively instead of a full-screen spinner.
-    this.isRefining = true;
-    this.isGenerating = false;
-    this._error = null;
+    this.setLoading('Refining…');
     this.partialPreview = null;
-    this.updateBody(this.renderBody());
-
-    const onPartial = (b64) => {
-      this.partialPreview = ThumbnailService.b64ToDataUrl(b64, 'image/png');
-      this.updateBody(this.renderBody());
-    };
-    const onDone = (result) => {
-      if (result?.b64_json) {
-        selected.b64_json = result.b64_json;
-        selected.revised_prompt = result.revised_prompt;
-        selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
-      }
-      if (result?.response_id) this.lastResponseId = result.response_id;
-      this.revisedPrompt = selected.revised_prompt || '';
-    };
-    const onError = (err) => {
-      this.isRefining = false;
-      this.partialPreview = null;
-      this.setError(err instanceof Error ? err.message : 'Refine failed');
-    };
 
     try {
-      await this.thumbnailService.refineLastImageStream({
+      const result = await this.thumbnailService.refineLastImage({
         prompt: instruction,
         previousResponseId: this.lastResponseId || '',
         quality: this.controls.quality,
@@ -723,21 +690,22 @@ export class TemplateThumbnailModal extends BaseModal {
         referenceImageB64: this.referenceImage?.source === 'b64' ? this.referenceImage.value : undefined,
         referenceImageUrl: this.referenceImage?.source === 'url' ? this.referenceImage.value : undefined,
         imageDetail: this.imageDetail,
-      }, { onPartial, onDone, onError });
-    } catch (err) {
-      this.isRefining = false;
+      });
+      if (result?.b64_json) {
+        selected.b64_json = result.b64_json;
+        selected.revised_prompt = result.revised_prompt;
+        selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
+      }
+      if (result?.response_id) this.lastResponseId = result.response_id;
+      this.revisedPrompt = selected.revised_prompt || '';
+      this.isGenerating = false;
+      this._error = null;
       this.partialPreview = null;
+      this.updateBody(this.renderBody());
+      setTimeout(() => this.initMaskCanvas(), 50);
+    } catch (err) {
       this.setError(err instanceof Error ? err.message : 'Refine failed');
-      return;
     }
-
-    // onError already surfaced the error + re-rendered; do not clobber it.
-    if (this._error) return;
-    this.partialPreview = null;
-    this.isRefining = false;
-    this.isGenerating = false;
-    this.updateBody(this.renderBody());
-    setTimeout(() => this.initMaskCanvas(), 50);
   }
 
   async applyInpaint() {
@@ -970,7 +938,6 @@ export class TemplateThumbnailModal extends BaseModal {
     this.maskCanvas = null;
     this.maskB64 = '';
     this.partialPreview = null;
-    this.isRefining = false;
     this.referenceImage = null;
     this.completedAt = null;
     this.revisedPrompt = '';
