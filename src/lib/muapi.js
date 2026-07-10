@@ -282,16 +282,22 @@ export class MuapiClient {
         if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
         if (params.resolution) finalPayload.resolution = params.resolution;
         if (params.quality) finalPayload.quality = params.quality;
+        // Effect endpoints (generate_wan_ai_effects / video-effects) REQUIRE `name`.
+        // The caller (Effects Studio / Templates video) sets it; forward it or the
+        // API returns 422 "Field required: name" and video creation silently fails.
+        if (params.name) finalPayload.name = params.name;
 
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({
                     endpoint,
                     params: finalPayload,
-                    generationType: 'i2i',
-                    studioType: params.studioType || 'edit'
+                    generationType: 'i2v',
+                    studioType: params.studioType || 'video'
                 }),
                 signal
             });

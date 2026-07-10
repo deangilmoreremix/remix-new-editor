@@ -116,6 +116,22 @@ The VFX doc page states the model supports *"explosions, lightning, and tornadoe
 - `.audit/enum-check-results.json` — Effects Studio tab enums (0 invalid across 152 names).
 - `.audit/lightning.mjs` — lightning variant + doc-example probes (this audit).
 - `.audit/e2e-results.json` — prior end-to-end image+video proof for all 3 studios.
+- `.audit/verify-generateI2V.mjs` — reproduces the real `generateI2V` payload (name forwarded vs dropped) against the live API.
+
+## 7. Addendum — Effects Studio / Templates video path bug (generateI2V dropped `name`)
+
+Initial endpoint-only testing concluded Effects Studio and Templates video creation worked, but that called
+`generate_wan_ai_effects` directly with a manually supplied `name`. The **actual app path** routes video creation
+through `muapi.generateI2V` (`EffectsStudio.js:388`; `TemplateStudio.js:654`), which **did not forward `name`** to
+the payload. Since `generate_wan_ai_effects` (and `video-effects`) require `name`, those tabs returned
+**HTTP 422 `Field required: name`** in the running app — i.e. video creation was actually broken for:
+- Effects Studio **AI Video Effects** + **Motion Controls** tabs (→ `generate_wan_ai_effects`)
+- Templates `vfx` / `ai-video-effects` / `motion-controls` (→ `generate_wan_ai_effects`)
+
+The `video-effects` tab never required `name`, so it was already functional.
+
+**Fix:** `src/lib/muapi.js` `generateI2V` now forwards `params.name` (`if (params.name) finalPayload.name = params.name;`).
+Verified live: the affected tabs/templates now return **200** (were 422). Committed as a follow-up to `1af3d0d4`.
 
 ---
 
