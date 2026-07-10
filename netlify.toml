@@ -36,3 +36,11 @@
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=()"
+
+# SPA fallback: serve the built index.html for all non-asset, non-API
+# routes so deep links like /signin, /signup, /forgot-password,
+# /reset-password, /account and /profile resolve to the app shell.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

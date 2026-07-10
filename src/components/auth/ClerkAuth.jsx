@@ -1,15 +1,21 @@
-// Clerk authentication scaffold
-// Mounts Clerk's prebuilt <SignIn> / <SignUp> on the /signin and /signup routes.
-// The publishable key is read from VITE_CLERK_PUBLISHABLE_KEY (set in Netlify env
-// and .env.local via `clerk env pull`).
+// Clerk authentication — owns ALL auth (Option A: replaces Supabase sign-in).
+// Routes: /signin, /signup, /forgot-password, /reset-password,
+// /account, /profile. The publishable key comes from VITE_CLERK_PUBLISHABLE_KEY
+// (set in Netlify env + .env.local via `clerk env pull`).
 //
-// This is a non-destructive scaffold: the existing Supabase auth flow in the app
-// is left intact. Swap the app's auth calls to Clerk (or gate the studio shell
-// with Clerk's <Protect>/auth() checks) as a follow-up migration step.
+// Clerk's <SignIn> natively includes the "Forgot password?" flow and the
+// password-reset completion, so /forgot-password and /reset-password simply
+// mount the same Clerk sign-in surface.
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { ClerkProvider, SignIn, SignUp } from '@clerk/clerk-react';
+import {
+  ClerkProvider,
+  SignIn,
+  SignUp,
+  useUser,
+  UserButton,
+} from '@clerk/react';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -17,7 +23,7 @@ function ClerkGate({ children }) {
   if (!PUBLISHABLE_KEY) {
     return (
       <div style={{ color: '#fff', padding: 24, textAlign: 'center' }}>
-        Missing <code>VITE_CLERK_PUBLISHABLE_KEY</code> environment variable.
+        Missing <code>VITE_CLERK_PUBLISHABLE_KEY</code>.
       </div>
     );
   }
@@ -44,9 +50,55 @@ export function ClerkSignUp() {
   );
 }
 
-// Mount the correct Clerk page into a container (called from main.js, which is
-// plain JS and therefore avoids JSX here).
-export function mountClerkPage(page, container) {
+function AccountShell() {
+  const { isLoaded, isSignedIn, user } = useUser();
+  if (!isLoaded) return <div style={{ color: '#94a3b8', padding: 24 }}>Loading…</div>;
+  if (!isSignedIn) return <ClerkSignIn />;
+  return (
+    <div className="min-h-screen bg-[#020205] text-white p-8">
+      <h1 className="text-2xl font-bold mb-4">Account</h1>
+      <p className="text-slate-300 mb-6">
+        Signed in as {user?.primaryEmailAddress?.emailAddress || user?.username || 'user'}
+      </p>
+      <UserButton />
+    </div>
+  );
+}
+
+function ProfileShell() {
+  const { isLoaded, isSignedIn, user } = useUser();
+  if (!isLoaded) return <div style={{ color: '#94a3b8', padding: 24 }}>Loading…</div>;
+  if (!isSignedIn) return <ClerkSignUp />;
+  return (
+    <div className="min-h-screen bg-[#020205] text-white p-8">
+      <h1 className="text-2xl font-bold mb-4">Profile</h1>
+      <p className="text-slate-300 mb-2">Username: {user?.username || '—'}</p>
+      <p className="text-slate-300 mb-6">
+        Email: {user?.primaryEmailAddress?.emailAddress || '—'}
+      </p>
+      <UserButton />
+    </div>
+  );
+}
+
+export function ClerkAccount() {
+  return <ClerkGate><AccountShell /></ClerkGate>;
+}
+
+export function ClerkProfile() {
+  return <ClerkGate><ProfileShell /></ClerkGate>;
+}
+
+// Mount the correct Clerk page for a given route (called from main.js).
+export function mountClerkRoute(route, container) {
   const root = createRoot(container);
-  root.render(page === 'signup' ? <ClerkSignUp /> : <ClerkSignIn />);
+  const pages = {
+    signin: <ClerkSignIn />,
+    signup: <ClerkSignUp />,
+    'forgot-password': <ClerkSignIn />,
+    'reset-password': <ClerkSignIn />,
+    account: <ClerkAccount />,
+    profile: <ClerkProfile />,
+  };
+  root.render(pages[route] || <ClerkSignIn />);
 }
