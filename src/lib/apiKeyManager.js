@@ -198,3 +198,27 @@ export const apiKeyManager = new ApiKeyManager();
 
 // Auto-migrate on load
 apiKeyManager.migrateFromLegacy();
+
+/**
+ * Dev-only auto-auth bypass.
+ *
+ * Skips the API key prompt during local development by seeding a placeholder
+ * key (so every `localStorage.getItem('muapi_key')` / `apiKeyManager.getKey()`
+ * guard passes). Activated by either:
+ *   - VITE_DEV_BYPASS_AUTH=true in the .env file, or
+ *   - a `?dev` query param in the URL (e.g. http://localhost:3000/?dev)
+ *
+ * This only runs in the browser and never affects production builds where the
+ * flag is unset. The placeholder key is NOT a real Muapi key, so live API calls
+ * will still fail — this only bypasses the auth gate for UI development.
+ */
+const DEV_PLACEHOLDER_KEY = 'dev-bypass-key-not-real';
+const isDevBypass =
+    (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEV_BYPASS_AUTH === 'true') ||
+    (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('dev'));
+
+if (isDevBypass && !apiKeyManager.hasKey()) {
+    apiKeyManager.setKey(DEV_PLACEHOLDER_KEY, true).then(() => {
+        console.info('[dev] Auth bypass active — seeded placeholder API key (no real Muapi key set).');
+    }).catch(console.error);
+}
