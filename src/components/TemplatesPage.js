@@ -1,10 +1,12 @@
 import { allTemplates, getAllCategories } from '../lib/templates.js';
 import { NICHE_LABELS_MAP } from '../lib/nicheTemplatesIndex.js';
 import { navigate } from '../lib/router.js';
-import { getTemplateThumbnail, createThumbnailImg, createHeroSection } from '../lib/thumbnails.js';
-import { createInlineInstructions } from './InlineInstructions.js';
+import { getTemplateThumbnail, createThumbnailImg, createHeroSection, resetThumbnailAssignments } from '../lib/thumbnails.js';
 
 export function TemplatesPage() {
+  // Start a fresh assignment session so dedup is consistent across page visits.
+  resetThumbnailAssignments();
+
   const container = document.createElement('div');
   container.className = 'w-full h-full overflow-y-auto bg-app-bg';
 

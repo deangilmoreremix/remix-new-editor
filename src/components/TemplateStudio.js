@@ -1,13 +1,13 @@
 import { getTemplateById } from '../lib/templates.js';
-import { getTemplateThumbnailCandidates } from '../lib/thumbnails.js';
+import { getTemplateThumbnailCandidates, resetThumbnailAssignments } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
-import { muapi } from '../lib/muapi.js';
-import { AuthModal } from './AuthModal.js';
-import { createUploadPicker } from './UploadPicker.js';
-import { navigate } from '../lib/router.js';
-import { sanitizeUrl } from '../lib/security.js';
 
 export function TemplateStudio(templateId) {
+  // Reset so each studio visit starts with a fresh session (single-template
+  // view doesn't technically need it, but if templateStudio component ever
+  // reuses the candidate list for a re-render, the Set stays bounded).
+  resetThumbnailAssignments();
+
   const template = getTemplateById(templateId);
   
   if (!template) {
