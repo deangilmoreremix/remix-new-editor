@@ -3,9 +3,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { observer } from 'mobx-react';
 import classnames from 'classnames';
 
-import PropTypes from '../../lib/PropTypes';
-import { showError, showSuccess } from '../../lib/services/alertService';
-import { tokens as defaultTokens } from '../../lib/constants/tokens';
+import PropTypes from '../lib/PropTypes';
+import { showError, showSuccess } from '../lib/services/alertService';
+import { tokens as defaultTokens } from '../lib/constants/tokens';
 
 const PersonalizationEditor = ({
   videoUrl,

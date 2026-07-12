@@ -3,13 +3,13 @@ import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 
-import PropTypes from '../../lib/PropTypes';
-import { showError, showSuccess } from '../../lib/services/alertService';
-import { TOKEN_EDITOR } from '../../lib/constants/components';
+import PropTypes from '../lib/PropTypes';
+import { showError, showSuccess } from '../lib/services/alertService';
+import { TOKEN_EDITOR } from '../lib/constants/components';
 
-import addIcon from '../../public/static/svgImages/add.svg';
-import deleteIcon from '../../public/static/svgImages/delete.svg';
-import editIcon from '../../public/static/svgImages/edit.svg';
+import addIcon from '../public/static/svgImages/add.svg';
+import deleteIcon from '../public/static/svgImages/delete.svg';
+import editIcon from '../public/static/svgImages/edit.svg';
 
 const TokenEditor = ({ onTokensChange, initialTokens = {} }) => {
   const [tokens, setTokens] = useState(initialTokens);

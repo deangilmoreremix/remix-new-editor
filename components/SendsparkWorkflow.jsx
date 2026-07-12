@@ -5,8 +5,8 @@ import classnames from 'classnames';
 
 import VideoRecorder from './VideoRecorder';
 import ContactImporterModal from './modals/ContactImporterModal';
-import { SendsparkPersonalizationEngine } from '../../lib/sendsparkEngine';
-import { showError, showSuccess } from '../../lib/services/alertService';
+import { SendsparkPersonalizationEngine } from '../lib/sendsparkEngine';
+import { showError, showSuccess } from '../lib/services/alertService';
 
 const SendsparkWorkflow = ({
   onWorkflowComplete,

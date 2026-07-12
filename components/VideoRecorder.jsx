@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import classnames from 'classnames';
 
-import { showError, showSuccess } from '../../lib/services/alertService';
+import { showError, showSuccess } from '../lib/services/alertService';
 
 const VideoRecorder = ({
   onRecordingComplete,

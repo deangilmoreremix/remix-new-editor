@@ -3,17 +3,17 @@ import React, { useState, useEffect } from 'react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 
-import PropTypes from '../../lib/PropTypes';
-import { showError, showSuccess } from '../../lib/services/alertService';
-import { createPersonalizedVideo } from '../../lib/videoPersonalizationEngine.js';
-import { getMuapiClient } from '../../lib/muapi.js';
-import { getTTSService } from '../../lib/ttsService.js';
-import { AVATAR_TEMPLATES, SCRIPT_TEMPLATES } from '../../lib/templates.js';
+import PropTypes from '../lib/PropTypes';
+import { showError, showSuccess } from '../lib/services/alertService';
+import { createPersonalizedVideo } from '../lib/videoPersonalizationEngine.js';
+import { getMuapiClient } from '../lib/muapi.js';
+import { getTTSService } from '../lib/ttsService.js';
+import { AVATAR_TEMPLATES, SCRIPT_TEMPLATES } from '../lib/templates.js';
 
-import scriptIcon from '../../public/static/svgImages/script.svg';
-import avatarIcon from '../../public/static/svgImages/avatar.svg';
-import voiceIcon from '../../public/static/svgImages/voice.svg';
-import videoIcon from '../../public/static/svgImages/video.svg';
+import scriptIcon from '../public/static/svgImages/script.svg';
+import avatarIcon from '../public/static/svgImages/avatar.svg';
+import voiceIcon from '../public/static/svgImages/voice.svg';
+import videoIcon from '../public/static/svgImages/video.svg';
 
 const AIVideoCreator = ({
   contacts,

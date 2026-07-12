@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import classnames from 'classnames';
 
-import { tokens, tokenModes, CUSTOM, INPUT_PLACEHOLDER } from '../../lib/constants/tokens';
+import { tokens, tokenModes, CUSTOM, INPUT_PLACEHOLDER } from '../lib/constants/tokens';
 
 const Personalization = ({ closeModal, tokenList, onAdd, elementType, tokenModes: tokenModesProp }) => {
   const effectiveTokenList = tokenList || tokens;

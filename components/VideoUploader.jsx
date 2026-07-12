@@ -3,14 +3,14 @@ import React, { useState, useRef, useCallback } from 'react';
 import classnames from 'classnames';
 import SVGInline from 'react-svg-inline';
 
-import PropTypes from '../../lib/PropTypes';
-import { showError, showSuccess } from '../../lib/services/alertService';
-import { VIDEO_UPLOADER } from '../../lib/constants/components';
+import PropTypes from '../lib/PropTypes';
+import { showError, showSuccess } from '../lib/services/alertService';
+import { VIDEO_UPLOADER } from '../lib/constants/components';
 
-import uploadIcon from '../../public/static/svgImages/upload.svg';
-import videoIcon from '../../public/static/svgImages/video.svg';
-import deleteIcon from '../../public/static/svgImages/delete.svg';
-import playIcon from '../../public/static/svgImages/play.svg';
+import uploadIcon from '../public/static/svgImages/upload.svg';
+import videoIcon from '../public/static/svgImages/video.svg';
+import deleteIcon from '../public/static/svgImages/delete.svg';
+import playIcon from '../public/static/svgImages/play.svg';
 
 const VideoUploader = ({
   onVideoSelected,
