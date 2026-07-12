@@ -114,11 +114,13 @@ async function handleMCPCommand(data) {
 
 const PORT = process.env.PORT || 3001;
 
-server.listen(PORT, () => {
-  console.log(`🚀 Backend server running on port ${PORT}`);
-  console.log(`🔗 MCP WebSocket available at ws://localhost:${PORT}/mcp`);
-  console.log(`📊 Health check at http://localhost:${PORT}/health`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, () => {
+    console.log(`🚀 Backend server running on port ${PORT}`);
+    console.log(`🔗 MCP WebSocket available at ws://localhost:${PORT}/mcp`);
+    console.log(`📊 Health check at http://localhost:${PORT}/health`);
+  });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
