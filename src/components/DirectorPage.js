@@ -1,6 +1,6 @@
 import { showToast } from '../lib/loading.js';
 import { supabase } from '../lib/supabase.js';
-import { createIcons } from 'lucide';
+import { createIcons, icons } from 'lucide';
 
 /* ─── Global Config ─── */
 window.DIRECTOR_CONFIG = window.DIRECTOR_CONFIG || {
@@ -371,7 +371,7 @@ function render() {
   `;
 
   // Initialize Lucide icons
-  createIcons();
+  createIcons({ icons });
 
   // Add event listeners
   addEventListeners();

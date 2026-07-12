@@ -154,7 +154,7 @@ export function ImageStudio() {
     gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
     gtmBtn.className = 'gtm-boost-btn shrink-0';
     gtmBtn.addEventListener('click', () => {
-      import('../../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
         openGTMPromptModal('image-studio', (prompt) => {
           textarea.value = prompt;
           textarea.dispatchEvent(new Event('input', { bubbles: true }));

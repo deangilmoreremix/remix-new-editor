@@ -412,4 +412,6 @@ export async function processInBrowser({ action, videoUrl, file, settings = {}, 
   return reencode({ op, blob, settings, onProgress, signal });
 }
 
-export default { supports, normalizeOp, canRecord, processInBrowser };
+export const browserVideoProcessor = { supports, normalizeOp, canRecord, processInBrowser };
+
+export default browserVideoProcessor;
