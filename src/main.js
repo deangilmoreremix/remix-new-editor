@@ -346,3 +346,19 @@ window.addEventListener('timeline:open-modal', (event) => {
 // Note: The wrapper is applied inside initRouter in the router module
 // Expose navigate globally for debugging
 window.navigate = navigate;
+
+// Dev-only: allow signing in from the console without the real login UI.
+// Usage: await window.devLogin()
+if (import.meta.env.DEV) {
+  import('./lib/devAuth.js').then(({ devLogin }) => {
+    window.devLogin = devLogin;
+
+    // Auto sign-in on load when dev credentials are configured, so you skip
+    // the other monorepo app's auth pages entirely. No-op if already signed in.
+    if (import.meta.env.VITE_DEV_USER_EMAIL && import.meta.env.VITE_DEV_USER_PASSWORD) {
+      devLogin().catch((err) => {
+        console.warn('[Dev] auto sign-in skipped:', err.message);
+      });
+    }
+  });
+}
