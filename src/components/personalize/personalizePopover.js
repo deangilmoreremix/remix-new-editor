@@ -43,11 +43,11 @@ function _getProfile(id) {
   } catch { return null; }
 }
 
-function getSelectedContactId() {
+export function getSelectedContactId() {
   try { return localStorage.getItem(SELECTED_CONTACT_KEY); } catch { return null; }
 }
 
-function setSelectedContactId(contactId) {
+export function setSelectedContactId(contactId) {
   try { localStorage.setItem(SELECTED_CONTACT_KEY, contactId || ''); } catch {}
 }
 

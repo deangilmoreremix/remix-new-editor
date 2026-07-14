@@ -98,7 +98,7 @@ export async function navigate(page, params = {}) {
   // Update URL with params so components can read them via URLSearchParams
   const searchParams = new URLSearchParams(params).toString();
   const newUrl = searchParams ? `/?${searchParams}#/${page}` : `/#/${page}`;
-  history.pushState({}, '', newUrl);
+  window.history.pushState({}, '', newUrl);
 
   currentPageEl?.cleanup?.();
   currentPageEl = null;

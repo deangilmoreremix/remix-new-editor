@@ -39,7 +39,7 @@ export function VideoAgentPage() {
     const videoId = urlParams.get('videoId') || '';
     const videoUrl = urlParams.get('videoUrl') || '';
     
-    let processingQueue = [];
+    const processingQueue = [];
     let isProcessing = false;
     
     // ==========================================
@@ -344,8 +344,9 @@ export function VideoAgentPage() {
             return;
         }
 
-        // Validate video is loaded (whisper tolerates audioUrl-only)
-        if (!videoId && !videoUrl && tool.id !== 'whisper') {
+        // Voice/tts tools don't need a loaded video; everything else does.
+        const NO_VIDEO_TOOLS = ['cosyvoice', 'fish-speech', 'seed-vc'];
+        if (!videoId && !videoUrl && !NO_VIDEO_TOOLS.includes(tool.id)) {
             showToast('Please load a video first', 'error');
             return;
         }
@@ -380,7 +381,9 @@ export function VideoAgentPage() {
                     toolName: tool.name,
                     videoId,
                     videoUrl,
-                    text: tool.description,
+                    text: (NO_VIDEO_TOOLS.includes(tool.id)
+                        ? 'Welcome to the studio. This is a synthesized voice sample for your project.'
+                        : tool.description),
                     settings: {
                         quality: container.querySelector('select')?.value || '1080p',
                         format: container.querySelectorAll('select')[1]?.value || 'MP4',
@@ -411,11 +414,12 @@ export function VideoAgentPage() {
             // Both backends down — fall through to simulation
             showToast('Backends unavailable. Using offline mode.', 'info');
             modal.classList.add('hidden');
-            await fallbackOrSimulate(tool, simulateToolProcessing);
+            await fallbackOrSimulate(tool);
             return;
         }
 
         const result = await response.json();
+        let finalResult = result;
 
         if (result.jobId) {
             setCurrentJob(result.jobId);
@@ -424,12 +428,13 @@ export function VideoAgentPage() {
                 ? `/videoagent/job/${result.jobId}`
                 : `${supabaseEndpoint}?jobId=${result.jobId}`;
             try {
-                await pollJob(pollUrl, result.steps || getToolSteps(tool.id), stepsEl, progressBar, percentEl, abortController.signal);
+                const finalJob = await pollJob(pollUrl, result.steps || getToolSteps(tool.id), stepsEl, progressBar, percentEl, abortController.signal);
+                finalResult = finalJob || result;
             } catch (e) {
                 showToast('Polling failed. Using offline mode.', 'error');
                 modal.classList.add('hidden');
                 setCurrentJob(null);
-                await fallbackOrSimulate(tool, simulateToolProcessing);
+                await fallbackOrSimulate(tool);
                 return;
             }
             setCurrentJob(null);
@@ -437,17 +442,17 @@ export function VideoAgentPage() {
             updateProgress(stepsEl, progressBar, percentEl, 100);
             await new Promise((r) => setTimeout(r, 300));
         } else {
-            // No jobId and no completion — treat as failure and simulate
+            // No jobId and no completion — treat as failure.
             showToast('Backend returned no job. Using offline mode.', 'info');
             modal.classList.add('hidden');
-            await fallbackOrSimulate(tool, simulateToolProcessing);
+            await fallbackOrSimulate(tool);
             return;
         }
 
         modal.classList.add('hidden');
         isProcessing = false;
         updateQueueItem(tool.name, 'complete');
-        showResults(tool, result.result || result);
+        showResults(tool, finalResult.result || finalResult);
         showToast(`${tool.name} completed!`, 'success');
     };
     
@@ -513,23 +518,25 @@ export function VideoAgentPage() {
         if (!response) {
             showToast('Backends unavailable. Using offline mode.', 'info');
             modal.classList.add('hidden');
-            await simulateUseCaseProcessing(usecase);
+            await handleUnavailable(usecase, 'No backend is running and this use case cannot run in your browser.');
             return;
         }
 
         const result = await response.json();
+        let finalResult = result;
         if (result.jobId) {
             setCurrentJob(result.jobId);
             const pollUrl = usedEndpoint === 'direct'
                 ? `/videoagent/job/${result.jobId}`
                 : `${supabaseEndpoint}?jobId=${result.jobId}`;
             try {
-                await pollJob(pollUrl, getUseCaseSteps(usecase.id), stepsEl, progressBar, percentEl, abortController.signal);
+                const finalJob = await pollJob(pollUrl, getUseCaseSteps(usecase.id), stepsEl, progressBar, percentEl, abortController.signal);
+                finalResult = finalJob || result;
             } catch (e) {
                 showToast('Polling failed. Using offline mode.', 'error');
                 modal.classList.add('hidden');
                 setCurrentJob(null);
-                await simulateUseCaseProcessing(usecase);
+                await handleUnavailable(usecase, 'No backend is running and this use case cannot run in your browser.');
                 return;
             }
             setCurrentJob(null);
@@ -539,14 +546,14 @@ export function VideoAgentPage() {
         } else {
             showToast('Backend returned no job. Using offline mode.', 'info');
             modal.classList.add('hidden');
-            await simulateUseCaseProcessing(usecase);
+            await handleUnavailable(usecase, 'No backend is running and this use case cannot run in your browser.');
             return;
         }
 
         modal.classList.add('hidden');
         isProcessing = false;
         updateQueueItem(usecase.name, 'complete');
-        showResults({ name: usecase.name, icon: usecase.icon }, result.result || result);
+        showResults({ name: usecase.name, icon: usecase.icon }, finalResult.result || finalResult);
         showToast(`${usecase.name} completed!`, 'success');
     };
 
@@ -610,23 +617,25 @@ export function VideoAgentPage() {
         if (!response) {
             showToast('Backends unavailable. Using offline mode.', 'info');
             modal.classList.add('hidden');
-            await simulateFullPipeline();
+            await handleUnavailable({ name: 'Full Pipeline', icon: '⚙️' }, 'No backend is running and the full pipeline cannot run in your browser.');
             return;
         }
 
         const result = await response.json();
+        let finalResult = result;
         if (result.jobId) {
             setCurrentJob(result.jobId);
             const pollUrl = usedEndpoint === 'direct'
                 ? `/videoagent/job/${result.jobId}`
                 : `${supabaseEndpoint}?jobId=${result.jobId}`;
             try {
-                await pollJob(pollUrl, getUseCaseSteps('overview'), stepsEl, progressBar, percentEl, abortController.signal);
+                const finalJob = await pollJob(pollUrl, getUseCaseSteps('overview'), stepsEl, progressBar, percentEl, abortController.signal);
+                finalResult = finalJob || result;
             } catch (e) {
                 showToast('Polling failed. Using offline mode.', 'error');
                 modal.classList.add('hidden');
                 setCurrentJob(null);
-                await simulateFullPipeline();
+                await handleUnavailable({ name: 'Full Pipeline', icon: '⚙️' }, 'No backend is running and the full pipeline cannot run in your browser.');
                 return;
             }
             setCurrentJob(null);
@@ -636,12 +645,13 @@ export function VideoAgentPage() {
         } else {
             showToast('Backend returned no job. Using offline mode.', 'info');
             modal.classList.add('hidden');
-            await simulateFullPipeline();
+            await handleUnavailable({ name: 'Full Pipeline', icon: '⚙️' }, 'No backend is running and the full pipeline cannot run in your browser.');
             return;
         }
 
         modal.classList.add('hidden');
         isProcessing = false;
+        showResults({ name: 'Full Pipeline', icon: '⚙️' }, finalResult.result || finalResult);
         showToast('Full pipeline completed!', 'success');
     };
     
@@ -686,65 +696,113 @@ export function VideoAgentPage() {
 
         resultsPanel.classList.remove('hidden');
 
-        // Build a short summary from the backend payload so users can see
-        // what was actually produced (e.g. transcription text, scene count).
-        let summary = 'Completed successfully';
-        if (payload && typeof payload === 'object') {
-            if (payload.transcription) summary = `Transcript: "${String(payload.transcription).slice(0, 80)}…"`;
-            else if (payload.summary) summary = String(payload.summary).slice(0, 120);
-            else if (Array.isArray(payload.scenes)) summary = `${payload.scenes.length} scenes detected`;
-            else if (Array.isArray(payload.highlights)) summary = `${payload.highlights.length} highlights found`;
-            else if (Array.isArray(payload.segments)) summary = `${payload.segments.length} subtitle segments`;
-            else if (payload.audioBase64) summary = `Voice generated (${payload.mimeType || 'audio'}, ${Math.round((payload.audioBase64.length * 3) / 4 / 1024)} KB)`;
-            else if (payload.note) summary = String(payload.note);
-        }
+        const isAudioUrl = (u) =>
+            /\.(mp3|wav|m4a|ogg)$/i.test(u) ||
+            (payload && /audio\//.test(payload.mimeType || ''));
+        const videoUrl =
+            payload && typeof payload === 'object'
+                ? payload.url || payload.audioUrl || (payload.shorts && payload.shorts[0] && payload.shorts[0].url)
+                : null;
+        const isAudio =
+            isAudioUrl(videoUrl) ||
+            (payload && payload.mimeType && /audio\//.test(payload.mimeType)) ||
+            (payload && payload.audioBase64);
 
         const resultEl = document.createElement('div');
-        resultEl.className = 'p-3 bg-white/5 rounded-xl flex items-center gap-3';
-        resultEl.innerHTML = `
+        resultEl.className = 'p-3 bg-white/5 rounded-xl flex flex-col gap-2';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'flex items-center gap-3';
+        header.innerHTML = `
             <div class="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
                 <span class="text-lg">${tool.icon || '✓'}</span>
             </div>
             <div class="flex-1 min-w-0">
                 <div class="text-sm text-white font-bold truncate">${tool.name}</div>
-                <div class="text-xs text-secondary truncate">${summary}</div>
+                <div class="text-[11px] text-secondary truncate">${escapeHtml(payload && payload.source ? String(payload.source) : 'result')}</div>
             </div>
-            <button class="p-2 hover:bg-white/10 rounded-lg flex-shrink-0" title="Download result">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="text-secondary">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-            </button>
         `;
+        resultEl.appendChild(header);
 
-        // Wire the download button when the payload contains a downloadable
-        // artifact (audioBase64 from TTS, or a browser-produced WebM url).
-        const btn = resultEl.querySelector('button');
-        const videoUrl = payload && typeof payload === 'object' ? (payload.url || (payload.shorts && payload.shorts[0] && payload.shorts[0].url)) : null;
+        // Honest "unavailable" state — no faked completion.
+        if (payload && payload.unavailable) {
+            const note = document.createElement('div');
+            note.className = 'text-xs text-rose-300/90 bg-rose-500/10 border border-rose-500/20 rounded-lg p-2';
+            note.textContent =
+                (payload.error || 'This tool is not available.') +
+                ' Start the backend (npm run dev:backend) to enable real processing.';
+            resultEl.appendChild(note);
+            resultsContent.insertBefore(resultEl, resultsContent.firstChild);
+            return;
+        }
+
+        // Real playable video/audio output.
         if (videoUrl) {
-            btn.onclick = () => {
+            resultEl.appendChild(buildMediaPlayer(videoUrl, { isAudio, mimeType: payload && payload.mimeType }));
+            const dlBtn = document.createElement('button');
+            dlBtn.className = 'self-start mt-1 text-xs text-primary hover:underline flex items-center gap-1';
+            dlBtn.textContent = '↓ Download result';
+            dlBtn.onclick = () => {
                 try {
                     const a = document.createElement('a');
                     a.href = videoUrl;
-                    a.download = `${tool.id || 'video'}.webm`;
+                    a.download = `${(tool.id || 'video')}.${isAudio ? 'mp3' : 'mp4'}`;
                     a.click();
                 } catch (_) {}
             };
-        } else if (payload && typeof payload === 'object' && payload.audioBase64) {
-            btn.onclick = () => {
-                try {
-                    const bytes = Uint8Array.from(atob(payload.audioBase64), (c) => c.charCodeAt(0));
-                    const blob = new Blob([bytes], { type: payload.mimeType || 'audio/mpeg' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${tool.id || 'audio'}.${(payload.mimeType || 'audio/mpeg').split('/')[1] || 'mp3'}`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                } catch (_) {}
-            };
+            resultEl.appendChild(dlBtn);
         }
+
+        // TTS that was spoken live in the browser (no downloadable file).
+        if (payload && payload.spoken) {
+            const note = document.createElement('div');
+            note.className = 'text-xs text-white/70';
+            note.textContent = `Spoken via your browser’s speech synthesis: “${String(payload.text || '')}”`;
+            resultEl.appendChild(note);
+        }
+
+        // Audio returned as base64 (backend TTS / browser) without a URL.
+        if (payload && payload.audioBase64 && !videoUrl) {
+            try {
+                const bytes = Uint8Array.from(atob(payload.audioBase64), (c) => c.charCodeAt(0));
+                const blob = new Blob([bytes], { type: payload.mimeType || 'audio/mpeg' });
+                const url = URL.createObjectURL(blob);
+                resultEl.appendChild(buildMediaPlayer(url, { isAudio: true, mimeType: payload.mimeType }));
+            } catch (_) {}
+        }
+
+        // Summary line.
+        let summary = '';
+        if (payload && typeof payload === 'object') {
+            if (payload.transcription) summary = `Transcript: “${String(payload.transcription).slice(0, 120)}…”`;
+            else if (payload.summary) summary = String(payload.summary);
+            else if (Array.isArray(payload.scenes)) summary = `${payload.scenes.length} scenes detected`;
+            else if (Array.isArray(payload.segments)) summary = `${payload.segments.length} clips segmented`;
+            else if (Array.isArray(payload.highlights)) summary = `${payload.highlights.length} highlights found`;
+        }
+        if (summary) {
+            const s = document.createElement('div');
+            s.className = 'text-xs text-secondary truncate';
+            s.textContent = summary;
+            resultEl.appendChild(s);
+        }
+
+        // Metadata rows for scene/segment/highlight detection.
+        const listRows = (arr, fmt) => {
+            if (!Array.isArray(arr) || !arr.length) return;
+            const ul = document.createElement('div');
+            ul.className = 'text-[11px] text-white/60 flex flex-col gap-0.5 mt-1';
+            arr.slice(0, 8).forEach((it) => {
+                const row = document.createElement('div');
+                row.textContent = fmt(it);
+                ul.appendChild(row);
+            });
+            resultEl.appendChild(ul);
+        };
+        listRows(payload && payload.scenes, (s) => `Scene ${s.index}: ${s.start}s–${s.end}s`);
+        listRows(payload && payload.segments, (s) => `Clip ${s.index}: ${s.start}s–${s.end}s`);
+        listRows(payload && payload.highlights, (h) => `Highlight: ${h.start}s–${h.end}s (score ${h.score})`);
 
         resultsContent.insertBefore(resultEl, resultsContent.firstChild);
     };
@@ -809,12 +867,10 @@ export function VideoAgentPage() {
                 const result = await response.json();
                 if (result.status === 'completed' || result.status === 'cancelled') {
                     updateProgress(stepsEl, progressBar, percentEl, 100);
-                    if (result.result) {
-                        try {
-                            updateStepsDisplay(stepsEl, stepList, stepList.length - 1);
-                        } catch (_) {}
-                    }
-                    return;
+                    try {
+                        updateStepsDisplay(stepsEl, stepList, stepList.length - 1);
+                    } catch (_) {}
+                    return result;
                 } else if (result.status === 'failed') {
                     throw new Error(result.error || 'Job failed');
                 } else if (result.currentStep) {
@@ -882,123 +938,41 @@ export function VideoAgentPage() {
         }
     };
 
-    const fallbackOrSimulate = async (item, simulateFn) => {
-        if (!(await tryBrowserProcessing(item))) await simulateFn(item);
+    // If the backend is unreachable AND the browser can't do the work, show an
+    // honest "unavailable" result instead of a fake progress animation.
+    const fallbackOrSimulate = async (item) => {
+        if (!(await tryBrowserProcessing(item))) {
+            handleUnavailable(item, 'No backend is running and this tool cannot run in your browser.');
+        }
     };
 
-    async function simulateToolProcessing(tool) {
+    // Honest fallback: when the backend is unreachable AND the browser can't do
+    // the work, surface "unavailable" instead of faking a completed result.
+    function handleUnavailable(item, reason) {
         const m = getModalElements();
-        isProcessing = true;
-        addToQueue(tool.name, 'pending');
-        
-        m.nameEl.textContent = tool.description;
-        m.modal.classList.remove('hidden');
-        
-        const steps = getToolSteps(tool.id);
-        
-        for (let i = 0; i < steps.length; i++) {
-            m.stepsEl.innerHTML = steps.map((s, idx) => `
-                <div class="flex items-center gap-2 text-sm ${idx <= i ? 'text-white' : 'text-muted'}">
-                    <span class="w-1.5 h-1.5 rounded-full ${idx < i ? 'bg-primary' : idx === i ? 'bg-primary animate-pulse' : 'bg-muted'}"></span>
-                    ${s}
-                </div>
-            `).join('');
-            
-            const percent = Math.round(((i + 1) / steps.length) * 100);
-            m.progressBar.style.width = `${percent}%`;
-            m.percentEl.textContent = `${percent}%`;
-            
-            await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 400));
-        }
-        
         m.modal.classList.add('hidden');
         isProcessing = false;
-        updateQueueItem(tool.name, 'complete');
-        showResults(tool);
-        showToast(`${tool.name} completed!`, 'success');
+        if (item && item.name) updateQueueItem(item.name, 'failed');
+        showResults(item || { name: 'Tool' }, {
+            unavailable: true,
+            error: reason || 'This tool is not available right now.',
+        });
+        showToast(reason || 'Tool unavailable', 'error');
     }
-    
-    // Fallback simulation for use case processing
-    async function simulateUseCaseProcessing(usecase) {
-        const m = getModalElements();
-        isProcessing = true;
-        addToQueue(usecase.name, 'pending');
-        
-        m.nameEl.textContent = usecase.description;
-        m.modal.classList.remove('hidden');
-        
-        const steps = getUseCaseSteps(usecase.id);
-        
-        for (let i = 0; i < steps.length; i++) {
-            m.stepsEl.innerHTML = steps.map((s, idx) => `
-                <div class="flex items-center gap-2 text-sm ${idx <= i ? 'text-white' : 'text-muted'}">
-                    <span class="w-1.5 h-1.5 rounded-full ${idx < i ? 'bg-primary' : idx === i ? 'bg-primary animate-pulse' : 'bg-muted'}"></span>
-                    ${s}
-                </div>
-            `).join('');
-            
-            const percent = Math.round(((i + 1) / steps.length) * 100);
-            m.progressBar.style.width = `${percent}%`;
-            m.percentEl.textContent = `${percent}%`;
-            
-            await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 500));
+
+    // Build a playable <video>/<audio> element for a real result URL.
+    function buildMediaPlayer(url, { isAudio = false, mimeType = '' } = {}) {
+        const el = document.createElement(isAudio ? 'audio' : 'video');
+        el.src = url;
+        el.controls = true;
+        if (!isAudio) {
+            el.className = 'w-full rounded-xl mt-2 bg-black max-h-64';
+            el.loop = true;
+        } else {
+            el.className = 'w-full mt-2';
         }
-        
-        m.modal.classList.add('hidden');
-        isProcessing = false;
-        updateQueueItem(usecase.name, 'complete');
-        showResults({ name: usecase.name, icon: usecase.icon });
-        showToast(`${usecase.name} completed!`, 'success');
-    }
-    
-    // Fallback simulation for full pipeline
-    async function simulateFullPipeline() {
-        const m = getModalElements();
-        isProcessing = true;
-        
-        m.nameEl.textContent = 'Running full AI processing pipeline (offline mode)';
-        m.modal.classList.remove('hidden');
-        
-        const jobs = [
-            { name: 'Scene Detection', steps: ['Analyzing frames...', 'Identifying boundaries...', 'Labeling scenes...'] },
-            { name: 'Clip Segmentation', steps: ['Splitting video...', 'Creating segments...', 'Optimizing cuts...'] },
-            { name: 'Highlight Detection', steps: ['Finding key moments...', 'Scoring highlights...', 'Ranking clips...'] },
-            { name: 'Transcription', steps: ['Audio extraction...', 'Whisper transcription...', 'Text formatting...'] },
-            { name: 'Color Correction', steps: ['Analyzing colors...', 'Balancing tones...', 'Applying LUTs...'] },
-            { name: 'Final Export', steps: ['Merging outputs...', 'Encoding video...', 'Finalizing...'] }
-        ];
-        
-        let totalSteps = jobs.reduce((sum, j) => sum + j.steps.length, 0);
-        let completedSteps = 0;
-        
-        for (const job of jobs) {
-            addToQueue(job.name, 'running');
-            
-            for (const step of job.steps) {
-                m.stepsEl.innerHTML = `
-                    <div class="text-sm text-white font-bold mb-2">${job.name}</div>
-                    ${job.steps.map((s, idx) => `
-                        <div class="flex items-center gap-2 text-sm ${s === step ? 'text-white' : 'text-muted'}">
-                            <span class="w-1.5 h-1.5 rounded-full ${s === step ? 'bg-primary animate-pulse' : 'bg-green-500'}"></span>
-                            ${s}
-                        </div>
-                    `).join('')}
-                `;
-                
-                const percent = Math.round(((completedSteps + 1) / totalSteps) * 100);
-                m.progressBar.style.width = `${percent}%`;
-                m.percentEl.textContent = `${percent}%`;
-                
-                await new Promise(resolve => setTimeout(resolve, 600 + Math.random() * 400));
-                completedSteps++;
-            }
-            
-            updateQueueItem(job.name, 'complete');
-        }
-        
-        m.modal.classList.add('hidden');
-        isProcessing = false;
-        showToast('Full pipeline completed!', 'success');
+        if (mimeType) el.type = mimeType;
+        return el;
     }
 
     // Cleanup function to abort ongoing operations

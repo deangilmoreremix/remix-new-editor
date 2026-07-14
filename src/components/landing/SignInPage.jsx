@@ -160,7 +160,7 @@ export function SignInPage() {
               <p className="text-slate-300">
                 Don't have an account?
                 <a href="/signup" className="ml-1 text-cyan-400 hover:text-cyan-300 font-medium transition">
-                  Start free trial
+                  Sign up
                 </a>
               </p>
             </div>

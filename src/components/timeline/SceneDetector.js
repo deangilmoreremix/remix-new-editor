@@ -1,4 +1,4 @@
-import { createSurface } from '../../lib/editor/timelineRendererEnhanced.js';
+import { createSurface } from '../../lib/editor/surface.js';
 
 export class SceneDetector {
   constructor(container, timeline, options = {}) {

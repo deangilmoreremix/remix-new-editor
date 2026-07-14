@@ -35,14 +35,35 @@ from director.agents.lyric_video import LyricVideoAgent
 from director.agents.word_counter import WordCounterAgent
 from director.agents.branding import BrandingAgent
 from director.agents.ad_insertion import AdInsertionAgent
-from director.agents.highlight_reel import HighlightReelAgent
-from director.agents.slide_extraction import SlideExtractionAgent
-from director.agents.copyright_detection import CopyrightDetectionAgent
-from director.agents.content_moderation import ContentModerationAgent
-from director.agents.annual_recap import AnnualRecapAgent
-from director.agents.lyric_video import LyricVideoAgent
-from director.agents.word_counter import WordCounterAgent
-from director.agents.branding import BrandingAgent
+from director.agents.thumbnail_agent import ThumbnailAgent
+from director.agents.keyword_search_agent import KeywordSearchAgent
+from director.agents.visual_search_agent import VisualSearchAgent
+from director.agents.broll_agent import BRollAgent
+from director.agents.voiceover_agent import VoiceoverAgent
+from director.agents.audio_overlays_agent import AudioOverlaysAgent
+from director.agents.color_agent import ColorAgent
+from director.agents.social_agent import SocialAgent
+from director.agents.preview_agent import PreviewAgent
+from director.agents.compilation_agent import CompilationAgent
+from director.agents.montage_agent import MontageAgent
+from director.agents.story_agent import StoryAgent
+from director.agents.compiler_agent import CompilerAgent
+from director.agents.enhancer_agent import EnhancerAgent
+from director.agents.meme_agent import MemeAgent
+from director.agents.musicvideo_agent import MusicVideoAgent
+from director.agents.trailer_agent import TrailerAgent
+from director.agents.trailer_narration_agent import TrailerNarrationAgent
+from director.agents.faceless_video_creator_agent import FacelessVideoCreatorAgent
+from director.agents.ai_voiceovers_agent import AIVoiceoversAgent
+from director.agents.kids_storyteller_agent import KidsStorytellerAgent
+from director.agents.storyboarding_agent import StoryboardingAgent
+from director.agents.ai_ad_films_agent import AIAdFilmsAgent
+from director.agents.scenes_agent import ScenesAgent
+from director.agents.stabilize_agent import StabilizeAgent
+from director.agents.speed_agent import SpeedAgent
+from director.agents.reverse_agent import ReverseAgent
+from director.agents.output_formatting_agent import OutputFormattingAgent
+from director.agents.sales_assistant_agent import SalesAssistantAgent
 
 
 from director.core.session import Session, InputMessage, MsgStatus
@@ -97,6 +118,35 @@ class ChatHandler:
             WordCounterAgent,
             BrandingAgent,
             AdInsertionAgent,
+            ThumbnailAgent,
+            KeywordSearchAgent,
+            VisualSearchAgent,
+            BRollAgent,
+            VoiceoverAgent,
+            AudioOverlaysAgent,
+            ColorAgent,
+            SocialAgent,
+            PreviewAgent,
+            CompilationAgent,
+            MontageAgent,
+            StoryAgent,
+            CompilerAgent,
+            EnhancerAgent,
+            MemeAgent,
+            MusicVideoAgent,
+            TrailerAgent,
+            TrailerNarrationAgent,
+            FacelessVideoCreatorAgent,
+            AIVoiceoversAgent,
+            KidsStorytellerAgent,
+            StoryboardingAgent,
+            AIAdFilmsAgent,
+            ScenesAgent,
+            StabilizeAgent,
+            SpeedAgent,
+            ReverseAgent,
+            OutputFormattingAgent,
+            SalesAssistantAgent,
         ]
 
     def add_videodb_state(self, session):
