@@ -29,45 +29,55 @@ function ClerkGate({ children }) {
       </div>
     );
   }
-  return <ClerkProvider publishableKey={PUBLISHABLE_KEY}>{children}</ClerkProvider>;
+  return (
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} routing="hash">
+      {children}
+    </ClerkProvider>
+  );
+}
+
+// Inner cards — the styled <SignIn>/<SignUp> surface WITHOUT a ClerkProvider.
+// Used directly inside AccountShell/ProfileShell (which already sit under a
+// ClerkGate) to avoid nesting two <ClerkProvider> instances, which crashes
+// React and blanks the page for signed-out visitors.
+function SignInCard() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#020205]">
+      <SignIn
+        routing="hash"
+        signUpUrl="/signup"
+        afterSignInUrl="/#/image"
+        afterSignUpUrl="/#/image"
+      />
+    </div>
+  );
+}
+
+function SignUpCard() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#020205]">
+      <SignUp
+        routing="hash"
+        signInUrl="/signin"
+        afterSignInUrl="/#/image"
+        afterSignUpUrl="/#/image"
+      />
+    </div>
+  );
 }
 
 export function ClerkSignIn() {
-  return (
-    <ClerkGate>
-      <div className="min-h-screen flex items-center justify-center bg-[#020205]">
-        <SignIn
-          routing="path"
-          path="/signin"
-          signUpUrl="/signup"
-          afterSignInUrl="/#/image"
-          afterSignUpUrl="/#/image"
-        />
-      </div>
-    </ClerkGate>
-  );
+  return <ClerkGate><SignInCard /></ClerkGate>;
 }
 
 export function ClerkSignUp() {
-  return (
-    <ClerkGate>
-      <div className="min-h-screen flex items-center justify-center bg-[#020205]">
-        <SignUp
-          routing="path"
-          path="/signup"
-          signInUrl="/signin"
-          afterSignInUrl="/#/image"
-          afterSignUpUrl="/#/image"
-        />
-      </div>
-    </ClerkGate>
-  );
+  return <ClerkGate><SignUpCard /></ClerkGate>;
 }
 
 function AccountShell() {
   const { isLoaded, isSignedIn, user } = useUser();
   if (!isLoaded) return <div style={{ color: '#94a3b8', padding: 24 }}>Loading…</div>;
-  if (!isSignedIn) return <ClerkSignIn />;
+  if (!isSignedIn) return <SignInPage />;
   return (
     <div className="min-h-screen bg-[#020205] text-white p-8">
       <h1 className="text-2xl font-bold mb-4">Account</h1>
@@ -82,7 +92,7 @@ function AccountShell() {
 function ProfileShell() {
   const { isLoaded, isSignedIn, user } = useUser();
   if (!isLoaded) return <div style={{ color: '#94a3b8', padding: 24 }}>Loading…</div>;
-  if (!isSignedIn) return <ClerkSignUp />;
+  if (!isSignedIn) return <SignUpPage />;
   return (
     <div className="min-h-screen bg-[#020205] text-white p-8">
       <h1 className="text-2xl font-bold mb-4">Profile</h1>
