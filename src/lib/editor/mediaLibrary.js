@@ -578,21 +578,24 @@ export function renderMediaGrid(mediaItems, container, onMediaSelect, showToast,
   container.appendChild(existingItemsHeader);
 
   mediaItems.forEach((media, index) => {
+    // Guard against undefined/holes in a saved project's media array so a
+    // corrupted localStorage project can never crash the timeline editor.
+    if (!media) return;
     const item = document.createElement('button');
     item.className = 'media-item drag-ready';
     item.dataset.mediaIndex = index + cinegenItems.length;
     item.innerHTML = `
-      <span class="media-icon">${media.icon}</span>
+      <span class="media-icon">${media.icon || ''}</span>
       <span class="media-copy">
-        <div class="media-label">${media.label}</div>
-        <div class="media-desc">${media.desc}</div>
+        <div class="media-label">${media.label || ''}</div>
+        <div class="media-desc">${media.desc || ''}</div>
       </span>
     `;
 
     // Enhanced title for tooltips
-    item.title = `${media.label}\n${media.desc}\nClick to add or drag to timeline`;
+    item.title = `${media.label || ''}\n${media.desc || ''}\nClick to add or drag to timeline`;
 
-    item.dataset.tooltip = `${media.label} - ${media.desc}. Media asset in your library. Click to add to timeline or drag directly onto a track.`;
+    item.dataset.tooltip = `${media.label || ''} - ${media.desc || ''}. Media asset in your library. Click to add to timeline or drag directly onto a track.`;
 
     item.addEventListener('click', () => onMediaSelect(media, index, showToast));
 

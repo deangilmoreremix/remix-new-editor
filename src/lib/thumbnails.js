@@ -10,6 +10,42 @@ export function resetThumbnailAssignments() {
   _thumbnailAssignments = new Set();
 }
 
+// Per-template custom thumbnail overrides chosen by the user in TemplateStudio.
+// Keyed by template id → image URL, persisted to localStorage so the override
+// survives reloads.
+const CUSTOM_THUMB_KEY = 'template-custom-thumbnails';
+const _customThumbnailCache = (() => {
+  try {
+    const raw = localStorage.getItem(CUSTOM_THUMB_KEY);
+    return raw ? new Map(Object.entries(JSON.parse(raw))) : new Map();
+  } catch (_) {
+    return new Map();
+  }
+})();
+
+function _persistCustomThumbnails() {
+  try {
+    localStorage.setItem(CUSTOM_THUMB_KEY, JSON.stringify(Object.fromEntries(_customThumbnailCache)));
+  } catch (_) { /* storage unavailable — keep in-memory only */ }
+}
+
+export function saveCustomThumbnailToCache(templateId, imageUrl) {
+  if (!templateId) return;
+  _customThumbnailCache.set(String(templateId), imageUrl);
+  _persistCustomThumbnails();
+}
+
+export function clearCustomThumbnailCache(templateId) {
+  if (!templateId) return;
+  _customThumbnailCache.delete(String(templateId));
+  _persistCustomThumbnails();
+}
+
+export function getCustomThumbnailFromCache(templateId) {
+  if (!templateId) return null;
+  return _customThumbnailCache.get(String(templateId)) || null;
+}
+
 // Every per-template thumbnail file discovered on disk for each niche, keyed
 // by stable template-id equals file-name. These serve two roles:
 //  1. Direct candidate for templates whose id matches (step 1 of candidate list).
@@ -353,6 +389,10 @@ export function getTemplateThumbnailCandidates(template) {
   const id = typeof template === 'string' ? template : template?.id;
   const niche = typeof template === 'object' ? template?.niche : null;
   const category = typeof template === 'object' ? template?.category : null;
+
+  // 0) User-selected custom thumbnail (highest priority) — set via TemplateStudio
+  const customThumb = getCustomThumbnailFromCache(id);
+  if (customThumb) candidates.push(customThumb);
 
   // 1) Per-template .webp — unique to this template, never deduped
   if (id) candidates.push(`/thumbnails/templates/${id}.webp`);

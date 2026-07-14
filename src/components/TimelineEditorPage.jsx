@@ -1,6 +1,6 @@
 import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';
 import { initializeMediaLibraryDragDrop, setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
-import { processFileUpload } from '../lib/editor/uploadPipeline.js';
+// MARKER_TEST_ABC123import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
 import { saveProjectToStorage } from '../lib/editor/persistence.js';
 import { renderMediaGrid, addMediaToTimeline } from '../lib/editor/mediaLibrary.js';
@@ -32,8 +32,6 @@ import { runCineGenTool, CINEGEN_TOOLS } from '../lib/cinegenIntegration.js';
 
 // Subtitle system integration
 import { SubtitleTimeline } from '../lib/editor/subtitleTimeline.js';
-import { SubtitleControls } from './SubtitleControls.jsx';
-import { SubtitleEditorModal } from './modals/SubtitleEditorModal.jsx';
 import { whisperService } from '../services/whisper-client.js';
 
 // Modal imports - these are vanilla JS modal implementations
@@ -65,6 +63,8 @@ import { createHeroSection } from '../lib/thumbnails.js';
 export function TimelineEditorPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col overflow-hidden bg-app-bg relative';
+
+  const TLEditor = (window.TimelineEditor = window.TimelineEditor || {});
 
   // Feature flags — single source of truth for gating optional behaviour.
   // Routines that are not yet wired end their bodies with a `// DISABLED:`
@@ -345,7 +345,7 @@ export function TimelineEditorPage() {
   // Central namespace for timeline-editor global hooks. Prevents collisions with
   // other modules while keeping all feature bridges intact. Each bridge function
   // is exposed both on this namespace and (where used elsewhere) on window directly.
-  const TLEditor = (window.TimelineEditor = window.TimelineEditor || {});
+  window.TimelineEditor = window.TimelineEditor || {};
 
   const template = `
 <div class="app-shell">
@@ -2621,7 +2621,6 @@ export function TimelineEditorPage() {
     });
 
     renderTracks();
-  }
 
     async function generateSubtitles() {
       showToast('Generating subtitles...', 'info');

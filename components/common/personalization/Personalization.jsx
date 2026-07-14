@@ -7,7 +7,7 @@ import PropTypes from '../../../lib/PropTypes';
 import { tokenModes as modes, INPUT_PLACEHOLDER, CUSTOM, TOKEN_WINDOW_TITLE } from '../../../lib/constants/tokens';
 import FormTextField from '../../form/FormTextField';
 import HelpIconComponent from '../HelpIcon';
-import CloseButton from '../CloseButton';
+import { CloseButton } from '../CloseButton';
 
 import svgCogWheel from '../../../public/static/images/cogwheel.svg';
 

@@ -25,20 +25,15 @@ const stubLegacy = () => ({
     // Never stub imports from the landing page — those are new-style
     // modules that must resolve to their real files.
     if (importer.includes('src/components/landing/')) return null;
-    // Try Vite's full resolution. If the source resolves to a file
-    // outside the legacy tree (e.g. an npm package in node_modules),
-    // let Vite handle it normally.
+    // Try Vite's full resolution. If the import resolves to a real module
+    // (an npm package OR a legacy-tree file), let Vite load it normally so
+    // the studios actually work. We only stub imports that are genuinely
+    // unresolvable, to keep the build from crashing on missing legacy files.
     const resolved = await this.resolve(source, importer, { skipSelf: true });
-    if (resolved) {
-      const resolvedId = typeof resolved === 'string' ? resolved : resolved.id;
-      // Never stub landing-page modules even if they resolve under
-      // src/components/landing/ (which technically contains 'components/').
-      if (resolvedId.includes('src/components/landing/')) return null;
-      const resolvedIsLegacy = STUB_IMPORTER_PREFIXES.some(p => resolvedId.includes(p));
-      if (!resolvedIsLegacy) return null;
-    }
-    // For asset imports (svg/png/...) from the legacy tree, return a stub
-    // module that exports a placeholder data URL so the build passes.
+    if (resolved) return null;
+
+    // Genuinely unresolved legacy import — stub it so the bundle still
+    // resolves. Asset imports get a placeholder data URL.
     if (/\.(svg|png|jpe?g|webp|gif|ico)(\?|$)/i.test(source)) {
       return {
         id: '\0legacy-asset-stub:' + source + '::' + importer,
@@ -215,7 +210,7 @@ function modelCatalogBuildPlugin() {
 export default defineConfig({
     plugins: [
         tailwindcss(),
-        react(),
+        // react(),
         securityHeaders(),
         stubLegacy(),
         modelCatalogBuildPlugin(),
@@ -299,7 +294,9 @@ export default defineConfig({
         target: 'esnext',
         minify: 'terser',
         esbuild: {
-            jsx: 'preserve',
+            loader: 'jsx',
+            include: [/\.jsx?$/, /\.tsx?$/],
+            exclude: [/node_modules/],
         },
         terserOptions: {
             compress: {

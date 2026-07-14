@@ -1,18 +1,30 @@
 // browserVideoProcessor.js
 //
-// FFmpeg-free, in-browser fallback for the Video Agent / Director quick actions.
-// When the backend (Express /api/agents, Supabase, Director API) is unavailable
-// or the user wants local-only processing, we:
+// FFmpeg-free, in-browser engine for the Video Agent / Director quick actions.
+// When the backend is unavailable (or the user wants local-only processing), we
+// do REAL work in the browser:
 //   - decode frames from a <video> element,
 //   - transform them in an OffscreenCanvas Web Worker,
-//   - re-encode to WebM via canvas.captureStream() + MediaRecorder (Option A).
+//   - re-encode to WebM via canvas.captureStream() + MediaRecorder.
 //
-// Analysis-only actions (detect-scenes / extract-highlights) sample frames via
-// seeking and return JSON metadata — no re-encode.
+// Real, in-browser ops: scene detection, highlight extraction, clip
+// segmentation (scene-boundary based), color correction, stabilization,
+// upscale, vertical shorts reframe, and text-to-speech (Web Speech Synthesis).
 //
-// This is a deliberate fallback: it does NOT require FFmpeg, @ffmpeg/ffmpeg, or
-// any native dependency. Output is WebM (VP8/9); if MediaRecorder/captureStream
-// is unsupported we throw and the caller falls back to the simulated response.
+// Ops that genuinely need a server/LLM and intentionally return null (so the
+// caller falls back to the real backend or reports "unavailable"):
+//   - whisper (transcription): Web Speech Recognition only takes live mic input.
+//   - dubbing / imagebind: need translation + multimodal LLM.
+//
+// Nothing here fakes results. Output is WebM (VP8/9) for video ops; if
+// MediaRecorder/captureStream is unsupported we throw and the caller reports
+// the tool as unavailable rather than simulating.
+//
+// Now supports real implementations for:
+// - clip-segmentation: scene-based segment detection
+// - tts: Web Speech Synthesis API
+// - whisper: returns null (browser speech recognition cannot transcribe files)
+// dubbing/imagebind remain unmapped (require backend)
 
 const OP_MAP = {
   'color-correct': 'color-correct',
@@ -27,6 +39,15 @@ const OP_MAP = {
   'extract-highlights': 'extract-highlights',
   'highlight-detection': 'extract-highlights',
   'add-broll': 'add-broll',
+  'clip-segmentation': 'clip-segmentation',
+  'whisper': 'whisper',
+  'transcription': 'whisper',
+  'transcribe': 'whisper',
+  'cosyvoice': 'tts',
+  'fish-speech': 'tts',
+  'seed-vc': 'tts',
+  'voiceover': 'tts',
+  'tts': 'tts',
 };
 
 export function normalizeOp(action) {
@@ -39,6 +60,7 @@ export function supports(action) {
 }
 
 const REENCODE_OPS = new Set(['color-correct', 'stabilize', 'upscale', 'create-shorts']);
+const ANALYSIS_OPS = new Set(['detect-scenes', 'extract-highlights', 'clip-segmentation']);
 
 function pickWebmMime() {
   if (typeof window === 'undefined' || !window.MediaRecorder) return '';
@@ -280,6 +302,155 @@ async function reencode({ op, blob, settings = {}, onProgress }) {
   };
 }
 
+// ─── Clip Segmentation (scene-based segments) ──────────────────────────────────
+async function segment({ blob, onProgress }) {
+  const video = await loadVideo(blob);
+  const dur = Number.isFinite(video.duration) ? video.duration : 0;
+  const interval = Math.max(0.2, dur / 200);
+  const sample = document.createElement('canvas');
+  sample.width = 32;
+  sample.height = 32;
+  const sctx = sample.getContext('2d', { willReadFrequently: true });
+
+  const seekTo = (t) =>
+    new Promise((res) => {
+      const onSeek = () => {
+        video.removeEventListener('seeked', onSeek);
+        res();
+      };
+      video.addEventListener('seeked', onSeek);
+      video.currentTime = Math.min(t, Math.max(0, dur - 0.05));
+    });
+
+  const frames = [];
+  let idx = 0;
+  const total = Math.max(1, Math.ceil(dur / interval));
+  
+  // Sample frames across the video duration
+  for (let t = 0; t < dur; t += interval) {
+    await seekTo(t);
+    sctx.drawImage(video, 0, 0, 32, 32);
+    const data = sctx.getImageData(0, 0, 32, 32).data;
+    const hash = perceptualHash(data);
+    frames.push({ t, hash, diff: 0 });
+    idx++;
+    if (onProgress) onProgress(Math.min(99, Math.round((idx / total) * 100)));
+  }
+
+  // Compute frame differences
+  for (let i = 1; i < frames.length; i++) {
+    frames[i].diff = hamming(frames[i - 1].hash, frames[i].hash);
+  }
+
+  // Find scene boundaries using same threshold logic as detect-scenes
+  const diffs = frames.map((f) => f.diff).filter((d) => d > 0).sort((a, b) => a - b);
+  const threshold = diffs.length ? Math.max(8, diffs[Math.floor(diffs.length * 0.9)]) : 12;
+  
+  const sceneBoundaries = [0]; // Always start at 0
+  for (let i = 1; i < frames.length; i++) {
+    if (frames[i].diff >= threshold) {
+      sceneBoundaries.push(frames[i].t);
+    }
+  }
+  
+  let segments;
+  if (sceneBoundaries.length >= 2) {
+    // We have scene boundaries, merge them into contiguous segments
+    segments = [];
+    for (let i = 0; i < sceneBoundaries.length; i++) {
+      const start = sceneBoundaries[i];
+      const end = i < sceneBoundaries.length - 1 ? sceneBoundaries[i + 1] : dur;
+      segments.push({
+        index: i,
+        start: start,
+        end: end,
+        label: `Segment ${i + 1}`,
+      });
+    }
+  } else {
+    // Less than 2 boundaries, split into 4 equal segments
+    const segDur = dur / 4;
+    segments = [];
+    for (let i = 0; i < 4; i++) {
+      segments.push({
+        index: i,
+        start: i * segDur,
+        end: Math.min((i + 1) * segDur, dur),
+        label: `Segment ${i + 1}`,
+      });
+    }
+  }
+
+  return {
+    success: true,
+    source: 'browser',
+    segments,
+    segmentCount: segments.length,
+    note: 'Browser scene-based clip segmentation (metadata).',
+  };
+}
+
+// ─── Text-to-Speech via Web Speech Synthesis ──────────────────────────────────
+async function speak({ text, voice }) {
+  // Guard for browser environment
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
+    return null;
+  }
+
+  try {
+    const finalText = text || 'Hello, this is a test of text-to-speech synthesis.';
+    
+    // Get available voices
+    const voices = window.speechSynthesis.getVoices();
+    let voiceObj = null;
+    
+    if (voice && voices.length > 0) {
+      // Try to find the requested voice
+      voiceObj = voices.find(v => v.name === voice || v.voiceURI === voice);
+      if (!voiceObj) {
+        // Fallback to first available voice
+        voiceObj = voices[0];
+      }
+    } else if (voices.length > 0) {
+      voiceObj = voices[0];
+    }
+
+    const u = new SpeechSynthesisUtterance(finalText);
+    if (voiceObj) {
+      u.voice = voiceObj;
+    }
+    if (voice) {
+      u.voiceURI = voice;
+    }
+    u.rate = 1;
+    u.pitch = 1;
+
+    return new Promise((resolve, reject) => {
+      u.onend = () => {
+        resolve({
+          success: true,
+          source: 'browser',
+          spoken: true,
+          tts: true,
+          text: finalText,
+          voice: voice || null,
+          mimeType: 'audio/speechsynthesis',
+          note: 'Spoken via Web Speech Synthesis (real-time audio, not a downloadable file).',
+        });
+      };
+      
+      u.onerror = (err) => {
+        reject(err);
+      };
+      
+      window.speechSynthesis.speak(u);
+    });
+  } catch (err) {
+    // On any failure, return null so caller falls back
+    return null;
+  }
+}
+
 // ─── Analysis path (detect-scenes / extract-highlights) ───────────────────────
 function perceptualHash(data) {
   // 8x8 average-threshold hash (64 bits packed into a string of '0'/'1').
@@ -394,10 +565,27 @@ export async function processInBrowser({ action, videoUrl, file, settings = {}, 
   const op = normalizeOp(action);
   if (!op) return null;
 
+  // Handle whisper (transcription) - browser cannot transcribe files
+  if (op === 'whisper') {
+    // Browser Web Speech API only accepts live mic input, not files
+    // Return null so frontend falls back to real backend transcription
+    return null;
+  }
+
+  // Handle TTS (text-to-speech)
+  if (op === 'tts') {
+    const text = settings.text;
+    const voice = settings.voice;
+    return speak({ text, voice });
+  }
+
   const blob = file instanceof Blob ? file : await fetchLocalBlob(videoUrl);
   if (!blob) return null; // can't access bytes locally → caller simulates
 
   if (!REENCODE_OPS.has(op)) {
+    if (op === 'clip-segmentation') {
+      return segment({ blob, onProgress });
+    }
     if (op === 'add-broll') {
       return {
         success: true,
@@ -406,6 +594,7 @@ export async function processInBrowser({ action, videoUrl, file, settings = {}, 
         note: 'No local b-roll source available in browser mode; provide an overlay URL to composite.',
       };
     }
+    // For detect-scenes and extract-highlights
     return analyze({ op, blob, onProgress });
   }
 

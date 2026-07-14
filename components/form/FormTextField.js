@@ -210,4 +210,3 @@ class FormTextField extends Component {
 }
 
 export default FormTextField;
-export default FormTextField;

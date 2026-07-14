@@ -1,14 +1,15 @@
 import { navigate } from '../lib/router.js';
-import { showToast, createLoadingSpinner } from '../lib/loading.js';
+import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { escapeHtml } from '../lib/security.js';
 import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTemplate, duplicateTemplate, listTemplates, listDrafts, sendToStoryboard } from '../lib/editor/renderActions.js';
-import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue, startProcessor, stopProcessor } from '../lib/editor/renderQueueStore.js';
-import { createExportWorker, terminateExportWorker } from '../lib/editor/renderExportWorker.js';
+import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue, startProcessor } from '../lib/editor/renderQueueStore.js';
+
 import { generateSubtitles, generateHighlights, generateVoiceover, createShorts, runAiAutoEdit } from '../lib/editor/renderAiActions.js';
 
 // Repository endpoints
 const REPO_ENDPOINTS = {
+  'open-higgsfield': { label: 'Open Higgsfield', status: 'connected', description: 'Core generation and render orchestration engine.' },
   'smartvideo': { label: 'SmartVideo', status: 'connected', description: 'Primary orchestration layer for render workflows.' },
   director: { label: 'Director', status: 'connected', description: 'Prompt-based cinematic editing and agentic scene direction.' },
   vimax: { label: 'ViMax', status: 'connected', description: 'Enhancement, optimization, and cinematic finishing passes.' },
@@ -25,30 +26,6 @@ const PRESET_CONFIG = {
   'Emotional Story Tone': { key: 'emotional-story-tone', colorProfile: 'warm-story', pacing: 'emotive', musicMood: 'inspirational', captionStyle: 'soft-story', exportProfile: 'story-delivery', finish: 'warm-glow' },
 };
 
-// Action pipelines
-const ACTION_PIPELINES = {
-  'AI Auto-Edit': { type: 'workflow', repoKeys: ['open-higgsfield', 'director', 'vimax', 'ltx'], pipeline: ['scene-detect', 'highlight-pass', 'subtitles', 'finishing'], statusLabel: 'AI auto-edit in progress' },
-  'Agentic Editor': { type: 'editor', repoKeys: ['director', 'open-higgsfield'], pipeline: ['prompt-analysis', 'edit-plan', 'scene-adjustments'], statusLabel: 'Opening agentic editor' },
-  'Full Editor': { type: 'editor', repoKeys: ['open-higgsfield', 'director'], pipeline: ['timeline-load', 'manual-edit'], statusLabel: 'Opening full editor' },
-  'Create Shorts': { type: 'post', repoKeys: ['yucut', 'ltx', 'rendiv'], pipeline: ['shorts-plan', 'vertical-reframe', 'social-export'], statusLabel: 'Generating shorts' },
-  'Generate Highlights': { type: 'post', repoKeys: ['yucut', 'director'], pipeline: ['scene-analysis', 'highlight-selection', 'clip-build'], statusLabel: 'Extracting highlights' },
-  'Add Subtitles': { type: 'post', repoKeys: ['ltx', 'open-higgsfield'], pipeline: ['transcription', 'caption-styling', 'burn-in-or-srt'], statusLabel: 'Generating subtitles' },
-  'Dub / Voiceover': { type: 'post', repoKeys: ['ltx', 'vimax'], pipeline: ['voice-plan', 'dub-render', 'mixdown'], statusLabel: 'Building voiceover' },
-  'Export Variations': { type: 'export', repoKeys: ['rendiv', 'open-higgsfield'], pipeline: ['variant-plan', 'aspect-ratios', 'final-export'], statusLabel: 'Preparing export variations' },
-  'Trailer Cut': { type: 'post', repoKeys: ['director', 'yucut', 'rendiv'], pipeline: ['teaser-selection', 'pace-build', 'export'], statusLabel: 'Building trailer cut' },
-  'Social Resize': { type: 'post', repoKeys: ['yucut', 'rendiv'], pipeline: ['reframe', 'resize', 'channel-export'], statusLabel: 'Creating social formats' },
-  'Remix Scene': { type: 'editor', repoKeys: ['director', 'vimax', 'open-higgsfield'], pipeline: ['scene-remix-plan', 'variation-pass', 'replace-preview'], statusLabel: 'Remixing selected scene' },
-  'Export Video': { type: 'export', repoKeys: ['rendiv'], pipeline: ['master-export'], statusLabel: 'Exporting master video' },
-  'Download Frame': { type: 'utility', repoKeys: ['open-higgsfield'], pipeline: ['frame-grab'], statusLabel: 'Preparing frame download' },
-  'Queue Render': { type: 'render', repoKeys: ['open-higgsfield', 'rendiv'], pipeline: ['queue-job', 'render-handshake'], statusLabel: 'Queueing render job' },
-  'Copy Prompt': { type: 'utility', repoKeys: ['open-higgsfield'], pipeline: ['copy-metadata'], statusLabel: 'Prompt copied' },
-  'Duplicate Render': { type: 'utility', repoKeys: ['open-higgsfield'], pipeline: ['clone-project'], statusLabel: 'Duplicating render' },
-  'Save as Template': { type: 'utility', repoKeys: ['open-higgsfield', 'director'], pipeline: ['template-save'], statusLabel: 'Saving template' },
-  'Send to Storyboard': { type: 'editor', repoKeys: ['director', 'open-higgsfield'], pipeline: ['storyboard-transfer'], statusLabel: 'Sending to storyboard' },
-  'Publish / Deliver': { type: 'delivery', repoKeys: ['rendiv', 'open-higgsfield'], pipeline: ['package-output', 'delivery-ready'], statusLabel: 'Preparing delivery package' },
-};
-
-// Action tiles config
 const ACTION_TILES = [
   { title: 'Create Shorts', desc: 'Vertical cuts for Shorts, Reels, and TikTok.', icon: '🎬', accent: 'from-fuchsia-500/16 via-violet-500/8 to-indigo-500/14', iconBg: 'bg-fuchsia-500/16', iconBorder: 'border-fuchsia-400/25' },
   { title: 'Generate Highlights', desc: 'Pull standout scenes into shareable cuts.', icon: '✨', accent: 'from-cyan-500/16 via-sky-500/8 to-indigo-500/14', iconBg: 'bg-cyan-500/16', iconBorder: 'border-cyan-400/25' },
@@ -70,25 +47,8 @@ const PHASE_MAP = {
 
 
 
-const NEXT_ACTIONS = [
-  { title: 'AI Auto-Edit', desc: 'Automatic scene detection, highlights, subtitles, and finishing passes.', icon: '⚡' },
-  { title: 'Agentic Editor', desc: 'Use AI commands to rewrite scenes, improve pacing, and enhance visuals.', icon: '🧠' },
-  { title: 'Full Editor', desc: 'Jump into timeline editing with full manual control and cinematic precision.', icon: '✏️' },
-  { title: 'Create Shorts', desc: 'Turn your main render into TikTok, Reels, and YouTube Shorts variations.', icon: '🎬' },
-  { title: 'Generate Highlights', desc: 'Pull the strongest moments automatically and build highlight-ready clips.', icon: '✨' },
-  { title: 'Add Subtitles', desc: 'Generate styled captions and subtitle layers for cinematic or social delivery.', icon: '💬' },
-  { title: 'Dub / Voiceover', desc: 'Create alternate narration, dubbing tracks, and voice-driven versions.', icon: '🎙️' },
-  { title: 'Export Variations', desc: 'Create multiple output versions by size, aspect ratio, and delivery format.', icon: '📦' },
-];
-
 const QUICK_ACTIONS = ['Trailer Cut', 'Social Resize', 'Remix Scene', 'Copy Prompt', 'Duplicate Render', 'Save as Template', 'Send to Storyboard', 'Publish / Deliver'];
 const ACTION_BUTTONS = ['Export Video', 'Download Frame', 'Queue Render', 'Trailer Cut', 'Social Resize', 'Remix Scene'];
-
-function titleCasePipelineStep(step) {
-  return step.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
-}
-
-
 
 export function RenderPage() {
   const container = document.createElement('div');
@@ -111,20 +71,22 @@ export function RenderPage() {
   let resolvedVideoId = videoId;
   let resolvedTitle = videoTitle;
 
-  function resolveAsset(assetId) {
-    return new Promise((resolve) => {
-      if (!assetId) {
-        resolve({ url: videoUrl, id: videoId, title: videoTitle });
-        return;
+  async function resolveAsset(assetId) {
+    if (!assetId) {
+      return { url: videoUrl, id: videoId, title: videoTitle };
+    }
+    try {
+      const mod = await import('../lib/assets/assetStore.js');
+      const asset = mod.assetStore && typeof mod.assetStore.findById === 'function'
+        ? mod.assetStore.findById(assetId)
+        : null;
+      if (asset && typeof asset === 'object') {
+        return { url: asset.url || asset.src, id: asset.id, title: asset.title || videoTitle };
       }
-      const { assetStore } = require('../lib/assets/assetStore.js');
-      const asset = assetStore.findById(assetId);
-      if (asset) {
-        return resolve({ url: asset.url || asset.src, id: asset.id, title: asset.title || videoTitle });
-      } else {
-        return resolve({ url: videoUrl, id: videoId, title: videoTitle });
-      }
-    });
+    } catch (err) {
+      console.warn('[RenderPage] Could not resolve asset, falling back to URL params:', err);
+    }
+    return { url: videoUrl, id: videoId, title: videoTitle };
   }
 
   async function initAssetResolve() {
@@ -155,10 +117,6 @@ export function RenderPage() {
   let videoElement = null;
   let currentVideoUrl = videoUrl;
   let videoMeta = null;
-
-  function loadVideo(url) {
-    currentVideoUrl = url || videoUrl;
-  }
 
   async function updateStatsFromMeta() {
     const resolved = currentVideoUrl || videoUrl;
@@ -198,17 +156,23 @@ export function RenderPage() {
     };
   }
 
-  function renderSavedItems() {
+   function getSavedItems() {
+    const drafts = Array.isArray(listDrafts()) ? listDrafts() : [];
+    const templates = Array.isArray(listTemplates()) ? listTemplates() : [];
+    return [
+      ...drafts.filter(d => d && typeof d === 'object').map(d => d.label || d.title || 'Untitled draft'),
+      ...templates.filter(t => t && typeof t === 'object').map(t => t.label || t.title || 'Untitled template'),
+    ];
+  }
+
+   function renderSavedItems() {
     const savedList = sidebar.querySelector('#savedPanel');
     if (!savedList) {
       renderSavedItemsPanel();
       return;
     }
     savedList.innerHTML = '';
-    const drafts = listDrafts();
-    const templates = listTemplates();
-    const savedItems = [...drafts.map(d => d.label), ...templates.map(t => t.label)];
-    savedItems.forEach(item => {
+    getSavedItems().forEach(item => {
       const row = document.createElement('div');
       row.className = 'rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm text-white/75';
       row.textContent = item;
@@ -467,10 +431,7 @@ export function RenderPage() {
     const panel = document.createElement('div');
     panel.id = 'savedPanel';
     panel.className = 'space-y-3 overflow-y-auto pr-1 max-h-[400px]';
-    const drafts = listDrafts();
-    const templates = listTemplates();
-    const savedItems = [...drafts.map(d => d.label), ...templates.map(t => t.label)];
-    savedItems.forEach(item => {
+    getSavedItems().forEach(item => {
       const row = document.createElement('div');
       row.className = 'rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm text-white/75';
       row.textContent = item;
@@ -485,23 +446,28 @@ export function RenderPage() {
     const panel = document.createElement('div');
     panel.id = 'queuePanel';
     panel.className = 'space-y-3 overflow-y-auto pr-1 max-h-[400px]';
-    const queue = listRenderQueue();
-    if (!queue.length) {
+    const queue = Array.isArray(listRenderQueue()) ? listRenderQueue() : [];
+    const validEntries = queue.filter(entry => entry && typeof entry === 'object');
+    if (!validEntries.length) {
       const empty = document.createElement('p');
       empty.className = 'text-sm text-white/70';
       empty.textContent = 'No jobs in queue';
       panel.appendChild(empty);
     } else {
-      queue.forEach(entry => {
+      validEntries.forEach(entry => {
         const row = document.createElement('div');
         row.className = 'rounded-2xl border border-white/10 bg-white/[0.03] p-3';
+        const label = entry.label || entry.action || 'Render job';
         row.innerHTML = `
           <div class="flex items-center justify-between gap-2">
-            <p class="text-sm font-semibold text-white truncate">${escapeHtml(entry.label || entry.action || 'Render job')}</p>
-            <button id="remove-queue-${entry.id}" class="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px] uppercase tracking-wider text-white/60 hover:bg-white/[0.08] transition">Remove</button>
+            <p class="text-sm font-semibold text-white truncate">${escapeHtml(label)}</p>
+            <button id="remove-queue-${entry.id || 'unknown'}" class="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px] uppercase tracking-wider text-white/60 hover:bg-white/[0.08] transition">Remove</button>
           </div>
         `;
-        row.querySelector('button').addEventListener('click', () => removeFromRenderQueue(entry.id));
+        const btn = row.querySelector('button');
+        if (btn && entry.id) {
+          btn.addEventListener('click', () => removeFromRenderQueue(entry.id));
+        }
         panel.appendChild(row);
       });
     }
@@ -558,6 +524,7 @@ export function RenderPage() {
   const repoHandlers = repoSection.querySelector('#repoHandlers');
   ['open-higgsfield', 'rendiv'].forEach(repoKey => {
     const repo = REPO_ENDPOINTS[repoKey];
+    if (!repo) return;
     repoHandlers.innerHTML += `
       <div class="rounded-xl border border-white/10 bg-black/20 p-3">
         <div class="flex items-center justify-between gap-3">
@@ -572,6 +539,12 @@ export function RenderPage() {
   mainGrid.appendChild(sidebar);
   inner.appendChild(mainGrid);
   container.appendChild(inner);
+
+  // Resolve frequently-used progress controls once. These are referenced by the
+  // async AI/export action handlers, so they must exist in this (RenderPage) scope.
+  const spinner = container.querySelector('#progressSpinner');
+  const progressStatus = container.querySelector('#progressStatus');
+  let activeExportCleanup = null;
 
   container.querySelector('#quality')?.addEventListener('input', (e) => {
     const qualityLabel = container.querySelector('#qualityLabel');
@@ -589,43 +562,178 @@ export function RenderPage() {
     });
   }
 
+  const saveDraftBtn = container.querySelector('#saveDraftBtn');
+  if (saveDraftBtn) {
+    saveDraftBtn.addEventListener('click', () => {
+      saveDraft({ videoId: resolvedVideoId, videoUrl: resolvedVideoUrl, title: resolvedTitle, preset: selectedPreset, outputSettings: getOutputSettings() });
+      renderSavedItems();
+      showToast('Draft saved');
+    });
+  }
+  const startRenderBtn = container.querySelector('#startRenderBtn');
+  if (startRenderBtn) {
+    startRenderBtn.addEventListener('click', () => dispatchAction('Export Video'));
+  }
+
   void initAssetResolve();
 
+  // Real video export: draw the actual source frames to a canvas and record
+  // them with MediaRecorder. The previous worker only recorded a blank canvas,
+  // so exports contained no video. This runs on the main thread where we can
+  // play the <video> and capture its frames.
+  function pickExportMimeType() {
+    const candidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+    if (typeof MediaRecorder === 'undefined' || typeof MediaRecorder.isTypeSupported !== 'function') return '';
+    return candidates.find((c) => MediaRecorder.isTypeSupported(c)) || '';
+  }
+
+  const ASPECT_DIMS = {
+    '9:16': { width: 1080, height: 1920 },
+    '1:1': { width: 1080, height: 1080 },
+    '4:5': { width: 1080, height: 1350 },
+    '16:9': { width: 1920, height: 1080 },
+  };
+
+  function seekVideo(video, time) {
+    return new Promise((resolve, reject) => {
+      const onSeeked = () => { video.removeEventListener('seeked', onSeeked); resolve(); };
+      video.addEventListener('seeked', onSeeked);
+      try { video.currentTime = time; } catch (e) { reject(e); }
+    });
+  }
+
+  async function captureRealVideo({ videoUrl, action, settings = {}, timeRange, effects, onProgress }) {
+    const supported = typeof MediaRecorder !== 'undefined'
+      && typeof HTMLCanvasElement !== 'undefined'
+      && typeof HTMLCanvasElement.prototype.captureStream === 'function';
+    if (!supported) throw new Error('Video export is not supported in this browser');
+
+    const video = document.createElement('video');
+    video.muted = true;
+    video.playsInline = true;
+    video.crossOrigin = 'anonymous';
+    video.preload = 'auto';
+    video.src = videoUrl;
+
+    await new Promise((res, rej) => {
+      const t = setTimeout(() => rej(new Error('Video source timed out')), 30000);
+      video.addEventListener('loadedmetadata', () => { clearTimeout(t); res(); }, { once: true });
+      video.addEventListener('error', () => { clearTimeout(t); rej(new Error('Could not load video source')); }, { once: true });
+    });
+
+    const vw = video.videoWidth || 1280;
+    const vh = video.videoHeight || 720;
+    let cw = vw;
+    let ch = vh;
+    if (action === 'social-resize' && settings.aspectRatio && ASPECT_DIMS[settings.aspectRatio]) {
+      cw = ASPECT_DIMS[settings.aspectRatio].width;
+      ch = ASPECT_DIMS[settings.aspectRatio].height;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = cw;
+    canvas.height = ch;
+    const ctx = canvas.getContext('2d');
+
+    const stream = canvas.captureStream(30);
+    const mimeType = pickExportMimeType();
+    const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+    const chunks = [];
+    recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+    const finished = new Promise((res, rej) => {
+      recorder.onstop = () => res(new Blob(chunks, { type: mimeType || 'video/webm' }));
+      recorder.onerror = (e) => rej(e.error || new Error('Recording failed'));
+    });
+
+    let durationMs;
+    if (action === 'trailer-cut' && timeRange) {
+      durationMs = Math.max(500, (timeRange.end - timeRange.start) * 1000);
+    } else if (typeof settings.duration === 'number' && settings.duration > 0) {
+      durationMs = settings.duration * 1000;
+    } else {
+      durationMs = (video.duration || 5) * 1000;
+    }
+
+    if (action === 'trailer-cut' && timeRange) {
+      try { await seekVideo(video, Math.max(0, timeRange.start)); } catch { /* best effort */ }
+    }
+
+    let rafId = null;
+    const startTs = performance.now();
+    function drawFrame() {
+      try {
+        if (effects && (effects.brightness != null || effects.contrast != null)) {
+          const parts = [];
+          if (effects.brightness != null) parts.push(`brightness(${Math.round(effects.brightness * 100)}%)`);
+          if (effects.contrast != null) parts.push(`contrast(${Math.round(effects.contrast * 100)}%)`);
+          ctx.filter = parts.join(' ');
+        } else {
+          ctx.filter = 'none';
+        }
+        ctx.drawImage(video, 0, 0, cw, ch);
+        ctx.filter = 'none';
+      } catch { /* frame not ready yet */ }
+      const elapsed = performance.now() - startTs;
+      const pct = Math.min(100, Math.round((elapsed / durationMs) * 100));
+      if (onProgress) onProgress(pct);
+      if (elapsed < durationMs) {
+        rafId = requestAnimationFrame(drawFrame);
+      } else {
+        cleanup();
+        try { recorder.stop(); } catch { /* already stopped */ }
+      }
+    }
+    function cleanup() {
+      if (rafId) cancelAnimationFrame(rafId);
+      try { video.pause(); } catch { /* ignore */ }
+      video.removeAttribute('src');
+      video.load();
+    }
+
+    activeExportCleanup = cleanup;
+
+    try { await video.play(); } catch { /* autoplay may be blocked; frames still drawn via rAF */ }
+
+    recorder.start(100);
+    drawFrame();
+
+    const blob = await finished;
+    const isMp4 = (mimeType || '').includes('mp4');
+    return {
+      blob,
+      url: URL.createObjectURL(blob),
+      mime: mimeType || 'video/webm',
+      ext: isMp4 ? 'mp4' : 'webm',
+    };
+  }
+
   async function runExportWorker(payload, statusLabel, actionName, onDone) {
-    const worker = createExportWorker();
     const progressBar = container.querySelector('#progressBar');
     const progressPercent = container.querySelector('#progressPercent');
     const progressStatus = container.querySelector('#progressStatus');
 
+    if (progressStatus) progressStatus.textContent = statusLabel;
+    if (progressBar) progressBar.style.width = '0%';
+    if (progressPercent) progressPercent.textContent = '0%';
+
     try {
-      if (progressStatus) progressStatus.textContent = statusLabel;
-      if (progressBar) progressBar.style.width = '0%';
-      if (progressPercent) progressPercent.textContent = '0%';
-
-      const result = await new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error('Export timed out')), 60000);
-        worker.addEventListener('message', (e) => {
-          const { type, percent, blob, url, message } = e.data || {};
-          if (type === 'progress') {
-            if (progressBar) progressBar.style.width = `${percent}%`;
-            if (progressPercent) progressPercent.textContent = `${percent}%`;
-          } else if (type === 'complete') {
-            clearTimeout(timer);
-            resolve({ ...e.data, url: url || (blob ? URL.createObjectURL(blob) : null) });
-          } else if (type === 'error') {
-            clearTimeout(timer);
-            reject(new Error(message));
-          }
-        });
-        worker.postMessage(payload);
+      const result = await captureRealVideo({
+        videoUrl: payload.videoUrl,
+        action: payload.action,
+        settings: payload.settings || {},
+        timeRange: payload.timeRange,
+        effects: payload.effects,
+        onProgress: (pct) => {
+          if (progressBar) progressBar.style.width = `${pct}%`;
+          if (progressPercent) progressPercent.textContent = `${pct}%`;
+        },
       });
-
       if (onDone) onDone(result);
-    } catch (err) {
-      console.error(`[RenderPage] Action "${actionName}" failed:`, err);
-      showToast(`${actionName} failed: ${err.message}`);
     } finally {
-      terminateExportWorker(worker);
+      if (activeExportCleanup) {
+        activeExportCleanup();
+        activeExportCleanup = null;
+      }
     }
   }
 
@@ -636,7 +744,15 @@ export function RenderPage() {
       showToast('Frame downloaded');
     },
     'Queue Render': async () => {
-      const entry = enqueueRender({ videoId: resolvedVideoId, videoUrl: resolvedVideoUrl, title: resolvedTitle, preset: selectedPreset, outputSettings: getOutputSettings() });
+      const entry = enqueueRender({
+        videoId: resolvedVideoId,
+        videoUrl: resolvedVideoUrl,
+        title: resolvedTitle,
+        label: resolvedTitle || 'Render',
+        action: 'Render',
+        preset: selectedPreset,
+        outputSettings: getOutputSettings(),
+      });
       showToast(`Queued: ${entry.id.slice(0, 12)}…`);
       renderQueue();
     },
@@ -645,10 +761,12 @@ export function RenderPage() {
       showToast(ok ? 'Prompt copied to clipboard' : 'Copy failed — please copy manually');
     },
     'Duplicate Render': async () => {
-      const templates = listTemplates();
+      const templates = (Array.isArray(listTemplates()) ? listTemplates() : [])
+        .filter(t => t && typeof t === 'object' && t.id);
       const last = templates[templates.length - 1];
       if (!last) { showToast('Nothing to duplicate yet — save a template first'); return; }
-      duplicateTemplate(last.id);
+      const copy = duplicateTemplate(last.id);
+      if (!copy) { showToast('Could not duplicate template'); return; }
       renderSavedItems();
       showToast('Render duplicated');
     },
@@ -961,17 +1079,24 @@ export function RenderPage() {
   // Action handler
   async function dispatchAction(action) {
     activeAction = action;
-    const spinner = container.querySelector('#progressSpinner');
-    const progressStatus = container.querySelector('#progressStatus');
     const previewBadge = container.querySelector('#previewBadge');
     const handler = ACTION_HANDLERS[action];
     if (handler) {
       if (previewBadge) previewBadge.textContent = `${selectedPreset} · ${action}`;
       if (spinner) spinner.hidden = false;
+      // Reflect the active action on the primary action buttons.
+      if (actionBtnsRow) {
+        actionBtnsRow.querySelectorAll('button').forEach(b => {
+          const isActive = b.textContent === action;
+          b.setAttribute('aria-pressed', String(isActive));
+          b.className = `rounded-2xl px-5 py-3 text-sm font-medium transition ${isActive ? 'bg-white text-black shadow-xl hover:opacity-90' : 'border border-white/10 bg-white/[0.04] text-zinc-100 hover:bg-white/[0.08]'}`;
+        });
+      }
       try { await handler(); }
       catch (err) { console.error(`[RenderPage] Action "${action}" failed:`, err); showToast(`${action} failed: ${err.message}`); }
       finally {
         if (spinner) spinner.hidden = true;
+        if (progressStatus) progressStatus.textContent = 'Ready';
         if (previewBadge) previewBadge.textContent = `${selectedPreset} · Ready`;
       }
       return;
@@ -1039,6 +1164,10 @@ export function RenderPage() {
     if (stopBackgroundProcessor) {
       stopBackgroundProcessor();
       stopBackgroundProcessor = null;
+    }
+    if (activeExportCleanup) {
+      activeExportCleanup();
+      activeExportCleanup = null;
     }
   };
 
