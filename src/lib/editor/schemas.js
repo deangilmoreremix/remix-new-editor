@@ -187,7 +187,13 @@ export const EditorStateSchema = z.object({
   playheadPercent: finiteNumber.min(0).max(100).default(0),
   selectedTool: z.string().default('Select'),
   selectedClipId: z.union([z.string(), z.number(), z.null()]).optional(),
-  selectedClipIds: z.array(z.union([z.string(), z.number()])).optional(),
+  // The editor stores selection as a Set (see TimelineState.js / editor-store.tsx).
+  // Accept both Set and Array so validation no longer warns "expected array,
+  // received Set" during TimelineState.init.
+  selectedClipIds: z.union([
+    z.array(z.union([z.string(), z.number()])),
+    z.set(z.union([z.string(), z.number()])),
+  ]).optional(),
   generateType: z.string().default('Text'),
   playing: z.boolean().default(false),
   snapEnabled: z.boolean().default(true),

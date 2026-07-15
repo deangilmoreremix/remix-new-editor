@@ -330,7 +330,7 @@ export function VideoAgentPage() {
             try { await fetch(`/videoagent/cancel/${currentJobId}`, { method: 'POST' }); } catch (_) {}
             try {
                 if (isSupabaseConfigured()) {
-                    await fetch(`${getSupabaseUrl()}/functions/v1/videoagent?jobId=${currentJobId}&cancel=1`, { method: 'POST' });
+                    await fetch(`${getSupabaseUrl()}/functions/v1/videoagent/cancel/${currentJobId}`, { method: 'POST' });
                 }
             } catch (_) {}
             currentJobId = null;
@@ -374,6 +374,7 @@ export function VideoAgentPage() {
         const callProcess = async (endpoint) => {
             return await fetch(endpoint, {
                 method: 'POST',
+                signal: AbortSignal.any([abortController.signal, AbortSignal.timeout(90000)]),
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'process-tool',
@@ -487,6 +488,7 @@ export function VideoAgentPage() {
         const callProcess = async (endpoint) =>
             await fetch(endpoint, {
                 method: 'POST',
+                signal: AbortSignal.any([abortController.signal, AbortSignal.timeout(90000)]),
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'process-usecase',
@@ -587,6 +589,7 @@ export function VideoAgentPage() {
         const callProcess = async (endpoint) =>
             await fetch(endpoint, {
                 method: 'POST',
+                signal: AbortSignal.any([abortController.signal, AbortSignal.timeout(90000)]),
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     action: 'full-pipeline',
@@ -701,7 +704,7 @@ export function VideoAgentPage() {
             (payload && /audio\//.test(payload.mimeType || ''));
         const videoUrl =
             payload && typeof payload === 'object'
-                ? payload.url || payload.audioUrl || (payload.shorts && payload.shorts[0] && payload.shorts[0].url)
+                ? payload.url || payload.downloadUrl || payload.audioUrl || (payload.shorts && payload.shorts[0] && payload.shorts[0].url)
                 : null;
         const isAudio =
             isAudioUrl(videoUrl) ||
@@ -777,6 +780,8 @@ export function VideoAgentPage() {
         if (payload && typeof payload === 'object') {
             if (payload.transcription) summary = `Transcript: “${String(payload.transcription).slice(0, 120)}…”`;
             else if (payload.summary) summary = String(payload.summary);
+            else if (payload.result) summary = String(payload.result);
+            else if (typeof payload.chapters === 'number') summary = `${payload.chapters} chapters`;
             else if (Array.isArray(payload.scenes)) summary = `${payload.scenes.length} scenes detected`;
             else if (Array.isArray(payload.segments)) summary = `${payload.segments.length} clips segmented`;
             else if (Array.isArray(payload.highlights)) summary = `${payload.highlights.length} highlights found`;
