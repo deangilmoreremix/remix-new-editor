@@ -41,13 +41,7 @@ window.addEventListener('error', (event) => {
     message.includes('Failed to construct \'Worker\'') ||
     message.includes('Script at') ||
     message.includes('Load failed') ||
-    message.includes('Script error.') ||
-    message.includes('TypeError: Cannot read') ||
-    message.includes('undefined ') ||
-    message.includes('null ') ||
-    message.includes('NetworkError') ||
-    message.includes('Failed to fetch') ||
-    message.includes('Network request failed')
+    message.includes('Script error.')
   ) {
     return;
   }

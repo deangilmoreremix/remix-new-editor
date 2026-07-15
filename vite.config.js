@@ -50,6 +50,7 @@ const stubLegacy = () => ({
     }
     if (id.startsWith('\0legacy-stub:')) {
       // Build named exports by parsing the importer's import statement.
+      console.warn('[stub-legacy] Stubbing unresolved import:', source, '←', importer);
       const payload = id.slice('\0legacy-stub:'.length);
       const [source, ...rest] = payload.split('::');
       const importer = rest.join('::');
@@ -415,6 +416,30 @@ function modelCatalogBuildPlugin() {
   };
 }
 
+/**
+ * svgMissingFallback — some bundled dependencies import `.svg` assets (e.g.
+ * `icon-transition.svg?import`) that don't exist in this project, producing
+ * 404s / aborted requests at runtime. When the referenced file is genuinely
+ * absent we return a transparent 1x1 SVG so the import resolves instead of
+ * failing. Real `.svg` files on disk are left untouched.
+ */
+function svgMissingFallback() {
+  const fs = require('fs');
+  const PLACEHOLDER =
+    'data:image/svg+xml,' +
+    encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>');
+  return {
+    name: 'svg-missing-fallback',
+    enforce: 'pre',
+    async load(id) {
+      const file = id.split('?')[0];
+      if (!file.endsWith('.svg')) return null;
+      if (fs.existsSync(file)) return null; // real asset: let Vite handle it
+      return `export default ${JSON.stringify(PLACEHOLDER)};`;
+    },
+  };
+}
+
 export default defineConfig({
     define: {
         'process.browser': 'true',
@@ -436,6 +461,7 @@ export default defineConfig({
         securityHeaders(),
         fixLegacyImports(),
         stubLegacy(),
+        svgMissingFallback(),
         modelCatalogBuildPlugin(),
     ],
     // Pre-bundle React + Clerk together so the optimizer emits a single,
@@ -599,8 +625,15 @@ export default defineConfig({
         },
         rollupOptions: {
             output: {
-                manualChunks: {
-                    'vendor': ['@supabase/supabase-js'],
+                // Group heavy, self-contained vendor libs into stable chunks so
+                // Rollup doesn't auto-merge them into the editor's chunk graph
+                // (that merge is what surfaced the production TDZ crash).
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        if (id.includes('@supabase')) return 'vendor';
+                        if (id.includes('mp4box')) return 'vendor-mp4box';
+                    }
+                    return undefined; // everything else: let Rollup decide
                 },
                 entryFileNames: 'assets/[name]-[hash].js',
                 chunkFileNames: 'assets/[name]-[hash].js',

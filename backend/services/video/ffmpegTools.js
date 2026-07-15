@@ -165,6 +165,11 @@ export async function resolveInput(body = {}) {
     return body.videoPath;
   }
   if (body.videoUrl) {
+    // The server can only fetch real, publicly reachable URLs. A blob:/data:
+    // URL produced in the browser cannot be fetched here.
+    if (/^(blob:|data:)/i.test(String(body.videoUrl))) {
+      throw new Error('Cannot process a local blob/data URL on the server. Upload the media first and pass its https URL.');
+    }
     const out = tmpFile('mp4');
     const resp = await axios({ url: body.videoUrl, method: 'GET', responseType: 'stream' });
     await new Promise((res, rej) => {
@@ -175,7 +180,7 @@ export async function resolveInput(body = {}) {
     });
     return out;
   }
-  return makeSyntheticVideo(8);
+  throw new Error('No video source provided. Expected a server-reachable https videoUrl.');
 }
 
 export function cleanup(file) {

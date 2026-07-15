@@ -1,3 +1,4 @@
+import './loadEnv.js'; // load .env.local into process.env BEFORE service modules read it
 import express from 'express';
 import cors from 'cors';
 import { WebSocketServer } from 'ws';

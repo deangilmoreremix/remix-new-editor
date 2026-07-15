@@ -40,13 +40,10 @@ const OP_MAP = {
   'highlight-detection': 'extract-highlights',
   'add-broll': 'add-broll',
   'clip-segmentation': 'clip-segmentation',
-  'whisper': 'whisper',
-  'transcription': 'whisper',
-  'transcribe': 'whisper',
-  'cosyvoice': 'tts',
-  'fish-speech': 'tts',
-  'seed-vc': 'tts',
-  'voiceover': 'tts',
+  // whisper/transcription and voice-clone (cosyvoice/fish-speech/seed-vc/voiceover)
+  // require a server/LLM and are intentionally NOT mapped here, so supports()
+  // returns false and the caller routes them to the real backend (or reports
+  // "unavailable") instead of faking browser output.
   'tts': 'tts',
 };
 
@@ -170,14 +167,20 @@ async function reencode({ op, blob, settings = {}, onProgress }) {
 
   const worker = spawnWorker();
   const ready = new Promise((res, rej) => {
+    const readyTimeout = setTimeout(() => {
+      worker.removeEventListener('message', onMsg);
+      rej(new Error('Frame worker did not report ready in time'));
+    }, 12000);
     const onMsg = (e) => {
       if (e.data && e.data.type === 'ready') {
+        clearTimeout(readyTimeout);
         worker.removeEventListener('message', onMsg);
         res();
       }
     };
     worker.addEventListener('message', onMsg);
     worker.addEventListener('error', (err) => {
+      clearTimeout(readyTimeout);
       worker.removeEventListener('message', onMsg);
       rej(new Error('Frame worker error: ' + err.message));
     });
@@ -194,9 +197,13 @@ async function reencode({ op, blob, settings = {}, onProgress }) {
   rec.ondataavailable = (e) => {
     if (e.data && e.data.size) chunks.push(e.data);
   };
-  const done = new Promise((res) => {
+  const done = new Promise((res, rej) => {
     rec.onstop = () => res(new Blob(chunks, { type: mime }));
+    rec.onerror = (e) => rej(e.error || new Error('MediaRecorder error'));
   });
+  // CRITICAL: MediaRecorder must be started or onstop never fires and the
+  // re-encode promise hangs forever (the original defect).
+  rec.start();
 
   const transform = {
     brightness: settings.brightness != null ? Number(settings.brightness) : 0,
@@ -252,6 +259,7 @@ async function reencode({ op, blob, settings = {}, onProgress }) {
 
   worker.postMessage({ type: 'close' });
   const outBlob = await done;
+  try { worker.terminate(); } catch (_) {}
   if (!outBlob || outBlob.size === 0) {
     throw new Error('Browser re-encode produced no frames (playback may be blocked)');
   }
@@ -267,6 +275,7 @@ async function reencode({ op, blob, settings = {}, onProgress }) {
       width: outW,
       height: outH,
       url,
+      downloadUrl: url,
       size: outBlob.size,
       note: 'Browser-side resize (Lanczos-style). FFmpeg/MuAPI gives true AI upscaling.',
     };
@@ -286,6 +295,7 @@ async function reencode({ op, blob, settings = {}, onProgress }) {
       stabilized: true,
       format: 'webm',
       url,
+      downloadUrl: url,
       size: outBlob.size,
       note: 'Browser center-of-gravity deshake approximation (WebM).',
     };
@@ -552,6 +562,7 @@ async function analyze({ op, blob, onProgress }) {
     success: true,
     source: 'browser',
     highlights,
+    highlightCount: highlights.length,
     note: 'Browser motion-based highlight extraction (WebM-free metadata).',
   };
 }

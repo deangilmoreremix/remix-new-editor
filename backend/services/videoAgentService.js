@@ -527,6 +527,16 @@ router.get('/job/:jobId', (req, res) => {
   return res.json(buildJobResult(job));
 });
 
+// Cancel an in-flight job (best-effort; jobs live in an in-memory Map).
+router.post('/cancel/:jobId', (req, res) => {
+  const job = jobs.get(req.params.jobId);
+  if (!job) {
+    return res.status(404).json({ status: 'not_found', error: 'Job not found' });
+  }
+  updateJob(req.params.jobId, { status: 'cancelled', error: 'Cancelled by user' });
+  return res.json({ status: 'cancelled', jobId: req.params.jobId });
+});
+
 // Serve real processed outputs (video/audio) produced by the jobs above.
 router.get('/file/:fileId', (req, res) => {
   const base = safeBase(req.params.fileId);

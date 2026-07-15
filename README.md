@@ -502,11 +502,14 @@ cd SmartVideo
 # Install dependencies
 npm install
 
-# Start the development server
+# Start the development server (Vite, served on http://localhost:3004)
 npm run dev
+
+# In a separate terminal, start the backend API (Express, on http://localhost:3001)
+npm run dev:backend
 ```
 
-Open `http://localhost:5173` in your browser. You'll be prompted to enter your Muapi API key on first use.
+Open `http://localhost:3004` in your browser. You'll be prompted to enter your Muapi API key on first use. The Video Agent features (scene detection, transcription, TTS, dubbing, the full pipeline) require the backend to be running.
 
 ### Production Build
 
