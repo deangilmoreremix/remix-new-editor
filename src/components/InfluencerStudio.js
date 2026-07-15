@@ -143,7 +143,7 @@ export function InfluencerStudio() {
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
       const prompt = `Style preset: ${selectedStyle}. ${replaceTokensInPrompt(promptInput.value.trim(), activeProfile) || 'Fashion editorial photo, professional quality'}`;
       const params = {
-        model: 'higgsfield-soul-image-to-image',
+        model: 'flux-kontext-pro-i2i',
         image_url: uploadedUrl,
         prompt,
         style: selectedStyle,
