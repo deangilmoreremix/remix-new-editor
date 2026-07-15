@@ -129,7 +129,13 @@ function securityHeaders() {
                 const reactPreambleHash = "'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk='";
                 res.setHeader(
                     'Content-Security-Policy',
-                    "default-src 'self'; script-src 'self' " + reactPreambleHash + " https://clerk.smartvid.app blob:; worker-src 'self' blob: https://clerk.smartvid.app; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app; frame-src 'self' https://clerk.smartvid.app; media-src 'self' https: blob:;"
+                    // Clerk: production loads clerk-js from the CNAMEd FAPI
+                    // (clerk.smartvid.app); local dev loads it from the dev
+                    // instance (*.clerk.accounts.dev). Smart CAPTCHA / bot
+                    // protection uses Cloudflare Turnstile
+                    // (challenges.cloudflare.com), which must be allowed in
+                    // script-src + frame-src or sign-up fails.
+                    "default-src 'self'; script-src 'self' " + reactPreambleHash + " https://clerk.smartvid.app https://*.clerk.accounts.dev https://challenges.cloudflare.com blob:; worker-src 'self' blob: https://clerk.smartvid.app https://*.clerk.accounts.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://*.clerk.accounts.dev; frame-src 'self' https://clerk.smartvid.app https://*.clerk.accounts.dev https://challenges.cloudflare.com; media-src 'self' https: blob:;"
                 );
                 
                 // Prevent clickjacking
