@@ -17,7 +17,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
  */
 function buildProviderForm({ title, description, grabUrl, getKey, setKey, clearKey, placeholder }) {
     const form = document.createElement('form');
-    form.className = 'w-full bg-black/30 border border-white/5 rounded-2xl p-5 mb-4';
+    form.className = 'w-full bg-black/30 border border-white/5 rounded-xl p-4 mb-3';
     form.autocomplete = 'off';
 
     const heading = document.createElement('h3');
@@ -119,15 +119,22 @@ export function SettingsModal(onClose) {
     };
 
     const modal = document.createElement('div');
-    modal.className = 'w-full max-w-md bg-panel-bg border border-white/10 rounded-3xl p-8 shadow-3xl animate-fade-in-up';
+    modal.className = 'relative w-full max-w-sm bg-panel-bg border border-white/10 rounded-2xl p-5 shadow-3xl animate-fade-in-up max-h-[90vh] overflow-y-auto';
+
+    // Top-right close (X) button
+    const closeX = document.createElement('button');
+    closeX.setAttribute('aria-label', 'Close');
+    closeX.innerHTML = '&times;';
+    closeX.className = 'absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 text-2xl leading-none transition-all';
+    closeX.onclick = removeModal;
 
     const title = document.createElement('h2');
     title.textContent = 'Welcome — set up your API keys';
-    title.className = 'text-xl font-black text-white mb-1';
+    title.className = 'text-lg font-black text-white mb-1 pr-8';
 
     const subtitle = document.createElement('p');
     subtitle.textContent = 'Add your provider API keys to create content. Each key is stored separately on this device. You can change these anytime from Settings.';
-    subtitle.className = 'text-[12px] text-muted mb-6';
+    subtitle.className = 'text-[12px] text-muted mb-4';
 
     const muapiForm = buildProviderForm({
         title: 'Muapi API Key',
@@ -181,6 +188,7 @@ export function SettingsModal(onClose) {
     modal.appendChild(openaiForm);
     modal.appendChild(videodbForm);
     modal.appendChild(closeRow);
+    modal.appendChild(closeX);
 
     overlay.appendChild(modal);
 
