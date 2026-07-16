@@ -5,6 +5,7 @@
 import { MuapiClient } from './muapi.js';
 import { supabase } from './supabase.js';
 import { browserVideoProcessor } from './browserVideoProcessor.js';
+import { videoDb } from './videoDb.js';
 
 // Storyboard presets from the React code
 const STORYBOARD_PRESETS = [
@@ -638,6 +639,44 @@ class DirectorAgentRuntime {
         } catch (supabaseError) {
           error = supabaseError;
           console.warn('[DirectorRuntime] Supabase invocation failed:', supabaseError.message);
+        }
+      }
+
+      // 3b) VideoDB retrieval (uses the user's VideoDB key). When the Director
+      //     is asked to act on an indexed video (videoId like m-xxx) or to find
+      //     source footage, resolve/retrieve it from the user's VideoDB account.
+      if (!result && videoDb.hasKey()) {
+        try {
+          if (params.videoId && /^m-/.test(String(params.videoId))) {
+            const streamUrl = await videoDb.getStreamUrl(params.videoId);
+            if (streamUrl) {
+              result = {
+                success: true,
+                source: 'videodb',
+                videoId: params.videoId,
+                videoUrl: streamUrl,
+                message: `Retrieved indexed video ${params.videoId} from VideoDB.`,
+              };
+              source = 'videodb';
+              console.log('[DirectorRuntime] Resolved video via VideoDB:', params.videoId);
+            }
+          } else if (params.prompt) {
+            const search = await videoDb.searchCollection(params.prompt, { resultThreshold: 5 });
+            const hits = search?.results || [];
+            if (hits.length) {
+              result = {
+                success: true,
+                source: 'videodb',
+                query: params.prompt,
+                results: hits,
+                message: `Found ${hits.length} matching clip(s) in VideoDB for "${params.prompt}".`,
+              };
+              source = 'videodb';
+              console.log('[DirectorRuntime] VideoDB semantic search returned', hits.length, 'results');
+            }
+          }
+        } catch (e) {
+          console.warn('[DirectorRuntime] VideoDB retrieval failed:', e.message);
         }
       }
 

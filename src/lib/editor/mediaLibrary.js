@@ -4,6 +4,8 @@
  * Enhanced with CineGen Elements system for consistent character/location/prop references
  */
 
+import { videoDb } from '../videoDb.js';
+
 // CineGen Elements System - Professional asset references for consistent video production
 const CINEGEN_ELEMENTS = {
   characters: [
@@ -987,4 +989,50 @@ export function filterMediaByType(type, mediaItems) {
     if (type === 'text') return media.label === 'Image Frame';
     return false;
   });
+}
+
+/**
+ * Add a video indexed in the user's VideoDB account to the timeline.
+ *
+ * The Timeline Editor uses the VideoDB API key (configured in Settings) to
+ * resolve a VideoDB media id (e.g. `m-12345`) to its streamable URL and drop
+ * it onto the timeline as a video clip. Requires the user to have added their
+ * VideoDB key; otherwise it surfaces a clear, actionable error.
+ *
+ * @param {string} videoId  VideoDB media id (must start with `m-`)
+ * @param {object} state    timeline editor state (tracks, assets, mediaLibrary)
+ * @param {Function} showToast  toast/notification callback
+ * @returns {Promise<boolean>} true if the clip was added
+ */
+export async function addVideoDBMediaToTimeline(videoId, state, showToast) {
+  if (!videoDb.hasKey()) {
+    showToast?.('Add your VideoDB API key in Settings to use VideoDB media.', 'error');
+    return false;
+  }
+  if (!/^m-/.test(String(videoId))) {
+    showToast?.('That does not look like a VideoDB media id (expected m-xxx).', 'error');
+    return false;
+  }
+  try {
+    const streamUrl = await videoDb.getStreamUrl(videoId);
+    if (!streamUrl) {
+      showToast?.('Could not resolve that VideoDB video.', 'error');
+      return false;
+    }
+    const media = {
+      type: 'video',
+      url: streamUrl,
+      label: `VideoDB ${videoId}`,
+      source: 'videodb',
+      id: videoId,
+      duration: 5,
+    };
+    addMediaToTimeline(media, state.mediaLibrary?.length || 0, state, showToast);
+    showToast?.('Added VideoDB video to timeline.', 'success');
+    return true;
+  } catch (err) {
+    console.error('[mediaLibrary] VideoDB add failed:', err);
+    showToast?.(err.message || 'VideoDB error', 'error');
+    return false;
+  }
 }

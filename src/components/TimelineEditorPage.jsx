@@ -468,7 +468,10 @@ export function TimelineEditorPage() {
       <div id="sidePanelMedia" class="side-panel" role="tabpanel" aria-labelledby="sidePanelMedia-tab">
       <aside class="side-card">
         <div class="card-title">📁 Media</div>
-        <button class="upload-btn" id="uploadBtn" data-tooltip="Upload media - Import video, image, or audio files into the project" aria-label="Upload media into the editor">Upload</button>
+        <div class="flex gap-2">
+          <button class="upload-btn" id="uploadBtn" data-tooltip="Upload media - Import video, image, or audio files into the project" aria-label="Upload media into the editor">Upload</button>
+          <button class="upload-btn" id="videoDbBtn" data-tooltip="Add a video from your VideoDB account (set your VideoDB API key in Settings)" aria-label="Add video from VideoDB">VideoDB</button>
+        </div>
         <div class="media-note">Choose what you want to add to the timeline. Each tile inserts a different type of source asset.</div>
         <div class="media-grid" id="mediaGrid"></div>
       </aside>
@@ -944,6 +947,7 @@ export function TimelineEditorPage() {
       chatInput: root.querySelector('#chatInput'),
       toast: root.querySelector('#toast'),
       uploadBtn: root.querySelector('#uploadBtn'),
+      videoDbBtn: root.querySelector('#videoDbBtn'),
       backBtn: root.querySelector('#backBtn'),
       uploadInput: root.querySelector('#uploadInput'),
       clipSettingsPanel: root.querySelector('#clipSettingsPanel'),
@@ -4475,6 +4479,17 @@ export function TimelineEditorPage() {
 
       els.uploadBtn.addEventListener('click', () => els.uploadInput.click());
       els.uploadInput.addEventListener('change', (event) => handleUpload(event.target.files?.[0]));
+
+      // VideoDB: add an indexed video to the timeline using the user's VideoDB
+      // API key (configured in Settings).
+      if (els.videoDbBtn) {
+        els.videoDbBtn.addEventListener('click', () => {
+          const id = prompt('Enter a VideoDB media id (e.g. m-12345):');
+          if (id && typeof window.__addVideoDBMedia === 'function') {
+            window.__addVideoDBMedia(id.trim());
+          }
+        });
+      }
       els.backBtn.addEventListener('click', () => showToast('Back action clicked'));
 
       // Mobile side-panel tab switching. On desktop all panels are visible

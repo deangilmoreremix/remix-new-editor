@@ -38,6 +38,25 @@ export function VideoAgentPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('videoId') || '';
     let videoUrl = urlParams.get('videoUrl') || '';
+
+    // If the page was opened with a VideoDB media id (m-xxx) and no direct URL,
+    // resolve the streamable URL through the user's VideoDB key so the agent
+    // can act on the indexed video. Runs best-effort; failures fall back to the
+    // existing empty-state flow.
+    if (videoId && !videoUrl && /^m-/.test(videoId)) {
+        import('../lib/videoDb.js').then(async ({ videoDb }) => {
+            if (!videoDb.hasKey()) return;
+            try {
+                const resolved = await videoDb.getStreamUrl(videoId);
+                if (resolved) {
+                    videoUrl = resolved;
+                    renderVideoPreview();
+                }
+            } catch (err) {
+                console.warn('[VideoAgentPage] VideoDB resolve failed:', err.message);
+            }
+        }).catch(() => {});
+    }
     
     const processingQueue = [];
     let isProcessing = false;

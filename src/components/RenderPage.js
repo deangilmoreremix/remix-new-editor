@@ -5,6 +5,7 @@ import { escapeHtml } from '../lib/security.js';
 import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTemplate, duplicateTemplate, listTemplates, listDrafts, sendToStoryboard } from '../lib/editor/renderActions.js';
 import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue, startProcessor, setRenderExecutor } from '../lib/editor/renderQueueStore.js';
 import { assetStore } from '../lib/assets/assetStore.js';
+import { videoDb } from '../lib/videoDb.js';
 
 import { generateSubtitles, generateHighlights, generateVoiceover, createShorts, runAiAutoEdit } from '../lib/editor/renderAiActions.js';
 
@@ -72,6 +73,19 @@ export function RenderPage() {
     }
     const asset = await assetStore.getAsset(assetId);
     if (!asset) {
+      // Not found locally: if the id looks like a VideoDB media id (m-xxx),
+      // try to resolve it through the user's VideoDB account (Render uses the
+      // VideoDB key for playback of indexed media).
+      if (videoDb.hasKey() && /^m-/.test(String(assetId))) {
+        try {
+          const streamUrl = await videoDb.getStreamUrl(assetId);
+          if (streamUrl) {
+            return { found: true, url: streamUrl, id: assetId, title: videoTitle };
+          }
+        } catch (err) {
+          console.warn('[Render] VideoDB resolve failed:', err.message);
+        }
+      }
       // Not found: caller shows a "video not found" state. No fallback to a
       // sample/default video.
       return { found: false, missing: true, id: assetId, title: videoTitle };
