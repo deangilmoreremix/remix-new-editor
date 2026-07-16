@@ -121,24 +121,24 @@ class VideoDBClient {
 
     /**
      * Resolve a VideoDB media id (e.g. `m-12345`) to its streamable URL.
-     * Used by Render to turn a `?videoId=m-xxx` deep link into a playable src.
+     * Used by Render / Video Agent / Timeline to turn a `?videoId=m-xxx` deep
+     * link into a playable src. The documented endpoint is
+     * `POST /video/{video_id}/stream/`, which returns `data.stream_url`
+     * (HLS by default; mp4/webm also supported).
      */
-    async getStreamUrl(videoId) {
-        // Re-index lookup isn't provided by a direct GET in the public API; the
-        // upload response already carries stream_url. For retrieval we hit the
-        // per-video search with an empty-ish query is wrong, so instead we rely
-        // on the standard `/video/{id}` GET used by the JS SDK under the hood.
-        const res = await fetch(this._url(`/video/${encodeURIComponent(videoId)}`), {
-            method: 'GET',
+    async getStreamUrl(videoId, { format = 'hls' } = {}) {
+        const res = await fetch(this._url(`/video/${encodeURIComponent(videoId)}/stream/`), {
+            method: 'POST',
             headers: this._headers(),
+            body: JSON.stringify({ format }),
         });
         if (!res.ok) {
             const detail = await res.text().catch(() => '');
-            throw new Error(`VideoDB get video failed (${res.status}): ${detail.slice(0, 200)}`);
+            throw new Error(`VideoDB stream failed (${res.status}): ${detail.slice(0, 200)}`);
         }
         const json = await res.json();
-        const video = json?.data ?? json;
-        return video?.stream_url || video?.player_url || null;
+        const data = json?.data ?? json;
+        return data?.stream_url || data?.player_url || null;
     }
 }
 
