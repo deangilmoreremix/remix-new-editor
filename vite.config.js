@@ -260,6 +260,19 @@ export default defineConfig({
     ],
     optimizeDeps: {
         entries: ['index.html'],
+        // Pre-bundle the ai-vfx studio's dependencies so the dynamic mount in
+        // AIVFXPage doesn't trigger a mid-import dep re-optimize (which aborts
+        // the import and used to leave the studio stuck on "Loading…").
+        include: [
+            'react',
+            'react-dom',
+            'react-dom/client',
+            '@chakra-ui/react',
+            '@emotion/react',
+            '@emotion/styled',
+            'framer-motion',
+            '@supabase/supabase-js',
+        ],
     },
     resolve: {
         alias: {

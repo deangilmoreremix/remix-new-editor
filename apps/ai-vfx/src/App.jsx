@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import {
+  ChakraProvider,
   Box, Flex, VStack, HStack, Text, Button, Card, CardBody, CardHeader,
   Badge, SimpleGrid, Image, Input, Select, useToast, Progress, Tabs, TabList,
   TabPanels, Tab, TabPanel, FormControl, FormLabel, Textarea, AspectRatio,
@@ -237,22 +238,21 @@ function App() {
   const currentEffects = activeTab === 0 ? VFX_EFFECTS : activeTab === 1 ? CAMERA_EFFECTS : AI_EFFECTS
 
   return (
-    <Box minH="100vh" bg="gray.900" color="white">
-      <Box position="fixed" top={0} left={0} right={0} bg="gray.800" p={4} zIndex={100}>
-        <Flex justify="space-between" align="center">
-          <HStack spacing={4}>
-            <Text fontSize="xl" fontWeight="bold">🎬 AI VFX Studio</Text>
-            <Badge colorScheme="purple">Powered by MuAPI</Badge>
-          </HStack>
+    <ChakraProvider>
+      {/* Root fills the parent shell's mount surface instead of the full
+          viewport. No fixed header (the shell already shows "AI VFX STUDIO")
+          and no minH=100vh, so the layout flows inside the embedded scroll
+          container instead of forcing a page-level scroll or overlapping. */}
+      <Box bg="gray.900" color="white" minH="100%" p={6}>
+        <Flex justify="space-between" align="center" mb={6}>
           <HStack spacing={2}>
             <Badge colorScheme="blue">VFX</Badge>
             <Badge colorScheme="green">Motion</Badge>
             <Badge colorScheme="orange">AI Effects</Badge>
           </HStack>
         </Flex>
-      </Box>
 
-      <Flex pt="70px" p={6} gap={6}>
+        <Flex gap={6} align="flex-start">
         <Box w="320px">
           <Card bg="gray.800" mb={4}>
             <CardHeader>
@@ -460,8 +460,10 @@ function App() {
             </Card>
           )}
         </Box>
+        </Flex>
       </Flex>
     </Box>
+    </ChakraProvider>
   )
 }
 

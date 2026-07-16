@@ -20,7 +20,7 @@ export function AIVFXPage() {
       </div>
       <div>
         <h1 class="text-xl font-black text-white">AI VFX STUDIO</h1>
-        <p class="text-xs text-secondary">Visual effects & motion generation • Powered by MuAPI</p>
+        <p class="text-xs text-secondary">Visual effects & motion generation</p>
       </div>
     </div>
   `;
@@ -43,12 +43,22 @@ export function AIVFXPage() {
   return container;
 }
 
-async function mountAIVFXApp(mount) {
+async function mountAIVFXApp(mount, attempt = 0) {
+  // Guard against double-mount: if a previous attempt already succeeded, skip.
+  if (mount.dataset.mounted === 'true') return;
+
   let root = null;
   try {
     const { createRoot } = await import('react-dom/client');
     root = createRoot(mount);
   } catch (err) {
+    // A network abort here usually means Vite invalidated the dep URLs because
+    // it kicked off a re-optimize (it just discovered a new dependency). Retry
+    // once the optimizer settles instead of leaving a permanent "Loading…".
+    if (attempt < 3 && isViteRerun(err)) {
+      scheduleRetry(mount, attempt + 1);
+      return;
+    }
     mount.innerHTML = renderFallback('React runtime unavailable', String(err?.message || err));
     console.warn('[AIVFXPage] react-dom/client unavailable', err);
     return;
@@ -62,11 +72,45 @@ async function mountAIVFXApp(mount) {
       throw new Error('apps/ai-vfx/src/App.jsx did not export a default component');
     }
     root.render(React.createElement(App));
+    mount.dataset.mounted = 'true';
   } catch (err) {
+    // If Vite re-optimized mid-import, the dynamic import is aborted and the
+    // dep URLs are stale. Retry after the optimizer finishes so the studio
+    // actually loads rather than getting stuck.
+    if (attempt < 3 && isViteRerun(err)) {
+      try { root?.unmount(); } catch (_) { /* noop */ }
+      scheduleRetry(mount, attempt + 1);
+      return;
+    }
     mount.innerHTML = renderFallback('Failed to mount AI VFX Studio', String(err?.message || err));
     console.error('[AIVFXPage] Failed to render ai-vfx App', err);
     try { root.unmount(); } catch (_) { /* noop */ }
   }
+}
+
+// Vite aborts in-flight module requests (ERR_ABORTED / "new dependencies
+// optimized, reloading") when it discovers a new dependency during a dev
+// session and re-runs the optimizer. Detect that specific situation so we can
+// retry the mount once the optimized deps are served.
+function isViteRerun(err) {
+  const msg = String(err?.message || err || '');
+  return (
+    /ERR_ABORTED/i.test(msg) ||
+    /new dependencies optimized/i.test(msg) ||
+    /Failed to fetch dynamically imported module/i.test(msg)
+  );
+}
+
+function scheduleRetry(mount, attempt) {
+  // Show a soft "reconnecting" state so the UI doesn't look frozen.
+  mount.innerHTML = `
+    <div style="padding:24px;color:rgba(255,255,255,0.55);font-size:13px;">
+      Loading AI VFX Studio… (preparing dependencies, attempt ${attempt + 1})
+    </div>
+  `;
+  // Vite signals completion by reloading the importing module; a short delay
+  // lets the optimizer finish and the new dep URLs become available.
+  setTimeout(() => mountAIVFXApp(mount, attempt), 600 * attempt);
 }
 
 function renderFallback(title, detail) {
