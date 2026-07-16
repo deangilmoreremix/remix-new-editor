@@ -23,9 +23,10 @@
     "dev:backend": "cd backend && npm run dev"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/plugin-proposal-decorators": "^7.29.7",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
-    "@tailwindcss/oxide-linux-x64-gnu": "4.3.2",
     "@testing-library/react": "^16.3.2",
     "@vitejs/plugin-react": "^4.7.0",
     "@vitest/ui": "^4.1.2",
