@@ -17,6 +17,12 @@ import { CameraEffects } from './timeline/CameraEffects.js';
 import AIChatPanel from './timeline/AIChatPanel.js';
 import TIMELINE_DESIGN_SYSTEM, { enforceDesignSystem } from '../lib/designSystemEnforcer.js';
 import { createVideoPreview } from '../lib/videoPlayer.js';
+// Design-system styles are imported statically so Vite bundles and emits them
+// into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
+// project-root path 404s in production because Vite never copies unreferenced
+// files into the build output.
+import '../styles/timeline-tokens.css';
+import '../styles/timeline-editor-page.css';
 // Import rendiv animation primitives
 import { interpolate, spring, blendColors, noise2D, useSequence, useSeries } from '../lib/editor/animationControls.jsx';
 // Agent system integration
@@ -587,26 +593,18 @@ export function TimelineEditorPage() {
 `;
 
   function injectStyles() {
-    // Styles are now external: styles/timeline-editor-page.css
-    // Load via <link> if not already present, to enable browser caching
-    // and keep the JS bundle smaller.
+    // No-op: the timeline design-system styles (timeline-tokens.css and
+    // timeline-editor-page.css) are now imported statically at the top of this
+    // module, so Vite bundles and emits them into the production build with
+    // correct (subpath-safe) URLs. Injecting them via a runtime <link> to a
+    // project-root path 404s in production because Vite never copies
+    // unreferenced files into dist/. Kept as a guard so existing call sites
+    // remain valid.
     if (document.getElementById('timeline-editor-styles')) return;
-
-    // Phase 0: design tokens must load BEFORE the component styles so that
-    // var(--tl-*) references resolve. Inserted ahead of the main stylesheet.
-    if (!document.getElementById('timeline-editor-tokens')) {
-      const tokens = document.createElement('link');
-      tokens.id = 'timeline-editor-tokens';
-      tokens.rel = 'stylesheet';
-      tokens.href = 'styles/timeline-tokens.css';
-      document.head.appendChild(tokens);
-    }
-
-    const link = document.createElement('link');
-    link.id = 'timeline-editor-styles';
-    link.rel = 'stylesheet';
-    link.href = 'styles/timeline-editor-page.css';
-    document.head.appendChild(link);
+    const marker = document.createElement('meta');
+    marker.id = 'timeline-editor-styles';
+    marker.name = 'timeline-editor-styles-loaded';
+    document.head.appendChild(marker);
   }
 
   // Memoize SVG data-URI generation so identical posters are created once and
