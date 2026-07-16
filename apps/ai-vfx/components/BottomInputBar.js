@@ -57,7 +57,7 @@ const BottomInputBar = ({
   function handleGenerateWithApiKey(e) {
     e.preventDefault && e.preventDefault();
     // Validation: require effect selection AND (image or text)
-    const hasImage = (uploadedFile && previewUrl) || (inputText && (inputText.startsWith('http://') || inputText.startsWith('https://')));
+    const hasImage = (uploadedFile && previewUrl) || (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('data:'))) || (inputText && (inputText.startsWith('http://') || inputText.startsWith('https://')));
     const hasText = inputText && inputText.trim().length > 0;
     // Dropdown validation
     if (!selectedAspect || !selectedDuration || !selectedResolution || !selectedQuality) {
@@ -560,7 +560,7 @@ const BottomInputBar = ({
               </div>
             )}
             {/* Preview uploaded (drag-and-drop / file picker) image */}
-            {uploadedFile && previewUrl && !imageUrl && (
+            {uploadedFile && previewUrl && (
               <div style={{
                 marginTop: '12px',
                 textAlign: 'left',
@@ -575,6 +575,7 @@ const BottomInputBar = ({
                   onClick={() => {
                     if (typeof setUploadedFile === 'function') setUploadedFile(null);
                     if (typeof setPreviewUrl === 'function') setPreviewUrl(null);
+                    if (typeof setImageUrl === 'function') setImageUrl('');
                   }}
                   style={{
                     position: 'absolute',

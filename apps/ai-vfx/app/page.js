@@ -86,16 +86,34 @@ const HomePage = () => {
     return validTypes.includes(file.type);
   };
 
-  // Handle file selection
-  const handleFileChange = (e) => {
+  // Convert a File to a base64 data URL so it flows through the exact same
+  // image_url path as the Image URL input (MuApi accepts data: URLs).
+  const fileToDataUrl = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+  // Handle file selection — store as data URL in imageUrl so generation uses
+  // the identical logic as pasting an image URL.
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file && isValidFile(file)) {
-      setUploadedFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
-    } else {
+    if (!file) return;
+    if (!isValidFile(file)) {
       setUploadedFile(null);
       setPreviewUrl(null);
-      if (file) alert('Please upload a valid image or video file.');
+      setImageUrl('');
+      alert('Please upload a valid image or video file.');
+      return;
+    }
+    setUploadedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setImageUrl(dataUrl);
+    } catch (err) {
+      alert('Could not read the selected file.');
     }
   };
 
@@ -110,20 +128,26 @@ const HomePage = () => {
     e.stopPropagation();
     setDragActive(false);
   };
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (isValidFile(file)) {
-        setUploadedFile(file);
-        setPreviewUrl(URL.createObjectURL(file));
-      } else {
-        setUploadedFile(null);
-        setPreviewUrl(null);
-        alert('Please upload a valid image or video file.');
-      }
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!file) return;
+    if (!isValidFile(file)) {
+      setUploadedFile(null);
+      setPreviewUrl(null);
+      setImageUrl('');
+      alert('Please upload a valid image or video file.');
+      return;
+    }
+    setUploadedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setImageUrl(dataUrl);
+    } catch (err) {
+      alert('Could not read the selected file.');
     }
   };
 
@@ -489,9 +513,11 @@ const HomePage = () => {
       quality: selectedQuality, // user-selected quality only
       duration: parseInt(selectedDuration), // user-selected duration only
     };
-    // Use imageUrl for image input
-    if (!imageUrl || !/^https?:\/\//.test(imageUrl)) {
-      setError('Please provide a valid image URL (http/https) using the image button.');
+    // Use imageUrl for image input — accepts either an http(s) URL or a
+    // data: URL produced from an uploaded file (same logic either way).
+    const isImageInput = imageUrl && (/^https?:\/\//.test(imageUrl) || /^data:/.test(imageUrl));
+    if (!isImageInput) {
+      setError('Please provide an image by uploading a file or pasting an image URL.');
       return;
     }
     videoPayload.image_url = imageUrl;
