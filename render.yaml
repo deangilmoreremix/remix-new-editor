@@ -7,7 +7,7 @@
 # after the first launch — Render does NOT read .env.local.
 
 services:
-  -     type: web
+  - type: web
     name: videoagent-backend
     runtime: node
     repo: https://github.com/deanellgilmoreremix/remix-new-editor.git

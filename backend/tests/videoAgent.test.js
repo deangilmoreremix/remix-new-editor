@@ -118,4 +118,24 @@ describe('VideoAgent API', () => {
     expect(res.status).toBe(400);
     expect(res.body.error).toMatch(/text is required/);
   });
+
+  test('GET /videoagent/file/:jobId serves the real upscale output', async () => {
+    const start = await request(app)
+      .post('/videoagent/process')
+      .send({ action: 'process-tool', tool: 'upscale' });
+    expect(start.status).toBe(200);
+    const final = await pollUntilDone(start.body.jobId);
+    expect(final.status).toBe('completed');
+    expect(final.url).toMatch(/^\/videoagent\/file\//);
+
+    const fileRes = await request(app).get(final.url);
+    expect(fileRes.status).toBe(200);
+    expect(fileRes.headers['content-type']).toMatch(/video\/mp4/);
+    expect(fileRes.body.length).toBeGreaterThan(0);
+  }, 90000);
+
+  test('GET /videoagent/file/:jobId returns 404 for unknown file', async () => {
+    const res = await request(app).get('/videoagent/file/nonexistent-job');
+    expect(res.status).toBe(404);
+  });
 });
