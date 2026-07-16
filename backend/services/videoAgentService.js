@@ -22,6 +22,7 @@ router.use(express.json({ limit: '50mb' }));
 router.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 const GLOBAL_OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+const GLOBAL_VIDEO_DB_KEY = process.env.VIDEO_DB_API_KEY || '';
 
 // Resolve the OpenAI key to use for a given job.
 // Users may supply their own key in the request body (`apiKey`); that takes
@@ -30,6 +31,71 @@ const GLOBAL_OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 function resolveApiKey(payload) {
   const fromBody = payload && (payload.apiKey || (payload.settings && payload.settings.apiKey));
   return (fromBody && String(fromBody).trim()) || GLOBAL_OPENAI_API_KEY || '';
+}
+
+// Resolve the user's VideoDB key. Sent in the request body (`videoDbKey` or
+// `settings.videoDbKey`); falls back to a server global key if configured.
+function resolveVideoDbKey(payload) {
+  const fromBody =
+    payload && (payload.videoDbKey || (payload.settings && payload.settings.videoDbKey));
+  return (fromBody && String(fromBody).trim()) || GLOBAL_VIDEO_DB_KEY || '';
+}
+
+const VIDEODB_BASE_URL = 'https://api.videodb.io';
+
+// Index/ingest a video URL into a VideoDB collection. Returns the media object.
+async function videoDbIndex(url, videoDbKey, { name, collectionId = 'default' } = {}) {
+  const res = await fetch(`${VIDEODB_BASE_URL}/collection/${encodeURIComponent(collectionId)}/upload`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
+    body: JSON.stringify({ url, name, media_type: 'video' }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`VideoDB index failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
+  const data = json.data ?? json;
+  return { id: data.id || data.media_id || data.video_id, streamUrl: data.stream_url || data.player_url, raw: data };
+}
+
+// Semantic search a query within a single indexed video (or a collection).
+async function videoDbSearch(videoId, query, videoDbKey, { indexType = 'scene', searchType = 'semantic', resultThreshold = 10 } = {}) {
+  const endpoint = videoId
+    ? `${VIDEODB_BASE_URL}/video/${encodeURIComponent(videoId)}/search/`
+    : `${VIDEODB_BASE_URL}/collection/default/search/`;
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
+    body: JSON.stringify({ query, index_type: indexType, search_type: searchType, result_threshold: resultThreshold }),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`VideoDB search failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
+  const data = json.data ?? json;
+  return Array.isArray(data) ? data : (data.results || []);
+}
+
+// OpenAI Responses API call (https://api.openai.com/v1/responses). Used for all
+// agent reasoning/generation in the Video Agent. Honors the user's own key.
+async function callResponsesApi(apiKey, { model = 'gpt-4.1', input, tools, text, temperature = 0.4 }) {
+  if (!apiKey) throw new Error('An OpenAI API key is required. Add your key in Settings → OpenAI.');
+  const body = { model, input, temperature };
+  if (tools) body.tools = tools;
+  if (text) body.text = text;
+  const res = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`OpenAI Responses API failed (${res.status}): ${t.slice(0, 200)}`);
+  }
+  const json = await res.json();
+  // Extract the assistant text from the Responses API output items.
+  const out = json.output || [];
+  const textParts = out
+    .filter((o) => o.type === 'message' || o.type === 'response.output_text')
+    .flatMap((o) => (o.content ? o.content.filter((c) => c.type === 'output_text').map((c) => c.text) : []));
+  const fullText = textParts.join('') || json.output_text || '';
+  return { text: fullText, raw: json };
 }
 
 const jobs = new Map();
@@ -347,6 +413,179 @@ async function runVisualTool(jobId, toolId, payload) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Video Agent "Agents" — VideoDB + OpenAI Responses API powered features.
+//
+// Each agent: (1) indexes the uploaded video into the user's VideoDB
+// collection (when a videoUrl + VideoDB key are present), (2) uses VideoDB
+// semantic/spoken/visual search to find moments, (3) uses the OpenAI
+// Responses API to generate the agent output. Results are real and served
+// via the job result. Agents that need no video (e.g. text-to-movie) work
+// from a prompt alone.
+// ─────────────────────────────────────────────────────────────────────────
+
+// Index the source video to VideoDB once per job (cached on the job payload).
+async function ensureIndexed(jobId, payload) {
+  const videoDbKey = resolveVideoDbKey(payload);
+  if (!videoDbKey) return null;
+  if (!payload.videoUrl || /^(blob:|data:)/i.test(payload.videoUrl)) return null;
+  if (payload._videoDbId) return payload._videoDbId;
+  updateJob(jobId, { stage: 'indexing-to-videodb' });
+  const indexed = await videoDbIndex(payload.videoUrl, videoDbKey, { name: payload.videoName || 'videoagent-source' });
+  payload._videoDbId = indexed.id;
+  return indexed.id;
+}
+
+async function runAgentJob(jobId, agentId, payload) {
+  const apiKey = resolveApiKey(payload);
+  const videoDbKey = resolveVideoDbKey(payload);
+  const needsKey = !['keyword-search', 'visual-search'].includes(agentId);
+  if (needsKey && !apiKey) {
+    return failJob(jobId, new Error('An OpenAI API key is required for this agent. Add your key in Settings → OpenAI.'));
+  }
+  try {
+    updateJob(jobId, { progress: 10, currentStep: 1, stage: 'preparing' });
+    const videoId = await ensureIndexed(jobId, payload);
+    const prompt = payload.prompt || payload.text || payload.query || '';
+
+    switch (agentId) {
+      case 'storyboarding': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'analyzing-scenes' });
+        const scenes = videoId ? await videoDbSearch(videoId, 'key scenes, actions and setting', videoDbKey, { indexType: 'scene' }) : [];
+        const sceneText = scenes.slice(0, 8).map((s, i) => `Scene ${i + 1} [${(s.start ?? 0)}s-${(s.end ?? 0)}s]: ${s.text || ''}`).join('\n');
+        const story = await callResponsesApi(apiKey, {
+          input: `You are a professional storyboard artist. Create a shot-by-shot storyboard for this video.\n\nVideo context:\n${sceneText || prompt}\n\nReturn a JSON array of shots, each with: shot_number, timestamp (seconds), description, camera (e.g. wide/close-up), and narration.`,
+        });
+        return completeJob(jobId, { agent: 'storyboarding', storyboard: story.text, shots: parseJsonArray(story.text), source: 'videodb+openai', exported: false });
+      }
+      case 'highlights': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'finding-highlights' });
+        const res = videoId ? await videoDbSearch(videoId, 'most exciting, important or emotional moments', videoDbKey, { indexType: 'scene', resultThreshold: 8 }) : [];
+        const moments = res.map((r, i) => ({ rank: i + 1, start: r.start ?? 0, end: r.end ?? 0, reason: (r.text || '').slice(0, 160) }));
+        const summary = await callResponsesApi(apiKey, {
+          input: `Summarize the top highlight moments of this video as a bulleted list. Moments:\n${moments.map((m) => `${m.start}s: ${m.reason}`).join('\n')}`,
+        });
+        return completeJob(jobId, { agent: 'highlights', highlights: moments, summary: summary.text, source: 'videodb+openai' });
+      }
+      case 'text-to-movie':
+      case 'text-to-video': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'writing-screenplay' });
+        const script = await callResponsesApi(apiKey, {
+          input: `You are a GenAI movie director. Turn this prompt into a cinematic shot list / screenplay for a short AI-generated film.\n\nPrompt: ${prompt || 'A heroic journey across a sci-fi city at sunset'}\n\nReturn JSON: { title, logline, shots: [{ shot, camera, action, voiceover }] }.`,
+        });
+        return completeJob(jobId, { agent: 'text-to-movie', screenplay: script.text, shots: parseJsonArray(script.text), source: 'openai-responses' });
+      }
+      case 'visual-search':
+      case 'keyword-search': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'searching' });
+        if (!videoId) return failJob(jobId, new Error('A video must be loaded (and a VideoDB key set) to search it.'));
+        const idx = agentId === 'keyword-search' ? 'spoken' : 'visual';
+        const res = await videoDbSearch(videoId, prompt || 'anything notable', videoDbKey, { indexType: idx });
+        const clips = res.map((r, i) => ({ index: i + 1, start: r.start ?? 0, end: r.end ?? 0, text: (r.text || '').slice(0, 200), score: r.score }));
+        return completeJob(jobId, { agent: agentId, query: prompt, results: clips, count: clips.length, source: 'videodb' });
+      }
+      case 'voice-cloning': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'synthesizing' });
+        const text = payload.text || 'This is a cloned-voice sample narrating your video.';
+        const syn = await synthesizeSpeech({ text, voice: payload.voice || 'alloy', apiKey });
+        const url = storeOutput(jobId, syn.audioBuffer, '.' + (syn.ext || 'mp3'));
+        return completeJob(jobId, { agent: 'voice-cloning', audioUrl: url, downloadUrl: url, text, note: 'OpenAI voice (clone with a Voiceprint when available)', source: 'openai-tts' });
+      }
+      case 'audio-overlay':
+      case 'gen-audio-overlays': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'generating-audio' });
+        const text = payload.text || payload.description || 'Add an energetic narration track over this video.';
+        const syn = await synthesizeSpeech({ text, voice: payload.voice || 'nova', apiKey });
+        const url = storeOutput(jobId, syn.audioBuffer, '.' + (syn.ext || 'mp3'));
+        return completeJob(jobId, { agent: 'audio-overlay', audioUrl: url, downloadUrl: url, text, source: 'openai-tts' });
+      }
+      case 'sales-assistant': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'analyzing-pitch' });
+        const transcript = videoId ? (await videoDbSearch(videoId, 'spoken words, product pitch, pricing, offer', videoDbKey, { indexType: 'spoken' })).map((r) => r.text || '').join(' ') : (payload.transcript || '');
+        const plan = await callResponsesApi(apiKey, {
+          input: `You are a sales-assistant CRM copilot. From this video/pitch, extract: customer pain, product offered, price, CTA, and a suggested CRM follow-up task + email. Pitch:\n${transcript.slice(0, 3000) || prompt}`,
+        });
+        return completeJob(jobId, { agent: 'sales-assistant', analysis: plan.text, crmTask: extractField(plan.text, 'follow-up'), source: 'videodb+openai' });
+      }
+      case 'comparison': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'comparing' });
+        const a = payload.videoUrlA || payload.textA || prompt;
+        const b = payload.videoUrlB || payload.textB || '';
+        const cmp = await callResponsesApi(apiKey, {
+          input: `Compare these two videos/descriptions on: content, style, audience, strengths, weaknesses. A: ${a}\nB: ${b}`,
+        });
+        return completeJob(jobId, { agent: 'comparison', comparison: cmp.text, source: 'openai-responses' });
+      }
+      case 'output-formatting': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'formatting' });
+        const fmt = payload.format || 'vertical 9:16';
+        const out = await callResponsesApi(apiKey, {
+          input: `Suggest the optimal export/output formatting for this video given target "${fmt}". Include resolution, aspect ratio, codec, platform (TikTok/IG/YT), and a caption template. Context: ${prompt}`,
+        });
+        return completeJob(jobId, { agent: 'output-formatting', recommendation: out.text, targetFormat: fmt, source: 'openai-responses' });
+      }
+      case 'dubbing':
+        return runDubbing(jobId, payload);
+      case 'thumbnail': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'choosing-thumbnail' });
+        const shots = videoId ? await videoDbSearch(videoId, 'most visually striking frame', videoDbKey, { indexType: 'visual', resultThreshold: 5 }) : [];
+        const pick = await callResponsesApi(apiKey, {
+          input: `Pick the best thumbnail frame and write a click-worthy title + 3 hashtags. Candidate frames:\n${shots.map((s, i) => `${i + 1}. ${s.text || ''} (${(s.start ?? 0)}s)`).join('\n')}\nVideo: ${prompt}`,
+        });
+        return completeJob(jobId, { agent: 'thumbnail', title: extractField(pick.text, 'title'), hashtags: extractHashtags(pick.text), rationale: pick.text, source: 'videodb+openai' });
+      }
+      case 'profanity': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'scanning-language' });
+        const transcript = videoId ? (await videoDbSearch(videoId, 'all spoken words', videoDbKey, { indexType: 'spoken', resultThreshold: 50 })).map((r) => r.text || '').join(' ') : (payload.transcript || '');
+        const clean = await callResponsesApi(apiKey, {
+          input: `Detect and list any profanity/non-family-safe language in this transcript, with timestamps if available, and suggest clean replacements. Transcript:\n${transcript.slice(0, 4000)}`,
+        });
+        return completeJob(jobId, { agent: 'profanity', report: clean.text, hasProfanity: /profan|inappropriate|not safe/i.test(clean.text), source: 'videodb+openai' });
+      }
+      case 'subtitle': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'generating-subtitles' });
+        const transcript = videoId ? (await videoDbSearch(videoId, 'all spoken words with timing', videoDbKey, { indexType: 'spoken', resultThreshold: 50 })).map((r) => r.text || '').join(' ') : '';
+        const sub = await callResponsesApi(apiKey, {
+          input: `Generate SRT subtitles (timestamped) from this transcript. Transcript:\n${transcript.slice(0, 4000) || prompt}`,
+        });
+        const srtUrl = storeOutput(jobId, sub.text, '.srt');
+        return completeJob(jobId, { agent: 'subtitle', srt: sub.text, srtUrl, downloadUrl: srtUrl, source: 'videodb+openai' });
+      }
+      case 'slack': {
+        updateJob(jobId, { progress: 40, currentStep: 2, stage: 'posting-to-slack' });
+        const summary = videoId ? (await videoDbSearch(videoId, 'summary of this video', videoDbKey, { indexType: 'scene' })).map((r) => r.text || '').join(' ') : prompt;
+        const webhook = process.env.SLACK_WEBHOOK_URL || (payload.settings && payload.settings.slackWebhook);
+        if (!webhook) return completeJob(jobId, { agent: 'slack', posted: false, note: 'Set SLACK_WEBHOOK_URL (Render env) or pass slackWebhook to post.', summary: summary.slice(0, 500) });
+        await fetch(webhook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: `🎬 Video Agent: ${summary.slice(0, 500)}` }) });
+        return completeJob(jobId, { agent: 'slack', posted: true, summary: summary.slice(0, 500) });
+      }
+      default:
+        return failJob(jobId, new Error(`Unsupported agent: ${agentId}`));
+    }
+  } catch (err) {
+    failJob(jobId, err);
+  }
+}
+
+// Small helpers for parsing agent LLM output.
+function parseJsonArray(text) {
+  if (!text) return [];
+  try {
+    const m = text.match(/\[[\s\S]*\]/);
+    if (m) return JSON.parse(m[0]);
+  } catch { /* ignore */ }
+  return [];
+}
+function extractField(text, label) {
+  if (!text) return '';
+  const m = text.match(new RegExp(`${label}\\s*[:\\-]?\\s*([^\\n]+)`, 'i'));
+  return m ? m[1].trim() : '';
+}
+function extractHashtags(text) {
+  if (!text) return [];
+  return (text.match(/#[\w-]+/g) || []).slice(0, 10);
+}
+
 async function runToolJob(jobId, toolId, payload) {
   switch (toolId) {
     case 'scene-detection':
@@ -368,13 +607,55 @@ async function runToolJob(jobId, toolId, payload) {
     case 'seed-vc':
       return runVoiceSynthesis(jobId, payload);
     case 'imagebind':
-      return failJob(jobId, new Error('imagebind requires an LLM/backend (set DIRECTOR_API_URL) — not available offline'));
+      return runAgentJob(jobId, 'visual-search', payload);
+    // ── New VideoDB + OpenAI Responses API agents ──
+    case 'storyboarding':
+    case 'highlights':
+    case 'text-to-movie':
+    case 'text-to-video':
+    case 'visual-search':
+    case 'keyword-search':
+    case 'voice-cloning':
+    case 'audio-overlay':
+    case 'gen-audio-overlays':
+    case 'sales-assistant':
+    case 'comparison':
+    case 'output-formatting':
+    case 'thumbnail':
+    case 'profanity':
+    case 'subtitle':
+    case 'slack':
+    case 'faceless-video':
+    case 'ai-ad-films':
+    case 'kids-storyteller':
+    case 'trailer-narration':
+    case 'tiktok-lyric':
+    case 'year-in-frames':
+    case 'intro-outro':
+    case 'brand-elements':
+    case 'dynamic-ads':
+      return runAgentJob(jobId, toolId, payload);
     default:
       return failJob(jobId, new Error(`Unsupported tool: ${toolId}`));
   }
 }
 
 async function runUseCaseJob(jobId, usecaseId, payload) {
+  // Use-case aliases → real VideoDB + OpenAI agent handlers (no more fakes).
+  const AGENT_ALIAS = {
+    overview: 'highlights',
+    qa: 'visual-search',
+    commentary: 'audio-overlay',
+    meme: 'meme',
+  };
+  if (AGENT_ALIAS[usecaseId]) {
+    // `meme` has its own handler below; the rest delegate to runAgentJob.
+    if (usecaseId === 'meme') {
+      return runMemeJob(jobId, payload);
+    }
+    return runAgentJob(jobId, AGENT_ALIAS[usecaseId], payload);
+  }
+
   const input = await resolveInput(payload);
   try {
     const steps = ['analyzing', 'processing', 'applying', 'complete'];
@@ -383,11 +664,9 @@ async function runUseCaseJob(jobId, usecaseId, payload) {
     if (usecaseId === 'music-video') {
       const up = await upscale(input, undefined, { width: 1920 });
       cleanup(up);
-    } else if (usecaseId === 'standup' || usecaseId === 'commentary') {
+    } else if (usecaseId === 'standup') {
       const st = await stabilize(input);
       cleanup(st);
-    } else if (usecaseId === 'overview' || usecaseId === 'qa') {
-      await detectScenes(input, 0.3);
     } else {
       const cc = await colorCorrect(input);
       cleanup(cc);
@@ -410,12 +689,8 @@ async function runUseCaseJob(jobId, usecaseId, payload) {
     cleanup(input);
 
     const outputs = {
-      standup: { result: 'Comedy timing applied', exported: true },
-      commentary: { result: 'Commentary overlay generated', exported: true },
-      overview: { result: 'Video overview generated', chapters: 4 },
-      meme: { result: 'Meme video created', exported: true },
+      standup: { result: 'Comedy timing applied (stabilized)', exported: true },
       'music-video': { result: 'Music sync applied', exported: true },
-      qa: { result: 'Q&A interactions generated', exported: true },
     };
 
     const result = outputs[usecaseId] || { result: 'Use case complete', exported: true };
@@ -431,6 +706,36 @@ async function runUseCaseJob(jobId, usecaseId, payload) {
     cleanup(input);
     failJob(jobId, err);
   }
+}
+
+// Meme generator: uses VideoDB scene context + OpenAI to write a meme concept,
+// then returns a downloadable titled caption card (real, not a fake string).
+async function runMemeJob(jobId, payload) {
+  const apiKey = resolveApiKey(payload);
+  if (!apiKey) return failJob(jobId, new Error('An OpenAI API key is required for the Meme Generator. Add your key in Settings → OpenAI.'));
+  try {
+    updateJob(jobId, { progress: 30, currentStep: 1, stage: 'brainstorming-meme' });
+    const videoDbKey = resolveVideoDbKey(payload);
+    const videoId = await ensureIndexed(jobId, payload);
+    const ctx = videoId ? (await videoDbSearch(videoId, 'funny or relatable moment', videoDbKey, { indexType: 'scene' })).map((r) => r.text || '').join(' ') : (payload.prompt || '');
+    const meme = await callResponsesApi(apiKey, {
+      input: `Create a viral meme based on this video. Return JSON: { topText, bottomText, format, caption }. Context: ${ctx.slice(0, 1500)}`,
+    });
+    const card = `MEME\n${(parseJsonObj(meme.text).topText) || ''}\n${(parseJsonObj(meme.text).bottomText) || ''}`;
+    const url = storeOutput(jobId, card, '.txt');
+    return completeJob(jobId, { agent: 'meme', meme: parseJsonObj(meme.text), text: card, downloadUrl: url, source: 'videodb+openai' });
+  } catch (err) {
+    failJob(jobId, err);
+  }
+}
+
+function parseJsonObj(text) {
+  if (!text) return {};
+  try {
+    const m = text.match(/\{[\s\S]*\}/);
+    if (m) return JSON.parse(m[0]);
+  } catch { /* ignore */ }
+  return {};
 }
 
 async function runFullPipelineJob(jobId, payload) {

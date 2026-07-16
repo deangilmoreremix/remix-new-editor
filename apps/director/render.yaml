@@ -1,10 +1,8 @@
-databases:
-  - name: director-db
-    databaseName: director_db
-    user: director_user
-    plan: free
-    region: singapore
-    postgresMajorVersion: "16"
+# NOTE: director-db already exists in the Render workspace, so it is NOT
+# re-declared here. Re-declaring it causes a blueprint validation error
+# ("cannot downgrade database"). The web services reference the existing
+# DB via `fromDatabase` below. If you ever delete director-db, add the
+# databases block back.
 
 services:
   - type: web
