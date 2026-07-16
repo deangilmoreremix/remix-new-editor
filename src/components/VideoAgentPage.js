@@ -3,6 +3,7 @@ import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { getSupabaseUrl, isSupabaseConfigured, uploadFileToStorage } from '../lib/supabase.js';
 import { browserVideoProcessor } from '../lib/browserVideoProcessor.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 
 const AI_TOOLS = [
     { id: 'scene-detection', name: 'Scene Detection', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'blue', description: 'Identify scene boundaries', category: 'understanding' },
@@ -38,25 +39,6 @@ export function VideoAgentPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('videoId') || '';
     let videoUrl = urlParams.get('videoUrl') || '';
-
-    // If the page was opened with a VideoDB media id (m-xxx) and no direct URL,
-    // resolve the streamable URL through the user's VideoDB key so the agent
-    // can act on the indexed video. Runs best-effort; failures fall back to the
-    // existing empty-state flow.
-    if (videoId && !videoUrl && /^m-/.test(videoId)) {
-        import('../lib/videoDb.js').then(async ({ videoDb }) => {
-            if (!videoDb.hasKey()) return;
-            try {
-                const resolved = await videoDb.getStreamUrl(videoId);
-                if (resolved) {
-                    videoUrl = resolved;
-                    renderVideoPreview();
-                }
-            } catch (err) {
-                console.warn('[VideoAgentPage] VideoDB resolve failed:', err.message);
-            }
-        }).catch(() => {});
-    }
     
     const processingQueue = [];
     let isProcessing = false;
@@ -463,6 +445,9 @@ export function VideoAgentPage() {
             : null;
 
         const callProcess = async (endpoint) => {
+            // Send the user's own OpenAI key so the backend (Render) bills/uses
+            // their account. Falls back to empty (backend uses its global key if set).
+            const userOpenAIKey = apiKeyManager.getOpenAIKey() || '';
             return await fetch(endpoint, {
                 method: 'POST',
                 signal: AbortSignal.any([abortController.signal, AbortSignal.timeout(90000)]),
@@ -473,12 +458,14 @@ export function VideoAgentPage() {
                     toolName: tool.name,
                     videoId,
                     videoUrl,
+                    apiKey: userOpenAIKey,
                     text: (NO_VIDEO_TOOLS.includes(tool.id)
                         ? 'Welcome to the studio. This is a synthesized voice sample for your project.'
                         : tool.description),
                     settings: {
                         quality: container.querySelector('select')?.value || '1080p',
                         format: container.querySelectorAll('select')[1]?.value || 'MP4',
+                        apiKey: userOpenAIKey,
                     },
                 }),
             });
@@ -576,8 +563,9 @@ export function VideoAgentPage() {
             ? `${getSupabaseUrl()}/functions/v1/videoagent`
             : null;
 
-        const callProcess = async (endpoint) =>
-            await fetch(endpoint, {
+        const callProcess = async (endpoint) => {
+            const userOpenAIKey = apiKeyManager.getOpenAIKey() || '';
+            return await fetch(endpoint, {
                 method: 'POST',
                 signal: AbortSignal.any([abortController.signal, AbortSignal.timeout(90000)]),
                 headers: { 'Content-Type': 'application/json' },
@@ -587,8 +575,11 @@ export function VideoAgentPage() {
                     usecaseName: usecase.name,
                     videoId,
                     videoUrl,
+                    apiKey: userOpenAIKey,
+                    settings: { apiKey: userOpenAIKey },
                 }),
             });
+        };
 
         let response = null;
         let usedEndpoint = null;
@@ -677,8 +668,9 @@ export function VideoAgentPage() {
             ? `${getSupabaseUrl()}/functions/v1/videoagent`
             : null;
 
-        const callProcess = async (endpoint) =>
-            await fetch(endpoint, {
+        const callProcess = async (endpoint) => {
+            const userOpenAIKey = apiKeyManager.getOpenAIKey() || '';
+            return await fetch(endpoint, {
                 method: 'POST',
                 signal: AbortSignal.any([abortController.signal, AbortSignal.timeout(90000)]),
                 headers: { 'Content-Type': 'application/json' },
@@ -686,9 +678,11 @@ export function VideoAgentPage() {
                     action: 'full-pipeline',
                     videoId,
                     videoUrl,
-                    settings: { quality: '1080p', format: 'MP4' },
+                    apiKey: userOpenAIKey,
+                    settings: { quality: '1080p', format: 'MP4', apiKey: userOpenAIKey },
                 }),
             });
+        };
 
         let response = null;
         let usedEndpoint = null;

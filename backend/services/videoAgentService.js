@@ -21,7 +21,16 @@ router.use(cors());
 router.use(express.json({ limit: '50mb' }));
 router.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+const GLOBAL_OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+
+// Resolve the OpenAI key to use for a given job.
+// Users may supply their own key in the request body (`apiKey`); that takes
+// precedence over the server's global key (set via Render env). This lets the
+// backend run on Render without a global key — each user brings their own.
+function resolveApiKey(payload) {
+  const fromBody = payload && (payload.apiKey || (payload.settings && payload.settings.apiKey));
+  return (fromBody && String(fromBody).trim()) || GLOBAL_OPENAI_API_KEY || '';
+}
 
 const jobs = new Map();
 
@@ -214,22 +223,23 @@ async function runHighlightDetection(jobId, payload) {
 
 async function runDubbing(jobId, payload) {
   const input = await resolveInput(payload);
+  const apiKey = resolveApiKey(payload);
   try {
     updateJob(jobId, { progress: 30, currentStep: 1 });
     const audioPath = await extractAudio(input);
 
     let transcript = '';
     let targetText = '';
-    if (OPENAI_API_KEY) {
+    if (apiKey) {
       const buffer = fs.readFileSync(audioPath);
-      const t = await transcribeWithWhisper(buffer);
+      const t = await transcribeWithWhisper(buffer, apiKey);
       transcript = t.text || '';
-      targetText = await translateText(transcript, payload.targetLanguage || 'es');
+      targetText = await translateText(transcript, payload.targetLanguage || 'es', apiKey);
     }
 
     let dubbedAudio = audioPath;
-    if (targetText && OPENAI_API_KEY) {
-      const syn = await synthesizeSpeech({ text: targetText, voice: payload.voice || 'alloy' });
+    if (targetText && apiKey) {
+      const syn = await synthesizeSpeech({ text: targetText, voice: payload.voice || 'alloy', apiKey });
       dubbedAudio = path.join(os.tmpdir(), `videoagent/va_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${syn.ext || 'mp3'}`);
       fs.writeFileSync(dubbedAudio, syn.audioBuffer);
     }
@@ -246,7 +256,7 @@ async function runDubbing(jobId, payload) {
       downloadUrl: url,
       transcript: transcript || null,
       targetLanguage: payload.targetLanguage || 'es',
-      source: OPENAI_API_KEY ? 'ffmpeg+openai' : 'ffmpeg',
+      source: apiKey ? 'ffmpeg+openai' : 'ffmpeg',
       exported: true,
     });
   } catch (err) {
@@ -256,8 +266,9 @@ async function runDubbing(jobId, payload) {
 }
 
 async function runTranscription(jobId, payload) {
-  if (!OPENAI_API_KEY) {
-    return failJob(jobId, new Error('OPENAI_API_KEY is required for transcription'));
+  const apiKey = resolveApiKey(payload);
+  if (!apiKey) {
+    return failJob(jobId, new Error('An OpenAI API key is required for transcription. Add your key in Settings → OpenAI.'));
   }
   const input = await resolveInput(payload);
   try {
@@ -265,7 +276,7 @@ async function runTranscription(jobId, payload) {
     const audioPath = await extractAudio(input);
     updateJob(jobId, { progress: 60, currentStep: 2 });
     const buffer = fs.readFileSync(audioPath);
-    const result = await transcribeWithWhisper(buffer);
+    const result = await transcribeWithWhisper(buffer, apiKey);
     cleanup(input);
     cleanup(audioPath);
     completeJob(jobId, {
@@ -280,12 +291,13 @@ async function runTranscription(jobId, payload) {
 }
 
 async function runVoiceSynthesis(jobId, payload) {
-  if (!OPENAI_API_KEY) {
-    return failJob(jobId, new Error('OPENAI_API_KEY is required for voice synthesis (TTS)'));
+  const apiKey = resolveApiKey(payload);
+  if (!apiKey) {
+    return failJob(jobId, new Error('An OpenAI API key is required for voice synthesis (TTS). Add your key in Settings → OpenAI.'));
   }
   try {
     const text = payload.text || payload.prompt || 'This is a synthesized voice sample.';
-    const syn = await synthesizeSpeech({ text, voice: payload.voice || 'alloy', model: payload.model || 'tts-1' });
+    const syn = await synthesizeSpeech({ text, voice: payload.voice || 'alloy', model: payload.model || 'tts-1', apiKey });
     const url = storeOutput(jobId, syn.audioBuffer, '.' + (syn.ext || 'mp3'));
     completeJob(jobId, {
       audioUrl: url,
@@ -560,7 +572,8 @@ router.get('/file/:fileId', (req, res) => {
 
 router.post('/transcribe', async (req, res) => {
   try {
-    const result = await transcribeWithWhisper(req.body && req.body.input);
+    const apiKey = resolveApiKey(req.body || {});
+    const result = await transcribeWithWhisper(req.body && req.body.input, apiKey);
     res.json({ success: true, transcription: result.text, raw: result });
   } catch (error) {
     console.error('[videoagent] transcription failed:', error);
@@ -575,7 +588,8 @@ router.post('/tts/synthesize', async (req, res) => {
       return res.status(400).json({ error: 'text is required' });
     }
 
-    const result = await synthesizeSpeech({ text, voice: voice || 'alloy', model: model || 'tts-1' });
+    const apiKey = resolveApiKey(req.body || {});
+    const result = await synthesizeSpeech({ text, voice: voice || 'alloy', model: model || 'tts-1', apiKey });
     res.set('Content-Type', result.mimeType);
     res.send(result.audioBuffer);
   } catch (error) {
@@ -585,9 +599,9 @@ router.post('/tts/synthesize', async (req, res) => {
 });
 
 // OpenAI Whisper transcription
-async function transcribeWithWhisper(input) {
-  if (!OPENAI_API_KEY) {
-    throw new Error('Missing OPENAI_API_KEY');
+async function transcribeWithWhisper(input, apiKey) {
+  if (!apiKey) {
+    throw new Error('Missing OpenAI API key. Add your key in Settings → OpenAI.');
   }
 
   let formData;
@@ -608,7 +622,7 @@ async function transcribeWithWhisper(input) {
 
   const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+    headers: { Authorization: `Bearer ${apiKey}` },
     body: formData,
   });
 
@@ -621,14 +635,14 @@ async function transcribeWithWhisper(input) {
 }
 
 // OpenAI TTS synthesis
-async function synthesizeSpeech({ text, voice = 'alloy', model = 'tts-1' }) {
-  if (!OPENAI_API_KEY) {
-    throw new Error('Missing OPENAI_API_KEY');
+async function synthesizeSpeech({ text, voice = 'alloy', model = 'tts-1', apiKey }) {
+  if (!apiKey) {
+    throw new Error('Missing OpenAI API key. Add your key in Settings → OpenAI.');
   }
 
   const response = await fetch('https://api.openai.com/v1/audio/speech', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({ model, input: text, voice }),
   });
 
@@ -647,10 +661,13 @@ async function synthesizeSpeech({ text, voice = 'alloy', model = 'tts-1' }) {
 }
 
 // OpenAI chat translation (used by dubbing)
-async function translateText(text, targetLanguage) {
+async function translateText(text, targetLanguage, apiKey) {
+  if (!apiKey) {
+    throw new Error('Missing OpenAI API key. Add your key in Settings → OpenAI.');
+  }
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_API_KEY}` },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
       model: 'gpt-4o-mini',
       messages: [

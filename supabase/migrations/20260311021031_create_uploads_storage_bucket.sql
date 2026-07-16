@@ -2,7 +2,7 @@
 --
 -- 1. New Storage Bucket
 --    - uploads: Public bucket for user-uploaded reference images and videos
---    - File size limit: 10MB
+--    - File size limit: 50MB (room for short reference videos)
 --    - Allowed MIME types: image and video formats
 --
 -- 2. Security
@@ -19,7 +19,7 @@ VALUES (
   'uploads',
   'uploads',
   true,
-  10485760,
+  52428800,
   ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'video/mp4', 'video/webm', 'video/quicktime']
 )
 ON CONFLICT (id) DO NOTHING;
