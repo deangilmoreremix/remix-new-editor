@@ -21,8 +21,8 @@ import { createVideoPreview } from '../lib/videoPlayer.js';
 // into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
 // project-root path 404s in production because Vite never copies unreferenced
 // files into the build output.
-import '../styles/timeline-tokens.css';
-import '../styles/timeline-editor-page.css';
+import '../../styles/timeline-tokens.css';
+import '../../styles/timeline-editor-page.css';
 // Import rendiv animation primitives
 import { interpolate, spring, blendColors, noise2D, useSequence, useSeries } from '../lib/editor/animationControls.jsx';
 // Agent system integration
