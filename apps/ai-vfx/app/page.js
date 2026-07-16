@@ -233,6 +233,27 @@ const HomePage = () => {
       trigger_word: "cr34sh crash zoom out effect",
       input_type: "i2v",
     },
+    { 
+      url: 'https://d3adwkbyhxyrtq.cloudfront.net/motioncontrols/Dolly+In.webp', 
+      name: 'Dolly In',
+      path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/dolly-in/adapter_model.safetensors",
+      trigger_word: "d0lly dolly in camera move",
+      input_type: "i2v",
+    },
+    { 
+      url: 'https://d3adwkbyhxyrtq.cloudfront.net/motioncontrols/Dolly+Out.webp', 
+      name: 'Dolly Out',
+      path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/dolly-out/adapter_model.safetensors",
+      trigger_word: "d0lly dolly out camera move",
+      input_type: "i2v",
+    },
+    { 
+      url: 'https://d3adwkbyhxyrtq.cloudfront.net/motioncontrols/Vertigo.webp', 
+      name: 'Vertigo Effect',
+      path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/vertigo/adapter_model.safetensors",
+      trigger_word: "v3rt1go vertigo effect dolly zoom",
+      input_type: "i2v",
+    },
   ];
 
   // VFX Controls (from utility.json)
@@ -319,6 +340,27 @@ const HomePage = () => {
       name: 'Building Explosion',
       path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/77a2daa2-c255-4ea8-9581-594853a6d96e/adapter_model.safetensors",
       trigger_word: "b32ldi4ng exp39lsion the building explodes in a massive blast",
+      input_type: "i2v",
+    },
+    { 
+      url: 'https://d3adwkbyhxyrtq.cloudfront.net/motioncontrols/Invisibility.webp', 
+      name: 'Invisibility',
+      path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/invisibility/adapter_model.safetensors",
+      trigger_word: "1nv1s1bl3 invisibility effect fading away",
+      input_type: "i2v",
+    },
+    { 
+      url: 'https://d3adwkbyhxyrtq.cloudfront.net/motioncontrols/Tentacles.webp', 
+      name: 'Tentacles',
+      path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/tentacles/adapter_model.safetensors",
+      trigger_word: "t3nt4cl3s supernatural tentacles wrap around",
+      input_type: "i2v",
+    },
+    { 
+      url: 'https://d3adwkbyhxyrtq.cloudfront.net/motioncontrols/Turning+Metal.webp', 
+      name: 'Turning Metal',
+      path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/turning-metal/adapter_model.safetensors",
+      trigger_word: "t4rn1ng m3t4l body turns to metal",
       input_type: "i2v",
     },
   ];
@@ -659,9 +701,9 @@ const HomePage = () => {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <span style={{ color: 'white', fontWeight: 'bold', fontSize: '14px' }}>V</span>
+              <span style={{ color: 'white', fontWeight: 'bold', fontSize: '14px' }}>AI</span>
             </div>
-            <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>vadoo AI</span>
+            <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>AI VFX Studio</span>
           </div>
         </div>
 
