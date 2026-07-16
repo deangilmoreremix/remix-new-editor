@@ -593,7 +593,7 @@ const HomePage = () => {
     <div
       style={{
         minHeight: '100vh',
-        background: '#111',
+        background: '#07090d',
         color: 'white',
         display: 'flex',
         flexDirection: 'column',
@@ -610,7 +610,7 @@ const HomePage = () => {
           position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.55)', zIndex: 2000,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <div style={{ background: '#232b39', padding: 32, borderRadius: 16, minWidth: 340, minHeight: 220, boxShadow: '0 4px 32px 0 #0008', color: '#fff', display: 'flex', flexDirection: 'column', gap: 18, alignItems: 'center', position: 'relative' }}>
+          <div style={{ background: '#0e1117', padding: 32, borderRadius: 16, minWidth: 340, minHeight: 220, boxShadow: '0 4px 32px 0 #0008', color: '#fff', display: 'flex', flexDirection: 'column', gap: 18, alignItems: 'center', position: 'relative' }}>
             {/* Close button */}
             <button
               onClick={() => {
@@ -629,7 +629,7 @@ const HomePage = () => {
               style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: '#fff', fontSize: 22, cursor: 'pointer', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
               title="Close"
               aria-label="Close"
-              onMouseOver={e => e.currentTarget.style.background = '#2d2d2d'}
+               onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
               onMouseOut={e => e.currentTarget.style.background = 'none'}
             >×</button>
             {/* Loading or Video */}
@@ -638,8 +638,8 @@ const HomePage = () => {
                 <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8, textAlign: 'center' }}>
                   <span role="img" aria-label="hourglass">⏳</span> Generating your video...
                 </div>
-                <div style={{ width: 320, maxWidth: '90vw', height: 8, background: '#18181b', borderRadius: 8, margin: '0 auto', overflow: 'hidden' }}>
-                  <div className="loading-bar" style={{ width: '100%', height: '100%', background: 'linear-gradient(90deg,#60a5fa 0%,#3b82f6 100%)', animation: 'loadingBarAnim 1.2s linear infinite' }} />
+                <div style={{ width: 320, maxWidth: '90vw', height: 8, background: 'rgba(255,255,255,0.04)', borderRadius: 8, margin: '0 auto', overflow: 'hidden' }}>
+                  <div className="loading-bar" style={{ width: '100%', height: '100%', background: 'linear-gradient(90deg,#22d3ee 0%,#34d399 100%)', animation: 'loadingBarAnim 1.2s linear infinite' }} />
                 </div>
                 <style>{`
                   @keyframes loadingBarAnim {
@@ -656,7 +656,7 @@ const HomePage = () => {
                 </div>
                 <video src={videoUrl} controls style={{ maxWidth: 400, maxHeight: 300, borderRadius: 10, marginBottom: 12, background: '#000' }} />
                 <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-                  <a href={videoUrl} download target="_blank" rel="noopener noreferrer" style={{ padding: '8px 18px', borderRadius: 8, background: '#3b82f6', color: '#fff', border: 'none', fontWeight: 600, fontSize: 15, textDecoration: 'none', cursor: 'pointer' }}>Download</a>
+                  <a href={videoUrl} download target="_blank" rel="noopener noreferrer" style={{ padding: '8px 18px', borderRadius: 8, background: '#22d3ee', color: '#07090d', border: 'none', fontWeight: 600, fontSize: 15, textDecoration: 'none', cursor: 'pointer' }}>Download</a>
                   <button
                     onClick={() => {
                       setShowVideoModal(false);
@@ -671,7 +671,7 @@ const HomePage = () => {
                       setPreviewUrl(null);
                       setSelectedEffect(null);
                     }}
-                    style={{ padding: '8px 18px', borderRadius: 8, background: '#232b39', color: '#fff', border: '1px solid #444', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}
+                    style={{ padding: '8px 18px', borderRadius: 8, background: '#0e1117', color: '#fff', border: '1px solid rgba(255,255,255,0.16)', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}
                   >Close</button>
                 </div>
               </>
@@ -707,21 +707,21 @@ const HomePage = () => {
         </div>
       )}
       {/* Main Content */}
-      <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#111' }}>
+      <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#07090d' }}>
         {/* Top Header */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           padding: '16px 24px',
-          borderBottom: '1px solid #2d2d2d',
+          borderBottom: '1px solid rgba(255,255,255,0.10)',
           width: '100%'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
               width: '32px',
               height: '32px',
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%)',
+          background: 'linear-gradient(135deg, #22d3ee 0%, #34d399 100%)',
               borderRadius: '4px',
               display: 'flex',
               alignItems: 'center',
@@ -739,7 +739,7 @@ const HomePage = () => {
           alignItems: 'center',
           gap: '8px',
           padding: '16px 24px',
-          borderBottom: '1px solid #2d2d2d',
+          borderBottom: '1px solid rgba(255,255,255,0.10)',
           overflowX: 'auto',
           width: '100%'
         }}>
@@ -753,8 +753,8 @@ const HomePage = () => {
                 gap: '8px',
                 padding: '8px 16px',
                 borderRadius: '20px',
-                border: `1px solid ${activeFilter === filter.name ? '#3b82f6' : '#2d2d2d'}`,
-                backgroundColor: activeFilter === filter.name ? '#1a1a1a' : 'transparent',
+                border: `1px solid ${activeFilter === filter.name ? '#22d3ee' : 'rgba(255,255,255,0.10)'}`,
+                backgroundColor: activeFilter === filter.name ? 'rgba(255,255,255,0.05)' : 'transparent',
                 color: activeFilter === filter.name ? 'white' : '#9ca3af',
                 whiteSpace: 'nowrap',
                 cursor: 'pointer',
@@ -788,10 +788,10 @@ const HomePage = () => {
                 key={index}
                 style={{
                   cursor: 'pointer',
-                  backgroundColor: selectedEffect && selectedEffect.name === effect.name ? '#3b82f6' : '#1a1a1a',
+                  backgroundColor: selectedEffect && selectedEffect.name === effect.name ? '#22d3ee' : 'rgba(255,255,255,0.05)',
                   borderRadius: '12px',
                   overflow: 'hidden',
-                  border: selectedEffect && selectedEffect.name === effect.name ? '2px solid #3b82f6' : '1px solid #2d2d2d',
+                  border: selectedEffect && selectedEffect.name === effect.name ? '2px solid #22d3ee' : '1px solid rgba(255,255,255,0.10)',
                   display: 'flex',
                   flexDirection: 'column',
                   minHeight: '200px'
@@ -801,10 +801,10 @@ const HomePage = () => {
                 <div style={{
                   position: 'relative',
                   aspectRatio: '4/3',
-                  backgroundColor: '#1a1a1a',
+                  backgroundColor: 'rgba(255,255,255,0.05)',
                   borderRadius: '12px 12px 0 0',
                   overflow: 'hidden',
-                  borderBottom: '1px solid #2d2d2d',
+                  borderBottom: '1px solid rgba(255,255,255,0.10)',
                   flex: 1,
                   display: 'flex',
                   alignItems: 'center',
@@ -833,7 +833,7 @@ const HomePage = () => {
                       width: '40px',
                       height: '40px',
                       borderRadius: '50%',
-                      backgroundColor: '#3b82f6',
+                      backgroundColor: '#22d3ee',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
@@ -879,10 +879,10 @@ const HomePage = () => {
                 key={index}
                 style={{
                   cursor: 'pointer',
-                  backgroundColor: selectedEffect && selectedEffect.name === control.name ? '#3b82f6' : '#1a1a1a',
+                  backgroundColor: selectedEffect && selectedEffect.name === control.name ? '#22d3ee' : 'rgba(255,255,255,0.05)',
                   borderRadius: '12px',
                   overflow: 'hidden',
-                  border: selectedEffect && selectedEffect.name === control.name ? '2px solid #3b82f6' : '1px solid #2d2d2d',
+                  border: selectedEffect && selectedEffect.name === control.name ? '2px solid #22d3ee' : '1px solid rgba(255,255,255,0.10)',
                   display: 'flex',
                   flexDirection: 'column',
                   minHeight: '200px'
@@ -892,10 +892,10 @@ const HomePage = () => {
                 <div style={{
                   position: 'relative',
                   aspectRatio: '4/3',
-                  backgroundColor: '#1a1a1a',
+                  backgroundColor: 'rgba(255,255,255,0.05)',
                   borderRadius: '12px 12px 0 0',
                   overflow: 'hidden',
-                  borderBottom: '1px solid #2d2d2d',
+                  borderBottom: '1px solid rgba(255,255,255,0.10)',
                   flex: 1,
                   display: 'flex',
                   alignItems: 'center',
@@ -948,10 +948,10 @@ const HomePage = () => {
                 key={index}
                 style={{
                   cursor: 'pointer',
-                  backgroundColor: selectedEffect && selectedEffect.name === vfx.name ? '#3b82f6' : '#1a1a1a',
+                  backgroundColor: selectedEffect && selectedEffect.name === vfx.name ? '#22d3ee' : 'rgba(255,255,255,0.05)',
                   borderRadius: '12px',
                   overflow: 'hidden',
-                  border: selectedEffect && selectedEffect.name === vfx.name ? '2px solid #3b82f6' : '1px solid #2d2d2d',
+                  border: selectedEffect && selectedEffect.name === vfx.name ? '2px solid #22d3ee' : '1px solid rgba(255,255,255,0.10)',
                   display: 'flex',
                   flexDirection: 'column',
                   minHeight: '200px'
@@ -961,10 +961,10 @@ const HomePage = () => {
                 <div style={{
                   position: 'relative',
                   aspectRatio: '4/3',
-                  backgroundColor: '#1a1a1a',
+                  backgroundColor: 'rgba(255,255,255,0.05)',
                   borderRadius: '12px 12px 0 0',
                   overflow: 'hidden',
-                  borderBottom: '1px solid #2d2d2d',
+                  borderBottom: '1px solid rgba(255,255,255,0.10)',
                   flex: 1,
                   display: 'flex',
                   alignItems: 'center',
@@ -1039,7 +1039,7 @@ const HomePage = () => {
             bottom: '80px',
             right: '40px',
             zIndex: 30,
-            background: 'linear-gradient(120deg, #232b39 0%, #3b82f6 100%)',
+          background: 'linear-gradient(120deg, #0e1117 0%, #22d3ee 100%)',
             color: 'white',
             border: 'none',
             borderRadius: '50%',
@@ -1066,14 +1066,14 @@ const HomePage = () => {
             position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.45)', zIndex: 1000,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <div style={{ background: '#232b39', padding: 32, borderRadius: 16, minWidth: 320, boxShadow: '0 4px 32px 0 #0008', color: '#fff', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ background: '#0e1117', padding: 32, borderRadius: 16, minWidth: 320, boxShadow: '0 4px 32px 0 #0008', color: '#fff', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Enter your MuApi API Key</div>
               <input
                 type="password"
                 value={apiKeyInput}
                 onChange={e => setApiKeyInput(e.target.value)}
                 placeholder="API Key"
-                style={{ padding: 10, borderRadius: 8, border: '1px solid #333', fontSize: 16, background: '#18181b', color: '#fff' }}
+                style={{ padding: 10, borderRadius: 8, border: '1px solid rgba(255,255,255,0.16)', fontSize: 16, background: 'rgba(255,255,255,0.04)', color: '#fff' }}
                 autoFocus
                 disabled={status === 'submitting' || status === 'polling'}
               />
@@ -1083,7 +1083,7 @@ const HomePage = () => {
                     setShowApiKeyModal(false);
                     setApiKeyInput('');
                   }}
-                  style={{ padding: '8px 18px', borderRadius: 8, background: '#232b39', color: '#fff', border: '1px solid #444', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}
+                  style={{ padding: '8px 18px', borderRadius: 8, background: '#0e1117', color: '#fff', border: '1px solid rgba(255,255,255,0.16)', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}
                   disabled={status === 'submitting' || status === 'polling'}
                 >Cancel</button>
                 <button
@@ -1091,7 +1091,7 @@ const HomePage = () => {
                     setShowApiKeyModal(false);
                     startGenerationWithKey(apiKeyInput);
                   }}
-                  style={{ padding: '8px 18px', borderRadius: 8, background: '#3b82f6', color: '#fff', border: 'none', fontWeight: 600, fontSize: 15, cursor: (!apiKeyInput.trim() || status === 'submitting' || status === 'polling') ? 'not-allowed' : 'pointer', opacity: (!apiKeyInput.trim() || status === 'submitting' || status === 'polling') ? 0.6 : 1 }}
+                  style={{ padding: '8px 18px', borderRadius: 8, background: '#22d3ee', color: '#07090d', border: 'none', fontWeight: 600, fontSize: 15, cursor: (!apiKeyInput.trim() || status === 'submitting' || status === 'polling') ? 'not-allowed' : 'pointer', opacity: (!apiKeyInput.trim() || status === 'submitting' || status === 'polling') ? 0.6 : 1 }}
                   disabled={!apiKeyInput.trim() || status === 'submitting' || status === 'polling'}
                 >Continue</button>
               </div>

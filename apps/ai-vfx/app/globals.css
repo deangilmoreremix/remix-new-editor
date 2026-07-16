@@ -1,5 +1,40 @@
-body {
+/* ============================================================
+   AI VFX Studio — global styles
+   Color scheme aligned with the shared studio design system
+   (styles/timeline-tokens.css): dark base, cyan->emerald accent.
+   ============================================================ */
+:root {
+  /* Surfaces (from the shared design tokens) */
+  --bg: #07090d;
+  --bg-app: #07090d;
+  --surface-1: rgba(255, 255, 255, 0.03);
+  --surface-2: rgba(255, 255, 255, 0.05);
+  --surface-3: rgba(255, 255, 255, 0.08);
+  --surface-sunken: rgba(0, 0, 0, 0.20);
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.10);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  /* Text */
+  --text: rgba(255, 255, 255, 0.86);
+  --text-strong: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.60);
+
+  /* Brand accent (cyan / emerald) */
+  --cyan: #22d3ee;
+  --cyan-soft: rgba(34, 211, 238, 0.22);
+  --cyan-faint: rgba(34, 211, 238, 0.10);
+  --emerald: #34d399;
+  --accent-grad: linear-gradient(to right, #22d3ee, #34d399);
+}
+
+html, body {
   margin: 0;
   padding: 0;
-  background: #111;
+  box-sizing: border-box;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
 }
