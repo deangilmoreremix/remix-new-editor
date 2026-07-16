@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -8,6 +8,7 @@ import fs from 'fs';
 // src/lib/ that are not part of the media-creation flow. Returns an empty
 // default-export so the bundle resolves and the build completes. Stubs are
 // gated by an explicit allow-list to avoid masking real issues elsewhere.
+
 const STUB_IMPORTER_PREFIXES = [
   'components/',
   'lib/',
@@ -26,10 +27,9 @@ const stubLegacy = () => ({
     // Never stub imports from the landing page — those are new-style
     // modules that must resolve to their real files.
     if (importer.includes('src/components/landing/')) return null;
-    // Try Vite's full resolution. If the import resolves to a real module
-    // (an npm package OR a legacy-tree file), let Vite load it normally so
-    // the studios actually work. We only stub imports that are genuinely
-    // unresolvable, to keep the build from crashing on missing legacy files.
+    // Try Vite's full resolution. If the source resolves to a file
+    // outside the legacy tree (e.g. an npm package in node_modules),
+    // let Vite handle it normally.
     const resolved = await this.resolve(source, importer, { skipSelf: true });
     if (resolved) return null;
 
@@ -126,7 +126,204 @@ const stubLegacy = () => ({
   },
 });
 
-// Security headers middleware
+// fixLegacyImports — remaps webpack/CRA-style specifiers left over from this
+// repo's pre-Vite origin to real files under src/ (or, for some legacy
+// modules, still at the repo root), and rewrites imports that resolve into
+// /public (which Vite forbids importing as modules) to a virtual module
+// exporting the asset's public URL.
+//
+// The legacy `components/` tree references these roots with relative
+// `../../` specifiers and no leading "/", e.g.:
+//   import { Component } from "../../../../base/Component.js";
+//   import { getStore } from "../../../stores/base/Store.js";
+//   import utils from "../../../lib/lottie/utils";
+//   import asset from "../../../../public/static/images/icon.svg";
+//   import { Component } from "../../vite-remix-editor/src/components/base/Component.js";
+//
+// It only acts on imports that currently FAIL to resolve (or that resolve into
+// /public), so healthy imports are never touched. This complements stubLegacy,
+// which stubs imports that fail resolution entirely.
+const fixLegacyImports = () => {
+  const isPublic = (id) =>
+    id.includes(`${path.sep}public${path.sep}`) || id.endsWith(`${path.sep}public`);
+
+  const publicUrl = (id) => {
+    const rel = id.split(`public${path.sep}`)[1].split(path.sep).join('/');
+    return '\0public-url:' + rel;
+  };
+
+  // Logical root-relative heads that identify a legacy specifier. Order is
+  // significant: more specific heads must be listed before their prefix.
+  const LEGACY_HEADS = [
+    'vite-remix-editor/src/',
+    'vite-remix-editor/',
+    'base/Component.js',
+    'base/Store.js',
+    'stores/',
+    'hoc/',
+    'lib/',
+    'components/',
+    'public/',
+  ];
+
+  return {
+    name: 'fix-legacy-imports',
+    enforce: 'pre',
+    async resolveId(source, importer) {
+      if (!importer || importer.includes('node_modules')) return null;
+      if (source.startsWith('\0')) return null;
+      if (/\.html(\?|$)/i.test(source)) return null;
+
+      // IMPORTANT: do NOT call Vite's resolver (this.resolve) here. stubLegacy
+      // (another 'pre' plugin) also calls this.resolve with skipSelf, which
+      // would re-enter this hook and recurse until Vite's recursion guard
+      // returns a broken id. We resolve legacy candidates directly against the
+      // filesystem instead.
+
+      const isRelative = /^\.\.?\/|^\//.test(source);
+
+      // If the specifier already resolves to a real file on disk (relative to
+      // the importer), leave it untouched. A file inside /public is special:
+      // Vite forbids importing public assets as modules, so rewrite it to a
+      // virtual module exporting the public URL.
+      if (isRelative) {
+        const asIs = path.resolve(path.dirname(importer), source);
+        if (fs.existsSync(asIs) && fs.statSync(asIs).isFile()) {
+          if (isPublic(asIs)) return publicUrl(asIs);
+          return null;
+        }
+        // Extensionless relative specifier (e.g. "../../components/modals/X"):
+        // try common extensions AND directory index files against the
+        // importer-relative path BEFORE falling into the legacy src/-first
+        // candidate routing below. Without this, an extensionless relative
+        // import whose real sibling is "X.jsx" is treated as unresolved and
+        // gets misrouted to a same-named file under src/. Honoring the real
+        // sibling keeps relative imports (e.g. the modal registry) pointing at
+        // their actual on-disk targets.
+        if (!path.extname(asIs)) {
+          for (const ext of ['.jsx', '.tsx', '.ts', '.mjs', '.js']) {
+            const alt = asIs + ext;
+            if (fs.existsSync(alt) && fs.statSync(alt).isFile()) {
+              return isPublic(alt) ? publicUrl(alt) : alt;
+            }
+          }
+          for (const idx of ['index.jsx', 'index.tsx', 'index.ts', 'index.mjs', 'index.js']) {
+            const alt = path.join(asIs, idx);
+            if (fs.existsSync(alt) && fs.statSync(alt).isFile()) {
+              return isPublic(alt) ? publicUrl(alt) : alt;
+            }
+          }
+        }
+      }
+
+      // Unresolved (or resolves into /public) → treat as a legacy specifier.
+      // Strip leading ./ and ../ so we keep the logical root-relative path
+      // (e.g. "base/Component.js").
+      const logical = source
+        .replace(/^(?:\.\.\/)+/, '')
+        .replace(/^\.\//, '')
+        .replace(/^\//, '');
+
+      if (!LEGACY_HEADS.some((h) => logical.includes(h))) return null;
+
+      // Build root-relative candidate(s), trying src/ first, then the repo
+      // root, for roots that live in both places.
+      const candidates = [];
+      if (logical.startsWith('vite-remix-editor/src/')) {
+        candidates.push(logical.replace('vite-remix-editor/src/', 'src/'));
+      } else if (logical.startsWith('vite-remix-editor/')) {
+        candidates.push(logical.replace('vite-remix-editor/', ''));
+      } else if (logical === 'base/Component.js') {
+        candidates.push('src/components/base/Component.js');
+      } else if (logical === 'base/Store.js') {
+        candidates.push('src/stores/base/Store.js');
+      } else if (logical.startsWith('stores/')) {
+        candidates.push('src/' + logical, logical);
+      } else if (logical.startsWith('hoc/')) {
+        candidates.push('src/' + logical, logical);
+      } else if (logical.startsWith('lib/')) {
+        candidates.push('src/' + logical, logical);
+      } else if (logical.startsWith('components/')) {
+        candidates.push('src/' + logical, logical);
+      } else if (logical.startsWith('public/')) {
+        candidates.push(logical);
+      }
+
+      const isFile = (p) => fs.existsSync(p) && fs.statSync(p).isFile();
+
+      for (const cand of candidates) {
+        const abs = path.resolve(__dirname, cand);
+        if (isFile(abs)) {
+          return isPublic(abs) ? publicUrl(abs) : abs;
+        }
+        // Extension fallback: legacy .js specifiers are often authored as
+        // .jsx/.tsx/.ts/.mjs.
+        for (const ext of ['.jsx', '.tsx', '.ts', '.mjs']) {
+          const alt = abs.replace(/\.(js|jsx|ts|tsx|mjs)$/i, '') + ext;
+          if (isFile(alt)) {
+            return isPublic(alt) ? publicUrl(alt) : alt;
+          }
+        }
+      }
+      return null;
+    },
+    load(id) {
+      if (id.startsWith('\0public-url:')) {
+        const rel = id.slice('\0public-url:'.length);
+        return `export default ${JSON.stringify('/' + rel)};\n`;
+      }
+      return null;
+    },
+    // Dev-only: Vite's /@id/ pipeline treats "\0public-url:*.svg?import" ids as
+    // asset requests and does not run this plugin's load() for them, so the
+    // browser receives the SPA index.html fallback (a JS "module" that is
+    // actually HTML) and the importing module rejects at runtime. Serve these
+    // virtual modules explicitly as a real ES module exporting the public URL.
+    //
+    // Registered via the direct `server.middlewares.use(...)` form inside
+    // configureServer (NOT the returned post-hook form), so it runs before
+    // Vite's internal transform/SPA-fallback middlewares and reliably claims
+    // the request regardless of plugin ordering. Vite encodes the virtual id
+    // "\0public-url:<rel>" in the request path as
+    // "/@id/__x00__public-url:<rel>" (optionally with a "?import" query) —
+    // verified against the real failing request for cogwheel.svg. We match on
+    // the "public-url:" marker to be resilient to the leading encoding.
+    configureServer(server) {
+      const MARKER = 'public-url:';
+      server.middlewares.use((req, res, next) => {
+        const url = req.url || '';
+        const markerIdx = url.indexOf(MARKER);
+        // Only handle the virtual public-url id path (served via Vite's /@id/
+        // module route). Never touch normal /static/... asset requests.
+        if (markerIdx === -1 || !url.startsWith('/@id/')) return next();
+        const rel = url.slice(markerIdx + MARKER.length).split('?')[0].split('#')[0];
+        res.setHeader('Content-Type', 'application/javascript');
+        res.end(`export default ${JSON.stringify('/' + rel)};\n`);
+      });
+    },
+  };
+};
+
+// Resolve the Clerk frontend API host from the publishable key so the dev
+// CSP (set in securityHeaders) permits Clerk's JS/worker/network requests
+// for whichever instance is configured. The key payload is base64 of
+// "<frontendDomain>$". Loaded via loadEnv because Vite does not expose .env
+// vars on process.env for the config's Node context.
+const CLERK_DEV_ENV = loadEnv('development', __dirname, '');
+const CLERK_KEY = CLERK_DEV_ENV.VITE_CLERK_PUBLISHABLE_KEY || '';
+let clerkDomain = '';
+const clerkKeyMatch = CLERK_KEY.match(/^pk_(?:test|live)_(.+)$/);
+if (clerkKeyMatch) {
+  try {
+    clerkDomain = Buffer.from(clerkKeyMatch[1], 'base64').toString('utf8').replace(/\$$/, '');
+  } catch (_) { /* ignore malformed key */ }
+}
+const clerkHostSrc = clerkDomain ? ` https://${clerkDomain}` : '';
+
+// Security headers middleware. clerkHostSrc is the Clerk frontend API host
+// derived from VITE_CLERK_PUBLISHABLE_KEY (see the module-scope block
+// below) so the dev CSP permits Clerk's JS/worker/network requests for the
+// configured instance.
 function securityHeaders() {
     return {
         name: 'security-headers',
@@ -140,16 +337,25 @@ function securityHeaders() {
                 // "@vitejs/plugin-react can't detect preamble". The sha256 below is the
                 // stable hash of that preamble for @vitejs/plugin-react.
                 const reactPreambleHash = "'sha256-Z2/iFzh9VMlVkEOar1f/oSHWwQk3ve1qk/C2WdsC4Xk='";
-                res.setHeader(
-                    'Content-Security-Policy',
-                    // Clerk: production loads clerk-js from the CNAMEd FAPI
-                    // (clerk.smartvid.app); local dev loads it from the dev
-                    // instance (*.clerk.accounts.dev). Smart CAPTCHA / bot
-                    // protection uses Cloudflare Turnstile
-                    // (challenges.cloudflare.com), which must be allowed in
-                    // script-src + frame-src or sign-up fails.
-                    "default-src 'self'; script-src 'self' " + reactPreambleHash + " https://clerk.smartvid.app https://*.clerk.accounts.dev https://challenges.cloudflare.com blob:; worker-src 'self' blob: https://clerk.smartvid.app https://*.clerk.accounts.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://*.clerk.accounts.dev; frame-src 'self' https://clerk.smartvid.app https://*.clerk.accounts.dev https://challenges.cloudflare.com; media-src 'self' https: blob:;"
-                );
+
+                // clerkHostSrc is derived from VITE_CLERK_PUBLISHABLE_KEY at the
+                // export below and injected here so the dev CSP permits Clerk's
+                // JS/worker/network requests for whichever instance is configured
+                // (e.g. touched-stud-74.clerk.accounts.dev for the dev instance),
+                // while still allowing the production proxy domain clerk.smartvid.app.
+
+                const csp = [
+                  "default-src 'self'",
+                  `script-src 'self' ${reactPreambleHash}${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com blob:`,
+                  `worker-src 'self' blob:${clerkHostSrc} https://clerk.smartvid.app`,
+                  `style-src 'self' 'unsafe-inline'${clerkHostSrc}`,
+                  `img-src 'self' data: https: blob:${clerkHostSrc}`,
+                  `font-src 'self' data:${clerkHostSrc}`,
+                  "connect-src 'self' ws://localhost:3001 http://localhost:3001 ws://localhost:8000 http://localhost:8000 ws://localhost:8888 http://localhost:8888 https://*.supabase.co " + (process.env.VITE_MUAPI_URL || 'https://api.muapi.ai') + " https://api.openai.com https://api.muapi.ai https://clerk.smartvid.app https://clerk-telemetry.com https://challenges.cloudflare.com" + clerkHostSrc,
+                  `frame-src 'self'${clerkHostSrc} https://clerk.smartvid.app https://challenges.cloudflare.com`,
+                  "media-src 'self' https: blob:",
+                ].join('; ');
+                res.setHeader('Content-Security-Policy', csp);
                 
                 // Prevent clickjacking
                 res.setHeader('X-Frame-Options', 'DENY');
@@ -250,34 +456,28 @@ function svgMissingFallback() {
 }
 
 export default defineConfig({
-    plugins: [
-        tailwindcss(),
-        // react(),
-        securityHeaders(),
-        stubLegacy(),
-        svgMissingFallback(),
-        modelCatalogBuildPlugin(),
-    ],
-    optimizeDeps: {
-        entries: ['index.html'],
-        // Pre-bundle the ai-vfx studio's dependencies so the dynamic mount in
-        // AIVFXPage doesn't trigger a mid-import dep re-optimize (which aborts
-        // the import and used to leave the studio stuck on "Loading…").
-        include: [
-            'react',
-            'react-dom',
-            'react-dom/client',
-            '@chakra-ui/react',
-            '@emotion/react',
-            '@emotion/styled',
-            'framer-motion',
-            '@supabase/supabase-js',
-        ],
+    define: {
+        'process.browser': 'true',
     },
     resolve: {
+        // Force a single React instance. @clerk/react is pre-bundled by
+        // Vite's dep optimizer into its own chunk; without dedupe it can
+        // resolve a second copy of React, which makes every Clerk hook
+        // throw "Invalid hook call … more than one copy of React" and
+        // crashes <ClerkProvider> — blanking the sign-in page.
+        dedupe: ['react', 'react-dom'],
         alias: {
+            // Force exact files for react/react-dom subpath exports. Vite 5's
+            // resolver can mis-traverse the package `exports` map and append the
+            // subpath (e.g. "/client", "/jsx-runtime") onto react(-dom)/index.js
+            // (ENOTDIR) on a fresh node_modules, aborting the build. Pinning the
+            // real files avoids that. jsx-runtime/jsx-dev-runtime are auto-injected
+            // by @vitejs/plugin-react into every .jsx module.
+            'react-dom/client': path.resolve(__dirname, 'node_modules/react-dom/client.js'),
+            'react/jsx-runtime': path.resolve(__dirname, 'node_modules/react/jsx-runtime.js'),
+            'react/jsx-dev-runtime': path.resolve(__dirname, 'node_modules/react/jsx-dev-runtime.js'),
             'react-svg-inline': path.resolve(__dirname, 'src/lib/react-svg-inline.jsx'),
-            '@higgsfield/timeline-editor': path.resolve(__dirname, 'packages/timeline-editor/src'),
+            '@smartvideo/ai-timeline-editor': path.resolve(__dirname, 'packages/ai-timeline-editor/src'),
             '@higgsfield/color-grading': path.resolve(__dirname, 'packages/color-grading/src'),
             '@higgsfield/audio-mixer': path.resolve(__dirname, 'packages/audio-mixer/src'),
             '@higgsfield/transitions': path.resolve(__dirname, 'packages/transitions/src'),
@@ -287,8 +487,76 @@ export default defineConfig({
             '@higgsfield/ai-chat': path.resolve(__dirname, 'packages/ai-chat/src'),
         },
     },
+    plugins: [
+        tailwindcss(),
+        // Legacy components (e.g. SocialPublisherModal.jsx) use MobX
+        // @inject/@observer decorators. @vitejs/plugin-react transforms .jsx
+        // via Babel, which does not enable decorators by default — enable the
+        // legacy decorators + class-properties plugins so those modules parse.
+        react({
+            babel: {
+                plugins: [
+                    ['@babel/plugin-proposal-decorators', { legacy: true }],
+                    ['@babel/plugin-proposal-class-properties', { loose: true }],
+                ],
+            },
+        }),
+        securityHeaders(),
+        fixLegacyImports(),
+        stubLegacy(),
+        svgMissingFallback(),
+        modelCatalogBuildPlugin(),
+    ],
+    optimizeDeps: {
+        // Point the dependency scanner at a clean entry (scripts/clerk-optimize-entry.js)
+        // instead of the full index.html graph. main.js statically imports the
+        // legacy component tree, whose stale named-export imports (getStore,
+        // FormSelect default, …) abort Vite's initial scan, which forces
+        // on-demand re-optimization. That re-optimize serves a second React copy
+        // to @clerk/react and leaves the sign-in / sign-up buttons disabled.
+        // Scanning the clean entry pre-bundles the app's deps in one stable pass;
+        // the legacy tree is still served as source on demand (it is outside the
+        // auth/studio critical path) without breaking the scan.
+        entries: ['scripts/clerk-optimize-entry.js'],
+        include: [
+            'react', 'react-dom', 'react-dom/client', '@clerk/react',
+            '@chakra-ui/react',
+            // Common runtime deps pulled in by main.js / the studio / popcorn so
+            // they are pre-bundled up front. Pre-bundling avoids the late
+            // re-optimize that 504s in-flight requests (including the Clerk auth
+            // import) when a previously-unseen dep is discovered on first load.
+            'jquery',
+            '@emotion/react', '@emotion/styled', 'framer-motion',
+            'interactjs', 'lottie-web', 'mitt', 'lodash', 'gl-transitions',
+            'react-dropzone', 'mobx', 'mobx-react',
+        ],
+        // Some legacy app modules (e.g. components/common/ImglyImageEditor*.js)
+        // are authored as .js but contain JSX. Vite's dep scanner otherwise
+        // parses them with the plain js loader and fails with
+        // "The JSX syntax extension is not currently enabled".
+        esbuildOptions: { loader: { '.js': 'jsx' } },
+    },
+    // Many legacy modules under components/ are authored as .js files that
+    // nevertheless contain JSX. @vitejs/plugin-react only reliably transforms
+    // .jsx/.tsx (and skips .js files via canSkipBabel), so those modules reach
+    // esbuild untransformed and the .js loader rejects JSX. Tell esbuild to use
+    // the jsx loader (automatic runtime) for .js/.jsx while leaving .ts/.tsx to
+    // plugin-react/Babel for type stripping.
+    esbuild: {
+        loader: 'tsx',
+        include: /\.jsx?$/,
+        exclude: /\.tsx?$/,
+        jsx: 'automatic',
+        tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
+    },
     server: {
-        port: 3004,
+        port: 3000,
+        // Ignore tool/test scratch dirs so their writes don't trigger dev-server
+        // reloads/restarts mid module-graph load (which corrupts the browser
+        // module registry during verification).
+        watch: {
+            ignored: ['**/.playwright-mcp/**', '**/.kilo/**'],
+        },
         proxy: {
             '/api/ai-agent': {
                 target: 'http://localhost:3001',
@@ -353,9 +621,11 @@ export default defineConfig({
         target: 'esnext',
         minify: 'terser',
         esbuild: {
-            loader: 'jsx',
-            include: [/\.jsx?$/, /\.tsx?$/],
-            exclude: [/node_modules/],
+            jsx: 'automatic',
+            loader: 'tsx',
+            include: /\.jsx?$/,
+            exclude: /\.tsx?$/,
+            tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
         },
         terserOptions: {
             compress: {

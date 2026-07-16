@@ -203,7 +203,6 @@ class EnhancedModalManager {
     try {
       // Map modal names to import paths
       const modalMap = {
-        'AdvanceImageEditorModal': () => import('../components/modals/AdvanceImageEditorModal.jsx'),
         'AIVideoCreator': () => import('../components/modals/AIVideoCreator.jsx'),
         'ConnectModal': () => import('../components/modals/ConnectModal.jsx'),
         'ContactImporterModal': () => import('../components/modals/ContactImporterModal.jsx'),
@@ -264,7 +263,6 @@ class EnhancedModalManager {
       'VideoPersonalizer': 'CATEGORY_C_MAIN_EDITOR_SURFACES',
 
       // Category J: Modals/Editing Workflows
-      'AdvanceImageEditorModal': 'CATEGORY_J_MODALS_WORKFLOWS',
       'ConnectModal': 'CATEGORY_J_MODALS_WORKFLOWS',
       'ContactImporterModal': 'CATEGORY_J_MODALS_WORKFLOWS',
       'EmailCampaignModal': 'CATEGORY_J_MODALS_WORKFLOWS',
@@ -294,7 +292,6 @@ class EnhancedModalManager {
    */
   getModalTitle(modalName) {
     const titles = {
-      'AdvanceImageEditorModal': 'Advanced Image Editor',
       'AIVideoCreator': 'AI Video Creator',
       'ConnectModal': 'Connect Services',
       'ContactImporterModal': 'Import Contacts',

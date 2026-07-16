@@ -67,6 +67,7 @@ export class TimelineAgentIntegration {
     selectorContainer.style.top = '400px';
     selectorContainer.style.width = '280px';
     selectorContainer.style.zIndex = '100';
+    selectorContainer.style.display = 'none'; // hidden until a clip is selected
     
     document.body.appendChild(selectorContainer);
     
@@ -95,6 +96,21 @@ export class TimelineAgentIntegration {
     this.agentHooks.onTimelineEvent('characterAnalysisComplete', (result) => {
       this.displayCharacterAnalysis(result);
     });
+
+    this.agentHooks.onTimelineEvent('clipSelected', (clip) => {
+      this.selectClipForTakes(clip?.id);
+    });
+
+    document.addEventListener('clipSelected', (e) => {
+      this.selectClipForTakes(e.detail?.clipId);
+    });
+  }
+
+  selectClipForTakes(clipId) {
+    if (!this.takeSelector) return;
+    this.takeSelector.setClip(clipId || null);
+    const container = document.getElementById('take-selector-container');
+    if (container) container.style.display = clipId ? 'block' : 'none';
   }
 
   setupTimelineEditorIntegration() {
@@ -155,7 +171,7 @@ export class TimelineAgentIntegration {
       case 'generate_takes':
         const selectedClips = this.getSelectedClips();
         if (selectedClips.length > 0) {
-          this.takeSelector.setClip(selectedClips[0].id);
+          this.selectClipForTakes(selectedClips[0].id);
           this.takeSelector.showGenerateDialog();
         }
         break;

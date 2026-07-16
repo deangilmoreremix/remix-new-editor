@@ -501,22 +501,6 @@ async function openVideoAnalytics(state, showToast) {
   }
 }
 
-// Context menu modal functions
-async function openAdvanceImageEditorModal(clip, state, showToast) {
-  try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('AdvanceImageEditorModal', {
-      image: clip.src,
-      onComplete: (result) => {
-        updateClipInTimeline(clip.id, { src: result }, state);
-  // DISABLED:         
-      }
-    });
-  } catch (error) {
-  // DISABLED:     
-  }
-}
-
 async function openImageCropperModal(clip, state, showToast) {
   try {
     const modalManager = getModalManager();

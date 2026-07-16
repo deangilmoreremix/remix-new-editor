@@ -2,15 +2,15 @@
  * Agent Actions Bridge Service
  *
  * Implements the remaining 10 quick actions that aren't covered by the
- * inline OpenAI Whisper/TTS paths in videoAgentService.js. The bridge
- * prefers real services (FFmpeg, MuAPI, Director API) and falls back to
- * deterministic placeholders so the UI never sees a raw 500.
+ * inline OpenAI Whisper/TTS paths in videoAgentService.js. The bridge uses
+ * real services (FFmpeg, MuAPI, Director API). When a required service is
+ * missing, the action returns an explicit failure/unavailable state — it
+ * never fabricates plausible-looking results.
  *
  * Each action returns: { result: object, steps: string[] }
  * where steps is a human-readable list shown in the Video Agent modal.
  *
- * Real service dependencies (all optional — missing services gracefully
- * degrade to the placeholder path):
+ * Real service dependencies:
  *   - DIRECTOR_API_URL     : Python Director FastAPI server
  *   - MUAPI_API_KEY        : MuAPI for image/video generation
  *   - FFMPEG_PATH          : Local ffmpeg binary for color/stabilize/upscale
@@ -123,52 +123,23 @@ async function detectScenes({ videoUrl }) {
   const d = await tryDirector(`Detect scenes in ${videoUrl || ''}`, ['scene_detection']);
   if (d && d.scenes) return { scenes: d.scenes, source: 'director' };
 
-  // 2) FFmpeg scene-change detection fallback
+  // 2) Real FFmpeg scene-change detection. ffmpegTools.detectScenes parses the
+  //    scene-change filter's pts_time output into actual timestamps.
   if (videoUrl) {
+    let inFile;
     try {
-      const inFile = await downloadToTmp(videoUrl);
-      const outFile = path.join(os.tmpdir(), `${newId('sc')}.txt`);
-      await runFfmpeg([
-        '-i', inFile,
-        '-filter:v', "select='gt(scene,0.3)',showinfo",
-        '-f', 'null',
-        '-',
-      ], 60000).catch(async () => {
-        // ffmpeg may not output scene metadata via this filter; try alternate
-        await runFfmpeg([
-          '-i', inFile,
-          '-vf', "select='gt(scene,0.3)',metadata=print:file=-",
-          '-an', '-f', 'null', '-',
-        ], 60000).catch(() => {});
-      });
-
-      // Try a different approach: use FFmpeg's scene filter
-      const out2 = path.join(os.tmpdir(), `${newId('sc2')}.log`);
-      try {
-        await runFfmpeg([
-          '-i', inFile,
-          '-vf', "select='gt(scene\\,0.3)',showinfo",
-          '-vsync', '0',
-          '-f', 'null', '-',
-        ], 60000);
-      } catch (e) {
-        // ignore — we still produce a placeholder
-      }
-
+      const { detectScenes: ffmpegDetectScenes } = await import('./video/ffmpegTools.js');
+      inFile = await downloadToTmp(videoUrl);
+      const timestamps = await ffmpegDetectScenes(inFile, 0.3);
       await fs.unlink(inFile).catch(() => {});
-      await fs.unlink(outFile).catch(() => {});
-
-      // Without reliable parsing, return 3 placeholder scene boundaries
-      return {
-        scenes: [
-          { time: 0, confidence: 0.95, label: 'Opening' },
-          { time: 30, confidence: 0.88, label: 'Development' },
-          { time: 60, confidence: 0.92, label: 'Climax' },
-        ],
-        source: 'ffmpeg-fallback',
-        note: 'Install PySceneDetect or set DIRECTOR_API_URL for accurate scene detection',
-      };
+      const scenes = timestamps.map((time, i) => ({
+        time,
+        confidence: 1,
+        label: `Scene ${i + 1}`,
+      }));
+      return { scenes, source: 'ffmpeg', totalScenes: scenes.length };
     } catch (e) {
+      if (inFile) await fs.unlink(inFile).catch(() => {});
       return { scenes: [], source: 'failed', error: e.message };
     }
   }
@@ -178,15 +149,43 @@ async function detectScenes({ videoUrl }) {
 async function extractHighlights({ videoUrl }) {
   const d = await tryDirector(`Extract highlights from ${videoUrl || ''}`, ['highlight_reel']);
   if (d && d.highlights) return { highlights: d.highlights, source: 'director' };
-  // Placeholder structure compatible with downstream renderers
-  return {
-    highlights: [
-      { start: 5, end: 12, score: 0.92, label: 'Key moment 1' },
-      { start: 28, end: 35, score: 0.86, label: 'Key moment 2' },
-    ],
-    source: 'placeholder',
-    note: 'Director API not reachable; install highlight_reel agent for real scores',
-  };
+
+  // Derive highlights from real scene boundaries: rank the gaps between scene
+  // changes (longer stable takes tend to be the most usable moments).
+  if (videoUrl) {
+    let inFile;
+    try {
+      const { detectScenes: ffmpegDetectScenes, probe } = await import('./video/ffmpegTools.js');
+      inFile = await downloadToTmp(videoUrl);
+      const timestamps = await ffmpegDetectScenes(inFile, 0.3);
+      let duration = 0;
+      try {
+        const meta = await probe(inFile);
+        duration = Number(meta?.format?.duration) || 0;
+      } catch (_) { /* duration unknown */ }
+      await fs.unlink(inFile).catch(() => {});
+
+      const bounds = [0, ...timestamps, duration]
+        .filter((t) => Number.isFinite(t) && t >= 0)
+        .sort((a, b) => a - b);
+      const gaps = [];
+      for (let i = 1; i < bounds.length; i++) {
+        if (bounds[i] > bounds[i - 1]) {
+          gaps.push({ start: +bounds[i - 1].toFixed(2), end: +bounds[i].toFixed(2), score: +(bounds[i] - bounds[i - 1]).toFixed(2) });
+        }
+      }
+      const highlights = gaps
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3)
+        .sort((a, b) => a.start - b.start)
+        .map((g, i) => ({ ...g, label: `Key moment ${i + 1}` }));
+      return { highlights, source: 'ffmpeg', totalHighlights: highlights.length };
+    } catch (e) {
+      if (inFile) await fs.unlink(inFile).catch(() => {});
+      return { highlights: [], source: 'failed', error: e.message };
+    }
+  }
+  return { highlights: [], source: 'no-input' };
 }
 
 async function addBroll({ videoUrl, prompt }) {

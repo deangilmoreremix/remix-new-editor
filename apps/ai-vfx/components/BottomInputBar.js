@@ -263,8 +263,34 @@ const BottomInputBar = ({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {/* Top row: Upload button */}
+            {/* Top row: Upload + Image URL buttons */}
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (fileInputRef && fileInputRef.current) fileInputRef.current.click();
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'rgba(35,43,57,0.95)',
+                  padding: '8px 28px',
+                  borderRadius: '999px',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  boxShadow: '0 2px 8px 0 rgba(0,0,0,0.10)',
+                  transition: 'background 0.2s'
+                }}
+                onMouseOver={e => e.currentTarget.style.background = '#232b39'}
+                onMouseOut={e => e.currentTarget.style.background = 'rgba(35,43,57,0.95)'}
+              >
+                <Image size={18} />
+                <span>Upload</span>
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -292,6 +318,14 @@ const BottomInputBar = ({
                 <Image size={18} />
                 <span>Image URL</span>
               </button>
+              {/* Hidden file input wired to drag-and-drop handlers */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+              />
               <div style={{ flex: 1 }} />
               <button
                 style={{
@@ -522,6 +556,62 @@ const BottomInputBar = ({
                     background: '#18181b'
                   }}
                   onError={e => { e.target.onerror = null; e.target.src = ''; e.target.alt = 'Invalid image URL'; }}
+                />
+              </div>
+            )}
+            {/* Preview uploaded (drag-and-drop / file picker) image */}
+            {uploadedFile && previewUrl && !imageUrl && (
+              <div style={{
+                marginTop: '12px',
+                textAlign: 'left',
+                maxWidth: '180px',
+                minHeight: '90px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                position: 'relative'
+              }}>
+                <button
+                  onClick={() => {
+                    if (typeof setUploadedFile === 'function') setUploadedFile(null);
+                    if (typeof setPreviewUrl === 'function') setPreviewUrl(null);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '-8px',
+                    right: '-8px',
+                    background: '#232b39',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: 22,
+                    height: 22,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 16,
+                    cursor: 'pointer',
+                    zIndex: 2,
+                    boxShadow: '0 1px 4px 0 rgba(0,0,0,0.10)',
+                    transition: 'background 0.2s'
+                  }}
+                  title="Remove uploaded file"
+                  aria-label="Remove uploaded file"
+                  onMouseOver={e => e.currentTarget.style.background = '#2d2d2d'}
+                  onMouseOut={e => e.currentTarget.style.background = '#232b39'}
+                >
+                  ×
+                </button>
+                <img
+                  src={previewUrl}
+                  alt={uploadedFile.name || 'Uploaded preview'}
+                  style={{
+                    maxWidth: '160px',
+                    maxHeight: '90px',
+                    borderRadius: '8px',
+                    border: '1px solid #23232b',
+                    background: '#18181b'
+                  }}
                 />
               </div>
             )}

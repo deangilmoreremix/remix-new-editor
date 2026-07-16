@@ -433,3 +433,8 @@ export default class Component {
     }
   }
 }
+
+// Named export kept alongside the default so legacy importers that use
+// `import { Component } from '../base/Component.js'` (resolved to this
+// src/ variant by the dev-server legacy resolver) continue to work.
+export { Component };

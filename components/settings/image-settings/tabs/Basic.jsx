@@ -68,20 +68,8 @@ const Basic = observer(({
     smartPassportEnabled,
     smartRetouchEnabled,
   } = useUserStore();
-  const { openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
+  const { openImglyEditor, closeModal } = useModalStore();
 
-  const isCutOutProEnable = () => {
-    if (smartBackgroundRemovalEnabled === false && smartFaceCutOutEnabled === false
-      && smartCartoonSelfieEnabled === false && smartEnhancerEnabled === false
-      && smartColorizerEnabled === false && smartCorrectionEnabled === false
-      && smartAnimerEnabled === false && smartPassportEnabled === false
-      && smartRetouchEnabled === false) {
-      const result = false;
-      return result;
-    } else {
-      return true;
-    }
-  };
 
   useEffect(() => {
     if (values[popcornConstants.LINKSRC]) {
@@ -319,25 +307,6 @@ const Basic = observer(({
             </button>
           )}
 
-          {isCutOutProEnable() && (
-            <button
-              className="image-settings__btn"
-              onClick={() => {
-                openAdvanceImageEditor({
-                  src: element.popcornOptions.src,
-                  onAdvancedImageEdited,
-                  onImageEdited,
-                  onImageEditedValue,
-                  startUpload: () => setIsLoading(true),
-                  endUpload: () => setIsLoading(false),
-                  menu: ADVANCE_IMAGE_EDITOR_MENU,
-                });
-              }}
-              disabled={isLoading}
-            >
-              AI Image Editor
-            </button>
-          )}
 
         </div>
       </div>

@@ -7,6 +7,8 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { navigate } from '../lib/router.js';
+import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -828,9 +830,14 @@ export function VideoStudio() {
     newPromptBtn.className = 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-2xl text-xs font-bold transition-all border border-white/5 backdrop-blur-lg text-white';
     newPromptBtn.textContent = '+ New';
 
+    const renderBtn = document.createElement('button');
+    renderBtn.className = 'bg-emerald-500 text-black px-6 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-glow active:scale-95';
+    renderBtn.textContent = '🎬 Open in Render';
+
     canvasControls.appendChild(regenerateBtn);
     canvasControls.appendChild(extendBtn);
     canvasControls.appendChild(downloadBtn);
+    canvasControls.appendChild(renderBtn);
     canvasControls.appendChild(newPromptBtn);
 
     canvas.appendChild(videoContainer);
@@ -955,6 +962,33 @@ export function VideoStudio() {
     };
 
     regenerateBtn.onclick = () => generateBtn.click();
+
+    // Open in Render: persist the current generation to the asset store
+    // (async/IndexedDB-backed) and hand its id to the Render studio. No video
+    // is ever silently dropped — if the save fails, we stay here and report it.
+    let currentAssetId = null;
+    renderBtn.onclick = async () => {
+        const current = resultVideo.src;
+        if (!current) return;
+        const entry = generationHistory.find(e => e.url === current);
+        renderBtn.disabled = true;
+        renderBtn.textContent = '🎬 Saving…';
+        try {
+            const asset = await saveGeneratedAsset('video', {
+                title: entry?.prompt ? entry.prompt.slice(0, 80) : 'Video Studio generation',
+                media: { url: current, type: 'video' },
+                metadata: { prompt: entry?.prompt || '', model: entry?.model || selectedModel, aspect_ratio: entry?.aspect_ratio, duration: entry?.duration },
+                sourceApp: 'video-studio',
+            }, 'video-studio');
+            currentAssetId = asset && asset.id;
+            navigate('render', { asset: currentAssetId });
+        } catch (err) {
+            console.error('[VideoStudio] Failed to save asset for Render:', err);
+            alert(`Could not open in Render: ${err.message}`);
+            renderBtn.disabled = false;
+            renderBtn.textContent = '🎬 Open in Render';
+        }
+    };
 
     const resetToPromptBar = () => {
         canvas.classList.add('opacity-0', 'pointer-events-none', 'translate-y-10', 'scale-95');

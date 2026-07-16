@@ -226,6 +226,9 @@ export function setupUploadSources({ state, showToast, onUpload, target } = {}) 
   if (typeof window !== 'undefined') {
     window.__apiUpload = (file) => apiUpload(file, { state, showToast, onUpload });
     window.__importFromUrl = (url) => importFromUrl(url, { state, showToast });
+    // VideoDB: add an indexed video (m-xxx) to the timeline using the user's
+    // VideoDB API key configured in Settings.
+    window.__addVideoDBMedia = (videoId) => import('../mediaLibrary.js').then(({ addVideoDBMediaToTimeline }) => addVideoDBMediaToTimeline(videoId, state, showToast));
   }
 
   return () => {
@@ -233,6 +236,7 @@ export function setupUploadSources({ state, showToast, onUpload, target } = {}) 
     if (typeof window !== 'undefined') {
       delete window.__apiUpload;
       delete window.__importFromUrl;
+      delete window.__addVideoDBMedia;
     }
   };
 }

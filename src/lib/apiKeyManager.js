@@ -6,14 +6,16 @@
  * with optional localStorage backup that is obfuscated.
  */
 
-// Storage keys for the two supported providers.
+// Storage keys for the supported providers.
 const KEY_STORAGE = {
   muapi: 'muapi_key',
   openai: 'openai_key',
+  videodb: 'videodb_key',
 };
 const KEY_HASH_STORAGE = {
   muapi: 'muapi_key_hash',
   openai: 'openai_key_hash',
+  videodb: 'videodb_key_hash',
 };
 
 // Simple obfuscation - NOT encryption, but adds a layer against casual reading
@@ -46,10 +48,12 @@ async function hashKey(key) {
 
 export class ApiKeyManager {
     constructor() {
-        // Per-provider cached key/hash. `muapi` and `openai` are kept separate.
+        // Per-provider cached key/hash. `muapi`, `openai` and `videodb` are
+        // kept separate.
         this._cache = {
             muapi: { key: null, hash: null },
             openai: { key: null, hash: null },
+            videodb: { key: null, hash: null },
         };
         this._listeners = new Set();
     }
@@ -149,11 +153,18 @@ export class ApiKeyManager {
     getOpenAIHash() { return this._getStoredHashFor('openai'); }
     clearOpenAIKey() { return this._clearKeyFor('openai'); }
 
+    // ---- VideoDB key ----
+    async setVideoDBKey(key, persist = true) { return this._setKeyFor('videodb', key, persist); }
+    getVideoDBKey() { return this._getKeyFor('videodb'); }
+    hasVideoDBKey() { return this._hasKeyFor('videodb'); }
+    getVideoDBHash() { return this._getStoredHashFor('videodb'); }
+    clearVideoDBKey() { return this._clearKeyFor('videodb'); }
+
     /**
      * Whether any provider key is configured.
      */
     hasAnyKey() {
-        return this.hasMuapiKey() || this.hasOpenAIKey();
+        return this.hasMuapiKey() || this.hasOpenAIKey() || this.hasVideoDBKey();
     }
 
     /**
@@ -163,7 +174,8 @@ export class ApiKeyManager {
         const hash = await hashKey(key);
         const muapiHash = this._getStoredHashFor('muapi');
         const openaiHash = this._getStoredHashFor('openai');
-        return hash === muapiHash || hash === openaiHash;
+        const videodbHash = this._getStoredHashFor('videodb');
+        return hash === muapiHash || hash === openaiHash || hash === videodbHash;
     }
 
     /**
@@ -213,7 +225,7 @@ apiKeyManager.migrateFromLegacy();
  * will still fail — this only bypasses the auth gate for UI development.
  */
 const DEV_PLACEHOLDER_KEY = 'dev-bypass-key-not-real';
-const isDevBypass =
+export const isDevBypass =
     (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEV_BYPASS_AUTH === 'true') ||
     (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('dev'));
 

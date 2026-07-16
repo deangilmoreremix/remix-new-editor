@@ -3,9 +3,10 @@
 // /account, /profile. The publishable key comes from VITE_CLERK_PUBLISHABLE_KEY
 // (set in Netlify env + .env.local via `clerk env pull`).
 //
-// Clerk's <SignIn> natively includes the "Forgot password?" flow and the
-// password-reset completion, so /forgot-password and /reset-password simply
-// mount the same Clerk sign-in surface.
+// /signin and /signup render the custom, app-styled pages (SignInPage /
+// SignUpPage). The forgot-password and reset-password flows are custom pages
+// too (ForgotPasswordPage / ResetPasswordPage), built on Clerk's
+// reset_password_email_code strategy so they match the app's design.
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -18,7 +19,8 @@ import {
 } from '@clerk/react';
 import { SignInPage } from '../landing/SignInPage.jsx';
 import { SignUpPage } from '../landing/SignUpPage.jsx';
-import { clerkAppearance } from './clerkAppearance.js';
+import { ForgotPasswordPage } from '../landing/ForgotPasswordPage.jsx';
+import { ResetPasswordPage } from '../landing/ResetPasswordPage.jsx';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -30,8 +32,13 @@ function ClerkGate({ children }) {
       </div>
     );
   }
+  // The app's own router mounts these pages at real path routes
+  // (/signin, /signup, …), not hash routes. Clerk must use path-based
+  // routing so its client can resolve the route and finish loading —
+  // with routing="hash" and an empty hash, useSignIn/useSignUp never
+  // report isLoaded and the submit buttons stay permanently disabled.
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY} routing="hash">
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} routing="path">
       {children}
     </ClerkProvider>
   );
@@ -45,11 +52,11 @@ function SignInCard() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#020205]">
       <SignIn
-        routing="hash"
+        routing="path"
+        path="/signin"
         signUpUrl="/signup"
         afterSignInUrl="/#/image"
         afterSignUpUrl="/#/image"
-        appearance={clerkAppearance}
       />
     </div>
   );
@@ -59,11 +66,11 @@ function SignUpCard() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#020205]">
       <SignUp
-        routing="hash"
+        routing="path"
+        path="/signup"
         signInUrl="/signin"
         afterSignInUrl="/#/image"
         afterSignUpUrl="/#/image"
-        appearance={clerkAppearance}
       />
     </div>
   );
@@ -125,8 +132,8 @@ export function mountClerkRoute(route, container) {
   const pages = {
     signin: <ClerkGate><SignInPage /></ClerkGate>,
     signup: <ClerkGate><SignUpPage /></ClerkGate>,
-    'forgot-password': <ClerkSignIn />,
-    'reset-password': <ClerkSignIn />,
+    'forgot-password': <ClerkGate><ForgotPasswordPage /></ClerkGate>,
+    'reset-password': <ClerkGate><ResetPasswordPage /></ClerkGate>,
     account: <ClerkAccount />,
     profile: <ClerkProfile />,
   };

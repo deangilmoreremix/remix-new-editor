@@ -7,10 +7,10 @@
 # after the first launch — Render does NOT read .env.local.
 
 services:
-  -     type: web
+  - type: web
     name: videoagent-backend
     runtime: node
-    repo: https://github.com/deanellgilmoreremix/remix-new-editor.git
+    repo: https://github.com/deangilmoreremix/remix-new-editor.git
     region: oregon          # pick the region closest to most of your users
     rootDir: backend
     plan: free              # free tier; upgrade (starter) for always-on + ffmpeg headroom

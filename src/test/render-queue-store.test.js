@@ -8,15 +8,14 @@ import {
   processNextJob,
   startProcessor,
   stopProcessor,
+  setRenderExecutor,
 } from '../lib/editor/renderQueueStore.js';
 
 describe('renderQueueStore', () => {
   let localStorageMock;
-  let listeners;
   let originalLocalStorage;
 
   beforeEach(() => {
-    listeners = new Set();
     originalLocalStorage = global.localStorage;
 
     const store = {};
@@ -29,20 +28,15 @@ describe('renderQueueStore', () => {
     };
 
     global.localStorage = localStorageMock;
-    vi.useFakeTimers();
   });
 
   afterEach(() => {
     localStorageMock.clear();
     global.localStorage = originalLocalStorage;
-    vi.useRealTimers();
+    setRenderExecutor(null);
+    stopProcessor();
     vi.restoreAllMocks();
-    vi.clearAllTimers();
   });
-
-  async function waitForJobCompletion() {
-    await vi.advanceTimersByTimeAsync(1100);
-  }
 
   describe('listRenderQueue', () => {
     it('returns empty queue when nothing stored', () => {
@@ -112,27 +106,69 @@ describe('renderQueueStore', () => {
     });
   });
 
-  describe('processNextJob', () => {
-    it('updates job status from queued to processing then completed', async () => {
-      const entry = enqueueRender({ payload: 'test' });
+  describe('processNextJob without a registered executor', () => {
+    it('never marks a job completed and fails it with an explicit error', () => {
+      enqueueRender({ payload: 'test' });
       const result = processNextJob();
 
-      expect(result).not.toBeNull();
-      expect(result.status).toBe('processing');
-      await waitForJobCompletion();
+      // No executor is registered, so nothing can render. The job must fail,
+      // not silently "complete".
+      expect(result).toBeNull();
       const updated = listRenderQueue();
-      expect(updated[0].status).toBe('completed');
+      expect(updated[0].status).toBe('failed');
+      expect(updated[0].error).toMatch(/no renderer available/i);
     });
 
     it('returns null when queue is empty', () => {
       expect(processNextJob()).toBeNull();
     });
+  });
 
-    it('returns null when no queued jobs remain', async () => {
-      enqueueRender({ payload: 'a' });
+  describe('processNextJob with a real executor', () => {
+    it('marks the job completed only after the executor resolves with output', async () => {
+      const blob = { size: 1234 };
+      const executor = vi.fn().mockResolvedValue({ url: 'blob:real', blob, mime: 'video/webm', ext: 'webm' });
+      setRenderExecutor(executor);
+
+      enqueueRender({ payload: 'test' });
+      const started = processNextJob();
+      expect(started.status).toBe('processing');
+
+      // Let the executor promise settle.
+      await vi.waitFor(() => {
+        expect(listRenderQueue()[0].status).toBe('completed');
+      });
+
+      const done = listRenderQueue()[0];
+      expect(executor).toHaveBeenCalledTimes(1);
+      expect(done.progress).toBe(100);
+      expect(done.result).toEqual({ url: 'blob:real', mime: 'video/webm', ext: 'webm', size: 1234 });
+    });
+
+    it('marks the job failed when the executor rejects', async () => {
+      const executor = vi.fn().mockRejectedValue(new Error('encode blew up'));
+      setRenderExecutor(executor);
+
+      enqueueRender({ payload: 'test' });
       processNextJob();
-      await waitForJobCompletion();
-      expect(processNextJob()).toBeNull();
+
+      await vi.waitFor(() => {
+        expect(listRenderQueue()[0].status).toBe('failed');
+      });
+      expect(listRenderQueue()[0].error).toBe('encode blew up');
+    });
+
+    it('marks the job failed when the executor resolves with no output', async () => {
+      const executor = vi.fn().mockResolvedValue({});
+      setRenderExecutor(executor);
+
+      enqueueRender({ payload: 'test' });
+      processNextJob();
+
+      await vi.waitFor(() => {
+        expect(listRenderQueue()[0].status).toBe('failed');
+      });
+      expect(listRenderQueue()[0].error).toMatch(/no output/i);
     });
   });
 
@@ -147,30 +183,6 @@ describe('renderQueueStore', () => {
       const stop1 = startProcessor(1000);
       expect(typeof stop1).toBe('function');
       stop1();
-    });
-  });
-
-  describe('stopProcessor', () => {
-    it('stops the processing interval', async () => {
-      startProcessor(1000);
-      stopProcessor();
-      const entry = enqueueRender({ payload: 'after-stop' });
-      processNextJob();
-      await waitForJobCompletion();
-      expect(listRenderQueue()[0].status).toBe('completed');
-    });
-  });
-
-  describe('concurrent processing guard', () => {
-    it('does not process when already processing', async () => {
-      enqueueRender({ payload: 'a' });
-      enqueueRender({ payload: 'b' });
-
-      processNextJob();
-      await waitForJobCompletion();
-      const queue = listRenderQueue();
-      const stillQueued = queue.filter((e) => e.status === 'queued');
-      expect(stillQueued).toHaveLength(1);
     });
   });
 });

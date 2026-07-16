@@ -1,9 +1,9 @@
 /**
  * Scene Detection Service — Express router mounted at /api/scene-detection
  *
- * Was a mock. Now delegates to the real agent bridge at /api/agents
- * (which itself uses FFmpeg / Director / PySceneDetect). Falls back to
- * a deterministic placeholder when no real backend is reachable.
+ * Delegates to the real agent bridge at /api/agents (which itself uses
+ * FFmpeg / Director / PySceneDetect). If no real backend is reachable, it
+ * returns an explicit unavailable error — it NEVER fabricates scene data.
  */
 
 import express from 'express';
@@ -39,17 +39,13 @@ router.post('/detect', async (req, res) => {
       });
     }
 
-    // Deterministic fallback so legacy callers still get a result.
-    const scenes = Array.from({ length: 5 }, (_, i) => ({
-      time: i * 12 + Math.random() * 4,
-      confidence: 0.8 + Math.random() * 0.2,
-    }));
-    return res.json({
-      success: true,
-      source: 'local-fallback',
-      jobId: 'scene_' + Date.now(),
-      scenes,
-      totalScenes: scenes.length,
+    // No real scene-detection backend was reachable. Report an explicit
+    // unavailable state instead of inventing scene boundaries.
+    return res.status(503).json({
+      success: false,
+      unavailable: true,
+      error:
+        'Scene detection backend unavailable. Start the agent actions service (AGENT_ACTIONS_URL) with FFmpeg or the Director API.',
     });
   } catch (error) {
     res.status(500).json({ error: 'Scene detection failed', message: error.message });
@@ -57,3 +53,4 @@ router.post('/detect', async (req, res) => {
 });
 
 export default router;
+
