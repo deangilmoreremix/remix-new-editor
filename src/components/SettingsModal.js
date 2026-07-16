@@ -158,7 +158,7 @@ export function SettingsModal(onClose) {
 
     const videodbForm = buildProviderForm({
         title: 'VideoDB API Key',
-        description: 'Used for video indexing, search and retrieval via VideoDB.',
+        description: 'Used by the Timeline Editor, Video Agent, Render and Director for video indexing, search and retrieval via VideoDB.',
         grabUrl: 'https://console.videodb.io/auth?utm_source=docs_videodb_io&utm_medium=docs_link&utm_campaign=console_auth&utm_content=docs:/pages/getting-started/quickstart&id=docs:/pages/getting-started/quickstart&referrer=https://docs.videodb.io/pages/getting-started/quickstart',
         getKey: () => apiKeyManager.getVideoDBKey(),
         setKey: (k, p) => apiKeyManager.setVideoDBKey(k, p),
