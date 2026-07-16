@@ -13,7 +13,7 @@ services:
     region: oregon          # pick the region closest to most of your users
     rootDir: backend
     plan: free              # free tier; upgrade (starter) for always-on + ffmpeg headroom
-    branch: main            # change to your deploy branch
+    branch: cleanup/remove-orphans   # deploy branch
     buildCommand: npm install
     startCommand: node server.js
     healthCheckPath: /health
