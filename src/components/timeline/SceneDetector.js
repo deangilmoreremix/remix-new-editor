@@ -341,59 +341,60 @@ export class SceneDetector {
   }
 
   async callSceneDetectionAPI(videoUrl) {
-    // Simulate progress updates
-    const progressContainer = this.surface.querySelector('#detectionProgress');
-    const progressFill = this.surface.querySelector('#progressFill');
-    const progressText = this.surface.querySelector('#progressText');
+    const progressFill = this.surface?.querySelector?.('#progressFill');
+    const progressText = this.surface?.querySelector?.('#progressText');
 
-    // Progress simulation
-    const progressSteps = [
-      { progress: 10, text: 'Loading video...' },
-      { progress: 30, text: 'Extracting frames...' },
-      { progress: 60, text: 'Running TransNet V2 analysis...' },
-      { progress: 85, text: 'Processing results...' },
-      { progress: 100, text: 'Complete' }
-    ];
+    const setProgress = (pct, text) => {
+      if (progressFill) progressFill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+      if (progressText && text) progressText.textContent = text;
+    };
 
-    for (const step of progressSteps) {
-      progressFill.style.width = `${step.progress}%`;
-      progressText.textContent = step.text;
-      await new Promise(resolve => setTimeout(resolve, 800));
+    // 1) Preferred: MuAPI TransNet V2 (real remote model), when a client is wired.
+    const muapiClient = (typeof window !== 'undefined' && (window.muapiClient || window.muapi)) || null;
+    if (muapiClient && typeof muapiClient.processVideo === 'function') {
+      setProgress(30, 'Running TransNet V2 analysis...');
+      const result = await muapiClient.processVideo({
+        model: 'transnet-v2',
+        videoUrl,
+        task: 'scene-detection',
+        sensitivity: this.sensitivity,
+        advanced: true,
+        confidenceThreshold: this.sensitivity,
+      });
+      setProgress(100, 'Complete');
+      return { scenes: result.scenes || [] };
     }
 
-    try {
-      // Use MuAPI for scene detection
-      const muapiClient = window.muapiClient || window.muapi;
-      if (muapiClient && muapiClient.processVideo) {
-        const result = await muapiClient.processVideo({
-          model: 'transnet-v2',
-          videoUrl: videoUrl,
-          task: 'scene-detection',
-          sensitivity: this.sensitivity,
-          advanced: true,
-          confidenceThreshold: this.sensitivity
-        });
+    // 2) Real in-browser frame-difference scene detection. Progress reflects
+    //    actual frame sampling — it is not a scripted animation.
+    const { processInBrowser } = await import('../../lib/browserVideoProcessor.js');
+    const browserResult = await processInBrowser({
+      action: 'detect-scenes',
+      videoUrl,
+      onProgress: (pct) => setProgress(pct, 'Analyzing frames...'),
+    });
 
-        return {
-          scenes: result.scenes || []
-        };
-      } else {
-        // Fallback mock response
-        console.warn('MuAPI not available, using mock scene detection');
-        return {
-          scenes: [
-            { timestamp: 0, duration: 5.2, confidence: 0.95, type: 'opening' },
-            { timestamp: 5.2, duration: 8.7, confidence: 0.87, type: 'transition' },
-            { timestamp: 13.9, duration: 6.1, confidence: 0.92, type: 'action' },
-            { timestamp: 20.0, duration: 4.3, confidence: 0.78, type: 'dialogue' },
-            { timestamp: 24.3, duration: 7.8, confidence: 0.89, type: 'closing' }
-          ]
-        };
-      }
-    } catch (error) {
-      console.error('Scene detection API error:', error);
-      throw new Error('Failed to detect scenes: ' + error.message);
+    // processInBrowser returns null when it cannot access the video bytes
+    // (e.g. cross-origin without CORS). There is no local fallback that can
+    // produce real scenes, so we surface an explicit unavailable error rather
+    // than fabricating scene data.
+    if (!browserResult || !Array.isArray(browserResult.scenes)) {
+      throw new Error(
+        'Scene detection unavailable: cannot access the video for analysis and no MuAPI client is configured.'
+      );
     }
+
+    setProgress(100, 'Complete');
+    // Normalize the browser detector's { time, end, confidence } shape to the
+    // { timestamp, duration, confidence } shape callers expect.
+    return {
+      scenes: browserResult.scenes.map((s) => ({
+        timestamp: s.time ?? 0,
+        duration: Math.max(0, (s.end ?? s.time ?? 0) - (s.time ?? 0)),
+        confidence: s.confidence ?? 0,
+        type: s.label || 'scene',
+      })),
+    };
   }
 
   renderSceneGrid() {

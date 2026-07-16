@@ -1,22 +1,20 @@
-import { Component } from '../base/Component.js';
+import React from 'react';
 
-export class HelpIconComponent extends Component {
-  constructor(props = {}) {
-    super(props);
-    this.state = {
-      placement: props.placement || 'top',
-      noPadding: props.noPadding || false,
-      message: props.message || ''
-    };
-  }
+export class HelpIconComponent extends React.Component {
+  static defaultProps = {
+    placement: 'top',
+    noPadding: false,
+    message: '',
+  };
 
   render() {
-    const { noPadding, message } = this.state;
-    const container = document.createElement('div');
-    container.className = `help-icon ${noPadding ? 'no-padding' : ''}`;
-    container.title = message;
-    container.textContent = '?';
-    return container;
+    const { noPadding, message, className } = this.props;
+    const cls = `help-icon ${noPadding ? 'no-padding' : ''} ${className || ''}`.trim();
+    return (
+      <span className={cls} title={message} role="img" aria-label="help">
+        ?
+      </span>
+    );
   }
 }
 

@@ -153,20 +153,6 @@ export default () => {
       });
   };
 
-
-  const openAdvanceImageEditor = async (scope) => {
-    const { src } = scope;
-    if (!src) {
-      return;
-    }
-    const metadata = { source: src };
-    openModal(ADVANCE_IMAGE_EDITOR_MODAL,
-      {
-        ...scope,
-        imageMeta: metadata,
-      });
-  };
-
   // eslint-disable-next-line no-unused-vars
   const openPassportMarkerModal = (scope) => {
     openModal(PASSPORT_MARKER_MODAL,
@@ -186,7 +172,6 @@ export default () => {
     openCropper,
     options,
     openImageEditor,
-    openAdvanceImageEditor,
     openImglyEditor,
     openPassportMarkerModal,
     openImglyEditorCropper,

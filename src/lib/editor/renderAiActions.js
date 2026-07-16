@@ -114,37 +114,37 @@ export async function generateHighlights(videoUrl, sensitivity = 0.5) {
 /**
  * detectScenes: call SceneDetector API for scene detection.
  * Returns raw scene objects without DOM manipulation.
+ *
+ * Throws when scene detection is genuinely unavailable (no MuAPI client and
+ * the video bytes can't be accessed for in-browser analysis). Callers must
+ * surface that as an error state — an empty array here means "analyzed, no
+ * scene changes found", NOT "unavailable".
  */
 export async function detectScenes(videoUrl, sensitivity = 0.5) {
-  try {
-    let fakeContainer;
-    if (typeof document !== 'undefined') {
-      fakeContainer = document.createElement('div');
-    } else {
-      const noop = () => {};
-      fakeContainer = {
-        appendChild: noop,
-        querySelector: () => ({ style: {}, appendChild: noop }),
-      };
-    }
-
-    const detector = new SceneDetector(fakeContainer, null, {
-      sensitivity,
-      showToast: () => {},
-    });
-
-    const result = await detector.callSceneDetectionAPI(videoUrl);
-    return (result.scenes || []).map((scene) => ({
-      startTime: scene.timestamp || 0,
-      endTime: (scene.timestamp || 0) + (scene.duration || 0),
-      duration: scene.duration || 0,
-      confidence: scene.confidence || 0,
-      type: scene.type,
-    }));
-  } catch (error) {
-    console.error('[renderAiActions] detectScenes failed:', error);
-    return [];
+  let fakeContainer;
+  if (typeof document !== 'undefined') {
+    fakeContainer = document.createElement('div');
+  } else {
+    const noop = () => {};
+    fakeContainer = {
+      appendChild: noop,
+      querySelector: () => ({ style: {}, appendChild: noop }),
+    };
   }
+
+  const detector = new SceneDetector(fakeContainer, null, {
+    sensitivity,
+    showToast: () => {},
+  });
+
+  const result = await detector.callSceneDetectionAPI(videoUrl);
+  return (result.scenes || []).map((scene) => ({
+    startTime: scene.timestamp || 0,
+    endTime: (scene.timestamp || 0) + (scene.duration || 0),
+    duration: scene.duration || 0,
+    confidence: scene.confidence || 0,
+    type: scene.type,
+  }));
 }
 
 /**

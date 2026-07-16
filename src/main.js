@@ -1,5 +1,16 @@
 import './style.css';
 import './components/modals/modal-styles.css';
+
+// Popcorn.JS — initialize as early as possible (ESM init replicating
+// lib/PopcornProxy.js). initPopcorn() runs labeled dynamic imports so the
+// real error surfaces in the dev-tools console if any step fails.
+import { initPopcorn } from './lib/popcornInit.js';
+initPopcorn().then(() => {
+  console.log('[popcorn]', typeof window.Popcorn, Object.keys(window.Popcorn.registryByName || {}).length);
+}).catch((e) => {
+  console.error('[popcorn] init failed', e);
+});
+
 import { Header } from './components/Header.js';
 import { Sidebar } from './components/Sidebar.js';
 import { initRouter, navigate } from './lib/router.js';
@@ -182,8 +193,20 @@ try {
   console.log(`[App] Initialized in ${initDuration.toFixed(2)}ms`);
   
   console.log('[App] Navigating to initial page:', initialPage);
-  navigate(initialPage);
-  
+  // Preserve any deep-link query params (e.g. ?asset=<id> for Render) so the
+  // target page can read them. navigate() serializes params into the URL.
+  const initialParams = Object.fromEntries(new URLSearchParams(window.location.search).entries());
+  navigate(initialPage, initialParams);
+
+  // Show the provider API key setup popup once when the user lands in the app.
+  // Gated per-session so it doesn't re-appear on every in-app navigation, and
+  // skipped during local dev auth-bypass (a placeholder key is already seeded).
+  if (isDevBypass) {
+    console.info('[App] Dev auth bypass active — skipping setup popup.');
+  } else {
+    showSetupModalOnce();
+  }
+
 } catch (error) {
   console.error('[App] Fatal initialization error:', error);
   
@@ -201,6 +224,28 @@ try {
   `;
 }
 })();
+
+/**
+ * Show the provider API key setup popup exactly once per browser session.
+ * Uses sessionStorage so reloading the tab won't re-trigger it, but a fresh
+ * session will. Users can also reopen it anytime from the Settings action.
+ */
+function showSetupModalOnce() {
+  const SESSION_FLAG = 'setup_popup_shown';
+  try {
+    if (sessionStorage.getItem(SESSION_FLAG)) return;
+    sessionStorage.setItem(SESSION_FLAG, '1');
+  } catch {
+    // If storage is unavailable, fall back to showing it only once per load.
+    if (window.__setupPopupShown) return;
+    window.__setupPopupShown = true;
+  }
+  import('./components/SettingsModal.js').then(({ SettingsModal }) => {
+    document.body.appendChild(SettingsModal());
+  }).catch((err) => {
+    console.warn('[App] Failed to open setup popup', err);
+  });
+}
 
 window.addEventListener('navigate', (e) => {
   if (e.detail.page === 'settings') {
@@ -346,6 +391,14 @@ window.addEventListener('timeline:open-modal', (event) => {
 // Note: The wrapper is applied inside initRouter in the router module
 // Expose navigate globally for debugging
 window.navigate = navigate;
+
+// Mount the React modal SYSTEM (StoreProvider + ModalContainer). Open modals
+// by ID via window.openModal(id) / modal.store — rendered through ModalContainer.
+// Dynamically imported so the modal graph loads AFTER main.js body runs and can
+// never abort core app init.
+import('./mountModalSystem.jsx')
+  .then(({ default: mountModalSystem }) => mountModalSystem())
+  .catch((err) => console.error('[ModalSystem] mount failed', err));
 
 // Dev-only: allow signing in from the console without the real login UI.
 // Usage: await window.devLogin()

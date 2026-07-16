@@ -8,6 +8,7 @@ import fs from 'fs';
 // src/lib/ that are not part of the media-creation flow. Returns an empty
 // default-export so the bundle resolves and the build completes. Stubs are
 // gated by an explicit allow-list to avoid masking real issues elsewhere.
+
 const STUB_IMPORTER_PREFIXES = [
   'components/',
   'lib/',
@@ -29,18 +30,15 @@ const stubLegacy = () => ({
     // outside the legacy tree (e.g. an npm package in node_modules),
     // let Vite handle it normally.
     const resolved = await this.resolve(source, importer, { skipSelf: true });
-    if (resolved) return null;
-    // For asset imports (svg/png/...) from the legacy tree, return a stub
-    // module that exports a placeholder data URL so the build passes.
-    if (/\.(svg|png|jpe?g|webp|gif|ico)(\?|$)/i.test(source)) {
-      return {
-        id: '\0legacy-asset-stub:' + source + '::' + importer,
-      };
+    if (!resolved) {
+      // Source does not resolve at all — stub it so the build/scan passes.
+      if (/\.(svg|png|jpe?g|webp|gif|ico)(\?|$)/i.test(source)) {
+        return { id: '\0legacy-asset-stub:' + source + '::' + importer };
+      }
+      return { id: '\0legacy-stub:' + source + '::' + importer, meta: { legacyStub: { source, importer } } };
     }
-    return {
-      id: '\0legacy-stub:' + source + '::' + importer,
-      meta: { legacyStub: { source, importer } }
-    };
+    // Resolved to a real file — let Vite handle it normally.
+    return null;
   },
   load(id) {
     if (id.startsWith('\0legacy-asset-stub:')) {
@@ -177,6 +175,28 @@ const fixLegacyImports = () => {
           if (isPublic(asIs)) return publicUrl(asIs);
           return null;
         }
+        // Extensionless relative specifier (e.g. "../../components/modals/X"):
+        // try common extensions AND directory index files against the
+        // importer-relative path BEFORE falling into the legacy src/-first
+        // candidate routing below. Without this, an extensionless relative
+        // import whose real sibling is "X.jsx" is treated as unresolved and
+        // gets misrouted to a same-named file under src/. Honoring the real
+        // sibling keeps relative imports (e.g. the modal registry) pointing at
+        // their actual on-disk targets.
+        if (!path.extname(asIs)) {
+          for (const ext of ['.jsx', '.tsx', '.ts', '.mjs', '.js']) {
+            const alt = asIs + ext;
+            if (fs.existsSync(alt) && fs.statSync(alt).isFile()) {
+              return isPublic(alt) ? publicUrl(alt) : alt;
+            }
+          }
+          for (const idx of ['index.jsx', 'index.tsx', 'index.ts', 'index.mjs', 'index.js']) {
+            const alt = path.join(asIs, idx);
+            if (fs.existsSync(alt) && fs.statSync(alt).isFile()) {
+              return isPublic(alt) ? publicUrl(alt) : alt;
+            }
+          }
+        }
       }
 
       // Unresolved (or resolves into /public) → treat as a legacy specifier.
@@ -236,6 +256,33 @@ const fixLegacyImports = () => {
         return `export default ${JSON.stringify('/' + rel)};\n`;
       }
       return null;
+    },
+    // Dev-only: Vite's /@id/ pipeline treats "\0public-url:*.svg?import" ids as
+    // asset requests and does not run this plugin's load() for them, so the
+    // browser receives the SPA index.html fallback (a JS "module" that is
+    // actually HTML) and the importing module rejects at runtime. Serve these
+    // virtual modules explicitly as a real ES module exporting the public URL.
+    //
+    // Registered via the direct `server.middlewares.use(...)` form inside
+    // configureServer (NOT the returned post-hook form), so it runs before
+    // Vite's internal transform/SPA-fallback middlewares and reliably claims
+    // the request regardless of plugin ordering. Vite encodes the virtual id
+    // "\0public-url:<rel>" in the request path as
+    // "/@id/__x00__public-url:<rel>" (optionally with a "?import" query) —
+    // verified against the real failing request for cogwheel.svg. We match on
+    // the "public-url:" marker to be resilient to the leading encoding.
+    configureServer(server) {
+      const MARKER = 'public-url:';
+      server.middlewares.use((req, res, next) => {
+        const url = req.url || '';
+        const markerIdx = url.indexOf(MARKER);
+        // Only handle the virtual public-url id path (served via Vite's /@id/
+        // module route). Never touch normal /static/... asset requests.
+        if (markerIdx === -1 || !url.startsWith('/@id/')) return next();
+        const rel = url.slice(markerIdx + MARKER.length).split('?')[0].split('#')[0];
+        res.setHeader('Content-Type', 'application/javascript');
+        res.end(`export default ${JSON.stringify('/' + rel)};\n`);
+      });
     },
   };
 };
@@ -369,6 +416,9 @@ function modelCatalogBuildPlugin() {
 }
 
 export default defineConfig({
+    define: {
+        'process.browser': 'true',
+    },
     plugins: [
         tailwindcss(),
         // Legacy components (e.g. SocialPublisherModal.jsx) use MobX
@@ -390,9 +440,40 @@ export default defineConfig({
     ],
     // Pre-bundle React + Clerk together so the optimizer emits a single,
     // shared React instance instead of a second copy inside @clerk/react.
+    //
+    // The dependency scanner is pointed at scripts/clerk-optimize-entry.js
+    // (which imports only react / react-dom / @clerk/react / @chakra-ui/react)
+    // instead of the full index.html graph. main.js statically imports the
+    // legacy component tree, whose stale named-export imports (getStore,
+    // FormSelect default, …) abort Vite's initial scan, which forces on-demand
+    // re-optimization. That re-optimize serves a second React copy to
+    // @clerk/react and leaves the sign-in / sign-up buttons disabled. Scanning
+    // the clean entry pre-bundles react + clerk in one stable pass; the legacy
+    // tree is still served as source on demand (it is outside the auth/studio
+    // critical path) without breaking the scan.
     optimizeDeps: {
-        entries: ['index.html'],
-        include: ['react', 'react-dom', 'react/jsx-runtime', '@clerk/react'],
+        // Point the dependency scanner at a clean entry (scripts/clerk-optimize-entry.js)
+        // instead of the full index.html graph. main.js statically imports the
+        // legacy component tree, whose stale named-export imports (getStore,
+        // FormSelect default, …) abort Vite's initial scan, which forces
+        // on-demand re-optimization. That re-optimize serves a second React copy
+        // to @clerk/react and leaves the sign-in / sign-up buttons disabled.
+        // Scanning the clean entry pre-bundles the app's deps in one stable pass;
+        // the legacy tree is still served as source on demand (it is outside the
+        // auth/studio critical path) without breaking the scan.
+        entries: ['scripts/clerk-optimize-entry.js'],
+        include: [
+            'react', 'react-dom', 'react/jsx-runtime', '@clerk/react',
+            '@chakra-ui/react',
+            // Common runtime deps pulled in by main.js / the studio / popcorn so
+            // they are pre-bundled up front. Pre-bundling avoids the late
+            // re-optimize that 504s in-flight requests (including the Clerk auth
+            // import) when a previously-unseen dep is discovered on first load.
+            'jquery',
+            '@emotion/react', '@emotion/styled', 'framer-motion',
+            'interactjs', 'lottie-web', 'mitt', 'lodash', 'gl-transitions',
+            'react-dropzone', 'mobx', 'mobx-react',
+        ],
         // Some legacy app modules (e.g. components/common/ImglyImageEditor*.js)
         // are authored as .js but contain JSX. Vite's dep scanner otherwise
         // parses them with the plain js loader and fails with
@@ -422,7 +503,7 @@ export default defineConfig({
         dedupe: ['react', 'react-dom'],
         alias: {
             'react-svg-inline': path.resolve(__dirname, 'src/lib/react-svg-inline.jsx'),
-            '@higgsfield/timeline-editor': path.resolve(__dirname, 'packages/timeline-editor/src'),
+            '@smartvideo/ai-timeline-editor': path.resolve(__dirname, 'packages/ai-timeline-editor/src'),
             '@higgsfield/color-grading': path.resolve(__dirname, 'packages/color-grading/src'),
             '@higgsfield/audio-mixer': path.resolve(__dirname, 'packages/audio-mixer/src'),
             '@higgsfield/transitions': path.resolve(__dirname, 'packages/transitions/src'),
@@ -434,6 +515,12 @@ export default defineConfig({
     },
     server: {
         port: 3000,
+        // Ignore tool/test scratch dirs so their writes don't trigger dev-server
+        // reloads/restarts mid module-graph load (which corrupts the browser
+        // module registry during verification).
+        watch: {
+            ignored: ['**/.playwright-mcp/**', '**/.kilo/**'],
+        },
         proxy: {
             '/api/ai-agent': {
                 target: 'http://localhost:3001',

@@ -1,15 +1,15 @@
 import React, { useState } from 'react'
 import {
   Box, Flex, VStack, HStack, Text, Button, Card, CardBody, CardHeader,
-  Badge, SimpleGrid, Image, Input, Select, useToast, Progress, Tabs, TabList,
-  TabPanels, Tab, TabPanel, FormControl, FormLabel, Textarea, AspectRatio,
-  Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  ModalCloseButton, useDisclosure, IconButton, Divider
+  Badge, SimpleGrid, Image, Input, Select, useToast, Progress, Tabs, TabList, Tab,
+  FormControl, FormLabel, Textarea, AspectRatio, Divider
 } from '@chakra-ui/react'
-import { uploadToStorage } from './lib/supabase'
 import {
-  applyVFX, applyMotion, applyAIEffects, imageToVideo, uploadFile, pollPrediction, generateWithPolling
+  applyVFX, applyMotion, applyAIEffects, imageToVideo, pollPrediction
 } from './lib/muapi'
+import {
+  uploadImageFile, validateImageFile, createPreviewUrl, revokePreviewUrl, UPLOAD_CONSTRAINTS
+} from './lib/upload'
 
 const CAMERA_EFFECTS = [
   { id: 'crash_zoom_in', name: 'Crash Zoom In', icon: '🔍', prompt: 'zoom in rapidly' },
@@ -93,28 +93,76 @@ function App() {
   const [progress, setProgress] = useState(0)
   const [resultUrl, setResultUrl] = useState(null)
   const [generationStatus, setGenerationStatus] = useState('')
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false)
-  const [apiKey, setApiKey] = useState('')
   const toast = useToast()
 
-  const handleFileSelect = async (e) => {
-    const file = e.target.files[0]
+  // Upload feature state
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadError, setUploadError] = useState('')
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = React.useRef(null)
+
+  // Clean up the local preview object URL when the studio unmounts so we
+  // don't leak blob: URLs in the browser.
+  React.useEffect(() => () => revokePreviewUrl('vfx-preview'), [])
+
+  const resetImageSource = () => {
+    revokePreviewUrl('vfx-preview')
+    setImageFile(null)
+    setImageUrl('')
+    setUploadedUrl('')
+    setUploadProgress(0)
+    setUploadError('')
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleImageFile = async (file) => {
     if (!file) return
 
+    const validation = validateImageFile(file)
+    if (!validation.ok) {
+      setUploadError(validation.error)
+      toast({ title: validation.error, status: 'error', duration: 5000 })
+      return
+    }
+
+    setUploadError('')
     setImageFile(file)
-    const previewUrl = URL.createObjectURL(file)
+    // Immediate local preview so the user sees their image before the upload
+    // finishes. Object URL is tracked and revoked on reset/replacement.
+    const previewUrl = createPreviewUrl(file, 'vfx-preview')
     setImageUrl(previewUrl)
 
+    setIsUploading(true)
+    setUploadProgress(0)
+    setGenerationStatus('Uploading image...')
     try {
-      setGenerationStatus('Uploading file...')
-      const uploadResult = await uploadFile(file)
-      if (uploadResult.url) {
-        setUploadedUrl(uploadResult.url)
-        toast({ title: 'File uploaded successfully', status: 'success', duration: 2000 })
-      }
+      const url = await uploadImageFile(file, {
+        onProgress: (pct) => setUploadProgress(pct),
+      })
+      setUploadedUrl(url)
+      toast({ title: 'Image uploaded successfully', status: 'success', duration: 2000 })
     } catch (err) {
-      toast({ title: `Upload error: ${err.message}`, status: 'error', duration: 5000 })
+      // The local preview still works, so the user isn't blocked — they can
+      // retry or fall back to pasting a URL. Surface the error clearly.
+      setUploadError(err.message || 'Upload failed.')
+      toast({ title: `Upload failed: ${err.message || 'unknown error'}`, status: 'error', duration: 5000 })
+    } finally {
+      setIsUploading(false)
+      setGenerationStatus('')
     }
+  }
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0]
+    await handleImageFile(file)
+  }
+
+  const handleDrop = async (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    await handleImageFile(file)
   }
 
   const handleUrlSubmit = async () => {
@@ -130,6 +178,17 @@ function App() {
     }
     if (!uploadedUrl && !imageUrl) {
       toast({ title: 'Please upload an image or enter URL', status: 'warning', duration: 3000 })
+      return
+    }
+    // Generation needs a hosted URL the API can fetch. A local blob: preview
+    // means the upload failed — tell the user instead of sending an invalid URL.
+    if (!uploadedUrl) {
+      toast({
+        title: 'Image not uploaded yet',
+        description: uploadError || 'Wait for the upload to finish, or paste an image URL.',
+        status: 'warning',
+        duration: 4000,
+      })
       return
     }
 
@@ -189,6 +248,15 @@ function App() {
   const handleImageToVideo = async () => {
     if (!uploadedUrl && !imageUrl) {
       toast({ title: 'Please upload an image first', status: 'warning', duration: 3000 })
+      return
+    }
+    if (!uploadedUrl) {
+      toast({
+        title: 'Image not uploaded yet',
+        description: uploadError || 'Wait for the upload to finish, or paste an image URL.',
+        status: 'warning',
+        duration: 4000,
+      })
       return
     }
 
@@ -279,18 +347,75 @@ function App() {
 
                 <FormControl>
                   <FormLabel>Upload File</FormLabel>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    bg="gray.700"
-                    p={1}
-                  />
+                  <Box
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    borderWidth="2px"
+                    borderStyle="dashed"
+                    borderColor={isDragging ? 'blue.400' : 'whiteAlpha.300'}
+                    borderRadius="md"
+                    bg={isDragging ? 'blue.900' : 'gray.700'}
+                    p={4}
+                    textAlign="center"
+                    cursor="pointer"
+                    transition="all 0.2s"
+                  >
+                    <Text fontSize="sm" color="gray.300">
+                      {isDragging ? 'Drop image to upload' : 'Drag & drop an image, or click to browse'}
+                    </Text>
+                    <Text fontSize="xs" color="gray.500" mt={1}>
+                      {UPLOAD_CONSTRAINTS.acceptedExtensions.join(', ')} · up to{' '}
+                      {(UPLOAD_CONSTRAINTS.maxSizeBytes / (1024 * 1024)).toFixed(0)} MB
+                    </Text>
+                    <Input
+                      ref={fileInputRef}
+                      type="file"
+                      accept={UPLOAD_CONSTRAINTS.acceptedTypes.join(',')}
+                      onChange={handleFileSelect}
+                      display="none"
+                    />
+                  </Box>
+
+                  {isUploading && (
+                    <Box mt={3}>
+                      <Progress
+                        value={uploadProgress}
+                        colorScheme="blue"
+                        size="sm"
+                        borderRadius="full"
+                        hasStripe
+                        isAnimated
+                      />
+                      <Text fontSize="xs" color="gray.400" mt={1}>
+                        Uploading… {uploadProgress}%
+                      </Text>
+                    </Box>
+                  )}
+
+                  {uploadError && (
+                    <Text fontSize="xs" color="red.300" mt={2}>
+                      {uploadError}
+                    </Text>
+                  )}
+
+                  {imageFile && !uploadError && (
+                    <Text fontSize="xs" color="gray.400" mt={2} noOfLines={1}>
+                      {imageFile.name} ({(imageFile.size / 1024).toFixed(0)} KB)
+                      {uploadedUrl ? ' · ready' : ' · preview only'}
+                    </Text>
+                  )}
                 </FormControl>
 
                 {(imageUrl || uploadedUrl) && (
                   <Box>
-                    <Text fontSize="sm" color="gray.400" mb={2}>Preview:</Text>
+                    <Flex justify="space-between" align="center" mb={2}>
+                      <Text fontSize="sm" color="gray.400">Preview:</Text>
+                      <Button size="xs" variant="ghost" colorScheme="red" onClick={resetImageSource}>
+                        Clear
+                      </Button>
+                    </Flex>
                     <AspectRatio ratio={16/9}>
                       <Image src={uploadedUrl || imageUrl} alt="Preview" borderRadius="md" objectFit="cover" />
                     </AspectRatio>

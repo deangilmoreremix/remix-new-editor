@@ -3,7 +3,8 @@ import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { escapeHtml } from '../lib/security.js';
 import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTemplate, duplicateTemplate, listTemplates, listDrafts, sendToStoryboard } from '../lib/editor/renderActions.js';
-import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue, startProcessor } from '../lib/editor/renderQueueStore.js';
+import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue, startProcessor, setRenderExecutor } from '../lib/editor/renderQueueStore.js';
+import { assetStore } from '../lib/assets/assetStore.js';
 
 import { generateSubtitles, generateHighlights, generateVoiceover, createShorts, runAiAutoEdit } from '../lib/editor/renderAiActions.js';
 
@@ -35,18 +36,6 @@ const ACTION_TILES = [
   { title: 'Social Resize', desc: 'Reframe for feed, story, reel, and ad formats.', icon: '📱', accent: 'from-indigo-500/16 via-violet-500/8 to-blue-500/12', iconBg: 'bg-indigo-500/16', iconBorder: 'border-indigo-400/25' },
 ];
 
-const PHASE_MAP = {
-  'AI Auto-Edit': 3, 'Agentic Editor': 4, 'Full Editor': 4,
-  'Create Shorts': 3, 'Generate Highlights': 3, 'Add Subtitles': 3,
-  'Dub / Voiceover': 3, 'Export Variations': 2, 'Trailer Cut': 2,
-  'Social Resize': 2, 'Remix Scene': 2, 'Export Video': 2,
-  'Download Frame': 1, 'Queue Render': 1, 'Copy Prompt': 1,
-  'Duplicate Render': 1, 'Save as Template': 1, 'Send to Storyboard': 1,
-  'Publish / Deliver': 2,
-};
-
-
-
 const QUICK_ACTIONS = ['Trailer Cut', 'Social Resize', 'Remix Scene', 'Copy Prompt', 'Duplicate Render', 'Save as Template', 'Send to Storyboard', 'Publish / Deliver'];
 const ACTION_BUTTONS = ['Export Video', 'Download Frame', 'Queue Render', 'Trailer Cut', 'Social Resize', 'Remix Scene'];
 
@@ -66,27 +55,37 @@ export function RenderPage() {
   const videoId = urlParams.get('videoId') || 'vid_preview';
   const videoUrl = urlParams.get('videoUrl') || '';
   const videoTitle = urlParams.get('prompt') || 'Generated Video Prompt Title';
-  const rawAssetId = urlParams.get('asset');
+  let rawAssetId = urlParams.get('asset');
   let resolvedVideoUrl = videoUrl;
   let resolvedVideoId = videoId;
   let resolvedTitle = videoTitle;
 
+  // Resolve the source video for the render page.
+  // - ?asset=<id>  → load from the async/IndexedDB-backed assetStore via getAsset(id)
+  // - ?videoUrl=   → load directly from the URL
+  // - neither      → no video yet; the page shows an asset picker instead
+  //
+  // A missing asset id is a bug that must surface, not degrade silently.
   async function resolveAsset(assetId) {
     if (!assetId) {
-      return { url: videoUrl, id: videoId, title: videoTitle };
+      return { found: false, url: videoUrl, id: videoId, title: videoTitle };
     }
-    try {
-      const mod = await import('../lib/assets/assetStore.js');
-      const asset = mod.assetStore && typeof mod.assetStore.findById === 'function'
-        ? mod.assetStore.findById(assetId)
-        : null;
-      if (asset && typeof asset === 'object') {
-        return { url: asset.url || asset.src, id: asset.id, title: asset.title || videoTitle };
-      }
-    } catch (err) {
-      console.warn('[RenderPage] Could not resolve asset, falling back to URL params:', err);
+    const asset = await assetStore.getAsset(assetId);
+    if (!asset) {
+      // Not found: caller shows a "video not found" state. No fallback to a
+      // sample/default video.
+      return { found: false, missing: true, id: assetId, title: videoTitle };
     }
-    return { url: videoUrl, id: videoId, title: videoTitle };
+    const url = (asset.media && asset.media.url) || asset.url || asset.src;
+    if (!url) {
+      return { found: false, missing: true, id: assetId, title: asset.title || videoTitle };
+    }
+    return {
+      found: true,
+      url,
+      id: asset.id || assetId,
+      title: asset.title || videoTitle,
+    };
   }
 
   async function initAssetResolve() {
@@ -95,18 +94,125 @@ export function RenderPage() {
     resolvedVideoId = resolved.id;
     resolvedTitle = resolved.title;
     currentVideoUrl = resolvedVideoUrl;
+
     if (headerDiv) {
       const titleEl = headerDiv.querySelector('.text-xl');
       const idEl = headerDiv.querySelector('.text-white\\/70');
       if (titleEl) titleEl.textContent = resolvedTitle;
       if (idEl) idEl.textContent = `ID: ${resolvedVideoId}`;
     }
-    if (videoElement && resolvedVideoUrl) {
-      videoElement.src = resolvedVideoUrl;
-      videoElement.load();
+
+    if (resolved.found) {
+      hideEmptyState();
+      if (videoElement) {
+        videoElement.src = resolvedVideoUrl;
+        videoElement.load();
+      }
+      updateStatsFromMeta();
+    } else if (resolved.missing) {
+      showNotFoundState(resolved.id);
+    } else {
+      showEmptyState();
     }
-    updateStatsFromMeta();
   }
+
+  function clearEmptyState() {
+    const existing = previewArea.querySelector('#assetEmptyState');
+    if (existing) existing.remove();
+  }
+
+  function setPreviewVisible(visible) {
+    if (videoElement) videoElement.style.display = visible ? '' : 'none';
+    const badgeEl = container.querySelector('#previewBadge');
+    if (badgeEl) badgeEl.style.display = visible ? '' : 'none';
+    const actionBadgeEl = container.querySelector('#actionBadge');
+    if (actionBadgeEl) actionBadgeEl.style.display = visible ? '' : 'none';
+  }
+
+  function hideEmptyState() {
+    clearEmptyState();
+    setPreviewVisible(true);
+  }
+
+  async function renderAssetPicker(host) {
+    host.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'w-full max-w-2xl mx-auto text-center';
+    wrap.innerHTML = `
+      <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/5 text-2xl">🎞️</div>
+      <h3 class="text-lg font-black text-white">Choose a video to render</h3>
+      <p class="mt-1 text-sm text-white/60">Pick a generated video from your library. Render edits videos made in other studios.</p>
+    `;
+    const grid = document.createElement('div');
+    grid.className = 'mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3';
+    wrap.appendChild(grid);
+
+    const allAssets = await assetStore.getAssets({ type: 'video' });
+    const assets = (Array.isArray(allAssets) ? allAssets : []).filter(a => {
+      const url = (a.media && a.media.url) || a.url || a.src;
+      return !!url;
+    });
+
+    if (!assets.length) {
+      const empty = document.createElement('p');
+      empty.className = 'mt-4 text-sm text-white/50';
+      empty.textContent = 'No videos in your library yet. Generate one in Video Studio, then open it in Render.';
+      wrap.appendChild(empty);
+    }
+
+    assets.forEach((asset) => {
+      const url = (asset.media && asset.media.url) || asset.url || asset.src;
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'group relative aspect-video overflow-hidden rounded-2xl border border-white/10 bg-black text-left transition hover:border-primary/50 hover:ring-1 hover:ring-primary/40';
+      card.innerHTML = `
+        <video src="${escapeHtml(url)}" muted playsinline preload="metadata" class="h-full w-full object-cover"></video>
+        <span class="absolute inset-x-0 bottom-0 truncate bg-black/60 px-2 py-1 text-[11px] font-medium text-white">${escapeHtml(asset.title || 'Untitled video')}</span>
+      `;
+      card.addEventListener('click', () => navigate('render', { asset: asset.id }));
+      grid.appendChild(card);
+    });
+
+    host.appendChild(wrap);
+  }
+
+  function showEmptyState() {
+    setPreviewVisible(false);
+    clearEmptyState();
+    const host = document.createElement('div');
+    host.id = 'assetEmptyState';
+    host.className = 'absolute inset-0 z-20 flex items-center justify-center p-6';
+    previewArea.appendChild(host);
+    renderAssetPicker(host);
+  }
+
+  function showNotFoundState(id) {
+    setPreviewVisible(false);
+    clearEmptyState();
+    const host = document.createElement('div');
+    host.id = 'assetEmptyState';
+    host.className = 'absolute inset-0 z-20 flex items-center justify-center p-6 text-center';
+    host.innerHTML = `
+      <div class="max-w-md">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-2xl">🔍</div>
+        <h3 class="text-lg font-black text-white">Video not found</h3>
+        <p class="mt-1 text-sm text-white/60">No video exists for <code class="rounded bg-white/10 px-1.5 py-0.5 text-xs text-white/80">${escapeHtml(id || 'this id')}</code>. It may have been deleted or never saved.</p>
+        <button id="openPickerBtn" class="mt-5 rounded-2xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-xl transition hover:opacity-90">Choose a video</button>
+      </div>
+    `;
+    previewArea.appendChild(host);
+    const pickerBtn = host.querySelector('#openPickerBtn');
+    if (pickerBtn) {
+      pickerBtn.addEventListener('click', () => {
+        // Clear the bogus ?asset= param and show the picker.
+        const cleanUrl = window.location.pathname + window.location.hash;
+        window.history.replaceState({}, '', cleanUrl);
+        rawAssetId = null;
+        showEmptyState();
+      });
+    }
+  }
+
 
   let selectedPreset = 'Luxury Brand Grade';
   let activeAction = 'Export Video';
@@ -424,6 +530,7 @@ export function RenderPage() {
   let queueUnsubscribe = null;
   let showSavedItems = false;
   let stopBackgroundProcessor = null;
+  let unregisterExecutor = null;
 
   function renderSavedItemsPanel() {
     const existing = sidebar.querySelector('#savedPanel');
@@ -458,15 +565,38 @@ export function RenderPage() {
         const row = document.createElement('div');
         row.className = 'rounded-2xl border border-white/10 bg-white/[0.03] p-3';
         const label = entry.label || entry.action || 'Render job';
+        const status = entry.status || 'queued';
+        const progress = typeof entry.progress === 'number' ? entry.progress : 0;
+        const statusStyles = {
+          queued: 'border-white/15 bg-white/[0.05] text-white/70',
+          processing: 'border-indigo-400/30 bg-indigo-500/10 text-indigo-200',
+          completed: 'border-emerald-400/30 bg-emerald-500/10 text-emerald-200',
+          failed: 'border-rose-400/30 bg-rose-500/10 text-rose-200',
+        };
+        const badgeClass = statusStyles[status] || statusStyles.queued;
         row.innerHTML = `
           <div class="flex items-center justify-between gap-2">
             <p class="text-sm font-semibold text-white truncate">${escapeHtml(label)}</p>
             <button id="remove-queue-${entry.id || 'unknown'}" class="rounded-full border border-white/10 bg-white/[0.04] px-2 py-1 text-[10px] uppercase tracking-wider text-white/60 hover:bg-white/[0.08] transition">Remove</button>
           </div>
+          <div class="mt-2 flex items-center gap-2">
+            <span class="rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wider ${badgeClass}">${escapeHtml(status)}</span>
+            ${status === 'processing' ? `<span class="text-[11px] text-white/60">${progress}%</span>` : ''}
+          </div>
+          ${status === 'processing' ? `<div class="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10"><div class="h-full rounded-full bg-[linear-gradient(90deg,#818cf8,#60a5fa)]" style="width:${progress}%"></div></div>` : ''}
+          ${status === 'failed' && entry.error ? `<p class="mt-2 text-[11px] text-rose-300/90">${escapeHtml(entry.error)}</p>` : ''}
         `;
         const btn = row.querySelector('button');
         if (btn && entry.id) {
           btn.addEventListener('click', () => removeFromRenderQueue(entry.id));
+        }
+        if (status === 'completed' && entry.result && entry.result.url) {
+          const dl = document.createElement('a');
+          dl.href = entry.result.url;
+          dl.download = `${entry.videoId || 'render'}.${entry.result.ext || 'webm'}`;
+          dl.className = 'mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/20 transition';
+          dl.textContent = 'Download render';
+          row.appendChild(dl);
         }
         panel.appendChild(row);
       });
@@ -488,7 +618,9 @@ export function RenderPage() {
 
    queueUnsubscribe = subscribe(() => renderQueue());
    renderQueue();
-   stopBackgroundProcessor = startProcessor(5000);
+   // The background processor is started only AFTER the real render executor is
+   // registered (below, once captureRealVideo is defined). Starting it here
+   // would let jobs be picked up with no renderer available.
 
   // Progress section
   const progressSection = document.createElement('div');
@@ -507,11 +639,21 @@ export function RenderPage() {
   `;
   sidebar.appendChild(progressSection);
 
-  // Output settings
+  // Output settings. Only list formats this browser can actually encode via
+  // MediaRecorder — an option that can never produce a file is a lie. We build
+  // the <select> from the formats resolveExportMimeType can satisfy.
   const outputSettings = document.createElement('div');
   outputSettings.className = 'mt-6 space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4';
+  const supportedFormatOptions = [
+    { value: 'webm', label: 'WebM (VP9)' },
+    { value: 'mp4', label: 'MP4 (H.264)' },
+    { value: 'h265', label: 'MP4 (H.265)' },
+  ].filter((opt) => resolveExportMimeType(opt.value));
+  const formatOptionsHtml = supportedFormatOptions.length
+    ? supportedFormatOptions.map((opt) => `<option value="${opt.value}">${opt.label}</option>`).join('')
+    : '<option value="webm">WebM (browser default)</option>';
   outputSettings.innerHTML = `
-    <div><label class="mb-2 block text-sm text-white/70" for="outputFormat">Output Format</label><select id="outputFormat" class="w-full rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 text-sm text-zinc-200 outline-none"><option value="mp4">MP4 (H.264)</option><option value="webm">WebM (VP9)</option><option value="mov">MOV (ProRes)</option></select></div>
+    <div><label class="mb-2 block text-sm text-white/70" for="outputFormat">Output Format</label><select id="outputFormat" class="w-full rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 text-sm text-zinc-200 outline-none">${formatOptionsHtml}</select></div>
     <div><label class="mb-2 block text-sm text-white/70" for="frameRate">Frame Rate</label><select id="frameRate" class="w-full rounded-2xl border border-white/10 bg-[#111118] px-4 py-3 text-sm text-zinc-200 outline-none"><option value="24">24 FPS Cinematic</option><option value="30">30 FPS Standard</option><option value="60">60 FPS Smooth</option></select></div>
     <div><label class="mb-2 block text-sm text-white/70" for="quality">Quality</label><input id="quality" type="range" min="1" max="100" value="82" class="w-full accent-white"><p class="mt-2 text-xs text-white/70" id="qualityLabel">High quality master export</p></div>
   `;
@@ -581,10 +723,32 @@ export function RenderPage() {
   // them with MediaRecorder. The previous worker only recorded a blank canvas,
   // so exports contained no video. This runs on the main thread where we can
   // play the <video> and capture its frames.
-  function pickExportMimeType() {
-    const candidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
-    if (typeof MediaRecorder === 'undefined' || typeof MediaRecorder.isTypeSupported !== 'function') return '';
+  //
+  // In-browser export is limited to whatever MediaRecorder can actually encode
+  // in the current browser. We NEVER claim a format (H.264/MP4, H.265, MOV)
+  // the browser cannot produce — instead we resolve the real codec that the
+  // requested format maps to, and if none is supported we throw so the UI can
+  // report "this format isn't available" rather than emitting a mislabeled file.
+  function resolveExportMimeType(format) {
+    if (typeof MediaRecorder === 'undefined' || typeof MediaRecorder.isTypeSupported !== 'function') {
+      return '';
+    }
+    const fmt = (format || 'webm').toLowerCase();
+    // Order matters: prefer the higher-quality codec actually supported.
+    const candidatesByFormat = {
+      mp4: ['video/mp4;codecs=h264', 'video/mp4;codecs=avc1', 'video/mp4'],
+      mov: ['video/mp4;codecs=h264', 'video/mp4;codecs=avc1', 'video/mp4'],
+      h265: ['video/mp4;codecs=hevc', 'video/mp4;codecs=h265'],
+      webm: ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'],
+    };
+    const candidates = candidatesByFormat[fmt] || candidatesByFormat.webm;
     return candidates.find((c) => MediaRecorder.isTypeSupported(c)) || '';
+  }
+
+  function extensionForMime(mimeType) {
+    if (!mimeType) return 'webm';
+    if (mimeType.includes('mp4') || mimeType.includes('avc1') || mimeType.includes('h264') || mimeType.includes('hevc')) return 'mp4';
+    return 'webm';
   }
 
   const ASPECT_DIMS = {
@@ -635,13 +799,23 @@ export function RenderPage() {
     canvas.height = ch;
     const ctx = canvas.getContext('2d');
 
+    // Resolve the real codec for the requested format. If the browser can't
+    // encode it, throw — we will not silently emit a differently-labeled file.
+    const requestedFormat = (settings && settings.format) || 'webm';
+    const mimeType = resolveExportMimeType(requestedFormat);
+    if (!mimeType) {
+      throw new Error(
+        `This browser cannot export ${requestedFormat.toUpperCase()} in-browser. ` +
+        `Supported container is ${MediaRecorder.isTypeSupported('video/webm') ? 'WebM' : 'none'}.`
+      );
+    }
+
     const stream = canvas.captureStream(30);
-    const mimeType = pickExportMimeType();
-    const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+    const recorder = new MediaRecorder(stream, { mimeType });
     const chunks = [];
     recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
     const finished = new Promise((res, rej) => {
-      recorder.onstop = () => res(new Blob(chunks, { type: mimeType || 'video/webm' }));
+      recorder.onstop = () => res(new Blob(chunks, { type: mimeType }));
       recorder.onerror = (e) => rej(e.error || new Error('Recording failed'));
     });
 
@@ -698,12 +872,11 @@ export function RenderPage() {
     drawFrame();
 
     const blob = await finished;
-    const isMp4 = (mimeType || '').includes('mp4');
     return {
       blob,
       url: URL.createObjectURL(blob),
-      mime: mimeType || 'video/webm',
-      ext: isMp4 ? 'mp4' : 'webm',
+      mime: mimeType,
+      ext: extensionForMime(mimeType),
     };
   }
 
@@ -736,6 +909,24 @@ export function RenderPage() {
       }
     }
   }
+
+  // Register the real render executor with the queue store, then start the
+  // background processor. A queued job is rendered by actually capturing the
+  // source video's frames — the same real path used by "Export Video". If the
+  // render fails, the job is marked failed (never faked to completed).
+  unregisterExecutor = setRenderExecutor(async (job, onProgress) => {
+    const sourceUrl = (job && job.videoUrl) || resolvedVideoUrl;
+    if (!sourceUrl) {
+      throw new Error('Queued job has no video source to render');
+    }
+    return captureRealVideo({
+      videoUrl: sourceUrl,
+      action: 'export-video',
+      settings: (job && job.outputSettings) || getOutputSettings(),
+      onProgress,
+    });
+  });
+  stopBackgroundProcessor = startProcessor(5000);
 
   const ACTION_HANDLERS = {
     'Download Frame': async () => {
@@ -792,7 +983,7 @@ export function RenderPage() {
         (result) => {
           const a = document.createElement('a');
           a.href = result.url;
-          a.download = `${resolvedVideoId || 'export'}_master.mp4`;
+          a.download = `${resolvedVideoId || 'export'}_master.${result.ext || 'webm'}`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -803,31 +994,45 @@ export function RenderPage() {
     },
     'Export Variations': async () => {
       if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
-      const formats = [
-        { label: 'MP4 (H.264)', format: 'mp4', ext: 'mp4' },
-        { label: 'MP4 (H.265)', format: 'mp4', ext: 'mp4' },
-        { label: 'WebM (VP9)', format: 'webm', ext: 'webm' },
+      // Only export formats this browser can actually encode. We resolve each
+      // requested format to a real, supported codec and skip (with a warning)
+      // any that can't be produced — no mislabeled duplicates.
+      const requested = [
+        { label: 'MP4 (H.264)', format: 'mp4' },
+        { label: 'MP4 (H.265)', format: 'h265' },
+        { label: 'WebM (VP9)', format: 'webm' },
       ];
-      for (const fmt of formats) {
-        await new Promise((resolve, reject) => {
-          runExportWorker(
-            { action: 'export-video', videoUrl: resolvedVideoUrl, settings: getOutputSettings() },
-            `Exporting ${fmt.label}`,
-            'Export Variations',
-            (result) => {
-              const a = document.createElement('a');
-              a.href = result.url;
-              a.download = `${resolvedVideoId || 'export'}_${fmt.label.toLowerCase().replace(/[() ]/g, '')}.${fmt.ext}`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              setTimeout(() => URL.revokeObjectURL(result.url), 1000);
-              resolve();
-            }
-          ).then(() => {}, reject);
-        });
+      const supported = requested.filter((fmt) => resolveExportMimeType(fmt.format));
+      const unsupported = requested.filter((fmt) => !resolveExportMimeType(fmt.format));
+
+      if (supported.length === 0) {
+        showToast('In-browser export for the requested formats is unavailable in this browser');
+        return;
       }
-      showToast('All variations exported');
+
+      for (const fmt of supported) {
+        await runExportWorker(
+          { action: 'export-video', videoUrl: resolvedVideoUrl, settings: { ...getOutputSettings(), format: fmt.format } },
+          `Exporting ${fmt.label}`,
+          'Export Variations',
+          (result) => {
+            const a = document.createElement('a');
+            a.href = result.url;
+            a.download = `${resolvedVideoId || 'export'}_${fmt.label.toLowerCase().replace(/[() ]/g, '')}.${result.ext || 'webm'}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+          }
+        );
+      }
+
+      if (unsupported.length > 0) {
+        const names = unsupported.map((f) => f.label).join(', ');
+        showToast(`Exported ${supported.length} variation(s). Skipped unsupported: ${names}`);
+      } else {
+        showToast(`All ${supported.length} variations exported`);
+      }
     },
     'Trailer Cut': async () => {
       if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
@@ -859,7 +1064,7 @@ export function RenderPage() {
             (result) => {
               const a = document.createElement('a');
               a.href = result.url;
-              a.download = `${resolvedVideoId || 'export'}_${aspect.replace(':', 'x')}.mp4`;
+              a.download = `${resolvedVideoId || 'export'}_${aspect.replace(':', 'x')}.${result.ext || 'webm'}`;
               document.body.appendChild(a);
               a.click();
               document.body.removeChild(a);
@@ -891,30 +1096,32 @@ export function RenderPage() {
     },
     'Publish / Deliver': async () => {
       if (!resolvedVideoUrl) { showToast('Load a video first'); return; }
-      const formats = ['mp4', 'webm'];
+      const requested = ['mp4', 'webm'];
+      const supportedFormats = requested.filter((fmt) => resolveExportMimeType(fmt));
       const outputs = [];
-      for (const fmt of formats) {
-        await new Promise((resolve, reject) => {
-          runExportWorker(
-            { action: 'export-video', videoUrl: resolvedVideoUrl, settings: { ...getOutputSettings(), format: fmt } },
-            `Packaging ${fmt}`,
-            'Publish / Deliver',
-            (result) => {
-              outputs.push({ format: fmt, url: result.url });
-              setTimeout(() => URL.revokeObjectURL(result.url), 1000);
-              resolve();
-            }
-          ).then(() => {}, reject);
-        });
+      for (const fmt of supportedFormats) {
+        await runExportWorker(
+          { action: 'export-video', videoUrl: resolvedVideoUrl, settings: { ...getOutputSettings(), format: fmt } },
+          `Packaging ${fmt}`,
+          'Publish / Deliver',
+          (result) => {
+            outputs.push({ format: fmt, url: result.url, ext: result.ext });
+            setTimeout(() => URL.revokeObjectURL(result.url), 1000);
+          }
+        );
       }
       const manifest = {
         videoId: resolvedVideoId,
         title: resolvedTitle,
         exportedAt: new Date().toISOString(),
-        files: outputs.map((o) => ({ format: o.format, url: o.url })),
+        files: outputs.map((o) => ({ format: o.format, ext: o.ext, url: o.url })),
       };
       console.log('Delivery manifest:', manifest);
-      showToast('Delivery package ready');
+      if (outputs.length === 0) {
+        showToast('In-browser delivery is unavailable in this browser');
+      } else {
+        showToast(`Delivery package ready (${outputs.length} format${outputs.length > 1 ? 's' : ''})`);
+      }
     },
     // ── Phase 4 handlers ───────────────────────────────────────────────────────
     'Agentic Editor': async () => {
@@ -1101,15 +1308,8 @@ export function RenderPage() {
       }
       return;
     }
-    const phase = PHASE_MAP[action];
-    if (phase) {
-      if (previewBadge) previewBadge.textContent = `${selectedPreset} · ${action}`;
-      const phaseLabel = phase === 2 ? 'Phase 2' : phase === 3 ? 'Phase 3' : 'Phase 4';
-      if (progressStatus) progressStatus.textContent = `${action} — ${phaseLabel}: coming soon`;
-      showToast(`${action} — ${phaseLabel}: coming soon`);
-      return;
-    }
     console.warn(`[RenderPage] Unknown action: ${action}`);
+    showToast(`"${action}" is not available in this build`);
   }
 
   // Preset selector
@@ -1164,6 +1364,10 @@ export function RenderPage() {
     if (stopBackgroundProcessor) {
       stopBackgroundProcessor();
       stopBackgroundProcessor = null;
+    }
+    if (unregisterExecutor) {
+      unregisterExecutor();
+      unregisterExecutor = null;
     }
     if (activeExportCleanup) {
       activeExportCleanup();

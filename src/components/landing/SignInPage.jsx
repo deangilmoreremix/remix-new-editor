@@ -7,7 +7,14 @@ import React, { useState } from 'react';
 import { useSignIn } from '@clerk/react';
 
 export function SignInPage() {
-  const { isLoaded, signIn, setActive } = useSignIn();
+  const signInState = useSignIn();
+  const { signIn, setActive } = signInState;
+  // NOTE: @clerk/react v6's useSignIn() returns { signIn, setActive, errors,
+  // fetchStatus } — there is no `isLoaded` field. Gate readiness on the actual
+  // signIn client being present (fetchStatus === 'loaded' once Clerk has the
+  // session client). The old `isLoaded` check was always undefined here, which
+  // left the submit button permanently disabled.
+  const isReady = Boolean(signIn) && signInState.fetchStatus !== 'fetching';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -15,7 +22,7 @@ export function SignInPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isLoaded) return;
+    if (!isReady) return;
     setLoading(true);
     setError('');
     try {
@@ -148,7 +155,7 @@ export function SignInPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={loading || !isLoaded}
+                disabled={loading || !isReady}
                 className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-200 shadow-lg shadow-cyan-400/25 hover:shadow-cyan-300/40 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Signing In…' : 'Sign In'}

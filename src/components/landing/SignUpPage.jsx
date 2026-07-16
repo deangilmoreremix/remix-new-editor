@@ -7,7 +7,12 @@ import React, { useState } from 'react';
 import { useSignUp } from '@clerk/react';
 
 export function SignUpPage() {
-  const { isLoaded, signUp, setActive } = useSignUp();
+  const signUpState = useSignUp();
+  const { signUp, setActive } = signUpState;
+  // @clerk/react v6's useSignUp() returns { signUp, setActive, errors,
+  // fetchStatus } — there is no `isLoaded` field. Gate readiness on the actual
+  // signUp client being present so the buttons are never permanently disabled.
+  const isReady = Boolean(signUp) && signUpState.fetchStatus !== 'fetching';
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,7 +23,7 @@ export function SignUpPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isLoaded) return;
+    if (!isReady) return;
     setLoading(true);
     setError('');
     try {
@@ -50,7 +55,7 @@ export function SignUpPage() {
 
   const handleVerify = async (e) => {
     e.preventDefault();
-    if (!isLoaded) return;
+    if (!isReady) return;
     setLoading(true);
     setError('');
     try {
@@ -185,7 +190,7 @@ export function SignUpPage() {
 
                   <button
                     type="submit"
-                    disabled={loading || !isLoaded}
+                    disabled={loading || !isReady}
                     className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-200 shadow-lg shadow-cyan-400/25 hover:shadow-cyan-300/40 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? 'Creating Account…' : 'Create Account'}
@@ -235,7 +240,7 @@ export function SignUpPage() {
 
                   <button
                     type="submit"
-                    disabled={loading || !isLoaded}
+                    disabled={loading || !isReady}
                     className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-200 shadow-lg shadow-cyan-400/25 hover:shadow-cyan-300/40 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? 'Verifying…' : 'Verify Email'}
@@ -246,7 +251,7 @@ export function SignUpPage() {
                   <button
                     type="button"
                     onClick={async () => {
-                      if (!isLoaded) return;
+                      if (!isReady) return;
                       setError('');
                       try {
                         await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });

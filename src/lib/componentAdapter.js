@@ -207,9 +207,6 @@ export const AdaptedComponents = {
   AIVideoCreator: new ModalAdapter('../../remix-new-editor-dean/components/AIVideoCreator.jsx', 'VIDEO_CREATION_PERSONALIZATION'),
   VideoPersonalizer: new ModalAdapter('../../remix-new-editor-dean/components/VideoPersonalizer.jsx', 'VIDEO_CREATION_PERSONALIZATION'),
 
-  // Image Editing
-  AdvanceImageEditor: new ModalAdapter('../../remix-new-editor-strategic/components/common/AdvanceImageEditor/AdvanceEditor.jsx', 'ADVANCED_IMAGE_EDITING'),
-
   // Text-to-Speech
   TextToSpeechContent: new PanelAdapter('../../remix-new-editor-strategic/components/common/textToSpeech/TextToSpeechContent.jsx', 'TEXT_TO_SPEECH'),
   TextToSpeechLibrary: new PanelAdapter('../../remix-new-editor-strategic/components/common/textToSpeech/TextToSpeechLibrary.jsx', 'TEXT_TO_SPEECH'),
