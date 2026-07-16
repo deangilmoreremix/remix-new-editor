@@ -433,10 +433,19 @@ export function TimelineEditorPage() {
         </div>
         <div class="timeline-controls-enhanced" id="timelineControlsEnhanced"></div>
         <div class="timeline-shell">
-          <div class="timeline-header"><div>Tracks</div><div>Timeline</div></div>
+          <div class="timeline-header-grid">
+            <div class="timeline-corner">
+              <span>Tracks</span>
+              <span class="hint">drag • snap</span>
+            </div>
+            <div class="timeline-ruler" id="timelineRuler">
+              <canvas id="rulerCanvas"></canvas>
+              <div class="ruler-ticks" id="rulerTicks"></div>
+            </div>
+          </div>
           <div class="timeline-body" id="timelineBody">
             <div class="compositing-overlay" id="compositingOverlay"></div>
-            <div class="playhead-layer"><div class="playhead-line" id="playheadLine"></div><div class="playhead-knob" id="playheadKnob"></div></div>
+            <div class="playhead-layer"><div class="playhead-line" id="playheadLine"></div><div class="playhead-knob" id="playheadKnob" role="slider" tabindex="0" aria-label="Playhead position" aria-valuemin="0" aria-valuemax="45" aria-valuenow="14.4" aria-valuetext="00:14.4"></div></div>
             <div id="trackRows"></div>
           </div>
         </div>
@@ -582,6 +591,17 @@ export function TimelineEditorPage() {
     // Load via <link> if not already present, to enable browser caching
     // and keep the JS bundle smaller.
     if (document.getElementById('timeline-editor-styles')) return;
+
+    // Phase 0: design tokens must load BEFORE the component styles so that
+    // var(--tl-*) references resolve. Inserted ahead of the main stylesheet.
+    if (!document.getElementById('timeline-editor-tokens')) {
+      const tokens = document.createElement('link');
+      tokens.id = 'timeline-editor-tokens';
+      tokens.rel = 'stylesheet';
+      tokens.href = 'styles/timeline-tokens.css';
+      document.head.appendChild(tokens);
+    }
+
     const link = document.createElement('link');
     link.id = 'timeline-editor-styles';
     link.rel = 'stylesheet';
@@ -620,17 +640,17 @@ export function TimelineEditorPage() {
       zoom: 1,
       timelineSeconds: 60,
       tracks: [
-        { id: 'video-1', name: 'Video', muted: false, solo: false, locked: true, clips: [
+        { id: 'video-1', type: 'video', name: 'Video', muted: false, solo: false, locked: true, clips: [
           { id: 1, name: 'Opening Shot', left: 8, width: 18, type: 'video', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', poster: svgDataUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#06131f"/><stop offset="1" stop-color="#123b4a"/></linearGradient></defs><rect width="1280" height="720" fill="url(#g)"/><circle cx="970" cy="180" r="120" fill="#22d3ee" opacity=".18"/><text x="90" y="310" fill="white" font-size="74" font-family="Arial" font-weight="700">Opening Shot</text><text x="92" y="380" fill="#a5f3fc" font-size="30" font-family="Arial">Cinematic demo preview</text></svg>`) },
           { id: 2, name: 'Generated Clip', left: 34, width: 16, type: 'video', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm', poster: svgDataUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#0f766e"/></linearGradient></defs><rect width="1280" height="720" fill="url(#g)"/><rect x="110" y="145" width="1060" height="430" rx="28" fill="white" opacity=".04"/><text x="110" y="310" fill="white" font-size="76" font-family="Arial" font-weight="700">Generated Clip</text><text x="112" y="382" fill="#bbf7d0" font-size="30" font-family="Arial">Rendered output preview</text></svg>`) }
         ] },
-        { id: 'audio-1', name: 'Audio', muted: false, solo: false, locked: false, clips: [
+        { id: 'audio-1', type: 'audio', name: 'Audio', muted: false, solo: false, locked: false, clips: [
           { id: 3, name: 'Music Bed', left: 5, width: 42, type: 'audio', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3' }
         ] },
-        { id: 'text-1', name: 'Text', muted: false, solo: false, locked: false, clips: [
+        { id: 'text-1', type: 'text', name: 'Text', muted: false, solo: false, locked: false, clips: [
           { id: 4, name: 'Title Card', left: 14, width: 12, type: 'text', heading: 'Launch Faster', body: 'Use your timeline editor to turn generated media, overlays, and captions into polished deliverables.' }
         ] },
-        { id: 'broll-1', name: 'B-Roll', muted: false, solo: false, locked: false, clips: [
+        { id: 'broll-1', type: 'b-roll', name: 'B-Roll', muted: false, solo: false, locked: false, clips: [
           { id: 5, name: 'City Cutaway', left: 52, width: 20, type: 'image', src: svgDataUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#020617"/><stop offset="1" stop-color="#1e3a8a"/></linearGradient></defs><rect width="1280" height="720" fill="url(#g)"/><g opacity=".9"><rect x="120" y="340" width="120" height="250" fill="#0f172a"/><rect x="260" y="280" width="140" height="310" fill="#111827"/><rect x="430" y="210" width="180" height="380" fill="#1f2937"/><rect x="650" y="250" width="110" height="340" fill="#0f172a"/><rect x="780" y="180" width="210" height="410" fill="#1e293b"/></g><circle cx="1060" cy="130" r="70" fill="#e0f2fe" opacity=".75"/><text x="120" y="150" fill="white" font-size="78" font-family="Arial" font-weight="700">City Cutaway</text></svg>`), fit: 'cover' }
         ] }
       ],
@@ -677,6 +697,25 @@ export function TimelineEditorPage() {
     return merged;
   }
 
+  // Ensure every track carries a `type` so the type-dot renderer can color
+  // it correctly. Legacy/persisted projects may omit `type`; infer it from
+  // the track's clips (or its name) and never leave it undefined.
+  function normalizeTrackTypes(tracks) {
+    if (!Array.isArray(tracks)) return tracks;
+    const KNOWN = ['video', 'audio', 'text', 'effects', 'fx', 'b-roll', 'image'];
+    return tracks.map(track => {
+      if (track && KNOWN.includes(track.type)) return track;
+      const inferred =
+        (track && track.clips && track.clips[0] && track.clips[0].type) ||
+        (track && /audio/i.test(track.name || '') ? 'audio'
+          : /text|title|caption/i.test(track.name || '') ? 'text'
+          : /b-?roll|overlay/i.test(track.name || '') ? 'b-roll'
+          : /effect|fx/i.test(track.name || '') ? 'effects'
+          : 'video');
+      return { ...track, type: inferred };
+    });
+  }
+
   // Enhanced state management with local storage persistence
   function loadProjectFromStorage() {
     try {
@@ -689,6 +728,7 @@ export function TimelineEditorPage() {
         if (!Array.isArray(state.tracks)) {
           state.tracks = createState().tracks;
         }
+        state.tracks = normalizeTrackTypes(state.tracks);
         return state;
       }
     } catch (err) {
@@ -895,6 +935,8 @@ export function TimelineEditorPage() {
       previewEmpty: root.querySelector('#previewEmpty'),
       playheadLine: root.querySelector('#playheadLine'),
       playheadKnob: root.querySelector('#playheadKnob'),
+      rulerCanvas: root.querySelector('#rulerCanvas'),
+      rulerTicks: root.querySelector('#rulerTicks'),
       projectTitle: root.querySelector('#projectTitle'),
       promptInput: root.querySelector('#promptInput'),
       durationSelect: root.querySelector('#durationSelect'),
@@ -1106,10 +1148,89 @@ export function TimelineEditorPage() {
       }
     }
 
+    // Phase 2 — zoom-aware ruler rendering
+    function drawRuler() {
+      const canvas = els.rulerCanvas;
+      const ticks = els.rulerTicks;
+      if (!canvas || !ticks) return;
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth || canvas.parentElement.clientWidth;
+      const h = canvas.clientHeight || 40;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+
+      const pxPerSec = (state.timelinePxPerSec) || 18;
+      const totalSec = w / pxPerSec;
+      let major = 10;
+      if (pxPerSec > 14) major = 5;
+      if (pxPerSec > 28) major = 2;
+      if (pxPerSec > 60) major = 1;
+      const minor = major / 5;
+
+      ticks.innerHTML = '';
+      for (let s = 0; s <= totalSec + 0.001; s += minor) {
+        const x = s * pxPerSec;
+        const isMajor = Math.abs(s / major - Math.round(s / major)) < 1e-6;
+        ctx.strokeStyle = isMajor ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)';
+        ctx.beginPath();
+        ctx.moveTo(x, isMajor ? 0 : h - 10);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+        if (isMajor) {
+          const t = document.createElement('div');
+          t.className = 'tick';
+          t.style.left = x + 'px';
+          const lab = document.createElement('span');
+          lab.className = 't-label';
+          const mm = String(Math.floor(s / 60)).padStart(2, '0');
+          const ss = String(Math.floor(s % 60)).padStart(2, '0');
+          lab.textContent = mm + ':' + ss;
+          t.appendChild(lab);
+          ticks.appendChild(t);
+        }
+      }
+    }
+
+    // Phase 2 — draggable + keyboard-scrubbable playhead
+    function wirePlayhead() {
+      const line = els.playheadLine;
+      const knob = els.playheadKnob;
+      const layer = els.timelineBody ? els.timelineBody.querySelector('.playhead-layer') : null;
+      if (!line || !knob || !layer) return;
+      let dragging = false;
+      const TOTAL = state.timelineSeconds || 45;
+
+      function setFromClientX(clientX) {
+        const rect = layer.getBoundingClientRect();
+        const pct = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+        state.playheadPercent = pct;
+        updatePlaybackUI();
+      }
+      knob.addEventListener('pointerdown', function (e) { dragging = true; knob.setPointerCapture(e.pointerId); e.preventDefault(); });
+      window.addEventListener('pointermove', function (e) { if (dragging) setFromClientX(e.clientX); });
+      window.addEventListener('pointerup', function () { dragging = false; });
+      knob.addEventListener('keydown', function (e) {
+        const cur = state.playheadPercent || 0;
+        const step = (e.shiftKey ? 5 : 1); // 1% default, 5% with Shift
+        if (e.key === 'ArrowLeft') { state.playheadPercent = Math.max(0, cur - step); updatePlaybackUI(); e.preventDefault(); }
+        if (e.key === 'ArrowRight') { state.playheadPercent = Math.min(100, cur + step); updatePlaybackUI(); e.preventDefault(); }
+        if (e.key === 'Home') { state.playheadPercent = 0; updatePlaybackUI(); e.preventDefault(); }
+        if (e.key === 'End') { state.playheadPercent = 100; updatePlaybackUI(); e.preventDefault(); }
+      });
+    }
+
+    // Initialise ruler + playhead interactions once the DOM is mounted
+    wirePlayhead();
+    window.addEventListener('resize', drawRuler);
+    // Defer first ruler draw until layout has dimensions
+    requestAnimationFrame(drawRuler);
+
     function updatePlaybackUI() {
       els.progressFill.style.width = `${state.playheadPercent}%`;
       els.playheadLine.style.left = `${state.playheadPercent}%`;
-      els.playheadKnob.style.left = `calc(${state.playheadPercent}% - 4px)`;
+      els.playheadKnob.style.left = `calc(${state.playheadPercent}% - 7px)`;
       els.currentTime.textContent = formatTimeFromPercent(state.playheadPercent, state.timelineSeconds);
       els.totalTime.textContent = formatTimeFromPercent(100, state.timelineSeconds);
       els.playBtn.textContent = state.playing ? '❚❚' : '▶';
@@ -1495,8 +1616,9 @@ export function TimelineEditorPage() {
 
         const meta = document.createElement('div');
         meta.className = 'track-meta';
+        const dotClass = track.type === 'audio' ? 'audio' : track.type === 'text' ? 'text' : (track.type === 'effects' || track.type === 'fx') ? 'fx' : 'video';
         meta.innerHTML = `
-          <div class="track-name">${track.name}</div>
+          <div class="track-head-top"><span class="track-type-dot ${dotClass}"></span><span class="track-name">${track.name}</span></div>
           <div class="track-actions">
             <button class="track-toggle ${track.muted ? 'locked' : ''}" data-toggle="mute" data-tooltip="${track.muted ? 'Unmute track' : 'Mute track'} - ${track.muted ? 'Track is currently muted' : 'Silence this track'}" aria-label="${track.muted ? 'Unmute' : 'Mute'} track">M</button>
             <button class="track-toggle ${track.solo ? 'locked' : ''}" data-toggle="solo" data-tooltip="${track.solo ? 'Unsolo track' : 'Solo track'} - ${track.solo ? 'Only this track plays' : 'Play only this track'}" aria-label="${track.solo ? 'Unsolo' : 'Solo'} track">S</button>
@@ -1521,7 +1643,9 @@ export function TimelineEditorPage() {
 
         track.clips.forEach(clip => {
           const clipEl = document.createElement('button');
+          clipEl.type = 'button';
           clipEl.className = `clip ${state.selectedClipId === clip.id ? 'active' : ''}`;
+          clipEl.setAttribute('aria-label', `${clip.text || clip.name} — ${clip.type || 'clip'} clip on the ${track.name} track. Press Enter to select.`);
           const leftPercent = (clip.start / state.timelineSeconds) * 100;
           const widthPercent = ((clip.end - clip.start) / state.timelineSeconds) * 100;
           clipEl.style.left = `${leftPercent}%`;
@@ -1688,8 +1812,9 @@ export function TimelineEditorPage() {
 
           const meta = document.createElement('div');
           meta.className = 'track-meta';
+          const dotClass = track.type === 'audio' ? 'audio' : track.type === 'text' ? 'text' : (track.type === 'effects' || track.type === 'fx') ? 'fx' : 'video';
           meta.innerHTML = `
-            <div class="track-name">${track.name}</div>
+            <div class="track-head-top"><span class="track-type-dot ${dotClass}"></span><span class="track-name">${track.name}</span></div>
             <div class="track-actions">
               <button class="track-toggle ${track.muted ? 'locked' : ''}" data-toggle="mute" data-tooltip="${track.muted ? 'Unmute track' : 'Mute track'} - ${track.muted ? 'Track is currently muted' : 'Silence this track'}" aria-label="${track.muted ? 'Unmute' : 'Mute'} track">M</button>
               <button class="track-toggle ${track.solo ? 'locked' : ''}" data-toggle="solo" data-tooltip="${track.solo ? 'Unsolo track' : 'Solo track'} - ${track.solo ? 'Only this track plays' : 'Play only this track'}" aria-label="${track.solo ? 'Unsolo' : 'Solo'} track">S</button>
@@ -1750,7 +1875,9 @@ export function TimelineEditorPage() {
 
           if (!clipEl) {
             clipEl = document.createElement('button');
+            clipEl.type = 'button';
             clipEl.className = `clip ${state.selectedClipId === clip.id ? 'active' : ''}`;
+            clipEl.setAttribute('aria-label', `${clip.text || clip.name} — ${clip.type || 'clip'} clip on the ${track.name} track. Press Enter to select.`);
             clipEl.innerHTML = `<span class="clip-label"></span>`;
             cached.lane.appendChild(clipEl);
             cached.clipEls.set(clip.id, clipEl);
@@ -1766,6 +1893,7 @@ export function TimelineEditorPage() {
           clipEl.style.left = `${leftPercent}%`;
           clipEl.style.width = `${widthPercent}%`;
           clipEl.className = `clip ${state.selectedClipId === clip.id ? 'active' : ''}`;
+          clipEl.setAttribute('aria-label', `${clip.text || clip.name} — ${clip.type || 'clip'} clip on the ${track.name} track. Press Enter to select.`);
           const labelEl = clipEl.querySelector('.clip-label');
           if (labelEl) labelEl.textContent = clip.text || clip.name;
 
@@ -1821,6 +1949,7 @@ export function TimelineEditorPage() {
         tracks: (state.tracks || []).map(track => ({
           id: track.id,
           name: track.name,
+          type: track.type,
           locked: track.locked,
           muted: track.muted,
           solo: track.solo,
