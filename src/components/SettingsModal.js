@@ -1,4 +1,5 @@
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { videoDb } from '../lib/videoDb.js';
 
 /**
  * Build a self-contained settings form for a single provider.
@@ -14,8 +15,40 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
  * @param {(k: string, persist?: boolean) => Promise<void>} opts.setKey
  * @param {() => void} opts.clearKey
  * @param {string} opts.placeholder
+ * @param {(key: string) => Promise<{ ok: boolean, message: string }>} [opts.testConnection]
+ *        Optional. Pings the provider with the given key to prove it is valid
+ *        before the user relies on it. Throws or returns { ok:false } on failure.
  */
-function buildProviderForm({ title, description, grabUrl, getKey, setKey, clearKey, placeholder }) {
+/**
+ * Validate a provider API key's *format* before saving/testing.
+ * Catches the mistakes we hit in real testing:
+ *   - stray whitespace
+ *   - a key accidentally pasted twice (same token concatenated)
+ *   - obviously too short
+ * Returns null when valid (or empty, which is allowed to clear the key),
+ * or a user-facing error string.
+ *
+ * @param {string} raw   the raw input value
+ * @param {string} label provider title, used in the message
+ */
+export function validateApiKeyFormat(raw, label = 'API key') {
+    const value = (raw || '').trim();
+    if (!value) return null; // empty is allowed (clears the key)
+    if (/\s/.test(value)) {
+        return `${label} contains spaces — copy the key without any extra characters.`;
+    }
+    // Detect an accidentally duplicated key (same token concatenated twice).
+    const half = Math.floor(value.length / 2);
+    if (value.length > 20 && value.slice(0, half) === value.slice(value.length - half)) {
+        return `${label} looks duplicated — it appears to be pasted twice. Paste it once.`;
+    }
+    if (value.length < 10) {
+        return `${label} appears too short. Please check it and try again.`;
+    }
+    return null;
+}
+
+function buildProviderForm({ title, description, grabUrl, getKey, setKey, clearKey, placeholder, testConnection }) {
     const form = document.createElement('form');
     form.className = 'w-full bg-black/30 border border-white/5 rounded-xl p-4 mb-3';
     form.autocomplete = 'off';
@@ -58,19 +91,39 @@ function buildProviderForm({ title, description, grabUrl, getKey, setKey, clearK
     clearBtn.textContent = 'Clear';
     clearBtn.className = 'px-3 py-2 rounded-xl text-xs font-bold text-white/50 hover:text-white hover:bg-white/5 transition-all';
 
+    const testBtn = document.createElement('button');
+    testBtn.type = 'button';
+    testBtn.textContent = 'Test';
+    testBtn.className = 'px-3 py-2 rounded-xl text-xs font-bold text-white/70 border border-white/10 hover:text-white hover:bg-white/5 transition-all';
+
     const refreshStatus = () => {
         const key = getKey();
         status.textContent = key ? `${title} is configured.` : `No ${title} configured.`;
+        status.className = 'text-[11px] text-muted mb-3';
     };
+
+    const setStatus = (text, kind = 'muted') => {
+        status.textContent = text;
+        status.className = `text-[11px] mb-3 ${kind === 'error' ? 'text-rose-400' : kind === 'ok' ? 'text-emerald-400' : 'text-muted'}`;
+    };
+
+    /**
+     * Catch the exact mistakes we hit in testing: a key pasted twice
+     * (duplicated token), stray whitespace, or an obviously wrong shape.
+     * Returns null when valid, or a user-facing error string.
+     */
+    const validateKeyFormat = (raw) => validateApiKeyFormat(raw, title);
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const value = input.value.trim();
+        const fmtErr = validateKeyFormat(value);
+        if (fmtErr) {
+            setStatus(fmtErr, 'error');
+            return;
+        }
         try {
             if (value) {
-                if (value.length < 10) {
-                    throw new Error(`${title} appears too short. Please check it and try again.`);
-                }
                 await setKey(value, true);
             } else {
                 clearKey();
@@ -89,8 +142,41 @@ function buildProviderForm({ title, description, grabUrl, getKey, setKey, clearK
         refreshStatus();
     });
 
+    if (testConnection) {
+        testBtn.addEventListener('click', async () => {
+            const value = input.value.trim();
+            const fmtErr = validateKeyFormat(value);
+            if (fmtErr) {
+                setStatus(fmtErr, 'error');
+                return;
+            }
+            if (!value) {
+                setStatus(`Enter a ${title} first, then Test.`, 'error');
+                return;
+            }
+            const original = testBtn.textContent;
+            testBtn.disabled = true;
+            testBtn.textContent = 'Testing…';
+            setStatus(`Testing ${title} connection…`);
+            try {
+                const result = await testConnection(value);
+                if (result && result.ok) {
+                    setStatus(result.message || `${title} connected ✓`, 'ok');
+                } else {
+                    setStatus(result?.message || `${title} connection failed.`, 'error');
+                }
+            } catch (err) {
+                setStatus(`${title} test failed: ${err.message}`, 'error');
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = original;
+            }
+        });
+    }
+
     btnRow.appendChild(saveBtn);
     btnRow.appendChild(clearBtn);
+    if (testConnection) btnRow.appendChild(testBtn);
 
     form.appendChild(heading);
     form.appendChild(desc);
@@ -144,6 +230,16 @@ export function SettingsModal(onClose) {
         setKey: (k, p) => apiKeyManager.setMuapiKey(k, p),
         clearKey: () => apiKeyManager.clearMuapiKey(),
         placeholder: 'sk-... (Muapi key)',
+        // Muapi is server-proxied, so we can't ping it from the browser. We
+        // verify the key is accepted by the manager (format + persistence).
+        testConnection: async (key) => {
+            await apiKeyManager.setMuapiKey(key, false);
+            const stored = apiKeyManager.getMuapiKey();
+            return {
+                ok: !!stored && stored === key,
+                message: stored ? 'Muapi key saved and ready (validated on first API call).' : 'Muapi key could not be stored.',
+            };
+        },
     });
 
     const openaiForm = buildProviderForm({
@@ -154,6 +250,14 @@ export function SettingsModal(onClose) {
         setKey: (k, p) => apiKeyManager.setOpenAIKey(k, p),
         clearKey: () => apiKeyManager.clearOpenAIKey(),
         placeholder: 'sk-... (OpenAI key)',
+        testConnection: async (key) => {
+            await apiKeyManager.setOpenAIKey(key, false);
+            const stored = apiKeyManager.getOpenAIKey();
+            return {
+                ok: !!stored && stored === key,
+                message: stored ? 'OpenAI key saved and ready (validated on first API call).' : 'OpenAI key could not be stored.',
+            };
+        },
     });
 
     const videodbForm = buildProviderForm({
@@ -164,6 +268,24 @@ export function SettingsModal(onClose) {
         setKey: (k, p) => apiKeyManager.setVideoDBKey(k, p),
         clearKey: () => apiKeyManager.clearVideoDBKey(),
         placeholder: 'VideoDB access token',
+        // Real, live authentication check against the VideoDB API.
+        testConnection: async (key) => {
+            const res = await fetch('https://api.videodb.io/collection/default', {
+                method: 'GET',
+                headers: { 'x-access-token': key, 'Content-Type': 'application/json' },
+            });
+            if (res.ok) {
+                const json = await res.json().catch(() => ({}));
+                const name = json?.data?.name;
+                return { ok: true, message: `Connected ✓${name ? ' — ' + name : ''}` };
+            }
+            let msg = `Connection failed (${res.status}).`;
+            try {
+                const body = await res.json();
+                if (body?.message) msg = body.message;
+            } catch { /* ignore */ }
+            return { ok: false, message: msg };
+        },
     });
 
     const closeRow = document.createElement('div');
