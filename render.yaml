@@ -1,0 +1,28 @@
+# render.yaml — deploys the Video Agent backend as a Render Web Service.
+# Usage:
+#   render blueprint launch   # first time: creates the service from this file
+#   render deploy             # redeploy after changes
+#
+# NOTE: set OPENAI_API_KEY in the Render dashboard (or `render env set`)
+# after the first launch — Render does NOT read .env.local.
+
+services:
+  - type: web
+    name: videoagent-backend
+    runtime: node
+    region: oregon          # pick the region closest to most of your users
+    rootDir: backend
+    plan: free              # free tier; upgrade (starter) for always-on + ffmpeg headroom
+    branch: main            # change to your deploy branch
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"      # Render injects the actual PORT; this is a safe default
+      - key: OPENAI_API_KEY
+        sync: false         # set manually in dashboard or via `render env set OPENAI_API_KEY ...`
+      - key: VIDEO_AGENT_BACKEND_URL
+        sync: false         # set to this service's URL after deploy, e.g. https://videoagent-backend.onrender.com
