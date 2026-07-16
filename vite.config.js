@@ -157,6 +157,7 @@ const fixLegacyImports = () => {
     async resolveId(source, importer) {
       if (!importer || importer.includes('node_modules')) return null;
       if (source.startsWith('\0')) return null;
+      if (/\.html(\?|$)/i.test(source)) return null;
 
       // IMPORTANT: do NOT call Vite's resolver (this.resolve) here. stubLegacy
       // (another 'pre' plugin) also calls this.resolve with skipSelf, which
@@ -390,6 +391,7 @@ export default defineConfig({
     // Pre-bundle React + Clerk together so the optimizer emits a single,
     // shared React instance instead of a second copy inside @clerk/react.
     optimizeDeps: {
+        entries: ['index.html'],
         include: ['react', 'react-dom', 'react/jsx-runtime', '@clerk/react'],
         // Some legacy app modules (e.g. components/common/ImglyImageEditor*.js)
         // are authored as .js but contain JSX. Vite's dep scanner otherwise
