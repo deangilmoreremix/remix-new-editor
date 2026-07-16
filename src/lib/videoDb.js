@@ -123,10 +123,14 @@ class VideoDBClient {
      * Resolve a VideoDB media id (e.g. `m-12345`) to its streamable URL.
      * Used by Render / Video Agent / Timeline to turn a `?videoId=m-xxx` deep
      * link into a playable src. The documented endpoint is
-     * `POST /video/{video_id}/stream/`, which returns `data.stream_url`
-     * (HLS by default; mp4/webm also supported).
+     * `POST /video/{video_id}/stream/`, which returns `data.stream_url`.
+     *
+     * We request `format: 'mp4'` by default: mp4 plays natively in every
+     * browser (including Chrome, which does NOT support HLS without hls.js),
+     * so no extra player dependency is required. `player_url` is kept as a
+     * fallback.
      */
-    async getStreamUrl(videoId, { format = 'hls' } = {}) {
+    async getStreamUrl(videoId, { format = 'mp4' } = {}) {
         const res = await fetch(this._url(`/video/${encodeURIComponent(videoId)}/stream/`), {
             method: 'POST',
             headers: this._headers(),
