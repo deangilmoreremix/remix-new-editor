@@ -1,3 +1,11 @@
+databases:
+  - name: director-db
+    databaseName: director_db
+    user: director_user
+    plan: free
+    region: singapore
+    postgresMajorVersion: "16"
+
 services:
   - type: web
     name: director-backend

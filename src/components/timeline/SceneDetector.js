@@ -378,17 +378,12 @@ export class SceneDetector {
           scenes: result.scenes || []
         };
       } else {
-        // Fallback mock response
-        console.warn('MuAPI not available, using mock scene detection');
-        return {
-          scenes: [
-            { timestamp: 0, duration: 5.2, confidence: 0.95, type: 'opening' },
-            { timestamp: 5.2, duration: 8.7, confidence: 0.87, type: 'transition' },
-            { timestamp: 13.9, duration: 6.1, confidence: 0.92, type: 'action' },
-            { timestamp: 20.0, duration: 4.3, confidence: 0.78, type: 'dialogue' },
-            { timestamp: 24.3, duration: 7.8, confidence: 0.89, type: 'closing' }
-          ]
-        };
+        // No scene-detection backend available. Fail loudly instead of returning
+        // fabricated scenes (per "never hardcode mock data" rule).
+        throw new Error(
+          'Scene detection unavailable: MuAPI client is not configured. ' +
+          'Configure a scene-detection backend or use the Director finishing pipeline.'
+        );
       }
     } catch (error) {
       console.error('Scene detection API error:', error);
