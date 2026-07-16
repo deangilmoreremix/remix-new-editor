@@ -19,6 +19,18 @@
 # Serve the model catalog as a static file in production.
 # The vite build plugin emits dist/api/model-catalog.json containing all
 # three pools (t2i / i2i / i2v); the frontend filters by modelType client-side.
+# Proxy the Director (VideoDB) finishing backend in production.
+# In dev this is handled by the Vite proxy in vite.config.js; Netlify builds
+# need an explicit redirect proxy. Set DIRECTOR_API_URL as a build-time env var
+# (Netlify dashboard) to the live director-backend URL, e.g.
+# https://director-backend.onrender.com. If unset, requests fall through to the
+# SPA fallback (which will 404 the API call) rather than silently mocking.
+[[redirects]]
+  from = "/director-api/*"
+  to = "${DIRECTOR_API_URL}/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/model-catalog"
   to = "/api/model-catalog.json"
