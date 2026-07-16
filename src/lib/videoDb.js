@@ -30,6 +30,39 @@ class VideoDBClient {
         this.baseUrl = VIDEODB_BASE_URL;
         // Bind the manager so feature code can call `videoDb.getKey()` etc.
         this.apiKeyManager = apiKeyManager;
+        // When a backend proxy is deployed, route VideoDB calls through it so
+        // the server-side VIDEO_DB_API_KEY (or per-request x-access-token) is
+        // used. This is what makes the four studios work on Render without
+        // every user supplying their own token. Set VITE_BACKEND_URL to enable.
+        this.backendUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) || '';
+        this.backendUrl = this.backendUrl.replace(/\/$/, '');
+        this.useProxy = Boolean(this.backendUrl);
+    }
+
+    /**
+     * Resolve the access token to forward to the proxy. Prefers the user's own
+     * VideoDB token (so they can act on their own account); falls back to none
+     * (the server uses its own VIDEO_DB_API_KEY).
+     */
+    _proxyHeaders() {
+        const headers = { 'Content-Type': 'application/json' };
+        const token = this.getKey();
+        if (token) headers['x-access-token'] = token;
+        return headers;
+    }
+
+    async _proxyFetch(path, { method = 'POST', body } = {}) {
+        const res = await fetch(`${this.backendUrl}/api/videodb${path}`, {
+            method,
+            headers: this._proxyHeaders(),
+            body: body ? JSON.stringify(body) : undefined,
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || json?.status === 'error') {
+            // Proxy returned an error envelope — fall back to direct call.
+            throw new Error(json?.error?.message || `VideoDB proxy ${res.status}`);
+        }
+        return json.data ?? json;
     }
 
     /**
@@ -71,6 +104,13 @@ class VideoDBClient {
      * Returns the created media object ({ id, stream_url, player_url, ... }).
      */
     async indexVideo(url, { name, mediaType = 'video', collectionId = DEFAULT_COLLECTION } = {}) {
+        if (this.useProxy) {
+            try {
+                return await this._proxyFetch(`/collections/${encodeURIComponent(collectionId)}/upload`, {
+                    body: { url, name, mediaType },
+                });
+            } catch (_) { /* fall back to direct call */ }
+        }
         const res = await fetch(this._url(`/collection/${encodeURIComponent(collectionId)}/upload`), {
             method: 'POST',
             headers: this._headers(),
@@ -89,6 +129,13 @@ class VideoDBClient {
      * ({ query, results: [{ video_id, start, end, text, score }] }).
      */
     async searchCollection(query, { collectionId = DEFAULT_COLLECTION, indexType = 'scene', searchType = 'semantic', resultThreshold = 10 } = {}) {
+        if (this.useProxy) {
+            try {
+                return await this._proxyFetch(`/collections/${encodeURIComponent(collectionId)}/search`, {
+                    body: { query, indexType, searchType, resultThreshold },
+                });
+            } catch (_) { /* fall back to direct call */ }
+        }
         const res = await fetch(this._url(`/collection/${encodeURIComponent(collectionId)}/search/`), {
             method: 'POST',
             headers: this._headers(),
@@ -106,6 +153,13 @@ class VideoDBClient {
      * Semantic search within a single indexed video (id looks like `m-xxx`).
      */
     async searchVideo(videoId, query, { indexType = 'scene', searchType = 'semantic', resultThreshold = 10 } = {}) {
+        if (this.useProxy) {
+            try {
+                return await this._proxyFetch(`/videos/${encodeURIComponent(videoId)}/search`, {
+                    body: { query, indexType, searchType, resultThreshold },
+                });
+            } catch (_) { /* fall back to direct call */ }
+        }
         const res = await fetch(this._url(`/video/${encodeURIComponent(videoId)}/search/`), {
             method: 'POST',
             headers: this._headers(),
@@ -127,6 +181,15 @@ class VideoDBClient {
      * (HLS by default; mp4/webm also supported).
      */
     async getStreamUrl(videoId, { format = 'hls' } = {}) {
+        if (this.useProxy) {
+            try {
+                const data = await this._proxyFetch(`/videos/${encodeURIComponent(videoId)}/stream`, {
+                    body: { format },
+                });
+                const url = data?.stream_url || data?.player_url || null;
+                if (url) return url;
+            } catch (_) { /* fall back to direct call */ }
+        }
         const res = await fetch(this._url(`/video/${encodeURIComponent(videoId)}/stream/`), {
             method: 'POST',
             headers: this._headers(),

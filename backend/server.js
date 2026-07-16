@@ -12,6 +12,7 @@ import speechTranscriptionService from './services/speechTranscriptionService.js
 import videoAgentService from './services/videoAgentService.js';
 import agentActionsService from './services/agentActionsService.js';
 import modelCatalogService from './services/modelCatalogService.js';
+import videoDbProxyService from './services/videoDbProxyService.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -28,6 +29,7 @@ app.use('/api/semantic-search', semanticSearchService);
 app.use('/api/speech-transcription', speechTranscriptionService);
 app.use('/api/agents', agentActionsService);
 app.use('/api/model-catalog', modelCatalogService);
+app.use('/api/videodb', videoDbProxyService);
 app.use('/videoagent', videoAgentService);
 
 // Health check

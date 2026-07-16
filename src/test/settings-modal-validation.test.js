@@ -12,12 +12,12 @@ describe('validateApiKeyFormat', () => {
   });
 
   test('a valid key passes', () => {
-    const ok = 'sk-1a4MzrimOpn7NHpEgrVYnwFHNgCiJweSemObWLdtnEs';
+    const ok = 'sk-VALIDFORMATPLACEHOLDER00000000000000000000000';
     expect(validateApiKeyFormat(ok, 'VideoDB API Key')).toBeNull();
   });
 
   test('rejects a key pasted twice (duplicated token)', () => {
-    const single = 'sk-1a4MzrimOpn7NHpEgrVYnwFHNgCiJweSemObWLdtnEs';
+    const single = 'sk-VALIDFORMATPLACEHOLDER00000000000000000000000';
     const doubled = single + single; // exactly what caused the 401
     const err = validateApiKeyFormat(doubled, 'VideoDB API Key');
     expect(err).toMatch(/duplicated|pasted twice/i);
