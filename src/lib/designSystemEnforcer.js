@@ -4,27 +4,69 @@
  */
 
 export const TIMELINE_DESIGN_SYSTEM = {
-  // Core CSS Variables - MUST be used by all components
+  // Core CSS Variables - MUST be used by all components.
+  // These mirror styles/timeline-tokens.css EXACTLY (which is the verbatim
+  // palette from timeline-redesign-prototype.html). Keep the two in sync:
+  // the static :root in timeline-tokens.css is the source of truth, and this
+  // runtime-injected set must match it so enforceDesignSystem() cannot
+  // override the prototype design with stale values.
   variables: {
-    // Backgrounds
-    '--bg': '#05070b',
+    // Surfaces
+    '--bg': '#07090d',
+    '--bg-app': '#07090d',
+    '--surface-1': 'rgba(255,255,255,0.03)',
+    '--surface-2': 'rgba(255,255,255,0.05)',
+    '--surface-3': 'rgba(255,255,255,0.08)',
+    '--surface-sunken': 'rgba(0,0,0,0.20)',
+    '--track-lane': 'rgba(255,255,255,0.02)',
+    '--track-meta': 'rgba(0,0,0,0.35)',
+
+    // Borders
+    '--border': 'rgba(255,255,255,0.10)',
+    '--border-soft': 'rgba(255,255,255,0.06)',
+    '--border-strong': 'rgba(255,255,255,0.16)',
+
+    // Text
+    '--text': 'rgba(255,255,255,0.86)',
+    '--text-strong': '#ffffff',
+    '--text-muted': 'rgba(255,255,255,0.60)',
+    '--text-dim': 'rgba(255,255,255,0.45)',
+    '--text-faint': 'rgba(255,255,255,0.35)',
+    // Aliases consumed by the runtime-injected modal/dialog markup below
+    // (--panel / --panel-soft / --muted). Mapped to the prototype palette.
+    '--muted': 'rgba(255,255,255,0.60)',
     '--panel': 'rgba(255,255,255,0.05)',
     '--panel-soft': 'rgba(255,255,255,0.03)',
-    '--border': 'rgba(255,255,255,0.1)',
-    '--border-soft': 'rgba(255,255,255,0.08)',
 
-    // Text Colors
-    '--text': '#ffffff',
-    '--muted': 'rgba(255,255,255,0.6)',
-    '--dim': 'rgba(255,255,255,0.4)',
-
-    // Accent Colors
+    // Brand accent
     '--cyan': '#22d3ee',
+    '--cyan-soft': 'rgba(34,211,238,0.22)',
+    '--cyan-faint': 'rgba(34,211,238,0.10)',
+    '--cyan-glow': 'rgba(34,211,238,0.80)',
     '--emerald': '#34d399',
+    '--accent-grad': 'linear-gradient(to right, #22d3ee, #34d399)',
 
-    // Effects
-    '--shadow': '0 20px 60px rgba(0,0,0,0.45)',
+    // Status
+    '--amber': '#f59e0b',
+    '--amber-bright': '#fbbf24',
+    '--danger': '#ef4444',
+    '--danger-soft': 'rgba(239,68,68,0.20)',
+    '--success-soft': 'rgba(52,211,153,0.10)',
+    '--success-text': '#bbf7d0',
+    '--success-dot': '#86efac',
+
+    // Radius / spacing / shadow (subset used at runtime)
+    '--r-sm': '8px',
+    '--r-md': '12px',
+    '--r-lg': '16px',
+    '--r-xl': '20px',
+    '--r-2xl': '24px',
+    '--r-full': '999px',
     '--radius-xl': '28px',
+    '--shadow': '0 20px 60px rgba(0,0,0,0.35)',
+    '--shadow-card': '0 20px 60px rgba(0,0,0,0.35)',
+    '--shadow-pop': '0 12px 40px rgba(0,0,0,0.5)',
+    '--shadow-focus': '0 0 0 4px rgba(34,211,238,0.30)',
   },
 
   // Component Styles - Predefined classes that enforce consistency

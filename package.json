@@ -46,7 +46,8 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^2.10.10",
-    "@clerk/react": "^6.12.2",
+    "@clerk/clerk-js": "^6.20.0",
+    "@clerk/react": "^6.12.4",
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",

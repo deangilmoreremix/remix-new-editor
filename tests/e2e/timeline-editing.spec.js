@@ -72,4 +72,43 @@ test.describe('Timeline Editing Tests', () => {
     const generateCount = await generateElements.count();
     expect(generateCount).toBeGreaterThan(0);
   });
+
+  test('redesign tokens resolve and editor is actually styled', async ({ page }) => {
+    // Regression guard: previously the redesign CSS referenced tokens that were
+    // never defined, so the editor rendered unstyled ("everything messed up").
+    // This asserts the design system tokens resolve to real colors at runtime.
+    await page.goto('/#/timeline');
+    await page.waitForSelector('.timeline-shell');
+
+    // The track-type dot must pick up its accent color from the tokens.
+    const dotBg = await page.locator('.track-type-dot.video').first()
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(dotBg).not.toBe('rgba(0, 0, 0, 0)');
+    expect(dotBg).not.toBe('transparent');
+    // Prototype value for the video dot is #38bdf8 -> rgb(56, 189, 248).
+    expect(dotBg).toBe('rgb(56, 189, 248)');
+
+    // The timeline shell border must resolve from the token system (not unset).
+    // The redesign uses --border-soft = rgba(255,255,255,0.06).
+    const shellBorder = await page.locator('.timeline-shell').first()
+      .evaluate((el) => getComputedStyle(el).borderTopColor);
+    expect(shellBorder).not.toBe('rgba(0, 0, 0, 0)');
+    expect(shellBorder).not.toBe('transparent');
+    expect(shellBorder).toBe('rgba(255, 255, 255, 0.06)');
+
+    // The cyan accent (playhead / active states) must resolve from --cyan.
+    const playhead = await page.locator('.playhead-line').first()
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(playhead).toBe('rgb(34, 211, 238)');
+
+    // At least one bundled timeline stylesheet must be present in the document.
+    const linked = await page.evaluate(() => {
+      const styles = [...document.styleSheets];
+      return styles.some((s) => {
+        try { return [...s.cssRules].some((r) => r.selectorText && r.selectorText.includes('timeline-shell')); }
+        catch { return false; }
+      });
+    });
+    expect(linked).toBe(true);
+  });
 });

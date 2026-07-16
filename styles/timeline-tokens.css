@@ -1,101 +1,98 @@
 /* ============================================================
-   Timeline Editor — Design Tokens (Phase 0)
+   Timeline Editor — Design Tokens (single source of truth)
    ------------------------------------------------------------
-   Extracted verbatim from the CURRENT live editor styling
-   (styles/timeline-editor-page.css) so the palette becomes a
-   single source of truth. Semantic names only — NO visual
-   change is intended. Every value here mirrors what the
-   editor already renders.
+   This file IS the design contract for the redesigned Timeline
+   Editor. Its values are extracted verbatim from the approved
+   redesign prototype (timeline-redesign-prototype.html) so the
+   live editor renders EXACTLY the prototype design.
 
-   Loaded BEFORE timeline-editor-page.css (see injectStyles()
-   in src/components/TimelineEditorPage.jsx).
+   Namespace note: the prototype and all component CSS use the
+   PLAIN token namespace (--bg, --cyan, --border, ...). Do NOT
+   introduce a second namespace (e.g. --tl-*); every token the
+   timeline CSS consumes must be defined here in this namespace.
+
+   Loaded BEFORE timeline-editor-page.css (static import order in
+   src/components/TimelineEditorPage.jsx).
    ============================================================ */
 
 :root {
-  /* ---- Surfaces (current dark editor look) ---- */
-  --tl-bg: #07090d;
-  --tl-surface-1: rgba(255, 255, 255, 0.03);
-  --tl-surface-2: rgba(255, 255, 255, 0.05);
-  --tl-surface-3: rgba(255, 255, 255, 0.08);
-  --tl-surface-sunken: rgba(0, 0, 0, 0.20);
-  --tl-track-lane: rgba(255, 255, 255, 0.02);
-  --tl-track-meta: rgba(0, 0, 0, 0.35);
+  /* Surfaces */
+  --bg: #07090d;
+  --bg-app: #07090d;
+  --surface-1: rgba(255, 255, 255, 0.03);
+  --surface-2: rgba(255, 255, 255, 0.05);
+  --surface-3: rgba(255, 255, 255, 0.08);
+  --surface-sunken: rgba(0, 0, 0, 0.20);
+  --track-lane: rgba(255, 255, 255, 0.02);
+  --track-meta: rgba(0, 0, 0, 0.35);
 
-  /* ---- Track type accents (dot colors) ---- */
-  --tl-type-video: #38bdf8;
-  --tl-type-audio: #34d399;
-  --tl-type-text:  #f59e0b;
-  --tl-type-fx:    #a78bfa;
+  /* Track type accents (dot colors) — from prototype .track-type-dot.* */
+  --type-video: #38bdf8;
+  --type-audio: #34d399;
+  --type-text:  #f59e0b;
+  --type-fx:    #a78bfa;
 
-  /* ---- Borders ---- */
-  --tl-border: rgba(255, 255, 255, 0.10);
-  --tl-border-soft: rgba(255, 255, 255, 0.06);
-  --tl-border-strong: rgba(255, 255, 255, 0.16);
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.10);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.16);
 
-  /* ---- Text ---- */
-  --tl-text: rgba(255, 255, 255, 0.86);
-  --tl-text-strong: #ffffff;
-  --tl-text-muted: rgba(255, 255, 255, 0.60);
-  --tl-text-dim: rgba(255, 255, 255, 0.45);
-  --tl-text-faint: rgba(255, 255, 255, 0.35);
+  /* Text */
+  --text: rgba(255, 255, 255, 0.86);
+  --text-strong: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.60);
+  --text-dim: rgba(255, 255, 255, 0.45);
+  --text-faint: rgba(255, 255, 255, 0.35);
 
-  /* ---- Brand accent (current cyan / emerald) ---- */
-  --tl-cyan: #22d3ee;
-  --tl-cyan-soft: rgba(34, 211, 238, 0.22);
-  --tl-cyan-faint: rgba(34, 211, 238, 0.10);
-  --tl-cyan-glow: rgba(34, 211, 238, 0.80);
-  --tl-emerald: #34d399;
-  --tl-accent-grad: linear-gradient(to right, #22d3ee, #34d399);
+  /* Brand accent (cyan / emerald) */
+  --cyan: #22d3ee;
+  --cyan-soft: rgba(34, 211, 238, 0.22);
+  --cyan-faint: rgba(34, 211, 238, 0.10);
+  --cyan-glow: rgba(34, 211, 238, 0.80);
+  --emerald: #34d399;
+  --accent-grad: linear-gradient(to right, var(--cyan), var(--emerald));
 
-  /* ---- Status colors (used sparingly, with text) ---- */
-  --tl-amber: #f59e0b;
-  --tl-amber-bright: #fbbf24;
-  --tl-danger: #ef4444;
-  --tl-danger-soft: rgba(239, 68, 68, 0.20);
-  --tl-success-soft: rgba(52, 211, 153, 0.10);
-  --tl-success-text: #bbf7d0;
-  --tl-success-dot: #86efac;
+  /* Status colors (used sparingly, with text) */
+  --amber: #f59e0b;
+  --amber-bright: #fbbf24;
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.20);
+  --success-soft: rgba(52, 211, 153, 0.10);
+  --success-text: #bbf7d0;
+  --success-dot: #86efac;
 
-  /* ---- Spacing scale (4 / 8px disciplined) ---- */
-  --tl-sp-1: 4px;
-  --tl-sp-2: 8px;
-  --tl-sp-3: 12px;
-  --tl-sp-4: 16px;
-  --tl-sp-5: 20px;
-  --tl-sp-6: 24px;
-  --tl-sp-8: 32px;
+  /* Spacing scale (4 / 8px disciplined) */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
 
-  /* ---- Radius scale ---- */
-  --tl-r-sm: 8px;
-  --tl-r-md: 12px;
-  --tl-r-lg: 16px;
-  --tl-r-xl: 20px;
-  --tl-r-2xl: 24px;
-  --tl-r-full: 999px;
+  /* Radius scale */
+  --r-sm: 8px;  --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px;
+  --r-full: 999px;
+  --radius-xl: 28px;
 
-  /* ---- Shadows ---- */
-  --tl-shadow-card: 0 20px 60px rgba(0, 0, 0, 0.35);
-  --tl-shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.5);
-  --tl-shadow-focus: 0 0 0 4px rgba(34, 211, 238, 0.30);
+  /* Shadows */
+  --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --shadow-focus: 0 0 0 4px rgba(34, 211, 238, 0.30);
 
-  /* ---- Type scale ---- */
-  --tl-fs-display: 20px;  --tl-fw-display: 900;
-  --tl-fs-title: 16px;    --tl-fw-title: 700;
-  --tl-fs-label: 11px;    --tl-fw-label: 800; --tl-ls-label: 0.08em;
-  --tl-fs-track: 12px;    --tl-fw-track: 700;
-  --tl-fs-time: 11px;
-  --tl-fs-clip: 10px;     --tl-fw-clip: 600;
-  --tl-fs-help: 9px;
+  /* Type scale */
+  --fs-display: 20px; --fw-display: 900;
+  --fs-title: 16px;   --fw-title: 700;
+  --fs-label: 11px;   --fw-label: 800; --ls-label: 0.08em;
+  --fs-track: 12px;   --fw-track: 700;
+  --fs-time: 11px;
+  --fs-clip: 10px;    --fw-clip: 600;
+  --fs-help: 9px;
 
-  /* ---- Panel solid background (tooltips, progress, toasts) ---- */
-  --tl-panel-solid: rgba(7, 12, 18, 0.95);
+  /* Panel solid background (tooltips, progress, toasts) */
+  --panel-solid: rgba(7, 12, 18, 0.95);
 
-  /* ---- Brand soft border (rgba(34,211,238,0.3) used on tooltips/drop zones) ---- */
-  --tl-brand-border-soft: rgba(34, 211, 238, 0.3);
+  /* Brand soft border (rgba(34,211,238,0.3) used on tooltips/drop zones) */
+  --brand-border-soft: rgba(34, 211, 238, 0.3);
 
-  /* ---- Layout dimensions (current values) ---- */
-  --tl-header-h: 72px;
-  --tl-track-h: 64px;
-  --tl-track-w: 140px;
-  --tl-ruler-h: 40px;
+  /* Layout dimensions */
+  --header-h: 72px;
+  --track-h: 64px;
+  --track-w: 140px;
+  --ruler-h: 40px;
 }

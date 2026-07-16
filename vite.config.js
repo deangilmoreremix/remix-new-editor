@@ -460,6 +460,12 @@ export default defineConfig({
         'process.browser': 'true',
     },
     resolve: {
+        // Force a single React instance. @clerk/react is pre-bundled by
+        // Vite's dep optimizer into its own chunk; without dedupe it can
+        // resolve a second copy of React, which makes every Clerk hook
+        // throw "Invalid hook call … more than one copy of React" and
+        // crashes <ClerkProvider> — blanking the sign-in page.
+        dedupe: ['react', 'react-dom'],
         alias: {
             // Force exact files for react/react-dom subpath exports. Vite 5's
             // resolver can mis-traverse the package `exports` map and append the
@@ -470,6 +476,15 @@ export default defineConfig({
             'react-dom/client': path.resolve(__dirname, 'node_modules/react-dom/client.js'),
             'react/jsx-runtime': path.resolve(__dirname, 'node_modules/react/jsx-runtime.js'),
             'react/jsx-dev-runtime': path.resolve(__dirname, 'node_modules/react/jsx-dev-runtime.js'),
+            'react-svg-inline': path.resolve(__dirname, 'src/lib/react-svg-inline.jsx'),
+            '@smartvideo/ai-timeline-editor': path.resolve(__dirname, 'packages/ai-timeline-editor/src'),
+            '@higgsfield/color-grading': path.resolve(__dirname, 'packages/color-grading/src'),
+            '@higgsfield/audio-mixer': path.resolve(__dirname, 'packages/audio-mixer/src'),
+            '@higgsfield/transitions': path.resolve(__dirname, 'packages/transitions/src'),
+            '@higgsfield/subtitles': path.resolve(__dirname, 'packages/subtitles/src'),
+            '@higgsfield/style-templates': path.resolve(__dirname, 'packages/style-templates/src'),
+            '@higgsfield/video-compiler': path.resolve(__dirname, 'packages/video-compiler/src'),
+            '@higgsfield/ai-chat': path.resolve(__dirname, 'packages/ai-chat/src'),
         },
     },
     plugins: [
@@ -533,32 +548,6 @@ export default defineConfig({
         exclude: /\.tsx?$/,
         jsx: 'automatic',
         tsconfigRaw: { compilerOptions: { experimentalDecorators: true } },
-    },
-    // Force a single React instance. @clerk/react is pre-bundled by Vite's
-    // dep optimizer into its own chunk; without dedupe it can resolve a second
-    // copy of React, which makes every Clerk hook throw
-    // "Invalid hook call … more than one copy of React" and crashes
-    // <ClerkProvider> — blanking the sign-in page. dedupe + a shared
-    // optimizeDeps pre-bundle guarantees one React for the app and Clerk.
-    resolve: {
-        dedupe: ['react', 'react-dom'],
-        alias: {
-            // Force a SINGLE React instance for the whole graph via dedupe
-            // (resolve.dedupe below). Without it, Vite's dep optimizer can
-            // hand @clerk/react a second React copy, making every Clerk
-            // hook throw "Invalid hook call … more than one copy of React"
-            // and leaving useSignIn/useSignUp's isLoaded false — so the
-            // sign-in / sign-up / reset buttons stay permanently disabled.
-            'react-svg-inline': path.resolve(__dirname, 'src/lib/react-svg-inline.jsx'),
-            '@smartvideo/ai-timeline-editor': path.resolve(__dirname, 'packages/ai-timeline-editor/src'),
-            '@higgsfield/color-grading': path.resolve(__dirname, 'packages/color-grading/src'),
-            '@higgsfield/audio-mixer': path.resolve(__dirname, 'packages/audio-mixer/src'),
-            '@higgsfield/transitions': path.resolve(__dirname, 'packages/transitions/src'),
-            '@higgsfield/subtitles': path.resolve(__dirname, 'packages/subtitles/src'),
-            '@higgsfield/style-templates': path.resolve(__dirname, 'packages/style-templates/src'),
-            '@higgsfield/video-compiler': path.resolve(__dirname, 'packages/video-compiler/src'),
-            '@higgsfield/ai-chat': path.resolve(__dirname, 'packages/ai-chat/src'),
-        },
     },
     server: {
         port: 3000,

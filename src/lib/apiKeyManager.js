@@ -225,7 +225,7 @@ apiKeyManager.migrateFromLegacy();
  * will still fail — this only bypasses the auth gate for UI development.
  */
 const DEV_PLACEHOLDER_KEY = 'dev-bypass-key-not-real';
-const isDevBypass =
+export const isDevBypass =
     (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEV_BYPASS_AUTH === 'true') ||
     (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('dev'));
 
