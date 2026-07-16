@@ -1,3 +1,5 @@
+> **SUPERSEDED** by docs/plans/cinegen-timeline-port.md — different upstream. Do not follow.
+
 # Port timeline-studio features into the Higgsfield timeline editor
 
 ## Context

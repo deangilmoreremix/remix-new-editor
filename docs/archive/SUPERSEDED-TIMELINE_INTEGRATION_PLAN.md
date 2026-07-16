@@ -1,3 +1,5 @@
+> **SUPERSEDED** by docs/plans/cinegen-timeline-port.md — different upstream. Do not follow.
+
 # Timeline App Integration Plan
 
 ## Current State
