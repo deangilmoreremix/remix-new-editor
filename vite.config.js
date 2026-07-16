@@ -459,6 +459,19 @@ export default defineConfig({
     define: {
         'process.browser': 'true',
     },
+    resolve: {
+        alias: {
+            // Force exact files for react/react-dom subpath exports. Vite 5's
+            // resolver can mis-traverse the package `exports` map and append the
+            // subpath (e.g. "/client", "/jsx-runtime") onto react(-dom)/index.js
+            // (ENOTDIR) on a fresh node_modules, aborting the build. Pinning the
+            // real files avoids that. jsx-runtime/jsx-dev-runtime are auto-injected
+            // by @vitejs/plugin-react into every .jsx module.
+            'react-dom/client': path.resolve(__dirname, 'node_modules/react-dom/client.js'),
+            'react/jsx-runtime': path.resolve(__dirname, 'node_modules/react/jsx-runtime.js'),
+            'react/jsx-dev-runtime': path.resolve(__dirname, 'node_modules/react/jsx-dev-runtime.js'),
+        },
+    },
     plugins: [
         tailwindcss(),
         // Legacy components (e.g. SocialPublisherModal.jsx) use MobX
@@ -491,7 +504,7 @@ export default defineConfig({
         // auth/studio critical path) without breaking the scan.
         entries: ['scripts/clerk-optimize-entry.js'],
         include: [
-            'react', 'react-dom', 'react/jsx-runtime', '@clerk/react',
+            'react', 'react-dom', 'react-dom/client', '@clerk/react',
             '@chakra-ui/react',
             // Common runtime deps pulled in by main.js / the studio / popcorn so
             // they are pre-bundled up front. Pre-bundling avoids the late
@@ -530,6 +543,12 @@ export default defineConfig({
     resolve: {
         dedupe: ['react', 'react-dom'],
         alias: {
+            // Force a SINGLE React instance for the whole graph via dedupe
+            // (resolve.dedupe below). Without it, Vite's dep optimizer can
+            // hand @clerk/react a second React copy, making every Clerk
+            // hook throw "Invalid hook call … more than one copy of React"
+            // and leaving useSignIn/useSignUp's isLoaded false — so the
+            // sign-in / sign-up / reset buttons stay permanently disabled.
             'react-svg-inline': path.resolve(__dirname, 'src/lib/react-svg-inline.jsx'),
             '@smartvideo/ai-timeline-editor': path.resolve(__dirname, 'packages/ai-timeline-editor/src'),
             '@higgsfield/color-grading': path.resolve(__dirname, 'packages/color-grading/src'),
