@@ -1,7 +1,7 @@
 import { navigate } from '../lib/router.js';
 import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
-import { getSupabaseUrl, isSupabaseConfigured } from '../lib/supabase.js';
+import { getSupabaseUrl, isSupabaseConfigured, uploadFileToStorage } from '../lib/supabase.js';
 import { browserVideoProcessor } from '../lib/browserVideoProcessor.js';
 
 const AI_TOOLS = [
@@ -37,7 +37,7 @@ export function VideoAgentPage() {
 
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('videoId') || '';
-    const videoUrl = urlParams.get('videoUrl') || '';
+    let videoUrl = urlParams.get('videoUrl') || '';
     
     const processingQueue = [];
     let isProcessing = false;
@@ -82,7 +82,7 @@ export function VideoAgentPage() {
             <div class="flex-1 flex flex-col">
                 <!-- Video Preview Card -->
                 <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
-                    <div class="aspect-video flex items-center justify-center bg-black rounded-xl overflow-hidden">
+                    <div class="aspect-video flex items-center justify-center bg-black rounded-xl overflow-hidden relative" id="video-preview-stage">
                         ${videoUrl ? `
                             <video 
                                 id="videoagent-video" 
@@ -100,10 +100,20 @@ export function VideoAgentPage() {
                                         <polygon points="5 3 19 12 5 21 5 3"/>
                                     </svg>
                                     <p class="text-white/50">No video loaded</p>
-                                    <p class="text-xs text-muted mt-2">Generate a video first to process</p>
+                                    <p class="text-xs text-muted mt-2">Upload a video to start processing</p>
                                 </div>
                             </div>
                         `}
+                    </div>
+                    <div class="mt-3 flex items-center gap-3">
+                        <button id="load-video-btn" class="flex items-center gap-2 px-4 py-2.5 bg-primary text-black font-bold rounded-xl hover:scale-[1.02] transition-transform text-sm">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                            </svg>
+                            Load Video
+                        </button>
+                        <span id="load-video-status" class="text-xs text-muted truncate"></span>
+                        <input id="video-file-input" type="file" accept="video/*" class="hidden" />
                     </div>
                 </div>
                 
@@ -271,7 +281,69 @@ export function VideoAgentPage() {
     
     // Append content wrapper
     container.appendChild(contentWrapper);
-    
+
+    // ---- Video upload (Supabase Storage) ----
+    const previewStage = container.querySelector('#video-preview-stage');
+    const fileInput = container.querySelector('#video-file-input');
+    const loadBtn = container.querySelector('#load-video-btn');
+    const loadStatus = container.querySelector('#load-video-status');
+
+    function renderVideoPreview() {
+        if (!previewStage) return;
+        previewStage.innerHTML = videoUrl
+            ? `<video id="videoagent-video" class="max-w-full max-h-full" controls src="${escapeHtml(videoUrl)}">Your browser does not support video playback.</video>`
+            : `<div class="relative w-full h-full flex items-center justify-center overflow-hidden">
+                   <img src="/thumbnails/videoagent/empty-video.png" alt="No video loaded" class="absolute inset-0 w-full h-full object-cover opacity-40" onerror="this.style.display='none'" />
+                   <div class="relative text-center p-8 z-10">
+                       <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-muted mx-auto mb-4"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                       <p class="text-white/50">No video loaded</p>
+                       <p class="text-xs text-muted mt-2">Upload a video to start processing</p>
+                   </div>
+               </div>`;
+    }
+
+    async function handleVideoFile(file) {
+        if (!file) return;
+        if (!file.type.startsWith('video/')) {
+            showToast('Please choose a video file', 'error');
+            return;
+        }
+        if (!isSupabaseConfigured()) {
+            showToast('Storage not configured. Set VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY.', 'error');
+            return;
+        }
+        try {
+            loadStatus.textContent = 'Uploading…';
+            loadBtn.disabled = true;
+            const url = await uploadFileToStorage(file);
+            videoUrl = url; // server-reachable https URL the backend can fetch
+            renderVideoPreview();
+            loadStatus.textContent = 'Loaded ✓';
+            showToast('Video loaded', 'success');
+        } catch (err) {
+            console.error('[VideoAgentPage] upload failed:', err);
+            loadStatus.textContent = 'Upload failed';
+            showToast('Upload failed: ' + (err && err.message ? err.message : 'unknown error'), 'error');
+        } finally {
+            loadBtn.disabled = false;
+        }
+    }
+
+    if (loadBtn) loadBtn.onclick = () => fileInput && fileInput.click();
+    if (fileInput) fileInput.onchange = (e) => handleVideoFile(e.target.files && e.target.files[0]);
+    // Drag & drop onto the preview stage
+    if (previewStage) {
+        previewStage.addEventListener('dragover', (e) => { e.preventDefault(); previewStage.classList.add('ring-2', 'ring-primary'); });
+        previewStage.addEventListener('dragleave', () => previewStage.classList.remove('ring-2', 'ring-primary'));
+        previewStage.addEventListener('drop', (e) => {
+            e.preventDefault();
+            previewStage.classList.remove('ring-2', 'ring-primary');
+            const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+            handleVideoFile(f);
+        });
+    }
+    renderVideoPreview();
+
     // Event handlers
     container.querySelector('#back-btn').onclick = () => {
         navigate('render', { videoId, videoUrl });

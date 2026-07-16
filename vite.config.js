@@ -20,6 +20,7 @@ const stubLegacy = () => ({
     if (!importer) return null;
     if (importer.includes('node_modules')) return null;
     if (source.startsWith('\0')) return null;
+    if (/\.html(\?|$)/i.test(source)) return null;
     const importerIsLegacy = STUB_IMPORTER_PREFIXES.some(p => importer.includes(p));
     if (!importerIsLegacy) return null;
     // Never stub imports from the landing page — those are new-style
@@ -35,9 +36,19 @@ const stubLegacy = () => ({
     // Genuinely unresolved legacy import — stub it so the bundle still
     // resolves. Asset imports get a placeholder data URL.
     if (/\.(svg|png|jpe?g|webp|gif|ico)(\?|$)/i.test(source)) {
+      const rel = importer.replace(process.cwd() + '/', '');
+      console.warn('[STUB]', source, '<-', rel);
+      if (process.env.STRICT_IMPORTS) {
+        throw new Error(`Unresolved import "${source}" from ${rel}`);
+      }
       return {
         id: '\0legacy-asset-stub:' + source + '::' + importer,
       };
+    }
+    const rel = importer.replace(process.cwd() + '/', '');
+    console.warn('[STUB]', source, '<-', rel);
+    if (process.env.STRICT_IMPORTS) {
+      throw new Error(`Unresolved import "${source}" from ${rel}`);
     }
     return {
       id: '\0legacy-stub:' + source + '::' + importer,
@@ -54,10 +65,11 @@ const stubLegacy = () => ({
     }
     if (id.startsWith('\0legacy-stub:')) {
       // Build named exports by parsing the importer's import statement.
-      console.warn('[stub-legacy] Stubbing unresolved import:', source, '←', importer);
       const payload = id.slice('\0legacy-stub:'.length);
       const [source, ...rest] = payload.split('::');
       const importer = rest.join('::');
+      console.warn('[stub-legacy] Stubbing unresolved import:', source, '←', importer);
+      console.warn('[stub-legacy] Stubbing unresolved import:', source, '←', importer);
       // Match the exact quoted import path so subpath imports like
       // '@pqina/pintura/pintura.module.css' don't shadow a main-entry
       // import like '@pqina/pintura' in the same file.
@@ -222,7 +234,6 @@ function modelCatalogBuildPlugin() {
  * failing. Real `.svg` files on disk are left untouched.
  */
 function svgMissingFallback() {
-  const fs = require('fs');
   const PLACEHOLDER =
     'data:image/svg+xml,' +
     encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"></svg>');
@@ -247,6 +258,9 @@ export default defineConfig({
         svgMissingFallback(),
         modelCatalogBuildPlugin(),
     ],
+    optimizeDeps: {
+        entries: ['index.html'],
+    },
     resolve: {
         alias: {
             'react-svg-inline': path.resolve(__dirname, 'src/lib/react-svg-inline.jsx'),
