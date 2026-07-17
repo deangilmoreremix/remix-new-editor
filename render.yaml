@@ -27,3 +27,60 @@ services:
         sync: false         # set manually in dashboard or via `render env set OPENAI_API_KEY ...`
       - key: VIDEO_AGENT_BACKEND_URL
         sync: false         # set to this service's URL after deploy, e.g. https://videoagent-backend.onrender.com
+
+  # Director (VideoDB) finishing backend — powers Render Studio subtitles,
+  # scenes, highlights, voiceover, dubbing. References the existing director-db
+  # (created in the workspace; not re-declared here to avoid the
+  # "cannot downgrade database" blueprint validation error).
+  - type: web
+    name: director-backend
+    region: singapore
+    runtime: docker
+    plan: starter
+    rootDir: apps/director/backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: SERVER_ENV
+        value: production
+      - key: VIDEO_DB_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DB_TYPE
+        value: postgres
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: director-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: director-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: director-db
+          property: password
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: director-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: director-db
+          property: port
+
+  - type: web
+    name: director-frontend
+    region: singapore
+    runtime: docker
+    plan: starter
+    rootDir: apps/director/frontend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: VITE_APP_BACKEND_URL
+        fromService:
+          name: director-backend
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
