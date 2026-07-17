@@ -10,12 +10,14 @@
  * Transport:
  *  - Video ingest uses the HTTP blueprint  POST /videodb/collection/<id>/video
  *    (confirmed present in apps/director/backend director/entrypoint/api/routes.py).
- *  - Agent execution uses the Director Socket.IO `/chat` namespace (the official
- *    transport — Director exposes chat ONLY over Socket.IO). We emit a `chat`
- *    event with { message, agents:[name], collection_id, video_id } and listen
- *    for streamed `chat` events carrying the agent output (video stream_url /
- *    status). A best-effort HTTP POST to /chat is kept as a fallback, but the
- *    primary path is Socket.IO so execution is guaranteed when the backend is up.
+ *  - Agent execution uses the Director Socket.IO `/chat` namespace (the only
+ *    transport — Director exposes chat ONLY over Socket.IO at namespace "/chat").
+ *    We connect to that namespace and emit a `chat` event with
+ *    { message, agents:[name], collection_id, video_id }, then listen for the
+ *    streamed `chat` events carrying the agent output (video stream_url / status).
+ *    There is NO HTTP /chat route, so a dropped connection is a loud failure.
+ *  - In production the WS upgrade may not traverse the HTTP proxy; set
+ *    VITE_DIRECTOR_SOCKET_URL (a wss:// URL) to connect the socket directly.
  *
  * Fail-loud contract: every function either returns a real result (with a
  * `url`/`stream_url` from VideoDB, or structured metadata) or throws. There is
@@ -25,6 +27,16 @@
 import { io } from 'socket.io-client';
 
 const DIRECTOR_BASE = '/director-api'; // Vite proxy -> Director backend (localhost:8000 / Render)
+// Socket.IO namespace the Director backend listens on. The backend registers
+// ChatNamespace("/chat") and only handles the "chat" event there — connecting
+// to the default namespace ("/") means the event is never received.
+const DIRECTOR_CHAT_NS = '/chat';
+// In production the HTTP proxy (Netlify) may not forward the Socket.IO WS
+// upgrade, so allow a direct wss:// URL override (set DIRECTOR_SOCKET_URL).
+const DIRECTOR_SOCKET_URL =
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_DIRECTOR_SOCKET_URL) ||
+  (typeof process !== 'undefined' && process.env && process.env.VITE_DIRECTOR_SOCKET_URL) ||
+  `${DIRECTOR_BASE}${DIRECTOR_CHAT_NS}`;
 const DEFAULT_COLLECTION_ID = 'default';
 const AGENT_TIMEOUT_MS = 180000; // 3 min — VideoDB ops can be slow
 
@@ -118,7 +130,7 @@ export function invokeDirectorAgent({
   };
 
   return new Promise((resolve, reject) => {
-    const socket = io(DIRECTOR_BASE, {
+    const socket = io(DIRECTOR_SOCKET_URL, {
       transports: ['websocket', 'polling'],
       reconnection: false,
       timeout: 15000,
@@ -202,25 +214,12 @@ export function invokeDirectorAgent({
 
     socket.on('disconnect', () => {
       if (!settled) {
-        // Connection dropped without a terminal event — try the HTTP fallback.
-        postJson('/chat', payload, { signal })
-          .then((result) => {
-            const rStatus = result?.status || result?.agent_response?.status;
-            if (rStatus === 'error' || result?.success === false) {
-              finish(reject, new Error(result?.message || `Director agent "${agent}" failed`));
-            } else {
-              const url =
-                result?.data?.stream_url ||
-                result?.video?.stream_url ||
-                result?.data?.url ||
-                result?.url;
-              finish(resolve, { status: rStatus || 'success', url, data: result, agent });
-            }
-          })
-          .catch((err) => {
-            clearTimeout(timer);
-            finish(reject, new Error(`Director disconnected and HTTP fallback failed: ${err.message}`));
-          });
+        // Director exposes agent execution ONLY over the Socket.IO /chat
+        // namespace — there is no HTTP /chat route to fall back to. A dropped
+        // connection without a terminal event is a real failure; surface it
+        // loudly rather than silently substituting a result.
+        clearTimeout(timer);
+        finish(reject, new Error(`Director agent "${agent}" disconnected before completing`));
       }
     });
   });
