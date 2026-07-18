@@ -50,7 +50,10 @@ services:
     plan: starter
     rootDir: apps/director/frontend
     dockerfilePath: ./Dockerfile
-    dockerContext: .
+    # Build context must be the repo root (relative to rootDir) so the shared
+    # workspace packages (packages/layout -> packages/tokens, packages/navigation)
+    # referenced via `file:` deps are available during `npm install` / `vite build`.
+    dockerContext: ../..
     envVars:
       - key: VITE_APP_BACKEND_URL
         fromService:
