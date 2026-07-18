@@ -36,6 +36,10 @@
   </AppShell>
 </template>
 
+<script lang="ts">
+export { default as DirectorLayout } from './DirectorLayout.vue';
+</script>
+
 <script setup lang="ts">
 import { 
   AppShell, 
