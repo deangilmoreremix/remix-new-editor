@@ -115,7 +115,7 @@ services:
       - key: MAIGRET_MAX_CONCURRENT
         value: "4"
       - key: MAIGRET_PER_KEY_LIMIT
-        value: "100"
+        value: "120"
       - key: MAIGRET_SCAN_TIMEOUT
         value: "90"
       - key: ALLOWED_ORIGINS
