@@ -1,7 +1,10 @@
-# render.yaml — deploys the Video Agent backend as a Render Web Service.
-# Usage:
+# render.yaml — Blueprint for videoagent-backend, director-backend, and
+# director-frontend. Usage:
 #   render blueprint launch   # first time: creates the service from this file
 #   render deploy             # redeploy after changes
+#
+# Re-sync trigger: director-frontend now builds successfully (shared packages
+# vendored into apps/director/frontend/packages), so the Blueprint can sync.
 #
 # NOTE: set OPENAI_API_KEY in the Render dashboard (or `render env set`)
 # after the first launch — Render does NOT read .env.local.
