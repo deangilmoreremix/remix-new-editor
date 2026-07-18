@@ -32,9 +32,9 @@ services:
         sync: false         # set to this service's URL after deploy, e.g. https://videoagent-backend.onrender.com
 
   # Director (VideoDB) finishing backend — powers Render Studio subtitles,
-  # scenes, highlights, voiceover, dubbing. References the existing director-db
-  # (created in the workspace; not re-declared here to avoid the
-  # "cannot downgrade database" blueprint validation error).
+  # scenes, highlights, voiceover, dubbing. Uses director-db, declared in the
+  # databases block below with specs matching the existing instance so the
+  # Blueprint can own it without a "cannot downgrade database" error.
   - type: web
     name: director-backend
     region: singapore
@@ -87,3 +87,15 @@ services:
           name: director-backend
           type: web
           envVarKey: RENDER_EXTERNAL_URL
+
+databases:
+  # Existing director-db. Specs match the live instance
+  # (dpg-d9d480faqgkc73crq7h0-a) to avoid a "cannot downgrade database" error
+  # during Blueprint sync.
+  - name: director-db
+    plan: basic-256mb
+    region: singapore
+    postgresMajorVersion: "18"
+    databaseName: director_db_nkya
+    user: director_db_nkya_user
+    diskSizeGB: 15
