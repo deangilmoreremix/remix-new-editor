@@ -88,6 +88,40 @@ services:
           type: web
           envVarKey: RENDER_EXTERNAL_URL
 
+  # Maigret worker — username OSINT scanning service used for personalization.
+  # Self-contained Docker service under services/maigret-worker.
+  # Named maigret-worker-sv to avoid colliding with the existing ohio
+  # maigret-worker service (which lives in a different repo/project).
+  - type: web
+    name: maigret-worker-sv
+    region: singapore
+    runtime: docker
+    plan: free
+    rootDir: services/maigret-worker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: MAIGRET_API_KEY
+        generateValue: true
+      - key: MAIGRET_ADMIN_KEY
+        sync: false
+      - key: MAIGRET_CACHE_BACKEND
+        value: memory
+      - key: MAIGRET_CACHE_TTL_SECONDS
+        value: "86400"
+      - key: MAIGRET_MAX_CONCURRENT
+        value: "4"
+      - key: MAIGRET_PER_KEY_LIMIT
+        value: "100"
+      - key: MAIGRET_SCAN_TIMEOUT
+        value: "90"
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
 databases:
   # Existing director-db. Specs match the live instance
   # (dpg-d9d480faqgkc73crq7h0-a) to avoid a "cannot downgrade database" error
