@@ -92,6 +92,7 @@ services:
   # Self-contained Docker service under services/maigret-worker.
   # Named maigret-worker-sv to avoid colliding with the existing ohio
   # maigret-worker service (which lives in a different repo/project).
+  # Live at https://maigret-worker-sv.onrender.com (/health).
   - type: web
     name: maigret-worker-sv
     region: singapore
