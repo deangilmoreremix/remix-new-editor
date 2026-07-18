@@ -2,19 +2,13 @@ FROM node:22.8.0-alpine
 
 WORKDIR /app
 
-# The frontend depends on local workspace packages via `file:` references
-# (packages/layout -> packages/tokens, packages/navigation). The build context
-# is the repo root, so copy the frontend manifest plus those shared packages
-# (with their manifests) before installing, otherwise npm cannot resolve the
-# file: links and the production build fails.
-COPY apps/director/frontend/package*.json ./
-COPY packages/tokens ./packages/tokens
-COPY packages/navigation ./packages/navigation
-COPY packages/layout ./packages/layout
-
+# The shared workspace packages (packages/{tokens,navigation,layout}) are
+# committed inside this directory so they are part of the Docker build context
+# and the `file:` dependencies in package.json resolve during `npm install`.
+COPY package*.json ./
 RUN npm install
 
-COPY apps/director/frontend/. .
+COPY . .
 
 RUN npm run build
 
