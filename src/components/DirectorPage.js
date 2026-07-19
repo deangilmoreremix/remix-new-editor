@@ -170,8 +170,8 @@ export function DirectorPage() {
     container.className = 'w-full h-full flex flex-col overflow-hidden bg-app-bg';
     
     const urlParams = new URLSearchParams(window.location.search);
-    const videoId = urlParams.get('videoId') || '';
-    const videoUrl = urlParams.get('videoUrl') || '';
+    let videoId = urlParams.get('videoId') || '';
+    let videoUrl = urlParams.get('videoUrl') || '';
     
     let chatHistory = [];
     let activeAgents = new Set();
@@ -258,21 +258,37 @@ export function DirectorPage() {
             
             <!-- Center: Video + Chat -->
             <div class="flex-1 flex flex-col overflow-hidden">
-                <!-- Video Preview -->
+                <!-- Video Preview + Upload -->
                 <div class="p-4 border-b border-white/5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                            </svg>
+                            VIDEO PREVIEW
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <button id="director-upload-btn" class="px-3 py-1.5 bg-primary/15 hover:bg-primary/25 text-primary text-xs font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                                Upload Video
+                            </button>
+                            <input type="file" id="director-upload-input" accept="video/*" class="hidden" />
+                            <span id="director-upload-status" class="text-[11px] text-secondary"></span>
+                        </div>
+                    </div>
                     <div class="bg-black rounded-2xl overflow-hidden">
-                        <div class="aspect-video flex items-center justify-center bg-black/80 relative">
+                        <div id="director-player-wrap" class="aspect-video flex items-center justify-center bg-black/80 relative">
                             ${videoUrl ? `
-                                <video 
-                                    id="director-video" 
-                                    class="max-w-full max-h-full" 
+                                <video
+                                    id="director-video"
+                                    class="w-full h-full object-contain bg-black"
                                     controls
                                     src="${escapeHtml(videoUrl)}"
                                 >
                                     Your browser does not support video playback.
                                 </video>
                             ` : `
-                                <div class="text-center p-8">
+                                <div id="director-empty" class="text-center p-8">
                                     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="text-secondary mx-auto mb-4">
                                         <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
                                         <line x1="7" y1="2" x2="7" y2="22"/>
@@ -284,7 +300,10 @@ export function DirectorPage() {
                                         <line x1="17" y1="7" x2="22" y2="7"/>
                                     </svg>
                                     <p class="text-secondary">No video loaded</p>
-                                    <p class="text-xs text-muted mt-2">Generate a video first to use Director</p>
+                                    <p class="text-xs text-muted mt-2">Upload a video or open Director with <code>?videoUrl=</code> / <code>?videoId=</code></p>
+                                    <button id="director-empty-upload" class="mt-4 px-4 py-2 bg-primary/15 hover:bg-primary/25 text-primary text-xs font-bold rounded-lg transition-colors cursor-pointer">
+                                        Choose a video file
+                                    </button>
                                 </div>
                             `}
                         </div>
@@ -505,7 +524,84 @@ export function DirectorPage() {
         `;
         chatHistory = [];
     };
-    
+
+    /* ─── Video upload + player/previewer ─── */
+    const playerWrap = container.querySelector('#director-player-wrap');
+    const uploadInput = container.querySelector('#director-upload-input');
+    const uploadStatus = container.querySelector('#director-upload-status');
+    let localObjectUrl = null;
+
+    const renderPlayer = (src, { fromVideoDB = false } = {}) => {
+        if (!playerWrap) return;
+        playerWrap.innerHTML = `
+            <video id="director-video" class="w-full h-full object-contain bg-black" controls src="${escapeHtml(src)}">
+                Your browser does not support video playback.
+            </video>
+        `;
+        if (fromVideoDB) {
+            // Persist the resolved VideoDB id so agents can operate on it.
+            const idMatch = /[?&]id=([^&]+)/.exec(src) || /videodb\.io\/.*\/([a-z0-9-]{8,})/.exec(src);
+        }
+    };
+
+    const setStatus = (msg) => { if (uploadStatus) uploadStatus.textContent = msg || ''; };
+
+    const handleFile = async (file) => {
+        if (!file) return;
+        // 1) Instant local preview (no key required).
+        if (localObjectUrl) URL.revokeObjectURL(localObjectUrl);
+        localObjectUrl = URL.createObjectURL(file);
+        renderPlayer(localObjectUrl);
+        videoUrl = localObjectUrl;
+        videoId = '';
+
+        // 2) If the user has a VideoDB key, upload + index so agents can run.
+        if (!apiKeyManager.hasVideoDBKey()) {
+            setStatus('Local preview ready — add VideoDB key in Settings to enable agents');
+            return;
+        }
+        try {
+            setStatus('Uploading to VideoDB…');
+            const form = new FormData();
+            form.append('file', file);
+            form.append('name', file.name);
+            form.append('media_type', 'video');
+            form.append('endpoint', 'collection/default/upload');
+            form.append('videoDbKey', apiKeyManager.getVideoDBKey());
+            const proxyBase = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL)
+                ? import.meta.env.VITE_BACKEND_URL.replace(/\/$/, '')
+                : (window.__BACKEND_URL__ || '');
+            const res = await fetch(`${proxyBase}/api/videodb/proxy`, {
+                method: 'POST',
+                body: form,
+            });
+            const json = await res.json().catch(() => ({}));
+            const data = json?.data ?? json;
+            if (data?.id) {
+                videoId = data.id;
+                setStatus(`Indexed as ${data.id}`);
+                if (data.stream_url) renderPlayer(data.stream_url, { fromVideoDB: true });
+            } else {
+                setStatus('Uploaded (no stream returned)');
+            }
+        } catch (err) {
+            console.warn('[Director] VideoDB upload failed:', err.message);
+            setStatus('Local preview only — VideoDB upload failed');
+        }
+    };
+
+    if (uploadInput) {
+        uploadInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            handleFile(file);
+            uploadInput.value = '';
+        });
+    }
+    const uploadBtn = container.querySelector('#director-upload-btn');
+    if (uploadBtn) uploadBtn.onclick = () => uploadInput && uploadInput.click();
+    const emptyUpload = container.querySelector('#director-empty-upload');
+    if (emptyUpload) emptyUpload.onclick = () => uploadInput && uploadInput.click();
+
     // Category filter
     container.querySelector('#category-filter').onchange = (e) => {
         const category = e.target.value;
