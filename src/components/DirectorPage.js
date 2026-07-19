@@ -732,7 +732,67 @@ export function DirectorPage() {
     const handleSend = () => {
         const text = commandInput.value;
         if (!text || !text.trim()) return;
-        processCommand(text);
+        // If a specific agent card is selected, run that agent.
+        const selectedBtn = container.querySelector('.agent-btn.selected');
+        if (selectedBtn && selectedBtn.dataset.agent) {
+            runAgent(selectedBtn.dataset.agent, text);
+            return;
+        }
+        // Otherwise infer an agent from keywords; if none matches, use chat.
+        if (inferAgentId(text)) {
+            processCommand(text);
+        } else {
+            sendChatMessage(text);
+        }
+    };
+
+    /**
+     * PromptClip-style free-text chat: send natural-language to the VideoDB
+     * chat-completions backend (via the Director proxy). Returns video-aware
+     * answers; if a video/clip is produced it renders a player.
+     */
+    const sendChatMessage = async (text) => {
+        if (!text || !text.trim()) return;
+        addMessage(text, true);
+        commandInput.value = '';
+
+        if (!apiKeyManager.hasVideoDBKey()) {
+            addMessage('Please add your VideoDB API key in Settings to use Director chat.', false);
+            showToast('VideoDB key required', 'error');
+            return;
+        }
+
+        isProcessing = true;
+        showProcessing('Chat');
+        try {
+            const res = await fetch('/api/director/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: text,
+                    videoId,
+                    videoUrl,
+                    collectionId: 'default',
+                    history: chatHistory.filter(m => !m.isAction).map(m => ({
+                        role: m.isUser ? 'user' : 'assistant',
+                        content: m.text,
+                    })),
+                }),
+            });
+            const json = await res.json().catch(() => ({}));
+            if (json && json.ok && json.text) {
+                addMessage(json.text, false);
+            } else if (json && json.text) {
+                addMessage(json.text, false);
+            } else {
+                addMessage(json && (json.error || json.message) ? String(json.error || json.message) : 'Chat failed.', false);
+            }
+        } catch (err) {
+            addMessage(`Chat failed: ${escapeHtml(String(err.message || err))}`, false);
+        } finally {
+            isProcessing = false;
+            hideProcessing();
+        }
     };
 
     /* ─── Keyword → agent id (for free-text command inference) ─── */

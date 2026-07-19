@@ -152,9 +152,12 @@ router.post('/chat', async (req, res) => {
             });
         }
 
-        // Build the chat context. The VideoDB chat-completions REST API takes a
-        // list of messages; we send the user's message plus optional video
-        // context so the assistant can ground its response.
+        // Build the chat messages. The VideoDB chat-completions REST API is
+        // OpenAI-compatible and REQUIRES `model` (only gpt-4o-2024-11-20 is
+        // allowed) plus a `collection_id`. We forward any prior `history`
+        // (for multi-turn) and append the current user message, grounded with
+        // optional video context so the assistant can reason over the video.
+        const history = Array.isArray(req.body.history) ? req.body.history : [];
         const contentParts = [];
         if (videoUrl) contentParts.push(`Video URL: ${videoUrl}`);
         if (videoId) contentParts.push(`Video ID: ${videoId}`);
@@ -163,10 +166,8 @@ router.post('/chat', async (req, res) => {
         contentParts.push(message);
 
         const messages = [
-            {
-                role: 'user',
-                content: contentParts.join('\n'),
-            },
+            ...history.filter((m) => m && m.role && m.content),
+            { role: 'user', content: contentParts.join('\n') },
         ];
 
         const chatUrl = `${VIDEODB_BASE_URL}/chat/completions`;
@@ -176,7 +177,11 @@ router.post('/chat', async (req, res) => {
                 'x-access-token': key.trim(),
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ messages }),
+            body: JSON.stringify({
+                model: 'gpt-4o-2024-11-20',
+                collection_id: collectionId || 'default',
+                messages,
+            }),
         });
 
         const text = await upstream.text();
