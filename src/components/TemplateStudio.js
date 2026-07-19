@@ -2,7 +2,7 @@ import { getTemplateById } from '../lib/templates.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
-import { getNicheTerms } from '../lib/templateEngine.js';
+import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
@@ -38,6 +38,7 @@ export function TemplateStudio(templateId) {
   const formState = {};
   let activeTab = 'Enhanced Prompt';
   let aiEnhancer = true;
+  let lastBuiltPrompt = '';
   let showAdvanced = false;
   let uploadedUrl = null;
   let isGenerating = false;
@@ -45,7 +46,7 @@ export function TemplateStudio(templateId) {
 
   // Create full-page wrapper
   const container = document.createElement('div');
-  container.className = 'min-h-screen bg-[#0a0a0b] text-white';
+  container.className = 'template-studio min-h-screen bg-[#0a0a0b] text-white';
 
   // Create app shell row
   const appShell = document.createElement('div');
@@ -361,11 +362,22 @@ export function TemplateStudio(templateId) {
   `;
   leftPanel.appendChild(enhancerSection);
 
+  // GTM Boost affordance (opt-in enhancement via GTMPromptModal).
+  // Uses the shared .gtm-boost-btn design (matches Image / Video studios);
+  // the .template-studio ancestor class themes it emerald via gtm-prompt-modal.css.
+  const gtmBtn = document.createElement('button');
+  gtmBtn.type = 'button';
+  gtmBtn.textContent = '🎯 GTM Boost';
+  gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBtn.className = 'gtm-boost-btn w-full mt-4';
+  leftPanel.appendChild(gtmBtn);
+
   // Advanced controls content
   const advancedControls = enhancerSection.querySelector('#advancedControls');
   const advancedFields = [
     { name: 'templateType', label: 'Template Type', type: 'select', options: ['cinematic-short-film', 'dramatic-trailer', 'founder-story-film', 'testimonial-film', 'case-study-film', 'promo-film', 'cinematic-commercial', 'documentary-style-film'] },
-    { name: 'niche', label: 'Niche', type: 'select', options: ['auto-detect', 'restaurant', 'med-spa', 'real-estate', 'fitness', 'legal', 'dental', 'general-business', 'automotive', 'fashion', 'local-business', 'saas', 'agency'] },
+    { name: 'niche', label: 'Niche', type: 'select', options: ['auto-detect', 'restaurant', 'med-spa', 'salon', 'barbershop', 'fitness', 'real-estate', 'dental', 'chiropractic', 'legal', 'automotive', 'fashion', 'event', 'luxury-brand', 'local-business', 'saas', 'agency', 'general-business'] },
     { name: 'businessType', label: 'Business Type', type: 'text', placeholder: 'optional' },
     { name: 'audience', label: 'Audience', type: 'text', placeholder: 'optional' },
     { name: 'subject', label: 'Subject', type: 'text', placeholder: 'optional' },
@@ -540,16 +552,18 @@ export function TemplateStudio(templateId) {
 
     switch (activeTab) {
       case 'Enhanced Prompt':
-        textarea.value = specs.enhancerKeywords || 'Enhanced prompt will appear here...';
+        textarea.value = lastBuiltPrompt || specs.enhancerKeywords || 'Click Generate to create an enhanced prompt...';
         break;
-      case 'Scene Beats':
-        textarea.value = specs.sceneBlueprint ? specs.sceneBlueprint.join(' → ') : 'Scene beats will appear here...';
+      case 'Scene Beats': {
+        const beats = (template.storyBlueprint && template.storyBlueprint.length) ? template.storyBlueprint : (specs.sceneBlueprint || ['Hook','Subject','Movement','Payoff','CTA']);
+        textarea.value = beats.join(' → ');
         break;
+      }
       case 'Voiceover':
         textarea.value = `Create a premium voiceover for a ${template.name}. Open with a fast hook, build emotional or commercial momentum, end with a clear call to action.`;
         break;
       case 'Negative Prompt':
-        textarea.value = specs.negativePrompt || 'Negative prompt will appear here...';
+        textarea.value = specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
         break;
     }
   }
@@ -588,6 +602,32 @@ export function TemplateStudio(templateId) {
           textarea.value = enhancedText;
           textarea.classList.add('border-emerald-400/50');
           setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
+        }
+      };
+    }
+
+    // GTM Boost button
+    if (gtmBtn) {
+      gtmBtn.onclick = () => {
+        try {
+          import('./modals/GTMPromptModal.jsx').then(({ GTMPromptModal }) => {
+            const modal = new GTMPromptModal({
+              appTheme: 'template-studio',
+              onPromptGenerated: (text) => {
+                const ta = document.getElementById('outputTextarea');
+                if (ta) {
+                  ta.value = text;
+                  lastBuiltPrompt = text;
+                }
+              }
+            });
+            modal.basePrompt = (document.getElementById('outputTextarea')?.value) || '';
+            modal.open();
+          }).catch((e) => {
+            console.warn('[TemplateStudio] GTM Boost modal load failed:', e);
+          });
+        } catch (e) {
+          console.warn('[TemplateStudio] GTM Boost failed:', e);
         }
       };
     }
@@ -648,6 +688,11 @@ export function TemplateStudio(templateId) {
 
       // Build prompt from all available template metadata and advanced options
       params.prompt = buildEnrichedPrompt(template, specs, formState, params.prompt);
+      lastBuiltPrompt = params.prompt;
+
+      const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
+      const negativePrompt = composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
+      if (negativePrompt) params.negative_prompt = negativePrompt;
 
       let result;
       if (template.modelType === 'i2v') {
@@ -682,56 +727,50 @@ export function TemplateStudio(templateId) {
   function buildEnrichedPrompt(template, specs, formState, userPrompt) {
     const parts = [];
 
-    // Subject from advanced field
+    // User prompt first as the core idea
+    if (userPrompt) parts.push(userPrompt);
+
+    // Subject
     const subject = formState['subject'];
     if (subject) parts.push(subject);
 
-    // User prompt
-    if (userPrompt) parts.push(userPrompt);
-
     // Base prompt substitution
     if (template.basePrompt) {
-      const promptSubstitute = userPrompt || '';
-      const base = template.basePrompt.replace('{prompt}', promptSubstitute);
+      const base = template.basePrompt.replace('{prompt}', userPrompt || '');
       if (base) parts.push(base);
     }
 
-    // Scene blueprint from enhanced specs
-    if (specs.sceneBlueprint && specs.sceneBlueprint.length) {
-      parts.push(`Scene structure: ${specs.sceneBlueprint.join(' → ')}`);
+    // Scene blueprint: matrix template.storyBlueprint else specs.sceneBlueprint
+    const sceneBlueprint = (template.storyBlueprint && template.storyBlueprint.length)
+      ? template.storyBlueprint
+      : (specs.sceneBlueprint || []);
+    if (sceneBlueprint.length) {
+      parts.push(`Scene structure: ${sceneBlueprint.join(' → ')}`);
     }
 
-    // Cinematography from enhanced specs
+    // Cinematography
     if (specs.cinematography) {
       parts.push(specs.cinematography);
     }
 
-    // Visual style from enhanced specs or advanced fields
-    if (specs.visualStyle) {
-      parts.push(`Visual style: ${specs.visualStyle}`);
-    } else if (formState['visualStyle']) {
-      parts.push(`Visual style: ${formState['visualStyle']}`);
+    // Visual style: specs.visualStyle else formState.visualStyle
+    const visualStyle = specs.visualStyle || formState['visualStyle'];
+    if (visualStyle) {
+      parts.push(`Visual style: ${visualStyle}`);
     }
 
-    // Niche enrichment from matrix templates or template engine
-    const niche = formState['niche'];
-    if (niche && niche !== 'auto-detect') {
-      if (NICHE_ENRICHMENT[niche]) {
-        parts.push(NICHE_ENRICHMENT[niche].slice(0, 5).join(', '));
-      } else {
-        const nicheTerms = getNicheTerms(niche);
-        if (nicheTerms && nicheTerms.length) {
-          parts.push(nicheTerms.slice(0, 5).join(', '));
-        }
+    // Niche enrichment
+    const niche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
+    if (niche && NICHE_ENRICHMENT[niche]) {
+      parts.push(NICHE_ENRICHMENT[niche].slice(0, 5).join(', '));
+    } else if (niche) {
+      const nicheTerms = getNicheTerms(niche);
+      if (nicheTerms && nicheTerms.length) {
+        parts.push(nicheTerms.slice(0, 5).join(', '));
       }
-    } else if (template.niche && NICHE_ENRICHMENT[template.niche]) {
-      parts.push(NICHE_ENRICHMENT[template.niche].slice(0, 5).join(', '));
     }
 
-    // Matrix-specific: storyBlueprint and filmFamily direction
-    if (template.storyBlueprint && template.storyBlueprint.length) {
-      parts.push(`Story beats: ${template.storyBlueprint.join(' → ')}`);
-    }
+    // filmFamily direction + promptDirection
     if (template.filmFamily && FILM_FAMILIES[template.filmFamily]) {
       parts.push(FILM_FAMILIES[template.filmFamily].direction);
     }
@@ -739,19 +778,19 @@ export function TemplateStudio(templateId) {
       parts.push(template.promptDirection);
     }
 
-    // CTA from advanced field
+    // CTA
     const cta = formState['cta'];
     if (cta) {
       parts.push(`Call to action: ${cta}`);
     }
 
-    // Setting from advanced field
+    // Setting
     const setting = formState['setting'];
     if (setting) {
       parts.push(`Setting: ${setting}`);
     }
 
-    // Audience from advanced field
+    // Audience
     const audience = formState['audience'];
     if (audience) {
       parts.push(`Target audience: ${audience}`);
@@ -763,19 +802,43 @@ export function TemplateStudio(templateId) {
       parts.push(extraInstructions);
     }
 
-    // Core use case from specs
+    // Core use case
     if (specs.coreUseCase) {
       parts.push(specs.coreUseCase);
     }
 
-    // Enhancer keywords when AI enhancer is enabled
-    if (aiEnhancer && specs.enhancerKeywords && userPrompt) {
-      parts.push(specs.enhancerKeywords);
+    // AI ENHANCER: final polishing layer
+    if (aiEnhancer && userPrompt) {
+      if (typeof enrichPromptString === 'function') {
+        const enriched = enrichPromptString(userPrompt, {
+          niche,
+          visualStyle: formState.visualStyle || 'commercial',
+          platform: (template.aspectRatio && template.aspectRatio.includes('9:16')) ? 'TikTok Reel' : 'general',
+          filmType: template.filmFamily || ''
+        });
+        if (enriched) {
+          parts.push(enriched);
+        }
+      } else if (specs.enhancerKeywords) {
+        parts.push(specs.enhancerKeywords);
+      }
     }
+
+    // Niche-aware negative prompt (engine special-cases all canonical niches)
+    const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
+    const negFilm = template.filmFamily || '';
+    const negVisual = formState.visualStyle || 'commercial';
+    const engineNegative = composeNegativePrompt(negFilm, negNiche, negVisual);
+    const negativePrompt = engineNegative || specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
+    parts.push(`Negative prompt: ${negativePrompt}`);
 
     // Join, clean up duplicates and extra whitespace
     let prompt = parts.filter(Boolean).join('. ');
-    prompt = prompt.replace(/\s*\.\s*/g, '. ').replace(/\.{2,}/g, '.').trim();
+    prompt = prompt
+      .replace(/\s*\.\s*/g, '. ')
+      .replace(/\.{2,}/g, '.')
+      .replace(/([^.]+)\.\s*(?=\1)/g, '')
+      .trim();
     if (!prompt.endsWith('.')) prompt += '.';
     return prompt;
   }

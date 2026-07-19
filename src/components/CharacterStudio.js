@@ -89,6 +89,25 @@ export function CharacterStudio() {
   promptInput.placeholder = 'e.g. wearing a leather jacket, standing in a neon-lit alley, cyberpunk style';
   formCard.appendChild(promptInput);
 
+    // GTM Boost entry point — opens the prompt enhancer themed for character
+    // creation and loads the result straight into this prompt.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('character-studio', (prompt) => {
+          promptInput.value = prompt;
+          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+          promptInput.focus();
+        });
+      }).catch((err) => console.error('[CharacterStudio] GTM Boost failed:', err));
+    });
+    formCard.appendChild(gtmBtn);
+
   // Personalize trigger (opens PersonalizeModal as a pop-up)
   const personalizeControls = document.createElement('div');
   personalizeControls.className = 'flex items-center gap-2';

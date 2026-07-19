@@ -582,15 +582,24 @@ export function buildTemplatePrompt(input) {
     }
   });
 
+  const masterClean = cleanPrompt(masterPrompt);
+
   return {
     filmType,
     niche,
     storyBeats,
-    masterPrompt: cleanPrompt(masterPrompt),
+    masterPrompt: masterClean,
     shotPrompt: composeShotEnhancedPrompt(masterPrompt, cinematographyTerms),
     scenePrompts: composeScenePrompts(storyBeats, nicheTerms),
     voiceover: composeVoiceoverConcept(input, storyBeats),
-    negativePrompt: composeNegativePrompt(filmType, niche, input.visualStyle)
+    negativePrompt: composeNegativePrompt(filmType, niche, input.visualStyle),
+    enrichedPrompt: enrichPromptString(masterClean, {
+      niche,
+      visualStyle: input.visualStyle,
+      platform: input.platform,
+      filmType
+    }),
+    nicheTerms
   };
 }
 
@@ -598,7 +607,14 @@ export function buildTemplatePrompt(input) {
  * Compose the master prompt
  */
 function composeMasterPrompt({ subject, intent, styleTerms, cinematographyTerms, nicheTerms, storyBeats, constraints }) {
-  return `Create a ${intent || 'cinematic visual'} featuring ${subject}, with ${styleTerms.join(', ')}, using ${cinematographyTerms.movement.join(', ')}, ${cinematographyTerms.framing.join(', ')}, set within ${nicheTerms.slice(0, 3).join(', ')}, structured around ${storyBeats.join(' then ')}, with ${cinematographyTerms.lighting.join(', ')}, optimized for ${constraints.platform}, ${constraints.aspectRatio} aspect ratio, and ${constraints.duration} duration.`;
+  const styleTermsArr = (styleTerms || []).filter(Boolean);
+  const movementArr = (cinematographyTerms.movement || []).filter(Boolean);
+  const framingArr = (cinematographyTerms.framing || []).filter(Boolean);
+  const lightingArr = (cinematographyTerms.lighting || []).filter(Boolean);
+  const nicheArr = (nicheTerms || []).filter(Boolean);
+  const beatsArr = (storyBeats || []).filter(Boolean);
+
+  return `A ${intent || 'cinematic visual'} featuring ${subject || 'the subject'}. Visual approach: ${styleTermsArr.join(', ') || 'refined cinematic styling'}. Cinematography: ${movementArr.join(', ') || 'smooth camera movement'}; ${framingArr.join(', ') || 'balanced framing'}; ${lightingArr.join(', ') || 'soft cinematic lighting'}. Setting: ${nicheArr.slice(0, 3).join(', ') || 'a polished environment'}. Structure: ${beatsArr.join(' → ') || 'established narrative flow'}. Format: ${constraints.aspectRatio || '16:9'}, ${constraints.duration || 5}s, optimized for ${constraints.platform || 'general'}.${constraints.cta ? ' Call to action: ' + constraints.cta + '.' : ''}`;
 }
 
 /**
@@ -618,11 +634,17 @@ Shot Composition:
  * Compose scene prompts
  */
 function composeScenePrompts(storyBeats, nicheTerms) {
-  return storyBeats.map((beat, index) => ({
-    scene: index + 1,
-    beat,
-    prompt: `Scene ${index + 1}: ${beat.charAt(0).toUpperCase() + beat.slice(1)} - ${nicheTerms[index % nicheTerms.length]}`
-  }));
+  const terms = nicheTerms || [];
+  const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+  return (storyBeats || []).filter(Boolean).map((beat, index) => {
+    const nicheTerm = terms.length ? terms[index % terms.length] : '';
+    return {
+      scene: index + 1,
+      beat,
+      prompt: `Scene ${index + 1} — ${cap(beat)}: ${nicheTerm}`,
+      nicheTerm
+    };
+  });
 }
 
 /**
@@ -640,7 +662,7 @@ function composeVoiceoverConcept(input, storyBeats) {
 /**
  * Compose negative prompt
  */
-function composeNegativePrompt(filmType, niche, visualStyle) {
+export function composeNegativePrompt(filmType, niche, visualStyle) {
   const base = 'blurry, low-quality, amateur, poorly lit, generic stock photo';
   const styleNegatives = {
     luxury: 'cheap, tacky, low-budget, garish',
@@ -648,7 +670,26 @@ function composeNegativePrompt(filmType, niche, visualStyle) {
     documentary: 'over-produced, artificial, staged',
     commercial: 'under-produced, unprofessional'
   };
-  return `${base}, ${styleNegatives[visualStyle] || base}, ${niche === NICHE_TYPES.RESTAURANT ? 'fast food, chain restaurant' : ''}`.trim();
+  const nicheNegatives = {
+    [NICHE_TYPES.RESTAURANT]: 'fast food, chain restaurant',
+    [NICHE_TYPES.MED_SPA]: 'clinic gore, medical sterility, harsh fluorescent',
+    [NICHE_TYPES.SALON]: 'messy salon, dull hair, unflattering lighting',
+    [NICHE_TYPES.BARBERSHOP]: 'unkempt grooming, dirty shop, careless cut',
+    [NICHE_TYPES.FITNESS]: 'out of shape, lazy energy, cluttered gym',
+    [NICHE_TYPES.REAL_ESTATE]: 'cluttered home, poor staging, dull interior',
+    [NICHE_TYPES.DENTAL]: 'dental fear, gore, clinical coldness',
+    [NICHE_TYPES.CHIROPRACTIC]: 'painful adjustment, chaotic clinic, stiffness',
+    [NICHE_TYPES.LEGAL]: 'shady lawyer, courtroom drama, unprofessional',
+    [NICHE_TYPES.AUTOMOTIVE]: 'rusty vehicle, dirty car, cheap dealership',
+    [NICHE_TYPES.FASHION]: 'wrinkled clothing, off-trend, poor styling',
+    [NICHE_TYPES.EVENT]: 'empty venue, dull crowd, poorly produced',
+    [NICHE_TYPES.LUXURY_BRAND]: 'cheap, mass market, low-budget',
+    [NICHE_TYPES.LOCAL_BUSINESS]: 'corporate coldness, impersonal chain, generic',
+    [NICHE_TYPES.SAAS]: 'outdated UI, cluttered screen, amateur software',
+    [NICHE_TYPES.AGENCY]: 'amateur pitch, messy workflow, off-brand'
+  };
+  const nicheNegative = nicheNegatives[niche] || '';
+  return `${base}, ${styleNegatives[visualStyle] || base}${nicheNegative ? ', ' + nicheNegative : ''}`.trim();
 }
 
 /**
@@ -660,6 +701,9 @@ function cleanPrompt(prompt) {
     .replace(/\bbeautiful\b|\bamazing\b|\bcool\b|\bepic\b/gi, '')
     .replace(/\s{2,}/g, ' ')
     .replace(/,\s*,/g, ',')
+    .replace(/,\s*\./g, '.')
+    .replace(/(\b\w+\b)(,\s*\1\b)+/gi, '$1')
+    .replace(/^[\s,.\-]+|[\s,.\-]+$/g, '')
     .trim();
 }
 
@@ -737,6 +781,73 @@ export class CinematicTemplateBuilder {
   }
 }
 
+// ============================================
+// ENGINE INPUT BRIDGE
+// ============================================
+
+/**
+ * Infer a film type from a story blueprint string
+ */
+export function inferFilmTypeFromBlueprint(blueprint) {
+  const b = (blueprint || '').toLowerCase();
+  if (b.includes('cta') || b.includes('offer')) return FILM_TYPES.PROMO_FILM;
+  if (b.includes('origin') || b.includes('struggle')) return FILM_TYPES.FOUNDER_STORY_FILM;
+  if (b.includes('problem') || b.includes('transformation')) return FILM_TYPES.TESTIMONIAL_FILM;
+  if (b.includes('challenge') || b.includes('result')) return FILM_TYPES.CASE_STUDY_FILM;
+  if (b.includes('tension') || b.includes('climax')) return FILM_TYPES.DRAMATIC_TRAILER;
+  if (b.includes('context') || b.includes('process')) return FILM_TYPES.DOCUMENTARY_STYLE_FILM;
+  return FILM_TYPES.CINEMATIC_SHORT_FILM;
+}
+
+/**
+ * Derive a canonical engine input object from a matrix/standard template + form state.
+ * Consumable by detectFilmType / detectNiche / buildTemplatePrompt.
+ */
+export function deriveEngineInputFromTemplate(template = {}, formState = {}) {
+  const isVertical = (template.aspectRatio && template.aspectRatio.includes('9:16')) ||
+    (template.aspectRatios && template.aspectRatios.some((r) => r.includes('9:16')));
+
+  return {
+    rawIdea: formState.prompt || template.promptDirection || template.description || '',
+    templateType: template.filmFamily || formState.templateType ||
+      (template.storyBlueprint ? inferFilmTypeFromBlueprint(template.storyBlueprint) : ''),
+    objective: formState.businessType || template.coreUseCase || '',
+    tone: formState.tone || 'professional',
+    businessType: formState.businessType || '',
+    niche: formState.niche && formState.niche !== 'auto-detect' ? formState.niche : (template.niche || ''),
+    productService: formState.subject || '',
+    platform: formState.platform || (isVertical ? 'TikTok Reel' : 'general'),
+    visualStyle: formState.visualStyle || 'commercial',
+    subject: formState.subject || template.name || '',
+    duration: formState.duration ||
+      (typeof template.duration === 'object' ? template.duration.default : template.duration) || 5,
+    aspectRatio: template.aspectRatio || (template.aspectRatios && template.aspectRatios[0]) || '16:9',
+    cta: formState.cta || ''
+  };
+}
+
+/**
+ * Enrich a plain prompt string with niche + cinematography terms.
+ * This is what the UI calls to upgrade a user's plain prompt.
+ */
+export function enrichPromptString(basePrompt, { niche, visualStyle, platform, filmType } = {}) {
+  const nicheTerms = getNicheTerms(niche);
+  const cine = getCinematographyTerms(filmType, platform);
+  const movement = (cine.movement || []).filter(Boolean);
+  const suffix = ` Cinematic enrichment: ${nicheTerms.slice(0, 3).join(', ')}; ${movement.slice(0, 2).join(', ')}.`;
+  return cleanPrompt(`${basePrompt || ''}${suffix}`);
+}
+
+/**
+ * Combined output modes for UI rendering
+ */
+export function getEngineOutputModes() {
+  return Object.keys(OUTPUT_MODES).map((key) => ({
+    mode: OUTPUT_MODES[key],
+    label: OUTPUT_MODE_LABELS[OUTPUT_MODES[key]]
+  }));
+}
+
 export default {
   FILM_TYPES,
   NICHE_TYPES,
@@ -753,5 +864,9 @@ export default {
   getStoryBeats,
   getNicheTerms,
   buildTemplatePrompt,
-  CinematicTemplateBuilder
+  CinematicTemplateBuilder,
+  inferFilmTypeFromBlueprint,
+  deriveEngineInputFromTemplate,
+  enrichPromptString,
+  getEngineOutputModes
 };
