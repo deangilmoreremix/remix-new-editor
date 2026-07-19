@@ -441,6 +441,38 @@ export function CinemaTemplateStudio() {
         break;
     }
 
+    // GTM Boost affordance for the primary user prompt field.
+    // Mirrors ImageStudio / VideoStudio: shared `.gtm-boost-btn shrink-0` design,
+    // themed via the `cinema-template-studio` app theme. Placed next to the main
+    // prompt input (the primary describe/prompt field, not other per-input fields).
+    const isPrimaryPromptField =
+      input.name === 'prompt' &&
+      (input.type === 'textarea' || input.type === 'text');
+    if (isPrimaryPromptField) {
+      // The editable element for this field is the last child appended above.
+      const promptEl = field.querySelector('textarea, input');
+
+      const gtmBtn = document.createElement('button');
+      gtmBtn.type = 'button';
+      gtmBtn.textContent = '🎯 GTM Boost';
+      gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+      gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+      gtmBtn.className = 'gtm-boost-btn shrink-0';
+      gtmBtn.addEventListener('click', () => {
+        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+          openGTMPromptModal('cinema-template-studio', (prompt) => {
+            const ta = promptEl || field.querySelector('textarea, input');
+            if (ta) {
+              ta.value = prompt;
+              ta.dispatchEvent(new Event('input', { bubbles: true }));
+              ta.focus();
+            }
+          });
+        }).catch((err) => console.error('[CinemaTemplateStudio] GTM Boost failed:', err));
+      });
+      field.appendChild(gtmBtn);
+    }
+
     return field;
   }
 

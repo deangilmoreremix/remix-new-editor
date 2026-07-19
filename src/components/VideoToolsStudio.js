@@ -84,8 +84,26 @@ export function VideoToolsStudio() {
   promptInput.rows = 3;
   promptInput.placeholder = 'Describe the transformation you want...';
   promptInput.oninput = (e) => { prompt = e.target.value; };
-  promptGroup.appendChild(promptInput);
-  formCard.appendChild(promptGroup);
+   promptGroup.appendChild(promptInput);
+    // GTM Boost entry point — opens the prompt enhancer themed for video tools
+    // and loads the result straight into this prompt.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('video-tools-studio', (prompt) => {
+          promptInput.value = prompt;
+          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+          promptInput.focus();
+        });
+      }).catch((err) => console.error('[VideoToolsStudio] GTM Boost failed:', err));
+    });
+    promptGroup.appendChild(gtmBtn);
+   formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'video-tools' });
 
   // Generate button

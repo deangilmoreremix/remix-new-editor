@@ -158,6 +158,26 @@ export function LipSyncStudio() {
     uploadsRow.appendChild(videoUploadBtn);
     uploadsRow.appendChild(audioUploadBtn);
     uploadsRow.appendChild(textarea);
+
+    // GTM Boost entry point — opens the prompt enhancer themed for lip-sync
+    // scripts and loads the result straight into this textarea.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('lip-sync-studio', (prompt) => {
+          textarea.value = prompt;
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          textarea.focus();
+        });
+      }).catch((err) => console.error('[LipSyncStudio] GTM Boost failed:', err));
+    });
+    uploadsRow.appendChild(gtmBtn);
+
     bar.appendChild(uploadsRow);
 
     // ── Status labels ──

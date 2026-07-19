@@ -138,6 +138,26 @@ export function StoryboardStudio() {
       promptInput.oninput = () => { frame.prompt = promptInput.value; };
       card.appendChild(promptInput);
 
+      // GTM Boost per-frame — opens the prompt enhancer themed for storyboard
+      // and writes the boosted prompt back into this frame's prompt.
+      const gtmBtn = document.createElement('button');
+      gtmBtn.type = 'button';
+      gtmBtn.textContent = '🎯 GTM Boost';
+      gtmBtn.title = 'Enhance this scene prompt with GTM conversion frameworks';
+      gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+      gtmBtn.className = 'gtm-boost-btn shrink-0 mt-2';
+      gtmBtn.addEventListener('click', () => {
+        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+          openGTMPromptModal('storyboard-studio', (prompt) => {
+            promptInput.value = prompt;
+            frame.prompt = prompt;
+            promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+            promptInput.focus();
+          });
+        }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
+      });
+      card.appendChild(gtmBtn);
+
       // Narration input
       const narrationInput = document.createElement('input');
       narrationInput.type = 'text';

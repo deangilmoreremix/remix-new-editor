@@ -292,7 +292,7 @@ export class GTMPromptModal extends BaseModal {
             <div class="generated-prompt-actions">
               ${thumbnailBtn}
               <button type="button" class="gtm-action copy-only-btn" data-action="copy-only">📋 Copy</button>
-              <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt">📋 Copy &amp; Use</button>
+              <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt">✅ Apply</button>
             </div>
           </div>
         </div>
@@ -369,7 +369,7 @@ export class GTMPromptModal extends BaseModal {
         <div class="generated-prompt-actions">
           ${thumbnailBtn}
           <button type="button" class="gtm-action copy-only-btn" data-action="copy-only">📋 Copy</button>
-          <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt">📋 Copy &amp; Use</button>
+          <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt">✅ Apply</button>
         </div>
       </div>
     `;
