@@ -598,10 +598,8 @@ export class AiFeaturePanel {
     formModal.querySelector('#createElementSubmitBtn').addEventListener('click', () => {
       const name = formModal.querySelector('#element-name').value;
       if (!name) {
-  // DISABLED:         
         return;
       }
-  // DISABLED:       
       formModal.remove();
     });
   }
@@ -631,10 +629,8 @@ export class AiFeaturePanel {
         progressBar.querySelector('.progress-fill').style.width = `${i}%`;
         progressBar.querySelector('.progress-text').textContent = `Exporting... ${i}%`;
       }
-  // DISABLED:       
       modal.remove();
     } catch (error) {
-  // DISABLED:       
       btn.textContent = 'Export Video';
       btn.disabled = false;
     }
