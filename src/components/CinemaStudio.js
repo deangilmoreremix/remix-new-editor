@@ -203,7 +203,8 @@ export function CinemaStudio() {
     // 3. FLOATING PROMPT BAR
     // ==========================================
     const promptBarWrapper = document.createElement('div');
-    promptBarWrapper.className = 'absolute bottom-8 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-full z-30';
+    promptBarWrapper.className = 'w-full mt-8 px-4 md:max-w-5xl animate-fade-in-up';
+    promptBarWrapper.style.animationDelay = '0.1s';
 
     const promptBar = document.createElement('div');
     promptBar.className = 'bg-[#1a1a1a] border border-white/10 rounded-[2rem] p-4 flex justify-between shadow-3xl items-end relative';
@@ -373,13 +374,15 @@ export function CinemaStudio() {
     promptBar.appendChild(rightGroup);
 
     promptBarWrapper.appendChild(promptBar);
-    container.appendChild(promptBarWrapper);
+    // Place the controls block in the normal document flow, above the inline
+    // instructions (the 4 numbered tips), instead of pinned to the bottom.
+    container.insertBefore(promptBarWrapper, inlineInstructions);
 
     // ==========================================
     // 3B. CAMERA BUILDER PANEL (Collapsible)
     // ==========================================
     const cameraBuilderPanel = document.createElement('div');
-    cameraBuilderPanel.className = 'absolute bottom-8 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-full z-20';
+    cameraBuilderPanel.className = 'absolute top-24 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-full z-20';
     cameraBuilderPanel.style.display = 'none'; // Hidden by default
     
     const builderCard = document.createElement('div');
