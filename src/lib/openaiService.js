@@ -77,36 +77,36 @@ class OpenAIService {
       throw new Error(this.missingKeyMessage);
     }
 
+    const openaiKey = this._getOpenAIKey();
     const systemPrompt = this.buildSystemPrompt(role, industry, methodology, tonality, focus, cinematicOptions);
     const userPrompt = `Base prompt: "${basePrompt}"
 
 Please enhance this prompt using the specified GTM methodologies and create a comprehensive, conversion-optimized prompt for video generation.`;
 
     try {
-      const response = await fetch(MUAPI_PROXY_URL, {
+      // Use the OpenAI Responses API directly with the user's own key.
+      const response = await fetch('https://api.openai.com/v1/responses', {
         method: 'POST',
-        headers: this._headers(),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${openaiKey}`,
+        },
         body: JSON.stringify({
-          endpoint: 'text',
-          params: this._withOpenAIKey({
-            prompt: userPrompt,
-            system_prompt: systemPrompt,
-            model: this.config.getImageModel?.() || 'gpt-4',
-            temperature: this.temperature,
-            max_tokens: this.maxTokens,
-          }),
-          generationType: 'text',
-          studioType: 'chat'
-        })
+          model: this.config.getImageModel?.() || 'gpt-4.1',
+          instructions: systemPrompt,
+          input: userPrompt,
+          temperature: this.temperature,
+          max_output_tokens: this.maxTokens,
+        }),
       });
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
-        throw new Error(`API error: ${error.error?.message || 'Unknown error'}`);
+        throw new Error(`OpenAI Responses API error: ${error.error?.message || 'Unknown error'}`);
       }
 
       const data = await response.json();
-      const enhancedPrompt = data.outputs?.[0] || data.output?.text || data.text;
+      const enhancedPrompt = data?.output?.[0]?.content?.[0]?.text || data.output_text;
 
       if (!enhancedPrompt) {
         throw new Error('No response generated');
@@ -116,14 +116,7 @@ Please enhance this prompt using the specified GTM methodologies and create a co
 
     } catch (error) {
       console.error('GTM prompt generation failed:', error);
-      return this.generateFallbackPrompt({
-        basePrompt,
-        role,
-        industry,
-        methodology,
-        tonality,
-        focus
-      });
+      throw error;
     }
   }
 
