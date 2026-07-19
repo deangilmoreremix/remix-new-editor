@@ -9,9 +9,8 @@ export { default as Sidebar } from './Sidebar.vue';
 export { default as ContentArea } from './ContentArea.vue';
 
 export { defaultAppShellConfig } from '../core/app-shell';
-export { defaultHeaderConfig } from '../core/header';
 export { defaultSidebarConfig } from '../core/sidebar';
-export { defaultContentAreaConfig } from '../core/content-area';
+export { defaultHeaderConfig } from '../core/header';
 
 export type { AppShellConfig } from '../core/app-shell';
 export type { HeaderConfig, NavigationItem } from '../core/header';

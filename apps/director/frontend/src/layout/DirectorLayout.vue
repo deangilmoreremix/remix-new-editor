@@ -16,11 +16,31 @@
       </template>
       
       <template #actions>
-        <button style="padding: 8px; color: var(--text-secondary); transition: color 150ms;">
+        <button
+          type="button"
+          aria-label="Back"
+          title="Back"
+          @click="goBack"
+          style="padding: 8px; color: var(--text-secondary); transition: color 150ms;"
+          class="dir-nav-btn"
+        >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-            <polyline points="10 17 15 12 10 7" />
-            <line x1="15" y1="12" x2="3" y2="12" />
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          aria-label="All studios"
+          title="All studios"
+          @click="toggleSidebar"
+          style="padding: 8px; color: var(--text-secondary); transition: color 150ms;"
+          class="dir-nav-btn"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
           </svg>
         </button>
       </template>
@@ -41,6 +61,8 @@ export { default as DirectorLayout } from './DirectorLayout.vue';
 </script>
 
 <script setup lang="ts">
+import { inject } from 'vue';
+import { useRouter } from 'vue-router';
 import { 
   AppShell, 
   Header, 
@@ -83,6 +105,22 @@ const headerConfig = {
 
 const sidebarConfig = {
   ...defaultSidebarConfig,
+  collapsible: true,
   items: sidebarItems,
+};
+
+// Sidebar toggle (reveals the "All studios" list) is provided by AppShell.
+const appShell = inject<{
+  sidebarCollapsed: { value: boolean };
+  toggleSidebar: () => void;
+}>('appShell');
+
+const toggleSidebar = () => appShell?.toggleSidebar();
+
+// Back button returns to the default Director view.
+const router = useRouter();
+const goBack = () => {
+  if (window.history.length > 1) router.back();
+  else router.push('/');
 };
 </script>

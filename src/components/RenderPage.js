@@ -1,4 +1,5 @@
 import { navigate } from '../lib/router.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { escapeHtml } from '../lib/security.js';
@@ -43,6 +44,7 @@ const ACTION_BUTTONS = ['Export Video', 'Download Frame', 'Queue Render', 'Trail
 export function RenderPage() {
   const container = document.createElement('div');
   container.className = 'min-h-screen w-full bg-[#0a0a0b] p-4 text-white md:p-8 overflow-y-auto custom-scrollbar';
+  mountStudioChrome(container, { currentRoute: 'render' });
 
   const style = document.createElement('style');
   style.textContent = `
