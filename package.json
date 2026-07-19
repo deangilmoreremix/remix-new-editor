@@ -10,6 +10,7 @@
   ],
   "scripts": {
     "dev": "vite",
+    "dev:all": "concurrently -n root,aivfx -c magenta,green \"npm run dev\" \"npm run dev --workspace apps/ai-vfx -- -p 3001\"",
     "build": "rm -rf dist && vite build",
     "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.18.6",
     "@babel/plugin-proposal-decorators": "^7.29.7",
+    "concurrently": "^9.0.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@testing-library/react": "^16.3.2",
