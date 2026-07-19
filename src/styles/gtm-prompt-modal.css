@@ -227,11 +227,11 @@
   background: var(--app-soft-accent);
 }
 
-/* Generation Progress */
+/* Generation Progress (real, streaming-driven 5-step bar) */
 .gtm-prompt-modal .generation-progress {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   padding: 16px;
   background: var(--bg-panel);
   border: 1px solid var(--border-color);
@@ -253,11 +253,46 @@
   transition: width 0.4s ease;
 }
 
-.gtm-prompt-modal .progress-text {
+.gtm-prompt-modal .progress-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gtm-prompt-modal .progress-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 12px;
-  color: var(--text-secondary);
-  text-align: center;
   font-weight: 500;
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.gtm-prompt-modal .progress-step .progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-color);
+  flex-shrink: 0;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gtm-prompt-modal .progress-step.active {
+  color: var(--app-primary);
+}
+
+.gtm-prompt-modal .progress-step.active .progress-dot {
+  background: var(--app-primary);
+  box-shadow: 0 0 0 3px var(--app-soft, rgba(59, 130, 246, 0.2));
+}
+
+.gtm-prompt-modal .progress-step.done {
+  color: var(--text-secondary);
+}
+
+.gtm-prompt-modal .progress-step.done .progress-dot {
+  background: var(--color-success);
 }
 
 /* Generated Prompt */
@@ -410,6 +445,143 @@
 }
 
 /* ============================================
+   Structured Output (Responses API json_schema)
+   ============================================ */
+
+.gtm-prompt-modal .gtm-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gtm-prompt-modal .gtm-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+}
+
+.gtm-prompt-modal .gtm-structured {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gtm-prompt-modal .gtm-section {
+  padding: 12px 14px;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--app-primary);
+  border-radius: var(--border-radius-md);
+}
+
+.gtm-prompt-modal .gtm-section-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--app-primary);
+  margin-bottom: 6px;
+}
+
+.gtm-prompt-modal .gtm-section-body {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+.gtm-prompt-modal .generated-prompt.streaming {
+  min-height: 220px;
+  white-space: pre-wrap;
+  border-left: 3px solid var(--app-accent);
+}
+
+/* Variants */
+.gtm-prompt-modal .gtm-variants {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gtm-prompt-modal .gtm-variant-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gtm-prompt-modal .gtm-variant-chip {
+  min-width: 44px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gtm-prompt-modal .gtm-variant-chip:hover {
+  border-color: var(--app-primary);
+}
+
+.gtm-prompt-modal .gtm-variant-chip.active {
+  color: #ffffff;
+  background: var(--app-primary);
+  border-color: var(--app-primary);
+}
+
+/* Refine (multi-turn) */
+.gtm-prompt-modal .gtm-refine-wrap {
+  margin-top: 4px;
+}
+
+.gtm-prompt-modal .gtm-refine {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(34, 197, 94, 0.05);
+  border: 1px dashed rgba(34, 197, 94, 0.3);
+  border-radius: var(--border-radius-md);
+}
+
+.gtm-prompt-modal .gtm-refine-row {
+  display: flex;
+  gap: 8px;
+}
+
+.gtm-prompt-modal .gtm-refine-input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.gtm-prompt-modal .gtm-refine-input:focus {
+  border-color: var(--color-success);
+}
+
+.gtm-prompt-modal .refine-btn {
+  background: var(--color-success);
+  color: #04111a;
+}
+
+/* ============================================
    GTM Boost Trigger Button (premium entry point)
    --------------------------------------------
    Used in Image / Video studios next to the prompt input.
@@ -473,9 +645,146 @@
   box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
 }
 
+.template-studio .gtm-boost-btn,
+[data-app="template"] .gtm-boost-btn {
+  --app-primary: #10b981;
+  --app-accent: #34d399;
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: #04111a;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+.template-studio .gtm-boost-btn:hover,
+[data-app="template"] .gtm-boost-btn:hover {
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+}
+
 @media (max-width: 640px) {
   .gtm-boost-btn {
     padding: 8px 10px;
     font-size: 12px;
   }
+}
+
+/* ===== Real GTM skill examples panel (show + click-to-use) ===== */
+.gtm-prompt-modal .gtm-examples {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--app-soft);
+  border-radius: 12px;
+  background: var(--app-soft-accent);
+}
+
+.gtm-prompt-modal .gtm-example-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.gtm-prompt-modal .gtm-example-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--app-soft);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+}
+
+.gtm-prompt-modal .gtm-example-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gtm-prompt-modal .gtm-example-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.gtm-prompt-modal .gtm-example-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--app-soft);
+  color: var(--app-primary);
+  white-space: nowrap;
+}
+.gtm-prompt-modal .gtm-example-advanced { background: #fde68a; color: #92400e; }
+.gtm-prompt-modal .gtm-example-intermediate { background: #bfdbfe; color: #1e40af; }
+.gtm-prompt-modal .gtm-example-beginner { background: #bbf7d0; color: #166534; }
+
+.gtm-prompt-modal .gtm-example-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary, #64748b);
+}
+
+.gtm-prompt-modal .gtm-example-use {
+  margin-top: auto;
+  align-self: flex-start;
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+/* ===== Missing API key CTA ===== */
+.gtm-prompt-modal .gtm-key-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid var(--app-soft);
+  border-radius: 10px;
+  background: var(--app-soft-accent);
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.gtm-prompt-modal .gtm-key-cta .gtm-action {
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+/* ===== Stop button during streaming ===== */
+.gtm-prompt-modal .stop-btn {
+  background: transparent;
+  border: 1px solid var(--app-soft);
+  color: var(--app-primary);
+}
+.gtm-prompt-modal .stop-btn:hover {
+  background: var(--app-soft);
+}
+
+/* ===== Grounding meta pill ===== */
+.gtm-prompt-modal .gtm-grounding-pill {
+  background: var(--app-soft);
+  color: var(--app-primary);
+}
+
+/* ===== Footnote ===== */
+.gtm-prompt-modal .gtm-footnote {
+  margin: 14px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-secondary, #64748b);
+  text-align: center;
+  opacity: 0.85;
+}
+
+/* ===== Copy-only button ===== */
+.gtm-prompt-modal .copy-only-btn {
+  background: transparent;
+  border: 1px solid var(--app-soft);
+  color: var(--app-primary);
+}
+.gtm-prompt-modal .copy-only-btn:hover {
+  background: var(--app-soft);
 }

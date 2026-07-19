@@ -177,6 +177,24 @@ export default async function LandingPage() {
     container.appendChild(agency);
     container.appendChild(offer);
     container.appendChild(finalCTA);
+
+    // Persistent floating entry point for the GTM Boost (cinematic prompt) modal,
+    // so it is reachable directly from the landing page without entering a studio.
+    try {
+      const gtmFab = document.createElement('button');
+      gtmFab.type = 'button';
+      gtmFab.textContent = '🎯 GTM Boost';
+      gtmFab.setAttribute('aria-label', 'Open GTM Boost prompt enhancer');
+      gtmFab.style.cssText = 'position:fixed;right:20px;bottom:20px;z-index:9999;padding:12px 18px;border:none;border-radius:9999px;background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;font-weight:600;font-size:14px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,0.35);';
+      gtmFab.addEventListener('click', () => {
+        import('../../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+          openGTMPromptModal('timeline-editor', () => {});
+        }).catch((err) => console.error('[Landing] GTM Boost failed:', err));
+      });
+      container.appendChild(gtmFab);
+    } catch (fabErr) {
+      console.error('[Landing] failed to mount GTM Boost FAB:', fabErr);
+    }
   } catch (error) {
     console.error('Error rendering landing page:', error);
     container.innerHTML = `
