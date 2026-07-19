@@ -51,7 +51,6 @@ function addPexelsAssetToTimeline(asset, state, showToast, trackType = 'video', 
   const targetTrack = getTargetTrackForPexels(asset.type, state.tracks);
   
   if (!targetTrack) {
-  // DISABLED:     
     return null;
   }
   
@@ -109,7 +108,6 @@ function addPexelsAssetToTimeline(asset, state, showToast, trackType = 'video', 
   state.selectedClipId = newClip.id;
   
   // Show success message
-  // DISABLED:   
   
   // Dispatch custom event for other systems (analytics, etc.)
   window.dispatchEvent(new CustomEvent('pexelsAssetAdded', {
