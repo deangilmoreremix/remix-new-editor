@@ -100,7 +100,6 @@ export async function handleItemMouseDown(e, state, els, showToast) {
     // Re-render tracks
     const renderTracks = await getRenderTracks();
     renderTracks(state, els, showToast);
-  // DISABLED:     
     return;
   }
   const rect = itemEl.getBoundingClientRect();
