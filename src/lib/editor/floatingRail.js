@@ -13,7 +13,6 @@ export function renderFloatingRail(railActions, container, onActionClick, showTo
     btn.innerHTML = `<span class="emoji">${icon}</span><span>${label}</span>`;
     btn.addEventListener('click', () => {
       onActionClick(icon, label);
-  // DISABLED:       
     });
     container.appendChild(btn);
   });
@@ -23,45 +22,35 @@ export function handleRailAction(icon, label, state, showToast) {
   switch (label) {
     case 'Generate':
       // Trigger generate panel
-  // DISABLED:       
       break;
 
     case 'Split':
       if (state.selectedClipId) {
         // Split selected clip
-  // DISABLED:         
       } else {
-  // DISABLED:         
       }
       break;
 
     case 'Scenes':
-  // DISABLED:       
       break;
 
     case 'Subtitle':
       // Add subtitle track or caption
-  // DISABLED:       
       break;
 
     case 'B-Roll':
-  // DISABLED:       
       break;
 
     case 'Speed':
-  // DISABLED:       
       break;
 
     case 'Stabilize':
-  // DISABLED:       
       break;
 
     case 'Text':
-  // DISABLED:       
       break;
 
     default:
-  // DISABLED:       
   }
 }
 
