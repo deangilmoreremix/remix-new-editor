@@ -141,7 +141,6 @@ export function processMultipleFiles(files, dropZone, state) {
   }
 
   if (validFiles.length === 0) {
-  // DISABLED:     
     return;
   }
 
@@ -164,7 +163,6 @@ export async function uploadFile(fileData, dropZone, state) {
     createUploadProgress(uploadId, file.name, file.size);
 
     // Show upload started
-  // DISABLED:     
 
     // Upload to storage
     const publicUrl = await uploadFileToStorage(file);
@@ -178,12 +176,10 @@ export async function uploadFile(fileData, dropZone, state) {
     // Add to timeline based on drop zone
     await addAssetToTimeline(asset, dropZone, state);
 
-  // DISABLED:     
 
   } catch (error) {
     console.error('[DragDrop] Upload failed:', error);
     updateUploadProgress(uploadId, 0, 'error');
-  // DISABLED:     
   } finally {
     // Cleanup after delay
     setTimeout(() => removeUploadProgress(uploadId), 3000);
@@ -195,7 +191,6 @@ export async function uploadMultipleFiles(filesData, dropZone, state) {
   const uploadPromises = [];
   const batchId = `batch_${Date.now()}`;
 
-  // DISABLED:   
 
   // Create batch progress indicator
   createBatchProgress(batchId, filesData.length);
@@ -1430,10 +1425,8 @@ function toggleVideoPlayback(clipEl, asset) {
   if (videoEl) {
     if (videoEl.paused) {
       videoEl.play();
-  // DISABLED:       
     } else {
       videoEl.pause();
-  // DISABLED:       
     }
   } else {
     // Create video element for preview
@@ -1454,7 +1447,6 @@ function createVideoPreview(clipEl, asset) {
   clipEl.appendChild(videoEl);
 
   videoEl.play();
-  // DISABLED:   
 }
 
 function showVideoContextMenu(e, clipEl, asset) {
