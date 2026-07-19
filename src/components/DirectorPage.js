@@ -1,33 +1,156 @@
 import { navigate } from '../lib/router.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { videoDb } from '../lib/videoDb.js';
 
-const DIRECTOR_AGENTS = [
-    { id: 'summarizer', name: 'Video Summarizer', icon: '📝', description: 'Summarize video content', category: 'analysis' },
-    { id: 'search', name: 'Video Search', icon: '🔍', description: 'Search and index media library', category: 'search' },
-    { id: 'clipper', name: 'Clip Creator', icon: '✂️', description: 'Extract and create clips', category: 'extract' },
-    { id: 'dubbing', name: 'Video Dubbing', icon: '🎤', description: 'Translate and dub audio/video', category: 'translate' },
-    { id: 'subtitler', name: 'Subtitle Generator', icon: '💬', description: 'Add subtitles in any language', category: 'accessibility' },
-    { id: 'highlighter', name: 'Highlight Extractor', icon: '⚡', description: 'Find key moments automatically', category: 'extract' },
-    { id: 'scenes', name: 'Scene Detector', icon: '🎬', description: 'Identify scene boundaries', category: 'analysis' },
-    { id: 'broll', name: 'B-Roll Adder', icon: '🎞️', description: 'Add overlay footage', category: 'enhance' },
-    { id: 'voiceover', name: 'Voiceover', icon: '🎙️', description: 'Add AI voiceover', category: 'audio' },
-    { id: 'editor', name: 'Video Editor', icon: '✏️', description: 'Edit and enhance video', category: 'edit' },
-    { id: 'enhancer', name: 'Video Enhancer', icon: '✨', description: 'Quality enhancement', category: 'enhance' },
-    { id: 'compiler', name: 'Content Compiler', icon: '📚', description: 'Compile multiple videos', category: 'create' },
-    { id: 'meme', name: 'Meme Generator', icon: '😂', description: 'Create meme videos', category: 'create' },
-    { id: 'musicvideo', name: 'Music Video Maker', icon: '🎵', description: 'Generate music videos', category: 'create' },
-    { id: 'trailer', name: 'Trailer Creator', icon: '🎥', description: 'Make video trailers', category: 'create' },
-    { id: 'compilation', name: 'Compilation Builder', icon: '📋', description: 'Build compilations', category: 'create' },
-    { id: 'social', name: 'Social Media Clip', icon: '📱', description: 'Create social media clips', category: 'social' },
-    { id: 'preview', name: 'Preview Generator', icon: '👁️', description: 'Generate video previews', category: 'create' },
-    { id: 'montage', name: 'Montage Builder', icon: '🎞️', description: 'Create video montages', category: 'create' },
-    { id: 'story', name: 'Story Builder', icon: '📖', description: 'Build narratives from clips', category: 'create' },
-    { id: 'color', name: 'Color Correction', icon: '🎨', description: 'Adjust colors and tones', category: 'enhance' },
-    { id: 'stabilize', name: 'Video Stabilize', icon: '🪄', description: 'Stabilize shaky footage', category: 'enhance' },
-    { id: 'speed', name: 'Speed Control', icon: '⏱️', description: 'Adjust video speed', category: 'edit' },
-    { id: 'reverse', name: 'Reverse Video', icon: '🔄', description: 'Play video backwards', category: 'edit' },
+/* ─── Name → id registry (must match the Python Director backend agent ids) ─── */
+const AGENT_NAME_TO_ID = {
+    'Video Summarizer': 'summarizer', 'Video Search': 'search', 'Clip Creator': 'clipper',
+    'Video Dubbing': 'dubbing', 'Subtitle Generator': 'subtitler', 'Highlight Extractor': 'highlighter',
+    'Scene Detector': 'scenes', 'B-Roll Adder': 'broll', 'Voiceover': 'voiceover',
+    'Video Editor': 'editor', 'Video Enhancer': 'enhancer', 'Content Compiler': 'compiler',
+    'Meme Generator': 'meme', 'Music Video Maker': 'musicvideo', 'Trailer Creator': 'trailer',
+    'Compilation Builder': 'compilation', 'Social Media Clip': 'social', 'Preview Generator': 'preview',
+    'Montage Builder': 'montage', 'Story Builder': 'story', 'Color Correction': 'color',
+    'Video Stabilize': 'stabilize', 'Speed Control': 'speed', 'Reverse Video': 'reverse',
+    'Voice Cloning': 'voice_cloning', 'Comparison Agent': 'comparison', 'Gen AI Audio Overlays': 'audio_overlays',
+    'Keyword Search & Compilation': 'keyword_search', 'Intelligent Output Formatting': 'output_formatting',
+    'Automated Video Highlights': 'auto_highlights', 'Thumbnail Agent': 'thumbnail',
+    'Subtitle Agent': 'subtitle_agent', 'Visual Search': 'visual_search', 'Slack Agent': 'slack_agent',
+    'Text to Movie': 'text_to_movie', 'Storyboarding Agent': 'storyboarding',
+    'Faceless Video Creator': 'faceless_video_creator', 'AI Ad Films': 'ai_ad_films',
+    'TikTok Lyric Video': 'tiktok_lyric_video', 'AI Voiceovers': 'ai_voiceovers',
+    'Trailer Narration': 'trailer_narration', 'Kids Storyteller': 'kids_storyteller',
+    'Year in Frames': 'year_in_frames', 'Profanity Remover': 'profanity_remover',
+    'Sales Assistant': 'sales_assistant',
+};
+
+/* ─── Agent metadata (id → {action, tool, success}) ─── */
+const AGENT_META = {
+    summarizer:              { action: 'summarize-video',        tool: 'video-analysis',        success: 'Video summary generated successfully' },
+    search:                  { action: 'search-media',            tool: 'video-search',          success: 'Media search completed' },
+    clipper:                 { action: 'create-clip',             tool: 'video-clipper',         success: 'Clip created successfully' },
+    dubbing:                 { action: 'dub-video',               tool: 'video-dubbing',         success: 'Video dubbed successfully' },
+    subtitler:               { action: 'generate-subtitles',      tool: 'video-subtitles',       success: 'Subtitles generated successfully' },
+    subtitle_agent:          { action: 'generate-subtitles',      tool: 'video-subtitles',       success: 'Subtitle agent run completed successfully' },
+    highlighter:             { action: 'extract-highlights',      tool: 'video-highlights',      success: 'Highlights extracted successfully' },
+    auto_highlights:         { action: 'extract-highlights',      tool: 'video-highlights',      success: 'Automated highlights generated successfully' },
+    scenes:                  { action: 'detect-scenes',           tool: 'scene-detection',       success: 'Scenes detected successfully' },
+    broll:                   { action: 'add-broll',                tool: 'video-broll',           success: 'B-roll added successfully' },
+    voiceover:               { action: 'add-voiceover',           tool: 'video-voiceover',       success: 'Voiceover added successfully' },
+    voice_cloning:           { action: 'clone-voice',             tool: 'voice-cloning',         success: 'Voice cloned successfully' },
+    audio_overlays:          { action: 'add-audio-overlay',       tool: 'audio-overlays',        success: 'Audio overlay added successfully' },
+    ai_voiceovers:           { action: 'add-voiceover',           tool: 'ai-voiceovers',         success: 'AI voiceover generated successfully' },
+    editor:                  { action: 'edit-video',              tool: 'video-editor',          success: 'Video edited successfully' },
+    enhancer:                { action: 'enhance-video',           tool: 'video-enhancer',        success: 'Video enhanced successfully' },
+    compiler:                { action: 'compile-videos',          tool: 'video-compiler',        success: 'Videos compiled successfully' },
+    compilation:             { action: 'build-compilation',       tool: 'compilation-builder',   success: 'Compilation built successfully' },
+    meme:                    { action: 'create-meme',             tool: 'meme-generator',        success: 'Meme created successfully' },
+    musicvideo:              { action: 'create-music-video',      tool: 'music-video',           success: 'Music video generated successfully' },
+    trailer:                 { action: 'create-trailer',          tool: 'trailer-maker',         success: 'Trailer created successfully' },
+    trailer_narration:       { action: 'create-trailer',          tool: 'trailer-narration',     success: 'Trailer narration generated successfully' },
+    social:                  { action: 'create-social-clip',      tool: 'social-clip',           success: 'Social media clip created successfully' },
+    preview:                 { action: 'generate-preview',        tool: 'preview-generator',     success: 'Preview generated successfully' },
+    montage:                 { action: 'create-montage',         tool: 'montage-builder',       success: 'Montage created successfully' },
+    story:                   { action: 'build-story',             tool: 'story-builder',         success: 'Story built successfully' },
+    color:                   { action: 'color-correct',           tool: 'color-correction',      success: 'Color correction applied successfully' },
+    stabilize:               { action: 'stabilize-video',         tool: 'video-stabilize',       success: 'Video stabilized successfully' },
+    speed:                   { action: 'adjust-speed',            tool: 'speed-control',         success: 'Speed adjusted successfully' },
+    reverse:                 { action: 'reverse-video',           tool: 'video-reverse',         success: 'Video reversed successfully' },
+    comparison:              { action: 'compare-videos',          tool: 'video-comparison',      success: 'Video comparison completed successfully' },
+    keyword_search:          { action: 'keyword-search',          tool: 'keyword-search',        success: 'Keyword search & compilation completed successfully' },
+    output_formatting:       { action: 'format-output',           tool: 'output-formatting',     success: 'Output formatted successfully' },
+    thumbnail:               { action: 'generate-thumbnail',     tool: 'thumbnail-generator',   success: 'Thumbnail generated successfully' },
+    visual_search:           { action: 'visual-search',           tool: 'visual-search',         success: 'Visual search completed successfully' },
+    text_to_movie:           { action: 'text-to-movie',           tool: 'text-to-movie',         success: 'Movie generated from script successfully' },
+    storyboarding:           { action: 'generate-storyboard',    tool: 'storyboarding',         success: 'Storyboard generated successfully' },
+    faceless_video_creator:  { action: 'create-faceless-video',  tool: 'faceless-video',        success: 'Faceless video created successfully' },
+    ai_ad_films:             { action: 'create-ad-film',         tool: 'ad-film-maker',         success: 'AI ad film created successfully' },
+    tiktok_lyric_video:      { action: 'create-lyric-video',     tool: 'lyric-video-maker',     success: 'TikTok lyric video created successfully' },
+    kids_storyteller:        { action: 'tell-kids-story',         tool: 'kids-storyteller',      success: 'Kids story generated successfully' },
+    year_in_frames:          { action: 'build-year-recap',        tool: 'year-in-frames',        success: 'Year-in-frames montage built successfully' },
+    profanity_remover:       { action: 'remove-profanity',       tool: 'profanity-remover',     success: 'Profanity removed successfully' },
+    slack_agent:             { action: 'send-slack-message',      tool: 'slack-agent',           success: 'Slack message sent successfully' },
+    sales_assistant:         { action: 'sales-assist',           tool: 'sales-assistant',       success: 'Sales assistant completed successfully' },
+};
+
+/* ─── Quick actions: [label, description, agentId, icon] ─── */
+const quickActions = [
+    ['Summarize', 'Generate video summary', 'summarizer', '📝'],
+    ['Extract Highlights', 'Find best moments', 'highlighter', '⚡'],
+    ['Detect Scenes', 'Identify boundaries', 'scenes', '🎬'],
+    ['Add Subtitles', 'Auto-generate captions', 'subtitler', '💬'],
+    ['Dub Video', 'Translate audio', 'dubbing', '🎤'],
+    ['Add B-Roll', 'Overlay footage', 'broll', '🎞️'],
+    ['Voiceover', 'Add AI narration', 'voiceover', '🎙️'],
+    ['Create Shorts', 'TikTok/Reels/Shorts', 'social', '📱'],
+    ['Color Correction', 'Adjust colors', 'color', '🎨'],
+    ['Stabilize', 'Fix shaky footage', 'stabilize', '🪄'],
+    ['Generate Thumbnail', 'Create cover image', 'thumbnail', '🖼️'],
+    ['Make Music Video', 'Sync footage to music', 'musicvideo', '🎵'],
+    ['Create Trailer', 'Build cinematic trailer', 'trailer', '🎥'],
+    ['Faceless Video', 'No-face narration video', 'faceless_video_creator', '🕶️'],
+    ['AI Ad Film', 'Product advertisement', 'ai_ad_films', '📣'],
+    ['TikTok Lyric Video', 'Lyric music video', 'tiktok_lyric_video', '🎶'],
+    ['Kids Story', 'Children storytelling', 'kids_storyteller', '🧒'],
+    ['Year in Frames', 'Yearly recap montage', 'year_in_frames', '📅'],
+    ['Remove Profanity', 'Clean audio language', 'profanity_remover', '🚫'],
+    ['Text to Movie', 'Script to full movie', 'text_to_movie', '🎬'],
+    ['Reverse Video', 'Play backwards', 'reverse', '🔄'],
+    ['Speed Control', 'Adjust playback speed', 'speed', '⏱️'],
+    ['Visual Search', 'Find by visual query', 'visual_search', '🔎'],
+    ['Auto Highlights', 'AI-ranked highlights', 'auto_highlights', '🤖'],
 ];
+
+const starterPrompts = [
+    'Summarize this video',
+    'Create a short clip of the best moment',
+    'Add subtitles with cinematic styling',
+    'Detect scenes and build highlights',
+];
+
+/* ─── The 45 agents rendered in the left panel. ───
+   Kept under DIRECTOR_AGENTS so the existing template (`DIRECTOR_AGENTS.map(...)`)
+   still works. Each entry carries `id` and `category` for the grid + filter. */
+const ICON_BY_NAME = {
+    'Video Summarizer': '📝', 'Video Search': '🔍', 'Clip Creator': '✂️', 'Video Dubbing': '🎤',
+    'Subtitle Generator': '💬', 'Highlight Extractor': '⚡', 'Scene Detector': '🎬', 'B-Roll Adder': '🎞️',
+    'Voiceover': '🎙️', 'Video Editor': '✏️', 'Video Enhancer': '✨', 'Content Compiler': '📚',
+    'Meme Generator': '😂', 'Music Video Maker': '🎵', 'Trailer Creator': '🎥', 'Compilation Builder': '📋',
+    'Social Media Clip': '📱', 'Preview Generator': '👁️', 'Montage Builder': '🎞️', 'Story Builder': '📖',
+    'Color Correction': '🎨', 'Video Stabilize': '🪄', 'Speed Control': '⏱️', 'Reverse Video': '🔄',
+    'Voice Cloning': '🗣️', 'Comparison Agent': '⚖️', 'Gen AI Audio Overlays': '🎚️',
+    'Keyword Search & Compilation': '🔑', 'Intelligent Output Formatting': '📤', 'Automated Video Highlights': '🌟',
+    'Thumbnail Agent': '🖼️', 'Subtitle Agent': '📝', 'Visual Search': '🔎', 'Slack Agent': '💬',
+    'Text to Movie': '🎬', 'Storyboarding Agent': '📐', 'Faceless Video Creator': '🕶️', 'AI Ad Films': '📣',
+    'TikTok Lyric Video': '🎶', 'AI Voiceovers': '🔊', 'Trailer Narration': '🎙️', 'Kids Storyteller': '🧒',
+    'Year in Frames': '📅', 'Profanity Remover': '🚫', 'Sales Assistant': '💼',
+};
+
+/* Derive a category from an agent's registered tool so the category
+   filter keeps working for all 45 agents. */
+function categoryForAgent(id) {
+    const tool = (AGENT_META[id] && AGENT_META[id].tool) || '';
+    if (tool.includes('subtitle') || tool.includes('accessibility')) return 'accessibility';
+    if (tool.includes('search') || tool.includes('visual')) return 'search';
+    if (tool.includes('scene') || tool.includes('analysis')) return 'analysis';
+    if (tool.includes('highlight') || tool.includes('clip') || tool.includes('extract') || tool.includes('comparison') || tool.includes('broll')) return 'extract';
+    if (tool.includes('dub') || tool.includes('voice') || tool.includes('audio') || tool.includes('narration') || tool.includes('slack')) return 'audio';
+    if (tool.includes('translate')) return 'translate';
+    if (tool.includes('color') || tool.includes('enhance') || tool.includes('stabilize') || tool.includes('enhancer')) return 'enhance';
+    if (tool.includes('editor') || tool.includes('speed') || tool.includes('reverse') || tool.includes('edit')) return 'edit';
+    if (tool.includes('social') || tool.includes('lyric')) return 'social';
+    return 'create';
+}
+
+const DIRECTOR_AGENTS = Object.entries(AGENT_NAME_TO_ID).map(([name, id]) => ({
+    id,
+    name,
+    icon: ICON_BY_NAME[name] || '🤖',
+    description: (AGENT_META[id] && AGENT_META[id].success.replace(/ successfully$/, '')) || name,
+    category: categoryForAgent(id),
+}));
 
 const AGENT_CATEGORIES = {
     analysis: { name: 'Analysis', color: 'blue' },
@@ -497,183 +620,224 @@ export function DirectorPage() {
         }
     };
     
+    const addAssistantMessage = (html) => {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-message flex gap-3';
+        msgDiv.innerHTML = `
+            <div class="w-8 h-8 bg-primary/20 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">AI</div>
+            <div class="bg-white/10 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
+                ${html}
+            </div>
+        `;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    const handleSend = () => {
+        const text = commandInput.value;
+        if (!text || !text.trim()) return;
+        processCommand(text);
+    };
+
+    /* ─── Keyword → agent id (for free-text command inference) ─── */
+    const KEYWORD_TO_AGENT = [
+        ['summarize', 'summarizer'], ['summary', 'summarizer'],
+        ['highlight', 'highlighter'], ['best moment', 'highlighter'],
+        ['auto highlight', 'auto_highlights'],
+        ['scene', 'scenes'], ['detect scene', 'scenes'],
+        ['subtitle', 'subtitler'], ['caption', 'subtitler'],
+        ['dub', 'dubbing'], ['translate audio', 'dubbing'],
+        ['b-roll', 'broll'], ['broll', 'broll'], ['overlay footage', 'broll'],
+        ['voiceover', 'voiceover'], ['narration', 'voiceover'],
+        ['voice clone', 'voice_cloning'], ['clone voice', 'voice_cloning'],
+        ['audio overlay', 'audio_overlays'],
+        ['ai voiceover', 'ai_voiceovers'],
+        ['thumbnail', 'thumbnail'], ['cover image', 'thumbnail'],
+        ['social', 'social'], ['short', 'social'], ['tiktok', 'social'], ['reel', 'social'],
+        ['comparison', 'comparison'], ['compare', 'comparison'],
+        ['keyword search', 'keyword_search'], ['compile by keyword', 'keyword_search'],
+        ['output format', 'output_formatting'],
+        ['visual search', 'visual_search'],
+        ['search', 'search'],
+        ['clip', 'clipper'],
+        ['edit', 'editor'], ['trim', 'editor'], ['cut', 'editor'],
+        ['enhance', 'enhancer'], ['upscale', 'enhancer'],
+        ['compile', 'compiler'], ['content compiler', 'compiler'],
+        ['compilation', 'compilation'],
+        ['meme', 'meme'],
+        ['music video', 'musicvideo'],
+        ['trailer', 'trailer'],
+        ['trailer narration', 'trailer_narration'],
+        ['preview', 'preview'],
+        ['montage', 'montage'],
+        ['story', 'story'], ['narrative', 'story'],
+        ['color', 'color'], ['color correct', 'color'], ['color grade', 'color'],
+        ['stabilize', 'stabilize'], ['fix shaky', 'stabilize'],
+        ['speed', 'speed'], ['slow motion', 'speed'], ['fast forward', 'speed'],
+        ['reverse', 'reverse'], ['play backwards', 'reverse'],
+        ['text to movie', 'text_to_movie'], ['script to movie', 'text_to_movie'],
+        ['storyboard', 'storyboarding'],
+        ['faceless', 'faceless_video_creator'], ['no face', 'faceless_video_creator'],
+        ['ad film', 'ai_ad_films'], ['advertisement', 'ai_ad_films'], ['product ad', 'ai_ad_films'],
+        ['lyric video', 'tiktok_lyric_video'], ['tiktok lyric', 'tiktok_lyric_video'],
+        ['kids story', 'kids_storyteller'], ['children', 'kids_storyteller'],
+        ['year in frames', 'year_in_frames'], ['yearly recap', 'year_in_frames'],
+        ['profanity', 'profanity_remover'], ['clean audio', 'profanity_remover'],
+        ['slack', 'slack_agent'],
+        ['sales', 'sales_assistant'], ['crm', 'sales_assistant'],
+    ];
+
+    const inferAgentId = (text) => {
+        const lower = text.toLowerCase();
+        for (const [keyword, id] of KEYWORD_TO_AGENT) {
+            if (lower.includes(keyword)) return id;
+        }
+        return null;
+    };
+
+    const showProcessing = (label) => {
+        const statusEl = container.querySelector('#processing-status');
+        if (!statusEl) return;
+        statusEl.classList.remove('hidden');
+        container.querySelector('#processing-title').textContent = `Running ${label}...`;
+        container.querySelector('#processing-steps').innerHTML = '';
+        container.querySelector('#progress-bar').style.width = '50%';
+        container.querySelector('#progress-percent').textContent = '50%';
+    };
+
+    const hideProcessing = () => {
+        const statusEl = container.querySelector('#processing-status');
+        if (!statusEl) return;
+        statusEl.classList.add('hidden');
+        container.querySelector('#progress-bar').style.width = '0%';
+        container.querySelector('#progress-percent').textContent = '0%';
+    };
+
+    /**
+     * Dispatch a real request to the backend Director proxy for a single agent.
+     * Never fakes a success — on any failure it surfaces the real error.
+     */
+    const runAgent = async (agentId, input) => {
+        const label = DIRECTOR_AGENTS.find(a => a.id === agentId)?.name || agentId;
+
+        if (!apiKeyManager.hasVideoDBKey()) {
+            addMessage('Please add your VideoDB API key in Settings to use Director agents.', false);
+            showToast('VideoDB key required', 'error');
+            return;
+        }
+
+        isProcessing = true;
+        showProcessing(label);
+        activeAgents.add(agentId);
+        updateActiveAgents();
+
+        let json;
+        try {
+            const res = await fetch(`/api/director/agent/${encodeURIComponent(agentId)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ input, videoId, videoUrl }),
+            });
+            json = await res.json().catch(() => ({}));
+        } catch (err) {
+            hideProcessing();
+            isProcessing = false;
+            activeAgents.delete(agentId);
+            updateActiveAgents();
+            addMessage(`Agent failed: network error (${escapeHtml(String(err.message || err))})`, false);
+            return;
+        }
+
+        hideProcessing();
+        isProcessing = false;
+        activeAgents.delete(agentId);
+        updateActiveAgents();
+
+        if (json && json.ok) {
+            if (json.streamUrl) {
+                let src = json.streamUrl;
+                const looksLikeId = typeof src === 'string' && !/^https?:\/\//.test(src);
+                if (looksLikeId) {
+                    try {
+                        src = await videoDb.getStreamUrl(src);
+                    } catch (e) {
+                        addMessage('Agent finished but failed to resolve the video stream.', false);
+                        return;
+                    }
+                }
+                const safeSrc = escapeHtml(src);
+                addAssistantMessage(`
+                    <p class="text-sm text-white">${escapeHtml(json.message || `${label} finished.`)}</p>
+                    <video controls class="mt-2 max-w-full rounded-lg" src="${safeSrc}">
+                        Your browser does not support video playback.
+                    </video>
+                `);
+            } else if (json.summary || json.script || json.text) {
+                addMessage(escapeHtml(json.summary || json.script || json.text), false);
+            } else {
+                const fallback = (json.raw && json.raw.message) || (AGENT_META[agentId] && AGENT_META[agentId].success) || 'Done';
+                addMessage(escapeHtml(String(fallback)), false);
+            }
+        } else {
+            addMessage(escapeHtml(json && json.error ? String(json.error) : 'Agent failed'), false);
+        }
+    };
+
+    /**
+     * Free-text command: prefer the selected agent card, else infer from keywords.
+     */
     const processCommand = async (command) => {
         if (!command.trim() || isProcessing) return;
-        
-        isProcessing = true;
+
         addMessage(command, true);
         commandInput.value = '';
-        
-        // Show processing status
-        const statusEl = container.querySelector('#processing-status');
-        const stepsEl = container.querySelector('#processing-steps');
-        const progressBar = container.querySelector('#progress-bar');
-        const progressPercent = container.querySelector('#progress-percent');
-        statusEl.classList.remove('hidden');
-        
-        // Determine which agents to activate based on command
-        const activatedAgents = [];
-        let steps = [];
-        
-        const cmd = command.toLowerCase();
-        
-        if (cmd.includes('highlight') || cmd.includes('clip') || cmd.includes('short')) {
-            activatedAgents.push('Highlight Extractor', 'Clip Creator');
-            steps = [
-                'Analyzing video content...',
-                'Identifying key moments...',
-                'Creating short clips...',
-                'Adding captions...',
-                'Finalizing...'
-            ];
-        } else if (cmd.includes('subtitle') || cmd.includes('caption')) {
-            activatedAgents.push('Subtitle Generator', 'Video Enhancer');
-            steps = [
-                'Transcribing audio with Whisper...',
-                'Generating captions...',
-                'Syncing to timeline...',
-                'Styling subtitles...',
-                'Complete!'
-            ];
-        } else if (cmd.includes('scene')) {
-            activatedAgents.push('Scene Detector');
-            steps = [
-                'Analyzing frame changes...',
-                'Identifying scene boundaries...',
-                'Labeling scenes...',
-                'Generating scene map...'
-            ];
-        } else if (cmd.includes('b-roll') || cmd.includes('overlay')) {
-            activatedAgents.push('B-Roll Adder', 'Search Agent');
-            steps = [
-                'Analyzing video context...',
-                'Searching footage library...',
-                'Matching content...',
-                'Applying overlays...',
-                'Blending...'
-            ];
-        } else if (cmd.includes('dub') || cmd.includes('translate') || cmd.includes('language')) {
-            activatedAgents.push('Video Dubbing', 'Voiceover');
-            steps = [
-                'Translating audio...',
-                'Synthesizing voice (CosyVoice)...',
-                'Matching lip sync...',
-                'Finalizing...'
-            ];
-        } else if (cmd.includes('summarize')) {
-            activatedAgents.push('Video Summarizer');
-            steps = [
-                'Analyzing content...',
-                'Extracting key points...',
-                'Generating summary...',
-                'Creating chapters...'
-            ];
-        } else if (cmd.includes('color') || cmd.includes('correction')) {
-            activatedAgents.push('Color Correction', 'Video Enhancer');
-            steps = [
-                'Analyzing color palette...',
-                'Applying corrections...',
-                'Balancing tones...',
-                'Final render...'
-            ];
-        } else if (cmd.includes('stabilize')) {
-            activatedAgents.push('Video Stabilize');
-            steps = [
-                'Analyzing motion...',
-                'Computing stabilization vectors...',
-                'Applying transform...',
-                'Rendering...'
-            ];
-        } else {
-            activatedAgents.push('Video Editor', 'Reasoning Engine');
-            steps = [
-                'Analyzing command...',
-                'Planning workflow...',
-                'Executing tasks...',
-                'Finalizing...'
-            ];
-        }
-        
-        // Update active agents
-        activatedAgents.forEach(a => activeAgents.add(a.toLowerCase().replace(/ /g, '_')));
-        updateActiveAgents();
-        
-        // Simulate processing
-        container.querySelector('#processing-title').textContent = activatedAgents.join(', ');
-        
-        for (let i = 0; i < steps.length; i++) {
-            stepsEl.innerHTML = steps.map((s, idx) => `
-                <div class="flex items-center gap-2 ${idx <= i ? 'text-white' : 'text-secondary'}">
-                    <span class="w-1.5 h-1.5 rounded-full ${idx < i ? 'bg-primary' : idx === i ? 'bg-primary animate-pulse' : 'bg-secondary'}"></span>
-                    ${s}
-                </div>
-            `).join('');
-            
-            const percent = Math.round(((i + 1) / steps.length) * 100);
-            progressBar.style.width = `${percent}%`;
-            progressPercent.textContent = `${percent}%`;
-            
-            await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
-        }
-        
-        statusEl.classList.add('hidden');
-        progressBar.style.width = '0%';
-        progressPercent.textContent = '0%';
-        
-        // Clear active agents after processing
-        setTimeout(() => {
-            activeAgents.clear();
-            updateActiveAgents();
-        }, 2000);
-        
-        // Add AI response
-        const responses = [
-            `I've completed the processing using ${activatedAgents.join(', ')}. Your video has been updated!`,
-            `The AI agents have finished processing your video. All requested changes have been applied.`,
-            `Command executed successfully! The video has been modified with your requested edits.`,
-            `Processing complete! Your video is ready with the ${activatedAgents[0]} applied.`
-        ];
-        
-        addMessage(responses[Math.floor(Math.random() * responses.length)], false, activatedAgents, true);
-        addToHistory(command, activatedAgents);
-        
-        isProcessing = false;
+
+        const selectedBtn = container.querySelector('.agent-btn.selected, .agent-btn.bg-primary\\/20');
+        const selectedId = selectedBtn ? selectedBtn.dataset.agent : null;
+        const agentId = selectedId || inferAgentId(command) || 'editor';
+
+        await runAgent(agentId, command);
+        addToHistory(command, [agentId]);
     };
     
-    sendCommandBtn.onclick = () => processCommand(commandInput.value);
+    sendCommandBtn.onclick = handleSend;
     commandInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') processCommand(commandInput.value);
+        if (e.key === 'Enter') handleSend();
     });
     
-    // Agent buttons
+    // Agent card buttons → dispatch to the matching backend agent.
     container.querySelectorAll('.agent-btn').forEach(btn => {
         btn.onclick = () => {
+            container.querySelectorAll('.agent-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
             const agentId = btn.dataset.agent;
-            const agent = DIRECTOR_AGENTS.find(a => a.id === agentId);
-            processCommand(`Use ${agent.name} to ${agent.description.toLowerCase()}`);
+            runAgent(agentId, `Run ${DIRECTOR_AGENTS.find(a => a.id === agentId)?.name || agentId}`);
         };
     });
-    
-    // Quick action buttons
+
+    // Quick action buttons → dispatch using the agentId from quickActions.
+    const quickActionById = Object.fromEntries(quickActions.map(([, , id]) => [id, id]));
     container.querySelectorAll('.action-btn').forEach(btn => {
         btn.onclick = () => {
             const action = btn.dataset.action;
-            const actionTexts = {
-                summarize: 'Summarize this video',
-                highlights: 'Extract the best highlights from this video',
-                scenes: 'Detect all scenes in this video',
-                subtitles: 'Add subtitles to this video',
-                dubbing: 'Dub this video to Spanish',
-                broll: 'Add relevant B-roll footage',
-                voiceover: 'Add voiceover narration',
-                shorts: 'Create short clips for social media',
-                color: 'Apply color correction to this video',
-                stabilize: 'Stabilize this video'
-            };
-            processCommand(actionTexts[action]);
+            const agentId = quickActionById[action] || inferAgentId(action) || 'editor';
+            runAgent(agentId, action);
         };
     });
-    
+
+    // Starter prompts → send to chat when clicked.
+    starterPrompts.forEach(prompt => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'text-xs px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full text-secondary hover:text-white transition-colors cursor-pointer';
+        chip.textContent = prompt;
+        chip.onclick = () => {
+            commandInput.value = prompt;
+            processCommand(prompt);
+        };
+        chatMessages.appendChild(chip);
+    });
+
     // Export buttons
     container.querySelectorAll('.export-btn').forEach(btn => {
         btn.onclick = () => {
