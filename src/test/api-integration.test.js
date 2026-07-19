@@ -138,12 +138,24 @@ describe('openaiService fixes', () => {
     expect(typeof mod.openaiService.generateVariations).toBe('function');
     expect(typeof mod.openaiService.multiTurnImageEditing).toBe('function');
     expect(typeof mod.openaiService.streamImageGeneration).toBe('function');
+    expect(typeof mod.openaiService.generateImageResponses).toBe('function');
+    expect(typeof mod.openaiService.editImageResponses).toBe('function');
+    expect(typeof mod.openaiService.createFile).toBe('function');
   });
 
-  test('streamImageGeneration throws descriptive error', async () => {
+  test('streamImageGeneration requires an OpenAI key', async () => {
     const { openaiService } = await import('../lib/openaiService.js');
-    await expect(openaiService.streamImageGeneration({ prompt: 'test' }))
-      .rejects.toThrow('Streaming image generation is not supported');
+    await expect(openaiService.streamImageGeneration({ input: 'test' }))
+      .rejects.toThrow('OpenAI API key not configured');
+  });
+
+  test('openaiService exposes Responses API for images', async () => {
+    const mod = await import('../lib/openaiService.js');
+    expect(typeof mod.openaiService.generateImageResponses).toBe('function');
+    expect(typeof mod.openaiService.editImageResponses).toBe('function');
+    expect(typeof mod.openaiService.createFile).toBe('function');
+    expect(typeof mod.openaiService._buildImageInputs).toBe('function');
+    expect(typeof mod.openaiService._buildImageGenTool).toBe('function');
   });
 
   test('generateImage throws when no key configured', async () => {

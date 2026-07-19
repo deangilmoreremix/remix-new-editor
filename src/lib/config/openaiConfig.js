@@ -18,6 +18,16 @@ class OpenAIConfig {
         'gpt-image-1',
         'gpt-image-1-mini'
       ],
+      // Mainline model used by the Responses API image generation tool. The
+      // tool selects the underlying GPT Image model; this is the conversational
+      // model that supports calling the image_generation tool.
+      responsesModel: 'gpt-5.6',
+      supportedResponsesModels: [
+        'gpt-5.6',
+        'gpt-5.5',
+        'gpt-5.1',
+        'gpt-5'
+      ],
       // Thumbnail overrides used by ThumbnailService / ai-thumbnail-generator
       thumbnailModel: 'gpt-image-2',
       thumbnailDefaultSize: '1792x1024',
@@ -102,6 +112,26 @@ class OpenAIConfig {
     if (!apiKey) return '';
     if (apiKey.length <= 11) return '*'.repeat(apiKey.length);
     return apiKey.substring(0, 11) + '...';
+  }
+
+  /**
+   * Get the mainline Responses API model (supports the image_generation tool).
+   * @returns {string}
+   */
+  getResponsesModel() {
+    return this.defaultConfig.responsesModel;
+  }
+
+  /**
+   * Set the Responses API model (with validation).
+   * @param {string} model
+   * @throws {Error} if unsupported
+   */
+  setResponsesModel(model) {
+    if (!this.defaultConfig.supportedResponsesModels.includes(model)) {
+      throw new Error(`Unsupported Responses model: ${model}. Supported: ${this.defaultConfig.supportedResponsesModels.join(', ')}`);
+    }
+    this.defaultConfig.responsesModel = model;
   }
 
   /**
