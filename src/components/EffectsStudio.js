@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createMediaPreview, createFullscreenPreview } from './MediaPreview.js';
@@ -28,6 +29,7 @@ function getEffectsForModel(modelId) {
 export function EffectsStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden relative';
+  mountStudioChrome(container, { currentRoute: 'effects' });
 
   let activeTab = EFFECT_TABS[0];
   let selectedEffect = null;

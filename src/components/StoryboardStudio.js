@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
@@ -12,6 +13,7 @@ const LAYOUTS = ['Horizontal', 'Grid', 'Story'];
 export function StoryboardStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto relative storyboard-studio';
+  mountStudioChrome(container, { currentRoute: 'storyboard' });
   container.setAttribute('data-app', 'storyboard');
 
   const topBar = document.createElement('div');

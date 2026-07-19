@@ -102,12 +102,17 @@ wired: `container.querySelector('#back-btn').onclick = () => navigate('apps');`
 ### Checkpoint: SPA complete
 - [ ] Every SPA studio route + VideoAgent agent view has back + menu; drawer navigates to any route.
 
-### Phase 3 — Polish & tests
-- [ ] T9: Mobile: drawer full-screen, closes on selection/backdrop/ESC; keyboard a11y.
-- [ ] T10: E2E smoke test — assert back + menu presence on a representative set across SPA studios.
+### Phase 3 — Director frontend
+- [ ] T9b: `DirectorLayout.vue` — `sidebarConfig.collapsible = true`; add back button + all-studios
+  menu icon to Header `#actions` (menu toggles sidebar via injected `toggleSidebar`).
+
+### Phase 4 — Polish & tests
+- [ ] T10: Mobile: drawer full-screen, closes on selection/backdrop/ESC; keyboard a11y.
+- [ ] T11: E2E smoke test — assert back + menu presence on a representative set across SPA studios
+  (and Director frontend if a test harness is available).
 
 ### Checkpoint: Complete
-- [ ] All in-SPA studios (vanilla + React + VideoAgent agents) pass; tests green; ready for review.
+- [ ] All in-scope studios (SPA + Director frontend) pass; tests green; ready for review.
 
 ## Risks / Mitigations
 | Risk | Impact | Mitigation |

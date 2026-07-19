@@ -9,6 +9,7 @@ import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
+import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
@@ -65,23 +66,31 @@ export function TemplateStudio(templateId) {
   const navHeader = document.createElement('div');
   navHeader.className = 'border-b border-white/5 px-6 py-4';
   navHeader.innerHTML = `
-    <div class="flex items-center gap-8 overflow-x-auto text-sm text-zinc-400">
-      <button class="hover:text-white transition" data-nav="explore">Explore</button>
-      <button class="hover:text-white transition" data-nav="image">Image</button>
-      <button class="hover:text-white transition" data-nav="video">Video</button>
-      <button class="hover:text-white transition" data-nav="tools">Storyboard</button>
-      <button class="hover:text-white transition" data-nav="edit">Edit</button>
-      <button class="hover:text-white transition" data-nav="character">Character</button>
-      <button class="hover:text-white transition" data-nav="effects">Vibe Motion</button>
-      <button class="hover:text-white transition" data-nav="cinema">Cinema Studio</button>
-      <button class="hover:text-white transition" data-nav="influencer">AI Influencer</button>
-      <button class="hover:text-white transition" data-nav="apps">Apps</button>
-      <button class="text-white font-semibold" data-nav="templates">Templates</button>
-      <button class="hover:text-white transition" data-nav="assist">Assist</button>
-      <button class="hover:text-white transition" data-nav="community">Community</button>
+    <div class="flex items-center gap-3">
+      <div id="studio-menu-slot"></div>
+      <div class="flex items-center gap-8 overflow-x-auto text-sm text-zinc-400">
+        <button class="hover:text-white transition" data-nav="explore">Explore</button>
+        <button class="hover:text-white transition" data-nav="image">Image</button>
+        <button class="hover:text-white transition" data-nav="video">Video</button>
+        <button class="hover:text-white transition" data-nav="tools">Storyboard</button>
+        <button class="hover:text-white transition" data-nav="edit">Edit</button>
+        <button class="hover:text-white transition" data-nav="character">Character</button>
+        <button class="hover:text-white transition" data-nav="effects">Vibe Motion</button>
+        <button class="hover:text-white transition" data-nav="cinema">Cinema Studio</button>
+        <button class="hover:text-white transition" data-nav="influencer">AI Influencer</button>
+        <button class="hover:text-white transition" data-nav="apps">Apps</button>
+        <button class="text-white font-semibold" data-nav="templates">Templates</button>
+        <button class="hover:text-white transition" data-nav="assist">Assist</button>
+        <button class="hover:text-white transition" data-nav="community">Community</button>
+      </div>
     </div>
   `;
   main.appendChild(navHeader);
+
+  // All-studios side menu (drawer) — opened via the menu icon
+  const drawer = mountStudioDrawer(document.body, { currentRoute: 'templates' });
+  const menuSlot = navHeader.querySelector('#studio-menu-slot');
+  if (menuSlot) menuSlot.appendChild(createStudioMenuButton(drawer.toggle));
 
   // Add nav click handlers
   navHeader.querySelectorAll('[data-nav]').forEach(btn => {

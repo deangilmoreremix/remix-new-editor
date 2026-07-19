@@ -1,6 +1,6 @@
 <script setup>
 import "./style.css";
-import { DirectorLayout } from "./layout/DirectorLayout.vue";
+import DirectorLayout from "./layout/DirectorLayout.vue";
 </script>
 
 <template>

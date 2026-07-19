@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { avatarModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -9,6 +10,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 export function AvatarStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10 relative';
+  mountStudioChrome(container, { currentRoute: 'avatar' });
 
   let selectedModel = avatarModels[0];
   let uploadedVideoUrl = null;

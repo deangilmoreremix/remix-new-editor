@@ -1,4 +1,5 @@
 import { navigate } from '../lib/router.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 
 const STYLE_PRESETS = ['Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach', 'Amalfi Summer', 'Bimbocore', 'Vintage PhotoBooth', 'Gorpcore'];
@@ -14,6 +15,7 @@ const FEATURES = [
 export function InfluencerPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+  mountStudioChrome(container, { currentRoute: 'influencer-page' });
 
   // Hero
   const hero = document.createElement('div');

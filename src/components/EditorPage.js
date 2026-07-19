@@ -1,4 +1,5 @@
 import { navigate } from '../lib/router.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { getSupabaseUrl } from '../lib/supabase.js';
 import { escapeHtml } from '../lib/security.js';
@@ -75,6 +76,7 @@ const SPEED_OPTIONS = ['0.25x (Super Slow)', '0.5x (Slow)', '1x (Normal)', '1.5x
 export function EditorPage() {
     const container = document.createElement('div');
     container.className = 'w-full h-full flex flex-col overflow-hidden';
+  mountStudioChrome(container, { currentRoute: 'edit' });
     
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('videoId') || '';

@@ -1,23 +1,32 @@
-# Merge: PersonalizeModal + maigretGraph (Connection Graph)
+# TODO: Merge PersonalizeModal + maigretGraph (Connection Graph) — STATUS
 
-Plan: `tasks/plan.md`. Branch: `cleanup/remove-orphans`. Worktree: `coral-cemetery`.
+Branch: `cleanup/remove-orphans` (worktree `coral-cemetery`). Plan: `tasks/plan.md`.
 
-## Status
-- [x] T1: `src/components/modals/maigretGraph.js` — force-directed canvas graph renderer (seed/platform/alias/permutation/identity nodes; claimed/alias_of/permutation_of/same_identity edges); zoom/pan/relayout; legend; `downloadGraph` (JSON/CSV/Neo4j/HTML).
-- [x] T2: `src/lib/maigretSim.js` — `generateScan()` + `ensureGraph()` client-side scanner simulator (shared fallback).
-- [x] T3: PersonalizeModal "Connection graph" section mounts `maigretGraph` after Discover.
-- [x] T4: Richer Maigret controls in Discover form (scope/tags/keywords/proxy/recursion/permute/parsing/CF-bypass/AI).
-- [x] T5: `graph` + `scanOptions` persisted into `profile` (and `scanResults`) in `localStorage`.
-- [x] T6: Render from real `scanData.graph` when present; otherwise `ensureGraph()` simulator so graph always shows. Legend + zoom/pan + Download (JSON/CSV/Neo4j/HTML) wired.
-- [x] BUG FIX: added missing `MaigretGraph.zoom()` method (PersonalizeModal called `this._graph.zoom()` which did not exist).
-- [x] VERIFY: jsdom+canvas render test passes (13 checks) — graph paints, zoom works, downloads serialize. Vitest modal-integration test: 21/21 pass. Vite transforms clean.
-- [ ] Phase 3 (backend real graph) — DEFERRED: `services/maigret-worker/app/scanner.py` does not yet emit `graph.nodes/edges`; `/api/personalizer/scan` returns no `graph`. UI works via simulator fallback (by design). `personalizer-api.js` `/export/:scanId` exists (JSON/CSV/MD/HTML; no Neo4j).
+## Phase 1–2 (UI, done)
+- [x] T1 `maigretGraph.js` — force-directed canvas renderer + zoom/pan/relayout + legend + `downloadGraph` (JSON/CSV/Neo4j/HTML).
+- [x] T2 `maigretSim.js` — `generateScan()` + `ensureGraph()` client fallback.
+- [x] T3 PersonalizeModal "Connection graph" section mounts `maigretGraph` after Discover.
+- [x] T4 Richer Maigret controls (scope/tags/keywords/proxy/recursion/permute/parsing/CF/AI).
+- [x] T5 `graph` + `scanOptions` persisted to `localStorage` profile.
+- [x] T6 Render real `scanData.graph` or simulator fallback; legend + zoom/pan + Download wired.
+- [x] BUG FIX: added missing `MaigretGraph.zoom()`.
 
-## Verification
-- `node test-graph-render.mjs` → ALL CHECKS PASSED
-- `npx vitest run src/components/modals/modal-integration-test.test.js` → 21 passed, 10 skipped
-- Vite dev server transforms PersonalizeModal.jsx + maigretGraph.js (HTTP 200), no error.
+## Phase 3 (backend real graph, DONE)
+- [x] T7 `scanner.py` `build_graph()` derives `graph` from real `platforms` (seed→claimed, alias_of, same_identity). Added to `ScanResult`.
+- [x] `main.py` `ScanResponse` includes `graph`; `/scan` returns it.
+- [x] T8 `personalizer-api.js` `/scan` passes worker `scanData` (incl. `graph`) to modal.
+- [x] T9 `/export/:scanId` supports JSON/CSV/MD/HTML; client `downloadGraph` adds Neo4j.
+- [x] `render.yaml` blueprint now also deploys `maigret-worker` (docker, oregon).
 
-## Open
-- Phase 3 backend graph emission (scanner.py Task 7) is independently verifiable later; UI is complete with fallback.
+## Verification (all green)
+- `test-graph-render.mjs` → ALL CHECKS PASSED (13)
+- `test-personalize-functional.mjs` → ALL FUNCTIONAL CHECKS PASSED (20)
+- `test-personalize-trigger.mjs` → ALL TRIGGER CHECKS PASSED (4) — studio mount path
+- `modal-integration-test` (vitest) → 21 passed, 10 skipped
+- `pytest tests/test_scanner.py` → 5 passed, 1 skipped
+- Live worker: `GET /health` ok; `POST /scan` returns `graph`; no-key → 401
+- `ensureGraph(realScan)` keeps worker graph (simulator only when absent)
+
+## Open (deploy-side, not code)
+- Set `MAIGRET_WORKER_URL` + `MAIGRET_WORKER_SECRET` in Netlify dashboard (from the Render maigret-worker service) so production Discover uses real graph data.
 - `public/maigret-graph-modal.html` retained as visual reference.

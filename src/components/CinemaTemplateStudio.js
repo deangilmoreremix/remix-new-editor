@@ -4,6 +4,7 @@
  */
 
 import { navigate } from '../lib/router.js';
+import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
@@ -32,6 +33,9 @@ import {
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-black overflow-hidden';
+
+  // All-studios side menu (drawer)
+  const studioDrawer = mountStudioDrawer(document.body, { currentRoute: 'cinema' });
 
   // State
   let registry = getTemplateRegistry();
@@ -62,6 +66,14 @@ export function CinemaTemplateStudio() {
         renderPreviewView();
         break;
     }
+
+    // Add an "all studios" menu button next to every back button in this view
+    container.querySelectorAll('[id="back-btn"]').forEach((backBtn) => {
+      if (backBtn.previousElementSibling && backBtn.previousElementSibling.dataset.studioMenu) return;
+      const menuBtn = createStudioMenuButton(studioDrawer.toggle);
+      menuBtn.dataset.studioMenu = '1';
+      backBtn.parentElement.insertBefore(menuBtn, backBtn);
+    });
   }
 
   // ================================

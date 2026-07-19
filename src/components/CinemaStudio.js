@@ -1,5 +1,6 @@
 
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createSafeImage } from '../lib/security.js';
 import { CameraControls } from './CameraControls.js';
 import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTURE_EFFECT } from '../lib/promptUtils.js';
@@ -42,6 +43,7 @@ const FILM_LOOKS = {
 export function CinemaStudio() {
     const container = document.createElement('div');
     container.className = 'w-full h-full flex flex-col items-center justify-start bg-black relative overflow-hidden';
+  mountStudioChrome(container, { currentRoute: 'cinema' });
 
     // --- State ---
     const currentSettings = {
@@ -237,10 +239,11 @@ export function CinemaStudio() {
 
 
     // ==========================================
-    // 3. FLOATING PROMPT BAR
+    // 3. PROMPT BAR (main controls) — kept in normal document flow ABOVE the
+    // inline-instruction tips so the controls aren't pinned to the bottom.
     // ==========================================
     const promptBarWrapper = document.createElement('div');
-    promptBarWrapper.className = 'absolute bottom-8 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-full z-30';
+    promptBarWrapper.className = 'relative w-full max-w-3xl mx-auto px-4 mt-6 z-30';
 
     const promptBar = document.createElement('div');
     promptBar.className = 'bg-[#1a1a1a] border border-white/10 rounded-[2rem] p-4 flex justify-between shadow-3xl items-end relative';
@@ -593,7 +596,9 @@ export function CinemaStudio() {
     promptBar.appendChild(rightGroup);
 
     promptBarWrapper.appendChild(promptBar);
-    container.appendChild(promptBarWrapper);
+    // Place the controls ABOVE the inline-instruction tips (which are appended
+    // earlier as `inlineInstructions`), instead of pinning them to the bottom.
+    container.insertBefore(promptBarWrapper, inlineInstructions);
 
     // ==========================================
     // 3B. CAMERA BUILDER PANEL (Collapsible)
