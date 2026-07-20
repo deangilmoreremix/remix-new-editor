@@ -446,12 +446,12 @@ export function TimelineEditorPage() {
         </div>
         <div class="timeline-controls-enhanced" id="timelineControlsEnhanced"></div>
         <div class="timeline-shell">
-          <div class="timeline-header-grid">
-            <div class="timeline-corner">
+          <div class="timeline-header">
+            <div class="corner">
               <span>Tracks</span>
               <span class="hint">drag • snap</span>
             </div>
-            <div class="timeline-ruler" id="timelineRuler">
+            <div class="ruler" id="timelineRuler">
               <canvas id="rulerCanvas"></canvas>
               <div class="ruler-ticks" id="rulerTicks"></div>
             </div>

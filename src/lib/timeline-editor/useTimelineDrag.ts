@@ -35,7 +35,7 @@ export function useTimelineDrag({
     const clip = clips.find(c => c.id === clipId)
     if (!clip) return
     
-    const rect = (document.querySelector('.timeline-ruler') as HTMLElement)?.getBoundingClientRect()
+    const rect = (document.querySelector('.ruler') as HTMLElement)?.getBoundingClientRect()
     if (!rect) return
     
     const scrollLeft = (document.querySelector('.track-container') as HTMLElement)?.scrollLeft || 0
@@ -49,7 +49,7 @@ export function useTimelineDrag({
   const handleMouseMove = useCallback((clientX: number) => {
     if (!draggingClip) return
     
-    const rect = (document.querySelector('.timeline-ruler') as HTMLElement)?.getBoundingClientRect()
+    const rect = (document.querySelector('.ruler') as HTMLElement)?.getBoundingClientRect()
     if (!rect) return
     
     const scrollLeft = (document.querySelector('.track-container') as HTMLElement)?.scrollLeft || 0
@@ -78,7 +78,7 @@ export function useTimelineDrag({
     const clip = clips.find(c => c.id === clipId)
     if (!clip) return
     
-    const rect = (document.querySelector('.timeline-ruler') as HTMLElement)?.getBoundingClientRect()
+    const rect = (document.querySelector('.ruler') as HTMLElement)?.getBoundingClientRect()
     if (!rect) return
     
     const scrollLeft = (document.querySelector('.track-container') as HTMLElement)?.scrollLeft || 0
@@ -92,7 +92,7 @@ export function useTimelineDrag({
   const handleResizeMove = useCallback((clientX: number) => {
     if (!resizingClip || !resizeStartRef.current) return
     
-    const rect = (document.querySelector('.timeline-ruler') as HTMLElement)?.getBoundingClientRect()
+    const rect = (document.querySelector('.ruler') as HTMLElement)?.getBoundingClientRect()
     if (!rect) return
     
     const scrollLeft = (document.querySelector('.track-container') as HTMLElement)?.scrollLeft || 0

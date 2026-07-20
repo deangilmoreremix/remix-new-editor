@@ -131,38 +131,46 @@ button, input, textarea, select { font: inherit; }
 .pill-row { gap: 6px; }
 .pill { border-radius: 999px; padding: 7px 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); font-size: var(--fs-clip); color: rgba(255,255,255,0.55); }
 .timeline-shell { position: relative; overflow: hidden; border-radius: 20px; border: 1px solid var(--border-soft); background: rgba(0,0,0,0.2); }
-/* ---- Phase 2: ruler (zoom-aware) ---- */
-.timeline-ruler { position: relative; height: var(--ruler-h); border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.03); overflow: hidden; }
-.timeline-ruler canvas { display: block; width: 100%; height: 100%; }
-.timeline-ruler .ruler-ticks { position: absolute; inset: 0; pointer-events: none; }
-.timeline-ruler .tick { position: absolute; top: 0; bottom: 0; border-left: 1px solid rgba(255,255,255,0.10); }
-.timeline-ruler .tick.minor { border-left-color: rgba(255,255,255,0.05); }
-.timeline-ruler .tick .t-label { position: absolute; top: 6px; left: 6px; font-size: 9px; color: rgba(255,255,255,0.6); letter-spacing: .02em; font-variant-numeric: tabular-nums; }
-.timeline-corner { padding: 0 var(--sp-3); display: flex; align-items: center; justify-content: space-between; height: var(--ruler-h); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.03); font-size: var(--fs-label); text-transform: uppercase; letter-spacing: .25em; color: rgba(255,255,255,0.6); }
-.timeline-corner .hint { font-size: 9px; letter-spacing: .04em; color: var(--text-faint); text-transform: none; }
-.timeline-header-grid { display: grid; grid-template-columns: minmax(0, 168px) minmax(0, 1fr); }
-.timeline-header { display: grid; grid-template-columns: minmax(0, 168px) minmax(0, 1fr); border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.03); font-size: var(--fs-label); text-transform: uppercase; letter-spacing: .25em; color: rgba(255,255,255,0.6); }
-.timeline-header div { padding: var(--sp-3) var(--sp-4); }
+  /* ---- Phase 2: ruler (zoom-aware) ---- */
+  .ruler { position: relative; height: 100%; overflow: hidden; }
+  .ruler canvas { display: block; width: 100%; height: 100%; }
+  .ruler-ticks { position: absolute; inset: 0; pointer-events: none; }
+  .tick { position: absolute; top: 0; bottom: 0; border-left: 1px solid rgba(255,255,255,0.10); }
+  .tick.minor { border-left-color: rgba(255,255,255,0.05); }
+  .tick .t-label { position: absolute; top: 6px; left: 6px; font-size: 9px; color: var(--text-muted); letter-spacing: .03em; }
+
+  .timeline-header {
+    display: grid; grid-template-columns: var(--track-w) 1fr;
+    border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.03);
+    font-size: var(--fs-label); text-transform: uppercase; letter-spacing: .25em; color: var(--text-muted);
+    height: var(--ruler-h);
+  }
+  .timeline-header .corner {
+    padding: 0 var(--sp-3); display: flex; align-items: center; justify-content: space-between;
+    border-right: 1px solid var(--border);
+  }
+  .timeline-header .corner .hint { font-size: 9px; letter-spacing: .04em; color: var(--text-faint); text-transform: none; }
+  .timeline-header .ruler { padding: 0; }
 .timeline-body { position: relative; }
 /* ---- Phase 2: playhead with draggable knob ---- */
-.playhead-layer { position: absolute; left: 100px; right: 0; top: 0; bottom: 0; pointer-events: none; z-index: 30; }
-.playhead-line { position: absolute; top: 0; bottom: 0; left: 32%; width: 2px; background: var(--cyan); box-shadow: 0 0 18px var(--cyan-glow); }
+  .playhead-layer { position: absolute; left: var(--track-w); right: 0; top: 0; bottom: 0; pointer-events: none; z-index: 30; }
+.playhead-line { position: absolute; top: 0; bottom: 0; left: 34%; width: 2px; background: var(--cyan); box-shadow: 0 0 18px var(--cyan-glow); }
 .playhead-knob {
-  position: absolute; top: -1px; left: calc(32% - 7px); width: 14px; height: 14px; border-radius: 4px;
+  position: absolute; top: -1px; left: calc(34% - 7px); width: 14px; height: 14px; border-radius: 4px;
   background: var(--cyan); box-shadow: 0 0 15px var(--cyan-glow); cursor: ew-resize; pointer-events: auto;
   transform: rotate(45deg); transition: box-shadow .12s ease;
 }
 .playhead-knob::after { content: ""; position: absolute; inset: 3px; border-radius: 2px; background: rgba(0,0,0,0.35); }
 .playhead-knob:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; box-shadow: 0 0 0 4px rgba(34,211,238,0.3); }
-.track-row { display: grid; grid-template-columns: minmax(0, 168px) minmax(0, 1fr); min-height: 62px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .track-row { display: grid; grid-template-columns: var(--track-w) 1fr; min-height: var(--track-h); border-bottom: 1px solid rgba(255,255,255,0.05); }
 .track-row:last-child { border-bottom: 0; }
 .track-meta { padding: var(--sp-3) 8px; border-right: 1px solid var(--border); background: rgba(0,0,0,0.35); min-width: 0; overflow: hidden; }
 .track-name { font-size: var(--fs-track); font-weight: var(--fw-track); color: rgba(255,255,255,0.86); }
-.track-actions { margin-top: var(--sp-2); gap: var(--sp-1); }
+  .track-actions { margin-top: var(--sp-2); gap: 6px; }
 .track-toggle { min-width: 44px; min-height: 44px; border-radius: 6px; border: 1px solid var(--border); background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); font-size: 8px; cursor: pointer; }
 .track-toggle.locked { background: rgba(34,211,238,0.2); }
 .track-count { margin-top: 6px; font-size: var(--fs-help); color: rgba(255,255,255,0.6); }
-.track-lane { position: relative; background: rgba(255,255,255,0.02); min-height: 62px; min-width: 0; background-image: linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 80px 100%; }
+  .track-lane { position: relative; background: rgba(255,255,255,0.02); min-height: var(--track-h); min-width: 0; background-image: linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 80px 100%; }
 .clip { position: absolute; top: 8px; bottom: 8px; border-radius: 12px; border: 1px solid var(--border); padding: 8px 10px; font-size: var(--fs-clip); font-weight: var(--fw-clip); color: rgba(255,255,255,0.86); background: rgba(255,255,255,0.1); box-shadow: 0 10px 24px rgba(0,0,0,0.25); display: flex; align-items: center; overflow: hidden; cursor: pointer; }
 .clip.active { border-color: rgba(34,211,238,0.5); background: rgba(34,211,238,0.2); color: #cffafe; }
 .clip-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
