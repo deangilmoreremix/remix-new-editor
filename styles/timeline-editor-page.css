@@ -123,7 +123,7 @@ button, input, textarea, select { font: inherit; }
 .card-title.cyan { color: #bae6fd; }
 .timeline-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-3); flex-wrap: wrap; }
 .toolbar-left, .tool-group, .pill-row, .floating-rail, .track-actions, .generate-types, .quick-commands { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
-.tool-group { gap: var(--sp-1); padding: var(--sp-1); border-radius: 14px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); }
+.tool-group { gap: var(--sp-1); padding: var(--sp-1); border-radius: var(--r-md); border: 1px solid var(--border); background: var(--surface-sunken); }
 .tool-btn, .mini-btn, .command-btn, .rail-btn, .generate-type { border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.72); cursor: pointer; transition: all .15s ease; }
 .tool-btn { min-width: 44px; min-height: 44px; border-radius: 8px; font-size: 14px; }
 .tool-btn.active, .generate-type.active, .rail-btn.active { border-color: rgba(34,211,238,0.45); background: rgba(34,211,238,0.22); color: #cffafe; }
