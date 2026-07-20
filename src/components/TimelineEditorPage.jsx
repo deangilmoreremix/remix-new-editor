@@ -644,7 +644,7 @@ export function TimelineEditorPage() {
       selectedClipId: 1,
       generateType: 'Text',
       playing: false,
-      playheadPercent: 32,
+      playheadPercent: 34,
       zoom: 1,
       timelineSeconds: 60,
       tracks: [
