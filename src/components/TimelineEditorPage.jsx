@@ -372,79 +372,59 @@ export function TimelineEditorPage() {
   </header>
   <div class="main-grid">
     <div class="left-col">
-      <div class="left-top">
-        <aside class="side-card" style="min-height:100%; display:flex; flex-direction:column;">
-          <div id="aiChatContainer"></div>
-        </aside>
-        <section class="preview-card">
-          <div class="preview-glow"></div>
-          <div class="preview-inner">
-            <div class="preview-stage" id="previewStage"></div>
-            <div class="preview-empty" id="previewEmpty">
-              <div class="preview-screen">
-                <div class="preview-emoji" id="previewEmoji">🎥</div>
-                <div class="preview-title" id="previewTitle">Center Preview</div>
-                <div class="preview-sub" id="previewSubtitle">Glow preview styled like the render page</div>
-              </div>
+      <section class="preview-card preview-large">
+        <div class="preview-glow"></div>
+        <div class="preview-inner">
+          <div class="preview-stage" id="previewStage"></div>
+          <div class="preview-empty" id="previewEmpty">
+            <div class="preview-screen">
+              <div class="preview-emoji" id="previewEmoji">🎥</div>
+              <div class="preview-title" id="previewTitle">Center Preview</div>
+              <div class="preview-sub" id="previewSubtitle">Glow preview styled like the render page</div>
             </div>
           </div>
-          <input type="file" id="uploadInput" accept="video/*,image/*,audio/*,.txt" hidden data-testid="file-input" />
-          <div class="preview-overlay">
-            <div class="time-row">
-              <span id="currentTime">00:12.40</span>
-              <span id="totalTime">01:00.00</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-            <div class="control-row">
-              <button class="circle-btn" id="rewindBtn" data-tooltip="Rewind - Move the playhead back by 10% (←)" aria-label="Rewind the playhead by 10%">⏮</button>
-              <button class="circle-btn primary" id="playBtn" data-tooltip="Play or pause timeline preview (Spacebar)" aria-label="Play or pause timeline preview">▶</button>
-              <button class="circle-btn" id="stopBtn" data-tooltip="Stop - Stop playback and return to beginning" aria-label="Stop playback and return to the beginning">⏹</button>
-            </div>
+        </div>
+        <div class="filmstrip" id="filmstrip" aria-label="Clip thumbnails"></div>
+        <input type="file" id="uploadInput" accept="video/*,image/*,audio/*,.txt" hidden data-testid="file-input" />
+        <div class="preview-overlay">
+          <div class="time-row">
+            <span id="currentTime">00:12.40</span>
+            <span id="totalTime">01:00.00</span>
           </div>
-        </section>
-      </div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="control-row">
+            <button class="circle-btn" id="rewindBtn" data-tooltip="Rewind - Move the playhead back by 10% (←)" aria-label="Rewind the playhead by 10%">⏮</button>
+            <button class="circle-btn primary" id="playBtn" data-tooltip="Play or pause timeline preview (Spacebar)" aria-label="Play or pause timeline preview">▶</button>
+            <button class="circle-btn" id="stopBtn" data-tooltip="Stop - Stop playback and return to beginning" aria-label="Stop playback and return to the beginning">⏹</button>
+          </div>
+        </div>
+      </section>
       <section class="timeline-card" data-testid="timeline-container">
         <div class="timeline-top">
           <div class="toolbar-left">
-            <div class="tool-group" id="toolGroup"></div>
-             <button class="tool-btn" data-add-track="Video" data-tooltip="Add video track - Create a new video layer on the timeline" aria-label="Add a new video track">+Video</button>
-             <button class="tool-btn" data-add-track="Audio" data-tooltip="Add audio track - Create a new audio layer on the timeline" aria-label="Add a new audio track">+Audio</button>
-             <button class="tool-btn" data-add-track="Text" data-tooltip="Add text track - Create a new text overlay layer" aria-label="Add a new text track">+Text</button>
-             <button class="tool-btn" data-add-track="B-Roll" data-tooltip="Add B-roll track - Create a new B-roll overlay layer" aria-label="Add a new B-roll track">+B-Roll</button>
-             <button class="tool-btn" id="cutaiStoryboardBtn" data-tooltip="Generate storyboard with CutAI" aria-label="Open CutAI storyboard generator">✨AI</button>
-             <button class="tool-btn" id="cinegenToolsBtn" data-tooltip="CineGen AI Tools: Open full set of AI editing tools including Gap Fill, Extend, Music, Mask and Elements" aria-label="Open CineGen tools">🎨CG</button>
-             <button class="tool-btn" id="cinegenGapFillBtn" data-tooltip="CineGen Gap Fill: Automatically fill gaps between clips using AI" aria-label="Gap Fill">GF</button>
-             <button class="tool-btn" id="cinegenExtendBtn" data-tooltip="CineGen Extend Clip: Extend selected clip duration with AI-generated content" aria-label="Extend">EX</button>
-             <button class="tool-btn" id="cinegenMusicBtn" data-tooltip="CineGen Generate Music: Create background music track for current clip" aria-label="Generate Music">♫</button>
-             <select id="musicModelSelect" class="mini-select" title="Music Model">
-               <option value="suno-create">Suno</option>
-               <option value="mmaudio-t2a">MMAudio</option>
-             </select>
-             <button class="tool-btn" id="cinegenMaskBtn" data-tooltip="CineGen AI Mask Tool: Generate precise masks for object isolation" aria-label="Mask Tool">M</button>
-             <button class="tool-btn" id="cinegenElementBtn" data-tooltip="Create CineGen Element: Generate reusable visual elements or overlays" aria-label="Create Element">EL</button>
-             <button class="tool-btn" id="cinegenPolishBtn" data-tooltip="CineGen Polish Clip: Apply Gap Fill + Extend in one step for seamless results" aria-label="Polish Clip">Polish</button>
-             <button class="tool-btn" id="cinegenChatBtn" data-tooltip="Ask CineGen Assistant: Get contextual AI help for timeline editing" aria-label="CineGen Chat">AI</button>
-             <button class="tool-btn" id="cinegenSubBtn" data-tooltip="CineGen Smart Subtitles: Auto-generate accurate timed subtitles" aria-label="Smart Subtitles">Sub</button>
-             <button class="tool-btn" id="cinegenLLMBtn" data-tooltip="CineGen LLM Assistant: Advanced reasoning for complex edits" aria-label="LLM Assistant">LLM</button>
-             <button class="tool-btn" id="cinegenSAMBtn" data-tooltip="CineGen SAM3 Segmentation: Use Meta SAM3 for precise segment masks" aria-label="SAM3 Segmentation">SAM</button>
-             <button class="tool-btn" id="cinegenSyncBtn" data-tooltip="CineGen Audio Sync: Automatically align audio to video clips" aria-label="Audio Sync">Sync</button>
-             <button class="tool-btn" id="cinegenLayerBtn" data-tooltip="CineGen Layer Decomposition: Separate foreground, background and effects layers" aria-label="Layer Decomposition">Layer</button>
-             <button class="tool-btn" id="cinegenShotBtn" data-tooltip="CineGen Shot Board: Create and manage multi-shot sequences" aria-label="Shot Board">Shot</button>
-             <button class="tool-btn" id="cinegenProxyBtn" data-tooltip="CineGen Proxy Playback: Use optimized proxies for smooth scrubbing" aria-label="Proxy Playback">Proxy</button>
-             <button class="tool-btn" id="cinegenPlanBtn" data-tooltip="CineGen Composition Plan: Generate AI-suggested edit plan for project" aria-label="Composition Plan">Plan</button>
+            <div class="tool-group" role="group" aria-label="Playback">
+              <button class="tool-btn" id="tbRewind" data-tooltip="Rewind - Move the playhead back" aria-label="Rewind the playhead">⏮</button>
+              <button class="tool-btn active" id="tbPlay" data-tooltip="Play or pause timeline preview (Spacebar)" aria-label="Play or pause timeline preview" aria-pressed="true">▶</button>
+              <button class="tool-btn" id="tbStop" data-tooltip="Stop playback and return to beginning" aria-label="Stop playback">⏹</button>
             </div>
+            <div class="time-readout" aria-live="off">
+              <span class="time-now">00:12.4</span>
+              <span class="time-total">/ 00:45.0</span>
+            </div>
+            <div class="tool-group" role="group" aria-label="Edit tools">
+              <button class="tool-btn" id="tbSplit" data-tooltip="Split selected clip at playhead" aria-label="Split clip at playhead">✂</button>
+              <button class="tool-btn" id="tbDelete" data-tooltip="Delete selected clip" aria-label="Delete selected clip">⌫</button>
+              <button class="tool-btn" id="tbAddTrack" data-tooltip="Add a video track" aria-label="Add a video track">＋</button>
+            </div>
+          </div>
           <div class="zoom" role="group" aria-label="Zoom">
-            <button class="tool-btn" data-action="zoom-out" data-tooltip="Zoom out - See more of the timeline (Mouse wheel)" aria-label="Zoom out on the timeline">−</button>
+            <button class="zoom-btn" data-action="zoom-out" data-tooltip="Zoom out - See more of the timeline (Mouse wheel)" aria-label="Zoom out on the timeline">−</button>
             <div class="zoom-track" aria-hidden="true"><div class="zoom-fill"></div><div class="zoom-knob"></div></div>
-            <button class="tool-btn" data-action="zoom-in" data-tooltip="Zoom in - See timeline in more detail (Mouse wheel)" aria-label="Zoom in on the timeline">＋</button>
+            <button class="zoom-btn" data-action="zoom-in" data-tooltip="Zoom in - See timeline in more detail (Mouse wheel)" aria-label="Zoom in on the timeline">＋</button>
           </div>
-          <div class="time-readout" aria-live="off">
-            <span class="time-now">00:12.4</span>
-            <span class="time-total">/ 00:45.0</span>
-          </div>
-          <div class="pill-row" id="pillRow"></div>
+          <div class="tool-group" id="toolGroup" hidden></div>
+          <div class="pill-row" id="pillRow" hidden></div>
         </div>
-        <div class="timeline-controls-enhanced" id="timelineControlsEnhanced"></div>
         <div class="timeline-shell">
           <div class="timeline-header">
             <div class="corner">
@@ -467,14 +447,14 @@ export function TimelineEditorPage() {
     <div class="side-col">
       <!-- Mobile-only tab bar: lets users switch between panel groups on phones.
            Hidden on desktop via CSS; on mobile, only the active tab's panel is visible. -->
-      <nav class="side-tabs" role="tablist" aria-label="Side panel navigation">
-        <button class="side-tab active" data-tab="media" role="tab" aria-selected="true" aria-controls="sidePanelMedia">📁 Media</button>
-        <button class="side-tab" data-tab="tools" role="tab" aria-selected="false" aria-controls="sidePanelTools">🛠 Tools</button>
-        <button class="side-tab" data-tab="generate" role="tab" aria-selected="false" aria-controls="sidePanelGenerate">⚡ Generate</button>
-      </nav>
-      <div id="sidePanelMedia" class="side-panel" role="tabpanel" aria-labelledby="sidePanelMedia-tab">
+      <!-- AI Assistant (moved beside the preview to match the prototype side-col) -->
+      <aside class="side-card" id="agentPanel">
+        <h3 class="card-title cyan">AI Assistant</h3>
+        <div id="aiChatContainer"></div>
+      </aside>
+
       <aside class="side-card">
-        <div class="card-title">📁 Media</div>
+        <h3 class="card-title">📁 Media Library</h3>
         <div class="flex gap-2">
           <button class="upload-btn" id="uploadBtn" data-tooltip="Upload media - Import video, image, or audio files into the project" aria-label="Upload media into the editor">Upload</button>
           <button class="upload-btn" id="videoDbBtn" data-tooltip="Add a video from your VideoDB account (set your VideoDB API key in Settings)" aria-label="Add video from VideoDB">VideoDB</button>
@@ -482,10 +462,58 @@ export function TimelineEditorPage() {
         <div class="media-note">Choose what you want to add to the timeline. Each tile inserts a different type of source asset.</div>
         <div class="media-grid" id="mediaGrid"></div>
       </aside>
-      <aside class="side-card" id="sceneDetectorPanel">
-        <div id="sceneDetectorContainer"></div>
+
+      <aside class="side-card generate">
+        <div class="generate-head"><div class="card-title cyan">⚡ Generate</div></div>
+        <div class="media-grid">
+          <button class="media-item" id="genAutoCut" aria-label="Auto cut with silence detection"><span class="media-icon">✂️</span><span class="media-copy"><span class="media-label">Auto Cut</span><span class="media-desc">Silence detect</span></span></button>
+          <button class="media-item" id="genSubtitles" aria-label="Generate subtitles"><span class="media-icon">🌐</span><span class="media-copy"><span class="media-label">Subtitles</span><span class="media-desc">Transcribe</span></span></button>
+          <button class="media-item" id="genAiVideo" aria-label="AI video creator"><span class="media-icon">🤖</span><span class="media-copy"><span class="media-label">AI Video</span><span class="media-desc">Generate</span></span></button>
+          <button class="media-item" id="genCutAi" aria-label="CutAI storyboard"><span class="media-icon">🎞️</span><span class="media-copy"><span class="media-label">CutAI Board</span><span class="media-desc">Storyboard</span></span></button>
+        </div>
+        <div class="media-note">Or type a prompt and hit Generate.</div>
+        <div class="hidden-generate-form" hidden>
+          <div class="generate-types" id="generateTypes"></div>
+          <textarea class="text-area" id="promptInput" placeholder="A cinematic shot of..."></textarea>
+          <input class="text-input" id="negativeInput" placeholder="Negative prompt" />
+          <div class="select-row">
+            <select class="select-input" id="durationSelect"><option>5s</option><option>8s</option><option>12s</option></select>
+            <select class="select-input" id="aspectSelect"><option>16:9</option><option>9:16</option><option>1:1</option></select>
+            <select class="select-input" id="styleSelect"><option>Cinematic</option><option>Commercial</option><option>Documentary</option></select>
+          </div>
+          <button class="primary-btn" id="generateBtn" aria-label="Generate a new asset from the prompt settings">⚡ Generate</button>
+        </div>
       </aside>
-      <aside class="side-card" id="cameraEffectsPanel">
+
+      <aside class="side-card">
+        <h3 class="card-title">🎨 Color Correction</h3>
+        <div class="cc-grid">
+          <label class="cc-row"><span>Exposure</span><input type="range" min="-100" max="100" value="12"></label>
+          <label class="cc-row"><span>Contrast</span><input type="range" min="-100" max="100" value="-8"></label>
+          <label class="cc-row"><span>Saturation</span><input type="range" min="-100" max="100" value="20"></label>
+          <label class="cc-row"><span>Temperature</span><input type="range" min="-100" max="100" value="6"></label>
+          <label class="cc-row"><span>Highlights</span><input type="range" min="-100" max="100" value="0"></label>
+          <label class="cc-row"><span>Shadows</span><input type="range" min="-100" max="100" value="14"></label>
+        </div>
+        <div class="demo-row" style="margin-top:10px;">
+          <button class="mini-btn" id="ccReset">Reset</button>
+          <button class="mini-btn" id="ccLuts">LUTs</button>
+        </div>
+      </aside>
+
+      <aside class="side-card">
+        <h3 class="card-title">💬 Subtitles</h3>
+        <div class="sub-list">
+          <div class="sub-row"><span class="sub-t">00:02.1</span><span class="sub-c">Welcome to the editor</span></div>
+          <div class="sub-row active"><span class="sub-t">00:12.4</span><span class="sub-c">Your story starts here.</span></div>
+          <div class="sub-row"><span class="sub-t">00:21.0</span><span class="sub-c">Cut, trim and grade in one place</span></div>
+        </div>
+        <button class="mini-btn" id="openSubtitleEditor" style="margin-top:10px;">Open subtitle editor</button>
+      </aside>
+
+      <!-- Editor-only panels (not in the prototype) — collapsed; revealed from the floating rail -->
+      <aside class="side-card" id="sceneDetectorPanel" hidden><div id="sceneDetectorContainer"></div></aside>
+      <aside class="side-card" id="cameraEffectsPanel" hidden>
         <div id="cameraEffectsContainer"></div>
         <div class="camera-effects-quick">
           <button class="mini-btn" data-camera-effect="shake">Shake</button>
@@ -497,95 +525,47 @@ export function TimelineEditorPage() {
           <button class="mini-btn" data-camera-effect="tilt-down">Tilt D</button>
         </div>
       </aside>
-      <aside class="side-card generate">
-        <div class="generate-head"><div class="card-title cyan">⚡ Generate</div><div style="color: rgba(255,255,255,0.6)" aria-label="Close generation panel" role="button" tabindex="0">✕</div></div>
-        <div class="generate-types" id="generateTypes"></div>
-        <textarea class="text-area" id="promptInput" placeholder="A cinematic shot of..."></textarea>
-        <input class="text-input" id="negativeInput" placeholder="Negative prompt" />
-        <div class="select-row">
-          <select class="select-input" id="durationSelect"><option>5s</option><option>8s</option><option>12s</option></select>
-          <select class="select-input" id="aspectSelect"><option>16:9</option><option>9:16</option><option>1:1</option></select>
-          <select class="select-input" id="styleSelect"><option>Cinematic</option><option>Commercial</option><option>Documentary</option></select>
-        </div>
-        <button class="primary-btn" id="generateBtn" aria-label="Generate a new asset from the prompt settings">⚡ Generate</button>
+      <aside class="side-card" id="cinegenResultsPanel" hidden data-tooltip="CineGen AI Tools Results">
+        <div class="card-title">🎨 CineGen Results</div>
+        <div id="cinegenResults" style="font-size: 12px; color: var(--text-dim); min-height: 60px;">No CineGen tools used yet</div>
+        <button class="mini-btn" id="clearCineGenResults" style="margin-top: 8px; width: 100%;">Clear History</button>
       </aside>
-      </div>
-      <div id="sidePanelTools" class="side-panel" role="tabpanel" aria-labelledby="sidePanelTools-tab" hidden>
-            <aside class="side-card" id="cinegenResultsPanel" data-tooltip="CineGen AI Tools Results">
-              <div class="card-title">🎨 CineGen Results</div>
-              <div id="cinegenResults" style="font-size: 12px; color: var(--dim); min-height: 60px;">
-                No CineGen tools used yet
-              </div>
-              <button class="mini-btn" id="clearCineGenResults" style="margin-top: 8px; width: 100%;">Clear History</button>
-            </aside>
-
-      <aside class="side-card" id="animationDemoPanel" style="display: none;" data-tooltip="Rendiv animation demonstrations">
+      <aside class="side-card" id="animationDemoPanel" hidden data-tooltip="Rendiv animation demonstrations">
         <div class="card-title">🎭 Rendiv Animation Demo</div>
         <div id="animationDemoContainer">
           <div class="animation-demo-controls">
-            <button class="mini-btn" id="runSpringDemo" data-tooltip="Spring animation - Demonstrates physics-based spring motion with damping">Spring Animation</button>
-            <button class="mini-btn" id="runNoiseDemo" data-tooltip="Noise animation - Shows organic Perlin noise-based movement">Noise Animation</button>
-            <button class="mini-btn" id="runInterpolateDemo" data-tooltip="Interpolation demo - Compare linear, ease-out, bounce, and color blending">Interpolate Demo</button>
+            <button class="mini-btn" id="runSpringDemo">Spring Animation</button>
+            <button class="mini-btn" id="runNoiseDemo">Noise Animation</button>
+            <button class="mini-btn" id="runInterpolateDemo">Interpolate Demo</button>
           </div>
-          <div class="animation-demo-canvas">
-            <canvas id="animationCanvas" width="300" height="200"></canvas>
-          </div>
-          <div class="animation-demo-info">
-            <div id="demoStatus">Click a button to start animation demo</div>
-          </div>
+          <div class="animation-demo-canvas"><canvas id="animationCanvas" width="300" height="200"></canvas></div>
+          <div class="animation-demo-info"><div id="demoStatus">Click a button to start animation demo</div></div>
         </div>
       </aside>
-      </div>
-      <div id="sidePanelGenerate" class="side-panel" role="tabpanel" aria-labelledby="sidePanelGenerate-tab" hidden>
-      <aside class="side-card" id="clipSettingsPanel" style="display: none;" data-tooltip="Clip editor - Edit selected clip properties">
-        <div class="card-title">🎬 Clip Editor</div>
-        <div id="clipEditorContainer"></div>
+      <aside class="side-card" id="clipSettingsPanel" hidden data-tooltip="Clip editor - Edit selected clip properties">
+        <div class="card-title">🎬 Clip Editor</div><div id="clipEditorContainer"></div>
       </aside>
-      <aside class="side-card" id="transitionSettingsPanel" style="display: none;" data-tooltip="Transitions - Add effects between clips">
-        <div class="card-title">🔄 Transitions</div>
-        <div id="transitionEditorContainer"></div>
+      <aside class="side-card" id="transitionSettingsPanel" hidden data-tooltip="Transitions - Add effects between clips">
+        <div class="card-title">🔄 Transitions</div><div id="transitionEditorContainer"></div>
       </aside>
-      <aside class="side-card" id="multiCameraPanel" data-tooltip="Multi-camera editing, PIP, and split screen">
+      <aside class="side-card" id="multiCameraPanel" hidden data-tooltip="Multi-camera editing, PIP, and split screen">
         <div class="card-title">📺 Multi-Camera</div>
         <div id="multiCameraToolbar"></div>
-        <div id="pipControls" class="pip-controls-container" style="display: none;"></div>
-        <div id="splitControls" class="split-controls-container" style="display: none;"></div>
+        <div id="pipControls" class="pip-controls-container" hidden></div>
+        <div id="splitControls" class="split-controls-container" hidden></div>
       </aside>
-      <aside class="side-card" id="colorCorrectionPanel" style="display: none;" data-tooltip="Color correction - Adjust color grading and correction">
-        <div class="card-title">🎨 Color Correction</div>
-        <div id="colorCorrectionContainer"></div>
+      <aside class="side-card" id="colorCorrectionPanel" hidden data-tooltip="Color correction">
+        <div class="card-title">🎨 Color Correction</div><div id="colorCorrectionContainer"></div>
       </aside>
-      <aside class="side-card" id="colorScopesPanel" data-tooltip="Color scopes - Waveform, vectorscope, and histogram">
-        <div class="card-title">📊 Color Scopes</div>
-        <div id="colorScopesContainer"></div>
+      <aside class="side-card" id="colorScopesPanel" hidden data-tooltip="Color scopes">
+        <div class="card-title">📊 Color Scopes</div><div id="colorScopesContainer"></div>
       </aside>
-
-      <!-- Category C Editor Surfaces -->
-      <aside class="side-card" id="canvasPanel" style="display: none;" data-tooltip="Canvas editor - Visual composition surface">
-        <div class="card-title">🎨 Canvas Editor</div>
-        <div id="canvasContainer"></div>
-      </aside>
-      <aside class="side-card" id="tokenEditorPanel" style="display: none;" data-tooltip="Token editor - Create personalization tokens">
-        <div class="card-title">🏷️ Token Editor</div>
-        <div id="tokenEditorContainer"></div>
-      </aside>
-      <aside class="side-card" id="batchGeneratorPanel" style="display: none;" data-tooltip="Batch generator - Generate multiple videos at once">
-        <div class="card-title">📦 Batch Generator</div>
-        <div id="batchGeneratorContainer"></div>
-      </aside>
-      <aside class="side-card" id="workflowPanel" style="display: none;" data-tooltip="Workflow automation - Create automated video pipelines">
-        <div class="card-title">🔄 Workflow Automation</div>
-        <div id="workflowContainer"></div>
-      </aside>
-      <aside class="side-card" id="personalizationPanel" style="display: none;" data-tooltip="Personalization - Add dynamic content for different viewers">
-        <div class="card-title">👤 Personalization</div>
-        <div id="personalizationContainer"></div>
-      </aside>
-      <aside class="side-card" id="personalizationEditorPanel" style="display: none;" data-tooltip="Personalization editor - Advanced personalization settings">
-        <div class="card-title">✏️ Personalization Editor</div>
-        <div id="personalizationEditorContainer"></div>
-      </aside>
-      </div>
+      <aside class="side-card" id="canvasPanel" hidden data-tooltip="Canvas editor"><div class="card-title">🎨 Canvas Editor</div><div id="canvasContainer"></div></aside>
+      <aside class="side-card" id="tokenEditorPanel" hidden data-tooltip="Token editor"><div class="card-title">🏷️ Token Editor</div><div id="tokenEditorContainer"></div></aside>
+      <aside class="side-card" id="batchGeneratorPanel" hidden data-tooltip="Batch generator"><div class="card-title">📦 Batch Generator</div><div id="batchGeneratorContainer"></div></aside>
+      <aside class="side-card" id="workflowPanel" hidden data-tooltip="Workflow automation"><div class="card-title">🔄 Workflow Automation</div><div id="workflowContainer"></div></aside>
+      <aside class="side-card" id="personalizationPanel" hidden data-tooltip="Personalization"><div class="card-title">👤 Personalization</div><div id="personalizationContainer"></div></aside>
+      <aside class="side-card" id="personalizationEditorPanel" hidden data-tooltip="Personalization editor"><div class="card-title">✏️ Personalization Editor</div><div id="personalizationEditorContainer"></div></aside>
     </div>
   </div>
 </div>
@@ -673,7 +653,11 @@ export function TimelineEditorPage() {
       ],
       generateTypes: [['✍️', 'Text'], ['🖼️', 'Image'], ['🔄', 'Retake'], ['➡️', 'Extend'], ['🎞️', 'B-Roll']],
       quickCommands: ['⚡Generate','Retake','Extend','B-Roll','🎬 Detect Scenes'],
-      railActions: [['⚡', 'Generate', true], ['✂️', 'Split'], ['🎬', 'Scenes'], ['💬', 'Subtitle'], ['🎞️', 'B-Roll'], ['⏱️', 'Speed'], ['🪄', 'Stabilize'], ['📝', 'Text'], ['🔄', 'Transitions'], ['🎬', 'AI Video'], ['🎥', 'Recorder'], ['🎙️', 'Enhanced Recorder'], ['📋', 'Templates'], ['👀', 'Preview Template'], ['📱', 'Social'], ['📧', 'Email Campaign'], ['🔗', 'URL Video'], ['📸', 'Page Shot'], ['👥', 'Contacts'], ['🎨', 'Canvas'], ['🏷️', 'Token Editor'], ['📦', 'Batch Generator'], ['🔄', 'Workflow'], ['👤', 'Personalization'], ['✏️', 'Personalization Editor'], ['🎬', 'Personalization Suite'], ['🏠', 'Landing Pages'], ['📋', 'Lead Generator']],
+      railActions: [['⚡', 'Generate', true], ['✂️', 'Split'], ['🎬', 'Scenes'], ['💬', 'Subtitle'], ['🎞️', 'B-Roll'], ['⏱️', 'Speed'], ['🪄', 'Stabilize'], ['📝', 'Text'], ['🔄', 'Transitions'], ['🎬', 'AI Video'], ['🎥', 'Recorder'], ['🎙️', 'Enhanced Recorder'], ['📋', 'Templates'], ['👀', 'Preview Template'], ['📱', 'Social'], ['📧', 'Email Campaign'], ['🔗', 'URL Video'], ['📸', 'Page Shot'], ['👥', 'Contacts'], ['🎨', 'Canvas'], ['🏷️', 'Token Editor'], ['📦', 'Batch Generator'], ['🔄', 'Workflow'], ['👤', 'Personalization'], ['✏️', 'Personalization Editor'], ['🎬', 'Personalization Suite'], ['🏠', 'Landing Pages'], ['📋', 'Lead Generator'],
+        // CineGen quick tools (editor-only → floating rail)
+        ['🎨', 'CineGen Tools'], ['GF', 'Gap Fill'], ['EX', 'Extend Clip'], ['♫', 'Generate Music'], ['M', 'Mask Tool'], ['EL', 'Element'], ['Polish', 'Polish'], ['Sub', 'Smart Subtitles'], ['LLM', 'LLM Assistant'], ['SAM', 'SAM3'], ['Sync', 'Audio Sync'], ['Layer', 'Layer Decomp'], ['Shot', 'Shot Board'], ['Proxy', 'Proxy Play'], ['Plan', 'Comp Plan'],
+        // Collapsed editor panels (editor-only → floating rail)
+        ['🎬', 'Scene Detector'], ['🎥', 'Camera FX'], ['📊', 'Color Scopes'], ['🎞️', 'Multi-Cam'], ['✂️', 'Clip Editor'], ['🔄', 'Transitions Panel'], ['🎨', 'CineGen Results'], ['🎭', 'Anim Demo']],
 
       // Enhanced state management
       projectId: null,
@@ -3309,8 +3293,48 @@ export function TimelineEditorPage() {
       renderTracks();
     }
 
+    // Reveal a collapsed editor-only panel from the floating rail.
+    function openPanel(id) {
+      const el = root.querySelector('#' + id);
+      if (!el) return;
+      el.hidden = false;
+      el.style.display = 'block';
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Maps floating-rail labels to collapsed panel element ids.
+    const RAIL_PANEL_MAP = {
+      'Scene Detector': 'sceneDetectorPanel',
+      'Camera FX': 'cameraEffectsPanel',
+      'Color Scopes': 'colorScopesPanel',
+      'Multi-Cam': 'multiCameraPanel',
+      'Clip Editor': 'clipSettingsPanel',
+      'Transitions Panel': 'transitionSettingsPanel',
+      'CineGen Results': 'cinegenResultsPanel',
+      'Anim Demo': 'animationDemoPanel'
+    };
+
+    // Populate the preview filmstrip (prototype-style clip thumbnails).
+    function renderFilmstrip() {
+      const fs = root.querySelector('#filmstrip');
+      if (!fs || fs.childElementCount) return;
+      const labels = ['00:00','00:03','00:06','00:09','00:12','00:15','00:18','00:21','00:24','00:27'];
+      labels.forEach((t, i) => {
+        const d = document.createElement('div');
+        d.className = 'fs-thumb' + (i === 4 ? ' active' : '');
+        d.style.background = 'linear-gradient(135deg, hsl(' + (200 + i * 12) + ' 60% 22%), hsl(' + (260 + i * 10) + ' 55% 14%))';
+        d.innerHTML = '<span>' + t + '</span>';
+        d.addEventListener('click', () => {
+          fs.querySelectorAll('.fs-thumb').forEach(x => x.classList.remove('active'));
+          d.classList.add('active');
+        });
+        fs.appendChild(d);
+      });
+    }
+
     function renderRail() {
       els.floatingRail.innerHTML = '';
+      renderFilmstrip();
       const railTooltips = {
         'Generate': 'Generate new AI content - Create video, images, or audio from prompts',
         'Split': 'Split clip at playhead - Divide the selected clip into two at the current position',
@@ -3340,7 +3364,30 @@ export function TimelineEditorPage() {
         'Personalization Suite': 'Personalization suite - Complete video personalization workflow',
         'Landing Pages': 'Landing pages - Create personalized landing pages',
         'Lead Generator': 'Lead capture - Add lead generation forms to videos',
-        'AI Personalizer': 'AI Personalizer - Scan profiles and generate personalized content'
+        'AI Personalizer': 'AI Personalizer - Scan profiles and generate personalized content',
+        'CineGen Tools': 'CineGen AI Tools - Full suite of AI editing tools',
+        'Gap Fill': 'CineGen Gap Fill - Fill gaps between clips with AI',
+        'Extend Clip': 'CineGen Extend - Extend selected clip with AI-generated content',
+        'Generate Music': 'CineGen Generate Music - Create background music',
+        'Mask Tool': 'CineGen AI Mask - Generate object isolation masks',
+        'Element': 'CineGen Element - Generate reusable visual elements',
+        'Polish': 'CineGen Polish - Gap Fill + Extend in one step',
+        'Smart Subtitles': 'CineGen Smart Subtitles - Auto-generate timed subtitles',
+        'LLM Assistant': 'CineGen LLM Assistant - Advanced reasoning for edits',
+        'SAM3': 'CineGen SAM3 - Precise segment masks',
+        'Audio Sync': 'CineGen Audio Sync - Align audio to video',
+        'Layer Decomp': 'CineGen Layer Decomposition - Foreground/background/effects layers',
+        'Shot Board': 'CineGen Shot Board - Multi-shot sequences',
+        'Proxy Play': 'CineGen Proxy Playback - Smooth scrubbing proxies',
+        'Comp Plan': 'CineGen Composition Plan - AI edit plan',
+        'Scene Detector': 'Scene detection - Identify scene changes in footage',
+        'Camera FX': 'Camera effects - Shake, orbit, hitchcock, pan, tilt',
+        'Color Scopes': 'Color scopes - Waveform, vectorscope, histogram',
+        'Multi-Cam': 'Multi-camera editing, PIP, and split screen',
+        'Clip Editor': 'Clip editor - Edit selected clip properties',
+        'Transitions Panel': 'Transitions - Add effects between clips',
+        'CineGen Results': 'CineGen AI Tools results history',
+        'Anim Demo': 'Rendiv animation demonstrations'
       };
       state.railActions.forEach(([icon, label, active]) => {
         const button = document.createElement('button');
@@ -3443,7 +3490,31 @@ export function TimelineEditorPage() {
             case 'AI Personalizer':
               window.dispatchEvent(new CustomEvent('open-personalizer'));
               break;
+            case 'CineGen Tools':
+              openPanel('cinegenResultsPanel');
+              break;
+            case 'Gap Fill':
+              runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId });
+              break;
+            case 'Extend Clip':
+              runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId });
+              break;
+            case 'Generate Music':
+            case 'Mask Tool':
+            case 'Element':
+            case 'Polish':
+            case 'Smart Subtitles':
+            case 'LLM Assistant':
+            case 'SAM3':
+            case 'Audio Sync':
+            case 'Layer Decomp':
+            case 'Shot Board':
+            case 'Proxy Play':
+            case 'Comp Plan':
+              openPanel('cinegenResultsPanel');
+              break;
             default:
+              if (RAIL_PANEL_MAP[label]) openPanel(RAIL_PANEL_MAP[label]);
           }
         });
 
@@ -4472,6 +4543,36 @@ export function TimelineEditorPage() {
       els.stopBtn.addEventListener('click', stopPlayback);
       els.rewindBtn.addEventListener('click', rewindPlayback);
       els.generateBtn.addEventListener('click', generateClip);
+
+      // Timeline-top toolbar (redesign: playback / edit groups match prototype)
+      const tbRewind = root.querySelector('#tbRewind');
+      const tbPlay = root.querySelector('#tbPlay');
+      const tbStop = root.querySelector('#tbStop');
+      const tbSplit = root.querySelector('#tbSplit');
+      const tbDelete = root.querySelector('#tbDelete');
+      const tbAddTrack = root.querySelector('#tbAddTrack');
+      if (tbRewind) tbRewind.addEventListener('click', rewindPlayback);
+      if (tbPlay) tbPlay.addEventListener('click', togglePlayback);
+      if (tbStop) tbStop.addEventListener('click', stopPlayback);
+      if (tbSplit) tbSplit.addEventListener('click', splitClipAtPlayhead);
+      if (tbDelete) tbDelete.addEventListener('click', deleteSelectedClip);
+      if (tbAddTrack) tbAddTrack.addEventListener('click', () => addTrack('Video'));
+
+      // Generate card tiles (prototype-style) → open the matching surface
+      const genAutoCut = root.querySelector('#genAutoCut');
+      const genSubtitles = root.querySelector('#genSubtitles');
+      const genAiVideo = root.querySelector('#genAiVideo');
+      const genCutAi = root.querySelector('#genCutAi');
+      const openSubtitleEditorBtn = root.querySelector('#openSubtitleEditor');
+      if (genAutoCut) genAutoCut.addEventListener('click', () => openTemplateGeneratorModal(state, showToast));
+      if (genSubtitles) genSubtitles.addEventListener('click', () => generateSubtitles());
+      if (genAiVideo) genAiVideo.addEventListener('click', () => runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId }));
+      if (genCutAi && window.showCutAIFromTimeline) genCutAi.addEventListener('click', () => window.showCutAIFromTimeline());
+      if (openSubtitleEditorBtn) openSubtitleEditorBtn.addEventListener('click', () => generateSubtitles());
+      const ccReset = root.querySelector('#ccReset');
+      const ccLuts = root.querySelector('#ccLuts');
+      if (ccReset) ccReset.addEventListener('click', () => { const f = root.querySelectorAll('#colorCorrectionPanel input[type="range"]'); f.forEach(i => i.value = 0); });
+      if (ccLuts) ccLuts.addEventListener('click', () => openPanel('colorScopesPanel'));
 
       // Rendiv Animation Demo handlers
       const runSpringDemoBtn = root.querySelector('#runSpringDemo');

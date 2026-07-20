@@ -205,7 +205,7 @@ button, input, textarea, select { font: inherit; }
 .upload-btn { border-style: dashed; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.72); margin-bottom: var(--sp-3); }
 .media-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
 .media-note { margin: -4px 0 10px; font-size: 10px; line-height: 1.45; color: rgba(255,255,255,0.6); }
-.media-item { min-height: 64px; border-radius: 14px; border: 1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025)); display: flex; align-items: center; gap: 10px; padding: 10px 12px; text-align: left; cursor: pointer; transition: transform .15s ease, border-color .15s ease, background .15s ease; }
+.media-item { min-height: 64px; border-radius: 12px; border: 1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025)); display: flex; align-items: center; gap: 10px; padding: 10px 12px; text-align: left; cursor: pointer; transition: transform .15s ease, border-color .15s ease, background .15s ease; }
 .media-item:hover { border-color: rgba(34,211,238,0.22); background: linear-gradient(180deg, rgba(34,211,238,0.08), rgba(255,255,255,0.03)); }
 .media-icon { width: 34px; height: 34px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.28); display: grid; place-items: center; font-size: 17px; flex: 0 0 auto; }
 .media-copy { min-width: 0; }
@@ -830,6 +830,29 @@ button, input, textarea, select { font: inherit; }
 .zoom-track { width: 96px; height: 4px; border-radius: var(--r-full); background: rgba(255,255,255,0.18); position: relative; cursor: pointer; }
 .zoom-fill { position: absolute; left: 0; top: 0; height: 100%; width: 55%; border-radius: inherit; background: var(--accent-grad); }
 .zoom-knob { position: absolute; top: 50%; left: 55%; width: 12px; height: 12px; border-radius: var(--r-full); background: white; transform: translate(-50%,-50%); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+.zoom-btn { width: 28px; height: 28px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--surface-2); color: white; cursor: pointer; display: grid; place-items: center; }
+.zoom-btn:hover { background: var(--surface-3); }
 .time-readout { display: flex; align-items: center; gap: var(--sp-2); font-variant-numeric: tabular-nums; }
 .time-now { font-size: 14px; font-weight: 800; color: var(--text-strong); }
 .time-total { font-size: 11px; color: var(--text-muted); }
+
+/* ---- Prototype-matched side-card components ---- */
+.preview-large { width: 100%; min-height: 360px; }
+.cc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+.cc-row { display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: var(--text-muted); }
+.cc-row input[type="range"] { width: 100%; accent-color: var(--cyan); }
+.sub-list { display: flex; flex-direction: column; gap: 4px; max-height: 140px; overflow-y: auto; }
+.sub-row { display: grid; grid-template-columns: 56px 1fr; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 8px; border: 1px solid transparent; font-size: 11px; cursor: pointer; }
+.sub-row:hover { background: var(--surface-2); }
+.sub-row.active { border-color: rgba(34,211,238,0.4); background: var(--cyan-faint); }
+.sub-t { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.sub-c { color: rgba(255,255,255,0.86); }
+.demo-row { display: flex; gap: 8px; }
+.filmstrip { display: flex; gap: 6px; padding: var(--sp-2); background: rgba(0,0,0,0.3); overflow-x: auto; }
+.filmstrip .fs-thumb { flex: 0 0 auto; width: 84px; height: 48px; border-radius: 6px; border: 1px solid var(--border); background-size: cover; background-position: center; cursor: pointer; transition: border-color .15s ease; position: relative; }
+.filmstrip .fs-thumb:hover { border-color: rgba(34,211,238,0.5); }
+.filmstrip .fs-thumb.active { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan); }
+.filmstrip .fs-thumb span { position: absolute; bottom: 2px; right: 4px; font-size: 8px; color: #fff; background: rgba(0,0,0,0.5); padding: 0 3px; border-radius: 3px; }
+
+/* Floating rail: allow the many editor-only actions to scroll horizontally */
+.floating-rail { overflow-x: auto; max-width: calc(100vw - 32px); scrollbar-width: thin; }
