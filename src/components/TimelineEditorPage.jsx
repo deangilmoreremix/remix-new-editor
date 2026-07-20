@@ -407,34 +407,41 @@ export function TimelineEditorPage() {
         <div class="timeline-top">
           <div class="toolbar-left">
             <div class="tool-group" id="toolGroup"></div>
-             <button class="mini-btn" data-action="zoom-out" data-tooltip="Zoom out - See more of the timeline (Mouse wheel)" aria-label="Zoom out on the timeline">🔍-</button>
-            <button class="mini-btn" data-action="zoom-in" data-tooltip="Zoom in - See timeline in more detail (Mouse wheel)" aria-label="Zoom in on the timeline">🔍+</button>
-            <button class="mini-btn" data-add-track="Video" data-tooltip="Add video track - Create a new video layer on the timeline" aria-label="Add a new video track">+Video</button>
-            <button class="mini-btn" data-add-track="Audio" data-tooltip="Add audio track - Create a new audio layer on the timeline" aria-label="Add a new audio track">+Audio</button>
-            <button class="mini-btn" data-add-track="Text" data-tooltip="Add text track - Create a new text overlay layer" aria-label="Add a new text track">+Text</button>
-            <button class="mini-btn" data-add-track="B-Roll" data-tooltip="Add B-roll track - Create a new B-roll overlay layer" aria-label="Add a new B-roll track">+B-Roll</button>
-            <button class="mini-btn" id="cutaiStoryboardBtn" data-tooltip="Generate storyboard with CutAI" aria-label="Open CutAI storyboard generator">✨AI</button>
-             <button class="mini-btn" id="cinegenToolsBtn" data-tooltip="CineGen AI Tools: Open full set of AI editing tools including Gap Fill, Extend, Music, Mask and Elements" aria-label="Open CineGen tools">🎨CG</button>
-             <button class="mini-btn" id="cinegenGapFillBtn" data-tooltip="CineGen Gap Fill: Automatically fill gaps between clips using AI" aria-label="Gap Fill">GF</button>
-             <button class="mini-btn" id="cinegenExtendBtn" data-tooltip="CineGen Extend Clip: Extend selected clip duration with AI-generated content" aria-label="Extend">EX</button>
-              <button class="mini-btn" id="cinegenMusicBtn" data-tooltip="CineGen Generate Music: Create background music track for current clip" aria-label="Generate Music">♫</button>
-              <select id="musicModelSelect" class="mini-select" title="Music Model">
-                <option value="suno-create">Suno</option>
-                <option value="mmaudio-t2a">MMAudio</option>
-              </select>
-              <button class="mini-btn" id="cinegenMaskBtn" data-tooltip="CineGen AI Mask Tool: Generate precise masks for object isolation" aria-label="Mask Tool">M</button>
-             <button class="mini-btn" id="cinegenElementBtn" data-tooltip="Create CineGen Element: Generate reusable visual elements or overlays" aria-label="Create Element">EL</button>
-             <button class="mini-btn" id="cinegenPolishBtn" data-tooltip="CineGen Polish Clip: Apply Gap Fill + Extend in one step for seamless results" aria-label="Polish Clip">Polish</button>
-             <button class="mini-btn" id="cinegenChatBtn" data-tooltip="Ask CineGen Assistant: Get contextual AI help for timeline editing" aria-label="CineGen Chat">AI</button>
-             <button class="mini-btn" id="cinegenSubBtn" data-tooltip="CineGen Smart Subtitles: Auto-generate accurate timed subtitles" aria-label="Smart Subtitles">Sub</button>
-             <button class="mini-btn" id="cinegenLLMBtn" data-tooltip="CineGen LLM Assistant: Advanced reasoning for complex edits" aria-label="LLM Assistant">LLM</button>
-             <button class="mini-btn" id="cinegenSAMBtn" data-tooltip="CineGen SAM3 Segmentation: Use Meta SAM3 for precise segment masks" aria-label="SAM3 Segmentation">SAM</button>
-              <button class="mini-btn" id="cinegenSyncBtn" data-tooltip="CineGen Audio Sync: Automatically align audio to video clips" aria-label="Audio Sync">Sync</button>
-              <button class="mini-btn" id="cinegenLayerBtn" data-tooltip="CineGen Layer Decomposition: Separate foreground, background and effects layers" aria-label="Layer Decomposition">Layer</button>
-              <button class="mini-btn" id="cinegenShotBtn" data-tooltip="CineGen Shot Board: Create and manage multi-shot sequences" aria-label="Shot Board">Shot</button>
-              <button class="mini-btn" id="cinegenProxyBtn" data-tooltip="CineGen Proxy Playback: Use optimized proxies for smooth scrubbing" aria-label="Proxy Playback">Proxy</button>
-              <button class="mini-btn" id="cinegenPlanBtn" data-tooltip="CineGen Composition Plan: Generate AI-suggested edit plan for project" aria-label="Composition Plan">Plan</button>
-           </div>
+             <button class="tool-btn" data-add-track="Video" data-tooltip="Add video track - Create a new video layer on the timeline" aria-label="Add a new video track">+Video</button>
+             <button class="tool-btn" data-add-track="Audio" data-tooltip="Add audio track - Create a new audio layer on the timeline" aria-label="Add a new audio track">+Audio</button>
+             <button class="tool-btn" data-add-track="Text" data-tooltip="Add text track - Create a new text overlay layer" aria-label="Add a new text track">+Text</button>
+             <button class="tool-btn" data-add-track="B-Roll" data-tooltip="Add B-roll track - Create a new B-roll overlay layer" aria-label="Add a new B-roll track">+B-Roll</button>
+             <button class="tool-btn" id="cutaiStoryboardBtn" data-tooltip="Generate storyboard with CutAI" aria-label="Open CutAI storyboard generator">✨AI</button>
+             <button class="tool-btn" id="cinegenToolsBtn" data-tooltip="CineGen AI Tools: Open full set of AI editing tools including Gap Fill, Extend, Music, Mask and Elements" aria-label="Open CineGen tools">🎨CG</button>
+             <button class="tool-btn" id="cinegenGapFillBtn" data-tooltip="CineGen Gap Fill: Automatically fill gaps between clips using AI" aria-label="Gap Fill">GF</button>
+             <button class="tool-btn" id="cinegenExtendBtn" data-tooltip="CineGen Extend Clip: Extend selected clip duration with AI-generated content" aria-label="Extend">EX</button>
+             <button class="tool-btn" id="cinegenMusicBtn" data-tooltip="CineGen Generate Music: Create background music track for current clip" aria-label="Generate Music">♫</button>
+             <select id="musicModelSelect" class="mini-select" title="Music Model">
+               <option value="suno-create">Suno</option>
+               <option value="mmaudio-t2a">MMAudio</option>
+             </select>
+             <button class="tool-btn" id="cinegenMaskBtn" data-tooltip="CineGen AI Mask Tool: Generate precise masks for object isolation" aria-label="Mask Tool">M</button>
+             <button class="tool-btn" id="cinegenElementBtn" data-tooltip="Create CineGen Element: Generate reusable visual elements or overlays" aria-label="Create Element">EL</button>
+             <button class="tool-btn" id="cinegenPolishBtn" data-tooltip="CineGen Polish Clip: Apply Gap Fill + Extend in one step for seamless results" aria-label="Polish Clip">Polish</button>
+             <button class="tool-btn" id="cinegenChatBtn" data-tooltip="Ask CineGen Assistant: Get contextual AI help for timeline editing" aria-label="CineGen Chat">AI</button>
+             <button class="tool-btn" id="cinegenSubBtn" data-tooltip="CineGen Smart Subtitles: Auto-generate accurate timed subtitles" aria-label="Smart Subtitles">Sub</button>
+             <button class="tool-btn" id="cinegenLLMBtn" data-tooltip="CineGen LLM Assistant: Advanced reasoning for complex edits" aria-label="LLM Assistant">LLM</button>
+             <button class="tool-btn" id="cinegenSAMBtn" data-tooltip="CineGen SAM3 Segmentation: Use Meta SAM3 for precise segment masks" aria-label="SAM3 Segmentation">SAM</button>
+             <button class="tool-btn" id="cinegenSyncBtn" data-tooltip="CineGen Audio Sync: Automatically align audio to video clips" aria-label="Audio Sync">Sync</button>
+             <button class="tool-btn" id="cinegenLayerBtn" data-tooltip="CineGen Layer Decomposition: Separate foreground, background and effects layers" aria-label="Layer Decomposition">Layer</button>
+             <button class="tool-btn" id="cinegenShotBtn" data-tooltip="CineGen Shot Board: Create and manage multi-shot sequences" aria-label="Shot Board">Shot</button>
+             <button class="tool-btn" id="cinegenProxyBtn" data-tooltip="CineGen Proxy Playback: Use optimized proxies for smooth scrubbing" aria-label="Proxy Playback">Proxy</button>
+             <button class="tool-btn" id="cinegenPlanBtn" data-tooltip="CineGen Composition Plan: Generate AI-suggested edit plan for project" aria-label="Composition Plan">Plan</button>
+            </div>
+          <div class="zoom" role="group" aria-label="Zoom">
+            <button class="tool-btn" data-action="zoom-out" data-tooltip="Zoom out - See more of the timeline (Mouse wheel)" aria-label="Zoom out on the timeline">−</button>
+            <div class="zoom-track" aria-hidden="true"><div class="zoom-fill"></div><div class="zoom-knob"></div></div>
+            <button class="tool-btn" data-action="zoom-in" data-tooltip="Zoom in - See timeline in more detail (Mouse wheel)" aria-label="Zoom in on the timeline">＋</button>
+          </div>
+          <div class="time-readout" aria-live="off">
+            <span class="time-now">00:12.4</span>
+            <span class="time-total">/ 00:45.0</span>
+          </div>
           <div class="pill-row" id="pillRow"></div>
         </div>
         <div class="timeline-controls-enhanced" id="timelineControlsEnhanced"></div>
