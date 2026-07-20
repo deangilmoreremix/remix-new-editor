@@ -2,7 +2,10 @@ fastapi==0.115.6
 uvicorn[standard]==0.34.0
 pydantic==2.10.4
 python-dotenv==1.0.1
+# NOTE: maigret 1.0.0 does not exist on PyPI (latest is 0.6.x). Pin a known
+# published version. socid_extractor is a hard transitive dependency of
+# maigret and must import at startup.
 maigret==0.6.3
-slowapi==0.1.9
+socid-extractor==0.0.27
 redis==5.2.1
 httpx==0.28.1

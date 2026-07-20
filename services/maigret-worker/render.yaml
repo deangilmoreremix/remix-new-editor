@@ -16,8 +16,11 @@ services:
     autoDeploy: true
     envVars:
       - key: MAIGRET_API_KEY
-        generateValue: true
-        description: "API key clients must send in X-API-Key. Generated on first apply."
+        sync: false
+        description: "Worker API key. Set ONE value on the dashboard and reuse it for MAIGRET_WORKER_SECRET + Netlify MAIGRET_WORKER_SECRET."
+      - key: MAIGRET_WORKER_SECRET
+        sync: false
+        description: "Alias for the worker API key (legacy name used by Netlify client). Must equal MAIGRET_API_KEY."
       - key: MAIGRET_ADMIN_KEY
         sync: false
         description: "Separate admin key for /cache DELETE and /stats. Optional but recommended."
