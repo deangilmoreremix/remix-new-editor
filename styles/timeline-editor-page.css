@@ -164,10 +164,10 @@ button, input, textarea, select { font: inherit; }
 .playhead-knob:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; box-shadow: 0 0 0 4px rgba(34,211,238,0.3); }
   .track-row { display: grid; grid-template-columns: var(--track-w) 1fr; min-height: var(--track-h); border-bottom: 1px solid rgba(255,255,255,0.05); }
 .track-row:last-child { border-bottom: 0; }
-.track-meta { padding: var(--sp-3) 8px; border-right: 1px solid var(--border); background: rgba(0,0,0,0.35); min-width: 0; overflow: hidden; }
+  .track-meta { padding: var(--sp-2) var(--sp-3); border-right: 1px solid var(--border); background: var(--track-meta); min-width: 0; overflow: hidden; }
 .track-name { font-size: var(--fs-track); font-weight: var(--fw-track); color: rgba(255,255,255,0.86); }
   .track-actions { margin-top: var(--sp-2); gap: 6px; }
-.track-toggle { min-width: 44px; min-height: 44px; border-radius: 6px; border: 1px solid var(--border); background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); font-size: 8px; cursor: pointer; }
+  .track-toggle { min-width: 26px; min-height: 26px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2); color: rgba(255,255,255,0.9); font-size: 12px; cursor: pointer; display: grid; place-items: center; transition: all .15s ease; }
 .track-toggle.locked { background: rgba(34,211,238,0.2); }
 .track-count { margin-top: 6px; font-size: var(--fs-help); color: rgba(255,255,255,0.6); }
   .track-lane { position: relative; background: rgba(255,255,255,0.02); min-height: var(--track-h); min-width: 0; background-image: linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 80px 100%; }

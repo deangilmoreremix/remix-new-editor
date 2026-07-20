@@ -671,7 +671,7 @@ export function createEnhancedClipElement(item, track, state, zoom = 1.0) {
   // Add duration indicator
   const duration = item.end - item.start;
   const durationEl = document.createElement('span');
-  durationEl.className = 'clip-duration';
+  durationEl.className = 'clip-dur';
   durationEl.textContent = formatTime(duration);
   durationEl.setAttribute('data-tooltip', `Clip duration: ${formatTime(duration)}`);
   clipContent.appendChild(durationEl);
