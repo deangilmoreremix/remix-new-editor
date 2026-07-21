@@ -51,6 +51,13 @@ button, input, textarea, select { font: inherit; }
   display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
 }
 .ready-dot { width: 6px; height: 6px; border-radius: 999px; background: #86efac; }
+
+/* Feature index bar (prototype parity) */
+.feature-index { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: var(--sp-4); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-lg); border: 1px solid var(--border); background: var(--surface-1); }
+.fi-label { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--text-dim); margin-right: 4px; }
+.fi-chip { border-radius: var(--r-full); padding: 6px 12px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-muted); font-size: 11px; cursor: pointer; transition: all .15s ease; }
+.fi-chip:hover { background: var(--cyan-soft); border-color: rgba(34,211,238,0.4); color: #cffafe; transform: translateY(-1px); }
+
 .main-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(260px, 380px); gap: var(--sp-3); }
 .left-col { min-width: 0; }
 .side-col { display: flex; flex-direction: column; gap: var(--sp-3); }

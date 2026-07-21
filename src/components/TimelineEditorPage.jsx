@@ -370,6 +370,31 @@ export function TimelineEditorPage() {
     </div>
     <div class="top-actions" id="topActions" data-tooltip="Quick action toolbar"></div>
   </header>
+
+  <!-- Feature index bar (prototype parity) -->
+  <nav class="feature-index" aria-label="All editor features">
+    <span class="fi-label">All features:</span>
+    <button class="fi-chip" data-modal="previewMedia">Media Preview</button>
+    <button class="fi-chip" data-modal="videoPlayer">Video Player</button>
+    <button class="fi-chip" data-modal="recorder">Recorder</button>
+    <button class="fi-chip" data-modal="urlVideo">URL Video</button>
+    <button class="fi-chip" data-modal="templates">Templates</button>
+    <button class="fi-chip" data-modal="aiVideo">AI Video</button>
+    <button class="fi-chip" data-modal="personalization">Personalization</button>
+    <button class="fi-chip" data-modal="landing">Landing Builder</button>
+    <button class="fi-chip" data-modal="social">Social Publish</button>
+    <button class="fi-chip" data-modal="email">Email Campaign</button>
+    <button class="fi-chip" data-modal="leads">Lead Gen</button>
+    <button class="fi-chip" data-modal="contacts">Contacts</button>
+    <button class="fi-chip" data-modal="endScreen">End Screen</button>
+    <button class="fi-chip" data-modal="import">Import Timeline</button>
+    <button class="fi-chip" data-modal="storyboard">CutAI Storyboard</button>
+    <button class="fi-chip" data-modal="subtitleEditor">Subtitle Editor</button>
+    <button class="fi-chip" data-modal="imageCrop">Image Cropper</button>
+    <button class="fi-chip" data-modal="imageEdit">Image Editor</button>
+    <button class="fi-chip" data-modal="voice">Voice</button>
+  </nav>
+
   <div class="main-grid">
     <div class="left-col">
       <section class="preview-card preview-large">
@@ -3314,6 +3339,29 @@ export function TimelineEditorPage() {
       'Anim Demo': 'animationDemoPanel'
     };
 
+    // Maps feature-index chip data-modal keys to editor modal/open actions.
+    const FEATURE_INDEX_MODALS = {
+      previewMedia: () => openPreviewMediaModal(state, showToast),
+      videoPlayer: () => openVideoPlayerModal(state, showToast),
+      recorder: () => openRecorderModal(state, showToast),
+      urlVideo: () => openUrlVideoModal(state, showToast),
+      templates: () => openTemplateGeneratorModal(state, showToast),
+      aiVideo: () => openAIVideoCreatorModal(state, showToast),
+      personalization: () => openVideoPersonalizationHubModal(state, showToast),
+      landing: () => openLandingPageBuilderModal(state, showToast),
+      social: () => openSocialPublisherModal(state, showToast),
+      email: () => openEmailCampaignModal(state, showToast),
+      leads: () => openLeadGeneratorModal(state, showToast),
+      contacts: () => openContactImporterModal(state, showToast),
+      endScreen: () => openEndScreenModal(state, showToast),
+      import: () => showToast('Import timeline functionality coming soon', 'info'),
+      storyboard: () => { if (window.showCutAIFromTimeline) window.showCutAIFromTimeline(); else showToast('Storyboard coming soon', 'info'); },
+      subtitleEditor: () => generateSubtitles(),
+      imageCrop: () => showToast('Image cropper coming soon', 'info'),
+      imageEdit: () => showToast('Image editor coming soon', 'info'),
+      voice: () => showToast('Voice/TTS coming soon', 'info')
+    };
+
     // Populate the preview filmstrip (prototype-style clip thumbnails).
     function renderFilmstrip() {
       const fs = root.querySelector('#filmstrip');
@@ -3836,8 +3884,7 @@ export function TimelineEditorPage() {
             try {
               const session = await (async () => {
                 try {
-                  const { createClient } = await import('../lib/supabase.js');
-                  const supabase = createClient();
+                  const { supabase } = await import('../lib/supabase.js');
                   const { data } = await supabase.auth.getSession();
                   return data.session;
                 } catch { return null; }
@@ -4573,6 +4620,13 @@ export function TimelineEditorPage() {
       const ccLuts = root.querySelector('#ccLuts');
       if (ccReset) ccReset.addEventListener('click', () => { const f = root.querySelectorAll('#colorCorrectionPanel input[type="range"]'); f.forEach(i => i.value = 0); });
       if (ccLuts) ccLuts.addEventListener('click', () => openPanel('colorScopesPanel'));
+
+      // Feature-index chips (prototype parity) → open the matching editor surface
+      root.querySelectorAll('.fi-chip').forEach(chip => {
+        const key = chip.getAttribute('data-modal');
+        const handler = FEATURE_INDEX_MODALS[key];
+        if (handler) chip.addEventListener('click', handler);
+      });
 
       // Rendiv Animation Demo handlers
       const runSpringDemoBtn = root.querySelector('#runSpringDemo');
