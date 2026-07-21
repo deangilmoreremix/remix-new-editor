@@ -120,11 +120,11 @@ button, input, textarea, select { font: inherit; }
 .circle-btn { width: 40px; height: 40px; border-radius: 999px; border: 1px solid transparent; background: rgba(255,255,255,0.1); color: white; cursor: pointer; }
 .circle-btn.primary { width: 48px; height: 48px; background: white; color: black; font-weight: 800; box-shadow: 0 10px 30px rgba(255,255,255,0.15); }
 .timeline-card, .side-card {
-  border-radius: 24px; border: 1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
-  box-shadow: var(--shadow-card); backdrop-filter: blur(20px);
+  border-radius: 24px; border: 1px solid var(--border); background: var(--surface-1);
+  box-shadow: var(--shadow-card);
 }
 .timeline-card { padding: var(--sp-3); }
-.side-card { padding: var(--sp-3); border-radius: 20px; box-shadow: var(--shadow-card); }
+.side-card { padding: var(--sp-3); border-radius: 20px; box-shadow: var(--shadow-card); background: var(--surface-1); }
 .side-card.generate { border-color: rgba(34,211,238,0.2); background: linear-gradient(180deg, rgba(56,189,248,0.08), rgba(17,24,39,0.75)); padding: var(--sp-3); }
 .card-title { margin-bottom: 10px; font-size: var(--fs-label); font-weight: var(--fw-label); text-transform: uppercase; letter-spacing: var(--ls-label); color: rgba(255,255,255,0.82); line-height: 1.2; }
 .card-title.cyan { color: #bae6fd; }
@@ -132,7 +132,7 @@ button, input, textarea, select { font: inherit; }
 .toolbar-left, .tool-group, .pill-row, .floating-rail, .track-actions, .generate-types, .quick-commands { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
 .tool-group { gap: var(--sp-1); padding: var(--sp-1); border-radius: var(--r-md); border: 1px solid var(--border); background: var(--surface-sunken); }
 .tool-btn, .mini-btn, .command-btn, .rail-btn, .generate-type { border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.72); cursor: pointer; transition: all .15s ease; }
-.tool-btn { min-width: 44px; min-height: 44px; border-radius: 8px; font-size: 14px; }
+.tool-btn { min-width: 40px; min-height: 40px; border-radius: var(--r-sm); font-size: 14px; border: 1px solid transparent; background: transparent; color: rgba(255,255,255,0.72); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 10px; transition: all .15s ease; }
 .tool-btn.active, .generate-type.active, .rail-btn.active { border-color: rgba(34,211,238,0.45); background: rgba(34,211,238,0.22); color: #cffafe; }
 .mini-btn, .command-btn { border-radius: 10px; padding: 8px 12px; font-size: 12px; }
 .pill-row { gap: 6px; }

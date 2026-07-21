@@ -5,7 +5,7 @@ import { setupUploadSources } from '../lib/editor/uploadSources.js';
 import { saveProjectToStorage } from '../lib/editor/persistence.js';
 import { renderMediaGrid, addMediaToTimeline } from '../lib/editor/mediaLibrary.js';
 import { assetStore } from '../lib/assets/assetStore.js';
-import { extendClipContextMenu, extendGenerationPanel, extendMediaLibrary, extendTopActions, openGTMPromptModal } from '../lib/uiIntegration.js';
+import { extendClipContextMenu, extendGenerationPanel, extendMediaLibrary, openGTMPromptModal } from '../lib/uiIntegration.js';
 import { integrateMediaIngest, GiphyIntegration, StickersLibrary, LowerThirds, VideoGallery, AnimationList } from '../lib/mediaIngest.js';
 import { renderMultiCameraToolbar, renderPipControls, renderSplitScreenControls } from '../lib/editor/multiCamera.js';
 import { createTimelineState } from '../lib/editor/timelineEditorState.js';
@@ -357,18 +357,26 @@ export function TimelineEditorPage() {
 <div class="app-shell">
   <header class="header">
     <div class="brand">
-      <button class="icon-btn" id="backBtn" data-tooltip="Go back - Return to the previous view or project selection" aria-label="Go back to the previous view">←</button>
       <div class="brand-mark">🎬</div>
       <div>
-        <div class="brand-title">TIMELINE</div>
-        <div class="brand-sub">AI Video Editor</div>
+        <div class="brand-title">Higgsfield</div>
+        <div class="brand-sub">Editor</div>
       </div>
     </div>
     <div class="project-head">
-      <div class="title" id="projectTitle">Untitled Project</div>
-      <div class="sub" id="projectSub">Working timeline preview</div>
+      <div class="title" id="projectTitle">Untitled Sequence</div>
+      <div class="sub" id="projectSub">1080 × 1920 · 30 fps</div>
     </div>
-    <div class="top-actions" id="topActions" data-tooltip="Quick action toolbar"></div>
+    <div class="top-actions">
+      <button class="top-icon" aria-label="Undo">↶</button>
+      <button class="top-icon" aria-label="Redo">↷</button>
+      <button class="top-icon active" aria-label="Timeline view" aria-pressed="true">▦</button>
+      <button class="top-icon" id="openSettings" aria-label="Settings" title="Settings">⚙</button>
+      <button class="top-icon" id="openConnect" aria-label="Connections" title="Connections">🔗</button>
+      <button class="top-icon" id="openAgents" aria-label="AI Agents" title="AI Agents">🤖</button>
+      <button class="top-icon" id="openSave" aria-label="Save project" title="Save">💾</button>
+      <span class="ready-pill"><span class="ready-dot"></span>Render Ready</span>
+    </div>
   </header>
 
   <!-- Feature index bar (prototype parity) -->
@@ -1523,9 +1531,6 @@ export function TimelineEditorPage() {
 
         els.topActions.appendChild(button);
       });
-
-      // Extend top actions with enhancement features
-      extendTopActions(els.topActions, state, showToast);
 
       const ready = document.createElement('div');
       ready.className = 'ready-pill';
