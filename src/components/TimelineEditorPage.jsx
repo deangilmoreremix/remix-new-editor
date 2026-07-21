@@ -478,126 +478,41 @@ export function TimelineEditorPage() {
       </section>
     </div>
     <div class="side-col">
-      <!-- Mobile-only tab bar: lets users switch between panel groups on phones.
-           Hidden on desktop via CSS; on mobile, only the active tab's panel is visible. -->
-      <!-- AI Assistant (moved beside the preview to match the prototype side-col) -->
+      <!-- AI Assistant (prototype parity) -->
       <aside class="side-card" id="agentPanel">
         <h3 class="card-title cyan">AI Assistant</h3>
-        <div id="aiChatContainer"></div>
+        <div class="chat-stack">
+          <div class="chat-bubble user">Trim the intro to 3s</div>
+          <div class="chat-bubble ai">Done — trimmed first clip, kept audio in sync.</div>
+          <div class="chat-bubble user">Add a crossfade here</div>
+          <div class="chat-bubble ai">Added 0.5s crossfade between clips 2 & 3.</div>
+        </div>
+        <div class="chat-input">
+          <input class="text-input" placeholder="Ask the editor to do anything…" aria-label="Message AI assistant" />
+          <button class="primary-btn" aria-label="Send" data-modal="aiVideo">↑</button>
+        </div>
       </aside>
 
       <aside class="side-card">
         <h3 class="card-title">📁 Media Library</h3>
-        <div class="flex gap-2">
-          <button class="upload-btn" id="uploadBtn" data-tooltip="Upload media - Import video, image, or audio files into the project" aria-label="Upload media into the editor">Upload</button>
-          <button class="upload-btn" id="videoDbBtn" data-tooltip="Add a video from your VideoDB account (set your VideoDB API key in Settings)" aria-label="Add video from VideoDB">VideoDB</button>
+        <div class="media-grid">
+          <button class="media-item" data-modal="previewMedia"><span class="media-icon">🎥</span><span class="media-copy"><span class="media-label">Clip 01</span><span class="media-desc">0:14 · 1080p</span></span></button>
+          <button class="media-item" data-modal="previewMedia"><span class="media-icon">🎙️</span><span class="media-copy"><span class="media-label">VO Raw</span><span class="media-desc">0:48 · WAV</span></span></button>
+          <button class="media-item" data-modal="previewMedia"><span class="media-icon">🖼️</span><span class="media-copy"><span class="media-label">Logo</span><span class="media-desc">PNG · 512</span></span></button>
+          <button class="media-item" data-modal="previewMedia"><span class="media-icon">🎵</span><span class="media-copy"><span class="media-label">Track</span><span class="media-desc">2:10 · MP3</span></span></button>
         </div>
-        <div class="media-note">Choose what you want to add to the timeline. Each tile inserts a different type of source asset.</div>
-        <div class="media-grid" id="mediaGrid"></div>
+        <button class="upload-btn" id="uploadBtn" style="margin-top:10px;">Upload media…</button>
       </aside>
 
       <aside class="side-card generate">
-        <div class="generate-head"><div class="card-title cyan">⚡ Generate</div></div>
+        <h3 class="card-title cyan">⚡ Generate</h3>
         <div class="media-grid">
-          <button class="media-item" id="genAutoCut" aria-label="Auto cut with silence detection"><span class="media-icon">✂️</span><span class="media-copy"><span class="media-label">Auto Cut</span><span class="media-desc">Silence detect</span></span></button>
-          <button class="media-item" id="genSubtitles" aria-label="Generate subtitles"><span class="media-icon">🌐</span><span class="media-copy"><span class="media-label">Subtitles</span><span class="media-desc">Transcribe</span></span></button>
-          <button class="media-item" id="genAiVideo" aria-label="AI video creator"><span class="media-icon">🤖</span><span class="media-copy"><span class="media-label">AI Video</span><span class="media-desc">Generate</span></span></button>
-          <button class="media-item" id="genCutAi" aria-label="CutAI storyboard"><span class="media-icon">🎞️</span><span class="media-copy"><span class="media-label">CutAI Board</span><span class="media-desc">Storyboard</span></span></button>
-        </div>
-        <div class="hidden-generate-form" hidden>
-          <div class="generate-types" id="generateTypes"></div>
-          <textarea class="text-area" id="promptInput" placeholder="A cinematic shot of..."></textarea>
-          <input class="text-input" id="negativeInput" placeholder="Negative prompt" />
-          <div class="select-row">
-            <select class="select-input" id="durationSelect"><option>5s</option><option>8s</option><option>12s</option></select>
-            <select class="select-input" id="aspectSelect"><option>16:9</option><option>9:16</option><option>1:1</option></select>
-            <select class="select-input" id="styleSelect"><option>Cinematic</option><option>Commercial</option><option>Documentary</option></select>
-          </div>
-          <button class="primary-btn" id="generateBtn" aria-label="Generate a new asset from the prompt settings">⚡ Generate</button>
+          <button class="media-item" data-modal="templates"><span class="media-icon">✂️</span><span class="media-copy"><span class="media-label">Auto Cut</span><span class="media-desc">Silence detect</span></span></button>
+          <button class="media-item" data-modal="subtitleEditor"><span class="media-icon">🌐</span><span class="media-copy"><span class="media-label">Subtitles</span><span class="media-desc">Transcribe</span></span></button>
+          <button class="media-item" data-modal="aiVideo"><span class="media-icon">🤖</span><span class="media-copy"><span class="media-label">AI Video</span><span class="media-desc">Generate</span></span></button>
+          <button class="media-item" data-modal="storyboard"><span class="media-icon">🎞️</span><span class="media-copy"><span class="media-label">CutAI Board</span><span class="media-desc">Storyboard</span></span></button>
         </div>
       </aside>
-
-      <aside class="side-card">
-        <h3 class="card-title">🎨 Color Correction</h3>
-        <div class="cc-grid">
-          <label class="cc-row"><span>Exposure</span><input type="range" min="-100" max="100" value="12"></label>
-          <label class="cc-row"><span>Contrast</span><input type="range" min="-100" max="100" value="-8"></label>
-          <label class="cc-row"><span>Saturation</span><input type="range" min="-100" max="100" value="20"></label>
-          <label class="cc-row"><span>Temperature</span><input type="range" min="-100" max="100" value="6"></label>
-          <label class="cc-row"><span>Highlights</span><input type="range" min="-100" max="100" value="0"></label>
-          <label class="cc-row"><span>Shadows</span><input type="range" min="-100" max="100" value="14"></label>
-        </div>
-        <div class="demo-row" style="margin-top:10px;">
-          <button class="mini-btn" id="ccReset">Reset</button>
-          <button class="mini-btn" id="ccLuts">LUTs</button>
-        </div>
-      </aside>
-
-      <aside class="side-card">
-        <h3 class="card-title">💬 Subtitles</h3>
-        <div class="sub-list">
-          <div class="sub-row"><span class="sub-t">00:02.1</span><span class="sub-c">Welcome to the editor</span></div>
-          <div class="sub-row active"><span class="sub-t">00:12.4</span><span class="sub-c">Your story starts here.</span></div>
-          <div class="sub-row"><span class="sub-t">00:21.0</span><span class="sub-c">Cut, trim and grade in one place</span></div>
-        </div>
-        <button class="mini-btn" id="openSubtitleEditor" style="margin-top:10px;">Open subtitle editor</button>
-      </aside>
-
-      <!-- Editor-only panels (not in the prototype) — collapsed; revealed from the floating rail -->
-      <aside class="side-card" id="sceneDetectorPanel" hidden><div id="sceneDetectorContainer"></div></aside>
-      <aside class="side-card" id="cameraEffectsPanel" hidden>
-        <div id="cameraEffectsContainer"></div>
-        <div class="camera-effects-quick">
-          <button class="mini-btn" data-camera-effect="shake">Shake</button>
-          <button class="mini-btn" data-camera-effect="orbit">Orbit</button>
-          <button class="mini-btn" data-camera-effect="hitchcock">Hitchcock</button>
-          <button class="mini-btn" data-camera-effect="pan-left">Pan L</button>
-          <button class="mini-btn" data-camera-effect="pan-right">Pan R</button>
-          <button class="mini-btn" data-camera-effect="tilt-up">Tilt U</button>
-          <button class="mini-btn" data-camera-effect="tilt-down">Tilt D</button>
-        </div>
-      </aside>
-      <aside class="side-card" id="cinegenResultsPanel" hidden data-tooltip="CineGen AI Tools Results">
-        <div class="card-title">🎨 CineGen Results</div>
-        <div id="cinegenResults" style="font-size: 12px; color: var(--text-dim); min-height: 60px;">No CineGen tools used yet</div>
-        <button class="mini-btn" id="clearCineGenResults" style="margin-top: 8px; width: 100%;">Clear History</button>
-      </aside>
-      <aside class="side-card" id="animationDemoPanel" hidden data-tooltip="Rendiv animation demonstrations">
-        <div class="card-title">🎭 Rendiv Animation Demo</div>
-        <div id="animationDemoContainer">
-          <div class="animation-demo-controls">
-            <button class="mini-btn" id="runSpringDemo">Spring Animation</button>
-            <button class="mini-btn" id="runNoiseDemo">Noise Animation</button>
-            <button class="mini-btn" id="runInterpolateDemo">Interpolate Demo</button>
-          </div>
-          <div class="animation-demo-canvas"><canvas id="animationCanvas" width="300" height="200"></canvas></div>
-          <div class="animation-demo-info"><div id="demoStatus">Click a button to start animation demo</div></div>
-        </div>
-      </aside>
-      <aside class="side-card" id="clipSettingsPanel" hidden data-tooltip="Clip editor - Edit selected clip properties">
-        <div class="card-title">🎬 Clip Editor</div><div id="clipEditorContainer"></div>
-      </aside>
-      <aside class="side-card" id="transitionSettingsPanel" hidden data-tooltip="Transitions - Add effects between clips">
-        <div class="card-title">🔄 Transitions</div><div id="transitionEditorContainer"></div>
-      </aside>
-      <aside class="side-card" id="multiCameraPanel" hidden data-tooltip="Multi-camera editing, PIP, and split screen">
-        <div class="card-title">📺 Multi-Camera</div>
-        <div id="multiCameraToolbar"></div>
-        <div id="pipControls" class="pip-controls-container" hidden></div>
-        <div id="splitControls" class="split-controls-container" hidden></div>
-      </aside>
-      <aside class="side-card" id="colorCorrectionPanel" hidden data-tooltip="Color correction">
-        <div class="card-title">🎨 Color Correction</div><div id="colorCorrectionContainer"></div>
-      </aside>
-      <aside class="side-card" id="colorScopesPanel" hidden data-tooltip="Color scopes">
-        <div class="card-title">📊 Color Scopes</div><div id="colorScopesContainer"></div>
-      </aside>
-      <aside class="side-card" id="canvasPanel" hidden data-tooltip="Canvas editor"><div class="card-title">🎨 Canvas Editor</div><div id="canvasContainer"></div></aside>
-      <aside class="side-card" id="tokenEditorPanel" hidden data-tooltip="Token editor"><div class="card-title">🏷️ Token Editor</div><div id="tokenEditorContainer"></div></aside>
-      <aside class="side-card" id="batchGeneratorPanel" hidden data-tooltip="Batch generator"><div class="card-title">📦 Batch Generator</div><div id="batchGeneratorContainer"></div></aside>
-      <aside class="side-card" id="workflowPanel" hidden data-tooltip="Workflow automation"><div class="card-title">🔄 Workflow Automation</div><div id="workflowContainer"></div></aside>
-      <aside class="side-card" id="personalizationPanel" hidden data-tooltip="Personalization"><div class="card-title">👤 Personalization</div><div id="personalizationContainer"></div></aside>
-      <aside class="side-card" id="personalizationEditorPanel" hidden data-tooltip="Personalization editor"><div class="card-title">✏️ Personalization Editor</div><div id="personalizationEditorContainer"></div></aside>
     </div>
   </div>
 </div>
@@ -2259,6 +2174,7 @@ export function TimelineEditorPage() {
     }
 
     function renderGenerateTypes() {
+      if (!els.generateTypes) return;
       els.generateTypes.innerHTML = '';
       const generateTooltips = {
         'Text': 'Generate video from text descriptions',
@@ -2475,7 +2391,7 @@ export function TimelineEditorPage() {
     }
 
     function initializeSceneDetector() {
-      if (!sceneDetector) {
+      if (!sceneDetector && els.sceneDetectorContainer) {
         sceneDetector = new SceneDetector(els.sceneDetectorContainer, {
           tracks: state.tracks,
           timelineSeconds: state.timelineSeconds,
@@ -2491,7 +2407,7 @@ export function TimelineEditorPage() {
     }
 
     function initializeCameraEffects() {
-      if (!cameraEffects) {
+      if (!cameraEffects && els.cameraEffectsContainer) {
         cameraEffects = new CameraEffects(els.cameraEffectsContainer, {
           keyframeSystem: state.keyframeSystem,
           timelineState: state,
@@ -3576,32 +3492,34 @@ export function TimelineEditorPage() {
     }
 
     function showClipEditor(clipId) {
-      els.clipSettingsPanel.style.display = 'block';
+      els.clipSettingsPanel?.style && (els.clipSettingsPanel.style.display = 'block');
       renderClipEditor(clipId);
     }
 
     function showTransitionSettings() {
-      els.transitionSettingsPanel.style.display = 'block';
+      els.transitionSettingsPanel?.style && (els.transitionSettingsPanel.style.display = 'block');
       
     }
 
     function showColorCorrectionPanel() {
+      if (!els.colorCorrectionPanel) return;
       if (!FEATURE_FLAGS.colorCorrection) {
-        els.colorCorrectionContainer.innerHTML = '<p style="color: #ef4444;">Color correction system unavailable</p>';
+        els.colorCorrectionContainer && (els.colorCorrectionContainer.innerHTML = '<p style="color: #ef4444;">Color correction system unavailable</p>');
         els.colorCorrectionPanel.style.display = 'block';
         return;
       }
       if (!colorCorrectionSystem) {
         try {
+          if (!els.colorCorrectionContainer) return;
           colorCorrectionSystem = new ColorCorrectionSystem(els.colorCorrectionContainer, state, state.keyframeSystem);
           els.colorCorrectionContainer.innerHTML = '';
           els.colorCorrectionContainer.appendChild(colorCorrectionSystem.getPanel());
         } catch (error) {
           console.error('Failed to load ColorCorrectionSystem:', error);
-          els.colorCorrectionContainer.innerHTML = '<p style="color: #ef4444;">Color correction system unavailable</p>';
+          els.colorCorrectionContainer && (els.colorCorrectionContainer.innerHTML = '<p style="color: #ef4444;">Color correction system unavailable</p>');
         }
       }
-      els.colorCorrectionPanel.style.display = 'block';
+      els.colorCorrectionPanel?.style && (els.colorCorrectionPanel.style.display = 'block');
       
     }
 
@@ -3763,10 +3681,10 @@ export function TimelineEditorPage() {
     function showCanvasPanel() {
       // Hide other panels
       hideAllEditorPanels();
-      els.canvasPanel.style.display = 'block';
+      els.canvasPanel?.style && (els.canvasPanel.style.display = 'block');
 
       // Render Canvas component
-      if (!els.canvasContainer.innerHTML) {
+      if (els.canvasContainer && !els.canvasContainer.innerHTML) {
         // For now, render basic canvas HTML. In a full implementation, this would use ReactDOM
         els.canvasContainer.innerHTML = `
           <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
@@ -3785,9 +3703,9 @@ export function TimelineEditorPage() {
 
     function showTokenEditorPanel() {
       hideAllEditorPanels();
-      els.tokenEditorPanel.style.display = 'block';
+      els.tokenEditorPanel?.style && (els.tokenEditorPanel.style.display = 'block');
 
-      if (!els.tokenEditorContainer.innerHTML) {
+      if (els.tokenEditorContainer && !els.tokenEditorContainer.innerHTML) {
         // Load variables from intelligence layer if a contact is selected
         let tokenEntries = [
           { token: '{first_name}', label: 'first_name' },
@@ -3946,9 +3864,9 @@ export function TimelineEditorPage() {
 
     function showBatchGeneratorPanel() {
       hideAllEditorPanels();
-      els.batchGeneratorPanel.style.display = 'block';
+      els.batchGeneratorPanel?.style && (els.batchGeneratorPanel.style.display = 'block');
 
-      if (!els.batchGeneratorContainer.innerHTML) {
+      if (els.batchGeneratorContainer && !els.batchGeneratorContainer.innerHTML) {
         els.batchGeneratorContainer.innerHTML = `
           <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
             <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Batch Generator</h3>
@@ -3993,9 +3911,9 @@ export function TimelineEditorPage() {
 
     function showWorkflowPanel() {
       hideAllEditorPanels();
-      els.workflowPanel.style.display = 'block';
+      els.workflowPanel?.style && (els.workflowPanel.style.display = 'block');
 
-      if (!els.workflowContainer.innerHTML) {
+      if (els.workflowContainer && !els.workflowContainer.innerHTML) {
         els.workflowContainer.innerHTML = `
           <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
             <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Workflow Automation</h3>
@@ -4024,9 +3942,9 @@ export function TimelineEditorPage() {
 
     function showPersonalizationPanel() {
       hideAllEditorPanels();
-      els.personalizationPanel.style.display = 'block';
+      els.personalizationPanel?.style && (els.personalizationPanel.style.display = 'block');
 
-      if (!els.personalizationContainer.innerHTML) {
+      if (els.personalizationContainer && !els.personalizationContainer.innerHTML) {
         els.personalizationContainer.innerHTML = `
           <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
             <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Personalization</h3>
@@ -4062,9 +3980,9 @@ export function TimelineEditorPage() {
 
     function showPersonalizationEditorPanel() {
       hideAllEditorPanels();
-      els.personalizationEditorPanel.style.display = 'block';
+      els.personalizationEditorPanel?.style && (els.personalizationEditorPanel.style.display = 'block');
 
-      if (!els.personalizationEditorContainer.innerHTML) {
+      if (els.personalizationEditorContainer && !els.personalizationEditorContainer.innerHTML) {
         els.personalizationEditorContainer.innerHTML = `
           <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
             <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Personalization Editor</h3>
@@ -4082,12 +4000,12 @@ export function TimelineEditorPage() {
     }
 
     function hideAllEditorPanels() {
-      els.canvasPanel.style.display = 'none';
-      els.tokenEditorPanel.style.display = 'none';
-      els.batchGeneratorPanel.style.display = 'none';
-      els.workflowPanel.style.display = 'none';
-      els.personalizationPanel.style.display = 'none';
-      els.personalizationEditorPanel.style.display = 'none';
+      els.canvasPanel?.style && (els.canvasPanel.style.display = 'none');
+      els.tokenEditorPanel?.style && (els.tokenEditorPanel.style.display = 'none');
+      els.batchGeneratorPanel?.style && (els.batchGeneratorPanel.style.display = 'none');
+      els.workflowPanel?.style && (els.workflowPanel.style.display = 'none');
+      els.personalizationPanel?.style && (els.personalizationPanel.style.display = 'none');
+      els.personalizationEditorPanel?.style && (els.personalizationEditorPanel.style.display = 'none');
     }
 
     function renderLineDuration(clipId) {
@@ -4112,6 +4030,9 @@ export function TimelineEditorPage() {
     }
 
     async function generateClip() {
+      if (!els.promptInput || !els.negativeInput || !els.durationSelect || !els.aspectSelect || !els.styleSelect) {
+        return;
+      }
       const prompt = els.promptInput.value.trim();
       const negativePrompt = els.negativeInput.value.trim();
       const duration = els.durationSelect.value;
@@ -4596,7 +4517,7 @@ export function TimelineEditorPage() {
       els.playBtn.addEventListener('click', togglePlayback);
       els.stopBtn.addEventListener('click', stopPlayback);
       els.rewindBtn.addEventListener('click', rewindPlayback);
-      els.generateBtn.addEventListener('click', generateClip);
+      els.generateBtn?.addEventListener('click', generateClip);
 
       // Timeline-top toolbar (redesign: playback / edit groups match prototype)
       const tbRewind = root.querySelector('#tbRewind');
@@ -4946,9 +4867,9 @@ export function TimelineEditorPage() {
     }
 
     function renderMultiCamera() {
-      renderMultiCameraToolbar(state, els.multiCameraToolbar);
-      renderPipControls(state, els.pipControls);
-      renderSplitScreenControls(state, els.splitControls);
+      if (els.multiCameraToolbar) renderMultiCameraToolbar(state, els.multiCameraToolbar);
+      if (els.pipControls) renderPipControls(state, els.pipControls);
+      if (els.splitControls) renderSplitScreenControls(state, els.splitControls);
     }
 
      // Color correction system not implemented

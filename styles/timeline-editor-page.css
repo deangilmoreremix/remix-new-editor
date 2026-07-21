@@ -254,20 +254,27 @@ button, input, textarea, select { font: inherit; }
 .status-toast { position: fixed; right: 18px; bottom: 18px; max-width: 320px; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(34,211,238,0.18); background: rgba(7,12,18,0.95); color: rgba(255,255,255,0.86); box-shadow: 0 18px 50px rgba(0,0,0,0.4); font-size: 12px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: all .2s ease; }
 .status-toast.show { opacity: 1; transform: translateY(0); }
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(8px);
+  position: fixed; inset: 0; background: rgba(0,0,0,0.78); z-index: 1000;
+  display: none; align-items: center; justify-content: center; padding: var(--sp-5); backdrop-filter: blur(8px);
 }
+.modal-overlay.open { display: flex; }
 .modal-content {
-  background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)); border: 1px solid var(--border);
-  border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.45); max-width: 600px; width: 90%; max-height: 80vh; overflow: hidden;
+  background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.028));
+  border: 1px solid var(--border); border-radius: var(--r-2xl); box-shadow: var(--shadow-card);
+  max-width: 720px; width: 100%; max-height: 86vh; overflow: hidden; display: flex; flex-direction: column;
+  animation: modalIn .18s ease;
 }
+@keyframes modalIn { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
 .modal-header {
-  display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border);
-  background: rgba(0,0,0,0.2);
+  display: flex; align-items: center; justify-content: space-between; padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--border); background: var(--surface-sunken);
 }
-.modal-header h3 { margin: 0; color: rgba(255,255,255,0.9); }
-.modal-close { background: none; border: none; color: rgba(255,255,255,0.6); font-size: 20px; cursor: pointer; padding: 4px; }
-.modal-body { padding: 24px; max-height: 60vh; overflow-y: auto; }
+.modal-header h3 { margin: 0; font-size: 16px; font-weight: 800; color: rgba(255,255,255,0.92); }
+.modal-close { background: none; border: 1px solid var(--border); color: var(--text-muted); width: 32px; height: 32px; border-radius: 10px; font-size: 16px; cursor: pointer; }
+.modal-close:hover { background: var(--surface-2); color: white; }
+.modal-body { padding: var(--sp-5); overflow-y: auto; }
+.modal-tag { display: inline-block; font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: #bae6fd; border: 1px solid rgba(34,211,238,0.3); background: var(--cyan-faint); padding: 3px 8px; border-radius: 999px; margin-bottom: 10px; }
+.modal-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin: 0 0 var(--sp-4); }
+.modal-actions { display: flex; gap: var(--sp-2); justify-content: flex-end; margin-top: var(--sp-4); }
 .clip-editor, .transition-settings { color: rgba(255,255,255,0.9); }
 .clip-editor__section { margin-bottom: 20px; }
 .clip-editor__section h3 { margin: 0 0 12px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -785,17 +792,14 @@ button, input, textarea, select { font: inherit; }
 @media (max-width: 860px) {
   .header { flex-direction: column; align-items: stretch; }
   .project-head { text-align: left; }
-  .timeline-header, .track-row { grid-template-columns: 86px 1fr; }
-  .playhead-layer { left: 86px; }
-   .floating-rail { left: 16px; right: 16px; transform: none; justify-content: center; }
+  :root { --track-w: 96px; }
+  .floating-rail { left: 16px; right: 16px; transform: none; justify-content: center; }
 }
 @media (max-width: 640px) {
-  .app-shell { padding: 8px; }
+  :root { --track-w: 76px; }
   .header { padding: 12px 14px; border-radius: 18px; }
-  .brand-title { font-size: 16px; }
-  .brand-sub { font-size: 8px; }
-  .top-actions { gap: 4px; }
-  .top-icon { width: 44px; height: 44px; border-radius: 10px; font-size: 16px; }
+  .timeline-card { padding: 8px; border-radius: 18px; }
+  .side-card { border-radius: 16px; padding: 8px; }
   .icon-btn { width: 44px; height: 44px; }
   .circle-btn { width: 48px; height: 48px; }
   .circle-btn.primary { width: 56px; height: 56px; }
