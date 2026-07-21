@@ -504,7 +504,6 @@ export function TimelineEditorPage() {
           <button class="media-item" id="genAiVideo" aria-label="AI video creator"><span class="media-icon">🤖</span><span class="media-copy"><span class="media-label">AI Video</span><span class="media-desc">Generate</span></span></button>
           <button class="media-item" id="genCutAi" aria-label="CutAI storyboard"><span class="media-icon">🎞️</span><span class="media-copy"><span class="media-label">CutAI Board</span><span class="media-desc">Storyboard</span></span></button>
         </div>
-        <div class="media-note">Or type a prompt and hit Generate.</div>
         <div class="hidden-generate-form" hidden>
           <div class="generate-types" id="generateTypes"></div>
           <textarea class="text-area" id="promptInput" placeholder="A cinematic shot of..."></textarea>
