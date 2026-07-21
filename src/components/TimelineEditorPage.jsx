@@ -367,7 +367,7 @@ export function TimelineEditorPage() {
       <div class="title" id="projectTitle">Untitled Sequence</div>
       <div class="sub" id="projectSub">1080 × 1920 · 30 fps</div>
     </div>
-    <div class="top-actions">
+    <div class="top-actions" id="topActions">
       <button class="top-icon" aria-label="Undo">↶</button>
       <button class="top-icon" aria-label="Redo">↷</button>
       <button class="top-icon active" aria-label="Timeline view" aria-pressed="true">▦</button>
@@ -685,11 +685,7 @@ export function TimelineEditorPage() {
       ],
       generateTypes: [['✍️', 'Text'], ['🖼️', 'Image'], ['🔄', 'Retake'], ['➡️', 'Extend'], ['🎞️', 'B-Roll']],
       quickCommands: ['⚡Generate','Retake','Extend','B-Roll','🎬 Detect Scenes'],
-      railActions: [['⚡', 'Generate', true], ['✂️', 'Split'], ['🎬', 'Scenes'], ['💬', 'Subtitle'], ['🎞️', 'B-Roll'], ['⏱️', 'Speed'], ['🪄', 'Stabilize'], ['📝', 'Text'], ['🔄', 'Transitions'], ['🎬', 'AI Video'], ['🎥', 'Recorder'], ['🎙️', 'Enhanced Recorder'], ['📋', 'Templates'], ['👀', 'Preview Template'], ['📱', 'Social'], ['📧', 'Email Campaign'], ['🔗', 'URL Video'], ['📸', 'Page Shot'], ['👥', 'Contacts'], ['🎨', 'Canvas'], ['🏷️', 'Token Editor'], ['📦', 'Batch Generator'], ['🔄', 'Workflow'], ['👤', 'Personalization'], ['✏️', 'Personalization Editor'], ['🎬', 'Personalization Suite'], ['🏠', 'Landing Pages'], ['📋', 'Lead Generator'],
-        // CineGen quick tools (editor-only → floating rail)
-        ['🎨', 'CineGen Tools'], ['GF', 'Gap Fill'], ['EX', 'Extend Clip'], ['♫', 'Generate Music'], ['M', 'Mask Tool'], ['EL', 'Element'], ['Polish', 'Polish'], ['Sub', 'Smart Subtitles'], ['LLM', 'LLM Assistant'], ['SAM', 'SAM3'], ['Sync', 'Audio Sync'], ['Layer', 'Layer Decomp'], ['Shot', 'Shot Board'], ['Proxy', 'Proxy Play'], ['Plan', 'Comp Plan'],
-        // Collapsed editor panels (editor-only → floating rail)
-        ['🎬', 'Scene Detector'], ['🎥', 'Camera FX'], ['📊', 'Color Scopes'], ['🎞️', 'Multi-Cam'], ['✂️', 'Clip Editor'], ['🔄', 'Transitions Panel'], ['🎨', 'CineGen Results'], ['🎭', 'Anim Demo']],
+      railActions: [['＋', 'Media'], ['✨', 'Generate', true], ['⬆', 'Export']],
 
       // Enhanced state management
       projectId: null,
@@ -4590,6 +4586,13 @@ export function TimelineEditorPage() {
     }
 
     function bindEvents() {
+      const required = ['playBtn','stopBtn','rewindBtn','generateBtn','uploadBtn','uploadInput','backBtn'];
+      const missing = required.filter(id => !els[id]);
+      if (missing.length) {
+        console.warn('[Timeline] Skipping bindEvents, missing elements:', missing);
+        return;
+      }
+
       els.playBtn.addEventListener('click', togglePlayback);
       els.stopBtn.addEventListener('click', stopPlayback);
       els.rewindBtn.addEventListener('click', rewindPlayback);
@@ -4643,8 +4646,8 @@ export function TimelineEditorPage() {
       if (runNoiseDemoBtn) runNoiseDemoBtn.addEventListener('click', () => runNoiseDemo(animationCanvas, demoStatus));
       if (runInterpolateDemoBtn) runInterpolateDemoBtn.addEventListener('click', () => runInterpolateDemo(animationCanvas, demoStatus));
 
-      els.uploadBtn.addEventListener('click', () => els.uploadInput.click());
-      els.uploadInput.addEventListener('change', (event) => handleUpload(event.target.files?.[0]));
+      els.uploadBtn?.addEventListener('click', () => els.uploadInput?.click());
+      els.uploadInput?.addEventListener('change', (event) => handleUpload(event.target.files?.[0]));
 
       // VideoDB: add an indexed video to the timeline using the user's VideoDB
       // API key (configured in Settings).
@@ -4656,7 +4659,7 @@ export function TimelineEditorPage() {
           }
         });
       }
-      els.backBtn.addEventListener('click', () => showToast('Back action clicked'));
+      if (els.backBtn) els.backBtn.addEventListener('click', () => showToast('Back action clicked'));
 
       // Mobile side-panel tab switching. On desktop all panels are visible
       // (CSS overrides `hidden` attribute). On mobile, only the active tab's
