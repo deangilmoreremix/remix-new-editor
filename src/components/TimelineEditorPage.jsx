@@ -2120,11 +2120,20 @@ export function TimelineEditorPage() {
             const allClips = state.tracks.flatMap(t => t.clips);
             const clip = allClips.find(c => c.id === data.clipId);
             if (clip && track) {
-              // Remove from old track
-              state.tracks.forEach(t => t.clips = t.clips.filter(c => c.id !== clip.id));
+              // Remove from old track. The drop handler maintains the
+              // `track.items` ↔ `track.clips` aliasing (set up at state
+              // creation, lines ~711-717): writes that reassign .clips
+              // MUST also rewrite .items or the enhanced state
+              // (which reads `track.items` first at ~line 1985) will
+              // be stale and the clip won't visually move.
+              state.tracks.forEach(t => {
+                t.clips = t.clips.filter(c => c.id !== clip.id);
+                t.items = t.clips;
+              });
               // Add to new track
               clip.left = Math.max(0, Math.min(100 - clip.width, percent));
               track.clips.push(clip);
+              track.items = track.clips;
               // Sort clips by left
               track.clips.sort((a, b) => a.left - b.left);
               saveStateSnapshot(state);
@@ -2166,6 +2175,9 @@ export function TimelineEditorPage() {
             }
             const newClip = { id: Date.now(), name: data.label, left: Math.max(0, percent), width: 16, type: data.mediaType, ...extra };
             track.clips.push(newClip);
+            // Keep track.items in sync (alias of track.clips) so the
+            // enhanced state at ~line 1985 reads the new clip too.
+            track.items = track.clips;
             state.selectedClipId = newClip.id;
             saveStateSnapshot(state);
             renderTracks();
