@@ -8,29 +8,32 @@
 
 import React, { useState } from 'react';
 import { useSignIn } from '@clerk/react';
-import { clerkErrorMessage } from './AuthLayout.jsx';
+import { clerkErrorMessage, clerkWithTimeout } from './AuthLayout.jsx';
 
 export function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
   const isLoaded = fetchStatus !== 'fetching';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
+  const [step, setStep] = useState('form'); // 'form' | 'verify'
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verificationType, setVerificationType] = useState(''); // 'client_trust' | 'mfa'
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!signIn || fetchStatus === 'fetching') return;
-    setLoading(true);
-    setError('');
-    const { error: resultError } = await signIn.password({ identifier: email, password });
-    if (resultError) {
-      setError(clerkErrorMessage(resultError, errors) || 'Sign in failed. Please check your credentials.');
-      setLoading(false);
+    if (!signIn || fetchStatus === 'fetching') {
+      setError('Authentication is still loading. Please wait a moment and try again.');
       return;
     }
-    if (signIn.status === 'needs_second_factor' || signIn.status === 'needs_client_trust') {
-      setError('Additional verification is required. This flow needs the email/authenticator code step.');
+    setLoading(true);
+    setError('');
+    const { error: resultError } = await clerkWithTimeout(
+      signIn.password({ identifier: email, password })
+    );
+    if (resultError) {
+      setError(clerkErrorMessage(resultError, errors) || 'Sign in failed. Please check your credentials.');
       setLoading(false);
       return;
     }
@@ -43,7 +46,78 @@ export function SignInPage() {
       });
       return;
     }
+
+    if (signIn.status === 'needs_client_trust') {
+      const emailCodeFactor = signIn.supportedSecondFactors?.find(
+        (factor) => factor.strategy === 'email_code',
+      );
+      if (!emailCodeFactor) {
+        setError('Email verification is required but not available. Please contact support.');
+        setLoading(false);
+        return;
+      }
+      const { error: sendError } = await clerkWithTimeout(signIn.mfa.sendEmailCode());
+      if (sendError) {
+        setError(clerkErrorMessage(sendError, errors) || 'Could not start verification. Please try again.');
+        setLoading(false);
+        return;
+      }
+      setVerificationType('client_trust');
+      setStep('verify');
+      setLoading(false);
+      return;
+    }
+
+    if (signIn.status === 'needs_second_factor') {
+      const { error: sendError } = await clerkWithTimeout(signIn.prepareSecondFactor());
+      if (sendError) {
+        setError(clerkErrorMessage(sendError, errors) || 'Could not start verification. Please try again.');
+        setLoading(false);
+        return;
+      }
+      setVerificationType('mfa');
+      setStep('verify');
+      setLoading(false);
+      return;
+    }
     setError(clerkErrorMessage(null, errors) || 'Sign in could not be completed. Please try again.');
+    setLoading(false);
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    if (!signIn || fetchStatus === 'fetching') {
+      setError('Authentication is still loading. Please wait a moment and try again.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+
+    let resultError;
+
+    if (verificationType === 'client_trust') {
+      const { error } = await clerkWithTimeout(signIn.mfa.verifyEmailCode({ code }));
+      resultError = error;
+    } else {
+      const { error } = await clerkWithTimeout(signIn.attemptSecondFactor({ code }));
+      resultError = error;
+    }
+
+    if (resultError) {
+      setError(clerkErrorMessage(resultError, errors) || 'Invalid verification code.');
+      setLoading(false);
+      return;
+    }
+    if (signIn.status === 'complete') {
+      await signIn.finalize({
+        navigate: async ({ session, decorateUrl }) => {
+          const url = decorateUrl('/#/image');
+          window.location.href = url.startsWith('http') ? url : '/#/image';
+        },
+      });
+      return;
+    }
+    setError(clerkErrorMessage(null, errors) || 'Verification could not be completed. Please try again.');
     setLoading(false);
   };
 
@@ -84,6 +158,8 @@ export function SignInPage() {
         <div className="w-full max-w-md mx-auto">
           {/* Sign In Card */}
           <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 md:p-10">
+            {step === 'form' ? (
+              <>
             <div className="text-center mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Welcome Back</h1>
               <p className="text-slate-400">Sign in to continue your creative journey</p>
@@ -156,7 +232,8 @@ export function SignInPage() {
 
               {/* Submit Button */}
               <button
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 disabled={loading || !isLoaded}
                 className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-200 shadow-lg shadow-cyan-400/25 hover:shadow-cyan-300/40 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -173,6 +250,60 @@ export function SignInPage() {
                 </a>
               </p>
             </div>
+              </>
+            ) : (
+              <>
+                <div className="text-center mb-8">
+                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Verify It's You</h1>
+                  <p className="text-slate-400">Enter the 6-digit code we sent to {email}</p>
+                </div>
+
+                <form onSubmit={handleVerify} className="space-y-6">
+                  <div>
+                    <label htmlFor="code" className="block text-sm font-medium text-white mb-2">
+                      Verification Code
+                    </label>
+                    <input
+                      id="code"
+                      type="text"
+                      name="code"
+                      required
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200 tracking-widest text-center text-lg"
+                      placeholder="123456"
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 p-3 text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleVerify}
+                    disabled={loading || !isLoaded}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-200 shadow-lg shadow-cyan-400/25 hover:shadow-cyan-300/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Verifying…' : 'Verify'}
+                  </button>
+                </form>
+
+                <div className="mt-8 text-center">
+                  <button
+                    type="button"
+                    onClick={() => { setStep('form'); setError(''); setCode(''); }}
+                    className="text-sm text-cyan-400 hover:text-cyan-300 transition"
+                  >
+                    Back to sign in
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </main>
