@@ -2200,6 +2200,16 @@ export function TimelineEditorPage() {
 
             clips.forEach(c => {
               c.left = targetLeft + (c === first ? 0 : drift);
+              // Keep the time-based properties in sync with the new pixel
+              // position. renderTracksIncremental and renderTracks both
+              // read clip.start/clip.end directly; without this write-back
+              // a cross-track drop would leave stale start/end and the
+              // clip would desync on the next paint.
+              if (state.timelineSeconds) {
+                const durSec = Math.max(0, ((c.width || first.width || 0) / 100) * state.timelineSeconds);
+                c.start = (c.left / 100) * state.timelineSeconds;
+                c.end = c.start + durSec;
+              }
               track.items.push(c);
             });
             track.items.sort((a, b) => (a.left || 0) - (b.left || 0));
