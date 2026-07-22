@@ -1860,6 +1860,15 @@ export function TimelineEditorPage() {
             clipEl = document.createElement('button');
             clipEl.type = 'button';
             clipEl.tabIndex = 0;
+            // HTML5 native drag-and-drop so clips can be moved between tracks /
+            // positions on the timeline. The lane drop zone (see renderTracks,
+            // ~line 2032) handles the data.type === 'clip' branch and re-renders.
+            // (The older mousedown-based clip drag in dragDrop.js is dead — its
+            // initializeClipDragDrop has no callers — so this is the only
+            // clip-drag path.)
+            clipEl.draggable = true;
+            clipEl.dataset.itemId = clip.id;
+            clipEl.dataset.trackId = track.id;
             cached.lane.appendChild(clipEl);
             cached.clipEls.set(clip.id, clipEl);
 
@@ -1871,6 +1880,27 @@ export function TimelineEditorPage() {
               // Full pipeline rebuild: re-rendering with the viewState closure
               // would keep the stale selectedClipId and .active would never move.
               renderTracks();
+            });
+
+            clipEl.addEventListener('dragstart', (e) => {
+              // Trim handles initiate a separate drag for trimming — never
+              // start a move-drag from one. data-handle is set on .l/.r in
+              // the structure template below.
+              if (e.target.dataset && e.target.dataset.handle) return;
+              const payload = { type: 'clip', clipId: clip.id };
+              try {
+                e.dataTransfer.setData('application/json', JSON.stringify(payload));
+                e.dataTransfer.effectAllowed = 'move';
+                // Suppress the default translucent-clone drag image; the
+                // drop-highlight on the lane is enough visual feedback.
+                const ghost = document.createElement('div');
+                ghost.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;';
+                document.body.appendChild(ghost);
+                e.dataTransfer.setDragImage(ghost, 0, 0);
+                requestAnimationFrame(() => ghost.remove());
+              } catch (err) {
+                console.warn('[Timeline] clip dragstart failed', err);
+              }
             });
           }
 
@@ -2020,6 +2050,13 @@ export function TimelineEditorPage() {
       // Add enhanced drag and drop handlers
       els.trackRows.querySelectorAll('.track-lane').forEach(lane => {
         const track = state.tracks.find(t => t.id === lane.dataset.trackId);
+
+        // Wire each lane's listeners exactly once. renderTracks is called on
+        // every state mutation (toggles, drops, undo, etc.) and would
+        // otherwise stack N copies of every handler — a single drop would
+        // then insert N clips.
+        if (lane.dataset.dragWired === '1') return;
+        lane.dataset.dragWired = '1';
 
         lane.addEventListener('click', (event) => {
           if (event.target !== lane) return;
