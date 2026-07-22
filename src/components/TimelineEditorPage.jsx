@@ -5456,6 +5456,425 @@ export function TimelineEditorPage() {
       }
     }
 
+    // FEATURE HELPERS — insertion maintain the track.items / track.clips alias.
+    // Every mutation path below sets track.items = track.clips after reassigning
+    // .clips, so the renderer's path at ~line 2015 (track.items first) stays
+    // in sync. These helpers are referenced from the drop handler at ~2074 and
+    // from bindEvents() for keyboard actions.
+
+    function ensureItemsAlias(track) {
+      if (!track) return;
+      if (Array.isArray(track.items)) {
+        track.clips = track.items;
+      } else if (Array.isArray(track.clips)) {
+        track.items = track.clips;
+      } else {
+        track.items = [];
+        track.clips = track.items;
+      }
+    }
+
+    function reAliasAllTracks(state) {
+      (state.tracks || []).forEach(ensureItemsAlias);
+    }
+
+    // --- snapshot + undo helper ---
+    function commitAndRender(state) {
+      saveStateSnapshot(state);
+      renderTracks();
+    }
+
+    // --- shift downstream clips after an insert point ---
+    function shiftClipsAfter(track, fromPercent, byPercent) {
+      if (!track || !Array.isArray(track.items)) return;
+      track.items.forEach(clip => {
+        const clipEnd = (clip.left || 0) + (clip.width || 0);
+        if ((clip.left || 0) >= fromPercent - 0.05) {
+          clip.left = clipEnd + byPercent; // advance so clips touch edge-to-edge
+          // recalculate width unchanged, or we can keep it and just move left
+          // we want the clip's left to be pushed to the right edge of the inserted clip
+          clip.left = fromPercent + byPercent; // actual insert drift
+        }
+      });
+      reAliasAllTracks(state);
+    }
+
+    // --- gap-aware insert shift: push right until a gap is reached ---
+    function shiftClipsUntilGap(track, fromPercent, minFreePercent) {
+      if (!track || !Array.isArray(track.items)) return;
+      const sorted = [...track.items].sort((a, b) => (a.left || 0) - (b.left || 0));
+      let cursor = fromPercent;
+      for (const clip of sorted) {
+        const clipEnd = (clip.left || 0) + (clip.width || 0);
+        // if this clip sits before the insert point, update cursor to its end
+        if ((clip.left || 0) + (clip.width || 0) <= fromPercent + 0.05) {
+          cursor = Math.max(cursor, clipEnd);
+        } else if ((clip.left || 0) < fromPercent - 0.05) {
+          cursor = Math.max(cursor, clipEnd);
+        }
+      }
+      return cursor;
+    }
+
+    // --- insert mode mutation: push downstream in the target track ---
+    function applyInsertMode(track, insertLeft, insertWidth) {
+      if (!state.insertMode || !track || !Array.isArray(track.items)) return;
+      const sorted = [...track.items].sort((a, b) => (a.left || 0) - (b.left || 0));
+      let drift = 0;
+      for (const clip of sorted) {
+        const clipStart = clip.left || 0;
+        if (clipStart >= insertLeft - 0.05) {
+          clip.left = clipStart + insertWidth;
+        }
+      }
+      reAliasAllTracks(state);
+    }
+
+    // --- overwrite mode mutation: remove anything fully covered ---
+    function applyOverwriteMode(track, insertLeft, insertWidth) {
+      if (!state.overwriteMode || !track || !Array.isArray(track.items)) return;
+      const insertEnd = insertLeft + insertWidth;
+      track.items = track.items.filter(clip => {
+        const clipEnd = (clip.left || 0) + (clip.width || 0);
+        const clippedLeft = Math.max(clip.left || 0, insertLeft);
+        const clippedRight = Math.min(clipEnd, insertEnd);
+        return (clippedRight - clippedLeft) < 0.5; // keep anything not fully overwritten
+      });
+      reAliasAllTracks(state);
+    }
+
+    // --- ripple: trim tail past timeline end ---
+    function trimTailPastEnd(track, timelineSeconds) {
+      if (!track || !Array.isArray(track.items)) return;
+      const limitPercent = 100;
+      track.items = track.items.filter(clip => {
+        const end = (clip.left || 0) + (clip.width || 0);
+        return end <= limitPercent + 0.05;
+      });
+      reAliasAllTracks(state);
+    }
+
+    // --- snap-to-gap: find the nearest gap in a track, return center % ---
+    function findNearestGap(track, clipWidthPercent, rawLeftPercent) {
+      if (!track || !Array.isArray(track.items)) return null;
+      const sorted = [...track.items].sort((a, b) => (a.left || 0) - (b.left || 0));
+      const candidates = [];
+      let prevEnd = 0;
+      for (const clip of sorted) {
+        const clipEnd = (clip.left || 0) + (clip.width || 0);
+        const free = (clip.left || 0) - prevEnd;
+        if (free >= clipWidthPercent - 0.1) {
+          candidates.push({ left: prevEnd, width: free, dist: Math.abs(rawLeftPercent - (prevEnd + free / 2)) });
+        }
+        prevEnd = clipEnd;
+      }
+      const tailFree = 100 - prevEnd;
+      if (tailFree >= clipWidthPercent - 0.1) {
+        candidates.push({ left: prevEnd, width: tailFree, dist: Math.abs(rawLeftPercent - (prevEnd + tailFree / 2)) });
+      }
+      if (!candidates.length) return null;
+      candidates.sort((a, b) => a.dist - b.dist);
+      return candidates[0];
+    }
+
+    // --- merge selected clip with its touching neighbor ---
+    function mergeAdjacentClipWithNeighbor() {
+      const selId = state.selectedClipId;
+      if (!selId) { showToast('Select a clip that is touching another clip to merge', 'info'); return null; }
+      let found = null;
+      for (const track of state.tracks) {
+        if (!Array.isArray(track.items)) continue;
+        if (!track.items.some(c => c.id === selId)) continue;
+        const idx = track.items.findIndex(c => c.id === selId);
+        if (idx < 0) continue;
+        const center = track.items[idx];
+        for (const dir of [-1, 1]) {
+          const ni = idx + dir;
+          if (ni < 0 || ni >= track.items.length) continue;
+          const neighbor = track.items[ni];
+          const cEnd = (center.left || 0) + (center.width || 0);
+          const nEnd = (neighbor.left || 0) + (neighbor.width || 0);
+          if (Math.abs((dir < 0 ? nEnd : (neighbor.left || 0)) - (dir < 0 ? (center.left || 0) : cEnd)) < 0.4) {
+            const left = Math.min(center.left || 0, neighbor.left || 0);
+            const width = Math.max(cEnd, nEnd) - left;
+            const merged = {
+              ...center,
+              id: 'clip-' + Date.now(),
+              left,
+              width,
+              name: [center.name, neighbor.name].filter(Boolean).join(' + ') || 'Merged',
+              start: center.start != null ? center.start : (left / 100) * (state.timelineSeconds || 60),
+              end: (left + width) / 100 * (state.timelineSeconds || 60)
+            };
+            track.items = track.items.filter(c => c.id !== center.id && c.id !== neighbor.id);
+            track.items.push(merged);
+            reAliasAllTracks(state);
+            state.selectedClipId = merged.id;
+            commitAndRender(state);
+            showToast('Clips merged', 'success');
+            return merged;
+          }
+        }
+      }
+      showToast('No touching neighbor found to merge', 'info');
+      return null;
+    }
+
+    // --- grouping ---
+    function groupSelectedClips() {
+      const ids = Array.from(state.selectedClipIds || []);
+      if (ids.length < 2) { showToast('Select 2+ clips with Ctrl+Click before grouping', 'info'); return; }
+      const gid = 'grp-' + Date.now();
+      ids.forEach(id => {
+        for (const track of state.tracks) {
+          const c = (track.items || []).find(x => x.id === id);
+          if (c) { c.groupId = gid; break; }
+        }
+      });
+      saveStateSnapshot(state);
+      renderTracks();
+      showToast(`Grouped ${ids.length} clips`, 'success');
+    }
+
+    function ungroupSelectedClips() {
+      const ids = Array.from(state.selectedClipIds || []);
+      let removed = 0;
+      ids.forEach(id => {
+        for (const track of state.tracks) {
+          const c = (track.items || []).find(x => x.id === id);
+          if (c && c.groupId) { delete c.groupId; removed++; break; }
+        }
+      });
+      saveStateSnapshot(state);
+      renderTracks();
+      if (removed) showToast(`Ungrouped ${removed} clips`, 'success');
+    }
+
+    // --- copy/paste ---
+    function copySelectedClip() {
+      const t = findSelectedClip();
+      if (!t) { showToast('Select a clip to copy', 'info'); return; }
+      state.clipboard = JSON.parse(JSON.stringify(t));
+      showToast('Clip copied', 'success');
+    }
+
+    function pasteClipAtPlayhead() {
+      const template = state.clipboard;
+      if (!template) { showToast('Clipboard is empty — copy a clip first', 'info'); return; }
+      const targetTrack = state.tracks.find(tr => (tr.type || 'video') === (template.type || 'video')) || state.tracks[0];
+      if (!targetTrack) return;
+      const left = Math.max(0, Math.min(100 - (template.width || 16), (state.playheadPercent || 0)));
+      const clone = { ...template, id: 'clip-' + Date.now(), left };
+      targetTrack.items.push(clone);
+      reAliasAllTracks(state);
+      state.selectedClipId = clone.id;
+      commitAndRender(state);
+      showToast('Clip pasted', 'success');
+    }
+
+    // --- delete / duplicate selected ---
+    function deleteSelectedClip() {
+      const selId = state.selectedClipId;
+      if (!selId) return;
+      for (const track of state.tracks) {
+        const before = track.items.length;
+        track.items = track.items.filter(c => c.id !== selId);
+        if (track.items.length !== before) { reAliasAllTracks(state); break; }
+      }
+      state.selectedClipId = null;
+      commitAndRender(state);
+    }
+
+    function duplicateSelectedClip() {
+      const t = findSelectedClip();
+      if (!t) return;
+      const track = state.tracks.find(tr => (tr.items || []).some(c => c.id === t.id));
+      if (!track) return;
+      const clone = { ...JSON.parse(JSON.stringify(t)), id: 'clip-' + Date.now(), left: Math.min(100 - (t.width || 16), (t.left || 0) + (t.width || 16)) };
+      track.items.push(clone);
+      reAliasAllTracks(state);
+      state.selectedClipId = clone.id;
+      commitAndRender(state);
+      showToast('Clip duplicated', 'success');
+    }
+
+    // --- nudge selected clip by delta seconds (e.g., for [ / ] keys) ---
+    function nudgeSelectedClip(deltaSeconds) {
+      const t = findSelectedClip();
+      if (!t) return;
+      const seconds = (state.timelineSeconds || 60);
+      const deltaPct = (deltaSeconds / seconds) * 100;
+      t.left = Math.max(0, Math.min(100 - (t.width || 16), (t.left || 0) + deltaPct));
+      reAliasAllTracks(state);
+      commitAndRender(state);
+    }
+
+    // --- snapping ---
+    function computeSnapCandidates() {
+      const candidates = [];
+      (state.tracks || []).forEach(track => {
+        (track.items || []).forEach(clip => {
+          const left = clip.left || 0;
+          const width = clip.width || 16;
+          candidates.push({ trackId: track.id, clipId: clip.id, leftPercent: left, rightPercent: left + width, widthPercent: width });
+        });
+      });
+      if (state.playheadPercent != null && !isNaN(state.playheadPercent)) {
+        candidates.push({ trackId: null, clipId: 'playhead', leftPercent: state.playheadPercent, rightPercent: state.playheadPercent, widthPercent: 0 });
+      }
+      const gridStepSec = 0.5;
+      const timelineSec = state.timelineSeconds || 60;
+      const gridPercent = (gridStepSec / timelineSec) * 100;
+      for (let p = 0; p <= 100; p += gridPercent) {
+        candidates.push({ trackId: null, clipId: 'grid', leftPercent: p, rightPercent: p, widthPercent: 0 });
+      }
+      return candidates;
+    }
+
+    function snapPercent(rawPercent, candidates, trackId, clipWidthPercent, tolerancePercent) {
+      if (!state.snapEnabled) return rawPercent;
+      const t = tolerancePercent || 1.5;
+      let best = rawPercent;
+      let bestDist = t;
+      const leftTargets = [rawPercent];
+      const rightTargets = [rawPercent + (clipWidthPercent || 16)];
+      for (const c of candidates) {
+        if (c.trackId && c.trackId !== trackId) continue;
+        const pts = [c.leftPercent, c.rightPercent];
+        for (const raw of leftTargets) {
+          for (const p of pts) {
+            const d = Math.abs(raw - p);
+            if (d < bestDist) { bestDist = d; best = raw === rawPercent ? p : rawPercent; }
+          }
+        }
+      }
+      return Math.max(0, Math.min(100 - (clipWidthPercent || 16), best));
+    }
+
+    // --- visual snap guide ---
+    function renderSnapGuide(leftPercent) {
+      clearSnapGuide();
+      const guide = document.createElement('div');
+      guide.className = 'snap-guide-line';
+      guide.style.cssText = `position:absolute;left:${leftPercent}%;top:0;bottom:0;width:1px;background:#4ade80;pointer-events:none;z-index:50;opacity:.9;`;
+      const rows = document.getElementById('trackRows') || document.querySelector('.timeline-body');
+      if (rows) rows.appendChild(guide);
+    }
+
+    function clearSnapGuide() {
+      document.querySelectorAll('.snap-guide-line').forEach(el => el.remove());
+    }
+
+    // --- ruler timecodes ---
+    function renderTimecodeRuler(timelineSeconds, playheadPercent, zoom) {
+      const canvas = document.getElementById('rulerCanvas');
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const w = Math.max(rect.width || 800, 1);
+      const h = 28;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = 'rgba(255,255,255,0.04)';
+      ctx.fillRect(0, 0, w, h);
+      const step = 1;
+      ctx.font = '10px Inter, ui-sans-serif, system-ui';
+      ctx.textAlign = 'center';
+      for (let t = 0; t <= timelineSeconds; t += step) {
+        const x = (t / timelineSeconds) * 100 * (w / 100);
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.beginPath(); ctx.moveTo(x, 16); ctx.lineTo(x, h); ctx.stroke();
+        const mm = String(Math.floor(t / 60)).padStart(2, '0');
+        const ss = String(Math.floor(t % 60)).padStart(2, '0');
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillText(`${mm}:${ss}`, x, 12);
+      }
+      const px = ((playheadPercent || 0) / 100) * w;
+      ctx.strokeStyle = '#f87171';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
+      ctx.fillStyle = '#f87171';
+      ctx.beginPath(); ctx.moveTo(px - 5, 0); ctx.lineTo(px + 5, 0); ctx.lineTo(px, 6); ctx.closePath(); ctx.fill();
+    }
+
+    // --- mini-map overview ---
+    function renderMiniMap() {
+      let map = document.getElementById('miniMap');
+      if (!map) {
+        map = document.createElement('div');
+        map.id = 'miniMap';
+        map.style.cssText = 'position:relative;height:14px;background:rgba(255,255,255,0.03);border-radius:4px;margin:6px 0;overflow:hidden;';
+        const header = document.querySelector('.timeline-header');
+        if (header) header.appendChild(map);
+      }
+      map.innerHTML = '';
+      (state.tracks || []).forEach(track => {
+        const colors = { video: '#3b82f6', audio: '#10b981', text: '#f59e0b', effects: '#a78bfa', 'b-roll': '#8b5cf6' };
+        (track.items || []).forEach(clip => {
+          const el = document.createElement('div');
+          const left = clip.left || 0;
+          const w = clip.width || 16;
+          el.style.cssText = `position:absolute;left:${left}%;width:${w}%;top:2px;bottom:2px;background:${colors[track.type] || colors.video};border-radius:2px;opacity:.7;`;
+          map.appendChild(el);
+        });
+      });
+      const ph = document.createElement('div');
+      ph.style.cssText = `position:absolute;left:${state.playheadPercent || 0}%;top:-2px;bottom:-2px;width:1px;background:#f87171;pointer-events:none;`;
+      map.appendChild(ph);
+    }
+
+    // --- track visibility controls ---
+    function renderTrackVisibilityControls() {
+      const panel = document.getElementById('trackVisibilityPanel');
+      if (!panel) return;
+      panel.innerHTML = '';
+      (state.tracks || []).forEach(track => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:4px 0;';
+        const left = document.createElement('span');
+        left.textContent = track.name;
+        left.style.cssText = 'font-size:12px;color:rgba(255,255,255,0.8);';
+        const btn = document.createElement('button');
+        const vis = track.visible !== false;
+        btn.textContent = vis ? '👁' : '—';
+        btn.title = vis ? 'Hide track' : 'Show track';
+        btn.onclick = () => {
+          track.visible = !track.visible;
+          renderTrackVisibilityControls();
+          renderTracks();
+        };
+        row.appendChild(left);
+        row.appendChild(btn);
+        panel.appendChild(row);
+      });
+    }
+
+    // --- group drag behavior: when dragstart includes groupId=true, attach it ---
+    function attachGroupDragData(dataTransfer, clip) {
+      if (state.clipGroups && clip.groupId) {
+        const members = (state.tracks || []).flatMap(t => (t.items || []).filter(c => c.groupId === clip.groupId && c.id !== clip.id));
+        if (members.length) {
+          dataTransfer.setData('application/json', JSON.stringify({ type: 'clip-group', clipIds: [clip.id, ...members.map(c => c.id)] }));
+        }
+      }
+    }
+
+    // Helpers for finding selected clip by type model
+    function findSelectedClip() {
+      const selId = state.selectedClipId;
+      if (!selId) return null;
+      for (const track of state.tracks) {
+        const clip = (track.items || []).find(c => c.id === selId);
+        if (clip) return clip;
+      }
+      return null;
+    }
+
     return {
       destroy() {
         window.clearInterval(playbackTimer);
@@ -5470,425 +5889,6 @@ export function TimelineEditorPage() {
         saveProjectToStorage(state);
       }
     };
-  }
-
-  // FEATURE HELPERS — insertion maintain the track.items / track.clips alias.
-  // Every mutation path below sets track.items = track.clips after reassigning
-  // .clips, so the renderer's path at ~line 2015 (track.items first) stays
-  // in sync. These helpers are referenced from the drop handler at ~2074 and
-  // from bindEvents() for keyboard actions.
-
-  function ensureItemsAlias(track) {
-    if (!track) return;
-    if (Array.isArray(track.items)) {
-      track.clips = track.items;
-    } else if (Array.isArray(track.clips)) {
-      track.items = track.clips;
-    } else {
-      track.items = [];
-      track.clips = track.items;
-    }
-  }
-
-  function reAliasAllTracks(state) {
-    (state.tracks || []).forEach(ensureItemsAlias);
-  }
-
-  // --- snapshot + undo helper ---
-  function commitAndRender(state) {
-    saveStateSnapshot(state);
-    renderTracks();
-  }
-
-  // --- shift downstream clips after an insert point ---
-  function shiftClipsAfter(track, fromPercent, byPercent) {
-    if (!track || !Array.isArray(track.items)) return;
-    track.items.forEach(clip => {
-      const clipEnd = (clip.left || 0) + (clip.width || 0);
-      if ((clip.left || 0) >= fromPercent - 0.05) {
-        clip.left = clipEnd + byPercent; // advance so clips touch edge-to-edge
-        // recalculate width unchanged, or we can keep it and just move left
-        // we want the clip's left to be pushed to the right edge of the inserted clip
-        clip.left = fromPercent + byPercent; // actual insert drift
-      }
-    });
-    reAliasAllTracks(state);
-  }
-
-  // --- gap-aware insert shift: push right until a gap is reached ---
-  function shiftClipsUntilGap(track, fromPercent, minFreePercent) {
-    if (!track || !Array.isArray(track.items)) return;
-    const sorted = [...track.items].sort((a, b) => (a.left || 0) - (b.left || 0));
-    let cursor = fromPercent;
-    for (const clip of sorted) {
-      const clipEnd = (clip.left || 0) + (clip.width || 0);
-      // if this clip sits before the insert point, update cursor to its end
-      if ((clip.left || 0) + (clip.width || 0) <= fromPercent + 0.05) {
-        cursor = Math.max(cursor, clipEnd);
-      } else if ((clip.left || 0) < fromPercent - 0.05) {
-        cursor = Math.max(cursor, clipEnd);
-      }
-    }
-    return cursor;
-  }
-
-  // --- insert mode mutation: push downstream in the target track ---
-  function applyInsertMode(track, insertLeft, insertWidth) {
-    if (!state.insertMode || !track || !Array.isArray(track.items)) return;
-    const sorted = [...track.items].sort((a, b) => (a.left || 0) - (b.left || 0));
-    let drift = 0;
-    for (const clip of sorted) {
-      const clipStart = clip.left || 0;
-      if (clipStart >= insertLeft - 0.05) {
-        clip.left = clipStart + insertWidth;
-      }
-    }
-    reAliasAllTracks(state);
-  }
-
-  // --- overwrite mode mutation: remove anything fully covered ---
-  function applyOverwriteMode(track, insertLeft, insertWidth) {
-    if (!state.overwriteMode || !track || !Array.isArray(track.items)) return;
-    const insertEnd = insertLeft + insertWidth;
-    track.items = track.items.filter(clip => {
-      const clipEnd = (clip.left || 0) + (clip.width || 0);
-      const clippedLeft = Math.max(clip.left || 0, insertLeft);
-      const clippedRight = Math.min(clipEnd, insertEnd);
-      return (clippedRight - clippedLeft) < 0.5; // keep anything not fully overwritten
-    });
-    reAliasAllTracks(state);
-  }
-
-  // --- ripple: trim tail past timeline end ---
-  function trimTailPastEnd(track, timelineSeconds) {
-    if (!track || !Array.isArray(track.items)) return;
-    const limitPercent = 100;
-    track.items = track.items.filter(clip => {
-      const end = (clip.left || 0) + (clip.width || 0);
-      return end <= limitPercent + 0.05;
-    });
-    reAliasAllTracks(state);
-  }
-
-  // --- snap-to-gap: find the nearest gap in a track, return center % ---
-  function findNearestGap(track, clipWidthPercent, rawLeftPercent) {
-    if (!track || !Array.isArray(track.items)) return null;
-    const sorted = [...track.items].sort((a, b) => (a.left || 0) - (b.left || 0));
-    const candidates = [];
-    let prevEnd = 0;
-    for (const clip of sorted) {
-      const clipEnd = (clip.left || 0) + (clip.width || 0);
-      const free = (clip.left || 0) - prevEnd;
-      if (free >= clipWidthPercent - 0.1) {
-        candidates.push({ left: prevEnd, width: free, dist: Math.abs(rawLeftPercent - (prevEnd + free / 2)) });
-      }
-      prevEnd = clipEnd;
-    }
-    const tailFree = 100 - prevEnd;
-    if (tailFree >= clipWidthPercent - 0.1) {
-      candidates.push({ left: prevEnd, width: tailFree, dist: Math.abs(rawLeftPercent - (prevEnd + tailFree / 2)) });
-    }
-    if (!candidates.length) return null;
-    candidates.sort((a, b) => a.dist - b.dist);
-    return candidates[0];
-  }
-
-  // --- merge selected clip with its touching neighbor ---
-  function mergeAdjacentClipWithNeighbor() {
-    const selId = state.selectedClipId;
-    if (!selId) { showToast('Select a clip that is touching another clip to merge', 'info'); return null; }
-    let found = null;
-    for (const track of state.tracks) {
-      if (!Array.isArray(track.items)) continue;
-      if (!track.items.some(c => c.id === selId)) continue;
-      const idx = track.items.findIndex(c => c.id === selId);
-      if (idx < 0) continue;
-      const center = track.items[idx];
-      for (const dir of [-1, 1]) {
-        const ni = idx + dir;
-        if (ni < 0 || ni >= track.items.length) continue;
-        const neighbor = track.items[ni];
-        const cEnd = (center.left || 0) + (center.width || 0);
-        const nEnd = (neighbor.left || 0) + (neighbor.width || 0);
-        if (Math.abs((dir < 0 ? nEnd : (neighbor.left || 0)) - (dir < 0 ? (center.left || 0) : cEnd)) < 0.4) {
-          const left = Math.min(center.left || 0, neighbor.left || 0);
-          const width = Math.max(cEnd, nEnd) - left;
-          const merged = {
-            ...center,
-            id: 'clip-' + Date.now(),
-            left,
-            width,
-            name: [center.name, neighbor.name].filter(Boolean).join(' + ') || 'Merged',
-            start: center.start != null ? center.start : (left / 100) * (state.timelineSeconds || 60),
-            end: (left + width) / 100 * (state.timelineSeconds || 60)
-          };
-          track.items = track.items.filter(c => c.id !== center.id && c.id !== neighbor.id);
-          track.items.push(merged);
-          reAliasAllTracks(state);
-          state.selectedClipId = merged.id;
-          commitAndRender(state);
-          showToast('Clips merged', 'success');
-          return merged;
-        }
-      }
-    }
-    showToast('No touching neighbor found to merge', 'info');
-    return null;
-  }
-
-  // --- grouping ---
-  function groupSelectedClips() {
-    const ids = Array.from(state.selectedClipIds || []);
-    if (ids.length < 2) { showToast('Select 2+ clips with Ctrl+Click before grouping', 'info'); return; }
-    const gid = 'grp-' + Date.now();
-    ids.forEach(id => {
-      for (const track of state.tracks) {
-        const c = (track.items || []).find(x => x.id === id);
-        if (c) { c.groupId = gid; break; }
-      }
-    });
-    saveStateSnapshot(state);
-    renderTracks();
-    showToast(`Grouped ${ids.length} clips`, 'success');
-  }
-
-  function ungroupSelectedClips() {
-    const ids = Array.from(state.selectedClipIds || []);
-    let removed = 0;
-    ids.forEach(id => {
-      for (const track of state.tracks) {
-        const c = (track.items || []).find(x => x.id === id);
-        if (c && c.groupId) { delete c.groupId; removed++; break; }
-      }
-    });
-    saveStateSnapshot(state);
-    renderTracks();
-    if (removed) showToast(`Ungrouped ${removed} clips`, 'success');
-  }
-
-  // --- copy/paste ---
-  function copySelectedClip() {
-    const t = findSelectedClip();
-    if (!t) { showToast('Select a clip to copy', 'info'); return; }
-    state.clipboard = JSON.parse(JSON.stringify(t));
-    showToast('Clip copied', 'success');
-  }
-
-  function pasteClipAtPlayhead() {
-    const template = state.clipboard;
-    if (!template) { showToast('Clipboard is empty — copy a clip first', 'info'); return; }
-    const targetTrack = state.tracks.find(tr => (tr.type || 'video') === (template.type || 'video')) || state.tracks[0];
-    if (!targetTrack) return;
-    const left = Math.max(0, Math.min(100 - (template.width || 16), (state.playheadPercent || 0)));
-    const clone = { ...template, id: 'clip-' + Date.now(), left };
-    targetTrack.items.push(clone);
-    reAliasAllTracks(state);
-    state.selectedClipId = clone.id;
-    commitAndRender(state);
-    showToast('Clip pasted', 'success');
-  }
-
-  // --- delete / duplicate selected ---
-  function deleteSelectedClip() {
-    const selId = state.selectedClipId;
-    if (!selId) return;
-    for (const track of state.tracks) {
-      const before = track.items.length;
-      track.items = track.items.filter(c => c.id !== selId);
-      if (track.items.length !== before) { reAliasAllTracks(state); break; }
-    }
-    state.selectedClipId = null;
-    commitAndRender(state);
-  }
-
-  function duplicateSelectedClip() {
-    const t = findSelectedClip();
-    if (!t) return;
-    const track = state.tracks.find(tr => (tr.items || []).some(c => c.id === t.id));
-    if (!track) return;
-    const clone = { ...JSON.parse(JSON.stringify(t)), id: 'clip-' + Date.now(), left: Math.min(100 - (t.width || 16), (t.left || 0) + (t.width || 16)) };
-    track.items.push(clone);
-    reAliasAllTracks(state);
-    state.selectedClipId = clone.id;
-    commitAndRender(state);
-    showToast('Clip duplicated', 'success');
-  }
-
-  // --- nudge selected clip by delta seconds (e.g., for [ / ] keys) ---
-  function nudgeSelectedClip(deltaSeconds) {
-    const t = findSelectedClip();
-    if (!t) return;
-    const seconds = (state.timelineSeconds || 60);
-    const deltaPct = (deltaSeconds / seconds) * 100;
-    t.left = Math.max(0, Math.min(100 - (t.width || 16), (t.left || 0) + deltaPct));
-    reAliasAllTracks(state);
-    commitAndRender(state);
-  }
-
-  // --- snapping ---
-  function computeSnapCandidates() {
-    const candidates = [];
-    (state.tracks || []).forEach(track => {
-      (track.items || []).forEach(clip => {
-        const left = clip.left || 0;
-        const width = clip.width || 16;
-        candidates.push({ trackId: track.id, clipId: clip.id, leftPercent: left, rightPercent: left + width, widthPercent: width });
-      });
-    });
-    if (state.playheadPercent != null && !isNaN(state.playheadPercent)) {
-      candidates.push({ trackId: null, clipId: 'playhead', leftPercent: state.playheadPercent, rightPercent: state.playheadPercent, widthPercent: 0 });
-    }
-    const gridStepSec = 0.5;
-    const timelineSec = state.timelineSeconds || 60;
-    const gridPercent = (gridStepSec / timelineSec) * 100;
-    for (let p = 0; p <= 100; p += gridPercent) {
-      candidates.push({ trackId: null, clipId: 'grid', leftPercent: p, rightPercent: p, widthPercent: 0 });
-    }
-    return candidates;
-  }
-
-  function snapPercent(rawPercent, candidates, trackId, clipWidthPercent, tolerancePercent) {
-    if (!state.snapEnabled) return rawPercent;
-    const t = tolerancePercent || 1.5;
-    let best = rawPercent;
-    let bestDist = t;
-    const leftTargets = [rawPercent];
-    const rightTargets = [rawPercent + (clipWidthPercent || 16)];
-    for (const c of candidates) {
-      if (c.trackId && c.trackId !== trackId) continue;
-      const pts = [c.leftPercent, c.rightPercent];
-      for (const raw of leftTargets) {
-        for (const p of pts) {
-          const d = Math.abs(raw - p);
-          if (d < bestDist) { bestDist = d; best = raw === rawPercent ? p : rawPercent; }
-        }
-      }
-    }
-    return Math.max(0, Math.min(100 - (clipWidthPercent || 16), best));
-  }
-
-  // --- visual snap guide ---
-  function renderSnapGuide(leftPercent) {
-    clearSnapGuide();
-    const guide = document.createElement('div');
-    guide.className = 'snap-guide-line';
-    guide.style.cssText = `position:absolute;left:${leftPercent}%;top:0;bottom:0;width:1px;background:#4ade80;pointer-events:none;z-index:50;opacity:.9;`;
-    const rows = document.getElementById('trackRows') || document.querySelector('.timeline-body');
-    if (rows) rows.appendChild(guide);
-  }
-
-  function clearSnapGuide() {
-    document.querySelectorAll('.snap-guide-line').forEach(el => el.remove());
-  }
-
-  // --- ruler timecodes ---
-  function renderTimecodeRuler(timelineSeconds, playheadPercent, zoom) {
-    const canvas = document.getElementById('rulerCanvas');
-    if (!canvas) return;
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.parentElement.getBoundingClientRect();
-    const w = Math.max(rect.width || 800, 1);
-    const h = 28;
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
-    const ctx = canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = 'rgba(255,255,255,0.04)';
-    ctx.fillRect(0, 0, w, h);
-    const step = 1;
-    ctx.font = '10px Inter, ui-sans-serif, system-ui';
-    ctx.textAlign = 'center';
-    for (let t = 0; t <= timelineSeconds; t += step) {
-      const x = (t / timelineSeconds) * 100 * (w / 100);
-      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-      ctx.beginPath(); ctx.moveTo(x, 16); ctx.lineTo(x, h); ctx.stroke();
-      const mm = String(Math.floor(t / 60)).padStart(2, '0');
-      const ss = String(Math.floor(t % 60)).padStart(2, '0');
-      ctx.fillStyle = 'rgba(255,255,255,0.5)';
-      ctx.fillText(`${mm}:${ss}`, x, 12);
-    }
-    const px = ((playheadPercent || 0) / 100) * w;
-    ctx.strokeStyle = '#f87171';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
-    ctx.fillStyle = '#f87171';
-    ctx.beginPath(); ctx.moveTo(px - 5, 0); ctx.lineTo(px + 5, 0); ctx.lineTo(px, 6); ctx.closePath(); ctx.fill();
-  }
-
-  // --- mini-map overview ---
-  function renderMiniMap() {
-    let map = document.getElementById('miniMap');
-    if (!map) {
-      map = document.createElement('div');
-      map.id = 'miniMap';
-      map.style.cssText = 'position:relative;height:14px;background:rgba(255,255,255,0.03);border-radius:4px;margin:6px 0;overflow:hidden;';
-      const header = document.querySelector('.timeline-header');
-      if (header) header.appendChild(map);
-    }
-    map.innerHTML = '';
-    (state.tracks || []).forEach(track => {
-      const colors = { video: '#3b82f6', audio: '#10b981', text: '#f59e0b', effects: '#a78bfa', 'b-roll': '#8b5cf6' };
-      (track.items || []).forEach(clip => {
-        const el = document.createElement('div');
-        const left = clip.left || 0;
-        const w = clip.width || 16;
-        el.style.cssText = `position:absolute;left:${left}%;width:${w}%;top:2px;bottom:2px;background:${colors[track.type] || colors.video};border-radius:2px;opacity:.7;`;
-        map.appendChild(el);
-      });
-    });
-    const ph = document.createElement('div');
-    ph.style.cssText = `position:absolute;left:${state.playheadPercent || 0}%;top:-2px;bottom:-2px;width:1px;background:#f87171;pointer-events:none;`;
-    map.appendChild(ph);
-  }
-
-  // --- track visibility controls ---
-  function renderTrackVisibilityControls() {
-    const panel = document.getElementById('trackVisibilityPanel');
-    if (!panel) return;
-    panel.innerHTML = '';
-    (state.tracks || []).forEach(track => {
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:4px 0;';
-      const left = document.createElement('span');
-      left.textContent = track.name;
-      left.style.cssText = 'font-size:12px;color:rgba(255,255,255,0.8);';
-      const btn = document.createElement('button');
-      const vis = track.visible !== false;
-      btn.textContent = vis ? '👁' : '—';
-      btn.title = vis ? 'Hide track' : 'Show track';
-      btn.onclick = () => {
-        track.visible = !track.visible;
-        renderTrackVisibilityControls();
-        renderTracks();
-      };
-      row.appendChild(left);
-      row.appendChild(btn);
-      panel.appendChild(row);
-    });
-  }
-
-  // --- group drag behavior: when dragstart includes groupId=true, attach it ---
-  function attachGroupDragData(dataTransfer, clip) {
-    if (state.clipGroups && clip.groupId) {
-      const members = (state.tracks || []).flatMap(t => (t.items || []).filter(c => c.groupId === clip.groupId && c.id !== clip.id));
-      if (members.length) {
-        dataTransfer.setData('application/json', JSON.stringify({ type: 'clip-group', clipIds: [clip.id, ...members.map(c => c.id)] }));
-      }
-    }
-  }
-
-  // Helpers for finding selected clip by type model
-  function findSelectedClip() {
-    const selId = state.selectedClipId;
-    if (!selId) return null;
-    for (const track of state.tracks) {
-      const clip = (track.items || []).find(c => c.id === selId);
-      if (clip) return clip;
-    }
-    return null;
   }
 
   // --- Insert styles and initialize the timeline editor app
