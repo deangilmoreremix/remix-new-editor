@@ -702,9 +702,9 @@ function capitalize(str) {
 /**
  * Show toast notification
  */
-function console.log(message, type = 'info') {
-  if (typeof window !== 'undefined' && window.showToast) {
-    window.
+function showAiToast(message, type = 'info') {
+  if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
+    window.showToast(message, type);
   } else {
     console.log(`[${type}] ${message}`);
   }
