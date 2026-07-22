@@ -611,7 +611,7 @@ export function renderTracks(state, els, showToast) {
 
 function createTimelineRuler(state) {
   const ruler = document.createElement('div');
-  ruler.className = 'timeline-ruler';
+  ruler.className = 'ruler';
 
   const totalSeconds = state.timelineSeconds;
   const majorTicks = Math.ceil(totalSeconds / 10); // Every 10 seconds
@@ -671,7 +671,7 @@ export function createEnhancedClipElement(item, track, state, zoom = 1.0) {
   // Add duration indicator
   const duration = item.end - item.start;
   const durationEl = document.createElement('span');
-  durationEl.className = 'clip-duration';
+  durationEl.className = 'clip-dur';
   durationEl.textContent = formatTime(duration);
   durationEl.setAttribute('data-tooltip', `Clip duration: ${formatTime(duration)}`);
   clipContent.appendChild(durationEl);
