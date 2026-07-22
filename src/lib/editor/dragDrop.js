@@ -13,7 +13,6 @@
 import { uploadFileToStorage } from '../hybrid-supabase.js';
 import { mediaWorker } from '../media-worker-manager.js';
 import { processFileUpload } from './uploadPipeline.js';
-import { addMediaToTimeline } from './mediaLibrary.js';
 
 // Enhanced drag state management
 const dragState = {
@@ -541,7 +540,9 @@ export function initializeAdvancedDragDrop(state, els) {
 
   // Initialize all drag and drop systems
   initializeClipDragDrop(state, els);
-  initializeMediaLibraryDragDrop(state, els?.mediaContainer);
+  // Media-library drag is now native HTML5 (see TimelineEditorPage.jsx bindEvents
+  // delegation on #mediaGrid + the lane drop zone) — the old mouse-event
+  // fallback has been removed.
   initializeFileSystemDragDrop(state);
   initializeAccessibilityFeatures();
 
@@ -953,278 +954,6 @@ function cancelClipDrag() {
   }
 }
 
-function cleanupDrag() {
-
-  // Remove ghost element
-  if (dragState.ghostElement) {
-    dragState.ghostElement.remove();
-    dragState.ghostElement = null;
-  }
-
-  // Restore original element
-  if (dragState.draggedElement) {
-    dragState.draggedElement.style.opacity = '';
-    dragState.draggedElement = null;
-  }
-
-  // Remove tooltip
-  removeTooltip();
-
-  // Reset drag state
-  dragState.isDragging = false;
-  dragState.dragType = null;
-  dragState.dragData = null;
-}
-
-// Media library drag and drop
-export function initializeMediaLibraryDragDrop(state, mediaContainer, opts = {}) {
-
-  if (!mediaContainer) {
-    return;
-  }
-
-  // Wire editor state and toast into dragState so handleMediaDrop can use them.
-  dragState.state = state;
-  dragState.showToast = opts.showToast || null;
-
-  // Add listeners to media container instead of document to avoid conflicts
-  mediaContainer.addEventListener('mousedown', handleMediaMouseDown);
-
-  // Use document for move/up events as they need to be global
-  document.addEventListener('mousemove', handleMediaMouseMove);
-  document.addEventListener('mouseup', handleMediaMouseUp);
-
-  // Setup timeline as drop zone for media items
-  setupTimelineDropZones(state);
-}
-
-// The initializeClipDragDrop function is now replaced by initializeAdvancedDragDrop
-// Keeping the export for backward compatibility but it now delegates to advanced initialization
-
-function handleMediaMouseDown(e) {
-  const mediaItem = e.target.closest('.media-item');
-  if (!mediaItem || e.button !== 0) return;
-
-
-  const rect = mediaItem.getBoundingClientRect();
-  const offsetX = e.clientX - rect.left;
-  const offsetY = e.clientY - rect.top;
-
-  dragState.isDragging = false;
-  dragState.dragType = 'media-item';
-  dragState.draggedElement = mediaItem;
-  dragState.dragData = {
-    offsetX,
-    offsetY,
-    mediaData: {
-      icon: mediaItem.querySelector('.media-icon').textContent,
-      label: mediaItem.querySelector('.media-label').textContent,
-      desc: mediaItem.querySelector('.media-desc').textContent
-    },
-    startX: e.clientX,
-    startY: e.clientY
-  };
-
-  e.preventDefault();
-}
-
-function handleMediaMouseMove(e) {
-  if (!dragState.draggedElement || dragState.dragType !== 'media-item') return;
-
-  const deltaX = Math.abs(e.clientX - dragState.dragData.startX);
-  const deltaY = Math.abs(e.clientY - dragState.dragData.startY);
-
-  if (!dragState.isDragging && (deltaX > 5 || deltaY > 5)) {
-    startMediaDrag();
-  }
-
-  if (dragState.isDragging) {
-    updateMediaDrag(e);
-  }
-}
-
-function startMediaDrag() {
-  dragState.isDragging = true;
-
-  const mediaItem = dragState.draggedElement;
-  const rect = mediaItem.getBoundingClientRect();
-
-
-  // Create ghost element
-  dragState.ghostElement = mediaItem.cloneNode(true);
-  dragState.ghostElement.classList.add('dragging-ghost');
-  dragState.ghostElement.style.width = `${rect.width}px`;
-  dragState.ghostElement.style.height = `${rect.height}px`; // Add height for consistency
-  dragState.ghostElement.style.position = 'fixed';
-  dragState.ghostElement.style.pointerEvents = 'none';
-  dragState.ghostElement.style.zIndex = '1000';
-  dragState.ghostElement.style.opacity = '0.8';
-
-  document.body.appendChild(dragState.ghostElement);
-
-  // Show tooltip
-  const tooltipContent = createTooltipContent('media', dragState.dragData.mediaData);
-  createTooltip(tooltipContent, { x: dragState.dragData.startX, y: dragState.dragData.startY });
-}
-
-function updateMediaDrag(e) {
-  if (!dragState.ghostElement) return;
-
-  // Use proper offset positioning like clip drag
-  const offsetX = dragState.dragData.offsetX || 10;
-  const offsetY = dragState.dragData.offsetY || 10;
-
-  dragState.ghostElement.style.left = `${e.clientX - offsetX}px`;
-  dragState.ghostElement.style.top = `${e.clientY - offsetY}px`;
-
-  updateTooltip({ x: e.clientX, y: e.clientY });
-
-  // Highlight timeline as drop zone
-  highlightTimelineDropZone();
-}
-
-function handleMediaMouseUp(e) {
-  if (!dragState.isDragging || dragState.dragType !== 'media-item') {
-    dragState.draggedElement = null;
-    dragState.dragType = null;
-    return;
-  }
-
-  const dropTarget = findTimelineDropTarget(e);
-
-  if (dropTarget) {
-    handleMediaDrop(dropTarget, e);
-  }
-
-  cleanupDrag();
-}
-
-function findTimelineDropTarget(e) {
-  const elementsUnderCursor = document.elementsFromPoint(e.clientX, e.clientY);
-  return elementsUnderCursor.find(el =>
-    el.classList.contains('timeline-body') ||
-    el.classList.contains('track-lane') ||
-    el.classList.contains('timeline-shell')
-  );
-}
-
-async function handleMediaDrop(dropTarget, e) {
-  // Add media to timeline at drop position.
-  // The media library uses mouse-based dragging (not HTML5 drag), so the
-  // dataTransfer JSON payload is not set. We look up the media data from
-  // dragState.dragData and route through addMediaToTimeline.
-  const dragData = dragState.dragData;
-  if (!dragData || !dragData.mediaData) { cleanupDrag(); return; }
-
-  const mediaData = dragData.mediaData;
-  const mediaItem = dragState.draggedElement;
-  const mediaIndex = mediaItem && mediaItem.dataset ? parseInt(mediaItem.dataset.mediaIndex, 10) : -1;
-  const state = dragState.state;
-  const showToast = dragState.showToast;
-
-  // If this is a real uploaded asset (not a CineGen placeholder), it will
-  // be in state.mediaLibrary. Look it up by index.
-  if (state && Array.isArray(state.mediaLibrary) && mediaIndex >= 0 && mediaIndex < state.mediaLibrary.length) {
-    const asset = state.mediaLibrary[mediaIndex];
-    if (asset && asset.url) {
-      // Real asset: insert directly via the pipeline's helper.
-      const { insertAssetIntoTimeline } = await import('./uploadPipeline.js');
-      const dropPercent = dropTarget ? computeDropPercent(dropTarget, e) : undefined;
-      const result = insertAssetIntoTimeline(state, asset, { dropPercent });
-      if (result && result.clip) {
-        state.selectedClipId = result.clip.id;
-        if (showToast) showToast(`Added ${asset.name}`, 'success');
-        // Persist and push undo snapshot
-        try {
-          const { saveProject } = await import('./persistence.js');
-          await saveProject(state);
-        } catch (e) { /* best-effort */ }
-        if (Array.isArray(state.undoStack)) {
-          try {
-            const snap = JSON.parse(JSON.stringify({
-              projectTitle: state.projectTitle,
-              tracks: state.tracks,
-              selectedClipId: state.selectedClipId
-            }));
-            state.undoStack.push(snap);
-            if (state.undoStack.length > 50) state.undoStack.shift();
-            state.redoStack = Array.isArray(state.redoStack) ? [] : state.redoStack;
-          } catch (e) { /* snapshot failure non-fatal */ }
-        }
-        if (typeof window !== 'undefined' && window.renderTimeline) {
-          try { window.renderTimeline(state); } catch (e) { /* best-effort */ }
-        }
-      }
-      cleanupDrag();
-      return;
-    }
-  }
-
-  // Fallback: route through addMediaToTimeline (handles CineGen placeholders,
-  // Pexels assets, etc.). This is what the original commented-out code intended.
-  if (state && typeof addMediaToTimeline === 'function') {
-    addMediaToTimeline(
-      { ...mediaData, mediaType: mediaData.type || 'video' },
-      mediaIndex,
-      state,
-      showToast
-    );
-  }
-  cleanupDrag();
-}
-
-function computeDropPercent(dropTarget, e) {
-  if (!dropTarget || !e) return undefined;
-  const rect = dropTarget.getBoundingClientRect();
-  if (!rect || !rect.width) return undefined;
-  return Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-}
-
-function highlightTimelineDropZone() {
-  const timelineBody = document.querySelector('.timeline-body');
-  if (timelineBody) {
-    timelineBody.classList.add('drop-highlight');
-  }
-}
-
-function highlightDropZones(e) {
-  // Remove previous highlights
-  document.querySelectorAll('.drop-highlight').forEach(el => {
-    el.classList.remove('drop-highlight');
-  });
-
-  const elementsUnderCursor = document.elementsFromPoint(e.clientX, e.clientY);
-  const trackLane = elementsUnderCursor.find(el => el.classList.contains('track-lane'));
-
-  if (trackLane) {
-    trackLane.classList.add('drop-highlight');
-  }
-}
-
-function setupTrackDropZones(_state, _els) {
-  // Drop zones are already the track lanes
-  dragState.dropZones = document.querySelectorAll('.track-lane');
-}
-
-function setupTimelineDropZones(_state, _els) {
-  const timelineBody = document.querySelector('.timeline-body');
-  if (timelineBody) {
-    timelineBody.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      timelineBody.classList.add('drop-highlight');
-    });
-
-    timelineBody.addEventListener('dragleave', () => {
-      timelineBody.classList.remove('drop-highlight');
-    });
-
-    timelineBody.addEventListener('drop', (e) => {
-      e.preventDefault();
-      timelineBody.classList.remove('drop-highlight');
-    });
-  }
-}
-
 function createTooltipContent(type, data) {
   if (type === 'clip') {
     return `
@@ -1472,6 +1201,23 @@ function handleKeyUp(e) {
   // Handle any key up events if needed
 }
 
+// Shared drag cleanup utility used by clip-drag and cancelAllDrags.
+// (Originally shared with the retired media-library mouse-drag fallback.)
+function cleanupDrag() {
+  if (dragState.ghostElement) {
+    dragState.ghostElement.remove();
+    dragState.ghostElement = null;
+  }
+  if (dragState.draggedElement) {
+    dragState.draggedElement.style.opacity = '';
+    dragState.draggedElement = null;
+  }
+  removeTooltip();
+  dragState.isDragging = false;
+  dragState.dragType = null;
+  dragState.dragData = null;
+}
+
 // Cancel all active drags
 function cancelAllDrags() {
   if (dragState.isDragging) {
@@ -1622,7 +1368,9 @@ function initializeThrottledUpdates() {
   const throttledUpdateDrag = throttle((e) => {
     if (dragState.isDragging) {
       updateClipDrag(e);
-      updateMediaDrag(e);
+      // updateMediaDrag removed — media items now use native HTML5 DnD
+      // (delegation on #mediaGrid in TimelineEditorPage.jsx), not this
+      // throttled mouse-event fallback.
       updateAssetPreview({ x: e.clientX, y: e.clientY });
     }
   }, PERFORMANCE_SETTINGS.previewThrottleMs);

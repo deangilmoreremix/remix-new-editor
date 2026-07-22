@@ -1,5 +1,5 @@
 import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';
-import { initializeMediaLibraryDragDrop, setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
+import { setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
 // MARKER_TEST_ABC123import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
 import { saveProjectToStorage } from '../lib/editor/persistence.js';
@@ -497,10 +497,10 @@ export function TimelineEditorPage() {
       <aside class="side-card">
         <h3 class="card-title">Media Library</h3>
         <div class="media-grid" id="mediaGrid">
-          <button class="media-item" data-modal="previewMedia"><span class="media-icon">🎥</span><span class="media-copy"><span class="media-label">Clip 01</span><span class="media-desc">0:14 · 1080p</span></span></button>
-          <button class="media-item" data-modal="previewMedia"><span class="media-icon">🎙️</span><span class="media-copy"><span class="media-label">VO Raw</span><span class="media-desc">0:48 · WAV</span></span></button>
-          <button class="media-item" data-modal="previewMedia"><span class="media-icon">🖼️</span><span class="media-copy"><span class="media-label">Logo</span><span class="media-desc">PNG · 512</span></span></button>
-          <button class="media-item" data-modal="previewMedia"><span class="media-icon">🎵</span><span class="media-copy"><span class="media-label">Track</span><span class="media-desc">2:10 · MP3</span></span></button>
+          <button class="media-item" draggable="true" data-type="video" data-label="Clip 01"><span class="media-icon">🎥</span><span class="media-copy"><span class="media-label">Clip 01</span><span class="media-desc">0:14 · 1080p</span></span></button>
+          <button class="media-item" draggable="true" data-type="audio" data-label="VO Raw"><span class="media-icon">🎙️</span><span class="media-copy"><span class="media-label">VO Raw</span><span class="media-desc">0:48 · WAV</span></span></button>
+          <button class="media-item" draggable="true" data-type="image" data-label="Logo"><span class="media-icon">🖼️</span><span class="media-copy"><span class="media-label">Logo</span><span class="media-desc">PNG · 512</span></span></button>
+          <button class="media-item" draggable="true" data-type="audio" data-label="Track"><span class="media-icon">🎵</span><span class="media-copy"><span class="media-label">Track</span><span class="media-desc">2:10 · MP3</span></span></button>
         </div>
         <button class="upload-btn" id="uploadBtn" style="margin-top:10px;">Upload media…</button>
       </aside>
@@ -4631,6 +4631,45 @@ export function TimelineEditorPage() {
       if (ccReset) ccReset.addEventListener('click', () => { const f = root.querySelectorAll('#colorCorrectionPanel input[type="range"]'); f.forEach(i => i.value = 0); });
       if (ccLuts) ccLuts.addEventListener('click', () => openPanel('colorScopesPanel'));
 
+      // Media Library → Timeline (HTML5 drag-and-drop, native).
+      // The 4 static media items are draggable="true"; this delegation listener
+      // sets the dataTransfer payload that the lane drop zone (see renderTracks
+      // lane binding, ~line 2032) expects. Aligns with the lane's
+      // `application/json` + { type: 'media', mediaType, label, src } contract.
+      const mediaGrid = root.querySelector('#mediaGrid');
+      if (mediaGrid) {
+        mediaGrid.addEventListener('dragstart', (e) => {
+          const item = e.target.closest('.media-item');
+          if (!item || !item.hasAttribute('draggable')) return;
+          const mediaType = item.getAttribute('data-type') || 'video';
+          const label = item.getAttribute('data-label') || item.querySelector('.media-label')?.textContent || 'Media';
+          const payload = { type: 'media', mediaType, label, src: null };
+          try {
+            e.dataTransfer.setData('application/json', JSON.stringify(payload));
+            e.dataTransfer.effectAllowed = 'move';
+            // Hide the default browser drag image (a translucent item ghost is
+            // awkward over a track lane; the lane's drop highlight is enough).
+            const ghost = document.createElement('div');
+            ghost.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;';
+            document.body.appendChild(ghost);
+            e.dataTransfer.setDragImage(ghost, 0, 0);
+            requestAnimationFrame(() => ghost.remove());
+          } catch (err) {
+            console.warn('[Timeline] media dragstart failed', err);
+          }
+        });
+      }
+
+      // Body class toggle during any active drag — the rail overlay rule in
+      // styles/timeline-editor-page.css uses `body.is-dragging .floating-rail`
+      // to drop pointer-events so the rail can't intercept drops that land
+      // near the bottom of the timeline.
+      const onDragStartAny = () => document.body.classList.add('is-dragging');
+      const onDragEndAny = () => document.body.classList.remove('is-dragging');
+      document.addEventListener('dragstart', onDragStartAny);
+      document.addEventListener('dragend', onDragEndAny);
+      document.addEventListener('drop', onDragEndAny);
+
       // Feature-index chips (prototype parity) → open the matching editor surface
       root.querySelectorAll('.fi-chip').forEach(chip => {
         const key = chip.getAttribute('data-modal');
@@ -4992,7 +5031,6 @@ export function TimelineEditorPage() {
       renderAll();
       bindEvents();
       setupEnhancedTooltips();
-      initializeMediaLibraryDragDrop(state, els.mediaGrid, { showToast });
       setupUploadSources({ state, showToast });
 
       // Initialize media ingest components
@@ -5018,6 +5056,13 @@ export function TimelineEditorPage() {
     // Initialize multi-camera functionality
     window.timelineState = state; // Make state globally accessible for multi-camera functions
     TLEditor.state = state; // Exposed on namespace to avoid polluting global scope
+    // External systems (e.g. media-library drag-drop in src/lib/editor/dragDrop.js)
+    // need a way to ask the timeline to re-render after they mutate state directly.
+    // The legacy addMediaToTimeline helper mutates the track's items array but
+    // does not re-render — without this hook the dropped clip never appears.
+    window.__timelineRender = function __timelineRender() {
+      try { renderTracks(); } catch (e) { console.warn('[Timeline] render via global hook failed', e); }
+    };
 
     // Initialize AI agent integration
     initializeAgentSystem(state, showToast);
