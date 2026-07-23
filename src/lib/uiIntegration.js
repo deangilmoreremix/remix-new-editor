@@ -6,6 +6,10 @@
 import { isFeatureEnabled } from '../lib/featureFlags.js';
 import { loadAdaptedComponent } from '../lib/componentAdapter.js';
 import { GTMPromptModal } from '../components/modals/GTMPromptModal.jsx';
+import { AIVideoCreator } from '../components/modals/AIVideoCreator.jsx';
+import { TemplateGeneratorModal } from '../components/modals/TemplateGeneratorModal.jsx';
+import { RecorderModal } from '../components/modals/RecorderModal.jsx';
+import VoiceModal from '../components/modals/VoiceModal.js';
 
 /**
  * Default GTM → Thumbnail bridge.
@@ -322,13 +326,12 @@ export class EnhancementModalManager {
 // Modal action handlers
 async function openAIVideoCreator(state, showToast) {
   try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('AIVideoCreator', {
+    const modal = new AIVideoCreator({
       onComplete: (result) => {
-        // Add generated video to timeline
         addVideoToTimeline(result, state);
       }
     });
+    modal.open();
   } catch (error) {
   }
 }
@@ -424,24 +427,24 @@ async function openTextToSpeech(clip, state, showToast) {
 
 async function openTemplateBrowser(clip, state, showToast) {
   try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('Templates', {
+    const modal = new TemplateGeneratorModal({
       onSelect: (template) => {
         applyTemplateToClip(clip, template, state);
       }
     });
+    modal.open();
   } catch (error) {
   }
 }
 
 async function openVideoRecorder(state, showToast) {
   try {
-    const modalManager = getModalManager();
-    await modalManager.openModal('VideoRecorder', {
+    const modal = new RecorderModal({
       onComplete: (videoUrl) => {
         addVideoToTimeline({ src: videoUrl, name: 'Recorded Video' }, state);
       }
     });
+    modal.open();
   } catch (error) {
   }
 }
@@ -684,15 +687,12 @@ async function openGiphyIntegration(state, showToast) {
 // Text-to-speech handler
 async function openTextToSpeechFromSelection(state, showToast) {
   try {
-    // Check if there's a selected text clip
     const selectedClip = state.tracks.flatMap(t => t.clips).find(c => c.id === state.selectedClipId && c.type === 'text');
-
     if (selectedClip) {
-      // Generate TTS for selected text clip
-      window.dispatchEvent(new CustomEvent('generateTTS', {
-        detail: { clipId: selectedClip.id, text: selectedClip.body || selectedClip.text }
-      }));
-    } else {
+      const modal = new VoiceModal({
+        text: selectedClip.body || selectedClip.text || ''
+      });
+      modal.open();
     }
   } catch (error) {
   }
