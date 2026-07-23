@@ -239,6 +239,12 @@ export function SignInPage() {
               >
                 {loading ? 'Signing In…' : 'Sign In'}
               </button>
+
+              {/* Required for custom auth flows: Clerk's Smart CAPTCHA widget
+                  renders into this element. Without it bot protection silently
+                  falls back to invisible mode and the page can fail with
+                  "The CAPTCHA failed to load" for edge-case traffic. */}
+              <div id="clerk-captcha" />
             </form>
 
             {/* Sign Up Link */}

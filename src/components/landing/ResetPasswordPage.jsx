@@ -174,6 +174,11 @@ export function ResetPasswordPage() {
           loadingLabel="Updating…"
           label="Update Password"
         />
+
+        {/* Required for custom auth flows: Clerk's Smart CAPTCHA widget
+            renders into this element so password-reset requests pass
+            bot protection instead of silently failing on edge traffic. */}
+        <div id="clerk-captcha" />
       </form>
 
       <AuthFooter>

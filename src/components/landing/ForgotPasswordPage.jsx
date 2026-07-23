@@ -96,15 +96,20 @@ export function ForgotPasswordPage() {
               </div>
             </div>
 
-            <AuthError message={error} />
+              <AuthError message={error} />
 
-            <AuthSubmitButton
-              loading={loading}
-              disabled={!isLoaded}
-              loadingLabel="Sending…"
-              label="Send Reset Code"
-            />
-          </form>
+              <AuthSubmitButton
+                loading={loading}
+                disabled={!isLoaded}
+                loadingLabel="Sending…"
+                label="Send Reset Code"
+              />
+
+              {/* Required for custom auth flows: Clerk's Smart CAPTCHA widget
+                  renders into this element so password-reset requests pass
+                  bot protection instead of silently failing. */}
+              <div id="clerk-captcha" />
+            </form>
 
           <AuthFooter>
             <p>
