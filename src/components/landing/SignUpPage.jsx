@@ -200,6 +200,12 @@ export function SignUpPage() {
                   >
                     {loading ? 'Creating Account…' : 'Create Account'}
                   </button>
+
+                  {/* Required for custom sign-up flows: Clerk's bot sign-up
+                      protection (Smart CAPTCHA) renders into this element.
+                      Without it the widget falls back to invisible mode and
+                      sign-up fails with "The CAPTCHA failed to load". */}
+                  <div id="clerk-captcha" />
                 </form>
 
                 <div className="mt-8 text-center">
