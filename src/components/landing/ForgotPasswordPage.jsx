@@ -71,8 +71,12 @@ export function ForgotPasswordPage() {
             </p>
           </AuthFooter>
         </>
-      ) : (
+      ) : (!
         <>
+          <p className="text-sm text-slate-300 mb-4 text-center">
+            If you previously signed up with a magic link and don’t have a password,
+            use this page to set one so you can sign in with email + password.
+          </p>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
