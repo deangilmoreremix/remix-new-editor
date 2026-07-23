@@ -1,0 +1,27 @@
+name: repro-netlify-build
+
+on:
+  push:
+    branches: [debug/netlify-build-repro]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      NODE_VERSION: "20"
+      NPM_FLAGS: "--include=optional"
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: npm version
+        run: |
+          node --version
+          npm --version
+
+      - name: Build (mirrors netlify.toml)
+        run: npm ci --include=optional && npm run build
