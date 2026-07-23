@@ -71,7 +71,7 @@ export function ForgotPasswordPage() {
             </p>
           </AuthFooter>
         </>
-      ) : (!
+      ) : (
         <>
           <p className="text-sm text-slate-300 mb-4 text-center">
             If you previously signed up with a magic link and don’t have a password,
