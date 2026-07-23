@@ -81,6 +81,29 @@ export function AuthFooter({ children }) {
   return <div className="mt-8 text-center text-slate-300">{children}</div>;
 }
 
+// Wrap a Clerk custom-flow promise with a timeout. The @clerk/react v6
+// signals API resolves `{ data?, error? }` and never throws for auth
+// failures, but a stalled network request would otherwise leave the page
+// in its loading state forever. On timeout (or an unexpected throw) this
+// resolves the same `{ error }` shape so callers handle it uniformly.
+export function clerkWithTimeout(promise, ms = 15000) {
+  return Promise.race([
+    Promise.resolve(promise).catch((error) => ({ error })),
+    new Promise((resolve) =>
+      setTimeout(
+        () =>
+          resolve({
+            error: {
+              message: 'The request timed out. Please check your connection and try again.',
+              longMessage: 'The request timed out. Please check your connection and try again.',
+            },
+          }),
+        ms,
+      ),
+    ),
+  ]);
+}
+
 // Extract a human-readable message from a Clerk custom-flow result.
 //
 // The installed @clerk/react (v6, signals API) NEVER throws for validation
