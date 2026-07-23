@@ -158,7 +158,7 @@ try {
     return;
   }
 
-  const headerEl = Header((page) => navigate(page));
+  const { header: headerEl, headerAuthSlot } = Header((page) => navigate(page));
   app.appendChild(headerEl);
 
   const body = document.createElement('div');
@@ -173,6 +173,9 @@ try {
   body.appendChild(contentArea);
 
   app.appendChild(body);
+
+  const { mountHeaderAuth } = await import('./components/auth/HeaderAuth.jsx');
+  mountHeaderAuth(headerAuthSlot);
 
   initRouter(contentArea, (page) => {
     headerEl.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
