@@ -7,12 +7,13 @@
 // ClerkAuth.jsx when this page is mounted at /signin).
 
 import React, { useState } from 'react';
-import { useSignIn, useUser } from '@clerk/react';
+import { useSignIn, useUser, useClerk } from '@clerk/react';
 import { clerkErrorMessage, clerkWithTimeout, clearClerkSession, PasswordInput } from './AuthLayout.jsx';
 
 export function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
   const { isLoaded: userLoaded, isSignedIn } = useUser();
+  const clerk = useClerk();
   const isLoaded = fetchStatus !== 'fetching';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,16 +26,35 @@ export function SignInPage() {
 
   // The app can be stuck in a phantom "You're already signed in" state
   // when stale dev-instance cookies survive a pk_test_ -> pk_live_ key
-  // rotation. Detect that case (Clerk reports isSignedIn=true with no
-  // usable session) and surface a "Clear session" recovery button.
+  // rotation (or any key rotation). Detect that case (Clerk reports
+  // isSignedIn=true with no usable session) and surface a "Clear session"
+  // recovery button.
   const showStuckSession = userLoaded && isSignedIn && step === 'form' && !clearing;
 
+  // Best-effort session wipe: ask Clerk to invalidate the session
+  // server-side (signOut) so HttpOnly cookies are actually cleared,
+  // then fall back to browser-side cleanup for non-HttpOnly data.
   const handleClearSession = async () => {
     setClearing(true);
     setError('');
+    try {
+      await clerk.signOut();
+    } catch {
+      // signOut can fail if there is no active session; ignore.
+    }
     await clearClerkSession();
     // clearClerkSession reloads the page; this line is only reached if
     // reload is disabled, which we don't use here.
+  };
+
+  // When a stale session is present we must sign out before attempting
+  // a fresh sign-in, otherwise Clerk may reject the password call or
+  // silently keep the broken session.
+  const ensureFreshSession = async () => {
+    if (isSignedIn) {
+      try { await clerk.signOut(); } catch {}
+      await clearClerkSession({ reload: false });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -42,6 +62,10 @@ export function SignInPage() {
     if (!signIn || fetchStatus === 'fetching') {
       setError('Authentication is still loading. Please wait a moment and try again.');
       return;
+    }
+    // If a stale session is present, wipe it before trying to sign in.
+    if (isSignedIn) {
+      await ensureFreshSession();
     }
     setLoading(true);
     setError('');
@@ -241,8 +265,7 @@ export function SignInPage() {
 
               {/* Submit Button */}
               <button
-                type="button"
-                onClick={handleSubmit}
+                type="submit"
                 disabled={loading || !isLoaded}
                 className="w-full px-6 py-3 bg-gradient-to-r from-cyan-400 to-cyan-300 text-[#020205] font-bold rounded-lg hover:from-cyan-300 hover:to-cyan-200 transition-all duration-200 shadow-lg shadow-cyan-400/25 hover:shadow-cyan-300/40 disabled:opacity-50 disabled:cursor-not-allowed"
               >

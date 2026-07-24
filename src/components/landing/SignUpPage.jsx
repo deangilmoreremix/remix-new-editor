@@ -9,11 +9,13 @@
 // ClerkAuth.jsx when this page is mounted at /signup).
 
 import React, { useState } from 'react';
-import { useSignUp } from '@clerk/react';
-import { clerkErrorMessage, PasswordInput } from './AuthLayout.jsx';
+import { useSignUp, useUser, useClerk } from '@clerk/react';
+import { clerkErrorMessage, clearClerkSession, PasswordInput } from './AuthLayout.jsx';
 
 export function SignUpPage() {
   const { signUp, errors, fetchStatus } = useSignUp();
+  const { isLoaded: userLoaded, isSignedIn } = useUser();
+  const clerk = useClerk();
   const isLoaded = fetchStatus !== 'fetching';
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
@@ -22,10 +24,36 @@ export function SignUpPage() {
   const [step, setStep] = useState('form'); // 'form' | 'verify'
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  // Same stuck-session detection as SignInPage.
+  const showStuckSession = userLoaded && isSignedIn && step === 'form' && !clearing;
+
+  const handleClearSession = async () => {
+    setClearing(true);
+    setError('');
+    try {
+      await clerk.signOut();
+    } catch {
+      // signOut can fail if there is no active session; ignore.
+    }
+    await clearClerkSession();
+  };
+
+  const ensureFreshSession = async () => {
+    if (isSignedIn) {
+      try { await clerk.signOut(); } catch {}
+      await clearClerkSession({ reload: false });
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!signUp || fetchStatus === 'fetching') return;
+    // If a stale session is present, wipe it before trying to sign up.
+    if (isSignedIn) {
+      await ensureFreshSession();
+    }
     setLoading(true);
     setError('');
     const { error: resultError } = await signUp.password({
@@ -200,6 +228,26 @@ export function SignUpPage() {
                       sign-up fails with "The CAPTCHA failed to load". */}
                   <div id="clerk-captcha" />
                 </form>
+
+                {showStuckSession && (
+                  <div className="mt-6 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 text-sm">
+                    <p className="text-amber-200 font-medium mb-1">
+                      You appear to already be signed in.
+                    </p>
+                    <p className="text-amber-200/80 mb-3 text-xs leading-relaxed">
+                      This can happen if a previous session cookie is still in your
+                      browser. Clear it to sign up fresh.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleClearSession}
+                      disabled={clearing}
+                      className="w-full px-4 py-2 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 border border-amber-500/30 rounded-md transition disabled:opacity-50"
+                    >
+                      {clearing ? 'Clearing…' : 'Clear session and continue'}
+                    </button>
+                  </div>
+                )}
 
                 <div className="mt-8 text-center">
                   <p className="text-slate-300">
