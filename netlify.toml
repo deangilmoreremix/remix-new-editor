@@ -37,11 +37,12 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=()"
 
-# SPA fallback: serve the built index.html for all non-asset, non-API
-# routes. Netlify serves existing files (including Vite dynamic chunks
-# under /assets/) by default; the catch-all only fires for routes that
-# have no matching file on disk.
+# SPA fallback: serve the built index.html for all routes that don't map
+# to an existing file on disk. This must NOT rewrite real files such as
+# the Vite JS chunks under /assets/ (ClerkAuth-*.js etc.). Netlify's
+# default redirect behavior (no force flag) already skips existing files.
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = false
