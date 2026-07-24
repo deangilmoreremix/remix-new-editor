@@ -7,11 +7,12 @@
 // ClerkAuth.jsx when this page is mounted at /signin).
 
 import React, { useState } from 'react';
-import { useSignIn } from '@clerk/react';
-import { clerkErrorMessage, clerkWithTimeout, PasswordInput } from './AuthLayout.jsx';
+import { useSignIn, useUser } from '@clerk/react';
+import { clerkErrorMessage, clerkWithTimeout, clearClerkSession, PasswordInput } from './AuthLayout.jsx';
 
 export function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
+  const { isLoaded: userLoaded, isSignedIn } = useUser();
   const isLoaded = fetchStatus !== 'fetching';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,6 +21,21 @@ export function SignInPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [verificationType, setVerificationType] = useState(''); // 'client_trust' | 'mfa'
+  const [clearing, setClearing] = useState(false);
+
+  // The app can be stuck in a phantom "You're already signed in" state
+  // when stale dev-instance cookies survive a pk_test_ -> pk_live_ key
+  // rotation. Detect that case (Clerk reports isSignedIn=true with no
+  // usable session) and surface a "Clear session" recovery button.
+  const showStuckSession = userLoaded && isSignedIn && step === 'form' && !clearing;
+
+  const handleClearSession = async () => {
+    setClearing(true);
+    setError('');
+    await clearClerkSession();
+    // clearClerkSession reloads the page; this line is only reached if
+    // reload is disabled, which we don't use here.
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -239,6 +255,30 @@ export function SignInPage() {
                   "The CAPTCHA failed to load" for edge-case traffic. */}
               <div id="clerk-captcha" />
             </form>
+
+            {/* Stuck-session recovery: visible only when Clerk reports
+                isSignedIn=true with no usable session (e.g. stale dev
+                cookies after a pk_test_ -> pk_live_ rotation). Lets the
+                user wipe cookies and start over without leaving the page. */}
+            {showStuckSession && (
+              <div className="mt-6 rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 text-sm">
+                <p className="text-amber-200 font-medium mb-1">
+                  You appear to already be signed in.
+                </p>
+                <p className="text-amber-200/80 mb-3 text-xs leading-relaxed">
+                  This can happen if a previous session cookie is still in your
+                  browser. Clear it to sign in fresh.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleClearSession}
+                  disabled={clearing}
+                  className="w-full px-4 py-2 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 border border-amber-500/30 rounded-md transition disabled:opacity-50"
+                >
+                  {clearing ? 'Clearing…' : 'Clear session and sign in again'}
+                </button>
+              </div>
+            )}
 
             {/* Sign Up Link */}
             <div className="mt-8 text-center">

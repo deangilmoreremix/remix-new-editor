@@ -137,6 +137,75 @@ export function clerkErrorMessage(resultError, hookErrors) {
   return null;
 }
 
+// Wipe every Clerk session cookie + browser storage for the current origin
+// and reload. Use this when the app is stuck in the "You're already signed
+// in" / blank app state because of stale dev-instance cookies (e.g. after
+// rotating from pk_test_ to pk_live_). Safe to call on any page; the
+// reload re-runs the router and lets the user sign in cleanly.
+export async function clearClerkSession({ reload = true } = {}) {
+  try {
+    // Cookies — delete every name we know Clerk uses, on every domain
+    // scope that might be set (.smartvid.app, smartvid.app, localhost, etc.)
+    if (typeof document !== 'undefined' && document.cookie) {
+      const known = ['__session', '__client_uat', '__clerk_db_jwt', '__clerk_redirect_url'];
+      for (const name of known) {
+        for (const scope of ['/', '/']) {
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=${scope}`;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=${scope};domain=.smartvid.app`;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=${scope};domain=smartvid.app`;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=${scope};domain=localhost`;
+        }
+      }
+    }
+    // cookieStore (modern API) — catches HttpOnly/secure cookies the DOM
+    // can't see but the dev-tools panel can.
+    if (typeof cookieStore !== 'undefined') {
+      try {
+        const all = await cookieStore.getAll();
+        for (const c of all) {
+          const opts = { name: c.name, path: '/' };
+          try { await cookieStore.delete(opts); } catch {}
+          if (c.domain) {
+            for (const d of [c.domain, '.' + c.domain]) {
+              try { await cookieStore.delete({ ...opts, domain: d }); } catch {}
+            }
+          }
+        }
+      } catch {}
+    }
+    // local + session storage
+    try { localStorage.clear(); } catch {}
+    try { sessionStorage.clear(); } catch {}
+    // IndexedDB (Clerk caches tokens here)
+    if (typeof indexedDB !== 'undefined' && indexedDB.databases) {
+      try {
+        const dbs = await indexedDB.databases();
+        for (const d of dbs) { if (d.name) indexedDB.deleteDatabase(d.name); }
+      } catch {}
+    }
+    // Cache Storage (service worker caches for the FAPI)
+    if (typeof caches !== 'undefined') {
+      try {
+        const keys = await caches.keys();
+        for (const k of keys) caches.delete(k);
+      } catch {}
+    }
+    // Unregister the service worker so its old cache stops intercepting
+    // future requests with the stale bundle.
+    if ('serviceWorker' in navigator) {
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) await r.unregister();
+      } catch {}
+    }
+  } finally {
+    if (reload && typeof window !== 'undefined') {
+      // Use a full reload so the SPA re-bootstraps with a clean slate.
+      window.location.reload();
+    }
+  }
+}
+
 // Shared text-input styling used across every auth field.
 export const authInputClass =
   'w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200';
