@@ -38,9 +38,40 @@
     Permissions-Policy = "camera=(), microphone=()"
 
 # SPA fallback: serve the built index.html for all routes that don't map
-# to an existing file on disk. This must NOT rewrite real files such as
-# the Vite JS chunks under /assets/ (ClerkAuth-*.js etc.). Netlify's
-# default redirect behavior (no force flag) already skips existing files.
+# to an existing file on disk. The explicit asset rules below ensure
+# Vite's JS/CSS chunks (including ClerkAuth-*.js) are served as raw
+# files and never rewritten. 404.html is also protected so Netlify's
+# error-page middleware doesn't overwrite JS responses.
+[[redirects]]
+  from = "/*.js"
+  to = "/:splat.js"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*.css"
+  to = "/:splat.css"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*.json"
+  to = "/:splat.json"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*.wasm"
+  to = "/:splat.wasm"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/404.html"
+  to = "/404.html"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
