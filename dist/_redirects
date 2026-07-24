@@ -1,8 +1,1 @@
-# Intelligence & Personalization API rewrites
-# In dev, Vite proxies /api/intelligence/* and /api/personalizer/* to the
-# Netlify CLI functions server on :8888. In production, Netlify serves
-# the functions at /.netlify/functions/* — these rewrites map the
-# /api/* paths to the function URLs so the frontend code works in both.
-
-/api/intelligence/*  /.netlify/functions/intelligence-api/:splat  200
-/api/personalizer/*   /.netlify/functions/personalizer-api/:splat   200
+/*    /index.html    200
