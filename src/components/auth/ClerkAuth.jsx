@@ -216,9 +216,14 @@ export function ClerkProfile() {
 }
 
 // Mount the correct Clerk page for a given route (called from main.js).
-// /signin and /signup render the custom, app-styled pages (SignInPage /
-// SignUpPage) backed by Clerk's useSignIn / useSignUp hooks. The remaining
-// routes fall back to Clerk's prebuilt components.
+// /signin, /signup, /forgot-password, /reset-password render the custom
+// app-styled pages (SignInPage / SignUpPage / ForgotPasswordPage /
+// ResetPasswordPage) backed by Clerk's useSignIn / useSignUp hooks. The
+// /account and /profile routes render the prebuilt Clerk components
+// (UserProfile, AccountShell). Any unrecognized route falls through to
+// the custom SignInPage so users never hit Clerk's prebuilt <SignIn>
+// (which shows the unhelpful "You're already signed in" message and
+// gives them no way to clear stale session cookies).
 export function mountClerkRoute(route, container) {
   const root = createRoot(container);
   const pages = {
@@ -229,5 +234,5 @@ export function mountClerkRoute(route, container) {
     account: <ClerkAccount />,
     profile: <ClerkProfile />,
   };
-  root.render(pages[route] || <ClerkSignIn />);
+  root.render(pages[route] || <ClerkGate><SignInPage /></ClerkGate>);
 }
