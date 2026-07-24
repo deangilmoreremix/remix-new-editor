@@ -40,9 +40,15 @@
 # SPA fallback: serve the built index.html for all non-asset, non-API
 # routes so deep links like /signin, /signup, /forgot-password,
 # /reset-password, /account and /profile resolve to the app shell.
-# force=false is essential — without it Netlify would also rewrite
-# real chunks imported by Vite (e.g. ClerkAuth-*.js), causing
-# dynamic imports to return index.html instead of the JS file.
+# force=false lets Netlify serve existing files first; the preceding
+# /assets/* rule ensures Vite chunks (ClerkAuth-*.js etc.) are always
+# served as raw JS even if a sibling index.html exists in /assets/.
+[[redirects]]
+  from = "/assets/*"
+  to = "/assets/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
