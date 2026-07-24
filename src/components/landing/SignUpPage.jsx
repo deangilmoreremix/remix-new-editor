@@ -299,7 +299,7 @@ export function SignUpPage() {
                   </button>
                 </form>
 
-                <div className="mt-8 text-center">
+                <div className="mt-8 text-center space-y-3">
                   <button
                     type="button"
                     onClick={async () => {
@@ -314,6 +314,19 @@ export function SignUpPage() {
                     className="text-sm text-cyan-400 hover:text-cyan-300 transition"
                   >
                     Resend code
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await ensureFreshSession();
+                      signUp.reset();
+                      setStep('form');
+                      setError('');
+                      setCode('');
+                    }}
+                    className="block text-xs text-slate-500 hover:text-slate-300 transition"
+                  >
+                    Clear session and start over
                   </button>
                 </div>
               </>

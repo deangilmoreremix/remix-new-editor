@@ -358,10 +358,23 @@ export function SignInPage() {
                 <div className="mt-8 text-center">
                   <button
                     type="button"
-                    onClick={() => { setStep('form'); setError(''); setCode(''); }}
+                    onClick={async () => {
+                      setStep('form'); setError(''); setCode('');
+                      signIn.reset();
+                    }}
                     className="text-sm text-cyan-400 hover:text-cyan-300 transition"
                   >
                     Back to sign in
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await ensureFreshSession();
+                      setStep('form'); setError(''); setCode('');
+                    }}
+                    className="block mx-auto mt-3 text-xs text-slate-500 hover:text-slate-300 transition"
+                  >
+                    Clear session and start over
                   </button>
                 </div>
               </>
