@@ -38,19 +38,10 @@
     Permissions-Policy = "camera=(), microphone=()"
 
 # SPA fallback: serve the built index.html for all non-asset, non-API
-# routes so deep links like /signin, /signup, /forgot-password,
-# /reset-password, /account and /profile resolve to the app shell.
-# force=false lets Netlify serve existing files first; the preceding
-# /assets/* rule ensures Vite chunks (ClerkAuth-*.js etc.) are always
-# served as raw JS even if a sibling index.html exists in /assets/.
-[[redirects]]
-  from = "/assets/*"
-  to = "/assets/:splat"
-  status = 200
-  force = true
-
+# routes. Netlify serves existing files (including Vite dynamic chunks
+# under /assets/) by default; the catch-all only fires for routes that
+# have no matching file on disk.
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = false
