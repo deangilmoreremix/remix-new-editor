@@ -7,12 +7,11 @@
 // ClerkAuth.jsx when this page is mounted at /signin).
 
 import React, { useState } from 'react';
-import { useSignIn, useClerk } from '@clerk/react';
-import { clerkErrorMessage, clerkWithTimeout, clearClerkSession, PasswordInput } from './AuthLayout.jsx';
+import { useSignIn } from '@clerk/react';
+import { clerkErrorMessage, clerkWithTimeout, PasswordInput } from './AuthLayout.jsx';
 
 export function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
-  const clerk = useClerk();
   const isLoaded = fetchStatus !== 'fetching';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,11 +20,6 @@ export function SignInPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [verificationType, setVerificationType] = useState(''); // 'client_trust' | 'mfa'
-
-  const ensureFreshSession = async () => {
-    try { await clerk.signOut(); } catch {}
-    await clearClerkSession({ reload: false });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

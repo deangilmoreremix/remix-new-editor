@@ -9,12 +9,11 @@
 // ClerkAuth.jsx when this page is mounted at /signup).
 
 import React, { useState } from 'react';
-import { useSignUp, useClerk } from '@clerk/react';
-import { clerkErrorMessage, clearClerkSession, PasswordInput } from './AuthLayout.jsx';
+import { useSignUp } from '@clerk/react';
+import { clerkErrorMessage, PasswordInput } from './AuthLayout.jsx';
 
 export function SignUpPage() {
   const { signUp, errors, fetchStatus } = useSignUp();
-  const clerk = useClerk();
   const isLoaded = fetchStatus !== 'fetching';
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
@@ -23,11 +22,6 @@ export function SignUpPage() {
   const [step, setStep] = useState('form'); // 'form' | 'verify'
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const ensureFreshSession = async () => {
-    try { await clerk.signOut(); } catch {}
-    await clearClerkSession({ reload: false });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
