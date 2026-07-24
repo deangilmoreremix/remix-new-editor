@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import { useSignIn } from '@clerk/react';
-import { clerkErrorMessage, clerkWithTimeout } from './AuthLayout.jsx';
+import { clerkErrorMessage, clerkWithTimeout, PasswordInput } from './AuthLayout.jsx';
 
 export function SignInPage() {
   const { signIn, errors, fetchStatus } = useSignIn();
@@ -194,22 +194,15 @@ export function SignInPage() {
                 <label htmlFor="password" className="block text-sm font-medium text-white mb-2">
                   Password
                 </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    required
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
-                    placeholder="Enter your password"
-                  />
-                  <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002 2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                  </svg>
-                </div>
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                />
               </div>
 
               {/* Remember Me & Forgot Password */}

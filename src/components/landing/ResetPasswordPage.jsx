@@ -15,6 +15,7 @@ import {
   AuthSubmitButton,
   AuthFooter,
   authInputClass,
+  PasswordInput,
   clerkErrorMessage,
 } from './AuthLayout.jsx';
 
@@ -136,15 +137,13 @@ export function ResetPasswordPage() {
           <label htmlFor="password" className="block text-sm font-medium text-white mb-2">
             New Password
           </label>
-          <input
+          <PasswordInput
             id="password"
-            type="password"
             name="password"
             required
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className={authInputClass}
             placeholder="Enter a new password"
           />
         </div>
@@ -153,15 +152,13 @@ export function ResetPasswordPage() {
           <label htmlFor="confirm" className="block text-sm font-medium text-white mb-2">
             Confirm New Password
           </label>
-          <input
+          <PasswordInput
             id="confirm"
-            type="password"
             name="confirm"
             required
             autoComplete="new-password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            className={authInputClass}
             placeholder="Re-enter your new password"
           />
         </div>
