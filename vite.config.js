@@ -385,6 +385,374 @@ function securityHeaders() {
 const PROJECT_ROOT = __dirname;
 
 /**
+ * gtmBoostDevPlugin — runs in dev (vite dev) to serve /api/gtm-boost/*
+ * from the local backend service module. The Express server on :3001
+ * is not always running in dev, so mounting the service as a Vite
+ * middleware keeps the template-creation flow working without a
+ * running backend process. Mirrors the production behavior where the
+ * service runs on the Express server.
+ *
+ * Endpoints served:
+ *   GET  /api/gtm-boost/options
+ *   POST /api/gtm-boost/template-context
+ *   POST /api/gtm-boost/generate
+ */
+function gtmBoostDevPlugin() {
+  return {
+    name: 'gtm-boost-dev',
+    apply: 'serve',
+    configureServer(server) {
+      // Lazy import the service so Vite's CJS/ESM handling doesn't choke
+      // on the Express dependency at plugin-load time.
+      let serviceMod = null;
+      const getService = async () => {
+        if (serviceMod) return serviceMod;
+        try {
+          serviceMod = await import('./backend/services/gtmBoostService.js');
+          return serviceMod;
+        } catch (e) {
+          console.warn('[gtm-boost-dev] Failed to load service:', e.message);
+          return null;
+        }
+      };
+
+      // Helper: read the request body as a UTF-8 string.
+      const readBody = (req) => new Promise((resolve) => {
+        const chunks = [];
+        req.on('data', (c) => chunks.push(c));
+        req.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+      });
+
+      // Helper: send a JSON response.
+      const sendJson = (res, status, obj) => {
+        if (res.headersSent) return;
+        res.statusCode = status;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(obj));
+      };
+
+      server.middlewares.use('/api/gtm-boost', async (req, res) => {
+        const mod = await getService();
+        if (!mod) {
+          sendJson(res, 500, { error: 'gtm-boost service unavailable' });
+          return;
+        }
+
+
+        // Vite/Connect strips the mount prefix from req.url before our
+        // handler runs, so req.url is already the relative path
+        // (e.g. "/options", "/generate", "/template-context").
+        const url = req.url || '/';
+        const queryIdx = url.indexOf('?');
+        const path = queryIdx >= 0 ? url.slice(0, queryIdx) : url;
+        const queryPart = queryIdx >= 0 ? url.slice(queryIdx + 1) : '';
+        const params = new URLSearchParams(queryPart);
+
+        try {
+          // GET /api/gtm-boost/options
+          if (req.method === 'GET' && path === '/options') {
+            // Return the full library inline so we don't need to mount
+            // Express (which isn't available in the Vite dev process).
+            sendJson(res, 200, {
+              roles: [
+                { id: 'sdr', title: 'SDR/BDR Prospecting', description: 'Sales Development Representative / Business Development Representative content for cold outreach and lead qualification', objectives: ['Generate qualified leads', 'Create pipeline opportunities', 'Establish initial contact and interest'], primaryKPI: 'meeting bookings' },
+                { id: 'ae', title: 'Account Executive Discovery', description: 'Account Executive content for qualified prospects, discovery, and value demonstration', objectives: ['Advance qualified opportunities', 'Demonstrate ROI and business value', 'Handle objections and concerns'], primaryKPI: 'deal progression' },
+                { id: 'sales-manager', title: 'Sales Management', description: 'Sales leadership content for team enablement and pipeline management', objectives: ['Accelerate team performance', 'Build management credibility', 'Drive revenue growth'], primaryKPI: 'team quota attainment' },
+                { id: 'revops', title: 'Revenue Operations', description: 'Revenue Operations content for process optimization and data-driven insights', objectives: ['Improve operational efficiency', 'Enhance data accuracy and insights', 'Optimize sales processes and automation'], primaryKPI: 'operational efficiency gains' },
+                { id: 'csm', title: 'Customer Success', description: 'Customer Success Management content for retention and expansion', objectives: ['Reduce customer churn', 'Identify expansion opportunities', 'Build long-term customer loyalty'], primaryKPI: 'customer retention and expansion' },
+                { id: 'founder', title: 'Executive Leadership', description: 'Founder and executive content for strategic partnerships and vision communication', objectives: ['Build strategic relationships', 'Communicate company vision', 'Drive executive-level engagement'], primaryKPI: 'strategic partnership development' },
+              ],
+              industries: [
+                { id: 'saas', name: 'SaaS', description: 'Software as a Service solutions and subscription-based business models' },
+                { id: 'fintech', name: 'FinTech', description: 'Financial technology and payment processing solutions' },
+                { id: 'healthcare', name: 'Healthcare', description: 'Healthcare technology and patient care solutions' },
+                { id: 'manufacturing', name: 'Manufacturing', description: 'Manufacturing and industrial operations solutions' },
+                { id: 'professional-services', name: 'Professional Services', description: 'Consulting, advisory, and professional service firms' },
+                { id: 'retail', name: 'Retail & eCommerce', description: 'Retail and e-commerce solutions' },
+                { id: 'education', name: 'Education', description: 'Education technology and learning solutions' },
+                { id: 'real-estate', name: 'Real Estate', description: 'Real estate and property technology' },
+                { id: 'restaurant', name: 'Restaurant & Food Service', description: 'Restaurant, food service, and hospitality' },
+                { id: 'fitness-wellness', name: 'Fitness & Wellness', description: 'Gyms, studios, and wellness services' },
+                { id: 'legal-services', name: 'Legal Services', description: 'Law firms and legal technology' },
+                { id: 'automotive', name: 'Automotive', description: 'Automotive dealers and car services' },
+                { id: 'fashion', name: 'Fashion & Lifestyle', description: 'Fashion, beauty, and lifestyle brands' },
+                { id: 'events', name: 'Events & Entertainment', description: 'Events, venues, and entertainment' },
+                { id: 'luxury', name: 'Luxury & Premium', description: 'Luxury and premium brands' },
+                { id: 'travel', name: 'Travel & Hospitality', description: 'Travel, hotels, and hospitality services' },
+                { id: 'nonprofit', name: 'Nonprofit & Social Impact', description: 'Nonprofit and social impact organizations' },
+              ],
+              methodologies: [
+                { id: 'meddpicc', name: 'MEDDPICC', fullName: 'Metrics, Economic Buyer, Decision Criteria, Decision Process, Paper Process, Identify Pain, Champion, Competition', description: 'Enterprise sales qualification framework for complex B2B sales', application: 'Apply systematically to understand and navigate enterprise buying processes' },
+                { id: 'spin', name: 'SPIN Selling', fullName: 'Situation, Problem, Implication, Need-payoff', description: 'Consultative selling framework for complex solutions', application: 'Progress conversations from current state to solution value' },
+                { id: 'challenger', name: 'Challenger Sale', fullName: 'The Challenger Sale', description: 'Insight-driven sales approach that challenges customer assumptions', application: 'Teach customers, tailor communications, and take control of sales conversations' },
+                { id: 'gap-selling', name: 'Gap Selling', fullName: 'Gap Selling', description: 'Framework focusing on the gap between current and desired future state', application: 'Identify gaps and position solutions as bridges to desired outcomes' },
+                { id: 'value-selling', name: 'Value Selling', fullName: 'Value-Based Selling', description: 'Sales approach focused on quantifiable business value and ROI', application: 'Demonstrate tangible business impact and quantified results' },
+                { id: 'sandler', name: 'Sandler Selling', fullName: 'Sandler Selling System', description: 'Qualification-focused sales process with pain-based selling', application: 'Qualify prospects and focus on pain points throughout sales process' },
+              ],
+              tonalities: [
+                { id: 'executive', name: 'Executive Gravitas', description: 'Formal, authoritative language with strategic insights', guidelines: 'Use sophisticated vocabulary, focus on strategic implications, emphasize vision and leadership' },
+                { id: 'challenger', name: 'Challenger Bold', description: 'Confident, assertive messaging that challenges assumptions', guidelines: 'Be provocative and insight-driven, challenge conventional thinking, provide unique perspectives' },
+                { id: 'conversational', name: 'Conversational Peer', description: 'Friendly, relatable tone like speaking to a trusted colleague', guidelines: 'Use "we" and "you", include relatable examples, build rapport through shared understanding' },
+                { id: 'technical', name: 'Technical Expert', description: 'Demonstrate deep technical knowledge and expertise', guidelines: 'Use industry terminology, focus on specifications and capabilities, show technical credibility' },
+                { id: 'inspirational', name: 'Inspirational Vision', description: 'Paint compelling vision of future possibilities', guidelines: 'Use aspirational language, focus on transformation, create emotional connection to goals' },
+                { id: 'urgent', name: 'Urgent Action', description: 'Create sense of urgency and time-sensitive opportunities', guidelines: 'Use action-oriented language, emphasize immediate benefits, highlight risk of inaction' },
+              ],
+              focusAreas: [
+                { id: 'lead-gen', label: 'Lead Generation', description: 'Lead generation with contact capture' },
+                { id: 'awareness', label: 'Brand Awareness', description: 'Brand awareness and market education' },
+                { id: 'education', label: 'Education', description: 'Educational content and knowledge sharing' },
+                { id: 'demo', label: 'Product Demo', description: 'Product demonstration and capability showcase' },
+              ],
+            });
+            return;
+          }
+
+          // POST /api/gtm-boost/template-context
+          if (req.method === 'POST' && path === '/template-context') {
+            const body = await readBody(req);
+            const data = JSON.parse(body || '{}');
+            // Inline the route handler logic so we don't need to mount Express.
+            const { category, niche, name, description } = data || {};
+            const TEMPLATE_CATEGORY_TO_INDUSTRY = {
+              'Social Media': 'saas',
+              'Style Transfer': 'saas',
+              'Entertainment': 'events',
+              'Commercial': 'retail',
+              'VFX & Action': 'entertainment',
+              'Portrait & Creator': 'fashion',
+              'Decade & Era': 'fashion',
+              'Camera & Cinematic': 'entertainment',
+              'Industry Specific': 'saas',
+              'Personal Story': 'nonprofit',
+              'Restaurant & Cafe': 'restaurant',
+              'Med Spa & Beauty': 'fashion',
+              'Salon & Barbershop': 'fashion',
+              'Gym & Fitness': 'fitness-wellness',
+              'Real Estate': 'real-estate',
+              'Dental Office': 'healthcare',
+              'Chiropractic & Wellness': 'fitness-wellness',
+              'Legal & Attorney': 'legal-services',
+              'Automotive & Car': 'automotive',
+              'Fashion & Style': 'fashion',
+              'Events & Celebrations': 'events',
+              'Luxury & Premium': 'luxury',
+              'restaurant': 'restaurant',
+              'med-spa': 'fashion',
+              'salon': 'fashion',
+              'fitness': 'fitness-wellness',
+              'real-estate': 'real-estate',
+              'dental': 'healthcare',
+              'chiropractic': 'fitness-wellness',
+              'legal': 'legal-services',
+              'automotive': 'automotive',
+              'fashion': 'fashion',
+              'events': 'events',
+              'luxury': 'luxury',
+              'general-business': 'saas',
+              'local-business': 'retail',
+              'saas': 'saas',
+              'agency': 'professional-services',
+            };
+            const industry =
+              (niche && TEMPLATE_CATEGORY_TO_INDUSTRY[niche]) ||
+              (category && TEMPLATE_CATEGORY_TO_INDUSTRY[category]) ||
+              'saas';
+            const tonality = (() => {
+              if (industry === 'luxury' || industry === 'real-estate') return 'executive';
+              if (industry === 'fashion' || industry === 'events') return 'inspirational';
+              if (industry === 'healthcare' || industry === 'fintech') return 'technical';
+              return 'conversational';
+            })();
+            const role = (() => {
+              if (['saas', 'fintech', 'manufacturing', 'professional-services'].includes(industry)) return 'ae';
+              if (['fashion', 'events', 'luxury', 'automotive', 'restaurant'].includes(industry)) return 'founder';
+              if (['healthcare', 'fitness-wellness', 'education', 'real-estate', 'legal-services'].includes(industry)) return 'csm';
+              return 'sdr';
+            })();
+            const methodology = (() => {
+              if (['saas', 'fintech', 'manufacturing', 'healthcare'].includes(industry)) return 'meddpicc';
+              if (['professional-services', 'legal-services', 'real-estate'].includes(industry)) return 'spin';
+              if (['fashion', 'luxury', 'events'].includes(industry)) return 'challenger';
+              return 'value-selling';
+            })();
+            sendJson(res, 200, {
+              industry,
+              tonality,
+              role,
+              methodology,
+              basePrompt: description || name || '',
+            });
+            return;
+          }
+
+          // POST /api/gtm-boost/generate
+          if (req.method === 'POST' && path === '/generate') {
+            const body = await readBody(req);
+            const data = JSON.parse(body || '{}');
+            const { basePrompt, role, industry, methodology, tonality, focus = [], templateContext = {} } = data || {};
+            if (!role || !industry || !methodology || !tonality) {
+              sendJson(res, 400, {
+                error: 'Bad Request',
+                message: 'role, industry, methodology, and tonality are required',
+              });
+              return;
+            }
+            // Re-implement the generate logic inline so we don't need the
+            // OpenAI fetch (which won't work in the Vite dev process anyway).
+            const ROLES = {
+              sdr: { title: 'SDR/BDR Prospecting', description: 'Sales Development Representative / Business Development Representative content for cold outreach and lead qualification', objectives: ['Generate qualified leads', 'Create pipeline opportunities', 'Establish initial contact and interest'], primaryKPI: 'meeting bookings' },
+              ae: { title: 'Account Executive Discovery', description: 'Account Executive content for qualified prospects, discovery, and value demonstration', objectives: ['Advance qualified opportunities', 'Demonstrate ROI and business value', 'Handle objections and concerns'], primaryKPI: 'deal progression' },
+              'sales-manager': { title: 'Sales Management', description: 'Sales leadership content for team enablement and pipeline management', objectives: ['Accelerate team performance', 'Build management credibility', 'Drive revenue growth'], primaryKPI: 'team quota attainment' },
+              revops: { title: 'Revenue Operations', description: 'Revenue Operations content for process optimization and data-driven insights', objectives: ['Improve operational efficiency', 'Enhance data accuracy and insights', 'Optimize sales processes and automation'], primaryKPI: 'operational efficiency gains' },
+              csm: { title: 'Customer Success', description: 'Customer Success Management content for retention and expansion', objectives: ['Reduce customer churn', 'Identify expansion opportunities', 'Build long-term customer loyalty'], primaryKPI: 'customer retention and expansion' },
+              founder: { title: 'Executive Leadership', description: 'Founder and executive content for strategic partnerships and vision communication', objectives: ['Build strategic relationships', 'Communicate company vision', 'Drive executive-level engagement'], primaryKPI: 'strategic partnership development' },
+            };
+            const INDUSTRIES = {
+              saas: { name: 'SaaS', description: 'Software as a Service solutions and subscription-based business models' },
+              restaurant: { name: 'Restaurant & Food Service', description: 'Restaurant, food service, and hospitality' },
+              'fitness-wellness': { name: 'Fitness & Wellness', description: 'Gyms, studios, and wellness services' },
+              'real-estate': { name: 'Real Estate', description: 'Real estate and property technology' },
+              healthcare: { name: 'Healthcare', description: 'Healthcare technology and patient care solutions' },
+              'legal-services': { name: 'Legal Services', description: 'Law firms and legal technology' },
+              automotive: { name: 'Automotive', description: 'Automotive dealers and car services' },
+              fashion: { name: 'Fashion & Lifestyle', description: 'Fashion, beauty, and lifestyle brands' },
+              events: { name: 'Events & Entertainment', description: 'Events, venues, and entertainment' },
+              luxury: { name: 'Luxury & Premium', description: 'Luxury and premium brands' },
+              retail: { name: 'Retail & eCommerce', description: 'Retail and e-commerce solutions' },
+              education: { name: 'Education', description: 'Education technology and learning solutions' },
+              travel: { name: 'Travel & Hospitality', description: 'Travel, hotels, and hospitality services' },
+              nonprofit: { name: 'Nonprofit & Social Impact', description: 'Nonprofit and social impact organizations' },
+              fintech: { name: 'FinTech', description: 'Financial technology and payment processing solutions' },
+              manufacturing: { name: 'Manufacturing', description: 'Manufacturing and industrial operations solutions' },
+              'professional-services': { name: 'Professional Services', description: 'Consulting, advisory, and professional service firms' },
+            };
+            const METHODOLOGIES = {
+              meddpicc: { name: 'MEDDPICC', application: 'Apply systematically to understand and navigate enterprise buying processes' },
+              spin: { name: 'SPIN Selling', application: 'Progress conversations from current state to solution value' },
+              challenger: { name: 'Challenger Sale', application: 'Teach customers, tailor communications, and take control of sales conversations' },
+              'gap-selling': { name: 'Gap Selling', application: 'Identify gaps and position solutions as bridges to desired outcomes' },
+              'value-selling': { name: 'Value Selling', application: 'Demonstrate tangible business impact and quantified results' },
+              sandler: { name: 'Sandler Selling', application: 'Qualify prospects and focus on pain points throughout sales process' },
+            };
+            const TONALITIES = {
+              executive: { name: 'Executive Gravitas', guidelines: 'Use sophisticated vocabulary, focus on strategic implications, emphasize vision and leadership' },
+              challenger: { name: 'Challenger Bold', guidelines: 'Be provocative and insight-driven, challenge conventional thinking, provide unique perspectives' },
+              conversational: { name: 'Conversational Peer', guidelines: 'Use "we" and "you", include relatable examples, build rapport through shared understanding' },
+              technical: { name: 'Technical Expert', guidelines: 'Use industry terminology, focus on specifications and capabilities, show technical credibility' },
+              inspirational: { name: 'Inspirational Vision', guidelines: 'Use aspirational language, focus on transformation, create emotional connection to goals' },
+              urgent: { name: 'Urgent Action', guidelines: 'Use action-oriented language, emphasize immediate benefits, highlight risk of inaction' },
+            };
+            const FOCUS_AREAS = [
+              { id: 'lead-gen', label: 'Lead Generation' },
+              { id: 'awareness', label: 'Brand Awareness' },
+              { id: 'education', label: 'Education' },
+              { id: 'demo', label: 'Product Demo' },
+            ];
+            const roleContent = ROLES[role] || ROLES.sdr;
+            const industryContent = INDUSTRIES[industry] || INDUSTRIES.saas;
+            const methodologyContent = METHODOLOGIES[methodology] || METHODOLOGIES.spin;
+            const tonalityContent = TONALITIES[tonality] || TONALITIES.executive;
+            const focusLabels = focus
+              .map((id) => (FOCUS_AREAS.find((f) => f.id === id) || {}).label)
+              .filter(Boolean)
+              .join(', ');
+            const templateTag = templateContext.templateId
+              ? ` [Template: ${templateContext.templateId}]`
+              : '';
+            const sections = [
+              `🎯 ${roleContent.title} Video Prompt${templateTag}`,
+              ``,
+              `Role Context: ${roleContent.description}`,
+              `Objectives: ${roleContent.objectives.join(', ')}`,
+              ``,
+              `Industry Focus: ${industryContent.description}`,
+              ``,
+              `Sales Framework: ${methodologyContent.name}`,
+              `Application: ${methodologyContent.application}`,
+              ``,
+              `Writing Style: ${tonalityContent.name}`,
+              `Guidelines: ${tonalityContent.guidelines}`,
+              ``,
+            ];
+            if (focusLabels) {
+              sections.push(`Focus Areas: ${focusLabels}`);
+              sections.push(``);
+            }
+            sections.push(`Core Concept: ${basePrompt || '(no base prompt provided)'}`);
+            sections.push(``);
+            sections.push(`Create a compelling video that leverages these GTM frameworks to drive ${roleContent.primaryKPI} and achieve ${roleContent.objectives[0].toLowerCase()}.`);
+            sendJson(res, 200, {
+              success: true,
+              source: 'local-library',
+              prompt: sections.join('\n'),
+              selections: { role, industry, methodology, tonality, focus },
+              templateContext,
+            });
+            return;
+          }
+
+          sendJson(res, 404, { error: 'Not found', path });
+        } catch (e) {
+          console.error('[gtm-boost-dev] handler error:', e);
+          sendJson(res, 500, { error: 'Internal Server Error', message: e.message });
+        }
+      });
+    },
+  };
+}
+
+/**
+ * modelCatalogDevPlugin — runs in dev (vite dev) to serve /api/model-catalog
+ * directly from public/api/model-catalog.json instead of proxying to the
+ * backend on :3001. The file is produced at build time by
+ * modelCatalogBuildPlugin (or by scripts/generate-model-catalog.mjs). The
+ * backend on :3001 is not always running in dev, so serving the static
+ * file removes a 404 path and matches the production behavior (Netlify
+ * serves the same file as a static rewrite).
+ */
+function modelCatalogDevPlugin() {
+  const CATALOG_PATH = path.join(PROJECT_ROOT, 'public', 'api', 'model-catalog.json');
+  return {
+    name: 'model-catalog-dev',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use('/api/model-catalog', (req, res) => {
+        try {
+          if (!fs.existsSync(CATALOG_PATH)) {
+            res.statusCode = 404;
+            res.end(JSON.stringify({
+              error: 'Not Found',
+              message: 'public/api/model-catalog.json is missing. Run `npm run generate:catalog` or `vite build` first.',
+            }));
+            return;
+          }
+          const raw = fs.readFileSync(CATALOG_PATH, 'utf-8');
+          const data = JSON.parse(raw);
+          // Dev client expects either { models: [...] } (single pool, filtered
+          // server-side) or { t2i: [...], i2i: [...], i2v: [...] } (full
+          // multi-pool, filtered client-side). The static file holds the full
+          // multi-pool shape, so we honor the client's modelType query param
+          // by returning the requested pool wrapped in { models: [...] }.
+          const url = new URL(req.url, 'http://localhost');
+          const modelType = url.searchParams.get('modelType');
+          const VALID = ['t2i', 'i2i', 'i2v'];
+          if (modelType && VALID.includes(modelType)) {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({ models: data[modelType] || [] }));
+          } else {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(data));
+          }
+        } catch (e) {
+          res.statusCode = 500;
+          res.end(JSON.stringify({ error: 'Internal Server Error', message: e.message }));
+        }
+      });
+    },
+  };
+}
+
+/**
  * modelCatalogBuildPlugin — runs at build time (vite build).
  *
  * Reads src/lib/models.js and src/lib/modelDescriptions.js and emits
@@ -506,6 +874,8 @@ export default defineConfig({
         stubLegacy(),
         svgMissingFallback(),
         modelCatalogBuildPlugin(),
+        modelCatalogDevPlugin(),
+        gtmBoostDevPlugin(),
     ],
     optimizeDeps: {
         // Point the dependency scanner at a clean entry (scripts/clerk-optimize-entry.js)
@@ -582,10 +952,11 @@ export default defineConfig({
                 target: 'http://localhost:3001',
                 changeOrigin: true,
             },
-            '/api/model-catalog': {
-                target: 'http://localhost:3001',
-                changeOrigin: true,
-            },
+            // /api/model-catalog is served by modelCatalogDevPlugin from the
+            // static public/api/model-catalog.json file (mirrors the Netlify
+            // production rewrite). No proxy needed.
+            // /api/gtm-boost is served by gtmBoostDevPlugin which mounts the
+            // backend service directly as Vite middleware. No proxy needed.
             '/director-api': {
                 target: process.env.VITE_DIRECTOR_API_URL || 'http://localhost:8000',
                 changeOrigin: true,

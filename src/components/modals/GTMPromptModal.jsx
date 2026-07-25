@@ -34,13 +34,14 @@ export class GTMPromptModal extends BaseModal {
     this.appColors = this.getAppColorScheme(this.appTheme);
 
     // GTM Selection State
-    this.selectedRole = '';
-    this.selectedIndustry = '';
-    this.selectedMethodology = '';
-    this.selectedTonality = '';
+    this.selectedRole = options.templateContext?.role || '';
+    this.selectedIndustry = options.templateContext?.industry || '';
+    this.selectedMethodology = options.templateContext?.methodology || '';
+    this.selectedTonality = options.templateContext?.tonality || '';
     this.selectedModel = this._readStoredModel();
-    this.basePrompt = '';
+    this.basePrompt = options.templateContext?.basePrompt || '';
     this.generatedPrompt = '';
+    this.templateContext = options.templateContext || null;
 
     // Responses API structured output state
     this.generatedStructured = null;   // { hook, storybeat_1, ... }
@@ -676,26 +677,52 @@ export class GTMPromptModal extends BaseModal {
       console.warn('[GTM] OpenAI Responses API (user key) unavailable, trying edge function:', error.message);
     }
 
-    // Secondary path: server edge function (server-held key).
+    // Secondary path: backend GTM Boost service (which itself
+    // tries OpenAI and falls back to a local library).
+    let aiSucceeded = false;
     try {
-      if (!isSupabaseConfigured()) throw new Error('Supabase not configured');
-
-      const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Request timed out')), 12000)
-      );
-      const request = supabase.functions.invoke('ai-cinematic-prompt-generator', {
-        body: { ...this._gtmParams(), action: 'generate', studioType: this.appTheme }
+      const res = await fetch('/api/gtm-boost/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          basePrompt: this.basePrompt,
+          role: this.selectedRole,
+          industry: this.selectedIndustry,
+          methodology: this.selectedMethodology,
+          tonality: this.selectedTonality,
+          focus: this.focusAreas,
+          templateContext: this.templateContext || undefined,
+        }),
       });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.prompt) {
+          this.generatedPrompt = data.prompt;
+          aiSucceeded = true;
+        }
+      }
+    } catch (backendErr) {
+      console.warn('[GTM] Backend /api/gtm-boost/generate failed:', backendErr.message);
+    }
 
-      const { data, error: fnError } = await Promise.race([request, timeout]);
-      if (fnError) throw new Error(fnError.message || 'Generation failed');
-      if (!data || !data.prompt) throw new Error('Empty response');
-      this._setResult({ prompt: data.prompt, responseId: data.response_id, usage: data.usage });
-      this.isGenerating = false;
-      this.refreshBody();
-      return;
-    } catch (fnError) {
-      console.warn('[GTM] Edge function unavailable, using local library:', fnError.message);
+    // Final fallback: client-side local library.
+    if (!aiSucceeded) {
+      try {
+        this.generatedPrompt = gtmContentLibrary.generateOptimizedPrompt({
+          basePrompt: this.basePrompt,
+          role: this.selectedRole,
+          industry: this.selectedIndustry,
+          methodology: this.selectedMethodology,
+          tonality: this.selectedTonality,
+          focus: this.focusAreas
+        });
+      } catch (fallbackError) {
+        console.error('[GTM] Fallback generation failed:', fallbackError);
+        this.isGenerating = false;
+        this.errorMessage = 'Failed to generate prompt. Please try again.';
+        this.refreshBody();
+        return;
+      }
     }
 
     // Tertiary path: local template library (always works offline).

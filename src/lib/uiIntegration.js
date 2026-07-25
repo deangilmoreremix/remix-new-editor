@@ -37,14 +37,27 @@ async function defaultGenerateThumbnail(prompt) {
  * Open the GTM Prompt Enhancer modal
  * Shared utility used by all apps (timeline-editor, image-studio, video-studio, etc.)
  * @param {string} appTheme - The app theme identifier for color customization
- * @param {Function} onPromptGenerated - Callback when a prompt is generated
+ * @param {Function|Object} onPromptGeneratedOrContext - Either a callback when a
+ *        prompt is generated, OR a context object with `onPromptGenerated` and
+ *        optional `templateContext` (for template-aware pre-fill).
  * @param {Function} [onGenerateThumbnail] - Optional override for thumbnail generation;
  *        defaults to defaultGenerateThumbnail which calls the ai-thumbnail-generator
  *        edge function and dispatches a `gtm:thumbnail-generated` window event.
  * @returns {GTMPromptModal|null} The modal instance or null on error
  */
-export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGenerated = null, onGenerateThumbnail = null) {
+export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGeneratedOrContext = null, onGenerateThumbnail = null) {
   try {
+    // Backward-compat: if the second arg is a plain function, treat it as the
+    // callback. If it's an object, pull `onPromptGenerated` and `templateContext`.
+    let onPromptGenerated = null;
+    let templateContext = null;
+    if (typeof onPromptGeneratedOrContext === 'function') {
+      onPromptGenerated = onPromptGeneratedOrContext;
+    } else if (onPromptGeneratedOrContext && typeof onPromptGeneratedOrContext === 'object') {
+      onPromptGenerated = onPromptGeneratedOrContext.onPromptGenerated || null;
+      templateContext = onPromptGeneratedOrContext.templateContext || null;
+    }
+
     const defaultPromptCallback = (generatedPrompt) => {
       const promptInput = document.querySelector(
         '#generation-prompt, textarea[placeholder*="Describe"], input[placeholder*="Describe"], textarea[placeholder*="prompt"], textarea[placeholder*="Prompt"], .studio-prompt-textarea, [data-prompt-input]'
@@ -65,6 +78,7 @@ export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGenerat
 
     const modal = new GTMPromptModal({
       appTheme,
+      templateContext: templateContext || undefined,
       onPromptGenerated: onPromptGenerated || defaultPromptCallback,
       onGenerateThumbnail: onGenerateThumbnail || defaultGenerateThumbnail,
     });
@@ -72,6 +86,50 @@ export function openGTMPromptModal(appTheme = 'timeline-editor', onPromptGenerat
     return modal;
   } catch (error) {
     console.error('GTM Prompt Modal error:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch GTM Boost options (roles, industries, methodologies, tonalities)
+ * from the backend. Falls back to null on error so the modal can use its
+ * built-in library.
+ */
+export async function fetchGTMBoostOptions() {
+  try {
+    const res = await fetch('/api/gtm-boost/options');
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.warn('[gtm-boost] fetchGTMBoostOptions failed:', err.message);
+    return null;
+  }
+}
+
+/**
+ * Resolve template-aware defaults (industry, tonality, role, methodology,
+ * basePrompt) from a template's category/niche. Uses the backend service
+ * so the mapping stays in one place.
+ */
+export async function fetchGTMTemplateContext(template) {
+  if (!template) return null;
+  try {
+    const res = await fetch('/api/gtm-boost/template-context', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        templateId: template.id,
+        category: template.category,
+        niche: template.niche,
+        name: template.name,
+        description: template.description,
+        outputType: template.outputType,
+      }),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.warn('[gtm-boost] fetchGTMTemplateContext failed:', err.message);
     return null;
   }
 }

@@ -916,15 +916,18 @@ export const templates = [
 export const allTemplates = [...templates, ...ALL_NICHE_TEMPLATES, ...MATRIX_TEMPLATES];
 
 export function getTemplateById(id) {
-  return allTemplates.find(t => t.id === id);
+  const list = Array.isArray(allTemplates) ? allTemplates : [];
+  return list.find(t => t && t.id === id);
 }
 
 export function getTemplatesByCategory(category) {
-  return allTemplates.filter(t => t.category === category);
+  const list = Array.isArray(allTemplates) ? allTemplates : [];
+  return list.filter(t => t && t.category === category);
 }
 
 export function getAllCategories() {
-  return [...new Set(allTemplates.map(t => t.category))];
+  const list = Array.isArray(allTemplates) ? allTemplates : [];
+  return [...new Set(list.map(t => t && t.category).filter(Boolean))];
 }
 
 /**
@@ -932,7 +935,8 @@ export function getAllCategories() {
  * `cinematic: true` flag. Other templates fall through to the simple form.
  */
 export function getCinematicTemplates() {
-  return allTemplates.filter((t) => t && t.cinematic === true);
+  const list = Array.isArray(allTemplates) ? allTemplates : [];
+  return list.filter((t) => t && t.cinematic === true);
 }
 
 export { ALL_NICHE_TEMPLATES, RESTAURANT_TEMPLATES, MED_SPA_TEMPLATES, SALON_TEMPLATES, FITNESS_TEMPLATES, REAL_ESTATE_TEMPLATES, DENTAL_TEMPLATES, CHIROPRACTIC_TEMPLATES, LEGAL_TEMPLATES, AUTOMOTIVE_TEMPLATES, FASHION_TEMPLATES, EVENT_TEMPLATES, LUXURY_TEMPLATES, MATRIX_TEMPLATES };
