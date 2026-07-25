@@ -37,8 +37,8 @@ export function SignInPage() {
     if (signIn.status === 'complete') {
       await signIn.finalize({
         navigate: async ({ session, decorateUrl }) => {
-          const url = decorateUrl('/#/image');
-          window.location.href = url.startsWith('http') ? url : '/#/image';
+          const url = decorateUrl('/#/templates');
+          window.location.href = url.startsWith('http') ? url : '/#/templates';
         },
       });
       return;

@@ -1,3 +1,69 @@
+import { Clerk } from '@clerk/clerk-js';
+
+// Studio / gated pages that require an active pro plan.
+const STUDIO_PAGES = new Set([
+  'image','video','cinema','storyboard','edit','upscale','character',
+  'commercial','templates','training','videotools','chat','audio','avatar',
+  'lipsync','render','influencer','video-agent','director','timeline',
+  'effects','apps','explore','library','assist','community',
+  'text-to-image','image-to-image','text-to-video','image-to-video',
+  'video-to-video','video-watermark','storyboard-page','character-page',
+  'effects-page','cinema-page','influencer-page','commercial-page',
+  'upscale-page','ai-vfx',
+]);
+
+let clerkReady = null; // cached promise
+
+async function waitForClerk() {
+  if (!clerkReady) {
+    clerkReady = new Promise((resolve) => {
+      if (Clerk.loaded) {
+        resolve(Clerk);
+        return;
+      }
+      const check = () => {
+        if (Clerk.loaded) {
+          Clerk.removeListener('ready', check);
+          resolve(Clerk);
+        }
+      };
+      Clerk.addListener('ready', check);
+      // Timeout after 8 seconds so we never block navigation forever
+      setTimeout(() => {
+        Clerk.removeListener('ready', check);
+        resolve(Clerk);
+      }, 8000);
+    });
+  }
+  return clerkReady;
+}
+
+async function ensureStudioAccess(page) {
+  if (!STUDIO_PAGES.has(page)) return true;
+
+  const clerk = await waitForClerk();
+  const user = clerk.user;
+
+  if (!user) {
+    window.location.href = '/signin';
+    return false;
+  }
+
+  // Templates hub is open to any authenticated user (free tier / template club)
+  if (page === 'templates' || page.startsWith('template/')) {
+    return true;
+  }
+
+  // All other studios require the pro plan
+  const plan = user.publicMetadata?.plan;
+  if (plan !== 'pro') {
+    window.location.href = '/pricing';
+    return false;
+  }
+
+  return true;
+}
+
 const ROUTE_MAP = {
   'Explore': 'explore',
   'Image': 'image',
@@ -95,6 +161,13 @@ export async function navigate(page, params = {}) {
   isNavigating = true;
   currentPage = page;
 
+  // Gate studio / gated pages behind the pro plan
+  const granted = await ensureStudioAccess(page);
+  if (!granted) {
+    isNavigating = false;
+    return;
+  }
+
   // Update URL with params so components can read them via URLSearchParams
   const searchParams = new URLSearchParams(params).toString();
   const newUrl = searchParams ? `/?${searchParams}#/${page}` : `/#/${page}`;
@@ -112,7 +185,10 @@ export async function navigate(page, params = {}) {
   try {
     let element;
 
+    // Template pages are also gated — check them before loading
     if (page.startsWith('template/')) {
+      const templateOk = await ensureStudioAccess('templates');
+      if (!templateOk) return;
       const templateId = page.replace('template/', '');
       const mod = await import('../components/TemplateStudio.js');
       element = mod.TemplateStudio(templateId);
