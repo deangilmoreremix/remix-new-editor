@@ -229,16 +229,32 @@ export function TemplateStudio(templateId) {
   const leftPanel = document.createElement('div');
   leftPanel.className = 'rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)]';
 
+  // Identify the primary prompt field. Templates usually have one input
+  // with name === 'prompt'; if not, fall back to the first text/textarea
+  // input. We track its DOM element and formState key so the GTM Boost
+  // callback can write the generated prompt back into it.
+  const promptInput = allInputs.find(i => i && i.name === 'prompt' && (i.type === 'text' || i.type === 'textarea'))
+    || allInputs.find(i => i && (i.type === 'text' || i.type === 'textarea'));
+  const promptFieldName = promptInput ? promptInput.name : null;
+  let promptEl = null; // assigned during the input loop below
+
   // Build form fields
   allInputs.forEach(input => {
     const fieldWrapper = document.createElement('div');
     fieldWrapper.className = 'mt-6 first:mt-0';
 
+    const isPrimaryPrompt = input.name === promptFieldName;
+    const showTextButtons = input.type === 'text' || input.type === 'textarea';
     const label = document.createElement('div');
     label.className = 'mb-3 flex items-center justify-between gap-3';
     label.innerHTML = `
       <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">${input.label}</div>
-      ${input.type === 'text' || input.type === 'textarea' ? `<button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>` : ''}
+      ${showTextButtons ? `
+        <div class="flex items-center gap-2">
+          <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>
+          ${isPrimaryPrompt ? `<button class="gtm-boost-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-emerald-400/30 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20 hover:text-white" data-gtm-boost="primary" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>` : ''}
+        </div>
+      ` : ''}
     `;
     fieldWrapper.appendChild(label);
 
@@ -275,6 +291,7 @@ export function TemplateStudio(templateId) {
       el.placeholder = input.placeholder || '';
       el.oninput = () => { formState[input.name] = el.value; };
       fieldWrapper.appendChild(el);
+      if (isPrimaryPrompt) promptEl = el;
     } else if (input.type === 'select') {
       const select = document.createElement('select');
       select.className = 'h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50 appearance-none cursor-pointer';
@@ -294,6 +311,54 @@ export function TemplateStudio(templateId) {
 
     leftPanel.appendChild(fieldWrapper);
   });
+
+  // GTM Boost: wire the button on the primary prompt field to open the
+  // modal, pre-fill template context, and write the generated prompt back
+  // into the prompt field + formState. Available on EVERY template type
+  // (video and image).
+  const gtmBtn = leftPanel.querySelector('[data-gtm-boost="primary"]');
+  if (gtmBtn && promptEl && promptFieldName) {
+    gtmBtn.addEventListener('click', async () => {
+      gtmBtn.disabled = true;
+      const originalText = gtmBtn.textContent;
+      gtmBtn.textContent = '🎯 Loading…';
+      try {
+        // Fetch template-aware defaults from the backend so the modal
+        // opens with the right industry/tonality/methodology pre-selected.
+        const ctx = await import('../lib/uiIntegration.js').then(m => m.fetchGTMTemplateContext(template)).catch(() => null);
+        // Merge: any pre-existing user input wins over the backend defaults.
+        const basePrompt = promptEl.value || (ctx && ctx.basePrompt) || template.description || '';
+        const templateContext = {
+          ...(ctx || {}),
+          basePrompt,
+          templateId: template.id,
+          category: template.category,
+          niche: template.niche,
+          outputType: template.outputType,
+        };
+        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+          openGTMPromptModal('template-studio', {
+            templateContext,
+            onPromptGenerated: (generatedPrompt) => {
+              // Write into the DOM element so the user sees it, then update
+              // formState and dispatch input events so any other listeners
+              // (e.g. the AI Enhancer / extra instructions) pick it up.
+              promptEl.value = generatedPrompt;
+              promptEl.dispatchEvent(new Event('input', { bubbles: true }));
+              promptEl.dispatchEvent(new Event('change', { bubbles: true }));
+              formState[promptFieldName] = generatedPrompt;
+              promptEl.focus();
+            },
+          });
+        }).catch((err) => {
+          console.error('[TemplateStudio] GTM Boost failed:', err);
+        });
+      } finally {
+        gtmBtn.disabled = false;
+        gtmBtn.textContent = originalText;
+      }
+    });
+  }
 
   // Model selector (async - fetches enriched catalog with descriptions)
   const outputType = template.outputType || (template.modelType === 't2i' ? 'image' : 'video');

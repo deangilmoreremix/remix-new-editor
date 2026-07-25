@@ -31,12 +31,13 @@ export class GTMPromptModal extends BaseModal {
     this.appColors = this.getAppColorScheme(this.appTheme);
 
     // GTM Selection State
-    this.selectedRole = '';
-    this.selectedIndustry = '';
-    this.selectedMethodology = '';
-    this.selectedTonality = '';
-    this.basePrompt = '';
+    this.selectedRole = options.templateContext?.role || '';
+    this.selectedIndustry = options.templateContext?.industry || '';
+    this.selectedMethodology = options.templateContext?.methodology || '';
+    this.selectedTonality = options.templateContext?.tonality || '';
+    this.basePrompt = options.templateContext?.basePrompt || '';
     this.generatedPrompt = '';
+    this.templateContext = options.templateContext || null;
 
     // Cinematic Enhancement Options
     this.cinematicOptions = {
@@ -103,50 +104,59 @@ export class GTMPromptModal extends BaseModal {
               <label for="gtm-role-select">Target Role</label>
               <select id="gtm-role-select">
                 <option value="">Select Role...</option>
-                <option value="sdr">SDR/BDR (Prospecting)</option>
-                <option value="ae">Account Executive (Discovery)</option>
-                <option value="sales-manager">Sales Manager (Pipeline)</option>
-                <option value="revops">RevOps (Optimization)</option>
-                <option value="csm">Customer Success (Expansion)</option>
-                <option value="founder">Founder/CEO (Strategy)</option>
+                <option value="sdr" ${this.selectedRole === 'sdr' ? 'selected' : ''}>SDR/BDR (Prospecting)</option>
+                <option value="ae" ${this.selectedRole === 'ae' ? 'selected' : ''}>Account Executive (Discovery)</option>
+                <option value="sales-manager" ${this.selectedRole === 'sales-manager' ? 'selected' : ''}>Sales Manager (Pipeline)</option>
+                <option value="revops" ${this.selectedRole === 'revops' ? 'selected' : ''}>RevOps (Optimization)</option>
+                <option value="csm" ${this.selectedRole === 'csm' ? 'selected' : ''}>Customer Success (Expansion)</option>
+                <option value="founder" ${this.selectedRole === 'founder' ? 'selected' : ''}>Founder/CEO (Strategy)</option>
               </select>
             </div>
             <div class="form-section">
               <label for="gtm-industry-select">Industry</label>
               <select id="gtm-industry-select">
                 <option value="">Select Industry...</option>
-                <option value="saas">SaaS</option>
-                <option value="fintech">FinTech</option>
-                <option value="healthcare">Healthcare</option>
-                <option value="manufacturing">Manufacturing</option>
-                <option value="professional-services">Professional Services</option>
-                <option value="ecommerce">E-commerce</option>
-                <option value="real-estate">Real Estate</option>
-                <option value="education">Education</option>
+                <option value="saas" ${this.selectedIndustry === 'saas' ? 'selected' : ''}>SaaS</option>
+                <option value="fintech" ${this.selectedIndustry === 'fintech' ? 'selected' : ''}>FinTech</option>
+                <option value="healthcare" ${this.selectedIndustry === 'healthcare' ? 'selected' : ''}>Healthcare</option>
+                <option value="manufacturing" ${this.selectedIndustry === 'manufacturing' ? 'selected' : ''}>Manufacturing</option>
+                <option value="professional-services" ${this.selectedIndustry === 'professional-services' ? 'selected' : ''}>Professional Services</option>
+                <option value="restaurant" ${this.selectedIndustry === 'restaurant' ? 'selected' : ''}>Restaurant & Food Service</option>
+                <option value="fitness-wellness" ${this.selectedIndustry === 'fitness-wellness' ? 'selected' : ''}>Fitness & Wellness</option>
+                <option value="real-estate" ${this.selectedIndustry === 'real-estate' ? 'selected' : ''}>Real Estate</option>
+                <option value="legal-services" ${this.selectedIndustry === 'legal-services' ? 'selected' : ''}>Legal Services</option>
+                <option value="automotive" ${this.selectedIndustry === 'automotive' ? 'selected' : ''}>Automotive</option>
+                <option value="fashion" ${this.selectedIndustry === 'fashion' ? 'selected' : ''}>Fashion & Lifestyle</option>
+                <option value="events" ${this.selectedIndustry === 'events' ? 'selected' : ''}>Events & Entertainment</option>
+                <option value="luxury" ${this.selectedIndustry === 'luxury' ? 'selected' : ''}>Luxury & Premium</option>
+                <option value="education" ${this.selectedIndustry === 'education' ? 'selected' : ''}>Education</option>
+                <option value="retail" ${this.selectedIndustry === 'retail' ? 'selected' : ''}>Retail & eCommerce</option>
+                <option value="travel" ${this.selectedIndustry === 'travel' ? 'selected' : ''}>Travel & Hospitality</option>
+                <option value="nonprofit" ${this.selectedIndustry === 'nonprofit' ? 'selected' : ''}>Nonprofit</option>
               </select>
             </div>
             <div class="form-section">
               <label for="gtm-methodology-select">Sales Methodology</label>
               <select id="gtm-methodology-select">
                 <option value="">Select Methodology...</option>
-                <option value="meddpicc">MEDDPICC (Enterprise)</option>
-                <option value="spin">SPIN Selling</option>
-                <option value="challenger">Challenger Sale</option>
-                <option value="gap-selling">Gap Selling</option>
-                <option value="value-selling">Value Selling</option>
-                <option value="sandler">Sandler Selling</option>
+                <option value="meddpicc" ${this.selectedMethodology === 'meddpicc' ? 'selected' : ''}>MEDDPICC (Enterprise)</option>
+                <option value="spin" ${this.selectedMethodology === 'spin' ? 'selected' : ''}>SPIN Selling</option>
+                <option value="challenger" ${this.selectedMethodology === 'challenger' ? 'selected' : ''}>Challenger Sale</option>
+                <option value="gap-selling" ${this.selectedMethodology === 'gap-selling' ? 'selected' : ''}>Gap Selling</option>
+                <option value="value-selling" ${this.selectedMethodology === 'value-selling' ? 'selected' : ''}>Value Selling</option>
+                <option value="sandler" ${this.selectedMethodology === 'sandler' ? 'selected' : ''}>Sandler Selling</option>
               </select>
             </div>
             <div class="form-section">
               <label for="gtm-tonality-select">Writing Style</label>
               <select id="gtm-tonality-select">
                 <option value="">Select Style...</option>
-                <option value="executive">Executive Gravitas</option>
-                <option value="challenger">Challenger Bold</option>
-                <option value="conversational">Conversational Peer</option>
-                <option value="technical">Technical Expert</option>
-                <option value="inspirational">Inspirational Vision</option>
-                <option value="urgent">Urgent Action</option>
+                <option value="executive" ${this.selectedTonality === 'executive' ? 'selected' : ''}>Executive Gravitas</option>
+                <option value="challenger" ${this.selectedTonality === 'challenger' ? 'selected' : ''}>Challenger Bold</option>
+                <option value="conversational" ${this.selectedTonality === 'conversational' ? 'selected' : ''}>Conversational Peer</option>
+                <option value="technical" ${this.selectedTonality === 'technical' ? 'selected' : ''}>Technical Expert</option>
+                <option value="inspirational" ${this.selectedTonality === 'inspirational' ? 'selected' : ''}>Inspirational Vision</option>
+                <option value="urgent" ${this.selectedTonality === 'urgent' ? 'selected' : ''}>Urgent Action</option>
               </select>
             </div>
           </div>
@@ -346,6 +356,7 @@ export class GTMPromptModal extends BaseModal {
     }
 
     // Try the AI edge function with a hard timeout so the modal never freezes.
+    let aiSucceeded = false;
     try {
       if (!isSupabaseConfigured()) throw new Error('Supabase not configured');
 
@@ -368,8 +379,42 @@ export class GTMPromptModal extends BaseModal {
       if (error) throw new Error(error.message || 'Generation failed');
       this.generatedPrompt = (data && data.optimizedPrompt) || '';
       if (!this.generatedPrompt) throw new Error('Empty response');
+      aiSucceeded = true;
     } catch (error) {
-      console.warn('[GTM] AI generation unavailable, using local library:', error.message);
+      console.warn('[GTM] Supabase edge unavailable, trying backend /api/gtm-boost/generate:', error.message);
+    }
+
+    // If Supabase failed, try the backend GTM Boost service (which itself
+    // tries OpenAI and falls back to a local library).
+    if (!aiSucceeded) {
+      try {
+        const res = await fetch('/api/gtm-boost/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            basePrompt: this.basePrompt,
+            role: this.selectedRole,
+            industry: this.selectedIndustry,
+            methodology: this.selectedMethodology,
+            tonality: this.selectedTonality,
+            focus: this.focusAreas,
+            templateContext: this.templateContext || undefined,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.prompt) {
+            this.generatedPrompt = data.prompt;
+            aiSucceeded = true;
+          }
+        }
+      } catch (backendErr) {
+        console.warn('[GTM] Backend /api/gtm-boost/generate failed:', backendErr.message);
+      }
+    }
+
+    // Final fallback: client-side local library.
+    if (!aiSucceeded) {
       try {
         this.generatedPrompt = gtmContentLibrary.generateOptimizedPrompt({
           basePrompt: this.basePrompt,
