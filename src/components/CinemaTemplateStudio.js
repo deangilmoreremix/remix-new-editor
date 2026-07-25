@@ -4,6 +4,7 @@
  */
 
 import { navigate } from '../lib/router.js';
+import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
@@ -32,6 +33,9 @@ import {
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-black overflow-hidden';
+
+  // All-studios side menu (drawer)
+  const studioDrawer = mountStudioDrawer(document.body, { currentRoute: 'cinema' });
 
   // State
   let registry = getTemplateRegistry();
@@ -62,6 +66,14 @@ export function CinemaTemplateStudio() {
         renderPreviewView();
         break;
     }
+
+    // Add an "all studios" menu button next to every back button in this view
+    container.querySelectorAll('[id="back-btn"]').forEach((backBtn) => {
+      if (backBtn.previousElementSibling && backBtn.previousElementSibling.dataset.studioMenu) return;
+      const menuBtn = createStudioMenuButton(studioDrawer.toggle);
+      menuBtn.dataset.studioMenu = '1';
+      backBtn.parentElement.insertBefore(menuBtn, backBtn);
+    });
   }
 
   // ================================
@@ -439,6 +451,38 @@ export function CinemaTemplateStudio() {
         checkbox.appendChild(checkSpan);
         field.appendChild(checkbox);
         break;
+    }
+
+    // GTM Boost affordance for the primary user prompt field.
+    // Mirrors ImageStudio / VideoStudio: shared `.gtm-boost-btn shrink-0` design,
+    // themed via the `cinema-template-studio` app theme. Placed next to the main
+    // prompt input (the primary describe/prompt field, not other per-input fields).
+    const isPrimaryPromptField =
+      input.name === 'prompt' &&
+      (input.type === 'textarea' || input.type === 'text');
+    if (isPrimaryPromptField) {
+      // The editable element for this field is the last child appended above.
+      const promptEl = field.querySelector('textarea, input');
+
+      const gtmBtn = document.createElement('button');
+      gtmBtn.type = 'button';
+      gtmBtn.textContent = '🎯 GTM Boost';
+      gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+      gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+      gtmBtn.className = 'gtm-boost-btn shrink-0';
+      gtmBtn.addEventListener('click', () => {
+        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+          openGTMPromptModal('cinema-template-studio', (prompt) => {
+            const ta = promptEl || field.querySelector('textarea, input');
+            if (ta) {
+              ta.value = prompt;
+              ta.dispatchEvent(new Event('input', { bubbles: true }));
+              ta.focus();
+            }
+          });
+        }).catch((err) => console.error('[CinemaTemplateStudio] GTM Boost failed:', err));
+      });
+      field.appendChild(gtmBtn);
     }
 
     return field;

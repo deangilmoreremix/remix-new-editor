@@ -49,7 +49,6 @@ export function handleChatSubmit(chatHistory, inputElement, showToast, onChatUpd
 
   // Update UI
   onChatUpdate();
-  // DISABLED:   
 }
 
 export function processAICommand(command, state, showToast) {

@@ -318,7 +318,6 @@ export function initializeTimelineEngine(state, els) {
         // Remove track logic
         state.tracks = state.tracks.filter(t => t.id !== layerItem.id);
         renderTracks(state, els, showToast);
-  // DISABLED:         
       }
     });
   });
@@ -448,7 +447,6 @@ export function renderTracks(state, els, showToast) {
     trackName.setAttribute('data-tooltip', 'Click to edit track name');
     trackName.onblur = () => {
       track.name = trackName.textContent.trim() || 'Track ' + (trackIndex + 1);
-  // DISABLED:       
     };
 
     const trackStats = document.createElement('div');
@@ -471,7 +469,6 @@ export function renderTracks(state, els, showToast) {
     soloBtn.onclick = () => {
       track.solo = !track.solo;
       renderTracks(state, els, showToast);
-  // DISABLED:       
     };
 
     // Mute button
@@ -483,7 +480,6 @@ export function renderTracks(state, els, showToast) {
     muteBtn.onclick = () => {
       track.muted = !track.muted;
       renderTracks(state, els, showToast);
-  // DISABLED:       
     };
 
     // Lock button
@@ -495,7 +491,6 @@ export function renderTracks(state, els, showToast) {
     lockBtn.onclick = () => {
       track.locked = !track.locked;
       renderTracks(state, els, showToast);
-  // DISABLED:       
     };
 
     trackControls.appendChild(soloBtn);
@@ -510,7 +505,6 @@ export function renderTracks(state, els, showToast) {
       layer: { ...track, blendMode: track.blendMode || 'normal' },
       onChange: (newBlendMode) => {
         track.blendMode = newBlendMode;
-  // DISABLED:         
       }
     });
 
@@ -611,7 +605,7 @@ export function renderTracks(state, els, showToast) {
 
 function createTimelineRuler(state) {
   const ruler = document.createElement('div');
-  ruler.className = 'timeline-ruler';
+  ruler.className = 'ruler';
 
   const totalSeconds = state.timelineSeconds;
   const majorTicks = Math.ceil(totalSeconds / 10); // Every 10 seconds
@@ -671,7 +665,7 @@ export function createEnhancedClipElement(item, track, state, zoom = 1.0) {
   // Add duration indicator
   const duration = item.end - item.start;
   const durationEl = document.createElement('span');
-  durationEl.className = 'clip-duration';
+  durationEl.className = 'clip-dur';
   durationEl.textContent = formatTime(duration);
   durationEl.setAttribute('data-tooltip', `Clip duration: ${formatTime(duration)}`);
   clipContent.appendChild(durationEl);
@@ -707,7 +701,6 @@ export function createEnhancedClipElement(item, track, state, zoom = 1.0) {
     if (e.target.classList.contains('clip-handle')) return;
 
     // Open clip editor
-  // DISABLED:     
   });
 
   // Add mouse enter/leave for enhanced tooltips

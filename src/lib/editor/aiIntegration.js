@@ -598,10 +598,8 @@ export class AiFeaturePanel {
     formModal.querySelector('#createElementSubmitBtn').addEventListener('click', () => {
       const name = formModal.querySelector('#element-name').value;
       if (!name) {
-  // DISABLED:         
         return;
       }
-  // DISABLED:       
       formModal.remove();
     });
   }
@@ -631,10 +629,8 @@ export class AiFeaturePanel {
         progressBar.querySelector('.progress-fill').style.width = `${i}%`;
         progressBar.querySelector('.progress-text').textContent = `Exporting... ${i}%`;
       }
-  // DISABLED:       
       modal.remove();
     } catch (error) {
-  // DISABLED:       
       btn.textContent = 'Export Video';
       btn.disabled = false;
     }
@@ -706,9 +702,9 @@ function capitalize(str) {
 /**
  * Show toast notification
  */
-function console.log(message, type = 'info') {
-  if (typeof window !== 'undefined' && window.showToast) {
-    window.
+function showAiToast(message, type = 'info') {
+  if (typeof window !== 'undefined' && typeof window.showToast === 'function') {
+    window.showToast(message, type);
   } else {
     console.log(`[${type}] ${message}`);
   }

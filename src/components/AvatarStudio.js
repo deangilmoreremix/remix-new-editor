@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { avatarModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -9,6 +10,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 export function AvatarStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10 relative';
+  mountStudioChrome(container, { currentRoute: 'avatar' });
 
   let selectedModel = avatarModels[0];
   let uploadedVideoUrl = null;
@@ -106,6 +108,24 @@ export function AvatarStudio() {
   promptInput.placeholder = 'Describe the animation you want...';
   promptInput.oninput = (e) => { prompt = e.target.value; };
   promptGroup.appendChild(promptInput);
+    // GTM Boost entry point — opens the prompt enhancer themed for avatar
+    // animation and loads the result straight into this prompt.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('avatar-studio', (prompt) => {
+          promptInput.value = prompt;
+          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+          promptInput.focus();
+        });
+      }).catch((err) => console.error('[AvatarStudio] GTM Boost failed:', err));
+    });
+    promptGroup.appendChild(gtmBtn);
   formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
 

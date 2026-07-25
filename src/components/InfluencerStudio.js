@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createHeroSection } from '../lib/thumbnails.js';
@@ -21,6 +22,7 @@ const FORMAT_PRESETS = [
 export function InfluencerStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10';
+  mountStudioChrome(container, { currentRoute: 'influencer' });
 
   let uploadedUrl = null;
   let selectedStyle = STYLE_PRESETS[0];
@@ -119,6 +121,24 @@ export function InfluencerStudio() {
   promptInput.rows = 2;
   promptInput.placeholder = 'Additional instructions (optional)';
   formCard.appendChild(promptInput);
+    // GTM Boost entry point — opens the prompt enhancer themed for influencer
+    // content and loads the result straight into this prompt.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('influencer-studio', (prompt) => {
+          promptInput.value = prompt;
+          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+          promptInput.focus();
+        });
+      }).catch((err) => console.error('[InfluencerStudio] GTM Boost failed:', err));
+    });
+    formCard.appendChild(gtmBtn);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'influencer-studio' });
 
   const genBtn = document.createElement('button');

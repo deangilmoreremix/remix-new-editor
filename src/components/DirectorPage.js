@@ -1,4 +1,5 @@
 import { showToast } from '../lib/loading.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { supabase } from '../lib/supabase.js';
 import { createIcons, icons } from 'lucide';
 
@@ -770,6 +771,7 @@ function addEventListeners() {
 export function DirectorPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full overflow-hidden bg-[#08090b]';
+  mountStudioChrome(container, { currentRoute: 'director' });
 
   const urlParams = new URLSearchParams(window.location.search);
   window.currentVideoUrl = urlParams.get('videoUrl') || '';

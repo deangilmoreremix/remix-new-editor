@@ -2,7 +2,7 @@
 // forgot password, reset password). Keeps the custom design consistent
 // across every authentication surface while each page owns its own form.
 
-import React from 'react';
+import React, { useState } from 'react';
 
 // The exact top navigation chrome used by SignInPage / SignUpPage, reused
 // here so the auth pages never drift in appearance.
@@ -81,6 +81,29 @@ export function AuthFooter({ children }) {
   return <div className="mt-8 text-center text-slate-300">{children}</div>;
 }
 
+// Wrap a Clerk custom-flow promise with a timeout. The @clerk/react v6
+// signals API resolves `{ data?, error? }` and never throws for auth
+// failures, but a stalled network request would otherwise leave the page
+// in its loading state forever. On timeout (or an unexpected throw) this
+// resolves the same `{ error }` shape so callers handle it uniformly.
+export function clerkWithTimeout(promise, ms = 15000) {
+  return Promise.race([
+    Promise.resolve(promise).catch((error) => ({ error })),
+    new Promise((resolve) =>
+      setTimeout(
+        () =>
+          resolve({
+            error: {
+              message: 'The request timed out. Please check your connection and try again.',
+              longMessage: 'The request timed out. Please check your connection and try again.',
+            },
+          }),
+        ms,
+      ),
+    ),
+  ]);
+}
+
 // Extract a human-readable message from a Clerk custom-flow result.
 //
 // The installed @clerk/react (v6, signals API) NEVER throws for validation
@@ -114,9 +137,120 @@ export function clerkErrorMessage(resultError, hookErrors) {
   return null;
 }
 
+// Wipe every Clerk session cookie + browser storage for the current origin
+// and reload. Use this when the app is stuck in the "You're already signed
+// in" / blank app state because of stale dev-instance cookies (e.g. after
+// rotating from pk_test_ to pk_live_). Safe to call on any page; the
+// reload re-runs the router and lets the user sign in cleanly.
+export async function clearClerkSession({ reload = true } = {}) {
+  try {
+    // Cookies — delete every name we know Clerk uses, on every domain
+    // scope that might be set (.smartvid.app, smartvid.app, localhost, etc.)
+    if (typeof document !== 'undefined' && document.cookie) {
+      const known = ['__session', '__client_uat', '__clerk_db_jwt', '__clerk_redirect_url'];
+      for (const name of known) {
+        for (const scope of ['/', '/']) {
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=${scope}`;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=${scope};domain=.smartvid.app`;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=${scope};domain=smartvid.app`;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=${scope};domain=localhost`;
+        }
+      }
+    }
+    // cookieStore (modern API) — catches HttpOnly/secure cookies the DOM
+    // can't see but the dev-tools panel can.
+    if (typeof cookieStore !== 'undefined') {
+      try {
+        const all = await cookieStore.getAll();
+        for (const c of all) {
+          const opts = { name: c.name, path: '/' };
+          try { await cookieStore.delete(opts); } catch {}
+          if (c.domain) {
+            for (const d of [c.domain, '.' + c.domain]) {
+              try { await cookieStore.delete({ ...opts, domain: d }); } catch {}
+            }
+          }
+        }
+      } catch {}
+    }
+    // local + session storage
+    try { localStorage.clear(); } catch {}
+    try { sessionStorage.clear(); } catch {}
+    // IndexedDB (Clerk caches tokens here)
+    if (typeof indexedDB !== 'undefined' && indexedDB.databases) {
+      try {
+        const dbs = await indexedDB.databases();
+        for (const d of dbs) { if (d.name) indexedDB.deleteDatabase(d.name); }
+      } catch {}
+    }
+    // Cache Storage (service worker caches for the FAPI)
+    if (typeof caches !== 'undefined') {
+      try {
+        const keys = await caches.keys();
+        for (const k of keys) caches.delete(k);
+      } catch {}
+    }
+    // Unregister the service worker so its old cache stops intercepting
+    // future requests with the stale bundle.
+    if ('serviceWorker' in navigator) {
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) await r.unregister();
+      } catch {}
+    }
+  } finally {
+    if (reload && typeof window !== 'undefined') {
+      // Use a full reload so the SPA re-bootstraps with a clean slate.
+      window.location.reload();
+    }
+  }
+}
+
 // Shared text-input styling used across every auth field.
 export const authInputClass =
   'w-full px-4 py-3 bg-slate-800/50 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200';
+
+// Password input with a show/hide toggle. Replaces the static lock icon
+// on every auth page so users can verify what they're typing before they
+// submit. Accepts the same props as a native <input> (id, name, value,
+// onChange, autoComplete, placeholder, required) and renders an eye /
+// eye-slash button absolutely positioned on the right side.
+//
+// The button is keyboard-reachable, has a descriptive aria-label that
+// flips with state, and is `type="button"` so it never submits the form.
+export function PasswordInput(props) {
+  const { className, ...rest } = props;
+  const [visible, setVisible] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        {...rest}
+        type={visible ? 'text' : 'password'}
+        className={`${authInputClass} pr-12 ${className || ''}`.trim()}
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((v) => !v)}
+        tabIndex={0}
+        aria-label={visible ? 'Hide password' : 'Show password'}
+        aria-pressed={visible}
+        title={visible ? 'Hide password' : 'Show password'}
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-cyan-300 focus:outline-none focus:text-cyan-300 transition-colors rounded-md"
+      >
+        {visible ? (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+          </svg>
+        ) : (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        )}
+      </button>
+    </div>
+  );
+}
 
 // Full-page shell: dark background + header + centered card content.
 export function AuthPage({ title, subtitle, children }) {

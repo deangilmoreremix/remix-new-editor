@@ -327,11 +327,9 @@ async function openAIVideoCreator(state, showToast) {
       onComplete: (result) => {
         // Add generated video to timeline
         addVideoToTimeline(result, state);
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -342,11 +340,9 @@ async function openVideoPersonalizer(clip, state, showToast) {
       clip,
       onComplete: (result) => {
         updateClipInTimeline(clip.id, result, state);
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -364,7 +360,6 @@ async function openImageEditor(clip, state, showToast) {
         // For editing existing clips
         if (result && result.editedImage) {
           updateClipInTimeline(clip.id, { src: `data:image/png;base64,${result.editedImage}` }, state);
-  // DISABLED:           
         }
       },
       onAddToTimeline: async (generatedImage) => {
@@ -397,7 +392,6 @@ async function openImageEditor(clip, state, showToast) {
             targetTrack.clips.push(newClip);
           }
 
-  // DISABLED:           
         } catch (error) {
           console.error('Failed to add generated image to timeline:', error);
           throw error;
@@ -411,7 +405,6 @@ async function openImageEditor(clip, state, showToast) {
     modal.show();
   } catch (error) {
     console.error('Failed to open OpenAI Image Editor:', error);
-  // DISABLED:     
   }
 }
 
@@ -423,11 +416,9 @@ async function openTextToSpeech(clip, state, showToast) {
       onComplete: (audioUrl) => {
         // Add audio track with generated voice
         addAudioToTimeline(audioUrl, clip, state);
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -437,11 +428,9 @@ async function openTemplateBrowser(clip, state, showToast) {
     await modalManager.openModal('Templates', {
       onSelect: (template) => {
         applyTemplateToClip(clip, template, state);
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -451,11 +440,9 @@ async function openVideoRecorder(state, showToast) {
     await modalManager.openModal('VideoRecorder', {
       onComplete: (videoUrl) => {
         addVideoToTimeline({ src: videoUrl, name: 'Recorded Video' }, state);
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -465,11 +452,9 @@ async function toggleEnhancedLibrary(mediaGrid, state, showToast) {
     await modalManager.openModal('Library', {
       onSelect: (media) => {
         addMediaToTimeline(media, state);
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -479,11 +464,9 @@ async function openSocialPublisher(state, showToast) {
     await modalManager.openModal('SocialPublisherModal', {
       project: state,
       onComplete: () => {
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -493,11 +476,9 @@ async function openVideoAnalytics(state, showToast) {
     await modalManager.openModal('VideoAnalytics', {
       project: state,
       onComplete: (analytics) => {
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -508,11 +489,9 @@ async function openImageCropperModal(clip, state, showToast) {
       image: clip.src,
       onComplete: (result) => {
         updateClipInTimeline(clip.id, { src: result }, state);
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -523,11 +502,9 @@ async function openImglyImageEditorModal(clip, state, showToast) {
       image: clip.src,
       onComplete: (result) => {
         updateClipInTimeline(clip.id, { src: result }, state);
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -538,11 +515,9 @@ async function openVideoPersonalizerModal(clip, state, showToast) {
       clip,
       onComplete: (result) => {
         updateClipInTimeline(clip.id, result, state);
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -552,11 +527,9 @@ async function openVideoAnalyticsModal(clip, state, showToast) {
     await modalManager.openModal('VideoAnalytics', {
       clip,
       onComplete: (analytics) => {
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -568,7 +541,6 @@ async function openVoiceModalTTS(clip, state, showToast) {
       text: clip.body || clip.heading,
       onComplete: (result) => {
         addAudioToTimeline(result, state);
-  // DISABLED:         
       }
     });
   } catch (error) {
@@ -583,11 +555,9 @@ async function openPersonalizationModal(clip, state, showToast) {
       text: clip.body || clip.heading,
       onComplete: (result) => {
         updateClipInTimeline(clip.id, { body: result.personalizedText }, state);
-  // DISABLED:         
       }
     });
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -598,7 +568,6 @@ async function openVoiceModalRecording(clip, state, showToast) {
       mode: 'recording',
       onComplete: (result) => {
         updateClipInTimeline(clip.id, { src: result.audioUrl }, state);
-  // DISABLED:         
       }
     });
   } catch (error) {
@@ -680,7 +649,6 @@ function addMediaToTimeline(media, state) {
 async function openGiphyIntegration(state, showToast) {
   try {
     // For now, show a simple integration - in full implementation this would open a modal
-  // DISABLED:     
 
     // Add Giphy search to generation panel
     const generationPanel = document.querySelector('.generate-panel');
@@ -701,7 +669,6 @@ async function openGiphyIntegration(state, showToast) {
         const query = input.value.trim();
         if (query) {
           window.dispatchEvent(new CustomEvent('giphySearch', { detail: { query } }));
-  // DISABLED:           
         }
       };
 
@@ -711,7 +678,6 @@ async function openGiphyIntegration(state, showToast) {
       });
     }
   } catch (error) {
-  // DISABLED:     
   }
 }
 
@@ -726,11 +692,8 @@ async function openTextToSpeechFromSelection(state, showToast) {
       window.dispatchEvent(new CustomEvent('generateTTS', {
         detail: { clipId: selectedClip.id, text: selectedClip.body || selectedClip.text }
       }));
-  // DISABLED:       
     } else {
-  // DISABLED:       
     }
   } catch (error) {
-  // DISABLED:     
   }
 }

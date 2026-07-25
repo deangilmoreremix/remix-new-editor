@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createHeroSection } from '../lib/thumbnails.js';
@@ -8,6 +9,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 export function AudioStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10 relative';
+  mountStudioChrome(container, { currentRoute: 'audio' });
 
   let selectedModel = audioModels[0];
   let prompt = '';
@@ -65,6 +67,24 @@ export function AudioStudio() {
   promptInput.placeholder = 'Describe the music you want to generate...';
   promptInput.oninput = (e) => { prompt = e.target.value; };
   promptGroup.appendChild(promptInput);
+    // GTM Boost entry point — opens the prompt enhancer themed for audio
+    // generation and loads the result straight into this prompt.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('audio-studio', (prompt) => {
+          promptInput.value = prompt;
+          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+          promptInput.focus();
+        });
+      }).catch((err) => console.error('[AudioStudio] GTM Boost failed:', err));
+    });
+    promptGroup.appendChild(gtmBtn);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'audio-studio' });
   formCard.appendChild(promptGroup);
 

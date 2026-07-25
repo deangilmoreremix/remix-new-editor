@@ -73,6 +73,10 @@ export function ForgotPasswordPage() {
         </>
       ) : (
         <>
+          <p className="text-sm text-slate-300 mb-4 text-center">
+            If you previously signed up with a magic link and don’t have a password,
+            use this page to set one so you can sign in with email + password.
+          </p>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
@@ -96,15 +100,20 @@ export function ForgotPasswordPage() {
               </div>
             </div>
 
-            <AuthError message={error} />
+              <AuthError message={error} />
 
-            <AuthSubmitButton
-              loading={loading}
-              disabled={!isLoaded}
-              loadingLabel="Sending…"
-              label="Send Reset Code"
-            />
-          </form>
+              <AuthSubmitButton
+                loading={loading}
+                disabled={!isLoaded}
+                loadingLabel="Sending…"
+                label="Send Reset Code"
+              />
+
+              {/* Required for custom auth flows: Clerk's Smart CAPTCHA widget
+                  renders into this element so password-reset requests pass
+                  bot protection instead of silently failing. */}
+              <div id="clerk-captcha" />
+            </form>
 
           <AuthFooter>
             <p>

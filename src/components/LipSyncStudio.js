@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getLipSyncModelById, getResolutionsForLipSyncModel } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
@@ -9,6 +10,7 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 export function LipSyncStudio() {
     const container = document.createElement('div');
     container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+  mountStudioChrome(container, { currentRoute: 'lipsync' });
 
     // --- State ---
     // 'image' mode: portrait image + audio → video
@@ -158,6 +160,26 @@ export function LipSyncStudio() {
     uploadsRow.appendChild(videoUploadBtn);
     uploadsRow.appendChild(audioUploadBtn);
     uploadsRow.appendChild(textarea);
+
+    // GTM Boost entry point — opens the prompt enhancer themed for lip-sync
+    // scripts and loads the result straight into this textarea.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('lip-sync-studio', (prompt) => {
+          textarea.value = prompt;
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          textarea.focus();
+        });
+      }).catch((err) => console.error('[LipSyncStudio] GTM Boost failed:', err));
+    });
+    uploadsRow.appendChild(gtmBtn);
+
     bar.appendChild(uploadsRow);
 
     // ── Status labels ──

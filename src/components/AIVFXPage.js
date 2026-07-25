@@ -1,3 +1,4 @@
+import { mountStudioChrome } from '../lib/studioChrome.js';
 // AI-VFX Studio Page
 // Mounts the real apps/ai-vfx React app (src/App.jsx) into a container div
 // using the same react-dom/client + dynamic react import bridge pattern that
@@ -6,6 +7,7 @@
 export function AIVFXPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col overflow-hidden bg-app-bg';
+  mountStudioChrome(container, { currentRoute: 'ai-vfx' });
 
   // Header bar matching the shell's visual language
   const header = document.createElement('div');

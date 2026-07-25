@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
@@ -24,6 +25,7 @@ const EDIT_TOOLS = [
 export function EditStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto relative';
+  mountStudioChrome(container, { currentRoute: 'edit' });
 
   let activeTool = null;
   let uploadedUrl = null;

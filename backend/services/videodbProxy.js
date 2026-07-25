@@ -19,8 +19,12 @@
  */
 
 import express from 'express';
+import multer from 'multer';
 
 const router = express.Router();
+
+// In-memory upload handling for multipart file uploads (VideoDB ingest).
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 500 * 1024 * 1024 } });
 
 const VIDEODB_BASE_URL = 'https://api.videodb.io';
 
@@ -33,12 +37,14 @@ function isValidVideoDBPath(p) {
     return /^[a-z0-9_./-]+$/.test(trimmed);
 }
 
-router.post('/proxy', async (req, res) => {
+router.post('/proxy', upload.any('file'), async (req, res) => {
     try {
-        const { endpoint, method = 'POST', body } = req.body || {};
+        // Multipart uploads (file ingest) carry the key + endpoint as text fields.
+        const isMultipart = Array.isArray(req.files) && req.files.length > 0;
+        const body = isMultipart ? (req.body || {}) : (req.body || {});
+        const { endpoint, method = 'POST' } = body;
 
-        // The user's own VideoDB key travels in the request body. Prefer
-        // `videoDbKey`; fall back to a `settings.videoDbKey` envelope.
+        // The user's own VideoDB key travels in the request body / fields.
         const videoDbKey =
             (req.body && req.body.videoDbKey) ||
             (req.body && req.body.settings && req.body.settings.videoDbKey) ||
@@ -57,12 +63,25 @@ router.post('/proxy', async (req, res) => {
 
         const headers = {
             'x-access-token': videoDbKey.trim(),
-            'Content-Type': 'application/json',
         };
 
-        const fetchOptions = { method: upstreamMethod, headers };
-        if (upstreamMethod === 'POST' && body !== undefined) {
-            fetchOptions.body = JSON.stringify(body);
+        let fetchOptions;
+        if (isMultipart) {
+            // Forward the uploaded file as multipart/form-data to VideoDB.
+            const form = new FormData();
+            for (const f of req.files) {
+                form.append(f.fieldname, new Blob([f.buffer], { type: f.mimetype }), f.originalname);
+            }
+            for (const [k, v] of Object.entries(req.body)) {
+                if (k !== 'videoDbKey' && k !== 'settings' && v != null) form.append(k, String(v));
+            }
+            fetchOptions = { method: upstreamMethod, headers, body: form };
+        } else {
+            headers['Content-Type'] = 'application/json';
+            fetchOptions = { method: upstreamMethod, headers };
+            if (upstreamMethod === 'POST' && body.body !== undefined) {
+                fetchOptions.body = JSON.stringify(body.body);
+            }
         }
 
         const upstream = await fetch(upstreamUrl, fetchOptions);

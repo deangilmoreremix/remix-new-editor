@@ -1,11 +1,11 @@
 import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';
-import { initializeMediaLibraryDragDrop, setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
+import { setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
 // MARKER_TEST_ABC123import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
 import { saveProjectToStorage } from '../lib/editor/persistence.js';
 import { renderMediaGrid, addMediaToTimeline } from '../lib/editor/mediaLibrary.js';
 import { assetStore } from '../lib/assets/assetStore.js';
-import { extendClipContextMenu, extendGenerationPanel, extendMediaLibrary, extendTopActions, openGTMPromptModal } from '../lib/uiIntegration.js';
+import { extendClipContextMenu, extendGenerationPanel, extendMediaLibrary, openGTMPromptModal } from '../lib/uiIntegration.js';
 import { integrateMediaIngest, GiphyIntegration, StickersLibrary, LowerThirds, VideoGallery, AnimationList } from '../lib/mediaIngest.js';
 import { renderMultiCameraToolbar, renderPipControls, renderSplitScreenControls } from '../lib/editor/multiCamera.js';
 import { createTimelineState } from '../lib/editor/timelineEditorState.js';
@@ -357,95 +357,124 @@ export function TimelineEditorPage() {
 <div class="app-shell">
   <header class="header">
     <div class="brand">
-      <button class="icon-btn" id="backBtn" data-tooltip="Go back - Return to the previous view or project selection" aria-label="Go back to the previous view">←</button>
       <div class="brand-mark">🎬</div>
       <div>
-        <div class="brand-title">TIMELINE</div>
-        <div class="brand-sub">AI Video Editor</div>
+        <div class="brand-title">Higgsfield</div>
+        <div class="brand-sub">Editor</div>
       </div>
     </div>
     <div class="project-head">
-      <div class="title" id="projectTitle">Untitled Project</div>
-      <div class="sub" id="projectSub">Working timeline preview</div>
+      <div class="title" id="projectTitle">Untitled Sequence</div>
+      <div class="sub" id="projectSub">1080 × 1920 · 30 fps</div>
     </div>
-    <div class="top-actions" id="topActions" data-tooltip="Quick action toolbar"></div>
+    <div class="top-actions" id="topActions">
+      <button class="top-icon" aria-label="Undo">↶</button>
+      <button class="top-icon" aria-label="Redo">↷</button>
+      <button class="top-icon active" aria-label="Timeline view" aria-pressed="true">▦</button>
+      <button class="top-icon" id="openSettings" aria-label="Settings" title="Settings">⚙</button>
+      <button class="top-icon" id="openConnect" aria-label="Connections" title="Connections">🔗</button>
+      <button class="top-icon" id="openAgents" aria-label="AI Agents" title="AI Agents">🤖</button>
+      <button class="top-icon" id="openSave" aria-label="Save project" title="Save">💾</button>
+      <span class="ready-pill"><span class="ready-dot"></span>Render Ready</span>
+    </div>
   </header>
+
+  <!-- Feature index bar (prototype parity) -->
+  <nav class="feature-index" aria-label="All editor features">
+    <span class="fi-label">All features:</span>
+    <button class="fi-chip" data-modal="previewMedia">Media Preview</button>
+    <button class="fi-chip" data-modal="videoPlayer">Video Player</button>
+    <button class="fi-chip" data-modal="recorder">Recorder</button>
+    <button class="fi-chip" data-modal="urlVideo">URL Video</button>
+    <button class="fi-chip" data-modal="templates">Templates</button>
+    <button class="fi-chip" data-modal="aiVideo">AI Video</button>
+    <button class="fi-chip" data-modal="personalization">Personalization</button>
+    <button class="fi-chip" data-modal="landing">Landing Builder</button>
+    <button class="fi-chip" data-modal="social">Social Publish</button>
+    <button class="fi-chip" data-modal="email">Email Campaign</button>
+    <button class="fi-chip" data-modal="leads">Lead Gen</button>
+    <button class="fi-chip" data-modal="contacts">Contacts</button>
+    <button class="fi-chip" data-modal="endScreen">End Screen</button>
+    <button class="fi-chip" data-modal="import">Import Timeline</button>
+    <button class="fi-chip" data-modal="storyboard">CutAI Storyboard</button>
+    <button class="fi-chip" data-modal="subtitleEditor">Subtitle Editor</button>
+    <button class="fi-chip" data-modal="imageCrop">Image Cropper</button>
+    <button class="fi-chip" data-modal="imageEdit">Image Editor</button>
+    <button class="fi-chip" data-modal="voice">Voice</button>
+  </nav>
+
   <div class="main-grid">
     <div class="left-col">
-      <div class="left-top">
-        <aside class="side-card" style="min-height:100%; display:flex; flex-direction:column;">
-          <div id="aiChatContainer"></div>
-        </aside>
-        <section class="preview-card">
-          <div class="preview-glow"></div>
-          <div class="preview-inner">
-            <div class="preview-stage" id="previewStage"></div>
-            <div class="preview-empty" id="previewEmpty">
-              <div class="preview-screen">
-                <div class="preview-emoji" id="previewEmoji">🎥</div>
-                <div class="preview-title" id="previewTitle">Center Preview</div>
-                <div class="preview-sub" id="previewSubtitle">Glow preview styled like the render page</div>
+      <section class="preview-card preview-large">
+        <div class="preview-glow"></div>
+        <div class="preview-inner">
+          <div class="viewer">
+            <div class="viewer-stage" id="viewerStage">
+              <div class="viewer-frame" id="viewerFrame">
+                <div class="preview-stage" id="previewStage"></div>
+                <div class="vf-gradient"></div>
+                <div class="preview-empty" id="previewEmpty">
+                  <div class="vf-subtitle" id="vfSubtitle">Your story starts here.</div>
+                </div>
+                <div class="vf-badge" id="vfBadge">● REC · 00:12.4</div>
+              </div>
+              <div class="viewer-controls">
+                <button class="circle-btn" id="rewindBtn" data-tooltip="Rewind - Move the playhead back by 10% (←)" aria-label="Rewind the playhead by 10%">⏮</button>
+                <button class="circle-btn primary" id="playBtn" data-tooltip="Play or pause timeline preview (Spacebar)" aria-label="Play or pause timeline preview">▶</button>
+                <button class="circle-btn" id="stopBtn" data-tooltip="Stop - Stop playback and return to beginning" aria-label="Stop playback and return to the beginning">⏹</button>
+                <div class="vf-progress"><div class="vf-fill" id="progressFill" style="width:28%"></div></div>
+                <span class="vf-time"><span id="currentTime">00:12.4</span> / <span id="totalTime">00:45.0</span></span>
+                <button class="circle-btn" id="vfFull" aria-label="Fullscreen / open player" title="Open Video Player" data-tooltip="Open the fullscreen video player">⤢</button>
               </div>
             </div>
+            <div class="filmstrip" id="filmstrip" aria-label="Clip thumbnails"></div>
           </div>
-          <input type="file" id="uploadInput" accept="video/*,image/*,audio/*,.txt" hidden data-testid="file-input" />
-          <div class="preview-overlay">
-            <div class="time-row">
-              <span id="currentTime">00:12.40</span>
-              <span id="totalTime">01:00.00</span>
-            </div>
-            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-            <div class="control-row">
-              <button class="circle-btn" id="rewindBtn" data-tooltip="Rewind - Move the playhead back by 10% (←)" aria-label="Rewind the playhead by 10%">⏮</button>
-              <button class="circle-btn primary" id="playBtn" data-tooltip="Play or pause timeline preview (Spacebar)" aria-label="Play or pause timeline preview">▶</button>
-              <button class="circle-btn" id="stopBtn" data-tooltip="Stop - Stop playback and return to beginning" aria-label="Stop playback and return to the beginning">⏹</button>
-            </div>
-          </div>
-        </section>
-      </div>
+        </div>
+        <input type="file" id="uploadInput" accept="video/*,image/*,audio/*,.txt" hidden data-testid="file-input" />
+      </section>
       <section class="timeline-card" data-testid="timeline-container">
         <div class="timeline-top">
           <div class="toolbar-left">
-            <div class="tool-group" id="toolGroup"></div>
-             <button class="mini-btn" data-action="zoom-out" data-tooltip="Zoom out - See more of the timeline (Mouse wheel)" aria-label="Zoom out on the timeline">🔍-</button>
-            <button class="mini-btn" data-action="zoom-in" data-tooltip="Zoom in - See timeline in more detail (Mouse wheel)" aria-label="Zoom in on the timeline">🔍+</button>
-            <button class="mini-btn" data-add-track="Video" data-tooltip="Add video track - Create a new video layer on the timeline" aria-label="Add a new video track">+Video</button>
-            <button class="mini-btn" data-add-track="Audio" data-tooltip="Add audio track - Create a new audio layer on the timeline" aria-label="Add a new audio track">+Audio</button>
-            <button class="mini-btn" data-add-track="Text" data-tooltip="Add text track - Create a new text overlay layer" aria-label="Add a new text track">+Text</button>
-            <button class="mini-btn" data-add-track="B-Roll" data-tooltip="Add B-roll track - Create a new B-roll overlay layer" aria-label="Add a new B-roll track">+B-Roll</button>
-            <button class="mini-btn" id="cutaiStoryboardBtn" data-tooltip="Generate storyboard with CutAI" aria-label="Open CutAI storyboard generator">✨AI</button>
-             <button class="mini-btn" id="cinegenToolsBtn" data-tooltip="CineGen AI Tools: Open full set of AI editing tools including Gap Fill, Extend, Music, Mask and Elements" aria-label="Open CineGen tools">🎨CG</button>
-             <button class="mini-btn" id="cinegenGapFillBtn" data-tooltip="CineGen Gap Fill: Automatically fill gaps between clips using AI" aria-label="Gap Fill">GF</button>
-             <button class="mini-btn" id="cinegenExtendBtn" data-tooltip="CineGen Extend Clip: Extend selected clip duration with AI-generated content" aria-label="Extend">EX</button>
-              <button class="mini-btn" id="cinegenMusicBtn" data-tooltip="CineGen Generate Music: Create background music track for current clip" aria-label="Generate Music">♫</button>
-              <select id="musicModelSelect" class="mini-select" title="Music Model">
-                <option value="suno-create">Suno</option>
-                <option value="mmaudio-t2a">MMAudio</option>
-              </select>
-              <button class="mini-btn" id="cinegenMaskBtn" data-tooltip="CineGen AI Mask Tool: Generate precise masks for object isolation" aria-label="Mask Tool">M</button>
-             <button class="mini-btn" id="cinegenElementBtn" data-tooltip="Create CineGen Element: Generate reusable visual elements or overlays" aria-label="Create Element">EL</button>
-             <button class="mini-btn" id="cinegenPolishBtn" data-tooltip="CineGen Polish Clip: Apply Gap Fill + Extend in one step for seamless results" aria-label="Polish Clip">Polish</button>
-             <button class="mini-btn" id="cinegenChatBtn" data-tooltip="Ask CineGen Assistant: Get contextual AI help for timeline editing" aria-label="CineGen Chat">AI</button>
-             <button class="mini-btn" id="cinegenSubBtn" data-tooltip="CineGen Smart Subtitles: Auto-generate accurate timed subtitles" aria-label="Smart Subtitles">Sub</button>
-             <button class="mini-btn" id="cinegenLLMBtn" data-tooltip="CineGen LLM Assistant: Advanced reasoning for complex edits" aria-label="LLM Assistant">LLM</button>
-             <button class="mini-btn" id="cinegenSAMBtn" data-tooltip="CineGen SAM3 Segmentation: Use Meta SAM3 for precise segment masks" aria-label="SAM3 Segmentation">SAM</button>
-              <button class="mini-btn" id="cinegenSyncBtn" data-tooltip="CineGen Audio Sync: Automatically align audio to video clips" aria-label="Audio Sync">Sync</button>
-              <button class="mini-btn" id="cinegenLayerBtn" data-tooltip="CineGen Layer Decomposition: Separate foreground, background and effects layers" aria-label="Layer Decomposition">Layer</button>
-              <button class="mini-btn" id="cinegenShotBtn" data-tooltip="CineGen Shot Board: Create and manage multi-shot sequences" aria-label="Shot Board">Shot</button>
-              <button class="mini-btn" id="cinegenProxyBtn" data-tooltip="CineGen Proxy Playback: Use optimized proxies for smooth scrubbing" aria-label="Proxy Playback">Proxy</button>
-              <button class="mini-btn" id="cinegenPlanBtn" data-tooltip="CineGen Composition Plan: Generate AI-suggested edit plan for project" aria-label="Composition Plan">Plan</button>
-           </div>
-          <div class="pill-row" id="pillRow"></div>
+            <div class="tool-group" role="group" aria-label="Playback">
+              <button class="tool-btn" id="tbRewind" data-tooltip="Jump to start" aria-label="Jump to start">⏮</button>
+              <button class="tool-btn active" id="tbPlay" data-tooltip="Play or pause timeline preview (Spacebar)" aria-label="Play or pause timeline preview" aria-pressed="true">▶</button>
+              <button class="tool-btn" id="tbStop" data-tooltip="Jump to end" aria-label="Jump to end">⏭</button>
+            </div>
+            <div class="time-readout" aria-live="off">
+              <span class="time-now">00:12.4</span>
+              <span class="time-total">/ 00:45.0</span>
+            </div>
+            <div class="tool-group" role="group" aria-label="Edit tools">
+              <button class="tool-btn" id="tbSplit" data-tooltip="Split selected clip at playhead" aria-label="Split clip at playhead">✂</button>
+              <button class="tool-btn" id="tbDelete" data-tooltip="Delete selected clip" aria-label="Delete selected clip">⌫</button>
+              <button class="tool-btn" id="tbAddTrack" data-tooltip="Add a video track" aria-label="Add a video track">＋</button>
+              <button class="tool-btn" id="tbMerge" data-tooltip="Merge selected clip with its touching neighbor" aria-label="Merge clips">⤡</button>
+              <button class="tool-btn active" id="tbInsertMode" data-tooltip="Insert mode: push downstream when dropping" aria-label="Insert mode" aria-pressed="true">Insert</button>
+              <button class="tool-btn" id="tbOverwriteMode" data-tooltip="Overwrite mode: replace existing media" aria-label="Overwrite mode">Overwrite</button>
+              <button class="tool-btn active" id="tbSnap" data-tooltip="Snap clips to grid / edges / playhead" aria-label="Snap toggled">Snap</button>
+            </div>
+          </div>
+          <div class="zoom" role="group" aria-label="Zoom">
+            <button class="zoom-btn" data-action="zoom-out" data-tooltip="Zoom out - See more of the timeline (Mouse wheel)" aria-label="Zoom out on the timeline">−</button>
+            <div class="zoom-track" aria-hidden="true"><div class="zoom-fill"></div><div class="zoom-knob"></div></div>
+            <button class="zoom-btn" data-action="zoom-in" data-tooltip="Zoom in - See timeline in more detail (Mouse wheel)" aria-label="Zoom in on the timeline">＋</button>
+            <button class="zoom-btn" data-action="zoom-fit" aria-label="Fit to window" title="Fit" data-tooltip="Fit timeline to window">⤢</button>
+          </div>
+          <div class="tool-group" id="toolGroup" hidden></div>
+          <div class="pill-row" id="pillRow" hidden></div>
         </div>
-        <div class="timeline-controls-enhanced" id="timelineControlsEnhanced"></div>
         <div class="timeline-shell">
-          <div class="timeline-header-grid">
-            <div class="timeline-corner">
+          <div class="timeline-header">
+            <div class="corner">
               <span>Tracks</span>
               <span class="hint">drag • snap</span>
             </div>
-            <div class="timeline-ruler" id="timelineRuler">
+            <div class="ruler" id="timelineRuler">
               <canvas id="rulerCanvas"></canvas>
+            </div>
+            <div id="miniMapContainer" style="position:relative;">
+              <div id="miniMap"></div>
+            </div>
               <div class="ruler-ticks" id="rulerTicks"></div>
             </div>
           </div>
@@ -458,27 +487,45 @@ export function TimelineEditorPage() {
       </section>
     </div>
     <div class="side-col">
-      <!-- Mobile-only tab bar: lets users switch between panel groups on phones.
-           Hidden on desktop via CSS; on mobile, only the active tab's panel is visible. -->
-      <nav class="side-tabs" role="tablist" aria-label="Side panel navigation">
-        <button class="side-tab active" data-tab="media" role="tab" aria-selected="true" aria-controls="sidePanelMedia">📁 Media</button>
-        <button class="side-tab" data-tab="tools" role="tab" aria-selected="false" aria-controls="sidePanelTools">🛠 Tools</button>
-        <button class="side-tab" data-tab="generate" role="tab" aria-selected="false" aria-controls="sidePanelGenerate">⚡ Generate</button>
-      </nav>
-      <div id="sidePanelMedia" class="side-panel" role="tabpanel" aria-labelledby="sidePanelMedia-tab">
-      <aside class="side-card">
-        <div class="card-title">📁 Media</div>
-        <div class="flex gap-2">
-          <button class="upload-btn" id="uploadBtn" data-tooltip="Upload media - Import video, image, or audio files into the project" aria-label="Upload media into the editor">Upload</button>
-          <button class="upload-btn" id="videoDbBtn" data-tooltip="Add a video from your VideoDB account (set your VideoDB API key in Settings)" aria-label="Add video from VideoDB">VideoDB</button>
+      <!-- AI Assistant (prototype parity) -->
+      <aside class="side-card" id="agentPanel">
+        <h3 class="card-title cyan">AI Assistant</h3>
+        <div class="chat-stack">
+          <div class="chat-bubble user">Trim the intro to 3s</div>
+          <div class="chat-bubble ai">Done — trimmed first clip, kept audio in sync.</div>
+          <div class="chat-bubble user">Add a crossfade here</div>
+          <div class="chat-bubble ai">Added 0.5s crossfade between clips 2 & 3.</div>
         </div>
-        <div class="media-note">Choose what you want to add to the timeline. Each tile inserts a different type of source asset.</div>
-        <div class="media-grid" id="mediaGrid"></div>
+        <div class="chat-input">
+          <input class="text-input" placeholder="Ask the editor to do anything…" aria-label="Message AI assistant" />
+          <button class="primary-btn" aria-label="Send" data-modal="aiVideo">↑</button>
+        </div>
       </aside>
-      <aside class="side-card" id="sceneDetectorPanel">
-        <div id="sceneDetectorContainer"></div>
+
+      <aside class="side-card">
+        <h3 class="card-title">Media Library</h3>
+        <div class="media-grid" id="mediaGrid">
+          <button class="media-item" draggable="true" data-type="video" data-label="Clip 01"><span class="media-icon">🎥</span><span class="media-copy"><span class="media-label">Clip 01</span><span class="media-desc">0:14 · 1080p</span></span></button>
+          <button class="media-item" draggable="true" data-type="audio" data-label="VO Raw"><span class="media-icon">🎙️</span><span class="media-copy"><span class="media-label">VO Raw</span><span class="media-desc">0:48 · WAV</span></span></button>
+          <button class="media-item" draggable="true" data-type="image" data-label="Logo"><span class="media-icon">🖼️</span><span class="media-copy"><span class="media-label">Logo</span><span class="media-desc">PNG · 512</span></span></button>
+          <button class="media-item" draggable="true" data-type="audio" data-label="Track"><span class="media-icon">🎵</span><span class="media-copy"><span class="media-label">Track</span><span class="media-desc">2:10 · MP3</span></span></button>
+        </div>
+        <button class="upload-btn" id="uploadBtn" style="margin-top:10px;">Upload media…</button>
       </aside>
-      <aside class="side-card" id="cameraEffectsPanel">
+
+      <aside class="side-card">
+        <h3 class="card-title">Generate</h3>
+        <div class="media-grid">
+          <button class="media-item" data-modal="templates"><span class="media-icon">✂️</span><span class="media-copy"><span class="media-label">Auto Cut</span><span class="media-desc">Silence detect</span></span></button>
+          <button class="media-item" data-modal="subtitleEditor"><span class="media-icon">🌐</span><span class="media-copy"><span class="media-label">Subtitles</span><span class="media-desc">Transcribe</span></span></button>
+          <button class="media-item" data-modal="aiVideo"><span class="media-icon">🤖</span><span class="media-copy"><span class="media-label">AI Video</span><span class="media-desc">Generate</span></span></button>
+          <button class="media-item" data-modal="storyboard"><span class="media-icon">🎞️</span><span class="media-copy"><span class="media-label">CutAI Board</span><span class="media-desc">Storyboard</span></span></button>
+        </div>
+      </aside>
+
+      <!-- Hidden editor panels (accessible from floating rail) -->
+      <aside class="side-card" id="sceneDetectorPanel" hidden><div id="sceneDetectorContainer"></div></aside>
+      <aside class="side-card" id="cameraEffectsPanel" hidden>
         <div id="cameraEffectsContainer"></div>
         <div class="camera-effects-quick">
           <button class="mini-btn" data-camera-effect="shake">Shake</button>
@@ -490,100 +537,54 @@ export function TimelineEditorPage() {
           <button class="mini-btn" data-camera-effect="tilt-down">Tilt D</button>
         </div>
       </aside>
-      <aside class="side-card generate">
-        <div class="generate-head"><div class="card-title cyan">⚡ Generate</div><div style="color: rgba(255,255,255,0.6)" aria-label="Close generation panel" role="button" tabindex="0">✕</div></div>
-        <div class="generate-types" id="generateTypes"></div>
-        <textarea class="text-area" id="promptInput" placeholder="A cinematic shot of..."></textarea>
-        <input class="text-input" id="negativeInput" placeholder="Negative prompt" />
-        <div class="select-row">
-          <select class="select-input" id="durationSelect"><option>5s</option><option>8s</option><option>12s</option></select>
-          <select class="select-input" id="aspectSelect"><option>16:9</option><option>9:16</option><option>1:1</option></select>
-          <select class="select-input" id="styleSelect"><option>Cinematic</option><option>Commercial</option><option>Documentary</option></select>
-        </div>
-        <button class="primary-btn" id="generateBtn" aria-label="Generate a new asset from the prompt settings">⚡ Generate</button>
+      <aside class="side-card" id="cinegenResultsPanel" hidden data-tooltip="CineGen AI Tools Results">
+        <div class="card-title">🎨 CineGen Results</div>
+        <div id="cinegenResults" style="font-size: 12px; color: var(--text-dim); min-height: 60px;">No CineGen tools used yet</div>
+        <button class="mini-btn" id="clearCineGenResults" style="margin-top: 8px; width: 100%;">Clear History</button>
       </aside>
-      </div>
-      <div id="sidePanelTools" class="side-panel" role="tabpanel" aria-labelledby="sidePanelTools-tab" hidden>
-            <aside class="side-card" id="cinegenResultsPanel" data-tooltip="CineGen AI Tools Results">
-              <div class="card-title">🎨 CineGen Results</div>
-              <div id="cinegenResults" style="font-size: 12px; color: var(--dim); min-height: 60px;">
-                No CineGen tools used yet
-              </div>
-              <button class="mini-btn" id="clearCineGenResults" style="margin-top: 8px; width: 100%;">Clear History</button>
-            </aside>
-
-      <aside class="side-card" id="animationDemoPanel" style="display: none;" data-tooltip="Rendiv animation demonstrations">
+      <aside class="side-card" id="animationDemoPanel" hidden data-tooltip="Rendiv animation demonstrations">
         <div class="card-title">🎭 Rendiv Animation Demo</div>
         <div id="animationDemoContainer">
           <div class="animation-demo-controls">
-            <button class="mini-btn" id="runSpringDemo" data-tooltip="Spring animation - Demonstrates physics-based spring motion with damping">Spring Animation</button>
-            <button class="mini-btn" id="runNoiseDemo" data-tooltip="Noise animation - Shows organic Perlin noise-based movement">Noise Animation</button>
-            <button class="mini-btn" id="runInterpolateDemo" data-tooltip="Interpolation demo - Compare linear, ease-out, bounce, and color blending">Interpolate Demo</button>
+            <button class="mini-btn" id="runSpringDemo">Spring Animation</button>
+            <button class="mini-btn" id="runNoiseDemo">Noise Animation</button>
+            <button class="mini-btn" id="runInterpolateDemo">Interpolate Demo</button>
           </div>
-          <div class="animation-demo-canvas">
-            <canvas id="animationCanvas" width="300" height="200"></canvas>
-          </div>
-          <div class="animation-demo-info">
-            <div id="demoStatus">Click a button to start animation demo</div>
-          </div>
+          <div class="animation-demo-canvas"><canvas id="animationCanvas" width="300" height="200"></canvas></div>
+          <div class="animation-demo-info"><div id="demoStatus">Click a button to start animation demo</div></div>
         </div>
       </aside>
-      </div>
-      <div id="sidePanelGenerate" class="side-panel" role="tabpanel" aria-labelledby="sidePanelGenerate-tab" hidden>
-      <aside class="side-card" id="clipSettingsPanel" style="display: none;" data-tooltip="Clip editor - Edit selected clip properties">
-        <div class="card-title">🎬 Clip Editor</div>
-        <div id="clipEditorContainer"></div>
+      <aside class="side-card" id="clipSettingsPanel" hidden data-tooltip="Clip editor - Edit selected clip properties">
+        <div class="card-title">🎬 Clip Editor</div><div id="clipEditorContainer"></div>
       </aside>
-      <aside class="side-card" id="transitionSettingsPanel" style="display: none;" data-tooltip="Transitions - Add effects between clips">
-        <div class="card-title">🔄 Transitions</div>
-        <div id="transitionEditorContainer"></div>
+      <aside class="side-card" id="transitionSettingsPanel" hidden data-tooltip="Transitions - Add effects between clips">
+        <div class="card-title">🔄 Transitions</div><div id="transitionEditorContainer"></div>
       </aside>
-      <aside class="side-card" id="multiCameraPanel" data-tooltip="Multi-camera editing, PIP, and split screen">
+      <aside class="side-card" id="multiCameraPanel" hidden data-tooltip="Multi-camera editing, PIP, and split screen">
         <div class="card-title">📺 Multi-Camera</div>
         <div id="multiCameraToolbar"></div>
-        <div id="pipControls" class="pip-controls-container" style="display: none;"></div>
-        <div id="splitControls" class="split-controls-container" style="display: none;"></div>
+        <div id="pipControls" class="pip-controls-container" hidden></div>
+        <div id="splitControls" class="split-controls-container" hidden></div>
       </aside>
-      <aside class="side-card" id="colorCorrectionPanel" style="display: none;" data-tooltip="Color correction - Adjust color grading and correction">
-        <div class="card-title">🎨 Color Correction</div>
-        <div id="colorCorrectionContainer"></div>
+      <aside class="side-card" id="colorCorrectionPanel" hidden data-tooltip="Color correction">
+        <div class="card-title">🎨 Color Correction</div><div id="colorCorrectionContainer"></div>
       </aside>
-      <aside class="side-card" id="colorScopesPanel" data-tooltip="Color scopes - Waveform, vectorscope, and histogram">
-        <div class="card-title">📊 Color Scopes</div>
-        <div id="colorScopesContainer"></div>
+      <aside class="side-card" id="colorScopesPanel" hidden data-tooltip="Color scopes">
+        <div class="card-title">📊 Color Scopes</div><div id="colorScopesContainer"></div>
       </aside>
-
-      <!-- Category C Editor Surfaces -->
-      <aside class="side-card" id="canvasPanel" style="display: none;" data-tooltip="Canvas editor - Visual composition surface">
-        <div class="card-title">🎨 Canvas Editor</div>
-        <div id="canvasContainer"></div>
-      </aside>
-      <aside class="side-card" id="tokenEditorPanel" style="display: none;" data-tooltip="Token editor - Create personalization tokens">
-        <div class="card-title">🏷️ Token Editor</div>
-        <div id="tokenEditorContainer"></div>
-      </aside>
-      <aside class="side-card" id="batchGeneratorPanel" style="display: none;" data-tooltip="Batch generator - Generate multiple videos at once">
-        <div class="card-title">📦 Batch Generator</div>
-        <div id="batchGeneratorContainer"></div>
-      </aside>
-      <aside class="side-card" id="workflowPanel" style="display: none;" data-tooltip="Workflow automation - Create automated video pipelines">
-        <div class="card-title">🔄 Workflow Automation</div>
-        <div id="workflowContainer"></div>
-      </aside>
-      <aside class="side-card" id="personalizationPanel" style="display: none;" data-tooltip="Personalization - Add dynamic content for different viewers">
-        <div class="card-title">👤 Personalization</div>
-        <div id="personalizationContainer"></div>
-      </aside>
-      <aside class="side-card" id="personalizationEditorPanel" style="display: none;" data-tooltip="Personalization editor - Advanced personalization settings">
-        <div class="card-title">✏️ Personalization Editor</div>
-        <div id="personalizationEditorContainer"></div>
-      </aside>
-      </div>
+      <aside class="side-card" id="canvasPanel" hidden data-tooltip="Canvas editor"><div class="card-title">🎨 Canvas Editor</div><div id="canvasContainer"></div></aside>
+      <aside class="side-card" id="tokenEditorPanel" hidden data-tooltip="Token editor"><div class="card-title">🏷️ Token Editor</div><div id="tokenEditorContainer"></div></aside>
+      <aside class="side-card" id="batchGeneratorPanel" hidden data-tooltip="Batch generator"><div class="card-title">📦 Batch Generator</div><div id="batchGeneratorContainer"></div></aside>
+      <aside class="side-card" id="workflowPanel" hidden data-tooltip="Workflow automation"><div class="card-title">🔄 Workflow Automation</div><div id="workflowContainer"></div></aside>
+      <aside class="side-card" id="personalizationPanel" hidden data-tooltip="Personalization"><div class="card-title">👤 Personalization</div><div id="personalizationContainer"></div></aside>
+      <aside class="side-card" id="personalizationEditorPanel" hidden data-tooltip="Personalization editor"><div class="card-title">✏️ Personalization Editor</div><div id="personalizationEditorContainer"></div></aside>
     </div>
   </div>
 </div>
 <div class="floating-rail" id="floatingRail"></div>
 <div class="status-toast" id="toast"></div>
+<!-- Screen-reader live region for playhead announcements (prototype parity) -->
+<div class="sr-only" id="srStatus" aria-live="polite"></div>
 <div class="modal-overlay" id="modalOverlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modal-content" id="modalContent">
     <div class="modal-header">
@@ -632,32 +633,44 @@ export function TimelineEditorPage() {
 
     // Override with local demo data but keep enhanced features
     const demoState = {
-      projectTitle: 'Untitled Project',
+      projectTitle: 'Untitled Sequence',
       selectedTool: 'Select',
-      selectedClipId: 1,
+      selectedClipId: 'clip-hero',
       generateType: 'Text',
       playing: false,
-      playheadPercent: 32,
+      playheadPercent: 34,
       zoom: 1,
-      timelineSeconds: 60,
+      timelineSeconds: 45,
+      // Prototype seed (timeline-redesign-prototype.html): 4 tracks, demo clips,
+      // one crossfade transition, one scene marker. Percent-based left/width.
       tracks: [
-        { id: 'video-1', type: 'video', name: 'Video', muted: false, solo: false, locked: true, clips: [
-          { id: 1, name: 'Opening Shot', left: 8, width: 18, type: 'video', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', poster: svgDataUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#06131f"/><stop offset="1" stop-color="#123b4a"/></linearGradient></defs><rect width="1280" height="720" fill="url(#g)"/><circle cx="970" cy="180" r="120" fill="#22d3ee" opacity=".18"/><text x="90" y="310" fill="white" font-size="74" font-family="Arial" font-weight="700">Opening Shot</text><text x="92" y="380" fill="#a5f3fc" font-size="30" font-family="Arial">Cinematic demo preview</text></svg>`) },
-          { id: 2, name: 'Generated Clip', left: 34, width: 16, type: 'video', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm', poster: svgDataUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#111827"/><stop offset="1" stop-color="#0f766e"/></linearGradient></defs><rect width="1280" height="720" fill="url(#g)"/><rect x="110" y="145" width="1060" height="430" rx="28" fill="white" opacity=".04"/><text x="110" y="310" fill="white" font-size="76" font-family="Arial" font-weight="700">Generated Clip</text><text x="112" y="382" fill="#bbf7d0" font-size="30" font-family="Arial">Rendered output preview</text></svg>`) }
-        ] },
-        { id: 'audio-1', type: 'audio', name: 'Audio', muted: false, solo: false, locked: false, clips: [
-          { id: 3, name: 'Music Bed', left: 5, width: 42, type: 'audio', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3' }
-        ] },
-        { id: 'text-1', type: 'text', name: 'Text', muted: false, solo: false, locked: false, clips: [
-          { id: 4, name: 'Title Card', left: 14, width: 12, type: 'text', heading: 'Launch Faster', body: 'Use your timeline editor to turn generated media, overlays, and captions into polished deliverables.' }
-        ] },
-        { id: 'broll-1', type: 'b-roll', name: 'B-Roll', muted: false, solo: false, locked: false, clips: [
-          { id: 5, name: 'City Cutaway', left: 52, width: 20, type: 'image', src: svgDataUri(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#020617"/><stop offset="1" stop-color="#1e3a8a"/></linearGradient></defs><rect width="1280" height="720" fill="url(#g)"/><g opacity=".9"><rect x="120" y="340" width="120" height="250" fill="#0f172a"/><rect x="260" y="280" width="140" height="310" fill="#111827"/><rect x="430" y="210" width="180" height="380" fill="#1f2937"/><rect x="650" y="250" width="110" height="340" fill="#0f172a"/><rect x="780" y="180" width="210" height="410" fill="#1e293b"/></g><circle cx="1060" cy="130" r="70" fill="#e0f2fe" opacity=".75"/><text x="120" y="150" fill="white" font-size="78" font-family="Arial" font-weight="700">City Cutaway</text></svg>`), fit: 'cover' }
-        ] }
+        { id: 'track-video', type: 'video', name: 'Main Video', muted: false, solo: false, locked: false,
+          clips: [
+            { id: 'clip-hero', name: 'Hero Wide', left: 2, width: 22, type: 'video' },
+            { id: 'clip-product', name: 'Product Spin', left: 25, width: 16, type: 'video' },
+            { id: 'clip-lifestyle', name: 'Lifestyle B', left: 46, width: 20, type: 'video' }
+          ],
+          transitions: [{ left: 40, width: 5, duration: 0.5, name: 'Crossfade' }] },
+        { id: 'track-audio', type: 'audio', name: 'Voiceover', muted: false, solo: false, locked: true,
+          clips: [
+            { id: 'clip-vo1', name: 'VO Take 1', left: 2, width: 40, type: 'audio' },
+            { id: 'clip-vo2', name: 'VO Take 2', left: 44, width: 30, type: 'audio' }
+          ] },
+        { id: 'track-text', type: 'text', name: 'Titles', muted: false, solo: false, locked: false,
+          clips: [
+            { id: 'clip-lower', name: 'Lower Third', left: 8, width: 14, type: 'text' },
+            { id: 'clip-title', name: 'Title Card', left: 30, width: 20, type: 'text' },
+            { id: 'clip-end', name: 'End Card', left: 54, width: 12, type: 'text' }
+          ],
+          markers: [52] },
+        { id: 'track-fx', type: 'effects', name: 'Effects', muted: false, solo: false, locked: false,
+          clips: [
+            { id: 'clip-grade', name: 'Color Grade', left: 2, width: 60, type: 'effects' }
+          ] }
       ],
       tools: baseState.tools, // Use enhanced tools from baseState
       pills: ['Text to Video', 'Image to Video', 'Retake', 'Extend', 'B-Roll', 'Music Gen', 'Audio Sync', 'Fill Gap AI', 'Elements', 'Import Timeline', 'IC-LoRA'],
-      topIcons: ['👁','📺','📁','⚡','🎵','🔊','🎞️','👤','🎨','💬','📋','🎬','💾','⚙️','💳','🔗','👀','▶️','🤖','🎭','📊'],
+      topIcons: ['↶','↷','▦','⚙','🔗','🤖','💾'], // reference only — template is source of truth
       media: [
         { icon: '🎬', label: 'Video Clip', desc: 'Insert a source shot or generated video clip.', tooltip: 'Video clip - Add video footage to the timeline' },
         { icon: '🖼️', label: 'Image Frame', desc: 'Add still images, frames, or storyboard art.', tooltip: 'Image frame - Add still images or graphics' },
@@ -666,7 +679,25 @@ export function TimelineEditorPage() {
       ],
       generateTypes: [['✍️', 'Text'], ['🖼️', 'Image'], ['🔄', 'Retake'], ['➡️', 'Extend'], ['🎞️', 'B-Roll']],
       quickCommands: ['⚡Generate','Retake','Extend','B-Roll','🎬 Detect Scenes'],
-      railActions: [['⚡', 'Generate', true], ['✂️', 'Split'], ['🎬', 'Scenes'], ['💬', 'Subtitle'], ['🎞️', 'B-Roll'], ['⏱️', 'Speed'], ['🪄', 'Stabilize'], ['📝', 'Text'], ['🔄', 'Transitions'], ['🎬', 'AI Video'], ['🎥', 'Recorder'], ['🎙️', 'Enhanced Recorder'], ['📋', 'Templates'], ['👀', 'Preview Template'], ['📱', 'Social'], ['📧', 'Email Campaign'], ['🔗', 'URL Video'], ['📸', 'Page Shot'], ['👥', 'Contacts'], ['🎨', 'Canvas'], ['🏷️', 'Token Editor'], ['📦', 'Batch Generator'], ['🔄', 'Workflow'], ['👤', 'Personalization'], ['✏️', 'Personalization Editor'], ['🎬', 'Personalization Suite'], ['🏠', 'Landing Pages'], ['📋', 'Lead Generator']],
+      railActions: [
+        ['＋', 'Media'],
+        ['✨', 'Generate', true],
+        ['⬆', 'Export'],
+        ['🎬', 'Scene Detector'],
+        ['🎥', 'Camera FX'],
+        ['📊', 'Color Scopes'],
+        ['🎞️', 'Multi-Cam'],
+        ['✂️', 'Clip Editor'],
+        ['🔄', 'Transitions Panel'],
+        ['🎨', 'CineGen Results'],
+        ['🎭', 'Anim Demo'],
+        ['🎨', 'Canvas'],
+        ['🏷️', 'Token Editor'],
+        ['📦', 'Batch Generator'],
+        ['🔄', 'Workflow'],
+        ['👤', 'Personalization'],
+        ['✏️', 'Personalization Editor']
+      ],
 
       // Enhanced state management
       projectId: null,
@@ -674,7 +705,14 @@ export function TimelineEditorPage() {
       redoStack: [],
       mediaLibrary: [],
       generationQueue: [],
-      isProcessing: false
+      isProcessing: false,
+      insertMode: true,        // push downstream on drop (default)
+      overwriteMode: false,    // replace existing media on drop
+      rippleMode: false,       // after insert, trim gaps beyond end
+      snapToGap: true,         // prefer dropping into empty gaps
+      clipGroups: [],          // id bucket for grouped clips
+      selectedClipIds: new Set(),
+      clipboard: null
     };
 
     const merged = { ...baseState, ...demoState };
@@ -786,8 +824,9 @@ export function TimelineEditorPage() {
     const current = (percent / 100) * totalSeconds;
     const minutes = Math.floor(current / 60);
     const seconds = Math.floor(current % 60);
-    const hundredths = Math.floor((current % 1) * 100);
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}`;
+    // Prototype time format: MM:SS.t (tenths)
+    const tenths = Math.floor((current % 1) * 10);
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
   }
 
   function createTimelineEditorApp(root) {
@@ -929,9 +968,7 @@ export function TimelineEditorPage() {
       currentTime: root.querySelector('#currentTime'),
       totalTime: root.querySelector('#totalTime'),
       progressFill: root.querySelector('#progressFill'),
-      previewTitle: root.querySelector('#previewTitle'),
-      previewSubtitle: root.querySelector('#previewSubtitle'),
-      previewEmoji: root.querySelector('#previewEmoji'),
+      vfSubtitle: root.querySelector('#vfSubtitle'),
       previewStage: root.querySelector('#previewStage'),
       previewEmpty: root.querySelector('#previewEmpty'),
       playheadLine: root.querySelector('#playheadLine'),
@@ -1053,16 +1090,11 @@ export function TimelineEditorPage() {
       clearPreviewStage();
       if (!selected) {
         els.previewEmpty.style.display = 'flex';
-        els.previewTitle.textContent = 'Center Preview';
-        els.previewSubtitle.textContent = 'Glow preview styled like the render page';
-        els.previewEmoji.textContent = '🎥';
+        if (els.vfSubtitle) els.vfSubtitle.textContent = 'Your story starts here.';
         return;
       }
 
       els.previewEmpty.style.display = 'none';
-      els.previewTitle.textContent = selected.name;
-      els.previewSubtitle.textContent = `${state.selectedTool} tool active • ${state.generateType} generation ready`;
-      els.previewEmoji.textContent = selected.type === 'audio' ? '🎵' : selected.type === 'text' ? '📝' : selected.type === 'image' ? '🖼️' : '🎥';
 
       // Apply active keyframes to preview (if KeyframeSystem exists)
       if (state.keyframeSystem && state.keyframeSystem.getActiveValues) {
@@ -1215,7 +1247,8 @@ export function TimelineEditorPage() {
       window.addEventListener('pointerup', function () { dragging = false; });
       knob.addEventListener('keydown', function (e) {
         const cur = state.playheadPercent || 0;
-        const step = (e.shiftKey ? 5 : 1); // 1% default, 5% with Shift
+        // Prototype: arrows scrub in 1-second steps (Shift = 5s)
+        const step = ((e.shiftKey ? 5 : 1) / TOTAL) * 100;
         if (e.key === 'ArrowLeft') { state.playheadPercent = Math.max(0, cur - step); updatePlaybackUI(); e.preventDefault(); }
         if (e.key === 'ArrowRight') { state.playheadPercent = Math.min(100, cur + step); updatePlaybackUI(); e.preventDefault(); }
         if (e.key === 'Home') { state.playheadPercent = 0; updatePlaybackUI(); e.preventDefault(); }
@@ -1235,7 +1268,19 @@ export function TimelineEditorPage() {
       els.playheadKnob.style.left = `calc(${state.playheadPercent}% - 7px)`;
       els.currentTime.textContent = formatTimeFromPercent(state.playheadPercent, state.timelineSeconds);
       els.totalTime.textContent = formatTimeFromPercent(100, state.timelineSeconds);
-      els.playBtn.textContent = state.playing ? '❚❚' : '▶';
+      els.playBtn.textContent = state.playing ? '⏸' : '▶';
+      const tbPlayBtn = root.querySelector('#tbPlay');
+      if (tbPlayBtn) tbPlayBtn.textContent = state.playing ? '⏸' : '▶';
+      // Prototype parity: knob ARIA + screen-reader announcements + toolbar readout
+      const sec = (state.playheadPercent / 100) * (state.timelineSeconds || 45);
+      const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+      const ss = (sec % 60).toFixed(1).padStart(4, '0');
+      els.playheadKnob.setAttribute('aria-valuenow', sec.toFixed(1));
+      els.playheadKnob.setAttribute('aria-valuetext', mm + ':' + ss);
+      const sr = root.querySelector('#srStatus');
+      if (sr) sr.textContent = 'Playhead at ' + mm + ':' + ss;
+      const tbNow = root.querySelector('.time-readout .time-now');
+      if (tbNow) tbNow.textContent = mm + ':' + ss;
       syncMediaPlayState();
     }
 
@@ -1404,119 +1449,26 @@ export function TimelineEditorPage() {
       }
     }
 
-    function renderTopActions() {
-      els.topActions.innerHTML = '';
-      const topActionTooltips = {
-        '👁': 'Toggle preview visibility - Show or hide the preview panel',
-        '📺': 'Monitor settings - Configure display and monitoring options',
-        '📁': 'Media library - Browse and manage project media files',
-        '⚡': 'Quick AI actions - Access AI-powered editing tools',
-        '🎵': 'Music tools - Add and edit music tracks and sound effects',
-        '🔊': 'Audio controls - Adjust volume, mixing, and audio levels',
-        '🎞️': 'Video tools - Access video editing and scene tools',
-        '👤': 'Character tools - Manage character profiles and tracking',
-        '🎨': 'Color correction - Open color grading and correction panel',
-        '⚙️': 'Editor settings - Configure editor preferences and options',
-        '💬': 'AI chat - Open the AI assistant chat panel',
-        '📋': 'Project notes - View and edit project notes',
-        '🎬': 'End screen - Add end screen elements to your video',
-        '💾': 'Save project - Save your current project progress',
-        '💳': 'Billing - Manage subscriptions and billing',
-        '🔗': 'Connections - Configure third-party integrations',
-        '👀': 'Preview media - Preview media files before adding',
-        '▶️': 'Video player - Open the full video player',
-        '🤖': 'AI Agents - Analyze timeline and generate suggestions',
-        '🎭': 'Character tracking - Maintain character consistency',
-        '📊': 'Timeline analysis - Detect gaps and analyze timeline'
-      };
-      state.topIcons.forEach((icon, index) => {
-        const button = document.createElement('button');
-        button.className = `top-icon ${index === 3 ? 'active' : ''}`;
-        button.textContent = icon;
-        button.setAttribute('data-tooltip', topActionTooltips[icon] || `${icon} action`);
-        button.title = topActionTooltips[icon] || 'Top action';
-        button.setAttribute('aria-label', button.title);
-
-        // Add specific functionality for each icon
-        button.addEventListener('click', () => {
-          switch (icon) {
-            case '👁':
-              togglePreviewVisibility();
-              break;
-            case '📺':
-              openMonitorSettings();
-              break;
-            case '📁':
-              openMediaLibrary();
-              break;
-            case '⚡':
-              toggleQuickAIActions();
-              break;
-            case '🎵':
-              openMusicTools();
-              break;
-            case '🔊':
-              openAudioControls();
-              break;
-            case '🎞️':
-              openVideoTools();
-              break;
-            case '👤':
-              openProfileTools();
-              break;
-            case '🎨':
-              showColorCorrectionPanel();
-              break;
-            case '⚙️':
-              openEditorSettings();
-              break;
-            case '💬':
-              focusChatInput();
-              break;
-            case '📋':
-              openProjectNotes();
-              break;
-            case '🎬':
-              openEndScreenModal(state, showToast);
-              break;
-             case '💾':
-               openSaveProjectModal(state, showToast);
-               break;
-             // Duplicate case removed
-             case '🔗':
-               openConnectModal(state, showToast);
-               break;
-            case '👀':
-              openPreviewMediaModal(state, showToast);
-              break;
-            case '▶️':
-              openVideoPlayerModal(state, showToast);
-              break;
-            case '🤖':
-              openAIAgentsPanel(state, showToast);
-              break;
-            case '🎭':
-              openCharacterTrackingPanel(state, showToast);
-              break;
-            case '📊':
-              openTimelineAnalysisPanel(state, showToast);
-              break;
-            default:
-          }
-        });
-
-        els.topActions.appendChild(button);
-      });
-
-      // Extend top actions with enhancement features
-      extendTopActions(els.topActions, state, showToast);
-
-      const ready = document.createElement('div');
-      ready.className = 'ready-pill';
-      ready.innerHTML = '<span class="ready-dot"></span>Ready';
-      ready.title = 'Editor is ready for interaction';
-      ready.setAttribute('aria-label', 'Editor is ready for interaction');
-      els.topActions.appendChild(ready);
+    // Header top actions: the template IS the single source of truth
+    // (prototype markup: ↶ ↷ ▦[active] ⚙ 🔗 🤖 💾 + Render Ready pill).
+    // This binder only attaches listeners — it never rewrites the DOM,
+    // so the header can never drift from the prototype skeleton.
+    function bindTopActions() {
+      if (!els.topActions) return;
+      const byLabel = (label) => els.topActions.querySelector(`.top-icon[aria-label="${label}"]`);
+      const undoBtn = byLabel('Undo');
+      const redoBtn = byLabel('Redo');
+      if (undoBtn) undoBtn.addEventListener('click', () => { if (undo(state)) renderAll(); });
+      if (redoBtn) redoBtn.addEventListener('click', () => { if (redo(state)) renderAll(); });
+      // ▦ Timeline view is the default active view — no action needed
+      const settingsBtn = root.querySelector('#openSettings');
+      const connectBtn = root.querySelector('#openConnect');
+      const agentsBtn = root.querySelector('#openAgents');
+      const saveBtn = root.querySelector('#openSave');
+      if (settingsBtn) settingsBtn.addEventListener('click', () => openEditorSettings());
+      if (connectBtn) connectBtn.addEventListener('click', () => openConnectModal(state, showToast));
+      if (agentsBtn) agentsBtn.addEventListener('click', () => openAIAgentsPanel(state, showToast));
+      if (saveBtn) saveBtn.addEventListener('click', () => openSaveProjectModal(state, showToast));
     }
 
     function renderTools() {
@@ -1598,16 +1550,38 @@ export function TimelineEditorPage() {
     }
 
     function initializeDefaultTracks() {
-      if (!state.project) state.project = { tracks: [] };
-      if (!state.project.tracks || state.project.tracks.length === 0) {
-        state.project.tracks = [
-          { id: 'track-video', type: 'video', name: 'Video', items: [], muted: false, solo: false, locked: false },
-          { id: 'track-audio', type: 'audio', name: 'Audio', items: [], muted: false, solo: false, locked: false },
-          { id: 'track-text', type: 'text', name: 'Text', items: [], muted: false, solo: false, locked: false },
-          { id: 'track-effects', type: 'effects', name: 'Effects', items: [], muted: false, solo: false, locked: false },
-          { id: 'track-broll', type: 'b-roll', name: 'B-Roll', items: [], muted: false, solo: false, locked: false }
+      // Prototype seed (timeline-redesign-prototype.html): 4 tracks with demo
+      // clips, one crossfade transition, one scene marker. Percent-based items
+      // (left/width) are converted to seconds downstream by renderTracks().
+      if (!state.tracks || state.tracks.length === 0) {
+        state.tracks = [
+          { id: 'track-video', type: 'video', name: 'Main Video', muted: false, solo: false, locked: false,
+            items: [
+              { id: 'clip-hero', name: 'Hero Wide', type: 'video', left: 2, width: 22 },
+              { id: 'clip-product', name: 'Product Spin', type: 'video', left: 25, width: 16 },
+              { id: 'clip-lifestyle', name: 'Lifestyle B', type: 'video', left: 46, width: 20 }
+            ],
+            transitions: [{ left: 40, width: 5, duration: 0.5, name: 'Crossfade' }] },
+          { id: 'track-audio', type: 'audio', name: 'Voiceover', muted: false, solo: false, locked: true,
+            items: [
+              { id: 'clip-vo1', name: 'VO Take 1', type: 'audio', left: 2, width: 40, waveform: true },
+              { id: 'clip-vo2', name: 'VO Take 2', type: 'audio', left: 44, width: 30, waveform: true }
+            ] },
+          { id: 'track-text', type: 'text', name: 'Titles', muted: false, solo: false, locked: false,
+            items: [
+              { id: 'clip-lower', name: 'Lower Third', type: 'text', left: 8, width: 14 },
+              { id: 'clip-title', name: 'Title Card', type: 'text', left: 30, width: 20 },
+              { id: 'clip-end', name: 'End Card', type: 'text', left: 54, width: 12 }
+            ],
+            markers: [52] },
+          { id: 'track-fx', type: 'effects', name: 'Effects', muted: false, solo: false, locked: false,
+            items: [
+              { id: 'clip-grade', name: 'Color Grade', type: 'effects', left: 2, width: 60 }
+            ] }
         ];
       }
+      // Prototype renders "Hero Wide" as the active clip on load
+      if (!state.selectedClipId) state.selectedClipId = 'clip-hero';
     }
 
     function renderTracksBasic(state, els, showToast) {
@@ -1654,8 +1628,8 @@ export function TimelineEditorPage() {
           clipEl.style.width = `${widthPercent}%`;
           clipEl.innerHTML = `
             <span class="clip-label">${clip.text || clip.name}</span>
-            <div class="clip-handle left" data-handle="left"></div>
-            <div class="clip-handle right" data-handle="right"></div>
+            <div class="clip-handle l" data-handle="left"></div>
+            <div class="clip-handle r" data-handle="right"></div>
             ${clip.metadata?.cinegenProcessed ? '<div class="cinegen-indicator" title="Processed with CineGen"></div>' : ''}
           `;
 
@@ -1798,11 +1772,22 @@ export function TimelineEditorPage() {
     // clip IDs so that only changed or new elements are rebuilt. Falls back to a
     // full rebuild when the track list shape changes (add/remove track).
     const trackDomCache = new Map(); // trackId -> { row, meta, lane, clipEls: Map<clipId, el> }
-    function renderTracksIncremental(state, els, showToast) {
+    // Decorative audio waveform bars (prototype fillWave)
+    function fillClipWave(el) {
+      if (!el) return;
+      let html = '';
+      for (let i = 0; i < 60; i++) {
+        const hgt = 30 + Math.round(Math.abs(Math.sin(i * 0.5) * 50) + Math.random() * 20);
+        html += '<span style="height:' + hgt + '%"></span>';
+      }
+      el.innerHTML = html;
+    }
+
+    function renderTracksIncremental(viewState, els, showToast) {
       const seenTrackIds = new Set();
       const trackRows = els.trackRows;
 
-      state.tracks.forEach((track, trackIndex) => {
+      viewState.tracks.forEach((track, trackIndex) => {
         seenTrackIds.add(track.id);
         let cached = trackDomCache.get(track.id);
 
@@ -1815,23 +1800,38 @@ export function TimelineEditorPage() {
           const meta = document.createElement('div');
           meta.className = 'track-meta';
           const dotClass = track.type === 'audio' ? 'audio' : track.type === 'text' ? 'text' : (track.type === 'effects' || track.type === 'fx') ? 'fx' : 'video';
+          // Prototype count semantics: clips + transitions, singular "clip"
+          const seedCount = track.clips.length + (track.transitions || []).length;
+          const seedCountText = seedCount === 1 ? '1 clip' : `${seedCount} clips`;
+          // Prototype toggle semantics: 🔊 .on = sound on, S .on = solo active,
+          // 🔓/🔒 .locked = track locked
           meta.innerHTML = `
             <div class="track-head-top"><span class="track-type-dot ${dotClass}"></span><span class="track-name">${track.name}</span></div>
             <div class="track-actions">
-              <button class="track-toggle ${track.muted ? 'locked' : ''}" data-toggle="mute" data-tooltip="${track.muted ? 'Unmute track' : 'Mute track'} - ${track.muted ? 'Track is currently muted' : 'Silence this track'}" aria-label="${track.muted ? 'Unmute' : 'Mute'} track">M</button>
-              <button class="track-toggle ${track.solo ? 'locked' : ''}" data-toggle="solo" data-tooltip="${track.solo ? 'Unsolo track' : 'Solo track'} - ${track.solo ? 'Only this track plays' : 'Play only this track'}" aria-label="${track.solo ? 'Unsolo' : 'Solo'} track">S</button>
-              <button class="track-toggle ${track.locked ? 'locked' : ''}" data-toggle="lock" data-tooltip="${track.locked ? 'Unlock track' : 'Lock track'} - ${track.locked ? 'Track is protected from edits' : 'Prevent accidental changes'}" aria-label="${track.locked ? 'Unlock' : 'Lock'} track">L</button>
+              <button class="track-toggle ${track.muted ? '' : 'on'}" data-toggle="mute" aria-label="${track.muted ? 'Unmute' : 'Mute'} ${track.name}" aria-pressed="${!track.muted}" title="${track.muted ? 'Unmute' : 'Mute'}">${track.muted ? '🔇' : '🔊'}</button>
+              <button class="track-toggle ${track.solo ? 'on' : ''}" data-toggle="solo" aria-label="Solo ${track.name}" aria-pressed="${!!track.solo}" title="Solo">S</button>
+              <button class="track-toggle ${track.locked ? 'locked' : ''}" data-toggle="lock" aria-label="${track.locked ? 'Unlock' : 'Lock'} ${track.name}" aria-pressed="${!!track.locked}" title="${track.locked ? 'Unlock' : 'Lock'}">${track.locked ? '🔒' : '🔓'}</button>
             </div>
-            <div class="track-count">${track.clips.length} clips</div>
+            <span class="track-count">${seedCountText}</span>
           `;
 
           meta.querySelectorAll('.track-toggle').forEach(btn => {
             btn.addEventListener('click', () => {
               const key = btn.dataset.toggle;
-              if (key === 'mute') track.muted = !track.muted;
-              if (key === 'solo') track.solo = !track.solo;
-              if (key === 'lock') track.locked = !track.locked;
-              renderTracksIncremental(state, els, showToast);
+              // Mutate the REAL state track (viewState tracks are copies),
+              // then force a meta rebuild through the full pipeline.
+              const real = (state.tracks || []).find(t => t.id === track.id);
+              if (real) {
+                if (key === 'mute') real.muted = !real.muted;
+                if (key === 'solo') real.solo = !real.solo;
+                if (key === 'lock') real.locked = !real.locked;
+              }
+              // Remove the stale row before invalidating, or the incremental
+              // renderer appends a duplicate and queries hit the old row.
+              const stale = trackDomCache.get(track.id);
+              if (stale) stale.row.remove();
+              trackDomCache.delete(track.id);
+              renderTracks();
             });
           });
 
@@ -1848,9 +1848,11 @@ export function TimelineEditorPage() {
         }
 
         // Update track meta text in-place if it changed
+        const liveCount = track.clips.length + (track.transitions || []).length;
+        const liveCountText = liveCount === 1 ? '1 clip' : `${liveCount} clips`;
         const countEl = cached.meta.querySelector('.track-count');
-        if (countEl && countEl.textContent !== `${track.clips.length} clips`) {
-          countEl.textContent = `${track.clips.length} clips`;
+        if (countEl && countEl.textContent !== liveCountText) {
+          countEl.textContent = liveCountText;
         }
         const nameEl = cached.meta.querySelector('.track-name');
         if (nameEl && nameEl.textContent !== track.name) {
@@ -1863,24 +1865,25 @@ export function TimelineEditorPage() {
           seenClipIds.add(clip.id);
           let clipEl = cached.clipEls.get(clip.id);
           const prevData = cached.clipData.get(clip.id);
-          const leftPercent = (clip.start / state.timelineSeconds) * 100;
-          const widthPercent = ((clip.end - clip.start) / state.timelineSeconds) * 100;
+          const leftPercent = (clip.start / viewState.timelineSeconds) * 100;
+          const widthPercent = ((clip.end - clip.start) / viewState.timelineSeconds) * 100;
 
-          // If clip position or selection changed, update in place
-          if (clipEl && prevData &&
-              prevData.leftPercent === leftPercent &&
-              prevData.widthPercent === widthPercent &&
-              prevData.selectedClipId === state.selectedClipId &&
-              prevData.label === (clip.text || clip.name)) {
-            return; // No change needed
-          }
+          const trackType = track.type || clip.type || 'video';
+          const label = clip.text || clip.name;
 
           if (!clipEl) {
             clipEl = document.createElement('button');
             clipEl.type = 'button';
-            clipEl.className = `clip ${state.selectedClipId === clip.id ? 'active' : ''}`;
-            clipEl.setAttribute('aria-label', `${clip.text || clip.name} — ${clip.type || 'clip'} clip on the ${track.name} track. Press Enter to select.`);
-            clipEl.innerHTML = `<span class="clip-label"></span>`;
+            clipEl.tabIndex = 0;
+            // HTML5 native drag-and-drop so clips can be moved between tracks /
+            // positions on the timeline. The lane drop zone (see renderTracks,
+            // ~line 2032) handles the data.type === 'clip' branch and re-renders.
+            // (The older mousedown-based clip drag in dragDrop.js is dead — its
+            // initializeClipDragDrop has no callers — so this is the only
+            // clip-drag path.)
+            clipEl.draggable = true;
+            clipEl.dataset.itemId = clip.id;
+            clipEl.dataset.trackId = track.id;
             cached.lane.appendChild(clipEl);
             cached.clipEls.set(clip.id, clipEl);
 
@@ -1888,21 +1891,63 @@ export function TimelineEditorPage() {
               if (event.target.classList.contains('clip-handle')) return;
               event.stopPropagation();
               state.selectedClipId = clip.id;
-              renderTracksIncremental(state, els, showToast);
+              updatePreview(clip);
+              // Full pipeline rebuild: re-rendering with the viewState closure
+              // would keep the stale selectedClipId and .active would never move.
+              renderTracks();
+            });
+
+            clipEl.addEventListener('dragstart', (e) => {
+              // Trim handles initiate a separate drag for trimming — never
+              // start a move-drag from one. data-handle is set on .l/.r in
+              // the structure template below.
+              if (e.target.dataset && e.target.dataset.handle) return;
+              const payload = { type: 'clip', clipId: clip.id };
+              try {
+                e.dataTransfer.setData('application/json', JSON.stringify(payload));
+                e.dataTransfer.effectAllowed = 'move';
+                // Suppress the default translucent-clone drag image; the
+                // drop-highlight on the lane is enough visual feedback.
+                const ghost = document.createElement('div');
+                ghost.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;';
+                document.body.appendChild(ghost);
+                e.dataTransfer.setDragImage(ghost, 0, 0);
+                requestAnimationFrame(() => ghost.remove());
+              } catch (err) {
+                console.warn('[Timeline] clip dragstart failed', err);
+              }
             });
           }
 
           clipEl.style.left = `${leftPercent}%`;
           clipEl.style.width = `${widthPercent}%`;
-          clipEl.className = `clip ${state.selectedClipId === clip.id ? 'active' : ''}`;
-          clipEl.setAttribute('aria-label', `${clip.text || clip.name} — ${clip.type || 'clip'} clip on the ${track.name} track. Press Enter to select.`);
-          const labelEl = clipEl.querySelector('.clip-label');
-          if (labelEl) labelEl.textContent = clip.text || clip.name;
+          clipEl.className = `clip ${viewState.selectedClipId === clip.id ? 'active' : ''}`;
+
+          // Prototype clip internals: thumb+grad (video/fx), wave (audio),
+          // icon label, duration chip, l/r handles (not on text clips)
+          const needsStructure = !prevData || prevData.label !== label || prevData.type !== trackType;
+          if (needsStructure) {
+            const isAudio = trackType === 'audio';
+            const isText = trackType === 'text';
+            const isFx = trackType === 'effects' || trackType === 'fx';
+            const icon = isAudio ? '🎙️' : isText ? '🅣' : isFx ? '✨' : '🎥';
+            const durSec = Math.max(0, (clip.end || 0) - (clip.start || 0)).toFixed(1);
+            clipEl.setAttribute('aria-label', `Clip: ${label}, ${durSec}s`);
+            clipEl.innerHTML = `
+              ${isAudio ? '<div class="clip-wave"></div>' : ''}
+              ${!isAudio && !isText ? '<div class="clip-thumb"><div class="grad"></div></div>' : ''}
+              <span class="clip-label"><span class="ic">${icon}</span>${label}</span>
+              <span class="clip-dur">${durSec}s</span>
+              ${!isText ? '<span class="clip-handle l" data-handle="left"></span><span class="clip-handle r" data-handle="right"></span>' : ''}
+            `;
+            if (isAudio) fillClipWave(clipEl.querySelector('.clip-wave'));
+          }
 
           cached.clipData.set(clip.id, {
             leftPercent, widthPercent,
-            selectedClipId: state.selectedClipId,
-            label: clip.text || clip.name
+            selectedClipId: viewState.selectedClipId,
+            label,
+            type: trackType
           });
         });
 
@@ -1913,6 +1958,29 @@ export function TimelineEditorPage() {
             cached.clipEls.delete(clipId);
             cached.clipData.delete(clipId);
           }
+        });
+
+        // Prototype ornaments: transitions + scene markers (cheap rebuild per pass)
+        cached.lane.querySelectorAll('.timeline-transition, .scene-marker').forEach(el => el.remove());
+        (track.transitions || []).forEach(tr => {
+          const el = document.createElement('div');
+          el.className = 'timeline-transition';
+          el.style.left = `${tr.left}%`;
+          el.style.width = `${tr.width}%`;
+          el.tabIndex = 0;
+          el.setAttribute('role', 'button');
+          el.setAttribute('aria-label', `${tr.name || 'Crossfade'} transition, ${tr.duration}s`);
+          el.innerHTML = `<span class="ti">⮂</span><span class="tn">${tr.duration}s</span>`;
+          cached.lane.appendChild(el);
+        });
+        (track.markers || []).forEach(mLeft => {
+          const el = document.createElement('div');
+          el.className = 'scene-marker';
+          el.style.left = `${mLeft}%`;
+          el.title = 'Scene marker';
+          el.setAttribute('role', 'button');
+          el.setAttribute('aria-label', `Scene marker at ${((mLeft / 100) * viewState.timelineSeconds).toFixed(1)}s`);
+          cached.lane.appendChild(el);
         });
       });
 
@@ -1940,8 +2008,8 @@ export function TimelineEditorPage() {
         clipEl.style.width = `${widthPercent}%`;
         clipEl.innerHTML = `
           <span class="clip-label">${clip.text || clip.name}</span>
-          <div class="clip-handle left" data-handle="left"></div>
-          <div class="clip-handle right" data-handle="right"></div>
+          <div class="clip-handle l" data-handle="left"></div>
+          <div class="clip-handle r" data-handle="right"></div>
         `;
         return clipEl;
       }
@@ -1957,6 +2025,8 @@ export function TimelineEditorPage() {
           solo: track.solo,
           opacity: track.opacity || 1,
           blendMode: track.blendMode || 'normal',
+          transitions: track.transitions || [],
+          markers: track.markers || [],
           items: (track.items || []).map(clip => ({
             id: clip.id,
             name: clip.name,
@@ -1992,9 +2062,21 @@ export function TimelineEditorPage() {
       // Only rebuilds tracks/clips whose data actually changed.
       renderTracksIncremental(enhancedState, { trackRows: els.trackRows }, showToast);
 
+      // Timecode ruler + mini-map refresh. Ruler is a <canvas> so it cannot
+      // be incrementally diffed; mini-map is rebuilt fresh on every render.
+      renderTimecodeRuler(state.timelineSeconds || 60, state.playheadPercent, state.zoom);
+      renderMiniMap();
+
       // Add enhanced drag and drop handlers
       els.trackRows.querySelectorAll('.track-lane').forEach(lane => {
         const track = state.tracks.find(t => t.id === lane.dataset.trackId);
+
+        // Wire each lane's listeners exactly once. renderTracks is called on
+        // every state mutation (toggles, drops, undo, etc.) and would
+        // otherwise stack N copies of every handler — a single drop would
+        // then insert N clips.
+        if (lane.dataset.dragWired === '1') return;
+        lane.dataset.dragWired = '1';
 
         lane.addEventListener('click', (event) => {
           if (event.target !== lane) return;
@@ -2007,9 +2089,19 @@ export function TimelineEditorPage() {
         lane.addEventListener('dragover', (e) => {
           e.preventDefault();
           e.dataTransfer.dropEffect = 'move';
+          if (!state.snapEnabled) return;
+          const rect = lane.getBoundingClientRect();
+          const raw = ((e.clientX - rect.left) / rect.width) * 100;
+          const dropWidth = 16; // default for unknown media; real code could look up dragged clip
+          const candidates = computeSnapCandidates();
+          const snapped = snapPercent(raw, candidates, lane.dataset.trackId, dropWidth, 1.2);
+          if (snapped !== raw) renderSnapGuide(snapped);
+          else clearSnapGuide();
         });
 
+        lane.addEventListener('dragleave', () => { clearSnapGuide(); });
         lane.addEventListener('drop', async (e) => {
+          clearSnapGuide();
           e.preventDefault();
           const rect = lane.getBoundingClientRect();
           const percent = ((e.clientX - rect.left) / rect.width) * 100;
@@ -2046,28 +2138,86 @@ export function TimelineEditorPage() {
             
             if (track && state.addClip) {
               state.addClip(track.id, clipData);
-              
             }
+            renderTracks();
             return;
           }
           
           // Original clip/media drop handling
           const data = JSON.parse(e.dataTransfer.getData('application/json') || '{}');
 
-          if (data.type === 'clip') {
-            const allClips = state.tracks.flatMap(t => t.clips);
-            const clip = allClips.find(c => c.id === data.clipId);
-            if (clip && track) {
-              // Remove from old track
-              state.tracks.forEach(t => t.clips = t.clips.filter(c => c.id !== clip.id));
-              // Add to new track
-              clip.left = Math.max(0, Math.min(100 - clip.width, percent));
-              track.clips.push(clip);
-              // Sort clips by left
-              track.clips.sort((a, b) => a.left - b.left);
-              saveStateSnapshot(state);
-              renderTracks();
+          if (data.type === 'clip' || data.type === 'clip-group') {
+            const clipIds = data.type === 'clip-group' ? data.clipIds : [data.clipId];
+            const allClips = state.tracks.flatMap(t => t.items || []);
+            const clips = clipIds.map(cid => allClips.find(c => c.id === cid)).filter(Boolean);
+            if (!clips.length || !track) return;
+
+            const first = clips[0];
+            const drift = percent - (first.left || 0);
+
+            // Alt+drag duplicate: copy rather than move
+            const isDuplicate = e.altKey;
+            if (isDuplicate) {
+              state.tracks.forEach(t => {
+                clips.forEach(c => {
+                  if ((t.items || []).some(x => x.id === c.id)) {
+                    const idx = t.items.findIndex(x => x.id === c.id);
+                    const dropLeft = Math.max(0, Math.min(100 - (c.width || 16), (c.left || 0) + (c.width || 16)));
+                    const clone = { ...JSON.parse(JSON.stringify(c)), id: 'clip-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6), left: dropLeft };
+                    t.items.splice(idx + 1, 0, clone);
+                  }
+                });
+              });
+              reAliasAllTracks(state);
+              commitAndRender(state);
+              return;
             }
+
+            // Remove from old tracks
+            state.tracks.forEach(t => {
+              clips.forEach(c => {
+                t.items = (t.items || []).filter(x => x.id !== c.id);
+              });
+            });
+            reAliasAllTracks(state);
+
+            // New left follows drag with optional snap
+            const snapCandidates = computeSnapCandidates();
+            const targetLeft = snapPercent(
+              Math.max(0, Math.min(100 - (first.width || 16), percent)),
+              snapCandidates,
+              track.id,
+              first.width || 16,
+              1.2
+            );
+
+            // Apply insert/overwrite on target track before placing
+            if (state.insertMode && !state.overwriteMode) {
+              applyInsertMode(track, targetLeft, first.width || 16);
+            } else if (state.overwriteMode) {
+              applyOverwriteMode(track, targetLeft, first.width || 16);
+            }
+
+            clips.forEach(c => {
+              c.left = targetLeft + (c === first ? 0 : drift);
+              // Keep the time-based properties in sync with the new pixel
+              // position. renderTracksIncremental and renderTracks both
+              // read clip.start/clip.end directly; without this write-back
+              // a cross-track drop would leave stale start/end and the
+              // clip would desync on the next paint.
+              if (state.timelineSeconds) {
+                const durSec = Math.max(0, ((c.width || first.width || 0) / 100) * state.timelineSeconds);
+                c.start = (c.left / 100) * state.timelineSeconds;
+                c.end = c.start + durSec;
+              }
+              track.items.push(c);
+            });
+            track.items.sort((a, b) => (a.left || 0) - (b.left || 0));
+            reAliasAllTracks(state);
+
+            if (state.rippleMode) trimTailPastEnd(track, state.timelineSeconds || 60);
+            state.selectedClipId = clips[0].id;
+            commitAndRender(state);
           } else if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             // OS file drop: route through the unified upload pipeline.
             // This replaces the previous hardcoded MDN-sample behavior.
@@ -2102,54 +2252,34 @@ export function TimelineEditorPage() {
               extra.heading = data.label;
               extra.body = 'Dragged text asset.';
             }
-            const newClip = { id: Date.now(), name: data.label, left: Math.max(0, percent), width: 16, type: data.mediaType, ...extra };
-            track.clips.push(newClip);
+            const width = 16;
+            // snap-to-gap if enabled
+            let dropLeft = Math.max(0, percent);
+            if (state.snapToGap && track.items) {
+              const gap = findNearestGap(track, width, dropLeft);
+              if (gap && gap.left != null) dropLeft = gap.left;
+            }
+            const snappedLeft = state.snapEnabled ? snapPercent(dropLeft, computeSnapCandidates(), track.id, width, 1.2) : dropLeft;
+            const newClip = { id: Date.now(), name: data.label, left: Math.max(0, snappedLeft), width, type: data.mediaType, ...extra };
+            if (state.insertMode && !state.overwriteMode) {
+              applyInsertMode(track, newClip.left, width);
+            } else if (state.overwriteMode) {
+              applyOverwriteMode(track, newClip.left, width);
+            }
+            track.items.push(newClip);
+            ensureItemsAlias(track);
             state.selectedClipId = newClip.id;
+            if (state.rippleMode) trimTailPastEnd(track, state.timelineSeconds || 60);
             saveStateSnapshot(state);
             renderTracks();
             updatePreview(newClip);
           }
         });
-        track.clips.forEach((clip) => {
-          // Convert clip format for enhanced renderer
-          const enhancedClip = {
-            id: clip.id,
-            name: clip.name,
-            text: clip.heading || clip.name,
-            start: (clip.left / 100) * state.timelineSeconds,
-            end: ((clip.left + clip.width) / 100) * state.timelineSeconds,
-            type: clip.type,
-            src: clip.src,
-            fit: clip.fit,
-            heading: clip.heading,
-            body: clip.body,
-            waveformData: clip.waveformData
-          };
 
-          const clipEl = (typeof createEnhancedClipElement !== 'undefined' && createEnhancedClipElement)
-            ? createEnhancedClipElement(enhancedClip, { id: track.id, name: track.name }, {
-                selectedClipId: state.selectedClipId,
-                timelineSeconds: state.timelineSeconds
-              }, state.zoom || 1)
-            : createBasicClipElement(enhancedClip, { id: track.id, name: track.name }, {
-                selectedClipId: state.selectedClipId,
-                timelineSeconds: state.timelineSeconds
-              });
-
-          // Extend clip with enhancement context menus
-          extendClipContextMenu(clipEl, clip, track, state, showToast);
-
-          // Override click handler to work with this timeline's state management
-          clipEl.addEventListener('click', (event) => {
-            if (event.target.classList.contains('clip-handle')) return; // Don't trigger on handle clicks
-            event.stopPropagation();
-            state.selectedClipId = clip.id;
-            updatePreview(clip);
-            renderTracks();
-          }, true); // Use capture to override the default handler
-
-          lane.appendChild(clipEl);
-        });
+        // Prototype parity: clip rendering is owned exclusively by
+        // renderTracksIncremental (single render path). The legacy
+        // enhanced-clip append loop that used to live here caused every
+        // clip to be appended once per renderTracks() call.
       });
     }
 
@@ -2182,7 +2312,13 @@ export function TimelineEditorPage() {
     }
 
     function renderMedia() {
-      // Enhanced media library with semantic search and better drag & drop
+      // Prototype parity: keep the static 4-item Media Library grid from the
+      // template (Clip 01 / VO Raw / Logo / Track). The enhanced CineGen media
+      // library is a stripped feature — it lives behind the rail panels.
+      // Uploads still flow through uploadBtn → uploadInput → timeline.
+      return;
+
+      // eslint-disable-next-line no-unreachable
       renderMediaGrid(state.media, els.mediaGrid, (media, index, showToast) => {
         const generatedId = Date.now();
         let clipData = {
@@ -2213,10 +2349,12 @@ export function TimelineEditorPage() {
         
       }, showToast, state);
 
-      // Extend media library with enhancement features
-      extendMediaLibrary(els.mediaGrid, state, showToast);
+      // Prototype parity: skip enhanced media library injection
+      // extendMediaLibrary(els.mediaGrid, state, showToast);
 
+      // Prototype parity: skip media ingest components
       // Add media ingest components to media library
+      /*
       const mediaLibraryContainer = els.mediaGrid.parentElement;
       if (mediaLibraryContainer && !mediaLibraryContainer.querySelector('.media-ingest-components')) {
         const ingestContainer = document.createElement('div');
@@ -2240,9 +2378,11 @@ export function TimelineEditorPage() {
 
         mediaLibraryContainer.appendChild(ingestContainer);
       }
+      */
     }
 
     function renderGenerateTypes() {
+      if (!els.generateTypes) return;
       els.generateTypes.innerHTML = '';
       const generateTooltips = {
         'Text': 'Generate video from text descriptions',
@@ -2459,7 +2599,7 @@ export function TimelineEditorPage() {
     }
 
     function initializeSceneDetector() {
-      if (!sceneDetector) {
+      if (!sceneDetector && els.sceneDetectorContainer) {
         sceneDetector = new SceneDetector(els.sceneDetectorContainer, {
           tracks: state.tracks,
           timelineSeconds: state.timelineSeconds,
@@ -2475,7 +2615,7 @@ export function TimelineEditorPage() {
     }
 
     function initializeCameraEffects() {
-      if (!cameraEffects) {
+      if (!cameraEffects && els.cameraEffectsContainer) {
         cameraEffects = new CameraEffects(els.cameraEffectsContainer, {
           keyframeSystem: state.keyframeSystem,
           timelineState: state,
@@ -3302,8 +3442,61 @@ export function TimelineEditorPage() {
       renderTracks();
     }
 
+    // Reveal a collapsed editor-only panel from the floating rail.
+    function openPanel(id) {
+      const el = root.querySelector('#' + id);
+      if (!el) return;
+      el.hidden = false;
+      el.style.display = 'block';
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Maps floating-rail labels to collapsed panel element ids.
+    const RAIL_PANEL_MAP = {
+      'Scene Detector': 'sceneDetectorPanel',
+      'Camera FX': 'cameraEffectsPanel',
+      'Color Scopes': 'colorScopesPanel',
+      'Multi-Cam': 'multiCameraPanel',
+      'Clip Editor': 'clipSettingsPanel',
+      'Transitions Panel': 'transitionSettingsPanel',
+      'CineGen Results': 'cinegenResultsPanel',
+      'Anim Demo': 'animationDemoPanel'
+    };
+
+    // Maps feature-index chip data-modal keys to editor modal/open actions.
+    const FEATURE_INDEX_MODALS = {
+      previewMedia: () => openPreviewMediaModal(state, showToast),
+      videoPlayer: () => openVideoPlayerModal(state, showToast),
+      recorder: () => openRecorderModal(state, showToast),
+      urlVideo: () => openUrlVideoModal(state, showToast),
+      templates: () => openTemplateGeneratorModal(state, showToast),
+      aiVideo: () => openAIVideoCreatorModal(state, showToast),
+      personalization: () => openVideoPersonalizationHubModal(state, showToast),
+      landing: () => openLandingPageBuilderModal(state, showToast),
+      social: () => openSocialPublisherModal(state, showToast),
+      email: () => openEmailCampaignModal(state, showToast),
+      leads: () => openLeadGeneratorModal(state, showToast),
+      contacts: () => openContactImporterModal(state, showToast),
+      endScreen: () => openEndScreenModal(state, showToast),
+      import: () => showToast('Import timeline functionality coming soon', 'info'),
+      storyboard: () => { if (window.showCutAIFromTimeline) window.showCutAIFromTimeline(); else showToast('Storyboard coming soon', 'info'); },
+      subtitleEditor: () => generateSubtitles(),
+      imageCrop: () => showToast('Image cropper coming soon', 'info'),
+      imageEdit: () => showToast('Image editor coming soon', 'info'),
+      voice: () => showToast('Voice/TTS coming soon', 'info')
+    };
+
+    // Populate the preview filmstrip (prototype-style clip thumbnails).
+    function renderFilmstrip() {
+      // Prototype parity: the reference filmstrip is an empty container —
+      // no thumbnails are generated.
+      const fs = root.querySelector('#filmstrip');
+      if (fs) fs.innerHTML = '';
+    }
+
     function renderRail() {
       els.floatingRail.innerHTML = '';
+      renderFilmstrip();
       const railTooltips = {
         'Generate': 'Generate new AI content - Create video, images, or audio from prompts',
         'Split': 'Split clip at playhead - Divide the selected clip into two at the current position',
@@ -3333,7 +3526,30 @@ export function TimelineEditorPage() {
         'Personalization Suite': 'Personalization suite - Complete video personalization workflow',
         'Landing Pages': 'Landing pages - Create personalized landing pages',
         'Lead Generator': 'Lead capture - Add lead generation forms to videos',
-        'AI Personalizer': 'AI Personalizer - Scan profiles and generate personalized content'
+        'AI Personalizer': 'AI Personalizer - Scan profiles and generate personalized content',
+        'CineGen Tools': 'CineGen AI Tools - Full suite of AI editing tools',
+        'Gap Fill': 'CineGen Gap Fill - Fill gaps between clips with AI',
+        'Extend Clip': 'CineGen Extend - Extend selected clip with AI-generated content',
+        'Generate Music': 'CineGen Generate Music - Create background music',
+        'Mask Tool': 'CineGen AI Mask - Generate object isolation masks',
+        'Element': 'CineGen Element - Generate reusable visual elements',
+        'Polish': 'CineGen Polish - Gap Fill + Extend in one step',
+        'Smart Subtitles': 'CineGen Smart Subtitles - Auto-generate timed subtitles',
+        'LLM Assistant': 'CineGen LLM Assistant - Advanced reasoning for edits',
+        'SAM3': 'CineGen SAM3 - Precise segment masks',
+        'Audio Sync': 'CineGen Audio Sync - Align audio to video',
+        'Layer Decomp': 'CineGen Layer Decomposition - Foreground/background/effects layers',
+        'Shot Board': 'CineGen Shot Board - Multi-shot sequences',
+        'Proxy Play': 'CineGen Proxy Playback - Smooth scrubbing proxies',
+        'Comp Plan': 'CineGen Composition Plan - AI edit plan',
+        'Scene Detector': 'Scene detection - Identify scene changes in footage',
+        'Camera FX': 'Camera effects - Shake, orbit, hitchcock, pan, tilt',
+        'Color Scopes': 'Color scopes - Waveform, vectorscope, histogram',
+        'Multi-Cam': 'Multi-camera editing, PIP, and split screen',
+        'Clip Editor': 'Clip editor - Edit selected clip properties',
+        'Transitions Panel': 'Transitions - Add effects between clips',
+        'CineGen Results': 'CineGen AI Tools results history',
+        'Anim Demo': 'Rendiv animation demonstrations'
       };
       state.railActions.forEach(([icon, label, active]) => {
         const button = document.createElement('button');
@@ -3436,7 +3652,31 @@ export function TimelineEditorPage() {
             case 'AI Personalizer':
               window.dispatchEvent(new CustomEvent('open-personalizer'));
               break;
+            case 'CineGen Tools':
+              openPanel('cinegenResultsPanel');
+              break;
+            case 'Gap Fill':
+              runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId });
+              break;
+            case 'Extend Clip':
+              runCineGenTool(CINEGEN_TOOLS.EXTEND, { clipId: state.selectedClipId });
+              break;
+            case 'Generate Music':
+            case 'Mask Tool':
+            case 'Element':
+            case 'Polish':
+            case 'Smart Subtitles':
+            case 'LLM Assistant':
+            case 'SAM3':
+            case 'Audio Sync':
+            case 'Layer Decomp':
+            case 'Shot Board':
+            case 'Proxy Play':
+            case 'Comp Plan':
+              openPanel('cinegenResultsPanel');
+              break;
             default:
+              if (RAIL_PANEL_MAP[label]) openPanel(RAIL_PANEL_MAP[label]);
           }
         });
 
@@ -3450,32 +3690,34 @@ export function TimelineEditorPage() {
     }
 
     function showClipEditor(clipId) {
-      els.clipSettingsPanel.style.display = 'block';
+      els.clipSettingsPanel?.style && (els.clipSettingsPanel.style.display = 'block');
       renderClipEditor(clipId);
     }
 
     function showTransitionSettings() {
-      els.transitionSettingsPanel.style.display = 'block';
+      els.transitionSettingsPanel?.style && (els.transitionSettingsPanel.style.display = 'block');
       
     }
 
     function showColorCorrectionPanel() {
+      if (!els.colorCorrectionPanel) return;
       if (!FEATURE_FLAGS.colorCorrection) {
-        els.colorCorrectionContainer.innerHTML = '<p style="color: #ef4444;">Color correction system unavailable</p>';
+        els.colorCorrectionContainer && (els.colorCorrectionContainer.innerHTML = '<p style="color: #ef4444;">Color correction system unavailable</p>');
         els.colorCorrectionPanel.style.display = 'block';
         return;
       }
       if (!colorCorrectionSystem) {
         try {
+          if (!els.colorCorrectionContainer) return;
           colorCorrectionSystem = new ColorCorrectionSystem(els.colorCorrectionContainer, state, state.keyframeSystem);
           els.colorCorrectionContainer.innerHTML = '';
           els.colorCorrectionContainer.appendChild(colorCorrectionSystem.getPanel());
         } catch (error) {
           console.error('Failed to load ColorCorrectionSystem:', error);
-          els.colorCorrectionContainer.innerHTML = '<p style="color: #ef4444;">Color correction system unavailable</p>';
+          els.colorCorrectionContainer && (els.colorCorrectionContainer.innerHTML = '<p style="color: #ef4444;">Color correction system unavailable</p>');
         }
       }
-      els.colorCorrectionPanel.style.display = 'block';
+      els.colorCorrectionPanel?.style && (els.colorCorrectionPanel.style.display = 'block');
       
     }
 
@@ -3637,10 +3879,10 @@ export function TimelineEditorPage() {
     function showCanvasPanel() {
       // Hide other panels
       hideAllEditorPanels();
-      els.canvasPanel.style.display = 'block';
+      els.canvasPanel?.style && (els.canvasPanel.style.display = 'block');
 
       // Render Canvas component
-      if (!els.canvasContainer.innerHTML) {
+      if (els.canvasContainer && !els.canvasContainer.innerHTML) {
         // For now, render basic canvas HTML. In a full implementation, this would use ReactDOM
         els.canvasContainer.innerHTML = `
           <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
@@ -3659,9 +3901,9 @@ export function TimelineEditorPage() {
 
     function showTokenEditorPanel() {
       hideAllEditorPanels();
-      els.tokenEditorPanel.style.display = 'block';
+      els.tokenEditorPanel?.style && (els.tokenEditorPanel.style.display = 'block');
 
-      if (!els.tokenEditorContainer.innerHTML) {
+      if (els.tokenEditorContainer && !els.tokenEditorContainer.innerHTML) {
         // Load variables from intelligence layer if a contact is selected
         let tokenEntries = [
           { token: '{first_name}', label: 'first_name' },
@@ -3758,8 +4000,7 @@ export function TimelineEditorPage() {
             try {
               const session = await (async () => {
                 try {
-                  const { createClient } = await import('../lib/supabase.js');
-                  const supabase = createClient();
+                  const { supabase } = await import('../lib/supabase.js');
                   const { data } = await supabase.auth.getSession();
                   return data.session;
                 } catch { return null; }
@@ -3821,9 +4062,9 @@ export function TimelineEditorPage() {
 
     function showBatchGeneratorPanel() {
       hideAllEditorPanels();
-      els.batchGeneratorPanel.style.display = 'block';
+      els.batchGeneratorPanel?.style && (els.batchGeneratorPanel.style.display = 'block');
 
-      if (!els.batchGeneratorContainer.innerHTML) {
+      if (els.batchGeneratorContainer && !els.batchGeneratorContainer.innerHTML) {
         els.batchGeneratorContainer.innerHTML = `
           <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
             <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Batch Generator</h3>
@@ -3868,9 +4109,9 @@ export function TimelineEditorPage() {
 
     function showWorkflowPanel() {
       hideAllEditorPanels();
-      els.workflowPanel.style.display = 'block';
+      els.workflowPanel?.style && (els.workflowPanel.style.display = 'block');
 
-      if (!els.workflowContainer.innerHTML) {
+      if (els.workflowContainer && !els.workflowContainer.innerHTML) {
         els.workflowContainer.innerHTML = `
           <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
             <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Workflow Automation</h3>
@@ -3899,9 +4140,9 @@ export function TimelineEditorPage() {
 
     function showPersonalizationPanel() {
       hideAllEditorPanels();
-      els.personalizationPanel.style.display = 'block';
+      els.personalizationPanel?.style && (els.personalizationPanel.style.display = 'block');
 
-      if (!els.personalizationContainer.innerHTML) {
+      if (els.personalizationContainer && !els.personalizationContainer.innerHTML) {
         els.personalizationContainer.innerHTML = `
           <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
             <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Personalization</h3>
@@ -3937,9 +4178,9 @@ export function TimelineEditorPage() {
 
     function showPersonalizationEditorPanel() {
       hideAllEditorPanels();
-      els.personalizationEditorPanel.style.display = 'block';
+      els.personalizationEditorPanel?.style && (els.personalizationEditorPanel.style.display = 'block');
 
-      if (!els.personalizationEditorContainer.innerHTML) {
+      if (els.personalizationEditorContainer && !els.personalizationEditorContainer.innerHTML) {
         els.personalizationEditorContainer.innerHTML = `
           <div style="padding: 16px; height: 100%; display: flex; flex-direction: column;">
             <h3 style="margin: 0 0 16px 0; color: #e5e7eb;">Personalization Editor</h3>
@@ -3957,12 +4198,12 @@ export function TimelineEditorPage() {
     }
 
     function hideAllEditorPanels() {
-      els.canvasPanel.style.display = 'none';
-      els.tokenEditorPanel.style.display = 'none';
-      els.batchGeneratorPanel.style.display = 'none';
-      els.workflowPanel.style.display = 'none';
-      els.personalizationPanel.style.display = 'none';
-      els.personalizationEditorPanel.style.display = 'none';
+      els.canvasPanel?.style && (els.canvasPanel.style.display = 'none');
+      els.tokenEditorPanel?.style && (els.tokenEditorPanel.style.display = 'none');
+      els.batchGeneratorPanel?.style && (els.batchGeneratorPanel.style.display = 'none');
+      els.workflowPanel?.style && (els.workflowPanel.style.display = 'none');
+      els.personalizationPanel?.style && (els.personalizationPanel.style.display = 'none');
+      els.personalizationEditorPanel?.style && (els.personalizationEditorPanel.style.display = 'none');
     }
 
     function renderLineDuration(clipId) {
@@ -3987,6 +4228,9 @@ export function TimelineEditorPage() {
     }
 
     async function generateClip() {
+      if (!els.promptInput || !els.negativeInput || !els.durationSelect || !els.aspectSelect || !els.styleSelect) {
+        return;
+      }
       const prompt = els.promptInput.value.trim();
       const negativePrompt = els.negativeInput.value.trim();
       const duration = els.durationSelect.value;
@@ -4261,6 +4505,13 @@ export function TimelineEditorPage() {
       updatePlaybackUI();
     }
 
+    function jumpToEndPlayback() {
+      state.playing = false;
+      window.clearInterval(playbackTimer);
+      state.playheadPercent = 100;
+      updatePlaybackUI();
+    }
+
     async function handleUpload(file) {
       if (!file) return;
 
@@ -4461,10 +4712,155 @@ export function TimelineEditorPage() {
     }
 
     function bindEvents() {
-      els.playBtn.addEventListener('click', togglePlayback);
-      els.stopBtn.addEventListener('click', stopPlayback);
-      els.rewindBtn.addEventListener('click', rewindPlayback);
-      els.generateBtn.addEventListener('click', generateClip);
+      // Bind whatever exists — never abort the whole batch because one
+      // optional surface (generateBtn, backBtn) is not in the template.
+      const required = ['playBtn','stopBtn','rewindBtn','generateBtn','uploadBtn','uploadInput','backBtn'];
+      const missing = required.filter(id => !els[id]);
+      if (missing.length) {
+        console.warn('[Timeline] Optional elements not present, binding rest:', missing);
+      }
+
+      els.playBtn?.addEventListener('click', togglePlayback);
+      els.stopBtn?.addEventListener('click', stopPlayback);
+      els.rewindBtn?.addEventListener('click', rewindPlayback);
+      els.generateBtn?.addEventListener('click', generateClip);
+
+      // Header top actions (prototype skeleton, listeners-only)
+      bindTopActions();
+
+      // Timeline-top toolbar (redesign: playback / edit groups match prototype)
+      const tbRewind = root.querySelector('#tbRewind');
+      const tbPlay = root.querySelector('#tbPlay');
+      const tbStop = root.querySelector('#tbStop');
+      const tbSplit = root.querySelector('#tbSplit');
+      const tbDelete = root.querySelector('#tbDelete');
+      const tbAddTrack = root.querySelector('#tbAddTrack');
+      const tbMerge = root.querySelector('#tbMerge');
+      const tbInsertMode = root.querySelector('#tbInsertMode');
+      const tbOverwriteMode = root.querySelector('#tbOverwriteMode');
+      const tbSnap = root.querySelector('#tbSnap');
+      if (tbRewind) tbRewind.addEventListener('click', rewindPlayback);
+      if (tbPlay) tbPlay.addEventListener('click', togglePlayback);
+      if (tbStop) tbStop.addEventListener('click', jumpToEndPlayback);
+      if (tbSplit) tbSplit.addEventListener('click', splitClipAtPlayhead);
+      if (tbDelete) tbDelete.addEventListener('click', deleteSelectedClip);
+      if (tbAddTrack) tbAddTrack.addEventListener('click', () => addTrack('Video'));
+      if (tbMerge) tbMerge.addEventListener('click', mergeAdjacentClipWithNeighbor);
+      if (tbInsertMode) tbInsertMode.addEventListener('click', () => {
+        state.insertMode = true; state.overwriteMode = false;
+        tbInsertMode.classList.add('active'); tbOverwriteMode?.classList.remove('active');
+        tbInsertMode.setAttribute('aria-pressed', 'true'); tbOverwriteMode?.setAttribute('aria-pressed', 'false');
+        showToast('Insert mode', 'info');
+      });
+      if (tbOverwriteMode) tbOverwriteMode.addEventListener('click', () => {
+        state.overwriteMode = true; state.insertMode = false;
+        tbOverwriteMode.classList.add('active'); tbInsertMode?.classList.remove('active');
+        tbOverwriteMode.setAttribute('aria-pressed', 'true'); tbInsertMode?.setAttribute('aria-pressed', 'false');
+        showToast('Overwrite mode', 'info');
+      });
+      if (tbSnap) tbSnap.addEventListener('click', () => {
+        state.snapEnabled = !state.snapEnabled;
+        tbSnap.classList.toggle('active', state.snapEnabled);
+        tbSnap.setAttribute('aria-pressed', String(state.snapEnabled));
+        showToast(`Snap ${state.snapEnabled ? 'ON' : 'OFF'}`, 'info');
+      });
+
+      // Keyboard shortcuts
+      root.setAttribute('tabindex', '0');
+      root.addEventListener('keydown', (ev) => {
+        const tag = (ev.target.tagName || '').toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || (ev.target && ev.target.isContentEditable)) return;
+        const key = ev.key.toLowerCase();
+        if (key === ' ' || key === 'spacebar') { ev.preventDefault(); togglePlayback(); }
+        else if (key === 'arrowleft') { ev.preventDefault(); state.playheadPercent = Math.max(0, (state.playheadPercent || 0) - 0.8); updatePlaybackUI(); }
+        else if (key === 'arrowright') { ev.preventDefault(); state.playheadPercent = Math.min(100, (state.playheadPercent || 0) + 0.8); updatePlaybackUI(); }
+        else if (key === 's' && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); splitClipAtPlayhead(); }
+        else if (key === 'delete' || key === 'backspace') { ev.preventDefault(); deleteSelectedClip(); }
+        else if ((ev.ctrlKey || ev.metaKey) && key === 'z' && !ev.shiftKey) { ev.preventDefault(); undo(state); }
+        else if ((ev.ctrlKey || ev.metaKey) && (key === 'y' || (key === 'z' && ev.shiftKey))) { ev.preventDefault(); redo(state); }
+        else if ((ev.ctrlKey || ev.metaKey) && key === 'd') { ev.preventDefault(); duplicateSelectedClip(); }
+        else if ((ev.ctrlKey || ev.metaKey) && key === 'g') { ev.preventDefault(); groupSelectedClips(); }
+        else if ((ev.ctrlKey || ev.metaKey) && key === 'shift' && ev.key.toLowerCase() === 'g') { ev.preventDefault(); ungroupSelectedClips(); }
+        else if (key === '[') { nudgeSelectedClip(-0.5); }
+        else if (key === ']') { nudgeSelectedClip(0.5); }
+        else if ((ev.ctrlKey || ev.metaKey) && key === 'c') { ev.preventDefault(); copySelectedClip(); }
+        else if ((ev.ctrlKey || ev.metaKey) && key === 'v') { ev.preventDefault(); pasteClipAtPlayhead(); }
+      });
+
+      // Zoom controls (prototype: out / track / in / fit)
+      const zoomOutBtn = root.querySelector('[data-action="zoom-out"]');
+      const zoomInBtn = root.querySelector('[data-action="zoom-in"]');
+      const zoomFitBtn = root.querySelector('[data-action="zoom-fit"]');
+      const setZoom = (next) => { state.zoom = Math.max(0.5, Math.min(2, next)); renderTracks(); };
+      if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => setZoom((state.zoom || 1) - 0.25));
+      if (zoomInBtn) zoomInBtn.addEventListener('click', () => setZoom((state.zoom || 1) + 0.25));
+      if (zoomFitBtn) zoomFitBtn.addEventListener('click', () => setZoom(1));
+
+      // Viewer fullscreen → video player modal (prototype vfFull)
+      const vfFull = root.querySelector('#vfFull');
+      if (vfFull) vfFull.addEventListener('click', () => openVideoPlayerModal(state, showToast));
+
+      // Generate card tiles (prototype-style) → open the matching surface
+      const genAutoCut = root.querySelector('#genAutoCut');
+      const genSubtitles = root.querySelector('#genSubtitles');
+      const genAiVideo = root.querySelector('#genAiVideo');
+      const genCutAi = root.querySelector('#genCutAi');
+      const openSubtitleEditorBtn = root.querySelector('#openSubtitleEditor');
+      if (genAutoCut) genAutoCut.addEventListener('click', () => openTemplateGeneratorModal(state, showToast));
+      if (genSubtitles) genSubtitles.addEventListener('click', () => generateSubtitles());
+      if (genAiVideo) genAiVideo.addEventListener('click', () => runCineGenTool(CINEGEN_TOOLS.GAP_FILL, { clipId: state.selectedClipId }));
+      if (genCutAi && window.showCutAIFromTimeline) genCutAi.addEventListener('click', () => window.showCutAIFromTimeline());
+      if (openSubtitleEditorBtn) openSubtitleEditorBtn.addEventListener('click', () => generateSubtitles());
+      const ccReset = root.querySelector('#ccReset');
+      const ccLuts = root.querySelector('#ccLuts');
+      if (ccReset) ccReset.addEventListener('click', () => { const f = root.querySelectorAll('#colorCorrectionPanel input[type="range"]'); f.forEach(i => i.value = 0); });
+      if (ccLuts) ccLuts.addEventListener('click', () => openPanel('colorScopesPanel'));
+
+      // Media Library → Timeline (HTML5 drag-and-drop, native).
+      // The 4 static media items are draggable="true"; this delegation listener
+      // sets the dataTransfer payload that the lane drop zone (see renderTracks
+      // lane binding, ~line 2032) expects. Aligns with the lane's
+      // `application/json` + { type: 'media', mediaType, label, src } contract.
+      const mediaGrid = root.querySelector('#mediaGrid');
+      if (mediaGrid) {
+        mediaGrid.addEventListener('dragstart', (e) => {
+          const item = e.target.closest('.media-item');
+          if (!item || !item.hasAttribute('draggable')) return;
+          const mediaType = item.getAttribute('data-type') || 'video';
+          const label = item.getAttribute('data-label') || item.querySelector('.media-label')?.textContent || 'Media';
+          const payload = { type: 'media', mediaType, label, src: null };
+          try {
+            e.dataTransfer.setData('application/json', JSON.stringify(payload));
+            e.dataTransfer.effectAllowed = 'move';
+            // Hide the default browser drag image (a translucent item ghost is
+            // awkward over a track lane; the lane's drop highlight is enough).
+            const ghost = document.createElement('div');
+            ghost.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;';
+            document.body.appendChild(ghost);
+            e.dataTransfer.setDragImage(ghost, 0, 0);
+            requestAnimationFrame(() => ghost.remove());
+          } catch (err) {
+            console.warn('[Timeline] media dragstart failed', err);
+          }
+        });
+      }
+
+      // Body class toggle during any active drag — the rail overlay rule in
+      // styles/timeline-editor-page.css uses `body.is-dragging .floating-rail`
+      // to drop pointer-events so the rail can't intercept drops that land
+      // near the bottom of the timeline.
+      const onDragStartAny = () => document.body.classList.add('is-dragging');
+      const onDragEndAny = () => document.body.classList.remove('is-dragging');
+      document.addEventListener('dragstart', onDragStartAny);
+      document.addEventListener('dragend', onDragEndAny);
+      document.addEventListener('drop', onDragEndAny);
+
+      // Feature-index chips (prototype parity) → open the matching editor surface
+      root.querySelectorAll('.fi-chip').forEach(chip => {
+        const key = chip.getAttribute('data-modal');
+        const handler = FEATURE_INDEX_MODALS[key];
+        if (handler) chip.addEventListener('click', handler);
+      });
 
       // Rendiv Animation Demo handlers
       const runSpringDemoBtn = root.querySelector('#runSpringDemo');
@@ -4477,8 +4873,8 @@ export function TimelineEditorPage() {
       if (runNoiseDemoBtn) runNoiseDemoBtn.addEventListener('click', () => runNoiseDemo(animationCanvas, demoStatus));
       if (runInterpolateDemoBtn) runInterpolateDemoBtn.addEventListener('click', () => runInterpolateDemo(animationCanvas, demoStatus));
 
-      els.uploadBtn.addEventListener('click', () => els.uploadInput.click());
-      els.uploadInput.addEventListener('change', (event) => handleUpload(event.target.files?.[0]));
+      els.uploadBtn?.addEventListener('click', () => els.uploadInput?.click());
+      els.uploadInput?.addEventListener('change', (event) => handleUpload(event.target.files?.[0]));
 
       // VideoDB: add an indexed video to the timeline using the user's VideoDB
       // API key (configured in Settings).
@@ -4490,7 +4886,7 @@ export function TimelineEditorPage() {
           }
         });
       }
-      els.backBtn.addEventListener('click', () => showToast('Back action clicked'));
+      if (els.backBtn) els.backBtn.addEventListener('click', () => showToast('Back action clicked'));
 
       // Mobile side-panel tab switching. On desktop all panels are visible
       // (CSS overrides `hidden` attribute). On mobile, only the active tab's
@@ -4528,8 +4924,7 @@ export function TimelineEditorPage() {
       });
 
       root.querySelectorAll('[data-add-track]').forEach((button) => button.addEventListener('click', () => addTrack(button.dataset.addTrack)));
-      root.querySelectorAll('[data-action="zoom-in"]').forEach((button) => button.addEventListener('click', () => { state.zoom = Math.min(2, state.zoom + 0.1); console.log(`Zoom ${state.zoom.toFixed(1)}x`); }));
-      root.querySelectorAll('[data-action="zoom-out"]').forEach((button) => button.addEventListener('click', () => { state.zoom = Math.max(0.5, state.zoom - 0.1); console.log(`Zoom ${state.zoom.toFixed(1)}x`); }));
+      // Zoom in/out are bound once in the zoom-controls block above (single binding).
 
       const cutaiBtn = root.querySelector('#cutaiStoryboardBtn');
       if (cutaiBtn) cutaiBtn.addEventListener('click', () => showCutAI());
@@ -4763,7 +5158,6 @@ export function TimelineEditorPage() {
 
     function renderAll() {
       initializeDefaultTracks();
-      renderTopActions();
       renderTools();
       renderPills();
       renderTracks();
@@ -4777,9 +5171,9 @@ export function TimelineEditorPage() {
     }
 
     function renderMultiCamera() {
-      renderMultiCameraToolbar(state, els.multiCameraToolbar);
-      renderPipControls(state, els.pipControls);
-      renderSplitScreenControls(state, els.splitControls);
+      if (els.multiCameraToolbar) renderMultiCameraToolbar(state, els.multiCameraToolbar);
+      if (els.pipControls) renderPipControls(state, els.pipControls);
+      if (els.splitControls) renderSplitScreenControls(state, els.splitControls);
     }
 
      // Color correction system not implemented
@@ -4822,7 +5216,6 @@ export function TimelineEditorPage() {
       renderAll();
       bindEvents();
       setupEnhancedTooltips();
-      initializeMediaLibraryDragDrop(state, els.mediaGrid, { showToast });
       setupUploadSources({ state, showToast });
 
       // Initialize media ingest components
@@ -4835,7 +5228,9 @@ export function TimelineEditorPage() {
     }
 
     // Initialize transition system
-    initializeTimelineTransitions();
+    // Prototype parity: skip in-lane "Drop transition here" drop-zone injection.
+    // Transition editing stays available via the rail's Transitions Panel.
+    // initializeTimelineTransitions();
     initializeTransitionEditor();
 
     // Initialize scene detector
@@ -4846,6 +5241,13 @@ export function TimelineEditorPage() {
     // Initialize multi-camera functionality
     window.timelineState = state; // Make state globally accessible for multi-camera functions
     TLEditor.state = state; // Exposed on namespace to avoid polluting global scope
+    // External systems (e.g. media-library drag-drop in src/lib/editor/dragDrop.js)
+    // need a way to ask the timeline to re-render after they mutate state directly.
+    // The legacy addMediaToTimeline helper mutates the track's items array but
+    // does not re-render — without this hook the dropped clip never appears.
+    window.__timelineRender = function __timelineRender() {
+      try { renderTracks(); } catch (e) { console.warn('[Timeline] render via global hook failed', e); }
+    };
 
     // Initialize AI agent integration
     initializeAgentSystem(state, showToast);
@@ -5064,6 +5466,425 @@ export function TimelineEditorPage() {
       }
     }
 
+    // FEATURE HELPERS — insertion maintain the track.items / track.clips alias.
+    // Every mutation path below sets track.items = track.clips after reassigning
+    // .clips, so the renderer's path at ~line 2015 (track.items first) stays
+    // in sync. These helpers are referenced from the drop handler at ~2074 and
+    // from bindEvents() for keyboard actions.
+
+    function ensureItemsAlias(track) {
+      if (!track) return;
+      if (Array.isArray(track.items)) {
+        track.clips = track.items;
+      } else if (Array.isArray(track.clips)) {
+        track.items = track.clips;
+      } else {
+        track.items = [];
+        track.clips = track.items;
+      }
+    }
+
+    function reAliasAllTracks(state) {
+      (state.tracks || []).forEach(ensureItemsAlias);
+    }
+
+    // --- snapshot + undo helper ---
+    function commitAndRender(state) {
+      saveStateSnapshot(state);
+      renderTracks();
+    }
+
+    // --- shift downstream clips after an insert point ---
+    function shiftClipsAfter(track, fromPercent, byPercent) {
+      if (!track || !Array.isArray(track.items)) return;
+      track.items.forEach(clip => {
+        const clipEnd = (clip.left || 0) + (clip.width || 0);
+        if ((clip.left || 0) >= fromPercent - 0.05) {
+          clip.left = clipEnd + byPercent; // advance so clips touch edge-to-edge
+          // recalculate width unchanged, or we can keep it and just move left
+          // we want the clip's left to be pushed to the right edge of the inserted clip
+          clip.left = fromPercent + byPercent; // actual insert drift
+        }
+      });
+      reAliasAllTracks(state);
+    }
+
+    // --- gap-aware insert shift: push right until a gap is reached ---
+    function shiftClipsUntilGap(track, fromPercent, minFreePercent) {
+      if (!track || !Array.isArray(track.items)) return;
+      const sorted = [...track.items].sort((a, b) => (a.left || 0) - (b.left || 0));
+      let cursor = fromPercent;
+      for (const clip of sorted) {
+        const clipEnd = (clip.left || 0) + (clip.width || 0);
+        // if this clip sits before the insert point, update cursor to its end
+        if ((clip.left || 0) + (clip.width || 0) <= fromPercent + 0.05) {
+          cursor = Math.max(cursor, clipEnd);
+        } else if ((clip.left || 0) < fromPercent - 0.05) {
+          cursor = Math.max(cursor, clipEnd);
+        }
+      }
+      return cursor;
+    }
+
+    // --- insert mode mutation: push downstream in the target track ---
+    function applyInsertMode(track, insertLeft, insertWidth) {
+      if (!state.insertMode || !track || !Array.isArray(track.items)) return;
+      const sorted = [...track.items].sort((a, b) => (a.left || 0) - (b.left || 0));
+      let drift = 0;
+      for (const clip of sorted) {
+        const clipStart = clip.left || 0;
+        if (clipStart >= insertLeft - 0.05) {
+          clip.left = clipStart + insertWidth;
+        }
+      }
+      reAliasAllTracks(state);
+    }
+
+    // --- overwrite mode mutation: remove anything fully covered ---
+    function applyOverwriteMode(track, insertLeft, insertWidth) {
+      if (!state.overwriteMode || !track || !Array.isArray(track.items)) return;
+      const insertEnd = insertLeft + insertWidth;
+      track.items = track.items.filter(clip => {
+        const clipEnd = (clip.left || 0) + (clip.width || 0);
+        const clippedLeft = Math.max(clip.left || 0, insertLeft);
+        const clippedRight = Math.min(clipEnd, insertEnd);
+        return (clippedRight - clippedLeft) < 0.5; // keep anything not fully overwritten
+      });
+      reAliasAllTracks(state);
+    }
+
+    // --- ripple: trim tail past timeline end ---
+    function trimTailPastEnd(track, timelineSeconds) {
+      if (!track || !Array.isArray(track.items)) return;
+      const limitPercent = 100;
+      track.items = track.items.filter(clip => {
+        const end = (clip.left || 0) + (clip.width || 0);
+        return end <= limitPercent + 0.05;
+      });
+      reAliasAllTracks(state);
+    }
+
+    // --- snap-to-gap: find the nearest gap in a track, return center % ---
+    function findNearestGap(track, clipWidthPercent, rawLeftPercent) {
+      if (!track || !Array.isArray(track.items)) return null;
+      const sorted = [...track.items].sort((a, b) => (a.left || 0) - (b.left || 0));
+      const candidates = [];
+      let prevEnd = 0;
+      for (const clip of sorted) {
+        const clipEnd = (clip.left || 0) + (clip.width || 0);
+        const free = (clip.left || 0) - prevEnd;
+        if (free >= clipWidthPercent - 0.1) {
+          candidates.push({ left: prevEnd, width: free, dist: Math.abs(rawLeftPercent - (prevEnd + free / 2)) });
+        }
+        prevEnd = clipEnd;
+      }
+      const tailFree = 100 - prevEnd;
+      if (tailFree >= clipWidthPercent - 0.1) {
+        candidates.push({ left: prevEnd, width: tailFree, dist: Math.abs(rawLeftPercent - (prevEnd + tailFree / 2)) });
+      }
+      if (!candidates.length) return null;
+      candidates.sort((a, b) => a.dist - b.dist);
+      return candidates[0];
+    }
+
+    // --- merge selected clip with its touching neighbor ---
+    function mergeAdjacentClipWithNeighbor() {
+      const selId = state.selectedClipId;
+      if (!selId) { showToast('Select a clip that is touching another clip to merge', 'info'); return null; }
+      let found = null;
+      for (const track of state.tracks) {
+        if (!Array.isArray(track.items)) continue;
+        if (!track.items.some(c => c.id === selId)) continue;
+        const idx = track.items.findIndex(c => c.id === selId);
+        if (idx < 0) continue;
+        const center = track.items[idx];
+        for (const dir of [-1, 1]) {
+          const ni = idx + dir;
+          if (ni < 0 || ni >= track.items.length) continue;
+          const neighbor = track.items[ni];
+          const cEnd = (center.left || 0) + (center.width || 0);
+          const nEnd = (neighbor.left || 0) + (neighbor.width || 0);
+          if (Math.abs((dir < 0 ? nEnd : (neighbor.left || 0)) - (dir < 0 ? (center.left || 0) : cEnd)) < 0.4) {
+            const left = Math.min(center.left || 0, neighbor.left || 0);
+            const width = Math.max(cEnd, nEnd) - left;
+            const merged = {
+              ...center,
+              id: 'clip-' + Date.now(),
+              left,
+              width,
+              name: [center.name, neighbor.name].filter(Boolean).join(' + ') || 'Merged',
+              start: center.start != null ? center.start : (left / 100) * (state.timelineSeconds || 60),
+              end: (left + width) / 100 * (state.timelineSeconds || 60)
+            };
+            track.items = track.items.filter(c => c.id !== center.id && c.id !== neighbor.id);
+            track.items.push(merged);
+            reAliasAllTracks(state);
+            state.selectedClipId = merged.id;
+            commitAndRender(state);
+            showToast('Clips merged', 'success');
+            return merged;
+          }
+        }
+      }
+      showToast('No touching neighbor found to merge', 'info');
+      return null;
+    }
+
+    // --- grouping ---
+    function groupSelectedClips() {
+      const ids = Array.from(state.selectedClipIds || []);
+      if (ids.length < 2) { showToast('Select 2+ clips with Ctrl+Click before grouping', 'info'); return; }
+      const gid = 'grp-' + Date.now();
+      ids.forEach(id => {
+        for (const track of state.tracks) {
+          const c = (track.items || []).find(x => x.id === id);
+          if (c) { c.groupId = gid; break; }
+        }
+      });
+      saveStateSnapshot(state);
+      renderTracks();
+      showToast(`Grouped ${ids.length} clips`, 'success');
+    }
+
+    function ungroupSelectedClips() {
+      const ids = Array.from(state.selectedClipIds || []);
+      let removed = 0;
+      ids.forEach(id => {
+        for (const track of state.tracks) {
+          const c = (track.items || []).find(x => x.id === id);
+          if (c && c.groupId) { delete c.groupId; removed++; break; }
+        }
+      });
+      saveStateSnapshot(state);
+      renderTracks();
+      if (removed) showToast(`Ungrouped ${removed} clips`, 'success');
+    }
+
+    // --- copy/paste ---
+    function copySelectedClip() {
+      const t = findSelectedClip();
+      if (!t) { showToast('Select a clip to copy', 'info'); return; }
+      state.clipboard = JSON.parse(JSON.stringify(t));
+      showToast('Clip copied', 'success');
+    }
+
+    function pasteClipAtPlayhead() {
+      const template = state.clipboard;
+      if (!template) { showToast('Clipboard is empty — copy a clip first', 'info'); return; }
+      const targetTrack = state.tracks.find(tr => (tr.type || 'video') === (template.type || 'video')) || state.tracks[0];
+      if (!targetTrack) return;
+      const left = Math.max(0, Math.min(100 - (template.width || 16), (state.playheadPercent || 0)));
+      const clone = { ...template, id: 'clip-' + Date.now(), left };
+      targetTrack.items.push(clone);
+      reAliasAllTracks(state);
+      state.selectedClipId = clone.id;
+      commitAndRender(state);
+      showToast('Clip pasted', 'success');
+    }
+
+    // --- delete / duplicate selected ---
+    function deleteSelectedClip() {
+      const selId = state.selectedClipId;
+      if (!selId) return;
+      for (const track of state.tracks) {
+        const before = track.items.length;
+        track.items = track.items.filter(c => c.id !== selId);
+        if (track.items.length !== before) { reAliasAllTracks(state); break; }
+      }
+      state.selectedClipId = null;
+      commitAndRender(state);
+    }
+
+    function duplicateSelectedClip() {
+      const t = findSelectedClip();
+      if (!t) return;
+      const track = state.tracks.find(tr => (tr.items || []).some(c => c.id === t.id));
+      if (!track) return;
+      const clone = { ...JSON.parse(JSON.stringify(t)), id: 'clip-' + Date.now(), left: Math.min(100 - (t.width || 16), (t.left || 0) + (t.width || 16)) };
+      track.items.push(clone);
+      reAliasAllTracks(state);
+      state.selectedClipId = clone.id;
+      commitAndRender(state);
+      showToast('Clip duplicated', 'success');
+    }
+
+    // --- nudge selected clip by delta seconds (e.g., for [ / ] keys) ---
+    function nudgeSelectedClip(deltaSeconds) {
+      const t = findSelectedClip();
+      if (!t) return;
+      const seconds = (state.timelineSeconds || 60);
+      const deltaPct = (deltaSeconds / seconds) * 100;
+      t.left = Math.max(0, Math.min(100 - (t.width || 16), (t.left || 0) + deltaPct));
+      reAliasAllTracks(state);
+      commitAndRender(state);
+    }
+
+    // --- snapping ---
+    function computeSnapCandidates() {
+      const candidates = [];
+      (state.tracks || []).forEach(track => {
+        (track.items || []).forEach(clip => {
+          const left = clip.left || 0;
+          const width = clip.width || 16;
+          candidates.push({ trackId: track.id, clipId: clip.id, leftPercent: left, rightPercent: left + width, widthPercent: width });
+        });
+      });
+      if (state.playheadPercent != null && !isNaN(state.playheadPercent)) {
+        candidates.push({ trackId: null, clipId: 'playhead', leftPercent: state.playheadPercent, rightPercent: state.playheadPercent, widthPercent: 0 });
+      }
+      const gridStepSec = 0.5;
+      const timelineSec = state.timelineSeconds || 60;
+      const gridPercent = (gridStepSec / timelineSec) * 100;
+      for (let p = 0; p <= 100; p += gridPercent) {
+        candidates.push({ trackId: null, clipId: 'grid', leftPercent: p, rightPercent: p, widthPercent: 0 });
+      }
+      return candidates;
+    }
+
+    function snapPercent(rawPercent, candidates, trackId, clipWidthPercent, tolerancePercent) {
+      if (!state.snapEnabled) return rawPercent;
+      const t = tolerancePercent || 1.5;
+      let best = rawPercent;
+      let bestDist = t;
+      const leftTargets = [rawPercent];
+      const rightTargets = [rawPercent + (clipWidthPercent || 16)];
+      for (const c of candidates) {
+        if (c.trackId && c.trackId !== trackId) continue;
+        const pts = [c.leftPercent, c.rightPercent];
+        for (const raw of leftTargets) {
+          for (const p of pts) {
+            const d = Math.abs(raw - p);
+            if (d < bestDist) { bestDist = d; best = raw === rawPercent ? p : rawPercent; }
+          }
+        }
+      }
+      return Math.max(0, Math.min(100 - (clipWidthPercent || 16), best));
+    }
+
+    // --- visual snap guide ---
+    function renderSnapGuide(leftPercent) {
+      clearSnapGuide();
+      const guide = document.createElement('div');
+      guide.className = 'snap-guide-line';
+      guide.style.cssText = `position:absolute;left:${leftPercent}%;top:0;bottom:0;width:1px;background:#4ade80;pointer-events:none;z-index:50;opacity:.9;`;
+      const rows = document.getElementById('trackRows') || document.querySelector('.timeline-body');
+      if (rows) rows.appendChild(guide);
+    }
+
+    function clearSnapGuide() {
+      document.querySelectorAll('.snap-guide-line').forEach(el => el.remove());
+    }
+
+    // --- ruler timecodes ---
+    function renderTimecodeRuler(timelineSeconds, playheadPercent, zoom) {
+      const canvas = document.getElementById('rulerCanvas');
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const w = Math.max(rect.width || 800, 1);
+      const h = 28;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = 'rgba(255,255,255,0.04)';
+      ctx.fillRect(0, 0, w, h);
+      const step = 1;
+      ctx.font = '10px Inter, ui-sans-serif, system-ui';
+      ctx.textAlign = 'center';
+      for (let t = 0; t <= timelineSeconds; t += step) {
+        const x = (t / timelineSeconds) * 100 * (w / 100);
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.beginPath(); ctx.moveTo(x, 16); ctx.lineTo(x, h); ctx.stroke();
+        const mm = String(Math.floor(t / 60)).padStart(2, '0');
+        const ss = String(Math.floor(t % 60)).padStart(2, '0');
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillText(`${mm}:${ss}`, x, 12);
+      }
+      const px = ((playheadPercent || 0) / 100) * w;
+      ctx.strokeStyle = '#f87171';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
+      ctx.fillStyle = '#f87171';
+      ctx.beginPath(); ctx.moveTo(px - 5, 0); ctx.lineTo(px + 5, 0); ctx.lineTo(px, 6); ctx.closePath(); ctx.fill();
+    }
+
+    // --- mini-map overview ---
+    function renderMiniMap() {
+      let map = document.getElementById('miniMap');
+      if (!map) {
+        map = document.createElement('div');
+        map.id = 'miniMap';
+        map.style.cssText = 'position:relative;height:14px;background:rgba(255,255,255,0.03);border-radius:4px;margin:6px 0;overflow:hidden;';
+        const header = document.querySelector('.timeline-header');
+        if (header) header.appendChild(map);
+      }
+      map.innerHTML = '';
+      (state.tracks || []).forEach(track => {
+        const colors = { video: '#3b82f6', audio: '#10b981', text: '#f59e0b', effects: '#a78bfa', 'b-roll': '#8b5cf6' };
+        (track.items || []).forEach(clip => {
+          const el = document.createElement('div');
+          const left = clip.left || 0;
+          const w = clip.width || 16;
+          el.style.cssText = `position:absolute;left:${left}%;width:${w}%;top:2px;bottom:2px;background:${colors[track.type] || colors.video};border-radius:2px;opacity:.7;`;
+          map.appendChild(el);
+        });
+      });
+      const ph = document.createElement('div');
+      ph.style.cssText = `position:absolute;left:${state.playheadPercent || 0}%;top:-2px;bottom:-2px;width:1px;background:#f87171;pointer-events:none;`;
+      map.appendChild(ph);
+    }
+
+    // --- track visibility controls ---
+    function renderTrackVisibilityControls() {
+      const panel = document.getElementById('trackVisibilityPanel');
+      if (!panel) return;
+      panel.innerHTML = '';
+      (state.tracks || []).forEach(track => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:4px 0;';
+        const left = document.createElement('span');
+        left.textContent = track.name;
+        left.style.cssText = 'font-size:12px;color:rgba(255,255,255,0.8);';
+        const btn = document.createElement('button');
+        const vis = track.visible !== false;
+        btn.textContent = vis ? '👁' : '—';
+        btn.title = vis ? 'Hide track' : 'Show track';
+        btn.onclick = () => {
+          track.visible = !track.visible;
+          renderTrackVisibilityControls();
+          renderTracks();
+        };
+        row.appendChild(left);
+        row.appendChild(btn);
+        panel.appendChild(row);
+      });
+    }
+
+    // --- group drag behavior: when dragstart includes groupId=true, attach it ---
+    function attachGroupDragData(dataTransfer, clip) {
+      if (state.clipGroups && clip.groupId) {
+        const members = (state.tracks || []).flatMap(t => (t.items || []).filter(c => c.groupId === clip.groupId && c.id !== clip.id));
+        if (members.length) {
+          dataTransfer.setData('application/json', JSON.stringify({ type: 'clip-group', clipIds: [clip.id, ...members.map(c => c.id)] }));
+        }
+      }
+    }
+
+    // Helpers for finding selected clip by type model
+    function findSelectedClip() {
+      const selId = state.selectedClipId;
+      if (!selId) return null;
+      for (const track of state.tracks) {
+        const clip = (track.items || []).find(c => c.id === selId);
+        if (clip) return clip;
+      }
+      return null;
+    }
+
     return {
       destroy() {
         window.clearInterval(playbackTimer);
@@ -5080,7 +5901,7 @@ export function TimelineEditorPage() {
     };
   }
 
-  // Inject styles and initialize the timeline editor app
+  // --- Insert styles and initialize the timeline editor app
   injectStyles();
   createTimelineEditorApp(container);
 

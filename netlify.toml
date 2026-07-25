@@ -1,33 +1,20 @@
 # Netlify build configuration
-# https://docs.netlify.com/configure-builds/file-based-configuration/
-
 [build]
-  # Explicitly run `npm ci --include=optional` as part of the build command.
-  # The auto-install step that Netlify runs before this command does NOT
-  # reliably forward NPM_FLAGS to `npm ci`, and `npm ci` without
-  # --include=optional drops optional platform packages (npm/cli#4828).
-  # Running the install ourselves inside the build command guarantees the
-  # @tailwindcss/oxide native binary is present before Vite loads its config.
   command = "npm ci --include=optional && npm run build"
   publish = "dist"
 
-# Defense in depth: also pass --include=optional to the auto-install step.
 [build.environment]
   NPM_FLAGS = "--include=optional"
   NODE_VERSION = "20"
 
-# Serve the model catalog as a static file in production.
-# The vite build plugin emits dist/api/model-catalog.json containing all
-# three pools (t2i / i2i / i2v); the frontend filters by modelType client-side.
+# Model catalog alias
 [[redirects]]
   from = "/api/model-catalog"
   to = "/api/model-catalog.json"
   status = 200
   force = true
 
-# Security headers sent as HTTP headers (X-Frame-Options cannot be set via
-# <meta>, so it lives here). Kept off the Content-Security-Policy so the built
-# bundle's inline runtime snippets are not blocked in production.
+# Security headers
 [[headers]]
   for = "/*"
   [headers.values]
@@ -37,10 +24,42 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=()"
 
-# SPA fallback: serve the built index.html for all non-asset, non-API
-# routes so deep links like /signin, /signup, /forgot-password,
-# /reset-password, /account and /profile resolve to the app shell.
+# Ensure the SPA fallback only fires when no file matches.
+# Netlify's default redirect behavior already skips existing files.
+# We list the auth routes explicitly to eliminate any ambiguity
+# about which paths need the SPA shell versus raw asset serving.
 [[redirects]]
-  from = "/*"
+  from = "/signin"
   to = "/index.html"
   status = 200
+  force = false
+
+[[redirects]]
+  from = "/signup"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/forgot-password"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/reset-password"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/account"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[[redirects]]
+  from = "/profile"
+  to = "/index.html"
+  status = 200
+  force = false

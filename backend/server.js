@@ -13,6 +13,7 @@ import videoAgentService from './services/videoAgentService.js';
 import agentActionsService from './services/agentActionsService.js';
 import modelCatalogService from './services/modelCatalogService.js';
 import videodbProxy from './services/videodbProxy.js';
+import directorProxy from './services/directorProxy.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -30,6 +31,7 @@ app.use('/api/speech-transcription', speechTranscriptionService);
 app.use('/api/agents', agentActionsService);
 app.use('/api/model-catalog', modelCatalogService);
 app.use('/api/videodb', videodbProxy);
+app.use('/api/director', directorProxy);
 app.use('/videoagent', videoAgentService);
 
 // Health check

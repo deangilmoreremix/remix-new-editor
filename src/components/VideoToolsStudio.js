@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { videoToolsModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -9,6 +10,7 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 export function VideoToolsStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10 relative';
+  mountStudioChrome(container, { currentRoute: 'videotools' });
 
   let selectedModel = videoToolsModels[0];
   let uploadedVideoUrl = null;
@@ -84,8 +86,26 @@ export function VideoToolsStudio() {
   promptInput.rows = 3;
   promptInput.placeholder = 'Describe the transformation you want...';
   promptInput.oninput = (e) => { prompt = e.target.value; };
-  promptGroup.appendChild(promptInput);
-  formCard.appendChild(promptGroup);
+   promptGroup.appendChild(promptInput);
+    // GTM Boost entry point — opens the prompt enhancer themed for video tools
+    // and loads the result straight into this prompt.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('video-tools-studio', (prompt) => {
+          promptInput.value = prompt;
+          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+          promptInput.focus();
+        });
+      }).catch((err) => console.error('[VideoToolsStudio] GTM Boost failed:', err));
+    });
+    promptGroup.appendChild(gtmBtn);
+   formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'video-tools' });
 
   // Generate button

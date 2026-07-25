@@ -1,4 +1,5 @@
 import { navigate } from '../lib/router.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { CINEMATIC_THEME } from '../lib/cinematicTheme.js';
 
@@ -20,6 +21,7 @@ const EXAMPLE_PROMPTS = [
 export function StoryboardPage() {
   const container = document.createElement('div');
   container.className = `w-full h-full flex flex-col items-center ${CINEMATIC_THEME.page.bg} relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden`;
+  mountStudioChrome(container, { currentRoute: 'storyboard-page' });
 
   // Hero (untouched per plan constraint)
   const hero = document.createElement('div');

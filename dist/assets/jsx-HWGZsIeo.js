@@ -1,0 +1,1 @@
+function e(e){if(!e||"string"!=typeof e)return document.createTextNode("");if(!(e=e.trim()))return document.createTextNode("");const t=document.createElement("template");if(t.innerHTML=e,1===t.content.children.length)return t.content.firstElementChild;const n=document.createDocumentFragment();return Array.from(t.content.children).forEach(e=>{n.appendChild(e)}),n}export{e as c};

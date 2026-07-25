@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 15.8 15.3" style="enable-background:new 0 0 15.8 15.3;" xml:space="preserve">
+<style type="text/css">
+	.rename-project-st0{clip-path:url(#rename-project-svgid-2);}
+	.rename-project-st1{fill:none;stroke:#999999;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+</style>
+<g>
+	<g>
+		<defs>
+			<rect id="rename-project-svgid-1" width="15.8" height="15.3"/>
+		</defs>
+		<clipPath id="rename-project-svgid-2">
+			<use xlink:href="#rename-project-svgid-1"  style="overflow:visible;"/>
+		</clipPath>
+		<g class="rename-project-st0">
+			<path class="rename-project-st1" d="M0.5,14.8h14.8"/>
+			<path class="rename-project-st1" d="M14,7.9l0.3,3.9l-3.9-0.4L3,4l3.6-3.5L14,7.9z"/>
+		</g>
+	</g>
+</g>
+</svg>

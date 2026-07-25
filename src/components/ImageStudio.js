@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createSafeImage } from '../lib/security.js';
 import {
@@ -16,6 +17,7 @@ import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/pe
 export function ImageStudio() {
     const container = document.createElement('div');
     container.className = 'w-full h-full flex flex-col items-center justify-start bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+  mountStudioChrome(container, { currentRoute: 'image' });
 
     // --- State ---
     const defaultModel = t2iModels[0];

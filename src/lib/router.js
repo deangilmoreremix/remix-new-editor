@@ -223,6 +223,12 @@ export async function navigate(page, params = {}) {
   if (onNavigateCallback) onNavigateCallback(page);
 }
 
+// Expose navigate globally for debugging
+if (typeof window !== 'undefined') {
+  window.__debugNavigate = navigate;
+  window.__debugGetCurrentPage = getCurrentPage;
+}
+
 export function getCurrentPage() {
   return currentPage;
 }
