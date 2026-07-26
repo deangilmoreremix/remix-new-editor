@@ -123,8 +123,28 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
         panel.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
         const btnRect = trigger.getBoundingClientRect();
         const containerRect = anchorContainer.getBoundingClientRect();
-        panel.style.left = `${btnRect.left - containerRect.left}px`;
-        panel.style.bottom = `${containerRect.bottom - btnRect.top + 8}px`;
+        // Estimate panel height to decide above/below placement
+        const estimatedH = 320;
+        const spaceAbove = btnRect.top;
+        const placeAbove = spaceAbove >= estimatedH;
+        // Reset both before applying the active side
+        panel.style.top = '';
+        panel.style.bottom = '';
+        if (placeAbove) {
+            panel.style.left = `${btnRect.left - containerRect.left}px`;
+            panel.style.bottom = `${containerRect.bottom - btnRect.top + 8}px`;
+        } else {
+            panel.style.left = `${btnRect.left - containerRect.left}px`;
+            panel.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
+        }
+        // Keep the panel on-screen horizontally
+        requestAnimationFrame(() => {
+            const panelRect = panel.getBoundingClientRect();
+            const overflowRight = panelRect.right - window.innerWidth + 8;
+            if (overflowRight > 0) {
+                panel.style.left = `${parseFloat(panel.style.left) - overflowRight}px`;
+            }
+        });
         panelOpen = true;
     };
 
@@ -583,8 +603,14 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
         else openPanel();
     };
 
-    // Close panel on outside click
-    window.addEventListener('click', closePanel);
+    // Close panel on outside click. Guard against the trigger and the panel
+    // itself so the click that opened the panel doesn't immediately close it.
+    window.addEventListener('click', (e) => {
+        if (!panelOpen) return;
+        if (e.target === trigger || trigger.contains(e.target)) return;
+        if (panel.contains(e.target)) return;
+        closePanel();
+    });
 
     // ── File upload handler ───────────────────────────────────────────────────
     fileInput.onchange = async (e) => {

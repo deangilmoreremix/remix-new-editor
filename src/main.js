@@ -18,7 +18,7 @@ import { perfMonitor } from './lib/performance.js';
 import { analytics } from './lib/analytics.js';
 import { showToast } from './lib/loading.js';
 import { escapeHtml } from './lib/security.js';
-import { isDevBypass } from './lib/apiKeyManager.js';
+import { isDevBypass, apiKeyManager } from './lib/apiKeyManager.js';
 
 console.log('[App] Starting initialization...');
 
@@ -228,10 +228,17 @@ try {
  * Show the provider API key setup popup exactly once per browser session.
  * Uses sessionStorage so reloading the tab won't re-trigger it, but a fresh
  * session will. Users can also reopen it anytime from the Settings action.
+ *
+ * Skips the popup entirely if the user already has API keys stored.
  */
 function showSetupModalOnce() {
   const SESSION_FLAG = 'setup_popup_shown';
   try {
+    // If keys are already configured, never show the setup popup again.
+    if (apiKeyManager.hasAnyKey()) {
+      console.info('[App] API keys already configured — skipping setup popup.');
+      return;
+    }
     if (sessionStorage.getItem(SESSION_FLAG)) return;
     sessionStorage.setItem(SESSION_FLAG, '1');
   } catch {
