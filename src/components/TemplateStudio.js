@@ -2,6 +2,7 @@ import { getTemplateById } from '../lib/templates.js';
 import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
@@ -439,13 +440,13 @@ export function TemplateStudio(templateId) {
   // GTM Boost affordance (opt-in enhancement via GTMPromptModal).
   // Uses the shared .gtm-boost-btn design (matches Image / Video studios);
   // the .template-studio ancestor class themes it emerald via gtm-prompt-modal.css.
-  const gtmBtn = document.createElement('button');
-  gtmBtn.type = 'button';
-  gtmBtn.textContent = '🎯 GTM Boost';
-  gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
-  gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
-  gtmBtn.className = 'gtm-boost-btn w-full mt-4';
-  leftPanel.appendChild(gtmBtn);
+  const gtmBoostBtn = document.createElement('button');
+  gtmBoostBtn.type = 'button';
+  gtmBoostBtn.textContent = '🎯 GTM Boost';
+  gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+  gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBoostBtn.className = 'gtm-boost-btn w-full mt-4';
+  leftPanel.appendChild(gtmBoostBtn);
 
   // Advanced controls content
   const advancedControls = enhancerSection.querySelector('#advancedControls');
@@ -681,8 +682,8 @@ export function TemplateStudio(templateId) {
     }
 
     // GTM Boost button
-    if (gtmBtn) {
-      gtmBtn.onclick = () => {
+    if (gtmBoostBtn) {
+      gtmBoostBtn.onclick = () => {
         try {
           import('./modals/GTMPromptModal.jsx').then(({ GTMPromptModal }) => {
             const modal = new GTMPromptModal({
@@ -731,7 +732,7 @@ export function TemplateStudio(templateId) {
 
     // SECURITY ISSUE: API keys stored in localStorage are accessible to XSS attacks
     // TODO: Replace with server-side session storage or httpOnly cookies
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) {
       AuthModal(() => genBtn.click());
       return;

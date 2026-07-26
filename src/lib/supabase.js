@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { apiKeyManager } from './apiKeyManager.js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -54,7 +55,7 @@ export function getSupabaseAnonKey() {
 }
 
 export function getUserKey() {
-  let key = localStorage.getItem('muapi_key');
+  let key = apiKeyManager.getMuapiKey();
   if (!key) return 'anonymous';
   let hash = 0;
   for (let i = 0; i < key.length; i++) {

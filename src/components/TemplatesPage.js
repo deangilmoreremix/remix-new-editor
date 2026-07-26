@@ -168,9 +168,6 @@ export function TemplatesPage() {
         sectionsContainer.appendChild(section);
       }
     }
-  } catch (err) {
-    console.error('[TemplatesPage] renderCategories failed:', err);
-    sectionsContainer.innerHTML = '<div class="text-center text-red-400 py-12">Failed to load templates. Please refresh.</div>';
   }
 
   renderCategories();

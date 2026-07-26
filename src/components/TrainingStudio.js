@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { trainingModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
@@ -188,7 +189,7 @@ export function TrainingStudio() {
       alert('Upload at least 5 training images (10-20 recommended)');
       return;
     }
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { 
       AuthModal(() => trainBtn.click()); 
       return; 

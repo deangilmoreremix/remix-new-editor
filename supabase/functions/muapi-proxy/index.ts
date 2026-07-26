@@ -3,7 +3,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey, X-Webhook-Signature",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey, X-Webhook-Signature, X-Endpoint, X-Api-Key",
 };
 
 // Rate limiting - simple in-memory store (use Redis for multi-instance deployments)
@@ -118,6 +118,66 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const contentType = req.headers.get('content-type') || '';
+    const isMultipart = contentType.startsWith('multipart/');
+
+    if (isMultipart) {
+      const endpoint = req.headers.get('x-endpoint');
+      if (!endpoint || !validateEndpoint(endpoint)) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid or missing endpoint for multipart request' }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      const normalizedEndpoint = normalizeLegacyEndpoint(endpoint);
+      const muapiUrl = `https://api.muapi.ai/api/v1/${normalizedEndpoint}`;
+
+      const muapiResponse = await fetch(muapiUrl, {
+        method: 'POST',
+        headers: {
+          'x-api-key': Deno.env.get('MUAPI_API_KEY') || '',
+          'content-type': contentType,
+        },
+        body: req.body,
+      });
+
+      if (!muapiResponse.ok) {
+        const errorText = await muapiResponse.text();
+        console.error(`[muapi-proxy] API error: ${muapiResponse.status} - ${errorText}`);
+
+        return new Response(
+          JSON.stringify({
+            error: `API Request Failed: ${muapiResponse.status} ${muapiResponse.statusText}`,
+            details: errorText.slice(0, 200)
+          }),
+          {
+            status: muapiResponse.status,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      let result;
+      try {
+        result = await muapiResponse.json();
+      } catch {
+        result = { error: 'Invalid JSON response from API' };
+      }
+      result = unwrapResponse(result);
+
+      return new Response(
+        JSON.stringify(result),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
     const body: GenerateRequest = await req.json();
     const { endpoint, params, generationType, studioType } = body;
 
@@ -173,8 +233,6 @@ Deno.serve(async (req: Request) => {
 
     console.log(`[muapi-proxy] Forwarding ${generationType ?? 'request'} to ${endpoint} (normalized: ${normalizedEndpoint})`);
 
-    const contentType = req.headers.get('content-type') || '';
-    const isMultipart = contentType.startsWith('multipart/');
     const method = (generationType === 'poll' || generationType === 'list') ? 'GET' : 'POST';
     const fetchOptions: RequestInit = {
       method,
@@ -184,10 +242,7 @@ Deno.serve(async (req: Request) => {
       }
     };
 
-    if (isMultipart) {
-      fetchOptions.body = req.body;
-      (fetchOptions.headers as Record<string, string>)['content-type'] = contentType;
-    } else if (method === 'POST') {
+    if (method === 'POST') {
       fetchOptions.headers['content-type'] = 'application/json';
       fetchOptions.body = JSON.stringify(params ?? {});
     }

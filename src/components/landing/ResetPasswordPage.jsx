@@ -56,7 +56,10 @@ export function ResetPasswordPage() {
     }
     // Step 2: submit the new password. On success the
     // sign-in is complete and the session is created.
-    const { error: submitError } = await signIn.resetPasswordEmailCode.submitPassword({ password });
+    const { error: submitError } = await signIn.resetPasswordEmailCode.submitPassword({
+      password,
+      signOutOfOtherSessions: true,
+    });
     if (submitError) {
       setError(clerkErrorMessage(submitError, errors) || 'Could not reset the password. Please try again.');
       setLoading(false);
@@ -64,12 +67,22 @@ export function ResetPasswordPage() {
     }
     if (signIn.status === 'complete') {
       setDone(true);
-      await signIn.finalize({
+      const { error: finalizeError } = await signIn.finalize({
         navigate: async ({ decorateUrl }) => {
           const url = decorateUrl('/#/image');
           window.location.href = url.startsWith('http') ? url : '/#/image';
         },
       });
+      if (finalizeError) {
+        setError(clerkErrorMessage(finalizeError, errors) || 'Could not complete sign-in. Please try again.');
+        setLoading(false);
+        return;
+      }
+      return;
+    }
+    if (signIn.status === 'needs_second_factor') {
+      setError('Two-factor authentication is required. Please use the sign-in page.');
+      setLoading(false);
       return;
     }
     setError(clerkErrorMessage(null, errors) || 'Could not reset the password. Please try again.');

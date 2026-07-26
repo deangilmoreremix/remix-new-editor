@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -214,7 +215,7 @@ export function CharacterStudio() {
 
   genBtn.onclick = async () => {
     if (!uploadedUrl) { alert('Upload a reference face first'); return; }
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }
 
     genBtn.disabled = true;

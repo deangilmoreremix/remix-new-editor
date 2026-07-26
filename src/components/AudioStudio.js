@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
@@ -190,7 +191,7 @@ export function AudioStudio() {
       prompt = replaceTokensInPrompt(prompt, activeProfile);
       if (!prompt) { alert('Enter a prompt'); return; }
     }
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { 
       AuthModal(() => genBtn.click()); 
       return; 

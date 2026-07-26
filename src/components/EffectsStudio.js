@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -362,7 +363,7 @@ export function EffectsStudio() {
   async function handleGenerate() {
     if (!selectedEffect) { alert('Select an effect first'); return; }
     if (!uploadedUrl) { alert('Upload an image or video first'); return; }
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => handleGenerate()); return; }
 
     generateBtn.disabled = true;

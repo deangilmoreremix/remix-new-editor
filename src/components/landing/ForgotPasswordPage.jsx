@@ -32,9 +32,17 @@ export function ForgotPasswordPage() {
     setLoading(true);
     setError('');
     setSuccess(false);
-    const { error: resultError } = await signIn.resetPasswordEmailCode.sendCode({ emailAddress: email });
-    if (resultError) {
-      setError(clerkErrorMessage(resultError, errors) || 'Could not send a reset code. Please check the email and try again.');
+
+    const { error: createError } = await signIn.create({ identifier: email });
+    if (createError) {
+      setError(clerkErrorMessage(createError, errors) || 'Could not start password reset. Please try again.');
+      setLoading(false);
+      return;
+    }
+
+    const { error: sendError } = await signIn.resetPasswordEmailCode.sendCode();
+    if (sendError) {
+      setError(clerkErrorMessage(sendError, errors) || 'Could not send a reset code. Please check the email and try again.');
       setLoading(false);
       return;
     }
