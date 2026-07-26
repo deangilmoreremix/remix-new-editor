@@ -123,26 +123,50 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
         panel.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
         const btnRect = trigger.getBoundingClientRect();
         const containerRect = anchorContainer.getBoundingClientRect();
-        // Estimate panel height to decide above/below placement
-        const estimatedH = 320;
+        // Use the actual rendered panel height to decide above/below placement
+        const panelH = panel.offsetHeight || 420;
+        const margin = 8;
         const spaceAbove = btnRect.top;
-        const placeAbove = spaceAbove >= estimatedH;
+        const spaceBelow = window.innerHeight - btnRect.bottom;
+        // Prefer below the trigger; only go above if there's clearly more room
+        const placeAbove = spaceAbove > panelH + margin && spaceBelow < panelH / 2;
         // Reset both before applying the active side
         panel.style.top = '';
         panel.style.bottom = '';
+        panel.style.left = `${btnRect.left - containerRect.left}px`;
         if (placeAbove) {
-            panel.style.left = `${btnRect.left - containerRect.left}px`;
-            panel.style.bottom = `${containerRect.bottom - btnRect.top + 8}px`;
+            panel.style.bottom = `${containerRect.bottom - btnRect.top + margin}px`;
         } else {
-            panel.style.left = `${btnRect.left - containerRect.left}px`;
-            panel.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
+            panel.style.top = `${btnRect.bottom - containerRect.top + margin}px`;
         }
-        // Keep the panel on-screen horizontally
+        // Clamp the panel inside the viewport
         requestAnimationFrame(() => {
             const panelRect = panel.getBoundingClientRect();
+            // Horizontal clamp
             const overflowRight = panelRect.right - window.innerWidth + 8;
             if (overflowRight > 0) {
                 panel.style.left = `${parseFloat(panel.style.left) - overflowRight}px`;
+            }
+            const overflowLeft = 8 - panelRect.left;
+            if (overflowLeft > 0) {
+                panel.style.left = `${parseFloat(panel.style.left) + overflowLeft}px`;
+            }
+            // Vertical clamp: if panel extends past viewport bottom, shift it up
+            const newRect = panel.getBoundingClientRect();
+            if (newRect.bottom > window.innerHeight - 8) {
+                const shift = newRect.bottom - window.innerHeight + 8;
+                if (placeAbove) {
+                    panel.style.bottom = `${parseFloat(panel.style.bottom) + shift}px`;
+                } else {
+                    panel.style.top = `${parseFloat(panel.style.top) - shift}px`;
+                }
+            }
+            if (newRect.top < 8) {
+                if (placeAbove) {
+                    panel.style.bottom = `${parseFloat(panel.style.bottom) - 8}px`;
+                } else {
+                    panel.style.top = `${8}px`;
+                }
             }
         });
         panelOpen = true;
@@ -268,7 +292,28 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
                     } else if (method === 'url') {
                         closePanel();
                         // Reopen and show the URL input
-                        setTimeout(() => { openPanel(); appendUrlInput(); }, 50);
+                        setTimeout(() => {
+                            openPanel();
+                            appendUrlInput();
+                            // Re-position after the URL input changes the panel height
+                            setTimeout(() => {
+                                const btnRect = trigger.getBoundingClientRect();
+                                const containerRect = anchorContainer.getBoundingClientRect();
+                                const panelH = panel.offsetHeight;
+                                const margin = 16;
+                                const spaceAbove = btnRect.top - margin;
+                                const placeAbove = spaceAbove >= panelH;
+                                panel.style.top = '';
+                                panel.style.bottom = '';
+                                if (placeAbove) {
+                                    panel.style.left = `${btnRect.left - containerRect.left}px`;
+                                    panel.style.bottom = `${containerRect.bottom - btnRect.top + 8}px`;
+                                } else {
+                                    panel.style.left = `${btnRect.left - containerRect.left}px`;
+                                    panel.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
+                                }
+                            }, 50);
+                        }, 50);
                     } else if (method === 'drop') {
                         // Briefly flash the drop hint
                         panel.classList.add('ring-2', 'ring-primary/50', 'bg-primary/5');
