@@ -13,6 +13,11 @@ class WhisperService {
     this.muapiUrl = options.muapiUrl || import.meta.env.VITE_MUAPI_URL || 'https://api.muapi.ai';
     this.apiKey = options.apiKey || import.meta.env.VITE_MUAPI_KEY || '';
     this.useMuAPI = options.useMuAPI !== false && Boolean(this.apiKey);
+    this.proxyUrl = options.proxyUrl || (() => {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) return '';
+      return `${supabaseUrl}/functions/v1/muapi-proxy`;
+    })();
     this.localWhisperUrl = options.localWhisperUrl || import.meta.env.VITE_WHISPER_LOCAL_URL || 'http://localhost:8080';
 
     // Initialize supporting services
@@ -115,11 +120,12 @@ class WhisperService {
     formData.append('model', options.model);
     formData.append('word_timestamps', options.wordTimestamps.toString());
 
-    const response = await fetch(`${this.muapiUrl}/transcribe`, {
+    const proxyUrl = this.proxyUrl || `${this.muapiUrl}/transcribe`;
+    const response = await fetch(proxyUrl, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.apiKey}`
-      },
+      headers: this.proxyUrl
+        ? { 'x-endpoint': 'transcribe' }
+        : { 'Authorization': `Bearer ${this.apiKey}` },
       body: formData
     });
 
