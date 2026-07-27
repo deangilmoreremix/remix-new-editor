@@ -1,5 +1,5 @@
 import { getTemplateById } from '../lib/templates.js';
-import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
@@ -41,10 +41,13 @@ export function TemplateStudio(templateId) {
   let activeTab = 'Enhanced Prompt';
   let aiEnhancer = true;
   let lastBuiltPrompt = '';
+  let outputTabValues = {};
   let showAdvanced = false;
   let uploadedUrl = null;
   let isGenerating = false;
   let selectedModel = template.model;
+  let primaryPromptField = null;
+  let customThumbnailUrl = getCustomThumbnailFromCache(template.id);
 
   // Create full-page wrapper
   const container = document.createElement('div');
@@ -188,9 +191,13 @@ export function TemplateStudio(templateId) {
   thumbnailEl.appendChild(img);
   heroSection.appendChild(thumbnailEl);
 
-  // Thumbnail action button
+  // Thumbnail action button — matches .gtm-boost-btn styling so it is
+  // discoverable alongside the GTM Boost control in the hero section.
   const thumbAction = document.createElement('button');
-  thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-zinc-400 hover:text-white hover:border-emerald-400/30 transition';
+  thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition';
+  thumbAction.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
+  thumbAction.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
+  thumbAction.style.color = '#022c22';
   thumbAction.textContent = '🖼 Thumbnail';
   thumbAction.onclick = () => {
     const modal = new TemplateThumbnailModal({
@@ -198,9 +205,11 @@ export function TemplateStudio(templateId) {
       template,
       onApply: ({ imageUrl }) => {
         img.src = imageUrl + '?v=' + Date.now();
+        customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache(template.id, imageUrl);
       },
       onClear: () => {
+        customThumbnailUrl = null;
         clearCustomThumbnailCache(template.id);
       },
     });
@@ -301,8 +310,11 @@ export function TemplateStudio(templateId) {
       }
       el.placeholder = input.placeholder || '';
       el.oninput = () => { formState[input.name] = el.value; };
+      if (isPrimaryPrompt) {
+        promptEl = el;
+        primaryPromptField = el;
+      }
       fieldWrapper.appendChild(el);
-      if (isPrimaryPrompt) promptEl = el;
     } else if (input.type === 'select') {
       const select = document.createElement('select');
       select.className = 'h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50 appearance-none cursor-pointer';
@@ -604,6 +616,24 @@ export function TemplateStudio(templateId) {
     </div>
     <textarea id="outputTextarea" class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-7 text-zinc-200 outline-none transition focus:border-emerald-400/50 resize-none" rows="12">${specs.enhancerKeywords || 'Click Generate to create an enhanced prompt...'}</textarea>
   `;
+
+  const outputTextarea = outputContent.querySelector('#outputTextarea');
+  if (outputTextarea) {
+    outputTextarea.addEventListener('input', () => {
+      outputTabValues[activeTab] = outputTextarea.value;
+      if (activeTab === 'Enhanced Prompt') {
+        lastBuiltPrompt = outputTextarea.value;
+        if (primaryPromptField) {
+          primaryPromptField.value = outputTextarea.value;
+        }
+        formState[promptFieldName] = outputTextarea.value;
+      } else if (activeTab === 'Negative Prompt') {
+        formState['_customNegativePrompt'] = outputTextarea.value;
+      } else if (activeTab === 'Scene Beats') {
+        formState['_customSceneBlueprint'] = outputTextarea.value;
+      }
+    });
+  }
   outputSection.appendChild(outputContent);
   rightPanel.appendChild(outputSection);
 
@@ -625,20 +655,21 @@ export function TemplateStudio(templateId) {
     const textarea = document.getElementById('outputTextarea');
     if (!textarea) return;
 
+    const saved = outputTabValues[activeTab];
     switch (activeTab) {
       case 'Enhanced Prompt':
-        textarea.value = lastBuiltPrompt || specs.enhancerKeywords || 'Click Generate to create an enhanced prompt...';
+        textarea.value = saved || lastBuiltPrompt || specs.enhancerKeywords || 'Click Generate to create an enhanced prompt...';
         break;
       case 'Scene Beats': {
-        const beats = (template.storyBlueprint && template.storyBlueprint.length) ? template.storyBlueprint : (specs.sceneBlueprint || ['Hook','Subject','Movement','Payoff','CTA']);
-        textarea.value = beats.join(' → ');
+        const beats = saved || (template.storyBlueprint && template.storyBlueprint.length ? template.storyBlueprint : (specs.sceneBlueprint || ['Hook','Subject','Movement','Payoff','CTA']));
+        textarea.value = Array.isArray(beats) ? beats.join(' → ') : beats;
         break;
       }
       case 'Voiceover':
-        textarea.value = `Create a premium voiceover for a ${template.name}. Open with a fast hook, build emotional or commercial momentum, end with a clear call to action.`;
+        textarea.value = saved || `Create a premium voiceover for a ${template.name}. Open with a fast hook, build emotional or commercial momentum, end with a clear call to action.`;
         break;
       case 'Negative Prompt':
-        textarea.value = specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
+        textarea.value = saved || specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
         break;
     }
   }
@@ -672,12 +703,20 @@ export function TemplateStudio(templateId) {
     if (wandBtn) {
       wandBtn.onclick = () => {
         const textarea = document.getElementById('outputTextarea');
-        if (textarea && textarea.value) {
-          const enhancedText = `${textarea.value}, cinematic quality, professional lighting, high detail, 4K resolution`;
-          textarea.value = enhancedText;
-          textarea.classList.add('border-emerald-400/50');
-          setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
+        if (!textarea) return;
+        const current = lastBuiltPrompt || textarea.value || '';
+        const enhanced = `${current}, cinematic quality, professional lighting, high detail, 4K resolution`.trim();
+        lastBuiltPrompt = enhanced;
+        outputTabValues['Enhanced Prompt'] = enhanced;
+        textarea.value = enhanced;
+        if (primaryPromptField) {
+          primaryPromptField.value = enhanced;
         }
+        if (promptFieldName) {
+          formState[promptFieldName] = enhanced;
+        }
+        textarea.classList.add('border-emerald-400/50');
+        setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
       };
     }
 
@@ -689,10 +728,15 @@ export function TemplateStudio(templateId) {
             const modal = new GTMPromptModal({
               appTheme: 'template-studio',
               onPromptGenerated: (text) => {
+                lastBuiltPrompt = text;
+                outputTabValues['Enhanced Prompt'] = text;
                 const ta = document.getElementById('outputTextarea');
-                if (ta) {
-                  ta.value = text;
-                  lastBuiltPrompt = text;
+                if (ta) ta.value = text;
+                if (primaryPromptField) {
+                  primaryPromptField.value = text;
+                }
+                if (promptFieldName) {
+                  formState[promptFieldName] = text;
                 }
               }
             });
@@ -745,6 +789,17 @@ export function TemplateStudio(templateId) {
     try {
       const params = { model: selectedModel || template.model, ...(template.defaultParams || {}) };
 
+      // Cinematic wizard: merge result into formState if present
+      const wizardResult = container.__wizardResult;
+      if (wizardResult) {
+        Object.assign(formState, wizardResult.formState || wizardResult);
+        if (wizardResult.prompt) {
+          lastBuiltPrompt = wizardResult.prompt;
+          outputTabValues['Enhanced Prompt'] = wizardResult.prompt;
+        }
+        container.__wizardResult = null;
+      }
+
       // Normalize aspect ratio for standard and matrix templates
       const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
       if (aspectRatio) params.aspect_ratio = aspectRatio;
@@ -762,12 +817,18 @@ export function TemplateStudio(templateId) {
       });
 
       // Build prompt from all available template metadata and advanced options
-      params.prompt = buildEnrichedPrompt(template, specs, formState, params.prompt);
+      const userPrompt = lastBuiltPrompt || params.prompt || '';
+      params.prompt = buildEnrichedPrompt(template, specs, formState, userPrompt);
       lastBuiltPrompt = params.prompt;
 
       const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
-      const negativePrompt = composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
+      const negativePrompt = formState['_customNegativePrompt'] || composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
       if (negativePrompt) params.negative_prompt = negativePrompt;
+
+      // Attach the user-generated custom thumbnail if one exists
+      if (customThumbnailUrl) {
+        params.thumbnail_url = customThumbnailUrl;
+      }
 
       let result;
       if (template.modelType === 'i2v') {
@@ -815,12 +876,15 @@ export function TemplateStudio(templateId) {
       if (base) parts.push(base);
     }
 
-    // Scene blueprint: matrix template.storyBlueprint else specs.sceneBlueprint
-    const sceneBlueprint = (template.storyBlueprint && template.storyBlueprint.length)
-      ? template.storyBlueprint
-      : (specs.sceneBlueprint || []);
+    // Scene blueprint: custom override, matrix template.storyBlueprint else specs.sceneBlueprint
+    const customBlueprint = formState['_customSceneBlueprint'];
+    const sceneBlueprint = customBlueprint
+      ? (Array.isArray(customBlueprint) ? customBlueprint : String(customBlueprint).split('→').map(s => s.trim()).filter(Boolean))
+      : (template.storyBlueprint && template.storyBlueprint.length)
+        ? template.storyBlueprint
+        : (specs.sceneBlueprint || []);
     if (sceneBlueprint.length) {
-      parts.push(`Scene structure: ${sceneBlueprint.join(' → ')}`);
+      parts.push(`Scene structure: ${Array.isArray(sceneBlueprint) ? sceneBlueprint.join(' → ') : sceneBlueprint}`);
     }
 
     // Cinematography

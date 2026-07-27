@@ -91,6 +91,14 @@ export class MuapiClient {
             finalPayload.seed = params.seed;
         }
 
+        if (params.negative_prompt) {
+            finalPayload.negative_prompt = params.negative_prompt;
+        }
+
+        if (params.thumbnail_url) {
+            finalPayload.thumbnail_url = params.thumbnail_url;
+        }
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -223,6 +231,14 @@ export class MuapiClient {
         if (params.quality) finalPayload.quality = params.quality;
         if (params.image_url) finalPayload.image_url = params.image_url;
 
+        if (params.negative_prompt) {
+            finalPayload.negative_prompt = params.negative_prompt;
+        }
+
+        if (params.thumbnail_url) {
+            finalPayload.thumbnail_url = params.thumbnail_url;
+        }
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -288,6 +304,14 @@ export class MuapiClient {
         // API returns 422 "Field required: name" and video creation silently fails.
         if (params.name) finalPayload.name = params.name;
 
+        if (params.negative_prompt) {
+            finalPayload.negative_prompt = params.negative_prompt;
+        }
+
+        if (params.thumbnail_url) {
+            finalPayload.thumbnail_url = params.thumbnail_url;
+        }
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -347,10 +371,20 @@ export class MuapiClient {
         if (params.resolution) finalPayload.resolution = params.resolution;
         if (params.quality) finalPayload.quality = params.quality;
 
+        if (params.negative_prompt) {
+            finalPayload.negative_prompt = params.negative_prompt;
+        }
+
+        if (params.thumbnail_url) {
+            finalPayload.thumbnail_url = params.thumbnail_url;
+        }
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({
                     endpoint,
                     params: finalPayload,
@@ -425,6 +459,10 @@ export class MuapiClient {
 
         const videoField = modelInfo?.videoField || 'video_url';
         const finalPayload = { [videoField]: params.video_url };
+
+        if (params.thumbnail_url) {
+            finalPayload.thumbnail_url = params.thumbnail_url;
+        }
 
         try {
             const response = await fetch(this.proxyUrl, {
