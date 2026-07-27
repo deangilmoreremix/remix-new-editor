@@ -143,6 +143,44 @@ describe('SettingsModal provider form', () => {
   });
 });
 
+describe('AuthModal behavior', () => {
+  test('delegates to SettingsModal instead of rendering its own inline form', async () => {
+    const { apiKeyManager } = await import('../lib/apiKeyManager.js');
+    const { AuthModal } = await import('../components/AuthModal.js');
+
+    apiKeyManager.clearMuapiKey();
+    apiKeyManager.clearOpenAIKey();
+    apiKeyManager.clearVideoDBKey();
+
+    const appendedOverlays = [];
+    const origAppendChild = document.body.appendChild.bind(document.body);
+    document.body.appendChild = (node) => {
+      appendedOverlays.push(node);
+      return origAppendChild(node);
+    };
+
+    AuthModal(() => {});
+
+    // AuthModal delegates asynchronously to SettingsModal via dynamic
+    // import; advance the microtask queue so the .then() handler runs.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // AuthModal should append exactly one overlay, not multiple.
+    expect(appendedOverlays.length).toBe(1);
+    const overlay = appendedOverlays[0];
+    expect(overlay).toBeTruthy();
+
+    // AuthModal no longer renders its own inline key input; it opens
+    // SettingsModal which contains the provider forms instead.
+    const inlineInput = overlay.querySelector('#muapi-key-input');
+    expect(inlineInput).toBeNull();
+
+    // SettingsModal contains the provider form for Muapi.
+    const muapiForm = overlay.querySelector('form');
+    expect(muapiForm).toBeTruthy();
+  });
+});
+
 describe('setup-modal gating logic', () => {
   test('not shown when apiKeyManager already has a key', async () => {
     const manager = new ApiKeyManager();
