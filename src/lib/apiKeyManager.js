@@ -74,13 +74,21 @@ export class ApiKeyManager {
         this._cache[kind].hash = hash;
 
         // Store in sessionStorage (primary - cleared on tab close)
-        sessionStorage.setItem(KEY_STORAGE[kind], obfuscate(trimmedKey));
-        sessionStorage.setItem(KEY_HASH_STORAGE[kind], hash);
+        try {
+            sessionStorage.setItem(KEY_STORAGE[kind], obfuscate(trimmedKey));
+            sessionStorage.setItem(KEY_HASH_STORAGE[kind], hash);
+        } catch {
+            // Storage may be disabled; the in-memory cache still holds the key.
+        }
 
         // Optionally persist to localStorage with obfuscation
         if (persist) {
-            localStorage.setItem(KEY_STORAGE[kind], obfuscate(trimmedKey));
-            localStorage.setItem(KEY_HASH_STORAGE[kind], hash);
+            try {
+                localStorage.setItem(KEY_STORAGE[kind], obfuscate(trimmedKey));
+                localStorage.setItem(KEY_HASH_STORAGE[kind], hash);
+            } catch {
+                // Quota exceeded or storage disabled; cache still works for this session.
+            }
         }
 
         this._notifyListeners();
@@ -90,20 +98,34 @@ export class ApiKeyManager {
         if (this._cache[kind].key) return this._cache[kind].key;
 
         // Try sessionStorage first
-        const sessionKey = sessionStorage.getItem(KEY_STORAGE[kind]);
+        let sessionKey = null;
+        try {
+            sessionKey = sessionStorage.getItem(KEY_STORAGE[kind]);
+        } catch {
+            // Storage may be disabled (e.g. SecurityError in some browsers).
+        }
         if (sessionKey) {
             this._cache[kind].key = deobfuscate(sessionKey);
             return this._cache[kind].key;
         }
 
         // Fall back to localStorage
-        const localKey = localStorage.getItem(KEY_STORAGE[kind]);
+        let localKey = null;
+        try {
+            localKey = localStorage.getItem(KEY_STORAGE[kind]);
+        } catch {
+            // Storage may be disabled.
+        }
         if (localKey) {
             const decoded = deobfuscate(localKey);
             if (decoded) {
                 this._cache[kind].key = decoded;
                 // Restore to sessionStorage
-                sessionStorage.setItem(KEY_STORAGE[kind], localKey);
+                try {
+                    sessionStorage.setItem(KEY_STORAGE[kind], localKey);
+                } catch {
+                    // Best-effort restore; ignore failures.
+                }
                 return decoded;
             }
         }
@@ -113,24 +135,50 @@ export class ApiKeyManager {
 
     _hasKeyFor(kind) {
         if (this._cache[kind].key) return true;
-        return !!(
-            sessionStorage.getItem(KEY_STORAGE[kind]) ||
-            localStorage.getItem(KEY_STORAGE[kind])
-        );
+        let sessionValue = null;
+        let localValue = null;
+        try {
+            sessionValue = sessionStorage.getItem(KEY_STORAGE[kind]);
+        } catch {
+            // Storage may be disabled.
+        }
+        try {
+            localValue = localStorage.getItem(KEY_STORAGE[kind]);
+        } catch {
+            // Storage may be disabled.
+        }
+        return !!(sessionValue || localValue);
     }
 
     _getStoredHashFor(kind) {
-        return sessionStorage.getItem(KEY_HASH_STORAGE[kind]) ||
-               localStorage.getItem(KEY_HASH_STORAGE[kind]);
+        try {
+            const sessionHash = sessionStorage.getItem(KEY_HASH_STORAGE[kind]);
+            if (sessionHash) return sessionHash;
+        } catch {
+            // Storage may be disabled.
+        }
+        try {
+            return localStorage.getItem(KEY_HASH_STORAGE[kind]);
+        } catch {
+            return null;
+        }
     }
 
     _clearKeyFor(kind) {
         this._cache[kind].key = null;
         this._cache[kind].hash = null;
-        sessionStorage.removeItem(KEY_STORAGE[kind]);
-        sessionStorage.removeItem(KEY_HASH_STORAGE[kind]);
-        localStorage.removeItem(KEY_STORAGE[kind]);
-        localStorage.removeItem(KEY_HASH_STORAGE[kind]);
+        try {
+            sessionStorage.removeItem(KEY_STORAGE[kind]);
+            sessionStorage.removeItem(KEY_HASH_STORAGE[kind]);
+        } catch {
+            // Storage may be disabled.
+        }
+        try {
+            localStorage.removeItem(KEY_STORAGE[kind]);
+            localStorage.removeItem(KEY_HASH_STORAGE[kind]);
+        } catch {
+            // Storage may be disabled.
+        }
         this._notifyListeners();
     }
 
