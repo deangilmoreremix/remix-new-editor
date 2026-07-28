@@ -876,7 +876,13 @@ export default defineConfig({
         svgMissingFallback(),
         modelCatalogBuildPlugin(),
         modelCatalogDevPlugin(),
-        gtmBoostDevPlugin(),
+        // Only load the gtm-boost dev plugin during `vite dev` to avoid
+        // pulling in the express dependency (used by the backend
+        // gtmBoostService) at build time. The plugin itself already has
+        // `apply: 'serve'`, but the dynamic `import()` inside
+        // `configureServer` gets pre-resolved by Vite/Node at config
+        // evaluation time, which fails when express is not installed.
+        ...(process.env.NODE_ENV !== 'production' ? [gtmBoostDevPlugin()] : []),
     ],
     optimizeDeps: {
         // Point the dependency scanner at a clean entry (scripts/clerk-optimize-entry.js)
