@@ -4,6 +4,7 @@ import { textModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
 export function ChatStudio() {
   const container = document.createElement('div');
@@ -13,6 +14,7 @@ export function ChatStudio() {
   let selectedModel = textModels[0];
   let messages = []; // Chat history
   let isGenerating = false;
+  let customThumbnailUrl = localStorage.getItem('chat-studio-thumbnail') || '';
 
   // Header with hero banner
   const header = document.createElement('div');
@@ -24,6 +26,20 @@ export function ChatStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Chat Studio</h1><p class="text-white/60 text-sm">AI-powered text generation and conversation</p>';
     chatBanner.appendChild(bannerText);
     header.appendChild(chatBanner);
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:from-teal-400 hover:to-cyan-400 transition-all shadow-lg shadow-teal-500/25';
+    thumbBtn.onclick = () => {
+      const modal = new StudioThumbnailModal({
+        studioId: 'chat-studio',
+        studioLabel: 'Chat Studio',
+        accentGradient: 'from-teal-500 to-cyan-500',
+      });
+      mountStudioThumbnailModal(modal);
+    };
+    chatBanner.appendChild(thumbBtn);
   }
   container.appendChild(header);
 

@@ -5,6 +5,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
 const STYLE_PRESETS = [
   'Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach',
@@ -28,6 +29,7 @@ export function InfluencerStudio() {
   let uploadedUrl = null;
   let selectedStyle = STYLE_PRESETS[0];
   let selectedFormat = FORMAT_PRESETS[0];
+  let customThumbnailUrl = localStorage.getItem('influencer-studio-thumbnail') || '';
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-xl';
@@ -37,6 +39,21 @@ export function InfluencerStudio() {
     bannerText.className = 'absolute bottom-0 left-0 right-0 p-5 z-10';
     bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">AI Influencer Studio</h1><p class="text-white/60 text-sm max-w-md">Generate social content with 20+ fashion presets and format templates</p>';
     influBanner.appendChild(bannerText);
+    // Thumbnail studio button
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white hover:from-fuchsia-400 hover:to-pink-400 transition-all shadow-lg shadow-fuchsia-500/25';
+    thumbBtn.onclick = () => {
+      const modal = new StudioThumbnailModal({
+        studioId: 'influencer-studio',
+        studioLabel: 'AI Influencer Studio',
+        accentGradient: 'from-fuchsia-500 to-pink-500',
+      });
+      mountStudioThumbnailModal(modal);
+    };
+    influBanner.appendChild(thumbBtn);
     header.appendChild(influBanner);
   }
   container.appendChild(header);
@@ -169,6 +186,7 @@ export function InfluencerStudio() {
         prompt,
         style: selectedStyle,
         aspect_ratio: selectedFormat.ar,
+        customThumbnailUrl: customThumbnailUrl || undefined,
       };
       const result = await muapi.generateI2I(params);
       if (result?.url) {

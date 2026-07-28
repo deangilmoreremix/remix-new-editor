@@ -3,6 +3,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getLipSyncModelById, getResolutionsForLipSyncModel } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
@@ -19,6 +20,7 @@ export function LipSyncStudio() {
     let selectedModel = imageLipSyncModels[0].id;
     let selectedResolution = imageLipSyncModels[0].inputs?.resolution?.default || '480p';
     let uploadedImageUrl = null;
+    let customThumbnailUrl = localStorage.getItem('lipsync-studio-thumbnail') || '';
     let uploadedVideoUrl = null;
     let uploadedAudioUrl = null;
     let dropdownOpen = null;
@@ -41,6 +43,21 @@ export function LipSyncStudio() {
         `;
         heroBanner.appendChild(heroContent);
         hero.appendChild(heroBanner);
+
+        const thumbBtn = document.createElement('button');
+        thumbBtn.type = 'button';
+        thumbBtn.textContent = '🖼 Thumbnail';
+        thumbBtn.title = 'Generate a custom thumbnail';
+        thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-rose-500 to-red-500 text-white hover:from-rose-400 hover:to-red-400 transition-all shadow-lg shadow-rose-500/25';
+        thumbBtn.onclick = () => {
+          const modal = new StudioThumbnailModal({
+            studioId: 'lipsync-studio',
+            studioLabel: 'Lip Sync Studio',
+            accentGradient: 'from-rose-500 to-red-500',
+          });
+          mountStudioThumbnailModal(modal);
+        };
+        hero.appendChild(thumbBtn);
     }
     container.appendChild(hero);
 
@@ -767,6 +784,7 @@ export function LipSyncStudio() {
             const lipsyncParams = {
                 model: selectedModel,
                 audio_url: uploadedAudioUrl,
+                customThumbnailUrl: customThumbnailUrl || undefined,
                 onRequestId
             };
 

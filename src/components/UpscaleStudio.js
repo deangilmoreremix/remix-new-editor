@@ -5,6 +5,7 @@ import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection } from '../lib/thumbnails.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'] },
@@ -20,6 +21,7 @@ export function UpscaleStudio() {
   let selectedMethod = UPSCALE_METHODS[0];
   let selectedFactor = '2';
   let uploadedUrl = null;
+  let customThumbnailUrl = localStorage.getItem('upscale-studio-thumbnail') || '';
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-xl';
@@ -30,6 +32,22 @@ export function UpscaleStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Upscale Suite</h1><p class="text-white/60 text-sm">Enhance and upscale images with 3 AI methods</p>';
     upscaleBanner.appendChild(bannerText);
     header.appendChild(upscaleBanner);
+
+    // Thumbnail studio button
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-400 hover:to-teal-400 transition-all shadow-lg shadow-emerald-500/25';
+    thumbBtn.onclick = () => {
+      const modal = new StudioThumbnailModal({
+        studioId: 'upscale-studio',
+        studioLabel: 'Upscale Suite',
+        accentGradient: 'from-emerald-500 to-teal-500',
+      });
+      mountStudioThumbnailModal(modal);
+    };
+    upscaleBanner.appendChild(thumbBtn);
   }
   container.appendChild(header);
 
@@ -123,7 +141,7 @@ export function UpscaleStudio() {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Upscaling...';
 
     try {
-      const params = { model: selectedMethod.id, image_url: uploadedUrl };
+      const params = { model: selectedMethod.id, image_url: uploadedUrl, customThumbnailUrl: customThumbnailUrl || undefined };
       if (selectedFactor) params.upscale_factor = parseInt(selectedFactor);
       const result = await muapi.generateI2I(params);
       if (result?.url) {

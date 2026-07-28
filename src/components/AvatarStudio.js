@@ -7,6 +7,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
 export function AvatarStudio() {
   const container = document.createElement('div');
@@ -17,6 +18,7 @@ export function AvatarStudio() {
   let uploadedVideoUrl = null;
   let uploadedAudioUrl = null;
   let prompt = '';
+  let customThumbnailUrl = localStorage.getItem('avatar-studio-thumbnail') || '';
 
   // Header with hero banner
   const header = document.createElement('div');
@@ -28,6 +30,20 @@ export function AvatarStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Avatar Studio</h1><p class="text-white/60 text-sm">Create talking avatars and lip sync videos</p>';
     avatarBanner.appendChild(bannerText);
     header.appendChild(avatarBanner);
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-sky-500 to-blue-500 text-white hover:from-sky-400 hover:to-blue-400 transition-all shadow-lg shadow-sky-500/25';
+    thumbBtn.onclick = () => {
+      const modal = new StudioThumbnailModal({
+        studioId: 'avatar-studio',
+        studioLabel: 'Avatar Studio',
+        accentGradient: 'from-sky-500 to-blue-500',
+      });
+      mountStudioThumbnailModal(modal);
+    };
+    avatarBanner.appendChild(thumbBtn);
   }
   container.appendChild(header);
 
@@ -189,10 +205,11 @@ export function AvatarStudio() {
 
     try {
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
-      const params = {
-        model: selectedModel.id,
-        video_url: uploadedVideoUrl,
-      };
+       const params = {
+         model: selectedModel.id,
+         video_url: uploadedVideoUrl,
+         customThumbnailUrl: customThumbnailUrl || undefined,
+       };
 
       if (uploadedAudioUrl) params.audio_url = uploadedAudioUrl;
       if (prompt) params.prompt = replaceTokensInPrompt(prompt, activeProfile);

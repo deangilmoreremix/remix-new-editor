@@ -6,6 +6,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getToolThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
 const EDIT_TOOLS = [
   { id: 'ai-object-eraser', name: 'Remove Object', description: 'Erase unwanted objects from images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 5H9l-7 7 7 7h11a2 2 0 002-2V7a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>', hasPrompt: true, promptPlaceholder: 'What to remove...' },
@@ -30,6 +31,7 @@ export function EditStudio() {
 
   let activeTool = null;
   let uploadedUrl = null;
+  let customThumbnailUrl = localStorage.getItem('edit-studio-thumbnail') || '';
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
@@ -40,6 +42,22 @@ export function EditStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Edit Studio</h1><p class="text-white/60 text-xs">13 AI-powered editing tools for images</p>';
     editBanner.appendChild(bannerText);
     topBar.appendChild(editBanner);
+
+    // Thumbnail studio button
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 transition-all shadow-lg shadow-cyan-500/25';
+    thumbBtn.onclick = () => {
+      const modal = new StudioThumbnailModal({
+        studioId: 'edit-studio',
+        studioLabel: 'Edit Studio',
+        accentGradient: 'from-cyan-500 to-blue-500',
+      });
+      mountStudioThumbnailModal(modal);
+    };
+    editBanner.appendChild(thumbBtn);
   } else {
     topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Edit Studio</h1><p class="text-secondary text-xs mb-5">13 AI-powered editing tools for images</p>';
   }
@@ -201,7 +219,7 @@ export function EditStudio() {
     editBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
 
     try {
-      const params = { model: activeTool.id, image_url: uploadedUrl };
+      const params = { model: activeTool.id, image_url: uploadedUrl, customThumbnailUrl: customThumbnailUrl || undefined };
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
       if (activeTool.hasPrompt && promptField.value.trim()) {
         params.prompt = replaceTokensInPrompt(promptField.value.trim(), activeProfile);

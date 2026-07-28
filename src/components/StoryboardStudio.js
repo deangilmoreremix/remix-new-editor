@@ -6,6 +6,7 @@ import { createHeroSection } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
 const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up', 'POV', 'Overhead', 'Low Angle'];
 const LAYOUTS = ['Horizontal', 'Grid', 'Story'];
@@ -25,6 +26,20 @@ export function StoryboardStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Storyboard Studio</h1><p class="text-white/60 text-xs">Plan your scenes with AI-generated storyboard frames</p>';
     storyBanner.appendChild(bannerText);
     topBar.appendChild(storyBanner);
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-yellow-500 to-amber-500 text-white hover:from-yellow-400 hover:to-amber-400 transition-all shadow-lg shadow-yellow-500/25';
+    thumbBtn.onclick = () => {
+      const modal = new StudioThumbnailModal({
+        studioId: 'storyboard-studio',
+        studioLabel: 'Storyboard Studio',
+        accentGradient: 'from-yellow-500 to-amber-500',
+      });
+      mountStudioThumbnailModal(modal);
+    };
+    storyBanner.appendChild(thumbBtn);
   } else {
     topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Storyboard Studio</h1><p class="text-secondary text-xs mb-4">Plan your scenes with AI-generated storyboard frames</p>';
   }
@@ -79,6 +94,7 @@ export function StoryboardStudio() {
   // Produces a conversion-optimized base concept that is propagated to every
   // frame (prepended to each frame's own prompt at generation time).
   let enhancedConcept = '';
+  let customThumbnailUrl = localStorage.getItem('storyboard-studio-thumbnail') || '';
   const gtmBtn = document.createElement('button');
   gtmBtn.type = 'button';
   gtmBtn.textContent = '🎯 GTM Boost';
@@ -266,12 +282,13 @@ export function StoryboardStudio() {
    async function generateFrameImage(prompt) {
      if (apiKeyManager.hasOpenAIKey()) {
        try {
-         const { images } = await openaiService.generateImageResponses({
-           input: prompt,
-           size: '16:9',
-           quality: 'auto',
-           outputFormat: 'png',
-         });
+          const { images } = await openaiService.generateImageResponses({
+            input: prompt,
+            size: '16:9',
+            quality: 'auto',
+            outputFormat: 'png',
+            customThumbnailUrl: customThumbnailUrl || undefined,
+          });
          const img = images?.[0];
          if (!img) return null;
          return img.base64 ? `data:image/png;base64,${img.base64}` : img.url || null;
@@ -281,7 +298,7 @@ export function StoryboardStudio() {
          console.warn('[StoryboardStudio] OpenAI Responses generation failed, falling back to MuAPI:', err.message);
        }
      }
-     const result = await muapi.generateImage({ model: 'nano-banana', prompt, aspect_ratio: '16:9' });
+      const result = await muapi.generateImage({ model: 'nano-banana', prompt, aspect_ratio: '16:9', customThumbnailUrl: customThumbnailUrl || undefined });
      return result?.url || null;
    }
 

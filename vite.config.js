@@ -409,7 +409,11 @@ function gtmBoostDevPlugin() {
       const getService = async () => {
         if (serviceMod) return serviceMod;
         try {
-          serviceMod = await import('./backend/services/gtmBoostService.js');
+          // Use a variable for the import path so Vite's static module
+          // scanner cannot pre-resolve this backend service (and its
+          // express dependency) during production builds.
+          const servicePath = './backend/services/gtmBoostService.js';
+          serviceMod = await import(servicePath);
           return serviceMod;
         } catch (e) {
           console.warn('[gtm-boost-dev] Failed to load service:', e.message);
