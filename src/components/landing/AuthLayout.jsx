@@ -173,9 +173,45 @@ export async function clearClerkSession({ reload = true } = {}) {
         }
       } catch {}
     }
+    // Preserve user-configured API keys across the Clerk session reset.
+    // These are not Clerk data and should survive logout/login cycles.
+    const preservedLocalKeys = [
+      'muapi_key',
+      'muapi_key_hash',
+      'openai_key',
+      'openai_key_hash',
+      'videodb_key',
+      'videodb_key_hash',
+      'muapi_history',
+    ];
+    const preservedSessionKeys = ['setup_popup_shown'];
+    const preserved = {};
+    const preservedSession = {};
+    try {
+      for (const key of preservedLocalKeys) {
+        const value = localStorage.getItem(key);
+        if (value !== null) preserved[key] = value;
+      }
+    } catch {}
+    try {
+      for (const key of preservedSessionKeys) {
+        const value = sessionStorage.getItem(key);
+        if (value !== null) preservedSession[key] = value;
+      }
+    } catch {}
     // local + session storage
     try { localStorage.clear(); } catch {}
     try { sessionStorage.clear(); } catch {}
+    try {
+      for (const [key, value] of Object.entries(preserved)) {
+        localStorage.setItem(key, value);
+      }
+    } catch {}
+    try {
+      for (const [key, value] of Object.entries(preservedSession)) {
+        sessionStorage.setItem(key, value);
+      }
+    } catch {}
     // IndexedDB (Clerk caches tokens here)
     if (typeof indexedDB !== 'undefined' && indexedDB.databases) {
       try {
