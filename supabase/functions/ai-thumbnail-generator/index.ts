@@ -23,12 +23,11 @@ const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-// Mainline model for Responses API image_generation tool.
-// Override via env if needed: IMG_GEN_MAINLINE_MODEL=gpt-5.5
-const IMG_GEN_MAINLINE_MODEL = Deno.env.get("IMG_GEN_MAINLINE_MODEL") || "gpt-4.1-mini";
+const IMG_GEN_MAINLINE_MODEL = Deno.env.get("IMG_GEN_MAINLINE_MODEL") || "gpt-4.1";
+const MODEL_FALLBACK_CHAIN = [IMG_GEN_MAINLINE_MODEL, "gpt-4.1-mini", "gpt-4o"].filter(
+  (m, i, arr) => arr.indexOf(m) === i
+);
 
-// Server-side preset definitions — keep in sync with src/lib/thumbnailPresets.js.
-// The brief modifier is appended to the auto-composed brief.
 const PRESET_MODIFIERS: Record<string, string> = {
   cinematic: 'widescreen cinematic composition, shallow depth of field, anamorphic lens, color graded, 24fps, editorial framing',
   productCutout: 'isolated product on plain background, centered, crisp silhouette, no halos, label legible, soft contact shadow',
@@ -38,10 +37,166 @@ const PRESET_MODIFIERS: Record<string, string> = {
   vertical: 'vertical 9:16 framing, top-of-frame subject, lower-third space for caption, mobile-readable',
 };
 
+const PLATFORM_SPECS: Record<string, { aspectRatio: string; size: string; textOverlay: boolean; quality: string }> = {
+  youtube: { aspectRatio: '16:9', size: '1792x1024', textOverlay: true, quality: 'high' },
+  'instagram-post': { aspectRatio: '1:1', size: '1024x1024', textOverlay: false, quality: 'high' },
+  'instagram-reel': { aspectRatio: '9:16', size: '1024x1792', textOverlay: false, quality: 'high' },
+  tiktok: { aspectRatio: '9:16', size: '1024x1792', textOverlay: true, quality: 'high' },
+  twitter: { aspectRatio: '16:9', size: '1792x1024', textOverlay: true, quality: 'medium' },
+  linkedin: { aspectRatio: '16:9', size: '1792x1024', textOverlay: true, quality: 'high' },
+};
+
+const VIDEO_THUMBNAIL_PROMPT = 'video thumbnail sequence, cinematic frames, consistent scene progression, motion implied, broadcast quality, each frame a key moment';
+
 const openai = OPENAI_API_KEY ? new OpenAI({ apiKey: OPENAI_API_KEY }) : null;
 const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
   ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
   : null;
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+type Action = "prompts" | "generate" | "refine" | "inpaint" | "save" | "brand-kit" | "platform" | "video-thumbnail";
+
+interface BrandKit {
+  brandName: string;
+  primaryColor: string;
+  secondaryColor: string;
+  font: string;
+  logoUrl?: string;
+}
+
+interface BrandKitRequest {
+  action: "brand-kit";
+  brandName: string;
+  primaryColor: string;
+  secondaryColor: string;
+  font: string;
+  logoUrl?: string;
+}
+
+interface PlatformRequest {
+  action: "platform";
+  platformKey: string;
+}
+
+interface VideoThumbnailRequest {
+  action: "video-thumbnail";
+  prompt: string;
+  aspectRatio: string;
+  duration: number;
+  frames: number;
+}
+
+interface AnalyticsData {
+  templateId: string;
+  userId: string;
+  presetKey?: string;
+  platform?: string;
+  brandKitUsed: boolean;
+  generationTimeMs: number;
+  modelUsed: string;
+}
+
+interface PromptsRequest {
+  action: "prompts";
+  templateId: string;
+  brief?: string;
+  template?: {
+    name: string;
+    aspectRatio?: string;
+    outputType?: string;
+    visualStyle?: string;
+    cinematography?: string;
+    niche?: string;
+  };
+  presetKey?: string;
+  presetModifier?: string;
+  brandKit?: BrandKit;
+  platform?: string;
+}
+
+interface GenerateRequest {
+  action: "generate";
+  prompt: string;
+  aspectRatio: string;
+  n?: number;
+  quality?: "low" | "medium" | "high" | "auto";
+  style?: "vivid" | "natural";
+  background?: "transparent" | "opaque" | "auto";
+  outputFormat?: "png" | "webp" | "jpeg";
+  outputCompression?: number;
+  brandKit?: BrandKit;
+  platform?: string;
+}
+
+interface RefineRequest {
+  action: "refine";
+  prompt: string;
+  previousResponseId: string;
+  size?: string;
+  quality?: "low" | "medium" | "high" | "auto";
+  background?: "transparent" | "opaque" | "auto";
+  outputFormat?: "png" | "webp" | "jpeg";
+  outputCompression?: number;
+  partialImages?: number;
+  store?: boolean;
+  include?: string[];
+  stream?: boolean;
+  referenceImageB64?: string;
+  referenceImageUrl?: string;
+  referenceImageFileId?: string;
+  imageDetail?: "low" | "high" | "original" | "auto";
+  brandKit?: BrandKit;
+  platform?: string;
+}
+
+interface InpaintRequest {
+  action: "inpaint";
+  prompt: string;
+  imageB64: string;
+  maskB64: string;
+  aspectRatio?: string;
+  quality?: "low" | "medium" | "high" | "auto";
+  style?: "vivid" | "natural";
+  background?: "transparent" | "opaque" | "auto";
+  outputFormat?: "png" | "webp" | "jpeg";
+}
+
+interface SaveRequest {
+  action: "save";
+  templateId: string;
+  imageB64: string;
+  altText: string;
+  userId: string;
+  promptUsed: string;
+  presetKey?: string;
+  controls?: {
+    quality?: string;
+    style?: string;
+    background?: string;
+    outputFormat?: string;
+    outputCompression?: number;
+    aspectRatio?: string;
+  };
+  brandKit?: BrandKit;
+  platform?: string;
+  generationTimeMs?: number;
+  modelUsed?: string;
+}
+
+type RequestBody = PromptsRequest | GenerateRequest | RefineRequest | InpaintRequest | SaveRequest | BrandKitRequest | PlatformRequest | VideoThumbnailRequest;
+
+function validateBody(body: unknown): RequestBody {
+  if (!body || typeof body !== "object") throw new Error("Invalid body");
+  const b = body as Record<string, unknown>;
+  const action = b.action as Action;
+  if (!action || !["prompts", "generate", "refine", "inpaint", "save", "brand-kit", "platform", "video-thumbnail"].includes(action)) {
+    throw new Error("Missing or invalid action");
+  }
+  return body as RequestBody;
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -67,6 +222,27 @@ function buildPromptBrief(
     `Output type: ${opts?.outputType || "video"}`,
   ];
   return lines.filter((l): l is string => l !== null).join("\n");
+}
+
+function BRAND_KIT_PROMPT_INJECTION(brandKit?: BrandKit): string {
+  if (!brandKit) return "";
+  const lines: string[] = [
+    "BRAND GUIDELINES:",
+    `- Brand: ${brandKit.brandName}`,
+    `- Primary color: ${brandKit.primaryColor}`,
+    `- Secondary color: ${brandKit.secondaryColor}`,
+    `- Font: ${brandKit.font}`,
+  ];
+  if (brandKit.logoUrl) {
+    lines.push(`- Logo: ${brandKit.logoUrl} (incorporate brand identity subtly)`);
+  }
+  return lines.join("\n");
+}
+
+function PLATFORM_INJECTION(platformKey?: string): string {
+  if (!platformKey || !PLATFORM_SPECS[platformKey]) return "";
+  const spec = PLATFORM_SPECS[platformKey];
+  return `PLATFORM: ${platformKey} (${spec.aspectRatio}${spec.textOverlay ? ", text overlay required" : ""})`;
 }
 
 async function uploadBufferToStorage(
@@ -134,6 +310,20 @@ async function persistJob(params: {
   if (error) console.error("[ai-thumbnail-generator] job persist error", error);
 }
 
+async function insertAnalytics(data: AnalyticsData): Promise<void> {
+  if (!supabase) return;
+  const { error } = await supabase.from("thumbnail_analytics").insert({
+    template_id: data.templateId,
+    user_id: data.userId,
+    preset_key: data.presetKey || null,
+    platform: data.platform || null,
+    brand_kit_used: data.brandKitUsed,
+    generation_time_ms: data.generationTimeMs,
+    model_used: data.modelUsed,
+  });
+  if (error) console.error("[ai-thumbnail-generator] analytics error", error);
+}
+
 async function base64ToUint8Array(b64: string): Promise<Uint8Array> {
   const binary = atob(b64);
   const bytes = new Uint8Array(binary.length);
@@ -143,106 +333,37 @@ async function base64ToUint8Array(b64: string): Promise<Uint8Array> {
   return bytes;
 }
 
+async function executeWithModelFallback<T>(
+  makeRequest: (model: string) => Promise<T>,
+  models = MODEL_FALLBACK_CHAIN
+): Promise<T> {
+  let lastError: Error | undefined;
+  for (const model of models) {
+    try {
+      console.log(`[ai-thumbnail-generator] Trying model: ${model}`);
+      return await makeRequest(model);
+    } catch (error) {
+      const status = (error as { status?: number })?.status;
+      const isRetryable = status === 429 || status === 503;
+      console.warn(`[ai-thumbnail-generator] Model ${model} failed with status ${status || 'unknown'}`);
+      lastError = error instanceof Error ? error : new Error(String(error));
+      if (!isRetryable) break;
+    }
+  }
+  throw lastError ?? new Error("All models failed");
+}
+
 // ---------------------------------------------------------------------------
 // Actions
 // ---------------------------------------------------------------------------
 
-type Action = "prompts" | "generate" | "refine" | "inpaint" | "save";
-
-interface PromptsRequest {
-  action: "prompts";
-  templateId: string;
-  brief?: string;
-  template?: {
-    name: string;
-    aspectRatio?: string;
-    outputType?: string;
-    visualStyle?: string;
-    cinematography?: string;
-    niche?: string;
-  };
-  presetKey?: string;
-  presetModifier?: string;
-}
-
-interface GenerateRequest {
-  action: "generate";
-  prompt: string;
-  aspectRatio: string;
-  n?: number;
-  quality?: "low" | "medium" | "high" | "auto";
-  style?: "vivid" | "natural";
-  background?: "transparent" | "opaque" | "auto";
-  outputFormat?: "png" | "webp" | "jpeg";
-  outputCompression?: number;
-}
-
-interface RefineRequest {
-  action: "refine";
-  prompt: string;
-  previousResponseId: string;
-  size?: string;
-  quality?: "low" | "medium" | "high" | "auto";
-  background?: "transparent" | "opaque" | "auto";
-  outputFormat?: "png" | "webp" | "jpeg";
-  outputCompression?: number;
-  partialImages?: number;
-  store?: boolean;
-  include?: string[];
-  // When true, the function streams SSE partial-image events instead of a
-  // single buffered JSON response.
-  stream?: boolean;
-  // For reference-image input on multi-modal refine
-  referenceImageB64?: string;
-  referenceImageUrl?: string;
-  referenceImageFileId?: string;
-  imageDetail?: "low" | "high" | "original" | "auto";
-}
-
-interface InpaintRequest {
-  action: "inpaint";
-  prompt: string;
-  imageB64: string;
-  maskB64: string;
-  aspectRatio?: string;
-  quality?: "low" | "medium" | "high" | "auto";
-  style?: "vivid" | "natural";
-  background?: "transparent" | "opaque" | "auto";
-  outputFormat?: "png" | "webp" | "jpeg";
-}
-
-interface SaveRequest {
-  action: "save";
-  templateId: string;
-  imageB64: string;
-  altText: string;
-  userId: string;
-  promptUsed: string;
-  presetKey?: string;
-  controls?: {
-    quality?: string;
-    style?: string;
-    background?: string;
-    outputFormat?: string;
-    outputCompression?: number;
-    aspectRatio?: string;
-  };
-}
-
-type RequestBody = PromptsRequest | GenerateRequest | RefineRequest | InpaintRequest | SaveRequest;
-
-function validateBody(body: unknown): RequestBody {
-  if (!body || typeof body !== "object") throw new Error("Invalid body");
-  const b = body as Record<string, unknown>;
-  const action = b.action as Action;
-  if (!action || !["prompts", "generate", "refine", "inpaint", "save"].includes(action)) {
-    throw new Error("Missing or invalid action");
-  }
-  return body as RequestBody;
-}
-
 async function handlePrompts(body: PromptsRequest) {
   if (!openai) return jsonResponse({ error: "Server not configured" }, 500);
+
+  let aspectRatio = body.template?.aspectRatio || "16:9";
+  if (body.platform && PLATFORM_SPECS[body.platform]) {
+    aspectRatio = PLATFORM_SPECS[body.platform].aspectRatio;
+  }
 
   const baseBrief =
     body.brief ||
@@ -250,7 +371,7 @@ async function handlePrompts(body: PromptsRequest) {
       visualStyle: body.template?.visualStyle,
       cinematography: body.template?.cinematography,
       niche: body.template?.niche,
-      aspectRatio: body.template?.aspectRatio || "16:9",
+      aspectRatio,
       outputType: body.template?.outputType || "video",
     });
 
@@ -260,15 +381,26 @@ async function handlePrompts(body: PromptsRequest) {
 
   const brief = modifier ? `${baseBrief}\n\nStyle direction: ${modifier}` : baseBrief;
 
-  const systemInstruction = `You are a thumbnail prompt engineer for gpt-image-2.
+  const brandInjection = BRAND_KIT_PROMPT_INJECTION(body.brandKit);
+  const platformInjection = PLATFORM_INJECTION(body.platform);
+
+  let systemInstruction = `You are a thumbnail prompt engineer for gpt-image-2.
 Using the template context below, write 3 DISTINCT thumbnail prompts.
 Each prompt must:
 - Lead with a single hero subject/scene
 - Include 3-5 cinematic modifiers (lighting, lens, palette, mood)
 - End with quality/style tokens (e.g. "editorial, 4K, high contrast")
-- AVOID text, logos, watermarks, UI elements
+- AVOID text, logos, watermarks, UI elements`;
 
-Return JSON matching the provided schema.`;
+  if (brandInjection) {
+    systemInstruction += `\n\n${brandInjection}\n\nIf brand logo is provided, incorporate it subtly. Otherwise, continue to avoid logos.`;
+  }
+
+  if (platformInjection) {
+    systemInstruction += `\n\n${platformInjection}`;
+  }
+
+  systemInstruction += `\n\nReturn JSON matching the provided schema.`;
 
   const userInstruction = `TEMPLATE CONTEXT:\n${brief}`;
 
@@ -287,19 +419,21 @@ Return JSON matching the provided schema.`;
   };
 
   try {
-    const completion = await openai.responses.create({
-      model: IMG_GEN_MAINLINE_MODEL,
-      instructions: systemInstruction,
-      input: userInstruction,
-      store: true,
-      text: {
-        format: {
-          type: "json_schema",
-          name: "thumbnail_prompt_variants",
-          strict: true,
-          schema: promptVariantsSchema,
+    const completion = await executeWithModelFallback(async (model) => {
+      return await openai!.responses.create({
+        model,
+        instructions: systemInstruction,
+        input: userInstruction,
+        store: true,
+        text: {
+          format: {
+            type: "json_schema",
+            name: "thumbnail_prompt_variants",
+            strict: true,
+            schema: promptVariantsSchema,
+          },
         },
-      },
+      });
     });
 
     let parsed: { prompts?: string[] } = {};
@@ -314,6 +448,7 @@ Return JSON matching the provided schema.`;
     return jsonResponse({
       variants: parsed.prompts || [],
       response_id: completion.id,
+      model_used: completion.model,
     });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Prompt generation failed" }, 502);
@@ -323,11 +458,22 @@ Return JSON matching the provided schema.`;
 async function handleGenerate(body: GenerateRequest) {
   if (!OPENAI_API_KEY) return jsonResponse({ error: "Server not configured" }, 500);
 
-  const size = mapAspectToSize(body.aspectRatio);
+  let aspectRatio = body.aspectRatio;
+  let size = mapAspectToSize(aspectRatio);
+  let quality = body.quality || "high";
+
+  if (body.platform && PLATFORM_SPECS[body.platform]) {
+    const spec = PLATFORM_SPECS[body.platform];
+    aspectRatio = spec.aspectRatio;
+    size = spec.size;
+    quality = spec.quality as "low" | "medium" | "high" | "auto";
+  }
+
+  const brandInjection = BRAND_KIT_PROMPT_INJECTION(body.brandKit);
+  const prompt = brandInjection ? `${body.prompt}\n\n${brandInjection}` : body.prompt;
+
   const n = Math.min(body.n || 3, 3);
-  const quality = body.quality || "high";
   const style = body.style || "vivid";
-  // gpt-image-2 does not support transparent — clamp to auto if requested
   const background = body.background === "transparent" ? "auto" : (body.background || "auto");
   const outputFormat = body.outputFormat || "webp";
   const outputCompression = body.outputCompression ?? 80;
@@ -335,7 +481,7 @@ async function handleGenerate(body: GenerateRequest) {
   try {
     const result = await openai!.images.generate({
       model: "gpt-image-2",
-      prompt: body.prompt,
+      prompt,
       n,
       size,
       quality,
@@ -358,7 +504,7 @@ async function handleGenerate(body: GenerateRequest) {
   }
 }
 
-function buildRefineReqBody(body: RefineRequest): Record<string, unknown> {
+function buildRefineReqBody(body: RefineRequest, model = IMG_GEN_MAINLINE_MODEL): Record<string, unknown> {
   const imageGenTool: Record<string, unknown> = { type: "image_generation" };
   if (body.size) imageGenTool.size = body.size;
   if (body.quality) imageGenTool.quality = body.quality;
@@ -371,8 +517,6 @@ function buildRefineReqBody(body: RefineRequest): Record<string, unknown> {
     imageGenTool.partial_images = Math.min(body.partialImages, 3);
   }
 
-  // Build the input content. If a reference image is supplied, attach it as
-  // an input_image alongside the text.
   const userContent: Array<Record<string, unknown>> = [
     { type: "input_text", text: body.prompt },
   ];
@@ -397,7 +541,7 @@ function buildRefineReqBody(body: RefineRequest): Record<string, unknown> {
   }
 
   const reqBody: Record<string, unknown> = {
-    model: IMG_GEN_MAINLINE_MODEL,
+    model,
     input: [{ role: "user", content: userContent }],
     tools: [imageGenTool],
   };
@@ -421,19 +565,16 @@ async function handleRefine(body: RefineRequest) {
   if (!openai) return jsonResponse({ error: "Server not configured" }, 500);
 
   try {
-    const completion = await openai.responses.create(buildRefineReqBody(body) as Parameters<typeof openai.responses.create>[0]);
-    return jsonResponse({ result: extractImageResult(completion as never) });
+    const result = await executeWithModelFallback(async (model) => {
+      const completion = await openai!.responses.create(buildRefineReqBody(body, model) as Parameters<typeof openai.responses.create>[0]);
+      return extractImageResult(completion as never);
+    });
+    return jsonResponse({ result });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Refine failed" }, 502);
   }
 }
 
-/**
- * Streaming refine: returns an SSE response. Emits one event per partial image
- * (`type: partial`) followed by the final result (`type: done`) or a terminal
- * `type: error`. Relies on OpenAI streaming + `partial_images` on the
- * image_generation tool.
- */
 function streamRefine(body: RefineRequest): Response {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -509,8 +650,62 @@ async function handleInpaint(body: InpaintRequest) {
   }
 }
 
+async function handleBrandKit(_body: BrandKitRequest) {
+  return jsonResponse({
+    message: "Brand kit received",
+    brandName: _body.brandName,
+    primaryColor: _body.primaryColor,
+    secondaryColor: _body.secondaryColor,
+    font: _body.font,
+    logoUrl: _body.logoUrl || null,
+  });
+}
+
+async function handlePlatform(body: PlatformRequest) {
+  const spec = PLATFORM_SPECS[body.platformKey];
+  if (!spec) {
+    return jsonResponse({ error: `Unknown platform: ${body.platformKey}` }, 400);
+  }
+  return jsonResponse({ platform: body.platformKey, specs: spec });
+}
+
+async function handleVideoThumbnail(body: VideoThumbnailRequest) {
+  if (!openai) return jsonResponse({ error: "Server not configured" }, 500);
+
+  const size = mapAspectToSize(body.aspectRatio);
+  const frameCount = Math.max(1, Math.min(body.frames, 10));
+  const frames: Array<{ b64: string; prompt: string }> = [];
+
+  for (let i = 0; i < frameCount; i++) {
+    const framePrompt = `${body.prompt}, ${VIDEO_THUMBNAIL_PROMPT}, frame ${i + 1} of ${frameCount}`;
+    try {
+      const frame = await executeWithModelFallback(async (model) => {
+        const completion = await openai!.responses.create({
+          model,
+          input: [{ role: "user", content: [{ type: "input_text", text: framePrompt }] }],
+          tools: [{ type: "image_generation", size }],
+        });
+        const imageCalls = completion.output.filter((o) => o.type === "image_generation_call");
+        const first = imageCalls[0];
+        return {
+          b64: first?.result ?? "",
+          prompt: framePrompt,
+        };
+      });
+      frames.push(frame);
+    } catch (error) {
+      console.error(`[ai-thumbnail-generator] Frame ${i + 1} generation failed:`, error);
+      frames.push({ b64: "", prompt: framePrompt });
+    }
+  }
+
+  return jsonResponse({ frames, duration: body.duration, aspectRatio: body.aspectRatio });
+}
+
 async function handleSave(body: SaveRequest) {
   if (!supabase) return jsonResponse({ error: "Supabase not configured" }, 500);
+
+  const startTime = Date.now();
 
   try {
     const imageBuffer = await base64ToUint8Array(body.imageB64);
@@ -533,6 +728,18 @@ async function handleSave(body: SaveRequest) {
       imageUrl,
       imagePath: filename,
       status: "completed",
+    });
+
+    const generationTimeMs = Date.now() - startTime;
+
+    await insertAnalytics({
+      templateId: body.templateId,
+      userId: body.userId,
+      presetKey: body.presetKey,
+      platform: body.platform,
+      brandKitUsed: !!body.brandKit,
+      generationTimeMs,
+      modelUsed: body.modelUsed || IMG_GEN_MAINLINE_MODEL,
     });
 
     return jsonResponse({
@@ -583,6 +790,12 @@ Deno.serve(async (req: Request) => {
         return handleInpaint(parsed as InpaintRequest);
       case "save":
         return handleSave(parsed as SaveRequest);
+      case "brand-kit":
+        return handleBrandKit(parsed as BrandKitRequest);
+      case "platform":
+        return handlePlatform(parsed as PlatformRequest);
+      case "video-thumbnail":
+        return handleVideoThumbnail(parsed as VideoThumbnailRequest);
       default:
         const r = parsed as Record<string, string>;
         return jsonResponse({ error: `Unknown action ${r.action}` }, 400);

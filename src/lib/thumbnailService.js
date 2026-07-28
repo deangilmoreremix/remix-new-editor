@@ -24,6 +24,8 @@ export class ThumbnailService {
    */
   constructor(options) {
     this.options = options;
+    this._brandKit = null;
+    this._platform = null;
   }
 
   get templateId() {
@@ -34,8 +36,24 @@ export class ThumbnailService {
     return this.options.aspectRatio || '16:9';
   }
 
+  setBrandKit(brandKit) {
+    this._brandKit = brandKit;
+  }
+
+  getBrandKit() {
+    return this._brandKit;
+  }
+
+  setPlatform(platform) {
+    this._platform = platform;
+  }
+
+  getPlatform() {
+    return this._platform;
+  }
+
   // 1) Build prompt variants
-  async buildPromptVariants(brief, presetKey) {
+  async buildPromptVariants(brief, presetKey, brandKit, platform) {
     const body = {
       action: 'prompts',
       templateId: this.templateId,
@@ -48,6 +66,8 @@ export class ThumbnailService {
         cinematography: this.options.cinematography,
         niche: this.options.niche,
       },
+      brandKit: brandKit || this._brandKit || null,
+      platform: platform || this._platform || null,
     };
     if (presetKey) body.presetKey = presetKey;
 
@@ -62,6 +82,8 @@ export class ThumbnailService {
       prompt,
       aspectRatio: opts.aspectRatio || this.aspectRatio,
       n: Math.min(opts.n ?? 3, 3),
+      brandKit: opts.brandKit || this._brandKit || null,
+      platform: opts.platform || this._platform || null,
     };
     if (opts.quality) body.quality = opts.quality;
     if (opts.style) body.style = opts.style;
@@ -74,11 +96,33 @@ export class ThumbnailService {
     return { candidates: data?.candidates || [], params: data?.params || null };
   }
 
+  async generateVideoThumbnail(prompt, opts = {}) {
+    const body = {
+      action: 'video-thumbnail',
+      prompt,
+      aspectRatio: opts.aspectRatio || this.aspectRatio,
+      brandKit: opts.brandKit || this._brandKit || null,
+      platform: opts.platform || this._platform || null,
+    };
+    if (opts.duration) body.duration = opts.duration;
+    if (opts.frames) body.frames = opts.frames;
+    if (opts.style) body.style = opts.style;
+
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    if (error) throw new Error(error.message || 'Failed to generate video thumbnail');
+    return {
+      frames: data?.frames || [],
+      duration: data?.duration || null,
+      aspectRatio: data?.aspectRatio || this.aspectRatio,
+    };
+  }
+
   async refineLastImage(opts = {}) {
     const body = {
       action: 'refine',
       prompt: opts.prompt,
       previousResponseId: opts.previousResponseId || '',
+      brandKit: opts.brandKit || this._brandKit || null,
     };
     if (opts.size) body.size = opts.size;
     if (opts.quality) body.quality = opts.quality;
@@ -121,6 +165,7 @@ export class ThumbnailService {
       prompt: opts.prompt,
       previousResponseId: opts.previousResponseId || '',
       stream: true,
+      brandKit: opts.brandKit || this._brandKit || null,
     };
     if (opts.quality) body.quality = opts.quality;
     if (opts.background) body.background = opts.background;
@@ -194,6 +239,8 @@ export class ThumbnailService {
       imageB64: opts.imageB64,
       maskB64: opts.maskB64,
       aspectRatio: opts.aspectRatio || this.aspectRatio,
+      brandKit: opts.brandKit || this._brandKit || null,
+      platform: opts.platform || this._platform || null,
     };
     if (opts.quality) body.quality = opts.quality;
     if (opts.style) body.style = opts.style;
@@ -203,6 +250,18 @@ export class ThumbnailService {
     const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
     if (error) throw new Error(error.message || 'Failed to inpaint image');
     return data?.result;
+  }
+
+  async trackThumbnailGeneration(params) {
+    const body = {
+      action: 'analytics',
+      templateId: this.templateId,
+      ...params,
+    };
+
+    const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
+    if (error) throw new Error(error.message || 'Failed to track thumbnail analytics');
+    return data;
   }
 
   async saveToStorage(opts = {}) {
@@ -216,6 +275,8 @@ export class ThumbnailService {
       altText: this.options.altText || this.templateId,
       userId,
       promptUsed: opts.promptUsed || '',
+      brandKit: opts.brandKit || this._brandKit || null,
+      platform: opts.platform || this._platform || null,
     };
     if (opts.presetKey) body.presetKey = opts.presetKey;
     if (opts.controls) body.controls = opts.controls;
@@ -253,4 +314,3 @@ export class ThumbnailService {
 }
 
 export default ThumbnailService;
-
