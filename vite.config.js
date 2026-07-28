@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs';
+// Cache-bust: 2026-07-28
 
 // Vite plugin: stub out unresolved legacy imports under components/ and
 // src/lib/ that are not part of the media-creation flow. Returns an empty
