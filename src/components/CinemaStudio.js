@@ -8,9 +8,10 @@ import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getVideoModelById, getI2VModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -63,6 +64,7 @@ export function CinemaStudio() {
     
     // Camera builder panel state
     let showCameraBuilder = false;
+    let customThumbnailUrl = getCustomThumbnailFromCache('cinema-studio');
 
     // ==========================================
     // 1. HERO SECTION (Empty State)
@@ -82,6 +84,34 @@ export function CinemaStudio() {
         cinemaBanner.appendChild(bannerContent);
         heroSection.appendChild(cinemaBanner);
     }
+
+    // Custom Thumbnail button
+    const thumbAction = document.createElement('button');
+    thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition';
+    thumbAction.style.background = 'linear-gradient(135deg, #ec4899, #f472b6)';
+    thumbAction.style.boxShadow = '0 4px 14px rgba(236,72,153,0.3)';
+    thumbAction.textContent = '🖼 Custom Thumbnail';
+    thumbAction.onclick = () => {
+        const modal = new StudioThumbnailModal({
+            appTheme: 'cinema-studio',
+            studioId: 'cinema-studio',
+            studioName: 'Cinema Studio',
+            aspectRatio: currentSettings?.aspect_ratio || '16:9',
+            outputType: 'video',
+            onApply: ({ imageUrl }) => {
+                customThumbnailUrl = imageUrl;
+                saveCustomThumbnailToCache('cinema-studio', imageUrl);
+            },
+            onClear: () => {
+                customThumbnailUrl = null;
+                clearCustomThumbnailCache('cinema-studio');
+            },
+        });
+        mountStudioThumbnailModal(modal);
+        modal.open();
+    };
+    heroSection.appendChild(thumbAction);
+
     container.appendChild(heroSection);
 
     const inlineInstructions = createInlineInstructions('cinema');
@@ -1027,22 +1057,26 @@ export function CinemaStudio() {
             let res;
             if (isRef) {
                 // Image-to-video: use the uploaded still as the seed.
-                res = await muapi.generateI2V({
+                const i2vParams = {
                     model: resolvedModel,
                     image_url: currentSettings.referenceUrl,
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
-                });
+                };
+                if (customThumbnailUrl) i2vParams.thumbnail_url = customThumbnailUrl;
+                res = await muapi.generateI2V(i2vParams);
             } else {
-                res = await muapi.generateVideo({
+                const t2vParams = {
                     model: resolvedModel,
                     prompt: finalPrompt,
                     aspect_ratio: currentSettings.aspect_ratio,
                     duration,
                     resolution,
-                });
+                };
+                if (customThumbnailUrl) t2vParams.thumbnail_url = customThumbnailUrl;
+                res = await muapi.generateVideo(t2vParams);
             }
 
             if (res && res.url) {

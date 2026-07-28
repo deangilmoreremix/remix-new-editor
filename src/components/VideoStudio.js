@@ -6,10 +6,11 @@ import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResol
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { navigate } from '../lib/router.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -31,6 +32,7 @@ export function VideoStudio() {
     let imageMode = false; // false = t2v models, true = i2v models
     let v2vMode = false;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
+    let customThumbnailUrl = getCustomThumbnailFromCache('video-studio');
     
     // Advanced parameters state
     let negativePrompt = '';
@@ -63,6 +65,35 @@ export function VideoStudio() {
         heroBanner.appendChild(heroContent);
         hero.appendChild(heroBanner);
     }
+
+    // Custom Thumbnail button — matches GTM Boost styling for visibility
+    const thumbAction = document.createElement('button');
+    thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition';
+    thumbAction.style.background = 'linear-gradient(135deg, #8b5cf6, #a855f7)';
+    thumbAction.style.boxShadow = '0 4px 14px rgba(139,92,246,0.3)';
+    thumbAction.style.color = '#ffffff';
+    thumbAction.textContent = '🖼 Custom Thumbnail';
+    thumbAction.onclick = () => {
+        const modal = new StudioThumbnailModal({
+            appTheme: 'video-studio',
+            studioId: 'video-studio',
+            studioName: 'Video Studio',
+            aspectRatio: selectedAr || '16:9',
+            outputType: 'video',
+            onApply: ({ imageUrl }) => {
+                customThumbnailUrl = imageUrl;
+                saveCustomThumbnailToCache('video-studio', imageUrl);
+            },
+            onClear: () => {
+                customThumbnailUrl = null;
+                clearCustomThumbnailCache('video-studio');
+            },
+        });
+        mountStudioThumbnailModal(modal);
+        modal.open();
+    };
+    hero.appendChild(thumbAction);
+
     container.appendChild(hero);
 
     // ==========================================
@@ -1149,7 +1180,9 @@ export function VideoStudio() {
 
         try {
             if (v2vMode) {
-                const res = await muapi.processV2V({ model: selectedModel, video_url: uploadedVideoUrl });
+                const v2vParams = { model: selectedModel, video_url: uploadedVideoUrl };
+                if (customThumbnailUrl) v2vParams.thumbnail_url = customThumbnailUrl;
+                const res = await muapi.processV2V(v2vParams);
                 console.log('[VideoStudio] V2V response:', res);
                 if (res && res.url) {
                     const genId = res.id || res.request_id || Date.now().toString();
@@ -1170,6 +1203,7 @@ export function VideoStudio() {
                     model: selectedModel,
                     image_url: uploadedImageUrl,
                 };
+                if (customThumbnailUrl) i2vParams.thumbnail_url = customThumbnailUrl;
                 if (prompt) i2vParams.prompt = prompt;
                 if (negativePrompt) i2vParams.negative_prompt = negativePrompt;
                 if (seed && seed !== -1) i2vParams.seed = seed;
@@ -1204,6 +1238,7 @@ export function VideoStudio() {
 
             const params = { model: selectedModel };
 
+            if (customThumbnailUrl) params.thumbnail_url = customThumbnailUrl;
             if (prompt) params.prompt = prompt;
             if (negativePrompt) params.negative_prompt = negativePrompt;
             if (seed && seed !== -1) params.seed = seed;

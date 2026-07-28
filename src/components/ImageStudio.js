@@ -11,8 +11,9 @@ import { ENHANCE_TAGS, QUICK_PROMPTS } from '../lib/promptUtils.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
 export function ImageStudio() {
     const container = document.createElement('div');
@@ -27,6 +28,7 @@ export function ImageStudio() {
     let dropdownOpen = null;
     let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
     let imageMode = false; // false = t2i models, true = i2i models
+    let customThumbnailUrl = getCustomThumbnailFromCache('image-studio');
     
     // Advanced parameters state
     let negativePrompt = '';
@@ -68,6 +70,34 @@ export function ImageStudio() {
         heroBanner.appendChild(heroContent);
         hero.appendChild(heroBanner);
     }
+
+    // Custom Thumbnail button
+    const thumbAction = document.createElement('button');
+    thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition';
+    thumbAction.style.background = 'linear-gradient(135deg, #f59e0b, #fbbf24)';
+    thumbAction.style.boxShadow = '0 4px 14px rgba(245,158,11,0.3)';
+    thumbAction.textContent = '🖼 Custom Thumbnail';
+    thumbAction.onclick = () => {
+        const modal = new StudioThumbnailModal({
+            appTheme: 'image-studio',
+            studioId: 'image-studio',
+            studioName: 'Image Studio',
+            aspectRatio: selectedAr || '1:1',
+            outputType: 'image',
+            onApply: ({ imageUrl }) => {
+                customThumbnailUrl = imageUrl;
+                saveCustomThumbnailToCache('image-studio', imageUrl);
+            },
+            onClear: () => {
+                customThumbnailUrl = null;
+                clearCustomThumbnailCache('image-studio');
+            },
+        });
+        mountStudioThumbnailModal(modal);
+        modal.open();
+    };
+    hero.appendChild(thumbAction);
+
     container.appendChild(hero);
 
     // ==========================================
@@ -1096,6 +1126,7 @@ export function ImageStudio() {
                     image_url: uploadedImageUrls[0], // backward compat for single-image models
                     aspect_ratio: selectedAr
                 };
+                if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
                 if (prompt) genParams.prompt = prompt;
                 if (negativePrompt) genParams.negative_prompt = negativePrompt;
                 if (guidanceScale && guidanceScale !== 7.5) genParams.guidance_scale = guidanceScale;
@@ -1115,6 +1146,7 @@ export function ImageStudio() {
                     prompt,
                     aspect_ratio: selectedAr
                 };
+                if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
                 // Add style to prompt if selected
                 if (selectedStyle && selectedStyle !== 'None') {
                     genParams.prompt = `${prompt}, ${selectedStyle.toLowerCase()} style`;
