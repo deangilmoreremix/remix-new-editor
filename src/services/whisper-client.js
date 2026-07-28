@@ -1,11 +1,12 @@
 /**
  * WhisperService - Speech-to-Text Transcription Client
- * Handles audio transcription using MuAPI or local Whisper fallback
+ * Handles audio transcription using OpenAI Whisper (primary), MuAPI, or local Whisper fallback
  * Provides word-level timestamps and multi-language support
  */
 
 import { RateLimiter } from '../lib/services/RateLimiter.js';
 import { CircuitBreaker } from '../lib/services/CircuitBreaker.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 
 class WhisperService {
   constructor(options = {}) {
@@ -19,6 +20,7 @@ class WhisperService {
       return `${supabaseUrl}/functions/v1/muapi-proxy`;
     })();
     this.localWhisperUrl = options.localWhisperUrl || import.meta.env.VITE_WHISPER_LOCAL_URL || 'http://localhost:8080';
+    this.backendUrl = options.backendUrl || (import.meta.env.VITE_BACKEND_URL || '');
 
     // Initialize supporting services
     this.rateLimiter = new RateLimiter({
@@ -32,6 +34,11 @@ class WhisperService {
     });
 
     // Add services to circuit breaker
+    this.circuitBreaker.addService('openai-whisper', {
+      failureThreshold: 3,
+      recoveryTimeout: 30000
+    });
+
     this.circuitBreaker.addService('muapi', {
       failureThreshold: 3,
       recoveryTimeout: 30000
@@ -45,6 +52,7 @@ class WhisperService {
     // Statistics tracking
     this.stats = {
       requests: 0,
+      openaiRequests: 0,
       muapiRequests: 0,
       localRequests: 0,
       cacheHits: 0,
@@ -53,14 +61,14 @@ class WhisperService {
       fallbacks: 0
     };
 
-    console.log(`[WhisperService] Initialized - MuAPI: ${this.useMuAPI}, Local: ${this.localWhisperUrl}`);
+    console.log(`[WhisperService] Initialized - OpenAI: ${apiKeyManager.hasOpenAIKey()}, MuAPI: ${this.useMuAPI}, Local: ${this.localWhisperUrl}`);
   }
 
   /**
    * Check if service is available
    */
   isAvailable() {
-    return this.useMuAPI || this.localWhisperUrl;
+    return apiKeyManager.hasOpenAIKey() || this.useMuAPI || this.localWhisperUrl;
   }
 
   /**
@@ -81,9 +89,26 @@ class WhisperService {
     this.stats.requests++;
 
     try {
-      // Try MuAPI first if available
+      // Try OpenAI Whisper first if available
+      if (apiKeyManager.hasOpenAIKey() && this.circuitBreaker.isAvailable('openai-whisper')) {
+        try {
+          return await this._transcribeWithOpenAI(audioSource, { language, model, wordTimestamps, onProgress });
+        } catch (openaiErr) {
+          console.warn('[WhisperService] OpenAI Whisper failed, trying MuAPI:', openaiErr.message);
+          this.stats.fallbacks++;
+          this.circuitBreaker.recordFailure('openai-whisper');
+        }
+      }
+
+      // Try MuAPI next if available
       if (this.useMuAPI && this.circuitBreaker.isAvailable('muapi')) {
-        return await this._transcribeWithMuAPI(audioSource, { language, model, wordTimestamps, onProgress });
+        try {
+          return await this._transcribeWithMuAPI(audioSource, { language, model, wordTimestamps, onProgress });
+        } catch (muapiErr) {
+          console.warn('[WhisperService] MuAPI transcription failed, trying local Whisper:', muapiErr.message);
+          this.stats.fallbacks++;
+          this.circuitBreaker.recordFailure('muapi');
+        }
       }
 
       // Fallback to local Whisper
@@ -97,6 +122,114 @@ class WhisperService {
       console.error('[WhisperService] Transcription failed:', error);
       throw error;
     }
+  }
+
+  /**
+   * Transcribe using OpenAI Whisper API via backend proxy
+   */
+  async _transcribeWithOpenAI(audioSource, options) {
+    await this.rateLimiter.waitForSlot();
+
+    const openaiKey = apiKeyManager.getOpenAIKey();
+    if (!openaiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    const formData = new FormData();
+
+    if (audioSource instanceof File || audioSource instanceof Blob) {
+      formData.append('input', audioSource);
+    } else if (typeof audioSource === 'string') {
+      // Assume it's a URL - download first
+      const response = await fetch(audioSource);
+      const blob = await response.blob();
+      formData.append('input', blob);
+    }
+
+    formData.append('model', 'whisper-1');
+    if (options.language && options.language !== 'auto') {
+      formData.append('language', options.language);
+    }
+    formData.append('response_format', 'verbose_json');
+    formData.append('timestamp_granularities[]', 'word');
+
+    const apiKeyHeader = apiKeyManager.getOpenAIKey();
+
+    const response = await fetch(`${this.backendUrl || ''}/videoagent/transcribe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        input: audioSource instanceof File || audioSource instanceof Blob 
+          ? await this._blobToBase64(audioSource) 
+          : audioSource,
+        apiKey: apiKeyHeader,
+        settings: { apiKey: apiKeyHeader },
+        model: 'whisper-1',
+        language: options.language === 'auto' ? undefined : options.language,
+        response_format: 'verbose_json',
+        timestamp_granularities: ['word']
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`OpenAI Whisper transcription failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+    }
+
+    const result = await response.json();
+    this.stats.openaiRequests++;
+
+    return this._normalizeOpenAIResult(result);
+  }
+
+  async _blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  /**
+   * Normalize OpenAI Whisper result to standard format
+   */
+  _normalizeOpenAIResult(result) {
+    const transcription = result.transcription || result.text || '';
+    const raw = result.raw || result;
+    
+    // OpenAI verbose_json returns segments with words
+    const segments = [];
+    if (raw.segments && Array.isArray(raw.segments)) {
+      for (const segment of raw.segments) {
+        const words = [];
+        if (segment.words && Array.isArray(segment.words)) {
+          for (const word of segment.words) {
+            words.push({
+              word: word.word || '',
+              start: word.start || 0,
+              end: word.end || 0,
+              confidence: word.confidence || 1.0
+            });
+          }
+        }
+        segments.push({
+          start: segment.start || 0,
+          end: segment.end || 0,
+          text: segment.text || '',
+          words
+        });
+      }
+    }
+
+    return {
+      text: transcription,
+      language: raw.language || 'unknown',
+      segments,
+      duration: raw.duration || 0
+    };
   }
 
   /**
@@ -259,6 +392,7 @@ class WhisperService {
   resetStats() {
     this.stats = {
       requests: 0,
+      openaiRequests: 0,
       muapiRequests: 0,
       localRequests: 0,
       cacheHits: 0,
