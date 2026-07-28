@@ -4,7 +4,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
 const SCENE_PRESETS = [
@@ -29,7 +29,7 @@ export function CommercialStudio() {
   let selectedScene = SCENE_PRESETS[0];
   let selectedFormat = FORMAT_PRESETS[0];
   let selectedModel = 'ai-product-shot';
-  let customThumbnailUrl = localStorage.getItem('commercial-studio-thumbnail') || '';
+  let customThumbnailUrl = getCustomThumbnailFromCache('commercial-studio');
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full';
@@ -40,21 +40,6 @@ export function CommercialStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Commercial Studio</h1><p class="text-white/60 text-sm max-w-md">AI product photography, ads, and commercial content</p>';
     commBanner.appendChild(bannerText);
     header.appendChild(commBanner);
-
-    const thumbBtn = document.createElement('button');
-    thumbBtn.type = 'button';
-    thumbBtn.textContent = '🖼 Thumbnail';
-    thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-400 hover:to-orange-400 transition-all shadow-lg shadow-amber-500/25';
-    thumbBtn.onclick = () => {
-      const modal = new StudioThumbnailModal({
-        studioId: 'commercial-studio',
-        studioLabel: 'Commercial Studio',
-        accentGradient: 'from-amber-500 to-orange-500',
-      });
-      mountStudioThumbnailModal(modal);
-    };
-    commBanner.appendChild(thumbBtn);
   }
   container.appendChild(header);
 
@@ -160,6 +145,33 @@ export function CommercialStudio() {
     formatRow.appendChild(btn);
   });
   formCard.appendChild(formatRow);
+
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'gtm-boost-btn w-full mt-2';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new StudioThumbnailModal({
+      appTheme: 'commercial-studio',
+      studioId: 'commercial-studio',
+      studioName: 'Commercial Studio',
+      aspectRatio: selectedFormat.ar || '1:1',
+      outputType: 'image',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('commercial-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('commercial-studio');
+      },
+    });
+    mountStudioThumbnailModal(modal);
+    modal.open();
+  });
+  formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';

@@ -85,33 +85,6 @@ export function CinemaStudio() {
         heroSection.appendChild(cinemaBanner);
     }
 
-    // Custom Thumbnail button
-    const thumbAction = document.createElement('button');
-    thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition';
-    thumbAction.style.background = 'linear-gradient(135deg, #ec4899, #f472b6)';
-    thumbAction.style.boxShadow = '0 4px 14px rgba(236,72,153,0.3)';
-    thumbAction.textContent = '🖼 Custom Thumbnail';
-    thumbAction.onclick = () => {
-        const modal = new StudioThumbnailModal({
-            appTheme: 'cinema-studio',
-            studioId: 'cinema-studio',
-            studioName: 'Cinema Studio',
-            aspectRatio: currentSettings?.aspect_ratio || '16:9',
-            outputType: 'video',
-            onApply: ({ imageUrl }) => {
-                customThumbnailUrl = imageUrl;
-                saveCustomThumbnailToCache('cinema-studio', imageUrl);
-            },
-            onClear: () => {
-                customThumbnailUrl = null;
-                clearCustomThumbnailCache('cinema-studio');
-            },
-        });
-        mountStudioThumbnailModal(modal);
-        modal.open();
-    };
-    heroSection.appendChild(thumbAction);
-
     container.appendChild(heroSection);
 
     const inlineInstructions = createInlineInstructions('cinema');
@@ -328,6 +301,33 @@ export function CinemaStudio() {
       }).catch((err) => console.error('[CinemaStudio] GTM Boost failed:', err));
     });
     inputRow.appendChild(gtmBtn);
+
+    // Thumbnail studio button — next to GTM Boost, same design system
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'gtm-boost-btn shrink-0';
+    thumbBtn.addEventListener('click', () => {
+      const modal = new StudioThumbnailModal({
+        appTheme: 'cinema-studio',
+        studioId: 'cinema-studio',
+        studioName: 'Cinema Studio',
+        aspectRatio: currentSettings?.aspect_ratio || '16:9',
+        outputType: 'video',
+        onApply: ({ imageUrl }) => {
+          customThumbnailUrl = imageUrl;
+          saveCustomThumbnailToCache('cinema-studio', imageUrl);
+        },
+        onClear: () => {
+          customThumbnailUrl = null;
+          clearCustomThumbnailCache('cinema-studio');
+        },
+      });
+      mountStudioThumbnailModal(modal);
+      modal.open();
+    });
+    inputRow.appendChild(thumbBtn);
 
     // --- Reference image upload (the "Upload your scene" step) ---
     // Real upload control that posts the still to the backend and stores the

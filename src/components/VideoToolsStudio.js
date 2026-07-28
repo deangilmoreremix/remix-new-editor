@@ -4,7 +4,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { videoToolsModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
@@ -17,7 +17,7 @@ export function VideoToolsStudio() {
   let selectedModel = videoToolsModels[0];
   let uploadedVideoUrl = null;
   let prompt = '';
-  let customThumbnailUrl = localStorage.getItem('videotools-studio-thumbnail') || '';
+  let customThumbnailUrl = getCustomThumbnailFromCache('videotools-studio');
 
   // Header with hero banner
   const header = document.createElement('div');
@@ -29,21 +29,6 @@ export function VideoToolsStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Video Tools Studio</h1><p class="text-white/60 text-sm">Enhance, edit, and transform your videos with AI</p>';
     videoToolsBanner.appendChild(bannerText);
     header.appendChild(videoToolsBanner);
-
-    const thumbBtn = document.createElement('button');
-    thumbBtn.type = 'button';
-    thumbBtn.textContent = '🖼 Thumbnail';
-    thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-400 hover:to-red-400 transition-all shadow-lg shadow-orange-500/25';
-    thumbBtn.onclick = () => {
-      const modal = new StudioThumbnailModal({
-        studioId: 'videotools-studio',
-        studioLabel: 'Video Tools Studio',
-        accentGradient: 'from-orange-500 to-red-500',
-      });
-      mountStudioThumbnailModal(modal);
-    };
-    videoToolsBanner.appendChild(thumbBtn);
   }
   container.appendChild(header);
 
@@ -125,6 +110,33 @@ export function VideoToolsStudio() {
     promptGroup.appendChild(gtmBtn);
    formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'video-tools' });
+
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'gtm-boost-btn w-full';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new StudioThumbnailModal({
+      appTheme: 'video-tools',
+      studioId: 'videotools-studio',
+      studioName: 'Video Tools Studio',
+      aspectRatio: '16:9',
+      outputType: 'video',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('videotools-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('videotools-studio');
+      },
+    });
+    mountStudioThumbnailModal(modal);
+    modal.open();
+  });
+  formCard.appendChild(thumbBtn);
 
   // Generate button
   const genBtn = document.createElement('button');

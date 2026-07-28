@@ -2,7 +2,7 @@ import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
@@ -26,20 +26,6 @@ export function StoryboardStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Storyboard Studio</h1><p class="text-white/60 text-xs">Plan your scenes with AI-generated storyboard frames</p>';
     storyBanner.appendChild(bannerText);
     topBar.appendChild(storyBanner);
-    const thumbBtn = document.createElement('button');
-    thumbBtn.type = 'button';
-    thumbBtn.textContent = '🖼 Thumbnail';
-    thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-yellow-500 to-amber-500 text-white hover:from-yellow-400 hover:to-amber-400 transition-all shadow-lg shadow-yellow-500/25';
-    thumbBtn.onclick = () => {
-      const modal = new StudioThumbnailModal({
-        studioId: 'storyboard-studio',
-        studioLabel: 'Storyboard Studio',
-        accentGradient: 'from-yellow-500 to-amber-500',
-      });
-      mountStudioThumbnailModal(modal);
-    };
-    storyBanner.appendChild(thumbBtn);
   } else {
     topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Storyboard Studio</h1><p class="text-secondary text-xs mb-4">Plan your scenes with AI-generated storyboard frames</p>';
   }
@@ -94,7 +80,7 @@ export function StoryboardStudio() {
   // Produces a conversion-optimized base concept that is propagated to every
   // frame (prepended to each frame's own prompt at generation time).
   let enhancedConcept = '';
-  let customThumbnailUrl = localStorage.getItem('storyboard-studio-thumbnail') || '';
+  let customThumbnailUrl = getCustomThumbnailFromCache('storyboard-studio');
   const gtmBtn = document.createElement('button');
   gtmBtn.type = 'button';
   gtmBtn.textContent = '🎯 GTM Boost';
@@ -112,6 +98,33 @@ export function StoryboardStudio() {
     }).catch((err) => console.error('[StoryboardStudio] GTM Boost failed:', err));
   });
   controlBar.appendChild(gtmBtn);
+
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'gtm-boost-btn shrink-0';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new StudioThumbnailModal({
+      appTheme: 'storyboard-studio',
+      studioId: 'storyboard-studio',
+      studioName: 'Storyboard Studio',
+      aspectRatio: '16:9',
+      outputType: 'image',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('storyboard-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('storyboard-studio');
+      },
+    });
+    mountStudioThumbnailModal(modal);
+    modal.open();
+  });
+  controlBar.appendChild(thumbBtn);
 
   const personalizeTrigger = mountPersonalizeTrigger({ controlsContainer: controlBar, appId: 'storyboard', getTextarea: () => null });
   // Live reference to the active personalization profile so generateFrame can

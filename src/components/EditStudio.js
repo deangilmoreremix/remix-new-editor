@@ -4,7 +4,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection, getToolThumbnail, createThumbnailImg } from '../lib/thumbnails.js';
+import { createHeroSection, getToolThumbnail, createThumbnailImg, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
@@ -31,7 +31,7 @@ export function EditStudio() {
 
   let activeTool = null;
   let uploadedUrl = null;
-  let customThumbnailUrl = localStorage.getItem('edit-studio-thumbnail') || '';
+  let customThumbnailUrl = getCustomThumbnailFromCache('edit-studio');
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
@@ -42,22 +42,6 @@ export function EditStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Edit Studio</h1><p class="text-white/60 text-xs">13 AI-powered editing tools for images</p>';
     editBanner.appendChild(bannerText);
     topBar.appendChild(editBanner);
-
-    // Thumbnail studio button
-    const thumbBtn = document.createElement('button');
-    thumbBtn.type = 'button';
-    thumbBtn.textContent = '🖼 Thumbnail';
-    thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-400 hover:to-blue-400 transition-all shadow-lg shadow-cyan-500/25';
-    thumbBtn.onclick = () => {
-      const modal = new StudioThumbnailModal({
-        studioId: 'edit-studio',
-        studioLabel: 'Edit Studio',
-        accentGradient: 'from-cyan-500 to-blue-500',
-      });
-      mountStudioThumbnailModal(modal);
-    };
-    editBanner.appendChild(thumbBtn);
   } else {
     topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Edit Studio</h1><p class="text-secondary text-xs mb-5">13 AI-powered editing tools for images</p>';
   }
@@ -174,6 +158,33 @@ export function EditStudio() {
   promptField.type = 'text';
   promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
   workCard.appendChild(promptField);
+
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'gtm-boost-btn w-full';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new StudioThumbnailModal({
+      appTheme: 'edit-studio',
+      studioId: 'edit-studio',
+      studioName: 'Edit Studio',
+      aspectRatio: '1:1',
+      outputType: 'image',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('edit-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('edit-studio');
+      },
+    });
+    mountStudioThumbnailModal(modal);
+    modal.open();
+  });
+  workCard.appendChild(thumbBtn);
 
   const editBtn = document.createElement('button');
   editBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all';

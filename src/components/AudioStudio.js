@@ -3,7 +3,7 @@ import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { audioModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
@@ -17,7 +17,7 @@ export function AudioStudio() {
   let prompt = '';
   let style = '';
   let duration = '30';
-  let customThumbnailUrl = localStorage.getItem('audio-studio-thumbnail') || '';
+  let customThumbnailUrl = getCustomThumbnailFromCache('audio-studio');
 
   // Header with hero banner
   const header = document.createElement('div');
@@ -29,20 +29,6 @@ export function AudioStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Audio Studio</h1><p class="text-white/60 text-sm">Generate music and speech with AI</p>';
     audioBanner.appendChild(bannerText);
     header.appendChild(audioBanner);
-    const thumbBtn = document.createElement('button');
-    thumbBtn.type = 'button';
-    thumbBtn.textContent = '🖼 Thumbnail';
-    thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-lime-500 to-green-500 text-white hover:from-lime-400 hover:to-green-400 transition-all shadow-lg shadow-lime-500/25';
-    thumbBtn.onclick = () => {
-      const modal = new StudioThumbnailModal({
-        studioId: 'audio-studio',
-        studioLabel: 'Audio Studio',
-        accentGradient: 'from-lime-500 to-green-500',
-      });
-      mountStudioThumbnailModal(modal);
-    };
-    audioBanner.appendChild(thumbBtn);
   }
   container.appendChild(header);
 
@@ -156,6 +142,33 @@ export function AudioStudio() {
   const genBtn = document.createElement('button');
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   genBtn.textContent = 'Generate Audio';
+
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'gtm-boost-btn w-full';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new StudioThumbnailModal({
+      appTheme: 'audio-studio',
+      studioId: 'audio-studio',
+      studioName: 'Audio Studio',
+      aspectRatio: '16:9',
+      outputType: 'image',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('audio-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('audio-studio');
+      },
+    });
+    mountStudioThumbnailModal(modal);
+    modal.open();
+  });
+  formCard.appendChild(thumbBtn);
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
 

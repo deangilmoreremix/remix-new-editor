@@ -6,7 +6,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createMediaPreview, createFullscreenPreview } from './MediaPreview.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { i2iModels, i2vModels } from '../lib/models.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
@@ -36,7 +36,7 @@ export function EffectsStudio() {
   let activeTab = EFFECT_TABS[0];
   let selectedEffect = null;
   let uploadedUrl = null;
-  let customThumbnailUrl = localStorage.getItem('effects-studio-thumbnail') || '';
+  let customThumbnailUrl = getCustomThumbnailFromCache('effects-studio');
 
   const fullscreen = createFullscreenPreview();
   container.appendChild(fullscreen.element);
@@ -65,7 +65,6 @@ export function EffectsStudio() {
       });
       mountStudioThumbnailModal(modal);
     };
-    effectsBanner.appendChild(thumbBtn);
   } else {
     topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Effects Studio</h1><p class="text-secondary text-xs mb-4">Apply 350+ visual effects to your photos and videos</p>';
   }
@@ -185,6 +184,33 @@ export function EffectsStudio() {
   promptInput.placeholder = 'Optional prompt...';
   promptInput.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
   promptRow.appendChild(promptInput);
+
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'gtm-boost-btn shrink-0';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new StudioThumbnailModal({
+      appTheme: 'effects-studio',
+      studioId: 'effects-studio',
+      studioName: 'Effects Studio',
+      aspectRatio: '16:9',
+      outputType: 'image',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('effects-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('effects-studio');
+      },
+    });
+    mountStudioThumbnailModal(modal);
+    modal.open();
+  });
+  promptRow.appendChild(thumbBtn);
 
   const generateBtn = document.createElement('button');
   generateBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow transition-all whitespace-nowrap';

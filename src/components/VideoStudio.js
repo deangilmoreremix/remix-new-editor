@@ -66,34 +66,6 @@ export function VideoStudio() {
         hero.appendChild(heroBanner);
     }
 
-    // Custom Thumbnail button — matches GTM Boost styling for visibility
-    const thumbAction = document.createElement('button');
-    thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition';
-    thumbAction.style.background = 'linear-gradient(135deg, #8b5cf6, #a855f7)';
-    thumbAction.style.boxShadow = '0 4px 14px rgba(139,92,246,0.3)';
-    thumbAction.style.color = '#ffffff';
-    thumbAction.textContent = '🖼 Custom Thumbnail';
-    thumbAction.onclick = () => {
-        const modal = new StudioThumbnailModal({
-            appTheme: 'video-studio',
-            studioId: 'video-studio',
-            studioName: 'Video Studio',
-            aspectRatio: selectedAr || '16:9',
-            outputType: 'video',
-            onApply: ({ imageUrl }) => {
-                customThumbnailUrl = imageUrl;
-                saveCustomThumbnailToCache('video-studio', imageUrl);
-            },
-            onClear: () => {
-                customThumbnailUrl = null;
-                clearCustomThumbnailCache('video-studio');
-            },
-        });
-        mountStudioThumbnailModal(modal);
-        modal.open();
-    };
-    hero.appendChild(thumbAction);
-
     container.appendChild(hero);
 
     // ==========================================
@@ -424,6 +396,33 @@ export function VideoStudio() {
     const initResolutions = getResolutionsForVideoModel(defaultModel.id);
     resolutionBtn.style.display = initResolutions.length > 0 ? 'flex' : 'none';
     qualityBtn.style.display = 'none';
+
+    // Thumbnail studio button — next to creation controls, GTM Boost styling
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'gtm-boost-btn shrink-0';
+    thumbBtn.addEventListener('click', () => {
+      const modal = new StudioThumbnailModal({
+        appTheme: 'video-studio',
+        studioId: 'video-studio',
+        studioName: 'Video Studio',
+        aspectRatio: selectedAr || '16:9',
+        outputType: 'video',
+        onApply: ({ imageUrl }) => {
+          customThumbnailUrl = imageUrl;
+          saveCustomThumbnailToCache('video-studio', imageUrl);
+        },
+        onClear: () => {
+          customThumbnailUrl = null;
+          clearCustomThumbnailCache('video-studio');
+        },
+      });
+      mountStudioThumbnailModal(modal);
+      modal.open();
+    });
+    controlsLeft.appendChild(thumbBtn);
 
     const generateBtn = document.createElement('button');
     generateBtn.className = 'bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-[1.5rem] font-black text-sm md:text-base hover:shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 w-full sm:w-auto shadow-lg';

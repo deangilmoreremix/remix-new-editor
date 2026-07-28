@@ -4,7 +4,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
 const UPSCALE_METHODS = [
@@ -21,7 +21,7 @@ export function UpscaleStudio() {
   let selectedMethod = UPSCALE_METHODS[0];
   let selectedFactor = '2';
   let uploadedUrl = null;
-  let customThumbnailUrl = localStorage.getItem('upscale-studio-thumbnail') || '';
+  let customThumbnailUrl = getCustomThumbnailFromCache('upscale-studio');
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-xl';
@@ -32,22 +32,6 @@ export function UpscaleStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Upscale Suite</h1><p class="text-white/60 text-sm">Enhance and upscale images with 3 AI methods</p>';
     upscaleBanner.appendChild(bannerText);
     header.appendChild(upscaleBanner);
-
-    // Thumbnail studio button
-    const thumbBtn = document.createElement('button');
-    thumbBtn.type = 'button';
-    thumbBtn.textContent = '🖼 Thumbnail';
-    thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-400 hover:to-teal-400 transition-all shadow-lg shadow-emerald-500/25';
-    thumbBtn.onclick = () => {
-      const modal = new StudioThumbnailModal({
-        studioId: 'upscale-studio',
-        studioLabel: 'Upscale Suite',
-        accentGradient: 'from-emerald-500 to-teal-500',
-      });
-      mountStudioThumbnailModal(modal);
-    };
-    upscaleBanner.appendChild(thumbBtn);
   }
   container.appendChild(header);
 
@@ -93,6 +77,33 @@ export function UpscaleStudio() {
   uploadRow.appendChild(hint);
   formCard.appendChild(uploadRow);
   container.appendChild(picker.panel);
+
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'gtm-boost-btn w-full';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new StudioThumbnailModal({
+      appTheme: 'upscale-studio',
+      studioId: 'upscale-studio',
+      studioName: 'Upscale Suite',
+      aspectRatio: '1:1',
+      outputType: 'image',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('upscale-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('upscale-studio');
+      },
+    });
+    mountStudioThumbnailModal(modal);
+    modal.open();
+  });
+  formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';

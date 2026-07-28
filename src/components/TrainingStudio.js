@@ -4,7 +4,7 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { trainingModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
@@ -18,7 +18,7 @@ export function TrainingStudio() {
   let triggerWord = '';
   let epochs = '10';
   let uploadedImages = [];
-  let customThumbnailUrl = localStorage.getItem('training-studio-thumbnail') || '';
+  let customThumbnailUrl = getCustomThumbnailFromCache('training-studio');
 
   // Header with hero banner
   const header = document.createElement('div');
@@ -30,20 +30,6 @@ export function TrainingStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Training Studio</h1><p class="text-white/60 text-sm">Train custom LoRA models from your images</p>';
     trainingBanner.appendChild(bannerText);
     header.appendChild(trainingBanner);
-    const thumbBtn = document.createElement('button');
-    thumbBtn.type = 'button';
-    thumbBtn.textContent = '🖼 Thumbnail';
-    thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-indigo-500 to-violet-500 text-white hover:from-indigo-400 hover:to-violet-400 transition-all shadow-lg shadow-indigo-500/25';
-    thumbBtn.onclick = () => {
-      const modal = new StudioThumbnailModal({
-        studioId: 'training-studio',
-        studioLabel: 'Training Studio',
-        accentGradient: 'from-indigo-500 to-violet-500',
-      });
-      mountStudioThumbnailModal(modal);
-    };
-    trainingBanner.appendChild(thumbBtn);
   }
   container.appendChild(header);
 
@@ -152,6 +138,33 @@ export function TrainingStudio() {
   
   formCard.appendChild(imageUploadGroup);
   container.appendChild(imagePicker.panel);
+
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'gtm-boost-btn w-full';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new StudioThumbnailModal({
+      appTheme: 'training-studio',
+      studioId: 'training-studio',
+      studioName: 'Training Studio',
+      aspectRatio: '1:1',
+      outputType: 'image',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('training-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('training-studio');
+      },
+    });
+    mountStudioThumbnailModal(modal);
+    modal.open();
+  });
+  formCard.appendChild(thumbBtn);
 
   // Train button
   const trainBtn = document.createElement('button');

@@ -2,7 +2,7 @@ import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { textModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailModal.jsx';
 
@@ -14,7 +14,7 @@ export function ChatStudio() {
   let selectedModel = textModels[0];
   let messages = []; // Chat history
   let isGenerating = false;
-  let customThumbnailUrl = localStorage.getItem('chat-studio-thumbnail') || '';
+  let customThumbnailUrl = getCustomThumbnailFromCache('chat-studio');
 
   // Header with hero banner
   const header = document.createElement('div');
@@ -26,20 +26,6 @@ export function ChatStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-4xl font-black text-white tracking-tight mb-2">Chat Studio</h1><p class="text-white/60 text-sm">AI-powered text generation and conversation</p>';
     chatBanner.appendChild(bannerText);
     header.appendChild(chatBanner);
-    const thumbBtn = document.createElement('button');
-    thumbBtn.type = 'button';
-    thumbBtn.textContent = '🖼 Thumbnail';
-    thumbBtn.title = 'Generate a custom thumbnail';
-    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:from-teal-400 hover:to-cyan-400 transition-all shadow-lg shadow-teal-500/25';
-    thumbBtn.onclick = () => {
-      const modal = new StudioThumbnailModal({
-        studioId: 'chat-studio',
-        studioLabel: 'Chat Studio',
-        accentGradient: 'from-teal-500 to-cyan-500',
-      });
-      mountStudioThumbnailModal(modal);
-    };
-    chatBanner.appendChild(thumbBtn);
   }
   container.appendChild(header);
 
@@ -112,6 +98,33 @@ export function ChatStudio() {
   sendBtn.className = 'px-6 py-3 bg-primary text-black font-bold rounded-xl hover:bg-primary/90 transition-colors self-end';
   sendBtn.innerHTML = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
   inputRow.appendChild(sendBtn);
+
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'gtm-boost-btn shrink-0';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new StudioThumbnailModal({
+      appTheme: 'chat-studio',
+      studioId: 'chat-studio',
+      studioName: 'Chat Studio',
+      aspectRatio: '16:9',
+      outputType: 'image',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('chat-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('chat-studio');
+      },
+    });
+    mountStudioThumbnailModal(modal);
+    modal.open();
+  });
+  inputRow.appendChild(thumbBtn);
   inputArea.appendChild(inputRow);
 
   // Advanced options toggle

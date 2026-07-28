@@ -71,33 +71,6 @@ export function ImageStudio() {
         hero.appendChild(heroBanner);
     }
 
-    // Custom Thumbnail button
-    const thumbAction = document.createElement('button');
-    thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition';
-    thumbAction.style.background = 'linear-gradient(135deg, #f59e0b, #fbbf24)';
-    thumbAction.style.boxShadow = '0 4px 14px rgba(245,158,11,0.3)';
-    thumbAction.textContent = '🖼 Custom Thumbnail';
-    thumbAction.onclick = () => {
-        const modal = new StudioThumbnailModal({
-            appTheme: 'image-studio',
-            studioId: 'image-studio',
-            studioName: 'Image Studio',
-            aspectRatio: selectedAr || '1:1',
-            outputType: 'image',
-            onApply: ({ imageUrl }) => {
-                customThumbnailUrl = imageUrl;
-                saveCustomThumbnailToCache('image-studio', imageUrl);
-            },
-            onClear: () => {
-                customThumbnailUrl = null;
-                clearCustomThumbnailCache('image-studio');
-            },
-        });
-        mountStudioThumbnailModal(modal);
-        modal.open();
-    };
-    hero.appendChild(thumbAction);
-
     container.appendChild(hero);
 
     // ==========================================
@@ -237,7 +210,34 @@ export function ImageStudio() {
     controlsLeft.appendChild(modelBtn);
     controlsLeft.appendChild(arBtn);
     controlsLeft.appendChild(qualityBtn);
-    
+
+    // Thumbnail studio button — next to creation controls, GTM Boost styling
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'gtm-boost-btn shrink-0';
+    thumbBtn.addEventListener('click', () => {
+      const modal = new StudioThumbnailModal({
+        appTheme: 'image-studio',
+        studioId: 'image-studio',
+        studioName: 'Image Studio',
+        aspectRatio: selectedAr || '1:1',
+        outputType: 'image',
+        onApply: ({ imageUrl }) => {
+          customThumbnailUrl = imageUrl;
+          saveCustomThumbnailToCache('image-studio', imageUrl);
+        },
+        onClear: () => {
+          customThumbnailUrl = null;
+          clearCustomThumbnailCache('image-studio');
+        },
+      });
+      mountStudioThumbnailModal(modal);
+      modal.open();
+    });
+    controlsLeft.appendChild(thumbBtn);
+
     // Advanced options toggle button
     const advancedBtn = createControlBtn(`
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 001.82-.33 1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-1.82.33A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
