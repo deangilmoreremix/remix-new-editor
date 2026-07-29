@@ -85,6 +85,13 @@ router.post('/process', async (req, res) => {
         message: 'The agent actions bridge is not reachable. Set AGENT_ACTIONS_URL or ensure the backend is running.',
       });
     }
+
+    // No known command matched — return an explicit error instead of fabricating data.
+    return res.status(400).json({
+      error: 'Unrecognized command',
+      message: 'Command not in known vocabulary. Try: add title, add subtitle, trim video, generate clip, detect scenes.',
+      suggestions: ['add title', 'trim video', 'detect scenes'],
+    });
   } catch (error) {
     console.error('AI Agent processing error:', error);
     res.status(500).json({ error: 'Processing failed', message: error.message });
