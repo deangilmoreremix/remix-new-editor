@@ -83,8 +83,6 @@ export class MuapiClient {
         if (params.image_url) {
             finalPayload.image_url = params.image_url;
             finalPayload.strength = params.strength || 0.6;
-        } else {
-            finalPayload.image_url = null;
         }
 
         if (params.seed && params.seed !== -1) {
@@ -230,6 +228,8 @@ export class MuapiClient {
         if (params.resolution) finalPayload.resolution = params.resolution;
         if (params.quality) finalPayload.quality = params.quality;
         if (params.image_url) finalPayload.image_url = params.image_url;
+        // Effect endpoints (generate_wan_ai_effects) REQUIRE `name`.
+        if (params.name) finalPayload.name = params.name;
 
         if (params.negative_prompt) {
             finalPayload.negative_prompt = params.negative_prompt;
@@ -370,6 +370,9 @@ export class MuapiClient {
         if (params.duration) finalPayload.duration = params.duration;
         if (params.resolution) finalPayload.resolution = params.resolution;
         if (params.quality) finalPayload.quality = params.quality;
+        // Effect endpoints (generate_wan_ai_effects) REQUIRE `name`.
+        // Forward it from the template's effect selection input or defaultParams.
+        if (params.name) finalPayload.name = params.name;
 
         if (params.negative_prompt) {
             finalPayload.negative_prompt = params.negative_prompt;
@@ -656,19 +659,24 @@ export class MuapiClient {
         if (params.video_url) finalPayload.video_url = params.video_url;
         finalPayload.name = trimmedName;
         if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
-        finalPayload.resolution = resolution;
-        finalPayload.quality = quality;
         if (params.duration) finalPayload.duration = params.duration;
+        if (params.resolution) finalPayload.resolution = params.resolution;
+        if (params.quality) finalPayload.quality = params.quality;
+        if (params.image_url) finalPayload.image_url = params.image_url;
+        // Effect endpoints (generate_wan_ai_effects) REQUIRE `name`.
+        if (params.name) finalPayload.name = params.name;
 
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({
                     endpoint,
                     params: finalPayload,
-                    generationType: 'video-effect',
-                    studioType: 'video-tools'
+                    generationType: 'video',
+                    studioType: params.studioType || 'video'
                 }),
                 signal
             });

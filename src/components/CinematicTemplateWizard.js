@@ -366,7 +366,11 @@ export function CinematicTemplateWizard({ template, onCancel, onGenerate }) {
         duration: template.duration || 5,
       };
       let result;
-      if (template.kind === 'image' || /image/i.test(template.name || '')) {
+      if (template.modelType === 'i2i') {
+        result = await muapi.generateI2I(params);
+      } else if (template.modelType === 'i2v') {
+        result = await muapi.generateI2V(params);
+      } else if (template.outputType === 'image') {
         result = await muapi.generateImage(params);
       } else {
         result = await muapi.generateVideo(params);
