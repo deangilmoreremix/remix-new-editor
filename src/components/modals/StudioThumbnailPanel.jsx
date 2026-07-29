@@ -2,7 +2,7 @@ import { TemplateThumbnailModal, mountThumbnailModal } from './TemplateThumbnail
 import { supabase } from '../../lib/supabase.js';
 import { ThumbnailService } from '../../lib/thumbnailService.js';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
-import { PRESET_LIST, applyPresetToControls } from '../../lib/thumbnailPresets.js';
+import { PRESET_LIST, applyPresetToControls, getPresetForTemplate, applyPresetToBrief } from '../../lib/thumbnailPresets.js';
 
 /**
  * StudioThumbnailPanel — side drawer version of the thumbnail studio.
@@ -12,11 +12,11 @@ import { PRESET_LIST, applyPresetToControls } from '../../lib/thumbnailPresets.j
  * instead of a centered modal overlay.
  *
  * 5-step flow:
- *   1. Brief   — prompt variants + user edits
- *   2. Generate — 3 gpt-image-2 candidates
- *   3. Refine   — multi-turn Responses API edit
- *   4. Save     — upload to Storage + insert into thumbnails table
- *   5. Apply    — inject custom URL back into calling studio
+ *   1. Brief   — prompt variants + user edits + platform/brand settings
+ *   2. Brand/Platform — brand kit configuration
+ *   3. Generate — 3 gpt-image-2 candidates or video frame sequence
+ *   4. Refine   — multi-turn Responses API edit
+ *   5. Saved     — upload to Storage + insert into thumbnails table
  */
 
 const PANEL_STYLES = `
@@ -96,6 +96,143 @@ const PANEL_STYLES = `
   line-height: 1.5;
   color: var(--text-secondary);
   max-width: 56ch;
+}
+
+.studio-thumb-panel .thumb-platform-select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a1a1aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.studio-thumb-panel .thumb-platform-select:focus {
+  border-color: var(--app-primary);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px var(--app-soft);
+}
+
+.studio-thumb-panel .thumb-platform-select option {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+}
+
+.studio-thumb-panel .thumb-brand-section {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 12px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.studio-thumb-panel .thumb-brand-section .form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.studio-thumb-panel .thumb-brand-section label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.studio-thumb-panel .thumb-brand-section input[type="text"] {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.studio-thumb-panel .thumb-brand-section input[type="text"]:focus {
+  border-color: var(--app-primary);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 3px var(--app-soft);
+}
+
+.studio-thumb-panel .thumb-color-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.studio-thumb-panel .thumb-color-row input[type="color"] {
+  width: 40px;
+  height: 36px;
+  padding: 2px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+}
+
+.studio-thumb-panel .thumb-brand-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.studio-thumb-panel .thumb-brand-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--app-primary);
+  cursor: pointer;
+}
+
+.studio-thumb-panel .thumb-video-section {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 10px 12px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.studio-thumb-panel .thumb-frame-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.studio-thumb-panel .thumb-frame-card {
+  aspect-ratio: 16/9;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--text-secondary);
 }
 
 .studio-thumb-panel .thumb-form {
@@ -406,6 +543,7 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
       cinematography = '',
       niche = '',
       initialBrief = '',
+      platform = 'youtube',
       onApply,
       onClear,
       ...rest
@@ -435,12 +573,76 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
     this.studioId = studioId;
     this.studioName = studioName;
     this.studioOutputType = outputType;
+    this.platform = platform;
+    this.brandKitEnabled = false;
+    this.brandName = '';
+    this.primaryColor = '#10b981';
+    this.secondaryColor = '#34d399';
+    this.logoUrl = '';
+    this.useBrandColors = false;
+    this.videoThumbEnabled = false;
+    this.videoDuration = '5s';
+    this.frameCount = 8;
+    this.generationTime = '0.0';
+    this.isVideoThumb = false;
+    this.videoFrames = [];
+  }
+
+  getPlatformLabel() {
+    const labels = {
+      'youtube': 'YouTube',
+      'instagram-post': 'Instagram Post',
+      'instagram-reel': 'Instagram Reel',
+      'tiktok': 'TikTok',
+      'twitter': 'Twitter / X',
+      'linkedin': 'LinkedIn',
+    };
+    return labels[this.platform] || this.platform;
+  }
+
+  setLoading(loading) {
+    this.isGenerating = Boolean(loading);
+    this._refreshPanel();
+  }
+
+  setError(message) {
+    this._error = message;
+    this._refreshPanel();
   }
 
   // Override open() to render as side panel instead of modal
   open() {
     injectPanelStyles();
     this._error = null;
+    this.step = 'brief';
+    this.brief = this.buildInitialBrief();
+    this.candidates = [];
+    this.selectedIndex = -1;
+    this.isGenerating = false;
+    this.variants = [];
+    this.refineInput = '';
+    this.savedImageUrl = '';
+    this.platform = this.platform || 'youtube';
+    this.brandKitEnabled = false;
+    this.brandName = '';
+    this.primaryColor = '#10b981';
+    this.secondaryColor = '#34d399';
+    this.logoUrl = '';
+    this.useBrandColors = false;
+    this.videoThumbEnabled = false;
+    this.videoDuration = '5s';
+    this.frameCount = 8;
+    this.generationTime = '0.0';
+    this.isVideoThumb = false;
+    this.videoFrames = [];
+
+    this.preset = getPresetForTemplate(this.template);
+    this.presetKey = this.preset.key;
+    this.brief = applyPresetToBrief(this.preset, this.brief);
+    this.controls = applyPresetToControls(this.preset, {
+      ...this.controls,
+      aspectRatio: this.template?.aspectRatio || '16:9',
+    });
 
     // Create overlay
     this._overlay = document.createElement('div');
@@ -495,7 +697,7 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
   }
 
   _renderStepIndicator() {
-    const steps = ['Brief', 'Generate', 'Refine', 'Saved'];
+    const steps = ['Brief', 'Brand/Platform', 'Generate', 'Refine', 'Saved'];
     const currentIndex = steps.indexOf(this.step);
 
     const indicator = document.createElement('div');
@@ -582,6 +784,49 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
           </select>
         </div>
       </div>
+      <div class="form-section">
+        <label for="thumb-platform">Target Platform</label>
+        <select id="thumb-platform" class="thumb-platform-select">
+          <option value="youtube" ${this.platform === 'youtube' ? 'selected' : ''}>YouTube</option>
+          <option value="instagram-post" ${this.platform === 'instagram-post' ? 'selected' : ''}>Instagram Post</option>
+          <option value="instagram-reel" ${this.platform === 'instagram-reel' ? 'selected' : ''}>Instagram Reel</option>
+          <option value="tiktok" ${this.platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
+          <option value="twitter" ${this.platform === 'twitter' ? 'selected' : ''}>Twitter / X</option>
+          <option value="linkedin" ${this.platform === 'linkedin' ? 'selected' : ''}>LinkedIn</option>
+        </select>
+      </div>
+      <div class="form-section">
+        <label class="thumb-brand-toggle">
+          <input type="checkbox" id="thumb-brand-toggle" ${this.brandKitEnabled ? 'checked' : ''}>
+          Use brand kit
+        </label>
+      </div>
+      <div class="form-section">
+        <label class="thumb-brand-toggle">
+          <input type="checkbox" id="thumb-video-toggle" ${this.videoThumbEnabled ? 'checked' : ''}>
+          Generate animated video thumbnail (frame sequence)
+        </label>
+      </div>
+      ${this.videoThumbEnabled ? `
+      <div class="thumb-video-section">
+        <div class="form-section">
+          <label for="thumb-duration">Duration</label>
+          <select id="thumb-duration">
+            <option value="3s" ${this.videoDuration === '3s' ? 'selected' : ''}>3s</option>
+            <option value="5s" ${this.videoDuration === '5s' ? 'selected' : ''}>5s</option>
+            <option value="10s" ${this.videoDuration === '10s' ? 'selected' : ''}>10s</option>
+          </select>
+        </div>
+        <div class="form-section">
+          <label for="thumb-frames">Frame Count</label>
+          <select id="thumb-frames">
+            <option value="4" ${this.frameCount == 4 ? 'selected' : ''}>4 frames</option>
+            <option value="8" ${this.frameCount == 8 ? 'selected' : ''}>8 frames</option>
+            <option value="12" ${this.frameCount == 12 ? 'selected' : ''}>12 frames</option>
+          </select>
+        </div>
+      </div>
+      ` : ''}
     `;
 
     const textarea = container.querySelector('#thumb-brief');
@@ -599,13 +844,106 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
       this.controls.style = e.target.value;
     });
 
+    const platformSelect = container.querySelector('#thumb-platform');
+    platformSelect.addEventListener('change', (e) => {
+      this.platform = e.target.value;
+    });
+
+    const brandToggle = container.querySelector('#thumb-brand-toggle');
+    brandToggle.addEventListener('change', (e) => {
+      this.brandKitEnabled = e.target.checked;
+      this._refreshPanel();
+    });
+
+    const videoToggle = container.querySelector('#thumb-video-toggle');
+    videoToggle.addEventListener('change', (e) => {
+      this.videoThumbEnabled = e.target.checked;
+      this._refreshPanel();
+    });
+
+    const durationSelect = container.querySelector('#thumb-duration');
+    if (durationSelect) {
+      durationSelect.addEventListener('change', (e) => {
+        this.videoDuration = e.target.value;
+      });
+    }
+
+    const framesSelect = container.querySelector('#thumb-frames');
+    if (framesSelect) {
+      framesSelect.addEventListener('change', (e) => {
+        this.frameCount = parseInt(e.target.value, 10);
+      });
+    }
+
+    if (this.brandKitEnabled) {
+      container.appendChild(this._renderBrandKitSection());
+    }
+
     return container;
+  }
+
+  _renderBrandKitSection() {
+    const section = document.createElement('div');
+    section.className = 'thumb-brand-section';
+    section.innerHTML = `
+      <div class="form-section">
+        <label for="thumb-brand-name">Brand Name</label>
+        <input type="text" id="thumb-brand-name" placeholder="My Brand" value="${this.escapeHtml(this.brandName || '')}">
+      </div>
+      <div class="form-section">
+        <label>Brand Colors</label>
+        <div class="thumb-color-row">
+          <input type="color" id="thumb-primary-color" value="${this.primaryColor || '#10b981'}">
+          <input type="color" id="thumb-secondary-color" value="${this.secondaryColor || '#34d399'}">
+        </div>
+      </div>
+      <div class="form-section">
+        <label for="thumb-logo-url">Logo URL (optional)</label>
+        <input type="text" id="thumb-logo-url" placeholder="https://..." value="${this.escapeHtml(this.logoUrl || '')}">
+      </div>
+      <div class="form-section">
+        <label class="thumb-brand-toggle">
+          <input type="checkbox" id="thumb-use-brand-colors" ${this.useBrandColors ? 'checked' : ''}>
+          Use brand colors in thumbnails
+        </label>
+      </div>
+    `;
+
+    const brandName = section.querySelector('#thumb-brand-name');
+    brandName.addEventListener('input', (e) => { this.brandName = e.target.value; });
+
+    const primaryColor = section.querySelector('#thumb-primary-color');
+    primaryColor.addEventListener('input', (e) => { this.primaryColor = e.target.value; });
+
+    const secondaryColor = section.querySelector('#thumb-secondary-color');
+    secondaryColor.addEventListener('input', (e) => { this.secondaryColor = e.target.value; });
+
+    const logoUrl = section.querySelector('#thumb-logo-url');
+    logoUrl.addEventListener('input', (e) => { this.logoUrl = e.target.value; });
+
+    const useBrandColors = section.querySelector('#thumb-use-brand-colors');
+    useBrandColors.addEventListener('change', (e) => { this.useBrandColors = e.target.checked; });
+
+    return section;
   }
 
   _renderGenerateView() {
     const container = document.createElement('div');
 
-    if (this.candidates.length > 0) {
+    if (this.isVideoThumb && this.videoFrames.length > 0) {
+      const grid = document.createElement('div');
+      grid.className = 'candidate-grid';
+      this.videoFrames.forEach((frame, index) => {
+        const card = document.createElement('div');
+        card.className = 'candidate-card';
+        const img = document.createElement('img');
+        img.src = frame.dataUrl || frame.b64_json;
+        img.alt = `Frame ${index + 1}`;
+        card.appendChild(img);
+        grid.appendChild(card);
+      });
+      container.appendChild(grid);
+    } else if (this.candidates.length > 0) {
       const grid = document.createElement('div');
       grid.className = 'candidate-grid';
 
@@ -678,7 +1016,9 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
     info.innerHTML = `
       <label>Status</label>
       <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">
-        ✓ Thumbnail saved and ready to apply.
+        ✓ Thumbnail generated in ${this.generationTime}s<br>
+        Model used: gpt-4.1<br>
+        Platform: ${this.getPlatformLabel()}
       </p>
     `;
     container.appendChild(info);
@@ -694,6 +1034,93 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
       <p style="font-size: 13px; color: var(--text-secondary); margin: 0;">Generating thumbnails...</p>
     `;
     return container;
+  }
+
+  async _goGenerate() {
+    const startTime = performance.now();
+    try {
+      if (this.videoThumbEnabled) {
+        await this._generateVideoThumbnail();
+      } else {
+        await super.goGenerate();
+      }
+    } finally {
+      this.generationTime = ((performance.now() - startTime) / 1000).toFixed(1);
+      this._refreshPanel();
+    }
+  }
+
+  async _generateVideoThumbnail() {
+    this.clearError();
+    const promptText = document.getElementById('thumb-brief')?.value || this.brief;
+    this.isGenerating = true;
+    this.candidates = [];
+    this.selectedIndex = -1;
+    this._refreshPanel();
+
+    try {
+      const frames = await this.thumbnailService.generateVideoThumbnail(promptText, {
+        duration: this.videoDuration,
+        frameCount: this.frameCount,
+        platform: this.platform,
+        aspectRatio: this.controls.aspectRatio || '16:9',
+        quality: this.controls.quality,
+        style: this.controls.style,
+      });
+      this.videoFrames = frames || [];
+      this.isVideoThumb = true;
+      this.step = 'generate';
+      this.isGenerating = false;
+      this._refreshPanel();
+    } catch (err) {
+      this.isGenerating = false;
+      this.setError(err instanceof Error ? err.message : 'Failed to generate video thumbnail');
+      this._refreshPanel();
+    }
+  }
+
+  async _goSave() {
+    try {
+      if (this.isVideoThumb && this.videoFrames.length > 0) {
+        await this._saveVideoThumbnail();
+      } else {
+        await super.goSave();
+      }
+    } finally {
+      this._refreshPanel();
+    }
+  }
+
+  async _saveVideoThumbnail() {
+    this.clearError();
+    this.setLoading('Saving thumbnail…');
+    try {
+      const frame = this.videoFrames[0];
+      const result = await this.thumbnailService.saveToStorage({
+        imageB64: frame.b64_json || frame.dataUrl,
+        promptUsed: this.brief,
+        presetKey: this.presetKey,
+        controls: { ...this.controls },
+      });
+      this.savedImageUrl = result?.imageUrl || '';
+      this.step = 'saved';
+      this.isGenerating = false;
+      this._refreshPanel();
+      this.enableApplyButton();
+    } catch (err) {
+      this.isGenerating = false;
+      this.setError(err instanceof Error ? err.message : 'Save failed');
+      this._refreshPanel();
+    }
+  }
+
+  _goClear() {
+    this.savedImageUrl = '';
+    this.savedPromptUsed = '';
+    this.completedAt = null;
+    this.revisedPrompt = '';
+    this.step = 'brief';
+    this._refreshPanel();
   }
 
   _renderPanelFooter() {
