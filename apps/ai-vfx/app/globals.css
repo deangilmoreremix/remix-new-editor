@@ -1,5 +1,52 @@
-body {
+/* ============================================================
+   AI VFX Studio — global styles
+   Color scheme aligned with the shared studio design system
+   (src/styles/variables.css): deep-black base, neon yellow-green
+   primary (#d9ff00), translucent-white text/borders.
+   ============================================================ */
+:root {
+  /* Brand */
+  --color-primary: #d9ff00;
+  --color-primary-hover: #c4e600;
+  --color-accent: #a855f7;
+  --color-danger: #ef4444;
+
+  /* Backgrounds */
+  --bg-app: #050505;
+  --bg-panel: #0a0a0a;
+  --bg-card: #141414;
+  --bg-glass: rgba(10, 10, 10, 0.8);
+  --surface-1: rgba(255, 255, 255, 0.03);
+  --surface-2: rgba(255, 255, 255, 0.05);
+
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #52525b;
+
+  /* Borders */
+  --border-color: #27272a;
+  --border-light: rgba(255, 255, 255, 0.1);
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Effects */
+  --shadow-glow: 0 0 20px rgba(176, 251, 93, 0.4);
+  --shadow-glow-accent: 0 0 20px rgba(168, 85, 247, 0.4);
+
+  /* Font */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+html, body {
   margin: 0;
   padding: 0;
-  background: #111;
+  box-sizing: border-box;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-family);
 }

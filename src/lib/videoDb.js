@@ -1,15 +1,19 @@
 /**
  * VideoDB Client
  *
- * Thin, browser-side wrapper around the VideoDB Server API
- * (https://api.videodb.io). VideoDB is a *user-scoped* service: every request
- * is authenticated with the user's own access token (the "VideoDB API Key"
- * they paste into the setup popup), sent as the `x-access-token` header.
+ * Thin wrapper around the VideoDB Server API (https://api.videodb.io). VideoDB
+ * is a *user-scoped* service: every request is authenticated with the user's
+ * own access token (the "VideoDB API Key" they paste into the setup popup),
+ * sent as the `x-access-token` header.
  *
- * Unlike MuAPI (which is proxied server-side with a shared key) or OpenAI
- * (which is forwarded through the muapi proxy), VideoDB calls go straight from
- * the browser to api.videodb.io using the user's token. This is by design: a
- * VideoDB account and its stored media belong to the user, not the app.
+ * Where the request runs:
+ *   - Preferred: through the app's Render backend proxy (`/api/videodb/proxy`).
+ *     The browser sends the user's key in the request body; the backend calls
+ *     api.videodb.io server-side. This keeps VideoDB "running on the backend"
+ *     (Render.com) and avoids any client/CORS edge cases.
+ *   - Fallback: a direct browser to api.videodb.io call (CORS-verified) if the
+ *     backend proxy is unreachable. The user's key is still sent only as the
+ *     `x-access-token` header and is never persisted server-side.
  *
  * The key is read through `apiKeyManager.getVideoDBKey()`, which handles
  * obfuscated sessionStorage/localStorage persistence, so the token survives
@@ -25,44 +29,23 @@ import { apiKeyManager } from './apiKeyManager.js';
 const VIDEODB_BASE_URL = 'https://api.videodb.io';
 const DEFAULT_COLLECTION = 'default';
 
+// Locate the Render backend proxy. Mirrors how muapi/openai routes are built.
+function getProxyBaseUrl() {
+    if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) {
+        return import.meta.env.VITE_BACKEND_URL.replace(/\/$/, '');
+    }
+    if (typeof window !== 'undefined' && window.__BACKEND_URL__) {
+        return window.__BACKEND_URL__.replace(/\/$/, '');
+    }
+    // Same-origin default (the backend is served alongside the app in prod).
+    return '';
+}
+
 class VideoDBClient {
     constructor() {
         this.baseUrl = VIDEODB_BASE_URL;
         // Bind the manager so feature code can call `videoDb.getKey()` etc.
         this.apiKeyManager = apiKeyManager;
-        // When a backend proxy is deployed, route VideoDB calls through it so
-        // the server-side VIDEO_DB_API_KEY (or per-request x-access-token) is
-        // used. This is what makes the four studios work on Render without
-        // every user supplying their own token. Set VITE_BACKEND_URL to enable.
-        this.backendUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) || '';
-        this.backendUrl = this.backendUrl.replace(/\/$/, '');
-        this.useProxy = Boolean(this.backendUrl);
-    }
-
-    /**
-     * Resolve the access token to forward to the proxy. Prefers the user's own
-     * VideoDB token (so they can act on their own account); falls back to none
-     * (the server uses its own VIDEO_DB_API_KEY).
-     */
-    _proxyHeaders() {
-        const headers = { 'Content-Type': 'application/json' };
-        const token = this.getKey();
-        if (token) headers['x-access-token'] = token;
-        return headers;
-    }
-
-    async _proxyFetch(path, { method = 'POST', body } = {}) {
-        const res = await fetch(`${this.backendUrl}/api/videodb${path}`, {
-            method,
-            headers: this._proxyHeaders(),
-            body: body ? JSON.stringify(body) : undefined,
-        });
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok || json?.status === 'error') {
-            // Proxy returned an error envelope — fall back to direct call.
-            throw new Error(json?.error?.message || `VideoDB proxy ${res.status}`);
-        }
-        return json.data ?? json;
     }
 
     /**
@@ -78,25 +61,61 @@ class VideoDBClient {
     }
 
     /**
-     * Build the headers for a VideoDB request. Throws if no token is set so
-     * the failure is explicit rather than a silent 401.
+     * Issue a VideoDB request.
+     *
+     * Tries the backend proxy first (user key sent in body, backend calls
+     * api.videodb.io). Falls back to a direct browser call if the proxy is
+     * unreachable. Returns the parsed JSON (`data` unwrapped when present).
      */
-    _headers(extra = {}) {
+    async _request(endpoint, { method = 'POST', body } = {}) {
         const token = this.getKey();
         if (!token) {
-            throw new Error(
-                'VideoDB API key not configured. Add your VideoDB API key in Settings.'
-            );
+            throw new Error('VideoDB API key not configured. Add your VideoDB API key in Settings.');
         }
-        return {
-            'Content-Type': 'application/json',
-            'x-access-token': token,
-            ...extra,
-        };
-    }
 
-    _url(path) {
-        return `${this.baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+        const proxyBase = getProxyBaseUrl();
+        if (proxyBase) {
+            try {
+                const res = await fetch(`${proxyBase}/api/videodb/proxy`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        endpoint,
+                        method,
+                        body,
+                        videoDbKey: token,
+                    }),
+                });
+                if (res.ok || res.status === 400) {
+                    const json = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        throw new Error(json?.error || json?.message || `VideoDB request failed (${res.status})`);
+                    }
+                    return json?.data ?? json;
+                }
+                // Non-JSON / unexpected status from proxy — fall through to direct.
+            } catch (err) {
+                if (err.message && /VideoDB/.test(err.message)) throw err;
+                // Network error talking to the proxy — fall back to direct call.
+                console.warn('[videoDb] proxy unreachable, using direct call:', err.message);
+            }
+        }
+
+        // Direct browser to api.videodb.io (CORS-verified).
+        const res = await fetch(`${this.baseUrl}/${endpoint}`, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'x-access-token': token,
+            },
+            body: method === 'POST' ? JSON.stringify(body) : undefined,
+        });
+        if (!res.ok) {
+            const detail = await res.text().catch(() => '');
+            throw new Error(`VideoDB request failed (${res.status}): ${detail.slice(0, 200)}`);
+        }
+        const json = await res.json();
+        return json?.data ?? json;
     }
 
     /**
@@ -104,24 +123,10 @@ class VideoDBClient {
      * Returns the created media object ({ id, stream_url, player_url, ... }).
      */
     async indexVideo(url, { name, mediaType = 'video', collectionId = DEFAULT_COLLECTION } = {}) {
-        if (this.useProxy) {
-            try {
-                return await this._proxyFetch(`/collections/${encodeURIComponent(collectionId)}/upload`, {
-                    body: { url, name, mediaType },
-                });
-            } catch (_) { /* fall back to direct call */ }
-        }
-        const res = await fetch(this._url(`/collection/${encodeURIComponent(collectionId)}/upload`), {
+        return this._request(`collection/${encodeURIComponent(collectionId)}/upload`, {
             method: 'POST',
-            headers: this._headers(),
-            body: JSON.stringify({ url, name, media_type: mediaType }),
+            body: { url, name, media_type: mediaType },
         });
-        if (!res.ok) {
-            const detail = await res.text().catch(() => '');
-            throw new Error(`VideoDB index failed (${res.status}): ${detail.slice(0, 200)}`);
-        }
-        const json = await res.json();
-        return json?.data ?? json;
     }
 
     /**
@@ -129,77 +134,38 @@ class VideoDBClient {
      * ({ query, results: [{ video_id, start, end, text, score }] }).
      */
     async searchCollection(query, { collectionId = DEFAULT_COLLECTION, indexType = 'scene', searchType = 'semantic', resultThreshold = 10 } = {}) {
-        if (this.useProxy) {
-            try {
-                return await this._proxyFetch(`/collections/${encodeURIComponent(collectionId)}/search`, {
-                    body: { query, indexType, searchType, resultThreshold },
-                });
-            } catch (_) { /* fall back to direct call */ }
-        }
-        const res = await fetch(this._url(`/collection/${encodeURIComponent(collectionId)}/search/`), {
+        return this._request(`collection/${encodeURIComponent(collectionId)}/search/`, {
             method: 'POST',
-            headers: this._headers(),
-            body: JSON.stringify({ query, index_type: indexType, search_type: searchType, result_threshold: resultThreshold }),
+            body: { query, index_type: indexType, search_type: searchType, result_threshold: resultThreshold },
         });
-        if (!res.ok) {
-            const detail = await res.text().catch(() => '');
-            throw new Error(`VideoDB search failed (${res.status}): ${detail.slice(0, 200)}`);
-        }
-        const json = await res.json();
-        return json?.data ?? json;
     }
 
     /**
      * Semantic search within a single indexed video (id looks like `m-xxx`).
      */
     async searchVideo(videoId, query, { indexType = 'scene', searchType = 'semantic', resultThreshold = 10 } = {}) {
-        if (this.useProxy) {
-            try {
-                return await this._proxyFetch(`/videos/${encodeURIComponent(videoId)}/search`, {
-                    body: { query, indexType, searchType, resultThreshold },
-                });
-            } catch (_) { /* fall back to direct call */ }
-        }
-        const res = await fetch(this._url(`/video/${encodeURIComponent(videoId)}/search/`), {
+        return this._request(`video/${encodeURIComponent(videoId)}/search/`, {
             method: 'POST',
-            headers: this._headers(),
-            body: JSON.stringify({ query, index_type: indexType, search_type: searchType, result_threshold: resultThreshold }),
+            body: { query, index_type: indexType, search_type: searchType, result_threshold: resultThreshold },
         });
-        if (!res.ok) {
-            const detail = await res.text().catch(() => '');
-            throw new Error(`VideoDB video search failed (${res.status}): ${detail.slice(0, 200)}`);
-        }
-        const json = await res.json();
-        return json?.data ?? json;
     }
 
     /**
      * Resolve a VideoDB media id (e.g. `m-12345`) to its streamable URL.
      * Used by Render / Video Agent / Timeline to turn a `?videoId=m-xxx` deep
      * link into a playable src. The documented endpoint is
-     * `POST /video/{video_id}/stream/`, which returns `data.stream_url`
-     * (HLS by default; mp4/webm also supported).
+     * `POST /video/{video_id}/stream/`, which returns `data.stream_url`.
+     *
+     * We request `format: 'mp4'` by default: mp4 plays natively in every
+     * browser (including Chrome, which does NOT support HLS without hls.js),
+     * so no extra player dependency is required. `player_url` is kept as a
+     * fallback.
      */
-    async getStreamUrl(videoId, { format = 'hls' } = {}) {
-        if (this.useProxy) {
-            try {
-                const data = await this._proxyFetch(`/videos/${encodeURIComponent(videoId)}/stream`, {
-                    body: { format },
-                });
-                const url = data?.stream_url || data?.player_url || null;
-                if (url) return url;
-            } catch (_) { /* fall back to direct call */ }
-        }
-        const res = await fetch(this._url(`/video/${encodeURIComponent(videoId)}/stream/`), {
+    async getStreamUrl(videoId, { format = 'mp4' } = {}) {
+        const json = await this._request(`video/${encodeURIComponent(videoId)}/stream/`, {
             method: 'POST',
-            headers: this._headers(),
-            body: JSON.stringify({ format }),
+            body: { format },
         });
-        if (!res.ok) {
-            const detail = await res.text().catch(() => '');
-            throw new Error(`VideoDB stream failed (${res.status}): ${detail.slice(0, 200)}`);
-        }
-        const json = await res.json();
         const data = json?.data ?? json;
         return data?.stream_url || data?.player_url || null;
     }

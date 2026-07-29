@@ -1,56 +1,53 @@
-import { Component } from '../base/Component.js';
-import { mainTooltips } from '../../lib/constants/tooltips.js';
-import HelpIconComponent from './HelpIcon.js';
-import FieldBuilder from '../form/FieldBuilder.js';
+import React, { useEffect, useState } from 'react';
+import SVGInline from 'react-svg-inline';
+import { observer } from 'mobx-react';
 
-class GuidelinesActivation extends Component {
-  constructor(props = {}) {
-    super(props);
-    this.props = {
-      marginLeft: '',
-      ...props
-    };
-  }
+import PropTypes from '../../lib/PropTypes';
 
-  render() {
-    const container = document.createElement('div');
-    container.className = 'guidelines-activation';
+import useUIStore from '../hooks/useUIStore';
 
-    if (this.props.marginLeft) {
-      container.style.marginLeft = this.props.marginLeft;
-    }
+import FieldBuilder from '../form/FieldBuilder';
 
-    // Create SVG icon element
-    const svgIcon = document.createElement('div');
-    svgIcon.className = 'guidelines-icon';
-    // Note: SVG content would need to be imported and injected here
-    // For now, using placeholder
-    svgIcon.innerHTML = '<svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 6h4v4H8zM8 12h4v2H8z"/></svg>';
+import guidelinesIcon from '../../public/static/svgImages/guidlines.svg';
+import { mainTooltips } from '../../lib/constants/tooltips';
+import HelpIconComponent from './HelpIcon';
+import PercentageProgressBar from '../media/PercentageProgressBar';
+import useProjectStore from '../hooks/useProjectStore';
 
-    const helpIcon = new HelpIconComponent({
-      noIcon: true,
-      message: mainTooltips.guideline,
-      children: svgIcon
-    }).render();
+const GuidelinesActivation = observer(({ marginLeft }) => {
+  const { hasGuidLines, setGuideLines } = useUIStore();
 
-    container.appendChild(helpIcon);
+  return (
+    <div
+      className="guidelines-activation"
+      style={marginLeft && { marginLeft }}
+    >
+      <div className='guideline-component'>
+        <HelpIconComponent
+          noIcon
+          message={mainTooltips.guideline}
+        >
+          <SVGInline
+            svg={guidelinesIcon}
+            className="guidelines-icon"
+            cleanup={['guidelines']}
+          />
+        </HelpIconComponent>
+        <FieldBuilder
+          type="checkbox"
+          label="Guideline"
+          value={hasGuidLines}
+          onChange={() => setGuideLines(!hasGuidLines)}
+          name="guidelines"
+          floatClassName="guidelines-field"
+        />
+      </div>
+    </div>
+  );
+});
 
-    const fieldBuilder = new FieldBuilder({
-      type: 'checkbox',
-      label: 'Guideline',
-      value: false, // TODO: Connect to UI store
-      onChange: () => {
-        // TODO: Connect to UI store setGuideLines
-        console.log('Guidelines toggle clicked');
-      },
-      name: 'guidelines',
-      floatClassName: 'guidelines-field'
-    }).render();
-
-    container.appendChild(fieldBuilder);
-
-    return container;
-  }
-}
+GuidelinesActivation.propTypes = {
+  marginLeft: PropTypes.string,
+};
 
 export default GuidelinesActivation;

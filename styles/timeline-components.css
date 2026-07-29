@@ -399,7 +399,7 @@
 }
 
 /* Timeline ruler */
-.timeline-ruler {
+.ruler {
   position: absolute;
   top: 0;
   left: 0;

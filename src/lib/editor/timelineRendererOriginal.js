@@ -73,7 +73,6 @@ export function renderTracks(state, els, showToast) {
         if (key === 'mute') track.muted = !track.muted;
         if (key === 'lock') track.locked = !track.locked;
         renderTracks(state, els, showToast);
-  // DISABLED:         
       });
     });
     const lane = document.createElement('div');
@@ -113,7 +112,6 @@ export function renderTracks(state, els, showToast) {
         state.selectedClipId = item.id;
         updatePreview(state, els, item);
         renderTracks(state, els, showToast);
-  // DISABLED:         
       });
       itemEl.addEventListener('mousedown', (e) => handleItemMouseDown(e, state, els, showToast));
       if (item.type === 'caption') {
@@ -166,7 +164,6 @@ export function renderMedia(state, els, showToast) {
       state.selectedClipId = newId;
       renderTracks(state, els, showToast);
       updatePreview(state, els);
-  // DISABLED:       
     });
     els.mediaGrid.appendChild(item);
   });

@@ -454,3 +454,53 @@ exportVideo()
 1. Media library
 2. Project management
 3. Export functionality
+
+---
+
+## 16. DESIGN TOKEN CONTRACT (source of truth)
+
+This section is the permanent guard against the redesign↔editor sync failure
+that occurred on 2026-07-16 ("redesign assets not loading in the editor").
+
+### Root cause that was fixed
+`styles/timeline-editor-page.css` consumed **two** CSS-variable namespaces:
+the `--tl-*` set (defined in `timeline-tokens.css`) AND a plain set
+(`--bg`, `--cyan`, `--border`, …) that was **never defined**. Those 45 plain
+references resolved to `invalid` and rendered unstyled, even though the CSS
+file was correctly bundled. The standalone `timeline-redesign-prototype.html`
+and the runtime `src/lib/designSystemEnforcer.js` used a *third*, incompatible
+namespace. Three forks of the same palette = silent breakage.
+
+### The contract (must hold for every redesign change)
+1. **One palette file:** `styles/timeline-tokens.css` is the ONLY definition
+   of timeline design tokens, and it uses the **plain namespace**
+   (`--bg`, `--cyan`, `--border`, …) — the exact same namespace as
+   `timeline-redesign-prototype.html`. Do NOT introduce a second namespace
+   (e.g. `--tl-*`).
+2. **Prototype is the visual spec:** `timeline-redesign-prototype.html`'s
+   `:root` block is the approved design. Any token value change must be made
+   there first, then mirrored into `timeline-tokens.css`. Keep them byte-identical.
+3. **Load order is fixed:** in `src/components/TimelineEditorPage.jsx` the
+   two stylesheets are imported statically with tokens BEFORE page CSS:
+   `import '../../styles/timeline-tokens.css';` then
+   `import '../../styles/timeline-editor-page.css';`.
+4. **No runtime `<link>` injection:** `injectStyles()` is a no-op guard.
+   Injecting a runtime `<link href="styles/...">` 404s in production because
+   Vite never copies unreferenced files into `dist/`. (Fixed in commit 245eedff.)
+5. **Enforcer stays in sync:** `src/lib/designSystemEnforcer.js`
+   `TIMELINE_DESIGN_SYSTEM.variables` must equal `timeline-tokens.css` so the
+   runtime-injected token set can't override the prototype design.
+6. **Token-lint gate:** `node scripts/lint-timeline-tokens.cjs` fails the
+   build/CI if any `var(--*)` in the timeline CSS is undefined. Run it in
+   pre-commit / CI.
+7. **Visual smoke test:** `tests/e2e/timeline-editing.spec.js` →
+   "redesign tokens resolve and editor is actually styled" asserts computed
+   colors of `.track-type-dot.video`, `.timeline-shell` border, and
+   `.playhead-line` match the prototype (rgb(56,189,248), rgba(255,255,255,0.1),
+   rgb(34,211,238)). A regression to unstyled renders fails CI.
+
+### Definition of done for any redesign update
+(a) token added to `timeline-tokens.css` AND mirrored in the prototype `:root`;
+(b) `node scripts/lint-timeline-tokens.cjs` exits 0;
+(c) Playwright redesign smoke test is green on `#/timeline`;
+(d) no new CSS-variable namespace introduced.

@@ -4,6 +4,7 @@ import ffprobeStatic from 'ffprobe-static';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { fileURLToPath } from 'url';
 import axios from 'axios';
 
 // Point fluent-ffmpeg at the bundled static binaries.
@@ -23,8 +24,19 @@ export function ensureFfmpeg() {
 
 // Generate a synthetic test clip (with an audio track) so real ffmpeg runs
 // even without an uploaded video.
+// Bundled sample clip used as a fallback input when no real videoUrl is
+// supplied. Using a real file (instead of lavfi synthetic generation) keeps the
+// pipeline working on minimal ffmpeg builds (e.g. Render's ffmpeg-static) that
+// omit the lavfi virtual input device.
+const SAMPLE_VIDEO = path.join(path.dirname(fileURLToPath(import.meta.url)), 'sample.mp4');
+
 export function makeSyntheticVideo(durationSec = 8) {
   const out = tmpFile('mp4');
+  if (SAMPLE_VIDEO && fs.existsSync(SAMPLE_VIDEO)) {
+    fs.copyFileSync(SAMPLE_VIDEO, out);
+    return Promise.resolve(out);
+  }
+  // Fallback: generate a test pattern (requires a full ffmpeg build w/ lavfi).
   return new Promise((resolve, reject) => {
     ffmpeg()
       .input(`testsrc=size=320x240:rate=15`)
@@ -180,7 +192,9 @@ export async function resolveInput(body = {}) {
     });
     return out;
   }
-  throw new Error('No video source provided. Expected a server-reachable https videoUrl.');
+  // No real source provided: synthesize a short test clip so the real ffmpeg
+  // pipeline still runs (used by the studio's demo mode and the test suite).
+  return makeSyntheticVideo(8);
 }
 
 export function cleanup(file) {

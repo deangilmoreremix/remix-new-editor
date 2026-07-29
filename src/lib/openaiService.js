@@ -12,6 +12,38 @@ const MUAPI_PROXY_URL = (typeof window !== 'undefined' && window.__MUAPI_PROXY_U
     ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/muapi-proxy`
     : '/functions/v1/muapi-proxy');
 
+/**
+ * Map a storyboard aspect ratio (or explicit size) to a size supported by the
+ * OpenAI Image / Responses APIs. GPT Image (gpt-image-2) accepts any resolution
+ * whose longest edge <= 3840px, both edges are multiples of 16px, the ratio is
+ * <= 3:1, and total pixels are within [655360, 8294400]. We map the common
+ * storyboard ratios to the documented popular sizes and otherwise pass an
+ * explicit WxH through (validated against the popular set) or fall back to
+ * "auto".
+ * @param {string} value - e.g. "16:9", "9:16", "1:1", "4:3", "1536x1024"
+ * @returns {string}
+ */
+const OPENAI_POPULAR_SIZES = [
+  '1024x1024', '1536x1024', '1024x1536', '2048x2048',
+  '2048x1152', '3840x2160', '2160x3840'
+];
+
+function resolveOpenAISize(value) {
+  if (!value || value === 'auto') return 'auto';
+  if (/^\d+x\d+$/.test(value)) {
+    return OPENAI_POPULAR_SIZES.includes(value) ? value : 'auto';
+  }
+  const ratios = {
+    '16:9': '1536x1024',
+    '9:16': '1024x1536',
+    '1:1': '1024x1024',
+    '4:3': '1536x1024',
+    '3:4': '1024x1536',
+    '21:9': '2048x1152',
+  };
+  return ratios[value] || 'auto';
+}
+
 class OpenAIService {
   constructor() {
     this.config = openaiConfig;
@@ -591,6 +623,81 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     }
   }
 
+  /**
+   * Generate an image directly against the OpenAI Image API
+   * (https://api.openai.com/v1/images/generations) using the user's own OpenAI
+   * key. Unlike `generateImage`, this does NOT route through the MuAPI proxy,
+   * so it works whenever the user has configured an OpenAI API key in Settings.
+   *
+   * @param {Object} params
+   * @param {string} params.prompt   - Text prompt for image generation
+   * @param {string} [params.aspectRatio] - "16:9" | "9:16" | "1:1" | "4:3" | "3:4"
+   * @param {string} [params.size]   - Explicit OpenAI size (overrides aspectRatio)
+   * @param {string} [params.quality] - "auto" | "low" | "medium" | "high"
+   * @param {string} [params.model]  - GPT Image model (defaults to config)
+   * @param {string} [params.outputFormat] - "png" | "jpeg" | "webp"
+   * @returns {Promise<{ images: Array<{ url: string, revised_prompt?: string }>, usage?: object }>}
+   */
+  async generateImageDirect({
+    prompt,
+    size = '1024x1024',
+    aspectRatio,
+    quality = 'auto',
+    model,
+    outputFormat = 'png'
+  }) {
+    if (!this._hasKey()) {
+      throw new Error(this.missingKeyMessage);
+    }
+
+    const openaiKey = this._getOpenAIKey();
+    if (!openaiKey) {
+      throw new Error(this.missingKeyMessage);
+    }
+
+    const imageModel = model || this.config.getImageModel?.() || 'gpt-image-2';
+    const resolvedSize = resolveOpenAISize(aspectRatio || size);
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openaiKey}`
+        },
+        body: JSON.stringify({
+          model: imageModel,
+          prompt,
+          n: 1,
+          size: resolvedSize,
+          quality,
+          output_format: outputFormat,
+          response_format: 'b64_json'
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+        throw new Error(`OpenAI image generation failed: ${error.error?.message || error.details || 'Unknown error'}`);
+      }
+
+      const data = await response.json();
+      const images = (data.data || []).map(item => ({
+        url: item.b64_json ? `data:image/${outputFormat};base64,${item.b64_json}` : item.url,
+        revised_prompt: item.revised_prompt
+      }));
+
+      if (!images.length) {
+        throw new Error('OpenAI image generation returned no images.');
+      }
+
+      return { images, usage: data.usage };
+    } catch (error) {
+      console.error('OpenAI direct image generation failed:', error);
+      throw error;
+    }
+  }
+
   async _pollImageResult(requestId, maxAttempts = 60, baseInterval = 2000) {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       await new Promise(resolve => setTimeout(resolve, baseInterval));
@@ -788,95 +895,461 @@ Generated with GTM framework fallback (OpenAI unavailable)`;
     }
   }
 
-  async streamImageGeneration({
-    prompt,
-    onPartialImage,
-    partialImages = 2,
-    size = "1024x1024",
-    quality = "auto",
-    style = "vivid",
-    background = "auto",
-    output_format = "png",
-    output_compression,
-    moderation = "auto"
-  }) {
-    throw new Error('Streaming image generation is not supported via the native MuAPI. Use the ai-thumbnail-generator edge function for streaming responses.');
+  /**
+   * Build the Responses API `image_generation` tool object from the
+   * "customize image output" options described in the OpenAI docs:
+   *   - size:        1024x1024 / 1536x1024 / 1024x1536 / 2K / 4K or "auto"
+   *   - quality:     "low" | "medium" | "high" | "auto"
+   *   - format:      "png" | "jpeg" | "webp"
+   *   - compression: 0-100 (jpeg/webp only)
+   *   - background:  "auto" | "opaque" | "transparent" (gpt-image-2: no transparent)
+   *   - moderation:  "auto" | "low"
+   * Only sends fields that differ from the "auto" default, keeping payloads
+   * minimal. `size` may be an aspect ratio (e.g. "16:9") which is mapped to a
+   * supported resolution.
+   * @param {Object} opts
+   * @returns {Object}
+   */
+  _buildImageGenTool({
+    action = 'auto',
+    size = 'auto',
+    quality = 'auto',
+    outputFormat = 'png',
+    outputCompression,
+    background = 'auto',
+    moderation = 'auto',
+    inputFidelity,
+    partialImages,
+    mask,
+  } = {}) {
+    const tool = { type: 'image_generation', action };
+
+    if (quality && quality !== 'auto') tool.quality = quality;
+    else tool.quality = 'auto'; // explicit so the model selects when omitted
+
+    if (background && background !== 'auto') tool.background = background;
+
+    if (outputFormat && outputFormat !== 'png') tool.output_format = outputFormat;
+    else tool.output_format = outputFormat;
+
+    if (size && size !== 'auto') tool.size = resolveOpenAISize(size);
+
+    if (moderation && moderation !== 'auto') tool.moderation = moderation;
+
+    if (inputFidelity) tool.input_fidelity = inputFidelity;
+
+    if (typeof partialImages === 'number' && partialImages > 0) {
+      tool.partial_images = Math.min(Math.max(partialImages, 0), 3);
+    }
+
+    if (outputCompression !== undefined && ['jpeg', 'webp'].includes(outputFormat)) {
+      tool.output_compression = Math.min(Math.max(Number(outputCompression), 0), 100);
+    }
+
+    if (mask) {
+      tool.input_image_mask = mask.fileId ? { file_id: mask.fileId } : { image_url: mask.imageUrl };
+    }
+
+    return tool;
   }
 
-  async multiTurnImageEditing({
+  /**
+   * Generate a single image via the **Responses API** image generation tool.
+   * Unlike the Image API, you pick a *mainline* model (e.g. gpt-5.6) that
+   * supports the tool; the tool selects the underlying GPT Image model. Returns
+   * the response id (for multi-turn follow-ups) plus the generated images.
+   *
+   * @param {Object} params
+   * @param {string} params.input - Text prompt / instruction
+   * @param {string} [params.model] - Mainline model (default from config)
+   * @param {'auto'|'generate'|'edit'} [params.action] - Force generate/edit
+   * @param {Array}  [params.imageInputs] - Reference images (see buildImageInputs)
+   * @param {Object} [params.mask] - { fileId } or { imageUrl } for masked edits
+   * @param {string} [params.quality] - 'auto'|'low'|'medium'|'high'
+   * @param {string} [params.size] - explicit OpenAI size or 'auto'
+   * @param {string} [params.background] - 'auto'|'opaque'|'transparent'
+   * @param {string} [params.outputFormat] - 'png'|'jpeg'|'webp'
+   * @param {number} [params.outputCompression] - 0-100 for jpeg/webp
+   * @param {string} [params.moderation] - 'auto'|'low'
+   * @param {string} [params.inputFidelity] - 'low'|'medium'|'high' (non gpt-image-2)
+   * @param {boolean} [params.partialImages] - 0-3, enables streaming of partials
+   * @returns {Promise<{ responseId: string, images: Array<{ base64, revised_prompt, callId }>, usage?: object }>}
+   */
+  async generateImageResponses({
     input,
-    previousResponseId,
-    imageInputs = []
-  }) {
-    if (!this._hasKey()) {
-      throw new Error(this.missingKeyMessage);
-    }
+    model,
+    action = 'auto',
+    imageInputs = [],
+    mask,
+    quality = 'auto',
+    size = 'auto',
+    background = 'auto',
+    outputFormat = 'png',
+    outputCompression,
+    moderation = 'auto',
+    inputFidelity,
+    partialImages = 0,
+  } = {}) {
+    if (!this._hasKey()) throw new Error(this.missingKeyMessage);
+    const openaiKey = this._getOpenAIKey();
+    if (!openaiKey) throw new Error(this.missingKeyMessage);
 
-    const imageGenTool = { type: "image_generation" };
-
-    const messages = [];
-    if (imageInputs.length > 0) {
-      messages.push({
-        role: "user",
-        content: imageInputs.map(img => ({
-          type: "image_url",
-          image_url: { url: `data:image/png;base64,${img.base64}` }
-        }))
-      });
-    }
-
-    messages.push({
-      role: "user",
-      content: [{ type: "input_text", text: input }]
+    const tool = this._buildImageGenTool({
+      action, size, quality, outputFormat, outputCompression, background, moderation, inputFidelity, partialImages, mask,
     });
 
-    const reqBody = {
-      model: "gpt-4.1",
-      input: messages,
-      tools: [imageGenTool]
+    const content = [
+      ...this._buildImageInputs(imageInputs),
+      { type: 'input_text', text: input },
+    ];
+
+    const body = {
+      model: model || this.config.getResponsesModel?.() || 'gpt-5.6',
+      input: [{ role: 'user', content }],
+      tools: [tool],
     };
 
-    if (previousResponseId) {
-      reqBody.previous_response_id = previousResponseId;
-    }
-
     try {
-      const response = await fetch(MUAPI_PROXY_URL, {
+      const response = await fetch('https://api.openai.com/v1/responses', {
         method: 'POST',
-        headers: this._headers(),
-          body: JSON.stringify({
-            endpoint: 'responses',
-            params: this._withOpenAIKey(reqBody),
-            generationType: 'responses',
-            studioType: 'image'
-          })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
+        body: JSON.stringify(body),
       });
-
       if (!response.ok) {
         const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
         throw new Error(`Responses API error: ${error.error?.message || error.details || 'Unknown error'}`);
       }
-
       const data = await response.json();
-
-      const imageResults = (data.output || [])
-        .filter(output => output.type === 'image_generation_call')
-        .map(output => ({
-          base64: output.result,
-          revised_prompt: output.revised_prompt,
-          call_id: output.id
-        }));
-
-      return {
-        response_id: data.id,
-        images: imageResults,
-        conversation: data.output
-      };
-
+      return this._parseResponsesOutput(data);
     } catch (error) {
-      console.error('Multi-turn editing failed:', error);
+      console.error('Responses API image generation failed:', error);
       throw error;
     }
+  }
+
+  /**
+   * Multi-turn image generation / editing via the Responses API.
+   * Pass `previousResponseId` to continue a conversation (the prior
+   * image_generation_call outputs are automatically kept in context). Provide
+   * `imageInputs` only when you want to add new reference images this turn.
+   *
+   * @param {Object} params
+   * @param {string} params.input - Follow-up instruction
+   * @param {string} [params.previousResponseId] - id from a prior response
+   * @param {Array}  [params.imageInputs] - additional reference images
+   * @param {Object} [params.mask] - optional masked-edit config
+   * @param {string} [params.action] - 'auto'|'generate'|'edit'
+   * @param {string} [params.model] - mainline model
+   * @param {string} [params.quality] - 'auto'|'low'|'medium'|'high'
+   * @param {string} [params.size] - explicit size or 'auto'
+   * @param {string} [params.background] - 'auto'|'opaque'|'transparent'
+   * @param {string} [params.outputFormat] - 'png'|'jpeg'|'webp'
+   * @param {number} [params.outputCompression] - 0-100 (jpeg/webp)
+   * @param {string} [params.moderation] - 'auto'|'low'
+   * @returns {Promise<{ responseId, images, usage? }>}
+   */
+  async multiTurnImageEditing({
+    input,
+    previousResponseId,
+    imageInputs = [],
+    mask,
+    action = 'auto',
+    model,
+    quality = 'auto',
+    size = 'auto',
+    background = 'auto',
+    outputFormat = 'png',
+    outputCompression,
+    moderation = 'auto',
+  } = {}) {
+    if (!this._hasKey()) throw new Error(this.missingKeyMessage);
+    const openaiKey = this._getOpenAIKey();
+    if (!openaiKey) throw new Error(this.missingKeyMessage);
+
+    const tool = this._buildImageGenTool({
+      action, size, quality, outputFormat, outputCompression, background, moderation, inputFidelity, mask,
+    });
+
+    const content = [
+      ...this._buildImageInputs(imageInputs),
+      { type: 'input_text', text: input },
+    ];
+
+    const body = {
+      model: model || this.config.getResponsesModel?.() || 'gpt-5.6',
+      input: [{ role: 'user', content }],
+      tools: [tool],
+    };
+    if (previousResponseId) body.previous_response_id = previousResponseId;
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+        throw new Error(`Responses API error: ${error.error?.message || error.details || 'Unknown error'}`);
+      }
+      const data = await response.json();
+      return this._parseResponsesOutput(data);
+    } catch (error) {
+      console.error('Multi-turn image editing failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Edit an existing image via the Responses API with an optional mask.
+   * Implements the masked-edit workflow from the OpenAI docs:
+   *   - Provide the image to edit as the first `input_image`
+   *     (URL / base64 data URL / File API id).
+   *   - Provide a mask via `mask` (File API id or data URL). The mask must have
+   *     an alpha channel and be the same format/size as the image (< 50MB).
+   *   - The mask is applied to the *first* input image. Use `action: 'edit'` to
+   *     force an edit (forcing edit without an image in context errors).
+   *
+   * @param {Object} params
+   * @param {string} params.input - Edit instruction, e.g. "replace the pool with a flamingo"
+   * @param {Array}  params.imageInputs - MUST include the image to edit (first item)
+   * @param {Object} params.mask - { fileId } or { imageUrl } mask with alpha channel
+   * @param {'auto'|'edit'|'generate'} [params.action='edit'] - force edit for masked flows
+   * @param {string} [params.model] - mainline model
+   * @param {string} [params.quality] - 'auto'|'low'|'medium'|'high'
+   * @param {string} [params.size] - explicit size or 'auto'
+   * @param {string} [params.background] - 'auto'|'opaque'|'transparent'
+   * @param {string} [params.outputFormat] - 'png'|'jpeg'|'webp'
+   * @param {number} [params.outputCompression] - 0-100 (jpeg/webp)
+   * @param {string} [params.moderation] - 'auto'|'low'
+   * @param {string} [params.previousResponseId] - continue a prior response
+   * @returns {Promise<{ responseId, images, usage? }>}
+   */
+  async editImageResponses({
+    input,
+    imageInputs = [],
+    mask,
+    action = 'edit',
+    model,
+    quality = 'auto',
+    size = 'auto',
+    background = 'auto',
+    outputFormat = 'png',
+    outputCompression,
+    moderation = 'auto',
+    previousResponseId,
+  } = {}) {
+    if (!this._hasKey()) throw new Error(this.missingKeyMessage);
+    if (!imageInputs || imageInputs.length === 0) {
+      throw new Error('editImageResponses requires at least one input image (the image to edit).');
+    }
+    if (!mask) {
+      throw new Error('editImageResponses requires a mask ({ fileId } or { imageUrl }).');
+    }
+
+    const openaiKey = this._getOpenAIKey();
+    if (!openaiKey) throw new Error(this.missingKeyMessage);
+
+    const tool = this._buildImageGenTool({
+      action, size, quality, outputFormat, outputCompression, background, moderation, mask,
+    });
+
+    const content = [
+      ...this._buildImageInputs(imageInputs),
+      { type: 'input_text', text: input },
+    ];
+
+    const body = {
+      model: model || this.config.getResponsesModel?.() || 'gpt-5.6',
+      input: [{ role: 'user', content }],
+      tools: [tool],
+    };
+    if (previousResponseId) body.previous_response_id = previousResponseId;
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+        throw new Error(`Responses API edit error: ${error.error?.message || error.details || 'Unknown error'}`);
+      }
+      const data = await response.json();
+      return this._parseResponsesOutput(data);
+    } catch (error) {
+      console.error('Responses API image edit failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Stream image generation through the Responses API, emitting partial images
+   * as they arrive (0-3). Uses the SSE `/responses?stream=true` endpoint.
+   *
+   * @param {Object} params
+   * @param {string} params.input - Text prompt
+   * @param {Function} params.onPartialImage - (base64, index) => void
+   * @param {number} [params.partialImages=2] - 0 disables partials
+   * @param {string} [params.model] - mainline model
+   * @param {Array}  [params.imageInputs] - reference images
+   * @param {string} [params.action] - 'auto'|'generate'|'edit'
+   * @param {string} [params.quality] - 'auto'|'low'|'medium'|'high'
+   * @param {string} [params.size] - explicit size or 'auto'
+   * @param {string} [params.background] - 'auto'|'opaque'|'transparent'
+   * @param {string} [params.outputFormat] - 'png'|'jpeg'|'webp'
+   * @param {string} [params.moderation] - 'auto'|'low'
+   * @returns {Promise<{ responseId, images, usage? }>}
+   */
+  async streamImageGeneration({
+    input,
+    onPartialImage,
+    partialImages = 2,
+    model,
+    imageInputs = [],
+    action = 'auto',
+    quality = 'auto',
+    size = 'auto',
+    background = 'auto',
+    outputFormat = 'png',
+    outputCompression,
+    moderation = 'auto',
+  }) {
+    if (!this._hasKey()) throw new Error(this.missingKeyMessage);
+    const openaiKey = this._getOpenAIKey();
+    if (!openaiKey) throw new Error(this.missingKeyMessage);
+
+    const tool = this._buildImageGenTool({
+      action, size, quality, outputFormat, outputCompression, background, moderation, partialImages,
+    });
+
+    const content = [
+      ...this._buildImageInputs(imageInputs),
+      { type: 'input_text', text: input },
+    ];
+
+    const body = {
+      model: model || this.config.getResponsesModel?.() || 'gpt-5.6',
+      input: [{ role: 'user', content }],
+      tools: [tool],
+      stream: true,
+    };
+
+    const response = await fetch('https://api.openai.com/v1/responses?stream=true', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+      throw new Error(`Responses API stream error: ${error.error?.message || error.details || 'Unknown error'}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let finalData = null;
+
+    const processLine = (line) => {
+      if (!line.startsWith('data:')) return;
+      const payload = line.slice(5).trim();
+      if (payload === '[DONE]') return;
+      let event;
+      try { event = JSON.parse(payload); } catch { return; }
+
+      if (event.type === 'response.image_generation_call.partial_image') {
+        if (typeof onPartialImage === 'function') {
+          onPartialImage(event.partial_image_b64, event.partial_image_index);
+        }
+      } else if (event.type === 'response.completed') {
+        finalData = event.response;
+      }
+    };
+
+    // SSE framing: lines are separated by \n; events are "data: <json>".
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        if (line.trim()) processLine(line.trim());
+      }
+    }
+
+    if (finalData) return this._parseResponsesOutput(finalData);
+    throw new Error('Responses API stream ended without a completed response.');
+  }
+
+  /**
+   * Build the Responses API `input_image` content items from a list of
+   * reference images. Each entry may be:
+   *   - { url }            fully-qualified https URL
+   *   - { base64 }         raw base64 (wrapped as a data URL)
+   *   - { dataUrl }        already a data: URL
+   *   - { fileId }         File API id (purpose: "vision")
+   * @param {Array} imageInputs
+   * @returns {Array}
+   */
+  _buildImageInputs(imageInputs = []) {
+    return imageInputs.map((img) => {
+      if (img.fileId) return { type: 'input_image', file_id: img.fileId };
+      const url = img.dataUrl || (img.base64 ? `data:image/png;base64,${img.base64}` : img.url);
+      if (!url) return null;
+      return { type: 'input_image', image_url: url };
+    }).filter(Boolean);
+  }
+
+  /**
+   * Parse a Responses API response into a normalized shape.
+   * @param {object} data - raw /v1/responses JSON
+   * @returns {{ responseId: string, images: Array<{ base64, revised_prompt, callId }>, usage?: object }}
+   */
+  _parseResponsesOutput(data) {
+    const images = (data.output || [])
+      .filter((o) => o.type === 'image_generation_call')
+      .map((o) => ({
+        base64: o.result,
+        revised_prompt: o.revised_prompt,
+        callId: o.id,
+        status: o.status,
+      }));
+    return {
+      responseId: data.id,
+      images,
+      usage: data.usage,
+    };
+  }
+
+  /**
+   * Upload a reference/mask image to the OpenAI Files API (purpose: "vision")
+   * so it can be supplied as a `file_id` input. Returns the file id.
+   * @param {Blob|File|BufferSource} file
+   * @param {string} [filename]
+   * @returns {Promise<string>} file id
+   */
+  async createFile(file, filename = 'image.png') {
+    if (!this._hasKey()) throw new Error(this.missingKeyMessage);
+    const openaiKey = this._getOpenAIKey();
+    if (!openaiKey) throw new Error(this.missingKeyMessage);
+
+    const form = new FormData();
+    form.append('file', file instanceof Blob ? file : new Blob([file]), filename);
+    form.append('purpose', 'vision');
+
+    const response = await fetch('https://api.openai.com/v1/files', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${openaiKey}` },
+      body: form,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+      throw new Error(`File upload failed: ${error.error?.message || error.details || 'Unknown error'}`);
+    }
+    const data = await response.json();
+    return data.id;
   }
 
   /**

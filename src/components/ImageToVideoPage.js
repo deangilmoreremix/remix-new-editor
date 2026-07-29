@@ -1,4 +1,5 @@
 import { navigate } from '../lib/router.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createHeroSection } from '../lib/thumbnails.js';
 
 const IMAGE_TO_VIDEO_MODELS = [
@@ -41,6 +42,7 @@ const FEATURES = [
 export function ImageToVideoPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+  mountStudioChrome(container, { currentRoute: 'image-to-video' });
 
   // ==========================================
   // 1. HERO SECTION

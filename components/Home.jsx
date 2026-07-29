@@ -46,11 +46,15 @@ import {
   TEMPLATE_GENERATOR_MODAL,
   SAFARI_WARNING_MODAL,
 } from '../lib/constants/modals';
+import AiArtGenerator from './modals/AiArtGenerator';
+import BackgroundDiffusion from './modals/BackgroundDiffusion';
+import PercentageProgressBar from './media/PercentageProgressBar';
+import { Typography } from '@material-ui/core';
 
 const Home = observer(() => {
   const {
     pathname,
-    query: { project, remix },
+    query: { project, remix, isAiArtGenerator, isBgDiffusion },
     push,
   } = useRouter();
   const projectStore = useProjectStore();
@@ -62,6 +66,9 @@ const Home = observer(() => {
     isSuperAdmin,
     isfeatureEnabled,
     recorderEnabled,
+    aiThumbnailEnabled,
+    aiTitleSuggestionsEnabled,
+    aiDescriptionEnabled,
     stickersEnabled,
     lowerThirdsEnabled,
     presetsEnabled,
@@ -78,6 +85,8 @@ const Home = observer(() => {
     textToSpeechLimitedEnabled,
     leadGeneratorEnabled,
     googleMapsEnabled,
+    smartAiArtGeneratorEnabled,
+    smartBgDeffusionEnabled,
     collborateEnabled,
     socialFbEnabled,
     wrapperFeatureEnabled,
@@ -91,6 +100,16 @@ const Home = observer(() => {
     evolutionLowerThirdEnabled,
     evolutionCtaEnabled,
     evolutionImageLTPresetEnabled,
+    retroLTEnabled,
+    neonLTEnabled,
+    neonSocialMediaLTEnabled,
+    socialMediaLTEnabled,
+    locationTitlesEnabled,
+    socialMediaIcon3DEnabled,
+    callOutTitlePageEnabled,
+    neonArrowPackEnabled,
+    socialMediaPackEnabled,
+    socialMediaButtonPackEnabled,
     endScreensEnabled,
     getSvrTerms,
   } = userStore;
@@ -99,7 +118,9 @@ const Home = observer(() => {
   const [shouldShowTGModal, setShouldShowTGModal] = useState(
     videoAutomationCreatorEnabled,
   );
-
+  const [progress, setProgress] = useState(1);
+  const [progressMessage, setProgressMessage] = useState('');
+  const { isLoadingIosProcess, setAiGeneratorImage } = useProjectStore();
   const {
     changeRadioButton,
     secondaryWindowType,
@@ -110,6 +131,7 @@ const Home = observer(() => {
     setListBuilder,
     openCTA,
     openTextToSpeech,
+    openAiArtGenerator,
     toggleRightBlock,
     openUploadTransition,
     showProducePanel,
@@ -118,7 +140,8 @@ const Home = observer(() => {
     isCanvasPresent,
     toggleLeftBlock,
     addTogetherJS,
-    isEnabled
+    isEnabled,
+    handlewidthofai
   } = uiStore;
   const {
     item: {
@@ -164,10 +187,12 @@ const Home = observer(() => {
         openMediaButton,
         openCTA,
         openTextToSpeech,
+        openAiArtGenerator,
         toggleRightBlock,
         openUploadTransition,
         toggleLeftBlock,
         addTogetherJS,
+        setAiGeneratorImage
       },
       project: {
         allowedSocials,
@@ -179,6 +204,9 @@ const Home = observer(() => {
         isSuperAdmin,
         isfeatureEnabled,
         recorderEnabled,
+        aiTitleSuggestionsEnabled,
+        aiDescriptionEnabled,
+        aiThumbnailEnabled,
         stickersEnabled,
         lowerThirdsEnabled,
         presetsEnabled,
@@ -196,6 +224,8 @@ const Home = observer(() => {
         textToSpeechNeuralEnabled,
         textToSpeechLimitedEnabled,
         googleMapsEnabled,
+        smartAiArtGeneratorEnabled,
+        smartBgDeffusionEnabled,
         collborateEnabled,
         socialFbEnabled,
         wrapperFeatureEnabled,
@@ -206,6 +236,16 @@ const Home = observer(() => {
         evolutionLowerThirdEnabled,
         evolutionCtaEnabled,
         evolutionImageLTPresetEnabled,
+        retroLTEnabled,
+        neonLTEnabled,
+        neonSocialMediaLTEnabled,
+        socialMediaLTEnabled,
+        locationTitlesEnabled,
+        socialMediaIcon3DEnabled,
+        callOutTitlePageEnabled,
+        neonArrowPackEnabled,
+        socialMediaPackEnabled,
+        socialMediaButtonPackEnabled,
         endScreensEnabled,
       },
     });
@@ -231,19 +271,48 @@ const Home = observer(() => {
     script.src = './static/js/togetherjs/togetherjs-min.js';
     script.async = true;
     document.body.appendChild(script)
-  },[])
+  }, [])
 
   useEffect(() => {
-    if(isEnabled == true) {
-      if(!project && !remix ) {
+    if (isEnabled == true) {
+      if (!project && !remix) {
         showInfo('Please save a project');
         return false
       }
       push(`/edit/?remix=${project ? project : remix}`)
       TogetherJS();
     }
-  },[isEnabled])
- 
+  }, [isEnabled])
+
+  useEffect(() => {
+    console.log(isLoadingIosProcess, "isLoadingIosProcess=>")
+    if (isLoadingIosProcess) {
+      console.log(progress, "progress")
+      const interval = setInterval(() => {
+        setProgressMessage('Project is saving...');
+        setProgress((prevProgress) => {
+          console.log(prevProgress, "prevProgress=>")
+          if (prevProgress >= 100) {
+            setProgressMessage('Project saved, ready for sharing.')
+            clearInterval(interval); // Stop the progress bar when it reaches 100%
+            return 100;
+          }
+          return prevProgress + 1;
+        });
+      }, 1200); // Increment progress every 1200ms (2 minutes)
+
+      return () => {
+        clearInterval(interval); // Clean up the interval on component unmount
+      };
+    }
+  }, [progress, isLoadingIosProcess]);
+
+  useEffect(() => {
+    if (!isLoadingIosProcess) {
+      setProgress(1);
+    }
+  }, [isLoadingIosProcess])
+
 
   useEffect(() => {
     if (getSvrTerms === false) {
@@ -262,7 +331,7 @@ const Home = observer(() => {
         undefined,
         { shallow: true },
       ).finally(() => {
-        if (shouldShowTGModal) {
+        if (shouldShowTGModal && !isAiArtGenerator && !isBgDiffusion) {
           openModal(TEMPLATE_GENERATOR_MODAL);
         }
         setShouldShowTGModal(false);
@@ -276,7 +345,7 @@ const Home = observer(() => {
           openModal(SAFARI_WARNING_MODAL);
         }
       }
-      if (shouldShowTGModal && !project && !remix) {
+      if (shouldShowTGModal && !project && !remix && !isAiArtGenerator && !isBgDiffusion) {
         openModal(TEMPLATE_GENERATOR_MODAL);
       }
       setShouldShowTGModal(false);
@@ -401,6 +470,8 @@ const Home = observer(() => {
     });
   }, [activeElementId, isActiveTimeline]);
 
+
+
   const currentElement = useMemo(() => {
     if (retarget) {
       if (retarget.id !== activeElementId) {
@@ -464,6 +535,13 @@ const Home = observer(() => {
       case WINDOW_TYPES.TEXT_TO_SPEECH: {
         return <GoogleTextToSpeech />;
       }
+      case WINDOW_TYPES.AI_ART_GENERATOR: {
+        console.log("WINDOW_TYPES.AI_ART_GENERATOR", WINDOW_TYPES.AI_ART_GENERATOR)
+        return <AiArtGenerator />;
+      }
+      case WINDOW_TYPES.BG_DIFFUSION: {
+        return <BackgroundDiffusion />;
+      }
       default: {
         return null;
       }
@@ -492,9 +570,16 @@ const Home = observer(() => {
       console.error(e);
     }
   }, [item?.tags, roles]);
-
   return (
     <React.Fragment>
+      <zapier-full-experience
+        sign-up-email={currentUser.email}
+        sign-up-first-name={currentUser.fullName}
+        sign-up-last-name={currentUser.username}
+        client-id="pfsveoJrxZXuSWROVKxFnLK15mVqlvWeml1wSt0Y"
+        theme="light"
+        app-search-bar-display="show"
+      />
       {(asyncHero.loading || isRedirect) && <Loader isLoading preloader />}
       {asyncHero.error && <div>Error</div>}
       {(!asyncHero.loading || isLoaded) && (
@@ -506,7 +591,7 @@ const Home = observer(() => {
               className={classnames('controls-block', {
                 'controls-block-library': !isCanvasPresent,
               })}
-              style={{ width: radioButtonBottom ? '60%' : 'auto' }}
+              style={{ width: !handlewidthofai ? 'auto' : radioButtonBottom ? '60%' : 'auto' }}
             >
               <div className="controls-block__sidebar">
                 <div
@@ -539,6 +624,13 @@ const Home = observer(() => {
             onChange={updateItem}
             active={{ width, height }}
           />
+          <div id="screenapp-plugin" />;
+          {isLoadingIosProcess &&
+            <div style={{ position: 'absolute', bottom: '60px', right: '23px' }}>
+              <Typography style={{ width: 200, fontSize: '12px', fontWeight: 'bold' }}>{progressMessage}</Typography>
+              <PercentageProgressBar progress={progress} width={200} />
+            </div>
+          }
           <Timeline />
         </div>
       )}

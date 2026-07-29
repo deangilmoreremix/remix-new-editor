@@ -18,6 +18,7 @@ import { perfMonitor } from './lib/performance.js';
 import { analytics } from './lib/analytics.js';
 import { showToast } from './lib/loading.js';
 import { escapeHtml } from './lib/security.js';
+import { isDevBypass, apiKeyManager } from './lib/apiKeyManager.js';
 
 console.log('[App] Starting initialization...');
 
@@ -140,8 +141,9 @@ try {
   }
 
   // Auth + account pages are owned by Clerk (Option A: replaces Supabase
-  // sign-in). Clerk natively handles sign-in, sign-up, and the forgot/reset
-  // password flow. /account and /profile render Clerk-protected pages.
+  // sign-in). Custom app-styled pages handle sign-in, sign-up, forgot-password
+  // and reset-password (built on Clerk's reset_password_email_code flow).
+  // /account and /profile render Clerk-protected pages.
   const CLERK_PAGES = ['signin', 'signup', 'forgot-password', 'reset-password', 'account', 'profile'];
   if (CLERK_PAGES.includes(initialPage)) {
     if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
@@ -156,7 +158,7 @@ try {
     return;
   }
 
-  const headerEl = Header((page) => navigate(page));
+  const { header: headerEl, headerAuthSlot } = Header((page) => navigate(page));
   app.appendChild(headerEl);
 
   const body = document.createElement('div');
@@ -171,6 +173,9 @@ try {
   body.appendChild(contentArea);
 
   app.appendChild(body);
+
+  const { mountHeaderAuth } = await import('./components/auth/HeaderAuth.jsx');
+  mountHeaderAuth(headerAuthSlot);
 
   initRouter(contentArea, (page) => {
     headerEl.dispatchEvent(new CustomEvent('route-changed', { detail: { page } }));
@@ -223,10 +228,17 @@ try {
  * Show the provider API key setup popup exactly once per browser session.
  * Uses sessionStorage so reloading the tab won't re-trigger it, but a fresh
  * session will. Users can also reopen it anytime from the Settings action.
+ *
+ * Skips the popup entirely if the user already has API keys stored.
  */
 function showSetupModalOnce() {
   const SESSION_FLAG = 'setup_popup_shown';
   try {
+    // If keys are already configured, never show the setup popup again.
+    if (apiKeyManager.hasAnyKey()) {
+      console.info('[App] API keys already configured — skipping setup popup.');
+      return;
+    }
     if (sessionStorage.getItem(SESSION_FLAG)) return;
     sessionStorage.setItem(SESSION_FLAG, '1');
   } catch {

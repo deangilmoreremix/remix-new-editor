@@ -1,18 +1,21 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createSafeVideo } from '../lib/security.js';
 import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { navigate } from '../lib/router.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 
 export function VideoStudio() {
     const container = document.createElement('div');
     container.className = 'w-full h-full flex flex-col items-center justify-start bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+  mountStudioChrome(container, { currentRoute: 'video' });
 
     // --- State ---
     const defaultModel = t2vModels[0];
@@ -29,6 +32,7 @@ export function VideoStudio() {
     let imageMode = false; // false = t2v models, true = i2v models
     let v2vMode = false;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
+    let customThumbnailUrl = getCustomThumbnailFromCache('video-studio');
     
     // Advanced parameters state
     let negativePrompt = '';
@@ -61,6 +65,7 @@ export function VideoStudio() {
         heroBanner.appendChild(heroContent);
         hero.appendChild(heroBanner);
     }
+
     container.appendChild(hero);
 
     // ==========================================
@@ -391,6 +396,33 @@ export function VideoStudio() {
     const initResolutions = getResolutionsForVideoModel(defaultModel.id);
     resolutionBtn.style.display = initResolutions.length > 0 ? 'flex' : 'none';
     qualityBtn.style.display = 'none';
+
+    // Thumbnail studio button — next to creation controls, GTM Boost styling
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'gtm-boost-btn shrink-0';
+    thumbBtn.addEventListener('click', () => {
+      const modal = new StudioThumbnailModal({
+        appTheme: 'video-studio',
+        studioId: 'video-studio',
+        studioName: 'Video Studio',
+        aspectRatio: selectedAr || '16:9',
+        outputType: 'video',
+        onApply: ({ imageUrl }) => {
+          customThumbnailUrl = imageUrl;
+          saveCustomThumbnailToCache('video-studio', imageUrl);
+        },
+        onClear: () => {
+          customThumbnailUrl = null;
+          clearCustomThumbnailCache('video-studio');
+        },
+      });
+      mountStudioThumbnailModal(modal);
+      modal.open();
+    });
+    controlsLeft.appendChild(thumbBtn);
 
     const generateBtn = document.createElement('button');
     generateBtn.className = 'bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-[1.5rem] font-black text-sm md:text-base hover:shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 w-full sm:w-auto shadow-lg';
@@ -1147,7 +1179,9 @@ export function VideoStudio() {
 
         try {
             if (v2vMode) {
-                const res = await muapi.processV2V({ model: selectedModel, video_url: uploadedVideoUrl });
+                const v2vParams = { model: selectedModel, video_url: uploadedVideoUrl };
+                if (customThumbnailUrl) v2vParams.thumbnail_url = customThumbnailUrl;
+                const res = await muapi.processV2V(v2vParams);
                 console.log('[VideoStudio] V2V response:', res);
                 if (res && res.url) {
                     const genId = res.id || res.request_id || Date.now().toString();
@@ -1168,6 +1202,7 @@ export function VideoStudio() {
                     model: selectedModel,
                     image_url: uploadedImageUrl,
                 };
+                if (customThumbnailUrl) i2vParams.thumbnail_url = customThumbnailUrl;
                 if (prompt) i2vParams.prompt = prompt;
                 if (negativePrompt) i2vParams.negative_prompt = negativePrompt;
                 if (seed && seed !== -1) i2vParams.seed = seed;
@@ -1202,6 +1237,7 @@ export function VideoStudio() {
 
             const params = { model: selectedModel };
 
+            if (customThumbnailUrl) params.thumbnail_url = customThumbnailUrl;
             if (prompt) params.prompt = prompt;
             if (negativePrompt) params.negative_prompt = negativePrompt;
             if (seed && seed !== -1) params.seed = seed;

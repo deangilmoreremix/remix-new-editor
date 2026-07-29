@@ -101,10 +101,10 @@ const FacebookPost = ({ settings, updateCampaign }) => {
               </p>
             </div>
           </div>
-          {settings.postData && settings.userData && (
+          {settings.postData  && (
           <FacebookPostPreview
             className="cell"
-            user={settings.userData}
+            // user={settings.userData}
             post={settings.postData}
           />
           )}

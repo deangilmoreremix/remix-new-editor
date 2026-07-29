@@ -14,6 +14,7 @@ import { WINDOW_TYPES, TOOLBARS } from '../../../lib/constants/ui';
 
 import AnimatedWindow from '../AnimatedWindow';
 import HelpIconComponent from '../HelpIcon';
+import { useRouter } from 'next/router';
 
 const Toolbar = observer(({ items }) => {
   const userStore = useUserStore();
@@ -21,7 +22,6 @@ const Toolbar = observer(({ items }) => {
   if (videoAutomationCreatorEnabled === false) {
     items = items.filter((e) => e.id !== 'template-generator');
   }
-
   const {
     toolbarItem: {
       id,
@@ -35,6 +35,24 @@ const Toolbar = observer(({ items }) => {
     toggleRightBlock,
 
   } = useUIStore();
+  const {
+    pathname,
+    query: { isCreativePack, isTextToSpeech },
+    push,
+  } = useRouter();
+  useEffect(() => {
+    const creativePack = (isCreativePack === "true");
+    const textToSpeech = (isTextToSpeech === "true");
+
+    if (creativePack) {
+      const data = items.find(ele => ele.id == 'creatives')
+      data.func();
+      setToolbarItem('creatives');
+    }
+    if(textToSpeech) {
+      
+    }
+  }, [])
   const { timelineHeight } = useTimelineStore();
   useEffect(() => {
     if (items && items.length && !id) {
@@ -48,7 +66,7 @@ const Toolbar = observer(({ items }) => {
   } = items.find(i => i.id === id) || {};
 
   const onClick = (label, func) => {
-    if ((secondaryWindowType !== WINDOW_TYPES.TEXT_TO_SPEECH && !isCanvasPresent)
+        if ((secondaryWindowType !== WINDOW_TYPES.TEXT_TO_SPEECH && !isCanvasPresent)
       || label !== TOOLBARS.MEDIA) {
       toggleVisibleCanvas(true);
     }
@@ -56,14 +74,14 @@ const Toolbar = observer(({ items }) => {
     if ((secondaryWindowType === WINDOW_TYPES.TEXT_TO_SPEECH
       || secondaryWindowType === WINDOW_TYPES.IMAGE
       || secondaryWindowType === WINDOW_TYPES.VIDEO
-      || secondaryWindowType === WINDOW_TYPES.AUDIO) && !isCanvasPresent) {
+      || secondaryWindowType === WINDOW_TYPES.AUDIO
+      || secondaryWindowType === WINDOW_TYPES.AI_ART_GENERATOR
+      || secondaryWindowType === WINDOW_TYPES.BG_DIFFUSION) && !isCanvasPresent) {
       toggleRightBlock(false);
     }
-
     func();
     setToolbarItem(label);
   };
-
   const libraryHeight = useMemo(() => (
     editorStyles.calculateHeight(timelineHeight - editorStyles.toolbar.differencePX)
   ), [timelineHeight]);

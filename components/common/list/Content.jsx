@@ -16,6 +16,11 @@ const Content = memo(({
   withoutParent,
   isTable,
 }) => {
+  function removeDuplicates(myArr, prop) {
+    return myArr.filter((obj, pos, arr) => {
+      return arr.map((mapObj) => mapObj[prop]).indexOf(obj[prop]) === pos;
+    });
+  }
   const notFound = useMemo(() => {
     if (isLoading && !query) {
       return null;
@@ -35,7 +40,7 @@ const Content = memo(({
   const content = useMemo(() => (
     <>
       {items && items.length ? (
-        items.map((item) => (
+        removeDuplicates(items,'_id').map((item) => (
           <Element item={item} key={item._id} activeItem={activeItem} />
         ))
       ) : notFound}

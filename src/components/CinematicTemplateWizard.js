@@ -14,6 +14,7 @@
  */
 
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
 import { showToast } from '../lib/loading.js';
 
@@ -348,7 +349,7 @@ export function CinematicTemplateWizard({ template, onCancel, onGenerate }) {
   // ───────────────────────────────────────────────────────────────────────
 
   async function runGenerate() {
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) {
       AuthModal(() => runGenerate());
       return;

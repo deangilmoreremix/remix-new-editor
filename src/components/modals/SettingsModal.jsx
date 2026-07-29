@@ -1,6 +1,7 @@
 import { BaseModal } from './BaseModal.jsx';
+import { apiKeyManager } from '../../lib/apiKeyManager.js';
 
-const TABS = ['General', 'Audio', 'Video', 'Keyboard', 'Export'];
+const TABS = ['General', 'API', 'Audio', 'Video', 'Keyboard', 'Export'];
 
 const KEYBOARD_SHORTCUTS = {
   'Playback': [
@@ -81,6 +82,9 @@ export class SettingsModal extends BaseModal {
       quality: 'high',
       audioBitrate: '320 kbps',
       videoBitrate: '10 Mbps'
+    };
+    this.apiSettings = {
+      openAIKey: apiKeyManager.getOpenAIKey() || '',
     };
   }
 
@@ -165,6 +169,32 @@ export class SettingsModal extends BaseModal {
                   <input type="checkbox" ${this.generalSettings.showWaveform ? 'checked' : ''} data-tooltip="Display audio waveform in timeline" />
                   <span class="toggle-slider"></span>
                 </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-panel" data-panel="API" style="display: ${this.activeTab === 'API' ? 'block' : 'none'}">
+            <div class="settings-section">
+              <h3>OpenAI</h3>
+              <div class="setting-row">
+                <label class="setting-label">OpenAI API Key</label>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                  <input type="password" id="settings-openai-key" class="setting-select" placeholder="sk-..." value="${this.escapeHtml(this.apiSettings.openAIKey || '')}" style="padding-right:80px;" />
+                  <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                    <span id="settings-openai-status" style="font-size:12px; color: ${apiKeyManager.hasOpenAIKey() ? 'var(--color-success)' : 'var(--text-muted)'};">${apiKeyManager.hasOpenAIKey() ? '✓ Key saved' : 'No key set'}</span>
+                    <div style="display:flex; gap:8px;">
+                      <button type="button" class="text-btn" id="settings-openai-clear" data-tooltip="Remove your saved OpenAI key" ${!apiKeyManager.hasOpenAIKey() ? 'disabled' : ''}>Clear</button>
+                      <button type="button" class="modal-btn modal-btn-primary" id="settings-openai-save" style="min-height:32px; padding:6px 14px; font-size:12px;">Save Key</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="setting-row" style="margin-top:8px;">
+                <label class="setting-label">Usage</label>
+                <p style="margin:0; font-size:12px; color:var(--text-secondary); line-height:1.5;">
+                  Your OpenAI key is stored locally in this browser and forwarded securely to the thumbnail studio.
+                  If no key is set, the server’s shared OpenAI key is used as a fallback.
+                </p>
               </div>
             </div>
           </div>
@@ -384,12 +414,21 @@ export class SettingsModal extends BaseModal {
   getTabIcon(tab) {
     const icons = {
       'General': '⚙',
+      'API': '🔑',
       'Audio': '🔊',
       'Video': '🎥',
       'Keyboard': '⌨',
       'Export': '📤'
     };
     return `<span class="tab-icon">${icons[tab]}</span>`;
+  }
+
+  escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   setupEventListeners() {
@@ -430,6 +469,21 @@ export class SettingsModal extends BaseModal {
       });
     });
 
+    this.overlay.querySelector('#settings-openai-save')?.addEventListener('click', () => {
+      this._persistOpenAIKey();
+    });
+    this.overlay.querySelector('#settings-openai-clear')?.addEventListener('click', () => {
+      this.apiSettings.openAIKey = '';
+      apiKeyManager.clearOpenAIKey();
+      this._syncOpenAIKeyField();
+    });
+    this.overlay.querySelector('#settings-openai-key')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this._persistOpenAIKey();
+      }
+    });
+
     this.overlay.querySelectorAll('.format-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         this.exportSettings.format = btn.dataset.format;
@@ -451,20 +505,49 @@ export class SettingsModal extends BaseModal {
       this.audioSettings = { inputDevice: 'default', outputDevice: 'default', sampleRate: '48 kHz', normalizeAudio: true, noiseReduction: false, echoCancellation: true };
       this.videoSettings = { gpuAcceleration: true, hardwareDecoding: true, previewQuality: 'high', renderQuality: 'high', defaultResolution: '1080p' };
       this.exportSettings = { format: 'mp4', codec: 'h264', quality: 'high', audioBitrate: '320 kbps', videoBitrate: '10 Mbps' };
+      this.apiSettings = { openAIKey: '' };
+      this._syncOpenAIKeyField();
       this.updateBody(this.renderBody());
       this.setupEventListeners();
     });
 
     this.overlay.querySelector('[data-action="save"]')?.addEventListener('click', () => {
+      this._persistOpenAIKey();
       this.onConfirm({
         action: 'settingsSaved',
         general: this.generalSettings,
         audio: this.audioSettings,
         video: this.videoSettings,
-        export: this.exportSettings
+        export: this.exportSettings,
+        api: this.apiSettings
       });
       this.close();
     });
+  }
+
+  _syncOpenAIKeyField() {
+    const input = this.overlay?.querySelector('#settings-openai-key');
+    const status = this.overlay?.querySelector('#settings-openai-status');
+    const clearBtn = this.overlay?.querySelector('#settings-openai-clear');
+    if (input) input.value = this.apiSettings.openAIKey || '';
+    if (status) {
+      const hasKey = apiKeyManager.hasOpenAIKey();
+      status.textContent = hasKey ? '✓ Key saved' : 'No key set';
+      status.style.color = hasKey ? 'var(--color-success)' : 'var(--text-muted)';
+    }
+    if (clearBtn) clearBtn.disabled = !apiKeyManager.hasOpenAIKey();
+  }
+
+  _persistOpenAIKey() {
+    const input = this.overlay?.querySelector('#settings-openai-key');
+    const value = input?.value?.trim() || '';
+    if (value) {
+      apiKeyManager.setOpenAIKey(value, true).catch(() => {});
+    } else {
+      apiKeyManager.clearOpenAIKey();
+    }
+    this.apiSettings.openAIKey = value;
+    this._syncOpenAIKeyField();
   }
 }
 

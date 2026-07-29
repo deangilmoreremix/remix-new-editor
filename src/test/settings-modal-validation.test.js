@@ -12,6 +12,9 @@ describe('validateApiKeyFormat', () => {
   });
 
   test('a valid key passes', () => {
+    // NOTE: must stay an obviously-fake placeholder. A real-format
+    // high-entropy key here trips Netlify's secret scanner and fails
+    // every production build ('building site ... exit code: 2').
     const ok = 'sk-VALIDFORMATPLACEHOLDER00000000000000000000000';
     expect(validateApiKeyFormat(ok, 'VideoDB API Key')).toBeNull();
   });

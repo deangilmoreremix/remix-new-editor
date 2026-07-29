@@ -14,9 +14,12 @@ export default class UserStore {
     this.selfRequest = requestCreator(hostname, null, isServer, () => { });
     this.currentUser.cutoutproCreditUsed = 0;
     this.currentUser.cutoutProCreditAvailableBalance = 0;
+    this.currentUser.videoDownloadCreditUsed = 0;
+    this.currentUser.videoDownloadAvailableCredit = 0;
+    this.downloadVideoUrl = ''
   }
 
-  @computed
+    @computed
   get isSuperAdmin() {
     return this.currentUser && this.currentUser.authorityLevel === 0;
   }
@@ -139,9 +142,45 @@ export default class UserStore {
   };
 
   @action
+  getVideo = async (body) => {
+    let url;
+    try {
+      url  = await this.request('/api/projects/update-video-quality', {
+        method: 'POST',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      this.downloadVideoUrl = url;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
+  getUserAllDetails = async (body) => {
+    let details;
+    try {
+      details  = await this.request(`/api/users/${this.currentUser.id}`, {
+        method: 'GET',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      return details
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
   getUpgradeLinkRole = async (title,envTitle,revTitle) => {
     let userObject;
-    try {	
+    try {
       userObject = await this.request(`/api/users/${this.currentUser.id}`, {
         method: 'GET',
         headers: {
@@ -171,19 +210,19 @@ export default class UserStore {
             break;
           }
         }
-           
-      if(roleData.features[envTitle]) {
-        if(roleData.features[envTitle].link) {
-          link =  roleData.features[envTitle].link;
-          break;
+
+        if(roleData.features[envTitle]) {
+          if(roleData.features[envTitle].link) {
+            link =  roleData.features[envTitle].link;
+            break;
+          }
         }
-      }
-      if(roleData.features[revTitle]) {
-        if(roleData.features[revTitle].link) {
-          link = roleData.features[revTitle].link;
-          break;
+        if(roleData.features[revTitle]) {
+          if(roleData.features[revTitle].link) {
+            link = roleData.features[revTitle].link;
+            break;
+          }
         }
-      }
       }
       return link
     } catch (e) {
@@ -244,6 +283,25 @@ export default class UserStore {
   };
 
   @action
+  userVideoDownloadBalance = async () => {
+    let user;
+    try {
+      user = await this.request('/api/users/me?getVideoDownload=true', {
+        method: 'GET',
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      this.currentUser.downloadVideoLimitUsed = user.videoDownloadCredit;
+      this.currentUser.availableDownloadVideoLimit = user.ttsAmountOfAvailableCredit;
+            // return user.ttsAmountOfAvailableCredit;
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+  };
+
+  @action
   updateUserCreditUseAndGetUserCreditBalance = async (body) => {
     try {
       const response = await this.selfRequest('/users/me', {
@@ -274,6 +332,37 @@ export default class UserStore {
     }
   };
 
+  @action
+  updateDownloadVideoAndGetDownloadVideoLimit = async (body) => {
+    try {
+      const response = await this.selfRequest('/users/me', {
+        method: 'PATCH',
+        body,
+        headers: {
+          'on-behalf': this.currentUser.id,
+        },
+      });
+      if (response) {
+        this.currentUser[Object.keys(body)[0]] = response.body.user[Object.keys(body)[0]];
+        // let user;
+        const user = await this.request('/api/users/me?getVideoDownload=true', {
+          method: 'GET',
+          headers: {
+            'on-behalf': this.currentUser.id,
+          },
+        });
+        this.currentUser.downloadVideoLimitUsed = user.videoDownloadCredit;
+        this.currentUser.availableDownloadVideoLimit = user.ttsAmountOfAvailableCredit;
+        // cutoutProCreditUserUsed();
+        // cutoutProCreditAvailableBalance();
+        // return user.ttsAmountOfAvailableCredit;
+      }
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  };
+
   @computed
   get cutoutProCreditUserUsed() {
     return this.currentUser.cutoutproCreditUsed || 0;
@@ -285,6 +374,16 @@ export default class UserStore {
     return this.currentUser.cutoutProCreditAvailableBalance || 0;
   }
 
+  @computed
+  get downloadVideoLimitUsed() {
+    return this.currentUser.downloadVideoLimitUsed || 0;
+  }
+
+
+  @computed
+  get availableDownloadVideoLimit() {
+    return this.currentUser.availableDownloadVideoLimit || 0;
+  }
 
   @action
   getUserKey = (activeBtn) => {
@@ -388,6 +487,10 @@ export default class UserStore {
     return this.currentUser.svrTerms;
   }
 
+  isfeatureEnabledForAdmin = (feature) => (
+    this.currentUser.features && this.currentUser.features[feature]
+    && this.currentUser.features[feature].state === STATE.ENABLED);
+
   isfeatureEnabled = (feature) => this.isSuperAdmin || (
     this.currentUser.features && this.currentUser.features[feature]
     && this.currentUser.features[feature].state === STATE.ENABLED);
@@ -420,6 +523,11 @@ export default class UserStore {
   @computed
   get leadGeneratorEnabled() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_LEAD_GENERATOR);
+  }
+
+  @computed
+  get smartaimentorsEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_AI_MENTORS);
   }
 
   @computed
@@ -566,6 +674,12 @@ export default class UserStore {
   }
 
   @computed
+  get revolutionDownloadVideoEnabled() {
+    console.log( this.isfeatureEnabled(FEATURES.REVOLUTION_DOWNLOAD_VIDEO),"dfkdfdhfjdfhjd")
+    return this.isfeatureEnabled(FEATURES.REVOLUTION_DOWNLOAD_VIDEO);
+  }
+  
+  @computed
   get clickToPhoneCall() {
     return this.isfeatureEnabled(FEATURES.REVOLUTION_CLICK_TO_PHONE_CALL);
   }
@@ -647,6 +761,17 @@ export default class UserStore {
     return this.isfeatureEnabled(FEATURES.SMART_ANIMER);
   }
 
+
+  @computed
+  get smartBgDeffusionEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_BG_DEFFUSION);
+  }
+
+  @computed
+  get smartAiArtGeneratorEnabled() {
+    return this.isfeatureEnabled(FEATURES.SMART_AI_ART_GENERATOR);
+  }
+
   @computed
   get smartPassportEnabled() {
     return this.isfeatureEnabled(FEATURES.SMART_PASSPORT);
@@ -688,7 +813,110 @@ export default class UserStore {
   }
 
   @computed
+  get retroLTEnabled() {
+    return this.isfeatureEnabled(FEATURES.RETRO_LT);
+  }
+
+  @computed
+  get neonLTEnabled() {
+    return this.isfeatureEnabled(FEATURES.NEON_LT);
+  }
+
+  @computed
+  get neonSocialMediaLTEnabled() {
+    return this.isfeatureEnabled(FEATURES.NEON_SOCIAL_MEDIA_LT);
+  }
+
+  @computed
+  get socialMediaLTEnabled() {
+    return this.isfeatureEnabled(FEATURES.SOCIAL_MEDIA_LT);
+  }
+
+  @computed
+  get locationTitlesEnabled() {
+    return this.isfeatureEnabled(FEATURES.LOCATION_TITLES);
+  }
+
+  @computed
+  get socialMediaIcon3DEnabled() {
+    return this.isfeatureEnabled(FEATURES.SOCIAL_MEDIA_ICON_3D);
+  }
+
+  @computed
+  get callOutTitlePageEnabled() {
+    return this.isfeatureEnabled(FEATURES.CALL_OUT_TITLE_PACKAGE);
+  }
+
+  @computed
+  get neonArrowPackEnabled() {
+    return this.isfeatureEnabled(FEATURES.NEON_ARROW_PACK);
+  }
+
+  @computed
+  get socialMediaPackEnabled() {
+    return this.isfeatureEnabled(FEATURES.SOCIAL_MEDIA_PACK);
+  }
+
+  @computed
+  get socialMediaButtonPackEnabled() {
+    return this.isfeatureEnabled(FEATURES.SOCIAL_MEIDA_BUTTON_PACK);
+  }
+
+  @computed
   get endScreensEnabled() {
     return this.isfeatureEnabled(FEATURES.END_SCREENS);
+  }
+
+  @computed
+  get musicEnabled() {
+    return this.isfeatureEnabled(FEATURES.MUSIC);
+  }
+
+  @computed
+  get quotesEnabled() {
+    return this.isfeatureEnabled(FEATURES.QUOTES);
+  }
+
+  @computed
+  get SMPvpBundleEnabled() {
+    return this.isfeatureEnabled(FEATURES.SM_PVP_BUNDLE);
+  }
+  @computed
+  get eCommerceEnabled() {
+    return this.isfeatureEnabled(FEATURES.ECOMMERCE);
+  }
+  @computed
+  get youTubeInterActiveEnabled() {
+    return this.isfeatureEnabled(FEATURES.YOUTUBE_INTERACTIVE);
+  }
+  @computed
+  get greatTechLayoffEnabled() {
+    return this.isfeatureEnabled(FEATURES.GREAT_TECH_LAYOFF);
+  }
+  @computed
+  get priceTagsEnabled() {
+    return this.isfeatureEnabled(FEATURES.PRICE_TAGS);
+  }
+  @computed
+  get countDownTimersEnabled() {
+    return this.isfeatureEnabled(FEATURES.COUNT_DOWN_TIMERS);
+  }
+  @computed
+  get millionDollarHackEnabled() {
+    return this.isfeatureEnabled(FEATURES.MILLION_DOLLAR_HACK);
+  }
+  @computed
+  get aiThumbnailEnabled() {
+    return this.isfeatureEnabled(FEATURES.AI_THUMBNAIL);
+  }
+
+  @computed
+  get aiTitleSuggestionsEnabled() {
+    return this.isfeatureEnabledForAdmin(FEATURES.AI_TITLE_SUGGESTIONS);
+  }
+
+  @computed
+  get aiDescriptionEnabled() {
+    return this.isfeatureEnabledForAdmin(FEATURES.AI_DESCRIPTION_SUGGESTIONS);
   }
 }

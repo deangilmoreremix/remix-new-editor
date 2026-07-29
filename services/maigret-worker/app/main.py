@@ -27,6 +27,7 @@ Environment variables:
 
 import asyncio
 import hashlib
+import hmac
 import logging
 import os
 import time
@@ -34,12 +35,9 @@ from collections import defaultdict
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
-from slowapi import Limiter
-from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 from starlette.responses import JSONResponse
 
 from .cache import Cache
@@ -49,7 +47,22 @@ from .scanner import MaigretScanner, ScanOptions, ScanResult
 # Configuration
 # ---------------------------------------------------------------------------
 
-API_KEY = os.environ.get("MAIGRET_API_KEY", "").strip()
+# The client API key. Render's blueprint previously provisioned this under the
+# env var name MAIGRET_WORKER_SECRET (and the Netlify personalizer-api/intelligence-api
+# functions send that value in X-API-Key). To avoid an auth break when Render keeps the
+# old auto-generated secret bound under MAIGRET_WORKER_SECRET, accept either name.
+# MAIGRET_API_KEY wins if both are set.
+_API_KEY_FROM = None
+_env_api_key = os.environ.get("MAIGRET_API_KEY", "").strip()
+_env_worker_secret = os.environ.get("MAIGRET_WORKER_SECRET", "").strip()
+if _env_api_key:
+    API_KEY = _env_api_key
+    _API_KEY_FROM = "MAIGRET_API_KEY"
+elif _env_worker_secret:
+    API_KEY = _env_worker_secret
+    _API_KEY_FROM = "MAIGRET_WORKER_SECRET"
+else:
+    API_KEY = ""
 ADMIN_KEY = os.environ.get("MAIGRET_ADMIN_KEY", "").strip() or API_KEY
 CACHE_BACKEND = os.environ.get("MAIGRET_CACHE_BACKEND", "memory").lower()
 CACHE_TTL = int(os.environ.get("MAIGRET_CACHE_TTL_SECONDS", "86400"))
@@ -65,7 +78,15 @@ if not API_KEY:
     # Don't fail at import time so the service can boot for the health check
     # in environments where the key is injected after startup. The auth
     # dependency will reject every request until a key is set.
-    logging.warning("MAIGRET_API_KEY is not set; all /scan requests will be rejected")
+    logging.warning("MAIGRET_API_KEY / MAIGRET_WORKER_SECRET not set; all /scan requests will be rejected")
+else:
+    # Log the source + a short prefix so the operator can copy the SAME value
+    # into the Netlify MAIGRET_WORKER_SECRET env var without exposing the full
+    # secret to the logs. The prefix is enough to confirm the right key is live.
+    logging.info(
+        "Maigret worker API key active from %s (prefix=%s...)",
+        _API_KEY_FROM, API_KEY[:6],
+    )
 
 logging.basicConfig(
     level=logging.INFO,
@@ -133,18 +154,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# slowapi limiter is wired up but the per-key limit is enforced in the route
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-
-
-@app.exception_handler(RateLimitExceeded)
-async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
-    return JSONResponse(
-        status_code=429,
-        content={"error": "rate_limited", "detail": str(exc)},
-    )
-
+# Per-key rate limiting is enforced manually in the /scan route via
+# _check_per_key_rate_limit (sliding 1h window); see MAIGRET_PER_KEY_LIMIT.
 
 # ---------------------------------------------------------------------------
 # Auth
@@ -155,10 +166,14 @@ def _hash_key(key: str) -> str:
     return hashlib.sha256(key.encode("utf-8")).hexdigest()[:16]
 
 
+def _scan_cache_key(username: str, top: int, is_parsing_enabled: bool) -> str:
+    return f"scan:{username.lower()}:{top}:{is_parsing_enabled}"
+
+
 async def require_api_key(x_api_key: Optional[str] = Header(default=None)) -> str:
     if not API_KEY:
         raise HTTPException(status_code=503, detail="MAIGRET_API_KEY not configured on server")
-    if not x_api_key or x_api_key != API_KEY:
+    if not x_api_key or not hmac.compare_digest(x_api_key, API_KEY):
         raise HTTPException(status_code=401, detail="Invalid or missing X-API-Key")
     return x_api_key
 
@@ -166,7 +181,7 @@ async def require_api_key(x_api_key: Optional[str] = Header(default=None)) -> st
 async def require_admin_key(x_api_key: Optional[str] = Header(default=None)) -> str:
     if not ADMIN_KEY:
         raise HTTPException(status_code=503, detail="MAIGRET_ADMIN_KEY not configured on server")
-    if not x_api_key or x_api_key != ADMIN_KEY:
+    if not x_api_key or not hmac.compare_digest(x_api_key, ADMIN_KEY):
         raise HTTPException(status_code=401, detail="Invalid or missing admin X-API-Key")
     return x_api_key
 
@@ -181,9 +196,15 @@ class ScanRequest(BaseModel):
     top: int = Field(default=500, ge=1, le=2500, description="Max sites to check")
     isParsingEnabled: bool = Field(default=True, description="Parse profile pages for extra data")
     timeoutMs: int = Field(default=15000, ge=1000, le=60000, description="Per-site HTTP timeout")
-    enableCloudflareBypass: bool = Field(default=False, description="Try to bypass Cloudflare (slower)")
+    enableCloudflareBypass: bool = Field(default=False, description="Include disabled sites / attempt Cloudflare bypass (slower, needs a bypass solver)")
     parseUrl: Optional[str] = Field(default=None, description="Specific URL to also parse")
     useCache: bool = Field(default=True, description="Return cached result if available")
+    tags: Optional[List[str]] = Field(default=None, description="Restrict scan to these site tags")
+    proxy: Optional[str] = Field(default=None, description="Proxy URL (e.g. socks5://127.0.0.1:1080)")
+    retries: int = Field(default=1, ge=0, le=5, description="Retries for temporarily failed requests")
+    noRecursion: bool = Field(default=True, description="Disable recursive search by extracted data")
+    permute: bool = Field(default=False, description="Permute >=2 usernames to generate more candidates")
+    checkDomains: bool = Field(default=False, description="Also check domains on the username")
 
     @field_validator("username")
     @classmethod
@@ -206,6 +227,7 @@ class ScanResponse(BaseModel):
     durationMs: int
     sitesChecked: int
     sitesFound: int
+    graph: Dict[str, Any] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -215,7 +237,13 @@ class ScanResponse(BaseModel):
 
 @app.get("/health")
 async def health():
-    """Liveness/readiness probe. Does not require auth."""
+    """Liveness/readiness probe. Does not require auth.
+
+    Exposes which env var the active API key came from and a short masked
+    prefix so operators can confirm the live key and copy the same value into
+    the Netlify MAIGRET_WORKER_SECRET env var (it must match exactly).
+    The full secret is never returned.
+    """
     return {
         "status": "ok",
         "service": "maigret-worker",
@@ -224,6 +252,8 @@ async def health():
         "max_concurrent": MAX_CONCURRENT,
         "scan_timeout_s": SCAN_TIMEOUT,
         "api_key_configured": bool(API_KEY),
+        "api_key_source": _API_KEY_FROM,
+        "api_key_prefix": (API_KEY[:6] + "...") if API_KEY else None,
     }
 
 
@@ -235,7 +265,7 @@ async def scan(
     key_hash = _hash_key(api_key)
     _check_per_key_rate_limit(key_hash)
 
-    cache_key = f"scan:{body.username.lower()}:{body.top}:{body.isParsingEnabled}"
+    cache_key = _scan_cache_key(body.username, body.top, body.isParsingEnabled)
     logger.info("scan requested username=%s key=%s", body.username, key_hash)
 
     if body.useCache and cache is not None:
@@ -251,6 +281,12 @@ async def scan(
         timeout_ms=body.timeoutMs,
         enable_cloudflare_bypass=body.enableCloudflareBypass,
         parse_url=body.parseUrl,
+        tags=body.tags,
+        proxy=body.proxy,
+        retries=body.retries,
+        no_recursion=body.noRecursion,
+        permute=body.permute,
+        check_domains=body.checkDomains,
     )
 
     async with _scan_semaphore:
@@ -278,6 +314,7 @@ async def scan(
         "durationMs": result.duration_ms,
         "sitesChecked": result.sites_checked,
         "sitesFound": result.sites_found,
+        "graph": result.graph,
     }
 
     if cache is not None:
@@ -293,7 +330,7 @@ async def inspect_cache(
 ):
     if cache is None:
         return {"cached": False}
-    cached = await cache.get(f"scan:{username.lower()}:500:True")
+    cached = await cache.get(_scan_cache_key(username, 500, True))
     if cached is None:
         return {"cached": False, "username": username}
     return {"cached": True, "username": username, "result": cached}

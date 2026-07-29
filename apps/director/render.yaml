@@ -1,3 +1,9 @@
+# NOTE: director-db already exists in the Render workspace, so it is NOT
+# re-declared here. Re-declaring it causes a blueprint validation error
+# ("cannot downgrade database"). The web services reference the existing
+# DB via `fromDatabase` below. If you ever delete director-db, add the
+# databases block back.
+
 services:
   - type: web
     name: director-backend
@@ -42,8 +48,11 @@ services:
     region: singapore
     runtime: docker
     plan: starter
-    rootDir: apps/director/frontend
-    dockerfilePath: ./Dockerfile
+    # No rootDir: the build context is the repo root, so the shared workspace
+    # packages (packages/layout -> packages/tokens, packages/navigation)
+    # referenced via `file:` deps are present for `npm install` / `vite build`.
+    # dockerfilePath/dockerContext are relative to the repo root.
+    dockerfilePath: apps/director/frontend/Dockerfile
     dockerContext: .
     envVars:
       - key: VITE_APP_BACKEND_URL

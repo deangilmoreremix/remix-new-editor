@@ -1,11 +1,14 @@
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createMediaPreview, createFullscreenPreview } from './MediaPreview.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { i2iModels, i2vModels } from '../lib/models.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -28,10 +31,12 @@ function getEffectsForModel(modelId) {
 export function EffectsStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden relative';
+  mountStudioChrome(container, { currentRoute: 'effects' });
 
   let activeTab = EFFECT_TABS[0];
   let selectedEffect = null;
   let uploadedUrl = null;
+  let customThumbnailUrl = getCustomThumbnailFromCache('effects-studio');
 
   const fullscreen = createFullscreenPreview();
   container.appendChild(fullscreen.element);
@@ -45,6 +50,21 @@ export function EffectsStudio() {
     bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Effects Studio</h1><p class="text-white/60 text-xs">Apply 350+ visual effects to your photos and videos</p>';
     effectsBanner.appendChild(bannerText);
     topBar.appendChild(effectsBanner);
+
+    // Thumbnail studio button
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'absolute top-3 right-3 z-20 px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-violet-500 to-indigo-500 text-white hover:from-violet-400 hover:to-indigo-400 transition-all shadow-lg shadow-violet-500/25';
+    thumbBtn.onclick = () => {
+      const modal = new StudioThumbnailModal({
+        studioId: 'effects-studio',
+        studioLabel: 'Effects Studio',
+        accentGradient: 'from-violet-500 to-indigo-500',
+      });
+      mountStudioThumbnailModal(modal);
+    };
   } else {
     topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Effects Studio</h1><p class="text-secondary text-xs mb-4">Apply 350+ visual effects to your photos and videos</p>';
   }
@@ -164,6 +184,33 @@ export function EffectsStudio() {
   promptInput.placeholder = 'Optional prompt...';
   promptInput.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
   promptRow.appendChild(promptInput);
+
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'gtm-boost-btn shrink-0';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new StudioThumbnailModal({
+      appTheme: 'effects-studio',
+      studioId: 'effects-studio',
+      studioName: 'Effects Studio',
+      aspectRatio: '16:9',
+      outputType: 'image',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('effects-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('effects-studio');
+      },
+    });
+    mountStudioThumbnailModal(modal);
+    modal.open();
+  });
+  promptRow.appendChild(thumbBtn);
 
   const generateBtn = document.createElement('button');
   generateBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow transition-all whitespace-nowrap';
@@ -360,7 +407,7 @@ export function EffectsStudio() {
   async function handleGenerate() {
     if (!selectedEffect) { alert('Select an effect first'); return; }
     if (!uploadedUrl) { alert('Upload an image or video first'); return; }
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => handleGenerate()); return; }
 
     generateBtn.disabled = true;
@@ -376,6 +423,7 @@ export function EffectsStudio() {
         model: activeTab.id,
         image_url: uploadedUrl,
         [activeTab.field]: selectedEffect,
+        customThumbnailUrl: customThumbnailUrl || undefined,
       };
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
       const prompt = replaceTokensInPrompt(promptInput.value.trim() || mobilePrompt.value.trim(), activeProfile);

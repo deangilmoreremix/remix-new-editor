@@ -14,7 +14,7 @@ describe('MuapiClient Fixes', () => {
   });
 
   describe('uploadFile routes to muapi upload endpoint', () => {
-    test('sends multipart to upload_file with x-api-key', async () => {
+    test('sends multipart to proxy with x-endpoint header', async () => {
       const mockFile = new File(['test'], 'test.png', { type: 'image/png' });
       const mockResponse = {
         ok: true,
@@ -26,11 +26,11 @@ describe('MuapiClient Fixes', () => {
       const result = await client.uploadFile(mockFile);
 
       expect(fetch).toHaveBeenCalledWith(
-        'https://api.muapi.ai/api/v1/upload_file',
+        'https://test.supabase.co/functions/v1/muapi-proxy',
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
-            'x-api-key': null // null because no key is set in test env
+            'x-endpoint': 'upload_file'
           })
         })
       );

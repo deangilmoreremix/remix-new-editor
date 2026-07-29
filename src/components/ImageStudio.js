@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createSafeImage } from '../lib/security.js';
 import {
@@ -10,12 +11,14 @@ import { ENHANCE_TAGS, QUICK_PROMPTS } from '../lib/promptUtils.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 
 export function ImageStudio() {
     const container = document.createElement('div');
     container.className = 'w-full h-full flex flex-col items-center justify-start bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+  mountStudioChrome(container, { currentRoute: 'image' });
 
     // --- State ---
     const defaultModel = t2iModels[0];
@@ -25,6 +28,7 @@ export function ImageStudio() {
     let dropdownOpen = null;
     let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
     let imageMode = false; // false = t2i models, true = i2i models
+    let customThumbnailUrl = getCustomThumbnailFromCache('image-studio');
     
     // Advanced parameters state
     let negativePrompt = '';
@@ -66,6 +70,7 @@ export function ImageStudio() {
         heroBanner.appendChild(heroContent);
         hero.appendChild(heroBanner);
     }
+
     container.appendChild(hero);
 
     // ==========================================
@@ -205,7 +210,34 @@ export function ImageStudio() {
     controlsLeft.appendChild(modelBtn);
     controlsLeft.appendChild(arBtn);
     controlsLeft.appendChild(qualityBtn);
-    
+
+    // Thumbnail studio button — next to creation controls, GTM Boost styling
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'gtm-boost-btn shrink-0';
+    thumbBtn.addEventListener('click', () => {
+      const modal = new StudioThumbnailModal({
+        appTheme: 'image-studio',
+        studioId: 'image-studio',
+        studioName: 'Image Studio',
+        aspectRatio: selectedAr || '1:1',
+        outputType: 'image',
+        onApply: ({ imageUrl }) => {
+          customThumbnailUrl = imageUrl;
+          saveCustomThumbnailToCache('image-studio', imageUrl);
+        },
+        onClear: () => {
+          customThumbnailUrl = null;
+          clearCustomThumbnailCache('image-studio');
+        },
+      });
+      mountStudioThumbnailModal(modal);
+      modal.open();
+    });
+    controlsLeft.appendChild(thumbBtn);
+
     // Advanced options toggle button
     const advancedBtn = createControlBtn(`
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 001.82-.33 1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-1.82.33A1.65 1.65 0 0019.4 9a1.65 1.65 0 00-1.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -1094,6 +1126,7 @@ export function ImageStudio() {
                     image_url: uploadedImageUrls[0], // backward compat for single-image models
                     aspect_ratio: selectedAr
                 };
+                if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
                 if (prompt) genParams.prompt = prompt;
                 if (negativePrompt) genParams.negative_prompt = negativePrompt;
                 if (guidanceScale && guidanceScale !== 7.5) genParams.guidance_scale = guidanceScale;
@@ -1113,6 +1146,7 @@ export function ImageStudio() {
                     prompt,
                     aspect_ratio: selectedAr
                 };
+                if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
                 // Add style to prompt if selected
                 if (selectedStyle && selectedStyle !== 'None') {
                     genParams.prompt = `${prompt}, ${selectedStyle.toLowerCase()} style`;

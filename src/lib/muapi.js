@@ -1,5 +1,6 @@
 import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById, getAvatarModelById, getTextModelById, getTrainingModelById, i2vModels } from './models.js';
 import { apiKeyManager } from './apiKeyManager.js';
+import { uploadFileToStorage } from './supabase.js';
 
 // Authoritative allowlist for generate_wan_ai_effects `name` values.
 // Built from the live API schema enums in i2vModels (ai-video-effects: 64, motion-controls: 47, vfx: 9).
@@ -88,6 +89,14 @@ export class MuapiClient {
 
         if (params.seed && params.seed !== -1) {
             finalPayload.seed = params.seed;
+        }
+
+        if (params.negative_prompt) {
+            finalPayload.negative_prompt = params.negative_prompt;
+        }
+
+        if (params.thumbnail_url) {
+            finalPayload.thumbnail_url = params.thumbnail_url;
         }
 
         try {
@@ -222,6 +231,14 @@ export class MuapiClient {
         if (params.quality) finalPayload.quality = params.quality;
         if (params.image_url) finalPayload.image_url = params.image_url;
 
+        if (params.negative_prompt) {
+            finalPayload.negative_prompt = params.negative_prompt;
+        }
+
+        if (params.thumbnail_url) {
+            finalPayload.thumbnail_url = params.thumbnail_url;
+        }
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -287,6 +304,14 @@ export class MuapiClient {
         // API returns 422 "Field required: name" and video creation silently fails.
         if (params.name) finalPayload.name = params.name;
 
+        if (params.negative_prompt) {
+            finalPayload.negative_prompt = params.negative_prompt;
+        }
+
+        if (params.thumbnail_url) {
+            finalPayload.thumbnail_url = params.thumbnail_url;
+        }
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
@@ -346,10 +371,20 @@ export class MuapiClient {
         if (params.resolution) finalPayload.resolution = params.resolution;
         if (params.quality) finalPayload.quality = params.quality;
 
+        if (params.negative_prompt) {
+            finalPayload.negative_prompt = params.negative_prompt;
+        }
+
+        if (params.thumbnail_url) {
+            finalPayload.thumbnail_url = params.thumbnail_url;
+        }
+
         try {
             const response = await fetch(this.proxyUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({
                     endpoint,
                     params: finalPayload,
@@ -386,25 +421,36 @@ export class MuapiClient {
         const formData = new FormData();
         formData.append('file', file);
 
-        const response = await fetch('https://api.muapi.ai/api/v1/upload_file', {
-            method: 'POST',
-            headers: {
-                'x-api-key': key,
-            },
-            body: formData
-        });
+        try {
+            const response = await fetch(this.proxyUrl, {
+                method: 'POST',
+                headers: {
+                    'x-api-key': key,
+                    'x-endpoint': 'upload_file',
+                },
+                body: formData
+            });
 
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`Upload Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Upload Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+            }
+
+            const result = await response.json();
+            if (result.error) {
+                throw new Error(`Upload Failed: ${result.error}`);
+            }
+
+            return result.url || result.data?.url;
+        } catch (err) {
+            console.warn('[MuapiClient] Proxy upload failed, falling back to Supabase Storage:', err);
+            try {
+                return await uploadFileToStorage(file);
+            } catch (fallbackErr) {
+                console.error('[MuapiClient] Fallback upload also failed:', fallbackErr);
+                throw new Error(`Upload failed: ${err.message || fallbackErr.message}`);
+            }
         }
-
-        const result = await response.json();
-        if (result.error) {
-            throw new Error(`Upload Failed: ${result.error}`);
-        }
-
-        return result.url || result.data?.url;
     }
 
     async processV2V(params, signal) {
@@ -413,6 +459,10 @@ export class MuapiClient {
 
         const videoField = modelInfo?.videoField || 'video_url';
         const finalPayload = { [videoField]: params.video_url };
+
+        if (params.thumbnail_url) {
+            finalPayload.thumbnail_url = params.thumbnail_url;
+        }
 
         try {
             const response = await fetch(this.proxyUrl, {

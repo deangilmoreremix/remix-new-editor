@@ -4,145 +4,23 @@ import { ThumbnailService } from '../../lib/thumbnailService.js';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { PRESET_LIST, getPresetForTemplate, applyPresetToControls, applyPresetToBrief } from '../../lib/thumbnailPresets.js';
 
-const THUMB_STYLES = `
-.thumb-modal__section {
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
-  padding: 16px;
-}
-.thumb-modal__label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: #71717a;
-  margin-bottom: 10px;
-}
-.thumb-modal__textarea {
-  width: 100%;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(0,0,0,0.3);
-  padding: 12px;
-  font-size: 13px;
-  color: #f4f4f5;
-  resize: vertical;
-  outline: none;
-  font-family: inherit;
-  line-height: 1.5;
-  transition: border-color 150ms ease;
-  box-sizing: border-box;
-}
-.thumb-modal__textarea:focus { border-color: #22d3ee; }
-.thumb-modal__textarea::placeholder { color: #52525b; }
-.thumb-modal__chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.thumb-modal__chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 12px; border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.03);
-  color: #d4d4d8; font-size: 12px; cursor: pointer;
-  transition: all 150ms ease; font-family: inherit;
-}
-.thumb-modal__chip:hover { border-color: #22d3ee; background: rgba(34,211,238,0.08); color: white; }
-.thumb-modal__chip--active { border-color: #22d3ee; background: rgba(34,211,238,0.12); color: white; }
-.thumb-modal__btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 40px; width: 100%;
-  border-radius: 14px; border: 1px solid transparent;
-  font-family: inherit; font-size: 13px; font-weight: 600;
-  cursor: pointer; transition: all 150ms ease;
-}
-.thumb-modal__btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.thumb-modal__btn--primary { background: linear-gradient(135deg,#22d3ee,#10b981); color: #022c22; }
-.thumb-modal__btn--primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(34,211,238,0.25); }
-.thumb-modal__btn--secondary { background: rgba(24,24,27,0.8); color: #d4d4d8; border-color: rgba(255,255,255,0.08); }
-.thumb-modal__btn--secondary:hover:not(:disabled) { border-color: #22d3ee; color: #22d3ee; background: rgba(34,211,238,0.08); }
-.thumb-modal__btn--ghost { background: transparent; color: #a1a1aa; border-color: rgba(255,255,255,0.06); height: 34px; }
-.thumb-modal__btn--ghost:hover:not(:disabled) { border-color: #22d3ee; color: #22d3ee; }
-.thumb-modal__btn--danger { background: rgba(239,68,68,0.12); color: #fca5a5; border-color: rgba(239,68,68,0.25); }
-.thumb-modal__btn--danger:hover:not(:disabled) { background: #ef4444; color: white; }
-.thumb-modal__candidates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.thumb-modal__candidate {
-  position: relative; border-radius: 16px; border: 2px solid transparent;
-  overflow: hidden; cursor: pointer; background: #09090b; aspect-ratio: 16/10;
-  transition: all 150ms ease;
-}
-.thumb-modal__candidate img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.thumb-modal__candidate:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
-.thumb-modal__candidate--selected { border-color: #22d3ee; box-shadow: 0 0 0 1px #22d3ee, 0 8px 24px rgba(34,211,238,0.2); }
-.thumb-modal__candidate--busy { opacity: 0.5; pointer-events: none; }
-.thumb-modal__candidate-actions {
-  position: absolute; bottom: 0; left: 0; right: 0; padding: 8px;
-  display: flex; gap: 6px;
-  background: linear-gradient(transparent, rgba(0,0,0,0.8));
-  opacity: 0; transition: opacity 150ms ease;
-}
-.thumb-modal__candidate:hover .thumb-modal__candidate-actions { opacity: 1; }
-.thumb-modal__preview {
-  position: relative; border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: #09090b; overflow: hidden; aspect-ratio: 16/10;
-}
-.thumb-modal__preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.thumb-modal__empty {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 12px; padding: 48px 24px; color: #52525b; text-align: center; font-size: 13px;
-}
-.thumb-modal__empty-icon { font-size: 48px; opacity: 0.5; }
-.thumb-modal__progress { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; color: #a1a1aa; font-size: 13px; }
-.thumb-modal__spinner {
-  width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.08);
-  border-top-color: #22d3ee; border-radius: 50%;
-  animation: thumb-modal-spin 0.7s linear infinite;
-}
-.thumb-modal__error { color: #fca5a5; font-size: 12px; margin-top: 6px; }
-.thumb-modal__refine-bar { display: flex; gap: 8px; align-items: center; }
-.thumb-modal__layout { display: grid; grid-template-columns: 1fr 220px; gap: 16px; min-height: 0; }
-.thumb-modal__main { display: flex; flex-direction: column; gap: 12px; min-width: 0; min-height: 0; }
-.thumb-modal__sidebar { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.025); }
-.thumb-modal__sidebar-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: #71717a; }
-.thumb-modal__field { display: flex; flex-direction: column; gap: 4px; }
-.thumb-modal__field label { font-size: 10px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.12em; }
-.thumb-modal__select, .thumb-modal__input {
-  background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08);
-  color: #d4d4d8; font-size: 12px; padding: 6px 8px; border-radius: 8px; font-family: inherit;
-}
-.thumb-modal__select:focus, .thumb-modal__input:focus { outline: none; border-color: #22d3ee; }
-.thumb-modal__presets { display: flex; flex-wrap: wrap; gap: 6px; }
-.thumb-modal__preset-chip {
-  display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
-  color: #a1a1aa; font-size: 11px; cursor: pointer; font-family: inherit;
-  transition: all 120ms ease;
-}
-.thumb-modal__preset-chip:hover { border-color: #22d3ee; color: white; }
-.thumb-modal__preset-chip--active { border-color: #22d3ee; background: rgba(34,211,238,0.12); color: white; }
-.thumb-modal__revised {
-  font-size: 10px; color: #71717a; line-height: 1.4;
-  padding: 6px 8px; border-radius: 8px; background: rgba(0,0,0,0.25);
-  border: 1px dashed rgba(255,255,255,0.06); max-height: 60px; overflow: auto;
-}
-.thumb-modal__partial {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  pointer-events: none; color: #a1a1aa; font-size: 11px; letter-spacing: 0.08em;
-}
-.thumb-modal__partial img { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
-.thumb-modal__ref-upload { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #a1a1aa; }
-`;
-
-let thumbStylesInjected = false;
-function injectThumbStyles() {
-  if (thumbStylesInjected) return;
-  const styleEl = document.createElement('style');
-  styleEl.textContent = THUMB_STYLES;
-  document.head.appendChild(styleEl);
-  thumbStylesInjected = true;
-}
+/**
+ * TemplateThumbnailModal — redesigned to match the GTM Boost modal design system.
+ *
+ * Uses the same CSS custom-property theming, form-section layout, and
+ * .gtm-action button vocabulary as GTMPromptModal so it feels native to
+ * every studio it is mounted in.
+ *
+ * 5-step flow:
+ *   1. Brief   — prompt variants from templateSpecs + user edits
+ *   2. Generate — 3 gpt-image-2 candidates
+ *   3. Refine   — multi-turn Responses API edit / conversational
+ *   4. Save     — upload to Storage + insert into thumbnails table
+ *   5. Apply    — inject custom URL back into calling studio
+ */
 
 /**
- * TemplateThumbnailModal — user-facing thumbnail studio for templates.
+ * TemplateThumbnailModal — GTM-design-system thumbnail studio for templates.
  *
  * Steps:
  *   1. Brief   — prompt variants from templateSpecs + user edits
@@ -151,12 +29,11 @@ function injectThumbStyles() {
  *   4. Save     — upload to Storage + insert into thumbnails table
  *   5. Apply    — inject custom URL back into calling studio
  */
-
 export class TemplateThumbnailModal extends BaseModal {
   constructor(options = {}) {
     super({
       title: '🎬 Thumbnail Studio',
-      size: 'full',
+      size: 'large',
       showFooter: true,
       footerContent: `
         <button class="modal-btn modal-btn-secondary" data-action="cancel">Cancel</button>
@@ -183,7 +60,7 @@ export class TemplateThumbnailModal extends BaseModal {
     });
 
     // State
-    this.step = 'brief'; // brief | generate | refine | saved
+    this.step = 'brief'; // brief | generate | refine | textoverlay | saved
     this.brief = '';
     this.variants = [];
     this.selectedVariantIndex = -1;
@@ -198,6 +75,16 @@ export class TemplateThumbnailModal extends BaseModal {
     this._error = null;
     this.preset = null;
     this.presetKey = null;
+    // Text overlay state
+    this.textOverlay = {
+      text: '',
+      font: 'Inter',
+      size: 48,
+      color: '#ffffff',
+      weight: 'bold',
+      x: 0.5, // 0-1 relative
+      y: 0.5,
+    };
     this.controls = {
       quality: openaiConfig.defaultConfig.thumbnailQuality,
       style: openaiConfig.defaultConfig.thumbnailStyle,
@@ -205,43 +92,63 @@ export class TemplateThumbnailModal extends BaseModal {
       outputFormat: openaiConfig.defaultConfig.thumbnailFormat,
       outputCompression: openaiConfig.defaultConfig.thumbnailCompression,
       aspectRatio: this.template?.aspectRatio || '16:9',
+      size: openaiConfig.defaultConfig.thumbnailDefaultSize,
+      moderation: openaiConfig.defaultConfig.thumbnailModeration,
     };
     this.referenceImage = null;
+    this.referenceImages = []; // multi-reference support
     this.imageDetail = 'auto';
+    this.imageAction = 'auto';
+    this.partialImages = openaiConfig.defaultConfig.thumbnailPartialImages;
+    this.streaming = openaiConfig.defaultConfig.thumbnailStreamingEnabled;
+    this.responsesModel = openaiConfig.defaultConfig.thumbnailResponsesModel;
+    this.storeResponses = openaiConfig.defaultConfig.thumbnailStoreResponses;
     this.partialPreview = null;
     this.completedAt = null;
     this.maskCanvas = null;
     this.maskB64 = '';
     this.lastParams = null;
+    this.showAdvanced = false;
+    // Inpaint brush settings
+    this.brushSize = 24;
+    this.brushSoftness = 50; // 0-100
+    this.maskInverted = false;
+    this.maskHistory = []; // undo stack (ImageData snapshots)
+    this.maskHistoryMax = 20;
+    this.inpaintMode = 'replace'; // erase | replace | extend | style
+    // Tracks whether the most recent edge-function call used the user's
+    // own OpenAI key ('user') or fell back to the server env key ('server').
+    this.lastKeySource = null;
+    // New v2 fields with sensible defaults from openaiConfig.
+    this.n = openaiConfig.defaultConfig.thumbnailNCandidates;
+    this.model = openaiConfig.defaultConfig.thumbnailModel;
+    this.inputFidelity = openaiConfig.defaultConfig.thumbnailInputFidelity;
+    this.userId = null;
+    // `include` array for the Responses API — default to reasoning.
+    this.include = openaiConfig.defaultConfig.thumbnailInclude;
+    // Conversational refine chat history.
+    this.refineMessages = []; // { role: 'user' | 'assistant', text, imageDataUrl? }
+    this.refineChatResponseId = '';
+    this.showDiff = false;
+    this.generationTime = '';
   }
 
   // -------------------------------------------------------------------------
-  // Theming
+  // Theming — uses the shared STUDIO_COLOR_SCHEMES table from openaiConfig
   // -------------------------------------------------------------------------
   getAppColorScheme(theme) {
-    const schemes = {
-      'template-studio': { primary: '#10b981', accent: '#34d399', secondary: '#6b7280' },
-      'cinema-template-studio': { primary: '#be123c', accent: '#dc2626', secondary: '#64748b' },
-      'timeline-editor': { primary: '#3b82f6', accent: '#06b6d4', secondary: '#64748b' },
-      'video-studio': { primary: '#8b5cf6', accent: '#a855f7', secondary: '#6b7280' },
-      'text-to-video': { primary: '#059669', accent: '#10b981', secondary: '#4b5563' },
-      'image-to-video': { primary: '#dc2626', accent: '#ef4444', secondary: '#6b7280' },
-      'image-studio': { primary: '#f59e0b', accent: '#fbbf24', secondary: '#6b7280' },
-      'cinema-studio': { primary: '#ec4899', accent: '#f472b6', secondary: '#6b7280' },
-      'editor-page': { primary: '#06b6d4', accent: '#22d3ee', secondary: '#64748b' },
-      'lip-sync-studio': { primary: '#8b5cf6', accent: '#a78bfa', secondary: '#6b7280' },
-      director: { primary: '#d97706', accent: '#f59e0b', secondary: '#64748b' },
-      'video-agent': { primary: '#7c3aed', accent: '#8b5cf6', secondary: '#6b7280' },
-    };
-    return schemes[theme] || schemes['template-studio'];
+    return openaiConfig.getStudioColorScheme(theme);
   }
 
   // -------------------------------------------------------------------------
-  // Rendering
+  // Rendering — GTM design system
   // -------------------------------------------------------------------------
   renderBody() {
     if (this._error) return this.renderError();
     if (this.isGenerating) return this.renderLoading();
+
+    const primary = this.appColors.primary;
+    const accent = this.appColors.accent;
 
     let main = '';
     switch (this.step) {
@@ -254,6 +161,9 @@ export class TemplateThumbnailModal extends BaseModal {
       case 'refine':
         main = this.renderRefine();
         break;
+      case 'textoverlay':
+        main = this.renderTextOverlay();
+        break;
       case 'saved':
         main = this.renderSaved();
         break;
@@ -261,35 +171,174 @@ export class TemplateThumbnailModal extends BaseModal {
         main = this.renderBrief();
     }
 
-    return `<div class="thumb-modal__layout"><div class="thumb-modal__main">${main}</div>${this.renderSidebar()}</div>`;
+    return `<div class="thumb-modal" style="--app-primary: ${primary}; --app-accent: ${accent}; --app-soft: ${this.hexToRgba(primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(accent, 0.12)}">
+      <p class="thumb-subtitle">Generate AI thumbnails using OpenAI's image generation model. Create, refine, and apply custom thumbnails to your template.</p>
+      <div class="thumb-form">${main}</div>
+    </div>`;
   }
 
   renderBrief() {
+    const opts = openaiConfig.getThumbnailOutputSettings();
     return `
-      <div class="thumb-modal">
-        <div class="thumb-modal__section">
-          <div class="thumb-modal__label">Thumbnail Concept</div>
-          <textarea id="thumb-brief" class="thumb-modal__textarea" rows="4"
-            placeholder="Describe what this thumbnail should show...">${this.escapeHtml(this.brief)}</textarea>
+      <div class="form-section">
+        <label for="thumb-brief">Thumbnail Concept</label>
+        <textarea id="thumb-brief" placeholder="Describe what this thumbnail should show...">${this.escapeHtml(this.brief)}</textarea>
+      </div>
+      <div class="form-section">
+        <label>Prompt Variants</label>
+        <div class="thumb-variant-chips">
+          ${this.variants.length === 0
+            ? '<span style="color:var(--text-muted);font-size:12px">Click "Draft Prompts" below to generate 3 AI prompt variants</span>'
+            : this.variants.map((v, i) => `
+              <button type="button" class="thumb-variant-chip ${i === this.selectedVariantIndex ? 'active' : ''}"
+                      data-action="select-variant" data-index="${i}">#${i + 1}</button>
+            `).join('')
+          }
         </div>
-        <div class="thumb-modal__section">
-          <div class="thumb-modal__label">Prompt Variants</div>
-          <div id="thumb-variants" class="thumb-modal__chips">
-            ${this.variants.length === 0 ? '<span style="color:#52525b;font-size:12px">Click "Draft Prompts" below to generate 3 AI prompt variants</span>' : this.variants.map((v, i) => {
-              const truncated = v.length > 60 ? v.slice(0, 60) + '…' : v;
-              return `<button class="thumb-modal__chip ${i === this.selectedVariantIndex ? 'thumb-modal__chip--active' : ''}"
-                      data-variant-index="${i}" onclick="window._thumbModal.selectVariant(${i})">${this.escapeHtml(truncated)}</button>`;
-            }).join('')}
+      </div>
+      <div class="form-section">
+        <label>Preset</label>
+        <div class="thumb-preset-gallery" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+          ${PRESET_LIST.map((p) => `
+            <button type="button" class="thumb-preset-card ${this.presetKey === p.key ? 'active' : ''}" data-preset-key="${p.key}"
+                    style="position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:6px; padding:10px; border-radius:12px; border:2px solid ${this.presetKey === p.key ? 'var(--app-primary)' : 'var(--border-color)'}; background:var(--bg-panel); cursor:pointer; transition:all var(--transition-fast); text-align:left; font-family:inherit;">
+              <div style="width:100%; height:60px; border-radius:8px; background:${p.gradient || 'var(--app-soft)'}; display:flex; align-items:center; justify-content:center; font-size:11px; color:rgba(255,255,255,0.9); font-weight:600;">${p.controls?.aspectRatio || '16:9'}</div>
+              <div style="font-size:12px; font-weight:600; color:var(--text-primary);">${this.escapeHtml(p.name)}</div>
+              <div style="font-size:10px; color:var(--text-muted); line-height:1.3;">${this.escapeHtml(p.description || '')}</div>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-section">
+          <label for="thumb-aspect">Aspect Ratio</label>
+          <select id="thumb-aspect">
+            ${opts.aspectRatios.map((r) => `<option value="${r}" ${this.controls.aspectRatio === r ? 'selected' : ''}>${r}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <button type="button" class="toggle-advanced" data-action="toggle-advanced">
+        ${this.showAdvanced ? '▾' : '▸'} Advanced (model, size, quality, format, streaming…)
+      </button>
+      ${this.showAdvanced ? this.renderAdvancedSettings() : ''}
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+        <button type="button" class="gtm-action copy-prompt-btn" data-action="draft" style="width:100%;">
+          ✨ Draft Prompts
+        </button>
+        <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="generate" ${this.selectedVariantIndex < 0 ? 'disabled' : ""} style="width:100%;">
+          🎨 Generate Candidates
+        </button>
+      </div>
+      ${this._renderCostAndSizeWarning()}
+    `;
+  }
+
+  _renderCostAndSizeWarning() {
+    const quality = this.controls.quality || 'high';
+    const model = this.model || 'gpt-image-2';
+    // Map aspect ratio to size for cost estimate
+    const aspectToSize = { '16:9': '1792x1024', '9:16': '1024x1792', '1:1': '1024x1024', '3:2': '1536x1024', '2:3': '1024x1536', '4:5': '1024x1280', '4:3': '1536x1024', '3:4': '1024x1536', '2:1': '2048x1024', '21:9': '2048x882', 'auto': '1024x1024' };
+    const size = aspectToSize[this.controls.aspectRatio || '16:9'] || '1024x1024';
+    const cost = openaiConfig.estimateCost(model, quality, size, this.n || 3);
+    const is2K = openaiConfig.isExperimentalSize(size);
+    const lines = [];
+    if (typeof cost === 'number' && cost > 0) {
+      lines.push(`<span>💰 Est. cost: <strong>$${cost.toFixed(3)}</strong> for ${this.n} image${this.n > 1 ? 's' : ''} at ${quality} ${size}</span>`);
+    }
+    if (is2K) {
+      lines.push(`<span style="color:#f59e0b;">⚠️ <strong>Experimental:</strong> outputs above 2560×1440 are experimental per OpenAI docs.</span>`);
+    }
+    if (lines.length === 0) return '';
+    return `<div style="font-size:11px; color:var(--text-muted); margin-top:4px; padding:8px 10px; background:var(--bg-panel); border:1px solid var(--border-color); border-radius:var(--border-radius-md); display:flex; flex-direction:column; gap:4px;">${lines.join('')}</div>`;
+  }
+
+  renderAdvancedSettings() {
+    const opts = openaiConfig.getThumbnailOutputSettings();
+    return `
+      <div class="advanced-options">
+        <div class="form-grid">
+          <div class="form-section">
+            <label for="thumb-image-model">Image Model</label>
+            <select id="thumb-image-model" title="gpt-image-2 supports any resolution; 1.5/1/1-mini only support 1024x1024, 1536x1024, 1024x1536">
+              ${opts.models.map((m) => `<option value="${m}" ${this.model === m ? 'selected' : ''}>${m}${m === 'gpt-image-2' ? ' (any resolution)' : ''}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-section">
+            <label for="thumb-n-candidates"># Candidates (n)</label>
+            <select id="thumb-n-candidates" title="gpt-image-2 supports up to 10; older models cap at 4">
+              ${opts.nOptions.map((n) => `<option value="${n}" ${this.n === n ? 'selected' : ''}>${n}</option>`).join('')}
+            </select>
           </div>
         </div>
-        <div style="margin-top:auto; display:flex; flex-direction:column; gap:10px;">
-          <button class="thumb-modal__btn thumb-modal__btn--primary" data-action="draft" onclick="window._thumbModal.buildPrompts()">
-            ✨ Draft Prompts
-          </button>
-          <button class="thumb-modal__btn thumb-modal__btn--secondary" data-action="generate"
-                  onclick="window._thumbModal.goGenerate()" ${this.selectedVariantIndex < 0 ? 'disabled' : ''}>
-            🎨 Generate Candidates
-          </button>
+        <div class="form-grid">
+          <div class="form-section">
+            <label for="thumb-responses-model">Responses Model</label>
+            <select id="thumb-responses-model">
+              ${opts.responsesModelOptions.map((m) => `<option value="${m}" ${this.responsesModel === m ? 'selected' : ''}>${m}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-section">
+            <label for="thumb-input-fidelity">Input Fidelity (older models)</label>
+            <select id="thumb-input-fidelity" title="gpt-image-2 always uses high input fidelity. Older models can use low/medium/high.">
+              <option value="high" ${this.inputFidelity === 'high' ? 'selected' : ''}>High (default)</option>
+              ${this.model === 'gpt-image-2' ? '' : opts.inputFidelityOptions.filter((f) => f !== 'high').map((f) => `<option value="${f}" ${this.inputFidelity === f ? 'selected' : ''}>${f}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-section">
+            <label for="thumb-quality">Quality</label>
+            <select id="thumb-quality">
+              ${opts.qualities.map((q) => `<option value="${q}" ${this.controls.quality === q ? 'selected' : ''}>${q}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-section">
+            <label for="thumb-style">Style</label>
+            <select id="thumb-style">
+              ${opts.styles.map((s) => `<option value="${s}" ${this.controls.style === s ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-section">
+            <label for="thumb-background">Background</label>
+            <select id="thumb-background">
+              ${opts.backgrounds.map((b) => `<option value="${b}" ${this.controls.background === b ? 'selected' : ''}>${b}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-section">
+            <label for="thumb-moderation">Moderation</label>
+            <select id="thumb-moderation">
+              ${opts.moderationOptions.map((m) => `<option value="${m}" ${this.controls.moderation === m ? 'selected' : ''}>${m}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-section">
+            <label for="thumb-format">Output Format</label>
+            <select id="thumb-format">
+              ${opts.formats.map((f) => `<option value="${f}" ${this.controls.outputFormat === f ? 'selected' : ''}>${f}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-section">
+            <label for="thumb-compression">Compression: <span id="thumb-compression-val">${this.controls.outputCompression}</span>%</label>
+            <input id="thumb-compression" type="range" min="0" max="100" step="5" value="${this.controls.outputCompression}" />
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-section">
+            <label for="thumb-partial">Streaming partials</label>
+            <select id="thumb-partial">
+              ${opts.partialImagesOptions.map((n) => `<option value="${n}" ${this.partialImages === n ? 'selected' : ''}>${n === 0 ? 'Off' : n + ' partial' + (n > 1 ? 's' : '')}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-section">
+            <label for="thumb-store">Store Responses (multi-turn)</label>
+            <select id="thumb-store">
+              <option value="true" ${this.storeResponses ? 'selected' : ''}>Enabled</option>
+              <option value="false" ${!this.storeResponses ? 'selected' : ''}>Disabled</option>
+            </select>
+          </div>
         </div>
       </div>
     `;
@@ -297,19 +346,17 @@ export class TemplateThumbnailModal extends BaseModal {
 
   renderGenerate() {
     const candidateHtml = this.candidates.length === 0
-      ? this.renderSkeletons(3)
+      ? `<div class="generation-progress"><div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div><div class="progress-steps"><div class="progress-step active"><span class="progress-dot"></span>Generating candidates…</div></div></div>`
       : this.candidates.map((c, i) => {
           const src = c.dataUrl || ThumbnailService.b64ToDataUrl(c.b64_json);
-          const revised = c.revised_prompt ? `<div class="thumb-modal__revised" title="Revised by the model">${this.escapeHtml(c.revised_prompt)}</div>` : '';
+          const revised = c.revised_prompt ? `<div style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.4;">${this.escapeHtml(c.revised_prompt)}</div>` : '';
           return `
             <div class="thumb-modal__candidate ${i === this.selectedIndex ? 'thumb-modal__candidate--selected' : ''} ${this.isGenerating ? 'thumb-modal__candidate--busy' : ''}"
-                 onclick="window._thumbModal.selectCandidate(${i})">
-              <img src="${src}" alt="Candidate ${i + 1}" loading="lazy" />
-              <div class="thumb-modal__candidate-actions">
-                <button class="thumb-modal__btn thumb-modal__btn--ghost" style="height:28px;font-size:11px;padding:0 8px;"
-                        onclick="event.stopPropagation(); window._thumbModal.selectCandidate(${i}); window._thumbModal.goRefine()">
-                  Refine
-                </button>
+                 data-action="select-candidate" data-index="${i}" style="cursor:pointer;position:relative;border-radius:16px;border:2px solid ${i === this.selectedIndex ? 'var(--app-primary)' : 'transparent'};overflow:hidden;background:#09090b;aspect-ratio:16/10;transition:all 150ms ease;">
+              ${c.placeholderDataUrl ? `<img src="${c.placeholderDataUrl}" alt="" aria-hidden="true" style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:blur(8px); display:block;" />` : ''}
+              <img src="${src}" alt="Candidate ${i + 1}" loading="lazy" onload="this.previousElementSibling&&(this.previousElementSibling.style.display='none')" style="width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:1;" />
+              <div style="position:absolute;bottom:0;left:0;right:0;padding:8px;display:flex;gap:6px;background:linear-gradient(transparent,rgba(0,0,0,0.8));opacity:0;transition:opacity 150ms ease;" class="candidate-actions">
+                <button type="button" class="gtm-action" style="min-height:28px;padding:4px 10px;font-size:11px;" data-action="refine-candidate" data-index="${i}">Refine</button>
               </div>
               ${revised}
             </div>
@@ -317,33 +364,31 @@ export class TemplateThumbnailModal extends BaseModal {
         }).join('');
 
     return `
-      <div class="thumb-modal">
-        <div class="thumb-modal__section">
-          <div class="thumb-modal__label">3 Candidates</div>
-          <div class="thumb-modal__candidates">${candidateHtml}</div>
-        </div>
-        <div class="thumb-modal__section">
-          <div class="thumb-modal__label">Selected Prompt</div>
-          <textarea id="thumb-prompt" class="thumb-modal__textarea" rows="2"
-            placeholder="Edit the prompt before regenerating...">${this.escapeHtml(this.selectedPromptText())}</textarea>
-        </div>
-        <div style="margin-top:auto; display:flex; flex-direction:column; gap:10px;">
-          ${this.selectedIndex >= 0 ? `
-            <button class="thumb-modal__btn thumb-modal__btn--secondary" data-action="refine" onclick="window._thumbModal.goRefine()">
-              ✨ Refine Selected
-            </button>
-            <button class="thumb-modal__btn thumb-modal__btn--primary" data-action="save" onclick="window._thumbModal.goSave()">
-              💾 Save & Apply
-            </button>
-          ` : `
-            <button class="thumb-modal__btn thumb-modal__btn--secondary" data-action="regenerate" onclick="window._thumbModal.regenerate()">
-              🔄 Regenerate
-            </button>
-          `}
-          <button class="thumb-modal__btn thumb-modal__btn--ghost" data-action="back" onclick="window._thumbModal.back()">
-            ← Back to Brief
+      <div class="generated-prompt-section">
+        <label>Candidates</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">${candidateHtml}</div>
+        ${this.candidates.length > 0 ? `<p style="font-size:11px;color:var(--text-muted);margin:6px 0 0 0;text-align:center;">⏱️ Generated in ${this.generationTime || '—'}s · Model: ${this.model || 'gpt-image-2'}</p>` : ''}
+      </div>
+      <div class="form-section">
+        <label for="thumb-prompt">Selected Prompt</label>
+        <textarea id="thumb-prompt" placeholder="Edit the prompt before regenerating...">${this.escapeHtml(this.selectedPromptText())}</textarea>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+        ${this.selectedIndex >= 0 ? `
+          <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="refine" style="width:100%;">
+            ✨ Refine Selected
           </button>
-        </div>
+          <button type="button" class="gtm-action copy-prompt-btn" data-action="save" style="width:100%;">
+            💾 Save & Apply
+          </button>
+        ` : `
+          <button type="button" class="gtm-action copy-prompt-btn" data-action="regenerate" style="width:100%;">
+            🔄 Regenerate
+          </button>
+        `}
+        <button type="button" class="gtm-action" data-action="back" style="width:100%; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">
+          ← Back to Brief
+        </button>
       </div>
     `;
   }
@@ -351,47 +396,122 @@ export class TemplateThumbnailModal extends BaseModal {
   renderRefine() {
     const selected = this.selectedIndex >= 0 ? this.candidates[this.selectedIndex] : null;
     const imgSrc = selected ? (selected.dataUrl || ThumbnailService.b64ToDataUrl(selected.b64_json)) : '';
+    const quickEdits = openaiConfig.getThumbnailOutputSettings().quickEdits || [];
+
+    // Get the previous assistant image for diff comparison
+    const previousAssistantMsgs = (this.refineMessages || []).filter((m) => m.role === 'assistant' && m.imageDataUrl);
+    const showDiff = this.showDiff && previousAssistantMsgs.length >= 1;
+    const previousImage = previousAssistantMsgs[previousAssistantMsgs.length - 1]?.imageDataUrl;
 
     return `
-      <div class="thumb-modal">
-        <div class="thumb-modal__section">
-          <div class="thumb-modal__label">Selected Image</div>
-          <div class="thumb-modal__preview">
-            ${selected ? `<img src="${imgSrc}" alt="Selected" />` : '<div class="thumb-modal__empty">No image selected</div>'}
-            ${this.partialPreview ? `<div class="thumb-modal__partial"><img src="${this.partialPreview}" alt="Partial preview" /></div>` : ''}
+      <div class="generated-prompt-section">
+        <label>Selected Image</label>
+        <div style="position:relative;border-radius:20px;border:1px solid var(--border-color);background:#09090b;overflow:hidden;aspect-ratio:16/10;">
+          ${selected ? `<img src="${imgSrc}" alt="Selected" style="width:100%;height:100%;object-fit:contain;display:block;" />` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:13px;">No image selected</div>'}
+          ${this.partialPreview ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><img src="${this.partialPreview}" alt="Partial preview" style="width:100%;height:100%;object-fit:cover;opacity:0.85;" /></div>` : ''}
+        </div>
+      </div>
+      ${showDiff && previousImage ? `
+      <div class="form-section">
+        <label>Before / After</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; border-radius:12px; overflow:hidden; border:1px solid var(--border-color);">
+          <div style="position:relative;">
+            <img src="${previousImage}" alt="Before" style="width:100%; display:block; aspect-ratio:16/10; object-fit:cover;" />
+            <div style="position:absolute; top:6px; left:6px; padding:2px 8px; border-radius:999px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; font-weight:600;">BEFORE</div>
+          </div>
+          <div style="position:relative;">
+            <img src="${imgSrc}" alt="After" style="width:100%; display:block; aspect-ratio:16/10; object-fit:cover;" />
+            <div style="position:absolute; top:6px; right:6px; padding:2px 8px; border-radius:999px; background:rgba(16,185,129,0.9); color:#fff; font-size:10px; font-weight:600;">AFTER</div>
           </div>
         </div>
-        <div class="thumb-modal__section">
-          <div class="thumb-modal__label">Refine (multi-turn)</div>
-          <div id="thumb-refine-bar" class="thumb-modal__refine-bar">
+        <button type="button" class="gtm-action" data-action="hide-diff" style="width:100%; margin-top:6px; background:var(--bg-panel); color:var(--text-secondary); border:1px solid var(--border-light); font-size:12px; min-height:32px;">Hide comparison</button>
+      </div>
+      ` : (previousImage ? `
+      <div class="form-section">
+        <button type="button" class="gtm-action" data-action="show-diff" style="width:100%; background:var(--bg-panel); color:var(--text-secondary); border:1px solid var(--border-light); font-size:12px; min-height:32px;">🔍 Show Before/After</button>
+      </div>
+      ` : '')}
+      <div class="thumb-chat" style="display:flex; flex-direction:column; gap:10px; max-height:240px; overflow-y:auto; padding-right:4px; margin-right:-4px;">
+        ${(this.refineMessages || []).map((msg) => {
+          if (msg.role === 'user') {
+            return `
+              <div style="display:flex; justify-content:flex-end;">
+                <div style="max-width:80%; padding:10px 14px; border-radius:16px; border-bottom-right-radius:4px; background:var(--app-primary); color:#03131a; font-size:13px; line-height:1.5; word-break:break-word;">
+                  ${this.escapeHtml(msg.text)}
+                </div>
+              </div>`;
+          }
+          return `
+            <div style="display:flex; justify-content:flex-start; flex-direction:column; gap:6px;">
+              ${msg.imageDataUrl ? `<img src="${msg.imageDataUrl}" alt="Refined" style="max-width:100%; border-radius:12px; border:1px solid var(--border-color); background:#09090b;" />` : ''}
+              <div style="max-width:80%; padding:10px 14px; border-radius:16px; border-bottom-left-radius:4px; background:var(--bg-panel); color:var(--text-primary); font-size:13px; line-height:1.5; border:1px solid var(--border-color); word-break:break-word;">
+                ${this.escapeHtml(msg.text)}
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+      ${quickEdits.length > 0 ? `
+      <div class="form-section">
+        <label>Quick Edits</label>
+        <div class="thumb-quick-edits" style="display:flex; flex-wrap:wrap; gap:8px;">
+          ${quickEdits.map((edit) => `
+            <button type="button" class="thumb-quick-edit-chip" data-quick-edit="${edit.key}" style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:var(--border-radius-full); border:1px solid var(--border-light); background:var(--bg-panel); color:var(--text-secondary); font-size:12px; font-weight:500; cursor:pointer; transition:all var(--transition-fast); font-family:inherit;">${edit.label}</button>
+          `).join('')}
+        </div>
+      </div>
+      ` : ''}
+      <div class="thumb-refine">
+        <div class="form-section">
+          <label for="thumb-refine-input">Refine (multi-turn)</label>
+          <div class="thumb-refine-row">
             <input type="text" id="thumb-refine-input" value="${this.escapeHtml(this.refineInput)}"
                    placeholder="e.g. more cinematic, warmer tones, chef as hero..." />
-            <button class="thumb-modal__btn thumb-modal__btn--primary" style="width:auto;padding:0 16px;"
-                    onclick="window._thumbModal.applyRefine()">Send →</button>
+            <button type="button" class="gtm-action copy-prompt-btn" data-action="apply-refine" style="width:auto;padding:0 16px;">Send →</button>
           </div>
-          ${this._error ? `<div class="thumb-modal__error">${this.escapeHtml(this._error)}</div>` : ''}
+          ${this._error ? `<div class="error-message">⚠ ${this.escapeHtml(this._error)}</div>` : ''}
         </div>
-        <div class="thumb-modal__section">
-          <div class="thumb-modal__label">Inpaint Brush</div>
-          <canvas id="thumb-mask-canvas" width="320" height="200"
-                  style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,0.08);background:#000;cursor:crosshair;"></canvas>
-          <div style="margin-top:8px; display:flex; gap:8px;">
-            <button class="thumb-modal__btn thumb-modal__btn--ghost" style="flex:1;" onclick="window._thumbModal.clearMask()">
-              Clear Mask
-            </button>
-            <button class="thumb-modal__btn thumb-modal__btn--secondary" style="flex:1;" onclick="window._thumbModal.applyInpaint()">
-              🖌 Apply Inpaint
-            </button>
+      </div>
+      <div class="form-section">
+        <label>Inpaint Brush</label>
+        <canvas id="thumb-mask-canvas" width="320" height="200"
+                style="width:100%;border-radius:12px;border:1px solid var(--border-color);background:#000;cursor:crosshair;"></canvas>
+        <div style="margin-top:8px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-section">
+            <label for="thumb-brush-size">Brush: <span id="thumb-brush-size-val">${this.brushSize}</span>px</label>
+            <input id="thumb-brush-size" type="range" min="4" max="80" step="2" value="${this.brushSize}" style="width:100%;" />
+          </div>
+          <div class="form-section">
+            <label for="thumb-brush-softness">Softness: <span id="thumb-brush-softness-val">${this.brushSoftness}</span>%</label>
+            <input id="thumb-brush-softness" type="range" min="0" max="100" step="5" value="${this.brushSoftness}" style="width:100%;" />
           </div>
         </div>
-        <div style="margin-top:auto; display:flex; flex-direction:column; gap:10px;">
-          <button class="thumb-modal__btn thumb-modal__btn--primary" data-action="save" onclick="window._thumbModal.goSave()">
-            💾 Save & Apply
-          </button>
-          <button class="thumb-modal__btn thumb-modal__btn--ghost" data-action="back" onclick="window._thumbModal.back()">
-            ← Back to Candidates
+        <div style="margin-top:4px;">
+          <label for="thumb-inpaint-mode">Inpaint mode</label>
+          <select id="thumb-inpaint-mode" style="width:100%; min-height:36px; padding:6px 10px; background:var(--bg-panel); border:1px solid var(--border-color); border-radius:var(--border-radius-md); color:var(--text-primary); font-size:13px; font-family:inherit;">
+            <option value="replace" ${this.inpaintMode === 'replace' ? 'selected' : ''}>Replace — Swap content in mask</option>
+            <option value="erase" ${this.inpaintMode === 'erase' ? 'selected' : ''}>Erase — Remove masked content</option>
+            <option value="extend" ${this.inpaintMode === 'extend' ? 'selected' : ''}>Extend — Outpaint beyond edges</option>
+            <option value="style" ${this.inpaintMode === 'style' ? 'selected' : ''}>Style — Apply look to mask only</option>
+          </select>
+        </div>
+        <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="gtm-action" data-action="undo-mask" style="flex:1; min-height:32px; font-size:12px; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">↶ Undo</button>
+          <button type="button" class="gtm-action" data-action="invert-mask" style="flex:1; min-height:32px; font-size:12px; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">⇄ Invert</button>
+          <button type="button" class="gtm-action" data-action="clear-mask" style="flex:1; min-height:32px; font-size:12px; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">Clear</button>
+        </div>
+        <div style="margin-top:8px; display:flex; gap:8px;">
+          <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="apply-inpaint" style="width:100%;">
+            🖌 Apply Inpaint
           </button>
         </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+        <button type="button" class="gtm-action copy-prompt-btn" data-action="save" style="width:100%;">
+          💾 Save & Apply
+        </button>
+        <button type="button" class="gtm-action" data-action="back" style="width:100%; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">
+          ← Back to Candidates
+        </button>
       </div>
     `;
   }
@@ -400,103 +520,76 @@ export class TemplateThumbnailModal extends BaseModal {
     const presetLabel = this.preset ? this.preset.name : 'Default';
     const completedLabel = this.completedAt ? new Date(this.completedAt).toLocaleString() : 'just now';
     return `
-      <div class="thumb-modal">
-        <div class="thumb-modal__empty" style="padding:24px;">
-          <div class="thumb-modal__empty-icon">✅</div>
-          <div style="font-size:14px;color:#d4d4d8;font-weight:600;">Thumbnail saved</div>
-          <div style="font-size:12px;color:#71717a;">Preset: ${presetLabel} · Completed ${completedLabel}</div>
+      <div class="generated-prompt-section" style="text-align:center; padding:24px;">
+        <div style="font-size:32px; margin-bottom:8px;">✅</div>
+        <div style="font-size:14px;color:var(--text-primary);font-weight:600;">Thumbnail saved</div>
+        <div style="font-size:12px;color:var(--text-muted);">Preset: ${this.escapeHtml(presetLabel)} · Completed ${completedLabel}</div>
+      </div>
+      <div class="generated-prompt-section">
+        <label>Preview</label>
+        <div style="position:relative;border-radius:20px;border:1px solid var(--border-color);background:#09090b;overflow:hidden;aspect-ratio:16/10;">
+          ${this.savedImageUrl ? `<img src="${this.savedImageUrl}" alt="Saved thumbnail" style="width:100%;height:100%;object-fit:contain;display:block;" />` : ''}
         </div>
-        <div class="thumb-modal__preview" style="margin-top:8px;">
-          ${this.savedImageUrl ? `<img src="${this.savedImageUrl}" alt="Saved thumbnail" />` : ''}
-        </div>
-        ${this.revisedPrompt ? `<div class="thumb-modal__revised" style="margin-top:8px;"><strong>Revised prompt:</strong> ${this.escapeHtml(this.revisedPrompt)}</div>` : ''}
-        <div style="margin-top:auto; display:flex; flex-direction:column; gap:10px;">
-          <button class="thumb-modal__btn thumb-modal__btn--primary" data-action="apply" onclick="window._thumbModal.confirmApply()">
-            Apply to Template
-          </button>
-          <button class="thumb-modal__btn thumb-modal__btn--secondary" data-action="regenerate" onclick="window._thumbModal.regenerate()">
-            🔄 Regenerate
-          </button>
-        </div>
+        ${this.revisedPrompt ? `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.4;"><strong>Revised prompt:</strong> ${this.escapeHtml(this.revisedPrompt)}</div>` : ''}
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+        <button type="button" class="gtm-action copy-prompt-btn" data-action="apply" style="width:100%;">
+          Apply to Template
+        </button>
+        <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="regenerate" style="width:100%;">
+          🔄 Regenerate
+        </button>
       </div>
     `;
   }
 
-  renderSidebar() {
-    const opts = openaiConfig.getThumbnailOutputSettings();
-    const c = this.controls;
+  renderTextOverlay() {
+    const selected = this.selectedIndex >= 0 ? this.candidates[this.selectedIndex] : null;
+    const imgSrc = selected ? (selected.dataUrl || ThumbnailService.b64ToDataUrl(selected.b64_json)) : '';
     return `
-      <div class="thumb-modal__sidebar">
-        <div class="thumb-modal__sidebar-title">Presets</div>
-        <div class="thumb-modal__presets">
-          ${PRESET_LIST.map((p) => `
-            <button class="thumb-modal__preset-chip ${p.key === this.presetKey ? 'thumb-modal__preset-chip--active' : ''}"
-                    onclick="window._thumbModal.selectPreset('${p.key}')">${p.name}</button>
-          `).join('')}
+      <div class="generated-prompt-section">
+        <label>Text Overlay</label>
+        <div style="position:relative;border-radius:20px;border:1px solid var(--border-color);background:#09090b;overflow:hidden;aspect-ratio:16/10;" id="thumb-text-overlay-preview">
+          ${imgSrc ? `<img src="${imgSrc}" alt="Text overlay preview" style="width:100%;height:100%;object-fit:contain;display:block;" />` : ''}
         </div>
-        <div class="thumb-modal__sidebar-title" style="margin-top:8px;">Output</div>
-        <div class="thumb-modal__field">
-          <label>Aspect ratio</label>
-          <select class="thumb-modal__select" onchange="window._thumbModal.updateControl('aspectRatio', this.value)">
-            ${opts.aspectRatios.map((r) => `<option value="${r}" ${c.aspectRatio === r ? 'selected' : ''}>${r}</option>`).join('')}
-          </select>
+        <p style="font-size:11px;color:var(--text-muted);margin:6px 0 0 0;">Add a headline overlay. The image is composited via Canvas before save.</p>
+      </div>
+      <div class="form-section">
+        <label for="thumb-overlay-text">Text</label>
+        <input type="text" id="thumb-overlay-text" placeholder="e.g. NEW EPISODE" value="${this.escapeHtml(this.textOverlay.text)}" style="width:100%;min-height:40px;padding:10px 12px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:var(--border-radius-md);color:var(--text-primary);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;" />
+      </div>
+      <div class="form-grid">
+        <div class="form-section">
+          <label for="thumb-overlay-size">Size: <span id="thumb-overlay-size-val">${this.textOverlay.size}</span>px</label>
+          <input id="thumb-overlay-size" type="range" min="12" max="120" step="2" value="${this.textOverlay.size}" style="width:100%;" />
         </div>
-        <div class="thumb-modal__field">
-          <label>Quality</label>
-          <select class="thumb-modal__select" onchange="window._thumbModal.updateControl('quality', this.value)">
-            ${opts.qualities.map((q) => `<option value="${q}" ${c.quality === q ? 'selected' : ''}>${q}</option>`).join('')}
-          </select>
+        <div class="form-section">
+          <label for="thumb-overlay-color">Color</label>
+          <input type="color" id="thumb-overlay-color" value="${this.textOverlay.color}" style="width:100%;height:40px;padding:2px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:var(--border-radius-md);" />
         </div>
-        <div class="thumb-modal__field">
-          <label>Style</label>
-          <select class="thumb-modal__select" onchange="window._thumbModal.updateControl('style', this.value)">
-            ${opts.styles.map((s) => `<option value="${s}" ${c.style === s ? 'selected' : ''}>${s}</option>`).join('')}
-          </select>
-        </div>
-        <div class="thumb-modal__field">
-          <label>Background</label>
-          <select class="thumb-modal__select" onchange="window._thumbModal.updateControl('background', this.value)">
-            ${opts.backgrounds.map((b) => `<option value="${b}" ${c.background === b ? 'selected' : ''}>${b}</option>`).join('')}
-          </select>
-        </div>
-        <div class="thumb-modal__field">
-          <label>Format</label>
-          <select class="thumb-modal__select" onchange="window._thumbModal.updateControl('outputFormat', this.value)">
-            ${opts.formats.map((f) => `<option value="${f}" ${c.outputFormat === f ? 'selected' : ''}>${f}</option>`).join('')}
-          </select>
-        </div>
-        <div class="thumb-modal__field">
-          <label>Compression</label>
-          <input class="thumb-modal__input" type="number" min="0" max="100" value="${c.outputCompression}"
-                 onchange="window._thumbModal.updateControl('outputCompression', Number(this.value))" />
-        </div>
-        <div class="thumb-modal__sidebar-title" style="margin-top:8px;">Refine</div>
-        <div class="thumb-modal__field">
-          <label>Reference image (optional)</label>
-          <input type="file" accept="image/*" onchange="window._thumbModal.loadReferenceFile(this)" />
-        </div>
-        <div class="thumb-modal__field">
-          <label>Detail</label>
-          <select class="thumb-modal__select" onchange="window._thumbModal.updateControl('imageDetail', this.value)">
-            ${['low', 'high', 'original', 'auto'].map((d) => `<option value="${d}" ${this.imageDetail === d ? 'selected' : ''}>${d}</option>`).join('')}
-          </select>
-        </div>
-        ${this.referenceImage ? `
-          <div class="thumb-modal__ref-upload">
-            <span>Reference set</span>
-            <button class="thumb-modal__btn thumb-modal__btn--ghost" style="height:24px;font-size:10px;padding:0 6px;" onclick="window._thumbModal.clearReference()">Clear</button>
-          </div>
-        ` : ''}
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+        <button type="button" class="gtm-action thumbnail-prompt-btn" data-action="apply-text-overlay" style="width:100%;">
+          ✍️ Apply Text & Continue
+        </button>
+        <button type="button" class="gtm-action" data-action="skip-text-overlay" style="width:100%; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">
+          Skip Text Overlay →
+        </button>
+        <button type="button" class="gtm-action" data-action="back" style="width:100%; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">
+          ← Back to Refine
+        </button>
       </div>
     `;
   }
 
   renderLoading() {
     return `
-      <div class="thumb-modal">
-        <div class="thumb-modal__progress">
-          <div class="thumb-modal__spinner"></div>
-          <span>${this.escapeHtml(this.generationMessage || 'Working…')}</span>
+      <div class="thumb-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}">
+        <div class="generation-progress">
+          <div class="progress-bar"><div class="progress-fill" style="width:60%"></div></div>
+          <div class="progress-steps">
+            <div class="progress-step active"><span class="progress-dot"></span>${this.escapeHtml(this.generationMessage || 'Working…')}</div>
+          </div>
         </div>
       </div>
     `;
@@ -505,26 +598,19 @@ export class TemplateThumbnailModal extends BaseModal {
   renderError() {
     const message = this.escapeHtml(String(this._error || this.generationMessage || ''));
     return `
-      <div class="thumb-modal">
-        <div class="thumb-modal__empty" style="padding:24px;">
-          <div class="thumb-modal__empty-icon">⚠️</div>
-          <div style="font-size:14px;color:#fca5a5;font-weight:600;">Something went wrong</div>
-          <div style="font-size:12px;color:#71717a;">${message}</div>
+      <div class="thumb-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}">
+        <div class="error-message" role="alert">
+          <span>⚠️</span>
+          <div>
+            <div style="font-weight:600; margin-bottom:4px;">Something went wrong</div>
+            <div style="font-size:12px; opacity:0.8;">${message}</div>
+          </div>
         </div>
-        <button class="thumb-modal__btn thumb-modal__btn--secondary" onclick="window._thumbModal.dismissError()">
+        <button type="button" class="gtm-action" data-action="dismiss-error" style="width:100%; background:var(--bg-panel);color:var(--text-secondary);border:1px solid var(--border-light);">
           Dismiss
         </button>
       </div>
     `;
-  }
-
-  renderSkeletons(count) {
-    const spinner = '<div class="thumb-modal__spinner" style="width:24px;height:24px;"></div>';
-    return Array.from({ length: count }, () => `
-      <div class="thumb-modal__candidate" style="display:flex;align-items:center;justify-content:center;background:#09090b;">
-        ${spinner}
-      </div>
-    `).join('');
   }
 
   // -------------------------------------------------------------------------
@@ -563,6 +649,18 @@ export class TemplateThumbnailModal extends BaseModal {
       .replace(/"/g, '&quot;');
   }
 
+  hexToRgba(hex, alpha) {
+    if (typeof hex !== 'string') return `rgba(16, 185, 129, ${alpha})`;
+    const m = hex.trim().match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (!m) return `rgba(16, 185, 129, ${alpha})`;
+    let h = m[1];
+    if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
   // -------------------------------------------------------------------------
   // Actions
   // -------------------------------------------------------------------------
@@ -587,25 +685,81 @@ export class TemplateThumbnailModal extends BaseModal {
   async goGenerate() {
     this.clearError();
     const promptText = document.getElementById('thumb-prompt')?.value || this.selectedPromptText();
+    const startTime = performance.now();
     this.setLoading('Generating candidates…');
 
+    const baseOpts = {
+      // n (number of candidates) — overridable via this.n from the panel,
+      // falls back to the configured default.
+      n: this.n ?? openaiConfig.defaultConfig.thumbnailNCandidates,
+      // Image model selection: gpt-image-2 / 1.5 / 1 / 1-mini
+      model: this.model || openaiConfig.defaultConfig.thumbnailModel,
+      // Per-model style/background/input-fidelity constraints are
+      // applied in the edge function.
+      style: this.controls.style,
+      inputFidelity: this.inputFidelity,
+      presetKey: this.presetKey,
+      aspectRatio: this.controls.aspectRatio,
+      size: this.controls.size,
+      quality: this.controls.quality,
+      background: this.controls.background,
+      outputFormat: this.controls.outputFormat,
+      outputCompression: this.controls.outputCompression,
+      moderation: this.controls.moderation,
+      partialImages: this.partialImages,
+      // OpenAI abuse-tracking identifier (per-user, ≤ 64 chars).
+      user: this.userId || undefined,
+    };
+
     try {
-      const { candidates, params } = await this.thumbnailService.generateCandidates(promptText, {
-        n: 3,
-        presetKey: this.presetKey,
-        aspectRatio: this.controls.aspectRatio,
-        quality: this.controls.quality,
-        style: this.controls.style,
-        background: this.controls.background,
-        outputFormat: this.controls.outputFormat,
-        outputCompression: this.controls.outputCompression,
-      });
-      this.candidates = (candidates || []).map((c) => ({ ...c, dataUrl: ThumbnailService.b64ToDataUrl(c.b64_json) }));
-      this.selectedIndex = this.candidates.length > 0 ? 0 : -1;
-      if (params) this.lastParams = params;
-      this.step = 'generate';
-      this.isGenerating = false;
-      this.updateBody(this.renderBody());
+      if (this.streaming && this.partialImages > 0) {
+        // Streaming path — update partial preview as frames arrive.
+        const collected = [];
+        let partialIndex = 0;
+        await new Promise((resolve, reject) => {
+          this.thumbnailService.generateCandidatesStream(promptText, baseOpts, {
+            onPartial: (b64) => {
+              this.partialPreview = { b64, index: partialIndex++ };
+              this.updateBody(this.renderBody());
+            },
+            onDone: (result) => {
+              this.candidates = (result.candidates || []).map((c) => ({ ...c, dataUrl: ThumbnailService.b64ToDataUrl(c.b64_json) }));
+              this.selectedIndex = this.candidates.length > 0 ? 0 : -1;
+              this.partialPreview = null;
+              this.lastParams = result.params || this.lastParams;
+              this.lastKeySource = result.keySource || result.key_source || null;
+              this.step = 'generate';
+              this.isGenerating = false;
+              this.updateBody(this.renderBody());
+              resolve();
+            },
+            onError: (err) => {
+              const hint = ThumbnailService.moderationHint(err);
+              this.setError(hint ?? (err instanceof Error ? err.message : 'Failed to generate candidates'));
+              reject(err);
+            },
+          });
+        });
+      } else {
+        const { candidates, params, keySource } = await this.thumbnailService.generateCandidates(promptText, baseOpts);
+        this.candidates = (candidates || []).map((c) => ({ ...c, dataUrl: ThumbnailService.b64ToDataUrl(c.b64_json) }));
+        this.selectedIndex = this.candidates.length > 0 ? 0 : -1;
+        if (params) this.lastParams = params;
+        this.lastKeySource = keySource || null;
+        this.generationTime = ((performance.now() - startTime) / 1000).toFixed(1);
+        this.step = 'generate';
+        this.isGenerating = false;
+        this.updateBody(this.renderBody());
+        // Generate low-res placeholders for progressive loading (background).
+        (this.candidates || []).forEach(async (cand, idx) => {
+          if (!cand.b64_json) return;
+          const placeholder = await ThumbnailService.b64ToPlaceholder(cand.b64_json, 32);
+          if (this.candidates[idx]) {
+            this.candidates[idx].placeholderDataUrl = placeholder;
+            this.updateBody(this.renderBody());
+          }
+        });
+      }
     } catch (err) {
       this.setError(err instanceof Error ? err.message : 'Failed to generate candidates');
     }
@@ -663,101 +817,51 @@ export class TemplateThumbnailModal extends BaseModal {
     setTimeout(() => this.initMaskCanvas(), 50);
   }
 
-  async applyRefine() {
-    this.clearError();
-    const input = document.getElementById('thumb-refine-input');
-    const instruction = input?.value || this.refineInput;
-    if (!instruction.trim()) return;
-    this.refineInput = instruction;
+  goTextOverlay() {
+    if (this.selectedIndex < 0) return;
+    this.step = 'textoverlay';
+    this.updateBody(this.renderBody());
+  }
+
+  skipTextOverlay() {
+    this.step = 'refine';
+    this.updateBody(this.renderBody());
+  }
+
+  async applyTextOverlay() {
+    const textEl = document.getElementById('thumb-overlay-text');
+    const sizeEl = document.getElementById('thumb-overlay-size');
+    const colorEl = document.getElementById('thumb-overlay-color');
+    const text = textEl?.value || '';
+    this.textOverlay.text = text;
+    this.textOverlay.size = parseInt(sizeEl?.value || '48', 10);
+    this.textOverlay.color = colorEl?.value || '#ffffff';
 
     const selected = this.candidates[this.selectedIndex];
     if (!selected) return;
 
-    this.setLoading('Refining…');
-    this.partialPreview = null;
-
-    try {
-      const result = await this.thumbnailService.refineLastImage({
-        prompt: instruction,
-        previousResponseId: this.lastResponseId || '',
-        quality: this.controls.quality,
-        background: this.controls.background,
-        outputFormat: this.controls.outputFormat,
-        outputCompression: this.controls.outputCompression,
-        partialImages: 1,
-        store: true,
-        include: ['reasoning.encrypted_content'],
-        referenceImageB64: this.referenceImage?.source === 'b64' ? this.referenceImage.value : undefined,
-        referenceImageUrl: this.referenceImage?.source === 'url' ? this.referenceImage.value : undefined,
-        imageDetail: this.imageDetail,
-      });
-      if (result?.b64_json) {
-        selected.b64_json = result.b64_json;
-        selected.revised_prompt = result.revised_prompt;
-        selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
+    if (text.trim()) {
+      this.setLoading('Compositing text…');
+      try {
+        const composited = await this._compositeTextOnImage(
+          selected.b64_json,
+          text,
+          this.textOverlay.size,
+          this.textOverlay.color,
+        );
+        selected.b64_json = composited;
+        selected.dataUrl = `data:image/png;base64,${composited}`;
+        this.isGenerating = false;
+      } catch (err) {
+        this.isGenerating = false;
+        this.setError(err instanceof Error ? err.message : 'Text compositing failed');
+        this.updateBody(this.renderBody());
+        return;
       }
-      if (result?.response_id) this.lastResponseId = result.response_id;
-      this.revisedPrompt = selected.revised_prompt || '';
-      this.isGenerating = false;
-      this._error = null;
-      this.partialPreview = null;
-      this.updateBody(this.renderBody());
-      setTimeout(() => this.initMaskCanvas(), 50);
-    } catch (err) {
-      this.setError(err instanceof Error ? err.message : 'Refine failed');
-    }
-  }
-
-  async applyInpaint() {
-    this.clearError();
-    const prompt = document.getElementById('thumb-refine-input')?.value || 'Fill this area naturally';
-    const selected = this.candidates[this.selectedIndex];
-    if (!selected) return;
-
-    this.maskB64 = this.readMaskCanvas();
-    if (!this.maskB64) {
-      this.setError('Draw a mask on the canvas first (paint the area you want to change)');
-      return;
     }
 
-    this.setLoading('Inpainting…');
-
-    try {
-      const result = await this.thumbnailService.inpaint({
-        prompt,
-        imageB64: selected.b64_json,
-        maskB64: this.maskB64,
-        aspectRatio: this.controls.aspectRatio,
-        quality: this.controls.quality,
-        style: this.controls.style,
-        background: this.controls.background,
-        outputFormat: this.controls.outputFormat,
-      });
-      if (result?.b64_json) {
-        selected.b64_json = result.b64_json;
-        selected.revised_prompt = result.revised_prompt;
-        selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
-      }
-      this.revisedPrompt = selected.revised_prompt || '';
-      this.maskB64 = '';
-      this.isGenerating = false;
-      this.updateBody(this.renderBody());
-      setTimeout(() => this.initMaskCanvas(), 50);
-    } catch (err) {
-      this.setError(err instanceof Error ? err.message : 'Inpaint failed');
-    }
-  }
-
-  async goSave() {
-    this.clearError();
-    const selected = this.candidates[this.selectedIndex];
-    if (!selected) {
-      this.setError('Select a candidate first');
-      return;
-    }
-
+    // Now actually save the (possibly composited) image.
     this.setLoading('Saving thumbnail…');
-
     try {
       const result = await this.thumbnailService.saveToStorage({
         imageB64: selected.b64_json,
@@ -778,6 +882,211 @@ export class TemplateThumbnailModal extends BaseModal {
     }
   }
 
+  _compositeTextOnImage(base64Image, text, size, color) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas 2D context not available'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0);
+        ctx.font = `bold ${size}px Inter, system-ui, -apple-system, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        // Draw with stroke for legibility, then fill.
+        ctx.lineWidth = Math.max(2, size * 0.1);
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.strokeText(text, canvas.width / 2, canvas.height / 2);
+        ctx.fillStyle = color;
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+        const dataUrl = canvas.toDataURL('image/png');
+        const commaIdx = dataUrl.indexOf(',');
+        resolve(commaIdx >= 0 ? dataUrl.slice(commaIdx + 1) : dataUrl);
+      };
+      img.onerror = () => reject(new Error('Failed to load image for text overlay'));
+      img.src = `data:image/png;base64,${base64Image}`;
+    });
+  }
+
+  async applyRefine() {
+    this.clearError();
+    const input = document.getElementById('thumb-refine-input');
+    const instruction = input?.value || this.refineInput;
+    if (!instruction.trim()) return;
+    this.refineInput = instruction;
+
+    const selected = this.candidates[this.selectedIndex];
+    if (!selected) return;
+
+    // Append the user's instruction to the chat thread.
+    this.refineMessages = this.refineMessages || [];
+    this.refineMessages.push({ role: 'user', text: instruction });
+
+    this.setLoading('Refining…');
+    this.partialPreview = null;
+
+    const refineOpts = {
+      prompt: instruction,
+      previousResponseId: this.refineChatResponseId || this.lastResponseId || '',
+      // v2 fields
+      model: this.model,
+      n: this.n,
+      inputFidelity: this.inputFidelity,
+      quality: this.controls.quality,
+      style: this.controls.style,
+      background: this.controls.background,
+      outputFormat: this.controls.outputFormat,
+      outputCompression: this.controls.outputCompression,
+      moderation: this.controls.moderation,
+      partialImages: this.partialImages,
+      store: this.storeResponses,
+      // `include` is configurable per-call. When unset, default to
+      // reasoning so the model can show its work. The OpenAI Responses
+      // API also supports `web_search_call.results` and other values.
+      include: this.include || openaiConfig.defaultConfig.thumbnailInclude,
+      responsesModel: this.responsesModel,
+      imageAction: this.imageAction,
+      imageDetail: this.imageDetail,
+      referenceImageB64: this.referenceImage?.source === 'b64' ? this.referenceImage.value : undefined,
+      referenceImageUrl: this.referenceImage?.source === 'url' ? this.referenceImage.value : undefined,
+      referenceImageFileId: this.referenceImage?.source === 'fileId' ? this.referenceImage.value : undefined,
+      user: this.userId || undefined,
+    };
+
+    const handleResult = (result) => {
+      if (result?.b64_json) {
+        selected.b64_json = result.b64_json;
+        selected.revised_prompt = result.revised_prompt || selected.revised_prompt || '';
+        selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
+      }
+      if (result?.response_id) {
+        this.lastResponseId = result.response_id;
+        this.refineChatResponseId = result.response_id;
+      }
+      this.lastKeySource = result?.keySource || result?.key_source || null;
+      this.revisedPrompt = selected.revised_prompt || '';
+      // Append the assistant's revised prompt to the chat thread.
+      this.refineMessages = this.refineMessages || [];
+      this.refineMessages.push({
+        role: 'assistant',
+        text: selected.revised_prompt || '(refined image generated)',
+        imageDataUrl: selected.dataUrl || ThumbnailService.b64ToDataUrl(selected.b64_json),
+      });
+      this.refineInput = '';
+      this.partialPreview = null;
+      this.isGenerating = false;
+      this._error = null;
+      this.updateBody(this.renderBody());
+      setTimeout(() => this.initMaskCanvas(), 50);
+    };
+
+    try {
+      if (this.streaming && this.partialImages > 0) {
+        let partialIndex = 0;
+        await new Promise((resolve, reject) => {
+          this.thumbnailService.refineLastImageStream(refineOpts, {
+            onPartial: (b64) => {
+              this.partialPreview = { b64, index: partialIndex++ };
+              this.updateBody(this.renderBody());
+            },
+            onDone: (result) => {
+              handleResult(result);
+              resolve();
+            },
+            onError: (err) => {
+              const hint = ThumbnailService.moderationHint(err);
+              this.setError(hint ?? (err instanceof Error ? err.message : 'Refine failed'));
+              reject(err);
+            },
+          });
+        });
+      } else {
+        const result = await this.thumbnailService.refineLastImage(refineOpts);
+        handleResult(result);
+        this.updateBody(this.renderBody());
+        setTimeout(() => this.initMaskCanvas(), 50);
+      }
+    } catch (err) {
+      this.setError(err instanceof Error ? err.message : 'Refine failed');
+    }
+  }
+
+  async applyInpaint() {
+    this.clearError();
+    let prompt = document.getElementById('thumb-refine-input')?.value || 'Fill this area naturally';
+    const selected = this.candidates[this.selectedIndex];
+    if (!selected) return;
+
+    this.maskB64 = this.readMaskCanvas();
+    if (!this.maskB64) {
+      this.setError('Draw a mask on the canvas first (paint the area you want to change)');
+      return;
+    }
+
+    // Apply mode-specific prompt framing.
+    const mode = this.inpaintMode || 'replace';
+    const modePrefixes = {
+      erase: 'Remove the masked area and replace with the natural background. ',
+      replace: 'Replace the masked area. ',
+      extend: 'Extend the image beyond its current edges, filling the masked area. ',
+      style: 'Apply a stylistic treatment to the masked area only. ',
+    };
+    const finalPrompt = (modePrefixes[mode] || modePrefixes.replace) + prompt;
+
+    this.setLoading('Inpainting…');
+
+    try {
+      const result = await this.thumbnailService.inpaint({
+        prompt: finalPrompt,
+        imageB64: selected.b64_json,
+        maskB64: this.maskB64,
+        aspectRatio: this.controls.aspectRatio,
+        quality: this.controls.quality,
+        style: this.controls.style,
+        background: this.controls.background,
+        outputFormat: this.controls.outputFormat,
+      });
+      if (result?.b64_json) {
+        selected.b64_json = result.b64_json;
+        selected.revised_prompt = result.revised_prompt;
+        selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
+      }
+      this.revisedPrompt = selected.revised_prompt || '';
+      this.maskB64 = '';
+      // Append to chat
+      if (this.refineMessages) {
+        this.refineMessages.push({
+          role: 'assistant',
+          text: `(inpaint: ${mode}) ${selected.revised_prompt || ''}`,
+          imageDataUrl: selected.dataUrl || ThumbnailService.b64ToDataUrl(selected.b64_json),
+        });
+      }
+      this.isGenerating = false;
+      this.updateBody(this.renderBody());
+      setTimeout(() => this.initMaskCanvas(), 50);
+    } catch (err) {
+      this.setError(err instanceof Error ? err.message : 'Inpaint failed');
+    }
+  }
+
+  async goSave() {
+    this.clearError();
+    const selected = this.candidates[this.selectedIndex];
+    if (!selected) {
+      this.setError('Select a candidate first');
+      return;
+    }
+
+    // Route to text overlay step first, then actually save.
+    this.step = 'textoverlay';
+    this.updateBody(this.renderBody());
+  }
+
   confirmApply() {
     if (this.onApply && this.savedImageUrl) {
       this.onApply({ imageUrl: this.savedImageUrl, revisedPrompt: this.savedPromptUsed });
@@ -790,6 +1099,8 @@ export class TemplateThumbnailModal extends BaseModal {
       this.step = 'brief';
     } else if (this.step === 'refine') {
       this.step = 'generate';
+    } else if (this.step === 'textoverlay') {
+      this.step = 'refine';
     } else if (this.step === 'saved') {
       this.step = 'generate';
     }
@@ -848,16 +1159,67 @@ export class TemplateThumbnailModal extends BaseModal {
 
     const paint = (e) => {
       const pos = getPos(e);
-      ctx.fillStyle = '#fff';
+      const size = this.brushSize || 24;
+      // Soft brush: use radial gradient for soft edges.
+      const softness = (this.brushSoftness || 0) / 100; // 0..1
+      if (softness > 0) {
+        const gradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, size);
+        gradient.addColorStop(0, 'rgba(255,255,255,1)');
+        gradient.addColorStop(Math.max(0, 1 - softness), 'rgba(255,255,255,0.6)');
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = gradient;
+      } else {
+        ctx.fillStyle = '#fff';
+      }
       ctx.beginPath();
-      ctx.arc(pos.x, pos.y, 12, 0, Math.PI * 2);
+      ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
       ctx.fill();
     };
 
-    canvas.onmousedown = (e) => { painting = true; paint(e); };
+    const saveHistory = () => {
+      if (!this.maskHistory) this.maskHistory = [];
+      // Save current state to undo stack (cap at max)
+      const snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      this.maskHistory.push(snapshot);
+      if (this.maskHistory.length > (this.maskHistoryMax || 20)) {
+        this.maskHistory.shift();
+      }
+    };
+
+    canvas.onmousedown = (e) => {
+      saveHistory();
+      painting = true;
+      paint(e);
+    };
     canvas.onmousemove = (e) => { if (painting) paint(e); };
     canvas.onmouseup = () => { painting = false; };
     canvas.onmouseleave = () => { painting = false; };
+  }
+
+  undoMaskStroke() {
+    if (!this.maskHistory || this.maskHistory.length === 0) return;
+    if (!this.maskCanvas) return;
+    const ctx = this.maskCanvas.getContext('2d');
+    if (!ctx) return;
+    const snapshot = this.maskHistory.pop();
+    ctx.putImageData(snapshot, 0, 0);
+  }
+
+  invertMask() {
+    if (!this.maskCanvas) return;
+    const ctx = this.maskCanvas.getContext('2d');
+    if (!ctx) return;
+    const w = this.maskCanvas.width;
+    const h = this.maskCanvas.height;
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      data[i] = 255 - data[i];
+      data[i + 1] = 255 - data[i + 1];
+      data[i + 2] = 255 - data[i + 2];
+    }
+    ctx.putImageData(imageData, 0, 0);
+    this.maskInverted = !this.maskInverted;
   }
 
   readMaskCanvas() {
@@ -865,7 +1227,6 @@ export class TemplateThumbnailModal extends BaseModal {
     const ctx = this.maskCanvas.getContext('2d');
     if (!ctx) return '';
 
-    // export a one-channel mask as a PNG data URL
     const tmp = document.createElement('canvas');
     tmp.width = this.maskCanvas.width;
     tmp.height = this.maskCanvas.height;
@@ -881,6 +1242,8 @@ export class TemplateThumbnailModal extends BaseModal {
     if (!ctx) return;
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
+    this.maskInverted = false;
+    this.maskHistory = [];
   }
 
   // -------------------------------------------------------------------------
@@ -896,16 +1259,42 @@ export class TemplateThumbnailModal extends BaseModal {
   // -------------------------------------------------------------------------
   renderFooter() {
     return `
-      <button class="modal-btn modal-btn-secondary modal-cancel">Cancel</button>
-      <button class="modal-btn modal-btn-danger modal-clear">Remove Custom</button>
-      <button class="modal-btn modal-btn-primary modal-apply" disabled>Save & Apply</button>
+      <button type="button" class="modal-btn modal-btn-secondary" data-action="cancel">Cancel</button>
+      <button type="button" class="modal-btn modal-btn-danger" data-action="clear">Remove Custom</button>
+      <button type="button" class="modal-btn modal-btn-primary" data-action="apply" disabled>Save & Apply</button>
     `;
   }
 
   setupEventListeners() {
     super.setupEventListeners();
 
-    const clearBtn = this.overlay?.querySelector('.modal-clear');
+    // Keyboard shortcuts: Cmd/Ctrl+Enter to generate/refine/save,
+    // 1/2/3 to select candidate, Esc to close (handled by BaseModal).
+    this._boundKeydown = (e) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        if (this.step === 'refine') {
+          this.applyRefine();
+        } else if (this.step === 'brief' || this.step === 'generate') {
+          if (!this.isGenerating) this.goGenerate();
+        } else if (this.step === 'textoverlay') {
+          this.applyTextOverlay();
+        } else if (this.step === 'saved') {
+          this.confirmApply();
+        }
+      }
+      // Number keys 1-9 to select candidates
+      if (['1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key) && this.step === 'generate') {
+        const idx = parseInt(e.key, 10) - 1;
+        if (idx < this.candidates.length) {
+          this.selectedIndex = idx;
+          this.updateBody(this.renderBody());
+        }
+      }
+    };
+    document.addEventListener('keydown', this._boundKeydown);
+
+    const clearBtn = this.overlay?.querySelector('[data-action="clear"]');
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
         this.onClear();
@@ -913,17 +1302,200 @@ export class TemplateThumbnailModal extends BaseModal {
       });
     }
 
-    const applyBtn = this.overlay?.querySelector('.modal-apply');
+    const applyBtn = this.overlay?.querySelector('[data-action="apply"]');
     if (applyBtn) {
       applyBtn.addEventListener('click', () => {
         if (this.savedImageUrl) this.confirmApply();
       });
     }
+
+    // Body actions
+    const body = this.overlay?.querySelector('.modal-body');
+    if (!body) return;
+
+    body.querySelector('[data-action="draft"]')?.addEventListener('click', () => this.buildPrompts());
+    body.querySelector('[data-action="generate"]')?.addEventListener('click', () => this.goGenerate());
+    body.querySelector('[data-action="regenerate"]')?.addEventListener('click', () => this.regenerate());
+    body.querySelector('[data-action="save"]')?.addEventListener('click', () => this.goSave());
+    body.querySelector('[data-action="refine"]')?.addEventListener('click', () => this.goRefine());
+    body.querySelector('[data-action="apply-refine"]')?.addEventListener('click', () => this.applyRefine());
+    body.querySelector('[data-action="apply-inpaint"]')?.addEventListener('click', () => this.applyInpaint());
+    body.querySelector('[data-action="clear-mask"]')?.addEventListener('click', () => this.clearMask());
+    body.querySelector('[data-action="undo-mask"]')?.addEventListener('click', () => { this.undoMaskStroke(); this.updateBody(this.renderBody()); this.setupEventListeners(); });
+    body.querySelector('[data-action="invert-mask"]')?.addEventListener('click', () => { this.invertMask(); this.updateBody(this.renderBody()); this.setupEventListeners(); });
+    body.querySelector('[data-action="back"]')?.addEventListener('click', () => this.back());
+    body.querySelector('[data-action="dismiss-error"]')?.addEventListener('click', () => this.dismissError());
+    body.querySelector('[data-action="show-diff"]')?.addEventListener('click', () => { this.showDiff = true; this.updateBody(this.renderBody()); this.setupEventListeners(); });
+    body.querySelector('[data-action="hide-diff"]')?.addEventListener('click', () => { this.showDiff = false; this.updateBody(this.renderBody()); this.setupEventListeners(); });
+    body.querySelector('[data-action="apply-text-overlay"]')?.addEventListener('click', () => this.applyTextOverlay());
+    body.querySelector('[data-action="skip-text-overlay"]')?.addEventListener('click', () => this.skipTextOverlay());
+
+    // Brush size slider
+    const brushSizeEl = body.querySelector('#thumb-brush-size');
+    const brushSizeVal = body.querySelector('#thumb-brush-size-val');
+    if (brushSizeEl) {
+      brushSizeEl.addEventListener('input', (e) => {
+        this.brushSize = parseInt(e.target.value, 10);
+        if (brushSizeVal) brushSizeVal.textContent = String(this.brushSize);
+      });
+    }
+    const brushSoftEl = body.querySelector('#thumb-brush-softness');
+    const brushSoftVal = body.querySelector('#thumb-brush-softness-val');
+    if (brushSoftEl) {
+      brushSoftEl.addEventListener('input', (e) => {
+        this.brushSoftness = parseInt(e.target.value, 10);
+        if (brushSoftVal) brushSoftVal.textContent = String(this.brushSoftness);
+      });
+    }
+    const inpaintModeEl = body.querySelector('#thumb-inpaint-mode');
+    if (inpaintModeEl) {
+      inpaintModeEl.addEventListener('change', (e) => { this.inpaintMode = e.target.value; });
+    }
+
+    // Text overlay size slider
+    const overlaySizeEl = body.querySelector('#thumb-overlay-size');
+    const overlaySizeVal = body.querySelector('#thumb-overlay-size-val');
+    if (overlaySizeEl) {
+      overlaySizeEl.addEventListener('input', (e) => {
+        const v = parseInt(e.target.value, 10);
+        if (overlaySizeVal) overlaySizeVal.textContent = String(v);
+        this.textOverlay.size = v;
+      });
+    }
+    const overlayColorEl = body.querySelector('#thumb-overlay-color');
+    if (overlayColorEl) {
+      overlayColorEl.addEventListener('input', (e) => { this.textOverlay.color = e.target.value; });
+    }
+    const overlayTextEl = body.querySelector('#thumb-overlay-text');
+    if (overlayTextEl) {
+      overlayTextEl.addEventListener('input', (e) => { this.textOverlay.text = e.target.value; });
+    }
+
+    body.querySelectorAll('.thumb-quick-edit-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const key = chip.getAttribute('data-quick-edit');
+        const edit = (openaiConfig.getThumbnailOutputSettings().quickEdits || []).find((e) => e.key === key);
+        if (!edit) return;
+        const input = document.getElementById('thumb-refine-input');
+        if (input) {
+          const current = input.value.trim();
+          const suffix = current ? `, ${edit.promptFragment}` : edit.promptFragment;
+          input.value = current + suffix;
+          this.refineInput = input.value;
+        }
+      });
+    });
+
+    body.querySelector('[data-action="select-variant"]')?.addEventListener('click', (e) => {
+      const idx = parseInt(e.currentTarget.dataset.index || '0', 10);
+      this.selectVariant(idx);
+    });
+
+    body.querySelectorAll('[data-action="select-candidate"]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt(e.currentTarget.dataset.index || '0', 10);
+        this.selectCandidate(idx);
+        // Show hover actions
+        const actions = e.currentTarget.querySelector('.candidate-actions');
+        if (actions) actions.style.opacity = '1';
+      });
+    });
+
+    body.querySelectorAll('[data-action="refine-candidate"]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = parseInt(e.currentTarget.dataset.index || '0', 10);
+        this.selectCandidate(idx);
+        this.goRefine();
+      });
+    });
+
+    // Preset gallery (visual cards)
+    body.querySelectorAll('.thumb-preset-card').forEach((card) => {
+      card.addEventListener('click', () => this.selectPreset(card.getAttribute('data-preset-key')));
+    });
+
+    // Aspect ratio select
+    const aspectSelect = body.querySelector('#thumb-aspect');
+    if (aspectSelect) {
+      aspectSelect.addEventListener('change', (e) => this.updateControl('aspectRatio', e.target.value));
+    }
+
+    // Advanced toggle
+    body.querySelector('[data-action="toggle-advanced"]')?.addEventListener('click', () => {
+      this.showAdvanced = !this.showAdvanced;
+      this.refreshBody();
+    });
+
+    // Advanced settings — image model
+    const imageModelSelect = body.querySelector('#thumb-image-model');
+    if (imageModelSelect) {
+      imageModelSelect.addEventListener('change', (e) => {
+        this.model = e.target.value;
+        // Reset style to '' (not supported by older models) and re-render.
+        if (this.model !== 'gpt-image-2' && this.controls.style) {
+          this.controls.style = '';
+        }
+        this.refreshBody();
+      });
+    }
+    // Advanced settings — n candidates
+    const nSelect = body.querySelector('#thumb-n-candidates');
+    if (nSelect) {
+      nSelect.addEventListener('change', (e) => { this.n = parseInt(e.target.value, 10); });
+    }
+    // Advanced settings — responses model
+    const responsesModelSelect = body.querySelector('#thumb-responses-model');
+    if (responsesModelSelect) {
+      responsesModelSelect.addEventListener('change', (e) => { this.responsesModel = e.target.value; });
+    }
+    // Advanced — input fidelity
+    const inputFidelitySelect = body.querySelector('#thumb-input-fidelity');
+    if (inputFidelitySelect) {
+      inputFidelitySelect.addEventListener('change', (e) => { this.inputFidelity = e.target.value; });
+    }
+    // Advanced — custom size
+    const sizeSelect = body.querySelector('#thumb-size');
+    if (sizeSelect) {
+      sizeSelect.addEventListener('change', (e) => { this.controls.size = e.target.value; });
+    }
+    // Advanced — quality / style / background / moderation
+    const bindSelect = (id, key, prop = 'controls') => {
+      const el = body.querySelector(id);
+      if (el) el.addEventListener('change', (e) => { this[prop][key] = e.target.value; });
+    };
+    bindSelect('#thumb-quality', 'quality');
+    bindSelect('#thumb-style', 'style');
+    bindSelect('#thumb-background', 'background');
+    bindSelect('#thumb-moderation', 'moderation');
+    bindSelect('#thumb-format', 'outputFormat');
+    // Advanced — compression slider
+    const compressionEl = body.querySelector('#thumb-compression');
+    const compressionVal = body.querySelector('#thumb-compression-val');
+    if (compressionEl) {
+      compressionEl.addEventListener('input', (e) => {
+        const v = parseInt(e.target.value, 10);
+        this.controls.outputCompression = v;
+        if (compressionVal) compressionVal.textContent = String(v);
+      });
+    }
+    // Advanced — streaming partials
+    const partialSelect = body.querySelector('#thumb-partial');
+    if (partialSelect) {
+      partialSelect.addEventListener('change', (e) => {
+        this.partialImages = parseInt(e.target.value, 10);
+        this.streaming = this.partialImages > 0;
+      });
+    }
+    // Advanced — store responses
+    const storeSelect = body.querySelector('#thumb-store');
+    if (storeSelect) {
+      storeSelect.addEventListener('change', (e) => { this.storeResponses = e.target.value === 'true'; });
+    }
   }
 
   open() {
-    injectThumbStyles();
-    this.step = 'brief';
+        this.step = 'brief';
     this.brief = this.buildInitialBrief();
     this.variants = [];
     this.selectedVariantIndex = -1;
@@ -939,8 +1511,18 @@ export class TemplateThumbnailModal extends BaseModal {
     this.maskB64 = '';
     this.partialPreview = null;
     this.referenceImage = null;
+    this.referenceImages = [];
     this.completedAt = null;
     this.revisedPrompt = '';
+    this.showAdvanced = false;
+    this.partialImages = openaiConfig.defaultConfig.thumbnailPartialImages;
+    this.streaming = openaiConfig.defaultConfig.thumbnailStreamingEnabled;
+    this.responsesModel = openaiConfig.defaultConfig.thumbnailResponsesModel;
+    this.storeResponses = openaiConfig.defaultConfig.thumbnailStoreResponses;
+    this.imageAction = openaiConfig.defaultConfig.thumbnailImageAction;
+    this.imageDetail = openaiConfig.defaultConfig.thumbnailImageDetail;
+    this.refineMessages = [];
+    this.refineChatResponseId = '';
 
     this.preset = getPresetForTemplate(this.template);
     this.presetKey = this.preset.key;
@@ -961,6 +1543,16 @@ export class TemplateThumbnailModal extends BaseModal {
       t.cinematography ? `Cinematography: ${t.cinematography}` : null,
       Array.isArray(t.sceneBlueprint) && t.sceneBlueprint.length ? `Scenes: ${t.sceneBlueprint.join(' → ')}` : null,
     ].filter(Boolean).join('\n');
+  }
+
+  destroy() {
+    if (this._boundKeydown) {
+      document.removeEventListener('keydown', this._boundKeydown);
+      this._boundKeydown = null;
+    }
+    if (typeof super.destroy === 'function') {
+      super.destroy();
+    }
   }
 }
 

@@ -75,7 +75,7 @@ export default class Timeline extends Component {
         </div>
 
         <!-- Timeline Ruler -->
-        <div class="timeline-ruler">
+        <div class="ruler">
           <canvas class="ruler-canvas"></canvas>
         </div>
 
@@ -246,7 +246,7 @@ export default class Timeline extends Component {
 
     if (e.target.closest('.timeline-clip')) {
       this.startClipDrag(e.target.closest('.timeline-clip'), x);
-    } else if (e.target.closest('.timeline-ruler')) {
+    } else if (e.target.closest('.ruler')) {
       this.seekToPosition(x);
     }
   }

@@ -18,6 +18,32 @@ const AI_TOOLS = [
     { id: 'color-correct', name: 'Color Correction', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22c-4.97 0-9-2.69-9-6v-.01C3 12.2 7.03 8.6 12 8.6s9 3.6 9 7.39V16c0 3.31-4.03 6-9 6z"/></svg>', thumbnail: '/thumbnails/videoagent/color-correct.png', color: 'rose', description: 'Adjust colors & tones', category: 'enhance' },
     { id: 'upscale', name: 'Video Upscale', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>', thumbnail: '/thumbnails/videoagent/upscale.png', color: 'emerald', description: 'Enhance resolution', category: 'enhance' },
     { id: 'stabilize', name: 'Stabilize', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/stabilize.png', color: 'violet', description: 'Fix shaky footage', category: 'enhance' },
+    // ── VideoDB + OpenAI Responses API Agents ──
+    { id: 'storyboarding', name: 'Storyboarding Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M3 9h18M8 21h8M12 17v4"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'blue', description: 'Shot-by-shot storyboard from video', category: 'understanding' },
+    { id: 'highlights', name: 'Automated Highlights', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'orange', description: 'Find & rank highlight moments', category: 'understanding' },
+    { id: 'text-to-movie', name: 'Text to Movie | GenAI', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 20V9"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'purple', description: 'Generate a screenplay from a prompt', category: 'understanding' },
+    { id: 'visual-search', name: 'Visual Search', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'cyan', description: 'Find moments by what you see', category: 'understanding' },
+    { id: 'keyword-search', name: 'Keyword Search & Compile', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'teal', description: 'Search spoken words, compile clips', category: 'understanding' },
+    { id: 'voice-cloning', name: 'Voice Cloning Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>', thumbnail: '/thumbnails/videoagent/cosyvoice.png', color: 'pink', description: 'Synthesize a cloned voice sample', category: 'audio' },
+    { id: 'audio-overlay', name: 'Gen AI Audio Overlays', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/fish-speech.png', color: 'cyan', description: 'Generate & overlay AI narration', category: 'audio' },
+    { id: 'sales-assistant', name: 'Sales Assistant (CRM)', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>', thumbnail: '/thumbnails/videoagent/overview.png', color: 'emerald', description: 'Extract pitch + CRM follow-up', category: 'understanding' },
+    { id: 'comparison', name: 'Comparison Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M5 8l-3 3 3 3M19 8l3 3-3 3"/></svg>', thumbnail: '/thumbnails/videoagent/qa.png', color: 'indigo', description: 'Compare two videos/descriptions', category: 'understanding' },
+    { id: 'output-formatting', name: 'Intelligent Output Formatting', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>', thumbnail: '/thumbnails/videoagent/color-correct.png', color: 'rose', description: 'Best export format per platform', category: 'understanding' },
+    { id: 'thumbnail', name: 'Thumbnail Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>', thumbnail: '/thumbnails/videoagent/highlight-detection.png', color: 'amber', description: 'Pick best frame + title + tags', category: 'understanding' },
+    { id: 'profanity', name: 'Profanity Remover', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5-3 7-7 7-12V5l-7-3-7 3v5c0 5 2 9 7 12z"/></svg>', thumbnail: '/thumbnails/videoagent/whisper.png', color: 'red', description: 'Detect & clean unsafe language', category: 'understanding' },
+    { id: 'subtitle', name: 'Subtitle Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 13h4M13 13h4M7 17h2M13 17h4"/></svg>', thumbnail: '/thumbnails/videoagent/whisper.png', color: 'green', description: 'Generate SRT subtitles', category: 'understanding' },
+    { id: 'slack', name: 'Slack Agent', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 10v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2"/><path d="M10 4h6a2 2 0 0 1 2 2v8"/></svg>', thumbnail: '/thumbnails/videoagent/overview.png', color: 'violet', description: 'Post video summary to Slack', category: 'understanding' },
+    // ── Content Factory ──
+    { id: 'faceless-video', name: 'Faceless Video Creator', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'blue', description: 'Script → faceless video plan', category: 'editing' },
+    { id: 'ai-ad-films', name: 'AI Ad Films', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 13z"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', color: 'yellow', description: 'Generate product ad from text', category: 'editing' },
+    { id: 'kids-storyteller', name: 'Kids Storyteller', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15z"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'pink', description: 'Animated educational story', category: 'editing' },
+    { id: 'trailer-narration', name: 'Trailer Narration', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/fish-speech.png', color: 'cyan', description: 'Cinematic trailer voice', category: 'editing' },
+    { id: 'tiktok-lyric', name: 'TikTok Lyric Videos', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', color: 'rose', description: 'Lyric-sync video plan', category: 'editing' },
+    { id: 'year-in-frames', name: 'Year in Frames', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M3 16h18"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'emerald', description: 'Photo collection montage', category: 'editing' },
+    // ── Programmatic Editing ──
+    { id: 'intro-outro', name: 'Intro / Outro', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 5v14l11-7z"/><path d="M16 5v14"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'violet', description: 'Plan branded intro/outro', category: 'editing' },
+    { id: 'brand-elements', name: 'Brand Elements', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.3 2.3 7.3L12 16.7 5.7 21l2.3-7.3-6-4.3h7.6z"/></svg>', thumbnail: '/thumbnails/videoagent/color-correct.png', color: 'amber', description: 'Logo + brand overlay plan', category: 'editing' },
+    { id: 'dynamic-ads', name: 'Dynamic Ads', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-5v12L3 13z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>', thumbnail: '/thumbnails/videoagent/music-video.png', color: 'yellow', description: 'Personalized ad variants', category: 'editing' },
 ];
 
 const USE_CASES = [
@@ -118,6 +144,13 @@ export function VideoAgentPage() {
                     </div>
                 </div>
                 
+                <!-- Agent Prompt (used by VideoDB + GenAI agents) -->
+                <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
+                    <label class="block text-xs font-bold text-white/70 mb-2 tracking-wide">AGENT PROMPT <span class="text-muted font-normal">(optional — describe what you want, e.g. "find the moment the product is revealed")</span></label>
+                    <textarea id="agent-prompt" rows="2" placeholder="Describe the shot, search, or generation you want…" class="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-primary/50 resize-none"></textarea>
+                    <p id="key-status" class="text-[11px] text-muted mt-2"></p>
+                </div>
+
                 <!-- Use Cases -->
                 <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-3xl">
                     <div class="relative w-full h-28 overflow-hidden">
@@ -445,9 +478,10 @@ export function VideoAgentPage() {
             : null;
 
         const callProcess = async (endpoint) => {
-            // Send the user's own OpenAI key so the backend (Render) bills/uses
-            // their account. Falls back to empty (backend uses its global key if set).
+            // Send the user's own OpenAI + VideoDB keys so the backend (Render)
+            // uses their accounts. Falls back to empty (backend uses global keys).
             const userOpenAIKey = apiKeyManager.getOpenAIKey() || '';
+            const userVideoDbKey = apiKeyManager.getVideoDBKey() || '';
             return await fetch(endpoint, {
                 method: 'POST',
                 signal: AbortSignal.any([abortController.signal, AbortSignal.timeout(90000)]),
@@ -459,13 +493,16 @@ export function VideoAgentPage() {
                     videoId,
                     videoUrl,
                     apiKey: userOpenAIKey,
+                    videoDbKey: userVideoDbKey,
                     text: (NO_VIDEO_TOOLS.includes(tool.id)
                         ? 'Welcome to the studio. This is a synthesized voice sample for your project.'
                         : tool.description),
+                    prompt: container.querySelector('#agent-prompt')?.value || '',
                     settings: {
                         quality: container.querySelector('select')?.value || '1080p',
                         format: container.querySelectorAll('select')[1]?.value || 'MP4',
                         apiKey: userOpenAIKey,
+                        videoDbKey: userVideoDbKey,
                     },
                 }),
             });
@@ -565,6 +602,7 @@ export function VideoAgentPage() {
 
         const callProcess = async (endpoint) => {
             const userOpenAIKey = apiKeyManager.getOpenAIKey() || '';
+            const userVideoDbKey = apiKeyManager.getVideoDBKey() || '';
             return await fetch(endpoint, {
                 method: 'POST',
                 signal: AbortSignal.any([abortController.signal, AbortSignal.timeout(90000)]),
@@ -576,7 +614,9 @@ export function VideoAgentPage() {
                     videoId,
                     videoUrl,
                     apiKey: userOpenAIKey,
-                    settings: { apiKey: userOpenAIKey },
+                    videoDbKey: userVideoDbKey,
+                    prompt: container.querySelector('#agent-prompt')?.value || '',
+                    settings: { apiKey: userOpenAIKey, videoDbKey: userVideoDbKey },
                 }),
             });
         };
@@ -670,6 +710,7 @@ export function VideoAgentPage() {
 
         const callProcess = async (endpoint) => {
             const userOpenAIKey = apiKeyManager.getOpenAIKey() || '';
+            const userVideoDbKey = apiKeyManager.getVideoDBKey() || '';
             return await fetch(endpoint, {
                 method: 'POST',
                 signal: AbortSignal.any([abortController.signal, AbortSignal.timeout(90000)]),
@@ -679,7 +720,9 @@ export function VideoAgentPage() {
                     videoId,
                     videoUrl,
                     apiKey: userOpenAIKey,
-                    settings: { quality: '1080p', format: 'MP4', apiKey: userOpenAIKey },
+                    videoDbKey: userVideoDbKey,
+                    prompt: container.querySelector('#agent-prompt')?.value || '',
+                    settings: { quality: '1080p', format: 'MP4', apiKey: userOpenAIKey, videoDbKey: userVideoDbKey },
                 }),
             });
         };

@@ -1,14 +1,16 @@
 import { getTemplateById } from '../lib/templates.js';
-import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
+import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustomThumbnailCache, getCustomThumbnailFromCache } from '../lib/thumbnails.js';
 import { getTemplateSpecs, hasEnhancedSpecs } from '../lib/templateSpecs.js';
 import { muapi } from '../lib/muapi.js';
-import { getNicheTerms } from '../lib/templateEngine.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, composeNegativePrompt } from '../lib/templateEngine.js';
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
+import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
@@ -38,14 +40,18 @@ export function TemplateStudio(templateId) {
   const formState = {};
   let activeTab = 'Enhanced Prompt';
   let aiEnhancer = true;
+  let lastBuiltPrompt = '';
+  let outputTabValues = {};
   let showAdvanced = false;
   let uploadedUrl = null;
   let isGenerating = false;
   let selectedModel = template.model;
+  let primaryPromptField = null;
+  let customThumbnailUrl = getCustomThumbnailFromCache(template.id);
 
   // Create full-page wrapper
   const container = document.createElement('div');
-  container.className = 'min-h-screen bg-[#0a0a0b] text-white';
+  container.className = 'template-studio min-h-screen bg-[#0a0a0b] text-white';
 
   // Create app shell row
   const appShell = document.createElement('div');
@@ -64,23 +70,31 @@ export function TemplateStudio(templateId) {
   const navHeader = document.createElement('div');
   navHeader.className = 'border-b border-white/5 px-6 py-4';
   navHeader.innerHTML = `
-    <div class="flex items-center gap-8 overflow-x-auto text-sm text-zinc-400">
-      <button class="hover:text-white transition" data-nav="explore">Explore</button>
-      <button class="hover:text-white transition" data-nav="image">Image</button>
-      <button class="hover:text-white transition" data-nav="video">Video</button>
-      <button class="hover:text-white transition" data-nav="tools">Storyboard</button>
-      <button class="hover:text-white transition" data-nav="edit">Edit</button>
-      <button class="hover:text-white transition" data-nav="character">Character</button>
-      <button class="hover:text-white transition" data-nav="effects">Vibe Motion</button>
-      <button class="hover:text-white transition" data-nav="cinema">Cinema Studio</button>
-      <button class="hover:text-white transition" data-nav="influencer">AI Influencer</button>
-      <button class="hover:text-white transition" data-nav="apps">Apps</button>
-      <button class="text-white font-semibold" data-nav="templates">Templates</button>
-      <button class="hover:text-white transition" data-nav="assist">Assist</button>
-      <button class="hover:text-white transition" data-nav="community">Community</button>
+    <div class="flex items-center gap-3">
+      <div id="studio-menu-slot"></div>
+      <div class="flex items-center gap-8 overflow-x-auto text-sm text-zinc-400">
+        <button class="hover:text-white transition" data-nav="explore">Explore</button>
+        <button class="hover:text-white transition" data-nav="image">Image</button>
+        <button class="hover:text-white transition" data-nav="video">Video</button>
+        <button class="hover:text-white transition" data-nav="tools">Storyboard</button>
+        <button class="hover:text-white transition" data-nav="edit">Edit</button>
+        <button class="hover:text-white transition" data-nav="character">Character</button>
+        <button class="hover:text-white transition" data-nav="effects">Vibe Motion</button>
+        <button class="hover:text-white transition" data-nav="cinema">Cinema Studio</button>
+        <button class="hover:text-white transition" data-nav="influencer">AI Influencer</button>
+        <button class="hover:text-white transition" data-nav="apps">Apps</button>
+        <button class="text-white font-semibold" data-nav="templates">Templates</button>
+        <button class="hover:text-white transition" data-nav="assist">Assist</button>
+        <button class="hover:text-white transition" data-nav="community">Community</button>
+      </div>
     </div>
   `;
   main.appendChild(navHeader);
+
+  // All-studios side menu (drawer) — opened via the menu icon
+  const drawer = mountStudioDrawer(document.body, { currentRoute: 'templates' });
+  const menuSlot = navHeader.querySelector('#studio-menu-slot');
+  if (menuSlot) menuSlot.appendChild(createStudioMenuButton(drawer.toggle));
 
   // Add nav click handlers
   navHeader.querySelectorAll('[data-nav]').forEach(btn => {
@@ -177,9 +191,13 @@ export function TemplateStudio(templateId) {
   thumbnailEl.appendChild(img);
   heroSection.appendChild(thumbnailEl);
 
-  // Thumbnail action button
+  // Thumbnail action button — matches .gtm-boost-btn styling so it is
+  // discoverable alongside the GTM Boost control in the hero section.
   const thumbAction = document.createElement('button');
-  thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-zinc-400 hover:text-white hover:border-emerald-400/30 transition';
+  thumbAction.className = 'mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition';
+  thumbAction.style.background = 'linear-gradient(135deg, #10b981, #34d399)';
+  thumbAction.style.boxShadow = '0 4px 14px rgba(16,185,129,0.3)';
+  thumbAction.style.color = '#022c22';
   thumbAction.textContent = '🖼 Thumbnail';
   thumbAction.onclick = () => {
     const modal = new TemplateThumbnailModal({
@@ -187,9 +205,11 @@ export function TemplateStudio(templateId) {
       template,
       onApply: ({ imageUrl }) => {
         img.src = imageUrl + '?v=' + Date.now();
+        customThumbnailUrl = imageUrl;
         saveCustomThumbnailToCache(template.id, imageUrl);
       },
       onClear: () => {
+        customThumbnailUrl = null;
         clearCustomThumbnailCache(template.id);
       },
     });
@@ -229,16 +249,32 @@ export function TemplateStudio(templateId) {
   const leftPanel = document.createElement('div');
   leftPanel.className = 'rounded-[34px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),rgba(255,255,255,0.02))] p-6 shadow-[0_20px_80px_rgba(0,0,0,0.45)]';
 
+  // Identify the primary prompt field. Templates usually have one input
+  // with name === 'prompt'; if not, fall back to the first text/textarea
+  // input. We track its DOM element and formState key so the GTM Boost
+  // callback can write the generated prompt back into it.
+  const promptInput = allInputs.find(i => i && i.name === 'prompt' && (i.type === 'text' || i.type === 'textarea'))
+    || allInputs.find(i => i && (i.type === 'text' || i.type === 'textarea'));
+  const promptFieldName = promptInput ? promptInput.name : null;
+  let promptEl = null; // assigned during the input loop below
+
   // Build form fields
   allInputs.forEach(input => {
     const fieldWrapper = document.createElement('div');
     fieldWrapper.className = 'mt-6 first:mt-0';
 
+    const isPrimaryPrompt = input.name === promptFieldName;
+    const showTextButtons = input.type === 'text' || input.type === 'textarea';
     const label = document.createElement('div');
     label.className = 'mb-3 flex items-center justify-between gap-3';
     label.innerHTML = `
       <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">${input.label}</div>
-      ${input.type === 'text' || input.type === 'textarea' ? `<button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>` : ''}
+      ${showTextButtons ? `
+        <div class="flex items-center gap-2">
+          <button class="enhancer-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-white/10 bg-white/[0.03] text-zinc-400 hover:bg-white/[0.06] hover:text-white" data-field="${input.name}">Enhance</button>
+          ${isPrimaryPrompt ? `<button class="gtm-boost-btn rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] transition border-emerald-400/30 bg-emerald-500/10 text-emerald-200 hover:bg-emerald-500/20 hover:text-white" data-gtm-boost="primary" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>` : ''}
+        </div>
+      ` : ''}
     `;
     fieldWrapper.appendChild(label);
 
@@ -274,6 +310,10 @@ export function TemplateStudio(templateId) {
       }
       el.placeholder = input.placeholder || '';
       el.oninput = () => { formState[input.name] = el.value; };
+      if (isPrimaryPrompt) {
+        promptEl = el;
+        primaryPromptField = el;
+      }
       fieldWrapper.appendChild(el);
     } else if (input.type === 'select') {
       const select = document.createElement('select');
@@ -294,6 +334,54 @@ export function TemplateStudio(templateId) {
 
     leftPanel.appendChild(fieldWrapper);
   });
+
+  // GTM Boost: wire the button on the primary prompt field to open the
+  // modal, pre-fill template context, and write the generated prompt back
+  // into the prompt field + formState. Available on EVERY template type
+  // (video and image).
+  const gtmBtn = leftPanel.querySelector('[data-gtm-boost="primary"]');
+  if (gtmBtn && promptEl && promptFieldName) {
+    gtmBtn.addEventListener('click', async () => {
+      gtmBtn.disabled = true;
+      const originalText = gtmBtn.textContent;
+      gtmBtn.textContent = '🎯 Loading…';
+      try {
+        // Fetch template-aware defaults from the backend so the modal
+        // opens with the right industry/tonality/methodology pre-selected.
+        const ctx = await import('../lib/uiIntegration.js').then(m => m.fetchGTMTemplateContext(template)).catch(() => null);
+        // Merge: any pre-existing user input wins over the backend defaults.
+        const basePrompt = promptEl.value || (ctx && ctx.basePrompt) || template.description || '';
+        const templateContext = {
+          ...(ctx || {}),
+          basePrompt,
+          templateId: template.id,
+          category: template.category,
+          niche: template.niche,
+          outputType: template.outputType,
+        };
+        import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+          openGTMPromptModal('template-studio', {
+            templateContext,
+            onPromptGenerated: (generatedPrompt) => {
+              // Write into the DOM element so the user sees it, then update
+              // formState and dispatch input events so any other listeners
+              // (e.g. the AI Enhancer / extra instructions) pick it up.
+              promptEl.value = generatedPrompt;
+              promptEl.dispatchEvent(new Event('input', { bubbles: true }));
+              promptEl.dispatchEvent(new Event('change', { bubbles: true }));
+              formState[promptFieldName] = generatedPrompt;
+              promptEl.focus();
+            },
+          });
+        }).catch((err) => {
+          console.error('[TemplateStudio] GTM Boost failed:', err);
+        });
+      } finally {
+        gtmBtn.disabled = false;
+        gtmBtn.textContent = originalText;
+      }
+    });
+  }
 
   // Model selector (async - fetches enriched catalog with descriptions)
   const outputType = template.outputType || (template.modelType === 't2i' ? 'image' : 'video');
@@ -361,11 +449,22 @@ export function TemplateStudio(templateId) {
   `;
   leftPanel.appendChild(enhancerSection);
 
+  // GTM Boost affordance (opt-in enhancement via GTMPromptModal).
+  // Uses the shared .gtm-boost-btn design (matches Image / Video studios);
+  // the .template-studio ancestor class themes it emerald via gtm-prompt-modal.css.
+  const gtmBoostBtn = document.createElement('button');
+  gtmBoostBtn.type = 'button';
+  gtmBoostBtn.textContent = '🎯 GTM Boost';
+  gtmBoostBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+  gtmBoostBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+  gtmBoostBtn.className = 'gtm-boost-btn w-full mt-4';
+  leftPanel.appendChild(gtmBoostBtn);
+
   // Advanced controls content
   const advancedControls = enhancerSection.querySelector('#advancedControls');
   const advancedFields = [
     { name: 'templateType', label: 'Template Type', type: 'select', options: ['cinematic-short-film', 'dramatic-trailer', 'founder-story-film', 'testimonial-film', 'case-study-film', 'promo-film', 'cinematic-commercial', 'documentary-style-film'] },
-    { name: 'niche', label: 'Niche', type: 'select', options: ['auto-detect', 'restaurant', 'med-spa', 'real-estate', 'fitness', 'legal', 'dental', 'general-business', 'automotive', 'fashion', 'local-business', 'saas', 'agency'] },
+    { name: 'niche', label: 'Niche', type: 'select', options: ['auto-detect', 'restaurant', 'med-spa', 'salon', 'barbershop', 'fitness', 'real-estate', 'dental', 'chiropractic', 'legal', 'automotive', 'fashion', 'event', 'luxury-brand', 'local-business', 'saas', 'agency', 'general-business'] },
     { name: 'businessType', label: 'Business Type', type: 'text', placeholder: 'optional' },
     { name: 'audience', label: 'Audience', type: 'text', placeholder: 'optional' },
     { name: 'subject', label: 'Subject', type: 'text', placeholder: 'optional' },
@@ -517,6 +616,24 @@ export function TemplateStudio(templateId) {
     </div>
     <textarea id="outputTextarea" class="w-full rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm leading-7 text-zinc-200 outline-none transition focus:border-emerald-400/50 resize-none" rows="12">${specs.enhancerKeywords || 'Click Generate to create an enhanced prompt...'}</textarea>
   `;
+
+  const outputTextarea = outputContent.querySelector('#outputTextarea');
+  if (outputTextarea) {
+    outputTextarea.addEventListener('input', () => {
+      outputTabValues[activeTab] = outputTextarea.value;
+      if (activeTab === 'Enhanced Prompt') {
+        lastBuiltPrompt = outputTextarea.value;
+        if (primaryPromptField) {
+          primaryPromptField.value = outputTextarea.value;
+        }
+        formState[promptFieldName] = outputTextarea.value;
+      } else if (activeTab === 'Negative Prompt') {
+        formState['_customNegativePrompt'] = outputTextarea.value;
+      } else if (activeTab === 'Scene Beats') {
+        formState['_customSceneBlueprint'] = outputTextarea.value;
+      }
+    });
+  }
   outputSection.appendChild(outputContent);
   rightPanel.appendChild(outputSection);
 
@@ -538,18 +655,21 @@ export function TemplateStudio(templateId) {
     const textarea = document.getElementById('outputTextarea');
     if (!textarea) return;
 
+    const saved = outputTabValues[activeTab];
     switch (activeTab) {
       case 'Enhanced Prompt':
-        textarea.value = specs.enhancerKeywords || 'Enhanced prompt will appear here...';
+        textarea.value = saved || lastBuiltPrompt || specs.enhancerKeywords || 'Click Generate to create an enhanced prompt...';
         break;
-      case 'Scene Beats':
-        textarea.value = specs.sceneBlueprint ? specs.sceneBlueprint.join(' → ') : 'Scene beats will appear here...';
+      case 'Scene Beats': {
+        const beats = saved || (template.storyBlueprint && template.storyBlueprint.length ? template.storyBlueprint : (specs.sceneBlueprint || ['Hook','Subject','Movement','Payoff','CTA']));
+        textarea.value = Array.isArray(beats) ? beats.join(' → ') : beats;
         break;
+      }
       case 'Voiceover':
-        textarea.value = `Create a premium voiceover for a ${template.name}. Open with a fast hook, build emotional or commercial momentum, end with a clear call to action.`;
+        textarea.value = saved || `Create a premium voiceover for a ${template.name}. Open with a fast hook, build emotional or commercial momentum, end with a clear call to action.`;
         break;
       case 'Negative Prompt':
-        textarea.value = specs.negativePrompt || 'Negative prompt will appear here...';
+        textarea.value = saved || specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
         break;
     }
   }
@@ -583,11 +703,50 @@ export function TemplateStudio(templateId) {
     if (wandBtn) {
       wandBtn.onclick = () => {
         const textarea = document.getElementById('outputTextarea');
-        if (textarea && textarea.value) {
-          const enhancedText = `${textarea.value}, cinematic quality, professional lighting, high detail, 4K resolution`;
-          textarea.value = enhancedText;
-          textarea.classList.add('border-emerald-400/50');
-          setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
+        if (!textarea) return;
+        const current = lastBuiltPrompt || textarea.value || '';
+        const enhanced = `${current}, cinematic quality, professional lighting, high detail, 4K resolution`.trim();
+        lastBuiltPrompt = enhanced;
+        outputTabValues['Enhanced Prompt'] = enhanced;
+        textarea.value = enhanced;
+        if (primaryPromptField) {
+          primaryPromptField.value = enhanced;
+        }
+        if (promptFieldName) {
+          formState[promptFieldName] = enhanced;
+        }
+        textarea.classList.add('border-emerald-400/50');
+        setTimeout(() => textarea.classList.remove('border-emerald-400/50'), 1000);
+      };
+    }
+
+    // GTM Boost button
+    if (gtmBoostBtn) {
+      gtmBoostBtn.onclick = () => {
+        try {
+          import('./modals/GTMPromptModal.jsx').then(({ GTMPromptModal }) => {
+            const modal = new GTMPromptModal({
+              appTheme: 'template-studio',
+              onPromptGenerated: (text) => {
+                lastBuiltPrompt = text;
+                outputTabValues['Enhanced Prompt'] = text;
+                const ta = document.getElementById('outputTextarea');
+                if (ta) ta.value = text;
+                if (primaryPromptField) {
+                  primaryPromptField.value = text;
+                }
+                if (promptFieldName) {
+                  formState[promptFieldName] = text;
+                }
+              }
+            });
+            modal.basePrompt = (document.getElementById('outputTextarea')?.value) || '';
+            modal.open();
+          }).catch((e) => {
+            console.warn('[TemplateStudio] GTM Boost modal load failed:', e);
+          });
+        } catch (e) {
+          console.warn('[TemplateStudio] GTM Boost failed:', e);
         }
       };
     }
@@ -617,7 +776,7 @@ export function TemplateStudio(templateId) {
 
     // SECURITY ISSUE: API keys stored in localStorage are accessible to XSS attacks
     // TODO: Replace with server-side session storage or httpOnly cookies
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) {
       AuthModal(() => genBtn.click());
       return;
@@ -629,6 +788,17 @@ export function TemplateStudio(templateId) {
 
     try {
       const params = { model: selectedModel || template.model, ...(template.defaultParams || {}) };
+
+      // Cinematic wizard: merge result into formState if present
+      const wizardResult = container.__wizardResult;
+      if (wizardResult) {
+        Object.assign(formState, wizardResult.formState || wizardResult);
+        if (wizardResult.prompt) {
+          lastBuiltPrompt = wizardResult.prompt;
+          outputTabValues['Enhanced Prompt'] = wizardResult.prompt;
+        }
+        container.__wizardResult = null;
+      }
 
       // Normalize aspect ratio for standard and matrix templates
       const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
@@ -647,7 +817,18 @@ export function TemplateStudio(templateId) {
       });
 
       // Build prompt from all available template metadata and advanced options
-      params.prompt = buildEnrichedPrompt(template, specs, formState, params.prompt);
+      const userPrompt = lastBuiltPrompt || params.prompt || '';
+      params.prompt = buildEnrichedPrompt(template, specs, formState, userPrompt);
+      lastBuiltPrompt = params.prompt;
+
+      const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
+      const negativePrompt = formState['_customNegativePrompt'] || composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
+      if (negativePrompt) params.negative_prompt = negativePrompt;
+
+      // Attach the user-generated custom thumbnail if one exists
+      if (customThumbnailUrl) {
+        params.thumbnail_url = customThumbnailUrl;
+      }
 
       let result;
       if (template.modelType === 'i2v') {
@@ -682,56 +863,53 @@ export function TemplateStudio(templateId) {
   function buildEnrichedPrompt(template, specs, formState, userPrompt) {
     const parts = [];
 
-    // Subject from advanced field
+    // User prompt first as the core idea
+    if (userPrompt) parts.push(userPrompt);
+
+    // Subject
     const subject = formState['subject'];
     if (subject) parts.push(subject);
 
-    // User prompt
-    if (userPrompt) parts.push(userPrompt);
-
     // Base prompt substitution
     if (template.basePrompt) {
-      const promptSubstitute = userPrompt || '';
-      const base = template.basePrompt.replace('{prompt}', promptSubstitute);
+      const base = template.basePrompt.replace('{prompt}', userPrompt || '');
       if (base) parts.push(base);
     }
 
-    // Scene blueprint from enhanced specs
-    if (specs.sceneBlueprint && specs.sceneBlueprint.length) {
-      parts.push(`Scene structure: ${specs.sceneBlueprint.join(' → ')}`);
+    // Scene blueprint: custom override, matrix template.storyBlueprint else specs.sceneBlueprint
+    const customBlueprint = formState['_customSceneBlueprint'];
+    const sceneBlueprint = customBlueprint
+      ? (Array.isArray(customBlueprint) ? customBlueprint : String(customBlueprint).split('→').map(s => s.trim()).filter(Boolean))
+      : (template.storyBlueprint && template.storyBlueprint.length)
+        ? template.storyBlueprint
+        : (specs.sceneBlueprint || []);
+    if (sceneBlueprint.length) {
+      parts.push(`Scene structure: ${Array.isArray(sceneBlueprint) ? sceneBlueprint.join(' → ') : sceneBlueprint}`);
     }
 
-    // Cinematography from enhanced specs
+    // Cinematography
     if (specs.cinematography) {
       parts.push(specs.cinematography);
     }
 
-    // Visual style from enhanced specs or advanced fields
-    if (specs.visualStyle) {
-      parts.push(`Visual style: ${specs.visualStyle}`);
-    } else if (formState['visualStyle']) {
-      parts.push(`Visual style: ${formState['visualStyle']}`);
+    // Visual style: specs.visualStyle else formState.visualStyle
+    const visualStyle = specs.visualStyle || formState['visualStyle'];
+    if (visualStyle) {
+      parts.push(`Visual style: ${visualStyle}`);
     }
 
-    // Niche enrichment from matrix templates or template engine
-    const niche = formState['niche'];
-    if (niche && niche !== 'auto-detect') {
-      if (NICHE_ENRICHMENT[niche]) {
-        parts.push(NICHE_ENRICHMENT[niche].slice(0, 5).join(', '));
-      } else {
-        const nicheTerms = getNicheTerms(niche);
-        if (nicheTerms && nicheTerms.length) {
-          parts.push(nicheTerms.slice(0, 5).join(', '));
-        }
+    // Niche enrichment
+    const niche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
+    if (niche && NICHE_ENRICHMENT[niche]) {
+      parts.push(NICHE_ENRICHMENT[niche].slice(0, 5).join(', '));
+    } else if (niche) {
+      const nicheTerms = getNicheTerms(niche);
+      if (nicheTerms && nicheTerms.length) {
+        parts.push(nicheTerms.slice(0, 5).join(', '));
       }
-    } else if (template.niche && NICHE_ENRICHMENT[template.niche]) {
-      parts.push(NICHE_ENRICHMENT[template.niche].slice(0, 5).join(', '));
     }
 
-    // Matrix-specific: storyBlueprint and filmFamily direction
-    if (template.storyBlueprint && template.storyBlueprint.length) {
-      parts.push(`Story beats: ${template.storyBlueprint.join(' → ')}`);
-    }
+    // filmFamily direction + promptDirection
     if (template.filmFamily && FILM_FAMILIES[template.filmFamily]) {
       parts.push(FILM_FAMILIES[template.filmFamily].direction);
     }
@@ -739,19 +917,19 @@ export function TemplateStudio(templateId) {
       parts.push(template.promptDirection);
     }
 
-    // CTA from advanced field
+    // CTA
     const cta = formState['cta'];
     if (cta) {
       parts.push(`Call to action: ${cta}`);
     }
 
-    // Setting from advanced field
+    // Setting
     const setting = formState['setting'];
     if (setting) {
       parts.push(`Setting: ${setting}`);
     }
 
-    // Audience from advanced field
+    // Audience
     const audience = formState['audience'];
     if (audience) {
       parts.push(`Target audience: ${audience}`);
@@ -763,19 +941,43 @@ export function TemplateStudio(templateId) {
       parts.push(extraInstructions);
     }
 
-    // Core use case from specs
+    // Core use case
     if (specs.coreUseCase) {
       parts.push(specs.coreUseCase);
     }
 
-    // Enhancer keywords when AI enhancer is enabled
-    if (aiEnhancer && specs.enhancerKeywords && userPrompt) {
-      parts.push(specs.enhancerKeywords);
+    // AI ENHANCER: final polishing layer
+    if (aiEnhancer && userPrompt) {
+      if (typeof enrichPromptString === 'function') {
+        const enriched = enrichPromptString(userPrompt, {
+          niche,
+          visualStyle: formState.visualStyle || 'commercial',
+          platform: (template.aspectRatio && template.aspectRatio.includes('9:16')) ? 'TikTok Reel' : 'general',
+          filmType: template.filmFamily || ''
+        });
+        if (enriched) {
+          parts.push(enriched);
+        }
+      } else if (specs.enhancerKeywords) {
+        parts.push(specs.enhancerKeywords);
+      }
     }
+
+    // Niche-aware negative prompt (engine special-cases all canonical niches)
+    const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
+    const negFilm = template.filmFamily || '';
+    const negVisual = formState.visualStyle || 'commercial';
+    const engineNegative = composeNegativePrompt(negFilm, negNiche, negVisual);
+    const negativePrompt = engineNegative || specs.negativePrompt || 'Low quality, blurry, amateur, poorly lit, generic stock look';
+    parts.push(`Negative prompt: ${negativePrompt}`);
 
     // Join, clean up duplicates and extra whitespace
     let prompt = parts.filter(Boolean).join('. ');
-    prompt = prompt.replace(/\s*\.\s*/g, '. ').replace(/\.{2,}/g, '.').trim();
+    prompt = prompt
+      .replace(/\s*\.\s*/g, '. ')
+      .replace(/\.{2,}/g, '.')
+      .replace(/([^.]+)\.\s*(?=\1)/g, '')
+      .trim();
     if (!prompt.endsWith('.')) prompt += '.';
     return prompt;
   }

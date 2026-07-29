@@ -53,9 +53,17 @@
     flex-flow: column;
     align-items: center;
     justify-content: center;
-    width: 31.26%;
-    height: 4.93rem;
-    margin: 1.03%;
+    // width: 15%;
+    width: 17%;
+    // height: 10.1rem;
+    height: auto;
+    margin: 1%;
+    overflow: hidden;
+    border-radius: 10px;
+
+    &:hover {
+      border: 1px solid $secondary-color; 
+    }
 
     .inner-wrapper {
       flex: 1;
@@ -64,14 +72,36 @@
       background-repeat: no-repeat;
       background-size: cover;
       background-position: center center;
-      border-radius: 2px;
+      border-radius: 10px;
       border: 1px solid transparent;
       transition: 0.25s ease;
+      overflow: hidden;
+
+      .lt-btn {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin-left: 0;
+        padding: 10px;
+        background-color: rgba(0,0,0,0.5);
+        align-items: center;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        opacity: 0;
+
+        .action-btn {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+      }
     }
 
     &:hover {
-      .inner-wrapper {
-        border-color: $secondary-color;
+      &-item {
+        opacity: 0.8;
       }
 
       .btn-add {
@@ -81,42 +111,74 @@
       .title {
         transform: translate(-50%, -50%) scale(1);
       }
+      .lt-btn{
+        opacity: 1;
+      }
     }
 
     .btn-add {
       position: absolute;
-      top: 1px;
-      right: 1px;
+      top: 37%;
+      left: 44%;
       transform: scale(0);
-      transform-origin: right top;
+      transform-origin: center bottom;
       transition: 0.25s ease;
       padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: $modal-header-bg;
+      background: $secondary-color;
       color: $white;
       font-size: 1.5rem;
       border: none;
-      width: 1.8rem;
-      height: 1.8rem;
+      width: 1.7rem;
+      height: 1.5rem;
       outline: none;
+    }
+    .preview-image-lt-container {
+      border: solid 2px aqua;
+      height: 74%;
+      left: 27%;
+      position: absolute;
+      width: 40%;
+    
+      img {
+        max-width: 100%;
+        max-height: 100%;
+      }
+    }
+    .image-lt {
+      display: flex;
     }
 
     .title {
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 74%;
+      left: 48%;
       transform: translate(-50%, 10%) scale(0);
       transform-origin: center bottom;
       transition: 0.25s ease;
+      font-size: 80%;
     }
   }
 }
 
 @media screen and (max-width: 1200px) {
   .library-cta-item {
-    width: 47.94%;
+    width: 17%;
+  }
+  .image_lt-use ,.image_lt-preview{
+    font-size: 10px !important;
+    height: 18px !important;
+
+  }
+  .library-cta-item .title{
+    font-size: 50%;
+  }
+  .library-cta-item .btn-add{
+    width: 20px;
+    height: 20px;
+    font-size: 16px;
   }
 }
 
@@ -125,8 +187,8 @@
     margin: 0;
   }
 
-  .library-cta-item {
-    width: 100%;
-    margin: 0 0 0.5rem;
-  }
+  // .library-cta-item {
+  //   width: 100%;
+  //   margin: 0 0 0.5rem;
+  // }
 }

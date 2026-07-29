@@ -3,6 +3,8 @@
  * Lightweight analytics implementation (replace with your preferred analytics service)
  */
 
+import { apiKeyManager } from './apiKeyManager.js';
+
 // Event types for tracking
 const EVENT_TYPES = {
     PAGE_VIEW: 'page_view',
@@ -29,7 +31,7 @@ class Analytics {
 
     getUserId() {
         // Use a hash of the API key or generate an anonymous ID
-        const key = localStorage.getItem('muapi_key');
+        const key = apiKeyManager.getMuapiKey();
         if (key) {
             let hash = 0;
             for (let i = 0; i < key.length; i++) {

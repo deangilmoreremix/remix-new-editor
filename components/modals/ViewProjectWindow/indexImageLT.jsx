@@ -7,29 +7,35 @@ import PropTypes from '../../../lib/PropTypes';
 import usePresetStore from '../../hooks/usePresetStore';
 import useProjectStore from '../../hooks/useProjectStore';
 import useUIStore from '../../hooks/useUIStore';
+import useModalStore from '../../hooks/useModalStore';
+import CreativePreviewModel from '../Creatives/CreativePreviewModel';
 
 import { showError } from '../../../lib/services/alertService';
-
-import List from '../../common/projectDataList/List';
 import Preview from '../../common/projectDataList/Preview';
-import CloseButton from '../../common/CloseButton';
+import { LibrarySpinner } from '../../media/Loader';
+import { Waypoint } from 'react-waypoint';
 
-const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart }) => {
+const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart, className, query }) => {
   const [items, setItems] = useState([]);
-  const [activeItem, setActiveItem] = useState();
+  const [activeItem, setActiveItem] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [preview, setPreview] = useState('');
+  const [queryData, setQueryData] = useState([]);
+  const [preview, setPreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { openModal } = useModalStore();
 
   const { setPreviewData, updateTime } = usePresetStore();
-  const { addData, moveElements} = useProjectStore();
+  const { addData, moveElements } = useProjectStore();
   const { toggleLeftBlock } = useUIStore();
+  const [show, setShow] = useState(false);
 
   const handleSelect = React.useCallback(async (item) => {
+    setShow(true);
     let zIndex = 0;
     try {
       let newData = JSON.parse(item.project.data);
+      const firstElementType = newData.media[0].tracks[0].trackEvents[0]?.type;
       newData.media[0].tracks.reverse();
       newData.media[0].tracks.forEach(element => {
         if (element.trackEvents.length) {
@@ -37,30 +43,30 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
         }
       });
       newData = JSON.stringify(newData);
-
+      if ((title == "connect form" || "End Screens") && firstElementType == 'sequencer') {
+        await setPreview(activeItem.thumbnail)
+      }
       await setPreviewData(newData);
-      setPreview(item.thumbnail);
       setActiveItem(item);
-      updateTime(0);
     } catch (e) {
       showError(e.message);
     }
   }, []);
 
-  const addDataToCanvas = useCallback(async () => {
+  const addDataToCanvas = useCallback(async (item) => {
     try {
-      let newData = JSON.parse(activeItem.project.data);
-      const lastIndexOfTracks = newData.media[0].tracks.length - 1;
+      let newData = JSON.parse(item.project.data);
+      const lastIndexOfTracks = newData.media[0]?.tracks.length - 1;
       newData.media[0].tracks.reverse();
-      const firstElementType = newData.media[0].tracks[0].trackEvents[0].type;
+      const firstElementType = newData.media[0].tracks[0].trackEvents[0]?.type;
       newData = JSON.stringify(newData);
-      activeItem.project.data = newData;
-      await addData(activeItem, true);
+      item.project.data = newData;
+      await addData(item, true);
       handleClose();
       toggleLeftBlock(false);
-      if((title == "connect form" || "End Screens")  &&  firstElementType == 'sequencer') {
+      if ((title == "connect form" || "End Screens") && firstElementType == 'sequencer') {
         setTimeout(() => {
-          moveElements(0,lastIndexOfTracks);
+          moveElements(0, lastIndexOfTracks);
         }, 2000);
       }
     } catch (e) {
@@ -73,7 +79,9 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
     toggleLeftBlock(false);
     handleClose();
   };
-
+  // React.useEffect(() => {
+  //   getItems();
+  // }, [query])
   const resetParams = useCallback(() => {
     setPage(1);
     setHasMore(true);
@@ -94,11 +102,15 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
           perPage,
         });
         setItems(elements => [...elements, ...results]);
-        if (!activeItem) {
-          await setPreviewData(results[0].project.data);
-          setPreview(results[0].thumbnail);
-          setActiveItem(results[0]);
-        }
+        // if (!activeItem) {
+        //   if (results[0]) {
+        //     await setPreviewData(results[0].project.data);
+        //     setPreview(results[0].thumbnail);
+        //     // setActiveItem(results[0]);
+        //   }
+
+
+        // }
         const hasNextPage = results.length === perPage;
         setHasMore(hasNextPage);
         if (hasNextPage) {
@@ -111,6 +123,22 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
       }
     }
   };
+
+  function removeDuplicates(myArr, prop) {
+    return myArr.filter((obj, pos, arr) => {
+      return arr.map((mapObj) => mapObj[prop]).indexOf(obj[prop]) === pos;
+    });
+  }
+
+  React.useEffect(() => {
+    if (query !== '') {
+      const filterData = items.filter(x => x.title.toLowerCase().includes(query.toLowerCase()));
+      setQueryData(filterData)
+    }
+    else {
+      setQueryData([]);
+    }
+  }, [query])
 
   React.useEffect(() => {
     if (page === 1) {
@@ -125,32 +153,57 @@ const ViewProjectWindowImageLt = ({ handleClose, fetchItems, title, instantStart
   };
 
   return (
-    <div className="view-project-window">
-      <div className="flex">
-        <p className="view-project-window__header">{title}</p>
-        <CloseButton className="close-button" onClick={closeButton} />
+    <div className='image-lt'>
+      <div className={className}>
+        {queryData.length ?
+          removeDuplicates(queryData, "title").map((item) => (
+            <div key={item._id} className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>
+                <div className='lt-btn'>
+                  <div className='action-btn'>
+                    <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
+                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preview</a>
+                  </div>
+                  <span className="title">{item.title}</span>
+                </div>
+              </div>
+            </div>
+          )) : null
+        }
+        {
+          !queryData.length &&
+          items.map((item) => (
+            <div key={item._id} className="library-cta-item">
+              <div className="inner-wrapper" style={{ backgroundImage: `url(${item.thumbnail})` }}>
+                <div className='lt-btn'>
+                  <div className='action-btn'>
+                    <a className="image_lt-use" onClick={() => addDataToCanvas(item)}>Use</a>
+                    <a className="image_lt-preview" onClick={(e) => handleSelect(item)}>Preview</a>
+                  </div>
+                  <span className="title">{item.title}</span>
+                </div>
+              </div>
+            </div>
+          ))
+        }
+        {isLoading && hasMore && (
+          (
+            <tr>
+              <td className="billing-history-box__table-custom-td">
+                <LibrarySpinner />
+              </td>
+            </tr>
+          )
+        )}
+        {!isLoading && hasMore && <Waypoint bottomOffset="3%" onEnter={uploadNewItems}><span className="project-data-list-waypoint" /></Waypoint>}
       </div>
-      <div className="view-project-window__body">
-        <div className="view-project-window__container">
-          <List
-            items={items}
-            hasMore={hasMore}
-            uploadNewItems={uploadNewItems}
-            handleSelect={handleSelect}
-            activeItem={activeItem}
-            isLoading={isLoading}
-          />
-        </div>
-        <div className="view-project-window__control">
-          <Preview
-            preview={preview}
-            activeItem={activeItem}
-            instantStart={instantStart}
-          />
-          <button className="view-project-window__use" onClick={addDataToCanvas}>Use</button>
-        </div>
+      <div>
+        {activeItem &&
+          <CreativePreviewModel onUseHandler={() => addDataToCanvas(activeItem)} show={show} setShow={setShow} onCancelHadler={() => setActiveItem(null)}   preview={null} activeItem={activeItem} instantStart={instantStart}/>
+        }
       </div>
     </div>
+
   );
 };
 

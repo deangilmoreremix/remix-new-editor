@@ -46,8 +46,15 @@ export function TemplatesPage() {
   filterRow.className = 'flex gap-2 overflow-x-auto no-scrollbar';
 
   // Get all categories and niches for filtering
-  const categories = getAllCategories();
-  const niches = Object.values(NICHE_LABELS_MAP);
+  const categories = (() => {
+    try {
+      return getAllCategories().filter(Boolean);
+    } catch (e) {
+      console.warn('[TemplatesPage] getAllCategories failed:', e);
+      return [];
+    }
+  })();
+  const niches = Object.values(NICHE_LABELS_MAP || {});
   const allFilters = ['All', 'Standard', ...categories.filter(c => !niches.includes(c)), '--- Niches ---', ...niches];
   
   let activeFilter = null;
@@ -96,10 +103,15 @@ export function TemplatesPage() {
 
   function renderCategories() {
     sectionsContainer.innerHTML = '';
-    
-    // Separate standard templates and niche templates
-    const standardTemplates = allTemplates.filter(t => !t.niche);
-    const nicheTemplates = allTemplates.filter(t => t.niche);
+
+    const safeTemplates = (Array.isArray(allTemplates) ? allTemplates : []).filter(Boolean);
+    if (safeTemplates.length === 0) {
+      sectionsContainer.innerHTML = '<div class="text-center text-zinc-500 py-12">No templates available</div>';
+      return;
+    }
+
+    const standardTemplates = safeTemplates.filter(t => !t.niche);
+    const nicheTemplates = safeTemplates.filter(t => t.niche);
     
     // Group niche templates by their niche
     const nicheGroups = {};
@@ -111,11 +123,9 @@ export function TemplatesPage() {
     });
 
     if (activeFilter === null) {
-      // Show all: standard categories first, then niche groups
-      const standardCategories = [...new Set(standardTemplates.map(t => t.category))];
+      const standardCategories = [...new Set(standardTemplates.map(t => t?.category).filter(Boolean))];
       let sectionIndex = 0;
 
-      // Render standard categories
       standardCategories.forEach((cat) => {
         const catTemplates = standardTemplates.filter(t => t.category === cat);
         if (catTemplates.length > 0) {
@@ -126,7 +136,6 @@ export function TemplatesPage() {
         }
       });
 
-      // Render niche groups
       Object.keys(nicheGroups).sort().forEach((niche) => {
         const section = createTemplateSection(niche, nicheGroups[niche], true);
         section.style.animationDelay = `${0.15 + sectionIndex * 0.05}s`;
@@ -134,8 +143,7 @@ export function TemplatesPage() {
         sectionIndex++;
       });
     } else if (activeFilter === 'Standard') {
-      // Show only standard templates
-      const standardCategories = [...new Set(standardTemplates.map(t => t.category))];
+      const standardCategories = [...new Set(standardTemplates.map(t => t?.category).filter(Boolean))];
       let sectionIndex = 0;
 
       standardCategories.forEach((cat) => {
@@ -148,15 +156,13 @@ export function TemplatesPage() {
         }
       });
     } else if (niches.includes(activeFilter)) {
-      // Show specific niche
       const nicheTemplatesFiltered = nicheTemplates.filter(t => t.niche === activeFilter);
       if (nicheTemplatesFiltered.length > 0) {
         const section = createTemplateSection(activeFilter, nicheTemplatesFiltered, true);
         sectionsContainer.appendChild(section);
       }
     } else {
-      // Show specific category
-      const catTemplates = allTemplates.filter(t => t.category === activeFilter && !t.niche);
+      const catTemplates = safeTemplates.filter(t => t.category === activeFilter && !t.niche);
       if (catTemplates.length > 0) {
         const section = createTemplateSection(activeFilter, catTemplates, false);
         sectionsContainer.appendChild(section);

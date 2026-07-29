@@ -67,9 +67,23 @@ const Basic = observer(({
     smartAnimerEnabled,
     smartPassportEnabled,
     smartRetouchEnabled,
+    smartBgDeffusionEnabled,
+    smartAiArtGeneratorEnabled
   } = useUserStore();
-  const { openImglyEditor, closeModal } = useModalStore();
+  const { openAdvanceImageEditor, openImglyEditor, closeModal } = useModalStore();
 
+  const isCutOutProEnable = () => {
+    if (smartBackgroundRemovalEnabled === false && smartFaceCutOutEnabled === false
+      && smartCartoonSelfieEnabled === false && smartEnhancerEnabled === false
+      && smartColorizerEnabled === false && smartCorrectionEnabled === false
+      && smartAnimerEnabled === false && smartPassportEnabled === false
+      && smartRetouchEnabled === false && smartBgDeffusionEnabled === false && smartAiArtGeneratorEnabled === false) {
+      const result = false;
+      return result;
+    } else {
+      return true;
+    }
+  };
 
   useEffect(() => {
     if (values[popcornConstants.LINKSRC]) {
@@ -128,8 +142,8 @@ const Basic = observer(({
   };
 
   const onCodeSelect = v => {
-    const item = areaCodeList.find(areaCodeItem => areaCodeItem.value === v).value;
-    setCode(item);
+        const item = areaCodeList.find(areaCodeItem => areaCodeItem.value === v).value;
+        setCode(item);
   };
 
   const hint = useMemo(() => (clickToPhoneCall ? HINTS.LINK_URL_PHONE : HINTS.LINK_URL));
@@ -203,9 +217,9 @@ const Basic = observer(({
               onChange={onChangeWithValidation}
               checkValue={checkValue}
             /> :
-               
+
               <div className="phone-area-container">
-               
+
                 <div className='country-code'>
                   <FormSelect
                     label="Phone Number (Click-to-call)"
@@ -292,7 +306,7 @@ const Basic = observer(({
               className="image-settings__btn"
               onClick={() => {
                 openImglyEditor({
-                  src:element.popcornOptions.src,
+                  src: element.popcornOptions.src,
                   onImageEdited,
                   onImageEditedValue,
                   startUpload: () => setIsLoading(true),
@@ -307,6 +321,25 @@ const Basic = observer(({
             </button>
           )}
 
+          {isCutOutProEnable() && (
+            <button
+              className="image-settings__btn"
+              onClick={() => {
+                openAdvanceImageEditor({
+                  src: element.popcornOptions.src,
+                  onAdvancedImageEdited,
+                  onImageEdited,
+                  onImageEditedValue,
+                  startUpload: () => setIsLoading(true),
+                  endUpload: () => setIsLoading(false),
+                  menu: ADVANCE_IMAGE_EDITOR_MENU,
+                });
+              }}
+              disabled={isLoading}
+            >
+              AI Image Editor
+            </button>
+          )}
 
         </div>
       </div>

@@ -1,18 +1,23 @@
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { videoToolsModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 
 export function VideoToolsStudio() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col items-center bg-app-bg overflow-y-auto p-6 md:p-10 relative';
+  mountStudioChrome(container, { currentRoute: 'videotools' });
 
   let selectedModel = videoToolsModels[0];
   let uploadedVideoUrl = null;
   let prompt = '';
+  let customThumbnailUrl = getCustomThumbnailFromCache('videotools-studio');
 
   // Header with hero banner
   const header = document.createElement('div');
@@ -84,9 +89,54 @@ export function VideoToolsStudio() {
   promptInput.rows = 3;
   promptInput.placeholder = 'Describe the transformation you want...';
   promptInput.oninput = (e) => { prompt = e.target.value; };
-  promptGroup.appendChild(promptInput);
-  formCard.appendChild(promptGroup);
+   promptGroup.appendChild(promptInput);
+    // GTM Boost entry point — opens the prompt enhancer themed for video tools
+    // and loads the result straight into this prompt.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('video-tools-studio', (prompt) => {
+          promptInput.value = prompt;
+          promptInput.dispatchEvent(new Event('input', { bubbles: true }));
+          promptInput.focus();
+        });
+      }).catch((err) => console.error('[VideoToolsStudio] GTM Boost failed:', err));
+    });
+    promptGroup.appendChild(gtmBtn);
+   formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'video-tools' });
+
+  // Thumbnail studio button — next to creation controls, GTM Boost styling
+  const thumbBtn = document.createElement('button');
+  thumbBtn.type = 'button';
+  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.title = 'Generate a custom thumbnail';
+  thumbBtn.className = 'gtm-boost-btn w-full';
+  thumbBtn.addEventListener('click', () => {
+    const modal = new StudioThumbnailModal({
+      appTheme: 'video-tools',
+      studioId: 'videotools-studio',
+      studioName: 'Video Tools Studio',
+      aspectRatio: '16:9',
+      outputType: 'video',
+      onApply: ({ imageUrl }) => {
+        customThumbnailUrl = imageUrl;
+        saveCustomThumbnailToCache('videotools-studio', imageUrl);
+      },
+      onClear: () => {
+        customThumbnailUrl = null;
+        clearCustomThumbnailCache('videotools-studio');
+      },
+    });
+    mountStudioThumbnailModal(modal);
+    modal.open();
+  });
+  formCard.appendChild(thumbBtn);
 
   // Generate button
   const genBtn = document.createElement('button');
@@ -128,7 +178,7 @@ export function VideoToolsStudio() {
       alert('Upload a source video first');
       return;
     }
-    const apiKey = localStorage.getItem('muapi_key');
+    const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { 
       AuthModal(() => genBtn.click()); 
       return; 
@@ -141,6 +191,7 @@ export function VideoToolsStudio() {
       const params = { 
         model: selectedModel.id,
         [selectedModel.videoField]: uploadedVideoUrl,
+        customThumbnailUrl: customThumbnailUrl || undefined,
       };
 
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();

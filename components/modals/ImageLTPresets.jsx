@@ -6,7 +6,7 @@ import useMakeStore from '../hooks/useMakeStore';
 
 import ViewProjectWindowImageLt from './ViewProjectWindow/indexImageLT';
 
-const ImageLTPresetModal = ({ handleClose }) => {
+const ImagePresets = ({ handleClose,className,activeTab ,onSelect, query}) => {
   const { getImageLTPreset } = useMakeStore();
 
   return (
@@ -14,6 +14,10 @@ const ImageLTPresetModal = ({ handleClose }) => {
       handleClose={handleClose}
       fetchItems={getImageLTPreset}
       title="Image LT Preset"
+      className={className}
+      activeTab={activeTab}
+      onSelect={onSelect}
+      query={query}
     />
   );
 };
@@ -22,4 +26,4 @@ ImagePresets.propTypes = {
   handleClose: PropTypes.func.isRequired,
 };
 
-export default ImageLTPresetModal;
+export default ImagePresets;

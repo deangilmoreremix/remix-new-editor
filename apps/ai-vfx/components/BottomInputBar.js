@@ -57,7 +57,7 @@ const BottomInputBar = ({
   function handleGenerateWithApiKey(e) {
     e.preventDefault && e.preventDefault();
     // Validation: require effect selection AND (image or text)
-    const hasImage = (uploadedFile && previewUrl) || (inputText && (inputText.startsWith('http://') || inputText.startsWith('https://')));
+    const hasImage = (uploadedFile && previewUrl) || (imageUrl && (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('data:'))) || (inputText && (inputText.startsWith('http://') || inputText.startsWith('https://')));
     const hasText = inputText && inputText.trim().length > 0;
     // Dropdown validation
     if (!selectedAspect || !selectedDuration || !selectedResolution || !selectedQuality) {
@@ -137,7 +137,7 @@ const BottomInputBar = ({
             fontSize: '14px',
             fontWeight: 600,
             boxShadow: '0 2px 8px 0 rgba(0,0,0,0.10)',
-            outline: open ? '2px solid #3b82f6' : 'none',
+            outline: open ? '2px solid #d9ff00' : 'none',
             cursor: 'pointer',
             textAlign: 'left',
             transition: 'background 0.2s',
@@ -155,7 +155,7 @@ const BottomInputBar = ({
               left: 0,
               right: 0,
               bottom: '110%',
-              background: '#18181b',
+              background: 'rgba(255,255,255,0.04)',
               borderRadius: '12px',
               boxShadow: '0 8px 32px 0 rgba(0,0,0,0.25)',
               zIndex: 100,
@@ -179,16 +179,16 @@ const BottomInputBar = ({
                 }}
                 style={{
                   padding: '10px 18px',
-                  color: value === opt.value ? '#3b82f6' : '#fff',
-                  background: value === opt.value ? 'rgba(59,130,246,0.08)' : 'none',
+                  color: value === opt.value ? '#d9ff00' : '#fff',
+                  background: value === opt.value ? 'rgba(176,251,93,0.10)' : 'none',
                   fontWeight: value === opt.value ? 700 : 500,
                   cursor: 'pointer',
                   transition: 'background 0.15s',
                   border: 'none',
                   outline: 'none',
                 }}
-                onMouseOver={e => (e.currentTarget.style.background = 'rgba(59,130,246,0.15)')}
-                onMouseOut={e => (e.currentTarget.style.background = value === opt.value ? 'rgba(59,130,246,0.08)' : 'none')}
+                onMouseOver={e => (e.currentTarget.style.background = 'rgba(176,251,93,0.16)')}
+                onMouseOut={e => (e.currentTarget.style.background = value === opt.value ? 'rgba(176,251,93,0.10)' : 'none')}
               >
                 {opt.label}
               </div>
@@ -212,9 +212,9 @@ const BottomInputBar = ({
             maxWidth: '95vw',
             zIndex: 20,
             borderRadius: '20px',
-            background: 'linear-gradient(120deg,rgb(30, 39, 55) 0%, #1e2235 60%,rgb(7, 31, 69) 100%)',
+             background: 'linear-gradient(120deg, #0a0a0a 0%, #0a0a0a 60%, #0a0a0a 100%)',
             boxShadow: '0 8px 40px 0 rgba(0,0,0,0.45)',
-            border: '1.5px solid #232b39',
+            border: '1.5px solid #0a0a0a',
             backdropFilter: 'blur(12px)',
             overflow: 'hidden',
             transition: 'background 0.4s'
@@ -263,8 +263,34 @@ const BottomInputBar = ({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {/* Top row: Upload button */}
+            {/* Top row: Upload + Image URL buttons */}
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (fileInputRef && fileInputRef.current) fileInputRef.current.click();
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'rgba(35,43,57,0.95)',
+                  padding: '8px 28px',
+                  borderRadius: '999px',
+                  border: 'none',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  boxShadow: '0 2px 8px 0 rgba(0,0,0,0.10)',
+                  transition: 'background 0.2s'
+                }}
+                onMouseOver={e => e.currentTarget.style.background = '#0a0a0a'}
+                onMouseOut={e => e.currentTarget.style.background = 'rgba(35,43,57,0.95)'}
+              >
+                <Image size={18} />
+                <span>Upload</span>
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -286,12 +312,20 @@ const BottomInputBar = ({
                   boxShadow: '0 2px 8px 0 rgba(0,0,0,0.10)',
                   transition: 'background 0.2s'
                 }}
-                onMouseOver={e => e.currentTarget.style.background = '#232b39'}
+                onMouseOver={e => e.currentTarget.style.background = '#0a0a0a'}
                 onMouseOut={e => e.currentTarget.style.background = 'rgba(35,43,57,0.95)'}
               >
                 <Image size={18} />
                 <span>Image URL</span>
               </button>
+              {/* Hidden file input wired to drag-and-drop handlers */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                style={{ display: 'none' }}
+                onChange={handleFileChange}
+              />
               <div style={{ flex: 1 }} />
               <button
                 style={{
@@ -343,7 +377,7 @@ const BottomInputBar = ({
               />
               <button
                 style={{
-                  background: 'linear-gradient(135deg,rgb(26, 40, 62) 60%,rgb(29, 8, 79) 100%)',
+                  background: 'linear-gradient(135deg, #0a0a0a 60%, #0a0a0a 100%)',
                   border: 'none',
                   borderRadius: '50%',
                   padding: '8px',
@@ -352,11 +386,11 @@ const BottomInputBar = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 2px 8px 0 rgba(59,130,246,0.15)',
+                  boxShadow: '0 2px 8px 0 rgba(176,251,93,0.18)',
                   transition: 'background 0.2s'
                 }}
-                onMouseOver={e => e.currentTarget.style.background = '#4f46e5'}
-                onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(135deg,rgb(21, 29, 43) 60%,rgb(15, 6, 67) 100%)'}
+                onMouseOver={e => e.currentTarget.style.background = '#0e9b8a'}
+                onMouseOut={e => e.currentTarget.style.background = 'linear-gradient(135deg, #141414 60%, #141414 100%)'}
                 onClick={handleGenerateWithApiKey}
               >
                 <svg width="22" height="22" fill="none" stroke="white" viewBox="0 0 24 24" style={{transform: 'rotate(90deg)'}}>
@@ -426,7 +460,7 @@ const BottomInputBar = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                background: '#232b39',
+                background: '#0a0a0a',
                 borderRadius: '10px',
                 padding: '6px 14px',
                 marginBottom: '8px',
@@ -463,7 +497,7 @@ const BottomInputBar = ({
                   }}
                   title="Remove selected effect"
                   aria-label="Remove selected effect"
-                  onMouseOver={e => e.currentTarget.style.background = '#2d2d2d'}
+                  onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
                   onMouseOut={e => e.currentTarget.style.background = 'none'}
                 >
                   ×
@@ -489,7 +523,7 @@ const BottomInputBar = ({
                     position: 'absolute',
                     top: '-8px',
                     right: '-8px',
-                    background: '#232b39',
+                    background: '#0a0a0a',
                     color: '#fff',
                     border: 'none',
                     borderRadius: '50%',
@@ -506,8 +540,8 @@ const BottomInputBar = ({
                   }}
                   title="Remove preview"
                   aria-label="Remove preview"
-                  onMouseOver={e => e.currentTarget.style.background = '#2d2d2d'}
-                  onMouseOut={e => e.currentTarget.style.background = '#232b39'}
+                  onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                  onMouseOut={e => e.currentTarget.style.background = '#0a0a0a'}
                 >
                   ×
                 </button>
@@ -519,9 +553,66 @@ const BottomInputBar = ({
                     maxHeight: '90px',
                     borderRadius: '8px',
                     border: '1px solid #23232b',
-                    background: '#18181b'
+                    background: 'rgba(255,255,255,0.04)'
                   }}
                   onError={e => { e.target.onerror = null; e.target.src = ''; e.target.alt = 'Invalid image URL'; }}
+                />
+              </div>
+            )}
+            {/* Preview uploaded (drag-and-drop / file picker) image */}
+            {uploadedFile && previewUrl && (
+              <div style={{
+                marginTop: '12px',
+                textAlign: 'left',
+                maxWidth: '180px',
+                minHeight: '90px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                position: 'relative'
+              }}>
+                <button
+                  onClick={() => {
+                    if (typeof setUploadedFile === 'function') setUploadedFile(null);
+                    if (typeof setPreviewUrl === 'function') setPreviewUrl(null);
+                    if (typeof setImageUrl === 'function') setImageUrl('');
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '-8px',
+                    right: '-8px',
+                    background: '#0a0a0a',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: 22,
+                    height: 22,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 16,
+                    cursor: 'pointer',
+                    zIndex: 2,
+                    boxShadow: '0 1px 4px 0 rgba(0,0,0,0.10)',
+                    transition: 'background 0.2s'
+                  }}
+                  title="Remove uploaded file"
+                  aria-label="Remove uploaded file"
+                  onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                  onMouseOut={e => e.currentTarget.style.background = '#0a0a0a'}
+                >
+                  ×
+                </button>
+                <img
+                  src={previewUrl}
+                  alt={uploadedFile.name || 'Uploaded preview'}
+                  style={{
+                    maxWidth: '160px',
+                    maxHeight: '90px',
+                    borderRadius: '8px',
+                    border: '1px solid #23232b',
+                    background: 'rgba(255,255,255,0.04)'
+                  }}
                 />
               </div>
             )}
@@ -540,13 +631,13 @@ const BottomInputBar = ({
             bottom: '80px',
             right: '40px',
             zIndex: 30,
-            background: 'linear-gradient(120deg, #232b39 0%, #3b82f6 100%)',
+            background: 'linear-gradient(120deg, #0a0a0a 0%, #d9ff00 100%)',
             color: 'white',
             border: 'none',
             borderRadius: '50%',
             width: '54px',
             height: '54px',
-            boxShadow: '0 4px 24px 0 rgba(59,130,246,0.25)',
+            boxShadow: '0 4px 24px 0 rgba(176,251,93,0.25)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -568,11 +659,11 @@ const BottomInputBar = ({
           position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.45)', zIndex: 1000,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <div style={{ background: '#232b39', padding: 32, borderRadius: 16, minWidth: 320, boxShadow: '0 4px 32px 0 #0008', color: '#fff', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ background: '#0a0a0a', padding: 32, borderRadius: 16, minWidth: 320, boxShadow: '0 4px 32px 0 #0008', color: '#fff', display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Enter your MuApi API Key</div>
             <div style={{ fontSize: 14, color: '#9ca3af', marginBottom: 4 }}>
               Don&apos;t have an API key?&nbsp;
-              <a href="https://muapi.ai/" target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', textDecoration: 'underline' }}>
+              <a href="https://muapi.ai/" target="_blank" rel="noopener noreferrer" style={{ color: '#d9ff00', textDecoration: 'underline' }}>
                 Get it from muapi.ai
               </a>
             </div>
@@ -581,7 +672,7 @@ const BottomInputBar = ({
               value={apiKeyInput}
               onChange={e => setApiKeyInput(e.target.value)}
               placeholder="API Key"
-              style={{ padding: 10, borderRadius: 8, border: '1px solid #333', fontSize: 16, background: '#18181b', color: '#fff' }}
+              style={{ padding: 10, borderRadius: 8, border: '1px solid #333', fontSize: 16, background: 'rgba(255,255,255,0.04)', color: '#fff' }}
               autoFocus
             />
             <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
@@ -591,12 +682,12 @@ const BottomInputBar = ({
                   setApiKeyInput('');
                   setPendingGenerate(false);
                 }}
-                style={{ padding: '8px 18px', borderRadius: 8, background: '#232b39', color: '#fff', border: '1px solid #444', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}
+                style={{ padding: '8px 18px', borderRadius: 8, background: '#0a0a0a', color: '#fff', border: '1px solid #444', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}
               >Cancel</button>
               <button
                 type="button"
                 onClick={handleApiKeyContinue}
-                style={{ padding: '8px 18px', borderRadius: 8, background: '#3b82f6', color: '#fff', border: 'none', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}
+                style={{ padding: '8px 18px', borderRadius: 8,               background: '#d9ff00', color: '#fff', border: 'none', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}
                 disabled={!apiKeyInput.trim()}
               >Continue</button>
             </div>
@@ -609,14 +700,14 @@ const BottomInputBar = ({
           position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.45)', zIndex: 1000,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <div style={{ background: '#232b39', padding: 32, borderRadius: 16, minWidth: 320, boxShadow: '0 4px 32px 0 #0008', color: '#fff', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ background: '#0a0a0a', padding: 32, borderRadius: 16, minWidth: 320, boxShadow: '0 4px 32px 0 #0008', color: '#fff', display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Enter Image URL</div>
             <input
               type="text"
               value={imageUrlInput}
               onChange={e => setImageUrlInput(e.target.value)}
               placeholder="https://example.com/image.jpg"
-              style={{ padding: 10, borderRadius: 8, border: '1px solid #333', fontSize: 16, background: '#18181b', color: '#fff' }}
+              style={{ padding: 10, borderRadius: 8, border: '1px solid #333', fontSize: 16, background: 'rgba(255,255,255,0.04)', color: '#fff' }}
               autoFocus
               disabled={false}
             />
@@ -626,7 +717,7 @@ const BottomInputBar = ({
                   setShowImageUrlModal(false);
                   setImageUrlInput("");
                 }}
-                style={{ padding: '8px 18px', borderRadius: 8, background: '#232b39', color: '#fff', border: '1px solid #444', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}
+                style={{ padding: '8px 18px', borderRadius: 8, background: '#0a0a0a', color: '#fff', border: '1px solid #444', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}
               >Cancel</button>
               <button
                 onClick={() => {
@@ -637,7 +728,7 @@ const BottomInputBar = ({
                     alert('Please enter a valid image URL (http/https)');
                   }
                 }}
-                style={{ padding: '8px 18px', borderRadius: 8, background: '#3b82f6', color: '#fff', border: 'none', fontWeight: 600, fontSize: 15, cursor: imageUrlInput.trim() ? 'pointer' : 'not-allowed', opacity: imageUrlInput.trim() ? 1 : 0.6 }}
+                style={{ padding: '8px 18px', borderRadius: 8,               background: '#d9ff00', color: '#fff', border: 'none', fontWeight: 600, fontSize: 15, cursor: imageUrlInput.trim() ? 'pointer' : 'not-allowed', opacity: imageUrlInput.trim() ? 1 : 0.6 }}
                 disabled={!imageUrlInput.trim()}
               >Continue</button>
             </div>
@@ -651,7 +742,7 @@ const BottomInputBar = ({
           bottom: '150px',
           right: '40px',
           zIndex: 40,
-          background: '#18181b',
+          background: 'rgba(255,255,255,0.04)',
           borderRadius: '18px',
           boxShadow: '0 4px 32px 0 #0008',
           padding: 0,
@@ -682,7 +773,7 @@ const BottomInputBar = ({
             }}
             title="Minimize video"
             aria-label="Minimize video"
-            onMouseOver={e => e.currentTarget.style.background = '#232b39'}
+            onMouseOver={e => e.currentTarget.style.background = '#0a0a0a'}
             onMouseOut={e => e.currentTarget.style.background = 'none'}
           >
             &#8211;
@@ -710,15 +801,15 @@ const BottomInputBar = ({
             bottom: '140px',
             right: '54px',
             zIndex: 41,
-            background: '#232b39',
-            border: '2px solid #3b82f6',
+            background: '#0a0a0a',
+            border: '2px solid #d9ff00',
             borderRadius: '50%',
             width: 54,
             height: 54,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 24px 0 rgba(59,130,246,0.25)',
+            boxShadow: '0 4px 24px 0 rgba(176,251,93,0.25)',
             cursor: 'pointer',
             transition: 'background 0.2s',
           }}
@@ -727,7 +818,7 @@ const BottomInputBar = ({
         >
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
             <rect x="4" y="6" width="16" height="12" rx="3" stroke="#fff" strokeWidth="2" />
-            <polygon points="15,12 11,14 11,10" fill="#3b82f6" />
+            <polygon points="15,12 11,14 11,10" fill="#d9ff00" />
           </svg>
         </button>
       )}

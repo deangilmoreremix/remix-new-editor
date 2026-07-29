@@ -1,6 +1,8 @@
 import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
 import { getUploadHistory, saveUpload, removeUpload, generateThumbnail } from '../lib/uploadHistory.js';
+import { fetchUrlAsFile } from '../lib/editor/uploadPipeline.js';
 
 /**
  * Creates a self-contained upload picker: a trigger button + history panel.
@@ -121,8 +123,52 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
         panel.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
         const btnRect = trigger.getBoundingClientRect();
         const containerRect = anchorContainer.getBoundingClientRect();
+        // Use the actual rendered panel height to decide above/below placement
+        const panelH = panel.offsetHeight || 420;
+        const margin = 8;
+        const spaceAbove = btnRect.top;
+        const spaceBelow = window.innerHeight - btnRect.bottom;
+        // Prefer below the trigger; only go above if there's clearly more room
+        const placeAbove = spaceAbove > panelH + margin && spaceBelow < panelH / 2;
+        // Reset both before applying the active side
+        panel.style.top = '';
+        panel.style.bottom = '';
         panel.style.left = `${btnRect.left - containerRect.left}px`;
-        panel.style.bottom = `${containerRect.bottom - btnRect.top + 8}px`;
+        if (placeAbove) {
+            panel.style.bottom = `${containerRect.bottom - btnRect.top + margin}px`;
+        } else {
+            panel.style.top = `${btnRect.bottom - containerRect.top + margin}px`;
+        }
+        // Clamp the panel inside the viewport
+        requestAnimationFrame(() => {
+            const panelRect = panel.getBoundingClientRect();
+            // Horizontal clamp
+            const overflowRight = panelRect.right - window.innerWidth + 8;
+            if (overflowRight > 0) {
+                panel.style.left = `${parseFloat(panel.style.left) - overflowRight}px`;
+            }
+            const overflowLeft = 8 - panelRect.left;
+            if (overflowLeft > 0) {
+                panel.style.left = `${parseFloat(panel.style.left) + overflowLeft}px`;
+            }
+            // Vertical clamp: if panel extends past viewport bottom, shift it up
+            const newRect = panel.getBoundingClientRect();
+            if (newRect.bottom > window.innerHeight - 8) {
+                const shift = newRect.bottom - window.innerHeight + 8;
+                if (placeAbove) {
+                    panel.style.bottom = `${parseFloat(panel.style.bottom) + shift}px`;
+                } else {
+                    panel.style.top = `${parseFloat(panel.style.top) - shift}px`;
+                }
+            }
+            if (newRect.top < 8) {
+                if (placeAbove) {
+                    panel.style.bottom = `${parseFloat(panel.style.bottom) - 8}px`;
+                } else {
+                    panel.style.top = `${8}px`;
+                }
+            }
+        });
         panelOpen = true;
     };
 
@@ -188,21 +234,138 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
         uploadNewBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> ${uploadLabel}`;
         uploadNewBtn.onclick = (e) => { e.stopPropagation(); closePanel(); fileInput.click(); };
         headerRight.appendChild(uploadNewBtn);
+
+        // "From URL" button — opens a URL paste field below
+        const fromUrlBtn = document.createElement('button');
+        fromUrlBtn.type = 'button';
+        fromUrlBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/80 rounded-xl text-xs font-bold transition-all border border-white/10';
+        fromUrlBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> From URL`;
+        fromUrlBtn.onclick = (e) => {
+            e.stopPropagation();
+            const existing = panel.querySelector('.upload-url-input');
+            if (existing) {
+                existing.parentElement.remove();
+            } else {
+                appendUrlInput();
+            }
+        };
+        headerRight.appendChild(fromUrlBtn);
         header.appendChild(headerRight);
         panel.appendChild(header);
 
         if (history.length === 0) {
             const empty = document.createElement('div');
-            empty.className = 'py-6 flex flex-col items-center gap-2 opacity-40';
+            empty.className = 'py-4 flex flex-col items-center gap-3';
             empty.innerHTML = `
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-secondary"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <span class="text-xs text-secondary">No uploads yet</span>
+                <div class="text-[10px] font-bold text-secondary uppercase tracking-widest">4 ways to upload</div>
+                <div class="grid grid-cols-2 gap-2 w-full">
+                    <button type="button" data-method="file" class="upload-method-tile flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white/5 hover:bg-primary/10 border border-white/10 hover:border-primary/40 transition-all cursor-pointer text-center">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span class="text-[10px] font-black text-white">Upload</span>
+                        <span class="text-[9px] text-muted leading-tight">Pick a file</span>
+                    </button>
+                    <button type="button" data-method="url" class="upload-method-tile flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white/5 hover:bg-primary/10 border border-white/10 hover:border-primary/40 transition-all cursor-pointer text-center">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                        <span class="text-[10px] font-black text-white">From URL</span>
+                        <span class="text-[9px] text-muted leading-tight">Paste a link</span>
+                    </button>
+                    <button type="button" data-method="drop" class="upload-method-tile flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white/5 hover:bg-primary/10 border border-white/10 hover:border-primary/40 transition-all cursor-pointer text-center">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="4 3"/><path d="M12 8v6"/><polyline points="9 11 12 8 15 11"/></svg>
+                        <span class="text-[10px] font-black text-white">Drop here</span>
+                        <span class="text-[9px] text-muted leading-tight">Drag a file in</span>
+                    </button>
+                    <button type="button" data-method="paste" class="upload-method-tile flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white/5 hover:bg-primary/10 border border-white/10 hover:border-primary/40 transition-all cursor-pointer text-center">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h2"/></svg>
+                        <span class="text-[10px] font-black text-white">Paste</span>
+                        <span class="text-[9px] text-muted leading-tight">⌘V / Ctrl+V</span>
+                    </button>
+                </div>
             `;
+            // Wire the tiles to the same actions as the header buttons
+            empty.querySelectorAll('.upload-method-tile').forEach(tile => {
+                tile.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const method = tile.getAttribute('data-method');
+                    if (method === 'file') {
+                        closePanel();
+                        fileInput.click();
+                    } else if (method === 'url') {
+                        closePanel();
+                        // Reopen and show the URL input
+                        setTimeout(() => {
+                            openPanel();
+                            appendUrlInput();
+                            // Re-position after the URL input changes the panel height
+                            setTimeout(() => {
+                                const btnRect = trigger.getBoundingClientRect();
+                                const containerRect = anchorContainer.getBoundingClientRect();
+                                const panelH = panel.offsetHeight;
+                                const margin = 16;
+                                const spaceAbove = btnRect.top - margin;
+                                const placeAbove = spaceAbove >= panelH;
+                                panel.style.top = '';
+                                panel.style.bottom = '';
+                                if (placeAbove) {
+                                    panel.style.left = `${btnRect.left - containerRect.left}px`;
+                                    panel.style.bottom = `${containerRect.bottom - btnRect.top + 8}px`;
+                                } else {
+                                    panel.style.left = `${btnRect.left - containerRect.left}px`;
+                                    panel.style.top = `${btnRect.bottom - containerRect.top + 8}px`;
+                                }
+                            }, 50);
+                        }, 50);
+                    } else if (method === 'drop') {
+                        // Briefly flash the drop hint
+                        panel.classList.add('ring-2', 'ring-primary/50', 'bg-primary/5');
+                        setTimeout(() => panel.classList.remove('ring-2', 'ring-primary/50', 'bg-primary/5'), 600);
+                    } else if (method === 'paste') {
+                        // Focus the panel so paste is captured, show toast
+                        panel.focus?.();
+                        const t = document.createElement('div');
+                        t.className = 'absolute -top-8 left-1/2 -translate-x-1/2 px-2.5 py-1 bg-primary text-black text-[10px] font-black rounded-md whitespace-nowrap z-50';
+                        t.textContent = 'Press ⌘V / Ctrl+V to paste';
+                        panel.style.position || (panel.style.position = 'relative');
+                        panel.appendChild(t);
+                        setTimeout(() => t.remove(), 1800);
+                    }
+                });
+            });
             panel.appendChild(empty);
             return;
         }
 
-        // ── Grid ──
+        // Drop zone hint — a persistent dashed border on the grid area so users
+        // know they can drop files here even when there's already history.
+        const dropZone = document.createElement('div');
+        dropZone.className = 'relative rounded-xl border-2 border-dashed border-white/10 p-2 transition-colors';
+        dropZone.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('border-primary/60', 'bg-primary/5');
+        });
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!dropZone.contains(e.relatedTarget)) {
+                dropZone.classList.remove('border-primary/60', 'bg-primary/5');
+            }
+        });
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('border-primary/60', 'bg-primary/5');
+            const files = Array.from(e.dataTransfer?.files || []);
+            if (!files.length) return;
+            const dt = new DataTransfer();
+            files.forEach(f => dt.items.add(f));
+            fileInput.files = dt.files;
+            fileInput.onchange({ target: fileInput });
+        });
+
         const grid = document.createElement('div');
         grid.className = 'grid grid-cols-3 gap-2 max-h-56 overflow-y-auto custom-scrollbar pr-0.5';
 
@@ -288,7 +451,8 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
             grid.appendChild(cell);
         });
 
-        panel.appendChild(grid);
+        dropZone.appendChild(grid);
+        panel.appendChild(dropZone);
 
         // Bottom "Done" bar for multi-select (always visible when items selected)
         if (isMulti && selectedEntries.length > 0) {
@@ -307,7 +471,175 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
             bottomBar.appendChild(doneBtn2);
             panel.appendChild(bottomBar);
         }
+
+        // Footer hint — reminds users about all available upload methods
+        const hint = document.createElement('div');
+        hint.className = 'mt-2.5 pt-2.5 border-t border-white/5 text-[10px] text-muted leading-relaxed text-center';
+        hint.innerHTML = `
+            <div class="flex items-center justify-center gap-3 flex-wrap">
+                <span class="flex items-center gap-1"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload</span>
+                <span class="text-white/20">|</span>
+                <span class="flex items-center gap-1"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> URL</span>
+                <span class="text-white/20">|</span>
+                <span class="flex items-center gap-1"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="3 2"/><path d="M12 8v6"/><polyline points="9 11 12 8 15 11"/></svg> Drop</span>
+                <span class="text-white/20">|</span>
+                <span class="flex items-center gap-1"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h2"/></svg> Paste <kbd class="px-1 py-0.5 bg-white/10 rounded text-[9px]">⌘V</kbd></span>
+            </div>
+        `;
+        panel.appendChild(hint);
     };
+
+    // ── URL input ────────────────────────────────────────────────────────────
+    // Renders a small inline form below the header for pasting a remote image
+    // or video URL. Fetches the file via fetchUrlAsFile and runs it through
+    // the same upload pipeline as a local file selection.
+    const appendUrlInput = () => {
+        const wrap = document.createElement('div');
+        wrap.className = 'mb-3 p-2.5 rounded-xl bg-white/5 border border-white/10';
+
+        const label = document.createElement('div');
+        label.className = 'text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5';
+        label.textContent = 'Paste image or video URL';
+        wrap.appendChild(label);
+
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-1.5';
+
+        const input = document.createElement('input');
+        input.type = 'url';
+        input.placeholder = 'https://example.com/image.jpg';
+        input.className = 'upload-url-input flex-1 min-w-0 bg-black/30 border border-white/10 rounded-lg px-2.5 py-1.5 text-[12px] text-white placeholder:text-white/30 focus:outline-none focus:border-primary/50';
+        row.appendChild(input);
+
+        const loadBtn = document.createElement('button');
+        loadBtn.type = 'button';
+        loadBtn.className = 'px-3 py-1.5 bg-primary text-black rounded-lg text-[11px] font-black hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed';
+        loadBtn.textContent = 'Load';
+        row.appendChild(loadBtn);
+
+        const status = document.createElement('div');
+        status.className = 'text-[10px] mt-1.5 hidden';
+
+        const setStatus = (text, kind = 'muted') => {
+            status.textContent = text;
+            status.className = `text-[10px] mt-1.5 ${kind === 'error' ? 'text-rose-400' : kind === 'ok' ? 'text-emerald-400' : 'text-muted'}`;
+        };
+
+        const doLoad = async () => {
+            const url = input.value.trim();
+            if (!url) {
+                setStatus('Enter a URL first.', 'error');
+                return;
+            }
+            if (!apiKeyManager.getMuapiKey()) {
+                AuthModal(doLoad);
+                return;
+            }
+            loadBtn.disabled = true;
+            loadBtn.textContent = 'Loading…';
+            setStatus('Fetching…');
+            try {
+                const file = await fetchUrlAsFile(url);
+                // Filter by accepted type
+                const isImage = file.type.startsWith('image/');
+                const isVideo = file.type.startsWith('video/');
+                if (!acceptVideo && !isImage) {
+                    throw new Error('Only image URLs are supported here.');
+                }
+                if (acceptVideo && !isImage && !isVideo) {
+                    throw new Error('Only image or video URLs are supported here.');
+                }
+                // Reuse the file-input pipeline by calling fileInput.onchange synthetically
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                fileInput.files = dt.files;
+                fileInput.onchange({ target: fileInput });
+                setStatus('Loaded ✓', 'ok');
+                input.value = '';
+                setTimeout(() => { try { wrap.remove(); } catch {} }, 600);
+            } catch (err) {
+                setStatus(err.message || 'Failed to fetch URL', 'error');
+            } finally {
+                loadBtn.disabled = false;
+                loadBtn.textContent = 'Load';
+            }
+        };
+
+        loadBtn.onclick = (e) => { e.stopPropagation(); doLoad(); };
+        input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); doLoad(); } };
+        input.onclick = (e) => e.stopPropagation();
+
+        wrap.appendChild(row);
+        wrap.appendChild(status);
+
+        // Insert after header
+        const header = panel.querySelector('.flex.items-center.justify-between');
+        if (header && header.nextSibling) {
+            panel.insertBefore(wrap, header.nextSibling);
+        } else {
+            panel.appendChild(wrap);
+        }
+        setTimeout(() => input.focus(), 50);
+    };
+
+    // ── Drag and drop on the panel ───────────────────────────────────────────
+    const setupDragAndDrop = () => {
+        panel.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            panel.classList.add('ring-2', 'ring-primary/50', 'bg-primary/5');
+        });
+        panel.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        panel.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!panel.contains(e.relatedTarget)) {
+                panel.classList.remove('ring-2', 'ring-primary/50', 'bg-primary/5');
+            }
+        });
+        panel.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            panel.classList.remove('ring-2', 'ring-primary/50', 'bg-primary/5');
+            const files = Array.from(e.dataTransfer?.files || []);
+            if (!files.length) return;
+            // Reuse the file-input pipeline
+            const dt = new DataTransfer();
+            files.forEach(f => dt.items.add(f));
+            fileInput.files = dt.files;
+            fileInput.onchange({ target: fileInput });
+        });
+    };
+    setupDragAndDrop();
+
+    // ── Clipboard paste ──────────────────────────────────────────────────────
+    // Listen at document level so paste works while the panel is open.
+    const onPaste = (e) => {
+        if (!panelOpen) return;
+        const items = e.clipboardData?.items;
+        if (!items) return;
+        const files = [];
+        for (const item of items) {
+            if (item.kind === 'file') {
+                const file = item.getAsFile();
+                if (file) files.push(file);
+            }
+        }
+        if (!files.length) return;
+        e.preventDefault();
+        if (!apiKeyManager.getMuapiKey()) {
+            AuthModal(() => onPaste(e));
+            return;
+        }
+        const dt = new DataTransfer();
+        files.forEach(f => dt.items.add(f));
+        fileInput.files = dt.files;
+        fileInput.onchange({ target: fileInput });
+    };
+    document.addEventListener('paste', onPaste);
 
     // ── Trigger click ─────────────────────────────────────────────────────────
     trigger.onclick = (e) => {
@@ -316,15 +648,21 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
         else openPanel();
     };
 
-    // Close panel on outside click
-    window.addEventListener('click', closePanel);
+    // Close panel on outside click. Guard against the trigger and the panel
+    // itself so the click that opened the panel doesn't immediately close it.
+    window.addEventListener('click', (e) => {
+        if (!panelOpen) return;
+        if (e.target === trigger || trigger.contains(e.target)) return;
+        if (panel.contains(e.target)) return;
+        closePanel();
+    });
 
     // ── File upload handler ───────────────────────────────────────────────────
     fileInput.onchange = async (e) => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
 
-        const apiKey = localStorage.getItem('muapi_key');
+        const apiKey = apiKeyManager.getMuapiKey();
         if (!apiKey) {
             AuthModal(() => fileInput.click());
             return;

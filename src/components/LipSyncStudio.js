@@ -1,14 +1,17 @@
 import { muapi } from '../lib/muapi.js';
+import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getLipSyncModelById, getResolutionsForLipSyncModel } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
+import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
-import { createHeroSection } from '../lib/thumbnails.js';
+import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
     container.className = 'w-full h-full flex flex-col items-center justify-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+  mountStudioChrome(container, { currentRoute: 'lipsync' });
 
     // --- State ---
     // 'image' mode: portrait image + audio → video
@@ -17,6 +20,7 @@ export function LipSyncStudio() {
     let selectedModel = imageLipSyncModels[0].id;
     let selectedResolution = imageLipSyncModels[0].inputs?.resolution?.default || '480p';
     let uploadedImageUrl = null;
+    let customThumbnailUrl = getCustomThumbnailFromCache('lipsync-studio');
     let uploadedVideoUrl = null;
     let uploadedAudioUrl = null;
     let dropdownOpen = null;
@@ -158,6 +162,26 @@ export function LipSyncStudio() {
     uploadsRow.appendChild(videoUploadBtn);
     uploadsRow.appendChild(audioUploadBtn);
     uploadsRow.appendChild(textarea);
+
+    // GTM Boost entry point — opens the prompt enhancer themed for lip-sync
+    // scripts and loads the result straight into this textarea.
+    const gtmBtn = document.createElement('button');
+    gtmBtn.type = 'button';
+    gtmBtn.textContent = '🎯 GTM Boost';
+    gtmBtn.title = 'Enhance your prompt with GTM conversion frameworks';
+    gtmBtn.setAttribute('aria-label', 'GTM Boost prompt enhancer');
+    gtmBtn.className = 'gtm-boost-btn shrink-0';
+    gtmBtn.addEventListener('click', () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('lip-sync-studio', (prompt) => {
+          textarea.value = prompt;
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+          textarea.focus();
+        });
+      }).catch((err) => console.error('[LipSyncStudio] GTM Boost failed:', err));
+    });
+    uploadsRow.appendChild(gtmBtn);
+
     bar.appendChild(uploadsRow);
 
     // ── Status labels ──
@@ -204,6 +228,34 @@ export function LipSyncStudio() {
 
     bottomRow.appendChild(modelBtn);
     bottomRow.appendChild(resolutionBtn);
+
+    // Thumbnail studio button — next to creation controls, GTM Boost styling
+    const thumbBtn = document.createElement('button');
+    thumbBtn.type = 'button';
+    thumbBtn.textContent = '🖼 Thumbnail';
+    thumbBtn.title = 'Generate a custom thumbnail';
+    thumbBtn.className = 'gtm-boost-btn shrink-0';
+    thumbBtn.addEventListener('click', () => {
+      const modal = new StudioThumbnailModal({
+        appTheme: 'lipsync-studio',
+        studioId: 'lipsync-studio',
+        studioName: 'Lip Sync Studio',
+        aspectRatio: '16:9',
+        outputType: 'video',
+        onApply: ({ imageUrl }) => {
+          customThumbnailUrl = imageUrl;
+          saveCustomThumbnailToCache('lipsync-studio', imageUrl);
+        },
+        onClear: () => {
+          customThumbnailUrl = null;
+          clearCustomThumbnailCache('lipsync-studio');
+        },
+      });
+      mountStudioThumbnailModal(modal);
+      modal.open();
+    });
+    bottomRow.appendChild(thumbBtn);
+
     bottomRow.appendChild(generateBtn);
     mountPersonalizeTrigger({ controlsContainer: bottomRow, getTextarea: () => textarea, appId: 'lip-sync' });
     bar.appendChild(bottomRow);
@@ -745,6 +797,7 @@ export function LipSyncStudio() {
             const lipsyncParams = {
                 model: selectedModel,
                 audio_url: uploadedAudioUrl,
+                customThumbnailUrl: customThumbnailUrl || undefined,
                 onRequestId
             };
 

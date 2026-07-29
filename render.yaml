@@ -1,13 +1,13 @@
-# render.yaml — deploys the Video Agent backend as a Render Web Service.
-# Usage:
-#   render blueprints launch  # first time: creates the service from this file
+# render.yaml — Blueprint for videoagent-backend, director-backend, and
+# director-frontend. Usage:
+#   render blueprint launch   # first time: creates the service from this file
 #   render deploy             # redeploy after changes
 #
-# NOTE: API keys are NOT committed. Set VIDEO_DB_API_KEY and OPENAI_API_KEY in
-# the Render dashboard (Service -> Environment) as sync:false values.
-# Users may also supply their own keys per-request:
-#   - VideoDB: x-access-token header (proxy falls back to server key)
-#   - OpenAI: payload.apiKey (videoAgentService already supports this)
+# Re-sync trigger: director-frontend now builds successfully (shared packages
+# vendored into apps/director/frontend/packages), so the Blueprint can sync.
+#
+# NOTE: set OPENAI_API_KEY in the Render dashboard (or `render env set`)
+# after the first launch — Render does NOT read .env.local.
 
 services:
   - type: web
@@ -17,7 +17,7 @@ services:
     region: oregon          # pick the region closest to most of your users
     rootDir: backend
     plan: free              # free tier; upgrade (starter) for always-on + ffmpeg headroom
-    branch: backend-real-outputs   # deploy the completed backend from this worktree branch
+    branch: develop   # deploy branch
     buildCommand: npm install
     startCommand: node server.js
     healthCheckPath: /health
@@ -27,12 +27,110 @@ services:
       - key: PORT
         value: "10000"      # Render injects the actual PORT; this is a safe default
       - key: OPENAI_API_KEY
-        sync: false         # configure in the Render dashboard
-      - key: VIDEO_DB_API_KEY
-        sync: false         # configure in the Render dashboard
-      - key: VIDEO_DB_BASE_URL
-        value: https://api.videodb.io
-      - key: VIDEO_DB_DEFAULT_COLLECTION
-        value: default
+        sync: false         # set manually in dashboard or via `render env set OPENAI_API_KEY ...`
       - key: VIDEO_AGENT_BACKEND_URL
         sync: false         # set to this service's URL after deploy, e.g. https://videoagent-backend.onrender.com
+
+  # Director (VideoDB) finishing backend — powers Render Studio subtitles,
+  # scenes, highlights, voiceover, dubbing. Uses director-db, declared in the
+  # databases block below with specs matching the existing instance so the
+  # Blueprint can own it without a "cannot downgrade database" error.
+  - type: web
+    name: director-backend
+    region: singapore
+    runtime: docker
+    plan: starter
+    rootDir: apps/director/backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: SERVER_ENV
+        value: production
+      - key: VIDEO_DB_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DB_TYPE
+        value: postgres
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: director-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: director-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: director-db
+          property: password
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: director-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: director-db
+          property: port
+
+  - type: web
+    name: director-frontend
+    region: singapore
+    runtime: docker
+    plan: starter
+    rootDir: apps/director/frontend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: VITE_APP_BACKEND_URL
+        fromService:
+          name: director-backend
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+
+  # Maigret worker — username OSINT scanning service used for personalization.
+  # Self-contained Docker service under services/maigret-worker.
+  # Named maigret-worker-sv to avoid colliding with the existing ohio
+  # maigret-worker service (which lives in a different repo/project).
+  # Live at https://maigret-worker-sv.onrender.com (/health).
+  - type: web
+    name: maigret-worker-sv
+    region: singapore
+    runtime: docker
+    plan: free
+    rootDir: services/maigret-worker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: MAIGRET_API_KEY
+        generateValue: true
+      - key: MAIGRET_ADMIN_KEY
+        sync: false
+      - key: MAIGRET_CACHE_BACKEND
+        value: memory
+      - key: MAIGRET_CACHE_TTL_SECONDS
+        value: "86400"
+      - key: MAIGRET_MAX_CONCURRENT
+        value: "4"
+      - key: MAIGRET_PER_KEY_LIMIT
+        value: "120"
+      - key: MAIGRET_SCAN_TIMEOUT
+        value: "90"
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+databases:
+  # Existing director-db. Specs match the live instance
+  # (dpg-d9d480faqgkc73crq7h0-a) to avoid a "cannot downgrade database" error
+  # during Blueprint sync.
+  - name: director-db
+    plan: basic-256mb
+    region: singapore
+    postgresMajorVersion: "18"
+    databaseName: director_db_nkya
+    user: director_db_nkya_user
+    diskSizeGB: 15

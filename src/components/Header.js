@@ -243,6 +243,10 @@ export function Header(navigate) {
   rightPart.appendChild(mobileMenuBtn);
   rightPart.appendChild(keyBtn);
 
+  const headerAuthSlot = document.createElement('div');
+  headerAuthSlot.className = 'flex items-center';
+  rightPart.appendChild(headerAuthSlot);
+
   navBar.appendChild(leftPart);
   navBar.appendChild(rightPart);
   header.appendChild(navBar);
@@ -288,5 +292,5 @@ export function Header(navigate) {
     });
   });
 
-  return header;
+  return { header, headerAuthSlot };
 }
