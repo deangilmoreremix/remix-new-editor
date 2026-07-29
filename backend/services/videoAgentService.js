@@ -189,7 +189,7 @@ function scenesFromTimestamps(timestamps, duration = 120) {
       index: i + 1,
       start: +points[i].toFixed(2),
       end: +points[i + 1].toFixed(2),
-      confidence: +(0.7 + Math.random() * 0.3).toFixed(2),
+      confidence: 1.0,
     });
   }
   return scenes;

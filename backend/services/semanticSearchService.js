@@ -1,17 +1,9 @@
 /**
  * Semantic Search Service — Express router mounted at /api/semantic-search
  *
- * Replaces the previous random-score mock. Semantic search is delegated to the
- * VideoDB collection search endpoint (real embeddings, real relevance), which
- * is the same backend the Video Agent / Director studios use. When no VideoDB
- * token is available (neither VIDEO_DB_API_KEY server-side nor an
- * x-access-token header), the route returns an explicit 400 rather than
- * fabricating plausible-looking random scores.
- *
- * The legacy in-memory `search(query, mediaItems)` form is kept for callers
- * that pass a pre-filtered candidate list: it now ranks purely by the
- * caller-supplied score when present, and otherwise signals that real semantic
- * ranking requires VideoDB.
+ * Delegates to the VideoDB collection search endpoint (real embeddings,
+ * real relevance). When no VideoDB token is available, returns an explicit
+ * 400 rather than fabricating scores.
  */
 
 import express from 'express';
