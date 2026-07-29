@@ -1,4 +1,4 @@
 import React from 'react';
-import { MobXProviderContext } from 'mobx-react';
+import { StoreContext } from '../../src/providers/StoreProvider';
 
-export default () => React.useContext(MobXProviderContext);
+export default () => React.useContext(StoreContext);

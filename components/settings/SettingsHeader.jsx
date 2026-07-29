@@ -1,90 +1,75 @@
-import * as React from 'react';
 import classnames from 'classnames';
-import SVGInline from 'react-svg-inline';
-import CloseButton from '../common/CloseButton';
+import Component from '../base/Component';
 
-import PropTypes from '../../lib/PropTypes';
+export class SettingsHeader extends Component {
+  constructor(props = {}) {
+    super(props);
+    this.handleChange = this.handleChange.bind(this);
+  }
 
-const SettingsHeader = ({
-  className,
-  tabs,
-  setTab,
-  activeTab,
-  title,
-  onCloseWindow,
-  closeButton,
-  handleClose,
-  isExtendCloseButton,
-  allowedMultiButton,
-}) => {
-  const handleChange = React.useCallback((newValue) => {
+  handleChange(newValue) {
+    const { activeTab, setTab } = this.props;
     if (newValue === activeTab) {
       return;
     }
     if (setTab) {
-      return setTab(newValue);
+      setTab(newValue);
     }
-    return null;
-  }, [activeTab, setTab]);
+  }
 
-  return (
-    <div className={classnames(className, 'header-tabs')}>
-      {
-        title && <p className="header-tabs__title">{title}</p>
-      }
-      {
-        tabs && tabs[activeTab] && tabs.map((tab, i) => (
-          <button
-            key={tab.label}
-            type="button"
-            className={classnames('header-tabs__item', { 'header-tabs__item--active': activeTab === i })}
-            onClick={() => handleChange(i)}
-            disabled={tab.disabled}
-          >
-            {tab.icon && (
-              <SVGInline
-                className={classnames('tab-icon', { 'tab-icon-active': activeTab === i })}
-                classSuffix=""
-                svg={tabs[i].icon}
-                cleanup={['title']}
-              />
-            )}
-            {tab.label}
-          </button>
-        ))
-      }
-      {tabs && (
-        <CloseButton
-          allowedMultiButton={allowedMultiButton}
-          className={isExtendCloseButton ? 'close-button-extend' : null}
-          isTabs={tabs.length > 1}
-          onClick={closeButton ? handleClose : onCloseWindow}
-        />
-      )}
-    </div>
-  );
-};
+  render() {
+    const {
+      className,
+      tabs,
+      activeTab,
+      title,
+      onCloseWindow,
+      closeButton,
+      handleClose,
+      isExtendCloseButton,
+      allowedMultiButton,
+    } = this.props;
 
-SettingsHeader.propTypes = {
-  activeTab: PropTypes.number,
-  className: PropTypes.string,
-  setTab: PropTypes.func,
-  onCloseWindow: PropTypes.func,
-  tabs: PropTypes.arrayOf(PropTypes.shape({
-    label: PropTypes.string,
-    icon: PropTypes.string,
-    disabled: PropTypes.bool,
-    requiredFeature: PropTypes.string,
-  })),
-  title: PropTypes.string,
-  closeButton: PropTypes.bool,
-  handleClose: PropTypes.func,
-  isExtendCloseButton: PropTypes.bool,
-  allowedMultiButton: PropTypes.bool,
-};
+    const div = document.createElement('div');
+    div.className = classnames(className, 'header-tabs');
 
-SettingsHeader.defaultProps = {
-  closeButton: false,
-};
+    if (title) {
+      const p = document.createElement('p');
+      p.className = 'header-tabs__title';
+      p.textContent = title;
+      div.appendChild(p);
+    }
+
+    if (tabs && tabs[activeTab]) {
+      tabs.forEach((tab, i) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = classnames('header-tabs__item', { 'header-tabs__item--active': activeTab === i });
+        button.disabled = tab.disabled;
+        button.addEventListener('click', () => this.handleChange(i));
+
+        if (tab.icon) {
+          const iconDiv = document.createElement('div');
+          iconDiv.className = classnames('tab-icon', { 'tab-icon-active': activeTab === i });
+          iconDiv.innerHTML = tab.icon; // Assume SVG string
+          button.appendChild(iconDiv);
+        }
+
+        button.appendChild(document.createTextNode(tab.label));
+        div.appendChild(button);
+      });
+    }
+
+    if (tabs) {
+      const closeBtn = document.createElement('button');
+      closeBtn.className = isExtendCloseButton ? 'close-button-extend' : 'close-button';
+      closeBtn.textContent = '×';
+      closeBtn.addEventListener('click', closeButton ? handleClose : onCloseWindow);
+      div.appendChild(closeBtn);
+    }
+
+    return div;
+  }
+}
 
 export default SettingsHeader;

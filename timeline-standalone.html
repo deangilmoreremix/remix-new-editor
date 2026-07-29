@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timeline Editor — Standalone Test</title>
+  <style>
+    body { margin: 0; background: #07090d; color: #fff; font-family: sans-serif; }
+    #root { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import { TimelineEditorPage } from './src/components/TimelineEditorPage.jsx';
+    // Deterministic verification surface: always boot with the prototype seed
+    // project instead of restoring stale saved projects from earlier sessions.
+    try { localStorage.removeItem('timeline-editor-project'); } catch (_) {}
+    const root = document.getElementById('root');
+    try {
+      const app = TimelineEditorPage();
+      root.appendChild(app);
+      console.log('TimelineEditorPage rendered');
+    } catch (err) {
+      console.error('Failed to render TimelineEditorPage', err);
+      root.innerHTML = '<pre style="color:#f88;padding:20px;">' + err.stack + '</pre>';
+    }
+  </script>
+</body>
+</html>

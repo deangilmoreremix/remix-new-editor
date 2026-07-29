@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Personalization Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .workflow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .step {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #007bff;
+        }
+
+        .step:nth-child(2) { border-top-color: #28a745; }
+        .step:nth-child(3) { border-top-color: #ffc107; }
+        .step:nth-child(4) { border-top-color: #dc3545; }
+
+        .step-icon {
+            width: 60px;
+            height: 60px;
+            background: #007bff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .step:nth-child(2) .step-icon { background: #28a745; }
+        .step:nth-child(3) .step-icon { background: #ffc107; color: #212529; }
+        .step:nth-child(4) .step-icon { background: #dc3545; }
+
+        .step h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .step p {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-section h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+
+        .file-upload {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .file-upload:hover {
+            border-color: #007bff;
+            background: #f8f9ff;
+        }
+
+        .file-upload.dragover {
+            border-color: #007bff;
+            background: #f0f8ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #6c757d;
+            margin-bottom: 15px;
+        }
+
+        .contacts-preview {
+            margin-top: 30px;
+        }
+
+        .contacts-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .contacts-table th,
+        .contacts-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .contacts-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .token-system {
+            margin-top: 30px;
+        }
+
+        .tokens-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .token-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Monaco', monospace;
+            font-size: 14px;
+            color: #007bff;
+        }
+
+        .generation-demo {
+            margin-top: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #28a745;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .videos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .video-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-thumbnail {
+            height: 150px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 24px;
+        }
+
+        .video-info {
+            padding: 15px;
+        }
+
+        .video-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .video-email {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .actions {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .actions .btn {
+            margin: 0 10px;
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .workflow {
+                grid-template-columns: 1fr;
+            }
+
+            .videos-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Video Personalization</h1>
+            <p>Sendspark-like platform for creating personalized videos at scale</p>
+        </div>
+
+        <div class="workflow">
+            <div class="step">
+                <div class="step-icon">📤</div>
+                <h3>1. Upload Base Video</h3>
+                <p>Upload your template video that will be personalized for each contact. Supports MP4, MOV, AVI, and WebM formats.</p>
+            </div>
+
+            <div class="step">
+                <div class="step-icon">👥</div>
+                <h3>2. Import Contacts</h3>
+                <p>Upload CSV files with contact information. Automatic column mapping for email, name, company, and custom fields.</p>
+            </div>
+
+            <div class="step">
+                <div class="step-icon">🏷️</div>
+                <h3>3. Manage Tokens</h3>
+                <p>Configure personalization tokens like {{firstName}}, {{company}}, and custom tokens for dynamic content replacement.</p>
+            </div>
+
+            <div class="step">
+                <div class="step-icon">⚡</div>
+                <h3>4. Generate Videos</h3>
+                <p>Process multiple contacts simultaneously with real-time progress tracking and instant download options.</p>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🚀 Interactive Demo</h2>
+            <p>Experience the video personalization workflow below:</p>
+
+            <div id="upload-section">
+                <h3>📤 Step 1: Upload Base Video</h3>
+                <div class="file-upload" id="file-upload">
+                    <div class="upload-icon">📹</div>
+                    <p>Drag & drop a video file here, or click to browse</p>
+                    <p style="font-size: 12px; color: #6c757d; margin-top: 10px;">Supported formats: MP4, MOV, AVI, WebM (max 500MB)</p>
+                    <input type="file" id="video-file" accept="video/*" style="display: none;">
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" id="upload-btn">Upload Video</button>
+                    <button class="btn btn-secondary" id="skip-upload">Skip & Use Demo Video</button>
+                </div>
+            </div>
+
+            <div id="contacts-section" class="hidden">
+                <h3>👥 Step 2: Import Contacts</h3>
+                <div class="file-upload" id="csv-upload">
+                    <div class="upload-icon">📄</div>
+                    <p>Drag & drop a CSV file here, or click to browse</p>
+                    <p style="font-size: 12px; color: #6c757d; margin-top: 10px;">CSV should include: Email, First Name, Last Name, Company</p>
+                    <input type="file" id="csv-file" accept=".csv" style="display: none;">
+                </div>
+                <div class="actions">
+                    <button class="btn btn-primary" id="import-btn">Import CSV</button>
+                    <button class="btn btn-secondary" id="demo-contacts">Use Demo Contacts</button>
+                </div>
+
+                <div class="contacts-preview" id="contacts-preview" style="display: none;">
+                    <h4>📋 Imported Contacts (10)</h4>
+                    <table class="contacts-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Company</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contacts-table-body">
+                            <!-- Contacts will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tokens-section" class="hidden">
+                <h3>🏷️ Step 3: Token Management</h3>
+                <p>Available personalization tokens:</p>
+                <div class="token-system">
+                    <div class="tokens-grid">
+                        <div class="token-item">{{email}}</div>
+                        <div class="token-item">{{firstName}}</div>
+                        <div class="token-item">{{lastName}}</div>
+                        <div class="token-item">{{company}}</div>
+                        <div class="token-item">{{website}}</div>
+                        <div class="token-item">{{linkedin}}</div>
+                        <div class="token-item">{{phone}}</div>
+                        <div class="token-item">{{title}}</div>
+                        <div class="token-item">{{industry}}</div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="btn btn-success" id="tokens-done">Continue to Generation</button>
+                </div>
+            </div>
+
+            <div id="generation-section" class="hidden">
+                <h3>⚡ Step 4: Generate Personalized Videos</h3>
+                <p>Ready to generate 10 personalized videos for your contacts!</p>
+                <div class="actions">
+                    <button class="btn btn-success" id="generate-btn">Generate 10 Videos</button>
+                </div>
+
+                <div class="generation-demo" id="generation-demo" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <p id="progress-text">Generating videos... 0/10 completed</p>
+
+                    <div class="videos-grid" id="videos-grid">
+                        <!-- Generated videos will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status" id="status">
+            <p id="status-text">Demo completed successfully! 🎉</p>
+        </div>
+    </div>
+
+    <script>
+        // Demo data
+        const demoContacts = [
+            { firstName: 'John', lastName: 'Doe', email: 'john@example.com', company: 'Acme Corp' },
+            { firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', company: 'Tech Inc' },
+            { firstName: 'Mike', lastName: 'Johnson', email: 'mike@example.com', company: 'Global Solutions' },
+            { firstName: 'Sarah', lastName: 'Wilson', email: 'sarah@example.com', company: 'Creative Agency' },
+            { firstName: 'David', lastName: 'Brown', email: 'david@example.com', company: 'Financial Services' },
+            { firstName: 'Lisa', lastName: 'Davis', email: 'lisa@example.com', company: 'Healthcare Solutions' },
+            { firstName: 'Alex', lastName: 'Garcia', email: 'alex@example.com', company: 'Education Tech' },
+            { firstName: 'Emma', lastName: 'Miller', email: 'emma@example.com', company: 'Retail Solutions' },
+            { firstName: 'Chris', lastName: 'Anderson', email: 'chris@example.com', company: 'Manufacturing Inc' },
+            { firstName: 'Olivia', lastName: 'Taylor', email: 'olivia@example.com', company: 'Consulting Group' }
+        ];
+
+        let uploadedVideo = null;
+        let contacts = [];
+
+        // DOM elements
+        const uploadSection = document.getElementById('upload-section');
+        const contactsSection = document.getElementById('contacts-section');
+        const tokensSection = document.getElementById('tokens-section');
+        const generationSection = document.getElementById('generation-section');
+        const status = document.getElementById('status');
+
+        // File upload handling
+        document.getElementById('file-upload').addEventListener('click', () => {
+            document.getElementById('video-file').click();
+        });
+
+        document.getElementById('video-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                uploadedVideo = file;
+                showStatus('Video uploaded successfully! 📹', 'success');
+                document.getElementById('upload-section').style.display = 'none';
+                document.getElementById('contacts-section').classList.remove('hidden');
+            }
+        });
+
+        // Drag and drop for video
+        const fileUpload = document.getElementById('file-upload');
+        fileUpload.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUpload.classList.add('dragover');
+        });
+
+        fileUpload.addEventListener('dragleave', () => {
+            fileUpload.classList.remove('dragover');
+        });
+
+        fileUpload.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUpload.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                uploadedVideo = files[0];
+                showStatus('Video uploaded successfully! 📹', 'success');
+                document.getElementById('upload-section').style.display = 'none';
+                document.getElementById('contacts-section').classList.remove('hidden');
+            }
+        });
+
+        // Buttons
+        document.getElementById('upload-btn').addEventListener('click', () => {
+            document.getElementById('video-file').click();
+        });
+
+        document.getElementById('skip-upload').addEventListener('click', () => {
+            uploadedVideo = { name: 'demo-video.mp4', type: 'video/mp4' };
+            showStatus('Using demo video! 📹', 'success');
+            document.getElementById('upload-section').style.display = 'none';
+            document.getElementById('contacts-section').classList.remove('hidden');
+        });
+
+        document.getElementById('csv-upload').addEventListener('click', () => {
+            document.getElementById('csv-file').click();
+        });
+
+        document.getElementById('csv-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // In a real implementation, you'd parse the CSV here
+                showStatus('CSV imported successfully! 📄', 'success');
+                loadDemoContacts();
+            }
+        });
+
+        document.getElementById('import-btn').addEventListener('click', () => {
+            document.getElementById('csv-file').click();
+        });
+
+        document.getElementById('demo-contacts').addEventListener('click', () => {
+            showStatus('Demo contacts loaded! 👥', 'success');
+            loadDemoContacts();
+        });
+
+        document.getElementById('tokens-done').addEventListener('click', () => {
+            document.getElementById('tokens-section').classList.add('hidden');
+            document.getElementById('generation-section').classList.remove('hidden');
+        });
+
+        document.getElementById('generate-btn').addEventListener('click', () => {
+            startVideoGeneration();
+        });
+
+        function loadDemoContacts() {
+            contacts = demoContacts;
+            const tbody = document.getElementById('contacts-table-body');
+            tbody.innerHTML = '';
+
+            contacts.forEach(contact => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${contact.firstName} ${contact.lastName}</td>
+                    <td>${contact.email}</td>
+                    <td>${contact.company}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('contacts-preview').style.display = 'block';
+            document.getElementById('contacts-section').style.display = 'none';
+            document.getElementById('tokens-section').classList.remove('hidden');
+        }
+
+        function startVideoGeneration() {
+            document.getElementById('generation-demo').style.display = 'block';
+            document.getElementById('generate-btn').style.display = 'none';
+
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            const videosGrid = document.getElementById('videos-grid');
+
+            let completed = 0;
+            const total = contacts.length;
+
+            const interval = setInterval(() => {
+                completed++;
+                const progress = (completed / total) * 100;
+
+                progressFill.style.width = progress + '%';
+                progressText.textContent = `Generating videos... ${completed}/${total} completed`;
+
+                // Add video card
+                const contact = contacts[completed - 1];
+                const videoCard = document.createElement('div');
+                videoCard.className = 'video-card';
+                videoCard.innerHTML = `
+                    <div class="video-thumbnail">🎬</div>
+                    <div class="video-info">
+                        <div class="video-name">${contact.firstName} ${contact.lastName}</div>
+                        <div class="video-email">${contact.email}</div>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-primary" style="font-size: 12px; padding: 5px 10px;">Download</button>
+                            <button class="btn btn-secondary" style="font-size: 12px; padding: 5px 10px;">Share</button>
+                        </div>
+                    </div>
+                `;
+                videosGrid.appendChild(videoCard);
+
+                if (completed >= total) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        showStatus('All videos generated successfully! 🎉', 'success');
+                    }, 500);
+                }
+            }, 800);
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            const statusText = document.getElementById('status-text');
+
+            statusText.textContent = message;
+            status.style.display = 'block';
+
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 3000);
+        }
+
+        // Initialize demo
+        showStatus('Welcome to Video Personalization Demo! 🚀', 'success');
+    </script>
+</body>
+</html>

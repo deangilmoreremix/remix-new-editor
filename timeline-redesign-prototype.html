@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Timeline Editor — Redesign Prototype</title>
+<style>
+  /* ============================================================
+     DESIGN TOKENS — extracted from the CURRENT live look
+     (styles/timeline-editor-page.css) so the prototype matches
+     the app exactly. Semantic names only; no visual shift.
+     ============================================================ */
+  :root {
+    /* Surfaces (current look) */
+    --bg: #07090d;
+    --bg-app: #07090d;
+    --surface-1: rgba(255,255,255,0.03);
+    --surface-2: rgba(255,255,255,0.05);
+    --surface-3: rgba(255,255,255,0.08);
+    --surface-sunken: rgba(0,0,0,0.20);
+    --track-lane: rgba(255,255,255,0.02);
+    --track-meta: rgba(0,0,0,0.35);
+
+    /* Borders */
+    --border: rgba(255,255,255,0.10);
+    --border-soft: rgba(255,255,255,0.06);
+    --border-strong: rgba(255,255,255,0.16);
+
+    /* Text */
+    --text: rgba(255,255,255,0.86);
+    --text-strong: #ffffff;
+    --text-muted: rgba(255,255,255,0.60);
+    --text-dim: rgba(255,255,255,0.45);
+    --text-faint: rgba(255,255,255,0.35);
+
+    /* Brand accent (current cyan/emerald) */
+    --cyan: #22d3ee;
+    --cyan-soft: rgba(34,211,238,0.22);
+    --cyan-faint: rgba(34,211,238,0.10);
+    --cyan-glow: rgba(34,211,238,0.80);
+    --emerald: #34d399;
+    --accent-grad: linear-gradient(to right, var(--cyan), var(--emerald));
+
+    /* Warning / danger (used sparingly, with text) */
+    --amber: #f59e0b;
+    --danger: #ef4444;
+    --danger-soft: rgba(239,68,68,0.20);
+
+    /* Spacing scale (4 / 8px disciplined) */
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+    --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+
+    /* Radius scale */
+    --r-sm: 8px;  --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-2xl: 24px;
+    --r-full: 999px;
+
+    /* Shadows */
+    --shadow-card: 0 20px 60px rgba(0,0,0,0.35);
+    --shadow-pop: 0 12px 40px rgba(0,0,0,0.5);
+    --shadow-focus: 0 0 0 4px rgba(34,211,238,0.30);
+
+    /* Type scale */
+    --fs-display: 20px; --fw-display: 900;
+    --fs-title: 16px;   --fw-title: 700;
+    --fs-label: 11px;   --fw-label: 800; --ls-label: 0.08em;
+    --fs-track: 12px;   --fw-track: 700;
+    --fs-time: 11px;
+    --fs-clip: 10px;    --fw-clip: 600;
+    --fs-help: 9px;
+
+    --header-h: 72px;
+    --track-h: 64px;
+    --track-w: 140px;   /* track header column width */
+    --ruler-h: 40px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; min-height: 100%;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(34,211,238,0.06), transparent 60%),
+      var(--bg-app);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+  body { padding: var(--sp-5); }
+  button, input, textarea, select { font: inherit; }
+  :focus-visible {
+    outline: 2px solid var(--cyan); outline-offset: 2px;
+    box-shadow: var(--shadow-focus); border-radius: var(--r-sm);
+  }
+
+  .shell { max-width: 1500px; margin: 0 auto; }
+  .sr-only { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+  /* ---------- Header ---------- */
+  .header {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+    margin-bottom: var(--sp-4); padding: var(--sp-4) var(--sp-5);
+    border-radius: var(--r-2xl); border: 1px solid var(--border);
+    background: linear-gradient(135deg, #171b24 0%, #07090d 45%, #111827 100%);
+    box-shadow: var(--shadow-card);
+  }
+  .brand { display: flex; align-items: center; gap: var(--sp-3); }
+  .brand-mark {
+    width: 44px; height: 44px; border-radius: var(--r-md); display: grid; place-items: center;
+    font-size: 22px; border: 1px solid rgba(34,211,238,0.2); background: var(--cyan-faint);
+    box-shadow: 0 0 16px rgba(56,189,248,0.12);
+  }
+  .brand-title { font-size: var(--fs-display); font-weight: var(--fw-display); letter-spacing: .04em; }
+  .brand-sub { font-size: 10px; text-transform: uppercase; letter-spacing: .25em; color: var(--text-dim); }
+  .project-head { text-align: center; }
+  .project-head .title { font-size: var(--fs-title); font-weight: var(--fw-title); }
+  .project-head .sub { font-size: 10px; color: var(--text-dim); }
+  .top-actions { display: flex; align-items: center; gap: var(--sp-2); }
+  .top-icon {
+    width: 36px; height: 36px; border-radius: var(--r-sm); font-size: 18px;
+    border: 1px solid var(--border); background: var(--surface-2); color: rgba(255,255,255,0.85);
+    display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: transform .15s ease, background .15s ease, border-color .15s ease;
+  }
+  .top-icon:hover { transform: translateY(-1px); background: var(--surface-3); }
+  .top-icon.active { border-color: rgba(34,211,238,0.4); background: var(--cyan-soft); }
+  .ready-pill {
+    margin-left: var(--sp-2); padding: 5px 10px; border-radius: var(--r-full);
+    border: 1px solid rgba(52,211,153,0.2); background: rgba(52,211,153,0.1);
+    color: #bbf7d0; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .ready-dot { width: 6px; height: 6px; border-radius: var(--r-full); background: #86efac; }
+
+  /* ---------- Layout grid ---------- */
+  .main-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(260px,380px); gap: var(--sp-3); }
+  .left-col { min-width: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+  .side-col { display: flex; flex-direction: column; gap: var(--sp-3); }
+  .left-top { display: grid; grid-template-columns: 220px minmax(0,1fr); gap: var(--sp-3); margin-bottom: var(--sp-3); }
+
+  /* ---------- Preview card ---------- */
+  .preview-card {
+    position: relative; overflow: hidden; border-radius: var(--r-2xl); aspect-ratio: 16/9;
+    border: 1px solid var(--border-soft); background: #000; box-shadow: 0 0 70px rgba(56,189,248,0.14);
+  }
+  /* Large full-width preview above the timeline (matches original editor layout) */
+  .preview-large { width: 100%; aspect-ratio: 16 / 9; min-height: 360px; }
+  .preview-large .preview-inner { position: absolute; inset: 0; border-radius: 0; border: 0; background: transparent; display: flex; align-items: stretch; justify-content: stretch; }
+  .preview-glow { position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(34,211,238,0.12), transparent 55%); }
+  .preview-inner {
+    position: absolute; inset: var(--sp-6); border-radius: 22px; border: 1px solid rgba(34,211,238,0.15);
+    background: linear-gradient(135deg, rgba(20,25,33,0.9), rgba(8,10,14,0.86)); overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .preview-emoji { font-size: 64px; }
+  .preview-meta-chip {
+    position: absolute; left: var(--sp-4); bottom: var(--sp-4);
+    padding: 6px 12px; border-radius: var(--r-full); border: 1px solid var(--border);
+    background: rgba(7,12,18,0.7); font-size: 11px; color: var(--text-muted);
+    backdrop-filter: blur(8px);
+  }
+  .preview-controls {
+    position: absolute; right: var(--sp-4); bottom: var(--sp-4); display: flex; gap: var(--sp-2);
+  }
+  .circle-btn {
+    width: 40px; height: 40px; border-radius: var(--r-full); border: 1px solid transparent;
+    background: var(--surface-3); color: white; cursor: pointer; display: grid; place-items: center;
+    transition: transform .15s ease, background .15s ease;
+  }
+  .circle-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.16); }
+  .circle-btn.primary { width: 48px; height: 48px; background: white; color: black; box-shadow: 0 10px 30px rgba(255,255,255,0.15); }
+
+  /* ---------- Side cards ---------- */
+  .side-card {
+    border-radius: var(--r-xl); border: 1px solid var(--border); background: var(--surface-1);
+    box-shadow: var(--shadow-card); padding: var(--sp-3);
+  }
+  .card-title {
+    margin: 0 0 var(--sp-3); font-size: var(--fs-label); font-weight: var(--fw-label);
+    text-transform: uppercase; letter-spacing: var(--ls-label); color: rgba(255,255,255,0.82);
+  }
+  .card-title.cyan { color: #bae6fd; }
+  .media-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+  .media-item {
+    min-height: 64px; border-radius: var(--r-md); border: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--surface-2), rgba(255,255,255,0.025));
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; text-align: left; cursor: pointer;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .media-item:hover { transform: translateY(-1px); border-color: rgba(34,211,238,0.22); background: linear-gradient(180deg, var(--cyan-faint), rgba(255,255,255,0.03)); }
+  .media-icon { width: 34px; height: 34px; border-radius: var(--r-sm); border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.28); display: grid; place-items: center; font-size: 17px; flex: 0 0 auto; }
+  .media-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.88); }
+  .media-desc { margin-top: 2px; font-size: 9px; line-height: 1.35; color: var(--text-dim); }
+  .chat-stack { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--sp-3); max-height: 180px; overflow-y: auto; }
+  .chat-bubble { border-radius: var(--r-sm); padding: var(--sp-2); font-size: 10px; max-width: 80%; word-wrap: break-word; }
+  .chat-bubble.user { background: var(--surface-2); align-self: flex-end; }
+  .chat-bubble.ai { background: var(--cyan-soft); color: #cffafe; align-self: flex-start; }
+  .chat-input { display: flex; gap: var(--sp-2); }
+  .text-input { flex: 1; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--surface-sunken); color: white; padding: 10px 12px; }
+  .primary-btn { border-radius: var(--r-sm); border: 1px solid transparent; background: var(--accent-grad); color: #03131a; font-weight: 700; padding: 10px 14px; cursor: pointer; }
+
+  /* ============================================================
+     TIMELINE CARD — the focus of the redesign
+     ============================================================ */
+  .timeline-card {
+    border-radius: var(--r-2xl); border: 1px solid var(--border); background: var(--surface-1);
+    box-shadow: var(--shadow-card); padding: var(--sp-3);
+  }
+  .timeline-top {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);
+    margin-bottom: var(--sp-3); flex-wrap: wrap;
+  }
+  .toolbar-left, .tool-group, .pill-row { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+  .tool-group { gap: var(--sp-1); padding: var(--sp-1); border-radius: var(--r-md); border: 1px solid var(--border); background: var(--surface-sunken); }
+  .tool-btn {
+    min-width: 40px; min-height: 40px; border-radius: var(--r-sm); font-size: 14px;
+    border: 1px solid transparent; background: transparent; color: rgba(255,255,255,0.72); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 10px;
+    transition: all .15s ease;
+  }
+  .tool-btn:hover { background: var(--surface-2); color: white; }
+  .tool-btn.active { border-color: rgba(34,211,238,0.45); background: var(--cyan-soft); color: #cffafe; }
+  .tool-btn .lbl { font-size: 11px; font-weight: 700; }
+  .pill { border-radius: var(--r-full); padding: 7px 12px; border: 1px solid var(--border); background: var(--surface-2); font-size: 10px; color: var(--text-muted); }
+
+  /* Zoom control */
+  .zoom {
+    display: flex; align-items: center; gap: var(--sp-2);
+    padding: var(--sp-1) var(--sp-2); border-radius: var(--r-md); border: 1px solid var(--border); background: var(--surface-sunken);
+  }
+  .zoom-btn { width: 28px; height: 28px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--surface-2); color: white; cursor: pointer; display: grid; place-items: center; }
+  .zoom-btn:hover { background: var(--surface-3); }
+  .zoom-track { width: 96px; height: 4px; border-radius: var(--r-full); background: rgba(255,255,255,0.18); position: relative; cursor: pointer; }
+  .zoom-fill { position: absolute; left: 0; top: 0; height: 100%; width: 55%; border-radius: inherit; background: var(--accent-grad); }
+  .zoom-knob { position: absolute; top: 50%; left: 55%; width: 12px; height: 12px; border-radius: var(--r-full); background: white; transform: translate(-50%,-50%); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+
+  /* ---------- Timeline shell ---------- */
+  .timeline-shell {
+    position: relative; overflow: hidden; border-radius: var(--r-xl);
+    border: 1px solid var(--border-soft); background: var(--surface-sunken);
+  }
+  /* Header row: track-label column + ruler */
+  .timeline-header {
+    display: grid; grid-template-columns: var(--track-w) 1fr;
+    border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.03);
+    font-size: var(--fs-label); text-transform: uppercase; letter-spacing: .25em; color: var(--text-muted);
+    height: var(--ruler-h);
+  }
+  .timeline-header .corner {
+    padding: 0 var(--sp-3); display: flex; align-items: center; justify-content: space-between;
+    border-right: 1px solid var(--border);
+  }
+  .timeline-header .corner .hint { font-size: 9px; letter-spacing: .04em; color: var(--text-faint); text-transform: none; }
+
+  /* Ruler */
+  .ruler { position: relative; height: 100%; overflow: hidden; }
+  .ruler canvas { display: block; width: 100%; height: 100%; }
+  .ruler-ticks { position: absolute; inset: 0; pointer-events: none; }
+  .tick { position: absolute; top: 0; bottom: 0; border-left: 1px solid rgba(255,255,255,0.10); }
+  .tick.minor { border-left-color: rgba(255,255,255,0.05); }
+  .tick .t-label { position: absolute; top: 6px; left: 6px; font-size: 9px; color: var(--text-muted); letter-spacing: .03em; }
+
+  /* Body */
+  .timeline-body { position: relative; }
+  .playhead-layer { position: absolute; left: var(--track-w); right: 0; top: 0; bottom: 0; pointer-events: none; z-index: 30; }
+  .playhead-line { position: absolute; top: 0; bottom: 0; left: 34%; width: 2px; background: var(--cyan); box-shadow: 0 0 18px var(--cyan-glow); }
+  .playhead-knob {
+    position: absolute; top: -1px; left: calc(34% - 7px); width: 14px; height: 14px; border-radius: 4px;
+    background: var(--cyan); box-shadow: 0 0 15px var(--cyan-glow); cursor: ew-resize; pointer-events: auto;
+    transform: rotate(45deg);
+  }
+  .playhead-knob::after { content: ""; position: absolute; inset: 3px; border-radius: 2px; background: rgba(0,0,0,0.35); }
+
+  /* Tracks */
+  .track-row { display: grid; grid-template-columns: var(--track-w) 1fr; min-height: var(--track-h); border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .track-row:last-child { border-bottom: 0; }
+  .track-meta {
+    padding: var(--sp-2) var(--sp-3); border-right: 1px solid var(--border); background: var(--track-meta);
+    display: flex; flex-direction: column; justify-content: center; gap: var(--sp-2);
+  }
+  .track-head-top { display: flex; align-items: center; gap: var(--sp-2); }
+  .track-type-dot { width: 8px; height: 8px; border-radius: 2px; background: var(--cyan); flex: 0 0 auto; }
+  .track-type-dot.video { background: #38bdf8; }
+  .track-type-dot.audio { background: #34d399; }
+  .track-type-dot.text  { background: #f59e0b; }
+  .track-type-dot.fx    { background: #a78bfa; }
+  .track-name { font-size: var(--fs-track); font-weight: var(--fw-track); color: rgba(255,255,255,0.86); }
+  .track-actions { display: flex; align-items: center; gap: 6px; }
+  .track-toggle {
+    min-width: 26px; min-height: 26px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface-2); color: rgba(255,255,255,0.9); font-size: 12px; cursor: pointer;
+    display: grid; place-items: center; transition: all .15s ease;
+  }
+  .track-toggle:hover { background: var(--surface-3); }
+  .track-toggle.on { background: var(--cyan-soft); border-color: rgba(34,211,238,0.45); color: #cffafe; }
+  .track-toggle.locked { background: var(--cyan-soft); }
+  .track-count { font-size: var(--fs-help); color: var(--text-muted); }
+
+  .track-lane {
+    position: relative; background: var(--track-lane); min-height: var(--track-h);
+    background-image: linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 80px 100%;
+  }
+
+  /* Clips */
+  .clip {
+    position: absolute; top: 8px; bottom: 8px; border-radius: var(--r-sm); border: 1px solid var(--border);
+    padding: 0; font-size: var(--fs-clip); font-weight: var(--fw-clip); color: rgba(255,255,255,0.86);
+    background: rgba(255,255,255,0.1); box-shadow: 0 10px 24px rgba(0,0,0,0.25); overflow: hidden;
+    cursor: grab; display: flex; flex-direction: column; transition: border-color .12s ease, box-shadow .12s ease, transform .12s ease;
+  }
+  .clip:hover { border-color: rgba(255,255,255,0.30); }
+  .clip.active { border-color: rgba(34,211,238,0.6); background: var(--cyan-soft); color: #cffafe; box-shadow: 0 0 0 1px rgba(34,211,238,0.4), 0 10px 30px rgba(34,211,238,0.18); }
+  .clip.dragging { cursor: grabbing; opacity: 0.92; box-shadow: var(--shadow-pop); }
+  .clip-thumb { height: 60%; background-size: cover; background-position: center; border-bottom: 1px solid rgba(255,255,255,0.08); position: relative; }
+  .clip-thumb .grad { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(56,189,248,0.25), rgba(52,211,153,0.12)); }
+  .clip-wave { height: 60%; display: flex; align-items: center; gap: 1px; padding: 0 8px; }
+  .clip-wave span { flex: 1; background: linear-gradient(to top, rgba(52,211,153,0.4), rgba(52,211,153,0.95)); border-radius: 1px; }
+  .clip-label { padding: 6px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+  .clip-label .ic { opacity: 0.8; }
+  .clip-handle { position: absolute; top: 0; bottom: 0; width: 6px; cursor: ew-resize; }
+  .clip-handle.l { left: 0; } .clip-handle.r { right: 0; }
+  .clip-handle:hover { background: rgba(255,255,255,0.18); }
+  .clip-dur { position: absolute; right: 6px; bottom: 6px; font-size: 8px; color: rgba(255,255,255,0.65); background: rgba(0,0,0,0.35); padding: 1px 5px; border-radius: 4px; }
+
+  /* Scene marker + transition */
+  .scene-marker { position: absolute; top: 0; width: 3px; height: 100%; background: var(--amber); border-radius: 2px; cursor: pointer; z-index: 20; transition: background .15s ease, width .15s ease; }
+  .scene-marker:hover { background: #fbbf24; width: 5px; }
+  .timeline-transition {
+    position: absolute; top: 8px; height: calc(var(--track-h) - 16px);
+    background: linear-gradient(135deg, rgba(34,211,238,0.2), rgba(52,211,153,0.1));
+    border: 1px solid rgba(34,211,238,0.4); border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: grab;
+    transition: transform .15s ease, box-shadow .15s ease; z-index: 15;
+  }
+  .timeline-transition:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(34,211,238,0.2); }
+  .timeline-transition .ti { font-size: 14px; } .timeline-transition .tn { font-size: 8px; font-weight: 600; color: #cffafe; }
+
+  /* Time readout */
+  .time-readout { display: flex; align-items: center; gap: var(--sp-2); font-variant-numeric: tabular-nums; }
+  .time-now { font-size: 14px; font-weight: 800; color: var(--text-strong); }
+  .time-total { font-size: 11px; color: var(--text-muted); }
+
+  /* Floating rail */
+  .floating-rail {
+    position: fixed; left: 50%; bottom: var(--sp-4); transform: translateX(-50%); z-index: 40;
+    padding: 10px 14px; border-radius: var(--r-full); border: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    backdrop-filter: blur(18px); box-shadow: var(--shadow-pop); display: flex; gap: var(--sp-2);
+  }
+  .rail-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 12px; border-radius: var(--r-md); font-size: 10px; font-weight: 700; border: 1px solid transparent; background: transparent; color: rgba(255,255,255,0.72); cursor: pointer; transition: all .15s ease; }
+  .rail-btn:hover { background: var(--surface-3); border-color: rgba(34,211,238,0.4); }
+  .rail-btn .emoji { font-size: 16px; }
+
+  /* ---------- Empty + loading states ---------- */
+  .empty-state { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-2); text-align: center; padding: var(--sp-6); }
+  .empty-state .e-emoji { font-size: 40px; opacity: 0.7; }
+  .empty-state .e-title { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.9); }
+  .empty-state .e-sub { font-size: 11px; color: var(--text-muted); max-width: 320px; line-height: 1.5; }
+  .empty-state .e-btn { margin-top: var(--sp-2); }
+
+  /* ---------- Feature index bar ---------- */
+  .feature-index { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: var(--sp-4); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-lg); border: 1px solid var(--border); background: var(--surface-1); }
+  .fi-label { font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--text-dim); margin-right: 4px; }
+  .fi-chip { border-radius: var(--r-full); padding: 6px 12px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-muted); font-size: 11px; cursor: pointer; transition: all .15s ease; }
+  .fi-chip:hover { background: var(--cyan-soft); border-color: rgba(34,211,238,0.4); color: #cffafe; transform: translateY(-1px); }
+
+  /* ---------- Video viewer ---------- */
+  .viewer { display: flex; flex-direction: column; height: 100%; }
+  .viewer-stage { position: relative; flex: 1; min-height: 180px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
+  .viewer-frame { position: absolute; inset: 0; background:
+      radial-gradient(120% 80% at 30% 20%, rgba(56,189,248,0.25), transparent 55%),
+      radial-gradient(100% 90% at 80% 90%, rgba(168,85,247,0.22), transparent 60%),
+      linear-gradient(135deg, #0b1220, #060911); }
+  .vf-gradient { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.55), transparent 40%); }
+  .vf-subtitle { position: absolute; left: 0; right: 0; bottom: 56px; text-align: center; font-size: 15px; font-weight: 700; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.8); padding: 0 16px; }
+  .vf-badge { position: absolute; top: 12px; left: 12px; font-size: 10px; letter-spacing: .06em; color: #fca5a5; background: rgba(0,0,0,0.45); padding: 4px 8px; border-radius: 6px; }
+  .viewer-controls { position: relative; display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3); background: rgba(7,12,18,0.6); backdrop-filter: blur(8px); }
+  .vf-progress { flex: 1; height: 5px; border-radius: var(--r-full); background: rgba(255,255,255,0.18); overflow: hidden; }
+  .vf-fill { height: 100%; background: var(--accent-grad); }
+  .vf-time { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .filmstrip { display: flex; gap: 6px; padding: var(--sp-2); background: rgba(0,0,0,0.3); overflow-x: auto; }
+  .filmstrip .fs-thumb { flex: 0 0 auto; width: 84px; height: 48px; border-radius: 6px; border: 1px solid var(--border); background-size: cover; background-position: center; cursor: pointer; transition: border-color .15s ease; position: relative; }
+  .filmstrip .fs-thumb:hover { border-color: rgba(34,211,238,0.5); }
+  .filmstrip .fs-thumb.active { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan); }
+  .filmstrip .fs-thumb span { position: absolute; bottom: 2px; right: 4px; font-size: 8px; color: #fff; background: rgba(0,0,0,0.5); padding: 0 3px; border-radius: 3px; }
+  .upload-btn { width: 100%; border-radius: 12px; border: 1px dashed var(--border); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.72); padding: 11px 14px; cursor: pointer; font-weight: 700; }
+
+  /* ---------- Color correction ---------- */
+  .cc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+  .cc-row { display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: var(--text-muted); }
+  .cc-row input[type="range"] { width: 100%; accent-color: var(--cyan); }
+
+  /* ---------- Subtitles ---------- */
+  .sub-list { display: flex; flex-direction: column; gap: 4px; max-height: 140px; overflow-y: auto; }
+  .sub-row { display: grid; grid-template-columns: 56px 1fr; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 8px; border: 1px solid transparent; font-size: 11px; cursor: pointer; }
+  .sub-row:hover { background: var(--surface-2); }
+  .sub-row.active { border-color: rgba(34,211,238,0.4); background: var(--cyan-faint); }
+  .sub-t { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .sub-c { color: rgba(255,255,255,0.86); }
+
+  /* ---------- Modal system (all editor modals) ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.78); z-index: 1000;
+    display: none; align-items: center; justify-content: center; padding: var(--sp-5); backdrop-filter: blur(8px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-content {
+    background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.028));
+    border: 1px solid var(--border); border-radius: var(--r-2xl); box-shadow: var(--shadow-card);
+    max-width: 720px; width: 100%; max-height: 86vh; overflow: hidden; display: flex; flex-direction: column;
+    animation: modalIn .18s ease;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--border); background: var(--surface-sunken); }
+  .modal-header h3 { margin: 0; font-size: 16px; font-weight: 800; color: rgba(255,255,255,0.92); }
+  .modal-close { background: none; border: 1px solid var(--border); color: var(--text-muted); width: 32px; height: 32px; border-radius: 10px; font-size: 16px; cursor: pointer; }
+  .modal-close:hover { background: var(--surface-2); color: white; }
+  .modal-body { padding: var(--sp-5); overflow-y: auto; }
+  .modal-tag { display: inline-block; font-size: 9px; text-transform: uppercase; letter-spacing: .1em; color: #bae6fd; border: 1px solid rgba(34,211,238,0.3); background: var(--cyan-faint); padding: 3px 8px; border-radius: 999px; margin-bottom: 10px; }
+  .modal-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; margin: 0 0 var(--sp-4); }
+  .field { margin-bottom: var(--sp-3); }
+  .field label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+  .field input, .field textarea, .field select { width: 100%; padding: 10px 12px; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: var(--r-sm); color: white; font-size: 13px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--sp-3); }
+  .opt-card { border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-3); background: var(--surface-2); cursor: pointer; transition: all .15s ease; }
+  .opt-card:hover { border-color: rgba(34,211,238,0.4); background: var(--cyan-faint); transform: translateY(-1px); }
+  .opt-card .oc-emoji { font-size: 22px; }
+  .opt-card .oc-title { font-size: 12px; font-weight: 700; margin-top: 6px; color: rgba(255,255,255,0.9); }
+  .opt-card .oc-desc { font-size: 10px; color: var(--text-dim); margin-top: 2px; line-height: 1.4; }
+  .modal-actions { display: flex; gap: var(--sp-2); justify-content: flex-end; margin-top: var(--sp-4); }
+  .btn-ghost { border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--surface-2); color: white; padding: 10px 16px; cursor: pointer; font-weight: 600; }
+  .btn-primary { border-radius: var(--r-sm); border: 1px solid transparent; background: var(--accent-grad); color: #03131a; padding: 10px 16px; cursor: pointer; font-weight: 700; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  @media (max-width: 1180px) { .main-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 980px) { .left-top { grid-template-columns: 1fr; } }
+  @media (max-width: 860px) { .header { flex-direction: column; align-items: stretch; } .project-head { text-align: left; } :root { --track-w: 96px; } .floating-rail { left: 16px; right: 16px; transform: none; justify-content: center; } }
+  @media (max-width: 640px) { :root { --track-w: 76px; } .header { padding: 12px 14px; border-radius: 18px; } .timeline-card { padding: 8px; border-radius: 18px; } .side-card { border-radius: 16px; padding: 8px; } }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ============ HEADER ============ -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-mark">🎬</div>
+      <div>
+        <div class="brand-title">Higgsfield</div>
+        <div class="brand-sub">Editor</div>
+      </div>
+    </div>
+    <div class="project-head">
+      <div class="title">Untitled Sequence</div>
+      <div class="sub">1080 × 1920 · 30 fps</div>
+    </div>
+    <div class="top-actions">
+      <button class="top-icon" aria-label="Undo">↶</button>
+      <button class="top-icon" aria-label="Redo">↷</button>
+      <button class="top-icon active" aria-label="Timeline view" aria-pressed="true">▦</button>
+      <button class="top-icon" id="openSettings" aria-label="Settings" title="Settings">⚙</button>
+      <button class="top-icon" id="openConnect" aria-label="Connections" title="Connections">🔗</button>
+      <button class="top-icon" id="openAgents" aria-label="AI Agents" title="AI Agents">🤖</button>
+      <button class="top-icon" id="openSave" aria-label="Save project" title="Save">💾</button>
+      <span class="ready-pill"><span class="ready-dot"></span>Render Ready</span>
+    </div>
+  </header>
+
+  <!-- Feature index — click any chip to open that surface/modal -->
+  <nav class="feature-index" aria-label="All editor features">
+    <span class="fi-label">All features:</span>
+    <button class="fi-chip" data-modal="previewMedia">Media Preview</button>
+    <button class="fi-chip" data-modal="videoPlayer">Video Player</button>
+    <button class="fi-chip" data-modal="recorder">Recorder</button>
+    <button class="fi-chip" data-modal="urlVideo">URL Video</button>
+    <button class="fi-chip" data-modal="templates">Templates</button>
+    <button class="fi-chip" data-modal="aiVideo">AI Video</button>
+    <button class="fi-chip" data-modal="personalization">Personalization</button>
+    <button class="fi-chip" data-modal="landing">Landing Builder</button>
+    <button class="fi-chip" data-modal="social">Social Publish</button>
+    <button class="fi-chip" data-modal="email">Email Campaign</button>
+    <button class="fi-chip" data-modal="leads">Lead Gen</button>
+    <button class="fi-chip" data-modal="contacts">Contacts</button>
+    <button class="fi-chip" data-modal="endScreen">End Screen</button>
+    <button class="fi-chip" data-modal="import">Import Timeline</button>
+    <button class="fi-chip" data-modal="storyboard">CutAI Storyboard</button>
+    <button class="fi-chip" data-modal="subtitleEditor">Subtitle Editor</button>
+    <button class="fi-chip" data-modal="imageCrop">Image Cropper</button>
+    <button class="fi-chip" data-modal="imageEdit">Image Editor</button>
+    <button class="fi-chip" data-modal="voice">Voice</button>
+  </nav>
+
+  <!-- ============ MAIN GRID ============ -->
+  <div class="main-grid">
+    <div class="left-col">
+
+      <!-- ============ LARGE PREVIEW CARD (above timeline, original layout) ============ -->
+      <section class="preview-card preview-large">
+        <div class="preview-glow"></div>
+        <div class="preview-inner" style="align-items:stretch; padding:0;">
+          <div class="viewer">
+            <div class="viewer-stage" id="viewerStage">
+              <div class="viewer-frame" id="viewerFrame">
+                <div class="vf-gradient"></div>
+                <div class="vf-subtitle" id="vfSubtitle">Your story starts here.</div>
+                <div class="vf-badge">● REC · 00:12.4</div>
+              </div>
+              <div class="viewer-controls">
+                <button class="circle-btn" id="vfPrev" aria-label="Previous frame">⏮</button>
+                <button class="circle-btn primary" id="vfPlay" aria-label="Play / pause">▶</button>
+                <button class="circle-btn" id="vfStop" aria-label="Stop">⏹</button>
+                <div class="vf-progress"><div class="vf-fill" id="vfFill" style="width:28%"></div></div>
+                <span class="vf-time" id="vfTime">00:12.4 / 00:45.0</span>
+                <button class="circle-btn" id="vfFull" aria-label="Fullscreen / open player" title="Open Video Player">⤢</button>
+              </div>
+            </div>
+            <div class="filmstrip" id="filmstrip" aria-label="Clip thumbnails"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ TIMELINE CARD ============ -->
+      <section class="timeline-card" aria-label="Timeline editor">
+        <div class="timeline-top">
+          <div class="toolbar-left">
+            <div class="tool-group" role="group" aria-label="Playback">
+              <button class="tool-btn" aria-label="Jump to start">⏮</button>
+              <button class="tool-btn active" aria-label="Play" aria-pressed="true">▶</button>
+              <button class="tool-btn" aria-label="Jump to end">⏭</button>
+            </div>
+            <div class="time-readout" aria-live="off">
+              <span class="time-now">00:12.4</span>
+              <span class="time-total">/ 00:45.0</span>
+            </div>
+            <div class="tool-group" role="group" aria-label="Edit tools">
+              <button class="tool-btn" aria-label="Split at playhead">✂</button>
+              <button class="tool-btn" aria-label="Ripple delete">⌫</button>
+              <button class="tool-btn" aria-label="Add track">＋</button>
+            </div>
+          </div>
+          <div class="zoom" role="group" aria-label="Zoom">
+            <button class="zoom-btn" aria-label="Zoom out">−</button>
+            <div class="zoom-track" aria-hidden="true"><div class="zoom-fill"></div><div class="zoom-knob"></div></div>
+            <button class="zoom-btn" aria-label="Zoom in">＋</button>
+            <button class="zoom-btn" aria-label="Fit to window" title="Fit">⤢</button>
+          </div>
+        </div>
+
+        <div class="timeline-shell">
+          <!-- Header: corner + ruler -->
+          <div class="timeline-header">
+            <div class="corner">
+              <span>Tracks</span>
+              <span class="hint">drag • snap</span>
+            </div>
+            <div class="ruler" id="ruler" aria-hidden="true">
+              <canvas id="rulerCanvas"></canvas>
+              <div class="ruler-ticks" id="rulerTicks"></div>
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="timeline-body" id="timelineBody">
+
+            <!-- TRACK 1: Video -->
+            <div class="track-row" role="listitem">
+              <div class="track-meta">
+                <div class="track-head-top">
+                  <span class="track-type-dot video"></span>
+                  <span class="track-name">Main Video</span>
+                </div>
+                <div class="track-actions">
+                  <button class="track-toggle on" aria-label="Mute Main Video" aria-pressed="false" title="Mute">🔊</button>
+                  <button class="track-toggle" aria-label="Solo Main Video" title="Solo">S</button>
+                  <button class="track-toggle" aria-label="Lock Main Video" title="Lock">🔓</button>
+                </div>
+                <span class="track-count">4 clips</span>
+              </div>
+              <div class="track-lane">
+                <div class="clip active" style="left:2%; width:22%;" tabindex="0" role="button" aria-label="Clip: Hero Wide, 10.0s">
+                  <div class="clip-thumb"><div class="grad"></div></div>
+                  <div class="clip-label"><span class="ic">🎥</span>Hero Wide</div>
+                  <span class="clip-dur">10.0s</span>
+                  <span class="clip-handle l"></span><span class="clip-handle r"></span>
+                </div>
+                <div class="clip" style="left:25%; width:16%;" tabindex="0" role="button" aria-label="Clip: Product Spin, 7.2s">
+                  <div class="clip-thumb"><div class="grad"></div></div>
+                  <div class="clip-label"><span class="ic">🎥</span>Product Spin</div>
+                  <span class="clip-dur">7.2s</span>
+                  <span class="clip-handle l"></span><span class="clip-handle r"></span>
+                </div>
+                <!-- transition between clips -->
+                <div class="timeline-transition" style="left:40%; width:5%;" tabindex="0" role="button" aria-label="Crossfade transition, 0.5s">
+                  <span class="ti">⮂</span><span class="tn">0.5s</span>
+                </div>
+                <div class="clip" style="left:46%; width:20%;" tabindex="0" role="button" aria-label="Clip: Lifestyle B, 9.1s">
+                  <div class="clip-thumb"><div class="grad"></div></div>
+                  <div class="clip-label"><span class="ic">🎥</span>Lifestyle B</div>
+                  <span class="clip-dur">9.1s</span>
+                  <span class="clip-handle l"></span><span class="clip-handle r"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- TRACK 2: Audio -->
+            <div class="track-row" role="listitem">
+              <div class="track-meta">
+                <div class="track-head-top">
+                  <span class="track-type-dot audio"></span>
+                  <span class="track-name">Voiceover</span>
+                </div>
+                <div class="track-actions">
+                  <button class="track-toggle on" aria-label="Mute Voiceover" aria-pressed="false" title="Mute">🔊</button>
+                  <button class="track-toggle" aria-label="Solo Voiceover" title="Solo">S</button>
+                  <button class="track-toggle locked" aria-label="Lock Voiceover" title="Lock" aria-pressed="true">🔒</button>
+                </div>
+                <span class="track-count">2 clips</span>
+              </div>
+              <div class="track-lane">
+                <div class="clip" style="left:2%; width:40%;" tabindex="0" role="button" aria-label="Clip: VO Take 1, 18.0s">
+                  <div class="clip-wave" id="wave1"></div>
+                  <div class="clip-label"><span class="ic">🎙️</span>VO Take 1</div>
+                  <span class="clip-dur">18.0s</span>
+                  <span class="clip-handle l"></span><span class="clip-handle r"></span>
+                </div>
+                <div class="clip" style="left:44%; width:30%;" tabindex="0" role="button" aria-label="Clip: VO Take 2, 13.5s">
+                  <div class="clip-wave" id="wave2"></div>
+                  <div class="clip-label"><span class="ic">🎙️</span>VO Take 2</div>
+                  <span class="clip-dur">13.5s</span>
+                  <span class="clip-handle l"></span><span class="clip-handle r"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- TRACK 3: Text / Titles -->
+            <div class="track-row" role="listitem">
+              <div class="track-meta">
+                <div class="track-head-top">
+                  <span class="track-type-dot text"></span>
+                  <span class="track-name">Titles</span>
+                </div>
+                <div class="track-actions">
+                  <button class="track-toggle on" aria-label="Mute Titles" aria-pressed="false" title="Mute">🔊</button>
+                  <button class="track-toggle" aria-label="Solo Titles" title="Solo">S</button>
+                  <button class="track-toggle" aria-label="Lock Titles" title="Lock">🔓</button>
+                </div>
+                <span class="track-count">3 clips</span>
+              </div>
+              <div class="track-lane">
+                <div class="clip" style="left:8%; width:14%;" tabindex="0" role="button" aria-label="Clip: Lower Third, 6.0s">
+                  <div class="clip-label"><span class="ic">🅣</span>Lower Third</div>
+                  <span class="clip-dur">6.0s</span>
+                </div>
+                <div class="clip" style="left:30%; width:20%;" tabindex="0" role="button" aria-label="Clip: Title Card, 9.0s">
+                  <div class="clip-label"><span class="ic">🅣</span>Title Card</div>
+                  <span class="clip-dur">9.0s</span>
+                </div>
+                <div class="scene-marker" style="left:52%;" title="Scene marker" role="button" aria-label="Scene marker at 23.4s"></div>
+                <div class="clip" style="left:54%; width:12%;" tabindex="0" role="button" aria-label="Clip: End Card, 5.0s">
+                  <div class="clip-label"><span class="ic">🅣</span>End Card</div>
+                  <span class="clip-dur">5.0s</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- TRACK 4: FX -->
+            <div class="track-row" role="listitem">
+              <div class="track-meta">
+                <div class="track-head-top">
+                  <span class="track-type-dot fx"></span>
+                  <span class="track-name">Effects</span>
+                </div>
+                <div class="track-actions">
+                  <button class="track-toggle on" aria-label="Mute Effects" aria-pressed="false" title="Mute">🔊</button>
+                  <button class="track-toggle" aria-label="Solo Effects" title="Solo">S</button>
+                  <button class="track-toggle" aria-label="Lock Effects" title="Lock">🔓</button>
+                </div>
+                <span class="track-count">1 clip</span>
+              </div>
+              <div class="track-lane">
+                <div class="clip" style="left:2%; width:60%;" tabindex="0" role="button" aria-label="Clip: Color Grade, 27.0s">
+                  <div class="clip-label"><span class="ic">✨</span>Color Grade</div>
+                  <span class="clip-dur">27.0s</span>
+                  <span class="clip-handle l"></span><span class="clip-handle r"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Playhead (drawn above lanes) -->
+            <div class="playhead-layer">
+              <div class="playhead-line" id="playheadLine"></div>
+              <div class="playhead-knob" id="playheadKnob" role="slider" tabindex="0"
+                   aria-label="Playhead position" aria-valuemin="0" aria-valuemax="45" aria-valuenow="12.4"
+                   aria-valuetext="00:12.4"></div>
+            </div>
+
+          </div><!-- /timeline-body -->
+        </div><!-- /timeline-shell -->
+      </section>
+
+    </div><!-- /left-col -->
+
+    <!-- ============ SIDE COLUMN ============ -->
+    <div class="side-col">
+      <!-- AI chat (moved beside preview, matching original layout) -->
+      <div class="side-card" id="agentPanel">
+        <h3 class="card-title cyan">AI Assistant</h3>
+        <div class="chat-stack">
+          <div class="chat-bubble user">Trim the intro to 3s</div>
+          <div class="chat-bubble ai">Done — trimmed first clip, kept audio in sync.</div>
+          <div class="chat-bubble user">Add a crossfade here</div>
+          <div class="chat-bubble ai">Added 0.5s crossfade between clips 2 & 3.</div>
+        </div>
+        <div class="chat-input">
+          <input class="text-input" placeholder="Ask the editor to do anything…" aria-label="Message AI assistant" />
+          <button class="primary-btn" aria-label="Send" data-modal="aiVideo">↑</button>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h3 class="card-title">Media Library</h3>
+        <div class="media-grid">
+          <button class="media-item" data-modal="previewMedia"><span class="media-icon">🎥</span><span class="media-copy"><span class="media-label">Clip 01</span><span class="media-desc">0:14 · 1080p</span></span></button>
+          <button class="media-item" data-modal="previewMedia"><span class="media-icon">🎙️</span><span class="media-copy"><span class="media-label">VO Raw</span><span class="media-desc">0:48 · WAV</span></span></button>
+          <button class="media-item" data-modal="previewMedia"><span class="media-icon">🖼️</span><span class="media-copy"><span class="media-label">Logo</span><span class="media-desc">PNG · 512</span></span></button>
+          <button class="media-item" data-modal="previewMedia"><span class="media-icon">🎵</span><span class="media-copy"><span class="media-label">Track</span><span class="media-desc">2:10 · MP3</span></span></button>
+        </div>
+        <button class="upload-btn" id="uploadBtn" style="margin-top:10px;">Upload media…</button>
+      </div>
+
+      <div class="side-card">
+        <h3 class="card-title cyan">Generate</h3>
+        <div class="media-grid">
+          <button class="media-item" data-modal="templates"><span class="media-icon">✂️</span><span class="media-copy"><span class="media-label">Auto Cut</span><span class="media-desc">Silence detect</span></span></button>
+          <button class="media-item" data-modal="subtitleEditor"><span class="media-icon">🌐</span><span class="media-copy"><span class="media-label">Subtitles</span><span class="media-desc">Transcribe</span></span></button>
+          <button class="media-item" data-modal="aiVideo"><span class="media-icon">🤖</span><span class="media-copy"><span class="media-label">AI Video</span><span class="media-desc">Generate</span></span></button>
+          <button class="media-item" data-modal="storyboard"><span class="media-icon">🎞️</span><span class="media-copy"><span class="media-label">CutAI Board</span><span class="media-desc">Storyboard</span></span></button>
+        </div>
+      </div>
+
+      <div class="side-card" id="colorCorrectionPanel">
+        <h3 class="card-title">Color Correction</h3>
+        <div class="cc-grid">
+          <label class="cc-row"><span>Exposure</span><input type="range" min="-100" max="100" value="12"></label>
+          <label class="cc-row"><span>Contrast</span><input type="range" min="-100" max="100" value="-8"></label>
+          <label class="cc-row"><span>Saturation</span><input type="range" min="-100" max="100" value="20"></label>
+          <label class="cc-row"><span>Temperature</span><input type="range" min="-100" max="100" value="6"></label>
+          <label class="cc-row"><span>Highlights</span><input type="range" min="-100" max="100" value="0"></label>
+          <label class="cc-row"><span>Shadows</span><input type="range" min="-100" max="100" value="14"></label>
+        </div>
+        <div class="demo-row" style="margin-top:10px;">
+          <button class="mini-btn" style="border-radius:10px;padding:8px 12px;font-size:12px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);cursor:pointer;">Reset</button>
+          <button class="mini-btn" style="border-radius:10px;padding:8px 12px;font-size:12px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);cursor:pointer;">LUTs</button>
+        </div>
+      </div>
+
+      <div class="side-card" id="subtitlePanel">
+        <h3 class="card-title">Subtitles</h3>
+        <div class="sub-list">
+          <div class="sub-row"><span class="sub-t">00:02.1</span><span class="sub-c">Welcome to Higgsfield Editor</span></div>
+          <div class="sub-row active"><span class="sub-t">00:12.4</span><span class="sub-c">Your story starts here.</span></div>
+          <div class="sub-row"><span class="sub-t">00:21.0</span><span class="sub-c">Cut, trim and grade in one place</span></div>
+        </div>
+        <button class="mini-btn" data-modal="subtitleEditor" style="margin-top:10px;border-radius:10px;padding:8px 12px;font-size:12px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);cursor:pointer;">Open subtitle editor</button>
+      </div>
+
+    </div>
+  </div>
+  </div>
+
+  <!-- Floating rail -->
+  <nav class="floating-rail" aria-label="Quick actions">
+    <button class="rail-btn" aria-label="Add media"><span class="emoji">＋</span>Media</button>
+    <button class="rail-btn" aria-label="Generate"><span class="emoji">✨</span>Generate</button>
+    <button class="rail-btn" aria-label="Export"><span class="emoji">⬆</span>Export</button>
+  </nav>
+
+  <!-- ============ MODAL SYSTEM (all editor modals) ============ -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Title</h3>
+      <button class="modal-close" id="modalClose" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Screen-reader live region for playhead announcements -->
+<div class="sr-only" id="srStatus" aria-live="polite"></div>
+
+<script>
+  /* ---- Ruler rendering (zoom-aware ticks) ---- */
+  function drawRuler(canvasId, ticksId, pxPerSec) {
+    const canvas = document.getElementById(canvasId);
+    const ticks = document.getElementById(ticksId);
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth || canvas.parentElement.clientWidth;
+    const h = canvas.clientHeight || 40;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+
+    const totalSec = w / pxPerSec;
+    // choose a "nice" interval based on zoom
+    let major = 10;
+    if (pxPerSec > 14) major = 5;
+    if (pxPerSec > 28) major = 2;
+    if (pxPerSec > 60) major = 1;
+    const minor = major / 5;
+
+    ticks.innerHTML = '';
+    for (let s = 0; s <= totalSec; s += minor) {
+      const x = s * pxPerSec;
+      const isMajor = Math.abs(s / major - Math.round(s / major)) < 1e-6;
+      ctx.strokeStyle = isMajor ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.07)';
+      ctx.beginPath(); ctx.moveTo(x, isMajor ? 0 : h - 10); ctx.lineTo(x, h); ctx.stroke();
+      if (isMajor) {
+        const t = document.createElement('div');
+        t.className = 'tick';
+        t.style.left = x + 'px';
+        const lab = document.createElement('span');
+        lab.className = 't-label';
+        const mm = String(Math.floor(s / 60)).padStart(2, '0');
+        const ss = String(Math.floor(s % 60)).padStart(2, '0');
+        lab.textContent = mm + ':' + ss;
+        t.appendChild(lab);
+        ticks.appendChild(t);
+      }
+    }
+  }
+
+  function renderRulers() {
+    drawRuler('rulerCanvas', 'rulerTicks', 18);
+  }
+  window.addEventListener('resize', renderRulers);
+  renderRulers();
+
+  /* ---- Audio waveform bars (decorative) ---- */
+  function fillWave(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let html = '';
+    for (let i = 0; i < 60; i++) {
+      const hgt = 30 + Math.round(Math.abs(Math.sin(i * 0.5) * 50) + Math.random() * 20);
+      html += '<span style="height:' + hgt + '%"></span>';
+    }
+    el.innerHTML = html;
+  }
+  fillWave('wave1'); fillWave('wave2');
+
+  /* ---- Playhead drag + keyboard scrub ---- */
+  (function () {
+    const line = document.getElementById('playheadLine');
+    const knob = document.getElementById('playheadKnob');
+    const layer = document.querySelector('.playhead-layer');
+    const sr = document.getElementById('srStatus');
+    let dragging = false;
+    const TOTAL = 45;
+
+    function setPos(pct) {
+      pct = Math.max(0, Math.min(100, pct));
+      line.style.left = pct + '%';
+      knob.style.left = 'calc(' + pct + '% - 7px)';
+      const sec = (pct / 100) * TOTAL;
+      const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+      const ss = (sec % 60).toFixed(1).padStart(4, '0');
+      knob.setAttribute('aria-valuenow', sec.toFixed(1));
+      knob.setAttribute('aria-valuetext', mm + ':' + ss);
+      sr.textContent = 'Playhead at ' + mm + ':' + ss;
+    }
+
+    function pctFromEvent(e) {
+      const rect = layer.getBoundingClientRect();
+      return ((e.clientX - rect.left) / rect.width) * 100;
+    }
+
+    knob.addEventListener('pointerdown', function (e) { dragging = true; knob.setPointerCapture(e.pointerId); e.preventDefault(); });
+    window.addEventListener('pointermove', function (e) { if (dragging) setPos(pctFromEvent(e)); });
+    window.addEventListener('pointerup', function () { dragging = false; });
+
+    knob.addEventListener('keydown', function (e) {
+      const cur = parseFloat(knob.getAttribute('aria-valuenow')) || 0;
+      if (e.key === 'ArrowLeft') { setPos(((cur - 1) / TOTAL) * 100); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { setPos(((cur + 1) / TOTAL) * 100); e.preventDefault(); }
+      if (e.key === 'Home') { setPos(0); e.preventDefault(); }
+      if (e.key === 'End') { setPos(100); e.preventDefault(); }
+    });
+  })();
+
+  /* ---- Clip selection (demo) ---- */
+  document.querySelectorAll('.clip').forEach(function (c) {
+    c.addEventListener('click', function () {
+      document.querySelectorAll('.clip').forEach(function (x) { x.classList.remove('active'); });
+      c.classList.add('active');
+    });
+  });
+
+  /* ---- Track toggle pressed state (demo) ---- */
+  document.querySelectorAll('.track-toggle').forEach(function (b) {
+    b.addEventListener('click', function () { b.classList.toggle('on'); });
+  });
+
+  /* ---- Filmstrip thumbnails (viewer) ---- */
+  (function () {
+    const fs = document.getElementById('filmstrip');
+    if (!fs) return;
+    const labels = ['00:00','00:03','00:06','00:09','00:12','00:15','00:18','00:21','00:24','00:27'];
+    labels.forEach(function (t, i) {
+      const d = document.createElement('div');
+      d.className = 'fs-thumb' + (i === 4 ? ' active' : '');
+      d.style.background = 'linear-gradient(135deg, hsl(' + (200 + i * 12) + ' 60% 22%), hsl(' + (260 + i * 10) + ' 55% 14%))';
+      d.innerHTML = '<span>' + t + '</span>';
+      d.addEventListener('click', function () {
+        fs.querySelectorAll('.fs-thumb').forEach(function (x) { x.classList.remove('active'); });
+        d.classList.add('active');
+      });
+      fs.appendChild(d);
+    });
+  })();
+
+  /* ---- Viewer play/pause (cosmetic) ---- */
+  (function () {
+    const play = document.getElementById('vfPlay');
+    const stop = document.getElementById('vfStop');
+    const fill = document.getElementById('vfFill');
+    if (!play) return;
+    let playing = false;
+    play.addEventListener('click', function () {
+      playing = !playing;
+      play.textContent = playing ? '⏸' : '▶';
+    });
+    if (stop) stop.addEventListener('click', function () {
+      playing = false; play.textContent = '▶';
+      if (fill) fill.style.width = '0%';
+    });
+  })();
+
+  /* ============================================================
+     MODAL SYSTEM — every editor modal represented
+     ============================================================ */
+  const MODALS = {
+    previewMedia: { title: 'Media Preview', tag: 'Viewer',
+      body: '<span class="modal-tag">Preview</span><p class="modal-desc">Preview any asset in the library before dropping it on the timeline. Video, audio, image and text modes are supported.</p>' +
+        '<div class="grid-3"><div class="opt-card"><div class="oc-emoji">🎥</div><div class="oc-title">Clip 01</div><div class="oc-desc">0:14 · 1080p</div></div>' +
+        '<div class="opt-card"><div class="oc-emoji">🎙️</div><div class="oc-title">VO Raw</div><div class="oc-desc">0:48 · WAV</div></div>' +
+        '<div class="opt-card"><div class="oc-emoji">🖼️</div><div class="oc-title">Logo</div><div class="oc-desc">PNG · 512</div></div></div>' },
+    videoPlayer: { title: 'Video Player', tag: 'Viewer',
+      body: '<span class="modal-tag">Fullscreen Player</span><p class="modal-desc">Scene-by-scene fullscreen playback with frame stepping and a large transport.</p>' +
+        '<div class="viewer" style="border:1px solid var(--border);border-radius:16px;overflow:hidden"><div class="viewer-stage" style="min-height:240px"><div class="viewer-frame"><div class="vf-gradient"></div><div class="vf-subtitle">Your story starts here.</div></div><div class="viewer-controls"><button class="circle-btn">⏮</button><button class="circle-btn primary">⏸</button><button class="circle-btn">⏭</button><div class="vf-progress"><div class="vf-fill" style="width:42%"></div></div><span class="vf-time">00:18.9 / 00:45.0</span></div></div></div>' },
+    recorder: { title: 'Recorder', tag: 'Capture',
+      body: '<span class="modal-tag">Webcam / Screen</span><p class="modal-desc">Record video or screen directly into the timeline.</p>' +
+        '<div class="grid-2"><div class="opt-card"><div class="oc-emoji">🎥</div><div class="oc-title">Webcam</div><div class="oc-desc">Record camera</div></div>' +
+        '<div class="opt-card"><div class="oc-emoji">🖥️</div><div class="oc-title">Screen</div><div class="oc-desc">Record display</div></div></div>' },
+    urlVideo: { title: 'URL Video', tag: 'Import',
+      body: '<span class="modal-tag">Import</span><p class="modal-desc">Paste a video URL (YouTube, Loom, direct link) to import it.</p>' +
+        '<div class="field"><label>Video URL</label><input placeholder="https://…"></div>' },
+    templates: { title: 'Template Generator', tag: 'Generate',
+      body: '<span class="modal-tag">Templates</span><p class="modal-desc">Start from a curated template, then customize.</p>' +
+        '<div class="grid-3"><div class="opt-card"><div class="oc-emoji">📱</div><div class="oc-title">Reel</div><div class="oc-desc">9:16 social</div></div>' +
+        '<div class="opt-card"><div class="oc-emoji">📺</div><div class="oc-title">Explainer</div><div class="oc-desc">16:9</div></div>' +
+        '<div class="opt-card"><div class="oc-emoji">🪧</div><div class="oc-title">Ad</div><div class="oc-desc">15s promo</div></div></div>' },
+    aiVideo: { title: 'AI Video Creator', tag: 'AI',
+      body: '<span class="modal-tag">Generative</span><p class="modal-desc">Describe a scene and generate video with AI agents.</p>' +
+        '<div class="field"><label>Prompt</label><textarea rows="3" placeholder="A product spinning on a marble surface, cinematic light…"></textarea></div>' +
+        '<div class="grid-3"><div class="opt-card"><div class="oc-emoji">🌟</div><div class="oc-title">Cinematic</div></div><div class="opt-card"><div class="oc-emoji">🎞️</div><div class="oc-title">Realistic</div></div><div class="opt-card"><div class="oc-emoji">🎨</div><div class="oc-title">Stylized</div></div></div>' },
+    personalization: { title: 'Video Personalization Hub', tag: 'Marketing',
+      body: '<span class="modal-tag">Personalize</span><p class="modal-desc">Generate thousands of personalized video variants from a single template.</p>' +
+        '<div class="field"><label>Data source</label><input placeholder="CSV / CRM connection"></div>' +
+        '<div class="grid-2"><div class="opt-card"><div class="oc-emoji">🧩</div><div class="oc-title">Merge fields</div></div><div class="opt-card"><div class="oc-emoji">🔗</div><div class="oc-title">Dynamic CTAs</div></div></div>' },
+    landing: { title: 'Landing Page Builder', tag: 'Marketing',
+      body: '<span class="modal-tag">Web</span><p class="modal-desc">Pair your video with a hosted landing page.</p>' +
+        '<div class="field"><label>Page name</label><input placeholder="My Campaign"></div>' +
+        '<div class="field"><label>Template</label><select><option>Hero + Form</option><option>Split</option><option>Minimal</option></select></div>' },
+    social: { title: 'Social Publisher', tag: 'Publish',
+      body: '<span class="modal-tag">Export</span><p class="modal-desc">Publish to connected social accounts with platform presets.</p>' +
+        '<div class="grid-3"><div class="opt-card"><div class="oc-emoji">📷</div><div class="oc-title">Instagram</div></div><div class="opt-card"><div class="oc-emoji">🐦</div><div class="oc-title">X / Twitter</div></div><div class="opt-card"><div class="oc-emoji">▶️</div><div class="oc-title">YouTube</div></div></div>' },
+    email: { title: 'Email Campaign', tag: 'Marketing',
+      body: '<span class="modal-tag">Outreach</span><p class="modal-desc">Embed your video in a sequenced email campaign.</p>' +
+        '<div class="field"><label>Subject</label><input placeholder="See what we built"></div>' +
+        '<div class="field"><label>From list</label><select><option>All contacts</option><option>Leads</option></select></div>' },
+    leads: { title: 'Lead Generator', tag: 'Growth',
+      body: '<span class="modal-tag">Capture</span><p class="modal-desc">Generate a lead-capture funnel around your video.</p>' +
+        '<div class="grid-2"><div class="opt-card"><div class="oc-emoji">📋</div><div class="oc-title">Form</div></div><div class="opt-card"><div class="oc-emoji">🎁</div><div class="oc-title">Offer</div></div></div>' },
+    contacts: { title: 'Contact Importer', tag: 'Data',
+      body: '<span class="modal-tag">Import</span><p class="modal-desc">Import contacts from CSV or a provider.</p>' +
+        '<div class="field"><label>Source</label><select><option>CSV upload</option><option>Google</option><option>HubSpot</option></select></div>' },
+    endScreen: { title: 'End Screen', tag: 'Outro',
+      body: '<span class="modal-tag">Outro</span><p class="modal-desc">Add a branded end card with CTAs.</p>' +
+        '<div class="grid-3"><div class="opt-card"><div class="oc-emoji">🔗</div><div class="oc-title">Subscribe</div></div><div class="opt-card"><div class="oc-emoji">🛒</div><div class="oc-title">Shop</div></div><div class="opt-card"><div class="oc-emoji">🌐</div><div class="oc-title">Visit</div></div></div>' },
+    import: { title: 'Import Timeline', tag: 'Data',
+      body: '<span class="modal-tag">Import</span><p class="modal-desc">Import a timeline from another project or format.</p>' +
+        '<div class="field"><label>Project file</label><input placeholder="Select .higgs file"></div>' },
+    storyboard: { title: 'CutAI Storyboard', tag: 'AI',
+      body: '<span class="modal-tag">Storyboard</span><p class="modal-desc">Generate a shot-by-shot storyboard and drag scenes straight onto the timeline.</p>' +
+        '<div class="grid-3"><div class="opt-card"><div class="oc-emoji">🎬</div><div class="oc-title">Scene 1</div><div class="oc-desc">Wide hero</div></div><div class="opt-card"><div class="oc-emoji">🎬</div><div class="oc-title">Scene 2</div><div class="oc-desc">Product</div></div><div class="opt-card"><div class="oc-emoji">🎬</div><div class="oc-title">Scene 3</div><div class="oc-desc">CTA</div></div></div>' },
+    subtitleEditor: { title: 'Subtitle Editor', tag: 'Captions',
+      body: '<span class="modal-tag">Transcribe</span><p class="modal-desc">Edit timed subtitles with a transcript-style editor.</p>' +
+        '<div class="sub-list" style="max-height:none"><div class="sub-row"><span class="sub-t">00:02.1</span><span class="sub-c">Welcome to Higgsfield Editor</span></div>' +
+        '<div class="sub-row active"><span class="sub-t">00:12.4</span><span class="sub-c">Your story starts here.</span></div>' +
+        '<div class="sub-row"><span class="sub-t">00:21.0</span><span class="sub-c">Cut, trim and grade in one place</span></div></div>' +
+        '<div class="modal-actions"><button class="btn-ghost">Auto-transcribe</button><button class="btn-primary">Save subtitles</button></div>' },
+    imageCrop: { title: 'Image Cropper', tag: 'Edit',
+      body: '<span class="modal-tag">Crop</span><p class="modal-desc">Crop and reframe images for any aspect ratio.</p>' +
+        '<div class="field"><label>Aspect</label><select><option>16:9</option><option>9:16</option><option>1:1</option><option>Free</option></select></div>' },
+    imageEdit: { title: 'Image Editor', tag: 'Edit',
+      body: '<span class="modal-tag">AI Edit</span><p class="modal-desc">Extend, inpaint or restyle images with AI.</p>' +
+        '<div class="grid-3"><div class="opt-card"><div class="oc-emoji">✏️</div><div class="oc-title">Inpaint</div></div><div class="opt-card"><div class="oc-emoji">🔍</div><div class="oc-title">Upscale</div></div><div class="opt-card"><div class="oc-emoji">🎨</div><div class="oc-title">Restyle</div></div></div>' },
+    voice: { title: 'Voice / TTS', tag: 'Audio',
+      body: '<span class="modal-tag">Voiceover</span><p class="modal-desc">Generate a voiceover from text in multiple voices.</p>' +
+        '<div class="field"><label>Script</label><textarea rows="3" placeholder="Type what the narrator should say…"></textarea></div>' +
+        '<div class="field"><label>Voice</label><select><option>Aria</option><option>Orion</option><option>Luna</option></select></div>' },
+    settings: { title: 'Settings', tag: 'Preferences',
+      body: '<span class="modal-tag">App</span><p class="modal-desc">Editor preferences, shortcuts and defaults.</p>' +
+        '<div class="grid-2"><div class="field"><label>Timeline snap</label><select><option>On</option><option>Off</option></select></div>' +
+        '<div class="field"><label>Theme</label><select><option>Default</option><option>Cinematic</option><option>Electric</option><option>Violet</option></select></div></div>' },
+    connect: { title: 'Connections', tag: 'Integrations',
+      body: '<span class="modal-tag">Integrations</span><p class="modal-desc">Connect storage, CRM and social accounts.</p>' +
+        '<div class="grid-3"><div class="opt-card"><div class="oc-emoji">💾</div><div class="oc-title">Storage</div></div><div class="opt-card"><div class="oc-emoji">🤝</div><div class="oc-title">CRM</div></div><div class="opt-card"><div class="oc-emoji">📡</div><div class="oc-title">Socials</div></div></div>' },
+    agents: { title: 'AI Agents', tag: 'AI',
+      body: '<span class="modal-tag">Agents</span><p class="modal-desc">Autonomous agents analyze the timeline and propose fixes. This is the <strong>agents run/results panel</strong> — distinct from the AI Assistant chat where you type commands.</p>' +
+        '<div class="agent-list">' +
+          '<div class="agent-item"><div class="ai-ic">✂️</div><div class="ai-body"><div class="ai-name">Pacing Agent</div><div class="ai-desc">Removed 2 dead frames, added 0.4s hold on the CTA.</div></div><span class="ai-status done">Applied</span></div>' +
+          '<div class="agent-item"><div class="ai-ic">🎚️</div><div class="ai-body"><div class="ai-name">Audio Fix Agent</div><div class="ai-desc">Normalized VO levels; -3dB on clip 2.</div></div><span class="ai-status done">Applied</span></div>' +
+          '<div class="agent-item"><div class="ai-ic">🎯</div><div class="ai-body"><div class="ai-name">Reframe Agent</div><div class="ai-desc">Suggests a tighter crop on "Product Spin" for 9:16.</div></div><span class="ai-status suggest">Suggest</span></div>' +
+          '<div class="agent-item"><div class="ai-ic">🧠</div><div class="ai-body"><div class="ai-name">Composition Plan</div><div class="ai-desc">Generate an AI edit plan for the whole project.</div></div><span class="ai-status run">Run</span></div>' +
+        '</div>' +
+        '<div class="modal-actions"><button class="btn-ghost">Dismiss all</button><button class="btn-primary">Run analysis</button></div>' },
+    save: { title: 'Save Project', tag: 'Project',
+      body: '<span class="modal-tag">Project</span><p class="modal-desc">Save or export your project file.</p>' +
+        '<div class="field"><label>Project name</label><input value="Untitled Sequence"></div>' +
+        '<div class="modal-actions"><button class="btn-ghost">Save as draft</button><button class="btn-primary">Save project</button></div>' }
+  };
+
+  const overlay = document.getElementById('modalOverlay');
+  const mTitle = document.getElementById('modalTitle');
+  const mBody = document.getElementById('modalBody');
+  let lastFocus = null;
+
+  function openModal(key) {
+    const m = MODALS[key];
+    if (!m) return;
+    lastFocus = document.activeElement;
+    mTitle.textContent = m.title;
+    mBody.innerHTML = m.body + '<div class="modal-actions"><button class="btn-ghost" id="mCancel">Close</button></div>';
+    overlay.classList.add('open');
+    document.getElementById('modalClose').focus();
+    const c = document.getElementById('mCancel');
+    if (c) c.addEventListener('click', closeModal);
+  }
+  function closeModal() {
+    overlay.classList.remove('open');
+    if (lastFocus) lastFocus.focus();
+  }
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal(); });
+
+  // Wire feature chips + data-modal triggers
+  document.querySelectorAll('[data-modal]').forEach(function (el) {
+    el.addEventListener('click', function () { openModal(el.getAttribute('data-modal')); });
+  });
+  // Header icons
+  const map = { openSettings:'settings', openConnect:'connect', openAgents:'agents', openSave:'save' };
+  Object.keys(map).forEach(function (id) {
+    const b = document.getElementById(id);
+    if (b) b.addEventListener('click', function () { openModal(map[id]); });
+  });
+  // Viewer fullscreen -> video player modal
+  const vfFull = document.getElementById('vfFull');
+  if (vfFull) vfFull.addEventListener('click', function () { openModal('videoPlayer'); });
+</script>
+</body>
+</html>

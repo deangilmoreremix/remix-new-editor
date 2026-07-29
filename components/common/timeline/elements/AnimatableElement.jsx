@@ -1,89 +1,63 @@
-import React, { useMemo, useCallback } from 'react';
-import { observer } from 'mobx-react';
+import { Component } from '../../../../base/Component.js';
+import { getStore } from '../../../../stores/base/Store.js';
 import classnames from 'classnames';
-import Grid from '@material-ui/core/Grid/Grid';
-import ContentEditable from 'react-contenteditable';
-
 import { ANIMATION_TYPES, NONE_CLASS } from '../../../../lib/constants/animations';
 import { POPCORN_ELEMENT_LABELS, POPCORN_ELEMENT_TYPES } from '../../../../lib/constants/popcorn';
-import PropTypes from '../../../../lib/PropTypes';
-import useProjectStore from '../../../hooks/useProjectStore';
 import { wrapTokens } from '../../../../lib/utils/tokens-helper';
 
-const AnimatableElement = React.forwardRef(({ onSelect, item, ...rest }, ref) => {
-  const { updateAnimation, activeElementId } = useProjectStore();
+export class AnimatableElement extends Component {
+  constructor(props = {}) {
+    super(props);
+    this.projectStore = getStore('projectStore');
 
-  const removeAnimation = (e, animationType) => {
+    this.state = {
+      onSelect: props.onSelect,
+      item: props.item,
+    };
+
+    this.removeAnimation = this.removeAnimation.bind(this);
+  }
+
+  removeAnimation(e, animationType) {
     e.stopPropagation();
-    updateAnimation(animationType);
-  };
+    this.projectStore.updateAnimation(animationType);
+  }
 
-  const isViewCloseButton = useMemo(() => activeElementId === item.i, [activeElementId, item]);
+  getGridItem(animationType) {
+    const { item } = this.state;
+    const { activeElementId } = this.projectStore;
+    const isViewCloseButton = activeElementId === item.i;
 
-  const getGridItem = useCallback((animationType) => {
     switch (item.type) {
       case POPCORN_ELEMENT_TYPES.LEAD_GENERATOR:
       case POPCORN_ELEMENT_TYPES.TEXT:
       case POPCORN_ELEMENT_TYPES.IMAGE: {
         const animated = item.animation && item.animation[animationType]
           && item.animation[animationType].type !== NONE_CLASS;
-        return (
-          <Grid
-            xs={4}
-            item
-            className={classnames('popcorn-element-part',
-              { [`${animationType}-animation-element`]: animated })}
-          >
-            {animated && isViewCloseButton && (
-              <button className="icon-button" onClick={e => removeAnimation(e, animationType)}>
-                x
-              </button>
-            )}
-          </Grid>
-        );
+        if (animated && isViewCloseButton) {
+          return `<div class="${classnames('popcorn-element-part', { [\`${animationType}-animation-element\`]: animated })}"><button class="icon-button" onclick="this.removeAnimation(event, '${animationType}')">x</button></div>`;
+        } else {
+          return `<div class="${classnames('popcorn-element-part', { [\`${animationType}-animation-element\`]: animated })}"></div>`;
+        }
       }
       default: {
-        return null;
+        return '';
       }
     }
-  }, [item, isViewCloseButton]);
+  }
 
-  return (
-    <Grid
-      title={item.type || item.title || item.htmlText}
-      container
-      className="popcorn-element"
-      onClick={onSelect}
-      ref={ref}
-      tabIndex={-1}
-      {...rest}
-    >
-      <span className="popcorn-element-name">
-        {item.htmlText ? (
-          <ContentEditable
-            className="popcorn-element-text"
-            tagName="span"
-            html={wrapTokens(item.htmlText)}
-            onChange={() => {}}
-          />
-        ) : POPCORN_ELEMENT_LABELS[item.type]}
-      </span>
-      {getGridItem(ANIMATION_TYPES.IN)}
-      {getGridItem(ANIMATION_TYPES.IDLE)}
-      {getGridItem(ANIMATION_TYPES.OUT)}
-    </Grid>
-  );
-});
+  render() {
+    const { onSelect, item } = this.state;
 
-AnimatableElement.propTypes = {
-  item: PropTypes.shape({
-    type: PropTypes.string.isRequired,
-    animation: PropTypes.shape({}),
-    i: PropTypes.string.isRequired,
-    title: PropTypes.string,
-    htmlText: PropTypes.string,
-  }).isRequired,
-  onSelect: PropTypes.func.isRequired,
-};
+    const html = '<div class="popcorn-element" title="' + (item.type || item.title || item.htmlText) + '" tabindex="-1" onclick="' + (onSelect ? onSelect.name : '') + '">' +
+      '<span class="popcorn-element-name">' +
+        (item.htmlText ? '<span class="popcorn-element-text" contenteditable="true">' + wrapTokens(item.htmlText) + '</span>' : POPCORN_ELEMENT_LABELS[item.type]) +
+      '</span>' +
+      this.getGridItem(ANIMATION_TYPES.IN) +
+      this.getGridItem(ANIMATION_TYPES.IDLE) +
+      this.getGridItem(ANIMATION_TYPES.OUT) +
+    '</div>';
 
-export default observer(AnimatableElement);
+    return this.createElementFromHTML(html);
+  }
+}

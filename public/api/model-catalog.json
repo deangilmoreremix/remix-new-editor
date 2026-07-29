@@ -1,0 +1,793 @@
+{
+  "t2i": [
+    {
+      "id": "nano-banana",
+      "name": "Nano Banana",
+      "description": "Fast and playful AI image generation with a creative twist."
+    },
+    {
+      "id": "flux-dev",
+      "name": "Flux Dev",
+      "description": "High-quality Flux-based image generation with full parameter control."
+    },
+    {
+      "id": "flux-kontext-dev-t2i",
+      "name": "Flux Kontext Dev T2I",
+      "description": "Context-aware Flux image generation for complex scene prompts."
+    },
+    {
+      "id": "ai-anime-generator",
+      "name": "Ai Anime Generator",
+      "description": "Specialised AI anime and illustration image generation."
+    },
+    {
+      "id": "wan2.1-text-to-image",
+      "name": "Wan2.1 Text To Image",
+      "description": "Wan 2.1 text-to-image with dimension constraints for reliable output."
+    },
+    {
+      "id": "flux-kontext-pro-t2i",
+      "name": "Flux Kontext Pro T2I",
+      "description": "Professional Flux Kontext with advanced aspect ratio options."
+    },
+    {
+      "id": "flux-kontext-max-t2i",
+      "name": "Flux Kontext Max T2I",
+      "description": "Maximum-quality Flux Kontext generation with aspect ratio control."
+    },
+    {
+      "id": "gpt4o-text-to-image",
+      "name": "Gpt4o Text To Image",
+      "description": "OpenAI GPT-4o text-to-image with selectable aspect ratios."
+    },
+    {
+      "id": "midjourney-v7-text-to-image",
+      "name": "Midjourney v7 Text To Image",
+      "description": "Midjourney v7 stylised text-to-image with speed and stylisation."
+    },
+    {
+      "id": "flux-schnell",
+      "name": "Flux Schnell",
+      "description": "Ultra-fast Flux image generation for rapid prototyping and iteration."
+    },
+    {
+      "id": "qwen-image",
+      "name": "Qwen Image",
+      "description": "Alibaba Qwen versatile image generation with multi-aspect ratio support."
+    },
+    {
+      "id": "flux-pulid",
+      "name": "Flux Pulid",
+      "description": "Flux-based identity-preserving image generation from a reference face."
+    },
+    {
+      "id": "ideogram-v3-t2i",
+      "name": "Ideogram v3 T2I",
+      "description": "Ideogram v3 text-to-image with render speed and style controls."
+    },
+    {
+      "id": "google-imagen4",
+      "name": "Google Imagen4",
+      "description": "Google Imagen 4 — high-fidelity text-to-image with aspect ratio options."
+    },
+    {
+      "id": "google-imagen4-fast",
+      "name": "Google Imagen4 Fast",
+      "description": "Google Imagen 4 in a fast, low-latency mode."
+    },
+    {
+      "id": "google-imagen4-ultra",
+      "name": "Google Imagen4 Ultra",
+      "description": "Google Imagen 4 ultra-quality mode for maximum detail."
+    },
+    {
+      "id": "sdxl-image",
+      "name": "Sdxl Image",
+      "description": "Stable Diffusion XL image generation with full width and height control."
+    },
+    {
+      "id": "bytedance-seedream-v4",
+      "name": "Bytedance Seedream v4",
+      "description": "ByteDance Seedream v4 with resolution and multi-image support."
+    },
+    {
+      "id": "hunyuan-image-2.1",
+      "name": "Hunyuan Image 2.1",
+      "description": "Tencent Hunyuan Image 2.1 — cinematic-quality text-to-image."
+    },
+    {
+      "id": "chroma-image",
+      "name": "Chroma Image",
+      "description": "Vivid chromatic gradients and surreal colour-field image generation."
+    },
+    {
+      "id": "flux-redux",
+      "name": "Flux Redux",
+      "description": "Flux Redux image reimagining driven by an input image and prompt."
+    },
+    {
+      "id": "flux-krea-dev",
+      "name": "Flux Krea Dev",
+      "description": "Flux Dev optimised for Krea integration with widescreen aspect ratios."
+    },
+    {
+      "id": "perfect-pony-xl",
+      "name": "Perfect Pony Xl",
+      "description": "High-detail animal and fantasy character image generation."
+    },
+    {
+      "id": "neta-lumina",
+      "name": "Neta Lumina",
+      "description": "Painterly anime-style character image generation with refined textures."
+    },
+    {
+      "id": "wan2.5-text-to-image",
+      "name": "Wan2.5 Text To Image",
+      "description": "Wan 2.5 text-to-image with 768–1440px resolution range."
+    },
+    {
+      "id": "hunyuan-image-3.0",
+      "name": "Hunyuan Image 3.0",
+      "description": "Tencent Hunyuan Image 3.0 with refined aesthetics and quality."
+    },
+    {
+      "id": "leonardoai-phoenix-1.0",
+      "name": "Leonardoai Phoenix 1.0",
+      "description": "Leonardo AI Phoenix 1.0 creative image generation with aspect ratio control."
+    },
+    {
+      "id": "leonardoai-lucid-origin",
+      "name": "Leonardoai Lucid Origin",
+      "description": "Leonardo AI Lucid Origin cinematic image generation with widescreen support."
+    },
+    {
+      "id": "reve-text-to-image",
+      "name": "Reve Text To Image",
+      "description": "REVE photorealistic text-to-image with cinematic widescreen support."
+    },
+    {
+      "id": "grok-imagine-text-to-image",
+      "name": "Grok Imagine Text To Image",
+      "description": "xAI Grok Imagine text-to-image with fast turnaround."
+    },
+    {
+      "id": "nano-banana-pro",
+      "name": "Nano Banana Pro",
+      "description": "Higher-fidelity creative AI image generation with resolution control."
+    },
+    {
+      "id": "kling-o1-text-to-image",
+      "name": "Kling O1 Text To Image",
+      "description": "Kling O1 high-resolution text-to-image with 1K and 2K modes."
+    },
+    {
+      "id": "z-image-turbo",
+      "name": "Z Image Turbo",
+      "description": "Z Image Turbo — ultra-fast high-detail image generation."
+    },
+    {
+      "id": "flux-2-dev",
+      "name": "Flux 2 Dev",
+      "description": "Flux 2 development model for high-quality experimental image generation."
+    },
+    {
+      "id": "flux-2-flex",
+      "name": "Flux 2 Flex",
+      "description": "Flux 2 flexible model with resolution and aspect ratio control."
+    },
+    {
+      "id": "flux-2-pro",
+      "name": "Flux 2 Pro",
+      "description": "Flux 2 professional-grade image generation for production use cases."
+    },
+    {
+      "id": "vidu-q2-text-to-image",
+      "name": "Vidu Q2 Text To Image",
+      "description": "Vidu Q2 fast text-to-image generation."
+    },
+    {
+      "id": "bytedance-seedream-v4.5",
+      "name": "Bytedance Seedream V4.5",
+      "description": "Latest ByteDance Seedream v4.5 image generation model."
+    },
+    {
+      "id": "gpt-image-1.5",
+      "name": "Gpt Image 1.5",
+      "description": "OpenAI GPT Image 1.5 with aspect ratio and multi-image support."
+    },
+    {
+      "id": "wan2.6-text-to-image",
+      "name": "Wan2.6 Text To Image",
+      "description": "Wan 2.6 latest text-to-image model with refined output quality."
+    },
+    {
+      "id": "qwen-text-to-image-2512",
+      "name": "Qwen Text To Image 2512",
+      "description": "Alibaba Qwen text-to-image model for creative asset generation."
+    },
+    {
+      "id": "flux-2-klein-4b",
+      "name": "Flux 2 Klein 4b",
+      "description": "Flux 2 Klein 4B lightweight parameter-efficient image generation."
+    },
+    {
+      "id": "flux-2-klein-9b",
+      "name": "Flux 2 Klein 9b",
+      "description": "Flux 2 Klein 9B balanced parameter-efficient image generation."
+    },
+    {
+      "id": "z-image-base",
+      "name": "Z Image Base",
+      "description": "Z Image Base foundational high-detail text-to-image generation."
+    },
+    {
+      "id": "nano-banana-2",
+      "name": "Nano Banana 2",
+      "description": "Next-generation Nano Banana creative image generation."
+    },
+    {
+      "id": "seedream-5.0",
+      "name": "Seedream 5.0",
+      "description": "ByteDance Seedream 5.0 high-fidelity image generation."
+    }
+  ],
+  "i2i": [
+    {
+      "id": "ai-image-upscaler",
+      "name": "AI Image Upscaler",
+      "description": "AI-powered image upscaling and resolution enhancement."
+    },
+    {
+      "id": "ai-image-face-swap",
+      "name": "AI Image Face Swap",
+      "description": "AI face swapping between source and target images."
+    },
+    {
+      "id": "ai-dress-change",
+      "name": "AI Dress Change",
+      "description": "AI virtual clothing replacement and fashion editing."
+    },
+    {
+      "id": "ai-background-remover",
+      "name": "AI Background Remover",
+      "description": "AI-powered background removal from any source image."
+    },
+    {
+      "id": "ai-product-shot",
+      "name": "AI Product Shot",
+      "description": "Quick AI product shot generation for e-commerce catalogs."
+    },
+    {
+      "id": "ai-skin-enhancer",
+      "name": "AI Skin Enhancer",
+      "description": "AI skin retouching and portrait enhancement tool."
+    },
+    {
+      "id": "ai-color-photo",
+      "name": "AI Color Photo",
+      "description": "AI colourisation and enhancement for black and white photographs."
+    },
+    {
+      "id": "flux-kontext-dev-i2i",
+      "name": "Flux Kontext Dev I2I",
+      "description": "Flux Kontext Dev image-to-image style transformation."
+    },
+    {
+      "id": "ai-product-photography",
+      "name": "AI Product Photography",
+      "description": "AI product photography generation with professional lighting."
+    },
+    {
+      "id": "ai-ghibli-style",
+      "name": "AI Ghibli Style",
+      "description": "Ghibli art style filter and transformation for any image."
+    },
+    {
+      "id": "ai-image-extension",
+      "name": "AI Image Extension",
+      "description": "AI-powered outpainting and image border extension."
+    },
+    {
+      "id": "ai-object-eraser",
+      "name": "AI Object Eraser",
+      "description": "AI-powered object removal and inpainting from images."
+    },
+    {
+      "id": "flux-kontext-pro-i2i",
+      "name": "Flux Kontext Pro I2I",
+      "description": "Flux Kontext Pro professional image-to-image editing."
+    },
+    {
+      "id": "flux-kontext-max-i2i",
+      "name": "Flux Kontext Max I2I",
+      "description": "Flux Kontext Max maximum-quality image-to-image editing."
+    },
+    {
+      "id": "gpt4o-image-to-image",
+      "name": "GPT-4o Image To Image",
+      "description": "GPT-4o image-to-image transformation with strength and size control."
+    },
+    {
+      "id": "gpt4o-edit",
+      "name": "GPT-4o Edit",
+      "description": "GPT-4o image editing with configurable strength and aspect ratio."
+    },
+    {
+      "id": "midjourney-v7-image-to-image",
+      "name": "Midjourney v7 Image To Image",
+      "description": "Midjourney v7 image-to-image with stylisation and variety control."
+    },
+    {
+      "id": "bytedance-seededit-v3",
+      "name": "Bytedance Seededit v3",
+      "description": "ByteDance SeedEdit v3 precision image editing."
+    },
+    {
+      "id": "midjourney-v7-style-reference",
+      "name": "Midjourney v7 Style Reference",
+      "description": "Midjourney v7 style-reference driven image-to-image editing."
+    },
+    {
+      "id": "midjourney-v7-omni-reference",
+      "name": "Midjourney v7 Omni Reference",
+      "description": "Midjourney v7 omnidirectional reference image generation."
+    },
+    {
+      "id": "minimax-image-01-subject-reference",
+      "name": "Minimax Image 01 Subject Reference",
+      "description": "MiniMax Image 01 subject-reference driven editing."
+    },
+    {
+      "id": "ideogram-character",
+      "name": "Ideogram Character",
+      "description": "Ideogram v3 consistent character generation and reference."
+    },
+    {
+      "id": "qwen-image-edit",
+      "name": "Qwen Image Edit",
+      "description": "Alibaba Qwen image editing with aspect ratio controls."
+    },
+    {
+      "id": "image-effects",
+      "name": "Image Effects",
+      "description": "General image effects processing and enhancement."
+    },
+    {
+      "id": "nano-banana-edit",
+      "name": "Nano Banana Edit",
+      "description": "Nano Banana creative image editing with style guidance."
+    },
+    {
+      "id": "ideogram-v3-reframe",
+      "name": "Ideogram v3 Reframe",
+      "description": "Ideogram v3 aspect ratio reframing and recomposition."
+    },
+    {
+      "id": "bytedance-seedream-edit-v4",
+      "name": "Bytedance Seedream Edit v4",
+      "description": "ByteDance Seedream v4 guided image editing."
+    },
+    {
+      "id": "nano-banana-effects",
+      "name": "Nano Banana Effects",
+      "description": "Nano Banana creative visual effects image generation."
+    },
+    {
+      "id": "flux-kontext-effects",
+      "name": "Flux Kontext Effects",
+      "description": "Flux Kontext visual effects and stylisation filter."
+    },
+    {
+      "id": "qwen-image-edit-plus",
+      "name": "Qwen Image Edit Plus",
+      "description": "Alibaba Qwen enhanced image editing with LoRA support."
+    },
+    {
+      "id": "wan2.5-image-edit",
+      "name": "Wan2.5 Image Edit",
+      "description": "Wan 2.5 image editing with strength and resolution control."
+    },
+    {
+      "id": "reve-image-edit",
+      "name": "Reve Image Edit",
+      "description": "REVE image editing and transformation toolkit."
+    },
+    {
+      "id": "topaz-image-upscale",
+      "name": "Topaz Image Upscale",
+      "description": "Topaz Labs AI image upscaling and detail enhancement."
+    },
+    {
+      "id": "seedvr2-image-upscale",
+      "name": "Seedvr2 Image Upscale",
+      "description": "ByteDance SeedVR2 AI image upscaling and restoration."
+    },
+    {
+      "id": "qwen-image-edit-plus-lora",
+      "name": "Qwen Image Edit Plus Lora",
+      "description": "Qwen image editing with LoRA model weight injection."
+    },
+    {
+      "id": "nano-banana-pro-edit",
+      "name": "Nano Banana Pro Edit",
+      "description": "Nano Banana Pro image editing with higher fidelity."
+    },
+    {
+      "id": "kling-o1-edit-image",
+      "name": "Kling O1 Edit Image",
+      "description": "Kling O1 image editing and inpainting with object control."
+    },
+    {
+      "id": "flux-2-dev-edit",
+      "name": "Flux 2 Dev Edit",
+      "description": "Flux 2 Dev image editing with strength and size controls."
+    },
+    {
+      "id": "flux-2-flex-edit",
+      "name": "Flux 2 Flex Edit",
+      "description": "Flux 2 Flex image editing with aspect ratio and strength."
+    },
+    {
+      "id": "flux-2-pro-edit",
+      "name": "Flux 2 Pro Edit",
+      "description": "Flux 2 Pro image editing with strength and aspect ratio control."
+    },
+    {
+      "id": "vidu-q2-reference-to-image",
+      "name": "Vidu Q2 Reference To Image",
+      "description": "Vidu Q2 reference-to-image style transfer generation."
+    },
+    {
+      "id": "bytedance-seedream-v4.5-edit",
+      "name": "Bytedance Seedream v4.5 Edit",
+      "description": "ByteDance Seedream v4.5 guided image editing."
+    },
+    {
+      "id": "qwen-image-edit-2511",
+      "name": "Qwen Image Edit 2511",
+      "description": "Alibaba Qwen image editing — November 2025 release."
+    },
+    {
+      "id": "wan2.6-image-edit",
+      "name": "Wan2.6 Image Edit",
+      "description": "Wan 2.6 latest image editing with enhanced controls."
+    },
+    {
+      "id": "gpt-image-1.5-edit",
+      "name": "Gpt Image 1.5 Edit",
+      "description": "OpenAI GPT Image 1.5 image editing with strength control."
+    },
+    {
+      "id": "grok-imagine-image-to-image",
+      "name": "Grok Imagine Image To Image",
+      "description": "xAI Grok Imagine image-to-image style transfer."
+    },
+    {
+      "id": "flux-2-klein-4b-edit",
+      "name": "Flux 2 Klein 4b Edit",
+      "description": "Flux 2 Klein 4B lightweight image editing."
+    },
+    {
+      "id": "flux-2-klein-9b-edit",
+      "name": "Flux 2 Klein 9b Edit",
+      "description": "Flux 2 Klein 9B balanced parameter-efficient image editing."
+    },
+    {
+      "id": "add-image-watermark",
+      "name": "Add Image Watermark",
+      "description": "Batch image watermark overlay and branding tool."
+    },
+    {
+      "id": "nano-banana-2-edit",
+      "name": "Nano Banana 2 Edit",
+      "description": "Nano Banana 2 image editing and guided transformation."
+    },
+    {
+      "id": "seedream-5.0-edit",
+      "name": "Seedream 5.0 Edit",
+      "description": "ByteDance Seedream 5.0 precision image editing."
+    }
+  ],
+  "i2v": [
+    {
+      "id": "ai-video-effects",
+      "name": "AI Video Effects",
+      "description": "AI video effects processing and enhancement pipeline."
+    },
+    {
+      "id": "motion-controls",
+      "name": "Motion Controls",
+      "description": "Motion parameter control overlay for image-to-video pipelines."
+    },
+    {
+      "id": "vfx",
+      "name": "VFX",
+      "description": "Visual effects processing and compositing for images and video."
+    },
+    {
+      "id": "veo3-image-to-video",
+      "name": "Veo3 Image To Video",
+      "description": "Google Veo 3 high-quality image-to-video generation."
+    },
+    {
+      "id": "veo3-fast-image-to-video",
+      "name": "Veo3 Fast Image To Video",
+      "description": "Google Veo 3 fast image-to-video generation."
+    },
+    {
+      "id": "runway-image-to-video",
+      "name": "Runway Image To Video",
+      "description": "Runway Gen image-to-video cinematic generation."
+    },
+    {
+      "id": "wan2.1-image-to-video",
+      "name": "Wan2.1 Image To Video",
+      "description": "Wan 2.1 image-to-video with motion control."
+    },
+    {
+      "id": "midjourney-v7-image-to-video",
+      "name": "Midjourney v7 Image To Video",
+      "description": "Midjourney v7 image-to-video cinematic generation."
+    },
+    {
+      "id": "hunyuan-image-to-video",
+      "name": "Hunyuan Image To Video",
+      "description": "Tencent Hunyuan image-to-video cinematic generation."
+    },
+    {
+      "id": "kling-v2.1-master-i2v",
+      "name": "Kling v2.1 Master I2V",
+      "description": "Kling V2.1 Master flagship image-to-video generation."
+    },
+    {
+      "id": "kling-v2.1-standard-i2v",
+      "name": "Kling v2.1 Standard I2V",
+      "description": "Kling V2.1 Standard image-to-video generation."
+    },
+    {
+      "id": "kling-v2.1-pro-i2v",
+      "name": "Kling v2.1 Pro I2V",
+      "description": "Kling V2.1 Pro high-quality image-to-video generation."
+    },
+    {
+      "id": "wan2.2-image-to-video",
+      "name": "Wan2.2 Image To Video",
+      "description": "Wan 2.2 improved image-to-video generation."
+    },
+    {
+      "id": "runway-act-two-i2v",
+      "name": "Runway Act Two I2V",
+      "description": "Runway Act Two expressive image-to-video generation."
+    },
+    {
+      "id": "pixverse-v4.5-i2v",
+      "name": "Pixverse v4.5 I2V",
+      "description": "PixVerse v4.5 image-to-video generation."
+    },
+    {
+      "id": "vidu-v2.0-i2v",
+      "name": "Vidu v2.0 I2V",
+      "description": "Vidu 2.0 image-to-video with scene coherence."
+    },
+    {
+      "id": "vidu-q1-reference",
+      "name": "Vidu Q1 Reference",
+      "description": "Vidu Q1 reference-video guided generation."
+    },
+    {
+      "id": "minimax-hailuo-02-standard-i2v",
+      "name": "Minimax Hailuo 02 Standard I2V",
+      "description": "MiniMax Hailuo 02 Standard image-to-video generation."
+    },
+    {
+      "id": "minimax-hailuo-02-pro-i2v",
+      "name": "Minimax Hailuo 02 Pro I2V",
+      "description": "MiniMax Hailuo 02 Pro image-to-video generation."
+    },
+    {
+      "id": "video-effects",
+      "name": "Video Effects",
+      "description": "Video effects processing, filters and transitions."
+    },
+    {
+      "id": "seedance-lite-i2v",
+      "name": "Seedance Lite I2V",
+      "description": "ByteDance Seedance Lite lightweight image-to-video."
+    },
+    {
+      "id": "seedance-pro-i2v",
+      "name": "Seedance Pro I2V",
+      "description": "ByteDance Seedance Pro image-to-video generation."
+    },
+    {
+      "id": "pixverse-v5-i2v",
+      "name": "Pixverse v5 I2V",
+      "description": "PixVerse v5 image-to-video with improved motion coherence."
+    },
+    {
+      "id": "seedance-lite-reference-video",
+      "name": "Seedance Lite Reference Video",
+      "description": "Seedance Lite reference-video guided generation."
+    },
+    {
+      "id": "wan2.1-reference-video",
+      "name": "Wan2.1 Reference Video",
+      "description": "Wan 2.1 reference-video guided generation."
+    },
+    {
+      "id": "kling-v2.5-turbo-pro-i2v",
+      "name": "Kling v2.5 Turbo Pro I2V",
+      "description": "Kling V2.5 Turbo Pro fast image-to-video generation."
+    },
+    {
+      "id": "wan2.5-image-to-video",
+      "name": "Wan2.5 Image To Video",
+      "description": "Wan 2.5 image-to-video with enhanced motion fidelity."
+    },
+    {
+      "id": "wan2.5-image-to-video-fast",
+      "name": "Wan2.5 Image To Video Fast",
+      "description": "Wan 2.5 fast mode image-to-video for rapid iteration."
+    },
+    {
+      "id": "openai-sora-2-image-to-video",
+      "name": "Openai Sora 2 Image To Video",
+      "description": "OpenAI Sora 2 cinematic image-to-video generation."
+    },
+    {
+      "id": "ovi-image-to-video",
+      "name": "Ovi Image To Video",
+      "description": "OVI image-to-video generation engine."
+    },
+    {
+      "id": "openai-sora-2-pro-image-to-video",
+      "name": "Openai Sora 2 Pro Image To Video",
+      "description": "OpenAI Sora 2 Pro high-fidelity image-to-video."
+    },
+    {
+      "id": "leonardoai-motion-2.0",
+      "name": "Leonardoai Motion 2.0",
+      "description": "Leonardo AI Motion 2.0 image animation and motion generation."
+    },
+    {
+      "id": "veo3.1-image-to-video",
+      "name": "Veo3.1 Image To Video",
+      "description": "Google Veo 3.1 high-fidelity image-to-video generation."
+    },
+    {
+      "id": "veo3.1-fast-image-to-video",
+      "name": "Veo3.1 Fast Image To Video",
+      "description": "Google Veo 3.1 fast image-to-video generation."
+    },
+    {
+      "id": "veo3.1-reference-to-video",
+      "name": "Veo3.1 Reference To Video",
+      "description": "Google Veo 3.1 reference-driven video generation."
+    },
+    {
+      "id": "seedance-pro-i2v-fast",
+      "name": "Seedance Pro I2V Fast",
+      "description": "ByteDance Seedance Pro fast image-to-video."
+    },
+    {
+      "id": "ltx-2-pro-image-to-video",
+      "name": "Ltx 2 Pro Image To Video",
+      "description": "LTX 2 Pro high-quality image-to-video generation."
+    },
+    {
+      "id": "ltx-2-fast-image-to-video",
+      "name": "Ltx 2 Fast Image To Video",
+      "description": "LTX 2 fast low-latency image-to-video generation."
+    },
+    {
+      "id": "vidu-q2-reference",
+      "name": "Vidu Q2 Reference",
+      "description": "Vidu Q2 reference-video driven generation."
+    },
+    {
+      "id": "vidu-q2-turbo-start-end-video",
+      "name": "Vidu Q2 Turbo Start End Video",
+      "description": "Vidu Q2 turbo start-to-end video generation."
+    },
+    {
+      "id": "vidu-q2-pro-start-end-video",
+      "name": "Vidu Q2 Pro Start End Video",
+      "description": "Vidu Q2 Pro start-to-end video generation."
+    },
+    {
+      "id": "minimax-hailuo-2.3-pro-i2v",
+      "name": "Minimax Hailuo 2.3 Pro I2V",
+      "description": "MiniMax Hailuo 2.3 Pro image-to-video generation."
+    },
+    {
+      "id": "minimax-hailuo-2.3-standard-i2v",
+      "name": "Minimax Hailuo 2.3 Standard I2V",
+      "description": "MiniMax Hailuo 2.3 Standard image-to-video."
+    },
+    {
+      "id": "minimax-hailuo-2.3-fast",
+      "name": "Minimax Hailuo 2.3 Fast",
+      "description": "MiniMax Hailuo 2.3 fast inference image-to-video."
+    },
+    {
+      "id": "kling-v2.5-turbo-std-i2v",
+      "name": "Kling v2.5 Turbo Std I2V",
+      "description": "Kling V2.5 Turbo Standard fast image-to-video."
+    },
+    {
+      "id": "grok-imagine-image-to-video",
+      "name": "Grok Imagine Image To Video",
+      "description": "xAI Grok Imagine image-to-video generation."
+    },
+    {
+      "id": "kling-o1-image-to-video",
+      "name": "Kling O1 Image To Video",
+      "description": "Kling O1 high-resolution image-to-video generation."
+    },
+    {
+      "id": "kling-o1-reference-to-video",
+      "name": "Kling O1 Reference To Video",
+      "description": "Kling O1 reference-video guided generation."
+    },
+    {
+      "id": "kling-v2.6-pro-i2v",
+      "name": "Kling v2.6 Pro I2V",
+      "description": "Kling V2.6 Pro latest image-to-video generation."
+    },
+    {
+      "id": "pixverse-v5.5-i2v",
+      "name": "Pixverse v5.5 I2V",
+      "description": "PixVerse v5.5 latest image-to-video generation."
+    },
+    {
+      "id": "wan2.2-spicy-image-to-video",
+      "name": "Wan2.2 Spicy Image To Video",
+      "description": "Wan 2.2 Spicy high-energy image-to-video mode."
+    },
+    {
+      "id": "wan2.6-image-to-video",
+      "name": "Wan2.6 Image To Video",
+      "description": "Wan 2.6 latest image-to-video with improved quality."
+    },
+    {
+      "id": "kling-o1-standard-image-to-video",
+      "name": "Kling O1 Standard Image To Video",
+      "description": "Kling O1 Standard image-to-video generation."
+    },
+    {
+      "id": "kling-o1-standard-reference-to-video",
+      "name": "Kling O1 Standard Reference To Video",
+      "description": "Kling O1 Standard reference-to-video."
+    },
+    {
+      "id": "seedance-v1.5-pro-i2v",
+      "name": "Seedance v1.5 Pro I2V",
+      "description": "ByteDance Seedance 1.5 Pro image-to-video generation."
+    },
+    {
+      "id": "seedance-v1.5-pro-i2v-fast",
+      "name": "Seedance v1.5 Pro I2V Fast",
+      "description": "ByteDance Seedance 1.5 Pro fast image-to-video."
+    },
+    {
+      "id": "ltx-2-19b-image-to-video",
+      "name": "Ltx 2 19b Image To Video",
+      "description": "LTX 2 19B large-scale image-to-video cinematic generation."
+    },
+    {
+      "id": "kling-v3.0-pro-image-to-video",
+      "name": "Kling v3.0 Pro Image To Video",
+      "description": "Kling V3.0 Pro cinematic image-to-video generation."
+    },
+    {
+      "id": "kling-v3.0-standard-image-to-video",
+      "name": "Kling v3.0 Standard Image To Video",
+      "description": "Kling V3.0 Standard image-to-video generation."
+    },
+    {
+      "id": "seedance-v2.0-i2v",
+      "name": "Seedance 2.0 I2V",
+      "description": "ByteDance Seedance 2.0 latest image-to-video generation."
+    }
+  ]
+}
