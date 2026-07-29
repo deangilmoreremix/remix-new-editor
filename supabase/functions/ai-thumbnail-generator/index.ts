@@ -38,12 +38,15 @@ const PRESET_MODIFIERS: Record<string, string> = {
 };
 
 const PLATFORM_SPECS: Record<string, { aspectRatio: string; size: string; textOverlay: boolean; quality: string }> = {
-  youtube: { aspectRatio: '16:9', size: '1792x1024', textOverlay: true, quality: 'high' },
-  'instagram-post': { aspectRatio: '1:1', size: '1024x1024', textOverlay: false, quality: 'high' },
+  youtube:        { aspectRatio: '16:9',  size: '1792x1024', textOverlay: true,  quality: 'high' },
+  'instagram-post': { aspectRatio: '1:1',  size: '1024x1024', textOverlay: false, quality: 'high' },
   'instagram-reel': { aspectRatio: '9:16', size: '1024x1792', textOverlay: false, quality: 'high' },
-  tiktok: { aspectRatio: '9:16', size: '1024x1792', textOverlay: true, quality: 'high' },
-  twitter: { aspectRatio: '16:9', size: '1792x1024', textOverlay: true, quality: 'medium' },
-  linkedin: { aspectRatio: '16:9', size: '1792x1024', textOverlay: true, quality: 'high' },
+  tiktok:         { aspectRatio: '9:16',  size: '1024x1792', textOverlay: true,  quality: 'high' },
+  twitter:        { aspectRatio: '16:9',  size: '1792x1024', textOverlay: true,  quality: 'medium' },
+  linkedin:       { aspectRatio: '16:9',  size: '1792x1024', textOverlay: true,  quality: 'high' },
+  youtube-shorts: { aspectRatio: '9:16',  size: '1024x1792', textOverlay: true,  quality: 'high' },
+  pinterest:      { aspectRatio: '2:3',   size: '1024x1536', textOverlay: false, quality: 'high' },
+  'tiktok-square': { aspectRatio: '1:1',  size: '1024x1024', textOverlay: true,  quality: 'high' },
 };
 
 const VIDEO_THUMBNAIL_PROMPT = 'video thumbnail sequence, cinematic frames, consistent scene progression, motion implied, broadcast quality, each frame a key moment';
@@ -144,9 +147,15 @@ interface RefineRequest {
   store?: boolean;
   include?: string[];
   stream?: boolean;
-  referenceImageB64?: string;
-  referenceImageUrl?: string;
-  referenceImageFileId?: string;
+  // Force the image_generation tool to generate, edit, or auto-decide.
+  imageAction?: "generate" | "edit" | "auto";
+  // Reference images — supply up to several of each kind.
+  referenceImageB64?: string | string[];
+  referenceImageUrl?: string | string[];
+  referenceImageFileId?: string | string[];
+  // Mask for in-context editing via the Responses API tool config.
+  inputImageMaskB64?: string;
+  inputImageMaskFileId?: string;
   imageDetail?: "low" | "high" | "original" | "auto";
   brandKit?: BrandKit;
   platform?: string;
@@ -203,10 +212,18 @@ function validateBody(body: unknown): RequestBody {
 // ---------------------------------------------------------------------------
 
 function mapAspectToSize(ratio: string): string {
-  if (ratio === "9:16") return "1024x1792";
-  if (ratio === "16:9") return "1792x1024";
-  if (ratio === "1:1") return "1024x1024";
-  return "1024x1024";
+  const map: Record<string, string> = {
+    "16:9": "1792x1024",
+    "9:16": "1024x1792",
+    "1:1": "1024x1024",
+    "4:5": "1024x1280",
+    "3:2": "1536x1024",
+    "2:3": "1024x1536",
+    "2:1": "2048x1024",
+    "21:9": "2048x882",
+    "auto": "auto",
+  };
+  return map[ratio] || "1024x1024";
 }
 
 function buildPromptBrief(
@@ -333,6 +350,37 @@ async function base64ToUint8Array(b64: string): Promise<Uint8Array> {
   return bytes;
 }
 
+/**
+ * Extract a user-facing hint from a moderation-blocked error, following
+ * OpenAI's recommended pattern. Returns null if the error is not a
+ * moderation block so callers can fall back to their generic message.
+ */
+function moderationHint(error: unknown): string | null {
+  const code = (error as { code?: string })?.code;
+  if (code !== "moderation_blocked") return null;
+
+  const details = (error as { moderation_details?: { categories?: string[]; moderation_stage?: string } })
+    .moderation_details;
+  const categories = details?.categories ?? [];
+  const stage = details?.moderation_stage;
+
+  let hint =
+    "This request could not be completed because it did not meet safety requirements.";
+
+  if (categories.includes("harassment")) {
+    hint =
+      "Try removing abusive or targeting language and focus on neutral visual details instead.";
+  } else if (stage === "input") {
+    hint =
+      "Try revising the prompt or input images and submit the request again.";
+  } else if (stage === "output") {
+    hint =
+      "The generated result was blocked by a safety check. Try changing the prompt and generating again.";
+  }
+
+  return hint;
+}
+
 async function executeWithModelFallback<T>(
   makeRequest: (model: string) => Promise<T>,
   models = MODEL_FALLBACK_CHAIN
@@ -451,7 +499,11 @@ Each prompt must:
       model_used: completion.model,
     });
   } catch (error) {
-    return jsonResponse({ error: error instanceof Error ? error.message : "Prompt generation failed" }, 502);
+    const hint = moderationHint(error);
+    return jsonResponse({
+      error: hint ?? (error instanceof Error ? error.message : "Prompt generation failed"),
+      ...(hint ? { moderation_blocked: true } : {}),
+    }, 502);
   }
 }
 
@@ -500,7 +552,11 @@ async function handleGenerate(body: GenerateRequest) {
 
     return jsonResponse({ candidates, params: { quality, style, background, outputFormat, outputCompression, size } });
   } catch (error) {
-    return jsonResponse({ error: error instanceof Error ? error.message : "Image generation failed" }, 502);
+    const hint = moderationHint(error);
+    return jsonResponse({
+      error: hint ?? (error instanceof Error ? error.message : "Image generation failed"),
+      ...(hint ? { moderation_blocked: true } : {}),
+    }, 502);
   }
 }
 
@@ -516,28 +572,63 @@ function buildRefineReqBody(body: RefineRequest, model = IMG_GEN_MAINLINE_MODEL)
   if (typeof body.partialImages === "number" && body.partialImages > 0) {
     imageGenTool.partial_images = Math.min(body.partialImages, 3);
   }
+  // Force generate / edit / auto — mirrors the official Responses API example.
+  if (body.imageAction) imageGenTool.action = body.imageAction;
 
+  // Build the input content. Supports multiple reference images of each kind.
   const userContent: Array<Record<string, unknown>> = [
     { type: "input_text", text: body.prompt },
   ];
-  if (body.referenceImageB64) {
-    userContent.push({
-      type: "input_image",
-      image_url: `data:image/png;base64,${body.referenceImageB64}`,
-      detail: body.imageDetail || "auto",
-    });
-  } else if (body.referenceImageUrl) {
-    userContent.push({
-      type: "input_image",
-      image_url: body.referenceImageUrl,
-      detail: body.imageDetail || "auto",
-    });
-  } else if (body.referenceImageFileId) {
-    userContent.push({
-      type: "input_image",
-      file_id: body.referenceImageFileId,
-      detail: body.imageDetail || "auto",
-    });
+
+  const pushImage = (entry: Record<string, unknown>) => {
+    if (userContent.length < 10) userContent.push(entry);
+  };
+
+  const addB64Images = (b64?: string | string[], detail = "auto") => {
+    if (!b64) return;
+    const items = Array.isArray(b64) ? b64 : [b64];
+    for (const b of items) {
+      pushImage({
+        type: "input_image",
+        image_url: `data:image/png;base64,${b}`,
+        detail,
+      });
+    }
+  };
+  const addUrlImages = (url?: string | string[], detail = "auto") => {
+    if (!url) return;
+    const items = Array.isArray(url) ? url : [url];
+    for (const u of items) {
+      pushImage({
+        type: "input_image",
+        image_url: u,
+        detail,
+      });
+    }
+  };
+  const addFileIdImages = (fileId?: string | string[], detail = "auto") => {
+    if (!fileId) return;
+    const items = Array.isArray(fileId) ? fileId : [fileId];
+    for (const fid of items) {
+      pushImage({
+        type: "input_image",
+        file_id: fid,
+        detail,
+      });
+    }
+  };
+
+  addB64Images(body.referenceImageB64, body.imageDetail || "auto");
+  addUrlImages(body.referenceImageUrl, body.imageDetail || "auto");
+  addFileIdImages(body.referenceImageFileId, body.imageDetail || "auto");
+
+  // Mask editing via the Responses API tool config (preferred for in-context refine).
+  if (body.inputImageMaskFileId) {
+    imageGenTool.input_image_mask = { file_id: body.inputImageMaskFileId };
+  } else if (body.inputImageMaskB64) {
+    imageGenTool.input_image_mask = {
+      image_url: `data:image/png;base64,${body.inputImageMaskB64}`,
+    };
   }
 
   const reqBody: Record<string, unknown> = {
@@ -571,7 +662,11 @@ async function handleRefine(body: RefineRequest) {
     });
     return jsonResponse({ result });
   } catch (error) {
-    return jsonResponse({ error: error instanceof Error ? error.message : "Refine failed" }, 502);
+    const hint = moderationHint(error);
+    return jsonResponse({
+      error: hint ?? (error instanceof Error ? error.message : "Refine failed"),
+      ...(hint ? { moderation_blocked: true } : {}),
+    }, 502);
   }
 }
 
@@ -589,7 +684,12 @@ function streamRefine(body: RefineRequest): Response {
         const completion = await run.finalResponse();
         send({ type: "done", result: extractImageResult(completion as never) });
       } catch (err) {
-        send({ type: "error", message: err instanceof Error ? err.message : "Refine stream failed" });
+        const hint = moderationHint(err);
+        send({
+          type: "error",
+          message: hint ?? (err instanceof Error ? err.message : "Refine stream failed"),
+          ...(hint ? { moderation_blocked: true } : {}),
+        });
       } finally {
         controller.close();
       }
@@ -646,7 +746,11 @@ async function handleInpaint(body: InpaintRequest) {
       params: { quality, style, background, outputFormat, size },
     });
   } catch (error) {
-    return jsonResponse({ error: error instanceof Error ? error.message : "Inpaint failed" }, 502);
+    const hint = moderationHint(error);
+    return jsonResponse({
+      error: hint ?? (error instanceof Error ? error.message : "Inpaint failed"),
+      ...(hint ? { moderation_blocked: true } : {}),
+    }, 502);
   }
 }
 

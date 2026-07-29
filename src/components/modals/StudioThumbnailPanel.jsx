@@ -591,11 +591,14 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
   getPlatformLabel() {
     const labels = {
       'youtube': 'YouTube',
+      'youtube-shorts': 'YouTube Shorts',
       'instagram-post': 'Instagram Post',
       'instagram-reel': 'Instagram Reel',
       'tiktok': 'TikTok',
+      'tiktok-square': 'TikTok Square',
       'twitter': 'Twitter / X',
       'linkedin': 'LinkedIn',
+      'pinterest': 'Pinterest',
     };
     return labels[this.platform] || this.platform;
   }
@@ -621,6 +624,9 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
     this.isGenerating = false;
     this.variants = [];
     this.refineInput = '';
+    this.refineImageAction = 'auto';
+    this.refineMaskB64 = '';
+    this.lastResponseId = '';
     this.savedImageUrl = '';
     this.platform = this.platform || 'youtube';
     this.brandKitEnabled = false;
@@ -788,11 +794,14 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
         <label for="thumb-platform">Target Platform</label>
         <select id="thumb-platform" class="thumb-platform-select">
           <option value="youtube" ${this.platform === 'youtube' ? 'selected' : ''}>YouTube</option>
+          <option value="youtube-shorts" ${this.platform === 'youtube-shorts' ? 'selected' : ''}>YouTube Shorts</option>
           <option value="instagram-post" ${this.platform === 'instagram-post' ? 'selected' : ''}>Instagram Post</option>
           <option value="instagram-reel" ${this.platform === 'instagram-reel' ? 'selected' : ''}>Instagram Reel</option>
           <option value="tiktok" ${this.platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
+          <option value="tiktok-square" ${this.platform === 'tiktok-square' ? 'selected' : ''}>TikTok Square</option>
           <option value="twitter" ${this.platform === 'twitter' ? 'selected' : ''}>Twitter / X</option>
           <option value="linkedin" ${this.platform === 'linkedin' ? 'selected' : ''}>LinkedIn</option>
+          <option value="pinterest" ${this.platform === 'pinterest' ? 'selected' : ''}>Pinterest</option>
         </select>
       </div>
       <div class="form-section">
@@ -989,13 +998,98 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
     input.innerHTML = `
       <label for="thumb-refine">Refinement instruction</label>
       <textarea id="thumb-refine" placeholder="e.g. 'Make the text larger', 'Change background to blue'">${this.escapeHtml(this.refineInput)}</textarea>
+      <div class="form-grid" style="margin-top:8px;">
+        <div class="form-section">
+          <label for="thumb-refine-action">Generation mode</label>
+          <select id="thumb-refine-action">
+            <option value="auto" ${(this.refineImageAction || 'auto') === 'auto' ? 'selected' : ''}>Auto decide</option>
+            <option value="generate" ${this.refineImageAction === 'generate' ? 'selected' : ''}>Always generate new</option>
+            <option value="edit" ${this.refineImageAction === 'edit' ? 'selected' : ''}>Always edit existing</option>
+          </select>
+        </div>
+        <div class="form-section">
+          <label for="thumb-refine-mask">Edit mask (optional — PNG with alpha)</label>
+          <input type="file" id="thumb-refine-mask" accept="image/png" style="font-size:12px;">
+        </div>
+      </div>
     `;
     input.querySelector('#thumb-refine').addEventListener('input', (e) => {
       this.refineInput = e.target.value;
     });
+    const actionSelect = input.querySelector('#thumb-refine-action');
+    actionSelect.addEventListener('change', (e) => {
+      this.refineImageAction = e.target.value;
+    });
+    const maskInput = input.querySelector('#thumb-refine-mask');
+    if (maskInput) {
+      maskInput.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = String(reader.result || '');
+          const b64 = dataUrl.split(',')[1] || '';
+          this.refineMaskB64 = b64;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
     container.appendChild(input);
 
+    const actions = document.createElement('div');
+    actions.className = 'form-actions';
+    actions.style.marginTop = '12px';
+    const refineSubmitBtn = document.createElement('button');
+    refineSubmitBtn.className = 'thumb-action-btn thumb-action-primary';
+    refineSubmitBtn.textContent = '✨ Refine →';
+    refineSubmitBtn.style.width = '100%';
+    refineSubmitBtn.addEventListener('click', () => this._applyRefine());
+    actions.appendChild(refineSubmitBtn);
+    container.appendChild(actions);
+
     return container;
+  }
+
+  async _applyRefine() {
+    this.clearError();
+    const instruction = (document.getElementById('thumb-refine')?.value || '').trim();
+    if (!instruction) return;
+    this.refineInput = instruction;
+    this.setLoading('Refining…');
+
+    try {
+      const selected = this.candidates[this.selectedIndex];
+      if (!selected) return;
+
+      const result = await this.thumbnailService.refineLastImage({
+        prompt: instruction,
+        previousResponseId: this.lastResponseId || '',
+        quality: this.controls.quality,
+        background: this.controls.background,
+        outputFormat: this.controls.outputFormat,
+        outputCompression: this.controls.outputCompression,
+        partialImages: 1,
+        store: true,
+        imageAction: this.refineImageAction || 'auto',
+        inputImageMaskB64: this.refineMaskB64 || undefined,
+        referenceImageB64: selected.b64_json,
+        imageDetail: 'auto',
+      });
+
+      if (result?.b64_json) {
+        selected.b64_json = result.b64_json;
+        selected.revised_prompt = result.revised_prompt || '';
+        selected.dataUrl = ThumbnailService.b64ToDataUrl(result.b64_json);
+      }
+      if (result?.response_id) this.lastResponseId = result.response_id;
+      this.refineInput = '';
+      this.refineMaskB64 = '';
+      this._error = null;
+      this._refreshPanel();
+    } catch (err) {
+      this.setError(err instanceof Error ? err.message : 'Refine failed');
+      this._refreshPanel();
+    }
   }
 
   _renderSavedView() {

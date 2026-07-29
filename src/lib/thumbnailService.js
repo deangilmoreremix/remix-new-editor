@@ -123,6 +123,10 @@ export class ThumbnailService {
       prompt: opts.prompt,
       previousResponseId: opts.previousResponseId || '',
       brandKit: opts.brandKit || this._brandKit || null,
+      // Responses API image_generation tool controls
+      imageAction: opts.imageAction || 'auto',
+      inputImageMaskB64: opts.inputImageMaskB64 || null,
+      inputImageMaskFileId: opts.inputImageMaskFileId || null,
     };
     if (opts.size) body.size = opts.size;
     if (opts.quality) body.quality = opts.quality;
@@ -132,6 +136,7 @@ export class ThumbnailService {
     if (typeof opts.partialImages === 'number') body.partialImages = opts.partialImages;
     if (typeof opts.store === 'boolean') body.store = opts.store;
     if (Array.isArray(opts.include) && opts.include.length) body.include = opts.include;
+    // Multiple reference images supported — pass a single value or an array.
     if (opts.referenceImageB64) body.referenceImageB64 = opts.referenceImageB64;
     if (opts.referenceImageUrl) body.referenceImageUrl = opts.referenceImageUrl;
     if (opts.referenceImageFileId) body.referenceImageFileId = opts.referenceImageFileId;
@@ -166,6 +171,9 @@ export class ThumbnailService {
       previousResponseId: opts.previousResponseId || '',
       stream: true,
       brandKit: opts.brandKit || this._brandKit || null,
+      imageAction: opts.imageAction || 'auto',
+      inputImageMaskB64: opts.inputImageMaskB64 || null,
+      inputImageMaskFileId: opts.inputImageMaskFileId || null,
     };
     if (opts.quality) body.quality = opts.quality;
     if (opts.background) body.background = opts.background;
