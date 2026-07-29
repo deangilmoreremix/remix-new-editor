@@ -6,7 +6,14 @@ COPY . /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN [ ! -f director.db ] && python director/db/sqlite/initialize.py || echo "Database already initialized."
+# Only initialize SQLite when DB_TYPE is sqlite (the default).
+# When DB_TYPE=postgres (as on Render), the Postgres database is
+# provisioned separately and migrations are handled by the server.
+RUN if [ "${DB_TYPE:-sqlite}" = "sqlite" ]; then \
+      [ ! -f director.db ] && python director/db/sqlite/initialize.py || echo "Database already initialized."; \
+    else \
+      echo "Skipping SQLite init (DB_TYPE=${DB_TYPE:-sqlite})"; \
+    fi
 
 EXPOSE 10000
 
