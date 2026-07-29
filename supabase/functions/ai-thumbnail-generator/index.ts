@@ -44,7 +44,7 @@ const PLATFORM_SPECS: Record<string, { aspectRatio: string; size: string; textOv
   tiktok:         { aspectRatio: '9:16',  size: '1024x1792', textOverlay: true,  quality: 'high' },
   twitter:        { aspectRatio: '16:9',  size: '1792x1024', textOverlay: true,  quality: 'medium' },
   linkedin:       { aspectRatio: '16:9',  size: '1792x1024', textOverlay: true,  quality: 'high' },
-  youtube-shorts: { aspectRatio: '9:16',  size: '1024x1792', textOverlay: true,  quality: 'high' },
+  'youtube-shorts': { aspectRatio: '9:16', size: '1024x1792', textOverlay: true,  quality: 'high' },
   pinterest:      { aspectRatio: '2:3',   size: '1024x1536', textOverlay: false, quality: 'high' },
   'tiktok-square': { aspectRatio: '1:1',  size: '1024x1024', textOverlay: true,  quality: 'high' },
 };
