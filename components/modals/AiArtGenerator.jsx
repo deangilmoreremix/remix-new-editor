@@ -1266,7 +1266,6 @@ const AiArtGenerator = observer(({ startUpload, options }) => {
                     <p
                       style={{
                         fontSize: '16px',
-                        fontWeight: '600px',
                         textAlign: 'left',
                         color: '#fff',
                         fontWeight: 'bold',

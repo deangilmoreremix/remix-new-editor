@@ -1,9 +1,9 @@
 /**
  * Speech Transcription Service — Express router mounted at /api/speech-transcription
  *
- * Was a hardcoded mock. Now delegates to the real OpenAI Whisper
- * endpoint at /videoagent/transcribe, which uses the same OPENAI_API_KEY.
- * Falls back to a deterministic placeholder when no real backend is reachable.
+ * Delegates to the real OpenAI Whisper endpoint at /videoagent/transcribe,
+ * which uses the same OPENAI_API_KEY. When no real backend is reachable,
+ * returns an explicit 503 error rather than fabricating transcription data.
  */
 
 import express from 'express';
@@ -34,16 +34,12 @@ router.post('/transcribe', async (req, res) => {
     } catch (_) {}
 
     // Deterministic fallback (no network or no API key)
-    return res.json({
-      success: true,
-      source: 'local-fallback',
-      transcription: 'This is a sample transcription of the audio content.',
-      subtitles: [
-        { start: 0, end: 3, text: 'This is a sample' },
-        { start: 3, end: 6, text: 'transcription of the' },
-        { start: 6, end: 9, text: 'audio content.' },
-      ],
-    });
+    // Return an explicit error rather than fabricating transcription data.
+    const err = new Error(
+      'Transcription unavailable. Set OPENAI_API_KEY on the server or provide a per-request API key.'
+    );
+    err.status = 503;
+    throw err;
   } catch (error) {
     res.status(500).json({ error: 'Transcription failed', message: error.message });
   }

@@ -6,6 +6,7 @@
 [build.environment]
   NPM_FLAGS = "--include=optional"
   NODE_VERSION = "20"
+  SECRETS_SCAN_OMIT_KEYS = "CLERK_SECRET_KEY,MAIGRET_WORKER_SECRET,MAIGRET_WORKER_URL"
 
 # Model catalog alias
 [[redirects]]
