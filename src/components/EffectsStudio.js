@@ -9,6 +9,7 @@ import { i2iModels, i2vModels } from '../lib/models.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -405,6 +406,7 @@ export function EffectsStudio() {
   searchInput.oninput = () => renderEffects(searchInput.value);
 
   async function handleGenerate() {
+    if (!(await requireEntitlement())) return;
     if (!selectedEffect) { alert('Select an effect first'); return; }
     if (!uploadedUrl) { alert('Upload an image or video first'); return; }
     const apiKey = apiKeyManager.getMuapiKey();

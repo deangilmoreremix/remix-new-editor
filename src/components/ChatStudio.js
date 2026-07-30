@@ -5,6 +5,7 @@ import { AuthModal } from './AuthModal.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 export function ChatStudio() {
   const container = document.createElement('div');
@@ -252,6 +253,7 @@ export function ChatStudio() {
 
   // Handle send message
   async function handleSend() {
+    if (!(await requireEntitlement())) return;
     const userMessage = textarea.value.trim();
     if (!userMessage || isGenerating) return;
 

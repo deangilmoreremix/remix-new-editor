@@ -11,6 +11,7 @@ import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/pe
 import { navigate } from '../lib/router.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -1000,6 +1001,7 @@ export function VideoStudio() {
     // is ever silently dropped — if the save fails, we stay here and report it.
     let currentAssetId = null;
     renderBtn.onclick = async () => {
+        if (!(await requireEntitlement())) return;
         const current = resultVideo.src;
         if (!current) return;
         const entry = generationHistory.find(e => e.url === current);
@@ -1068,6 +1070,7 @@ export function VideoStudio() {
     // 5. GENERATION LOGIC
     // ==========================================
     generateBtn.onclick = async () => {
+        if (!(await requireEntitlement())) return;
         let prompt = textarea.value.trim();
         const model = getCurrentModel();
         const isExtendMode = model?.requiresRequestId;

@@ -8,6 +8,7 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 export function AvatarStudio() {
   const container = document.createElement('div');
@@ -203,6 +204,7 @@ export function AvatarStudio() {
 
   // Generate button handler
   genBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!uploadedVideoUrl && selectedModel.hasVideo) {
       alert('Upload a source video or image first');
       return;

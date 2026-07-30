@@ -4,6 +4,7 @@ import { createHeroSection } from '../lib/thumbnails.js';
 import { getSupabaseUrl, isSupabaseConfigured, uploadFileToStorage } from '../lib/supabase.js';
 import { browserVideoProcessor } from '../lib/browserVideoProcessor.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 const AI_TOOLS = [
     { id: 'scene-detection', name: 'Scene Detection', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'blue', description: 'Identify scene boundaries', category: 'understanding' },
@@ -445,6 +446,7 @@ export function VideoAgentPage() {
     };
     
     const runTool = async (tool) => {
+        if (!(await requireEntitlement())) return;
         if (isProcessing) {
             showToast('Already processing', 'error');
             return;
@@ -573,6 +575,7 @@ export function VideoAgentPage() {
     };
     
     const runUseCase = async (usecase) => {
+        if (!(await requireEntitlement())) return;
         if (isProcessing) {
             showToast('Already processing', 'error');
             return;
@@ -682,6 +685,7 @@ export function VideoAgentPage() {
     };
 
     const runFullPipeline = async () => {
+        if (!(await requireEntitlement())) return;
         if (isProcessing) {
             showToast('Already processing', 'error');
             return;

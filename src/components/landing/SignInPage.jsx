@@ -1,16 +1,34 @@
 // Custom Sign In Page — your design, powered by Clerk's useSignIn hook.
-// Uses the current (v6) Clerk custom-flow API:
+// Follows the v6 signals API pattern from the clerk-custom-ui skill:
 //   const { signIn, errors, fetchStatus } = useSignIn()
-//   await signIn.password({ identifier, password })
-//   if (signIn.status === 'complete') await signIn.finalize({ navigate })
+//   const { error } = await signIn.create({ identifier, password })
+//   if (signIn.status === 'complete') await setActive({ session: signIn.createdSessionId })
+// For client-trust (needs_client_trust) and MFA (needs_second_factor), use
+// prepareFirstFactor / attemptFirstFactor for client trust (it is a first
+// factor), and prepareSecondFactor / attemptSecondFactor for MFA.
 // Requires a <ClerkProvider> ancestor (provided by ClerkGate in
 // ClerkAuth.jsx when this page is mounted at /signin).
 
 import React, { useState } from 'react';
 import { useSignIn } from '@clerk/react';
-import { clerkErrorMessage, clerkWithTimeout, PasswordInput } from './AuthLayout.jsx';
+import { clerkErrorMessage, PasswordInput } from './AuthLayout.jsx';
+import { navigate } from '../../lib/router.js';
+
+// In-app nav handler. Real `href="/image"` etc. would 404 on production
+// because the SPA has no Netlify fallback for those paths, so we use
+// `href="#/..."` (valid + bookmarkable) and intercept the click to route
+// through the hash router.
+function handleNavClick(e, route) {
+  e.preventDefault();
+  navigate(route);
+}
+
+const AFTER_SIGN_IN_ROUTE = '/#/image';
 
 export function SignInPage() {
+  // useSignIn() in v6 returns { signIn, errors, fetchStatus }. We need both
+  // signIn (the sign-in object) and a ready check. fetchStatus === 'fetching'
+  // means the hook is still loading; anything else means it's ready.
   const { signIn, errors, fetchStatus } = useSignIn();
   const isLoaded = fetchStatus !== 'fetching';
   const [email, setEmail] = useState('');
@@ -23,32 +41,53 @@ export function SignInPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!signIn || fetchStatus === 'fetching') {
+    if (!signIn || !isLoaded) {
       setError('Authentication is still loading. Please wait a moment and try again.');
       return;
     }
     setLoading(true);
     setError('');
-    const { error: resultError } = await clerkWithTimeout(
-      signIn.password({ identifier: email, password })
-    );
-    if (resultError) {
-      setError(clerkErrorMessage(resultError, errors) || 'Sign in failed. Please check your credentials.');
+    const { error: createError } = await signIn.create({ identifier: email, password });
+    if (createError) {
+      setError(clerkErrorMessage(createError, errors) || 'Sign in failed. Please check your credentials.');
       setLoading(false);
       return;
     }
+    await advanceSignIn();
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    if (!signIn || !isLoaded) {
+      setError('Authentication is still loading. Please wait a moment and try again.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    let verifyError;
+    if (verificationType === 'client_trust') {
+      ({ error: verifyError } = await signIn.attemptFirstFactor({ strategy: 'email_code', code }));
+    } else {
+      ({ error: verifyError } = await signIn.attemptSecondFactor({ strategy: 'email_code', code }));
+    }
+    if (verifyError) {
+      setError(clerkErrorMessage(verifyError, errors) || 'Invalid verification code.');
+      setLoading(false);
+      return;
+    }
+    await advanceSignIn();
+  };
+
+  const advanceSignIn = async () => {
     if (signIn.status === 'complete') {
-      await signIn.finalize({
-        navigate: async ({ session, decorateUrl }) => {
-          const url = decorateUrl('/#/image');
-          window.location.href = url.startsWith('http') ? url : '/#/image';
-        },
-      });
+      // Session is established server-side. Navigate to the app so the
+      // Clerk SDK on the next page load picks up the active session.
+      window.location.href = '/#' + AFTER_SIGN_IN_ROUTE;
       return;
     }
 
     if (signIn.status === 'needs_client_trust') {
-      const emailCodeFactor = signIn.supportedSecondFactors?.find(
+      const emailCodeFactor = signIn.supportedFirstFactors?.find(
         (factor) => factor.strategy === 'email_code',
       );
       if (!emailCodeFactor) {
@@ -56,68 +95,35 @@ export function SignInPage() {
         setLoading(false);
         return;
       }
-      const { error: sendError } = await clerkWithTimeout(signIn.mfa.sendEmailCode());
-      if (sendError) {
-        setError(clerkErrorMessage(sendError, errors) || 'Could not start verification. Please try again.');
-        setLoading(false);
-        return;
-      }
+      await signIn.prepareFirstFactor({ strategy: 'email_code' });
       setVerificationType('client_trust');
       setStep('verify');
       setLoading(false);
       return;
     }
 
-    if (signIn.status === 'needs_second_factor') {
-      const { error: sendError } = await clerkWithTimeout(signIn.prepareSecondFactor());
-      if (sendError) {
-        setError(clerkErrorMessage(sendError, errors) || 'Could not start verification. Please try again.');
+    if (signIn.status === 'needs_first_factor') {
+      const emailCodeFactor = signIn.supportedFirstFactors?.find(
+        (factor) => factor.strategy === 'email_code',
+      );
+      if (emailCodeFactor) {
+        await signIn.prepareFirstFactor({ strategy: 'email_code' });
+        setVerificationType('client_trust');
+        setStep('verify');
         setLoading(false);
         return;
       }
+    }
+
+    if (signIn.status === 'needs_second_factor') {
+      await signIn.prepareSecondFactor({ strategy: 'email_code' });
       setVerificationType('mfa');
       setStep('verify');
       setLoading(false);
       return;
     }
-    setError(clerkErrorMessage(null, errors) || 'Sign in could not be completed. Please try again.');
-    setLoading(false);
-  };
 
-  const handleVerify = async (e) => {
-    e.preventDefault();
-    if (!signIn || fetchStatus === 'fetching') {
-      setError('Authentication is still loading. Please wait a moment and try again.');
-      return;
-    }
-    setLoading(true);
-    setError('');
-
-    let resultError;
-
-    if (verificationType === 'client_trust') {
-      const { error } = await clerkWithTimeout(signIn.mfa.verifyEmailCode({ code }));
-      resultError = error;
-    } else {
-      const { error } = await clerkWithTimeout(signIn.attemptSecondFactor({ code }));
-      resultError = error;
-    }
-
-    if (resultError) {
-      setError(clerkErrorMessage(resultError, errors) || 'Invalid verification code.');
-      setLoading(false);
-      return;
-    }
-    if (signIn.status === 'complete') {
-      await signIn.finalize({
-        navigate: async ({ session, decorateUrl }) => {
-          const url = decorateUrl('/#/image');
-          window.location.href = url.startsWith('http') ? url : '/#/image';
-        },
-      });
-      return;
-    }
-    setError(clerkErrorMessage(null, errors) || 'Verification could not be completed. Please try again.');
+    setError('Sign in could not be completed. Please try again.');
     setLoading(false);
   };
 
@@ -129,7 +135,7 @@ export function SignInPage() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full h-16 backdrop-blur-md bg-[#0a0b0f] border-b border-white/10">
         <nav className="grid grid-cols-[1fr_auto_1fr] md:grid-cols-[auto_1fr_auto] pr-4 h-full items-center relative container">
-          <a href="/" className="shrink-0 flex items-center gap-2 transition hover:text-[#22d3ee] active:opacity-60">
+          <a href="#/apps" onClick={(e) => handleNavClick(e, 'apps')} className="shrink-0 flex items-center gap-2 transition hover:text-[#22d3ee] active:opacity-60">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-cyan-400/30 bg-cyan-400/10" style={{ boxShadow: '0 0 16px rgba(56,189,248,0.12)' }}>
               <svg width="24" height="24" viewBox="0 0 80 80" fill="none">
                 <rect width="80" height="80" rx="16" fill="#22d3ee" />
@@ -140,15 +146,15 @@ export function SignInPage() {
           </a>
 
           <div className="hidden md:flex items-center gap-6">
-            <a href="/explore" className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Explore</a>
-            <a href="/image" className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Image</a>
-            <a href="/video" className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Video</a>
-            <a href="/timeline" className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Timeline</a>
+            <a href="#/explore" onClick={(e) => handleNavClick(e, 'explore')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Explore</a>
+            <a href="#/image" onClick={(e) => handleNavClick(e, 'image')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Image</a>
+            <a href="#/video" onClick={(e) => handleNavClick(e, 'video')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Video</a>
+            <a href="#/timeline" onClick={(e) => handleNavClick(e, 'timeline')} className="py-1 px-3 text-[#e4e4e7] font-medium transition hover:text-[#22d3ee] text-sm">Timeline</a>
           </div>
 
           <div className="shrink-0 flex items-center gap-3">
             <a href="/signup" className="px-4 py-2 text-sm text-[#e4e4e7] hover:text-[#22d3ee] transition font-medium">Sign Up</a>
-            <a href="/" className="px-4 py-2 text-sm bg-cyan-400 text-[#020205] hover:bg-cyan-300 transition font-medium" style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>Home</a>
+            <a href="#/apps" onClick={(e) => handleNavClick(e, 'apps')} className="px-4 py-2 text-sm bg-cyan-400 text-[#020205] hover:bg-cyan-300 transition font-medium" style={{ letterSpacing: '0.05em', textTransform: 'uppercase' }}>Home</a>
           </div>
         </nav>
       </header>
@@ -294,7 +300,7 @@ export function SignInPage() {
                 <div className="mt-8 text-center">
                   <button
                     type="button"
-                    onClick={() => { setStep('form'); setError(''); setCode(''); signIn.reset(); }}
+                    onClick={async () => { setStep('form'); setError(''); setCode(''); await signIn.reset(); }}
                     className="text-sm text-cyan-400 hover:text-cyan-300 transition"
                   >
                     Back to sign in

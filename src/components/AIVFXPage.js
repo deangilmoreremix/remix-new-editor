@@ -1,4 +1,5 @@
 import { mountStudioChrome } from '../lib/studioChrome.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 // AI-VFX Studio Page
 // Mounts the real apps/ai-vfx React app (src/App.jsx) into a container div
 // using the same react-dom/client + dynamic react import bridge pattern that

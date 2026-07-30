@@ -6,6 +6,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -188,6 +189,7 @@ export function CommercialStudio() {
   container.appendChild(resultArea);
 
   genBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!uploadedUrl) { alert('Upload a product image or video first'); return; }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }

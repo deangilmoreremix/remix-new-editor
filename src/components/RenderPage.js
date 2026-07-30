@@ -7,6 +7,7 @@ import { getVideoMetadata, downloadFrame, copyToClipboard, saveDraft, saveTempla
 import { enqueueRender, listRenderQueue, subscribe, removeFromRenderQueue, startProcessor, setRenderExecutor } from '../lib/editor/renderQueueStore.js';
 import { assetStore } from '../lib/assets/assetStore.js';
 import { videoDb } from '../lib/videoDb.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 import { generateSubtitles, generateHighlights, generateVoiceover, createShorts, runAiAutoEdit } from '../lib/editor/renderAiActions.js';
 
@@ -1301,6 +1302,7 @@ export function RenderPage() {
 
   // Action handler
   async function dispatchAction(action) {
+    if (!(await requireEntitlement())) return;
     activeAction = action;
     const previewBadge = container.querySelector('#previewBadge');
     const handler = ACTION_HANDLERS[action];

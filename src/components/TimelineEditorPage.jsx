@@ -29,6 +29,7 @@ import { interpolate, spring, blendColors, noise2D, useSequence, useSeries } fro
 import { initTimelineAgentIntegration } from '../timelineAgentIntegration.js';
 import { ColorCorrectionSystem } from '../lib/editor/colorCorrectionSystem.jsx';
 import { runCineGenTool, CINEGEN_TOOLS } from '../lib/cinegenIntegration.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 // CutAI integration loaded dynamically to avoid syntax issues in AIStoryboardStudio.jsx
 // import { AIStoryboardStudio } from './ai-storyboard/AIStoryboardStudio.jsx';
@@ -4228,6 +4229,7 @@ export function TimelineEditorPage() {
     }
 
     async function generateClip() {
+      if (!(await requireEntitlement())) return;
       if (!els.promptInput || !els.negativeInput || !els.durationSelect || !els.aspectSelect || !els.styleSelect) {
         return;
       }

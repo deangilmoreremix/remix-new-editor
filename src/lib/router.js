@@ -1,4 +1,12 @@
+// Maps human-readable menu labels to router route IDs.
+// The fallback (`label.toLowerCase().replace(/\s+/g, '-')`) handles labels
+// that already match their route ID (e.g. "Apps" → "apps", "Render" → "render",
+// "Director" → "director"). Entries here are only needed when a label is
+// intentionally different from its route ID, or where a non-slugified ID is
+// required (e.g. "Video Tools" → "videotools", not "video-tools").
 const ROUTE_MAP = {
+  // Legacy top-level header labels (kept for compatibility with the older
+  // Header.js and any deep links that may still reference them).
   'Explore': 'explore',
   'Image': 'image',
   'Video': 'video',
@@ -21,6 +29,23 @@ const ROUTE_MAP = {
   'Media Lib': 'timeline',
   'Social': 'timeline',
   'Landing': 'timeline',
+
+  // New sidebar/landing-header labels. Most already match the route ID via
+  // the fallback, but a few need an explicit entry.
+  'Cinema': 'cinema',
+  'Influencer': 'influencer',
+  'Effects': 'effects',
+  'Upscale': 'upscale',
+  'Training': 'training',
+  'Video Tools': 'videotools', // route ID is the unhyphenated "videotools"
+  'Render': 'render',
+  'Video Agent': 'video-agent',
+  'Director': 'director',
+  'Timeline': 'timeline',
+  'Chat': 'chat',
+  'Commercial': 'commercial',
+  'Library': 'library',
+  'AI VFX': 'ai-vfx',
 };
 
 export function getRouteForItem(item) {
@@ -86,7 +111,6 @@ export function initRouter(container, callback) {
 export async function navigate(page, params = {}) {
   if (!contentArea) return;
 
-  // Prevent concurrent navigation to avoid infinite loops
   if (isNavigating) {
     console.warn('[Router] Navigation already in progress, skipping...');
     return;
@@ -95,7 +119,6 @@ export async function navigate(page, params = {}) {
   isNavigating = true;
   currentPage = page;
 
-  // Update URL with params so components can read them via URLSearchParams
   const searchParams = new URLSearchParams(params).toString();
   const newUrl = searchParams ? `/?${searchParams}#/${page}` : `/#/${page}`;
   window.history.pushState({}, '', newUrl);
@@ -147,7 +170,6 @@ export async function navigate(page, params = {}) {
   if (onNavigateCallback) onNavigateCallback(page);
 }
 
-// Expose navigate globally for debugging
 if (typeof window !== 'undefined') {
   window.__debugNavigate = navigate;
   window.__debugGetCurrentPage = getCurrentPage;

@@ -6,6 +6,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 const STYLE_PRESETS = [
   'Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach',
@@ -182,6 +183,7 @@ export function InfluencerStudio() {
   container.appendChild(resultArea);
 
   genBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!uploadedUrl) { alert('Upload a photo first'); return; }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }

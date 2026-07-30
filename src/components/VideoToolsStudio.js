@@ -8,6 +8,7 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { createInlineInstructions } from './InlineInstructions.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 export function VideoToolsStudio() {
   const container = document.createElement('div');
@@ -174,6 +175,7 @@ export function VideoToolsStudio() {
 
   // Generate button handler
   genBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!uploadedVideoUrl && selectedModel.videoField) {
       alert('Upload a source video first');
       return;

@@ -7,6 +7,7 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 export function AudioStudio() {
   const container = document.createElement('div');
@@ -215,6 +216,7 @@ export function AudioStudio() {
 
   // Generate button handler
   genBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (selectedModel.hasPrompt) {
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
       prompt = replaceTokensInPrompt(prompt, activeProfile);

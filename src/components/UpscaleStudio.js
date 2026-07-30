@@ -6,6 +6,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'] },
@@ -144,6 +145,7 @@ export function UpscaleStudio() {
   }
 
   genBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!uploadedUrl) { alert('Upload an image or video first'); return; }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }

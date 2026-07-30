@@ -7,6 +7,7 @@ import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/Studio
 import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pendingJobs.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -759,6 +760,7 @@ export function LipSyncStudio() {
     // 8. GENERATION LOGIC
     // ==========================================
     generateBtn.onclick = async () => {
+        if (!(await requireEntitlement())) return;
         const model = getCurrentModel();
         const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
         const prompt = replaceTokensInPrompt(textarea.value.trim(), activeProfile);

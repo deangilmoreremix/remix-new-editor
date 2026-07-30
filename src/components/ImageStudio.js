@@ -1,6 +1,7 @@
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { createSafeImage } from '../lib/security.js';
 import {
     t2iModels, getAspectRatiosForModel, getResolutionsForModel, getQualityFieldForModel,
@@ -1078,6 +1079,7 @@ export function ImageStudio() {
     // 5. GENERATION LOGIC
     // ==========================================
     generateBtn.onclick = async () => {
+        if (!(await requireEntitlement())) return;
         let prompt = textarea.value.trim();
 
         // Replace any {{token}} placeholders the user inserted via the

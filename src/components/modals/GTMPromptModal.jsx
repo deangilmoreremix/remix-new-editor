@@ -3,6 +3,7 @@ import { openaiService } from '../../lib/openaiService.js';
 import { gtmContentLibrary } from '../../lib/gtmContentLibrary.js';
 import { gtmResponses, gtmStructuredToText, GTM_MODEL_OPTIONS, resolveGtmModel } from '../../lib/gtmResponses.js';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase.js';
+import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { AuthModal } from '../AuthModal.js';
 
 /**
@@ -82,28 +83,16 @@ export class GTMPromptModal extends BaseModal {
   }
 
   getAppColorScheme(theme) {
-    const schemes = {
-      'timeline-editor': { primary: '#3b82f6', accent: '#06b6d4', secondary: '#64748b' },
-      'video-studio': { primary: '#8b5cf6', accent: '#a855f7', secondary: '#6b7280' },
-      'text-to-video': { primary: '#059669', accent: '#10b981', secondary: '#4b5563' },
-      'image-to-video': { primary: '#dc2626', accent: '#ef4444', secondary: '#6b7280' },
-      'image-studio': { primary: '#f59e0b', accent: '#fbbf24', secondary: '#6b7280' },
-      'template-studio': { primary: '#10b981', accent: '#34d399', secondary: '#6b7280' },
-      'cinema-studio': { primary: '#ec4899', accent: '#f472b6', secondary: '#6b7280' },
-      'cinema-template-studio': { primary: '#be123c', accent: '#dc2626', secondary: '#64748b' },
-      'editor-page': { primary: '#06b6d4', accent: '#22d3ee', secondary: '#64748b' },
-      'lip-sync-studio': { primary: '#8b5cf6', accent: '#a78bfa', secondary: '#6b7280' },
-      'director': { primary: '#d97706', accent: '#f59e0b', secondary: '#64748b' },
-      'video-agent': { primary: '#7c3aed', accent: '#8b5cf6', secondary: '#6b7280' },
-      'character-studio': { primary: '#f97316', accent: '#fb923c', secondary: '#6b7280' },
-      'avatar-studio': { primary: '#06b6d4', accent: '#22d3ee', secondary: '#6b7280' },
-      'storyboard-studio': { primary: '#84cc16', accent: '#a3e635', secondary: '#6b7280' },
-      'chat-studio': { primary: '#ec4899', accent: '#f472b6', secondary: '#6b7280' },
-      'audio-studio': { primary: '#a855f7', accent: '#c084fc', secondary: '#6b7280' },
-      'cinematic-template-wizard': { primary: '#7c3aed', accent: '#a78bfa', secondary: '#6b7280' },
-      'influencer-studio': { primary: '#ec4899', accent: '#f472b6', secondary: '#6b7280' }
-    };
-    return schemes[theme] || schemes['timeline-editor'];
+    // Single source of truth — see STUDIO_COLOR_SCHEMES in openaiConfig.js.
+    // We preserve the historic 'timeline-editor' fallback here for parity
+    // with the prior local table.
+    const scheme = openaiConfig.getStudioColorScheme(theme);
+    if (theme === 'timeline-editor') return scheme;
+    // Historic fallback for unknown themes was 'timeline-editor'.
+    if (theme && !openaiConfig.getAllStudioColorSchemes()[theme]) {
+      return openaiConfig.getStudioColorScheme('timeline-editor');
+    }
+    return scheme;
   }
 
   renderBody() {

@@ -12,6 +12,7 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -976,6 +977,7 @@ export function CinemaStudio() {
     };
 
     downloadBtn.onclick = async () => {
+        if (!(await requireEntitlement())) return;
         const url = currentResultUrl;
         if (!url) return;
         const isVideo = /\.(mp4|webm|mov|m4v)(\?|$)|video\//i.test(url);
@@ -1000,6 +1002,7 @@ export function CinemaStudio() {
     // 5. GENERATION LOGIC UPDATE
     // ==========================================
     generateBtn.onclick = async () => {
+        if (!(await requireEntitlement())) return;
         const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
         const basePrompt = replaceTokensInPrompt(textarea.value.trim(), activeProfile);
         if (!basePrompt) return;

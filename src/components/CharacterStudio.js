@@ -7,6 +7,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt' },
@@ -243,6 +244,7 @@ export function CharacterStudio() {
   container.appendChild(resultArea);
 
   genBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!uploadedUrl) { alert('Upload a reference face first'); return; }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => genBtn.click()); return; }

@@ -7,6 +7,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 export function TrainingStudio() {
   const container = document.createElement('div');
@@ -210,6 +211,7 @@ export function TrainingStudio() {
 
   // Train button handler
   trainBtn.onclick = async () => {
+    if (!(await requireEntitlement())) return;
     if (!loraName) {
       alert('Enter a LoRA name');
       return;
