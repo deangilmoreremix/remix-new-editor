@@ -43,5 +43,3 @@ muapi-audit-results.json
 clerk_e2e_test.cjs
 debug_signin.cjs
 skills-lock.json
-
-dist/
