@@ -15,7 +15,7 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 //  Every agent returns real, usable output — not a fake canned response.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DIRECTOR_AGENTS = [
+export const DIRECTOR_AGENTS = [
     { id: 'summarizer',  name: 'Video Summarizer',  icon: '📝', description: 'Summarize video content',          category: 'analysis',     tool: 'highlights' },
     { id: 'search',      name: 'Video Search',      icon: '🔍', description: 'Search and index media library',   category: 'search',       tool: 'visual-search' },
     { id: 'clipper',     name: 'Clip Creator',      icon: '✂️', description: 'Extract and create clips',         category: 'extract',      tool: 'clip-segmentation' },
@@ -198,7 +198,7 @@ async function callVideoDb(endpoint, { method = 'POST', body } = {}) {
  * Run a Director agent by id. Dispatches to the right backend based on the
  * agent's `tool` mapping. Returns a structured result suitable for the chat UI.
  */
-async function runAgentById(agentId, { videoUrl, videoId, prompt, collectionId = 'default' } = {}, { onProgress, signal } = {}) {
+export async function runAgentById(agentId, { videoUrl, videoId, prompt, collectionId = 'default' } = {}, { onProgress, signal } = {}) {
     const agent = DIRECTOR_AGENTS.find((a) => a.id === agentId);
     if (!agent) throw new Error(`Unknown agent: ${agentId}`);
     const tool = agent.tool;

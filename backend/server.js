@@ -1,6 +1,7 @@
 import './loadEnv.js'; // load .env.local into process.env BEFORE service modules read it
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { WebSocketServer } from 'ws';
 import http from 'http';
 
@@ -13,6 +14,8 @@ import videoAgentService from './services/videoAgentService.js';
 import agentActionsService from './services/agentActionsService.js';
 import modelCatalogService from './services/modelCatalogService.js';
 import videoDbProxyService from './services/videoDbProxyService.js';
+import gtmBoostService from './services/gtmBoostService.js';
+import { auth } from './middleware/auth.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -22,15 +25,27 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Routes
-app.use('/api/ai-agent', aiAgentService);
-app.use('/api/scene-detection', sceneDetectionService);
-app.use('/api/semantic-search', semanticSearchService);
-app.use('/api/speech-transcription', speechTranscriptionService);
-app.use('/api/agents', agentActionsService);
-app.use('/api/model-catalog', modelCatalogService);
-app.use('/api/videodb', videoDbProxyService);
-app.use('/videoagent', videoAgentService);
+const videoAgentLimiter = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false });
+const agentActionsLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false });
+const videodbProxyLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+
+// Authenticated API routes — every route below requires a valid Supabase
+// JWT in the `Authorization: Bearer <token>` header. The middleware attaches
+// `req.user = { id, email }` and `req.requestId` (UUID) for downstream use
+// (e.g. logging, per-user DB operations). See backend/middleware/auth.js.
+//
+// Note: services do not currently read req.user.id, but it is now available
+// to any handler that needs it (e.g. agentActionsService could scope DB
+// writes to the calling user with `const userId = req.user.id;`).
+app.use('/api/ai-agent', auth, aiAgentService);
+app.use('/api/scene-detection', auth, sceneDetectionService);
+app.use('/api/semantic-search', auth, semanticSearchService);
+app.use('/api/speech-transcription', auth, speechTranscriptionService);
+app.use('/api/agents', agentActionsLimiter, auth, agentActionsService);
+app.use('/api/model-catalog', auth, modelCatalogService);
+app.use('/api/videodb', videodbProxyLimiter, auth, videoDbProxyService);
+app.use('/api/gtm-boost', auth, gtmBoostService);
+app.use('/videoagent', videoAgentLimiter, auth, videoAgentService);
 
 // Health check
 app.get('/health', (req, res) => {

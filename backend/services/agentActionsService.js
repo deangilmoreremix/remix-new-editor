@@ -53,7 +53,36 @@ async function fetchWithTimeout(url, opts = {}, ms = 8000) {
   }
 }
 
+function sanitizeError(err) {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.replace(/:\/\/[^\s]*/g, '[redacted]').replace(/\\[^\s:]+/g, '[redacted]');
+}
+
+function validateFetchUrl(raw) {
+  let parsed;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    throw new Error('Invalid URL');
+  }
+  if (parsed.protocol !== 'https:') {
+    throw new Error('Only HTTPS URLs are allowed');
+  }
+  const host = parsed.hostname.toLowerCase();
+  const BLOCKED_HOSTS = ['localhost', '127.0.0.1', '169.254.169.254', '0.0.0.0', '::1'];
+  if (BLOCKED_HOSTS.includes(host)) {
+    throw new Error('URL points to a blocked host');
+  }
+  const parts = host.split('.');
+  if (parts[0] === '10') throw new Error('URL points to a private IP range');
+  if (parts[0] === '192' && parts[1] === '168') throw new Error('URL points to a private IP range');
+  if (parts[0] === '169' && parts[1] === '254') throw new Error('URL points to a private IP range');
+  if (parts[0] === '172' && Number(parts[1]) >= 16 && Number(parts[1]) <= 31) throw new Error('URL points to a private IP range');
+  if (host === '::1') throw new Error('URL points to a private IP range');
+}
+
 async function downloadToTmp(url, ext = 'mp4') {
+  validateFetchUrl(url);
   const r = await fetchWithTimeout(url, {}, 30000);
   if (!r.ok) throw new Error(`Download failed: ${r.status}`);
   const buf = Buffer.from(await r.arrayBuffer());
@@ -510,7 +539,7 @@ router.post('/agent/:action', async (req, res) => {
     res.json({ success: true, action, steps: impl.steps, ...result });
   } catch (e) {
     console.error(`[agent-actions] ${action} failed:`, e);
-    res.status(500).json({ error: e.message, action, steps: impl.steps });
+    res.status(500).json({ error: 'An internal error occurred', action, steps: impl.steps });
   }
 });
 

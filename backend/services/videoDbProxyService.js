@@ -84,16 +84,17 @@ async function videodbRequest(req, method, path, { params, body, token } = {}) {
       // We handle non-2xx manually to surface VideoDB's error body.
       validateStatus: () => true,
     });
-    if (res.status < 200 || res.status >= 300) {
-      const detail =
-        (res.data && (res.data.message || JSON.stringify(res.data))) ||
-        res.statusText ||
-        `HTTP ${res.status}`;
-      const err = new Error(`VideoDB ${method.toUpperCase()} ${path} failed (${res.status}): ${detail}`);
-      err.status = res.status >= 500 ? 502 : 400;
-      err.upstreamStatus = res.status;
-      throw err;
-    }
+  if (res.status < 200 || res.status >= 300) {
+    const rawDetail =
+      (res.data && (res.data.message || JSON.stringify(res.data))) ||
+      res.statusText ||
+      `HTTP ${res.status}`;
+    const detail = rawDetail.replace(/:\/\/[^\s]*/g, '[redacted]').replace(/\\[^\s:]+/g, '[redacted]');
+    const err = new Error(`VideoDB ${method.toUpperCase()} ${path} failed (${res.status}): ${detail}`);
+    err.status = res.status >= 500 ? 502 : 400;
+    err.upstreamStatus = res.status;
+    throw err;
+  }
     const payload = res.data && typeof res.data === 'object' ? res.data : {};
     return payload.data !== undefined ? payload.data : payload;
   } catch (e) {

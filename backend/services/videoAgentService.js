@@ -99,6 +99,13 @@ async function callResponsesApi(apiKey, { model = 'gpt-4.1', input, tools, text,
 }
 
 const jobs = new Map();
+const MAX_JOBS = 10000;
+const JOB_TTL_MS = 3600000;
+
+function sanitizeError(err) {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.replace(/:\/\/[^\s]*/g, '[redacted]').replace(/\\[^\s:]+/g, '[redacted]');
+}
 
 // Real processed outputs are persisted here and served via GET
 // /videoagent/file/:fileId so the frontend can actually play/download what
@@ -106,6 +113,52 @@ const jobs = new Map();
 // was deleted and never served, so results were invisible).
 const EXPORTS_DIR = path.join(os.tmpdir(), 'videoagent-exports');
 fs.mkdirSync(EXPORTS_DIR, { recursive: true });
+
+function evictOldestJobs() {
+  if (jobs.size <= MAX_JOBS) return;
+  const excess = jobs.size - MAX_JOBS;
+  const toDelete = Math.max(excess, Math.floor(jobs.size * 0.2));
+  const sorted = [...jobs.entries()].sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
+  for (let i = 0; i < toDelete && i < sorted.length; i++) {
+    jobs.delete(sorted[i][0]);
+  }
+}
+
+function completeJob(jobId, result) {
+  const r = updateJob(jobId, { status: 'completed', progress: 100, currentStep: 99, result });
+  setTimeout(() => { jobs.delete(jobId); }, JOB_TTL_MS);
+  evictOldestJobs();
+  return r;
+}
+
+function failJob(jobId, error) {
+  const sanitized = sanitizeError(error);
+  const r = updateJob(jobId, {
+    status: 'failed',
+    error: sanitized,
+  });
+  setTimeout(() => { jobs.delete(jobId); }, JOB_TTL_MS);
+  evictOldestJobs();
+  return r;
+}
+
+async function cleanupExportsDir() {
+  try {
+    const cutoff = Date.now() - 2 * 60 * 60 * 1000;
+    const entries = await fs.readdir(EXPORTS_DIR);
+    for (const entry of entries) {
+      try {
+        const p = path.join(EXPORTS_DIR, entry);
+        const stat = await fs.promises.stat(p);
+        if (stat.mtimeMs < cutoff) {
+          await fs.promises.unlink(p);
+        }
+      } catch { /* skip individual files */ }
+    }
+  } catch { /* ignore directory read errors */ }
+}
+
+setInterval(cleanupExportsDir, 60 * 60 * 1000);
 
 function safeBase(name) {
   return path.basename(String(name)).replace(/[^a-zA-Z0-9._-]/g, '_');
@@ -149,17 +202,6 @@ function updateJob(jobId, patch) {
   if (!job) return null;
   Object.assign(job, patch);
   return job;
-}
-
-function completeJob(jobId, result) {
-  return updateJob(jobId, { status: 'completed', progress: 100, currentStep: 99, result });
-}
-
-function failJob(jobId, error) {
-  return updateJob(jobId, {
-    status: 'failed',
-    error: error instanceof Error ? error.message : String(error),
-  });
 }
 
 function buildJobResult(job) {
@@ -884,7 +926,7 @@ router.post('/process', async (req, res) => {
     }
   } catch (error) {
     console.error('[videoagent] process failed:', error);
-    return res.status(500).json({ error: 'Processing failed', message: error.message });
+    return res.status(500).json({ error: 'Processing failed', message: sanitizeError(error) });
   }
 });
 
@@ -934,7 +976,7 @@ router.post('/transcribe', async (req, res) => {
     res.json({ success: true, transcription: result.text, raw: result });
   } catch (error) {
     console.error('[videoagent] transcription failed:', error);
-    res.status(500).json({ error: 'Transcription failed', message: error.message });
+    res.status(500).json({ error: 'Transcription failed', message: sanitizeError(error) });
   }
 });
 
@@ -951,7 +993,7 @@ router.post('/tts/synthesize', async (req, res) => {
     res.send(result.audioBuffer);
   } catch (error) {
     console.error('[videoagent] tts failed:', error);
-    res.status(500).json({ error: 'TTS failed', message: error.message });
+    res.status(500).json({ error: 'TTS failed', message: sanitizeError(error) });
   }
 });
 
