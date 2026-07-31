@@ -234,6 +234,7 @@ export function VideoStudio() {
     textarea.placeholder = 'Describe the video you want to create';
     textarea.className = 'flex-1 bg-transparent border-none text-white text-base md:text-xl placeholder:text-muted focus:outline-none resize-none pt-2.5 leading-relaxed min-h-[40px] max-h-[150px] md:max-h-[250px] overflow-y-auto custom-scrollbar';
     textarea.rows = 1;
+    textarea.setAttribute('aria-label', 'Video prompt');
     textarea.oninput = () => {
         textarea.style.height = 'auto';
         const maxHeight = window.innerWidth < 768 ? 150 : 250;
@@ -426,8 +427,10 @@ export function VideoStudio() {
     controlsLeft.appendChild(thumbBtn);
 
     const generateBtn = document.createElement('button');
+    generateBtn.type = 'button';
     generateBtn.className = 'bg-primary text-black px-6 md:px-8 py-3 md:py-3.5 rounded-xl md:rounded-[1.5rem] font-black text-sm md:text-base hover:shadow-glow hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5 w-full sm:w-auto shadow-lg';
     generateBtn.setAttribute('data-tooltip', 'Generate AI video from prompt');
+    generateBtn.setAttribute('aria-label', 'Generate video');
     generateBtn.innerHTML = `Generate ✨`;
 
     bottomRow.appendChild(controlsLeft);
@@ -829,6 +832,8 @@ export function VideoStudio() {
     // Main canvas
     const canvas = document.createElement('div');
     canvas.className = 'absolute inset-0 flex flex-col items-center justify-center p-4 min-[800px]:p-16 z-10 opacity-0 pointer-events-none transition-all duration-1000 translate-y-10 scale-95';
+    canvas.setAttribute('role', 'status');
+    canvas.setAttribute('aria-live', 'polite');
 
     const videoContainer = document.createElement('div');
     videoContainer.className = 'relative group';

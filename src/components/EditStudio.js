@@ -158,6 +158,7 @@ export function EditStudio() {
   const promptField = document.createElement('input');
   promptField.type = 'text';
   promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
+  promptField.setAttribute('aria-label', 'Edit prompt');
   workCard.appendChild(promptField);
 
   // Thumbnail studio button — next to creation controls, GTM Boost styling
@@ -188,12 +189,16 @@ export function EditStudio() {
   workCard.appendChild(thumbBtn);
 
   const editBtn = document.createElement('button');
+  editBtn.type = 'button';
   editBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   editBtn.textContent = 'Apply Edit';
+  editBtn.setAttribute('aria-label', 'Apply edit');
   workCard.appendChild(editBtn);
 
   const resultArea = document.createElement('div');
   resultArea.className = 'hidden mt-4';
+  resultArea.setAttribute('role', 'status');
+  resultArea.setAttribute('aria-live', 'polite');
   workCard.appendChild(resultArea);
 
   workArea.appendChild(workCard);

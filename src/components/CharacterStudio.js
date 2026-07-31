@@ -93,6 +93,7 @@ export function CharacterStudio() {
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-none';
   promptInput.rows = 3;
   promptInput.placeholder = 'e.g. wearing a leather jacket, standing in a neon-lit alley, cyberpunk style';
+  promptInput.setAttribute('aria-label', 'Character description');
   formCard.appendChild(promptInput);
 
     // GTM Boost entry point — opens the prompt enhancer themed for character
@@ -152,8 +153,10 @@ export function CharacterStudio() {
   formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
+  genBtn.type = 'button';
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
   genBtn.textContent = 'Generate Character';
+  genBtn.setAttribute('aria-label', 'Generate character');
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
 
@@ -241,6 +244,8 @@ export function CharacterStudio() {
 
   const resultArea = document.createElement('div');
   resultArea.className = 'w-full max-w-lg mt-6 hidden';
+  resultArea.setAttribute('role', 'status');
+  resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
   genBtn.onclick = async () => {

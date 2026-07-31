@@ -158,6 +158,7 @@ export function LipSyncStudio() {
     textarea.placeholder = 'Optional: describe the talking style or motion...';
     textarea.className = 'flex-1 bg-transparent text-white placeholder-muted/50 text-sm resize-none outline-none min-h-[56px] leading-relaxed pt-1';
     textarea.rows = 2;
+    textarea.setAttribute('aria-label', 'Lip sync prompt');
 
     uploadsRow.appendChild(imageUploadBtn);
     uploadsRow.appendChild(videoUploadBtn);
@@ -226,6 +227,7 @@ export function LipSyncStudio() {
     generateBtn.type = 'button';
     generateBtn.className = 'ml-auto px-6 py-2.5 bg-primary text-black font-black text-sm rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100';
     generateBtn.textContent = 'Generate ✨';
+    generateBtn.setAttribute('aria-label', 'Generate lip sync video');
 
     bottomRow.appendChild(modelBtn);
     bottomRow.appendChild(resolutionBtn);
@@ -597,6 +599,8 @@ export function LipSyncStudio() {
     // Main canvas
     const canvas = document.createElement('div');
     canvas.className = 'absolute inset-0 flex flex-col items-center justify-center p-4 min-[800px]:p-16 z-10 opacity-0 pointer-events-none transition-all duration-1000 translate-y-10 scale-95';
+    canvas.setAttribute('role', 'status');
+    canvas.setAttribute('aria-live', 'polite');
 
     const videoContainer = document.createElement('div');
     videoContainer.className = 'relative group';

@@ -107,8 +107,10 @@ export function UpscaleStudio() {
   formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
+  genBtn.type = 'button';
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   genBtn.textContent = 'Upscale Image';
+  genBtn.setAttribute('aria-label', 'Upscale image');
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
 
@@ -118,6 +120,8 @@ export function UpscaleStudio() {
 
   const resultArea = document.createElement('div');
   resultArea.className = 'w-full max-w-md mt-6 hidden';
+  resultArea.setAttribute('role', 'status');
+  resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
   function updateMethodBtns() {

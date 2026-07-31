@@ -169,8 +169,10 @@ export function TrainingStudio() {
 
   // Train button
   const trainBtn = document.createElement('button');
+  trainBtn.type = 'button';
   trainBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   trainBtn.textContent = 'Train LoRA';
+  trainBtn.setAttribute('aria-label', 'Train LoRA');
   formCard.appendChild(trainBtn);
   container.appendChild(formCard);
 
@@ -182,6 +184,8 @@ export function TrainingStudio() {
   // Result area
   const resultArea = document.createElement('div');
   resultArea.className = 'w-full max-w-md mt-6 hidden';
+  resultArea.setAttribute('role', 'status');
+  resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
   // Helper functions

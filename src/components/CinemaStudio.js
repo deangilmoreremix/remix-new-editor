@@ -268,6 +268,7 @@ export function CinemaStudio() {
     textarea.className = 'flex-1 bg-transparent border-none text-white text-lg font-medium placeholder:text-white/20 focus:outline-none resize-none h-[28px] leading-relaxed overflow-hidden';
     textarea.style.height = 'auto'; // Auto-grow check
     textarea.rows = 1;
+    textarea.setAttribute('aria-label', 'Cinema prompt');
     textarea.oninput = function () {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
@@ -618,8 +619,10 @@ export function CinemaStudio() {
 
     // Generate Button
     const generateBtn = document.createElement('button');
+    generateBtn.type = 'button';
     generateBtn.className = 'h-[56px] px-8 bg-[#d9ff00] text-black rounded-xl font-black text-xs uppercase hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
+    generateBtn.setAttribute('aria-label', 'Generate cinema shot');
     generateBtn.innerHTML = `GENERATE ✨`;
 
     rightGroup.appendChild(summaryCard);
@@ -800,6 +803,8 @@ export function CinemaStudio() {
     // ==========================================
     const canvas = document.createElement('div');
     canvas.className = 'absolute inset-0 flex flex-col items-center justify-center p-4 min-[800px]:p-16 z-30 opacity-0 pointer-events-none transition-all duration-1000 translate-y-10 scale-95 bg-black/90 backdrop-blur-3xl';
+    canvas.setAttribute('role', 'status');
+    canvas.setAttribute('aria-live', 'polite');
 
     const imageContainer = document.createElement('div');
     imageContainer.className = 'relative group max-w-full max-h-[70vh] flex items-center justify-center';

@@ -560,7 +560,8 @@ export class GTMPromptModal extends BaseModal {
       tonality: this.selectedTonality,
       model: resolveGtmModel(this.selectedModel),
       focus: this.focusAreas,
-      cinematicOptions: this.cinematicOptions
+      cinematicOptions: this.cinematicOptions,
+      apiKey: openaiConfig.getApiKey()
     };
   }
 

@@ -175,8 +175,10 @@ export function CommercialStudio() {
   formCard.appendChild(thumbBtn);
 
   const genBtn = document.createElement('button');
+  genBtn.type = 'button';
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
   genBtn.textContent = 'Generate Product Shot';
+  genBtn.setAttribute('aria-label', 'Generate product shot');
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
 
@@ -186,6 +188,8 @@ export function CommercialStudio() {
 
   const resultArea = document.createElement('div');
   resultArea.className = 'w-full max-w-xl mt-6 hidden';
+  resultArea.setAttribute('role', 'status');
+  resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
   genBtn.onclick = async () => {

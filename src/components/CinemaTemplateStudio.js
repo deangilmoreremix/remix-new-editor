@@ -271,7 +271,7 @@ export function CinemaTemplateStudio() {
           </div>
         ` : ''}
 
-        <button id="generate-btn" class="w-full py-3 bg-primary text-black font-black text-sm rounded-xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
+        <button id="generate-btn" type="button" aria-label="Generate video" class="w-full py-3 bg-primary text-black font-black text-sm rounded-xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
           <span>✨</span> Generate Video
         </button>
         <div id="personalize-trigger" class="mt-3"></div>
@@ -834,7 +834,7 @@ export function CinemaTemplateStudio() {
         <button id="edit-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-sm rounded-lg transition-colors">
           ✏️ Edit
         </button>
-        <button id="start-btn" class="px-6 py-2 bg-primary text-black font-bold text-sm rounded-xl hover:scale-105 transition-transform flex items-center gap-2">
+        <button id="start-btn" type="button" aria-label="Start generation" class="px-6 py-2 bg-primary text-black font-bold text-sm rounded-xl hover:scale-105 transition-transform flex items-center gap-2">
           <span>🎬</span> Start Generation
         </button>
       </div>

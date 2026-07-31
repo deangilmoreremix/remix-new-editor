@@ -41,7 +41,7 @@ export function TemplateStudio(templateId) {
   let activeTab = 'Enhanced Prompt';
   let aiEnhancer = true;
   let lastBuiltPrompt = '';
-  let outputTabValues = {};
+  const outputTabValues = {};
   let showAdvanced = false;
   let uploadedUrl = null;
   let isGenerating = false;
@@ -510,8 +510,10 @@ export function TemplateStudio(templateId) {
 
   // Generate button
   const genBtn = document.createElement('button');
+  genBtn.type = 'button';
   genBtn.className = 'mt-6 flex h-14 w-full items-center justify-center rounded-[20px] bg-white text-lg font-semibold text-black shadow-xl transition hover:opacity-90';
   genBtn.textContent = 'Generate';
+  genBtn.setAttribute('aria-label', 'Generate template');
   leftPanel.appendChild(genBtn);
   mountPersonalizeTrigger({ controlsContainer: leftPanel, appId: 'template-studio', getTextarea: () => document.getElementById('outputTextarea') || null });
 
@@ -648,6 +650,8 @@ export function TemplateStudio(templateId) {
   const resultArea = document.createElement('div');
   resultArea.id = 'resultArea';
   resultArea.className = 'hidden mt-8';
+  resultArea.setAttribute('role', 'status');
+  resultArea.setAttribute('aria-live', 'polite');
   centeredContainer.appendChild(resultArea);
 
   // Update output content based on active tab

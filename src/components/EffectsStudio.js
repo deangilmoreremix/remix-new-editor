@@ -166,6 +166,8 @@ export function EffectsStudio() {
 
   const outputCol = document.createElement('div');
   outputCol.className = 'flex-1 flex flex-col gap-3 min-w-0';
+  outputCol.setAttribute('role', 'status');
+  outputCol.setAttribute('aria-live', 'polite');
   const outputLabel = document.createElement('div');
   outputLabel.className = 'text-[10px] font-bold text-muted uppercase tracking-wider';
   outputLabel.textContent = 'Output';
@@ -184,6 +186,7 @@ export function EffectsStudio() {
   promptInput.type = 'text';
   promptInput.placeholder = 'Optional prompt...';
   promptInput.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
+  promptInput.setAttribute('aria-label', 'Effect prompt');
   promptRow.appendChild(promptInput);
 
   // Thumbnail studio button — next to creation controls, GTM Boost styling
@@ -214,8 +217,10 @@ export function EffectsStudio() {
   promptRow.appendChild(thumbBtn);
 
   const generateBtn = document.createElement('button');
+  generateBtn.type = 'button';
   generateBtn.className = 'bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow transition-all whitespace-nowrap';
   generateBtn.textContent = 'Apply Effect';
+  generateBtn.setAttribute('aria-label', 'Apply effect');
     promptRow.appendChild(generateBtn);
     mountPersonalizeTrigger({ controlsContainer: promptRow, getTextarea: () => promptInput, appId: 'effects-studio' });
     previewTop.appendChild(promptRow);
@@ -236,6 +241,8 @@ export function EffectsStudio() {
   mobileInputPreview.element.className += ' flex-1';
   const mobileOutputPreview = createMediaPreview({ maxHeight: '30vh', showDownload: true, showMeta: false });
   mobileOutputPreview.element.className += ' flex-1';
+  mobileOutputPreview.element.setAttribute('role', 'status');
+  mobileOutputPreview.element.setAttribute('aria-live', 'polite');
 
   mobilePreviewRow.appendChild(mobileInputPreview.element);
   mobilePreviewRow.appendChild(mobileOutputPreview.element);
@@ -263,12 +270,15 @@ export function EffectsStudio() {
   mobilePrompt.type = 'text';
   mobilePrompt.placeholder = 'Optional prompt...';
   mobilePrompt.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50';
+  mobilePrompt.setAttribute('aria-label', 'Effect prompt');
   mobileUploadRow.appendChild(mobilePrompt);
   mobileControls.appendChild(mobileUploadRow);
 
   const mobileGenBtn = document.createElement('button');
+  mobileGenBtn.type = 'button';
   mobileGenBtn.className = 'w-full bg-primary text-black py-3 rounded-xl font-black text-sm';
   mobileGenBtn.textContent = 'Apply Effect';
+  mobileGenBtn.setAttribute('aria-label', 'Apply effect');
   mobileControls.appendChild(mobileGenBtn);
   container.appendChild(mobileControls);
 

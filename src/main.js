@@ -19,6 +19,10 @@ import { analytics } from './lib/analytics.js';
 import { showToast } from './lib/loading.js';
 import { escapeHtml } from './lib/security.js';
 import { isDevBypass, apiKeyManager } from './lib/apiKeyManager.js';
+import { setupGlobalErrorHandlers } from './lib/errorBoundary.js';
+import { ErrorBoundary } from './components/ErrorBoundary.jsx';
+
+setupGlobalErrorHandlers();
 
 console.log('[App] Starting initialization...');
 
@@ -318,10 +322,12 @@ async function renderParentTimelineModal(modal, props = {}) {
       activeTimelineModal.instance = { root };
       try {
         const mod = await import('react');
-        root.render(mod.createElement(PersonalizationModal, {
-          handleClose: () => { root.unmount?.(); activeTimelineModal.unmount?.(); },
-          options: { elementType: props.elementType, onAdd: props.onAdd, tokenModes: props.tokenModes }
-        }));
+        root.render(mod.createElement(ErrorBoundary, null,
+          mod.createElement(PersonalizationModal, {
+            handleClose: () => { root.unmount?.(); activeTimelineModal.unmount?.(); },
+            options: { elementType: props.elementType, onAdd: props.onAdd, tokenModes: props.tokenModes }
+          })
+        ));
       } catch (err) {
         content.innerHTML = '<div style="padding:32px 24px;color:#fff;"><h2 style="margin:0 0 8px;">Personalizer</h2><p style="color:rgba(255,255,255,0.55);margin:0;">Open the timeline Personalizer inside the editor.</p></div>';
         console.warn('[TimelineModalBridge] React unavailable for Personalization modal', err);

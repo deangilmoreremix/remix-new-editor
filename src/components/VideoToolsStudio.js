@@ -89,6 +89,7 @@ export function VideoToolsStudio() {
   promptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white placeholder-white/30 focus:border-primary focus:outline-none resize-none';
   promptInput.rows = 3;
   promptInput.placeholder = 'Describe the transformation you want...';
+  promptInput.setAttribute('aria-label', 'Video processing prompt');
   promptInput.oninput = (e) => { prompt = e.target.value; };
    promptGroup.appendChild(promptInput);
     // GTM Boost entry point — opens the prompt enhancer themed for video tools
@@ -141,8 +142,10 @@ export function VideoToolsStudio() {
 
   // Generate button
   const genBtn = document.createElement('button');
+  genBtn.type = 'button';
   genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
   genBtn.textContent = 'Process Video';
+  genBtn.setAttribute('aria-label', 'Process video');
   formCard.appendChild(genBtn);
   container.appendChild(formCard);
 
@@ -154,6 +157,8 @@ export function VideoToolsStudio() {
   // Result area
   const resultArea = document.createElement('div');
   resultArea.className = 'w-full max-w-md mt-6 hidden';
+  resultArea.setAttribute('role', 'status');
+  resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
 
   // Helper functions

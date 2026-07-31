@@ -991,6 +991,10 @@ export default defineConfig({
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/api\/personalizer/, '/.netlify/functions/personalizer-api'),
             },
+            '/api/analytics': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            },
             '/api': {
                 target: process.env.VITE_MUAPI_URL || 'https://api.muapi.ai',
                 changeOrigin: true,
@@ -1024,6 +1028,8 @@ export default defineConfig({
                     if (id.includes('node_modules')) {
                         if (id.includes('@supabase')) return 'vendor';
                         if (id.includes('mp4box')) return 'vendor-mp4box';
+                        if (id.includes('@huggingface/transformers')) return 'vendor-transformers';
+                        if (id.includes('tiktoken')) return 'vendor-tiktoken';
                     }
                     return undefined; // everything else: let Rollup decide
                 },

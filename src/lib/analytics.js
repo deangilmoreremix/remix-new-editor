@@ -86,13 +86,17 @@ class Analytics {
         this.queue = [];
 
         try {
-            // Replace with your analytics endpoint
-            // await fetch('/api/analytics', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({ events })
-            // });
-            
+            const response = await fetch('/api/analytics', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ events }),
+                keepalive: true,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Analytics endpoint returned ${response.status}`);
+            }
+
             // For now, just log in development
             if (import.meta.env.DEV) {
                 console.log('[Analytics] Flushed events:', events);

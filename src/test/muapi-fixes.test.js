@@ -7,10 +7,11 @@ import { MuapiClient, muapi } from '../lib/muapi.js';
 describe('MuapiClient Fixes', () => {
   let client;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     client = new MuapiClient();
     // Mock proxyUrl to simulate Supabase proxy
     client.proxyUrl = 'https://test.supabase.co/functions/v1/muapi-proxy';
+    await client.apiKeyManager.setMuapiKey('test-muapi-key');
   });
 
   describe('uploadFile routes to muapi upload endpoint', () => {

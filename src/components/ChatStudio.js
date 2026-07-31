@@ -13,7 +13,7 @@ export function ChatStudio() {
   mountStudioChrome(container, { currentRoute: 'chat' });
 
   let selectedModel = textModels[0];
-  let messages = []; // Chat history
+  const messages = []; // Chat history
   let isGenerating = false;
   let customThumbnailUrl = getCustomThumbnailFromCache('chat-studio');
 
@@ -58,6 +58,8 @@ export function ChatStudio() {
   const chatContainer = document.createElement('div');
   chatContainer.className = 'w-full max-w-2xl flex-1 overflow-y-auto mb-6 space-y-4 animate-fade-in-up';
   chatContainer.style.animationDelay = '0.2s';
+  chatContainer.setAttribute('role', 'status');
+  chatContainer.setAttribute('aria-live', 'polite');
   container.appendChild(chatContainer);
 
   // Empty state
@@ -93,11 +95,14 @@ export function ChatStudio() {
   textarea.className = 'flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:border-primary focus:outline-none resize-none min-h-[60px]';
   textarea.placeholder = 'Type your message...';
   textarea.rows = 2;
+  textarea.setAttribute('aria-label', 'Message');
   inputRow.appendChild(textarea);
 
   const sendBtn = document.createElement('button');
+  sendBtn.type = 'button';
   sendBtn.className = 'px-6 py-3 bg-primary text-black font-bold rounded-xl hover:bg-primary/90 transition-colors self-end';
   sendBtn.innerHTML = '<svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
+  sendBtn.setAttribute('aria-label', 'Send message');
   inputRow.appendChild(sendBtn);
 
   // Thumbnail studio button — next to creation controls, GTM Boost styling

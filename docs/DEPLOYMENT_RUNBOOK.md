@@ -21,7 +21,6 @@ This section covers the operational steps required to deploy the main editor app
 | `SUPABASE_SERVICE_ROLE_KEY` | **Yes (for muapi-proxy + analytics)** | `eyJ...` | Service role key, set via `supabase secrets set`. Never exposed to the client. |
 | `APP_ORIGIN` | **Yes (prod)** | `https://app.example.com` | Used by `muapi-proxy` to validate `Origin` / `Sec-Fetch-Site` for CSRF defense-in-depth. Must match the deployed frontend origin. |
 | `ALLOW_UNAUTHENTICATED` | **Yes (prod)** | `false` | When `false` (or unset) in production, the proxy rejects requests authenticated only by the Supabase anon key. **Must be `false` in production.** Set to `true` only for local development. |
-| `MUAPI_API_KEY` | **Yes (server fallback)** | `muapi-...` | Server-side Muapi key used when no user key is attached. Set per the Muapi Key Architecture in §1.2 below. |
 | `OPENAI_API_KEY` | **Yes (for OpenAI Responses path)** | `sk-...` | Used by `openaiService.js` for the storyboard OpenAI Responses call. |
 
 ### A1.3 Frontend Hardening
@@ -197,7 +196,7 @@ This runbook covers the operational steps required to deploy the Director featur
 | Variable | Required | Example | Notes |
 |----------|----------|---------|-------|
 | `OPENAI_API_KEY` | **Yes** | `sk-...` | TTS/STT used by `agentActionsService`. |
-| `MUAPI_API_KEY` | **Optional (fallback)** | `muapi-...` | Server-side fallback for MuAPI stock footage search (`add-broll`, etc.) in the `muapi-proxy` Supabase function. Only used when a user has not supplied their own key via the Settings modal. See §1.5 "Muapi Key Architecture". |
+| `MUAPI_API_KEY` | **No longer used** | — | Removed. Users must supply their own Muapi key in Settings. The server no longer provides a fallback. |
 | `DIRECTOR_BASE_URL` | **Yes (production)** | `https://director-backend.onrender.com` | Points `directorProxy.js` at the deployed Director backend. **Must NOT be `localhost:8000` in production**. |
 | `VIDEO_DB_API_KEY` | **Optional** | `vdbt-...` | Server-side VideoDB key used by `directorProxy.js` chat fallback. |
 | `SUPABASE_URL` | **Conditional** | `https://xxx.supabase.co` | Required if agent actions store assets in Supabase Storage. |
@@ -208,34 +207,26 @@ This runbook covers the operational steps required to deploy the Director featur
 
 ### 1.2 Muapi Key Architecture
 
-The `muapi-proxy` Supabase Edge Function (used for Muapi stock footage search, image generation, etc.) supports **per-user API keys** in addition to the original server-side fallback. This lets users bring their own Muapi account and isolates per-tenant usage/billing from the platform's pooled key.
+The `muapi-proxy` Supabase Edge Function (used for Muapi stock footage search, image generation, etc.) uses **per-user API keys only**. Users must bring their own Muapi account and key; there is no server-side fallback.
 
 **Flow (user-supplied key):**
 1. User opens the editor's **Settings modal** and pastes a `muapi-...` key.
 2. `apiKeyManager` (browser) persists the key in `localStorage` under the Muapi provider slot.
 3. The editor's API client (`services/muapiClient.js` or equivalent) attaches the key to every `muapi-proxy` request as an `x-api-key` header.
 4. The Supabase `muapi-proxy` function reads the header, forwards it to `https://api.muapi.ai/...` as the upstream `x-api-key`, and adds a `x-key-source: user` response header for observability.
-5. If no user key is attached, the function falls back to the server-side `MUAPI_API_KEY` env var and sets `x-key-source: server`.
-
-**Flow (no user key → server fallback):**
-- `apiKeyManager` returns `null` (no key in `localStorage`).
-- The request is sent with **no** `x-api-key` header.
-- The proxy resolves to `MUAPI_API_KEY` from its own function env.
-- Upstream call to `api.muapi.ai` is made with the server key.
 
 **Key extraction order in `muapi-proxy` (first non-empty wins):**
 1. `body.muapi_api_key` (top-level body field)
 2. `body.params.muapi_api_key` (nested params, used by some agent action payloads)
 3. `x-api-key` request header (the standard user-supplied path from Settings modal)
-4. `MUAPI_API_KEY` env var (server-side fallback)
 
 If none resolve to a non-empty value, the function returns HTTP 500 `{ error: "No Muapi API key available" }`.
 
 **Dev-bypass behavior:**
-- The dev-only placeholder `dev-bypass-key-not-real` (used in some local `agentActionsService` mocks) is **not** treated as a real key by the proxy. It is rejected upstream by `api.muapi.ai`. This is intentional — production traffic must use either a real user key or the server fallback.
+- The dev-only placeholder `dev-bypass-key-not-real` (used in some local `agentActionsService` mocks) is **not** treated as a real key by the proxy. It is rejected upstream by `api.muapi.ai`. This is intentional — production traffic must use a real user key.
 
 **Observability:**
-- The `muapi-proxy` function returns an `x-key-source` response header on every successful resolution: `user` | `server`. This is logged by the editor's API client and forwarded into error reports so support can distinguish "user key invalid" from "server key missing/expired" without ever logging the key itself.
+- The `muapi-proxy` function returns an `x-key-source: user` response header on every successful resolution. This is logged by the editor's API client and forwarded into error reports so support can distinguish "user key invalid" from "user key missing" without ever logging the key itself.
 
 **Security:**
 - User-supplied keys are stored in `localStorage` only (never in cookies, never in the DB). They are sent **only** to the Supabase `muapi-proxy` over HTTPS, and the proxy forwards them to `api.muapi.ai`. The key value is never written to logs, error responses, or the response back to the client.
@@ -471,17 +462,15 @@ curl -s -D - -o /tmp/muapi_user.json \
 # If missing or `x-key-source: server`, the proxy did not pick up the user header.
 
 echo ""
-echo "=== 10. muapi-proxy — server fallback path ==="
-# Same call with NO x-api-key header. If MUAPI_API_KEY is set in the Supabase
-# function env, the proxy should resolve to the server key and set x-key-source: server.
-# If MUAPI_API_KEY is NOT set, expect HTTP 500 "No Muapi API key available".
-curl -s -D - -o /tmp/muapi_server.json \
+echo "=== 10. muapi-proxy — missing user key ==="
+# Same call with NO x-api-key header. Since there is no server-side fallback,
+# the proxy should return HTTP 500 "No Muapi API key available".
+curl -s -D - -o /tmp/muapi_missing.json \
   -X POST "$BACKEND/api/muapi/test-endpoint" \
   -H "Authorization: Bearer $STAGING_JWT" \
   -H "Content-Type: application/json" \
-  -d '{"input":"test"}' | grep -i "^x-key-source"
-# Expected (when env is configured): x-key-source: server
-# Expected (when env is unconfigured): HTTP 500 (see §10 Troubleshooting).
+  -d '{"input":"test"}' | grep -i "No Muapi API key available"
+# Expected: HTTP 500 with body containing "No Muapi API key available"
 ```
 
 **Note on Authorization:** The staging environment requires a valid Supabase JWT (`$STAGING_JWT`). Obtain one by signing in to staging and copying the `Authorization` header from the browser DevTools Network tab.
@@ -538,7 +527,7 @@ curl -s -D - -o /tmp/muapi_server.json \
   - `/api/videodb` → 30 req/min per IP
   - `/api/director/agent/:id` → inherits the `/api/agents` limiter (mounted under `/api/agents` in `director-proxy.js`)
 - **No Stack Traces in Errors**: All error responses use structured `{ ok: false, error: "…" }` bodies. Raw `err.stack` is never emitted to clients.
-- **Server-side Keys Never Logged**: `videoDbKey`, `MUAPI_API_KEY`, `OPENAI_API_KEY`, and `SUPABASE_SERVICE_KEY` are read from the request body but never written to `console.log`.
+- **Server-side Keys Never Logged**: `videoDbKey`, `OPENAI_API_KEY`, and `SUPABASE_SERVICE_KEY` are read from the request body but never written to `console.log`.
 
 ---
 
@@ -546,29 +535,27 @@ curl -s -D - -o /tmp/muapi_server.json \
 
 ### 10.1 All `muapi-proxy` requests return 500 `"No Muapi API key available"`
 
-This means the proxy resolved **no** key in the extraction order (`body.muapi_api_key` → `body.params.muapi_api_key` → `x-api-key` header → `MUAPI_API_KEY` env var). Two possible causes:
+This means the proxy resolved **no** key in the extraction order (`body.muapi_api_key` → `body.params.muapi_api_key` → `x-api-key` header). The only cause is the user has not set a Muapi key.
 
-1. **Server fallback env var is missing.** The Supabase `muapi-proxy` Edge Function has no `MUAPI_API_KEY` set. Fix:
-   ```bash
-   # Via Supabase CLI
-   supabase secrets set MUAPI_API_KEY=muapi-... --project-ref <ref>
+**Fix:** Instruct the user to open the Settings modal and enter their Muapi API key. The key is persisted in `localStorage` and sent as the `x-api-key` header on every `muapi-proxy` request.
 
-   # Or in the Supabase Dashboard:
-   # Edge Functions → muapi-proxy → Manage secrets → add MUAPI_API_KEY
-   ```
-   Then re-run smoke test §5.10 — expect `x-key-source: server` and a non-500 response (200 or 401 from upstream, not 500 from the proxy itself).
+If a real `x-api-key` header was attached but the proxy still returned 500, the header is not reaching the function. Check:
+- Browser `localStorage` for the `muapi` key slot (Settings modal → "Muapi API Key").
+- CORS — the editor frontend origin must be allow-listed in the Supabase function.
+- Whether a corporate proxy or browser extension is stripping the `x-api-key` header.
 
-2. **Users are not entering keys in the Settings modal.** If a real `x-api-key` header was attached but the proxy still returned 500, the header is not reaching the function. Check:
-   - Browser `localStorage` for the `muapi` key slot (Settings modal → "Muapi API Key").
-   - CORS — the editor frontend origin must be allow-listed in the Supabase function.
-   - Whether a corporate proxy or browser extension is stripping the `x-api-key` header.
-
-   Confirm by running smoke test §5.9 with a known header value; you should see `x-key-source: user` in the response.
+Confirm by running smoke test §5.9 with a known header value; you should see `x-key-source: user` in the response.
 
 ### 10.2 `x-key-source: user` but upstream returns 401
 
 The proxy correctly forwarded the user key, but `api.muapi.ai` rejected it. Action: ask the user to verify their key in the Settings modal — common causes are a revoked/expired key, a typo, or a key from a different provider (the prefix should be `muapi-...`).
 
-### 10.3 `x-key-source: server` even when a user key is set
+### 10.3 User has not set a Muapi key
 
-The proxy fell back to the server key despite an `x-api-key` header being attached. Cause is almost always the extraction order — the header was not where the proxy looked. Verify the frontend `muapiClient` is attaching `x-api-key` (not, e.g., `Authorization: Bearer muapi-...`) and that the request body does not contain a stale/empty `muapi_api_key` field that is winning the extraction order.
+**User-facing error path:** When a user attempts to use a Muapi-powered feature (e.g., stock footage search, image generation) without having configured a key in Settings, the `muapi-proxy` Supabase Edge Function returns HTTP 500:
+
+```json
+{ "error": "No Muapi API key available" }
+```
+
+The frontend surfaces this to the user as a prompt to open the Settings modal and enter their `muapi-...` key. There is no server-side fallback; the request cannot proceed without a user-supplied key.

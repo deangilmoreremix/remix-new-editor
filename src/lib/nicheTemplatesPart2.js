@@ -12,6 +12,8 @@ import { CINEMATIC_CATEGORIES, OUTPUT_STYLES } from './cinematicTemplates.js';
 export const DENTAL_TEMPLATES = [
   {
     id: 'smile_frame_film',
+    modelType: 't2v',
+    basePrompt: 'Beautiful smile brand film, {prompt}, confident smile reveal, dental environment, care moment, healthy smile close, luxury dental, 4K',
     name: 'Smile Frame Film',
     description: 'Beautiful smile showcase with confident patient visuals',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -37,6 +39,8 @@ export const DENTAL_TEMPLATES = [
   },
   {
     id: 'better_smile_story',
+    modelType: 't2v',
+    basePrompt: 'Smile improvement story, {prompt}, before smile, decision moment, treatment process, progressive results, confidence reveal, 4K',
     name: 'Better Smile Story',
     description: 'Transformation story showing smile improvement journey',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -62,6 +66,8 @@ export const DENTAL_TEMPLATES = [
   },
   {
     id: 'white_light_promo',
+    modelType: 't2v',
+    basePrompt: 'Clean bright dental promo, {prompt}, service showcase, technology highlight, care atmosphere, clean aesthetic, booking CTA, 4K',
     name: 'White Light Promo',
     description: 'Clean, bright promotional content for dental services',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -87,6 +93,8 @@ export const DENTAL_TEMPLATES = [
   },
   {
     id: 'family_visit_explainer',
+    modelType: 't2v',
+    basePrompt: 'Family dental experience, {prompt}, family arrival, welcoming environment, care moment, kid friendly touch, warm documentary, 4K',
     name: 'Family Visit Explainer',
     description: 'Warm, family-friendly content showing dental visit experience',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -112,6 +120,8 @@ export const DENTAL_TEMPLATES = [
   },
   {
     id: 'dentist_story_portrait',
+    modelType: 't2v',
+    basePrompt: 'Dentist provider portrait, {prompt}, expertise story, patient philosophy, care approach, personal connection, documentary, 4K',
     name: 'Dentist Story Portrait',
     description: 'Provider profile showcasing expertise and personal connection',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -137,6 +147,8 @@ export const DENTAL_TEMPLATES = [
   },
   {
     id: 'comfort_on_camera_testimonial',
+    modelType: 't2v',
+    basePrompt: 'Patient comfort testimonial, {prompt}, past fear, comfort found, procedure experience, recommendation close, dental brand, 4K',
     name: 'Comfort on Camera Testimonial',
     description: 'Patient testimonial focusing on pain-free, comfortable experience',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -162,6 +174,8 @@ export const DENTAL_TEMPLATES = [
   },
   {
     id: 'inside_the_practice_video',
+    modelType: 't2v',
+    basePrompt: 'Behind the scenes dental practice, {prompt}, modern practice tour, front desk, treatment rooms, technology showcase, team intro, 4K',
     name: 'Inside the Practice Video',
     description: 'Behind-the-scenes look at modern dental practice',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -187,6 +201,8 @@ export const DENTAL_TEMPLATES = [
   },
   {
     id: 'care_sequence_showcase',
+    modelType: 't2v',
+    basePrompt: 'Quality dental care sequence, {prompt}, consultation, examination detail, treatment delivery, follow up care, step by step, 4K',
     name: 'Care Sequence Showcase',
     description: 'Step-by-step visual journey of quality dental care',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -212,6 +228,8 @@ export const DENTAL_TEMPLATES = [
   },
   {
     id: 'first_visit_promo',
+    modelType: 't2v',
+    basePrompt: 'New patient acquisition promo, {prompt}, welcome hook, new patient offer, practice atmosphere, easy booking, call CTA, 4K',
     name: 'First Visit Promo',
     description: 'New patient acquisition with first visit offer',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -237,6 +255,8 @@ export const DENTAL_TEMPLATES = [
   },
   {
     id: 'trust_the_smile_documentary',
+    modelType: 't2v',
+    basePrompt: 'Dental authority documentary, {prompt}, expertise establishing, qualifications, patient trust, case studies, authority close, 4K',
     name: 'Trust the Smile Documentary',
     description: 'Authority-building documentary about dental expertise and trust',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -269,6 +289,8 @@ export const DENTAL_TEMPLATES = [
 export const CHIROPRACTIC_TEMPLATES = [
   {
     id: 'return_to_balance_film',
+    modelType: 't2v',
+    basePrompt: 'Wellness balance restoration film, {prompt}, pain state, search for help, progress journey, balance restored, emotional brand story, 4K',
     name: 'Return to Balance Film',
     description: 'Wellness-focused content showing journey back to health',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -294,6 +316,8 @@ export const CHIROPRACTIC_TEMPLATES = [
   },
   {
     id: 'alignment_explainer',
+    modelType: 't2v',
+    basePrompt: 'Chiropractic alignment explainer, {prompt}, problem identification, anatomy moment, solution explanation, treatment demonstration, educational, 4K',
     name: 'Alignment Explainer',
     description: 'Educational content explaining chiropractic alignment',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -319,6 +343,8 @@ export const CHIROPRACTIC_TEMPLATES = [
   },
   {
     id: 'relief_story_documentary',
+    modelType: 't2v',
+    basePrompt: 'Patient relief documentary, {prompt}, chronic pain, struggle journey, discovery moment, treatment progress, relief celebration, 4K',
     name: 'Relief Story Documentary',
     description: 'Patient story focused on finding relief through care',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -344,6 +370,8 @@ export const CHIROPRACTIC_TEMPLATES = [
   },
   {
     id: 'wellness_authority_portrait',
+    modelType: 't2v',
+    basePrompt: 'Chiropractic authority portrait, {prompt}, provider introduction, education background, patient outcomes, wellness mission, 4K',
     name: 'Wellness Authority Portrait',
     description: 'Provider profile establishing chiropractic authority',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -369,6 +397,8 @@ export const CHIROPRACTIC_TEMPLATES = [
   },
   {
     id: 'healing_room_video',
+    modelType: 't2v',
+    basePrompt: 'Therapeutic clinic tour, {prompt}, clinic exterior, reception warmth, treatment room tour, modality showcase, calm close, 4K',
     name: 'Healing Room Video',
     description: 'Tour of therapeutic clinic environment and treatment rooms',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -394,6 +424,8 @@ export const CHIROPRACTIC_TEMPLATES = [
   },
   {
     id: 'recovery_cut_testimonial',
+    modelType: 't2v',
+    basePrompt: 'Athletic recovery testimonial, {prompt}, athlete intro, injury setback, recovery process, return to sport, performance close, 4K',
     name: 'Recovery Cut Testimonial',
     description: 'Athletic recovery testimonial with sports focus',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -419,6 +451,8 @@ export const CHIROPRACTIC_TEMPLATES = [
   },
   {
     id: 'calm_within_reel',
+    modelType: 't2v',
+    basePrompt: 'Peaceful wellness social short, {prompt}, calm hook, treatment moment, relaxation details, peaceful close, 9:16 format, 4K',
     name: 'Calm Within Reel',
     description: 'Peaceful wellness content for social media',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -444,6 +478,8 @@ export const CHIROPRACTIC_TEMPLATES = [
   },
   {
     id: 'begin_again_promo',
+    modelType: 't2v',
+    basePrompt: 'Fresh start wellness promo, {prompt}, wellness hook, new beginning, clinic welcome, offer reveal, start CTA, 4K',
     name: 'Begin Again Promo',
     description: 'Fresh start wellness promotion for new patients',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -469,6 +505,8 @@ export const CHIROPRACTIC_TEMPLATES = [
   },
   {
     id: 'local_wellness_ad',
+    modelType: 't2v',
+    basePrompt: 'Community wellness ad, {prompt}, local hook, wellness services, convenience, visit CTA, community focused, 4K',
     name: 'Local Wellness Ad',
     description: 'Community-focused ad targeting local wellness patients',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -494,6 +532,8 @@ export const CHIROPRACTIC_TEMPLATES = [
   },
   {
     id: 'motion_to_heal_short',
+    modelType: 't2v',
+    basePrompt: 'Movement mobility wellness short, {prompt}, motion hook, mobility showcase, healing close, upbeat social audio, 9:16, 4K',
     name: 'Motion to Heal Short',
     description: 'Movement and mobility focused wellness content',
     category: CINEMATIC_CATEGORIES.SOCIAL,
@@ -526,6 +566,8 @@ export const CHIROPRACTIC_TEMPLATES = [
 export const LEGAL_TEMPLATES = [
   {
     id: 'authority_case_film',
+    modelType: 't2v',
+    basePrompt: 'Case result showcase, {prompt}, case introduction, legal strategy, successful result, justice close, authority brand, 4K',
     name: 'Authority Case Film',
     description: 'Case result showcase with authority and credibility focus',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -551,6 +593,8 @@ export const LEGAL_TEMPLATES = [
   },
   {
     id: 'counsel_on_camera_portrait',
+    modelType: 't2v',
+    basePrompt: 'Attorney profile portrait, {prompt}, credentials moment, expertise area, client philosophy, consultation close, authority, 4K',
     name: 'Counsel on Camera Portrait',
     description: 'Attorney profile with professional authority presence',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -576,6 +620,8 @@ export const LEGAL_TEMPLATES = [
   },
   {
     id: 'practice_area_explainer',
+    modelType: 't2v',
+    basePrompt: 'Legal practice area explainer, {prompt}, topic introduction, common questions, legal process, how we help, next steps, 4K',
     name: 'Practice Area Explainer',
     description: 'Educational content about specific legal practice area',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -601,6 +647,8 @@ export const LEGAL_TEMPLATES = [
   },
   {
     id: 'trust_in_evidence_testimonial',
+    modelType: 't2v',
+    basePrompt: 'Client results testimonial, {prompt}, client situation, working with firm, successful outcome, trust recommendation, legal brand, 4K',
     name: 'Trust in Evidence Testimonial',
     description: 'Client testimonial built on trust and results',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -626,6 +674,8 @@ export const LEGAL_TEMPLATES = [
   },
   {
     id: 'case_story_documentary',
+    modelType: 't2v',
+    basePrompt: 'Notable legal case documentary, {prompt}, case overview, complexity revealed, legal team approach, milestones, justice achieved, 4K',
     name: 'Case Story Documentary',
     description: 'In-depth documentary on notable legal case',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -651,6 +701,8 @@ export const LEGAL_TEMPLATES = [
   },
   {
     id: 'consultation_scene_promo',
+    modelType: 't2v',
+    basePrompt: 'Free consultation promo, {prompt}, legal need hook, consultation offer, what to expect, no obligation, call CTA, 4K',
     name: 'Consultation Scene Promo',
     description: 'Inviting promotional content about free consultation',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -676,6 +728,8 @@ export const LEGAL_TEMPLATES = [
   },
   {
     id: 'founders_argument_story',
+    modelType: 't2v',
+    basePrompt: 'Firm founder story, {prompt}, founder origin, why law, firm mission, values in practice, legacy close, inspirational, 4K',
     name: 'Founder\'s Argument Story',
     description: 'Firm founder story with mission and values',
     category: CINEMATIC_CATEGORIES.PERSONAL,
@@ -701,6 +755,8 @@ export const LEGAL_TEMPLATES = [
   },
   {
     id: 'inside_the_firm_video',
+    modelType: 't2v',
+    basePrompt: 'Law firm behind the scenes, {prompt}, firm exterior, professional entrance, conference room, workspace, team presence, 4K',
     name: 'Inside the Firm Video',
     description: 'Professional tour of law firm environment',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -726,6 +782,8 @@ export const LEGAL_TEMPLATES = [
   },
   {
     id: 'built_on_trust_feature',
+    modelType: 't2v',
+    basePrompt: 'Firm reputation feature, {prompt}, trust hook, client relationships, years of service, reputation moments, commitment close, 4K',
     name: 'Built on Trust Feature',
     description: 'Trust-building feature on firm reputation and client relationships',
     category: CINEMATIC_CATEGORIES.INDUSTRY,
@@ -751,6 +809,8 @@ export const LEGAL_TEMPLATES = [
   },
   {
     id: 'local_verdict_ad',
+    modelType: 't2v',
+    basePrompt: 'Local legal credibility ad, {prompt}, local hook, community connection, legal services, results in area, contact CTA, 4K',
     name: 'Local Verdict Ad',
     description: 'Community-focused ad with local credibility',
     category: CINEMATIC_CATEGORIES.INDUSTRY,

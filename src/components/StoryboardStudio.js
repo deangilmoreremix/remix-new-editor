@@ -74,8 +74,10 @@ export function StoryboardStudio() {
   controlBar.appendChild(addFrameBtn);
 
   const genAllBtn = document.createElement('button');
+  genAllBtn.type = 'button';
   genAllBtn.className = 'px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all';
   genAllBtn.textContent = 'Generate All Frames';
+  genAllBtn.setAttribute('aria-label', 'Generate all frames');
   controlBar.appendChild(genAllBtn);
 
   // Premium GTM Boost entry point — opens the cinematic prompt enhancer.
@@ -176,6 +178,8 @@ export function StoryboardStudio() {
 
       const imageArea = document.createElement('div');
       imageArea.className = 'w-full aspect-video bg-white/[0.02] rounded-lg border border-white/5 flex items-center justify-center overflow-hidden';
+      imageArea.setAttribute('role', 'status');
+      imageArea.setAttribute('aria-live', 'polite');
       if (frame.imageUrl) {
         imageArea.innerHTML = `<img src="${frame.imageUrl}" class="w-full h-full object-cover">`;
       } else {
@@ -201,6 +205,7 @@ export function StoryboardStudio() {
       promptInput.rows = 2;
       promptInput.placeholder = 'Describe this scene...';
       promptInput.value = frame.prompt;
+      promptInput.setAttribute('aria-label', 'Frame description');
       promptInput.oninput = () => { frame.prompt = promptInput.value; };
       card.appendChild(promptInput);
 
@@ -238,8 +243,10 @@ export function StoryboardStudio() {
       card.appendChild(narrationInput);
 
       const genFrameBtn = document.createElement('button');
+      genFrameBtn.type = 'button';
       genFrameBtn.className = 'w-full bg-white/10 text-white py-2 rounded-lg text-xs font-bold hover:bg-white/20 transition-all';
       genFrameBtn.textContent = 'Generate Frame';
+      genFrameBtn.setAttribute('aria-label', 'Generate frame');
       genFrameBtn.onclick = async () => {
         if (!(await requireEntitlement())) return;
         generateFrame(idx, genFrameBtn, imageArea);

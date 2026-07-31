@@ -1,5 +1,27 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
+// muapi-proxy — forwards requests to api.muapi.ai on behalf of the client.
+//
+// Auth model (user-key-required, no server fallback):
+//   Every request MUST carry a Muapi API key supplied by the caller. Accepted
+//   sources (in priority order for JSON bodies):
+//     1. body.muapi_api_key
+//     2. body.params.muapi_api_key
+//     3. x-api-key request header
+//   For multipart uploads only the x-api-key header is inspected.
+//
+//   The proxy does NOT read MUAPI_API_KEY from the environment. If no key is
+//   supplied, the request is rejected with HTTP 500 and a clear error message.
+//
+//   A dev-bypass placeholder ("dev") is accepted so developers can exercise
+//   the proxy locally without a real Muapi key; it resolves to an empty string
+//   upstream. Remove or guard this bypass in production deployments.
+//
+// Other behaviors preserved:
+//   - OpenAI key forwarding (user-supplied openai_api_key, stripped from body)
+//   - CORS headers (unchanged)
+//   - Rate limiting, CSRF, endpoint validation, unwrapResponse
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -97,6 +119,25 @@ function getClientId(req: Request): string {
   return `ip_${req.headers.get('cf-connecting-ip') || 'unknown'}`;
 }
 
+function verifyCsrfProtection(req: Request, auth: { reason: string }): { ok: boolean; reason?: string } {
+  // Skip CSRF check for trusted callers (service role, ALLOW_UNAUTHENTICATED bypass)
+  if (auth.reason === 'service_role' || auth.reason === 'ALLOW_UNAUTHENTICATED') {
+    return { ok: true };
+  }
+  // Check Sec-Fetch-Site: reject cross-site requests
+  const secFetchSite = req.headers.get('sec-fetch-site');
+  if (secFetchSite && secFetchSite === 'cross-site') {
+    return { ok: false, reason: 'cross-site request blocked' };
+  }
+  // Check Origin against APP_ORIGIN env var
+  const origin = req.headers.get('origin');
+  const appOrigin = Deno.env.get('APP_ORIGIN');
+  if (origin && appOrigin && origin !== appOrigin) {
+    return { ok: false, reason: 'origin mismatch' };
+  }
+  return { ok: true };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -118,6 +159,15 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const csrf = verifyCsrfProtection(req, { reason: '' });
+    if (!csrf.ok) {
+      console.log(JSON.stringify({ type: 'csrf.rejected', reason: csrf.reason, ip: req.headers.get('cf-connecting-ip') }));
+      return new Response(
+        JSON.stringify({ error: 'Forbidden', reason: csrf.reason }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const contentType = req.headers.get('content-type') || '';
     const isMultipart = contentType.startsWith('multipart/');
 
@@ -133,13 +183,35 @@ Deno.serve(async (req: Request) => {
         );
       }
 
+      // Multipart requests cannot carry body-embedded keys; require the
+      // user-supplied key via the x-api-key header.
+      const userApiKey = req.headers.get('x-api-key');
+
+      if (!userApiKey || userApiKey === '') {
+        return new Response(
+          JSON.stringify({
+            error: 'No Muapi API key was provided in the request. Set your key in Settings and retry.'
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      // Dev-bypass: allow a known placeholder value so developers can test the
+      // proxy locally without supplying a real Muapi key. Production callers
+      // must always supply their actual key.
+      const DEV_BYPASS_KEY = 'dev';
+      const effectiveApiKey = userApiKey === DEV_BYPASS_KEY ? '' : userApiKey;
+
       const normalizedEndpoint = normalizeLegacyEndpoint(endpoint);
       const muapiUrl = `https://api.muapi.ai/api/v1/${normalizedEndpoint}`;
 
       const muapiResponse = await fetch(muapiUrl, {
         method: 'POST',
         headers: {
-          'x-api-key': Deno.env.get('MUAPI_API_KEY') || '',
+          'x-api-key': effectiveApiKey,
           'content-type': contentType,
         },
         body: req.body,
@@ -206,27 +278,58 @@ Deno.serve(async (req: Request) => {
     // Normalize legacy endpoint names to match current muapi API
     const normalizedEndpoint = normalizeLegacyEndpoint(endpoint);
 
+    // Resolve the per-user Muapi API key. Accepted sources, in priority order:
+    //   1. body.muapi_api_key
+    //   2. body.params.muapi_api_key
+    //   3. x-api-key header
+    // The proxy does NOT read a server-side MUAPI_API_KEY env var. If no key is
+    // supplied by the caller, the request is rejected so upstream auth is never
+    // silently satisfied by server configuration.
+    let userApiKey: string | undefined;
+    if (typeof body.muapi_api_key === 'string') {
+      userApiKey = body.muapi_api_key;
+    } else if (params && typeof (params as Record<string, unknown>).muapi_api_key === 'string') {
+      userApiKey = (params as Record<string, unknown>).muapi_api_key as string;
+    } else {
+      userApiKey = req.headers.get('x-api-key') || undefined;
+    }
+
+    if (!userApiKey) {
+      return new Response(
+        JSON.stringify({
+          error: 'No Muapi API key was provided in the request. Set your key in Settings and retry.'
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Dev-bypass: allow a known placeholder value so developers can test the
+    // proxy locally without supplying a real Muapi key. Production callers
+    // must always supply their actual key.
+    const DEV_BYPASS_KEY = 'dev';
+    const effectiveApiKey = userApiKey === DEV_BYPASS_KEY ? '' : userApiKey;
+
+    // Strip the key from the request body before forwarding so it is never
+    // leaked as a model parameter to muapi.ai.
+    if (typeof body.muapi_api_key === 'string') {
+      delete body.muapi_api_key;
+    }
+    if (params && typeof (params as Record<string, unknown>).muapi_api_key === 'string') {
+      delete (params as Record<string, unknown>).muapi_api_key;
+    }
+
     // If the client supplied a user-owned OpenAI key (Settings > OpenAI API Key),
     // extract it and forward it as a header to muapi.ai so OpenAI-backed models
-    // are billed against the user's own OpenAI account. It is stripped from the
-    // request body so it isn't sent as a model parameter.
+    // are billed against the user's own OpenAI account.
     let openaiApiKey: string | undefined;
     if (typeof body.openai_api_key === 'string') {
       openaiApiKey = body.openai_api_key;
     } else if (params && typeof (params as Record<string, unknown>).openai_api_key === 'string') {
       openaiApiKey = (params as Record<string, unknown>).openai_api_key as string;
       delete (params as Record<string, unknown>).openai_api_key;
-    }
-
-    const muapiKey = Deno.env.get('MUAPI_API_KEY');
-    if (!muapiKey) {
-      return new Response(
-        JSON.stringify({ error: 'Server configuration error: API key not set' }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
     }
 
     const muapiUrl = `https://api.muapi.ai/api/v1/${normalizedEndpoint}`;
@@ -237,7 +340,7 @@ Deno.serve(async (req: Request) => {
     const fetchOptions: RequestInit = {
       method,
       headers: {
-        'x-api-key': muapiKey,
+        'x-api-key': effectiveApiKey,
         ...(openaiApiKey ? { 'openai-api-key': openaiApiKey } : {}),
       }
     };
