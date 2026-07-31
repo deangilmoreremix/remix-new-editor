@@ -61,6 +61,9 @@ export const DIRECTOR_AGENTS = [
     { id: 'year_in_frames',name:'Year in Frames',   icon: '📅', description: 'Yearly recap montage',            category: 'create',       tool: 'year-in-frames' },
     { id: 'profanity_remover',name:'Profanity Remover',icon:'🔇',description:'Clean profanity from audio',    category: 'enhance',      tool: 'profanity' },
     { id: 'sales_assistant',name:'Sales Assistant', icon: '💰', description: 'Extract CRM follow-up from pitch',category: 'analysis',     tool: 'sales-assistant' },
+    { id: 'dynamic_ads', name: 'Dynamic Ads Generator', icon: '🎯', description: 'Generate dynamic ad variations', category: 'create', tool: 'dynamic-ads' },
+    { id: 'intro_outro', name: 'Intro/Outro Maker', icon: '🎬', description: 'Create intro and outro sequences', category: 'create', tool: 'intro-outro' },
+    { id: 'brand_elements', name: 'Brand Elements', icon: '🏷️', description: 'Add brand elements and watermarks', category: 'enhance', tool: 'brand-elements' },
 ];
 
 const AGENT_CATEGORIES = {
@@ -133,6 +136,10 @@ async function submitVideoAgentJob(tool, payload, signal) {
     const res = await fetch(`${base}/videoagent/process`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      // Note: Director dispatches via 'process-tool' only.
+      // The 'process-usecase' branch on /videoagent/process is owned by
+      // src/components/VideoAgentPage.js and must stay intact (covered by
+      // backend/tests/videoAgent.test.js).
       body: JSON.stringify({
         action: 'process-tool',
         tool,
@@ -383,6 +390,9 @@ const AGENT_STEPS = {
     year_in_frames:  ['Analyzing footage…', 'Selecting key moments…', 'Building recap…', 'Finalizing…'],
     profanity_remover:['Transcribing audio…', 'Detecting profanity…', 'Beeping/cleaning…', 'Finalizing…'],
     sales_assistant: ['Analyzing pitch…', 'Extracting CRM fields…', 'Drafting follow-up…', 'Finalizing…'],
+    dynamic_ads: ['Analyzing brand…', 'Generating ad variants…', 'Rendering creatives…', 'Finalizing…'],
+    intro_outro: ['Planning intro…', 'Designing sequence…', 'Adding effects…', 'Finalizing…'],
+    brand_elements: ['Detecting brand assets…', 'Positioning elements…', 'Rendering…', 'Finalizing…'],
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -529,21 +539,7 @@ export function DirectorPage() {
                     </h3>
 
                     <!-- Chat Messages -->
-                    <div id="chat-messages" class="flex-1 overflow-auto space-y-3 mb-4 min-h-[180px] max-h-[280px]">
-                        <div class="chat-message flex gap-3">
-                            <div class="w-8 h-8 bg-primary/20 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">AI</div>
-                            <div class="bg-white/10 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
-                                <p class="text-sm text-white">Hello! I'm Director, your AI video assistant with ${DIRECTOR_AGENTS.length} production-ready agents backed by VideoDB and FFmpeg.</p>
-                                <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
-                                    <div class="bg-white/5 p-2 rounded"><span class="text-primary font-bold">🎬</span> Scene Detection</div>
-                                    <div class="bg-white/5 p-2 rounded"><span class="text-primary font-bold">⚡</span> Highlights</div>
-                                    <div class="bg-white/5 p-2 rounded"><span class="text-primary font-bold">💬</span> Subtitles</div>
-                                    <div class="bg-white/5 p-2 rounded"><span class="text-primary font-bold">🎤</span> Dubbing</div>
-                                </div>
-                                <p class="text-xs text-primary mt-3">Click any agent or type a command below. Make sure your VideoDB + OpenAI keys are set in Settings.</p>
-                            </div>
-                        </div>
-                    </div>
+                    <div id="chat-messages" class="flex-1 overflow-auto space-y-3 mb-4 min-h-[180px] max-h-[280px]"></div>
 
                     <!-- Command Input -->
                     <div class="flex gap-3">
@@ -665,8 +661,32 @@ export function DirectorPage() {
     };
 
     container.querySelector('#clear-chat-btn').onclick = () => {
+        if (pendingPromptResolve) {
+            const resolve = pendingPromptResolve;
+            pendingPromptResolve = null;
+            resolve(null);
+        }
+        chatHistory = [];
+        try { localStorage.removeItem(CHAT_STORAGE_KEY); } catch { /* ignore */ }
         chatMessages.innerHTML = '';
+        addMessage(buildInitialGreeting(), {});
     };
+
+    // Delegate clicks on agent suggestion chips inside the chat.
+    chatMessages.addEventListener('click', (e) => {
+        const chip = e.target.closest('.agent-suggestion-chip');
+        if (!chip) return;
+        const agentId = chip.dataset.agentId;
+        const agent = DIRECTOR_AGENTS.find((a) => a.id === agentId);
+        if (!agent) return;
+        if (!videoUrl) {
+            addMessage(`Please open Director with a video URL (from the Render studio) before running ${agent.name}.`, { isError: true });
+            showToast('No video loaded', 'warning');
+            return;
+        }
+        commandInput.value = agent.description;
+        processCommand(agent.description);
+    });
 
     cancelBtn.onclick = () => {
         if (pollAbort) {
@@ -690,10 +710,119 @@ export function DirectorPage() {
         });
     };
 
-    // ── Chat helpers ──────────────────────────────────────────────────
-    function addMessage(content, { isUser = false, isAction = false, isError = false } = {}) {
+    // ── Chat persistence ──────────────────────────────────────────────
+    const CHAT_STORAGE_KEY = 'director_chat_history';
+    let chatHistory = loadChatHistory();
+
+    function loadChatHistory() {
+        try {
+            const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function saveChatHistory() {
+        try {
+            localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatHistory));
+        } catch (e) {
+            console.warn('[Director] Failed to persist chat history', e);
+        }
+    }
+
+    function buildInitialGreeting() {
+        return `
+            <p class="text-sm text-white">Hello! I'm Director, your AI video assistant with ${DIRECTOR_AGENTS.length} production-ready agents backed by VideoDB and FFmpeg.</p>
+            <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+                <div class="bg-white/5 p-2 rounded"><span class="text-primary font-bold">🎬</span> Scene Detection</div>
+                <div class="bg-white/5 p-2 rounded"><span class="text-primary font-bold">⚡</span> Highlights</div>
+                <div class="bg-white/5 p-2 rounded"><span class="text-primary font-bold">💬</span> Subtitles</div>
+                <div class="bg-white/5 p-2 rounded"><span class="text-primary font-bold">🎤</span> Dubbing</div>
+            </div>
+            <p class="text-xs text-primary mt-3">Click any agent or type a command below. Make sure your VideoDB + OpenAI keys are set in Settings.</p>
+        `;
+    }
+
+    function renderSuggestionChips(agentIds) {
+        return (agentIds || []).map((id) => {
+            const agent = DIRECTOR_AGENTS.find((a) => a.id === id);
+            if (!agent) return '';
+            return `<button type="button" class="agent-suggestion-chip bg-white/10 hover:bg-primary/20 border border-white/10 rounded-full px-3 py-1 text-xs text-white transition-colors" data-agent-id="${escapeHtml(agent.id)}">${escapeHtml(agent.icon)} ${escapeHtml(agent.name)}</button>`;
+        }).join('');
+    }
+
+    function renderMessageFromHistory(entry) {
+        if (!entry || !entry.type) return;
         const msgDiv = document.createElement('div');
         msgDiv.className = 'chat-message flex gap-3';
+        const safe = escapeHtml(String(entry.content || ''));
+
+        if (entry.type === 'user') {
+            msgDiv.innerHTML = `
+                <div class="w-8 h-8 bg-primary rounded-full flex-shrink-0 flex items-center justify-center text-black text-xs font-bold">YOU</div>
+                <div class="bg-primary/20 rounded-2xl rounded-tr-sm p-3 max-w-[85%]">
+                    <p class="text-sm text-white">${safe}</p>
+                </div>
+            `;
+        } else if (entry.type === 'error') {
+            msgDiv.innerHTML = `
+                <div class="w-8 h-8 bg-red-500/20 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">!</div>
+                <div class="bg-red-500/10 border border-red-500/20 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
+                    <p class="text-sm text-white">${safe}</p>
+                </div>
+            `;
+        } else if (entry.type === 'action') {
+            msgDiv.innerHTML = `
+                <div class="w-8 h-8 bg-green-500/20 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">✓</div>
+                <div class="bg-green-500/10 border border-green-500/20 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
+                    <div class="text-sm text-white">${safe}</div>
+                </div>
+            `;
+        } else if (entry.type === 'suggestions') {
+            msgDiv.innerHTML = `
+                <div class="w-8 h-8 bg-red-500/20 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">!</div>
+                <div class="bg-red-500/10 border border-red-500/20 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
+                    <p class="text-sm text-white">${safe}</p>
+                    <div class="mt-3 flex flex-wrap gap-2">${renderSuggestionChips(entry.agentIds)}</div>
+                    <p class="mt-3 text-xs text-secondary">Or try keywords like: summarize, search, clip, subtitle, highlight, scene, speed, color, stabilize</p>
+                </div>
+            `;
+        } else {
+            msgDiv.innerHTML = `
+                <div class="w-8 h-8 bg-primary/20 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">AI</div>
+                <div class="bg-white/10 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
+                    <div class="text-sm text-white">${safe}</div>
+                </div>
+            `;
+        }
+
+        chatMessages.appendChild(msgDiv);
+    }
+
+    function restoreChatHistory() {
+        if (chatHistory.length === 0) {
+            addMessage(buildInitialGreeting(), {});
+            return;
+        }
+        chatMessages.innerHTML = '';
+        chatHistory.forEach(renderMessageFromHistory);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // ── Chat helpers ──────────────────────────────────────────────────
+    function addMessage(content, { isUser = false, isAction = false, isError = false, isSuggestions = false, agentIds = [] } = {}) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-message flex gap-3';
+
+        let type;
+        if (isUser) type = 'user';
+        else if (isSuggestions) type = 'suggestions';
+        else if (isError) type = 'error';
+        else if (isAction) type = 'action';
+        else type = 'ai';
 
         if (isUser) {
             msgDiv.innerHTML = `
@@ -702,11 +831,20 @@ export function DirectorPage() {
                     <p class="text-sm text-white">${escapeHtml(String(content))}</p>
                 </div>
             `;
-        } else if (isError) {
+        } else if (isError && !isSuggestions) {
             msgDiv.innerHTML = `
                 <div class="w-8 h-8 bg-red-500/20 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">!</div>
                 <div class="bg-red-500/10 border border-red-500/20 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
                     <p class="text-sm text-white">${escapeHtml(String(content))}</p>
+                </div>
+            `;
+        } else if (isSuggestions) {
+            msgDiv.innerHTML = `
+                <div class="w-8 h-8 bg-red-500/20 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">!</div>
+                <div class="bg-red-500/10 border border-red-500/20 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
+                    <p class="text-sm text-white">${escapeHtml(String(content))}</p>
+                    <div class="mt-3 flex flex-wrap gap-2">${renderSuggestionChips(agentIds)}</div>
+                    <p class="mt-3 text-xs text-secondary">Or try keywords like: summarize, search, clip, subtitle, highlight, scene, speed, color, stabilize</p>
                 </div>
             `;
         } else if (isAction) {
@@ -727,7 +865,19 @@ export function DirectorPage() {
 
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Persist a structured record (not raw HTML) to keep restore XSS-safe.
+        chatHistory.push({
+            type,
+            content: String(content),
+            agentIds: isSuggestions ? agentIds.slice() : undefined,
+            timestamp: Date.now(),
+        });
+        saveChatHistory();
     }
+
+    // Restore chat history (or seed the initial greeting) on mount.
+    restoreChatHistory();
 
     function updateActiveAgents() {
         if (activeAgents.size === 0) {
@@ -928,7 +1078,7 @@ export function DirectorPage() {
         broll: ['b-roll', 'broll', 'overlay', 'stock footage'],
         voiceover: ['voiceover', 'narration', 'narrate'],
         ai_voiceovers: ['ai voiceover', 'ai narration'],
-        voice_cloning: ['voice clone', 'clone voice', 'voice print'],
+        voice_cloning: ['voice clone', 'clone voice', 'voice print', 'clone'],
         editor: ['edit', 'arrange', 'storyboard edit'],
         enhancer: ['enhance', 'upscale', 'sharpen', 'improve quality'],
         compiler: ['compile', 'combine', 'merge videos'],
@@ -961,6 +1111,9 @@ export function DirectorPage() {
         year_in_frames: ['year in frames', 'yearly recap', 'annual recap'],
         profanity_remover: ['profanity', 'clean language', 'beep', 'censor'],
         sales_assistant: ['sales', 'crm', 'follow-up', 'sales call'],
+        dynamic_ads: ['dynamic ad', 'ad variation', 'ad creative', 'dynamic creative'],
+        intro_outro: ['intro', 'outro', 'opening', 'closing', 'title sequence'],
+        brand_elements: ['brand', 'watermark', 'logo', 'branding'],
     };
     function inferAgentId(text) {
         const lower = text.toLowerCase();
@@ -968,6 +1121,149 @@ export function DirectorPage() {
             if (keywords.some((k) => lower.includes(k))) return agentId;
         }
         return null;
+    }
+
+    // ── Inline input prompts for agents that need extra data ──────────
+    // These four agent categories require user-provided fields beyond the
+    // main chat command. The form is rendered as a chat bubble; the caller
+    // awaits a Promise that resolves with the collected fields, or `null`
+    // if the user cancelled.
+    function getRequiredInputFields(agentId) {
+        switch (agentId) {
+            case 'voice_cloning':
+                return [{
+                    key: 'text',
+                    label: 'Text to synthesize',
+                    placeholder: 'Enter the text the cloned voice should speak…',
+                    required: true,
+                }];
+            case 'audio_overlays':
+            case 'ai_voiceovers':
+                return [{
+                    key: 'text',
+                    label: 'Audio description / script',
+                    placeholder: 'Describe the audio overlay or paste a script…',
+                    required: true,
+                }];
+            case 'comparison':
+                return [
+                    { key: 'videoUrlA', label: 'Video A URL', placeholder: 'https://example.com/video-a.mp4', required: true },
+                    { key: 'videoUrlB', label: 'Video B URL', placeholder: 'https://example.com/video-b.mp4', required: true },
+                ];
+            case 'compiler':
+            case 'compilation':
+            case 'montage':
+                return [{
+                    key: 'collectionId',
+                    label: 'VideoDB Collection ID',
+                    placeholder: 'default',
+                    default: 'default',
+                    hint: 'The VideoDB collection to compile from. Use "default" if you are unsure.',
+                    required: true,
+                }];
+            default:
+                return [];
+        }
+    }
+
+    let pendingPromptResolve = null;
+
+    function promptForAgentInput(agentId, agentName) {
+        return new Promise((resolve) => {
+            const fields = getRequiredInputFields(agentId);
+            if (!fields.length) {
+                resolve({});
+                return;
+            }
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message flex gap-3';
+            msgDiv.dataset.agentPrompt = '1';
+
+            const formHtml = fields.map((f) => `
+                <div class="mt-2">
+                    <label class="block text-xs text-secondary mb-1">${escapeHtml(f.label)}</label>
+                    <input
+                        type="text"
+                        data-input-key="${escapeHtml(f.key)}"
+                        data-testid="agent-prompt-${escapeHtml(f.key)}"
+                        placeholder="${escapeHtml(f.placeholder || '')}"
+                        ${f.default ? `value="${escapeHtml(f.default)}"` : ''}
+                        class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-muted focus:outline-none focus:border-primary/50"
+                    />
+                    ${f.hint ? `<p class="text-[10px] text-muted mt-1">${escapeHtml(f.hint)}</p>` : ''}
+                </div>
+            `).join('');
+
+            msgDiv.innerHTML = `
+                <div class="w-8 h-8 bg-primary/20 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">AI</div>
+                <div class="bg-white/10 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
+                    <p class="text-sm text-white"><span class="font-bold">${escapeHtml(agentName)}</span> needs a bit more info to run:</p>
+                    ${formHtml}
+                    <p data-error class="hidden text-xs text-red-300 mt-2"></p>
+                    <div class="flex gap-2 mt-3">
+                        <button data-action="run" data-testid="agent-prompt-run" class="px-4 py-1.5 bg-primary text-black font-bold text-sm rounded-lg hover:scale-105 transition-transform">Run</button>
+                        <button data-action="cancel" data-testid="agent-prompt-cancel" class="px-4 py-1.5 bg-white/5 text-secondary text-sm rounded-lg hover:bg-white/10 transition-colors">Cancel</button>
+                    </div>
+                </div>
+            `;
+
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            const firstInput = msgDiv.querySelector('input');
+            if (firstInput) firstInput.focus();
+
+            const cleanup = () => {
+                if (msgDiv.parentNode) msgDiv.parentNode.removeChild(msgDiv);
+                if (pendingPromptResolve === resolve) pendingPromptResolve = null;
+            };
+
+            const showError = (text) => {
+                const errEl = msgDiv.querySelector('[data-error]');
+                if (!errEl) return;
+                errEl.textContent = text;
+                errEl.classList.remove('hidden');
+            };
+
+            const handleRun = () => {
+                const result = {};
+                for (const f of fields) {
+                    const input = msgDiv.querySelector(`[data-input-key="${f.key}"]`);
+                    const v = input ? input.value.trim() : '';
+                    if (f.required !== false && !v) {
+                        showError(`Please provide a value for "${f.label}".`);
+                        if (input) input.focus();
+                        return;
+                    }
+                    result[f.key] = v;
+                }
+                cleanup();
+                resolve(result);
+            };
+
+            const handleCancel = () => {
+                cleanup();
+                resolve(null);
+            };
+
+            pendingPromptResolve = resolve;
+
+            msgDiv.querySelector('[data-action="run"]').onclick = handleRun;
+            msgDiv.querySelector('[data-action="cancel"]').onclick = handleCancel;
+
+            msgDiv.querySelectorAll('input').forEach((inp) => {
+                inp.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleRun();
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        handleCancel();
+                    }
+                });
+            });
+        });
     }
 
     // ── Main command processor ────────────────────────────────────────
@@ -982,12 +1278,27 @@ export function DirectorPage() {
 
         const agentId = inferAgentId(command);
         if (!agentId) {
-            addMessage(`I can help with: ${DIRECTOR_AGENTS.slice(0, 6).map(a => a.name).join(', ')}, and ${DIRECTOR_AGENTS.length - 6} more. Try clicking an agent card or being more specific (e.g. "summarize this video", "add subtitles", "detect scenes").`, { isError: true });
+            const suggestedIds = DIRECTOR_AGENTS.slice(0, 6).map((a) => a.id);
+            addMessage("I couldn't match that to a specific agent. Try one of these or use a keyword:", {
+                isError: true,
+                isSuggestions: true,
+                agentIds: suggestedIds,
+            });
             return;
         }
 
         const agent = DIRECTOR_AGENTS.find(a => a.id === agentId);
         if (!agent) return;
+
+        // ── Prompt for extra input (e.g. voice-cloning text, comparison URLs) ─
+        // Some agents need fields beyond the main command. Show an inline form
+        // and wait for the user to fill it in. Resolves with the collected
+        // fields, or `null` if the user cancelled.
+        const extraInput = await promptForAgentInput(agentId, agent.name);
+        if (extraInput === null) {
+            addMessage(`${agent.name} cancelled.`, { isError: true });
+            return;
+        }
 
         // ── Visual disabled state while a job is in flight ─────────────
         const allBtns = container.querySelectorAll('.agent-btn, .action-btn, #send-command-btn');
@@ -1002,6 +1313,13 @@ export function DirectorPage() {
         cancelBtn.classList.remove('hidden');
         addMessage(command, { isUser: true });
         commandInput.value = '';
+
+        // Echo the extra input back into the chat so the user has a record.
+        const echoEntries = Object.entries(extraInput).filter(([, v]) => v);
+        if (echoEntries.length) {
+            const echoText = echoEntries.map(([k, v]) => `${k}: ${v}`).join('\n');
+            addMessage(echoText, { isUser: true });
+        }
 
         // Show processing status
         processingStatus.classList.remove('hidden');
@@ -1044,6 +1362,7 @@ export function DirectorPage() {
                 videoUrl,
                 videoId,
                 prompt: command,
+                ...extraInput,
             }, { signal: pollAbort.signal, onProgress });
 
             clearInterval(stepTimer);
