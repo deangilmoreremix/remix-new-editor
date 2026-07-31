@@ -4,6 +4,8 @@
  */
 
 import { navigate } from '../lib/router.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { AuthModal } from './AuthModal.js';
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
@@ -109,9 +111,40 @@ export function CinemaTemplateStudio() {
         <button id="custom-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-sm rounded-lg transition-colors flex items-center gap-2">
           <span>✨</span> My Templates
         </button>
-        </div>
-      `;
-      } else {
+      </div>
+    `;
+    container.appendChild(header);
+
+    // Grid of template cards
+    const grid = document.createElement('div');
+    grid.className = 'flex-1 overflow-auto p-6';
+    grid.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>`;
+    const gridInner = grid.firstElementChild;
+    registry.getAll().forEach((template) => {
+      gridInner.appendChild(renderTemplateCard(template));
+    });
+    container.appendChild(grid);
+  }
+
+  function renderTemplateCard(template) {
+    const card = document.createElement('div');
+    card.className = 'bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 cursor-pointer transition-colors';
+    card.innerHTML = `
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-2xl">${template.icon || '🎬'}</span>
+        <button class="favorite-btn text-secondary hover:text-red-400" title="Toggle favorite">
+          <span>${TemplateStorage.isFavorite(template.id) ? '❤️' : '🤍'}</span>
+        </button>
+      </div>
+      <h3 class="text-sm font-bold text-white mb-1">${escapeHtml(template.name)}</h3>
+      <p class="text-xs text-secondary">${escapeHtml(template.description || '')}</p>
+    `;
+    card.onclick = (e) => {
+      // If the click was on the favorite button (or its heart), toggle favorite only
+      if (e.target.closest('.favorite-btn')) {
+        if (TemplateStorage.isFavorite(template.id)) {
+          TemplateStorage.removeFavorite(template.id);
+        } else {
           TemplateStorage.addFavorite(template.id);
         }
         render();
@@ -517,6 +550,12 @@ export function CinemaTemplateStudio() {
   }
 
   function generateVideo() {
+    const apiKey = apiKeyManager.getMuapiKey();
+    if (!apiKey) {
+      AuthModal(() => generateVideo());
+      return;
+    }
+
     // Validate inputs
     const formBuilder = new TemplateInputBuilder(currentTemplate, currentMode);
     const errors = formBuilder.validateInputs(currentInputs);
@@ -943,6 +982,7 @@ export function CinemaTemplateStudio() {
           </button>
         </div>
       `;
+    }
     }
     
     container.appendChild(content);

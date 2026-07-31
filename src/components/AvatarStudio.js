@@ -214,6 +214,10 @@ export function AvatarStudio() {
       alert('Upload a source video or image first');
       return;
     }
+    if (selectedModel.hasPrompt && (!prompt || !prompt.trim())) {
+      alert('Please enter a prompt for this avatar model.');
+      return;
+    }
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { 
       AuthModal(() => genBtn.click()); 

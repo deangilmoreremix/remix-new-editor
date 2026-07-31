@@ -13,7 +13,7 @@ services:
   - type: web
     name: videoagent-backend
     runtime: node
-    repo: https://github.com/deangilmorememix/remix-new-editor.git
+    repo: https://github.com/deangilmoreremix/remix-new-editor.git
     region: oregon
     rootDir: backend
     plan: free

@@ -2,6 +2,7 @@ import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { textModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
@@ -262,6 +263,9 @@ export function ChatStudio() {
     const userMessage = textarea.value.trim();
     if (!userMessage || isGenerating) return;
 
+    const apiKey = apiKeyManager.getMuapiKey();
+    if (!apiKey) { AuthModal(() => handleSend()); return; }
+
     textarea.value = '';
     addMessage(userMessage, true);
 
@@ -280,12 +284,7 @@ export function ChatStudio() {
       addMessage(response.text, false);
     } catch (error) {
       hideLoading();
-      
-      if (error.message.includes('API Key missing')) {
-        AuthModal.show();
-      } else {
-        addMessage(`Error: ${error.message}`, false);
-      }
+      addMessage(`Error: ${error.message}`, false);
     }
   }
 

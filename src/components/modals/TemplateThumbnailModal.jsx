@@ -233,6 +233,16 @@ export class TemplateThumbnailModal extends BaseModal {
     `;
   }
 
+  _renderKeySourceBadge() {
+    if (this.lastKeySource === 'user') {
+      return `<span class="thumb-key-source thumb-key-source--user" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted);margin-left:6px;" title="Generated using the OpenAI key configured in your account.">🔑 Used your OpenAI key</span>`;
+    }
+    if (this.lastKeySource === 'server') {
+      return `<span class="thumb-key-source thumb-key-source--server" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#f59e0b;margin-left:6px;font-weight:500;" title="No user OpenAI key was available — the server's fallback key was used. Add your own key in Settings for billing transparency.">⚠️ Server fallback key — add your OpenAI key in Settings</span>`;
+    }
+    return '';
+  }
+
   _renderCostAndSizeWarning() {
     const quality = this.controls.quality || 'high';
     const model = this.model || 'gpt-image-2';
@@ -367,7 +377,7 @@ export class TemplateThumbnailModal extends BaseModal {
       <div class="generated-prompt-section">
         <label>Candidates</label>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">${candidateHtml}</div>
-        ${this.candidates.length > 0 ? `<p style="font-size:11px;color:var(--text-muted);margin:6px 0 0 0;text-align:center;">⏱️ Generated in ${this.generationTime || '—'}s · Model: ${this.model || 'gpt-image-2'}</p>` : ''}
+        ${this.candidates.length > 0 ? `<p style="font-size:11px;color:var(--text-muted);margin:6px 0 0 0;text-align:center;">⏱️ Generated in ${this.generationTime || '—'}s · Model: ${this.model || 'gpt-image-2'}${this._renderKeySourceBadge()}</p>` : ''}
       </div>
       <div class="form-section">
         <label for="thumb-prompt">Selected Prompt</label>
@@ -406,6 +416,7 @@ export class TemplateThumbnailModal extends BaseModal {
     return `
       <div class="generated-prompt-section">
         <label>Selected Image</label>
+        ${this._renderKeySourceBadge()}
         <div style="position:relative;border-radius:20px;border:1px solid var(--border-color);background:#09090b;overflow:hidden;aspect-ratio:16/10;">
           ${selected ? `<img src="${imgSrc}" alt="Selected" style="width:100%;height:100%;object-fit:contain;display:block;" />` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:13px;">No image selected</div>'}
           ${this.partialPreview ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;"><img src="${this.partialPreview}" alt="Partial preview" style="width:100%;height:100%;object-fit:cover;opacity:0.85;" /></div>` : ''}
@@ -523,7 +534,7 @@ export class TemplateThumbnailModal extends BaseModal {
       <div class="generated-prompt-section" style="text-align:center; padding:24px;">
         <div style="font-size:32px; margin-bottom:8px;">✅</div>
         <div style="font-size:14px;color:var(--text-primary);font-weight:600;">Thumbnail saved</div>
-        <div style="font-size:12px;color:var(--text-muted);">Preset: ${this.escapeHtml(presetLabel)} · Completed ${completedLabel}</div>
+        <div style="font-size:12px;color:var(--text-muted);">Preset: ${this.escapeHtml(presetLabel)} · Completed ${completedLabel}${this._renderKeySourceBadge()}</div>
       </div>
       <div class="generated-prompt-section">
         <label>Preview</label>

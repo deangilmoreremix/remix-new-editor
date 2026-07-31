@@ -774,6 +774,18 @@ export function TemplateStudio(templateId) {
     });
   }, 100);
 
+  function showInlineError(container, message) {
+    let errEl = container.querySelector('.ts-inline-error');
+    if (!errEl) {
+      errEl = document.createElement('div');
+      errEl.className = 'ts-inline-error mt-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200';
+      genBtn.insertAdjacentElement('afterend', errEl);
+    }
+    errEl.textContent = message;
+    clearTimeout(errEl.__dismissTimer);
+    errEl.__dismissTimer = setTimeout(() => { if (errEl && errEl.parentNode) errEl.remove(); }, 5000);
+  }
+
   // Generate button handler
   genBtn.onclick = async () => {
     if (isGenerating) return;
@@ -832,6 +844,18 @@ export function TemplateStudio(templateId) {
       // Attach the user-generated custom thumbnail if one exists
       if (customThumbnailUrl) {
         params.thumbnail_url = customThumbnailUrl;
+      }
+
+      // Client-side validation before muapi call
+      const EFFECT_MODELS = ['ai-video-effects', 'motion-controls', 'video-effects', 'vfx'];
+      const needsImageUrl = template.modelType === 'i2v' || template.modelType === 'i2i';
+      if (needsImageUrl && !params.image_url) {
+        showInlineError(container, 'Please upload an image before generating.');
+        throw new Error('Missing required field: image_url');
+      }
+      if (EFFECT_MODELS.includes(params.model) && !params.name) {
+        showInlineError(container, 'Please enter a name before generating.');
+        throw new Error('Missing required field: name');
       }
 
       let result;
