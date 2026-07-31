@@ -16,6 +16,8 @@ services:
     envVars:
       - key: SERVER_ENV
         value: production
+      - key: SERVER_SECRET_KEY
+        sync: false
       - key: VIDEO_DB_API_KEY
         sync: false
       - key: OPENAI_API_KEY

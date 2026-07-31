@@ -42,10 +42,12 @@ services:
     plan: starter
     rootDir: apps/director/backend
     dockerfilePath: ./Dockerfile
-    dockerContext: .
+    dockerContext: apps/director/backend
     envVars:
       - key: SERVER_ENV
         value: production
+      - key: SERVER_SECRET_KEY
+        sync: false
       - key: VIDEO_DB_API_KEY
         sync: false
       - key: OPENAI_API_KEY
@@ -119,7 +121,7 @@ services:
       - key: MAIGRET_SCAN_TIMEOUT
         value: "90"
       - key: ALLOWED_ORIGINS
-        value: "*"
+        value: "https://director-frontend.onrender.com"
       - key: PYTHONUNBUFFERED
         value: "1"
 

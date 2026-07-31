@@ -704,7 +704,7 @@ async function runUseCaseJob(jobId, usecaseId, payload) {
       'music-video': { result: 'Video finalized', exported: true },
     };
 
-    const result = outputs[usecaseId] || { result: 'Processing complete', exported: true };
+    const result = outputs[usecaseId] || { result: 'Processing complete', exported: !!finalOut };
     if (finalOut) {
       const url = storeOutput(jobId, finalOut);
       result.url = url;
@@ -765,12 +765,52 @@ async function runFullPipelineJob(jobId, payload) {
     for (let i = 0; i < stages.length; i++) {
       const stage = stages[i];
       updateJob(jobId, { progress: Math.round((elapsed / 8700) * 100), currentStep: i + 1, stage: stage.name });
-      await sleep(stage.duration);
-      elapsed += stage.duration;
 
       if (stage.name === 'scene-detection') {
         const ts = await detectScenes(input, 0.3);
         updateJob(jobId, { scenes: scenesFromTimestamps(ts, 120).length });
+        elapsed += stage.duration;
+        continue;
+      }
+      if (stage.name === 'clip-segmentation') {
+        const timestamps = await detectScenes(input, 0.3);
+        const segments = segmentsFromTimestamps(timestamps, 120);
+        updateJob(jobId, { segments: segments.length, clipSegments: segments.slice(0, 5) });
+        elapsed += stage.duration;
+        continue;
+      }
+      if (stage.name === 'highlight-detection') {
+        const timestamps = await detectScenes(input, 0.3);
+        const pts = [0, ...timestamps, 120].sort((a, b) => a - b);
+        const gaps = [];
+        for (let j = 1; j < pts.length; j++) {
+          gaps.push({ start: +pts[j - 1].toFixed(2), end: +pts[j].toFixed(2), score: +(pts[j] - pts[j - 1]).toFixed(2) });
+        }
+        gaps.sort((a, b) => b.score - a.score);
+        const highlights = gaps.slice(0, 3).sort((a, b) => a.start - b.start).map((g, idx) => ({ ...g, label: `Highlight ${idx + 1}` }));
+        updateJob(jobId, { highlights, highlightCount: highlights.length });
+        elapsed += stage.duration;
+        continue;
+      }
+      if (stage.name === 'transcription') {
+        const apiKey = resolveApiKey(payload);
+        if (!apiKey) {
+          updateJob(jobId, { transcriptionError: 'OpenAI API key required for transcription' });
+        } else {
+          try {
+            const audioPath = await extractAudio(input);
+            const buffer = fs.readFileSync(audioPath);
+            const result = await transcribeWithWhisper(buffer, apiKey);
+            cleanup(audioPath);
+            updateJob(jobId, {
+              transcription: result.text || '',
+              segments: (result.segments || []).map((s, idx) => ({ index: idx + 1, start: s.start || 0, end: s.end || 0, text: s.text || '' })),
+            });
+          } catch (err) {
+            updateJob(jobId, { transcriptionError: err.message });
+          }
+        }
+        elapsed += stage.duration;
         continue;
       }
       if (stage.name === 'color-correction') {
@@ -783,6 +823,7 @@ async function runFullPipelineJob(jobId, payload) {
         updateJob(jobId, { exportedUrl: url, url, downloadUrl: url });
         cleanup(out);
       }
+      elapsed += stage.duration;
     }
 
     cleanup(input);
