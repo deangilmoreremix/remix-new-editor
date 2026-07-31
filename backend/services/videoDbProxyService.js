@@ -26,6 +26,7 @@
 
 import express from 'express';
 import axios from 'axios';
+import crypto from 'node:crypto';
 
 const router = express.Router();
 
@@ -37,6 +38,36 @@ const DEFAULT_COLLECTION = process.env.VIDEO_DB_DEFAULT_COLLECTION || 'default';
 // Server-side key. May be empty at boot — routes then require a caller-supplied
 // token (x-access-token) and return 400 otherwise, rather than failing silently.
 const SERVER_KEY = () => (process.env.VIDEO_DB_API_KEY || '').trim();
+
+/**
+ * Retry wrapper for upstream VideoDB calls.
+ *
+ * baseDelay=500ms, maxDelay=8000ms, factor=2, jitter=true, maxAttempts=2.
+ * Only retries on: network errors, 429, 5xx.
+ * Skips retry on: 4xx (except 429), auth/validation errors.
+ * Logs each retry attempt with requestId for debugging.
+ */
+async function withRetry(fn, { maxAttempts = 2, baseDelay = 500, maxDelay = 8000 } = {}, requestId) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const status = err?.upstreamStatus || err?.status;
+      const isNetwork = !err?.status && !err?.upstreamStatus && !err?.response;
+      const retryable = isNetwork || status === 429 || (typeof status === 'number' && status >= 500);
+      if (!retryable || attempt === maxAttempts) {
+        if (attempt > 1) {
+          console.error(`[videodb-proxy:${requestId}] attempt ${attempt}/${maxAttempts} failed (status=${status || 'network'}) — exhausted`, { upstreamStatus: status, message: err?.message });
+        }
+        throw err;
+      }
+      const jitter = Math.random() * baseDelay;
+      const delay = Math.min(baseDelay * 2 ** (attempt - 1) + jitter, maxDelay);
+      console.warn(`[videodb-proxy:${requestId}] attempt ${attempt}/${maxAttempts} failed (status=${status || 'network'}), retrying in ${Math.round(delay)}ms`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
 
 /**
  * Resolve the access token for a request:
@@ -72,8 +103,9 @@ function clientHeaders(req, { token: overrideToken } = {}) {
 // Unwrap the VideoDB envelope: responses are { status, data } and we forward
 // `data`. Never assume success — propagate non-2xx as errors.
 async function videodbRequest(req, method, path, { params, body, token } = {}) {
+  const requestId = req.requestId;
   const headers = clientHeaders(req, { token });
-  try {
+  return await withRetry(async () => {
     const res = await axios({
       method,
       url: `${VIDEODB_BASE_URL}${path}`,
@@ -81,29 +113,22 @@ async function videodbRequest(req, method, path, { params, body, token } = {}) {
       params,
       data: body,
       timeout: 60000,
-      // We handle non-2xx manually to surface VideoDB's error body.
       validateStatus: () => true,
     });
-  if (res.status < 200 || res.status >= 300) {
-    const rawDetail =
-      (res.data && (res.data.message || JSON.stringify(res.data))) ||
-      res.statusText ||
-      `HTTP ${res.status}`;
-    const detail = rawDetail.replace(/:\/\/[^\s]*/g, '[redacted]').replace(/\\[^\s:]+/g, '[redacted]');
-    const err = new Error(`VideoDB ${method.toUpperCase()} ${path} failed (${res.status}): ${detail}`);
-    err.status = res.status >= 500 ? 502 : 400;
-    err.upstreamStatus = res.status;
-    throw err;
-  }
+    if (res.status < 200 || res.status >= 300) {
+      const rawDetail =
+        (res.data && (res.data.message || JSON.stringify(res.data))) ||
+        res.statusText ||
+        `HTTP ${res.status}`;
+      const detail = rawDetail.replace(/:\/\/[^\s]*/g, '[redacted]').replace(/\\[^\s:]+/g, '[redacted]');
+      const err = new Error(`VideoDB ${method.toUpperCase()} ${path} failed (${res.status}): ${detail}`);
+      err.status = res.status >= 500 ? 502 : 400;
+      err.upstreamStatus = res.status;
+      throw err;
+    }
     const payload = res.data && typeof res.data === 'object' ? res.data : {};
     return payload.data !== undefined ? payload.data : payload;
-  } catch (e) {
-    if (e.status) throw e;
-    // Network / timeout errors
-    const err = new Error(`VideoDB request error: ${e.message}`);
-    err.status = 502;
-    throw err;
-  }
+  }, {}, requestId);
 }
 
 function collectionId(req) {

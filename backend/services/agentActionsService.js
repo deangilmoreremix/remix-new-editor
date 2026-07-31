@@ -53,6 +53,41 @@ async function fetchWithTimeout(url, opts = {}, ms = 8000) {
   }
 }
 
+async function withRetry(fn, { maxAttempts = 2, baseDelay = 500, maxDelay = 8000 } = {}, label) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const status = err?.response?.status || err?.status;
+      const isNetwork = !err?.response && !err?.status;
+      const retryable = isNetwork || status === 429 || (typeof status === 'number' && status >= 500);
+      if (!retryable || attempt === maxAttempts) {
+        if (attempt > 1) {
+          console.error(`[agent-actions:${label}] attempt ${attempt}/${maxAttempts} failed (status=${status || 'network'}) — exhausted`, { status, message: err?.message });
+        }
+        throw err;
+      }
+      const jitter = Math.random() * baseDelay;
+      const delay = Math.min(baseDelay * 2 ** (attempt - 1) + jitter, maxDelay);
+      console.warn(`[agent-actions:${label}] attempt ${attempt}/${maxAttempts} failed (status=${status || 'network'}), retrying in ${Math.round(delay)}ms`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
+async function withRetryOrNull(fn, { maxAttempts = 2, baseDelay = 500, maxDelay = 8000 } = {}, label) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const result = await fn();
+    if (result !== null) return result;
+    if (attempt === maxAttempts) return null;
+    const jitter = Math.random() * baseDelay;
+    const delay = Math.min(baseDelay * 2 ** (attempt - 1) + jitter, maxDelay);
+    console.warn(`[agent-actions:${label}] attempt ${attempt}/${maxAttempts} returned null, retrying in ${Math.round(delay)}ms`);
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+  return null;
+}
+
 function sanitizeError(err) {
   const msg = err instanceof Error ? err.message : String(err);
   return msg.replace(/:\/\/[^\s]*/g, '[redacted]').replace(/\\[^\s:]+/g, '[redacted]');
@@ -107,40 +142,44 @@ async function runFfmpeg(args, timeoutMs = 60000) {
 }
 
 async function tryDirector(message, agents) {
-  try {
-    const r = await fetchWithTimeout(`${DIRECTOR_API_URL}/chat`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, agents }),
-    });
-    if (!r.ok) return null;
-    return await r.json();
-  } catch (_) {
-    return null;
-  }
+  return withRetryOrNull(async () => {
+    try {
+      const r = await fetchWithTimeout(`${DIRECTOR_API_URL}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, agents }),
+      });
+      if (!r.ok) return null;
+      return await r.json();
+    } catch (_) {
+      return null;
+    }
+  }, {}, 'director-api');
 }
 
 async function callMuapi(endpoint, body, timeoutMs = 60000) {
   if (!MUAPI_API_KEY) return null;
-  try {
-    const r = await fetchWithTimeout(`${MUAPI_BASE}${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': MUAPI_API_KEY,
-        Authorization: `Bearer ${MUAPI_API_KEY}`,
-      },
-      body: JSON.stringify(body),
-    }, timeoutMs);
-    if (!r.ok) {
-      console.error(`[agent-actions] muapi ${endpoint} -> ${r.status}`);
+  return withRetryOrNull(async () => {
+    try {
+      const r = await fetchWithTimeout(`${MUAPI_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': MUAPI_API_KEY,
+          Authorization: `Bearer ${MUAPI_API_KEY}`,
+        },
+        body: JSON.stringify(body),
+      }, timeoutMs);
+      if (!r.ok) {
+        console.error(`[agent-actions] muapi ${endpoint} -> ${r.status}`);
+        return null;
+      }
+      return await r.json();
+    } catch (e) {
+      console.error(`[agent-actions] muapi error: ${e.message}`);
       return null;
     }
-    return await r.json();
-  } catch (e) {
-    console.error(`[agent-actions] muapi error: ${e.message}`);
-    return null;
-  }
+  }, {}, 'muapi');
 }
 
 // ─────────────────────────────────────────────────────────────────────────

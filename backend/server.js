@@ -37,6 +37,13 @@ const videodbProxyLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHe
 // Note: services do not currently read req.user.id, but it is now available
 // to any handler that needs it (e.g. agentActionsService could scope DB
 // writes to the calling user with `const userId = req.user.id;`).
+//
+// Retry behavior:
+//   - videoDbProxyService and videoAgentService wrap outbound calls with
+//     withRetry (maxAttempts=2) and log each retry using req.requestId.
+//   - DirectorPage (frontend) wraps fetch calls with withRetry (maxAttempts=3)
+//     and shows user-facing toast notifications on each retry.
+//   - No additional express retry middleware is needed; services own retry.
 app.use('/api/ai-agent', auth, aiAgentService);
 app.use('/api/scene-detection', auth, sceneDetectionService);
 app.use('/api/semantic-search', auth, semanticSearchService);
@@ -50,6 +57,19 @@ app.use('/videoagent', videoAgentLimiter, auth, videoAgentService);
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Analytics ingestion — receives a batch of events from the in-browser
+// analytics client (src/lib/analytics.js). No auth for now since this is
+// non-sensitive operational telemetry; a real sink (DB, warehouse, etc.)
+// can be wired in later without changing the wire format.
+app.post('/api/analytics', (req, res) => {
+  const events = Array.isArray(req.body?.events) ? req.body.events : [];
+  if (events.length === 0) {
+    return res.status(400).json({ ok: false, error: 'events array is required' });
+  }
+  console.log('[analytics]', JSON.stringify({ count: events.length, events }));
+  res.json({ ok: true, received: events.length });
 });
 
 // MCP WebSocket Server

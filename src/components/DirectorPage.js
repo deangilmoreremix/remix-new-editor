@@ -99,58 +99,99 @@ function getUserKeys() {
 }
 
 /**
+ * Retry helper: baseDelay=500ms, maxDelay=8000ms, factor=2, jitter=true.
+ * Only retries on network errors, 429, and 5xx.
+ * Does NOT retry on 4xx (except 429), auth errors, or validation errors.
+ */
+async function withRetry(fn, { maxAttempts = 3, baseDelay = 500, maxDelay = 8000 } = {}, onProgress) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const status = err?.response?.status || err?.status;
+      const isNetwork = !err?.response && !err?.status;
+      const retryable = isNetwork || status === 429 || (typeof status === 'number' && status >= 500);
+      if (!retryable || attempt === maxAttempts) throw err;
+      const jitter = Math.random() * baseDelay;
+      const delay = Math.min(baseDelay * 2 ** (attempt - 1) + jitter, maxDelay);
+      if (onProgress) onProgress({ isRetrying: true, attempt, maxAttempts });
+      showToast(`Retrying... attempt ${attempt + 1}/${maxAttempts}`, 'info', 2000);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
+/**
  * Submit a job to the videoagent backend (real VideoDB + OpenAI agents).
  * Returns a jobId which can be polled via pollVideoAgentJob.
+ * Retries up to 3 times on network errors, 429, and 5xx.
  */
-async function submitVideoAgentJob(tool, payload) {
-    const base = getBackendBase();
-    const keys = getUserKeys();
+async function submitVideoAgentJob(tool, payload, signal) {
+  const base = getBackendBase();
+  const keys = getUserKeys();
+  return withRetry(async () => {
     const res = await fetch(`${base}/videoagent/process`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            action: 'process-tool',
-            tool,
-            ...payload,
-            apiKey: payload.apiKey || keys.openai,
-            videoDbKey: payload.videoDbKey || keys.videoDb,
-        }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'process-tool',
+        tool,
+        ...payload,
+        apiKey: payload.apiKey || keys.openai,
+        videoDbKey: payload.videoDbKey || keys.videoDb,
+      }),
+      signal,
     });
     if (!res.ok) {
-        const err = await res.text().catch(() => '');
-        throw new Error(`Video Agent job submission failed (${res.status}): ${err.slice(0, 200)}`);
+      const err = await res.text().catch(() => '');
+      const e = new Error(`Video Agent job submission failed (${res.status}): ${err.slice(0, 200)}`);
+      e.status = res.status;
+      throw e;
     }
     const json = await res.json();
     if (!json.jobId) throw new Error('Video Agent did not return a jobId');
     return json.jobId;
+  }, { maxAttempts: 3 });
 }
 
 /**
  * Poll a videoagent job until completion or failure.
+ * Retries individual poll requests on network error only (max 3 attempts).
+ * The 10-minute timeout is shared across all retry attempts — a retry does
+ * not reset the clock.
  */
 async function pollVideoAgentJob(jobId, { onProgress, signal } = {}) {
-    const base = getBackendBase();
-    const start = Date.now();
-    const timeout = 10 * 60 * 1000; // 10 min
+  const base = getBackendBase();
+  const start = Date.now();
+  const timeout = 10 * 60 * 1000; // 10 min total
+
+  async function pollOnce() {
     while (Date.now() - start < timeout) {
-        if (signal?.aborted) throw new Error('Job cancelled');
-        const res = await fetch(`${base}/videoagent/job/${encodeURIComponent(jobId)}`, { signal });
-        if (!res.ok) throw new Error(`Poll failed (${res.status})`);
-        const job = await res.json();
-        if (job.status === 'completed') return job;
-        if (job.status === 'failed') throw new Error(job.error || 'Job failed');
-        if (job.status === 'cancelled') throw new Error('Job cancelled');
-        if (onProgress) onProgress(job);
-        await new Promise((r) => setTimeout(r, 1500));
+      if (signal?.aborted) throw new Error('Job cancelled');
+      const res = await fetch(`${base}/videoagent/job/${encodeURIComponent(jobId)}`, { signal });
+      if (!res.ok) {
+        const e = new Error(`Poll failed (${res.status})`);
+        e.status = res.status;
+        throw e;
+      }
+      const job = await res.json();
+      if (job.status === 'completed') return job;
+      if (job.status === 'failed') throw new Error(job.error || 'Job failed');
+      if (job.status === 'cancelled') throw new Error('Job cancelled');
+      if (onProgress) onProgress(job);
+      await new Promise((r) => setTimeout(r, 1500));
     }
     throw new Error('Job timed out after 10 minutes');
+  }
+
+  return withRetry(pollOnce, { maxAttempts: 3 });
 }
 
 /**
  * Run a videoagent agent and return the completed result.
  */
 async function runVideoAgent(tool, payload, { onProgress, signal } = {}) {
-    const jobId = await submitVideoAgentJob(tool, payload);
+    const jobId = await submitVideoAgentJob(tool, payload, signal);
     return await pollVideoAgentJob(jobId, { onProgress, signal });
 }
 
@@ -158,40 +199,50 @@ async function runVideoAgent(tool, payload, { onProgress, signal } = {}) {
  * Run an ffmpeg-based action through /api/agents/agent/:action.
  * These return results inline (no job polling).
  */
-async function runAgentAction(action, payload) {
-    const base = getBackendBase();
+async function runAgentAction(action, payload, signal) {
+  const base = getBackendBase();
+  return withRetry(async () => {
     const res = await fetch(`${base}/api/agents/agent/${encodeURIComponent(action)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal,
     });
     if (!res.ok) {
-        const err = await res.text().catch(() => '');
-        throw new Error(`Agent action failed (${res.status}): ${err.slice(0, 200)}`);
+      const err = await res.text().catch(() => '');
+      const e = new Error(`Agent action failed (${res.status}): ${err.slice(0, 200)}`);
+      e.status = res.status;
+      throw e;
     }
     return await res.json();
+  }, { maxAttempts: 3 });
 }
 
 /**
  * Call a VideoDB REST endpoint through the backend proxy.
  */
-async function callVideoDb(endpoint, { method = 'POST', body } = {}) {
-    const base = getBackendBase();
-    const keys = getUserKeys();
-    if (!keys.videoDb) {
-        throw new Error('VideoDB API key not configured. Add your VideoDB key in Settings.');
-    }
+async function callVideoDb(endpoint, { method = 'POST', body } = {}, signal) {
+  const base = getBackendBase();
+  const keys = getUserKeys();
+  if (!keys.videoDb) {
+    throw new Error('VideoDB API key not configured. Add your VideoDB key in Settings.');
+  }
+  return withRetry(async () => {
     const res = await fetch(`${base}/api/videodb/proxy`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ endpoint, method, body, videoDbKey: keys.videoDb }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ endpoint, method, body, videoDbKey: keys.videoDb }),
+      signal,
     });
     if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || err.message || `VideoDB call failed (${res.status})`);
+      const err = await res.json().catch(() => ({}));
+      const e = new Error(err.error || err.message || `VideoDB call failed (${res.status})`);
+      e.status = res.status;
+      throw e;
     }
     const json = await res.json();
     return json.data ?? json;
+  }, { maxAttempts: 3 });
 }
 
 /**
@@ -247,31 +298,29 @@ export async function runAgentById(agentId, { videoUrl, videoId, prompt, collect
         case 'color-correct':
         case 'upscale':
         case 'stabilize': {
-            const r = await runAgentAction(tool, basePayload);
+            const r = await runAgentAction(tool, basePayload, signal);
             return { agent: agentId, tool, source: r.source || 'ffmpeg', result: r };
         }
         // ── Direct VideoDB REST calls ─────────────────────────────────
         case 'compile-timeline': {
-            // Compile search results into a playable stream.
-            // 1) Search the collection for the prompt, 2) compile into a timeline.
             if (!prompt) throw new Error('A prompt is required to compile a timeline.');
             const search = await callVideoDb(`collection/${encodeURIComponent(collectionId)}/search/`, {
                 body: { query: prompt, index_type: 'scene', search_type: 'semantic', result_threshold: 10 },
-            });
+            }, signal);
             const results = search?.results || (Array.isArray(search) ? search : []);
             if (!results.length) {
                 return { agent: agentId, tool, source: 'videodb', result: { timeline: null, message: 'No matching moments found in the collection.' } };
             }
             const compiled = await callVideoDb('timeline/compile', {
                 body: { collection_id: collectionId, results },
-            });
+            }, signal);
             return { agent: agentId, tool, source: 'videodb', result: { timeline: compiled, resultCount: results.length } };
         }
         case 'speed': {
-            return await runAgentAction('speed', { ...basePayload, speedFactor: prompt ? parseFloat(prompt) || 1.5 : 1.5 });
+            return await runAgentAction('speed', { ...basePayload, speedFactor: prompt ? parseFloat(prompt) || 1.5 : 1.5 }, signal);
         }
         case 'reverse': {
-            return await runAgentAction('reverse', basePayload);
+            return await runAgentAction('reverse', basePayload, signal);
         }
         default:
             throw new Error(`Agent '${agentId}' has no tool mapping.`);

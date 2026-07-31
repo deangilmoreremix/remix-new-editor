@@ -43,59 +43,94 @@ function resolveVideoDbKey(payload) {
 
 const VIDEODB_BASE_URL = 'https://api.videodb.io';
 
+/**
+ * Retry wrapper for outbound calls (VideoDB, OpenAI, webhooks).
+ *
+ * baseDelay=500ms, maxDelay=8000ms, factor=2, jitter=true, maxAttempts=2.
+ * Only retries on: network errors, 429, 5xx.
+ * Skips retry on: 4xx (except 429), auth/validation errors.
+ * Logs each retry attempt with jobId for debugging.
+ */
+async function withRetry(fn, { maxAttempts = 2, baseDelay = 500, maxDelay = 8000 } = {}, jobId) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const status = err?.response?.status || err?.status;
+      const isNetwork = !err?.response && !err?.status;
+      const retryable = isNetwork || status === 429 || (typeof status === 'number' && status >= 500);
+      if (!retryable || attempt === maxAttempts) {
+        if (attempt > 1) {
+          console.error(`[videoagent:${jobId}] attempt ${attempt}/${maxAttempts} failed (status=${status || 'network'}) — exhausted`, { status, message: err?.message });
+        }
+        throw err;
+      }
+      const jitter = Math.random() * baseDelay;
+      const delay = Math.min(baseDelay * 2 ** (attempt - 1) + jitter, maxDelay);
+      console.warn(`[videoagent:${jobId}] attempt ${attempt}/${maxAttempts} failed (status=${status || 'network'}), retrying in ${Math.round(delay)}ms`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
 // Index/ingest a video URL into a VideoDB collection. Returns the media object.
-async function videoDbIndex(url, videoDbKey, { name, collectionId = 'default' } = {}) {
-  const res = await fetch(`${VIDEODB_BASE_URL}/collection/${encodeURIComponent(collectionId)}/upload`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
-    body: JSON.stringify({ url, name, media_type: 'video' }),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`VideoDB index failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
-  const data = json.data ?? json;
-  return { id: data.id || data.media_id || data.video_id, streamUrl: data.stream_url || data.player_url, raw: data };
+async function videoDbIndex(url, videoDbKey, { name, collectionId = 'default' } = {}, jobId) {
+  return withRetry(async () => {
+    const res = await fetch(`${VIDEODB_BASE_URL}/collection/${encodeURIComponent(collectionId)}/upload`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
+      body: JSON.stringify({ url, name, media_type: 'video' }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(`VideoDB index failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
+    const data = json.data ?? json;
+    return { id: data.id || data.media_id || data.video_id, streamUrl: data.stream_url || data.player_url, raw: data };
+  }, {}, jobId);
 }
 
 // Semantic search a query within a single indexed video (or a collection).
-async function videoDbSearch(videoId, query, videoDbKey, { indexType = 'scene', searchType = 'semantic', resultThreshold = 10 } = {}) {
-  const endpoint = videoId
-    ? `${VIDEODB_BASE_URL}/video/${encodeURIComponent(videoId)}/search/`
-    : `${VIDEODB_BASE_URL}/collection/default/search/`;
-  const res = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
-    body: JSON.stringify({ query, index_type: indexType, search_type: searchType, result_threshold: resultThreshold }),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`VideoDB search failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
-  const data = json.data ?? json;
-  return Array.isArray(data) ? data : (data.results || []);
+async function videoDbSearch(videoId, query, videoDbKey, { indexType = 'scene', searchType = 'semantic', resultThreshold = 10 } = {}, jobId) {
+  return withRetry(async () => {
+    const endpoint = videoId
+      ? `${VIDEODB_BASE_URL}/video/${encodeURIComponent(videoId)}/search/`
+      : `${VIDEODB_BASE_URL}/collection/default/search/`;
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-access-token': videoDbKey },
+      body: JSON.stringify({ query, index_type: indexType, search_type: searchType, result_threshold: resultThreshold }),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(`VideoDB search failed (${res.status}): ${(json.error || json.message || '').toString().slice(0, 200)}`);
+    const data = json.data ?? json;
+    return Array.isArray(data) ? data : (data.results || []);
+  }, {}, jobId);
 }
 
 // OpenAI Responses API call (https://api.openai.com/v1/responses). Used for all
 // agent reasoning/generation in the Video Agent. Honors the user's own key.
-async function callResponsesApi(apiKey, { model = 'gpt-4.1', input, tools, text, temperature = 0.4 }) {
-  if (!apiKey) throw new Error('An OpenAI API key is required. Add your key in Settings → OpenAI.');
-  const body = { model, input, temperature };
-  if (tools) body.tools = tools;
-  if (text) body.text = text;
-  const res = await fetch('https://api.openai.com/v1/responses', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`OpenAI Responses API failed (${res.status}): ${t.slice(0, 200)}`);
-  }
-  const json = await res.json();
-  // Extract the assistant text from the Responses API output items.
-  const out = json.output || [];
-  const textParts = out
-    .filter((o) => o.type === 'message' || o.type === 'response.output_text')
-    .flatMap((o) => (o.content ? o.content.filter((c) => c.type === 'output_text').map((c) => c.text) : []));
-  const fullText = textParts.join('') || json.output_text || '';
-  return { text: fullText, raw: json };
+async function callResponsesApi(apiKey, { model = 'gpt-4.1', input, tools, text, temperature = 0.4 }, jobId) {
+  return withRetry(async () => {
+    if (!apiKey) throw new Error('An OpenAI API key is required. Add your key in Settings → OpenAI.');
+    const body = { model, input, temperature };
+    if (tools) body.tools = tools;
+    if (text) body.text = text;
+    const res = await fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`OpenAI Responses API failed (${res.status}): ${t.slice(0, 200)}`);
+    }
+    const json = await res.json();
+    const out = json.output || [];
+    const textParts = out
+      .filter((o) => o.type === 'message' || o.type === 'response.output_text')
+      .flatMap((o) => (o.content ? o.content.filter((c) => c.type === 'output_text').map((c) => c.text) : []));
+    const fullText = textParts.join('') || json.output_text || '';
+    return { text: fullText, raw: json };
+  }, {}, jobId);
 }
 
 const jobs = new Map();
@@ -339,14 +374,14 @@ async function runDubbing(jobId, payload) {
     let targetText = '';
     if (apiKey) {
       const buffer = fs.readFileSync(audioPath);
-      const t = await transcribeWithWhisper(buffer, apiKey);
+      const t = await transcribeWithWhisper(buffer, apiKey, jobId);
       transcript = t.text || '';
-      targetText = await translateText(transcript, payload.targetLanguage || 'es', apiKey);
+      targetText = await translateText(transcript, payload.targetLanguage || 'es', apiKey, jobId);
     }
 
     let dubbedAudio = audioPath;
     if (targetText && apiKey) {
-      const syn = await synthesizeSpeech({ text: targetText, voice: payload.voice || 'alloy', apiKey });
+      const syn = await synthesizeSpeech({ text: targetText, voice: payload.voice || 'alloy', apiKey }, jobId);
       dubbedAudio = path.join(os.tmpdir(), `videoagent/va_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${syn.ext || 'mp3'}`);
       fs.writeFileSync(dubbedAudio, syn.audioBuffer);
     }
@@ -383,7 +418,7 @@ async function runTranscription(jobId, payload) {
     const audioPath = await extractAudio(input);
     updateJob(jobId, { progress: 60, currentStep: 2 });
     const buffer = fs.readFileSync(audioPath);
-    const result = await transcribeWithWhisper(buffer, apiKey);
+    const result = await transcribeWithWhisper(buffer, apiKey, jobId);
     cleanup(input);
     cleanup(audioPath);
     completeJob(jobId, {
@@ -407,7 +442,7 @@ async function runVoiceSynthesis(jobId, payload) {
     if (!text) {
       return failJob(jobId, new Error('text or prompt is required for voice synthesis.'));
     }
-    const syn = await synthesizeSpeech({ text, voice: payload.voice || 'alloy', model: payload.model || 'tts-1', apiKey });
+    const syn = await synthesizeSpeech({ text, voice: payload.voice || 'alloy', model: payload.model || 'tts-1', apiKey }, jobId);
     const url = storeOutput(jobId, syn.audioBuffer, '.' + (syn.ext || 'mp3'));
     completeJob(jobId, {
       audioUrl: url,
@@ -475,7 +510,7 @@ async function ensureIndexed(jobId, payload) {
   if (!payload.videoUrl || /^(blob:|data:)/i.test(payload.videoUrl)) return null;
   if (payload._videoDbId) return payload._videoDbId;
   updateJob(jobId, { stage: 'indexing-to-videodb' });
-  const indexed = await videoDbIndex(payload.videoUrl, videoDbKey, { name: payload.videoName || 'videoagent-source' });
+  const indexed = await videoDbIndex(payload.videoUrl, videoDbKey, { name: payload.videoName || 'videoagent-source' }, jobId);
   payload._videoDbId = indexed.id;
   return indexed.id;
 }
@@ -495,20 +530,20 @@ async function runAgentJob(jobId, agentId, payload) {
     switch (agentId) {
       case 'storyboarding': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'analyzing-scenes' });
-        const scenes = videoId ? await videoDbSearch(videoId, 'key scenes, actions and setting', videoDbKey, { indexType: 'scene' }) : [];
+        const scenes = videoId ? await videoDbSearch(videoId, 'key scenes, actions and setting', videoDbKey, { indexType: 'scene' }, jobId) : [];
         const sceneText = scenes.slice(0, 8).map((s, i) => `Scene ${i + 1} [${(s.start ?? 0)}s-${(s.end ?? 0)}s]: ${s.text || ''}`).join('\n');
         const story = await callResponsesApi(apiKey, {
           input: `You are a professional storyboard artist. Create a shot-by-shot storyboard for this video.\n\nVideo context:\n${sceneText || prompt}\n\nReturn a JSON array of shots, each with: shot_number, timestamp (seconds), description, camera (e.g. wide/close-up), and narration.`,
-        });
+        }, jobId);
         return completeJob(jobId, { agent: 'storyboarding', storyboard: story.text, shots: parseJsonArray(story.text), source: 'videodb+openai', exported: false });
       }
       case 'highlights': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'finding-highlights' });
-        const res = videoId ? await videoDbSearch(videoId, 'most exciting, important or emotional moments', videoDbKey, { indexType: 'scene', resultThreshold: 8 }) : [];
+        const res = videoId ? await videoDbSearch(videoId, 'most exciting, important or emotional moments', videoDbKey, { indexType: 'scene', resultThreshold: 8 }, jobId) : [];
         const moments = res.map((r, i) => ({ rank: i + 1, start: r.start ?? 0, end: r.end ?? 0, reason: (r.text || '').slice(0, 160) }));
         const summary = await callResponsesApi(apiKey, {
           input: `Summarize the top highlight moments of this video as a bulleted list. Moments:\n${moments.map((m) => `${m.start}s: ${m.reason}`).join('\n')}`,
-        });
+        }, jobId);
         return completeJob(jobId, { agent: 'highlights', highlights: moments, summary: summary.text, source: 'videodb+openai' });
       }
       case 'text-to-movie':
@@ -516,7 +551,7 @@ async function runAgentJob(jobId, agentId, payload) {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'writing-screenplay' });
         const script = await callResponsesApi(apiKey, {
           input: `You are a GenAI movie director. Turn this prompt into a cinematic shot list / screenplay for a short AI-generated film.\n\nPrompt: ${prompt}\n\nReturn JSON: { title, logline, shots: [{ shot, camera, action, voiceover }] }.`,
-        });
+        }, jobId);
         return completeJob(jobId, { agent: 'text-to-movie', screenplay: script.text, shots: parseJsonArray(script.text), source: 'openai-responses' });
       }
       case 'visual-search':
@@ -524,7 +559,7 @@ async function runAgentJob(jobId, agentId, payload) {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'searching' });
         if (!videoId) return failJob(jobId, new Error('A video must be loaded (and a VideoDB key set) to search it.'));
         const idx = agentId === 'keyword-search' ? 'spoken' : 'visual';
-        const res = await videoDbSearch(videoId, prompt || 'anything notable', videoDbKey, { indexType: idx });
+        const res = await videoDbSearch(videoId, prompt || 'anything notable', videoDbKey, { indexType: idx }, jobId);
         const clips = res.map((r, i) => ({ index: i + 1, start: r.start ?? 0, end: r.end ?? 0, text: (r.text || '').slice(0, 200), score: r.score }));
         return completeJob(jobId, { agent: agentId, query: prompt, results: clips, count: clips.length, source: 'videodb' });
       }
@@ -534,7 +569,7 @@ async function runAgentJob(jobId, agentId, payload) {
         if (!text) {
           return failJob(jobId, new Error('text is required for voice cloning.'));
         }
-        const syn = await synthesizeSpeech({ text, voice: payload.voice || 'alloy', apiKey });
+        const syn = await synthesizeSpeech({ text, voice: payload.voice || 'alloy', apiKey }, jobId);
         const url = storeOutput(jobId, syn.audioBuffer, '.' + (syn.ext || 'mp3'));
         return completeJob(jobId, { agent: 'voice-cloning', audioUrl: url, downloadUrl: url, text, note: 'OpenAI voice (clone with a Voiceprint when available)', source: 'openai-tts' });
       }
@@ -545,16 +580,16 @@ async function runAgentJob(jobId, agentId, payload) {
         if (!text) {
           return failJob(jobId, new Error('text or description is required for audio overlay.'));
         }
-        const syn = await synthesizeSpeech({ text, voice: payload.voice || 'nova', apiKey });
+        const syn = await synthesizeSpeech({ text, voice: payload.voice || 'nova', apiKey }, jobId);
         const url = storeOutput(jobId, syn.audioBuffer, '.' + (syn.ext || 'mp3'));
         return completeJob(jobId, { agent: 'audio-overlay', audioUrl: url, downloadUrl: url, text, source: 'openai-tts' });
       }
       case 'sales-assistant': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'analyzing-pitch' });
-        const transcript = videoId ? (await videoDbSearch(videoId, 'spoken words, product pitch, pricing, offer', videoDbKey, { indexType: 'spoken' })).map((r) => r.text || '').join(' ') : (payload.transcript || '');
+        const transcript = videoId ? (await videoDbSearch(videoId, 'spoken words, product pitch, pricing, offer', videoDbKey, { indexType: 'spoken' }, jobId)).map((r) => r.text || '').join(' ') : (payload.transcript || '');
         const plan = await callResponsesApi(apiKey, {
           input: `You are a sales-assistant CRM copilot. From this video/pitch, extract: customer pain, product offered, price, CTA, and a suggested CRM follow-up task + email. Pitch:\n${transcript.slice(0, 3000) || prompt}`,
-        });
+        }, jobId);
         return completeJob(jobId, { agent: 'sales-assistant', analysis: plan.text, crmTask: extractField(plan.text, 'follow-up'), source: 'videodb+openai' });
       }
       case 'comparison': {
@@ -563,7 +598,7 @@ async function runAgentJob(jobId, agentId, payload) {
         const b = payload.videoUrlB || payload.textB || '';
         const cmp = await callResponsesApi(apiKey, {
           input: `Compare these two videos/descriptions on: content, style, audience, strengths, weaknesses. A: ${a}\nB: ${b}`,
-        });
+        }, jobId);
         return completeJob(jobId, { agent: 'comparison', comparison: cmp.text, source: 'openai-responses' });
       }
       case 'output-formatting': {
@@ -571,39 +606,39 @@ async function runAgentJob(jobId, agentId, payload) {
         const fmt = payload.format || 'vertical 9:16';
         const out = await callResponsesApi(apiKey, {
           input: `Suggest the optimal export/output formatting for this video given target "${fmt}". Include resolution, aspect ratio, codec, platform (TikTok/IG/YT), and a caption template. Context: ${prompt}`,
-        });
+        }, jobId);
         return completeJob(jobId, { agent: 'output-formatting', recommendation: out.text, targetFormat: fmt, source: 'openai-responses' });
       }
       case 'dubbing':
         return runDubbing(jobId, payload);
       case 'thumbnail': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'choosing-thumbnail' });
-        const shots = videoId ? await videoDbSearch(videoId, 'most visually striking frame', videoDbKey, { indexType: 'visual', resultThreshold: 5 }) : [];
+        const shots = videoId ? await videoDbSearch(videoId, 'most visually striking frame', videoDbKey, { indexType: 'visual', resultThreshold: 5 }, jobId) : [];
         const pick = await callResponsesApi(apiKey, {
           input: `Pick the best thumbnail frame and write a click-worthy title + 3 hashtags. Candidate frames:\n${shots.map((s, i) => `${i + 1}. ${s.text || ''} (${(s.start ?? 0)}s)`).join('\n')}\nVideo: ${prompt}`,
-        });
+        }, jobId);
         return completeJob(jobId, { agent: 'thumbnail', title: extractField(pick.text, 'title'), hashtags: extractHashtags(pick.text), rationale: pick.text, source: 'videodb+openai' });
       }
       case 'profanity': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'scanning-language' });
-        const transcript = videoId ? (await videoDbSearch(videoId, 'all spoken words', videoDbKey, { indexType: 'spoken', resultThreshold: 50 })).map((r) => r.text || '').join(' ') : (payload.transcript || '');
+        const transcript = videoId ? (await videoDbSearch(videoId, 'all spoken words', videoDbKey, { indexType: 'spoken', resultThreshold: 50 }, jobId)).map((r) => r.text || '').join(' ') : (payload.transcript || '');
         const clean = await callResponsesApi(apiKey, {
           input: `Detect and list any profanity/non-family-safe language in this transcript, with timestamps if available, and suggest clean replacements. Transcript:\n${transcript.slice(0, 4000)}`,
-        });
+        }, jobId);
         return completeJob(jobId, { agent: 'profanity', report: clean.text, hasProfanity: /profan|inappropriate|not safe/i.test(clean.text), source: 'videodb+openai' });
       }
       case 'subtitle': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'generating-subtitles' });
-        const transcript = videoId ? (await videoDbSearch(videoId, 'all spoken words with timing', videoDbKey, { indexType: 'spoken', resultThreshold: 50 })).map((r) => r.text || '').join(' ') : '';
+        const transcript = videoId ? (await videoDbSearch(videoId, 'all spoken words with timing', videoDbKey, { indexType: 'spoken', resultThreshold: 50 }, jobId)).map((r) => r.text || '').join(' ') : '';
         const sub = await callResponsesApi(apiKey, {
           input: `Generate SRT subtitles (timestamped) from this transcript. Transcript:\n${transcript.slice(0, 4000) || prompt}`,
-        });
+        }, jobId);
         const srtUrl = storeOutput(jobId, sub.text, '.srt');
         return completeJob(jobId, { agent: 'subtitle', srt: sub.text, srtUrl, downloadUrl: srtUrl, source: 'videodb+openai' });
       }
       case 'slack': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'posting-to-slack' });
-        const summary = videoId ? (await videoDbSearch(videoId, 'summary of this video', videoDbKey, { indexType: 'scene' })).map((r) => r.text || '').join(' ') : prompt;
+        const summary = videoId ? (await videoDbSearch(videoId, 'summary of this video', videoDbKey, { indexType: 'scene' }, jobId)).map((r) => r.text || '').join(' ') : prompt;
         const webhook = process.env.SLACK_WEBHOOK_URL || (payload.settings && payload.settings.slackWebhook);
         if (!webhook) return completeJob(jobId, { agent: 'slack', posted: false, note: 'Set SLACK_WEBHOOK_URL (Render env) or pass slackWebhook to post.', summary: summary.slice(0, 500) });
         await fetch(webhook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: `🎬 Video Agent: ${summary.slice(0, 500)}` }) });
@@ -770,10 +805,10 @@ async function runMemeJob(jobId, payload) {
     updateJob(jobId, { progress: 30, currentStep: 1, stage: 'brainstorming-meme' });
     const videoDbKey = resolveVideoDbKey(payload);
     const videoId = await ensureIndexed(jobId, payload);
-    const ctx = videoId ? (await videoDbSearch(videoId, 'funny or relatable moment', videoDbKey, { indexType: 'scene' })).map((r) => r.text || '').join(' ') : (payload.prompt || '');
+    const ctx = videoId ? (await videoDbSearch(videoId, 'funny or relatable moment', videoDbKey, { indexType: 'scene' }, jobId)).map((r) => r.text || '').join(' ') : (payload.prompt || '');
     const meme = await callResponsesApi(apiKey, {
       input: `Create a viral meme based on this video. Return JSON: { topText, bottomText, format, caption }. Context: ${ctx.slice(0, 1500)}`,
-    });
+    }, jobId);
     const card = `MEME\n${(parseJsonObj(meme.text).topText) || ''}\n${(parseJsonObj(meme.text).bottomText) || ''}`;
     const url = storeOutput(jobId, card, '.txt');
     return completeJob(jobId, { agent: 'meme', meme: parseJsonObj(meme.text), text: card, downloadUrl: url, source: 'videodb+openai' });
@@ -842,7 +877,7 @@ async function runFullPipelineJob(jobId, payload) {
           try {
             const audioPath = await extractAudio(input);
             const buffer = fs.readFileSync(audioPath);
-            const result = await transcribeWithWhisper(buffer, apiKey);
+            const result = await transcribeWithWhisper(buffer, apiKey, jobId);
             cleanup(audioPath);
             updateJob(jobId, {
               transcription: result.text || '',
@@ -972,7 +1007,7 @@ router.get('/file/:fileId', (req, res) => {
 router.post('/transcribe', async (req, res) => {
   try {
     const apiKey = resolveApiKey(req.body || {});
-    const result = await transcribeWithWhisper(req.body && req.body.input, apiKey);
+    const result = await transcribeWithWhisper(req.body && req.body.input, apiKey, req.body?.jobId);
     res.json({ success: true, transcription: result.text, raw: result });
   } catch (error) {
     console.error('[videoagent] transcription failed:', error);
@@ -988,7 +1023,7 @@ router.post('/tts/synthesize', async (req, res) => {
     }
 
     const apiKey = resolveApiKey(req.body || {});
-    const result = await synthesizeSpeech({ text, voice: voice || 'alloy', model: model || 'tts-1', apiKey });
+    const result = await synthesizeSpeech({ text, voice: voice || 'alloy', model: model || 'tts-1', apiKey }, req.body?.jobId);
     res.set('Content-Type', result.mimeType);
     res.send(result.audioBuffer);
   } catch (error) {
@@ -998,92 +1033,98 @@ router.post('/tts/synthesize', async (req, res) => {
 });
 
 // OpenAI Whisper transcription
-async function transcribeWithWhisper(input, apiKey) {
-  if (!apiKey) {
-    throw new Error('Missing OpenAI API key. Add your key in Settings → OpenAI.');
-  }
-
-  let formData;
-  if (Buffer.isBuffer(input) || typeof input === 'string') {
-    const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input);
-    formData = new FormData();
-    const blob = new Blob([buffer], { type: 'audio/wav' });
-    formData.append('file', blob, 'audio.wav');
-    formData.append('model', 'whisper-1');
-  } else if (typeof FormData !== 'undefined' && input instanceof FormData) {
-    formData = input;
-    if (!formData.has('model')) {
-      formData.append('model', 'whisper-1');
+async function transcribeWithWhisper(input, apiKey, jobId) {
+  return withRetry(async () => {
+    if (!apiKey) {
+      throw new Error('Missing OpenAI API key. Add your key in Settings → OpenAI.');
     }
-  } else {
-    throw new Error('Unsupported input for transcription');
-  }
 
-  const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}` },
-    body: formData,
-  });
+    let formData;
+    if (Buffer.isBuffer(input) || typeof input === 'string') {
+      const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input);
+      formData = new FormData();
+      const blob = new Blob([buffer], { type: 'audio/wav' });
+      formData.append('file', blob, 'audio.wav');
+      formData.append('model', 'whisper-1');
+    } else if (typeof FormData !== 'undefined' && input instanceof FormData) {
+      formData = input;
+      if (!formData.has('model')) {
+        formData.append('model', 'whisper-1');
+      }
+    } else {
+      throw new Error('Unsupported input for transcription');
+    }
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Whisper transcription failed: ${response.status} ${response.statusText} - ${text}`);
-  }
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body: formData,
+    });
 
-  return response.json();
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Whisper transcription failed: ${response.status} ${response.statusText} - ${text}`);
+    }
+
+    return response.json();
+  }, {}, jobId);
 }
 
 // OpenAI TTS synthesis
-async function synthesizeSpeech({ text, voice = 'alloy', model = 'tts-1', apiKey }) {
-  if (!apiKey) {
-    throw new Error('Missing OpenAI API key. Add your key in Settings → OpenAI.');
-  }
+async function synthesizeSpeech({ text, voice = 'alloy', model = 'tts-1', apiKey }, jobId) {
+  return withRetry(async () => {
+    if (!apiKey) {
+      throw new Error('Missing OpenAI API key. Add your key in Settings → OpenAI.');
+    }
 
-  const response = await fetch('https://api.openai.com/v1/audio/speech', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model, input: text, voice }),
-  });
+    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ model, input: text, voice }),
+    });
 
-  if (!response.ok) {
-    const text0 = await response.text();
-    throw new Error(`TTS failed: ${response.status} ${response.statusText} - ${text0}`);
-  }
+    if (!response.ok) {
+      const text0 = await response.text();
+      throw new Error(`TTS failed: ${response.status} ${response.statusText} - ${text0}`);
+    }
 
-  const arrayBuffer = await response.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  return {
-    audioBuffer: buffer,
-    mimeType: response.headers.get('content-type') || 'audio/mpeg',
-    ext: mimeToExt(response.headers.get('content-type')),
-  };
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    return {
+      audioBuffer: buffer,
+      mimeType: response.headers.get('content-type') || 'audio/mpeg',
+      ext: mimeToExt(response.headers.get('content-type')),
+    };
+  }, {}, jobId);
 }
 
 // OpenAI chat translation (used by dubbing)
-async function translateText(text, targetLanguage, apiKey) {
-  if (!apiKey) {
-    throw new Error('Missing OpenAI API key. Add your key in Settings → OpenAI.');
-  }
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: `Translate the following text to ${targetLanguage}. Return only the translation.` },
-        { role: 'user', content: text },
-      ],
-      temperature: 0.3,
-    }),
-  });
+async function translateText(text, targetLanguage, apiKey, jobId) {
+  return withRetry(async () => {
+    if (!apiKey) {
+      throw new Error('Missing OpenAI API key. Add your key in Settings → OpenAI.');
+    }
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: `Translate the following text to ${targetLanguage}. Return only the translation.` },
+          { role: 'user', content: text },
+        ],
+        temperature: 0.3,
+      }),
+    });
 
-  if (!response.ok) {
-    const t = await response.text();
-    throw new Error(`Translation failed: ${response.status} ${t}`);
-  }
+    if (!response.ok) {
+      const t = await response.text();
+      throw new Error(`Translation failed: ${response.status} ${t}`);
+    }
 
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content?.trim() || text;
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content?.trim() || text;
+  }, {}, jobId);
 }
 
 function mimeToExt(mime) {
