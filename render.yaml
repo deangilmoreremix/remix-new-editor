@@ -13,11 +13,11 @@ services:
   - type: web
     name: videoagent-backend
     runtime: node
-    repo: https://github.com/deangilmoreremix/remix-new-editor.git
-    region: oregon          # pick the region closest to most of your users
+    repo: https://github.com/deangilmorememix/remix-new-editor.git
+    region: oregon
     rootDir: backend
-    plan: free              # free tier; upgrade (starter) for always-on + ffmpeg headroom
-    branch: develop   # deploy branch
+    plan: free
+    branch: backend-real-outputs
     buildCommand: npm install
     startCommand: node server.js
     healthCheckPath: /health
@@ -40,6 +40,7 @@ services:
     region: singapore
     runtime: docker
     plan: starter
+    branch: backend-real-outputs
     rootDir: apps/director/backend
     dockerfilePath: ./Dockerfile
     dockerContext: apps/director/backend

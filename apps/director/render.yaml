@@ -10,6 +10,7 @@ services:
     region: singapore
     runtime: docker
     plan: starter
+    branch: backend-real-outputs
     rootDir: apps/director/backend
     dockerfilePath: ./Dockerfile
     dockerContext: apps/director/backend
