@@ -201,11 +201,17 @@ async function runVideoAgent(tool, payload, { onProgress, signal } = {}) {
  */
 async function runAgentAction(action, payload, signal) {
   const base = getBackendBase();
+  const keys = getUserKeys();
   return withRetry(async () => {
     const res = await fetch(`${base}/api/agents/agent/${encodeURIComponent(action)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        apiKey: payload.apiKey || keys.openai,
+        videoDbKey: payload.videoDbKey || keys.videoDb,
+        muapiKey: payload.muapiKey || keys.muapi,
+      }),
       signal,
     });
     if (!res.ok) {
@@ -253,7 +259,8 @@ export async function runAgentById(agentId, { videoUrl, videoId, prompt, collect
     const agent = DIRECTOR_AGENTS.find((a) => a.id === agentId);
     if (!agent) throw new Error(`Unknown agent: ${agentId}`);
     const tool = agent.tool;
-    const basePayload = { videoUrl, videoId, prompt, name: `director-${agentId}` };
+    const keys = getUserKeys();
+    const basePayload = { videoUrl, videoId, prompt, name: `director-${agentId}`, apiKey: keys.openai, videoDbKey: keys.videoDb, muapiKey: keys.muapi };
 
     switch (tool) {
         // ── VideoDB + OpenAI agents (polled jobs) ──────────────────────

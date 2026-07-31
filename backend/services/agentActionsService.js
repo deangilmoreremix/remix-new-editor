@@ -157,16 +157,17 @@ async function tryDirector(message, agents) {
   }, {}, 'director-api');
 }
 
-async function callMuapi(endpoint, body, timeoutMs = 60000) {
-  if (!MUAPI_API_KEY) return null;
+async function callMuapi(endpoint, body, timeoutMs = 60000, apiKey) {
+  const key = apiKey || MUAPI_API_KEY;
+  if (!key) return null;
   return withRetryOrNull(async () => {
     try {
       const r = await fetchWithTimeout(`${MUAPI_BASE}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-API-Key': MUAPI_API_KEY,
-          Authorization: `Bearer ${MUAPI_API_KEY}`,
+          'X-API-Key': key,
+          Authorization: `Bearer ${key}`,
         },
         body: JSON.stringify(body),
       }, timeoutMs);
@@ -255,13 +256,13 @@ async function extractHighlights({ videoUrl }) {
   return { highlights: [], source: 'no-input' };
 }
 
-async function addBroll({ videoUrl, prompt }) {
+async function addBroll({ videoUrl, prompt, muapiKey }) {
   // 1) Try Director's broll insertion agent
   const d = await tryDirector(`Add b-roll for: ${prompt || videoUrl || ''}`, ['ad_insertion', 'search']);
   if (d && d.broll) return { broll: d.broll, source: 'director' };
 
   // 2) MuAPI stock footage search fallback
-  const muapiResp = await callMuapi('/stock/search', { query: prompt || 'b-roll', limit: 5 });
+  const muapiResp = await callMuapi('/stock/search', { query: prompt || 'b-roll', limit: 5 }, 60000, muapiKey);
   if (muapiResp && muapiResp.results) {
     return {
       broll: muapiResp.results.map((r) => ({ url: r.url, thumbnail: r.thumbnail, duration: r.duration })),
@@ -422,14 +423,14 @@ async function dubVideo({ videoUrl, targetLanguage = 'en', voice = 'alloy' }) {
   };
 }
 
-async function addVoiceover({ text, voice = 'alloy' }) {
+async function addVoiceover({ text, voice = 'alloy', apiKey }) {
   // TTS already exists in videoAgentService.js, but this path returns
   // the audio inline as base64 in the same response.
   if (!text) return { error: 'text required' };
   // Lazy import to avoid circular dep at module load time
   const { synthesizeSpeech } = await import('./videoAgentService.js').catch(() => ({}));
   if (typeof synthesizeSpeech === 'function') {
-    const out = await synthesizeSpeech({ text, voice, model: 'tts-1' });
+    const out = await synthesizeSpeech({ text, voice, model: 'tts-1', apiKey });
     return {
       voiceover: true,
       audioBase64: out.audioBuffer.toString('base64'),

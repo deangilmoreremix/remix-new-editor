@@ -27,9 +27,36 @@ describe('runAgentById', () => {
     });
 
     test('each of the 45 agent IDs maps to a tool in the switch statement', async () => {
-        global.fetch = vi.fn().mockResolvedValue({
-            ok: true,
-            json: () => Promise.resolve({ status: 'completed', source: 'test', result: {} }),
+        global.fetch = vi.fn().mockImplementation((url) => {
+            const u = String(url);
+            if (u.includes('/videoagent/process')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({ jobId: 'test-job', status: 'processing' }),
+                });
+            }
+            if (u.includes('/videoagent/job/')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({ status: 'completed', result: {}, source: 'test' }),
+                });
+            }
+            if (u.includes('/api/agents/agent/')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({ success: true, action: 'speed', source: 'ffmpeg', base64: 'test', format: 'mp4' }),
+                });
+            }
+            if (u.includes('/api/videodb/proxy')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({ data: {} }),
+                });
+            }
+            return Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({}),
+            });
         });
         window.__BACKEND_URL__ = 'http://localhost:3001';
 
