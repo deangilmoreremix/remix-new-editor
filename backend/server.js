@@ -60,12 +60,8 @@ wss.on('connection', (ws, req) => {
 
         case 'get_timeline_state':
           ws.send(JSON.stringify({
-            type: 'timeline_state',
-            data: {
-              duration: 60,
-              playhead: 15,
-              tracks: []
-            }
+            type: 'error',
+            message: 'Timeline state is managed client-side. This endpoint is not implemented on the server.',
           }));
           break;
 

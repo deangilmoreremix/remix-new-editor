@@ -134,7 +134,6 @@ async function detectScenes({ videoUrl }) {
       await fs.unlink(inFile).catch(() => {});
       const scenes = timestamps.map((time, i) => ({
         time,
-        confidence: 1,
         label: `Scene ${i + 1}`,
       }));
       return { scenes, source: 'ffmpeg', totalScenes: scenes.length };

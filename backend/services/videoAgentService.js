@@ -189,7 +189,6 @@ function scenesFromTimestamps(timestamps, duration = 120) {
       index: i + 1,
       start: +points[i].toFixed(2),
       end: +points[i + 1].toFixed(2),
-      confidence: 1.0,
     });
   }
   return scenes;
@@ -362,7 +361,10 @@ async function runVoiceSynthesis(jobId, payload) {
     return failJob(jobId, new Error('An OpenAI API key is required for voice synthesis (TTS). Add your key in Settings → OpenAI.'));
   }
   try {
-    const text = payload.text || payload.prompt || 'This is a synthesized voice sample.';
+    const text = payload.text || payload.prompt;
+    if (!text) {
+      return failJob(jobId, new Error('text or prompt is required for voice synthesis.'));
+    }
     const syn = await synthesizeSpeech({ text, voice: payload.voice || 'alloy', model: payload.model || 'tts-1', apiKey });
     const url = storeOutput(jobId, syn.audioBuffer, '.' + (syn.ext || 'mp3'));
     completeJob(jobId, {
@@ -471,7 +473,7 @@ async function runAgentJob(jobId, agentId, payload) {
       case 'text-to-video': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'writing-screenplay' });
         const script = await callResponsesApi(apiKey, {
-          input: `You are a GenAI movie director. Turn this prompt into a cinematic shot list / screenplay for a short AI-generated film.\n\nPrompt: ${prompt || 'A heroic journey across a sci-fi city at sunset'}\n\nReturn JSON: { title, logline, shots: [{ shot, camera, action, voiceover }] }.`,
+          input: `You are a GenAI movie director. Turn this prompt into a cinematic shot list / screenplay for a short AI-generated film.\n\nPrompt: ${prompt}\n\nReturn JSON: { title, logline, shots: [{ shot, camera, action, voiceover }] }.`,
         });
         return completeJob(jobId, { agent: 'text-to-movie', screenplay: script.text, shots: parseJsonArray(script.text), source: 'openai-responses' });
       }
@@ -486,7 +488,10 @@ async function runAgentJob(jobId, agentId, payload) {
       }
       case 'voice-cloning': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'synthesizing' });
-        const text = payload.text || 'This is a cloned-voice sample narrating your video.';
+        const text = payload.text;
+        if (!text) {
+          return failJob(jobId, new Error('text is required for voice cloning.'));
+        }
         const syn = await synthesizeSpeech({ text, voice: payload.voice || 'alloy', apiKey });
         const url = storeOutput(jobId, syn.audioBuffer, '.' + (syn.ext || 'mp3'));
         return completeJob(jobId, { agent: 'voice-cloning', audioUrl: url, downloadUrl: url, text, note: 'OpenAI voice (clone with a Voiceprint when available)', source: 'openai-tts' });
@@ -494,7 +499,10 @@ async function runAgentJob(jobId, agentId, payload) {
       case 'audio-overlay':
       case 'gen-audio-overlays': {
         updateJob(jobId, { progress: 40, currentStep: 2, stage: 'generating-audio' });
-        const text = payload.text || payload.description || 'Add an energetic narration track over this video.';
+        const text = payload.text || payload.description;
+        if (!text) {
+          return failJob(jobId, new Error('text or description is required for audio overlay.'));
+        }
         const syn = await synthesizeSpeech({ text, voice: payload.voice || 'nova', apiKey });
         const url = storeOutput(jobId, syn.audioBuffer, '.' + (syn.ext || 'mp3'));
         return completeJob(jobId, { agent: 'audio-overlay', audioUrl: url, downloadUrl: url, text, source: 'openai-tts' });
@@ -692,11 +700,11 @@ async function runUseCaseJob(jobId, usecaseId, payload) {
     cleanup(input);
 
     const outputs = {
-      standup: { result: 'Comedy timing applied (stabilized)', exported: true },
-      'music-video': { result: 'Music sync applied', exported: true },
+      standup: { result: 'Video stabilized', exported: true },
+      'music-video': { result: 'Video finalized', exported: true },
     };
 
-    const result = outputs[usecaseId] || { result: 'Use case complete', exported: true };
+    const result = outputs[usecaseId] || { result: 'Processing complete', exported: true };
     if (finalOut) {
       const url = storeOutput(jobId, finalOut);
       result.url = url;

@@ -6,6 +6,17 @@ import { browserVideoProcessor } from '../lib/browserVideoProcessor.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
+// Backend wiring
+function getBackendBase() {
+    if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BACKEND_URL) {
+        return import.meta.env.VITE_BACKEND_URL.replace(/\/$/, '');
+    }
+    if (typeof window !== 'undefined' && window.__BACKEND_URL__) {
+        return window.__BACKEND_URL__.replace(/\/$/, '');
+    }
+    return '';
+}
+
 const AI_TOOLS = [
     { id: 'scene-detection', name: 'Scene Detection', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 7h5M17 17h5"/></svg>', thumbnail: '/thumbnails/videoagent/scene-detection.png', color: 'blue', description: 'Identify scene boundaries', category: 'understanding' },
     { id: 'clip-segmentation', name: 'Clip Segmentation', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="8" height="16" rx="1"/><rect x="14" y="4" width="8" height="16" rx="1"/><line x1="12" y1="4" x2="12" y2="20" stroke-dasharray="2 2"/></svg>', thumbnail: '/thumbnails/videoagent/clip-segmentation.png', color: 'purple', description: 'Split into clip segments', category: 'editing' },
@@ -434,7 +445,7 @@ export function VideoAgentPage() {
         isProcessing = false;
         abortController.abort();
         if (currentJobId) {
-            try { await fetch(`/videoagent/cancel/${currentJobId}`, { method: 'POST' }); } catch (_) {}
+            try { await fetch(`${getBackendBase()}/videoagent/cancel/${currentJobId}`, { method: 'POST' }); } catch (_) {}
             try {
                 if (isSupabaseConfigured()) {
                     await fetch(`${getSupabaseUrl()}/functions/v1/videoagent/cancel/${currentJobId}`, { method: 'POST' });
@@ -474,7 +485,7 @@ export function VideoAgentPage() {
         // Try Express direct (real OpenAI Whisper, TTS, agent orchestrator).
         // Fall back to Supabase edge function (which proxies to Express).
         // Fall back to simulation ONLY if both fail.
-        const directEndpoint = '/videoagent/process';
+        const directEndpoint = `${getBackendBase()}/videoagent/process`;
         const supabaseEndpoint = isSupabaseConfigured()
             ? `${getSupabaseUrl()}/functions/v1/videoagent`
             : null;
@@ -543,7 +554,7 @@ export function VideoAgentPage() {
             setCurrentJob(result.jobId);
             // Poll for completion. Use the same endpoint that returned the job.
             const pollUrl = usedEndpoint === 'direct'
-                ? `/videoagent/job/${result.jobId}`
+                ? `${getBackendBase()}/videoagent/job/${result.jobId}`
                 : `${supabaseEndpoint}?jobId=${result.jobId}`;
             try {
                 const finalJob = await pollJob(pollUrl, result.steps || getToolSteps(tool.id), stepsEl, progressBar, percentEl, abortController.signal);
@@ -598,7 +609,7 @@ export function VideoAgentPage() {
         nameEl.textContent = usecase.description;
         modal.classList.remove('hidden');
 
-        const directEndpoint = '/videoagent/process';
+        const directEndpoint = `${getBackendBase()}/videoagent/process`;
         const supabaseEndpoint = isSupabaseConfigured()
             ? `${getSupabaseUrl()}/functions/v1/videoagent`
             : null;
@@ -654,7 +665,7 @@ export function VideoAgentPage() {
         if (result.jobId) {
             setCurrentJob(result.jobId);
             const pollUrl = usedEndpoint === 'direct'
-                ? `/videoagent/job/${result.jobId}`
+                ? `${getBackendBase()}/videoagent/job/${result.jobId}`
                 : `${supabaseEndpoint}?jobId=${result.jobId}`;
             try {
                 const finalJob = await pollJob(pollUrl, getUseCaseSteps(usecase.id), stepsEl, progressBar, percentEl, abortController.signal);
@@ -707,7 +718,7 @@ export function VideoAgentPage() {
         nameEl.textContent = 'Running full AI processing pipeline';
         modal.classList.remove('hidden');
 
-        const directEndpoint = '/videoagent/process';
+        const directEndpoint = `${getBackendBase()}/videoagent/process`;
         const supabaseEndpoint = isSupabaseConfigured()
             ? `${getSupabaseUrl()}/functions/v1/videoagent`
             : null;
@@ -761,7 +772,7 @@ export function VideoAgentPage() {
         if (result.jobId) {
             setCurrentJob(result.jobId);
             const pollUrl = usedEndpoint === 'direct'
-                ? `/videoagent/job/${result.jobId}`
+                ? `${getBackendBase()}/videoagent/job/${result.jobId}`
                 : `${supabaseEndpoint}?jobId=${result.jobId}`;
             try {
                 const finalJob = await pollJob(pollUrl, getUseCaseSteps('overview'), stepsEl, progressBar, percentEl, abortController.signal);

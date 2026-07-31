@@ -7,6 +7,8 @@ export default class VideoEditorPage extends Component {
   constructor(props = {}) {
     super(props);
 
+    console.warn('[VideoEditorPage] This page is a stub and not wired to any backend. Use TimelineEditorPage or RealTimelinePage for actual editing.');
+
     this.canvas = null;
     this.timeline = null;
     this.sidebar = null;

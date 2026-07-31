@@ -12,7 +12,7 @@ services:
     plan: starter
     rootDir: apps/director/backend
     dockerfilePath: ./Dockerfile
-    dockerContext: .
+    dockerContext: apps/director/backend
     envVars:
       - key: SERVER_ENV
         value: production
