@@ -11,9 +11,8 @@ services:
     runtime: docker
     plan: starter
     branch: backend-real-outputs
-    rootDir: apps/director/backend
-    dockerfilePath: ./Dockerfile
-    dockerContext: apps/director/backend
+    dockerfilePath: apps/director/backend/Dockerfile
+    dockerContext: .
     envVars:
       - key: SERVER_ENV
         value: production
