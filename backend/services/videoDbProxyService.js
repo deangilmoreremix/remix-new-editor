@@ -54,8 +54,8 @@ function resolveToken(req) {
   return null;
 }
 
-function clientHeaders(req) {
-  const token = resolveToken(req);
+function clientHeaders(req, { token: overrideToken } = {}) {
+  const token = (overrideToken && String(overrideToken).trim()) || resolveToken(req);
   if (!token) {
     const err = new Error(
       'No VideoDB access token available. Set VIDEO_DB_API_KEY on the server or pass x-access-token.'
@@ -71,8 +71,8 @@ function clientHeaders(req) {
 
 // Unwrap the VideoDB envelope: responses are { status, data } and we forward
 // `data`. Never assume success — propagate non-2xx as errors.
-async function videodbRequest(req, method, path, { params, body } = {}) {
-  const headers = clientHeaders(req);
+async function videodbRequest(req, method, path, { params, body, token } = {}) {
+  const headers = clientHeaders(req, { token });
   try {
     const res = await axios({
       method,
@@ -284,11 +284,14 @@ router.post('/proxy', wrap(async (req) => {
     err.status = 400;
     throw err;
   }
-  // If a user-supplied key is in the body, prefer it for this single call.
-  const effectiveReq = userKey
-    ? { ...req, headers: { ...req.headers, 'x-access-token': String(userKey).trim() } }
-    : req;
-  return await videodbRequest(effectiveReq, method, endpoint, { body });
+  // Normalize to a leading slash so we always build `https://api.videodb.io/path`
+  // regardless of whether the caller passed `health` or `/health`.
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  // If a user-supplied key is in the body, pass it as a direct token override.
+  // Do NOT clone the Express req — spreading strips methods like `req.header()`
+  // and breaks the non-override path too.
+  const token = userKey ? String(userKey).trim() : undefined;
+  return await videodbRequest(req, method, path, { body, token });
 }));
 
 // ---- Convenience composite for the four studios ----------------------------
