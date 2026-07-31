@@ -418,7 +418,7 @@ export function DirectorPage() {
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <button id="cancel-btn" class="hidden px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-300 text-sm rounded-lg transition-colors">
+                <button id="cancel-btn" data-testid="cancel-btn" class="hidden px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-300 text-sm rounded-lg transition-colors">
                     Cancel
                 </button>
                 <button id="clear-chat-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-sm rounded-lg transition-colors">
@@ -438,7 +438,7 @@ export function DirectorPage() {
                 <div class="p-4 overflow-auto flex-1">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-bold text-white text-sm uppercase tracking-wider">AI AGENTS</h3>
-                        <select id="category-filter" class="bg-white/5 text-xs text-secondary rounded px-2 py-1 border border-white/10">
+                        <select id="category-filter" data-testid="category-filter" class="bg-white/5 text-xs text-secondary rounded px-2 py-1 border border-white/10">
                             <option value="">All Categories</option>
                             ${Object.entries(AGENT_CATEGORIES).map(([key, val]) =>
                                 `<option value="${key}">${val.name}</option>`
@@ -447,7 +447,7 @@ export function DirectorPage() {
                     </div>
                     <div id="agents-grid" class="grid grid-cols-2 gap-2">
                         ${DIRECTOR_AGENTS.map(agent => `
-                            <button class="agent-btn p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left transition-all hover:scale-[1.02] cursor-pointer" data-agent="${agent.id}" data-category="${agent.category}">
+                            <button class="agent-btn p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left transition-all hover:scale-[1.02] cursor-pointer" data-agent="${agent.id}" data-category="${agent.category}" data-testid="agent-card">
                                 <div class="text-lg mb-1">${agent.icon}</div>
                                 <div class="font-bold text-white text-xs leading-tight">${agent.name}</div>
                                 <div class="text-[10px] text-secondary truncate">${agent.description}</div>
@@ -542,7 +542,7 @@ export function DirectorPage() {
                     <div class="flex gap-3">
                         <input
                             type="text"
-                            id="command-input"
+                            id="command-input" data-testid="command-input"
                             placeholder="Type your command (e.g., 'Summarize this video')"
                             class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-muted focus:outline-none focus:border-primary/50"
                         >
@@ -560,7 +560,7 @@ export function DirectorPage() {
             <!-- Right: Tools Panel -->
             <div class="w-80 border-l border-white/5 p-4 overflow-auto bg-black/30">
                 <!-- Processing Status -->
-                <div id="processing-status" class="hidden mb-6">
+                <div id="processing-status" data-testid="processing-status" class="hidden mb-6">
                     <h4 class="font-bold text-white text-sm mb-3 flex items-center gap-2">
                         <div class="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full"></div>
                         PROCESSING
@@ -585,43 +585,43 @@ export function DirectorPage() {
                 <!-- Quick Actions -->
                 <h3 class="font-bold text-white mb-3 text-sm uppercase tracking-wider">QUICK ACTIONS</h3>
                 <div class="space-y-2">
-                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="summarize">
+                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="summarize" data-testid="quick-action-btn">
                         <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">📝</div>
                         <div><div class="font-bold text-white text-sm">Summarize</div><div class="text-xs text-secondary">Generate video summary</div></div>
                     </button>
-                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="highlights">
+                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="highlights" data-testid="quick-action-btn">
                         <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">⚡</div>
                         <div><div class="font-bold text-white text-sm">Extract Highlights</div><div class="text-xs text-secondary">Find best moments</div></div>
                     </button>
-                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="scenes">
+                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="scenes" data-testid="quick-action-btn">
                         <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">🎬</div>
                         <div><div class="font-bold text-white text-sm">Detect Scenes</div><div class="text-xs text-secondary">Identify boundaries</div></div>
                     </button>
-                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="subtitles">
+                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="subtitles" data-testid="quick-action-btn">
                         <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">💬</div>
                         <div><div class="font-bold text-white text-sm">Add Subtitles</div><div class="text-xs text-secondary">Auto-generate captions</div></div>
                     </button>
-                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="dubbing">
+                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="dubbing" data-testid="quick-action-btn">
                         <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">🎤</div>
                         <div><div class="font-bold text-white text-sm">Dub Video</div><div class="text-xs text-secondary">Translate audio</div></div>
                     </button>
-                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="broll">
+                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="broll" data-testid="quick-action-btn">
                         <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">🎞️</div>
                         <div><div class="font-bold text-white text-sm">Add B-Roll</div><div class="text-xs text-secondary">Overlay footage</div></div>
                     </button>
-                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="voiceover">
+                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="voiceover" data-testid="quick-action-btn">
                         <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">🎙️</div>
                         <div><div class="font-bold text-white text-sm">Voiceover</div><div class="text-xs text-secondary">Add AI narration</div></div>
                     </button>
-                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="shorts">
+                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="shorts" data-testid="quick-action-btn">
                         <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">📱</div>
                         <div><div class="font-bold text-white text-sm">Create Shorts</div><div class="text-xs text-secondary">TikTok/Reels/Shorts</div></div>
                     </button>
-                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="color">
+                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="color" data-testid="quick-action-btn">
                         <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">🎨</div>
                         <div><div class="font-bold text-white text-sm">Color Correction</div><div class="text-xs text-secondary">Adjust colors</div></div>
                     </button>
-                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="stabilize">
+                    <button class="action-btn w-full p-3 bg-white/5 hover:bg-white/10 rounded-xl text-left flex items-center gap-3 transition-colors cursor-pointer" data-action="stabilize" data-testid="quick-action-btn">
                         <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">🪄</div>
                         <div><div class="font-bold text-white text-sm">Stabilize</div><div class="text-xs text-secondary">Fix shaky footage</div></div>
                     </button>
