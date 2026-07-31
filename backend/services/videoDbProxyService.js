@@ -263,6 +263,34 @@ router.get('/videos/:videoId', wrap(async (req) => {
   return await videodbRequest(req, 'GET', `/video/${encodeURIComponent(videoId)}`);
 }));
 
+// ---- Catch-all proxy route --------------------------------------------------
+// The DirectorPage client (and any other feature) can hit POST /api/videodb/proxy
+// with { endpoint, method, body, videoDbKey } and we forward the call to
+// api.videodb.io server-side. This is the path that the browser-side
+// `src/lib/videoDb.js` falls back to when the proxy is reachable, and it
+// matches the shape that Director uses to call any VideoDB endpoint
+// (compile-timeline, search/, upload, etc.) without needing a dedicated
+// route per endpoint.
+router.post('/proxy', wrap(async (req) => {
+  const { endpoint, method = 'POST', body = null, videoDbKey: userKey } = req.body || {};
+  if (!endpoint || typeof endpoint !== 'string') {
+    const err = new Error('endpoint is required');
+    err.status = 400;
+    throw err;
+  }
+  // Reject obviously bad paths to prevent SSRF / path traversal.
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://') || endpoint.includes('..')) {
+    const err = new Error('endpoint must be a relative VideoDB path');
+    err.status = 400;
+    throw err;
+  }
+  // If a user-supplied key is in the body, prefer it for this single call.
+  const effectiveReq = userKey
+    ? { ...req, headers: { ...req.headers, 'x-access-token': String(userKey).trim() } }
+    : req;
+  return await videodbRequest(effectiveReq, method, endpoint, { body });
+}));
+
 // ---- Convenience composite for the four studios ----------------------------
 
 // POST /api/videodb/resolve  { videoId, format }

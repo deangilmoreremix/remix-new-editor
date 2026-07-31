@@ -373,6 +373,103 @@ async function addVoiceover({ text, voice = 'alloy' }) {
   return { voiceover: false, source: 'tts-unavailable' };
 }
 
+/**
+ * Speed change. Accepts `speedFactor` in the body (e.g. 2.0 = 2x faster,
+ * 0.5 = half speed / slow motion). Uses ffmpeg's `setpts` + `atempo` filters.
+ * Falls back to chained atempo filters for >2x or <0.5x speed.
+ */
+async function speedChange({ videoUrl, speedFactor = 1.5 }) {
+  if (!videoUrl) return { error: 'videoUrl required', source: 'no-input' };
+  let factor = Number(speedFactor);
+  if (!Number.isFinite(factor) || factor <= 0) factor = 1.5;
+  // Clamp to a sane range — beyond 4x the audio is unrecognizable.
+  factor = Math.max(0.25, Math.min(4, factor));
+  try {
+    const inFile = await downloadToTmp(videoUrl);
+    const outFile = path.join(os.tmpdir(), `${newId('sp')}.mp4`);
+    // setpts=PTS/<factor> for video, atempo=<factor> for audio. atempo only
+    // accepts 0.5-2.0, so chain for factors outside that range.
+    const setpts = `setpts=PTS/${factor}`;
+    const atempoChain = buildAtempoChain(factor);
+    const vf = `${setpts},fps=30`;
+    const af = atempoChain;
+    await runFfmpeg([
+      '-y', '-i', inFile,
+      '-vf', vf,
+      '-af', af,
+      '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+      '-c:a', 'aac', '-b:a', '128k',
+      outFile,
+    ], 180000);
+    const data = await fs.readFile(outFile);
+    await fs.unlink(inFile).catch(() => {});
+    await fs.unlink(outFile).catch(() => {});
+    return {
+      sped: true,
+      speedFactor: factor,
+      format: 'mp4',
+      base64: data.toString('base64'),
+      size: data.length,
+      source: 'ffmpeg-setpts-atempo',
+    };
+  } catch (e) {
+    return { error: e.message, source: 'failed' };
+  }
+}
+
+function buildAtempoChain(factor) {
+  // atempo only accepts 0.5-2.0; chain for larger/smaller factors.
+  const segments = [];
+  let remaining = factor;
+  while (remaining > 2.0) {
+    segments.push(2.0);
+    remaining /= 2.0;
+  }
+  while (remaining < 0.5) {
+    segments.push(0.5);
+    remaining /= 0.5;
+  }
+  segments.push(remaining);
+  return segments.map((f) => `atempo=${f.toFixed(3)}`).join(',');
+}
+
+/**
+ * Reverse a video. Uses ffmpeg's `reverse` filter on both video and audio.
+ * Note: for long videos this can be memory-intensive. Caps the input at the
+ * download step and returns base64 inline.
+ */
+async function reverseVideo({ videoUrl }) {
+  if (!videoUrl) return { error: 'videoUrl required', source: 'no-input' };
+  try {
+    const inFile = await downloadToTmp(videoUrl);
+    const outFile = path.join(os.tmpdir(), `${newId('rev')}.mp4`);
+    // Run in two passes: first reverse the audio (which requires an explicit
+    // wav intermediate), then mux with reversed video. For simplicity we use
+    // the single-pass `reverse` filter on both — requires the audio to be
+    // re-encoded so we drop `-c:a copy`.
+    await runFfmpeg([
+      '-y', '-i', inFile,
+      '-vf', 'reverse',
+      '-af', 'areverse',
+      '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+      '-c:a', 'aac', '-b:a', '128k',
+      outFile,
+    ], 180000);
+    const data = await fs.readFile(outFile);
+    await fs.unlink(inFile).catch(() => {});
+    await fs.unlink(outFile).catch(() => {});
+    return {
+      reversed: true,
+      format: 'mp4',
+      base64: data.toString('base64'),
+      size: data.length,
+      source: 'ffmpeg-reverse-areverse',
+    };
+  } catch (e) {
+    return { error: e.message, source: 'failed' };
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────
 // Route dispatch
 // ─────────────────────────────────────────────────────────────────────────
@@ -392,6 +489,8 @@ const ACTIONS = {
   'scene-detection': { fn: detectScenes, steps: ['Analyzing video frames...', 'Detecting scene changes...', 'Labeling scenes...', 'Generating scene map...'] },
   'highlight-detection': { fn: extractHighlights, steps: ['Analyzing content...', 'Scoring moments...', 'Ranking highlights...', 'Extracting clips...'] },
   'clip-segmentation': { fn: null, steps: ['Identifying segment boundaries...', 'Creating clip markers...', 'Optimizing cut points...', 'Finalizing segments...'] },
+  'speed': { fn: speedChange, steps: ['Analyzing playback...', 'Adjusting speed...', 'Re-encoding...', 'Finalizing...'] },
+  'reverse': { fn: reverseVideo, steps: ['Reading video...', 'Reversing frames...', 'Re-encoding...', 'Finalizing...'] },
 };
 
 router.post('/agent/:action', async (req, res) => {

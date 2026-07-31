@@ -2,9 +2,10 @@ import { navigate } from '../lib/router.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml } from '../lib/security.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  DIRECTOR AGENTS — 24 production-ready agents wired to the real backend.
+//  DIRECTOR AGENTS — 45 production-ready agents wired to the real backend.
 //
 //  Each agent maps to a real API endpoint:
 //    • VideoDB-backed agents go through `/api/videodb/proxy`
@@ -340,7 +341,6 @@ export function DirectorPage() {
     const videoId = urlParams.get('videoId') || '';
     const videoUrl = urlParams.get('videoUrl') || '';
 
-    let chatHistory = [];
     let activeAgents = new Set();
     let isProcessing = false;
     let pollAbort = null;
@@ -610,7 +610,6 @@ export function DirectorPage() {
 
     container.querySelector('#clear-chat-btn').onclick = () => {
         chatMessages.innerHTML = '';
-        chatHistory = [];
     };
 
     cancelBtn.onclick = () => {
@@ -672,7 +671,6 @@ export function DirectorPage() {
 
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
-        chatHistory.push({ content, isUser, isAction, isError });
     }
 
     function updateActiveAgents() {
@@ -758,62 +756,97 @@ export function DirectorPage() {
     // ── Result rendering ──────────────────────────────────────────────
     function renderResult(result, agentId) {
         if (!result) return;
-        const job = result.job || result;
+        // Two response shapes:
+        //   1) videoagent polled job: result.result is the job's { status, ...agentOutput }
+        //   2) ffmpeg agent action:   result.result is { success, action, ...inlineOutput }
         const data = result.result || result;
 
-        // Try to find a playable URL or downloadable asset
+        // ── Find a playable/downloadable URL or base64 asset ──────────
+        // For create-shorts the base64 lives inside data.shorts[0].
+        const shortsItem = Array.isArray(data.shorts) ? data.shorts[0] : null;
+        const brollItem = Array.isArray(data.broll) ? data.broll[0] : null;
+
+        const inlineBase64 = data.base64
+            || shortsItem?.base64
+            || data.voiceover && data.audioBase64
+            || brollItem?.url;
+        const inlineFormat = data.format
+            || shortsItem?.format
+            || (data.mimeType && data.mimeType.startsWith('audio/') ? 'mp3' : null)
+            || (data.audioBase64 ? 'mp3' : null);
+
         const playUrl = data.url || data.downloadUrl || data.audioUrl ||
-                        data.dubbedVideo && `/videoagent/file/${data.dubbedVideo}` ||
-                        data.upscaledVideo && `/videoagent/file/${data.upscaledVideo}` ||
-                        data.correctedVideo && `/videoagent/file/${data.correctedVideo}` ||
-                        data.stabilizedVideo && `/videoagent/file/${data.stabilizedVideo}` ||
-                        data.srtUrl || data.exportedUrl;
+                        data.srtUrl || data.exportedUrl ||
+                        (data.dubbedVideo && `/videoagent/file/${data.dubbedVideo}`) ||
+                        (data.upscaledVideo && `/videoagent/file/${data.upscaledVideo}`) ||
+                        (data.correctedVideo && `/videoagent/file/${data.correctedVideo}`) ||
+                        (data.stabilizedVideo && `/videoagent/file/${data.stabilizedVideo}`);
 
         let html = `<div class="space-y-2">`;
         html += `<div class="text-xs text-secondary">Agent: <span class="text-white font-bold">${escapeHtml(agentId)}</span> · Source: <span class="text-primary">${escapeHtml(result.source || data.source || 'api')}</span></div>`;
 
-        // Summary text (OpenAI-generated)
-        const summary = data.summary || data.analysis || data.comparison || data.recommendation ||
-                        data.storyboard || data.screenplay || data.meme?.caption ||
-                        data.title && `${data.title} ${(data.hashtags || []).map(h => h).join(' ')}` ||
-                        data.report;
+        // Summary text (OpenAI-generated or static)
+        const memeCaption = data.meme && (data.meme.caption || (data.meme.topText ? `${data.meme.topText} / ${data.meme.bottomText || ''}` : ''));
+        const titleAndTags = data.title
+            ? `${data.title}${Array.isArray(data.hashtags) ? ' ' + data.hashtags.join(' ') : ''}`
+            : null;
+        const summary = data.summary || data.analysis || data.comparison ||
+                        data.recommendation || data.storyboard || data.screenplay ||
+                        memeCaption || titleAndTags || data.report;
         if (summary) {
             html += `<div class="text-sm text-white bg-black/30 rounded p-2 max-h-40 overflow-auto whitespace-pre-wrap">${escapeHtml(String(summary).slice(0, 1500))}</div>`;
         }
 
         // Scenes
-        if (data.scenes) {
+        if (Array.isArray(data.scenes)) {
             html += `<div class="text-xs text-secondary">${data.scenes.length} scene${data.scenes.length !== 1 ? 's' : ''} detected</div>`;
         }
         // Highlights / moments
-        if (data.highlights) {
+        if (Array.isArray(data.highlights)) {
             html += `<div class="text-xs text-secondary">${data.highlights.length} highlight${data.highlights.length !== 1 ? 's' : ''} found</div>`;
         }
         // Search results
-        if (data.results) {
+        if (Array.isArray(data.results)) {
             html += `<div class="text-xs text-secondary">${data.results.length} match${data.results.length !== 1 ? 'es' : ''} found</div>`;
         }
         // SRT subtitles
         if (data.srt) {
-            html += `<div class="text-xs text-secondary">SRT generated (${data.srt.length} chars)</div>`;
+            html += `<div class="text-xs text-secondary">SRT generated (${String(data.srt).length} chars)</div>`;
         }
         // Timeline
         if (data.timeline) {
             html += `<div class="text-xs text-secondary">Timeline compiled</div>`;
         }
-        // base64 inline file (shallow ffprobe result for ffmpeg actions)
-        if (data.base64 && data.format) {
-            const dataUrl = `data:${data.format === 'mp3' ? 'audio/mpeg' : 'video/mp4'};base64,${data.base64}`;
-            if (data.format === 'mp3' || data.mimeType === 'audio/mpeg') {
+        // Shorts
+        if (Array.isArray(data.shorts) && data.shorts.length) {
+            html += `<div class="text-xs text-secondary">${data.shorts.length} short${data.shorts.length !== 1 ? 's' : ''} created</div>`;
+        }
+        // B-roll
+        if (Array.isArray(data.broll) && data.broll.length) {
+            html += `<div class="text-xs text-secondary">${data.broll.length} B-roll clip${data.broll.length !== 1 ? 's' : ''}</div>`;
+        }
+        // Audio overlay / voiceover
+        if (data.voiceover) {
+            html += `<div class="text-xs text-secondary">Voiceover generated</div>`;
+        }
+
+        // Inline base64 audio/video
+        if (inlineBase64 && inlineFormat && typeof inlineBase64 === 'string' && !inlineBase64.startsWith('http')) {
+            const mime = inlineFormat === 'mp3' || inlineFormat === 'wav' || inlineFormat === 'mpeg'
+                ? (inlineFormat === 'wav' ? 'audio/wav' : 'audio/mpeg')
+                : 'video/mp4';
+            const dataUrl = `data:${mime};base64,${inlineBase64}`;
+            if (mime.startsWith('audio/')) {
                 html += `<audio controls class="w-full mt-1" src="${dataUrl}"></audio>`;
             } else {
                 html += `<video controls class="w-full mt-1 max-h-48" src="${dataUrl}"></video>`;
             }
         }
-        // Playable file
-        if (playUrl && typeof playUrl === 'string' && !data.base64) {
+        // Playable file (URL-based)
+        if (playUrl && typeof playUrl === 'string' && !inlineBase64) {
             const full = playUrl.startsWith('http') ? playUrl : `${getBackendBase()}${playUrl}`;
-            if (/\.(mp3|wav|mpeg)$/i.test(playUrl) || data.mimeType === 'audio/mpeg') {
+            const isAudio = /\.(mp3|wav|mpeg|webm)$/i.test(playUrl) || data.mimeType === 'audio/mpeg';
+            if (isAudio) {
                 html += `<audio controls class="w-full mt-1" src="${escapeHtml(full)}"></audio>`;
             } else {
                 html += `<video controls class="w-full mt-1 max-h-48" src="${escapeHtml(full)}"></video>`;
@@ -885,14 +918,28 @@ export function DirectorPage() {
     async function processCommand(command) {
         if (!command.trim() || isProcessing) return;
 
+        // Entitlement gate — every agent run checks the user's plan/credits.
+        if (!(await requireEntitlement())) {
+            addMessage('This feature requires an active subscription. Please check your plan in Settings.', { isError: true });
+            return;
+        }
+
         const agentId = inferAgentId(command);
         if (!agentId) {
-            addMessage(`I can help with: ${DIRECTOR_AGENTS.slice(0, 6).map(a => a.name).join(', ')}, and 18 more. Try clicking an agent card or being more specific (e.g. "summarize this video", "add subtitles", "detect scenes").`, { isError: true });
+            addMessage(`I can help with: ${DIRECTOR_AGENTS.slice(0, 6).map(a => a.name).join(', ')}, and ${DIRECTOR_AGENTS.length - 6} more. Try clicking an agent card or being more specific (e.g. "summarize this video", "add subtitles", "detect scenes").`, { isError: true });
             return;
         }
 
         const agent = DIRECTOR_AGENTS.find(a => a.id === agentId);
         if (!agent) return;
+
+        // ── Visual disabled state while a job is in flight ─────────────
+        const allBtns = container.querySelectorAll('.agent-btn, .action-btn, #send-command-btn');
+        allBtns.forEach((b) => {
+            b.disabled = true;
+            b.classList.add('opacity-50', 'pointer-events-none');
+        });
+        commandInput.disabled = true;
 
         isProcessing = true;
         pollAbort = new AbortController();
@@ -920,12 +967,28 @@ export function DirectorPage() {
             }
         }, 1500);
 
+        // Real progress callback — the polled job sends { progress, currentStep, stage }.
+        // When the backend reports real progress, override the static step animation.
+        let lastReportedProgress = 0;
+        const onProgress = (job) => {
+            if (typeof job.progress === 'number' && job.progress > lastReportedProgress) {
+                lastReportedProgress = job.progress;
+                progressBar.style.width = `${job.progress}%`;
+                progressPercent.textContent = `${Math.round(job.progress)}%`;
+                // Sync the step animation to the backend's currentStep.
+                if (typeof job.currentStep === 'number' && job.currentStep > stepIdx) {
+                    stepIdx = Math.min(job.currentStep - 1, steps.length - 1);
+                    tickStep(stepIdx);
+                }
+            }
+        };
+
         try {
             const result = await runAgentById(agentId, {
                 videoUrl,
                 videoId,
                 prompt: command,
-            }, { signal: pollAbort.signal });
+            }, { signal: pollAbort.signal, onProgress });
 
             clearInterval(stepTimer);
             finishSteps();
@@ -934,21 +997,22 @@ export function DirectorPage() {
             const data = result.result || result;
             let summary = '';
             if (data.summary) summary = data.summary;
-            else if (data.scenes) summary = `Detected ${data.scenes.length} scenes.`;
-            else if (data.highlights) summary = `Found ${data.highlights.length} highlights.`;
-            else if (data.results) summary = `Found ${data.results.length} matches.`;
-            else if (data.segments) summary = `Segmented into ${data.segments.length} clips.`;
-            else if (data.transcription) summary = `Transcribed ${data.transcription.length} characters of audio.`;
-            else if (data.srt) summary = `Generated SRT subtitles (${data.srt.length} chars).`;
+            else if (Array.isArray(data.scenes)) summary = `Detected ${data.scenes.length} scenes.`;
+            else if (Array.isArray(data.highlights)) summary = `Found ${data.highlights.length} highlights.`;
+            else if (Array.isArray(data.results)) summary = `Found ${data.results.length} matches.`;
+            else if (Array.isArray(data.segments)) summary = `Segmented into ${data.segments.length} clips.`;
+            else if (data.transcription) summary = `Transcribed ${String(data.transcription).length} characters of audio.`;
+            else if (data.srt) summary = `Generated SRT subtitles (${String(data.srt).length} chars).`;
             else if (data.dubbedVideo || data.url) summary = `Dubbed video ready.`;
-            else if (data.upscaledVideo) summary = `Upscaled video ready.`;
+            else if (data.upscaledVideo || data.sped || data.shorts) summary = `Video processed.`;
             else if (data.correctedVideo) summary = `Color-corrected video ready.`;
             else if (data.stabilizedVideo) summary = `Stabilized video ready.`;
             else if (data.timeline) summary = `Compiled timeline from collection.`;
             else if (data.meme) summary = `Meme concept: ${data.meme.caption || data.meme.topText || 'created'}`;
             else if (data.title) summary = `Title: ${data.title}`;
-            else if (data.shorts) summary = `Created ${data.shorts.length} short(s).`;
-            else if (data.broll) summary = `Found ${data.broll.length} B-roll clip(s).`;
+            else if (Array.isArray(data.shorts)) summary = `Created ${data.shorts.length} short(s).`;
+            else if (Array.isArray(data.broll)) summary = `Found ${data.broll.length} B-roll clip(s).`;
+            else if (data.reversed) summary = `Video reversed.`;
             else summary = `${agent.name} complete.`;
 
             addMessage(summary, { isAction: true });
@@ -958,7 +1022,7 @@ export function DirectorPage() {
             clearInterval(stepTimer);
             console.error('[Director]', err);
             const msg = err?.message || String(err);
-            if (msg.includes('API key not configured') || msg.includes('key')) {
+            if (msg.includes('API key not configured') || /api[_\s-]?key|VIDEO_DB_API_KEY|OPENAI_API_KEY/i.test(msg)) {
                 addMessage(`Missing API key. Add your VideoDB + OpenAI keys in Settings to use ${agent.name}.`, { isError: true });
             } else if (msg.includes('cancelled') || msg.includes('aborted')) {
                 addMessage('Cancelled.', { isError: true });
@@ -971,6 +1035,13 @@ export function DirectorPage() {
             cancelBtn.classList.add('hidden');
             activeAgents.delete(agentId);
             updateActiveAgents();
+            // Re-enable UI
+            allBtns.forEach((b) => {
+                b.disabled = false;
+                b.classList.remove('opacity-50', 'pointer-events-none');
+            });
+            commandInput.disabled = false;
+            commandInput.focus();
             setTimeout(() => {
                 processingStatus.classList.add('hidden');
                 progressBar.style.width = '0%';
@@ -986,7 +1057,8 @@ export function DirectorPage() {
 
     // Agent buttons
     container.querySelectorAll('.agent-btn').forEach(btn => {
-        btn.onclick = () => {
+        btn.onclick = async () => {
+            if (isProcessing) return;
             const agentId = btn.dataset.agent;
             const agent = DIRECTOR_AGENTS.find(a => a.id === agentId);
             if (!agent) return;
@@ -995,13 +1067,14 @@ export function DirectorPage() {
                 showToast('No video loaded', 'warning');
                 return;
             }
-            processCommand(agent.description);
+            await processCommand(agent.description);
         };
     });
 
     // Quick action buttons
     container.querySelectorAll('.action-btn').forEach(btn => {
-        btn.onclick = () => {
+        btn.onclick = async () => {
+            if (isProcessing) return;
             const action = btn.dataset.action;
             const map = {
                 summarize: 'summarize this video',
@@ -1015,7 +1088,7 @@ export function DirectorPage() {
                 color: 'color correct',
                 stabilize: 'stabilize',
             };
-            processCommand(map[action] || action);
+            await processCommand(map[action] || action);
         };
     });
 

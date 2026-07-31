@@ -608,6 +608,9 @@ async function runToolJob(jobId, toolId, payload) {
       return runVoiceSynthesis(jobId, payload);
     case 'imagebind':
       return runAgentJob(jobId, 'visual-search', payload);
+    case 'meme':
+      // Meme generator: VideoDB scene context + OpenAI to write the meme concept.
+      return runMemeJob(jobId, payload);
     // ── New VideoDB + OpenAI Responses API agents ──
     case 'storyboarding':
     case 'highlights':
