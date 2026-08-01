@@ -605,6 +605,36 @@ class GTMContentLibrary {
       }
     };
   }
+
+  // ===== OPTION HELPERS FOR DROPDOWNS =====
+
+  getRoleOptions() {
+    return Object.entries(this.roles).map(([value, role]) => ({
+      value,
+      label: role.title
+    }));
+  }
+
+  getIndustryOptions() {
+    return Object.entries(this.industries).map(([value, industry]) => ({
+      value,
+      label: industry.name
+    }));
+  }
+
+  getMethodologyOptions() {
+    return Object.entries(this.methodologies).map(([value, methodology]) => ({
+      value,
+      label: methodology.name
+    }));
+  }
+
+  getTonalityOptions() {
+    return Object.entries(this.tonalities).map(([value, tonality]) => ({
+      value,
+      label: tonality.name
+    }));
+  }
 }
 
 // Export singleton instance

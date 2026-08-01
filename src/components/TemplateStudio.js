@@ -48,6 +48,9 @@ export function TemplateStudio(templateId) {
   let selectedModel = template.model;
   let primaryPromptField = null;
   let customThumbnailUrl = getCustomThumbnailFromCache(template.id);
+  let lastGenerationParams = null; // Store params for retry
+  let retryCount = 0;
+  const MAX_RETRIES = 2;
 
   // Create full-page wrapper
   const container = document.createElement('div');
@@ -86,6 +89,10 @@ export function TemplateStudio(templateId) {
         <button class="text-white font-semibold" data-nav="templates">Templates</button>
         <button class="hover:text-white transition" data-nav="assist">Assist</button>
         <button class="hover:text-white transition" data-nav="community">Community</button>
+      </div>
+      <div id="api-key-indicator" class="ml-auto flex items-center gap-2">
+        <span class="api-key-dot w-2 h-2 rounded-full bg-zinc-600"></span>
+        <span class="api-key-text text-[10px] uppercase tracking-wider text-zinc-500">No API key</span>
       </div>
     </div>
   `;
@@ -154,6 +161,11 @@ export function TemplateStudio(templateId) {
         wizardRow.style.display = 'none';
       }).catch((e) => {
         console.error('[TemplateStudio] wizard load failed:', e);
+        // Show user-facing feedback in the wizard CTA row
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'text-xs text-red-300 mt-2';
+        errorMsg.textContent = 'Cinematic wizard failed to load. You can still use the standard form below.';
+        wizardRow.appendChild(errorMsg);
       });
     };
   }
@@ -375,6 +387,7 @@ export function TemplateStudio(templateId) {
           });
         }).catch((err) => {
           console.error('[TemplateStudio] GTM Boost failed:', err);
+          showInlineError(leftPanel, 'GTM Boost failed to load. Please try again.');
         });
       } finally {
         gtmBtn.disabled = false;
@@ -391,12 +404,14 @@ export function TemplateStudio(templateId) {
     modelWrapper.innerHTML = `
       <div class="mb-3 flex items-center justify-between gap-3">
         <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Model</div>
+        <span id="model-loading-status" class="text-[10px] text-zinc-500">Loading...</span>
       </div>
-      <select id="templateModelSelect" class="h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50 appearance-none cursor-pointer">
+      <select id="templateModelSelect" class="h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50 appearance-none cursor-pointer" disabled>
         <option value="" class="bg-zinc-950 text-white" disabled selected>Loading models...</option>
       </select>
     `;
     const modelSelect = modelWrapper.querySelector('#templateModelSelect');
+    const modelLoadingStatus = modelWrapper.querySelector('#model-loading-status');
     modelSelect.onchange = () => { selectedModel = modelSelect.value; };
     leftPanel.appendChild(modelWrapper);
 
@@ -405,13 +420,23 @@ export function TemplateStudio(templateId) {
     else if (template.modelType === 'i2i') fallbackList = i2iModels;
     else if (template.modelType === 't2i') fallbackList = t2iModels;
 
-    getEnrichedModels(template.modelType)
+    // Timeout wrapper for model catalog fetch
+    const withTimeout = (promise, ms = 5000) => {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Model catalog load timed out')), ms))
+      ]);
+    };
+
+    withTimeout(getEnrichedModels(template.modelType))
       .then(enriched => {
         const models = enriched && enriched.length > 0 ? enriched : fallbackList;
         modelSelect.innerHTML = models.map(m => {
           const desc = m.description ? ` — ${m.description.slice(0, 80)}${m.description.length > 80 ? '...' : ''}` : '';
           return `<option value="${m.id}" class="bg-zinc-950 text-white">${m.name}${desc} (${m.id})</option>`;
         }).join('');
+        modelSelect.disabled = false;
+        if (modelLoadingStatus) modelLoadingStatus.textContent = enriched && enriched.length > 0 ? '' : 'Using fallback models';
         if (models.find(m => m.id === template.model)) {
           modelSelect.value = template.model;
         }
@@ -421,6 +446,8 @@ export function TemplateStudio(templateId) {
         modelSelect.innerHTML = fallbackList.map(m => {
           return `<option value="${m.id}" class="bg-zinc-950 text-white">${m.name} (${m.id})</option>`;
         }).join('');
+        modelSelect.disabled = false;
+        if (modelLoadingStatus) modelLoadingStatus.textContent = 'Using fallback models';
         if (fallbackList.find(m => m.id === template.model)) {
           modelSelect.value = template.model;
         }
@@ -724,33 +751,49 @@ export function TemplateStudio(templateId) {
       };
     }
 
-    // GTM Boost button
+    // GTM Boost button (bottom) — unified to use openGTMPromptModal
     if (gtmBoostBtn) {
-      gtmBoostBtn.onclick = () => {
+      gtmBoostBtn.onclick = async () => {
         try {
-          import('./modals/GTMPromptModal.jsx').then(({ GTMPromptModal }) => {
-            const modal = new GTMPromptModal({
-              appTheme: 'template-studio',
+          const ctx = (await import('../lib/uiIntegration.js').then(m => m.getTemplateContext(template)).catch(() => null)) || {};
+          const basePrompt = (document.getElementById('outputTextarea')?.value) || template.description || '';
+          const templateContext = {
+            ...ctx,
+            basePrompt,
+            templateId: template.id,
+            category: template.category,
+            niche: template.niche,
+            outputType: template.outputType,
+          };
+          import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+            openGTMPromptModal('template-studio', {
+              templateContext,
               onPromptGenerated: (text) => {
                 lastBuiltPrompt = text;
                 outputTabValues['Enhanced Prompt'] = text;
                 const ta = document.getElementById('outputTextarea');
-                if (ta) ta.value = text;
+                if (ta) {
+                  ta.value = text;
+                  ta.dispatchEvent(new Event('input', { bubbles: true }));
+                  ta.dispatchEvent(new Event('change', { bubbles: true }));
+                }
                 if (primaryPromptField) {
                   primaryPromptField.value = text;
+                  primaryPromptField.dispatchEvent(new Event('input', { bubbles: true }));
+                  primaryPromptField.dispatchEvent(new Event('change', { bubbles: true }));
                 }
                 if (promptFieldName) {
                   formState[promptFieldName] = text;
                 }
               }
             });
-            modal.basePrompt = (document.getElementById('outputTextarea')?.value) || '';
-            modal.open();
           }).catch((e) => {
             console.warn('[TemplateStudio] GTM Boost modal load failed:', e);
+            showInlineError(container, 'Failed to load GTM Boost. Please try again.');
           });
         } catch (e) {
           console.warn('[TemplateStudio] GTM Boost failed:', e);
+          showInlineError(container, 'GTM Boost failed. Please try again.');
         }
       };
     }
@@ -759,10 +802,13 @@ export function TemplateStudio(templateId) {
     document.querySelectorAll('.enhancer-btn').forEach(btn => {
       btn.onclick = () => {
         const fieldName = btn.dataset.field;
-        const input = document.querySelector(`[data-advanced-field="${fieldName}"]`);
+        if (!fieldName) return;
+        // Primary prompt field uses name="prompt", not data-advanced-field
+        const input = document.querySelector(`[data-advanced-field="${fieldName}"], [name="${fieldName}"]`);
         if (input && input.value) {
           const enhancedValue = `${input.value}, cinematic style, professional quality, premium aesthetic`;
           input.value = enhancedValue;
+          formState[fieldName] = enhancedValue;
           btn.classList.add('border-emerald-400/40', 'bg-emerald-500/15', 'text-emerald-200');
           btn.textContent = 'Enhanced ✓';
           setTimeout(() => {
@@ -772,6 +818,9 @@ export function TemplateStudio(templateId) {
         }
       };
     });
+
+    // Update API key indicator on load
+    updateApiKeyIndicator();
   }, 100);
 
   function showInlineError(container, message) {
@@ -786,6 +835,21 @@ export function TemplateStudio(templateId) {
     errEl.__dismissTimer = setTimeout(() => { if (errEl && errEl.parentNode) errEl.remove(); }, 5000);
   }
 
+  function updateApiKeyIndicator() {
+    const indicator = document.querySelector('#api-key-indicator');
+    if (!indicator) return;
+    const dot = indicator.querySelector('.api-key-dot');
+    const text = indicator.querySelector('.api-key-text');
+    const hasKey = !!apiKeyManager.getMuapiKey();
+    if (dot) {
+      dot.className = `api-key-dot w-2 h-2 rounded-full ${hasKey ? 'bg-emerald-400' : 'bg-zinc-600'}`;
+    }
+    if (text) {
+      text.textContent = hasKey ? 'API key set' : 'No API key';
+      text.className = `api-key-text text-[10px] uppercase tracking-wider ${hasKey ? 'text-emerald-200' : 'text-zinc-500'}`;
+    }
+  }
+
   // Generate button handler
   genBtn.onclick = async () => {
     if (isGenerating) return;
@@ -794,70 +858,79 @@ export function TemplateStudio(templateId) {
     // TODO: Replace with server-side session storage or httpOnly cookies
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) {
-      AuthModal(() => genBtn.click());
+      AuthModal(() => {
+        genBtn.click();
+        updateApiKeyIndicator();
+      });
       return;
     }
+
+    // Validate that there's some prompt content to work with
+    const userPrompt = lastBuiltPrompt || (primaryPromptField?.value || '').trim();
+    if (!userPrompt && !template.basePrompt) {
+      showInlineError(container, 'Please enter a prompt or description before generating.');
+      return;
+    }
+
+    // Build params for potential retry
+    const params = { model: selectedModel || template.model, ...(template.defaultParams || {}) };
+    
+    // Normalize aspect ratio for standard and matrix templates
+    const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
+    if (aspectRatio) params.aspect_ratio = aspectRatio;
+
+    // Normalize duration from template or defaultParams
+    const duration = template.duration
+      ? (typeof template.duration === 'object' ? template.duration.default : template.duration)
+      : template.defaultParams?.duration;
+    if (duration) params.duration = duration;
+
+    allInputs.forEach(input => {
+      if (formState[input.name]) {
+        params[input.name] = formState[input.name];
+      }
+    });
+
+    // Build prompt from all available template metadata and advanced options
+    const promptForBuild = lastBuiltPrompt || params.prompt || '';
+    params.prompt = buildEnrichedPrompt(template, specs, formState, promptForBuild);
+    lastBuiltPrompt = params.prompt;
+
+    const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
+    const negativePrompt = formState['_customNegativePrompt'] || composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
+    if (negativePrompt) params.negative_prompt = negativePrompt;
+
+    // Attach the user-generated custom thumbnail if one exists
+    if (customThumbnailUrl) {
+      params.thumbnail_url = customThumbnailUrl;
+    }
+
+    // Client-side validation before muapi call
+    const EFFECT_MODELS = ['ai-video-effects', 'motion-controls', 'video-effects', 'vfx'];
+    const needsImageUrl = template.modelType === 'i2v' || template.modelType === 'i2i';
+    if (needsImageUrl && !params.image_url) {
+      showInlineError(container, 'Please upload an image before generating.');
+      return;
+    }
+    if (EFFECT_MODELS.includes(params.model) && !params.name) {
+      showInlineError(container, 'Please enter a name before generating.');
+      return;
+    }
+
+    // Store params for retry and run generation
+    lastGenerationParams = params;
+    retryCount = 0;
+    await runGeneration(params);
+  };
+
+  async function runGeneration(params) {
+    if (isGenerating) return;
 
     isGenerating = true;
     genBtn.disabled = true;
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
-      const params = { model: selectedModel || template.model, ...(template.defaultParams || {}) };
-
-      // Cinematic wizard: merge result into formState if present
-      const wizardResult = container.__wizardResult;
-      if (wizardResult) {
-        Object.assign(formState, wizardResult.formState || wizardResult);
-        if (wizardResult.prompt) {
-          lastBuiltPrompt = wizardResult.prompt;
-          outputTabValues['Enhanced Prompt'] = wizardResult.prompt;
-        }
-        container.__wizardResult = null;
-      }
-
-      // Normalize aspect ratio for standard and matrix templates
-      const aspectRatio = template.aspectRatio || (template.aspectRatios ? template.aspectRatios[0] : null);
-      if (aspectRatio) params.aspect_ratio = aspectRatio;
-
-      // Normalize duration from template or defaultParams
-      const duration = template.duration
-        ? (typeof template.duration === 'object' ? template.duration.default : template.duration)
-        : template.defaultParams?.duration;
-      if (duration) params.duration = duration;
-
-      allInputs.forEach(input => {
-        if (formState[input.name]) {
-          params[input.name] = formState[input.name];
-        }
-      });
-
-      // Build prompt from all available template metadata and advanced options
-      const userPrompt = lastBuiltPrompt || params.prompt || '';
-      params.prompt = buildEnrichedPrompt(template, specs, formState, userPrompt);
-      lastBuiltPrompt = params.prompt;
-
-      const negNiche = (formState.niche && formState.niche !== 'auto-detect') ? formState.niche : (template.niche || '');
-      const negativePrompt = formState['_customNegativePrompt'] || composeNegativePrompt(template.filmFamily || '', negNiche, formState.visualStyle || 'commercial') || specs.negativePrompt || '';
-      if (negativePrompt) params.negative_prompt = negativePrompt;
-
-      // Attach the user-generated custom thumbnail if one exists
-      if (customThumbnailUrl) {
-        params.thumbnail_url = customThumbnailUrl;
-      }
-
-      // Client-side validation before muapi call
-      const EFFECT_MODELS = ['ai-video-effects', 'motion-controls', 'video-effects', 'vfx'];
-      const needsImageUrl = template.modelType === 'i2v' || template.modelType === 'i2i';
-      if (needsImageUrl && !params.image_url) {
-        showInlineError(container, 'Please upload an image before generating.');
-        throw new Error('Missing required field: image_url');
-      }
-      if (EFFECT_MODELS.includes(params.model) && !params.name) {
-        showInlineError(container, 'Please enter a name before generating.');
-        throw new Error('Missing required field: name');
-      }
-
       let result;
       if (template.modelType === 'i2v') {
         result = await muapi.generateI2V(params);
@@ -870,12 +943,26 @@ export function TemplateStudio(templateId) {
       if (result && result.url) {
         showResult(result.url);
         saveToHistory(result.url, params.prompt || template.name);
+        retryCount = 0; // Reset on success
+        updateApiKeyIndicator();
       } else {
         throw new Error('No output URL returned');
       }
     } catch (err) {
       console.error('[TemplateStudio]', err);
-      genBtn.textContent = `Error: ${err.message.slice(0, 40)}`;
+      const message = err.message || 'Generation failed';
+      const userMessage = message.length > 80 ? 'Generation failed. Please try again.' : message;
+      const retryHtml = retryCount < MAX_RETRIES ? ' <button id="retry-btn" class="ml-2 underline text-emerald-200 hover:text-white">Retry</button>' : '';
+      showInlineError(container, `${userMessage}${retryHtml}`);
+      const retryBtn = container.querySelector('#retry-btn');
+      if (retryBtn && lastGenerationParams) {
+        retryBtn.onclick = () => {
+          retryCount++;
+          const errEl = container.querySelector('.ts-inline-error');
+          if (errEl) errEl.remove();
+          runGeneration(lastGenerationParams);
+        };
+      }
       setTimeout(() => {
         genBtn.textContent = 'Generate';
         genBtn.disabled = false;
