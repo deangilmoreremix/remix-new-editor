@@ -350,7 +350,7 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
   }
 
   _renderStepIndicator() {
-    const steps = ['Brief', 'Brand/Platform', 'Generate', 'Refine', 'Saved'];
+    const steps = ['Brief', 'Brand/Platform', 'Generate', 'Refine', 'Text Overlay', 'Saved'];
     const currentIndex = steps.indexOf(this.step);
 
     const indicator = document.createElement('div');
@@ -1460,13 +1460,32 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
   }
 
   async _goSave() {
+    this.clearError();
+    const selected = this.candidates[this.selectedIndex];
+    if (!selected) {
+      this.setError('Select a candidate first');
+      this._refreshPanel();
+      return;
+    }
+
+    this.setLoading('Saving thumbnail…');
     try {
-      if (this.isVideoThumb && this.videoFrames.length > 0) {
-        await this._saveVideoThumbnail();
-      } else {
-        await super.goSave();
-      }
-    } finally {
+      const result = await this.thumbnailService.saveToStorage({
+        imageB64: selected.b64_json,
+        promptUsed: selected.revised_prompt || this.brief,
+        presetKey: this.presetKey,
+        controls: { ...this.controls },
+      });
+      this.savedImageUrl = result?.imageUrl || '';
+      this.savedPromptUsed = selected.revised_prompt || this.brief;
+      this.completedAt = result?.job?.completedAt || new Date().toISOString();
+      this.step = 'saved';
+      this.isGenerating = false;
+      this._refreshPanel();
+      this.enableApplyButton();
+    } catch (err) {
+      this.isGenerating = false;
+      this.setError(err instanceof Error ? err.message : 'Save failed');
       this._refreshPanel();
     }
   }

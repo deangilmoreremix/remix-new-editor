@@ -425,19 +425,19 @@
   font-size: 13px;
   font-weight: 600;
   font-family: var(--font-family);
-  color: #04111a;
+  color: #ffffff;
   background: linear-gradient(135deg, var(--app-primary), var(--app-accent));
   border: 1px solid var(--border-light);
   border-radius: var(--border-radius-lg);
   cursor: pointer;
   white-space: nowrap;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 }
 
 .gtm-boost-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
   opacity: 0.95;
 }
 
@@ -455,13 +455,14 @@
    so the button background automatically picks those up.
    These are fallbacks / explicit overrides for studios
    that don't set the variables. */
+.template-studio .gtm-boost-btn,
 .image-studio .gtm-boost-btn,
 [data-app="image"] .gtm-boost-btn {
-  --app-primary: #f59e0b;
-  --app-accent: #fbbf24;
-  background: linear-gradient(135deg, #f59e0b, #fbbf24);
-  color: #1a0f00;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+  --app-primary: #10b981;
+  --app-accent: #34d399;
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
 }
 
 .video-studio .gtm-boost-btn,
