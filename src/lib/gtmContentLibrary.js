@@ -4,6 +4,8 @@
  * Provides role-based playbooks, industry frameworks, and sales methodologies
  */
 
+import { getRelevantGtmSkills, gtmSkillsPromptForContext, gtmSkillsCategories } from './gtmSkillsData.js';
+
 class GTMContentLibrary {
   constructor() {
     this.roles = this.initializeRoles();
@@ -78,7 +80,7 @@ class GTMContentLibrary {
 
     const focusElements = focus.map(area => this.getFocusElement(area)).filter(Boolean);
 
-    return this.buildOptimizedPrompt({
+    const prompt = this.buildOptimizedPrompt({
       basePrompt,
       roleContent,
       industryContent,
@@ -86,6 +88,68 @@ class GTMContentLibrary {
       tonalityContent,
       focusElements
     });
+
+    // Enrich the offline fallback with real, retrieved GTM skill prompts so the
+    // local library produces grounded, example-driven guidance rather than only
+    // the generic framework scaffolding above.
+    return this.appendSkillExamples(prompt, { role, industry, methodology });
+  }
+
+  /**
+   * Append the most relevant real GTM skill prompts to the generated fallback.
+   * Falls back gracefully (returns original prompt) if retrieval yields nothing.
+   */
+  appendSkillExamples(prompt, { role, industry, methodology } = {}) {
+    const examples = gtmSkillsPromptForContext({ role, industry, methodology, limit: 4 });
+    if (!examples) return prompt;
+    return [
+      prompt,
+      '',
+      '════════════════════════════════════════',
+      'REAL GTM SKILL EXAMPLES (retrieved from gtm-skills library):',
+      '════════════════════════════════════════',
+      '',
+      examples,
+    ].join('\n');
+  }
+
+  /**
+   * Retrieve the most relevant real GTM skill prompts for the given context.
+   * Exposes the underlying retriever from gtmSkillsData for callers (e.g. the
+   * GTM Boost modal) that want to show example-driven assistance offline.
+   * @returns {Array} Array of { id, title, category, prompt, ... } prompt objects
+   */
+  getGtmSkillsExamples({ role, industry, methodology, limit = 6 } = {}) {
+    return getRelevantGtmSkills({ role, industry, methodology, limit });
+  }
+
+  /**
+   * Expose category metadata (roles, industries, methodologies, workflows)
+   * sourced from the real gtm-skills library.
+   */
+  getGtmSkillsCategories() {
+    return gtmSkillsCategories;
+  }
+
+  /**
+   * Ordered dropdown data for the GTM Boost modal. Each entry is
+   * { value, label }. Order is preserved from the underlying maps so the
+   * UI stays in sync with the library's canonical content.
+   */
+  getRoleOptions() {
+    return Object.entries(this.roles).map(([value, role]) => ({ value, label: role.title }));
+  }
+
+  getIndustryOptions() {
+    return Object.entries(this.industries).map(([value, i]) => ({ value, label: i.name }));
+  }
+
+  getMethodologyOptions() {
+    return Object.entries(this.methodologies).map(([value, m]) => ({ value, label: m.name }));
+  }
+
+  getTonalityOptions() {
+    return Object.entries(this.tonalities).map(([value, t]) => ({ value, label: t.name }));
   }
 
   /**
@@ -395,6 +459,270 @@ class GTMContentLibrary {
           'Strategic guidance and expertise',
           'Long-term partnership development'
         ]
+      },
+
+      // ===== EXPANDED INDUSTRIES (image/video creation context) =====
+      'ecommerce': {
+        name: 'E-commerce',
+        description: 'Online retail and DTC brands selling through visual storefronts',
+        considerations: [
+          'Scroll-stopping product imagery and UGC',
+          'Conversion-focused short-form video',
+          'Seasonal campaign pacing and merchandising',
+          'Retention via lifecycle creative'
+        ],
+        painPoints: [
+          'Low ad creative ROI and fatigue',
+          'Cart abandonment and weak retargeting',
+          'Standing out in crowded feeds'
+        ],
+        valueDrivers: [
+          'Higher ROAS from sharper creative',
+          'Faster creative testing cycles',
+          'Stronger brand recall at thumb-stop'
+        ]
+      },
+
+      'real-estate': {
+        name: 'Real Estate',
+        description: 'Residential, commercial, and proptech selling via property visuals',
+        considerations: [
+          'Virtual tours and cinematic property walkthroughs',
+          'Neighborhood and lifestyle b-roll',
+          'Agent personal-brand video',
+          'Listing differentiation'
+        ],
+        painPoints: [
+          'Generic listings that don\'t convert',
+          'Slow time-to-lead on new inventory',
+          'Weak agent differentiation'
+        ],
+        valueDrivers: [
+          'More qualified showings per listing',
+          'Faster inventory movement',
+          'Stronger agent authority'
+        ]
+      },
+
+      'education': {
+        name: 'Education',
+        description: 'EdTech, universities, and training orgs selling learning outcomes',
+        considerations: [
+          'Student-journey explainer video',
+          'Outcome and credential proof',
+          'Parent/decision-maker reassurance creative',
+          'Course launch campaigns'
+        ],
+        painPoints: [
+          'Low enrollment from flat creative',
+          'Complex value to communicate',
+          'Long consideration cycles'
+        ],
+        valueDrivers: [
+          'Higher inquiry and enrollment rates',
+          'Clearer outcome messaging',
+          'Trust-building for guardians'
+        ]
+      },
+
+      'logistics': {
+        name: 'Logistics & Supply Chain',
+        description: 'Freight, warehousing, and supply-chain software and services',
+        considerations: [
+          'Operations-footage credibility',
+          'Efficiency and cost-savings proof video',
+          'Tracking/visibility product demos'
+        ],
+        painPoints: [
+          'Long enterprise cycles',
+          'Proving ROI of optimization',
+          'Commoditized perception'
+        ],
+        valueDrivers: [
+          'Demonstrated efficiency gains',
+          'Shorter sales cycles',
+          'Premium positioning'
+        ]
+      },
+
+      'retail': {
+        name: 'Retail & CPG',
+        description: 'Brick-and-mortar and consumer-packaged-goods brand marketing',
+        considerations: [
+          'Shelf and lifestyle product video',
+          'Promo and loyalty creative',
+          'In-store experience storytelling'
+        ],
+        painPoints: [
+          'Shelf invisibility',
+          'Promo fatigue',
+          'Thin margin on creative'
+        ],
+        valueDrivers: [
+          'Lift at shelf and online',
+          'Stronger brand love',
+          'Efficient promo creative'
+        ]
+      },
+
+      'media': {
+        name: 'Media & Entertainment',
+        description: 'Streaming, publishing, and studios selling audience attention',
+        considerations: [
+          'Trailer-style hype video',
+          'Talent and creator-led creative',
+          'Audience growth campaigns'
+        ],
+        painPoints: [
+          'Subscriber churn',
+          'Content discoverability',
+          'Ad-block and fatigue'
+        ],
+        valueDrivers: [
+          'Higher watch-through',
+          'Stronger subscriber acquisition',
+          'Viral reach'
+        ]
+      },
+
+      'legal': {
+        name: 'Legal & Compliance',
+        description: 'Law firms and legal-tech selling trust and expertise',
+        considerations: [
+          'Authority-building thought-leadership video',
+          'Case-result explainers',
+          'Compliance reassurance creative'
+        ],
+        painPoints: [
+          'Trust barriers',
+          'Commoditized SEO',
+          'Long client cycles'
+        ],
+        valueDrivers: [
+          'More qualified intakes',
+          'Clear expertise signal',
+          'Differentiated firm brand'
+        ]
+      },
+
+      'telecom': {
+        name: 'Telecom & Connectivity',
+        description: 'Connectivity, broadband, and communications providers',
+        considerations: [
+          'Coverage and speed proof video',
+          'Plan-comparison creative',
+          'Reliability and support reassurance'
+        ],
+        painPoints: [
+          'Churn and switching friction',
+          'Price-only competition',
+          'Trust in uptime claims'
+        ],
+        valueDrivers: [
+          'Lower churn',
+          'Higher plan upgrades',
+          'Credible reliability story'
+        ]
+      },
+
+      'energy': {
+        name: 'Energy & Clean Tech',
+        description: 'Renewables, utilities, and climate-tech selling transformation',
+        considerations: [
+          'Impact and ESG storytelling video',
+          'Infrastructure and scale proof',
+          'Investor and community creative'
+        ],
+        painPoints: [
+          'Long approval cycles',
+          'Complex value to communicate',
+          'Skepticism on claims'
+        ],
+        valueDrivers: [
+          'Investor and buyer confidence',
+          'Clearer impact narrative',
+          'Faster adoption'
+        ]
+      },
+
+      'nonprofit': {
+        name: 'Nonprofit & Mission-Driven',
+        description: 'Charities and mission orgs driving donations and awareness',
+        considerations: [
+          'Emotional beneficiary-story video',
+          'Donor-journey explainers',
+          'Campaign and event creative'
+        ],
+        painPoints: [
+          'Donor fatigue',
+          'Limited creative budget',
+          'Hard-to-show impact'
+        ],
+        valueDrivers: [
+          'Higher donation conversion',
+          'Stronger recall',
+          'Volunteer recruitment'
+        ]
+      },
+
+      'government': {
+        name: 'Government & Public Sector',
+        description: 'Public agencies and govtech selling programs and services',
+        considerations: [
+          'Civic-trust explainer video',
+          'Program awareness campaigns',
+          'Accessibility-first creative'
+        ],
+        painPoints: [
+          'Low program awareness',
+          'Trust and credibility gaps',
+          'Procurement complexity'
+        ],
+        valueDrivers: [
+          'Higher program uptake',
+          'Public trust',
+          'Clearer service messaging'
+        ]
+      },
+
+      'insurance': {
+        name: 'Insurance',
+        description: 'Carriers, brokers, and insurtech selling protection and peace of mind',
+        considerations: [
+          'Trust and reassurance video',
+          'Policy and coverage explainers',
+          'Claims-experience storytelling'
+        ],
+        painPoints: [
+          'Low trust in the category',
+          'Complex products to explain',
+          'Price-led comparison'
+        ],
+        valueDrivers: [
+          'Higher quote conversion',
+          'Clearer coverage understanding',
+          'Stronger brand trust'
+        ]
+      },
+
+      'automotive': {
+        name: 'Automotive & Mobility',
+        description: 'Dealers, OEMs, and mobility tech selling vehicles and experiences',
+        considerations: [
+          'Cinematic vehicle showcase video',
+          'Test-drive and lifestyle b-roll',
+          'Feature and safety explainers'
+        ],
+        painPoints: [
+          'Showroom footfall decline',
+          'Long consideration cycles',
+          'Commoditized listings'
+        ],
+        valueDrivers: [
+          'More qualified leads',
+          'Stronger test-drive bookings',
+          'Premium brand perception'
+        ]
       }
     };
   }
@@ -492,70 +820,257 @@ class GTMContentLibrary {
   // ===== TONALITY DEFINITIONS =====
 
   initializeTonalities() {
+    // 24 writing tonalities, reframed for GTM teams producing IMAGE + VIDEO
+    // creative that sells to other GTM (sales/marketing/revops) buyers. Each
+    // entry guides both the on-screen copy and the visual/shot direction.
     return {
+      professional: {
+        name: 'Professional',
+        description: 'Clean, credible, polished tone for B2B image and video creative',
+        guidelines: 'Use clear, confident language; steady pacing; neutral, well-lit framing; minimal but premium styling',
+        examples: [
+          'A clean product walkthrough with confident, measured voiceover',
+          'Polished title cards with corporate-safe color grading'
+        ]
+      },
+
       executive: {
         name: 'Executive Gravitas',
-        description: 'Formal, authoritative language with strategic insights',
-        guidelines: 'Use sophisticated vocabulary, focus on strategic implications, emphasize vision and leadership',
+        description: 'Formal, authoritative tone with strategic insights for boardroom-level video',
+        guidelines: 'Sophisticated vocabulary, emphasis on vision/leadership, slow deliberate cuts, cinematic establishing shots',
         examples: [
           'Strategic transformation through innovative solutions',
-          'Executive-level decision making and business impact',
-          'Visionary leadership and market positioning'
+          'Executive-level decision making captured in a slow aerial reveal'
         ]
       },
 
       challenger: {
         name: 'Challenger Bold',
-        description: 'Confident, assertive messaging that challenges assumptions',
-        guidelines: 'Be provocative and insight-driven, challenge conventional thinking, provide unique perspectives',
+        description: 'Confident, assertive tone that challenges assumptions in punchy video hooks',
+        guidelines: 'Provocative insight-driven copy, hard cuts, high-contrast visuals, bold typography on screen',
         examples: [
           'The conventional approach is failing - here\'s why',
-          'Industry assumptions that are holding you back',
-          'Bold insights that drive competitive advantage'
+          'Fast hard-cut hook with bold text overlay and tense music'
         ]
       },
 
       conversational: {
         name: 'Conversational Peer',
-        description: 'Friendly, relatable tone like speaking to a trusted colleague',
-        guidelines: 'Use "we" and "you", include relatable examples, build rapport through shared understanding',
+        description: 'Friendly, relatable tone like talking to a trusted colleague on camera',
+        guidelines: 'Use "we"/"you", casual framing (selfie/desk setup), natural lighting, relaxed pacing',
         examples: [
           'We\'ve all faced this challenge before',
-          'Here\'s what worked for companies like yours',
-          'Let\'s explore this together as partners'
+          'Talking-head selfie style with soft natural light'
         ]
       },
 
       technical: {
         name: 'Technical Expert',
-        description: 'Demonstrate deep technical knowledge and expertise',
-        guidelines: 'Use industry terminology, focus on specifications and capabilities, show technical credibility',
+        description: 'Deep technical credibility for demo-heavy product videos and explainer images',
+        guidelines: 'Industry terminology, screen-recorded UI demos, diagram overlays, precise labelling',
         examples: [
           'Leveraging advanced algorithms for optimization',
-          'Enterprise-grade security with end-to-end encryption',
-          'Scalable architecture supporting millions of transactions'
+          'Annotated screen-recording with callout diagrams'
         ]
       },
 
       inspirational: {
         name: 'Inspirational Vision',
-        description: 'Paint compelling vision of future possibilities',
-        guidelines: 'Use aspirational language, focus on transformation, create emotional connection to goals',
+        description: 'Aspirational tone painting a future vision for brand/manifesto video',
+        guidelines: 'Aspirational copy, sweeping b-roll, upward camera moves, warm uplifting color grade',
         examples: [
           'Imagine a future where challenges become opportunities',
-          'Transforming how your industry operates tomorrow',
-          'Unlocking breakthrough results that redefine success'
+          'Cinematic montage with rising score and golden-hour grade'
         ]
       },
 
       urgent: {
         name: 'Urgent Action',
-        description: 'Create sense of urgency and time-sensitive opportunities',
-        guidelines: 'Use action-oriented language, emphasize immediate benefits, highlight risk of inaction',
+        description: 'Time-sensitive, high-energy tone for limited-offer promo video',
+        guidelines: 'Action verbs, countdown graphics, fast pacing, urgent sound design, red/amber accents',
         examples: [
           'The window for competitive advantage is closing',
-          'Don\'t let this opportunity pass you by',
-          'Act now to secure your market position'
+          'Countdown timer overlay with driving percussion'
+        ]
+      },
+
+      casual: {
+        name: 'Casual Peer-to-Peer',
+        description: 'Light, informal tone for social-first Reels/TikToks aimed at GTM peers',
+        guidelines: 'Slang-light, punchy one-liners, vertical 9:16 framing, trending audio, quick cuts',
+        examples: [
+          'No cap - this changed how our SDRs book meetings',
+          'Vertical selfie clip with trending sound and text stickers'
+        ]
+      },
+
+      witty: {
+        name: 'Witty & Clever',
+        description: 'Humorous, clever copy for scroll-stopping social video and meme images',
+        guidelines: 'Wordplay and light joke setups, comedic timing in edits, playful graphics',
+        examples: [
+          'Our CRM is so organized, even your inbox chills out',
+          'Quick cut to a laughing rep with comedic sting'
+        ]
+      },
+
+      empathetic: {
+        name: 'Empathetic & Human',
+        description: 'Warm, understanding tone for customer-story and retention video',
+        guidelines: 'Validation-first copy, real customer faces, soft focus, gentle pacing, calm score',
+        examples: [
+          'We hear you - churn is hard, here\'s how teams win it back',
+          'Sincere customer interview with shallow depth of field'
+        ]
+      },
+
+      'data-driven': {
+        name: 'Data-Driven',
+        description: 'Number-led, proof-oriented tone for ROI/results video and stat graphics',
+        guidelines: 'Lead with metrics, animated bar/line charts, clean infographic styling, confident narration',
+        examples: [
+          'Teams using this saw 3x pipeline in 90 days',
+          'Animated stat callouts over a clean product shot'
+        ]
+      },
+
+      storytelling: {
+        name: 'Narrative Storytelling',
+        description: 'Three-act story structure for case-study and founding-story video',
+        guidelines: 'Setup-conflict-resolution arc, character-led b-roll, emotional music swell',
+        examples: [
+          'From a cramped garage to a 200-person revenue engine',
+          'Character journey cut with rising narrative score'
+        ]
+      },
+
+      authoritative: {
+        name: 'Authoritative Expert',
+        description: 'Commanding, credentialed tone for thought-leadership video',
+        guidelines: 'Cite frameworks and proof, steady eye-contact framing, library/office settings, serious grade',
+        examples: [
+          'Three decades of enterprise selling prove this pattern',
+          'Direct-to-camera expert with bookshelf backdrop'
+        ]
+      },
+
+      minimalist: {
+        name: 'Minimalist',
+        description: 'Restrained, single-message tone for clean product hero images and videos',
+        guidelines: 'One idea per frame, lots of negative space, muted palette, slow deliberate motion',
+        examples: [
+          'One feature. One clear win.',
+          'Centered product on white with slow push-in'
+        ]
+      },
+
+      luxury: {
+        name: 'Luxury & Premium',
+        description: 'High-end, exclusive tone for enterprise/ABM video and hero imagery',
+        guidelines: 'Rich textures, slow motion, gold/black palette, elegant typography, no hard-sell',
+        examples: [
+          'Crafted for the teams that set the standard',
+          'Macro slow-motion of premium material details'
+        ]
+      },
+
+      playful: {
+        name: 'Playful & Fun',
+        description: 'Bright, energetic tone for culture and top-of-funnel social video',
+        guidelines: 'Bright palette, bouncy edits, emoji-style graphics, upbeat quirky music',
+        examples: [
+          'Selling doesn\'t have to be boring - promise.',
+          'Bouncy cut with confetti transitions'
+        ]
+      },
+
+      bold: {
+        name: 'Bold & Disruptive',
+        description: 'Loud, category-breaking tone for brand-launch video',
+        guidelines: 'Oversized type, saturated color, fast aggressive cuts, statement voiceover',
+        examples: [
+          'We\'re not another tool. We\'re the reset.',
+          'Saturated flash cuts with heavy bass drop'
+        ]
+      },
+
+      educational: {
+        name: 'Educational',
+        description: 'Clear teaching tone for how-to and explainer video/image carousels',
+        guidelines: 'Step-by-step structure, pointer/arrow overlays, calm narration, clean whiteboard style',
+        examples: [
+          'Step 1: Map the buying committee. Step 2: ...',
+          'Screen-recorded tutorial with pointer annotations'
+        ]
+      },
+
+      trustworthy: {
+        name: 'Trustworthy & Reassuring',
+        description: 'Calm, dependable tone for security/compliance and onboarding video',
+        guidelines: 'Plain language, steady pacing, soft blue/green palette, real-environment shots',
+        examples: [
+          'Your data stays yours - here\'s exactly how',
+          'Calm explainer with reassuring ambient score'
+        ]
+      },
+
+      energetic: {
+        name: 'Energetic & Upbeat',
+        description: 'High-tempo, motivating tone for event/launch hype video',
+        guidelines: 'Fast cuts, rising tempo, bright colors, crowd/confetti energy, driving beat',
+        examples: [
+          'This is the year your pipeline explodes',
+          'Rapid montage with rising EDM build'
+        ]
+      },
+
+      sophisticated: {
+        name: 'Sophisticated & Refined',
+        description: 'Understated elegance for premium B2B brand films',
+        guidelines: 'Subtle motion, refined palette, elegant serif type, restrained music',
+        examples: [
+          'Quietly powerful tools for ambitious teams',
+          'Slow elegant dolly with refined color grade'
+        ]
+      },
+
+      direct: {
+        name: 'Direct & No-Fluff',
+        description: 'Blunt, benefit-first tone for bottom-funnel conversion video',
+        guidelines: 'Front-load the offer, plain words, punch-in cuts, clear CTA card',
+        examples: [
+          'Book more demos. Here\'s the exact play.',
+          'Punch-in to CTA card with arrow pointer'
+        ]
+      },
+
+      friendly: {
+        name: 'Friendly & Welcoming',
+        description: 'Warm invite tone for webinar and community onboarding video',
+        guidelines: 'Inviting copy, open body language, bright airy set, gentle uplifting music',
+        examples: [
+          'Pull up a chair - let\'s build your funnel together',
+          'Welcoming host at a bright desk setup'
+        ]
+      },
+
+      dramatic: {
+        name: 'Dramatic & Cinematic',
+        description: 'High-stakes, cinematic tone for hero/brand film',
+        guidelines: 'Low-key lighting, orchestral swell, slow-mo hero moment, deep contrast grade',
+        examples: [
+          'Every deal is a decision that changes everything',
+          'Cinematic slow-mo with orchestral climax'
+        ]
+      },
+
+      'peer-comparison': {
+        name: 'Social Proof / Peer Comparison',
+        description: 'Comparison-led tone for competitive-displacement video',
+        guidelines: 'Show "them vs you" split screens, benchmark charts, confident neutral narration',
+        examples: [
+          'Their stack vs your stack - here\'s the gap',
+          'Split-screen comparison with benchmark bars'
         ]
       }
     };
@@ -604,36 +1119,6 @@ class GTMContentLibrary {
         ]
       }
     };
-  }
-
-  // ===== OPTION HELPERS FOR DROPDOWNS =====
-
-  getRoleOptions() {
-    return Object.entries(this.roles).map(([value, role]) => ({
-      value,
-      label: role.title
-    }));
-  }
-
-  getIndustryOptions() {
-    return Object.entries(this.industries).map(([value, industry]) => ({
-      value,
-      label: industry.name
-    }));
-  }
-
-  getMethodologyOptions() {
-    return Object.entries(this.methodologies).map(([value, methodology]) => ({
-      value,
-      label: methodology.name
-    }));
-  }
-
-  getTonalityOptions() {
-    return Object.entries(this.tonalities).map(([value, tonality]) => ({
-      value,
-      label: tonality.name
-    }));
   }
 }
 
