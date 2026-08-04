@@ -29,6 +29,13 @@ const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 const AUTH_VERIFY_TIMEOUT_MS = Number(process.env.AUTH_VERIFY_TIMEOUT_MS || 5000);
 
+// Dev bypass: allows testing authenticated routes without a Supabase JWT.
+// Only active when NODE_ENV === 'development' and the request includes
+// the header `x-dev-bypass: <DEV_BYPASS_SECRET>`.
+const DEV_BYPASS_SECRET = process.env.DEV_BYPASS_SECRET || 'local-dev-only';
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const DEV_BYPASS_ENABLED = NODE_ENV === 'development';
+
 // Pick the strongest key available for the outbound call.
 const API_KEY = SUPABASE_SERVICE_KEY || SUPABASE_ANON_KEY;
 
@@ -91,6 +98,14 @@ function assignRequestId(req, res) {
 
 export async function auth(req, res, next) {
   const requestId = assignRequestId(req, res);
+
+  // Dev bypass for local testing
+  if (DEV_BYPASS_ENABLED && req.headers['x-dev-bypass'] === DEV_BYPASS_SECRET) {
+    log('info', 'auth.dev_bypass', { requestId });
+    req.user = { id: 'dev-user', email: 'dev@local' };
+    return next();
+  }
+
   const token = extractToken(req);
   if (!token) {
     log('warn', 'auth.rejected', { requestId, reason: 'missing_or_malformed_authorization_header' });
@@ -99,7 +114,6 @@ export async function auth(req, res, next) {
   const result = await verifySupabaseToken(token);
   if (!result.ok) {
     log('warn', 'auth.rejected', { requestId, reason: result.reason, status: result.status });
-    // Token was present but invalid/expired/unverifiable — still 401 to the client.
     return res.status(401).json({ error: 'Unauthorized', requestId });
   }
   req.user = result.user;

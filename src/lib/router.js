@@ -45,6 +45,7 @@ const ROUTE_MAP = {
   'Chat': 'chat',
   'Commercial': 'commercial',
   'Library': 'library',
+  'Content Library': 'content-library',
   'AI VFX': 'ai-vfx',
 };
 
@@ -62,6 +63,7 @@ const pageLoaders = {
   edit: () => import('../components/EditStudio.js').then(m => m.EditStudio()),
   upscale: () => import('../components/UpscaleStudio.js').then(m => m.UpscaleStudio()),
   library: () => import('../components/LibraryPage.js').then(m => m.LibraryPage()),
+  'content-library': () => import('../components/ContentLibraryPage.js').then(m => m.ContentLibraryPage()),
   character: () => import('../components/CharacterStudio.js').then(m => m.CharacterStudio()),
   influencer: () => import('../components/InfluencerStudio.js').then(m => m.InfluencerStudio()),
   commercial: () => import('../components/CommercialStudio.js').then(m => m.CommercialStudio()),

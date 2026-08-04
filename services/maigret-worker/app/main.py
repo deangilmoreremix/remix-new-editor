@@ -192,7 +192,8 @@ async def require_admin_key(x_api_key: Optional[str] = Header(default=None)) -> 
 
 
 class ScanRequest(BaseModel):
-    username: str = Field(..., min_length=1, max_length=100, description="Username to scan")
+    username: Optional[str] = Field(default=None, min_length=1, max_length=100, description="Username to scan (single)")
+    usernames: Optional[List[str]] = Field(default=None, description="Multiple usernames to scan")
     top: int = Field(default=500, ge=1, le=2500, description="Max sites to check")
     isParsingEnabled: bool = Field(default=True, description="Parse profile pages for extra data")
     timeoutMs: int = Field(default=15000, ge=1000, le=60000, description="Per-site HTTP timeout")
@@ -206,20 +207,35 @@ class ScanRequest(BaseModel):
     permute: bool = Field(default=False, description="Permute >=2 usernames to generate more candidates")
     checkDomains: bool = Field(default=False, description="Also check domains on the username")
 
-    @field_validator("username")
+    @field_validator("username", "usernames")
     @classmethod
-    def _validate_username(cls, v: str) -> str:
-        v = v.strip().lstrip("@")
-        if not v:
-            raise ValueError("username cannot be empty")
-        # Maigret expects alnum + common separators
-        if not all(c.isalnum() or c in "-_." for c in v):
-            raise ValueError("username must be alphanumeric with -_. allowed")
+    def _validate_usernames(cls, v):
+        if v is None:
+            return v
+        if isinstance(v, str):
+            v = v.strip().lstrip("@")
+            if not v:
+                raise ValueError("username cannot be empty")
+            if not all(c.isalnum() or c in "-_." for c in v):
+                raise ValueError("username must be alphanumeric with -_. allowed")
+        elif isinstance(v, list):
+            cleaned = []
+            for u in v:
+                u = str(u).strip().lstrip("@")
+                if not u:
+                    continue
+                if not all(c.isalnum() or c in "-_." for c in u):
+                    continue
+                cleaned.append(u)
+            if not cleaned:
+                raise ValueError("usernames list cannot be empty")
+            return cleaned
         return v
 
 
 class ScanResponse(BaseModel):
     username: str
+    usernames: Optional[List[str]] = None
     platforms: List[Dict[str, Any]]
     summary: str
     confidence: float
@@ -228,6 +244,7 @@ class ScanResponse(BaseModel):
     sitesChecked: int
     sitesFound: int
     graph: Dict[str, Any] = {}
+    warnings: List[str] = []
 
 
 # ---------------------------------------------------------------------------
@@ -265,13 +282,26 @@ async def scan(
     key_hash = _hash_key(api_key)
     _check_per_key_rate_limit(key_hash)
 
-    cache_key = _scan_cache_key(body.username, body.top, body.isParsingEnabled)
-    logger.info("scan requested username=%s key=%s", body.username, key_hash)
+    # Resolve to list of usernames
+    if body.usernames and len(body.usernames) > 0:
+        usernames = body.usernames
+    elif body.username:
+        usernames = [body.username]
+    else:
+        raise HTTPException(status_code=400, detail="username or usernames required")
+
+    if len(usernames) > 10:
+        raise HTTPException(status_code=400, detail="Maximum 10 usernames per scan")
+
+    # Use first username for caching
+    primary_username = usernames[0]
+    cache_key = _scan_cache_key(primary_username, body.top, body.isParsingEnabled)
+    logger.info("scan requested usernames=%s key=%s", usernames, key_hash)
 
     if body.useCache and cache is not None:
         cached = await cache.get(cache_key)
         if cached is not None:
-            logger.info("cache hit username=%s", body.username)
+            logger.info("cache hit username=%s", primary_username)
             cached["cached"] = True
             return cached
 
@@ -289,32 +319,67 @@ async def scan(
         check_domains=body.checkDomains,
     )
 
+    # Run scans for all usernames
+    all_platforms = []
+    all_graphs = []
+    all_warnings = []
+    total_duration = 0
+    total_sites_checked = 0
+    total_sites_found = 0
+    combined_summary = ""
+    combined_confidence = 0.0
+
     async with _scan_semaphore:
         scanner = MaigretScanner(options)
-        try:
-            result = await asyncio.wait_for(
-                scanner.scan(body.username), timeout=SCAN_TIMEOUT
-            )
-        except asyncio.TimeoutError:
-            logger.error("scan timed out after %ss username=%s", SCAN_TIMEOUT, body.username)
-            raise HTTPException(
-                status_code=504,
-                detail=f"Scan timed out after {SCAN_TIMEOUT}s",
-            )
-        except Exception as exc:  # noqa: BLE001
-            logger.exception("scan failed username=%s", body.username)
-            raise HTTPException(status_code=500, detail=f"Scan failed: {exc}")
+        for uname in usernames:
+            try:
+                result = await asyncio.wait_for(
+                    scanner.scan(uname), timeout=SCAN_TIMEOUT
+                )
+                all_platforms.extend(result.platforms)
+                all_graphs.append(result.graph)
+                all_warnings.extend(getattr(result, 'warnings', []) or [])
+                total_duration += result.duration_ms
+                total_sites_checked += result.sites_checked
+                total_sites_found += result.sites_found
+                combined_confidence = max(combined_confidence, result.confidence)
+            except asyncio.TimeoutError:
+                logger.error("scan timed out after %ss username=%s", SCAN_TIMEOUT, uname)
+                all_warnings.append(f"Scan timed out after {SCAN_TIMEOUT}s for {uname}")
+                # Continue with other usernames
+            except Exception as exc:  # noqa: BLE001
+                logger.exception("scan failed username=%s", uname)
+                all_warnings.append(f"Scan failed for {uname}: {exc}")
+                # Continue with other usernames
+
+    if total_sites_found > 0:
+        top_platforms = [p["platform"] for p in all_platforms[:5]]
+        combined_summary = f"Found {total_sites_found} profile(s) across {len(usernames)} username(s): {', '.join(top_platforms)}"
+    else:
+        combined_summary = "No profiles found"
+
+    # Combine graphs
+    combined_graph = {
+        "nodes": [],
+        "edges": []
+    }
+    for g in all_graphs:
+        if g:
+            combined_graph["nodes"].extend(g.get("nodes", []))
+            combined_graph["edges"].extend(g.get("edges", []))
 
     response = {
-        "username": result.username,
-        "platforms": result.platforms,
-        "summary": result.summary,
-        "confidence": result.confidence,
+        "username": ", ".join(usernames) if len(usernames) > 1 else primary_username,
+        "usernames": usernames,
+        "platforms": all_platforms,
+        "summary": combined_summary,
+        "confidence": combined_confidence,
         "cached": False,
-        "durationMs": result.duration_ms,
-        "sitesChecked": result.sites_checked,
-        "sitesFound": result.sites_found,
-        "graph": result.graph,
+        "durationMs": total_duration,
+        "sitesChecked": total_sites_checked,
+        "sitesFound": total_sites_found,
+        "graph": combined_graph,
+        "warnings": all_warnings[:50],  # cap warnings
     }
 
     if cache is not None:

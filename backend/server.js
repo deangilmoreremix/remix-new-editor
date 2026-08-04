@@ -15,6 +15,7 @@ import agentActionsService from './services/agentActionsService.js';
 import modelCatalogService from './services/modelCatalogService.js';
 import videoDbProxyService from './services/videoDbProxyService.js';
 import gtmBoostService from './services/gtmBoostService.js';
+import storyboardService from './services/storyboardService.js';
 import { auth } from './middleware/auth.js';
 
 const app = express();
@@ -52,6 +53,7 @@ app.use('/api/agents', agentActionsLimiter, auth, agentActionsService);
 app.use('/api/model-catalog', auth, modelCatalogService);
 app.use('/api/videodb', videodbProxyLimiter, auth, videoDbProxyService);
 app.use('/api/gtm-boost', auth, gtmBoostService);
+app.use('/api/storyboard', storyboardService);
 app.use('/videoagent', videoAgentLimiter, auth, videoAgentService);
 
 // Health check
