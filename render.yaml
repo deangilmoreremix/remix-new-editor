@@ -17,7 +17,7 @@ services:
     region: oregon
     rootDir: backend
     plan: free
-    branch: backend-real-outputs
+    branch: develop
     buildCommand: npm install
     startCommand: node server.js
     healthCheckPath: /health
@@ -40,7 +40,7 @@ services:
     region: singapore
     runtime: docker
     plan: starter
-    branch: backend-real-outputs
+    branch: develop
     dockerfilePath: apps/director/backend/Dockerfile
     dockerContext: .
     envVars:
@@ -104,7 +104,7 @@ services:
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /health
-    autoDeployTrigger: commit
+    branch: develop
     envVars:
       - key: MAIGRET_API_KEY
         generateValue: true
