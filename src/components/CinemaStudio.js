@@ -13,6 +13,7 @@ import { createUploadPicker } from './UploadPicker.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -330,6 +331,11 @@ export function CinemaStudio() {
       modal.open();
     });
     inputRow.appendChild(thumbBtn);
+
+    subscribeToGtmThumbnails(({ imageUrl }) => {
+      customThumbnailUrl = imageUrl;
+      saveCustomThumbnailToCache('cinema-studio', imageUrl);
+    });
 
     // --- Reference image upload (the "Upload your scene" step) ---
     // Real upload control that posts the still to the backend and stores the

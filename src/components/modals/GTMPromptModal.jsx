@@ -5,6 +5,7 @@ import { gtmResponses, gtmStructuredToText, GTM_MODEL_OPTIONS, resolveGtmModel }
 import { supabase, isSupabaseConfigured } from '../../lib/supabase.js';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { AuthModal } from '../AuthModal.js';
+import { saveGtmContext } from '../../lib/gtmContextStore.js';
 
 /**
  * GTMPromptModal - GTM-Powered Prompt Enhancement Modal
@@ -44,8 +45,9 @@ export class GTMPromptModal extends BaseModal {
     this.generatedPrompt = '';
     this.templateContext = options.templateContext || null;
 
-    // Responses API structured output state
-    this.generatedStructured = null;   // { hook, storybeat_1, ... }
+    // Responses API output state — always a plain text string (the Responses
+    // API returns a flat `output_text` payload, not a structured object).
+    this.generatedResult = null;
     this.streamingText = '';           // live streamed text during generation
     this.responseId = '';              // previous_response_id for refine
     this.usage = null;                 // { inputTokens, outputTokens }
@@ -220,7 +222,7 @@ export class GTMPromptModal extends BaseModal {
    */
   computeGenerationStep() {
     if (this.generationStep >= 4) return 4;
-    const p = this.generatedStructured;
+    const p = this.generatedResult;
     if (p && typeof p === 'object') {
       const has = (k) => !!p[k] && String(p[k]).trim().length > 0;
       let score = 0;
@@ -269,97 +271,21 @@ export class GTMPromptModal extends BaseModal {
   }
 
   renderGeneratedPrompt() {
-    // Local fallback returns plain text (no structured object).
-    if (!this.generatedStructured) {
-      const thumbnailBtn = this.onGenerateThumbnail
-        ? `<button type="button" class="gtm-action thumbnail-prompt-btn" data-action="generate-thumbnail">🎨 Generate Thumbnail</button>`
-        : '';
-      return `
-        <div class="generated-prompt-section">
-          <label for="gtm-generated-prompt">Generated Cinematic Prompt</label>
-          <div class="generated-prompt-container">
-            <textarea id="gtm-generated-prompt" class="generated-prompt" aria-label="Generated cinematic prompt">${this.escapeHtml(this.generatedPrompt)}</textarea>
-            <div class="generated-prompt-actions">
-              ${thumbnailBtn}
-              <button type="button" class="gtm-action copy-only-btn" data-action="copy-only">📋 Copy</button>
-              <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt">✅ Apply</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    const p = this.generatedStructured;
-    const sections = [
-      ['🎯 Hook', p.hook],
-      ['📖 Story Beat 1', p.storybeat_1],
-      ['📖 Story Beat 2', p.storybeat_2],
-      ['📖 Story Beat 3', p.storybeat_3],
-      ['🎬 Visual Direction', p.visualDirection],
-      ['🔊 Audio Direction', p.audioDirection],
-      ['🚀 CTA', p.cta],
-    ].filter(([, v]) => v);
-
-    const sectionsHtml = sections.map(([label, value]) => `
-      <div class="gtm-section">
-        <div class="gtm-section-label">${label}</div>
-        <div class="gtm-section-body">${this.escapeHtml(value)}</div>
-      </div>
-    `).join('');
-
-    const duration = p.estimatedDurationSec
-      ? `<span class="gtm-meta-pill">⏱ ~${p.estimatedDurationSec}s</span>` : '';
-
-    const usageHtml = this.usage
-      ? `<span class="gtm-meta-pill">🪙 ${this.usage.inputTokens} in / ${this.usage.outputTokens} out tokens</span>`
-      : '';
-
-    const modelLabel = (GTM_MODEL_OPTIONS.find((m) => m.id === this.selectedModel) || {}).label || this.selectedModel || '';
-    const modelHtml = modelLabel
-      ? `<span class="gtm-meta-pill">🧠 ${this.escapeHtml(modelLabel)}</span>`
-      : '';
-
-    // Variant selector
-    const variantSelector = this.variants.length > 1 ? `
-      <div class="gtm-variants">
-        <div class="gtm-section-label">Pick a variant</div>
-        <div class="gtm-variant-chips">
-          ${this.variants.map((v, i) => `
-            <button type="button" class="gtm-variant-chip ${i === this.selectedVariantIndex ? 'active' : ''}" data-action="select-variant" data-index="${i}">#${i + 1}</button>
-          `).join('')}
-        </div>
-      </div>
-    ` : '';
-
+    // The Responses API only ever returns a flat text payload, so the
+    // generated result is always a string. Render a plain editable textarea.
     const thumbnailBtn = this.onGenerateThumbnail
       ? `<button type="button" class="gtm-action thumbnail-prompt-btn" data-action="generate-thumbnail">🎨 Generate Thumbnail</button>`
       : '';
-
-    const refining = this.isRefining;
-    const refineBox = `
-      <div class="gtm-refine">
-        <div class="gtm-section-label">Refine (multi-turn)</div>
-        <div class="gtm-refine-row">
-          <input type="text" id="gtm-refine-input" class="gtm-refine-input" placeholder="e.g. make the hook bolder and shorter" value="${this.escapeHtml(this.refineInstruction)}" ${refining ? 'disabled' : ''}>
-          <button type="button" class="gtm-action refine-btn" data-action="refine" ${refining ? 'disabled' : ''}>${refining ? 'Refining…' : '✏️ Refine'}</button>
-        </div>
-      </div>
-    `;
-
-    const groundingHtml = this.skillExamples && this.skillExamples.length
-      ? `<span class="gtm-meta-pill gtm-grounding-pill">📚 ${this.skillExamples.length} real GTM examples grounded</span>`
-      : '';
-
     return `
       <div class="generated-prompt-section">
-        <div class="gtm-meta-row">${duration}${modelHtml}${usageHtml}${groundingHtml}</div>
-        ${variantSelector}
-        <div class="gtm-structured">${sectionsHtml}</div>
-        <div class="gtm-refine-wrap">${refineBox}</div>
-        <div class="generated-prompt-actions">
-          ${thumbnailBtn}
-          <button type="button" class="gtm-action copy-only-btn" data-action="copy-only">📋 Copy</button>
-          <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt">✅ Apply</button>
+        <label for="gtm-generated-prompt">Generated Cinematic Prompt</label>
+        <div class="generated-prompt-container">
+          <textarea id="gtm-generated-prompt" class="generated-prompt" aria-label="Generated cinematic prompt">${this.escapeHtml(this.generatedPrompt)}</textarea>
+          <div class="generated-prompt-actions">
+            ${thumbnailBtn}
+            <button type="button" class="gtm-action copy-only-btn" data-action="copy-only">📋 Copy</button>
+            <button type="button" class="gtm-action copy-prompt-btn" data-action="copy-prompt">✅ Apply</button>
+          </div>
         </div>
       </div>
     `;
@@ -367,9 +293,12 @@ export class GTMPromptModal extends BaseModal {
 
   /**
    * Render the retrieved real GTM skill examples as clickable cards.
-   * Returns "" when there are no examples (keeps the UI clean).
+   * Returns "" when no role/industry/methodology is selected (keeps the
+   * UI clean — the panel is meaningless against universal fallbacks) or
+   * when the example list is empty.
    */
   renderSkillExamples() {
+    if (!this.selectedRole && !this.selectedIndustry && !this.selectedMethodology) return '';
     const examples = this.skillExamples || [];
     if (examples.length === 0) return '';
 
@@ -583,14 +512,14 @@ export class GTMPromptModal extends BaseModal {
   }
 
   /**
-   * Store a generation result (structured prompt + metadata) and sync the
+   * Store a generation result (text prompt + metadata) and sync the
    * plain-text field used by copy/thumbnail bridges.
    */
   _setResult({ prompt, responseId, usage }) {
-    this.generatedStructured = prompt || null;
+    this.generatedResult = prompt || null;
     this.responseId = responseId || '';
     this.usage = usage || null;
-    this.generatedPrompt = gtmStructuredToText(this.generatedStructured) || (prompt ? JSON.stringify(prompt) : '');
+    this.generatedPrompt = gtmStructuredToText(this.generatedResult) || (prompt ? JSON.stringify(prompt) : '');
   }
 
   /**
@@ -620,7 +549,7 @@ export class GTMPromptModal extends BaseModal {
     this.isGenerating = true;
     this.generationStep = 0;
     this.streamingText = '';
-    this.generatedStructured = null;
+    this.generatedResult = null;
     this.usage = null;
     this.variants = [];
     this.selectedVariantIndex = 0;
@@ -720,7 +649,7 @@ export class GTMPromptModal extends BaseModal {
       const text = gtmContentLibrary.generateOptimizedPrompt(this._gtmParams());
       if (!text) throw new Error('Empty fallback');
       this.generatedPrompt = text;
-      this.generatedStructured = null;
+      this.generatedResult = null;
       this.isGenerating = false;
       this.refreshBody();
     } catch (fallbackError) {
@@ -853,7 +782,7 @@ export class GTMPromptModal extends BaseModal {
     const ta = this.overlay?.querySelector('#gtm-generated-prompt');
     const live = ta && ta.value ? ta.value.trim() : '';
     if (live) return live;
-    return gtmStructuredToText(this.generatedStructured) || this.generatedPrompt || '';
+    return gtmStructuredToText(this.generatedResult) || this.generatedPrompt || '';
   }
 
   /**
@@ -873,6 +802,17 @@ export class GTMPromptModal extends BaseModal {
   handleCopyPrompt() {
     const text = this._currentPromptText();
     if (!text) return;
+    // Persist the structured GTM selections before handing off, so the
+    // receiving studio can restore them after the modal closes.
+    saveGtmContext(this.appTheme, {
+      role: this.selectedRole,
+      industry: this.selectedIndustry,
+      methodology: this.selectedMethodology,
+      tonality: this.selectedTonality,
+      focus: this.focusAreas,
+      model: this.selectedModel,
+      cinematicOptions: this.cinematicOptions
+    });
     navigator.clipboard.writeText(text).then(() => {
       if (this.onPromptGenerated) this.onPromptGenerated(text);
       this.close();
@@ -902,7 +842,7 @@ export class GTMPromptModal extends BaseModal {
    * Errors are surfaced via the inline error banner; the modal stays open.
    */
   async handleGenerateThumbnail() {
-    const text = gtmStructuredToText(this.generatedStructured) || this.generatedPrompt;
+    const text = gtmStructuredToText(this.generatedResult) || this.generatedPrompt;
     if (!text || !this.onGenerateThumbnail) return;
 
     const btn = this.content?.querySelector('[data-action="generate-thumbnail"]');

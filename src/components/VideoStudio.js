@@ -12,6 +12,8 @@ import { navigate } from '../lib/router.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
+import { getGtmContext } from '../lib/gtmContextStore.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -34,6 +36,19 @@ export function VideoStudio() {
     let v2vMode = false;   // true = video-to-video tools mode
     let uploadedVideoUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('video-studio');
+
+    // Restore the last GTM context the user picked in the prompt modal,
+    // if any. The modal persists selections to localStorage on apply; we
+    // log them here so downstream features (defaults, preselects) can
+    // pick them up later. The `void` keeps the variable from being
+    // flagged as unused until something consumes it.
+    try {
+      const restoredGtmContext = getGtmContext('video-studio');
+      if (restoredGtmContext && typeof console !== 'undefined' && console.info) {
+        console.info('[VideoStudio] Restored GTM context', restoredGtmContext);
+      }
+      void restoredGtmContext;
+    } catch { /* ignore */ }
     
     // Advanced parameters state
     let negativePrompt = '';
@@ -425,6 +440,11 @@ export function VideoStudio() {
       modal.open();
     });
     controlsLeft.appendChild(thumbBtn);
+
+    subscribeToGtmThumbnails(({ imageUrl }) => {
+      customThumbnailUrl = imageUrl;
+      saveCustomThumbnailToCache('video-studio', imageUrl);
+    });
 
     const generateBtn = document.createElement('button');
     generateBtn.type = 'button';

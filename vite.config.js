@@ -473,18 +473,19 @@ function gtmBoostDevPlugin() {
                 { id: 'healthcare', name: 'Healthcare', description: 'Healthcare technology and patient care solutions' },
                 { id: 'manufacturing', name: 'Manufacturing', description: 'Manufacturing and industrial operations solutions' },
                 { id: 'professional-services', name: 'Professional Services', description: 'Consulting, advisory, and professional service firms' },
-                { id: 'retail', name: 'Retail & eCommerce', description: 'Retail and e-commerce solutions' },
-                { id: 'education', name: 'Education', description: 'Education technology and learning solutions' },
-                { id: 'real-estate', name: 'Real Estate', description: 'Real estate and property technology' },
-                { id: 'restaurant', name: 'Restaurant & Food Service', description: 'Restaurant, food service, and hospitality' },
-                { id: 'fitness-wellness', name: 'Fitness & Wellness', description: 'Gyms, studios, and wellness services' },
-                { id: 'legal-services', name: 'Legal Services', description: 'Law firms and legal technology' },
-                { id: 'automotive', name: 'Automotive', description: 'Automotive dealers and car services' },
-                { id: 'fashion', name: 'Fashion & Lifestyle', description: 'Fashion, beauty, and lifestyle brands' },
-                { id: 'events', name: 'Events & Entertainment', description: 'Events, venues, and entertainment' },
-                { id: 'luxury', name: 'Luxury & Premium', description: 'Luxury and premium brands' },
-                { id: 'travel', name: 'Travel & Hospitality', description: 'Travel, hotels, and hospitality services' },
-                { id: 'nonprofit', name: 'Nonprofit & Social Impact', description: 'Nonprofit and social impact organizations' },
+                { id: 'ecommerce', name: 'E-commerce', description: 'Online retail and DTC brands selling through visual storefronts' },
+                { id: 'real-estate', name: 'Real Estate', description: 'Residential, commercial, and proptech selling via property visuals' },
+                { id: 'education', name: 'Education', description: 'EdTech, universities, and training orgs selling learning outcomes' },
+                { id: 'logistics', name: 'Logistics & Supply Chain', description: 'Freight, warehousing, and supply-chain software and services' },
+                { id: 'retail', name: 'Retail & CPG', description: 'Brick-and-mortar and consumer-packaged-goods brand marketing' },
+                { id: 'media', name: 'Media & Entertainment', description: 'Streaming, publishing, and studios selling audience attention' },
+                { id: 'legal', name: 'Legal & Compliance', description: 'Law firms and legal-tech selling trust and expertise' },
+                { id: 'telecom', name: 'Telecom & Connectivity', description: 'Connectivity, broadband, and communications providers' },
+                { id: 'energy', name: 'Energy & Clean Tech', description: 'Renewables, utilities, and climate-tech selling transformation' },
+                { id: 'nonprofit', name: 'Nonprofit & Mission-Driven', description: 'Charities and mission orgs driving donations and awareness' },
+                { id: 'government', name: 'Government & Public Sector', description: 'Public agencies and govtech selling programs and services' },
+                { id: 'insurance', name: 'Insurance', description: 'Carriers, brokers, and insurtech selling protection and peace of mind' },
+                { id: 'automotive', name: 'Automotive & Mobility', description: 'Dealers, OEMs, and mobility tech selling vehicles and experiences' },
               ],
               methodologies: [
                 { id: 'meddpicc', name: 'MEDDPICC', fullName: 'Metrics, Economic Buyer, Decision Criteria, Decision Process, Paper Process, Identify Pain, Champion, Competition', description: 'Enterprise sales qualification framework for complex B2B sales', application: 'Apply systematically to understand and navigate enterprise buying processes' },
@@ -495,12 +496,31 @@ function gtmBoostDevPlugin() {
                 { id: 'sandler', name: 'Sandler Selling', fullName: 'Sandler Selling System', description: 'Qualification-focused sales process with pain-based selling', application: 'Qualify prospects and focus on pain points throughout sales process' },
               ],
               tonalities: [
-                { id: 'executive', name: 'Executive Gravitas', description: 'Formal, authoritative language with strategic insights', guidelines: 'Use sophisticated vocabulary, focus on strategic implications, emphasize vision and leadership' },
-                { id: 'challenger', name: 'Challenger Bold', description: 'Confident, assertive messaging that challenges assumptions', guidelines: 'Be provocative and insight-driven, challenge conventional thinking, provide unique perspectives' },
-                { id: 'conversational', name: 'Conversational Peer', description: 'Friendly, relatable tone like speaking to a trusted colleague', guidelines: 'Use "we" and "you", include relatable examples, build rapport through shared understanding' },
-                { id: 'technical', name: 'Technical Expert', description: 'Demonstrate deep technical knowledge and expertise', guidelines: 'Use industry terminology, focus on specifications and capabilities, show technical credibility' },
-                { id: 'inspirational', name: 'Inspirational Vision', description: 'Paint compelling vision of future possibilities', guidelines: 'Use aspirational language, focus on transformation, create emotional connection to goals' },
-                { id: 'urgent', name: 'Urgent Action', description: 'Create sense of urgency and time-sensitive opportunities', guidelines: 'Use action-oriented language, emphasize immediate benefits, highlight risk of inaction' },
+                { id: 'professional', name: 'Professional', description: 'Clean, credible, polished tone for B2B image and video creative', guidelines: 'Use clear, confident language; steady pacing; neutral, well-lit framing; minimal but premium styling' },
+                { id: 'executive', name: 'Executive Gravitas', description: 'Formal, authoritative tone with strategic insights for boardroom-level video', guidelines: 'Sophisticated vocabulary, emphasis on vision/leadership, slow deliberate cuts, cinematic establishing shots' },
+                { id: 'challenger', name: 'Challenger Bold', description: 'Confident, assertive tone that challenges assumptions in punchy video hooks', guidelines: 'Provocative insight-driven copy, hard cuts, high-contrast visuals, bold typography on screen' },
+                { id: 'conversational', name: 'Conversational Peer', description: 'Friendly, relatable tone like talking to a trusted colleague on camera', guidelines: 'Use "we"/"you", casual framing (selfie/desk setup), natural lighting, relaxed pacing' },
+                { id: 'technical', name: 'Technical Expert', description: 'Deep technical credibility for demo-heavy product videos and explainer images', guidelines: 'Industry terminology, screen-recorded UI demos, diagram overlays, precise labelling' },
+                { id: 'inspirational', name: 'Inspirational Vision', description: 'Aspirational tone painting a future vision for brand/manifesto video', guidelines: 'Aspirational copy, sweeping b-roll, upward camera moves, warm uplifting color grade' },
+                { id: 'urgent', name: 'Urgent Action', description: 'Time-sensitive, high-energy tone for limited-offer promo video', guidelines: 'Action verbs, countdown graphics, fast pacing, urgent sound design, red/amber accents' },
+                { id: 'casual', name: 'Casual Peer-to-Peer', description: 'Light, informal tone for social-first Reels/TikToks aimed at GTM peers', guidelines: 'Slang-light, punchy one-liners, vertical 9:16 framing, trending audio, quick cuts' },
+                { id: 'witty', name: 'Witty & Clever', description: 'Humorous, clever copy for scroll-stopping social video and meme images', guidelines: 'Wordplay and light joke setups, comedic timing in edits, playful graphics' },
+                { id: 'empathetic', name: 'Empathetic & Human', description: 'Warm, understanding tone for customer-story and retention video', guidelines: 'Validation-first copy, real customer faces, soft focus, gentle pacing, calm score' },
+                { id: 'data-driven', name: 'Data-Driven', description: 'Number-led, proof-oriented tone for ROI/results video and stat graphics', guidelines: 'Lead with metrics, animated bar/line charts, clean infographic styling, confident narration' },
+                { id: 'storytelling', name: 'Narrative Storytelling', description: 'Three-act story structure for case-study and founding-story video', guidelines: 'Setup-conflict-resolution arc, character-led b-roll, emotional music swell' },
+                { id: 'authoritative', name: 'Authoritative Expert', description: 'Commanding, credentialed tone for thought-leadership video', guidelines: 'Cite frameworks and proof, steady eye-contact framing, library/office settings, serious grade' },
+                { id: 'minimalist', name: 'Minimalist', description: 'Restrained, single-message tone for clean product hero images and videos', guidelines: 'One idea per frame, lots of negative space, muted palette, slow deliberate motion' },
+                { id: 'luxury', name: 'Luxury & Premium', description: 'High-end, exclusive tone for enterprise/ABM video and hero imagery', guidelines: 'Rich textures, slow motion, gold/black palette, elegant typography, no hard-sell' },
+                { id: 'playful', name: 'Playful & Fun', description: 'Bright, energetic tone for culture and top-of-funnel social video', guidelines: 'Bright palette, bouncy edits, emoji-style graphics, upbeat quirky music' },
+                { id: 'bold', name: 'Bold & Disruptive', description: 'Loud, category-breaking tone for brand-launch video', guidelines: 'Oversized type, saturated color, fast aggressive cuts, statement voiceover' },
+                { id: 'educational', name: 'Educational', description: 'Clear teaching tone for how-to and explainer video/image carousels', guidelines: 'Step-by-step structure, pointer/arrow overlays, calm narration, clean whiteboard style' },
+                { id: 'trustworthy', name: 'Trustworthy & Reassuring', description: 'Calm, dependable tone for security/compliance and onboarding video', guidelines: 'Plain language, steady pacing, soft blue/green palette, real-environment shots' },
+                { id: 'energetic', name: 'Energetic & Upbeat', description: 'High-tempo, motivating tone for event/launch hype video', guidelines: 'Fast cuts, rising tempo, bright colors, crowd/confetti energy, driving beat' },
+                { id: 'sophisticated', name: 'Sophisticated & Refined', description: 'Understated elegance for premium B2B brand films', guidelines: 'Subtle motion, refined palette, elegant serif type, restrained music' },
+                { id: 'direct', name: 'Direct & No-Fluff', description: 'Blunt, benefit-first tone for bottom-funnel conversion video', guidelines: 'Front-load the offer, plain words, punch-in cuts, clear CTA card' },
+                { id: 'friendly', name: 'Friendly & Welcoming', description: 'Warm invite tone for webinar and community onboarding video', guidelines: 'Inviting copy, open body language, bright airy set, gentle uplifting music' },
+                { id: 'dramatic', name: 'Dramatic & Cinematic', description: 'High-stakes, cinematic tone for hero/brand film', guidelines: 'Low-key lighting, orchestral swell, slow-mo hero moment, deep contrast grade' },
+                { id: 'peer-comparison', name: 'Social Proof / Peer Comparison', description: 'Comparison-led tone for competitive-displacement video', guidelines: 'Show "them vs you" split screens, benchmark charts, confident neutral narration' },
               ],
               focusAreas: [
                 { id: 'lead-gen', label: 'Lead Generation', description: 'Lead generation with contact capture' },
@@ -595,13 +615,11 @@ function gtmBoostDevPlugin() {
             const body = await readBody(req);
             const data = JSON.parse(body || '{}');
             const { basePrompt, role, industry, methodology, tonality, focus = [], templateContext = {} } = data || {};
-            if (!role || !industry || !methodology || !tonality) {
-              sendJson(res, 400, {
-                error: 'Bad Request',
-                message: 'role, industry, methodology, and tonality are required',
-              });
-              return;
-            }
+            // Apply defaults so the endpoint never 400s on missing/empty selections.
+            const resolvedRole = role || 'sdr';
+            const resolvedIndustry = industry || 'saas';
+            const resolvedMethodology = methodology || 'spin';
+            const resolvedTonality = tonality || 'professional';
             // Re-implement the generate logic inline so we don't need the
             // OpenAI fetch (which won't work in the Vite dev process anyway).
             const ROLES = {
@@ -614,22 +632,23 @@ function gtmBoostDevPlugin() {
             };
             const INDUSTRIES = {
               saas: { name: 'SaaS', description: 'Software as a Service solutions and subscription-based business models' },
-              restaurant: { name: 'Restaurant & Food Service', description: 'Restaurant, food service, and hospitality' },
-              'fitness-wellness': { name: 'Fitness & Wellness', description: 'Gyms, studios, and wellness services' },
-              'real-estate': { name: 'Real Estate', description: 'Real estate and property technology' },
-              healthcare: { name: 'Healthcare', description: 'Healthcare technology and patient care solutions' },
-              'legal-services': { name: 'Legal Services', description: 'Law firms and legal technology' },
-              automotive: { name: 'Automotive', description: 'Automotive dealers and car services' },
-              fashion: { name: 'Fashion & Lifestyle', description: 'Fashion, beauty, and lifestyle brands' },
-              events: { name: 'Events & Entertainment', description: 'Events, venues, and entertainment' },
-              luxury: { name: 'Luxury & Premium', description: 'Luxury and premium brands' },
-              retail: { name: 'Retail & eCommerce', description: 'Retail and e-commerce solutions' },
-              education: { name: 'Education', description: 'Education technology and learning solutions' },
-              travel: { name: 'Travel & Hospitality', description: 'Travel, hotels, and hospitality services' },
-              nonprofit: { name: 'Nonprofit & Social Impact', description: 'Nonprofit and social impact organizations' },
               fintech: { name: 'FinTech', description: 'Financial technology and payment processing solutions' },
+              healthcare: { name: 'Healthcare', description: 'Healthcare technology and patient care solutions' },
               manufacturing: { name: 'Manufacturing', description: 'Manufacturing and industrial operations solutions' },
               'professional-services': { name: 'Professional Services', description: 'Consulting, advisory, and professional service firms' },
+              ecommerce: { name: 'E-commerce', description: 'Online retail and DTC brands selling through visual storefronts' },
+              'real-estate': { name: 'Real Estate', description: 'Residential, commercial, and proptech selling via property visuals' },
+              education: { name: 'Education', description: 'EdTech, universities, and training orgs selling learning outcomes' },
+              logistics: { name: 'Logistics & Supply Chain', description: 'Freight, warehousing, and supply-chain software and services' },
+              retail: { name: 'Retail & CPG', description: 'Brick-and-mortar and consumer-packaged-goods brand marketing' },
+              media: { name: 'Media & Entertainment', description: 'Streaming, publishing, and studios selling audience attention' },
+              legal: { name: 'Legal & Compliance', description: 'Law firms and legal-tech selling trust and expertise' },
+              telecom: { name: 'Telecom & Connectivity', description: 'Connectivity, broadband, and communications providers' },
+              energy: { name: 'Energy & Clean Tech', description: 'Renewables, utilities, and climate-tech selling transformation' },
+              nonprofit: { name: 'Nonprofit & Mission-Driven', description: 'Charities and mission orgs driving donations and awareness' },
+              government: { name: 'Government & Public Sector', description: 'Public agencies and govtech selling programs and services' },
+              insurance: { name: 'Insurance', description: 'Carriers, brokers, and insurtech selling protection and peace of mind' },
+              automotive: { name: 'Automotive & Mobility', description: 'Dealers, OEMs, and mobility tech selling vehicles and experiences' },
             };
             const METHODOLOGIES = {
               meddpicc: { name: 'MEDDPICC', application: 'Apply systematically to understand and navigate enterprise buying processes' },
@@ -640,12 +659,31 @@ function gtmBoostDevPlugin() {
               sandler: { name: 'Sandler Selling', application: 'Qualify prospects and focus on pain points throughout sales process' },
             };
             const TONALITIES = {
-              executive: { name: 'Executive Gravitas', guidelines: 'Use sophisticated vocabulary, focus on strategic implications, emphasize vision and leadership' },
-              challenger: { name: 'Challenger Bold', guidelines: 'Be provocative and insight-driven, challenge conventional thinking, provide unique perspectives' },
-              conversational: { name: 'Conversational Peer', guidelines: 'Use "we" and "you", include relatable examples, build rapport through shared understanding' },
-              technical: { name: 'Technical Expert', guidelines: 'Use industry terminology, focus on specifications and capabilities, show technical credibility' },
-              inspirational: { name: 'Inspirational Vision', guidelines: 'Use aspirational language, focus on transformation, create emotional connection to goals' },
-              urgent: { name: 'Urgent Action', guidelines: 'Use action-oriented language, emphasize immediate benefits, highlight risk of inaction' },
+              professional: { name: 'Professional', guidelines: 'Use clear, confident language; steady pacing; neutral, well-lit framing; minimal but premium styling' },
+              executive: { name: 'Executive Gravitas', guidelines: 'Sophisticated vocabulary, emphasis on vision/leadership, slow deliberate cuts, cinematic establishing shots' },
+              challenger: { name: 'Challenger Bold', guidelines: 'Provocative insight-driven copy, hard cuts, high-contrast visuals, bold typography on screen' },
+              conversational: { name: 'Conversational Peer', guidelines: 'Use "we"/"you", casual framing (selfie/desk setup), natural lighting, relaxed pacing' },
+              technical: { name: 'Technical Expert', guidelines: 'Industry terminology, screen-recorded UI demos, diagram overlays, precise labelling' },
+              inspirational: { name: 'Inspirational Vision', guidelines: 'Aspirational copy, sweeping b-roll, upward camera moves, warm uplifting color grade' },
+              urgent: { name: 'Urgent Action', guidelines: 'Action verbs, countdown graphics, fast pacing, urgent sound design, red/amber accents' },
+              casual: { name: 'Casual Peer-to-Peer', guidelines: 'Slang-light, punchy one-liners, vertical 9:16 framing, trending audio, quick cuts' },
+              witty: { name: 'Witty & Clever', guidelines: 'Wordplay and light joke setups, comedic timing in edits, playful graphics' },
+              empathetic: { name: 'Empathetic & Human', guidelines: 'Validation-first copy, real customer faces, soft focus, gentle pacing, calm score' },
+              'data-driven': { name: 'Data-Driven', guidelines: 'Lead with metrics, animated bar/line charts, clean infographic styling, confident narration' },
+              storytelling: { name: 'Narrative Storytelling', guidelines: 'Setup-conflict-resolution arc, character-led b-roll, emotional music swell' },
+              authoritative: { name: 'Authoritative Expert', guidelines: 'Cite frameworks and proof, steady eye-contact framing, library/office settings, serious grade' },
+              minimalist: { name: 'Minimalist', guidelines: 'One idea per frame, lots of negative space, muted palette, slow deliberate motion' },
+              luxury: { name: 'Luxury & Premium', guidelines: 'Rich textures, slow motion, gold/black palette, elegant typography, no hard-sell' },
+              playful: { name: 'Playful & Fun', guidelines: 'Bright palette, bouncy edits, emoji-style graphics, upbeat quirky music' },
+              bold: { name: 'Bold & Disruptive', guidelines: 'Oversized type, saturated color, fast aggressive cuts, statement voiceover' },
+              educational: { name: 'Educational', guidelines: 'Step-by-step structure, pointer/arrow overlays, calm narration, clean whiteboard style' },
+              trustworthy: { name: 'Trustworthy & Reassuring', guidelines: 'Plain language, steady pacing, soft blue/green palette, real-environment shots' },
+              energetic: { name: 'Energetic & Upbeat', guidelines: 'Fast cuts, rising tempo, bright colors, crowd/confetti energy, driving beat' },
+              sophisticated: { name: 'Sophisticated & Refined', guidelines: 'Subtle motion, refined palette, elegant serif type, restrained music' },
+              direct: { name: 'Direct & No-Fluff', guidelines: 'Front-load the offer, plain words, punch-in cuts, clear CTA card' },
+              friendly: { name: 'Friendly & Welcoming', guidelines: 'Inviting copy, open body language, bright airy set, gentle uplifting music' },
+              dramatic: { name: 'Dramatic & Cinematic', guidelines: 'Low-key lighting, orchestral swell, slow-mo hero moment, deep contrast grade' },
+              'peer-comparison': { name: 'Social Proof / Peer Comparison', guidelines: 'Show "them vs you" split screens, benchmark charts, confident neutral narration' },
             };
             const FOCUS_AREAS = [
               { id: 'lead-gen', label: 'Lead Generation' },
@@ -653,10 +691,10 @@ function gtmBoostDevPlugin() {
               { id: 'education', label: 'Education' },
               { id: 'demo', label: 'Product Demo' },
             ];
-            const roleContent = ROLES[role] || ROLES.sdr;
-            const industryContent = INDUSTRIES[industry] || INDUSTRIES.saas;
-            const methodologyContent = METHODOLOGIES[methodology] || METHODOLOGIES.spin;
-            const tonalityContent = TONALITIES[tonality] || TONALITIES.executive;
+            const roleContent = ROLES[resolvedRole] || ROLES.sdr;
+            const industryContent = INDUSTRIES[resolvedIndustry] || INDUSTRIES.saas;
+            const methodologyContent = METHODOLOGIES[resolvedMethodology] || METHODOLOGIES.spin;
+            const tonalityContent = TONALITIES[resolvedTonality] || TONALITIES.professional;
             const focusLabels = focus
               .map((id) => (FOCUS_AREAS.find((f) => f.id === id) || {}).label)
               .filter(Boolean)
@@ -690,7 +728,13 @@ function gtmBoostDevPlugin() {
               success: true,
               source: 'local-library',
               prompt: sections.join('\n'),
-              selections: { role, industry, methodology, tonality, focus },
+              selections: {
+                role: resolvedRole,
+                industry: resolvedIndustry,
+                methodology: resolvedMethodology,
+                tonality: resolvedTonality,
+                focus,
+              },
               templateContext,
             });
             return;

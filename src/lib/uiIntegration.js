@@ -6,6 +6,7 @@
 import { isFeatureEnabled } from '../lib/featureFlags.js';
 import { loadAdaptedComponent } from '../lib/componentAdapter.js';
 import { GTMPromptModal } from '../components/modals/GTMPromptModal.jsx';
+import { dispatchGtmThumbnail } from '../lib/gtmThumbnailBridge.js';
 
 /**
  * Default GTM → Thumbnail bridge.
@@ -29,6 +30,11 @@ async function defaultGenerateThumbnail(prompt) {
     window.dispatchEvent(new CustomEvent('gtm:thumbnail-generated', {
       detail: { prompt, candidate: first }
     }));
+  }
+  const imageUrl = first.dataUrl || first.imageUrl || first.url
+    || (first.b64_json ? `data:image/png;base64,${first.b64_json}` : null);
+  if (imageUrl) {
+    dispatchGtmThumbnail(prompt, imageUrl);
   }
   return first;
 }

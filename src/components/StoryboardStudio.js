@@ -8,12 +8,25 @@ import { openaiService } from '../lib/openaiService.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { showToast } from '../lib/loading.js';
 import { t2iModels, getAspectRatiosForModel } from '../lib/models.js';
-import { ENHANCE_TAGS, QUICK_PROMPTS } from '../lib/promptUtils.js';
+import { ENHANCE_TAGS, QUICK_PROMPTS, buildNanoBananaPrompt } from '../lib/promptUtils.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createFullscreenPreview } from '../components/MediaPreview.js';
 import Store from '../stores/base/Store.js';
+import { createAutosave, saveProject, saveProjectSync, loadProjectFromStorage, setSupabaseClient } from '../lib/editor/persistence.js';
+
+let supabaseAvailable = false;
+try {
+  const supabaseModule = await import('../lib/supabase.js');
+  if (supabaseModule.isSupabaseConfigured && supabaseModule.isSupabaseConfigured()) {
+    setSupabaseClient(supabaseModule.supabase);
+    supabaseAvailable = true;
+  }
+} catch (e) {
+  console.warn('[StoryboardStudio] Supabase not available:', e);
+}
 
 const SHOT_TYPES = ['Wide Shot', 'Medium Shot', 'Close-Up', 'Extreme Close-Up', 'POV', 'Overhead', 'Low Angle'];
 
@@ -109,7 +122,44 @@ const storyboardStore = new Store({
   generationProgress: { current: 0, total: 0, failed: [] },
 });
 
+function createUndoRedo() {
+  let undoStack = [];
+  let redoStack = [];
+  const maxHistory = 50;
+
+  function push(state) {
+    undoStack.push(JSON.parse(JSON.stringify(state)));
+    if (undoStack.length > maxHistory) undoStack.shift();
+    redoStack = [];
+  }
+
+  function undo(currentState) {
+    if (!undoStack.length) return null;
+    const prev = undoStack.pop();
+    redoStack.push(JSON.parse(JSON.stringify(currentState)));
+    return prev;
+  }
+
+  function redo(currentState) {
+    if (!redoStack.length) return null;
+    const next = redoStack.pop();
+    undoStack.push(JSON.parse(JSON.stringify(currentState)));
+    return next;
+  }
+
+  function canUndo() { return undoStack.length > 0; }
+  function canRedo() { return redoStack.length > 0; }
+
+  return { push, undo, redo, canUndo, canRedo };
+}
+
 export function StoryboardStudio() {
+  const undoRedo = createUndoRedo();
+  const autosave = createAutosave({
+    debounceMs: 1500,
+    onSave: () => {},
+    onError: (err) => console.warn('[StoryboardStudio] Autosave failed:', err),
+  });
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto relative storyboard-studio';
   mountStudioChrome(container, { currentRoute: 'storyboard' });
@@ -141,6 +191,11 @@ export function StoryboardStudio() {
     { prompt: '', narration: '', shot: 'Medium Shot', imageUrl: null, notes: '', referenceImages: [] },
     { prompt: '', narration: '', shot: 'Close-Up', imageUrl: null, notes: '', referenceImages: [] },
   ];
+
+  let comparisonMode = false;
+  let compareIndices = [0, 0];
+
+  let frameDurations = frames.map(() => 3);
 
   const controlBar = document.createElement('div');
   controlBar.className = 'px-4 md:px-8 mb-4 flex items-center gap-3 flex-wrap';
@@ -191,13 +246,14 @@ export function StoryboardStudio() {
   presetSelect.onchange = () => {
     const preset = SHOT_PRESETS.find(p => p.shot === presetSelect.value);
     if (!preset) return;
+    undoRedo.push(frames);
     selectedPreset = preset;
     frames.forEach((frame, idx) => {
       frame.shot = preset.shot;
       frame.prompt = idx === 0 ? preset.prompt : `${preset.prompt} (part ${idx + 1})`;
     });
     renderFrames();
-    scheduleDraftSave();
+    autosave.schedule(getStoryboardState());
   };
   controlBar.appendChild(presetSelect);
 
@@ -222,7 +278,14 @@ export function StoryboardStudio() {
         body: JSON.stringify({ id, frames, preset: selectedPreset }),
       });
       if (!r.ok) throw new Error('Save failed');
-      showToast('Storyboard saved', 'success');
+      const state = getStoryboardState();
+      state.projectId = id;
+      const saveResult = await saveProject(state);
+      if (saveResult.supabase) {
+        showToast('Storyboard saved to Supabase', 'success');
+      } else {
+        showToast('Storyboard saved locally', 'success');
+      }
     } catch (e) {
       showToast('Save failed: ' + e.message, 'error');
     }
@@ -237,6 +300,38 @@ export function StoryboardStudio() {
     if (!(await requireEntitlement())) return;
     const id = projectIdInput.value.trim();
     if (!id) { showToast('Enter a project ID', 'warning'); return; }
+    let loadedFromSupabase = false;
+    if (supabaseAvailable) {
+      try {
+        const supabaseModule = await import('../lib/supabase.js');
+        const { data, error } = await supabaseModule.supabase
+          .from('timeline_projects')
+          .select('project')
+          .eq('id', id)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+        if (!error && data && data[0] && data[0].project) {
+          const loaded = data[0].project.data || data[0].project;
+          if (loaded && loaded.frames && Array.isArray(loaded.frames)) {
+            frames.length = 0;
+            frames.push(...loaded.frames);
+            if (loaded.layout) layout = loaded.layout;
+            if (loaded.selectedModel) selectedModel = loaded.selectedModel;
+            if (loaded.selectedModelName) selectedModelName = loaded.selectedModelName;
+            if (loaded.selectedAr) selectedAr = loaded.selectedAr;
+            if (loaded.selectedStyle) selectedStyle = loaded.selectedStyle || 'None';
+            if (loaded.selectedLighting) selectedLighting = loaded.selectedLighting || 'None';
+            if (loaded.selectedColor) selectedColor = loaded.selectedColor || 'None';
+            renderFrames();
+            showToast('Storyboard loaded from Supabase', 'success');
+            loadedFromSupabase = true;
+          }
+        }
+      } catch (e) {
+        console.warn('[StoryboardStudio] Supabase load failed:', e);
+      }
+    }
+    if (loadedFromSupabase) return;
     try {
       const r = await fetch('/api/storyboard/' + encodeURIComponent(id));
       if (!r.ok) throw new Error('Load failed');
@@ -258,9 +353,10 @@ export function StoryboardStudio() {
   addFrameBtn.textContent = '+ Add Frame';
   addFrameBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
+    undoRedo.push(frames);
     frames.push({ prompt: '', narration: '', shot: 'Wide Shot', imageUrl: null, notes: '', referenceImages: [] });
     renderFrames();
-    scheduleDraftSave();
+    autosave.schedule(getStoryboardState());
   };
   controlBar.appendChild(addFrameBtn);
 
@@ -371,7 +467,7 @@ export function StoryboardStudio() {
   gtmBtn.className = 'gtm-boost-btn shrink-0';
   gtmBtn.addEventListener('click', () => {
     import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-      openGTMPromptModal('storyboard', (prompt) => {
+      openGTMPromptModal('storyboard-studio', (prompt) => {
         enhancedConcept = prompt;
         gtmBtn.classList.add('active');
         renderFrames();
@@ -401,10 +497,16 @@ export function StoryboardStudio() {
         clearCustomThumbnailCache('storyboard-studio');
       },
     });
-    mountStudioThumbnailModal(modal);
-    modal.open();
-  });
+      mountStudioThumbnailModal(modal);
+      modal.open();
+    });
   controlBar.appendChild(thumbBtn);
+
+  subscribeToGtmThumbnails(({ imageUrl }) => {
+    customThumbnailUrl = imageUrl;
+    saveCustomThumbnailToCache('storyboard-studio', imageUrl);
+    renderFrames();
+  });
 
   const personalizeTrigger = mountPersonalizeTrigger({ controlsContainer: controlBar, appId: 'storyboard', getTextarea: () => null });
   const activeProfileRef = { value: null };
@@ -474,6 +576,13 @@ export function StoryboardStudio() {
     printWindow.document.close();
   };
   controlBar.appendChild(exportBtn);
+
+  const compareBtn = document.createElement('button');
+  compareBtn.type = 'button';
+  compareBtn.className = 'px-4 py-2 bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/20 transition-all';
+  compareBtn.textContent = 'Compare';
+  compareBtn.onclick = () => openComparison();
+  controlBar.appendChild(compareBtn);
 
   // Model / aspect-ratio dropdowns
   const dropdown = document.createElement('div');
@@ -625,9 +734,138 @@ export function StoryboardStudio() {
 
   container.appendChild(controlBar);
 
+  const comparisonOverlay = document.createElement('div');
+  comparisonOverlay.className = 'fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4';
+  comparisonOverlay.innerHTML = `
+    <div class="bg-app-bg border border-white/10 rounded-2xl shadow-4xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-white/5 shrink-0">
+        <h2 class="text-sm font-bold text-white tracking-tight">Compare Frames</h2>
+        <button class="compare-close-btn text-muted hover:text-white transition-colors text-lg leading-none px-2">&times;</button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-6">
+        <div class="flex flex-col md:flex-row gap-6">
+          <div class="flex-1 flex flex-col gap-3">
+            <label class="text-[10px] font-bold text-secondary uppercase tracking-widest">Frame A</label>
+            <select class="compare-select-a bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer"></select>
+            <div class="aspect-video bg-white/[0.02] rounded-lg border border-white/5 flex items-center justify-center overflow-hidden">
+              <img class="compare-image-a w-full h-full object-cover hidden" alt="Compare frame A" />
+              <span class="compare-placeholder-a text-muted text-xs">No image</span>
+            </div>
+            <div class="compare-meta-a text-[10px] text-secondary leading-relaxed"></div>
+          </div>
+          <div class="flex items-center justify-center">
+            <div class="w-px h-24 bg-white/10 hidden md:block"></div>
+            <div class="md:hidden text-[10px] font-bold text-secondary uppercase tracking-widest">VS</div>
+          </div>
+          <div class="flex-1 flex flex-col gap-3">
+            <label class="text-[10px] font-bold text-secondary uppercase tracking-widest">Frame B</label>
+            <select class="compare-select-b bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer"></select>
+            <div class="aspect-video bg-white/[0.02] rounded-lg border border-white/5 flex items-center justify-center overflow-hidden">
+              <img class="compare-image-b w-full h-full object-cover hidden" alt="Compare frame B" />
+              <span class="compare-placeholder-b text-muted text-xs">No image</span>
+            </div>
+            <div class="compare-meta-b text-[10px] text-secondary leading-relaxed"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  comparisonOverlay.querySelector('.compare-close-btn').addEventListener('click', closeComparison);
+  container.appendChild(comparisonOverlay);
+
+  function openComparison() {
+    comparisonMode = true;
+    const selA = comparisonOverlay.querySelector('.compare-select-a');
+    const selB = comparisonOverlay.querySelector('.compare-select-b');
+    selA.innerHTML = '';
+    selB.innerHTML = '';
+    frames.forEach((frame, idx) => {
+      const optA = document.createElement('option');
+      optA.value = String(idx);
+      optA.textContent = `Frame ${idx + 1}`;
+      optA.style.background = '#111';
+      if (idx === compareIndices[0]) optA.selected = true;
+      selA.appendChild(optA);
+      const optB = document.createElement('option');
+      optB.value = String(idx);
+      optB.textContent = `Frame ${idx + 1}`;
+      optB.style.background = '#111';
+      if (idx === compareIndices[1]) optB.selected = true;
+      selB.appendChild(optB);
+    });
+    selA.onchange = () => { compareIndices[0] = Number(selA.value); renderComparison(); };
+    selB.onchange = () => { compareIndices[1] = Number(selB.value); renderComparison(); };
+    renderComparison();
+    comparisonOverlay.classList.remove('hidden');
+    comparisonOverlay.classList.add('flex');
+  }
+
+  function closeComparison() {
+    comparisonMode = false;
+    comparisonOverlay.classList.add('hidden');
+    comparisonOverlay.classList.remove('flex');
+  }
+
+  function renderComparison() {
+    const [a, b] = compareIndices;
+    const frameA = frames[a];
+    const frameB = frames[b];
+    const imgA = comparisonOverlay.querySelector('.compare-image-a');
+    const imgB = comparisonOverlay.querySelector('.compare-image-b');
+    const placeholderA = comparisonOverlay.querySelector('.compare-placeholder-a');
+    const placeholderB = comparisonOverlay.querySelector('.compare-placeholder-b');
+    const metaA = comparisonOverlay.querySelector('.compare-meta-a');
+    const metaB = comparisonOverlay.querySelector('.compare-meta-b');
+    if (frameA?.imageUrl) {
+      imgA.src = frameA.imageUrl;
+      imgA.classList.remove('hidden');
+      placeholderA.classList.add('hidden');
+      metaA.textContent = `Shot: ${frameA.shot || ''}\nModel: ${selectedModelName}\nPrompt: ${frameA.prompt || ''}`;
+    } else {
+      imgA.classList.add('hidden');
+      placeholderA.classList.remove('hidden');
+      metaA.textContent = '';
+    }
+    if (frameB?.imageUrl) {
+      imgB.src = frameB.imageUrl;
+      imgB.classList.remove('hidden');
+      placeholderB.classList.add('hidden');
+      metaB.textContent = `Shot: ${frameB.shot || ''}\nModel: ${selectedModelName}\nPrompt: ${frameB.prompt || ''}`;
+    } else {
+      imgB.classList.add('hidden');
+      placeholderB.classList.remove('hidden');
+      metaB.textContent = '';
+    }
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && comparisonMode) {
+      closeComparison();
+    }
+  });
+
   const framesArea = document.createElement('div');
   framesArea.className = 'px-4 md:px-8 pb-8 flex gap-4 overflow-x-auto no-scrollbar';
   container.appendChild(framesArea);
+
+  const timelineStrip = document.createElement('div');
+  timelineStrip.className = 'px-4 md:px-8 pb-6 shrink-0';
+  container.appendChild(timelineStrip);
+
+  function getStoryboardState() {
+    return {
+      frames,
+      layout,
+      selectedModel,
+      selectedModelName,
+      selectedAr,
+      selectedStyle,
+      selectedLighting,
+      selectedColor,
+      selectedPreset,
+      generationProgress,
+    };
+  }
 
   function getLayoutClasses() {
     if (layout === 'grid') return 'px-4 md:px-8 pb-8 grid grid-cols-2 md:grid-cols-3 gap-4 overflow-y-auto';
@@ -671,10 +909,11 @@ export function StoryboardStudio() {
         const fromIdx = Number(e.dataTransfer.getData('text/plain'));
         const toIdx = idx;
         if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0 || fromIdx >= frames.length || toIdx >= frames.length) return;
+        undoRedo.push(frames);
         const [moved] = frames.splice(fromIdx, 1);
         frames.splice(toIdx, 0, moved);
         renderFrames();
-        scheduleDraftSave();
+        autosave.schedule(getStoryboardState());
       };
 
       const frameNum = document.createElement('div');
@@ -718,7 +957,7 @@ export function StoryboardStudio() {
         if (s === frame.shot) opt.selected = true;
         shotSelect.appendChild(opt);
       });
-      shotSelect.onchange = () => { frame.shot = shotSelect.value; scheduleDraftSave(); };
+      shotSelect.onchange = () => { frame.shot = shotSelect.value; autosave.schedule(getStoryboardState()); };
       card.appendChild(shotSelect);
 
       const promptInput = document.createElement('textarea');
@@ -727,7 +966,7 @@ export function StoryboardStudio() {
       promptInput.placeholder = 'Describe this scene...';
       promptInput.value = frame.prompt;
       promptInput.setAttribute('aria-label', 'Frame description');
-      promptInput.oninput = () => { frame.prompt = promptInput.value; scheduleDraftSave(); };
+      promptInput.oninput = () => { frame.prompt = promptInput.value; autosave.schedule(getStoryboardState()); };
       card.appendChild(promptInput);
 
       const frameEnhanceBtn = document.createElement('button');
@@ -737,7 +976,7 @@ export function StoryboardStudio() {
       frameEnhanceBtn.title = 'Enhance this frame with GTM conversion frameworks';
       frameEnhanceBtn.addEventListener('click', () => {
         import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
-          openGTMPromptModal('storyboard', (prompt) => {
+          openGTMPromptModal('storyboard-studio', (prompt) => {
             frame.enhancedPrompt = prompt;
             frameEnhanceBtn.textContent = '🎯 Enhanced';
             frameEnhanceBtn.classList.add('active');
@@ -758,7 +997,7 @@ export function StoryboardStudio() {
       narrationInput.className = 'w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50';
       narrationInput.placeholder = 'Narration text (optional)...';
       narrationInput.value = frame.narration || '';
-      narrationInput.oninput = () => { frame.narration = narrationInput.value; scheduleDraftSave(); };
+      narrationInput.oninput = () => { frame.narration = narrationInput.value; autosave.schedule(getStoryboardState()); };
       card.appendChild(narrationInput);
 
       const notesInput = document.createElement('input');
@@ -766,15 +1005,60 @@ export function StoryboardStudio() {
       notesInput.className = 'w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50';
       notesInput.placeholder = 'Director notes (optional)...';
       notesInput.value = frame.notes || '';
-      notesInput.oninput = () => { frame.notes = notesInput.value; scheduleDraftSave(); };
+      notesInput.oninput = () => { frame.notes = notesInput.value; autosave.schedule(getStoryboardState()); };
       card.appendChild(notesInput);
 
-      const refBtn = document.createElement('button');
-      refBtn.type = 'button';
-      refBtn.className = 'text-xs text-muted hover:text-white transition-colors';
-      refBtn.textContent = '📎 Reference';
-      refBtn.title = 'Attach reference image';
-      card.appendChild(refBtn);
+      const refRow = document.createElement('div');
+      refRow.className = 'flex items-center gap-2';
+
+      const refThumbWrap = document.createElement('div');
+      refThumbWrap.className = 'hidden w-8 h-8 rounded-md overflow-hidden border border-white/10 relative shrink-0';
+      const refThumb = document.createElement('img');
+      refThumb.className = 'w-full h-full object-cover';
+      refThumbWrap.appendChild(refThumb);
+
+      const refRemoveBtn = document.createElement('button');
+      refRemoveBtn.type = 'button';
+      refRemoveBtn.className = 'hidden absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center transition-colors';
+      refRemoveBtn.innerHTML = `<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+      refRemoveBtn.title = 'Remove reference';
+      refRemoveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        frame.referenceImages = [];
+        refThumbWrap.classList.add('hidden');
+        refRemoveBtn.classList.add('hidden');
+        resetRef();
+        autosave.schedule(getStoryboardState());
+      });
+      refThumbWrap.appendChild(refRemoveBtn);
+
+      const { trigger: refTrigger, reset: resetRef } = createUploadPicker({
+        anchorContainer: card,
+        maxImages: 1,
+        onSelect: ({ url, thumbnail }) => {
+          frame.referenceImages = [{ url, thumbnail }];
+          refThumb.src = thumbnail;
+          refThumbWrap.classList.remove('hidden');
+          refRemoveBtn.classList.remove('hidden');
+          autosave.schedule(getStoryboardState());
+        },
+        onClear: () => {
+          frame.referenceImages = [];
+          refThumbWrap.classList.add('hidden');
+          refRemoveBtn.classList.add('hidden');
+          autosave.schedule(getStoryboardState());
+        },
+      });
+
+      if (frame.referenceImages.length > 0 && frame.referenceImages[0].thumbnail) {
+        refThumb.src = frame.referenceImages[0].thumbnail;
+        refThumbWrap.classList.remove('hidden');
+        refRemoveBtn.classList.remove('hidden');
+      }
+
+      refRow.appendChild(refTrigger);
+      refRow.appendChild(refThumbWrap);
+      card.appendChild(refRow);
 
       const genFrameBtn = document.createElement('button');
       genFrameBtn.type = 'button';
@@ -788,11 +1072,82 @@ export function StoryboardStudio() {
       card.appendChild(genFrameBtn);
 
       card.querySelector('.remove-frame').onclick = () => {
-        if (frames.length > 1) { frames.splice(idx, 1); renderFrames(); scheduleDraftSave(); }
+        if (frames.length > 1) { undoRedo.push(frames); frames.splice(idx, 1); renderFrames(); autosave.schedule(getStoryboardState()); }
       };
 
       framesArea.appendChild(card);
     });
+    renderTimelineStrip();
+  }
+
+  function renderTimelineStrip() {
+    timelineStrip.innerHTML = '';
+    if (frames.length === 0) return;
+
+    const totalDuration = frameDurations.reduce((sum, d) => sum + d, 0);
+    const minSegmentWidth = 40;
+    const naturalWidth = frames.length * 80;
+    const totalWidth = Math.max(naturalWidth, minSegmentWidth * frames.length);
+
+    const scrollContainer = document.createElement('div');
+    scrollContainer.className = 'overflow-x-auto no-scrollbar';
+
+    const strip = document.createElement('div');
+    strip.className = 'flex h-10 rounded-lg border border-white/10 bg-white/[0.03] relative';
+    strip.style.width = totalWidth + 'px';
+    strip.style.minWidth = '100%';
+
+    const shotAbbrevMap = {
+      'Wide Shot': 'WS',
+      'Medium Shot': 'MS',
+      'Close-Up': 'CU',
+      'Extreme Close-Up': 'ECU',
+      'POV': 'POV',
+      'Overhead': 'OH',
+      'Low Angle': 'LA',
+    };
+
+    frames.forEach((frame, idx) => {
+      const duration = frameDurations[idx] || 3;
+      const segmentWidth = Math.max(minSegmentWidth, (duration / totalDuration) * totalWidth);
+      const segment = document.createElement('div');
+      segment.className = 'flex items-center justify-center border-r border-white/5 last:border-r-0 cursor-pointer hover:bg-white/10 transition-all relative group';
+      segment.style.width = segmentWidth + 'px';
+      segment.style.minWidth = minSegmentWidth + 'px';
+      segment.dataset.frameIndex = idx;
+
+      const label = document.createElement('span');
+      label.className = 'text-[10px] font-bold text-white/80 tabular-nums select-none';
+      label.textContent = idx + 1;
+      segment.appendChild(label);
+
+      const tooltip = document.createElement('span');
+      tooltip.className = 'absolute -top-8 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] font-bold px-2 py-1 rounded-md whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 border border-white/10';
+      tooltip.textContent = `${shotAbbrevMap[frame.shot] || frame.shot} · ${duration}s`;
+      segment.appendChild(tooltip);
+
+      segment.onclick = () => {
+        const card = framesArea.children[idx];
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          card.classList.add('ring-2', 'ring-primary');
+          setTimeout(() => card.classList.remove('ring-2', 'ring-primary'), 1500);
+        }
+      };
+
+      strip.appendChild(segment);
+    });
+
+    const totalLabel = document.createElement('span');
+    totalLabel.className = 'text-[10px] font-bold text-secondary tabular-nums ml-3 shrink-0';
+    totalLabel.textContent = `Total: ${totalDuration}s`;
+
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2';
+    row.appendChild(scrollContainer);
+    scrollContainer.appendChild(strip);
+    row.appendChild(totalLabel);
+    timelineStrip.appendChild(row);
   }
 
   async function generateFrame(idx, btn, imageArea) {
@@ -814,10 +1169,15 @@ export function StoryboardStudio() {
       const profile = activeProfileRef.value;
       const resolvedPrompt = profile ? replaceTokensInPrompt(rawPrompt, profile) : rawPrompt;
 
-      let cinematicPrompt = `${frame.shot} cinematic storyboard frame: ${resolvedPrompt}, professional cinematography, 4K quality`;
-      if (selectedStyle !== 'None') cinematicPrompt += `, ${selectedStyle.toLowerCase()} style`;
-      if (selectedLighting !== 'None') cinematicPrompt += `, ${selectedLighting.toLowerCase()} lighting`;
-      if (selectedColor !== 'None') cinematicPrompt += `, ${selectedColor.toLowerCase()} color grade`;
+      const cinematicPrompt = buildNanoBananaPrompt(
+        `${frame.shot} storyboard frame: ${resolvedPrompt}`,
+        'Full-Frame Cine Digital',
+        'Classic Anamorphic',
+        50,
+        'f/1.4'
+      ) + (selectedStyle !== 'None' ? `, ${selectedStyle.toLowerCase()} style` : '')
+      + (selectedLighting !== 'None' ? `, ${selectedLighting.toLowerCase()} lighting` : '')
+      + (selectedColor !== 'None' ? `, ${selectedColor.toLowerCase()} color grade` : '');
 
       const url = await generateFrameImage(cinematicPrompt);
       if (url) {
@@ -906,5 +1266,52 @@ export function StoryboardStudio() {
   };
 
   renderFrames();
+
+  function updateUndoRedoButtons() {
+    if (undoBtn) undoBtn.classList.toggle('opacity-50', !undoRedo.canUndo());
+    if (redoBtn) redoBtn.classList.toggle('opacity-50', !undoRedo.canRedo());
+  }
+
+  const undoBtn = document.createElement('button');
+  undoBtn.type = 'button';
+  undoBtn.className = 'px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all';
+  undoBtn.innerHTML = '↶ Undo';
+  undoBtn.title = 'Undo (Ctrl+Z)';
+  undoBtn.onclick = () => {
+    const prev = undoRedo.undo(frames);
+    if (prev) { frames.length = 0; frames.push(...prev); renderFrames(); autosave.schedule(getStoryboardState()); updateUndoRedoButtons(); }
+  };
+
+  const redoBtn = document.createElement('button');
+  redoBtn.type = 'button';
+  redoBtn.className = 'px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all';
+  redoBtn.innerHTML = '↷ Redo';
+  redoBtn.title = 'Redo (Ctrl+Shift+Z)';
+  redoBtn.onclick = () => {
+    const next = undoRedo.redo(frames);
+    if (next) { frames.length = 0; frames.push(...next); renderFrames(); autosave.schedule(getStoryboardState()); updateUndoRedoButtons(); }
+  };
+
+  controlBar.appendChild(undoBtn);
+  controlBar.appendChild(redoBtn);
+
+  window.addEventListener('keydown', (e) => {
+    const isMeta = e.metaKey || e.ctrlKey;
+    if (isMeta && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      undoBtn.click();
+      return;
+    }
+    if (isMeta && ((e.key.toLowerCase() === 'z' && e.shiftKey) || e.key.toLowerCase() === 'y')) {
+      e.preventDefault();
+      redoBtn.click();
+      return;
+    }
+    if (isMeta && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      saveBtn.click();
+    }
+  });
+
   return container;
 }

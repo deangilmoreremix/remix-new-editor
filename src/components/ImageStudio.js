@@ -15,6 +15,8 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
+import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
+import { getGtmContext } from '../lib/gtmContextStore.js';
 
 export function ImageStudio() {
     const container = document.createElement('div');
@@ -30,6 +32,19 @@ export function ImageStudio() {
     let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
     let imageMode = false; // false = t2i models, true = i2i models
     let customThumbnailUrl = getCustomThumbnailFromCache('image-studio');
+
+    // Restore the last GTM context the user picked in the prompt modal,
+    // if any. The modal persists selections to localStorage on apply; we
+    // log them here so downstream features (defaults, preselects) can
+    // pick them up later. The `void` keeps the variable from being
+    // flagged as unused until something consumes it.
+    try {
+      const restoredGtmContext = getGtmContext('image-studio');
+      if (restoredGtmContext && typeof console !== 'undefined' && console.info) {
+        console.info('[ImageStudio] Restored GTM context', restoredGtmContext);
+      }
+      void restoredGtmContext;
+    } catch { /* ignore */ }
     
     // Advanced parameters state
     let negativePrompt = '';
@@ -239,6 +254,11 @@ export function ImageStudio() {
       modal.open();
     });
     controlsLeft.appendChild(thumbBtn);
+
+    subscribeToGtmThumbnails(({ imageUrl }) => {
+      customThumbnailUrl = imageUrl;
+      saveCustomThumbnailToCache('image-studio', imageUrl);
+    });
 
     // Advanced options toggle button
     const advancedBtn = createControlBtn(`

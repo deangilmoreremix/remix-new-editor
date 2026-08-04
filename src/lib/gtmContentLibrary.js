@@ -8,11 +8,27 @@ import { getRelevantGtmSkills, gtmSkillsPromptForContext, gtmSkillsCategories } 
 
 class GTMContentLibrary {
   constructor() {
+    this.focusAreas = this.initializeFocusAreas();
     this.roles = this.initializeRoles();
     this.industries = this.initializeIndustries();
     this.methodologies = this.initializeMethodologies();
     this.tonalities = this.initializeTonalities();
     this.workflows = this.initializeWorkflows();
+  }
+
+  /**
+   * Get the canonical list of focus areas available in the GTM Boost UI.
+   * Each entry exposes an `id` (used in `focus` param arrays) and a
+   * `label` (human-readable name). `description` mirrors the on-screen
+   * helper text and the long-form label used by system prompt builders.
+   */
+  initializeFocusAreas() {
+    return [
+      { id: 'lead-gen',   label: 'Lead Generation',         description: 'Lead generation with contact capture' },
+      { id: 'awareness',  label: 'Brand Awareness',         description: 'Brand awareness and market education' },
+      { id: 'education',  label: 'Education',                description: 'Educational content and knowledge sharing' },
+      { id: 'demo',       label: 'Product Demo',            description: 'Product demonstration and capability showcase' },
+    ];
   }
 
   /**
@@ -196,13 +212,23 @@ class GTMContentLibrary {
    * Get focus area elements
    */
   getFocusElement(area) {
-    const elements = {
-      'lead-gen': 'Lead generation with contact capture',
-      awareness: 'Brand awareness and market education',
-      education: 'Educational content and knowledge sharing',
-      demo: 'Product demonstration and capability showcase'
-    };
-    return elements[area];
+    const found = (this.focusAreas || []).find((f) => f.id === area);
+    return found ? found.description : undefined;
+  }
+
+  /**
+   * Look up a focus area by id, returning the full { id, label, description }
+   * record (or `undefined` when not found).
+   */
+  getFocusArea(id) {
+    return (this.focusAreas || []).find((f) => f.id === id);
+  }
+
+  /**
+   * Dropdown options for the GTM Boost modal's focus area checklist.
+   */
+  getFocusAreaOptions() {
+    return (this.focusAreas || []).map((f) => ({ value: f.id, label: f.label }));
   }
 
   // ===== ROLE DEFINITIONS =====

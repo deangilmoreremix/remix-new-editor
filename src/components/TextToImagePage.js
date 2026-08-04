@@ -128,7 +128,10 @@ export function TextToImagePage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-10 shadow-3xl mb-8 text-center">
       <h2 class="text-xl font-bold text-white mb-2">Ready to Create?</h2>
       <p class="text-sm text-secondary mb-6">Join thousands of creators generating amazing images with our AI platform</p>
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">Get Started Free</button>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">Get Started Free</button>
+        <button type="button" class="gtm-boost-btn border border-primary/40 text-primary px-6 py-2.5 rounded-xl font-black text-sm hover:bg-primary/10 active:scale-95 transition-all" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>
+      </div>
     </div>
   `;
 
@@ -137,6 +140,18 @@ export function TextToImagePage() {
   // Event Listeners
   container.querySelector('.start-btn').onclick = () => navigate('image');
   contentWrapper.querySelector('.cta-btn').onclick = () => navigate('image');
+
+  const gtmBoostBtn = contentWrapper.querySelector('.gtm-boost-btn');
+  if (gtmBoostBtn) {
+    gtmBoostBtn.onclick = () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('text-to-image', (prompt) => {
+          try { localStorage.setItem('prefill_prompt', prompt); } catch { /* ignore storage failures */ }
+          navigate('image');
+        });
+      }).catch((err) => console.error('[TextToImagePage] GTM Boost failed:', err));
+    };
+  }
 
   contentWrapper.querySelectorAll('.model-card').forEach(card => {
     card.onclick = () => {

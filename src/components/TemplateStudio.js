@@ -14,6 +14,7 @@ import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.j
 import { sanitizeUrl } from '../lib/security.js';
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { mountPersonalizeTrigger } from './personalize/personalizePopover.js';
+import { getGtmContext } from '../lib/gtmContextStore.js';
 
 export function TemplateStudio(templateId) {
   const template = getTemplateById(templateId);
@@ -48,6 +49,19 @@ export function TemplateStudio(templateId) {
   let selectedModel = template.model;
   let primaryPromptField = null;
   let customThumbnailUrl = getCustomThumbnailFromCache(template.id);
+
+  // Restore the last GTM context the user picked in the prompt modal,
+  // if any. The modal persists selections to localStorage on apply; we
+  // log them here so downstream features (defaults, preselects) can
+  // pick them up later. The `void` keeps the variable from being
+  // flagged as unused until something consumes it.
+  try {
+    const restoredGtmContext = getGtmContext('template-studio');
+    if (restoredGtmContext && typeof console !== 'undefined' && console.info) {
+      console.info('[TemplateStudio] Restored GTM context', restoredGtmContext);
+    }
+    void restoredGtmContext;
+  } catch { /* ignore */ }
   let lastGenerationParams = null; // Store params for retry
   let retryCount = 0;
   const MAX_RETRIES = 2;
@@ -755,7 +769,7 @@ export function TemplateStudio(templateId) {
     if (gtmBoostBtn) {
       gtmBoostBtn.onclick = async () => {
         try {
-          const ctx = (await import('../lib/uiIntegration.js').then(m => m.getTemplateContext(template)).catch(() => null)) || {};
+          const ctx = (await import('../lib/uiIntegration.js').then(m => m.fetchGTMTemplateContext(template)).catch(() => null)) || {};
           const basePrompt = (document.getElementById('outputTextarea')?.value) || template.description || '';
           const templateContext = {
             ...ctx,

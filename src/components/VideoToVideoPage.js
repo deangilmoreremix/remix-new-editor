@@ -106,7 +106,10 @@ export function VideoToVideoPage() {
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
       <h2 class="text-2xl md:text-3xl font-black text-white mb-2">Transform Your Videos</h2>
       <p class="text-sm text-muted mb-6 max-w-md mx-auto">Start editing your videos with powerful AI tools</p>
-      <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">Get Started Free</button>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <button class="cta-btn bg-primary text-black px-6 py-2.5 rounded-xl font-black text-sm hover:shadow-glow hover:scale-105 active:scale-95 transition-all">Get Started Free</button>
+        <button type="button" class="gtm-boost-btn border border-primary/40 text-primary px-6 py-2.5 rounded-xl font-black text-sm hover:bg-primary/10 active:scale-95 transition-all" title="Enhance your prompt with GTM conversion frameworks" aria-label="GTM Boost prompt enhancer">🎯 GTM Boost</button>
+      </div>
     </div>
   `;
 
@@ -117,6 +120,18 @@ export function VideoToVideoPage() {
   // ==========================================
   container.querySelector('.start-btn')?.addEventListener('click', () => navigate('video'));
   container.querySelector('.cta-btn').addEventListener('click', () => navigate('video'));
+
+  const gtmBoostBtn = contentWrapper.querySelector('.gtm-boost-btn');
+  if (gtmBoostBtn) {
+    gtmBoostBtn.addEventListener('click', () => {
+      import('../lib/uiIntegration.js').then(({ openGTMPromptModal }) => {
+        openGTMPromptModal('video-to-video', (prompt) => {
+          try { localStorage.setItem('prefill_prompt', prompt); } catch { /* ignore storage failures */ }
+          navigate('video');
+        });
+      }).catch((err) => console.error('[VideoToVideoPage] GTM Boost failed:', err));
+    });
+  }
 
   container.querySelectorAll('.model-card').forEach(card => {
     card.addEventListener('click', () => {

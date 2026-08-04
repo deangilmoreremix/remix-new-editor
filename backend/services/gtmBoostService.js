@@ -84,18 +84,19 @@ const INDUSTRIES = {
   healthcare: { id: 'healthcare', name: 'Healthcare', description: 'Healthcare technology and patient care solutions' },
   manufacturing: { id: 'manufacturing', name: 'Manufacturing', description: 'Manufacturing and industrial operations solutions' },
   'professional-services': { id: 'professional-services', name: 'Professional Services', description: 'Consulting, advisory, and professional service firms' },
-  retail: { id: 'retail', name: 'Retail & eCommerce', description: 'Retail and e-commerce solutions' },
-  education: { id: 'education', name: 'Education', description: 'Education technology and learning solutions' },
-  'real-estate': { id: 'real-estate', name: 'Real Estate', description: 'Real estate and property technology' },
-  restaurant: { id: 'restaurant', name: 'Restaurant & Food Service', description: 'Restaurant, food service, and hospitality' },
-  'fitness-wellness': { id: 'fitness-wellness', name: 'Fitness & Wellness', description: 'Gyms, studios, and wellness services' },
-  'legal-services': { id: 'legal-services', name: 'Legal Services', description: 'Law firms and legal technology' },
-  automotive: { id: 'automotive', name: 'Automotive', description: 'Automotive dealers and car services' },
-  fashion: { id: 'fashion', name: 'Fashion & Lifestyle', description: 'Fashion, beauty, and lifestyle brands' },
-  events: { id: 'events', name: 'Events & Entertainment', description: 'Events, venues, and entertainment' },
-  luxury: { id: 'luxury', name: 'Luxury & Premium', description: 'Luxury and premium brands' },
-  travel: { id: 'travel', name: 'Travel & Hospitality', description: 'Travel, hotels, and hospitality services' },
-  nonprofit: { id: 'nonprofit', name: 'Nonprofit & Social Impact', description: 'Nonprofit and social impact organizations' },
+  ecommerce: { id: 'ecommerce', name: 'E-commerce', description: 'Online retail and DTC brands selling through visual storefronts' },
+  'real-estate': { id: 'real-estate', name: 'Real Estate', description: 'Residential, commercial, and proptech selling via property visuals' },
+  education: { id: 'education', name: 'Education', description: 'EdTech, universities, and training orgs selling learning outcomes' },
+  logistics: { id: 'logistics', name: 'Logistics & Supply Chain', description: 'Freight, warehousing, and supply-chain software and services' },
+  retail: { id: 'retail', name: 'Retail & CPG', description: 'Brick-and-mortar and consumer-packaged-goods brand marketing' },
+  media: { id: 'media', name: 'Media & Entertainment', description: 'Streaming, publishing, and studios selling audience attention' },
+  legal: { id: 'legal', name: 'Legal & Compliance', description: 'Law firms and legal-tech selling trust and expertise' },
+  telecom: { id: 'telecom', name: 'Telecom & Connectivity', description: 'Connectivity, broadband, and communications providers' },
+  energy: { id: 'energy', name: 'Energy & Clean Tech', description: 'Renewables, utilities, and climate-tech selling transformation' },
+  nonprofit: { id: 'nonprofit', name: 'Nonprofit & Mission-Driven', description: 'Charities and mission orgs driving donations and awareness' },
+  government: { id: 'government', name: 'Government & Public Sector', description: 'Public agencies and govtech selling programs and services' },
+  insurance: { id: 'insurance', name: 'Insurance', description: 'Carriers, brokers, and insurtech selling protection and peace of mind' },
+  automotive: { id: 'automotive', name: 'Automotive & Mobility', description: 'Dealers, OEMs, and mobility tech selling vehicles and experiences' },
 };
 
 const METHODOLOGIES = {
@@ -144,12 +145,31 @@ const METHODOLOGIES = {
 };
 
 const TONALITIES = {
-  executive: { id: 'executive', name: 'Executive Gravitas', description: 'Formal, authoritative language with strategic insights', guidelines: 'Use sophisticated vocabulary, focus on strategic implications, emphasize vision and leadership' },
-  challenger: { id: 'challenger', name: 'Challenger Bold', description: 'Confident, assertive messaging that challenges assumptions', guidelines: 'Be provocative and insight-driven, challenge conventional thinking, provide unique perspectives' },
-  conversational: { id: 'conversational', name: 'Conversational Peer', description: 'Friendly, relatable tone like speaking to a trusted colleague', guidelines: 'Use "we" and "you", include relatable examples, build rapport through shared understanding' },
-  technical: { id: 'technical', name: 'Technical Expert', description: 'Demonstrate deep technical knowledge and expertise', guidelines: 'Use industry terminology, focus on specifications and capabilities, show technical credibility' },
-  inspirational: { id: 'inspirational', name: 'Inspirational Vision', description: 'Paint compelling vision of future possibilities', guidelines: 'Use aspirational language, focus on transformation, create emotional connection to goals' },
-  urgent: { id: 'urgent', name: 'Urgent Action', description: 'Create sense of urgency and time-sensitive opportunities', guidelines: 'Use action-oriented language, emphasize immediate benefits, highlight risk of inaction' },
+  professional: { id: 'professional', name: 'Professional', description: 'Clean, credible, polished tone for B2B image and video creative', guidelines: 'Use clear, confident language; steady pacing; neutral, well-lit framing; minimal but premium styling' },
+  executive: { id: 'executive', name: 'Executive Gravitas', description: 'Formal, authoritative tone with strategic insights for boardroom-level video', guidelines: 'Sophisticated vocabulary, emphasis on vision/leadership, slow deliberate cuts, cinematic establishing shots' },
+  challenger: { id: 'challenger', name: 'Challenger Bold', description: 'Confident, assertive tone that challenges assumptions in punchy video hooks', guidelines: 'Provocative insight-driven copy, hard cuts, high-contrast visuals, bold typography on screen' },
+  conversational: { id: 'conversational', name: 'Conversational Peer', description: 'Friendly, relatable tone like talking to a trusted colleague on camera', guidelines: 'Use "we"/"you", casual framing (selfie/desk setup), natural lighting, relaxed pacing' },
+  technical: { id: 'technical', name: 'Technical Expert', description: 'Deep technical credibility for demo-heavy product videos and explainer images', guidelines: 'Industry terminology, screen-recorded UI demos, diagram overlays, precise labelling' },
+  inspirational: { id: 'inspirational', name: 'Inspirational Vision', description: 'Aspirational tone painting a future vision for brand/manifesto video', guidelines: 'Aspirational copy, sweeping b-roll, upward camera moves, warm uplifting color grade' },
+  urgent: { id: 'urgent', name: 'Urgent Action', description: 'Time-sensitive, high-energy tone for limited-offer promo video', guidelines: 'Action verbs, countdown graphics, fast pacing, urgent sound design, red/amber accents' },
+  casual: { id: 'casual', name: 'Casual Peer-to-Peer', description: 'Light, informal tone for social-first Reels/TikToks aimed at GTM peers', guidelines: 'Slang-light, punchy one-liners, vertical 9:16 framing, trending audio, quick cuts' },
+  witty: { id: 'witty', name: 'Witty & Clever', description: 'Humorous, clever copy for scroll-stopping social video and meme images', guidelines: 'Wordplay and light joke setups, comedic timing in edits, playful graphics' },
+  empathetic: { id: 'empathetic', name: 'Empathetic & Human', description: 'Warm, understanding tone for customer-story and retention video', guidelines: 'Validation-first copy, real customer faces, soft focus, gentle pacing, calm score' },
+  'data-driven': { id: 'data-driven', name: 'Data-Driven', description: 'Number-led, proof-oriented tone for ROI/results video and stat graphics', guidelines: 'Lead with metrics, animated bar/line charts, clean infographic styling, confident narration' },
+  storytelling: { id: 'storytelling', name: 'Narrative Storytelling', description: 'Three-act story structure for case-study and founding-story video', guidelines: 'Setup-conflict-resolution arc, character-led b-roll, emotional music swell' },
+  authoritative: { id: 'authoritative', name: 'Authoritative Expert', description: 'Commanding, credentialed tone for thought-leadership video', guidelines: 'Cite frameworks and proof, steady eye-contact framing, library/office settings, serious grade' },
+  minimalist: { id: 'minimalist', name: 'Minimalist', description: 'Restrained, single-message tone for clean product hero images and videos', guidelines: 'One idea per frame, lots of negative space, muted palette, slow deliberate motion' },
+  luxury: { id: 'luxury', name: 'Luxury & Premium', description: 'High-end, exclusive tone for enterprise/ABM video and hero imagery', guidelines: 'Rich textures, slow motion, gold/black palette, elegant typography, no hard-sell' },
+  playful: { id: 'playful', name: 'Playful & Fun', description: 'Bright, energetic tone for culture and top-of-funnel social video', guidelines: 'Bright palette, bouncy edits, emoji-style graphics, upbeat quirky music' },
+  bold: { id: 'bold', name: 'Bold & Disruptive', description: 'Loud, category-breaking tone for brand-launch video', guidelines: 'Oversized type, saturated color, fast aggressive cuts, statement voiceover' },
+  educational: { id: 'educational', name: 'Educational', description: 'Clear teaching tone for how-to and explainer video/image carousels', guidelines: 'Step-by-step structure, pointer/arrow overlays, calm narration, clean whiteboard style' },
+  trustworthy: { id: 'trustworthy', name: 'Trustworthy & Reassuring', description: 'Calm, dependable tone for security/compliance and onboarding video', guidelines: 'Plain language, steady pacing, soft blue/green palette, real-environment shots' },
+  energetic: { id: 'energetic', name: 'Energetic & Upbeat', description: 'High-tempo, motivating tone for event/launch hype video', guidelines: 'Fast cuts, rising tempo, bright colors, crowd/confetti energy, driving beat' },
+  sophisticated: { id: 'sophisticated', name: 'Sophisticated & Refined', description: 'Understated elegance for premium B2B brand films', guidelines: 'Subtle motion, refined palette, elegant serif type, restrained music' },
+  direct: { id: 'direct', name: 'Direct & No-Fluff', description: 'Blunt, benefit-first tone for bottom-funnel conversion video', guidelines: 'Front-load the offer, plain words, punch-in cuts, clear CTA card' },
+  friendly: { id: 'friendly', name: 'Friendly & Welcoming', description: 'Warm invite tone for webinar and community onboarding video', guidelines: 'Inviting copy, open body language, bright airy set, gentle uplifting music' },
+  dramatic: { id: 'dramatic', name: 'Dramatic & Cinematic', description: 'High-stakes, cinematic tone for hero/brand film', guidelines: 'Low-key lighting, orchestral swell, slow-mo hero moment, deep contrast grade' },
+  'peer-comparison': { id: 'peer-comparison', name: 'Social Proof / Peer Comparison', description: 'Comparison-led tone for competitive-displacement video', guidelines: 'Show "them vs you" split screens, benchmark charts, confident neutral narration' },
 };
 
 const FOCUS_AREAS = [
@@ -222,7 +242,7 @@ function buildFallbackPrompt({ basePrompt, role, industry, methodology, tonality
   const roleContent = ROLES[role] || ROLES.sdr;
   const industryContent = INDUSTRIES[industry] || INDUSTRIES.saas;
   const methodologyContent = METHODOLOGIES[methodology] || METHODOLOGIES.spin;
-  const tonalityContent = TONALITIES[tonality] || TONALITIES.executive;
+  const tonalityContent = TONALITIES[tonality] || TONALITIES.professional;
   const focusElements = focus
     .map((id) => FOCUS_AREAS.find((f) => f.id === id))
     .filter(Boolean)
@@ -273,7 +293,7 @@ async function callOpenAI({ basePrompt, role, industry, methodology, tonality, f
   const roleContent = ROLES[role] || ROLES.sdr;
   const industryContent = INDUSTRIES[industry] || INDUSTRIES.saas;
   const methodologyContent = METHODOLOGIES[methodology] || METHODOLOGIES.spin;
-  const tonalityContent = TONALITIES[tonality] || TONALITIES.executive;
+  const tonalityContent = TONALITIES[tonality] || TONALITIES.professional;
   const focusLabels = focus
     .map((id) => (FOCUS_AREAS.find((f) => f.id === id) || {}).label)
     .filter(Boolean)
@@ -402,34 +422,64 @@ router.post('/generate', async (req, res) => {
     templateContext = {},
   } = req.body || {};
 
-  if (!role || !industry || !methodology || !tonality) {
-    return res.status(400).json({
-      error: 'Bad Request',
-      message: 'role, industry, methodology, and tonality are required',
-    });
-  }
+  // Apply defaults so the endpoint never 400s on missing/empty selections.
+  // Each of these also has a fallback inside the build/AI paths, but
+  // resolving them here means the response's `selections` always reflects
+  // what was actually used.
+  const resolvedRole = role || 'sdr';
+  const resolvedIndustry = industry || 'saas';
+  const resolvedMethodology = methodology || 'spin';
+  const resolvedTonality = tonality || 'professional';
 
   // 1. Try OpenAI if a key is configured.
-  const aiPrompt = await callOpenAI({ basePrompt, role, industry, methodology, tonality, focus, templateContext });
+  const aiPrompt = await callOpenAI({
+    basePrompt,
+    role: resolvedRole,
+    industry: resolvedIndustry,
+    methodology: resolvedMethodology,
+    tonality: resolvedTonality,
+    focus,
+    templateContext,
+  });
 
   if (aiPrompt) {
     return res.json({
       success: true,
       source: 'openai',
       prompt: aiPrompt,
-      selections: { role, industry, methodology, tonality, focus },
+      selections: {
+        role: resolvedRole,
+        industry: resolvedIndustry,
+        methodology: resolvedMethodology,
+        tonality: resolvedTonality,
+        focus,
+      },
       templateContext,
     });
   }
 
   // 2. Fallback to the local library.
-  const prompt = buildFallbackPrompt({ basePrompt, role, industry, methodology, tonality, focus, templateContext });
+  const prompt = buildFallbackPrompt({
+    basePrompt,
+    role: resolvedRole,
+    industry: resolvedIndustry,
+    methodology: resolvedMethodology,
+    tonality: resolvedTonality,
+    focus,
+    templateContext,
+  });
 
   res.json({
     success: true,
     source: 'local-library',
     prompt,
-    selections: { role, industry, methodology, tonality, focus },
+    selections: {
+      role: resolvedRole,
+      industry: resolvedIndustry,
+      methodology: resolvedMethodology,
+      tonality: resolvedTonality,
+      focus,
+    },
     templateContext,
   });
 });
