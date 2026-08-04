@@ -9,6 +9,7 @@ import { extendClipContextMenu, extendGenerationPanel, extendMediaLibrary, openG
 import { integrateMediaIngest, GiphyIntegration, StickersLibrary, LowerThirds, VideoGallery, AnimationList } from '../lib/mediaIngest.js';
 import { renderMultiCameraToolbar, renderPipControls, renderSplitScreenControls } from '../lib/editor/multiCamera.js';
 import { createTimelineState } from '../lib/editor/timelineEditorState.js';
+import { legacyToTimeline, getPreviewClipFromTimeline, syncTimelineFromState } from '../lib/editor/timeline-bridge.js';
 import { KeyframeSystem } from '../lib/editor/keyframeSystem.jsx';
 import { TransitionEditor } from '../lib/editor/transitionEditor.js';
 import { TimelineTransitions } from '../lib/editor/timelineTransitions.js';
@@ -734,6 +735,11 @@ export function TimelineEditorPage() {
       }
     });
 
+    // Mirror the legacy store into the new Timeline model. This is the
+    // single source of truth going forward; legacy code still reads
+    // state.tracks and is kept in sync via the bridge.
+    merged.timeline = legacyToTimeline(merged);
+
     return merged;
   }
 
@@ -762,13 +768,17 @@ export function TimelineEditorPage() {
       const saved = localStorage.getItem('timeline-editor-project');
       if (saved) {
         const projectData = JSON.parse(saved);
-        
+
         const state = { ...createState(), ...projectData };
         // Ensure tracks is always an array
         if (!Array.isArray(state.tracks)) {
           state.tracks = createState().tracks;
         }
         state.tracks = normalizeTrackTypes(state.tracks);
+        // Mirror the legacy store into the new Timeline model so the
+        // editor can start reading from it without waiting for every
+        // mutation site to be migrated.
+        state.timeline = syncTimelineFromState(state);
         return state;
       }
     } catch (err) {
@@ -1168,7 +1178,25 @@ export function TimelineEditorPage() {
     }
 
     function updatePreview(clip) {
-      const selected = clip || findSelectedClip();
+      // Read from the new Timeline model. The `clip` parameter is kept
+      // for backward compatibility with legacy callers that pass a
+      // pre-shaped preview object; when present, it's used as-is. When
+      // absent, we resolve the currently-selected clip from the new
+      // model via the bridge, which is the path Phase 2+ will use.
+      let selected;
+      if (clip) {
+        selected = clip;
+      } else {
+        // Sync the new model from the legacy store before reading.
+        // state.tracks is still the source of truth for mutations;
+        // the bridge mirrors it on demand.
+        state.timeline = syncTimelineFromState(state);
+        selected = getPreviewClipFromTimeline(
+          state.timeline,
+          state.selectedClipId,
+          state,
+        );
+      }
       els.projectTitle.textContent = state.projectTitle;
       renderPreviewAsset(selected);
     }
