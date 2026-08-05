@@ -18,6 +18,7 @@ export function AudioStudio() {
   let prompt = '';
   let style = '';
   let duration = '30';
+  let selectedVoice = 'female-1';
   let customThumbnailUrl = getCustomThumbnailFromCache('audio-studio');
 
   // Header with hero banner
@@ -140,6 +141,23 @@ export function AudioStudio() {
   durationGroup.appendChild(durationRow);
   formCard.appendChild(durationGroup);
 
+  // Voice selector (for TTS models)
+  const voiceGroup = document.createElement('div');
+  voiceGroup.className = 'flex flex-col gap-2 hidden';
+  const voiceLabel = document.createElement('label');
+  voiceLabel.className = 'text-sm font-bold text-secondary';
+  voiceLabel.textContent = 'Voice';
+  voiceGroup.appendChild(voiceLabel);
+  const voiceSelect = document.createElement('select');
+  voiceSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-primary focus:outline-none';
+  voiceSelect.innerHTML = `
+    <option value="female-1">Female 1</option>
+    <option value="male-qn-qingse">Male Qingse</option>
+  `;
+  voiceSelect.onchange = (e) => { selectedVoice = e.target.value; };
+  voiceGroup.appendChild(voiceSelect);
+  formCard.appendChild(voiceGroup);
+
   // Generate button
   const genBtn = document.createElement('button');
   genBtn.type = 'button';
@@ -217,6 +235,10 @@ export function AudioStudio() {
     // Show/hide style selector for music models
     const supportsStyles = selectedModel.supportsStyles;
     styleGroup.classList.toggle('hidden', !supportsStyles);
+
+    // Show/hide voice selector for TTS models
+    const supportsVoice = selectedModel.type === 'tts';
+    voiceGroup.classList.toggle('hidden', !supportsVoice);
   }
 
   // Generate button handler
@@ -237,15 +259,30 @@ export function AudioStudio() {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
-      const params = { 
-        model: selectedModel.id,
-        prompt: prompt,
-        duration: parseInt(duration)
-      };
-      
-      if (style) params.style = style;
-      
-      const result = await muapi.generateAudio(params);
+      let result;
+      if (selectedModel.type === 'music') {
+        result = await muapi.generateMusic({
+          model: selectedModel.id,
+          prompt: prompt,
+          style: style || undefined,
+          duration: parseInt(duration)
+        });
+      } else if (selectedModel.type === 'tts') {
+        result = await muapi.generateAudio({
+          model: selectedModel.id,
+          text: prompt,
+          speed: parseInt(duration),
+          voice: selectedVoice
+        });
+      } else {
+        const params = {
+          model: selectedModel.id,
+          prompt: prompt,
+          duration: parseInt(duration)
+        };
+        if (style) params.style = style;
+        result = await muapi.generateAudio(params);
+      }
       if (result?.url) {
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `

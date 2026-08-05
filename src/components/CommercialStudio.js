@@ -205,10 +205,14 @@ export function CommercialStudio() {
       const params = {
         model: selectedModel,
         image_url: uploadedUrl,
-        prompt: `${selectedScene}, professional product photography, commercial quality`,
-        aspect_ratio: selectedFormat.ar,
         customThumbnailUrl: customThumbnailUrl || undefined,
       };
+      if (selectedModel === 'ai-product-shot') {
+        params.scene_description = `${selectedScene}, professional product photography, commercial quality`;
+      } else {
+        params.prompt = `${selectedScene}, professional product photography, commercial quality`;
+        params.aspect_ratio = selectedFormat.ar;
+      }
       const result = await muapi.generateI2I(params);
       if (result?.url) {
         resultArea.classList.remove('hidden');

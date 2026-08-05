@@ -14,6 +14,7 @@ import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/Studio
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
+import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
 
 export function VideoStudio() {
     const container = document.createElement('div');
@@ -31,6 +32,7 @@ export function VideoStudio() {
     let lastGenerationId = null;
     let lastGenerationModel = null;
     let dropdownOpen = null;
+    let selectedProvider = 'all';
     let uploadedImageUrl = null;
     let imageMode = false; // false = t2v models, true = i2v models
     let v2vMode = false;   // true = video-to-video tools mode
@@ -113,6 +115,7 @@ export function VideoStudio() {
                 selectedModel = i2vModels[0].id;
                 selectedModelName = i2vModels[0].name;
                 document.getElementById('v-model-btn-label').textContent = selectedModelName;
+                updateModelBtnIcon();
                 updateControlsForModel(selectedModel);
             }
             textarea.placeholder = 'Describe the motion or effect (optional)';
@@ -360,10 +363,25 @@ export function VideoStudio() {
     };
 
     const modelBtn = createControlBtn(`
-        <div class="w-5 h-5 bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20">
-            <span class="text-[10px] font-black text-black">V</span>
-        </div>
+        <div id="v-model-btn-icon" class="w-5 h-5 rounded-md flex items-center justify-center overflow-hidden bg-white/5"></div>
     `, selectedModelName, 'v-model-btn', 'Select AI video model');
+
+    const updateModelBtnIcon = () => {
+        const iconEl = document.getElementById('v-model-btn-icon');
+        if (!iconEl) return;
+        const allCurrentModels = [...t2vModels, ...i2vModels, ...v2vModels];
+        const current = allCurrentModels.find(m => m.id === selectedModel);
+        const provider = current?.provider || 'muapi';
+        const logoUrl = PROVIDER_LOGOS[provider];
+        if (logoUrl) {
+            iconEl.innerHTML = `<img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" />`;
+        } else {
+            const style = getProviderStyle(provider);
+            iconEl.innerHTML = `<span class="text-[10px] font-black text-black">${style.text}</span>`;
+            iconEl.className = 'w-5 h-5 bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20';
+        }
+    };
+    updateModelBtnIcon();
 
     const arBtn = createControlBtn(`
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
@@ -610,94 +628,149 @@ export function VideoStudio() {
         dropdown.classList.add('opacity-100', 'pointer-events-auto');
 
         if (type === 'model') {
-            dropdown.classList.add('w-[calc(100vw-3rem)]', 'max-w-xs');
-            dropdown.classList.remove('max-w-[240px]', 'max-w-[200px]');
+            dropdown.classList.add('w-[calc(100vw-2rem)]', 'md:w-[480px]', 'max-w-md');
+            dropdown.classList.remove('max-w-xs', 'max-w-[240px]', 'max-w-[200px]');
+            selectedProvider = 'all';
+
+            const generationModels = [...t2vModels, ...i2vModels];
+            const allCurrentModels = [...generationModels, ...v2vModels];
+            const availableProviders = getAvailableProviders(allCurrentModels);
+
             dropdown.innerHTML = `
-                <div class="flex flex-col h-full max-h-[70vh]">
-                    <div class="px-2 pb-3 mb-2 border-b border-white/5 shrink-0">
-                        <div class="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2.5 border border-white/5 focus-within:border-primary/50 transition-colors">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-muted"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-                            <input type="text" id="v-model-search" placeholder="Search models..." class="bg-transparent border-none text-xs text-white focus:ring-0 w-full p-0">
+                <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+                    <div data-provider-sidebar></div>
+                    <div class="flex-1 flex flex-col gap-2 min-w-0">
+                        ${renderSearchBar()}
+                        <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
+                            <span>Available models</span>
+                            <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
                         </div>
+                        <div data-model-list></div>
                     </div>
-                    <div class="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-2 shrink-0">Video models</div>
-                    <div id="v-model-list-container" class="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-1 pb-2"></div>
                 </div>
             `;
-            const list = dropdown.querySelector('#v-model-list-container');
 
-            const makeModelItem = (m, isV2V = false) => {
-                const item = document.createElement('div');
-                item.className = `flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all border border-transparent hover:border-white/5 ${selectedModel === m.id ? 'bg-white/5 border-white/5' : ''}`;
-                const iconColor = isV2V ? 'bg-orange-500/10 text-orange-400' : m.id.includes('kling') ? 'bg-blue-500/10 text-blue-400' : m.id.includes('veo') ? 'bg-purple-500/10 text-purple-400' : m.id.includes('sora') ? 'bg-rose-500/10 text-rose-400' : 'bg-primary/10 text-primary';
-                item.innerHTML = `
-                    <div class="flex items-center gap-3.5">
-                         <div class="w-10 h-10 ${iconColor} border border-white/5 rounded-xl flex items-center justify-center font-black text-sm shadow-inner uppercase">${m.name.charAt(0)}</div>
-                         <div class="flex flex-col gap-0.5">
-                            <span class="text-xs font-bold text-white tracking-tight">${m.name}</span>
-                            ${isV2V ? '<span class="text-[9px] text-orange-400/70">Upload a video to use</span>' : ''}
-                         </div>
-                    </div>
-                    ${selectedModel === m.id ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
-                `;
-                item.onclick = (e) => {
-                    e.stopPropagation();
-                    if (isV2V) {
-                        // Switch to v2v mode
-                        v2vMode = true;
-                        imageMode = false;
-                        picker.reset();
-                        uploadedImageUrl = null;
-                        selectedModel = m.id;
-                        selectedModelName = m.name;
-                        document.getElementById('v-model-btn-label').textContent = selectedModelName;
-                        updateControlsForModel(selectedModel);
-                        textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
-                        textarea.disabled = true;
-                    } else {
-                        // Leaving v2v mode if was in it
-                        if (v2vMode) {
-                            v2vMode = false;
-                            uploadedVideoUrl = null;
-                            showVideoIcon();
-                            textarea.disabled = false;
-                        }
-                        selectedModel = m.id;
-                        selectedModelName = m.name;
-                        document.getElementById('v-model-btn-label').textContent = selectedModelName;
-                        updateControlsForModel(selectedModel);
-                        textarea.placeholder = imageMode ? 'Describe the motion or effect (optional)' : 'Describe the video you want to create';
+            const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
+            const modelListEl = dropdown.querySelector('[data-model-list]');
+            const providerBadge = dropdown.querySelector('[data-provider-badge]');
+            const searchInput = dropdown.querySelector('[data-provider-search]');
+
+            const refresh = () => {
+                sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
+                    selectedProvider = provider;
+                    refresh();
+                });
+                const query = searchInput ? searchInput.value : '';
+                const filteredMain = filterModels(generationModels, query, selectedProvider);
+                const filteredV2V = filterModels(v2vModels, query, selectedProvider);
+                const showProviderName = selectedProvider === 'all';
+
+                let html = `<div class="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-1 pb-2 flex-1">`;
+                if (filteredMain.length === 0 && filteredV2V.length === 0) {
+                    html += `<div class="text-xs text-white/30 text-center py-6">No models found</div>`;
+                } else {
+                    for (const m of filteredMain) {
+                        const isSelected = m.id === selectedModel;
+                        const itemClasses = isSelected ? 'bg-white/5 border-white/5' : 'border border-transparent hover:border-white/5';
+                        const logoUrl = PROVIDER_LOGOS[m.provider];
+                        const hasLogo = Boolean(logoUrl);
+                        const iconHtml = hasLogo
+                            ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${m.provider_name || ''}" class="w-full h-full object-contain p-1 ${invertLogos.includes(m.provider) ? 'invert' : ''}" /></div>`
+                            : `<div class="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase ${(m.family === 'kontext' ? 'bg-blue-500/10 text-blue-400 border-blue-500/10' : m.family === 'effects' ? 'bg-purple-500/10 text-purple-400 border-purple-500/10' : 'bg-primary/10 text-primary border-primary/10')}">${(m.name || m.id).charAt(0)}</div>`;
+                        const providerLabel = showProviderName && m.provider_name ? `<span class="text-[9px] text-white/40">${m.provider_name}</span>` : '';
+                        const checkSvg = isSelected ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12" /></svg>' : '';
+
+                        html += `<div data-model-id="${m.id}" class="flex items-center justify-between p-3 hover:bg-white/5 rounded-2xl cursor-pointer transition-all ${itemClasses}">`;
+                        html += `<div class="flex items-center gap-3">${iconHtml}<div class="flex flex-col gap-0.5 min-w-0"><span class="text-xs font-bold text-white tracking-tight truncate">${m.name}</span>${providerLabel}</div></div>`;
+                        html += checkSvg;
+                        html += `</div>`;
                     }
-                    closeDropdown();
-                };
-                return item;
-            };
 
-            const renderModels = (filter = '') => {
-                list.innerHTML = '';
-                const lf = filter.toLowerCase();
+                    if (filteredV2V.length > 0) {
+                        html += `<div class="text-[10px] font-bold text-orange-400/70 px-3 py-2 mt-1 border-t border-white/5">Video Tools</div>`;
+                        for (const m of filteredV2V) {
+                            const isSelected = m.id === selectedModel;
+                            const itemClasses = isSelected ? 'bg-white/5 border-white/5' : 'border border-transparent hover:border-white/5';
+                            const logoUrl = PROVIDER_LOGOS[m.provider];
+                            const hasLogo = Boolean(logoUrl);
+                            const iconHtml = hasLogo
+                                ? `<div class="w-8 h-8 rounded-full border border-white/5 overflow-hidden shrink-0 flex items-center justify-center bg-white/[0.02]"><img src="${logoUrl}" alt="${m.provider_name || ''}" class="w-full h-full object-contain p-1 ${invertLogos.includes(m.provider) ? 'invert' : ''}" /></div>`
+                                : `<div class="w-8 h-8 rounded-full border border-white/5 flex items-center justify-center font-bold text-xs shadow-inner uppercase bg-primary/10 text-primary border-primary/10">${(m.name || m.id).charAt(0)}</div>`;
+                            const checkSvg = isSelected ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12" /></svg>' : '';
+                            const helperText = m.imageField ? 'Upload a video and image' : 'Upload a video to use';
+                            const providerLabel = showProviderName && m.provider_name ? `<span class="text-[9px] text-white/40">${m.provider_name}</span>` : '';
 
-                // Regular generation models (always t2v or i2v, never v2v)
-                const generationModels = imageMode ? i2vModels : t2vModels;
-                const filteredMain = generationModels
-                    .filter(m => m.name.toLowerCase().includes(lf) || m.id.toLowerCase().includes(lf));
-                filteredMain.forEach(m => list.appendChild(makeModelItem(m, false)));
+                            html += `<div data-model-id="${m.id}" data-is-v2v="true" class="flex items-center justify-between p-3 hover:bg-white/5 rounded-2xl cursor-pointer transition-all ${itemClasses}">`;
+                            html += `<div class="flex items-center gap-3">${iconHtml}<div class="flex flex-col gap-0.5 min-w-0"><span class="text-xs font-bold text-white tracking-tight truncate">${m.name}</span><span class="text-[9px] text-orange-400/70">${helperText}</span>${providerLabel}</div></div>`;
+                            html += checkSvg;
+                            html += `</div>`;
+                        }
+                    }
+                }
+                html += `</div>`;
+                modelListEl.innerHTML = html;
 
-                // Video Tools section
-                const filteredV2V = v2vModels.filter(m => m.name.toLowerCase().includes(lf) || m.id.toLowerCase().includes(lf));
-                if (filteredV2V.length > 0) {
-                    const sectionLabel = document.createElement('div');
-                    sectionLabel.className = 'text-[10px] font-bold text-orange-400/70 uppercase tracking-widest px-3 py-2 mt-1 border-t border-white/5';
-                    sectionLabel.textContent = 'Video Tools';
-                    list.appendChild(sectionLabel);
-                    filteredV2V.forEach(m => list.appendChild(makeModelItem(m, true)));
+                if (selectedProvider !== 'all') {
+                    const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
+                    providerBadge.textContent = pName;
+                    providerBadge.classList.remove('hidden');
+                } else {
+                    providerBadge.classList.add('hidden');
                 }
             };
 
-            renderModels();
-            const searchInput = dropdown.querySelector('#v-model-search');
+            refresh();
+
+            sidebarEl.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-provider]');
+                if (!btn) return;
+                e.stopPropagation();
+                const provider = btn.getAttribute('data-provider');
+                if (provider) {
+                    selectedProvider = provider;
+                    refresh();
+                }
+            });
+
             searchInput.onclick = (e) => e.stopPropagation();
-            searchInput.oninput = (e) => renderModels(e.target.value);
+            searchInput.oninput = () => refresh();
+
+            modelListEl.addEventListener('click', (e) => {
+                const item = e.target.closest('[data-model-id]');
+                if (!item) return;
+                e.stopPropagation();
+                const modelId = item.getAttribute('data-model-id');
+                const isV2V = item.getAttribute('data-is-v2v') === 'true';
+                const model = allCurrentModels.find(m => m.id === modelId);
+                if (!model) return;
+
+                if (isV2V) {
+                    v2vMode = true;
+                    imageMode = false;
+                    picker.reset();
+                    uploadedImageUrl = null;
+                    selectedModel = model.id;
+                    selectedModelName = model.name;
+                    document.getElementById('v-model-btn-label').textContent = selectedModelName;
+                    updateControlsForModel(selectedModel);
+                    textarea.placeholder = 'Upload a video using the 🎥 button, then click Generate';
+                    textarea.disabled = true;
+                } else {
+                    if (v2vMode) {
+                        v2vMode = false;
+                        uploadedVideoUrl = null;
+                        showVideoIcon();
+                        textarea.disabled = false;
+                    }
+                    selectedModel = model.id;
+                    selectedModelName = model.name;
+                    document.getElementById('v-model-btn-label').textContent = selectedModelName;
+                    updateControlsForModel(selectedModel);
+                    textarea.placeholder = imageMode ? 'Describe the motion or effect (optional)' : 'Describe the video you want to create';
+                }
+                updateModelBtnIcon();
+                closeDropdown();
+            });
 
         } else if (type === 'ar') {
             dropdown.classList.add('max-w-[240px]');
@@ -813,12 +886,17 @@ export function VideoStudio() {
         dropdown.classList.add('opacity-0', 'pointer-events-none');
         dropdown.classList.remove('opacity-100', 'pointer-events-auto');
         dropdownOpen = null;
+        selectedProvider = 'all';
     };
 
     const toggleDropdown = (type, btn) => (e) => {
         e.stopPropagation();
         if (dropdownOpen === type) closeDropdown();
-        else { dropdownOpen = type; showDropdown(type, btn); }
+        else {
+            dropdownOpen = type;
+            if (type === 'model') selectedProvider = 'all';
+            showDropdown(type, btn);
+        }
     };
 
     modelBtn.onclick = toggleDropdown('model', modelBtn);
@@ -1230,16 +1308,15 @@ export function VideoStudio() {
                     model: selectedModel,
                     image_url: uploadedImageUrl,
                 };
-                if (customThumbnailUrl) i2vParams.thumbnail_url = customThumbnailUrl;
                 if (prompt) i2vParams.prompt = prompt;
-                if (negativePrompt) i2vParams.negative_prompt = negativePrompt;
-                if (seed && seed !== -1) i2vParams.seed = seed;
-                i2vParams.aspect_ratio = selectedAr;
+                const isWanI2V = selectedModel === 'wan2.1-image-to-video' || selectedModel === 'wan2.5-image-to-video';
+                if (!isWanI2V && customThumbnailUrl) i2vParams.thumbnail_url = customThumbnailUrl;
+                if (!isWanI2V && negativePrompt) i2vParams.negative_prompt = negativePrompt;
+                if (!isWanI2V && seed && seed !== -1) i2vParams.seed = seed;
                 const durations = getCurrentDurations(selectedModel);
                 if (durations.length > 0) i2vParams.duration = selectedDuration;
                 const resolutions = getCurrentResolutions(selectedModel);
                 if (resolutions.length > 0) i2vParams.resolution = selectedResolution;
-                if (selectedQuality) i2vParams.quality = selectedQuality;
 
                 const res = await muapi.generateI2V(i2vParams);
                 console.log('[VideoStudio] I2V response:', res);

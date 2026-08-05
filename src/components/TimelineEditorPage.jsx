@@ -5003,7 +5003,7 @@ export function TimelineEditorPage() {
         musicBtn.addEventListener('click', async () => {
           try {
             const { default: muapi } = await import('../lib/muapi.js');
-            const model = musicBtn.dataset.model || 'suno-create';
+            const model = musicBtn.dataset.model || 'suno-create-music';
             const prompt = prompt('Describe the music (or leave empty for auto):') || 'cinematic background music';
             const result = await muapi.generateMusic({ model, prompt, duration: 30 });
             if (result.url) {

@@ -237,7 +237,7 @@ export function TrainingStudio() {
       const params = { 
         model: selectedModel.id,
         name: loraName,
-        images_list: uploadedImages,
+        images: uploadedImages,
         epochs: parseInt(epochs),
       };
       

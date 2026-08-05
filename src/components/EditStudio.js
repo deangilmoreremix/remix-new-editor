@@ -240,7 +240,11 @@ export function EditStudio() {
       const params = { model: activeTool.id, image_url: uploadedUrl, customThumbnailUrl: customThumbnailUrl || undefined };
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
       if (activeTool.hasPrompt && promptField.value.trim()) {
-        params.prompt = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
+        if (activeTool.id === 'ai-product-shot') {
+          params.scene_description = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
+        } else {
+          params.prompt = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
+        }
       }
       const result = await muapi.generateI2I(params);
       if (result?.url) {
@@ -249,6 +253,9 @@ export function EditStudio() {
           <img src="${result.url}" class="w-full rounded-xl border border-white/10 mb-3">
           <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
         `;
+      } else {
+        resultArea.classList.remove('hidden');
+        resultArea.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">Edit completed, but no result image was returned. Please try again.</div>`;
       }
     } catch (err) {
       alert(`Error: ${err.message}`);

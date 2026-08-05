@@ -32,28 +32,28 @@ const STUDIO_ENDPOINTS = [
   { studio: 'ImageStudio',   endpoint: 'nano-banana',            payload: { prompt: 'sunset', model: 'nano-banana', width: 256, height: 256, num_outputs: 1 } },
   { studio: 'ImageStudio',   endpoint: 'seedream-5.0',           payload: { prompt: 'mountain', model: 'seedream-5.0', width: 256, height: 256, num_outputs: 1 } },
   // ── VideoStudio ──────────────────────────────────────────────────────────
-  { studio: 'VideoStudio',   endpoint: 'wan2.5-image-to-video',  payload: { prompt: 'a wave', model: 'wan2.5-image-to-video', image_url: 'https://placehold.co/512x512/png', duration: 3 } },
-  { studio: 'VideoStudio',   endpoint: 'wan2.1-image-to-video',  payload: { prompt: 'a wave', model: 'wan2.1-image-to-video', image_url: 'https://placehold.co/512x512/png', duration: 3 } },
+  { studio: 'VideoStudio',   endpoint: 'wan2.5-image-to-video',  payload: { prompt: 'a wave', model: 'wan2.5-image-to-video', image_url: 'https://placehold.co/512x512/png', duration: 5 } },
+  { studio: 'VideoStudio',   endpoint: 'wan2.1-image-to-video',  payload: { prompt: 'a wave', model: 'wan2.1-image-to-video', image_url: 'https://placehold.co/512x512/png', duration: 5 } },
   { studio: 'VideoStudio',   endpoint: 'minimax-hailuo-2.3-standard-i2v', payload: { prompt: 'a wave', model: 'minimax-hailuo-2.3-standard-i2v', image_url: 'https://placehold.co/512x512/png' } },
   { studio: 'VideoStudio',   endpoint: 'kling-v2.1-standard-i2v', payload: { prompt: 'a wave', model: 'kling-v2.1-standard-i2v', image_url: 'https://placehold.co/512x512/png' } },
   // ── AudioStudio ──────────────────────────────────────────────────────────
-  { studio: 'AudioStudio',   endpoint: 'suno-create-music',      payload: { prompt: 'ambient piano', model: 'suno-create-music', duration: 15 } },
-  { studio: 'AudioStudio',   endpoint: 'minimax-speech-2.6-hd',  payload: { prompt: 'hello world', model: 'minimax-speech-2.6-hd' } },
+  { studio: 'AudioStudio',   endpoint: 'suno-create-music',      payload: { prompt: 'ambient piano', model: 'V5', style: 'ambient' } },
+  { studio: 'AudioStudio',   endpoint: 'minimax-speech-2.6-hd',  payload: { prompt: 'hello world', model: 'minimax-speech-2.6-hd', voice_id: 'male-qn-qingse' } },
   // ── AvatarStudio ─────────────────────────────────────────────────────────
-  { studio: 'AvatarStudio',  endpoint: 'kling-v2-avatar-standard', payload: { prompt: 'wave', model: 'kling-v2-avatar-standard', image_url: 'https://placehold.co/512x512/png' } },
-  { studio: 'AvatarStudio',  endpoint: 'kling-v2-avatar-pro',    payload: { prompt: 'wave', model: 'kling-v2-avatar-pro', image_url: 'https://placehold.co/512x512/png' } },
+  { studio: 'AvatarStudio',  endpoint: 'kling-v2-avatar-standard', payload: { prompt: 'wave', model: 'kling-v2-avatar-standard', image_url: 'https://placehold.co/512x512/png', audio_url: 'https://placehold.co/512x512/png' } },
+  { studio: 'AvatarStudio',  endpoint: 'kling-v2-avatar-pro',    payload: { prompt: 'wave', model: 'kling-v2-avatar-pro', image_url: 'https://placehold.co/512x512/png', audio_url: 'https://placehold.co/512x512/png' } },
   // ── CinemaStudio ─────────────────────────────────────────────────────────
   { studio: 'CinemaStudio',  endpoint: 'wan2.5-image-to-video',  payload: { prompt: 'cinematic sunset', model: 'wan2.5-image-to-video', image_url: 'https://placehold.co/512x512/png', duration: 5 } },
   // ── EditStudio ───────────────────────────────────────────────────────────
   { studio: 'EditStudio',    endpoint: 'flux-kontext-dev-i2i',   payload: { prompt: 'make it blue', model: 'flux-kontext-dev-i2i', image_url: 'https://placehold.co/512x512/png' } },
-  { studio: 'EditStudio',    endpoint: 'gpt4o-image-to-image',   payload: { prompt: 'make it blue', model: 'gpt4o-image-to-image', image_url: 'https://placehold.co/512x512/png' } },
+  { studio: 'EditStudio',    endpoint: 'gpt4o-image-to-image',   payload: { prompt: 'make it blue', model: 'gpt4o-image-to-image', images_list: ['https://placehold.co/512x512/png'] } },
   // ── EffectsStudio ────────────────────────────────────────────────────────
-  { studio: 'EffectsStudio', endpoint: 'generate_wan_ai_effects', payload: { name: 'style_cyberpunk', prompt: 'cyberpunk', model: 'generate_wan_ai_effects', image_url: 'https://placehold.co/512x512/png', resolution: '720p', quality: 'medium' } },
+  { studio: 'EffectsStudio', endpoint: 'generate_wan_ai_effects', payload: { name: 'Cyberpunk 2077', prompt: 'cyberpunk', model: 'generate_wan_ai_effects', image_url: 'https://placehold.co/512x512/png' } },
   // ── UpscaleStudio ────────────────────────────────────────────────────────
   { studio: 'UpscaleStudio', endpoint: 'ai-image-upscale',       payload: { prompt: 'upscale', model: 'ai-image-upscale', image_url: 'https://placehold.co/512x512/png', scale: 2 } },
   { studio: 'UpscaleStudio', endpoint: 'topaz-image-upscale',    payload: { prompt: 'upscale', model: 'topaz-image-upscale', image_url: 'https://placehold.co/512x512/png', scale: 2 } },
   // ── CommercialStudio ─────────────────────────────────────────────────────
-  { studio: 'CommercialStudio', endpoint: 'ai-product-shot',   payload: { prompt: 'product photo', model: 'ai-product-shot', width: 512, height: 512 } },
+  { studio: 'CommercialStudio', endpoint: 'ai-product-shot',   payload: { prompt: 'product photo', model: 'ai-product-shot', width: 512, height: 512, image_url: 'https://placehold.co/512x512/png', scene_description: 'white background' } },
   // ── InfluencerStudio ─────────────────────────────────────────────────────
   { studio: 'InfluencerStudio', endpoint: 'ideogram-v3-reframe', payload: { prompt: 'influencer style', model: 'ideogram-v3-reframe', image_url: 'https://placehold.co/512x512/png' } },
   // ── LipSyncStudio ────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ const STUDIO_ENDPOINTS = [
   // ── StoryboardStudio ─────────────────────────────────────────────────────
   { studio: 'StoryboardStudio', endpoint: 'flux-dev-image',    payload: { prompt: 'storyboard frame', model: 'flux-dev', width: 1280, height: 720, num_outputs: 1 } },
   // ── TrainingStudio ───────────────────────────────────────────────────────
-  { studio: 'TrainingStudio', endpoint: 'flux-lora-trainer',   payload: { prompt: 'train', model: 'flux-lora-trainer' } },
+  { studio: 'TrainingStudio', endpoint: 'flux-lora-trainer',   payload: { prompt: 'train', model: 'flux-lora-trainer', images_data_url: 'https://placehold.co/512x512/png' } },
   // ── VideoToolsStudio ─────────────────────────────────────────────────────
   { studio: 'VideoToolsStudio', endpoint: 'video-watermark-remover', payload: { prompt: 'remove watermark', model: 'video-watermark-remover', video_url: 'https://placehold.co/512x512/png' } },
   // ── ChatStudio ───────────────────────────────────────────────────────────
