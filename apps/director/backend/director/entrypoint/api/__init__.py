@@ -56,6 +56,8 @@ def create_app(app_config: object):
     app.register_blueprint(session_bp)
     app.register_blueprint(videodb_bp)
     app.register_blueprint(config_bp)
+    from director.entrypoint.api.routes import bridge_bp
+    app.register_blueprint(bridge_bp)
 
     # register socket namespaces
     socketio.on_namespace(ChatNamespace("/chat"))

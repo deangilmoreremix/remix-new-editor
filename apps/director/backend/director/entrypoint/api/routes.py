@@ -260,3 +260,35 @@ def upload_video(collection_id):
 def config_check():
     config_handler = ConfigHandler()
     return config_handler.check()
+
+
+# Compatibility routes for videoagent-backend bridge calls.
+# The frontend/videoagent-backend expects these paths when
+# AGENT_ACTIONS_URL points at the Director backend.
+from flask import Blueprint
+
+bridge_bp = Blueprint("bridge", __name__)
+
+
+@bridge_bp.route("/api/agents/agent/<action>", methods=["POST"])
+def agent_action_proxy(action):
+    payload = request.get_json(silent=True) or {}
+    chat_handler = ChatHandler(
+        db=load_db(os.getenv("SERVER_DB_TYPE", app.config["DB_TYPE"]))
+    )
+    try:
+        result = chat_handler.chat(payload.get("message") or payload.get("command") or action)
+        return {"status": "ok", "action": action, "result": result}
+    except Exception as e:
+        return {"status": "error", "action": action, "message": str(e)}, 500
+
+
+@bridge_bp.route("/videoagent/workflow", methods=["POST"])
+def videoagent_workflow():
+    payload = request.get_json(silent=True) or {}
+    return {
+        "status": "ok",
+        "workflow": payload.get("steps", []),
+        "command": payload.get("command"),
+        "result": "workflow received by Director backend",
+    }
