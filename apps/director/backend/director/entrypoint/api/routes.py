@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from flask import Blueprint, request, current_app as app
 from werkzeug.utils import secure_filename
@@ -280,6 +281,8 @@ def agent_action_proxy(action):
         message = payload.get("message") or payload.get("command") or action
         if not isinstance(message, dict):
             message = {"text": str(message)}
+        message.setdefault("session_id", str(datetime.now().timestamp()))
+        message.setdefault("conv_id", str(datetime.now().timestamp()))
         result = chat_handler.chat(message)
         return {"status": "ok", "action": action, "result": result}
     except Exception as e:
