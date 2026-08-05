@@ -7,6 +7,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { getModelLogoHtml } from '../lib/modelSelectorUI.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -56,20 +57,20 @@ export function CommercialStudio() {
   const modelRow = document.createElement('div');
   modelRow.className = 'flex gap-2';
   [
-    { id: 'ai-product-shot', name: 'Product Shot' },
-    { id: 'ai-product-photography', name: 'Product Photography' },
+    { id: 'ai-product-shot', name: 'Product Shot', provider: 'muapi', provider_name: 'MuAPI' },
+    { id: 'ai-product-photography', name: 'Product Photography', provider: 'muapi', provider_name: 'MuAPI' },
   ].forEach(m => {
     const btn = document.createElement('button');
     btn.className = m.id === selectedModel
-      ? 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-primary text-black transition-all'
-      : 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-white/5 text-secondary border border-white/10 hover:bg-white/10 transition-all';
-    btn.textContent = m.name;
+      ? 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-primary text-black transition-all flex items-center gap-2'
+      : 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-white/5 text-secondary border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2';
+    btn.innerHTML = `${getModelLogoHtml(m, 'w-4 h-4')} ${m.name}`;
     btn.onclick = () => {
       selectedModel = m.id;
       modelRow.querySelectorAll('button').forEach(b => {
         b.className = b.textContent === m.name
-          ? 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-primary text-black transition-all'
-          : 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-white/5 text-secondary border border-white/10 hover:bg-white/10 transition-all';
+          ? 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-primary text-black transition-all flex items-center gap-2'
+          : 'flex-1 px-4 py-2.5 rounded-xl text-xs font-bold bg-white/5 text-secondary border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2';
       });
     };
     modelRow.appendChild(btn);

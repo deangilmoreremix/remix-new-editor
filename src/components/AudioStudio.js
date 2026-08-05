@@ -8,6 +8,7 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { getModelLogoHtml } from '../lib/modelSelectorUI.js';
 
 export function AudioStudio() {
   const container = document.createElement('div');
@@ -42,8 +43,8 @@ export function AudioStudio() {
   const modelBtns = {};
   audioModels.forEach(m => {
     const btn = document.createElement('button');
-    btn.className = 'px-5 py-3 rounded-xl text-sm font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
-    btn.textContent = m.name;
+    btn.className = 'px-4 py-2.5 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10 flex items-center gap-2';
+    btn.innerHTML = `${getModelLogoHtml(m, 'w-4 h-4')} ${m.name}`;
     btn.onclick = () => {
       selectedModel = m;
       updateModelBtns();

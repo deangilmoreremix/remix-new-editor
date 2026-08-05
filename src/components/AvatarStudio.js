@@ -9,6 +9,7 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { getModelLogoHtml } from '../lib/modelSelectorUI.js';
 
 export function AvatarStudio() {
   const container = document.createElement('div');
@@ -42,8 +43,8 @@ export function AvatarStudio() {
   const modelBtns = {};
   avatarModels.forEach(m => {
     const btn = document.createElement('button');
-    btn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
-    btn.textContent = m.name;
+    btn.className = 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border text-left flex items-center gap-2';
+    btn.innerHTML = `${getModelLogoHtml(m, 'w-4 h-4')} <span class="truncate">${m.name}</span>`;
     btn.onclick = () => {
       selectedModel = m;
       updateModelBtns();

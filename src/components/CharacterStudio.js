@@ -8,10 +8,11 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { getModelLogoHtml } from '../lib/modelSelectorUI.js';
 
 const CHARACTER_MODELS = [
-  { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt' },
-  { id: 'minimax-image-01-subject-reference', name: 'Subject Reference', description: 'Maintain subject consistency across images' },
+  { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt', provider: 'blackforest', provider_name: 'Black Forest Labs' },
+  { id: 'minimax-image-01-subject-reference', name: 'Subject Reference', description: 'Maintain subject consistency across images', provider: 'minimax', provider_name: 'MiniMax' },
 ];
 
 export function CharacterStudio() {
@@ -49,14 +50,14 @@ export function CharacterStudio() {
   const modelBtns = {};
   CHARACTER_MODELS.forEach(m => {
     const btn = document.createElement('button');
-    btn.className = 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border text-left';
-    btn.innerHTML = `<div class="text-white">${m.name}</div><div class="text-muted text-[10px] mt-0.5">${m.description}</div>`;
+    btn.className = 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border text-left flex items-start gap-2';
+    btn.innerHTML = `${getModelLogoHtml(m, 'w-5 h-5 shrink-0 mt-0.5')}<div class="min-w-0"><div class="text-white truncate">${m.name}</div><div class="text-muted text-[10px] mt-0.5">${m.description}</div></div>`;
     btn.onclick = () => {
       selectedModel = m;
       Object.entries(modelBtns).forEach(([id, b]) => {
         b.className = id === m.id
-          ? 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border bg-primary/10 border-primary/30'
-          : 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border bg-white/[0.03] border-white/10 hover:border-white/20';
+          ? 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border bg-primary/10 border-primary/30 flex items-start gap-2'
+          : 'flex-1 px-4 py-3 rounded-xl text-xs font-bold transition-all border bg-white/[0.03] border-white/10 hover:border-white/20 flex items-start gap-2';
       });
     };
     modelBtns[m.id] = btn;

@@ -8,6 +8,7 @@ import { savePendingJob, removePendingJob, getPendingJobs } from '../lib/pending
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
 
 export function LipSyncStudio() {
     const container = document.createElement('div');
@@ -20,6 +21,7 @@ export function LipSyncStudio() {
     let inputMode = 'image';
     let selectedModel = imageLipSyncModels[0].id;
     let selectedResolution = imageLipSyncModels[0].inputs?.resolution?.default || '480p';
+    let selectedProvider = 'all';
     let uploadedImageUrl = null;
     let customThumbnailUrl = getCustomThumbnailFromCache('lipsync-studio');
     let uploadedVideoUrl = null;
@@ -212,7 +214,23 @@ export function LipSyncStudio() {
     modelBtn.id = 'ls-model-btn';
     modelBtn.type = 'button';
     modelBtn.className = 'flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/40 transition-all text-xs font-bold text-white group';
-    modelBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-primary"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg><span id="ls-model-btn-label">${getCurrentModels()[0].name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted group-hover:text-white transition-colors"><polyline points="6 9 12 15 18 9"/></svg>`;
+    modelBtn.innerHTML = `<div id="ls-model-btn-icon" class="w-5 h-5 rounded flex items-center justify-center overflow-hidden bg-white/5"></div><span id="ls-model-btn-label">${getCurrentModels()[0].name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted group-hover:text-white transition-colors"><polyline points="6 9 12 15 18 9"/></svg>`;
+
+    const updateModelBtnIcon = () => {
+        const iconEl = document.getElementById('ls-model-btn-icon');
+        if (!iconEl) return;
+        const current = getCurrentModels().find(m => m.id === selectedModel);
+        const provider = current?.provider || 'muapi';
+        const logoUrl = PROVIDER_LOGOS[provider];
+        if (logoUrl) {
+            iconEl.innerHTML = `<img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" />`;
+        } else {
+            const style = getProviderStyle(provider);
+            iconEl.innerHTML = `<span class="text-[10px] font-black text-black">${style.text}</span>`;
+            iconEl.className = 'w-5 h-5 bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20';
+        }
+    };
+    updateModelBtnIcon();
 
     // Resolution selector
     const resolutionBtn = document.createElement('button');
@@ -284,14 +302,39 @@ export function LipSyncStudio() {
         dropdown.innerHTML = '';
         if (type === 'model') {
             const models = getCurrentModels();
-            models.forEach(m => {
-                const item = document.createElement('button');
-                item.type = 'button';
-                item.className = `w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all hover:bg-white/10 ${m.id === selectedModel ? 'text-primary font-bold bg-primary/5' : 'text-white font-medium'}`;
-                item.innerHTML = `<div>${m.name}</div><div class="text-xs text-muted mt-0.5">${m.description?.slice(0, 60)}...</div>`;
-                item.onclick = () => {
+            const availableProviders = getAvailableProviders(models);
+            selectedProvider = 'all';
+
+            dropdown.innerHTML = `
+                <div class="flex gap-3 h-full max-h-[60vh] min-h-[300px] overflow-x-hidden">
+                    <div data-provider-sidebar></div>
+                    <div class="flex-1 flex flex-col gap-2 min-w-0">
+                        ${renderSearchBar()}
+                        <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
+                            <span>Available models</span>
+                            <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
+                        </div>
+                        <div data-model-list></div>
+                    </div>
+                </div>
+            `;
+
+            const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
+            const modelListEl = dropdown.querySelector('[data-model-list]');
+            const providerBadge = dropdown.querySelector('[data-provider-badge]');
+            const searchInput = dropdown.querySelector('[data-provider-search]');
+
+            const refresh = () => {
+                sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
+                    selectedProvider = provider;
+                    refresh();
+                });
+                const filtered = filterModels(models, searchInput ? searchInput.value : '', selectedProvider);
+                const showProviderName = selectedProvider === 'all';
+                modelListEl.innerHTML = renderModelList(filtered, selectedModel, showProviderName, (m) => {
                     selectedModel = m.id;
                     document.getElementById('ls-model-btn-label').textContent = m.name;
+                    updateModelBtnIcon();
                     const resolutions = getResolutionsForLipSyncModel(selectedModel);
                     if (resolutions.length > 0) {
                         selectedResolution = m.inputs?.resolution?.default || resolutions[0];
@@ -301,10 +344,34 @@ export function LipSyncStudio() {
                         resolutionBtn.classList.add('hidden');
                     }
                     textarea.style.display = m.hasPrompt ? '' : 'none';
+                    updateModelBtnIcon();
                     closeDropdown();
-                };
-                dropdown.appendChild(item);
+                });
+
+                if (selectedProvider !== 'all') {
+                    const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
+                    providerBadge.textContent = pName;
+                    providerBadge.classList.remove('hidden');
+                } else {
+                    providerBadge.classList.add('hidden');
+                }
+            };
+
+            refresh();
+
+            sidebarEl.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-provider]');
+                if (!btn) return;
+                e.stopPropagation();
+                const provider = btn.getAttribute('data-provider');
+                if (provider) {
+                    selectedProvider = provider;
+                    refresh();
+                }
             });
+
+            searchInput.onclick = (e) => e.stopPropagation();
+            searchInput.oninput = () => refresh();
         } else if (type === 'resolution') {
             const resolutions = getResolutionsForLipSyncModel(selectedModel);
             resolutions.forEach(r => {
@@ -373,6 +440,7 @@ export function LipSyncStudio() {
         const models = getCurrentModels();
         selectedModel = models[0].id;
         document.getElementById('ls-model-btn-label').textContent = models[0].name;
+        updateModelBtnIcon();
 
         // Update resolution
         const resolutions = getResolutionsForLipSyncModel(selectedModel);

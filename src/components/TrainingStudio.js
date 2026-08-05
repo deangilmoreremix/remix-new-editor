@@ -8,6 +8,7 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { getModelLogoHtml } from '../lib/modelSelectorUI.js';
 
 export function TrainingStudio() {
   const container = document.createElement('div');
@@ -42,8 +43,8 @@ export function TrainingStudio() {
   const modelBtns = {};
   trainingModels.forEach(m => {
     const btn = document.createElement('button');
-    btn.className = 'px-5 py-3 rounded-xl text-sm font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
-    btn.textContent = m.name;
+    btn.className = 'px-5 py-3 rounded-xl text-sm font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10 flex items-center gap-2';
+    btn.innerHTML = `${getModelLogoHtml(m, 'w-4 h-4')} ${m.name}`;
     btn.onclick = () => {
       selectedModel = m;
       updateModelBtns();
