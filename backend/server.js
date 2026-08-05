@@ -18,11 +18,12 @@ import gtmBoostService from './services/gtmBoostService.js';
 import storyboardService from './services/storyboardService.js';
 import { auth } from './middleware/auth.js';
 
-const app = express();
-const server = http.createServer(app);
-
-// Middleware
-app.use(cors());
+ const app = express();
+ const server = http.createServer(app);
++app.set('trust proxy', 1);
+ 
+ // Middleware
+ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
