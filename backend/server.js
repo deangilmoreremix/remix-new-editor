@@ -16,7 +16,7 @@ import modelCatalogService from './services/modelCatalogService.js';
 import videoDbProxyService from './services/videoDbProxyService.js';
 import gtmBoostService from './services/gtmBoostService.js';
 import storyboardService from './services/storyboardService.js';
-import { auth } from './middleware/auth.js';
+import { auth, optionalAuth } from './middleware/auth.js';
 
  const app = express();
  const server = http.createServer(app);
@@ -46,16 +46,16 @@ const videodbProxyLimiter = rateLimit({ windowMs: 60 * 1000, max: 30, standardHe
 //   - DirectorPage (frontend) wraps fetch calls with withRetry (maxAttempts=3)
 //     and shows user-facing toast notifications on each retry.
 //   - No additional express retry middleware is needed; services own retry.
-app.use('/api/ai-agent', auth, aiAgentService);
-app.use('/api/scene-detection', auth, sceneDetectionService);
-app.use('/api/semantic-search', auth, semanticSearchService);
-app.use('/api/speech-transcription', auth, speechTranscriptionService);
-app.use('/api/agents', agentActionsLimiter, auth, agentActionsService);
-app.use('/api/model-catalog', auth, modelCatalogService);
-app.use('/api/videodb', videodbProxyLimiter, auth, videoDbProxyService);
-app.use('/api/gtm-boost', auth, gtmBoostService);
+app.use('/api/ai-agent', optionalAuth, aiAgentService);
+app.use('/api/scene-detection', optionalAuth, sceneDetectionService);
+app.use('/api/semantic-search', optionalAuth, semanticSearchService);
+app.use('/api/speech-transcription', optionalAuth, speechTranscriptionService);
+app.use('/api/agents', agentActionsLimiter, optionalAuth, agentActionsService);
+app.use('/api/model-catalog', optionalAuth, modelCatalogService);
+app.use('/api/videodb', videodbProxyLimiter, optionalAuth, videoDbProxyService);
+app.use('/api/gtm-boost', optionalAuth, gtmBoostService);
 app.use('/api/storyboard', storyboardService);
-app.use('/videoagent', videoAgentLimiter, auth, videoAgentService);
+app.use('/videoagent', videoAgentLimiter, optionalAuth, videoAgentService);
 
 // Health check
 app.get('/health', (req, res) => {
