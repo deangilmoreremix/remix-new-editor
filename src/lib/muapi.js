@@ -25,6 +25,11 @@ const ALLOWED_WAN_EFFECT_NAMES = new Set(
     .flatMap(m => m.inputs.name.enum)
 );
 
+function normalizeEffectName(name) {
+  if (typeof name !== 'string') return name;
+  return name.trim().replace(/\s+/g, ' ');
+}
+
 export class MuapiClient {
     constructor() {
         // Validate that Supabase URL is configured before building proxy URL
@@ -254,11 +259,11 @@ export class MuapiClient {
 
         if (params.prompt) finalPayload.prompt = params.prompt;
         if (params.request_id) finalPayload.request_id = params.request_id;
+        if (params.image_url) finalPayload.image_url = params.image_url;
         if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
         if (params.duration) finalPayload.duration = params.duration;
         if (params.resolution) finalPayload.resolution = params.resolution;
         if (params.quality) finalPayload.quality = params.quality;
-        if (params.image_url) finalPayload.image_url = params.image_url;
         // Effect endpoints (generate_wan_ai_effects) REQUIRE `name`.
         if (params.name) finalPayload.name = params.name;
 
@@ -708,7 +713,7 @@ export class MuapiClient {
         if (!params.name || typeof params.name !== 'string' || !params.name.trim()) {
             throw new Error('generateVideoEffect requires a non-empty `name` (effect preset).');
         }
-        const trimmedName = params.name.trim();
+        const trimmedName = normalizeEffectName(params.name);
         if (!ALLOWED_WAN_EFFECT_NAMES.has(trimmedName)) {
             throw new Error(`Effect "${trimmedName}" is not supported by the API. Use a preset from the studio's effect list.`);
         }
@@ -725,9 +730,6 @@ export class MuapiClient {
         if (params.duration) finalPayload.duration = params.duration;
         if (params.resolution) finalPayload.resolution = params.resolution;
         if (params.quality) finalPayload.quality = params.quality;
-        if (params.image_url) finalPayload.image_url = params.image_url;
-        // Effect endpoints (generate_wan_ai_effects) REQUIRE `name`.
-        if (params.name) finalPayload.name = params.name;
 
         try {
             const response = await fetch(this.proxyUrl, {

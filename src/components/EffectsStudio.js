@@ -430,6 +430,11 @@ export function EffectsStudio() {
     outputPreview.showLoading(`Applying "${selectedEffect}"...`);
     mobileOutputPreview.showLoading('Processing...');
 
+    const controller = new AbortController();
+    const isVideo = activeTab.type === 'i2v';
+    const timeoutMs = isVideo ? 120000 : 60000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
       const params = {
         model: activeTab.id,
@@ -437,21 +442,40 @@ export function EffectsStudio() {
         [activeTab.field]: selectedEffect,
         customThumbnailUrl: customThumbnailUrl || undefined,
       };
-      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+
+      let profiles = null;
+      try {
+        const raw = localStorage.getItem('remix_contact_profiles');
+        if (raw) profiles = JSON.parse(raw);
+      } catch {
+        profiles = null;
+      }
+      let selectedContactId = null;
+      try {
+        selectedContactId = localStorage.getItem('remix_selected_contact_id');
+      } catch {
+        selectedContactId = null;
+      }
+      const activeProfile = profiles?.find((p) => p.id === selectedContactId) || null;
+
       const prompt = replaceTokensInPrompt(promptInput.value.trim() || mobilePrompt.value.trim(), activeProfile);
       if (prompt) params.prompt = prompt;
 
       let result;
-      if (activeTab.type === 'i2v') {
+      if (activeTab.id === 'ai-video-effects' || activeTab.id === 'motion-controls') {
         params.resolution = '720p';
         params.duration = 5;
-        result = await muapi.generateI2V(params);
+        result = await muapi.generateVideoEffect(params, controller.signal);
+      } else if (activeTab.type === 'i2v') {
+        params.resolution = '720p';
+        params.duration = 5;
+        result = await muapi.generateI2V(params, controller.signal);
       } else {
-        result = await muapi.generateI2I(params);
+        result = await muapi.generateI2I(params, controller.signal);
       }
 
       if (result?.url) {
-        const mediaType = activeTab.type === 'i2v' ? 'video' : 'image';
+        const mediaType = isVideo ? 'video' : 'image';
         outputPreview.load(result.url, { type: mediaType, model: activeTab.label, filename: `${selectedEffect}-${Date.now()}` });
         mobileOutputPreview.load(result.url, { type: mediaType });
 
@@ -464,6 +488,8 @@ export function EffectsStudio() {
       outputPreview.showError(`Error: ${err.message}`);
       mobileOutputPreview.showError('Error');
     } finally {
+      clearTimeout(timeoutId);
+      controller.abort();
       generateBtn.disabled = false;
       mobileGenBtn.disabled = false;
       generateBtn.textContent = 'Apply Effect';
