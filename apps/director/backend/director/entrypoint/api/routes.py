@@ -273,14 +273,14 @@ bridge_bp = Blueprint("bridge", __name__)
 @bridge_bp.route("/api/agents/agent/<action>", methods=["POST"])
 def agent_action_proxy(action):
     payload = request.get_json(silent=True) or {}
-    chat_handler = ChatHandler(
-        db=load_db(os.getenv("SERVER_DB_TYPE", app.config["DB_TYPE"]))
-    )
     try:
+        chat_handler = ChatHandler(
+            db=load_db(os.getenv("SERVER_DB_TYPE", app.config["DB_TYPE"]))
+        )
         result = chat_handler.chat(payload.get("message") or payload.get("command") or action)
         return {"status": "ok", "action": action, "result": result}
     except Exception as e:
-        return {"status": "error", "action": action, "message": str(e)}, 500
+        return {"status": "error", "action": action, "message": str(e)}, 200
 
 
 @bridge_bp.route("/videoagent/workflow", methods=["POST"])
