@@ -1389,6 +1389,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('End screen creation failed:', error);
+        showToast(`End screen creation failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -1403,6 +1405,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Project save failed:', error);
+        showToast(`Project save failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -1417,6 +1421,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Settings update failed:', error);
+        showToast(`Settings update failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -1430,6 +1436,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Connection setup failed:', error);
+        showToast(`Connection setup failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -1443,6 +1451,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Media preview failed:', error);
+        showToast(`Media preview failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -1456,6 +1466,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Video player error:', error);
+        showToast(`Video player error: ${error.message || error}`, 'error');
       }
     }
 
@@ -3061,6 +3073,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('AI Video creation failed:', error);
+        showToast(`AI Video creation failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3074,6 +3088,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Recording failed:', error);
+        showToast(`Recording failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3087,6 +3103,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Enhanced recording failed:', error);
+        showToast(`Enhanced recording failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3101,6 +3119,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Template generation failed:', error);
+        showToast(`Template generation failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3114,6 +3134,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Template preview failed:', error);
+        showToast(`Template preview failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3127,6 +3149,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Publishing failed:', error);
+        showToast(`Publishing failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3140,6 +3164,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Email campaign creation failed:', error);
+        showToast(`Email campaign creation failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3153,6 +3179,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('URL video import failed:', error);
+        showToast(`URL video import failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3166,6 +3194,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Page screenshot failed:', error);
+        showToast(`Page screenshot failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3180,6 +3210,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Contact import failed:', error);
+        showToast(`Contact import failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3202,6 +3234,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Personalization Suite error:', error);
+        showToast(`Personalization Suite error: ${error.message || error}`, 'error');
       }
     }
 
@@ -3389,6 +3423,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Landing page generation failed:', error);
+        showToast(`Landing page generation failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3402,6 +3438,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Lead generation failed:', error);
+        showToast(`Lead generation failed: ${error.message || error}`, 'error');
       }
     }
 
