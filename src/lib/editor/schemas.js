@@ -185,7 +185,7 @@ export const EditorStateSchema = z.object({
   isTimelineOpen: z.boolean().default(true),
   timelineHeight: nonNegativeNumber.default(300),
   playheadPercent: finiteNumber.min(0).max(100).default(0),
-  selectedTool: z.string().default('Select'),
+  selectedTool: z.string().default('select'),
   selectedClipId: z.union([z.string(), z.number(), z.null()]).optional(),
   // The editor stores selection as a Set (see TimelineState.js / editor-store.tsx).
   // Accept both Set and Array so validation no longer warns "expected array,
@@ -208,6 +208,9 @@ export const EditorStateSchema = z.object({
   cameraAngles: z.array(z.unknown()).default([]),
   activeCameraAngle: z.union([z.string(), z.number(), z.null()]).optional(),
   compositingMode: z.string().default('normal'),
+  // Multi-timeline support
+  timelines: z.record(z.unknown()).optional(),
+  activeTimelineId: z.union([z.string(), z.number(), z.null()]).optional(),
   // Page-level state (not in TimelineState, but in TimelineEditorPage.createState)
   tracks: z.array(z.unknown()).optional(),
   tools: z.array(z.unknown()).optional(),
