@@ -1973,6 +1973,10 @@ export const t2iModels = [
 
 export const getModelById = (id) => t2iModels.find(m => m.id === id);
 
+export const getImageModelsForThumbnail = () => t2iModels.filter(m => m.inputs?.prompt);
+
+export const getI2IModelsForThumbnail = () => i2iModels.filter(m => m.hasPrompt !== false);
+
 export const getAspectRatiosForModel = (modelId) => {
   const model = getModelById(modelId);
   if (!model) return ['1:1'];

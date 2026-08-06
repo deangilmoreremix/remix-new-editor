@@ -7,6 +7,7 @@ import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTUR
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { getVideoModelById, getI2VModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
+import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
 import { createUploadPicker } from './UploadPicker.js';
@@ -63,6 +64,7 @@ export function CinemaStudio() {
         // picker as Video Studio; defaults to the first text-to-video model.
         model: (t2vModels[0] && t2vModels[0].id) || 'kling-v2.6-pro-t2v',
     };
+    let selectedProvider = 'all';
     
     // Camera builder panel state
     let showCameraBuilder = false;
@@ -438,7 +440,14 @@ export function CinemaStudio() {
         const m = (currentSettings.referenceUrl ? i2vModels : t2vModels).find(x => x.id === currentSettings.model)
             || t2vModels.find(x => x.id === currentSettings.model)
             || t2vModels[0];
-        modelBtn.innerHTML = `<div class="w-4 h-4 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20"><span class="text-[8px] font-black text-black">V</span></div> ${m ? m.name : currentSettings.model}`;
+        const provider = m?.provider || 'muapi';
+        const logoUrl = PROVIDER_LOGOS[provider];
+        if (logoUrl) {
+            modelBtn.innerHTML = `<div class="w-4 h-4 rounded overflow-hidden flex items-center justify-center bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" /></div> <span class="truncate">${m ? m.name : currentSettings.model}</span>`;
+        } else {
+            const style = getProviderStyle(provider);
+            modelBtn.innerHTML = `<div class="w-4 h-4 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20"><span class="text-[8px] font-black text-black">${style.text}</span></div> <span class="truncate">${m ? m.name : currentSettings.model}</span>`;
+        }
     };
     updateModelBtn();
     modelBtn.onclick = (e) => { e.stopPropagation(); showModelDropdown(); };
@@ -453,64 +462,73 @@ export function CinemaStudio() {
     const closeModelDropdown = () => {
         modelDropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
         modelDropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+        selectedProvider = 'all';
     };
 
     function showModelDropdown() {
         const isI2V = !!currentSettings.referenceUrl;
         const models = isI2V ? i2vModels : t2vModels;
+        const allModels = [...t2vModels, ...i2vModels];
+        const availableProviders = getAvailableProviders(allModels);
+        
         modelDropdown.innerHTML = `
-            <div class="flex flex-col h-full max-h-[70vh]">
-                <div class="px-2 pb-3 mb-2 border-b border-white/5 shrink-0">
-                    <div class="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2.5 border border-white/5">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-muted"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-                        <input type="text" id="cs-model-search" placeholder="Search models..." class="bg-transparent border-none text-xs text-white focus:ring-0 w-full p-0">
+            <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+                <div data-provider-sidebar></div>
+                <div class="flex-1 flex flex-col gap-2 min-w-0">
+                    ${renderSearchBar()}
+                    <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
+                        <span>Available models</span>
+                        <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
                     </div>
+                    <div data-model-list></div>
                 </div>
-                <div class="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-2 shrink-0">${isI2V ? 'Image-to-video models' : 'Text-to-video models'}</div>
-                <div id="cs-model-list" class="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-1 pb-2"></div>
             </div>
         `;
-        const list = modelDropdown.querySelector('#cs-model-list');
+        
+        const sidebarEl = modelDropdown.querySelector('[data-provider-sidebar]');
+        const modelListEl = modelDropdown.querySelector('[data-model-list]');
+        const providerBadge = modelDropdown.querySelector('[data-provider-badge]');
+        const searchInput = modelDropdown.querySelector('[data-provider-search]');
 
-        const makeItem = (m) => {
-            const item = document.createElement('div');
-            item.className = `flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all border border-transparent hover:border-white/5 ${currentSettings.model === m.id ? 'bg-white/5 border-white/5' : ''}`;
-            const iconColor = m.id.includes('kling') ? 'bg-blue-500/10 text-blue-400'
-                : m.id.includes('veo') ? 'bg-purple-500/10 text-purple-400'
-                : m.id.includes('sora') ? 'bg-rose-500/10 text-rose-400'
-                : m.id.includes('runway') ? 'bg-emerald-500/10 text-emerald-400'
-                : 'bg-primary/10 text-primary';
-            item.innerHTML = `
-                <div class="flex items-center gap-3.5">
-                    <div class="w-10 h-10 ${iconColor} border border-white/5 rounded-xl flex items-center justify-center font-black text-sm shadow-inner uppercase">${m.name.charAt(0)}</div>
-                    <div class="flex flex-col gap-0.5">
-                        <span class="text-xs font-bold text-white tracking-tight">${m.name}</span>
-                    </div>
-                </div>
-                ${currentSettings.model === m.id ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
-            `;
-            item.onclick = (e) => {
-                e.stopPropagation();
+        const refresh = () => {
+            sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
+                selectedProvider = provider;
+                refresh();
+            });
+            const query = searchInput ? searchInput.value : '';
+            const filtered = filterModels(models, query, selectedProvider);
+            const showProviderName = selectedProvider === 'all';
+            modelListEl.innerHTML = renderModelList(filtered, currentSettings.model, showProviderName, (m) => {
                 currentSettings.model = m.id;
                 updateModelBtn();
                 updateControlsForModel();
                 closeModelDropdown();
-            };
-            return item;
+            });
+
+            if (selectedProvider !== 'all') {
+                const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
+                providerBadge.textContent = pName;
+                providerBadge.classList.remove('hidden');
+            } else {
+                providerBadge.classList.add('hidden');
+            }
         };
 
-        const renderModels = (filter = '') => {
-            list.innerHTML = '';
-            const lf = filter.toLowerCase();
-            models
-                .filter(m => m.name.toLowerCase().includes(lf) || m.id.toLowerCase().includes(lf))
-                .forEach(m => list.appendChild(makeItem(m)));
-        };
-        renderModels();
+        refresh();
 
-        const searchInput = modelDropdown.querySelector('#cs-model-search');
+        sidebarEl.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-provider]');
+            if (!btn) return;
+            e.stopPropagation();
+            const provider = btn.getAttribute('data-provider');
+            if (provider) {
+                selectedProvider = provider;
+                refresh();
+            }
+        });
+
         searchInput.onclick = (e) => e.stopPropagation();
-        searchInput.oninput = (e) => renderModels(e.target.value);
+        searchInput.oninput = () => refresh();
 
         modelDropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
         modelDropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');

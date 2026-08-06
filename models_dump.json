@@ -3,6 +3,8 @@
     {
       "id": "nano-banana",
       "name": "Nano Banana",
+      "provider": "google",
+      "provider_name": "Google",
       "inputs": {
         "prompt": {
           "examples": [
@@ -37,6 +39,8 @@
     {
       "id": "flux-dev",
       "name": "Flux Dev",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -82,6 +86,8 @@
     {
       "id": "flux-dev-lora",
       "name": "Flux Dev Lora",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -163,6 +169,8 @@
     {
       "id": "flux-kontext-dev-t2i",
       "name": "Flux Kontext Dev T2I",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -207,6 +215,8 @@
     {
       "id": "hidream-i1-fast",
       "name": "Hidream I1 Fast",
+      "provider": "hidream",
+      "provider_name": "HiDream",
       "inputs": {
         "prompt": {
           "examples": [
@@ -252,6 +262,8 @@
     {
       "id": "hidream-i1-dev",
       "name": "Hidream I1 Dev",
+      "provider": "hidream",
+      "provider_name": "HiDream",
       "inputs": {
         "prompt": {
           "examples": [
@@ -297,6 +309,8 @@
     {
       "id": "hidream-i1-full",
       "name": "Hidream I1 Full",
+      "provider": "hidream",
+      "provider_name": "HiDream",
       "inputs": {
         "prompt": {
           "examples": [
@@ -342,6 +356,8 @@
     {
       "id": "ai-anime-generator",
       "name": "Ai Anime Generator",
+      "provider": "muapi",
+      "provider_name": "MuAPI",
       "inputs": {
         "prompt": {
           "examples": [
@@ -379,6 +395,8 @@
     {
       "id": "wan2.1-text-to-image",
       "name": "Wan2.1 Text To Image",
+      "provider": "wan",
+      "provider_name": "Wan",
       "inputs": {
         "prompt": {
           "examples": [
@@ -414,6 +432,8 @@
     {
       "id": "flux-kontext-pro-t2i",
       "name": "Flux Kontext Pro T2I",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -445,6 +465,8 @@
     {
       "id": "flux-kontext-max-t2i",
       "name": "Flux Kontext Max T2I",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -476,6 +498,8 @@
     {
       "id": "gpt4o-text-to-image",
       "name": "Gpt4o Text To Image",
+      "provider": "openai",
+      "provider_name": "OpenAI",
       "inputs": {
         "prompt": {
           "examples": [
@@ -515,6 +539,8 @@
     {
       "id": "midjourney-v7-text-to-image",
       "name": "Midjourney v7 Text To Image",
+      "provider": "midjourney",
+      "provider_name": "Midjourney",
       "inputs": {
         "prompt": {
           "examples": [
@@ -592,6 +618,8 @@
     {
       "id": "flux-schnell",
       "name": "Flux Schnell",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -637,6 +665,8 @@
     {
       "id": "bytedance-seedream-v3",
       "name": "Bytedance Seedream v3",
+      "provider": "bytedance",
+      "provider_name": "ByteDance",
       "inputs": {
         "prompt": {
           "examples": [
@@ -666,6 +696,8 @@
     {
       "id": "qwen-image",
       "name": "Qwen Image",
+      "provider": "alibaba",
+      "provider_name": "Alibaba",
       "inputs": {
         "prompt": {
           "examples": [
@@ -709,6 +741,8 @@
     {
       "id": "flux-pulid",
       "name": "Flux Pulid",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -748,6 +782,8 @@
     {
       "id": "ideogram-v3-t2i",
       "name": "Ideogram v3 T2I",
+      "provider": "ideogram",
+      "provider_name": "Ideogram",
       "inputs": {
         "prompt": {
           "examples": [
@@ -813,6 +849,8 @@
     {
       "id": "google-imagen4",
       "name": "Google Imagen4",
+      "provider": "google",
+      "provider_name": "Google",
       "inputs": {
         "prompt": {
           "examples": [
@@ -853,6 +891,8 @@
     {
       "id": "google-imagen4-fast",
       "name": "Google Imagen4 Fast",
+      "provider": "google",
+      "provider_name": "Google",
       "inputs": {
         "prompt": {
           "examples": [
@@ -893,6 +933,8 @@
     {
       "id": "google-imagen4-ultra",
       "name": "Google Imagen4 Ultra",
+      "provider": "google",
+      "provider_name": "Google",
       "inputs": {
         "prompt": {
           "examples": [
@@ -922,6 +964,8 @@
     {
       "id": "sdxl-image",
       "name": "Sdxl Image",
+      "provider": "stability",
+      "provider_name": "Stability AI",
       "inputs": {
         "prompt": {
           "examples": [
@@ -957,6 +1001,8 @@
     {
       "id": "bytedance-seedream-v4",
       "name": "Bytedance Seedream v4",
+      "provider": "bytedance",
+      "provider_name": "ByteDance",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1011,6 +1057,8 @@
     {
       "id": "hunyuan-image-2.1",
       "name": "Hunyuan Image 2.1",
+      "provider": "hunyuan",
+      "provider_name": "Hunyuan",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1046,6 +1094,8 @@
     {
       "id": "chroma-image",
       "name": "Chroma Image",
+      "provider": "muapi",
+      "provider_name": "MuAPI",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1081,6 +1131,8 @@
     {
       "id": "flux-redux",
       "name": "Flux Redux",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1134,6 +1186,8 @@
     {
       "id": "flux-krea-dev",
       "name": "Flux Krea Dev",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1177,6 +1231,8 @@
     {
       "id": "perfect-pony-xl",
       "name": "Perfect Pony Xl",
+      "provider": "muapi",
+      "provider_name": "MuAPI",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1212,6 +1268,8 @@
     {
       "id": "neta-lumina",
       "name": "Neta Lumina",
+      "provider": "muapi",
+      "provider_name": "MuAPI",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1247,6 +1305,8 @@
     {
       "id": "wan2.5-text-to-image",
       "name": "Wan2.5 Text To Image",
+      "provider": "wan",
+      "provider_name": "Wan",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1282,6 +1342,8 @@
     {
       "id": "hunyuan-image-3.0",
       "name": "Hunyuan Image 3.0",
+      "provider": "hunyuan",
+      "provider_name": "Hunyuan",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1317,6 +1379,8 @@
     {
       "id": "leonardoai-phoenix-1.0",
       "name": "Leonardoai Phoenix 1.0",
+      "provider": "leonardoai",
+      "provider_name": "Leonardo AI",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1350,6 +1414,8 @@
     {
       "id": "leonardoai-lucid-origin",
       "name": "Leonardoai Lucid Origin",
+      "provider": "leonardoai",
+      "provider_name": "Leonardo AI",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1383,6 +1449,8 @@
     {
       "id": "reve-text-to-image",
       "name": "Reve Text To Image",
+      "provider": "reve",
+      "provider_name": "Reve",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1414,6 +1482,8 @@
     {
       "id": "grok-imagine-text-to-image",
       "name": "Grok Imagine Text To Image",
+      "provider": "grok",
+      "provider_name": "Grok",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1443,6 +1513,8 @@
     {
       "id": "nano-banana-pro",
       "name": "Nano Banana Pro",
+      "provider": "google",
+      "provider_name": "Google",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1489,6 +1561,8 @@
     {
       "id": "kling-o1-text-to-image",
       "name": "Kling O1 Text To Image",
+      "provider": "kling",
+      "provider_name": "Kling",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1542,6 +1616,8 @@
     {
       "id": "z-image-turbo",
       "name": "Z Image Turbo",
+      "provider": "muapi",
+      "provider_name": "MuAPI",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1577,6 +1653,8 @@
     {
       "id": "flux-2-dev",
       "name": "Flux 2 Dev",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1612,6 +1690,8 @@
     {
       "id": "flux-2-flex",
       "name": "Flux 2 Flex",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1654,6 +1734,8 @@
     {
       "id": "flux-2-pro",
       "name": "Flux 2 Pro",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1696,6 +1778,8 @@
     {
       "id": "vidu-q2-text-to-image",
       "name": "Vidu Q2 Text To Image",
+      "provider": "vidu",
+      "provider_name": "Vidu",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1740,6 +1824,8 @@
     {
       "id": "bytedance-seedream-v4.5",
       "name": "Bytedance Seedream V4.5",
+      "provider": "bytedance",
+      "provider_name": "ByteDance",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1783,6 +1869,8 @@
     {
       "id": "gpt-image-1.5",
       "name": "Gpt Image 1.5",
+      "provider": "openai",
+      "provider_name": "OpenAI",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1822,6 +1910,8 @@
     {
       "id": "wan2.6-text-to-image",
       "name": "Wan2.6 Text To Image",
+      "provider": "wan",
+      "provider_name": "Wan",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1857,6 +1947,8 @@
     {
       "id": "qwen-text-to-image-2512",
       "name": "Qwen Text To Image 2512",
+      "provider": "alibaba",
+      "provider_name": "Alibaba",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1892,6 +1984,8 @@
     {
       "id": "flux-2-klein-4b",
       "name": "Flux 2 Klein 4b",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1923,6 +2017,8 @@
     {
       "id": "flux-2-klein-9b",
       "name": "Flux 2 Klein 9b",
+      "provider": "blackforest",
+      "provider_name": "Black Forest Labs",
       "inputs": {
         "prompt": {
           "examples": [
@@ -1954,6 +2050,8 @@
     {
       "id": "z-image-base",
       "name": "Z Image Base",
+      "provider": "muapi",
+      "provider_name": "MuAPI",
       "inputs": {
         "prompt": {
           "examples": [

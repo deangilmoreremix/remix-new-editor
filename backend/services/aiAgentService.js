@@ -21,11 +21,15 @@ const AGENT_COMMAND_MAP = {
 
 async function callBridge(action, payload) {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
     const r = await fetch(`${AGENT_ENDPOINT}/api/agents/agent/${encodeURIComponent(action)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     if (r.ok) return await r.json();
     return null;
   } catch (_) {
@@ -115,6 +119,8 @@ router.post('/workflow', async (req, res) => {
     const { command } = req.body || {};
     // Forward to the real workflow endpoint on the videoagent service
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
       const r = await fetch(`${AGENT_ENDPOINT}/videoagent/workflow`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -122,7 +128,9 @@ router.post('/workflow', async (req, res) => {
           steps: [{ action: 'detect-scenes' }, { action: 'extract-highlights' }, { action: 'generate-subtitles' }],
           command,
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
       if (r.ok) {
         const result = await r.json();
         return res.json({ success: true, source: 'agent-bridge', workflow: { jobId: result.jobId, status: result.status }, result: { command } });

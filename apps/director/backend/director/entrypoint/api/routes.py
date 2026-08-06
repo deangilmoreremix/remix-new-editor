@@ -283,8 +283,22 @@ def agent_action_proxy(action):
             message = {"text": str(message)}
         message.setdefault("session_id", str(datetime.now().timestamp()))
         message.setdefault("conv_id", str(datetime.now().timestamp()))
-        result = chat_handler.chat(message)
-        return {"status": "ok", "action": action, "result": result}
+        chat_handler.chat(message)
+
+        session_handler = SessionHandler(
+            db=load_db(os.getenv("SERVER_DB_TYPE", app.config["DB_TYPE"]))
+        )
+        session = session_handler.get_session(message["session_id"])
+        conversations = session_handler.db.get_conversations(message["session_id"]) if session else []
+
+        return {
+            "status": "ok",
+            "action": action,
+            "result": {
+                "session": session,
+                "conversations": conversations,
+            },
+        }
     except Exception as e:
         return {"status": "error", "action": action, "message": str(e)}, 200
 

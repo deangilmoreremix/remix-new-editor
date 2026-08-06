@@ -124,10 +124,11 @@ export function VideoStudio() {
         onClear: () => {
             uploadedImageUrl = null;
             imageMode = false;
-            selectedModel = t2vModels[0].id;
-            selectedModelName = t2vModels[0].name;
-            document.getElementById('v-model-btn-label').textContent = selectedModelName;
-            updateControlsForModel(selectedModel);
+        selectedModel = t2vModels[0].id;
+        selectedModelName = t2vModels[0].name;
+        document.getElementById('v-model-btn-label').textContent = selectedModelName;
+        updateModelBtnIcon();
+        updateControlsForModel(selectedModel);
             textarea.placeholder = 'Describe the video you want to create';
             textarea.disabled = false;
         }
@@ -234,6 +235,7 @@ export function VideoStudio() {
             selectedModel = v2vModels[0].id;
             selectedModelName = v2vModels[0].name;
             document.getElementById('v-model-btn-label').textContent = selectedModelName;
+            updateModelBtnIcon();
             updateControlsForModel(selectedModel);
             textarea.placeholder = 'Video ready — click Generate to remove watermark';
             textarea.disabled = true;
@@ -1164,6 +1166,7 @@ export function VideoStudio() {
         selectedModel = 'seedance-v2.0-extend';
         selectedModelName = 'Seedance 2.0 Extend';
         document.getElementById('v-model-btn-label').textContent = selectedModelName;
+        updateModelBtnIcon();
         updateControlsForModel(selectedModel);
         textarea.placeholder = 'Optional: describe how to continue the video...';
         textarea.focus();

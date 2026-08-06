@@ -8,6 +8,7 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
 
 export function AudioStudio() {
   const container = document.createElement('div');
@@ -35,24 +36,118 @@ export function AudioStudio() {
   container.appendChild(header);
 
   // Model selector
-  const modelRow = document.createElement('div');
-  modelRow.className = 'flex gap-3 mb-6 flex-wrap justify-center animate-fade-in-up';
-  modelRow.style.animationDelay = '0.1s';
+  const modelWrapper = document.createElement('div');
+  modelWrapper.className = 'mb-6 flex flex-col items-center gap-2 animate-fade-in-up';
+  modelWrapper.style.animationDelay = '0.1s';
 
-  const modelBtns = {};
-  audioModels.forEach(m => {
-    const btn = document.createElement('button');
-    btn.className = 'px-5 py-3 rounded-xl text-sm font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
-    btn.textContent = m.name;
-    btn.onclick = () => {
-      selectedModel = m;
-      updateModelBtns();
-      updateFormVisibility();
-    };
-    modelBtns[m.id] = btn;
-    modelRow.appendChild(btn);
-  });
-  container.appendChild(modelRow);
+  const triggerBtn = document.createElement('button');
+  triggerBtn.type = 'button';
+  triggerBtn.className = 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
+  const updateTrigger = () => {
+    const provider = selectedModel.provider || 'muapi';
+    const logoUrl = PROVIDER_LOGOS[provider];
+    if (logoUrl) {
+      triggerBtn.innerHTML = `<div class="w-4 h-4 rounded flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" /></div><span class="truncate">${selectedModel.name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+    } else {
+      const style = getProviderStyle(provider);
+      triggerBtn.innerHTML = `<div class="w-4 h-4 bg-primary rounded flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[8px] font-black text-black">${style.text}</span></div><span class="truncate">${selectedModel.name}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+    }
+  };
+  updateTrigger();
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom';
+  dropdown.style.width = 'calc(100vw - 2rem)';
+  dropdown.style.maxWidth = '480px';
+  dropdown.style.maxHeight = '70vh';
+  dropdown.style.minHeight = '350px';
+
+  const closeDropdown = () => {
+    dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+    dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+  };
+
+  const openDropdown = () => {
+    dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+    dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+    if (!dropdown.dataset.populated) {
+      dropdown.dataset.populated = 'true';
+      const availableProviders = getAvailableProviders(audioModels);
+      dropdown.innerHTML = `
+        <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+          <div data-provider-sidebar></div>
+          <div class="flex-1 flex flex-col gap-2 min-w-0">
+            ${renderSearchBar()}
+            <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
+              <span>Available models</span>
+              <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
+            </div>
+            <div data-model-list></div>
+          </div>
+        </div>
+      `;
+      const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
+      const modelListEl = dropdown.querySelector('[data-model-list]');
+      const providerBadge = dropdown.querySelector('[data-provider-badge]');
+      const searchInput = dropdown.querySelector('[data-provider-search]');
+      let selectedProvider = 'all';
+      const refresh = () => {
+        sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
+          selectedProvider = provider;
+          refresh();
+        });
+        const filtered = filterModels(audioModels, searchInput ? searchInput.value : '', selectedProvider);
+        const showProviderName = selectedProvider === 'all';
+        modelListEl.innerHTML = renderModelList(filtered, selectedModel.id, showProviderName, (m) => {
+          selectedModel = audioModels.find(x => x.id === m.id) || m;
+          updateTrigger();
+          updateFormVisibility();
+          closeDropdown();
+        });
+        if (selectedProvider !== 'all') {
+          const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
+          providerBadge.textContent = pName;
+          providerBadge.classList.remove('hidden');
+        } else {
+          providerBadge.classList.add('hidden');
+        }
+      };
+      refresh();
+      sidebarEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-provider]');
+        if (!btn) return;
+        e.stopPropagation();
+        const provider = btn.getAttribute('data-provider');
+        if (provider) {
+          selectedProvider = provider;
+          refresh();
+        }
+      });
+      searchInput.onclick = (e) => e.stopPropagation();
+      searchInput.oninput = () => refresh();
+    }
+  };
+
+  triggerBtn.onclick = (e) => {
+    e.stopPropagation();
+    if (dropdown.classList.contains('opacity-100')) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
+  };
+
+  modelWrapper.appendChild(triggerBtn);
+  modelWrapper.appendChild(dropdown);
+  container.appendChild(modelWrapper);
+
+  setTimeout(() => {
+    document.addEventListener('click', (e) => {
+      if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
+        closeDropdown();
+      }
+    });
+  }, 0);
 
   // Form card
   const formCard = document.createElement('div');

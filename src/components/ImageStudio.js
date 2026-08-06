@@ -17,6 +17,7 @@ import { mountPersonalizePopover, replaceTokensInPrompt } from './personalize/pe
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
+import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
 
 export function ImageStudio() {
     const container = document.createElement('div');
@@ -29,6 +30,7 @@ export function ImageStudio() {
     let selectedModelName = defaultModel.name;
     let selectedAr = defaultModel.inputs?.aspect_ratio?.default || '1:1';
     let dropdownOpen = null;
+    let selectedProvider = 'all';
     let uploadedImageUrls = []; // array of uploaded image URLs (multi-image support)
     let imageMode = false; // false = t2i models, true = i2i models
     let customThumbnailUrl = getCustomThumbnailFromCache('image-studio');
@@ -115,6 +117,7 @@ export function ImageStudio() {
                 selectedAr = getAspectRatiosForI2IModel(selectedModel)[0];
                 document.getElementById('model-btn-label').textContent = selectedModelName;
                 document.getElementById('ar-btn-label').textContent = selectedAr;
+                updateModelBtnIcon();
                 const validResolutions = getResolutionsForI2IModel(selectedModel);
                 qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
                 if (validResolutions.length > 0) document.getElementById('quality-btn-label').textContent = validResolutions[0];
@@ -132,6 +135,7 @@ export function ImageStudio() {
             selectedAr = getAspectRatiosForModel(selectedModel)[0];
             document.getElementById('model-btn-label').textContent = selectedModelName;
             document.getElementById('ar-btn-label').textContent = selectedAr;
+            updateModelBtnIcon();
             const t2iResolutions = getResolutionsForModel(selectedModel);
             qualityBtn.style.display = t2iResolutions.length > 0 ? 'flex' : 'none';
             if (t2iResolutions.length > 0) document.getElementById('quality-btn-label').textContent = t2iResolutions[0];
@@ -211,10 +215,25 @@ export function ImageStudio() {
     };
 
     const modelBtn = createControlBtn(`
-        <div class="w-5 h-5 bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20">
-            <span class="text-[10px] font-black text-black">G</span>
-        </div>
+        <div id="model-btn-icon" class="w-5 h-5 rounded-md flex items-center justify-center overflow-hidden bg-white/5"></div>
     `, selectedModelName, 'model-btn', 'Select AI generation model');
+
+    const updateModelBtnIcon = () => {
+        const iconEl = document.getElementById('model-btn-icon');
+        if (!iconEl) return;
+        const currentModels = imageMode ? i2iModels : t2iModels;
+        const current = currentModels.find(m => m.id === selectedModel);
+        const provider = current?.provider || 'muapi';
+        const logoUrl = PROVIDER_LOGOS[provider];
+        if (logoUrl) {
+            iconEl.innerHTML = `<img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" />`;
+        } else {
+            const style = getProviderStyle(provider);
+            iconEl.innerHTML = `<span class="text-[10px] font-black text-black">${style.text}</span>`;
+            iconEl.className = 'w-5 h-5 bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20';
+        }
+    };
+    updateModelBtnIcon();
 
     const arBtn = createControlBtn(`
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="opacity-60 text-secondary"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
@@ -727,69 +746,82 @@ export function ImageStudio() {
         dropdown.classList.add('opacity-100', 'pointer-events-auto');
 
         if (type === 'model') {
-            dropdown.classList.add('w-[calc(100vw-3rem)]', 'max-w-xs');
-            dropdown.classList.remove('max-w-[240px]', 'max-w-[200px]');
+            dropdown.classList.add('w-[calc(100vw-2rem)]', 'md:w-[480px]', 'max-w-md');
+            dropdown.classList.remove('max-w-xs', 'max-w-[240px]', 'max-w-[200px]');
+            selectedProvider = 'all';
+
+            const currentModels = imageMode ? i2iModels : t2iModels;
+            const availableProviders = getAvailableProviders(currentModels);
+
             dropdown.innerHTML = `
-                <div class="flex flex-col h-full max-h-[70vh]">
-                    <div class="px-2 pb-3 mb-2 border-b border-white/5 shrink-0">
-                        <div class="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-2.5 border border-white/5 focus-within:border-primary/50 transition-colors">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-muted"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-                            <input type="text" id="model-search" placeholder="Search models..." class="bg-transparent border-none text-xs text-white focus:ring-0 w-full p-0">
+                <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+                    <div data-provider-sidebar></div>
+                    <div class="flex-1 flex flex-col gap-2 min-w-0">
+                        ${renderSearchBar()}
+                        <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
+                            <span>Available models</span>
+                            <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
                         </div>
+                        <div data-model-list></div>
                     </div>
-                    <div class="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-2 shrink-0">Available models</div>
-                    <div id="model-list-container" class="flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pr-1 pb-2"></div>
                 </div>
             `;
-            const list = dropdown.querySelector('#model-list-container');
 
-            const renderModels = (filter = '') => {
-                list.innerHTML = '';
-                const filtered = getCurrentModels().filter(m => m.name.toLowerCase().includes(filter.toLowerCase()) || m.id.toLowerCase().includes(filter.toLowerCase()));
+            const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
+            const modelListEl = dropdown.querySelector('[data-model-list]');
+            const providerBadge = dropdown.querySelector('[data-provider-badge]');
+            const searchInput = dropdown.querySelector('[data-provider-search]');
 
-                filtered.forEach(m => {
-                    const item = document.createElement('div');
-                    item.className = `flex items-center justify-between p-3.5 hover:bg-white/5 rounded-2xl cursor-pointer transition-all border border-transparent hover:border-white/5 ${selectedModel === m.id ? 'bg-white/5 border-white/5' : ''}`;
-                    item.innerHTML = `
-                        <div class="flex items-center gap-3.5">
-                             <div class="w-10 h-10 ${m.family === 'kontext' ? 'bg-blue-500/10 text-blue-400' : m.family === 'effects' ? 'bg-purple-500/10 text-purple-400' : 'bg-primary/10 text-primary'} border border-white/5 rounded-xl flex items-center justify-center font-black text-sm shadow-inner uppercase">${m.name.charAt(0)}</div>
-                             <div class="flex flex-col gap-0.5">
-                                <span class="text-xs font-bold text-white tracking-tight">${m.name}</span>
-                             </div>
-                        </div>
-                        ${selectedModel === m.id ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d9ff00" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
-                    `;
-                    item.onclick = (e) => {
-                        e.stopPropagation();
-                        selectedModel = m.id;
-                        selectedModelName = m.name;
-                        const availableArs = getCurrentAspectRatios(selectedModel);
-                        selectedAr = availableArs[0];
-                        document.getElementById('model-btn-label').textContent = selectedModelName;
-                        document.getElementById('ar-btn-label').textContent = selectedAr;
-
-                        const validResolutions = getCurrentResolutions(selectedModel);
-                        qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
-                        if (validResolutions.length > 0) {
-                            document.getElementById('quality-btn-label').textContent = validResolutions[0];
-                        }
-
-                        // Update picker's max images when switching i2i models
-                        if (imageMode) {
-                            picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
-                        }
-
-                        closeDropdown();
-                    };
-                    list.appendChild(item);
+            const refresh = () => {
+                sidebarEl.innerHTML = renderProviderSidebar(availableProviders, selectedProvider, (provider) => {
+                    selectedProvider = provider;
+                    refresh();
                 });
+                const filtered = filterModels(currentModels, searchInput ? searchInput.value : '', selectedProvider);
+                const showProviderName = selectedProvider === 'all';
+                modelListEl.innerHTML = renderModelList(filtered, selectedModel, showProviderName, (m) => {
+                    selectedModel = m.id;
+                    selectedModelName = m.name;
+                    const availableArs = getCurrentAspectRatios(selectedModel);
+                    selectedAr = availableArs[0];
+                    document.getElementById('model-btn-label').textContent = selectedModelName;
+                    document.getElementById('ar-btn-label').textContent = selectedAr;
+                    const validResolutions = getCurrentResolutions(selectedModel);
+                    qualityBtn.style.display = validResolutions.length > 0 ? 'flex' : 'none';
+                    if (validResolutions.length > 0) {
+                        document.getElementById('quality-btn-label').textContent = validResolutions[0];
+                    }
+                    if (imageMode) {
+                        picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
+                    }
+                    updateModelBtnIcon();
+                    closeDropdown();
+                });
+
+                if (selectedProvider !== 'all') {
+                    const pName = availableProviders.find(p => p.id === selectedProvider)?.name || selectedProvider;
+                    providerBadge.textContent = pName;
+                    providerBadge.classList.remove('hidden');
+                } else {
+                    providerBadge.classList.add('hidden');
+                }
             };
 
-            renderModels();
+            refresh();
 
-            const searchInput = dropdown.querySelector('#model-search');
+            sidebarEl.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-provider]');
+                if (!btn) return;
+                e.stopPropagation();
+                const provider = btn.getAttribute('data-provider');
+                if (provider) {
+                    selectedProvider = provider;
+                    refresh();
+                }
+            });
+
             searchInput.onclick = (e) => e.stopPropagation();
-            searchInput.oninput = (e) => renderModels(e.target.value);
+            searchInput.oninput = () => refresh();
 
         } else if (type === 'ar') {
             dropdown.classList.add('max-w-[240px]');
@@ -867,6 +899,7 @@ export function ImageStudio() {
         dropdown.classList.add('opacity-0', 'pointer-events-none');
         dropdown.classList.remove('opacity-100', 'pointer-events-auto');
         dropdownOpen = null;
+        selectedProvider = 'all';
     };
 
     modelBtn.onclick = (e) => {
@@ -874,6 +907,7 @@ export function ImageStudio() {
         if (dropdownOpen === 'model') closeDropdown();
         else {
             dropdownOpen = 'model';
+            selectedProvider = 'all';
             showDropdown('model', modelBtn);
         }
     };
@@ -1093,6 +1127,7 @@ export function ImageStudio() {
         selectedAr = getAspectRatiosForModel(selectedModel)[0];
         document.getElementById('model-btn-label').textContent = selectedModelName;
         document.getElementById('ar-btn-label').textContent = selectedAr;
+        updateModelBtnIcon();
         const resetResolutions = getResolutionsForModel(selectedModel);
         qualityBtn.style.display = resetResolutions.length > 0 ? 'flex' : 'none';
         if (resetResolutions.length > 0) document.getElementById('quality-btn-label').textContent = resetResolutions[0];
