@@ -178,7 +178,7 @@ describe('Timeline Editor Mask Integration', () => {
   it('keyboard shortcut x maps to Mask and sets selectedTool', async () => {
     const sourcePath = path.join(process.cwd(), 'src/components/TimelineEditorPage.jsx');
     const source = fs.readFileSync(sourcePath, 'utf-8');
-    expect(source).toContain("'x': 'Mask'");
+    expect(source).toContain("'x': 'mask'");
     expect(source).toContain('state.selectedTool = toolMap[toolKey]');
     expect(source).toContain("showToast('Mask tool active — select a clip and open AI Tools to segment')");
   });
