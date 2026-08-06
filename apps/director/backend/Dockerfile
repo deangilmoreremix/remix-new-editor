@@ -20,6 +20,9 @@ RUN if [ "${DB_TYPE:-sqlite}" = "sqlite" ]; then \
 
 EXPOSE 10000
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:10000/health').read()" || exit 1
+
 # Render assigns a dynamic port via the PORT env var; map it to SERVER_PORT
 # (which server.py reads) so the Flask process binds to the expected port.
 CMD ["sh", "-c", "export SERVER_PORT=${PORT:-10000} && python director/entrypoint/api/server.py"]
