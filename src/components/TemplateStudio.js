@@ -7,6 +7,7 @@ import { getNicheTerms, enrichPromptString, deriveEngineInputFromTemplate, compo
 import { NICHE_ENRICHMENT, FILM_FAMILIES } from '../lib/templateMatrix.js';
 import { t2iModels, i2iModels, i2vModels } from '../lib/models.js';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
+import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { navigate } from '../lib/router.js';
@@ -415,57 +416,183 @@ export function TemplateStudio(templateId) {
   if (outputType === 'video' || template.modelType === 'i2i' || template.modelType === 't2i') {
     const modelWrapper = document.createElement('div');
     modelWrapper.className = 'mt-6';
-    modelWrapper.innerHTML = `
-      <div class="mb-3 flex items-center justify-between gap-3">
-        <div class="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">Model</div>
-        <span id="model-loading-status" class="text-[10px] text-zinc-500">Loading...</span>
-      </div>
-      <select id="templateModelSelect" class="h-11 w-full rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-4 text-sm text-white outline-none transition focus:border-emerald-400/50 appearance-none cursor-pointer" disabled>
-        <option value="" class="bg-zinc-950 text-white" disabled selected>Loading models...</option>
-      </select>
-    `;
-    const modelSelect = modelWrapper.querySelector('#templateModelSelect');
-    const modelLoadingStatus = modelWrapper.querySelector('#model-loading-status');
-    modelSelect.onchange = () => { selectedModel = modelSelect.value; };
-    leftPanel.appendChild(modelWrapper);
 
     let fallbackList = [];
     if (template.modelType === 'i2v') fallbackList = i2vModels;
     else if (template.modelType === 'i2i') fallbackList = i2iModels;
     else if (template.modelType === 't2i') fallbackList = t2iModels;
 
-    // Timeout wrapper for model catalog fetch
-    const withTimeout = (promise, ms = 5000) => {
-      return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Model catalog load timed out')), ms))
-      ]);
+    let loadedModels = fallbackList;
+    const getModelName = (id) => {
+      const m = loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
+      return m ? m.name : id;
+    };
+    const getModel = (id) => loadedModels.find(x => x.id === id) || fallbackList.find(x => x.id === id);
+
+    const triggerBtn = document.createElement('button');
+    triggerBtn.type = 'button';
+    triggerBtn.id = 'template-model-trigger';
+    const updateTrigger = () => {
+      const model = getModel(selectedModel);
+      const provider = model?.provider || 'muapi';
+      const logoUrl = PROVIDER_LOGOS[provider];
+      const name = model ? model.name : getModelName(selectedModel);
+      if (logoUrl) {
+        triggerBtn.innerHTML = `<div class="w-5 h-5 rounded-md flex items-center justify-center overflow-hidden bg-white/5 shrink-0"><img src="${logoUrl}" alt="" class="w-full h-full object-contain ${invertLogos.includes(provider) ? 'invert' : ''}" /></div><span class="text-sm font-bold text-white truncate">${name}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+      } else {
+        const style = getProviderStyle(provider);
+        triggerBtn.innerHTML = `<div class="w-5 h-5 bg-primary rounded-md flex items-center justify-center shadow-lg shadow-primary/20 shrink-0"><span class="text-[10px] font-black text-black">${style.text}</span></div><span class="text-sm font-bold text-white truncate">${name}</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-muted shrink-0"><polyline points="6 9 12 15 18 9"/></svg>`;
+      }
+    };
+    updateTrigger();
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
+    dropdown.style.width = 'calc(100vw - 2rem)';
+    dropdown.style.maxWidth = '480px';
+    dropdown.style.maxHeight = '70vh';
+    dropdown.style.minHeight = '350px';
+
+    const closeDropdown = () => {
+      dropdown.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+      dropdown.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
     };
 
-    withTimeout(getEnrichedModels(template.modelType))
-      .then(enriched => {
-        const models = enriched && enriched.length > 0 ? enriched : fallbackList;
-        modelSelect.innerHTML = models.map(m => {
-          const desc = m.description ? ` — ${m.description.slice(0, 80)}${m.description.length > 80 ? '...' : ''}` : '';
-          return `<option value="${m.id}" class="bg-zinc-950 text-white">${m.name}${desc} (${m.id})</option>`;
-        }).join('');
-        modelSelect.disabled = false;
-        if (modelLoadingStatus) modelLoadingStatus.textContent = enriched && enriched.length > 0 ? '' : 'Using fallback models';
-        if (models.find(m => m.id === template.model)) {
-          modelSelect.value = template.model;
-        }
-      })
-      .catch(err => {
-        console.warn('[TemplateStudio] Failed to load enriched model catalog, using fallback:', err);
-        modelSelect.innerHTML = fallbackList.map(m => {
-          return `<option value="${m.id}" class="bg-zinc-950 text-white">${m.name} (${m.id})</option>`;
-        }).join('');
-        modelSelect.disabled = false;
-        if (modelLoadingStatus) modelLoadingStatus.textContent = 'Using fallback models';
-        if (fallbackList.find(m => m.id === template.model)) {
-          modelSelect.value = template.model;
+    const openDropdown = () => {
+      dropdown.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+      dropdown.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+
+      if (!dropdown.dataset.populated) {
+        dropdown.dataset.populated = 'true';
+
+        dropdown.innerHTML = `
+          <div class="flex gap-4 h-full max-h-[70vh] min-h-[350px] overflow-x-hidden">
+            <div data-provider-sidebar></div>
+            <div class="flex-1 flex flex-col gap-2 min-w-0">
+              <div data-search-bar></div>
+              <div class="text-xs font-semibold text-secondary py-1 shrink-0 flex items-center justify-between">
+                <span>Available models</span>
+                <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
+              </div>
+              <div data-model-list></div>
+            </div>
+          </div>
+        `;
+
+        const sidebarEl = dropdown.querySelector('[data-provider-sidebar]');
+        const searchBarEl = dropdown.querySelector('[data-search-bar]');
+        const modelListEl = dropdown.querySelector('[data-model-list]');
+        const providerBadge = dropdown.querySelector('[data-provider-badge]');
+
+        const showLoading = () => {
+          modelListEl.innerHTML = `<div class="text-xs text-white/30 text-center py-6">Loading models...</div>`;
+        };
+        showLoading();
+
+        const refresh = (models) => {
+          const availableProviders = getAvailableProviders(models);
+          sidebarEl.innerHTML = renderProviderSidebar(availableProviders, 'all', () => {});
+          searchBarEl.innerHTML = renderSearchBar();
+          const searchInput = searchBarEl.querySelector('[data-provider-search]');
+          const showProviderName = true;
+          modelListEl.innerHTML = renderModelList(models, selectedModel, showProviderName, (m) => {
+            selectedModel = m.id;
+            updateTrigger();
+            closeDropdown();
+          });
+
+          if (searchInput) {
+            searchInput.onclick = (e) => e.stopPropagation();
+            searchInput.oninput = () => {
+              const filtered = filterModels(models, searchInput.value, 'all');
+              modelListEl.innerHTML = renderModelList(filtered, selectedModel, showProviderName, (m) => {
+                selectedModel = m.id;
+                updateTrigger();
+                closeDropdown();
+              });
+            };
+          }
+
+          sidebarEl.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-provider]');
+            if (!btn) return;
+            e.stopPropagation();
+            const provider = btn.getAttribute('data-provider');
+            if (provider && provider !== 'all') {
+              const filtered = filterModels(models, '', provider);
+              modelListEl.innerHTML = renderModelList(filtered, selectedModel, false, (m) => {
+                selectedModel = m.id;
+                updateTrigger();
+                closeDropdown();
+              });
+              const pName = availableProviders.find(p => p.id === provider)?.name || provider;
+              providerBadge.textContent = pName;
+              providerBadge.classList.remove('hidden');
+            } else {
+              modelListEl.innerHTML = renderModelList(models, selectedModel, showProviderName, (m) => {
+                selectedModel = m.id;
+                updateTrigger();
+                closeDropdown();
+              });
+              providerBadge.classList.add('hidden');
+            }
+          });
+        };
+
+        // Timeout wrapper for model catalog fetch
+        const withTimeout = (promise, ms = 5000) => {
+          return Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Model catalog load timed out')), ms))
+          ]);
+        };
+
+        withTimeout(getEnrichedModels(template.modelType))
+          .then(enriched => {
+            const models = enriched && enriched.length > 0 ? enriched : fallbackList;
+            loadedModels = models;
+            refresh(models);
+          })
+          .catch(err => {
+            console.warn('[TemplateStudio] Failed to load enriched model catalog, using fallback:', err);
+            loadedModels = fallbackList;
+            refresh(fallbackList);
+          });
+      }
+    };
+
+    triggerBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (dropdown.classList.contains('opacity-100')) {
+        closeDropdown();
+      } else {
+        openDropdown();
+      }
+    };
+
+    const modelLoadingStatus = document.createElement('span');
+    modelLoadingStatus.id = 'model-loading-status';
+    modelLoadingStatus.className = 'text-[10px] text-zinc-500';
+
+    const headerRow = document.createElement('div');
+    headerRow.className = 'mb-3 flex items-center justify-between gap-3';
+    const label = document.createElement('div');
+    label.className = 'text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500';
+    label.textContent = 'Model';
+    headerRow.appendChild(triggerBtn);
+    headerRow.appendChild(modelLoadingStatus);
+    modelWrapper.appendChild(headerRow);
+    modelWrapper.appendChild(dropdown);
+    leftPanel.appendChild(modelWrapper);
+
+    // Close on outside click
+    setTimeout(() => {
+      document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && e.target !== triggerBtn) {
+          closeDropdown();
         }
       });
+    }, 0);
   }
 
   // AI Enhancer section
