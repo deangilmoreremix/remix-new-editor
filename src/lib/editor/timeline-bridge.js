@@ -152,6 +152,27 @@ function legacyClipToNew(clip, track, timelineSeconds) {
     flipV: Boolean(clip.flipV),
     keyframes: Array.isArray(clip.keyframes) ? clip.keyframes : [],
     linkedClipIds: Array.isArray(clip.linkedClipIds) ? clip.linkedClipIds : undefined,
+    // Our own additions (not in CineGen — keep)
+    type: clip.type || (track.kind === 'audio' ? 'audio' : 'video'),
+    muted: typeof clip.muted === 'boolean' ? clip.muted : false,
+    reversed: Boolean(clip.reversed),
+    colorCorrection: clip.colorCorrection || {
+      brightness: 0,
+      contrast: 0,
+      saturation: 0,
+      temperature: 0,
+      tint: 0,
+      exposure: 0,
+      highlights: 0,
+      shadows: 0,
+    },
+    letterbox: clip.letterbox || {
+      enabled: false,
+      aspectRatio: '2.35:1',
+      color: '#000000',
+      opacity: 100,
+    },
+    effects: Array.isArray(clip.effects) ? clip.effects : [],
   };
 }
 
@@ -258,7 +279,7 @@ function newClipToLegacy(clip) {
     id: clip.id,
     assetId: clip.assetId,
     name: clip.name,
-    type: clip.type, // may be undefined; legacy fills it from track
+    type: clip.type, // stored field; text overlays and images rely on this
     start: clip.startTime,
     end: clip.startTime + clip.duration,
     duration: clip.duration,
@@ -269,11 +290,16 @@ function newClipToLegacy(clip) {
     speed: clip.speed,
     playbackRate: clip.speed,
     volume: clip.volume,
+    muted: typeof clip.muted === 'boolean' ? clip.muted : false,
+    reversed: Boolean(clip.reversed),
     opacity: clip.opacity,
     flipH: clip.flipH,
     flipV: clip.flipV,
     keyframes: clip.keyframes || [],
     linkedClipIds: clip.linkedClipIds,
+    colorCorrection: clip.colorCorrection,
+    letterbox: clip.letterbox,
+    effects: clip.effects,
   };
 }
 
@@ -297,10 +323,12 @@ export function getPreviewClipFromTimeline(timeline, selectedClipId, state) {
 
   const asset = findAssetById(state, clip.assetId);
 
-  // Type precedence: explicit legacy field on the original clip
-  // (if present in state) > asset type > track kind.
+  // Type precedence: stored clip.type > original legacy clip type >
+  // asset type > track kind. Text overlays and images must use the stored
+  // type because they cannot be derived from track/asset alone.
   const original = findOriginalClip(state, selectedClipId);
-  const type = (original && original.type)
+  const type = (clip.type)
+    || (original && original.type)
     || (asset && asset.type)
     || (lookupTrackKind(timeline, clip.trackId) === 'audio' ? 'audio' : 'video');
 
@@ -361,6 +389,9 @@ function lookupTrackKind(timeline, trackId) {
  * Sync the new-model `timeline` field on state from `state.tracks`.
  * Returns a new state-like object (does not mutate the input).
  *
+ * Also writes the result into `state.timelines[state.activeTimelineId]`
+ * so the active-timeline map stays in sync with the legacy store.
+ *
  * Convenience wrapper for editor code that wants to keep both
  * representations in step without manually calling legacyToTimeline.
  *
@@ -368,5 +399,29 @@ function lookupTrackKind(timeline, trackId) {
  * @returns {Object} The new Timeline (also assignable to state.timeline)
  */
 export function syncTimelineFromState(state) {
+  const timeline = legacyToTimeline(state);
+  if (state.timelines && state.activeTimelineId) {
+    const existing = state.timelines[state.activeTimelineId];
+    timeline.id = state.activeTimelineId;
+    if (existing) {
+      timeline.name = existing.name;
+    }
+    state.timelines[state.activeTimelineId] = timeline;
+  }
+  return timeline;
+}
+
+/**
+ * Return the active timeline from state.timelines, falling back to a
+ * freshly synthesized timeline from state.tracks if the map is absent
+ * or the active id is missing.
+ *
+ * @param {Object} state
+ * @returns {Object} A new-model Timeline
+ */
+export function getActiveTimelineFromState(state) {
+  if (state.timelines && state.activeTimelineId && state.timelines[state.activeTimelineId]) {
+    return state.timelines[state.activeTimelineId];
+  }
   return legacyToTimeline(state);
 }

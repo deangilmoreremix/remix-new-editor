@@ -6,6 +6,7 @@ import {
   findAssetById,
   syncTimelineFromState,
 } from '../timeline-bridge.js';
+import { setClipSpeed } from '../timeline-operations.js';
 
 /** Build a minimal legacy state with a video and audio track. */
 function buildLegacyState(overrides = {}) {
@@ -383,5 +384,404 @@ describe('integration: bridge round-trips a realistic project', () => {
     const roundTripAudio = tracks.find((t) => t.id === 'a1').items.length;
     expect(roundTripVideo).toBe(originalVideoCount);
     expect(roundTripAudio).toBe(originalAudioCount);
+  });
+});
+
+describe('Track field round-trip (name, muted, solo, locked)', () => {
+  it('reads track name from legacy and writes it to the new model', () => {
+    const timeline = legacyToTimeline(buildLegacyState());
+    expect(timeline.tracks.find((t) => t.id === 'v1').name).toBe('V1');
+    expect(timeline.tracks.find((t) => t.id === 'a1').name).toBe('A1');
+  });
+
+  it('reads track muted from legacy and exposes it as `muted` on the new model', () => {
+    const timeline = legacyToTimeline(buildLegacyState());
+    const v1 = timeline.tracks.find((t) => t.id === 'v1');
+    const a1 = timeline.tracks.find((t) => t.id === 'a1');
+    expect(v1.muted).toBe(false);
+    expect(a1.muted).toBe(true);
+  });
+
+  it('reads legacy `solo` and exposes it as `solo` on the new model', () => {
+    const timeline = legacyToTimeline(buildLegacyState());
+    const v1 = timeline.tracks.find((t) => t.id === 'v1');
+    expect(v1.solo).toBe(false);
+  });
+
+  it('reads track locked from legacy and exposes it as `locked` on the new model', () => {
+    const timeline = legacyToTimeline(buildLegacyState());
+    const v1 = timeline.tracks.find((t) => t.id === 'v1');
+    expect(v1.locked).toBe(false);
+  });
+
+  it('writes new-model solo back to legacy `solo` on timelineToLegacy', () => {
+    const timeline = legacyToTimeline(buildLegacyState());
+    const soloedTimeline = {
+      ...timeline,
+      tracks: timeline.tracks.map((t, i) =>
+        i === 0 ? { ...t, solo: true } : t,
+      ),
+    };
+    const { tracks } = timelineToLegacy(soloedTimeline, { timelineSeconds: 60 });
+    expect(tracks.find((t) => t.id === 'v1').solo).toBe(true);
+    expect(tracks.find((t) => t.id === 'a1').solo).toBe(false);
+  });
+
+  it('round-trips muted/solo/locked through legacy → new → legacy', () => {
+    const original = buildLegacyState();
+    // Set a mix of flags on the legacy state
+    original.tracks[0].muted = false;
+    original.tracks[0].solo = true;
+    original.tracks[0].locked = true;
+    original.tracks[1].muted = true;
+    original.tracks[1].solo = false;
+    original.tracks[1].locked = false;
+
+    const timeline = legacyToTimeline(original);
+    const { tracks } = timelineToLegacy(timeline, { timelineSeconds: 60 });
+    const v1 = tracks.find((t) => t.id === 'v1');
+    const a1 = tracks.find((t) => t.id === 'a1');
+    expect(v1.muted).toBe(false);
+    expect(v1.solo).toBe(true);
+    expect(v1.locked).toBe(true);
+    expect(a1.muted).toBe(true);
+    expect(a1.solo).toBe(false);
+    expect(a1.locked).toBe(false);
+  });
+
+  it('round-trips track name through legacy → new → legacy', () => {
+    const original = buildLegacyState();
+    original.tracks[0].name = 'Custom Video Track';
+    original.tracks[1].name = 'Custom Audio Track';
+
+    const timeline = legacyToTimeline(original);
+    expect(timeline.tracks[0].name).toBe('Custom Video Track');
+    expect(timeline.tracks[1].name).toBe('Custom Audio Track');
+
+    const { tracks } = timelineToLegacy(timeline, { timelineSeconds: 60 });
+    expect(tracks[0].name).toBe('Custom Video Track');
+    expect(tracks[1].name).toBe('Custom Audio Track');
+  });
+});
+
+describe('Clip field round-trip (muted)', () => {
+  it('reads clip muted from legacy and exposes it on the new model', () => {
+    const state = {
+      projectId: 'p-1',
+      projectTitle: 'Demo',
+      timelineSeconds: 60,
+      tracks: [
+        {
+          id: 'v1',
+          name: 'V1',
+          type: 'video',
+          muted: false,
+          solo: false,
+          locked: false,
+          items: [
+            { id: 'c-1', name: 'Clip 1', type: 'video', start: 0, end: 5, muted: true },
+            { id: 'c-2', name: 'Clip 2', type: 'video', start: 5, end: 10, muted: false },
+          ],
+        },
+      ],
+    };
+    const timeline = legacyToTimeline(state);
+    const c1 = timeline.clips.find((c) => c.id === 'c-1');
+    const c2 = timeline.clips.find((c) => c.id === 'c-2');
+    expect(c1.muted).toBe(true);
+    expect(c2.muted).toBe(false);
+  });
+
+  it('defaults clip muted to false when not set on legacy', () => {
+    const timeline = legacyToTimeline(buildLegacyState());
+    const clip = timeline.clips.find((c) => c.id === 'c-video-1');
+    expect(clip.muted).toBe(false);
+  });
+
+  it('writes new-model clip muted back to legacy on timelineToLegacy', () => {
+    const timeline = legacyToTimeline(buildLegacyState());
+    const updated = {
+      ...timeline,
+      clips: timeline.clips.map((c, i) =>
+        i === 0 ? { ...c, muted: true } : c,
+      ),
+    };
+    const { tracks } = timelineToLegacy(updated, { timelineSeconds: 60 });
+    expect(tracks[0].items[0].muted).toBe(true);
+    expect(tracks[0].items[1].muted).toBe(false);
+  });
+
+  it('keeps clip muted independent of volume', () => {
+    const state = {
+      projectId: 'p-1',
+      projectTitle: 'Demo',
+      timelineSeconds: 60,
+      tracks: [
+        {
+          id: 'v1',
+          name: 'V1',
+          type: 'video',
+          items: [
+            { id: 'c-1', name: 'Clip 1', type: 'video', start: 0, end: 5, volume: 0.5, muted: true },
+          ],
+        },
+      ],
+    };
+    const timeline = legacyToTimeline(state);
+    const clip = timeline.clips.find((c) => c.id === 'c-1');
+    expect(clip.volume).toBe(0.5);
+    expect(clip.muted).toBe(true);
+  });
+});
+
+describe('Phase 4 — speed round-trip', () => {
+  it('speed survives legacyToTimeline → timelineToLegacy round-trip', () => {
+    const state = buildLegacyState();
+    state.tracks[0].items[0].speed = 1.5;
+    const timeline = legacyToTimeline(state);
+    expect(timeline.clips.find((c) => c.id === 'c-video-1').speed).toBe(1.5);
+
+    const { tracks } = timelineToLegacy(timeline, { timelineSeconds: 60 });
+    expect(tracks[0].items[0].speed).toBe(1.5);
+  });
+
+  it('speed is clamped to 0.25–4 via bridge path', () => {
+    const timeline = legacyToTimeline(buildLegacyState());
+    const tooFast = setClipSpeed(timeline, 'c-video-1', 10);
+    const tooSlow = setClipSpeed(timeline, 'c-video-2', 0.05);
+
+    const { tracks } = timelineToLegacy(tooFast, { timelineSeconds: 60 });
+    expect(tracks[0].items[0].speed).toBe(4.0);
+
+    const { tracks: tracks2 } = timelineToLegacy(tooSlow, { timelineSeconds: 60 });
+    expect(tracks2[0].items[1].speed).toBe(0.25);
+  });
+
+  it('speed defaults to 1 when missing', () => {
+    const state = buildLegacyState();
+    delete state.tracks[0].items[0].speed;
+    delete state.tracks[0].items[0].playbackRate;
+    const timeline = legacyToTimeline(state);
+    const clip = timeline.clips.find((c) => c.id === 'c-video-1');
+    expect(clip.speed).toBe(1);
+  });
+});
+
+describe('Clip field round-trip (Phase 3: type, colorCorrection, letterbox, effects, reversed)', () => {
+  it('reads clip type from legacy and stores it on the new model', () => {
+    const state = {
+      projectId: 'p-1',
+      projectTitle: 'Demo',
+      timelineSeconds: 60,
+      tracks: [
+        {
+          id: 'v1',
+          name: 'V1',
+          type: 'video',
+          muted: false,
+          solo: false,
+          locked: false,
+          items: [
+            { id: 'c-1', name: 'Title', type: 'text', start: 0, end: 5 },
+            { id: 'c-2', name: 'Photo', type: 'image', start: 5, end: 10 },
+            { id: 'c-3', name: 'Video', type: 'video', start: 10, end: 15 },
+          ],
+        },
+      ],
+    };
+    const timeline = legacyToTimeline(state);
+    expect(timeline.clips.find((c) => c.id === 'c-1').type).toBe('text');
+    expect(timeline.clips.find((c) => c.id === 'c-2').type).toBe('image');
+    expect(timeline.clips.find((c) => c.id === 'c-3').type).toBe('video');
+  });
+
+  it('derives clip type from asset when legacy clip type is missing', () => {
+    const state = {
+      projectId: 'p-1',
+      projectTitle: 'Demo',
+      timelineSeconds: 60,
+      tracks: [
+        {
+          id: 'v1',
+          name: 'V1',
+          type: 'video',
+          items: [
+            { id: 'c-1', name: 'Clip', start: 0, end: 5 },
+          ],
+        },
+      ],
+    };
+    const timeline = legacyToTimeline(state);
+    // No type on clip, no asset, track is video → defaults to 'video'
+    expect(timeline.clips.find((c) => c.id === 'c-1').type).toBe('video');
+  });
+
+  it('writes new-model clip type back to legacy on timelineToLegacy', () => {
+    const timeline = legacyToTimeline(buildLegacyState());
+    const updated = {
+      ...timeline,
+      clips: timeline.clips.map((c, i) =>
+        i === 0 ? { ...c, type: 'text' } : c,
+      ),
+    };
+    const { tracks } = timelineToLegacy(updated, { timelineSeconds: 60 });
+    expect(tracks[0].items[0].type).toBe('text');
+  });
+
+  it('reads clip reversed from legacy and writes it back', () => {
+    const state = {
+      projectId: 'p-1',
+      projectTitle: 'Demo',
+      timelineSeconds: 60,
+      tracks: [
+        {
+          id: 'v1',
+          name: 'V1',
+          type: 'video',
+          items: [
+            { id: 'c-1', name: 'Clip', type: 'video', start: 0, end: 5, reversed: true },
+          ],
+        },
+      ],
+    };
+    const timeline = legacyToTimeline(state);
+    expect(timeline.clips.find((c) => c.id === 'c-1').reversed).toBe(true);
+
+    const { tracks } = timelineToLegacy(timeline, { timelineSeconds: 60 });
+    expect(tracks[0].items[0].reversed).toBe(true);
+  });
+
+  it('reads clip colorCorrection from legacy and writes it back', () => {
+    const state = {
+      projectId: 'p-1',
+      projectTitle: 'Demo',
+      timelineSeconds: 60,
+      tracks: [
+        {
+          id: 'v1',
+          name: 'V1',
+          type: 'video',
+          items: [
+            {
+              id: 'c-1',
+              name: 'Clip',
+              type: 'video',
+              start: 0,
+              end: 5,
+              colorCorrection: { brightness: 0.2, contrast: -0.1, saturation: 0, temperature: 0, tint: 0, exposure: 0, highlights: 0, shadows: 0 },
+            },
+          ],
+        },
+      ],
+    };
+    const timeline = legacyToTimeline(state);
+    const cc = timeline.clips.find((c) => c.id === 'c-1').colorCorrection;
+    expect(cc.brightness).toBe(0.2);
+    expect(cc.contrast).toBe(-0.1);
+
+    const { tracks } = timelineToLegacy(timeline, { timelineSeconds: 60 });
+    expect(tracks[0].items[0].colorCorrection.brightness).toBe(0.2);
+  });
+
+  it('defaults colorCorrection to zeros when missing on legacy', () => {
+    const timeline = legacyToTimeline(buildLegacyState());
+    const clip = timeline.clips.find((c) => c.id === 'c-video-1');
+    expect(clip.colorCorrection).toEqual({
+      brightness: 0,
+      contrast: 0,
+      saturation: 0,
+      temperature: 0,
+      tint: 0,
+      exposure: 0,
+      highlights: 0,
+      shadows: 0,
+    });
+  });
+
+  it('reads clip letterbox from legacy and writes it back', () => {
+    const state = {
+      projectId: 'p-1',
+      projectTitle: 'Demo',
+      timelineSeconds: 60,
+      tracks: [
+        {
+          id: 'v1',
+          name: 'V1',
+          type: 'video',
+          items: [
+            {
+              id: 'c-1',
+              name: 'Clip',
+              type: 'video',
+              start: 0,
+              end: 5,
+              letterbox: { enabled: true, aspectRatio: '2.39:1', color: '#000000', opacity: 80 },
+            },
+          ],
+        },
+      ],
+    };
+    const timeline = legacyToTimeline(state);
+    const lb = timeline.clips.find((c) => c.id === 'c-1').letterbox;
+    expect(lb.enabled).toBe(true);
+    expect(lb.aspectRatio).toBe('2.39:1');
+    expect(lb.opacity).toBe(80);
+
+    const { tracks } = timelineToLegacy(timeline, { timelineSeconds: 60 });
+    expect(tracks[0].items[0].letterbox.enabled).toBe(true);
+  });
+
+  it('defaults letterbox to disabled when missing on legacy', () => {
+    const timeline = legacyToTimeline(buildLegacyState());
+    const clip = timeline.clips.find((c) => c.id === 'c-video-1');
+    expect(clip.letterbox).toEqual({
+      enabled: false,
+      aspectRatio: '2.35:1',
+      color: '#000000',
+      opacity: 100,
+    });
+  });
+
+  it('reads clip effects from legacy and writes them back', () => {
+    const state = {
+      projectId: 'p-1',
+      projectTitle: 'Demo',
+      timelineSeconds: 60,
+      tracks: [
+        {
+          id: 'v1',
+          name: 'V1',
+          type: 'video',
+          items: [
+            {
+              id: 'c-1',
+              name: 'Clip',
+              type: 'video',
+              start: 0,
+              end: 5,
+              effects: [
+                { id: 'ef-1', type: 'blur', enabled: true, params: { radius: 5 } },
+                { id: 'ef-2', type: 'lut-cinematic', enabled: false, params: { intensity: 0.8 } },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const timeline = legacyToTimeline(state);
+    const effects = timeline.clips.find((c) => c.id === 'c-1').effects;
+    expect(effects).toHaveLength(2);
+    expect(effects[0].type).toBe('blur');
+    expect(effects[1].type).toBe('lut-cinematic');
+
+    const { tracks } = timelineToLegacy(timeline, { timelineSeconds: 60 });
+    expect(tracks[0].items[0].effects).toHaveLength(2);
+    expect(tracks[0].items[0].effects[0].type).toBe('blur');
+  });
+
+  it('defaults effects to empty array when missing on legacy', () => {
+    const timeline = legacyToTimeline(buildLegacyState());
+    const clip = timeline.clips.find((c) => c.id === 'c-video-1');
+    expect(clip.effects).toEqual([]);
   });
 });
