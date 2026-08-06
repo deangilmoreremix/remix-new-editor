@@ -657,6 +657,8 @@ export class MuapiClient {
         const finalPayload = {};
 
         if (params.prompt) finalPayload.prompt = params.prompt;
+        if (params.genre) finalPayload.genre = params.genre;
+        if (params.mood) finalPayload.mood = params.mood;
         if (params.duration) finalPayload.duration = params.duration;
         if (params.style) finalPayload.style = params.style;
         if (params.audio_url) finalPayload.audio_url = params.audio_url;
