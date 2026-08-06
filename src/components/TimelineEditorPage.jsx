@@ -1461,18 +1461,18 @@ export function TimelineEditorPage() {
 
     function addEndScreenToTimeline(endScreenData, state) {
       // Add end screen elements to the end of the timeline
-      const videoTrack = state.tracks.find(t => t.name === 'Video');
-      if (videoTrack && endScreenData.elements) {
-        endScreenData.elements.forEach(element => {
+      const videoTrack = state.tracks.find(t => t.type === 'video');
+      if (videoTrack && endScreenData.buttons) {
+        endScreenData.buttons.forEach(button => {
           const clip = {
+            ...button,
             id: Date.now() + Math.random(),
-            name: element.name || 'End Screen Element',
+            name: button.text || 'End Screen Element',
             left: state.timelineSeconds * 10, // Position at end
-            width: element.duration || 5,
-            type: element.type || 'text',
-            ...element
+            width: button.duration || 5,
+            type: button.type || 'text',
           };
-          videoTrack.clips.push(clip);
+          videoTrack.items.push(clip);
         });
         renderTracks();
       }
@@ -3407,18 +3407,19 @@ export function TimelineEditorPage() {
 
     // Helper functions for modal integration
     function addVideoToTimeline(videoData, state) {
-      const videoTrack = state.tracks.find(t => t.name === 'Video');
+      const videoTrack = state.tracks.find(t => t.type === 'video');
       if (videoTrack) {
+        const src = videoData.blob ? URL.createObjectURL(videoData.blob) : videoData.src;
         const newClip = {
           id: Date.now(),
           name: videoData.name || 'Imported Video',
           left: 50,
           width: 20,
           type: 'video',
-          src: videoData.src,
+          src,
           poster: videoData.poster
         };
-        videoTrack.clips.push(newClip);
+        videoTrack.items.push(newClip);
         renderTracks();
       }
     }
