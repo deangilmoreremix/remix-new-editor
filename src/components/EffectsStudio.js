@@ -10,6 +10,9 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { navigate } from '../lib/router.js';
+import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
+import { showToast } from '../lib/loading.js';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -34,10 +37,28 @@ export function EffectsStudio() {
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-hidden relative';
   mountStudioChrome(container, { currentRoute: 'effects' });
 
+  // Comparison mode styles
+  const comparisonStyles = document.createElement('style');
+  comparisonStyles.textContent = `
+    .fx-comparison-wrapper { position: relative; flex: 1; display: flex; gap: 8px; min-height: 0; }
+    .fx-comparison-pane { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .fx-comparison-pane .media-preview-media { max-height: 45vh; }
+    .fx-comparison-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #9ca3af; }
+    .fx-comparison-divider { width: 2px; background: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.3), rgba(255,255,255,0.1)); cursor: col-resize; flex-shrink: 0; }
+    .fx-comparison-slider { position: absolute; top: 0; bottom: 0; width: 3px; background: #fff; cursor: ew-resize; z-index: 10; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
+    .fx-comparison-slider::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    .fx-hidden { display: none !important; }
+  `;
+  container.appendChild(comparisonStyles);
+
   let activeTab = EFFECT_TABS[0];
   let selectedEffect = null;
   let uploadedUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('effects-studio');
+  let comparisonMode = false;
+  let lastResultUrl = null;
+  let lastResultType = null;
+  let lastInputUrl = null;
 
   const fullscreen = createFullscreenPreview();
   container.appendChild(fullscreen.element);
@@ -118,6 +139,24 @@ export function EffectsStudio() {
   previewHeader.className = 'flex items-center justify-between';
   previewHeader.innerHTML = '<div class="text-xs font-bold text-secondary uppercase tracking-wider">Preview</div>';
 
+  const headerActions = document.createElement('div');
+  headerActions.className = 'flex items-center gap-2';
+
+  const compareBtn = document.createElement('button');
+  compareBtn.type = 'button';
+  compareBtn.className = 'px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white/5 border border-white/10 text-secondary hover:text-white hover:border-white/20 transition-all';
+  compareBtn.textContent = '⟺ Compare';
+  compareBtn.title = 'Toggle side-by-side comparison';
+  compareBtn.onclick = () => {
+    comparisonMode = !comparisonMode;
+    compareBtn.classList.toggle('bg-primary/20', comparisonMode);
+    compareBtn.classList.toggle('border-primary/40', comparisonMode);
+    compareBtn.classList.toggle('text-primary', comparisonMode);
+    updateComparisonView();
+  };
+  headerActions.appendChild(compareBtn);
+  previewHeader.appendChild(headerActions);
+
   const selectedBadge = document.createElement('div');
   selectedBadge.className = 'text-xs font-bold text-muted';
   selectedBadge.textContent = 'No effect selected';
@@ -175,6 +214,78 @@ export function EffectsStudio() {
 
   const outputPreview = createMediaPreview({ maxHeight: '40vh', showDownload: true, showMeta: true });
   outputCol.appendChild(outputPreview.element);
+
+  const outputActions = document.createElement('div');
+  outputActions.className = 'flex items-center gap-2 flex-wrap';
+
+  const downloadActionBtn = document.createElement('button');
+  downloadActionBtn.type = 'button';
+  downloadActionBtn.className = 'flex-1 min-w-[100px] bg-primary text-black px-3 py-2 rounded-xl text-[10px] font-black hover:shadow-glow transition-all active:scale-95';
+  downloadActionBtn.textContent = '↓ Download';
+  downloadActionBtn.title = 'Download result';
+  downloadActionBtn.onclick = () => {
+    const url = outputPreview.getUrl();
+    if (!url) { showToast('No result to download', 'warning'); return; }
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fx-${selectedEffect || 'result'}-${Date.now()}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('Download started', 'success');
+  };
+  outputActions.appendChild(downloadActionBtn);
+
+  const addToLibraryBtn = document.createElement('button');
+  addToLibraryBtn.type = 'button';
+  addToLibraryBtn.className = 'flex-1 min-w-[100px] bg-white/10 hover:bg-white/20 border border-white/10 text-white px-3 py-2 rounded-xl text-[10px] font-bold transition-all active:scale-95';
+  addToLibraryBtn.textContent = '＋ Add to Library';
+  addToLibraryBtn.title = 'Save to media library';
+  addToLibraryBtn.onclick = async () => {
+    const url = outputPreview.getUrl();
+    if (!url) { showToast('No result to save', 'warning'); return; }
+    try {
+      const type = lastResultType === 'video' ? 'video' : 'image';
+      const asset = await saveGeneratedAsset(type, {
+        title: `${selectedEffect || 'FX'} result`,
+        media: { url, type },
+        metadata: { effect: selectedEffect, model: activeTab.id, prompt: promptInput.value.trim() },
+        sourceApp: 'effects-studio',
+      }, 'effects-studio');
+      showToast('Added to media library', 'success');
+    } catch (err) {
+      console.error('[EffectsStudio] Failed to save asset:', err);
+      showToast('Failed to add to library', 'error');
+    }
+  };
+  outputActions.appendChild(addToLibraryBtn);
+
+  const insertTimelineBtn = document.createElement('button');
+  insertTimelineBtn.type = 'button';
+  insertTimelineBtn.className = 'flex-1 min-w-[100px] bg-white/10 hover:bg-white/20 border border-white/10 text-white px-3 py-2 rounded-xl text-[10px] font-bold transition-all active:scale-95';
+  insertTimelineBtn.textContent = '⏱ Insert into Timeline';
+  insertTimelineBtn.title = 'Add to timeline';
+  insertTimelineBtn.onclick = async () => {
+    const url = outputPreview.getUrl();
+    if (!url) { showToast('No result to insert', 'warning'); return; }
+    try {
+      const type = lastResultType === 'video' ? 'video' : 'image';
+      const asset = await saveGeneratedAsset(type, {
+        title: `${selectedEffect || 'FX'} result`,
+        media: { url, type },
+        metadata: { effect: selectedEffect, model: activeTab.id, prompt: promptInput.value.trim() },
+        sourceApp: 'effects-studio',
+      }, 'effects-studio');
+      navigate('timeline', { asset: asset.id });
+      showToast('Inserting into timeline...', 'success');
+    } catch (err) {
+      console.error('[EffectsStudio] Failed to insert into timeline:', err);
+      showToast('Failed to insert into timeline', 'error');
+    }
+  };
+  outputActions.appendChild(insertTimelineBtn);
+
+  outputCol.appendChild(outputActions);
 
   splitRow.appendChild(inputCol);
   splitRow.appendChild(outputCol);
@@ -238,7 +349,7 @@ export function EffectsStudio() {
   mobilePreviewRow.className = 'flex gap-3';
 
   const mobileInputPreview = createMediaPreview({ maxHeight: '30vh', showDownload: false, showMeta: false });
-  mobileInputPreview.element.className += ' flex-1';
+  mobileInputPreview.element.className += ' flex-1 fx-hidden';
   const mobileOutputPreview = createMediaPreview({ maxHeight: '30vh', showDownload: true, showMeta: false });
   mobileOutputPreview.element.className += ' flex-1';
   mobileOutputPreview.element.setAttribute('role', 'status');
@@ -273,6 +384,19 @@ export function EffectsStudio() {
   mobilePrompt.setAttribute('aria-label', 'Effect prompt');
   mobileUploadRow.appendChild(mobilePrompt);
   mobileControls.appendChild(mobileUploadRow);
+
+  const mobileCompareBtn = document.createElement('button');
+  mobileCompareBtn.type = 'button';
+  mobileCompareBtn.className = 'w-full px-3 py-2 rounded-xl text-[10px] font-bold bg-white/5 border border-white/10 text-secondary hover:text-white hover:border-white/20 transition-all';
+  mobileCompareBtn.textContent = '⟺ Toggle Compare';
+  mobileCompareBtn.onclick = () => {
+    comparisonMode = !comparisonMode;
+    mobileCompareBtn.classList.toggle('bg-primary/20', comparisonMode);
+    mobileCompareBtn.classList.toggle('border-primary/40', comparisonMode);
+    mobileCompareBtn.classList.toggle('text-primary', comparisonMode);
+    updateComparisonView();
+  };
+  mobileControls.appendChild(mobileCompareBtn);
 
   const mobileGenBtn = document.createElement('button');
   mobileGenBtn.type = 'button';
@@ -479,6 +603,11 @@ export function EffectsStudio() {
         outputPreview.load(result.url, { type: mediaType, model: activeTab.label, filename: `${selectedEffect}-${Date.now()}` });
         mobileOutputPreview.load(result.url, { type: mediaType });
 
+        lastResultUrl = result.url;
+        lastResultType = mediaType;
+        lastInputUrl = uploadedUrl;
+        updateComparisonView();
+
         saveToHistory(result.url, mediaType);
       } else {
         outputPreview.showError('No output URL returned');
@@ -494,6 +623,56 @@ export function EffectsStudio() {
       mobileGenBtn.disabled = false;
       generateBtn.textContent = 'Apply Effect';
       mobileGenBtn.textContent = 'Apply Effect';
+    }
+  }
+
+  function updateComparisonView() {
+    // Desktop: replace splitRow with side-by-side comparison wrapper
+    const existingDesktop = previewTop.querySelector('.fx-comparison-wrapper');
+    if (existingDesktop) existingDesktop.remove();
+
+    if (comparisonMode && lastResultUrl) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'fx-comparison-wrapper';
+
+      const inputPane = document.createElement('div');
+      inputPane.className = 'fx-comparison-pane';
+      const inputLabel = document.createElement('div');
+      inputLabel.className = 'fx-comparison-label';
+      inputLabel.textContent = 'Input';
+      inputPane.appendChild(inputLabel);
+
+      const inputClone = createMediaPreview({ maxHeight: '45vh', showDownload: false, showMeta: false });
+      if (lastInputUrl) inputClone.load(lastInputUrl);
+      inputPane.appendChild(inputClone.element);
+
+      const divider = document.createElement('div');
+      divider.className = 'fx-comparison-divider';
+
+      const outputPane = document.createElement('div');
+      outputPane.className = 'fx-comparison-pane';
+      const outputLabel = document.createElement('div');
+      outputLabel.className = 'fx-comparison-label';
+      outputLabel.textContent = 'Output';
+      outputPane.appendChild(outputLabel);
+
+      const outputClone = createMediaPreview({ maxHeight: '45vh', showDownload: true, showMeta: true });
+      outputClone.load(lastResultUrl, { type: lastResultType });
+      outputPane.appendChild(outputClone.element);
+
+      wrapper.appendChild(inputPane);
+      wrapper.appendChild(divider);
+      wrapper.appendChild(outputPane);
+      previewTop.appendChild(wrapper);
+    }
+
+    // Mobile: show/hide input preview
+    if (mobileInputPreview) {
+      if (comparisonMode) {
+        mobileInputPreview.element.classList.remove('fx-hidden');
+      } else {
+        mobileInputPreview.element.classList.add('fx-hidden');
+      }
     }
   }
 
