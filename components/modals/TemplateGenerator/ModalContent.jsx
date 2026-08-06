@@ -6,7 +6,6 @@ import { observer } from 'mobx-react';
 import Media from './Media';
 import Overlays from './Overlays';
 import { LibrarySpinner } from '../../media/Loader';
-import HorizontalStepper from '../../form/HorizontalStepper';
 import NicheScriptsModalContent from './NicheScriptsModalContent';
 import useMultiselectTemplateStore from '../../hooks/useMultiselectTemplateStore';
 import { showError } from '../../../lib/services/alertService';
@@ -141,8 +140,6 @@ const ModalContent = observer(({ setHeaderProps, handleClose }) => {
     }
   }, [activeTab, selectedVideo.size, selectedNiche]);
 
-  const isPreview = useMemo(() => activeTab === STEPS.PREVIEW, [activeTab]);
-
   return (
     <>
       <div className="generator-body">
@@ -154,13 +151,6 @@ const ModalContent = observer(({ setHeaderProps, handleClose }) => {
           >
             {nextButton}
           </button>
-          <HorizontalStepper
-            steps={[{ label: 'Video', passed: isPreview && !!selectedVideo.size },
-              { label: 'Script', passed: isPreview && !!selectedNiche },
-              { label: 'Overlay', passed: isPreview && !!selectedOverlay },
-            ]}
-            activeStep={isPreview && !selectedOverlay ? STEPS.OVERLAY : activeTab}
-          />
         </div>
         {isLoading ? <LibrarySpinner /> : Content}
         <div className="gradient" />
