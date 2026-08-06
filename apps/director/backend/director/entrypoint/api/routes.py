@@ -329,3 +329,13 @@ def videoagent_workflow():
         "command": payload.get("command"),
         "result": "workflow received by Director backend",
     }
+
+
+health_bp = Blueprint("health", __name__)
+
+
+@health_bp.route("/health", methods=["GET"])
+def health():
+    config_handler = ConfigHandler()
+    check = config_handler.check()
+    return {"status": "ok", "timestamp": datetime.now().isoformat(), "config": check}
