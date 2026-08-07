@@ -154,6 +154,34 @@ button, input, textarea, select { font: inherit; }
 }
 .preview-form-skip:hover { color: rgba(255,255,255,0.8); }
 
+/* Adaptive field layout by count, mirroring upstream's per-count flex
+   rules: 2 fields stay stacked, 3-5 fields pair up into a grid with any
+   odd trailing field spanning the full width. */
+.preview-form-fields { display: flex; flex-direction: column; }
+.preview-form-card--fields-3 .preview-form-fields,
+.preview-form-card--fields-4 .preview-form-fields,
+.preview-form-card--fields-5 .preview-form-fields {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px;
+}
+.preview-form-card--fields-3 .preview-form-field:last-child,
+.preview-form-card--fields-5 .preview-form-field:last-child {
+  grid-column: 1 / -1;
+}
+
+/* Mobile sizing branch: near-full-width/height instead of the centered
+   card, matching upstream's isMobile() layout branch. */
+.preview-form-card--mobile { width: 92% !important; padding: 20px; border-radius: 20px; }
+.preview-form-card--mobile .preview-form-fields { display: flex !important; flex-direction: column !important; }
+
+@keyframes previewFormFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes previewFormSlideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes previewFormSlideDown { from { opacity: 0; transform: translateY(-24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes previewFormFadeOut { from { opacity: 1; } to { opacity: 0; } }
+.preview-form-card--enter-fade { animation: previewFormFadeIn 0.35s ease-out; }
+.preview-form-card--enter-slide-up { animation: previewFormSlideUp 0.35s ease-out; }
+.preview-form-card--enter-slide-down { animation: previewFormSlideDown 0.35s ease-out; }
+.preview-form-card--exit { animation: previewFormFadeOut 0.25s ease-in forwards; }
+
 .preview-click-to-call { display: flex; align-items: center; justify-content: center; }
 .preview-call-btn {
   display: inline-flex; align-items: center; gap: 10px; padding: 16px 32px; border-radius: 999px;

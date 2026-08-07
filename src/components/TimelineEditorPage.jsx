@@ -1200,11 +1200,15 @@ export function TimelineEditorPage() {
 
       if (selected.type === 'lead-form') {
         const card = document.createElement('div');
-        card.className = 'preview-form-card';
-        card.dataset.clipId = selected.id;
         const fields = Array.isArray(selected.fields) && selected.fields.length
           ? selected.fields
           : [{ id: 'email', type: 'email', label: 'Email' }];
+        // Adaptive layout: field count changes the arrangement, matching
+        // upstream's per-count flex rules (2/3/4/5 fields laid out
+        // differently rather than always stacking one-per-row).
+        const isMobilePreview = els.previewStage.clientWidth < 640;
+        card.className = `preview-form-card preview-form-card--fields-${Math.min(fields.length, 5)}${isMobilePreview ? ' preview-form-card--mobile' : ''}`;
+        card.dataset.clipId = selected.id;
         const inputType = (type) => (
           type === 'phone' ? 'tel'
             : type === 'email' ? 'email'
@@ -1232,6 +1236,7 @@ export function TimelineEditorPage() {
           <form class="preview-lead-form">
             ${selected.brandLogoUrl ? `<img class="preview-form-logo" src="${escapeHtml(selected.brandLogoUrl)}" alt="" />` : ''}
             ${heading ? `<h3 class="preview-form-heading" style="text-align:${captionAlign};${style.captionFontSize ? `font-size:${style.captionFontSize}%;` : ''}">${escapeHtml(heading)}</h3>` : ''}
+            <div class="preview-form-fields">
             ${fields.map((f) => {
               const varKey = FIELD_TOKEN_ALIASES[f.id] || f.id;
               const prefill = activeProfile?.variables?.[varKey];
@@ -1246,6 +1251,7 @@ export function TimelineEditorPage() {
               </div>
             `;
             }).join('')}
+            </div>
             ${privacyText ? `<p class="preview-form-privacy">${escapeHtml(privacyText)}</p>` : ''}
             ${selected.privacyPolicyCaption && selected.privacyPolicyLink
               ? `<a class="preview-form-privacy-link" href="${escapeHtml(selected.privacyPolicyLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(selected.privacyPolicyCaption)}</a>`
@@ -1270,12 +1276,29 @@ export function TimelineEditorPage() {
             el.style.fontSize = `${style.fontSize}%`;
           });
         }
+        // Configurable size/position as a % of the frame, replacing the
+        // fixed min(82%, 480px) CSS default when the user sets one.
+        if (style.widthPercent) card.style.width = `${style.widthPercent}%`;
+        if (style.heightPercent) {
+          card.style.maxHeight = `${style.heightPercent}%`;
+          card.style.overflowY = 'auto';
+        }
+        card.style.alignSelf = style.position === 'top' ? 'flex-start' : style.position === 'bottom' ? 'flex-end' : 'center';
+        // Entrance transition: mirrors upstream's animation.in classes
+        // (formAnimationStart applying a CSS class to the transition
+        // container) via a plain CSS animation instead of a JS timeline.
+        if (style.transition && style.transition !== 'none') {
+          card.classList.add(`preview-form-card--enter-${style.transition}`);
+        }
         els.previewStage.appendChild(card);
 
         const skipBtn = card.querySelector('.preview-form-skip');
         if (skipBtn) {
           skipBtn.addEventListener('click', () => {
-            card.style.display = 'none';
+            card.classList.add('preview-form-card--exit');
+            card.addEventListener('animationend', () => {
+              card.style.display = 'none';
+            }, { once: true });
             if (!state.playing) togglePlayback();
           });
         }
@@ -2857,6 +2880,34 @@ export function TimelineEditorPage() {
             </div>
           </div>
           <div class="clip-editor__section">
+            <h3>Layout &amp; Animation</h3>
+            <div class="clip-editor__field">
+              <label for="lf-transition">Entrance Transition</label>
+              <select id="lf-transition">
+                <option value="none" ${!clip.style.transition || clip.style.transition === 'none' ? 'selected' : ''}>None</option>
+                <option value="fade" ${clip.style.transition === 'fade' ? 'selected' : ''}>Fade</option>
+                <option value="slide-up" ${clip.style.transition === 'slide-up' ? 'selected' : ''}>Slide Up</option>
+                <option value="slide-down" ${clip.style.transition === 'slide-down' ? 'selected' : ''}>Slide Down</option>
+              </select>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-width-pct">Width (${clip.style.widthPercent || 'auto'}${clip.style.widthPercent ? '%' : ''})</label>
+              <input id="lf-width-pct" type="range" min="30" max="100" value="${clip.style.widthPercent || 82}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-height-pct">Max Height (${clip.style.heightPercent || 'auto'}${clip.style.heightPercent ? '%' : ''})</label>
+              <input id="lf-height-pct" type="range" min="20" max="100" value="${clip.style.heightPercent || 100}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-position">Vertical Position</label>
+              <select id="lf-position">
+                <option value="top" ${clip.style.position === 'top' ? 'selected' : ''}>Top</option>
+                <option value="center" ${!clip.style.position || clip.style.position === 'center' ? 'selected' : ''}>Center</option>
+                <option value="bottom" ${clip.style.position === 'bottom' ? 'selected' : ''}>Bottom</option>
+              </select>
+            </div>
+          </div>
+          <div class="clip-editor__section">
             <h3>Integrations</h3>
             <div class="clip-editor__field">
               <label for="lf-webhook-enabled"><input id="lf-webhook-enabled" type="checkbox" ${clip.webhookEnabled ? 'checked' : ''} /> Send submissions to webhook(s)</label>
@@ -3035,6 +3086,24 @@ export function TimelineEditorPage() {
       });
       els.clipEditorContainer.querySelector('#lf-btn-bottom-border').addEventListener('input', (e) => {
         clip.style.buttonBottomBorder = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-transition').addEventListener('change', (e) => {
+        clip.style.transition = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-width-pct').addEventListener('input', (e) => {
+        clip.style.widthPercent = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Width (${clip.style.widthPercent}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-height-pct').addEventListener('input', (e) => {
+        clip.style.heightPercent = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Max Height (${clip.style.heightPercent}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-position').addEventListener('change', (e) => {
+        clip.style.position = e.target.value;
         updatePreview(clip);
       });
       els.clipEditorContainer.querySelector('#lf-webhook-enabled').addEventListener('change', (e) => {
