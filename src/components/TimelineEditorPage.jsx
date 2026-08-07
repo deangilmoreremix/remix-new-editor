@@ -1364,20 +1364,94 @@ export function TimelineEditorPage() {
         // and this avoids an ongoing per-clip Lottie-asset authoring
         // burden for a general-purpose clip type. This is the permanent
         // design, not a placeholder pending a future upgrade.
+        const ctcStyle = selected.style || {};
         const wrap = document.createElement('div');
         wrap.className = 'preview-click-to-call';
         wrap.dataset.clipId = selected.id;
         const valid = isValidPhoneNumber(selected.phoneNumber);
         const telHref = valid ? `tel:${(selected.phoneNumber || '').replace(/[^0-9+]/g, '')}` : '#';
         wrap.innerHTML = `
-          <a class="preview-call-btn ${valid ? '' : 'preview-call-btn--invalid'}" href="${telHref}"${valid ? '' : ' aria-disabled="true" title="Enter a valid phone number in the clip settings"'}${selected.style?.buttonColor ? ` style="background:${selected.style.buttonColor}"` : ''}>
+          <a class="preview-call-btn ${valid ? '' : 'preview-call-btn--invalid'}" href="${telHref}"${valid ? '' : ' aria-disabled="true" title="Enter a valid phone number in the clip settings"'}${ctcStyle.buttonColor ? ` style="background:${ctcStyle.buttonColor}"` : ''}>
             📞 ${selected.buttonText || 'Call Now'}
           </a>
         `;
         if (!valid) {
           wrap.querySelector('a').addEventListener('click', (e) => e.preventDefault());
         }
+
+        // Positioning within the frame (% of the preview stage), matching
+        // upstream json-button's left/top/width/height model. Anchored by
+        // center point so drag math and CSS translate stay in sync.
+        const posLeft = ctcStyle.posLeft ?? 50;
+        const posTop = ctcStyle.posTop ?? 50;
+        const posWidth = ctcStyle.posWidth ?? 40;
+        wrap.style.position = 'absolute';
+        wrap.style.left = `${posLeft}%`;
+        wrap.style.top = `${posTop}%`;
+        wrap.style.width = `${posWidth}%`;
+        wrap.style.transform = 'translate(-50%, -50%)';
+        wrap.style.mixBlendMode = ctcStyle.blendMode || 'normal';
+        wrap.style.opacity = (ctcStyle.opacity ?? 100) / 100;
+
         els.previewStage.appendChild(wrap);
+
+        // Drag-to-move + resize, only when this clip is the current
+        // timeline selection — otherwise every click-to-call preview would
+        // intercept clicks meant for the tel: link.
+        if (state.selectedClipId === selected.id) {
+          wrap.classList.add('preview-click-to-call--selected');
+          const dragHandle = document.createElement('div');
+          dragHandle.className = 'ctc-drag-handle';
+          dragHandle.title = 'Drag to reposition';
+          dragHandle.textContent = '✥';
+          const resizeHandle = document.createElement('div');
+          resizeHandle.className = 'ctc-resize-handle';
+          resizeHandle.title = 'Drag to resize';
+          wrap.appendChild(dragHandle);
+          wrap.appendChild(resizeHandle);
+
+          const stageRect = () => els.previewStage.getBoundingClientRect();
+
+          dragHandle.addEventListener('mousedown', (downEvent) => {
+            downEvent.preventDefault();
+            const rect = stageRect();
+            const onMove = (moveEvent) => {
+              const newLeft = ((moveEvent.clientX - rect.left) / rect.width) * 100;
+              const newTop = ((moveEvent.clientY - rect.top) / rect.height) * 100;
+              selected.style.posLeft = Math.max(0, Math.min(100, newLeft));
+              selected.style.posTop = Math.max(0, Math.min(100, newTop));
+              wrap.style.left = `${selected.style.posLeft}%`;
+              wrap.style.top = `${selected.style.posTop}%`;
+            };
+            const onUp = () => {
+              document.removeEventListener('mousemove', onMove);
+              document.removeEventListener('mouseup', onUp);
+              renderClipEditor(selected.id);
+            };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+          });
+
+          resizeHandle.addEventListener('mousedown', (downEvent) => {
+            downEvent.preventDefault();
+            downEvent.stopPropagation();
+            const rect = stageRect();
+            const onMove = (moveEvent) => {
+              const wrapRect = wrap.getBoundingClientRect();
+              const newWidthPx = (moveEvent.clientX - wrapRect.left) * 2;
+              const newWidthPct = (newWidthPx / rect.width) * 100;
+              selected.style.posWidth = Math.max(10, Math.min(90, newWidthPct));
+              wrap.style.width = `${selected.style.posWidth}%`;
+            };
+            const onUp = () => {
+              document.removeEventListener('mousemove', onMove);
+              document.removeEventListener('mouseup', onUp);
+              renderClipEditor(selected.id);
+            };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+          });
+        }
         return;
       }
 
@@ -3245,6 +3319,32 @@ export function TimelineEditorPage() {
               <input id="ctc-btn-color" type="color" value="${clip.style.buttonColor || '#22d3ee'}" />
             </div>
           </div>
+          <div class="clip-editor__section">
+            <h3>Position &amp; Blend</h3>
+            <p style="font-size:11px;color:var(--text-dim);margin:0 0 8px">Drag the button directly in the preview to reposition, or use the handle in its top-right corner to resize.</p>
+            <div class="clip-editor__field">
+              <label for="ctc-pos-left">Horizontal Position (${Math.round(clip.style.posLeft ?? 50)}%)</label>
+              <input id="ctc-pos-left" type="range" min="0" max="100" value="${clip.style.posLeft ?? 50}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-pos-top">Vertical Position (${Math.round(clip.style.posTop ?? 50)}%)</label>
+              <input id="ctc-pos-top" type="range" min="0" max="100" value="${clip.style.posTop ?? 50}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-pos-width">Width (${Math.round(clip.style.posWidth ?? 40)}%)</label>
+              <input id="ctc-pos-width" type="range" min="10" max="90" value="${clip.style.posWidth ?? 40}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-blend-mode">Blend Mode</label>
+              <select id="ctc-blend-mode">
+                ${['normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'difference', 'exclusion'].map((m) => `<option value="${m}" ${(clip.style.blendMode || 'normal') === m ? 'selected' : ''}>${m}</option>`).join('')}
+              </select>
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-opacity">Opacity (${clip.style.opacity ?? 100}%)</label>
+              <input id="ctc-opacity" type="range" min="0" max="100" value="${clip.style.opacity ?? 100}" />
+            </div>
+          </div>
         </div>
       `;
 
@@ -3262,6 +3362,30 @@ export function TimelineEditorPage() {
       });
       els.clipEditorContainer.querySelector('#ctc-btn-color').addEventListener('input', (e) => {
         clip.style.buttonColor = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#ctc-pos-left').addEventListener('input', (e) => {
+        clip.style.posLeft = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Horizontal Position (${clip.style.posLeft}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#ctc-pos-top').addEventListener('input', (e) => {
+        clip.style.posTop = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Vertical Position (${clip.style.posTop}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#ctc-pos-width').addEventListener('input', (e) => {
+        clip.style.posWidth = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Width (${clip.style.posWidth}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#ctc-blend-mode').addEventListener('change', (e) => {
+        clip.style.blendMode = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#ctc-opacity').addEventListener('input', (e) => {
+        clip.style.opacity = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Opacity (${clip.style.opacity}%)`;
         updatePreview(clip);
       });
     }

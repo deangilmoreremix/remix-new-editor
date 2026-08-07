@@ -193,6 +193,16 @@ button, input, textarea, select { font: inherit; }
 }
 .preview-call-btn:hover { filter: brightness(1.08); }
 .preview-call-btn--invalid { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+.preview-click-to-call--selected { outline: 1px dashed var(--cyan, #22d3ee); outline-offset: 6px; }
+.ctc-drag-handle {
+  position: absolute; top: -22px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px;
+  border-radius: 6px; background: var(--cyan, #22d3ee); color: #03131a; display: flex; align-items: center;
+  justify-content: center; font-size: 12px; cursor: grab; user-select: none;
+}
+.ctc-resize-handle {
+  position: absolute; bottom: -6px; right: -6px; width: 14px; height: 14px; border-radius: 3px;
+  background: var(--cyan, #22d3ee); cursor: nwse-resize;
+}
 .circle-btn { width: 40px; height: 40px; border-radius: var(--r-full); border: 1px solid transparent; background: var(--surface-3); color: white; cursor: pointer; display: grid; place-items: center; transition: transform .15s ease, background .15s ease; }
 .circle-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.16); }
 .circle-btn.primary { width: 48px; height: 48px; background: white; color: black; box-shadow: 0 10px 30px rgba(255,255,255,0.15); }
