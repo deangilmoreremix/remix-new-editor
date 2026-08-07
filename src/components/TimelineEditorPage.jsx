@@ -1283,19 +1283,50 @@ export function TimelineEditorPage() {
         card.querySelector('form').addEventListener('submit', async (e) => {
           e.preventDefault();
           const data = Object.fromEntries(new FormData(e.target).entries());
-          if (selected.webhookEnabled && selected.webhookUrl) {
-            try {
-              await fetch(selected.webhookUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-              });
-              showToast('Form submitted to webhook', 'success');
-            } catch (err) {
-              showToast(`Webhook submission failed: ${err.message}`, 'error');
+
+          selected._submittedLeads = selected._submittedLeads || [];
+          selected._submittedLeads.push({ ...data, submittedAt: new Date().toISOString() });
+          // Keep the Download-leads button's count in sync if its settings
+          // panel is currently open for this clip.
+          if (state.selectedClipId === selected.id) {
+            const downloadBtn = els.clipEditorContainer.querySelector('#lf-download-leads');
+            if (downloadBtn) {
+              downloadBtn.disabled = false;
+              downloadBtn.textContent = `Download leads (${selected._submittedLeads.length})`;
             }
+          }
+
+          const webhookUrls = selected.webhookEnabled
+            ? [selected.webhookUrl, selected.webhookUrl2, selected.webhookUrl3].filter(Boolean)
+            : [];
+          if (webhookUrls.length) {
+            const results = await Promise.allSettled(webhookUrls.map((url) => fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data),
+            })));
+            const failed = results.filter((r) => r.status === 'rejected').length;
+            showToast(
+              failed ? `Submitted, but ${failed}/${webhookUrls.length} webhook(s) failed` : 'Form submitted to webhook',
+              failed ? 'error' : 'success',
+            );
           } else {
             showToast('Form submitted (no webhook configured — this is a preview)', 'info');
+          }
+
+          if (selected.emailNotificationEnabled && selected.notificationEmail) {
+            // No backend mail service is wired into this fork — there is no
+            // client-side mechanism that can actually deliver an email, so
+            // this is surfaced honestly rather than faked as "sent".
+            showToast(`Email notification to ${selected.notificationEmail} configured, but no email service is connected yet`, 'info');
+          }
+
+          if (selected.fbPixelId) {
+            if (typeof window.fbq === 'function') {
+              window.fbq('trackSingle', selected.fbPixelId, 'Lead', data);
+            } else {
+              showToast(`Facebook Pixel ${selected.fbPixelId} configured, but the Pixel script isn't loaded on this page`, 'info');
+            }
           }
         });
         return;
@@ -2810,11 +2841,43 @@ export function TimelineEditorPage() {
           <div class="clip-editor__section">
             <h3>Integrations</h3>
             <div class="clip-editor__field">
-              <label for="lf-webhook-enabled"><input id="lf-webhook-enabled" type="checkbox" ${clip.webhookEnabled ? 'checked' : ''} /> Send submissions to webhook</label>
+              <label for="lf-webhook-enabled"><input id="lf-webhook-enabled" type="checkbox" ${clip.webhookEnabled ? 'checked' : ''} /> Send submissions to webhook(s)</label>
             </div>
             <div class="clip-editor__field">
               <label for="lf-webhook-url">Webhook URL</label>
               <input id="lf-webhook-url" type="url" value="${clip.webhookUrl || ''}" placeholder="https://your-endpoint.com/hook" />
+            </div>
+            ${clip.webhookUrl2 !== undefined ? `
+            <div class="clip-editor__field lf-webhook-extra" style="display:flex;gap:6px;align-items:flex-end">
+              <div style="flex:1"><label for="lf-webhook-url2">Webhook URL 2</label><input id="lf-webhook-url2" type="url" value="${clip.webhookUrl2 || ''}" placeholder="https://your-endpoint.com/hook-2" /></div>
+              <button type="button" class="lf-webhook-remove mini-btn" data-target="2" data-tooltip="Remove webhook 2">✕</button>
+            </div>` : ''}
+            ${clip.webhookUrl3 !== undefined ? `
+            <div class="clip-editor__field lf-webhook-extra" style="display:flex;gap:6px;align-items:flex-end">
+              <div style="flex:1"><label for="lf-webhook-url3">Webhook URL 3</label><input id="lf-webhook-url3" type="url" value="${clip.webhookUrl3 || ''}" placeholder="https://your-endpoint.com/hook-3" /></div>
+              <button type="button" class="lf-webhook-remove mini-btn" data-target="3" data-tooltip="Remove webhook 3">✕</button>
+            </div>` : ''}
+            ${clip.webhookUrl3 === undefined ? `
+            <div class="clip-editor__field">
+              <button id="lf-webhook-add" class="mini-btn" style="width:100%">+ Add Webhook Address</button>
+            </div>` : ''}
+            <div class="clip-editor__field">
+              <button id="lf-webhook-test" type="button" class="mini-btn" style="width:100%">Test Webhook</button>
+              <span id="lf-webhook-test-result" style="font-size:11px;color:var(--text-dim)"></span>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-email-enabled"><input id="lf-email-enabled" type="checkbox" ${clip.emailNotificationEnabled ? 'checked' : ''} /> Email notification on submit</label>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-email-address">Notification Address</label>
+              <input id="lf-email-address" type="email" value="${clip.notificationEmail || ''}" placeholder="you@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-fb-pixel">Facebook Pixel ID</label>
+              <input id="lf-fb-pixel" type="text" value="${clip.fbPixelId || ''}" placeholder="1234567890" />
+            </div>
+            <div class="clip-editor__field">
+              <button id="lf-download-leads" class="mini-btn" style="width:100%" ${(clip._submittedLeads || []).length ? '' : 'disabled'}>Download leads (${(clip._submittedLeads || []).length})</button>
             </div>
           </div>
         </div>
@@ -2961,6 +3024,87 @@ export function TimelineEditorPage() {
       });
       els.clipEditorContainer.querySelector('#lf-webhook-url').addEventListener('input', (e) => {
         clip.webhookUrl = e.target.value;
+      });
+      const webhook2Input = els.clipEditorContainer.querySelector('#lf-webhook-url2');
+      if (webhook2Input) {
+        webhook2Input.addEventListener('input', (e) => { clip.webhookUrl2 = e.target.value; });
+      }
+      const webhook3Input = els.clipEditorContainer.querySelector('#lf-webhook-url3');
+      if (webhook3Input) {
+        webhook3Input.addEventListener('input', (e) => { clip.webhookUrl3 = e.target.value; });
+      }
+      const webhookAddBtn = els.clipEditorContainer.querySelector('#lf-webhook-add');
+      if (webhookAddBtn) {
+        webhookAddBtn.addEventListener('click', () => {
+          if (clip.webhookUrl2 === undefined) {
+            clip.webhookUrl2 = '';
+          } else if (clip.webhookUrl3 === undefined) {
+            clip.webhookUrl3 = '';
+          }
+          renderLeadFormEditor(clip);
+        });
+      }
+      els.clipEditorContainer.querySelectorAll('.lf-webhook-remove').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.target;
+          if (target === '2') {
+            // Shift webhook3 into webhook2's slot, matching upstream's
+            // removeWebhook behavior, so there's never a gap between slots.
+            clip.webhookUrl2 = clip.webhookUrl3 !== undefined ? clip.webhookUrl3 : undefined;
+            clip.webhookUrl3 = undefined;
+          } else if (target === '3') {
+            clip.webhookUrl3 = undefined;
+          }
+          renderLeadFormEditor(clip);
+        });
+      });
+      els.clipEditorContainer.querySelector('#lf-webhook-test').addEventListener('click', async () => {
+        const urls = [clip.webhookUrl, clip.webhookUrl2, clip.webhookUrl3].filter(Boolean);
+        const resultEl = els.clipEditorContainer.querySelector('#lf-webhook-test-result');
+        if (!urls.length) {
+          resultEl.textContent = 'No webhook URL configured';
+          return;
+        }
+        resultEl.textContent = 'Testing...';
+        const results = await Promise.allSettled(urls.map((url) => fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ test: true, source: 'lead-form-test', clipId: clip.id }),
+        })));
+        const failures = results.filter((r) => r.status === 'rejected' || (r.value && !r.value.ok));
+        if (failures.length) {
+          resultEl.textContent = `${failures.length}/${urls.length} failed`;
+          showToast('Webhook test failed for one or more URLs', 'error');
+        } else {
+          resultEl.textContent = `${urls.length}/${urls.length} succeeded`;
+          showToast('Webhook test succeeded', 'success');
+        }
+      });
+      els.clipEditorContainer.querySelector('#lf-email-enabled').addEventListener('change', (e) => {
+        clip.emailNotificationEnabled = e.target.checked;
+        els.clipEditorContainer.querySelector('#lf-email-address').disabled = !e.target.checked;
+      });
+      els.clipEditorContainer.querySelector('#lf-email-address').addEventListener('input', (e) => {
+        clip.notificationEmail = e.target.value;
+      });
+      els.clipEditorContainer.querySelector('#lf-fb-pixel').addEventListener('input', (e) => {
+        clip.fbPixelId = e.target.value;
+      });
+      els.clipEditorContainer.querySelector('#lf-download-leads').addEventListener('click', () => {
+        const leads = clip._submittedLeads || [];
+        if (!leads.length) return;
+        const headers = Array.from(new Set(leads.flatMap((l) => Object.keys(l))));
+        const csvRows = [
+          headers.join(','),
+          ...leads.map((lead) => headers.map((h) => `"${String(lead[h] ?? '').replace(/"/g, '""')}"`).join(',')),
+        ];
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${(clip.name || 'leads').replace(/[^a-z0-9]+/gi, '_')}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
       });
     }
 
