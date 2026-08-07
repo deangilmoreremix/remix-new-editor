@@ -1225,9 +1225,13 @@ export function TimelineEditorPage() {
         const ctaText = activeProfile ? replaceTokensInPrompt(selected.ctaText || 'Submit', activeProfile) : (selected.ctaText || 'Submit');
         const privacyText = activeProfile ? replaceTokensInPrompt(selected.privacyText || '', activeProfile) : selected.privacyText;
 
+        const style = selected.style || {};
+        const captionAlign = style.captionAlignment || 'center';
+
         card.innerHTML = `
           <form class="preview-lead-form">
-            ${heading ? `<h3 class="preview-form-heading">${escapeHtml(heading)}</h3>` : ''}
+            ${selected.brandLogoUrl ? `<img class="preview-form-logo" src="${escapeHtml(selected.brandLogoUrl)}" alt="" />` : ''}
+            ${heading ? `<h3 class="preview-form-heading" style="text-align:${captionAlign};${style.captionFontSize ? `font-size:${style.captionFontSize}%;` : ''}">${escapeHtml(heading)}</h3>` : ''}
             ${fields.map((f) => {
               const varKey = FIELD_TOKEN_ALIASES[f.id] || f.id;
               const prefill = activeProfile?.variables?.[varKey];
@@ -1243,11 +1247,38 @@ export function TimelineEditorPage() {
             `;
             }).join('')}
             ${privacyText ? `<p class="preview-form-privacy">${escapeHtml(privacyText)}</p>` : ''}
-            <button type="submit" class="preview-form-submit"${selected.style?.buttonColor ? ` style="background:${selected.style.buttonColor}"` : ''}>${escapeHtml(ctaText)}</button>
+            ${selected.privacyPolicyCaption && selected.privacyPolicyLink
+              ? `<a class="preview-form-privacy-link" href="${escapeHtml(selected.privacyPolicyLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(selected.privacyPolicyCaption)}</a>`
+              : ''}
+            <button type="submit" class="preview-form-submit" style="${style.buttonColor ? `background:${style.buttonColor};` : ''}${style.buttonFontColor ? `color:${style.buttonFontColor};` : ''}${style.buttonBorderRadius !== undefined ? `border-radius:${style.buttonBorderRadius}px;` : ''}${style.buttonBottomBorder ? `border-bottom:3px solid ${style.buttonBottomBorder};` : ''}">${escapeHtml(ctaText)}</button>
+            ${selected.skipButtonEnabled ? `<button type="button" class="preview-form-skip">Skip</button>` : ''}
           </form>
         `;
-        if (selected.style?.backgroundColor) card.style.background = selected.style.backgroundColor;
+        if (style.backgroundImage) {
+          card.style.backgroundImage = `url(${style.backgroundImage})`;
+          card.style.backgroundSize = 'cover';
+          card.style.backgroundPosition = 'center';
+        } else if (style.backgroundColor) {
+          card.style.background = style.backgroundColor;
+        }
+        if (style.fontFamily) {
+          ensureGoogleFontLoaded(style.fontFamily);
+          card.style.fontFamily = `"${style.fontFamily}"`;
+        }
+        if (style.fontSize) {
+          card.querySelectorAll('input, textarea, button, label').forEach((el) => {
+            el.style.fontSize = `${style.fontSize}%`;
+          });
+        }
         els.previewStage.appendChild(card);
+
+        const skipBtn = card.querySelector('.preview-form-skip');
+        if (skipBtn) {
+          skipBtn.addEventListener('click', () => {
+            card.style.display = 'none';
+            if (!state.playing) togglePlayback();
+          });
+        }
 
         card.querySelector('form').addEventListener('submit', async (e) => {
           e.preventDefault();
@@ -2655,6 +2686,20 @@ export function TimelineEditorPage() {
 
 
 
+    // Small curated set rather than the full Google Fonts catalog (upstream
+    // pulls from a large constants/fonts list) — enough real choice without
+    // shipping a font-directory dependency.
+    const LEAD_FORM_GOOGLE_FONTS = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Oswald', 'Raleway', 'Nunito', 'Playfair Display', 'Bebas Neue', 'Anton'];
+    const loadedGoogleFonts = new Set();
+    function ensureGoogleFontLoaded(family) {
+      if (!family || loadedGoogleFonts.has(family)) return;
+      loadedGoogleFonts.add(family);
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css?family=${family.replace(/\s/g, '+')}:400,700`;
+      document.head.appendChild(link);
+    }
+
     function renderLeadFormEditor(clip) {
       clip.fields = Array.isArray(clip.fields) && clip.fields.length ? clip.fields : [{ id: 'email', type: 'email', label: 'Email' }];
       clip.style = clip.style || {};
@@ -2672,8 +2717,19 @@ export function TimelineEditorPage() {
               <input id="lf-cta" type="text" value="${clip.ctaText || ''}" placeholder="Submit" />
             </div>
             <div class="clip-editor__field">
-              <label for="lf-privacy">Privacy Text</label>
+              <label for="lf-privacy">Privacy Disclaimer</label>
               <input id="lf-privacy" type="text" value="${clip.privacyText || ''}" placeholder="We respect your privacy." />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-privacy-caption">Privacy Policy Link Text</label>
+              <input id="lf-privacy-caption" type="text" value="${clip.privacyPolicyCaption || ''}" placeholder="Privacy Policy" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-privacy-link">Privacy Policy URL</label>
+              <input id="lf-privacy-link" type="url" value="${clip.privacyPolicyLink || ''}" placeholder="https://example.com/privacy" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-skip-enabled"><input id="lf-skip-enabled" type="checkbox" ${clip.skipButtonEnabled ? 'checked' : ''} /> Show Skip button (dismiss form, resume video)</label>
             </div>
           </div>
           <div class="clip-editor__section">
@@ -2700,12 +2756,55 @@ export function TimelineEditorPage() {
           <div class="clip-editor__section">
             <h3>Style</h3>
             <div class="clip-editor__field">
+              <label for="lf-brand-logo">Brand Logo URL</label>
+              <input id="lf-brand-logo" type="url" value="${clip.brandLogoUrl || ''}" placeholder="https://example.com/logo.png" />
+            </div>
+            <div class="clip-editor__field">
               <label for="lf-bg">Background Color</label>
               <input id="lf-bg" type="color" value="${clip.style.backgroundColor || '#0b1120'}" />
             </div>
             <div class="clip-editor__field">
-              <label for="lf-btn-color">Button Color</label>
+              <label for="lf-bg-image">Background Image URL</label>
+              <input id="lf-bg-image" type="url" value="${clip.style.backgroundImage || ''}" placeholder="https://example.com/bg.jpg (overrides color)" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-font-family">Font Family</label>
+              <select id="lf-font-family">
+                <option value="">Default</option>
+                ${LEAD_FORM_GOOGLE_FONTS.map((f) => `<option value="${f}" ${clip.style.fontFamily === f ? 'selected' : ''}>${f}</option>`).join('')}
+              </select>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-font-size">Font Size (${clip.style.fontSize || 100}%)</label>
+              <input id="lf-font-size" type="range" min="60" max="160" value="${clip.style.fontSize || 100}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-caption-font-size">Heading Size (${clip.style.captionFontSize || 130}%)</label>
+              <input id="lf-caption-font-size" type="range" min="60" max="220" value="${clip.style.captionFontSize || 130}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-caption-align">Heading Alignment</label>
+              <select id="lf-caption-align">
+                <option value="left" ${clip.style.captionAlignment === 'left' ? 'selected' : ''}>Left</option>
+                <option value="center" ${!clip.style.captionAlignment || clip.style.captionAlignment === 'center' ? 'selected' : ''}>Center</option>
+                <option value="right" ${clip.style.captionAlignment === 'right' ? 'selected' : ''}>Right</option>
+              </select>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-btn-color">Button Background Color</label>
               <input id="lf-btn-color" type="color" value="${clip.style.buttonColor || '#22d3ee'}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-btn-font-color">Button Font Color</label>
+              <input id="lf-btn-font-color" type="color" value="${clip.style.buttonFontColor || '#03131a'}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-btn-radius">Button Border Radius (${clip.style.buttonBorderRadius ?? 10}px)</label>
+              <input id="lf-btn-radius" type="range" min="0" max="40" value="${clip.style.buttonBorderRadius ?? 10}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-btn-bottom-border"><input id="lf-btn-bottom-border-enabled" type="checkbox" ${clip.style.buttonBottomBorder ? 'checked' : ''} /> Button Bottom Border</label>
+              <input id="lf-btn-bottom-border" type="color" value="${clip.style.buttonBottomBorder || '#000000'}" ${clip.style.buttonBottomBorder ? '' : 'disabled'} />
             </div>
           </div>
           <div class="clip-editor__section">
@@ -2737,6 +2836,18 @@ export function TimelineEditorPage() {
       });
       els.clipEditorContainer.querySelector('#lf-privacy').addEventListener('input', (e) => {
         clip.privacyText = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-privacy-caption').addEventListener('input', (e) => {
+        clip.privacyPolicyCaption = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-privacy-link').addEventListener('input', (e) => {
+        clip.privacyPolicyLink = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-skip-enabled').addEventListener('change', (e) => {
+        clip.skipButtonEnabled = e.target.checked;
         updatePreview(clip);
       });
       let dragFromIndex = null;
@@ -2793,12 +2904,56 @@ export function TimelineEditorPage() {
         clip.fields.push({ id: `field_${clip.fields.length + 1}`, type: 'text', label: 'New Field' });
         rerenderFields();
       });
+      els.clipEditorContainer.querySelector('#lf-brand-logo').addEventListener('input', (e) => {
+        clip.brandLogoUrl = e.target.value;
+        updatePreview(clip);
+      });
       els.clipEditorContainer.querySelector('#lf-bg').addEventListener('input', (e) => {
         clip.style.backgroundColor = e.target.value;
         updatePreview(clip);
       });
+      els.clipEditorContainer.querySelector('#lf-bg-image').addEventListener('input', (e) => {
+        clip.style.backgroundImage = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-font-family').addEventListener('change', (e) => {
+        clip.style.fontFamily = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-font-size').addEventListener('input', (e) => {
+        clip.style.fontSize = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Font Size (${clip.style.fontSize}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-caption-font-size').addEventListener('input', (e) => {
+        clip.style.captionFontSize = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Heading Size (${clip.style.captionFontSize}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-caption-align').addEventListener('change', (e) => {
+        clip.style.captionAlignment = e.target.value;
+        updatePreview(clip);
+      });
       els.clipEditorContainer.querySelector('#lf-btn-color').addEventListener('input', (e) => {
         clip.style.buttonColor = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-btn-font-color').addEventListener('input', (e) => {
+        clip.style.buttonFontColor = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-btn-radius').addEventListener('input', (e) => {
+        clip.style.buttonBorderRadius = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Button Border Radius (${clip.style.buttonBorderRadius}px)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-btn-bottom-border-enabled').addEventListener('change', (e) => {
+        clip.style.buttonBottomBorder = e.target.checked ? (els.clipEditorContainer.querySelector('#lf-btn-bottom-border').value || '#000000') : '';
+        els.clipEditorContainer.querySelector('#lf-btn-bottom-border').disabled = !e.target.checked;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-btn-bottom-border').addEventListener('input', (e) => {
+        clip.style.buttonBottomBorder = e.target.value;
         updatePreview(clip);
       });
       els.clipEditorContainer.querySelector('#lf-webhook-enabled').addEventListener('change', (e) => {

@@ -131,6 +131,7 @@ button, input, textarea, select { font: inherit; }
   width: min(82%, 480px); padding: 28px; border-radius: 28px; border: 1px solid rgba(255,255,255,0.1);
   background: linear-gradient(135deg, rgba(3,7,18,0.86), rgba(17,24,39,0.82)); box-shadow: 0 30px 70px rgba(0,0,0,0.45); text-align: left;
 }
+.preview-form-logo { display: block; max-width: 120px; max-height: 48px; margin: 0 auto 14px; object-fit: contain; }
 .preview-form-heading { margin: 0 0 16px; font-size: 22px; font-weight: 800; color: white; }
 .preview-form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .preview-form-field label { font-size: 12px; font-weight: 700; letter-spacing: .04em; color: rgba(255,255,255,0.68); }
@@ -146,6 +147,12 @@ button, input, textarea, select { font: inherit; }
   color: #03131a; background: var(--accent-grad, linear-gradient(135deg, #22d3ee, #34d399)); cursor: pointer;
 }
 .preview-form-submit:hover { filter: brightness(1.08); }
+.preview-form-privacy-link { display: block; margin: -10px 0 16px; font-size: 11px; color: var(--cyan, #22d3ee); text-decoration: underline; }
+.preview-form-skip {
+  display: block; width: 100%; margin-top: 10px; padding: 8px; background: transparent; border: none;
+  color: rgba(255,255,255,0.5); font-size: 12px; cursor: pointer; text-decoration: underline;
+}
+.preview-form-skip:hover { color: rgba(255,255,255,0.8); }
 
 .preview-click-to-call { display: flex; align-items: center; justify-content: center; }
 .preview-call-btn {
