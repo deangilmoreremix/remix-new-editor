@@ -2775,9 +2775,19 @@ export function TimelineEditorPage() {
     function renderLeadFormEditor(clip) {
       clip.fields = Array.isArray(clip.fields) && clip.fields.length ? clip.fields : [{ id: 'email', type: 'email', label: 'Email' }];
       clip.style = clip.style || {};
+      // Transient UI state, not part of the clip's actual data — persisted
+      // on the clip object purely so the active tab survives re-renders
+      // triggered by field add/remove/reorder/webhook add-remove.
+      const activeTab = clip._activeSettingsTab || 'fields';
 
       els.clipEditorContainer.innerHTML = `
         <div class="clip-editor">
+          <div class="clip-editor__tabs" style="display:flex;gap:4px;margin-bottom:12px;border-bottom:1px solid var(--border,rgba(255,255,255,0.1))">
+            <button type="button" class="lf-tab-btn mini-btn${activeTab === 'fields' ? ' active' : ''}" data-tab="fields">Fields</button>
+            <button type="button" class="lf-tab-btn mini-btn${activeTab === 'style' ? ' active' : ''}" data-tab="style">Style</button>
+            <button type="button" class="lf-tab-btn mini-btn${activeTab === 'integrations' ? ' active' : ''}" data-tab="integrations">Integrations</button>
+          </div>
+          <div class="clip-editor__tab-panel" data-tab-panel="fields" ${activeTab === 'fields' ? '' : 'hidden'}>
           <div class="clip-editor__section">
             <h3>Content</h3>
             <div class="clip-editor__field">
@@ -2825,6 +2835,8 @@ export function TimelineEditorPage() {
             </div>
             <button id="lf-field-add" class="mini-btn" style="width:100%;margin-top:6px" ${clip.fields.length >= 5 ? 'disabled title="Maximum 5 fields"' : ''}>+ Add Field${clip.fields.length >= 5 ? ' (max 5)' : ''}</button>
           </div>
+          </div>
+          <div class="clip-editor__tab-panel" data-tab-panel="style" ${activeTab === 'style' ? '' : 'hidden'}>
           <div class="clip-editor__section">
             <h3>Style</h3>
             <div class="clip-editor__field">
@@ -2907,6 +2919,8 @@ export function TimelineEditorPage() {
               </select>
             </div>
           </div>
+          </div>
+          <div class="clip-editor__tab-panel" data-tab-panel="integrations" ${activeTab === 'integrations' ? '' : 'hidden'}>
           <div class="clip-editor__section">
             <h3>Integrations</h3>
             <div class="clip-editor__field">
@@ -2949,8 +2963,19 @@ export function TimelineEditorPage() {
               <button id="lf-download-leads" class="mini-btn" style="width:100%" ${(clip._submittedLeads || []).length ? '' : 'disabled'}>Download leads (${(clip._submittedLeads || []).length})</button>
             </div>
           </div>
+          </div>
         </div>
       `;
+
+      els.clipEditorContainer.querySelectorAll('.lf-tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          clip._activeSettingsTab = btn.dataset.tab;
+          els.clipEditorContainer.querySelectorAll('.lf-tab-btn').forEach((b) => b.classList.toggle('active', b === btn));
+          els.clipEditorContainer.querySelectorAll('.clip-editor__tab-panel').forEach((panel) => {
+            panel.hidden = panel.dataset.tabPanel !== btn.dataset.tab;
+          });
+        });
+      });
 
       const rerenderFields = () => {
         renderLeadFormEditor(clip);

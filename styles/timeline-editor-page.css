@@ -182,6 +182,9 @@ button, input, textarea, select { font: inherit; }
 .preview-form-card--enter-slide-down { animation: previewFormSlideDown 0.35s ease-out; }
 .preview-form-card--exit { animation: previewFormFadeOut 0.25s ease-in forwards; }
 
+.lf-tab-btn { border-radius: 8px 8px 0 0; border-bottom: none; }
+.lf-tab-btn.active { background: var(--cyan, #22d3ee); color: #03131a; font-weight: 700; }
+
 .preview-click-to-call { display: flex; align-items: center; justify-content: center; }
 .preview-call-btn {
   display: inline-flex; align-items: center; gap: 10px; padding: 16px 32px; border-radius: 999px;
