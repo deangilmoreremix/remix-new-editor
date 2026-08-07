@@ -1,23 +1,38 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
-};
-
 // Environment validation
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const CORS_ORIGIN = Deno.env.get('CORS_ORIGIN') || 'https://smartvideo.app';
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error('[process-upload] Missing required environment variables');
 }
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": CORS_ORIGIN,
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+};
+
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/mpeg', 'video/quicktime', 'video/webm'];
+const ALLOWED_IMAGE_TYPES = [
+  'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
+  'image/svg+xml', 'image/bmp', 'image/tiff', 'image/heic', 'image/heif',
+  'image/avif', 'image/x-icon'
+];
+const ALLOWED_VIDEO_TYPES = [
+  'video/mp4', 'video/mpeg', 'video/quicktime', 'video/webm',
+  'video/x-msvideo', 'video/x-matroska', 'video/x-flv',
+  'video/x-ms-wmv', 'video/3gpp', 'video/ogg', 'video/x-m4v'
+];
+const ALLOWED_AUDIO_TYPES = [
+  'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/aac',
+  'audio/ogg', 'audio/flac', 'audio/mp4', 'audio/x-m4a',
+  'audio/opus', 'audio/x-ms-wma', 'audio/aiff', 'audio/x-aiff'
+];
+const ALLOWED_DOCUMENT_TYPES = ['application/pdf'];
 
 // Rate limiting
 const uploadRateLimit = new Map<string, { count: number; resetTime: number }>();
@@ -70,9 +85,35 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  // Rate limiting by IP
-  const clientIp = req.headers.get('cf-connecting-ip') || 'unknown';
-  if (!checkUploadRateLimit(clientIp)) {
+  // Authenticate the user via Supabase JWT
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized', message: 'Missing Authorization header' }),
+      {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
+  }
+
+  const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const token = authHeader.replace('Bearer ', '');
+  const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token);
+
+  if (authError || !user) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized', message: 'Invalid or expired token' }),
+      {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
+  }
+
+  // Rate limiting by user ID
+  const userId = user.id;
+  if (!checkUploadRateLimit(userId)) {
     return new Response(
       JSON.stringify({
         error: 'Rate limit exceeded',
@@ -118,12 +159,14 @@ Deno.serve(async (req: Request) => {
 
     const isImage = ALLOWED_IMAGE_TYPES.includes(fileType);
     const isVideo = ALLOWED_VIDEO_TYPES.includes(fileType);
+    const isAudio = ALLOWED_AUDIO_TYPES.includes(fileType);
+    const isDocument = ALLOWED_DOCUMENT_TYPES.includes(fileType);
 
-    if (!isImage && !isVideo) {
+    if (!isImage && !isVideo && !isAudio && !isDocument) {
       return new Response(
         JSON.stringify({
           error: 'Invalid file type',
-          message: 'Only images (JPEG, PNG, WebP, GIF) and videos (MP4, WebM, QuickTime) are allowed'
+          message: 'Only images, videos, audio files, and PDFs are allowed'
         }),
         {
           status: 400,
@@ -136,7 +179,7 @@ Deno.serve(async (req: Request) => {
 
     const ext = fileName.split('.').pop() || 'bin';
     const uniqueName = `${Date.now()}_${crypto.randomUUID()}.${ext}`;
-    const path = `anonymous/${uniqueName}`;
+    const path = `${userId}/${uniqueName}`;
 
     const base64Clean = base64Data.replace(/^data:[^;]+;base64,/, '');
     

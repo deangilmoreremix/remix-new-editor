@@ -1,7 +1,8 @@
 import { navigate } from '../lib/router.js';
 import { showToast } from '../lib/loading.js';
 import { createHeroSection } from '../lib/thumbnails.js';
-import { getSupabaseUrl, isSupabaseConfigured, uploadFileToStorage } from '../lib/supabase.js';
+import { getSupabaseUrl, isSupabaseConfigured } from '../lib/supabase.js';
+import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { browserVideoProcessor } from '../lib/browserVideoProcessor.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
@@ -361,7 +362,9 @@ export function VideoAgentPage() {
         try {
             loadStatus.textContent = 'Uploading…';
             loadBtn.disabled = true;
-            const url = await uploadFileToStorage(file);
+            const result = await processFileUpload(file);
+            const url = result.url || result.urls?.[0];
+            if (!url) throw new Error('Upload returned no URL');
             videoUrl = url; // server-reachable https URL the backend can fetch
             renderVideoPreview();
             loadStatus.textContent = 'Loaded ✓';

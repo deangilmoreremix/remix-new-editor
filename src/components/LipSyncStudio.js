@@ -1,6 +1,7 @@
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { lipsyncModels, imageLipSyncModels, videoLipSyncModels, getLipSyncModelById, getResolutionsForLipSyncModel } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
@@ -258,7 +259,7 @@ export function LipSyncStudio() {
     thumbBtn.className = 'gtm-boost-btn shrink-0';
     thumbBtn.addEventListener('click', () => {
       const modal = new StudioThumbnailModal({
-        appTheme: 'lipsync-studio',
+        appTheme: 'lip-sync-studio',
         studioId: 'lipsync-studio',
         studioName: 'Lip Sync Studio',
         aspectRatio: '16:9',
@@ -579,7 +580,9 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => imageFileInput.click()); return; }
         updateImageUploadState('loading');
         try {
-            uploadedImageUrl = await muapi.uploadFile(file);
+            const result = await processFileUpload(file);
+            uploadedImageUrl = result.url || result.urls?.[0];
+            if (!uploadedImageUrl) throw new Error('Upload returned no URL');
             updateImageUploadState('ready', file.name);
         } catch (err) {
             updateImageUploadState('idle');
@@ -605,7 +608,9 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => videoFileInput.click()); return; }
         updateVideoUploadState('loading');
         try {
-            uploadedVideoUrl = await muapi.uploadFile(file);
+            const result = await processFileUpload(file);
+            uploadedVideoUrl = result.url || result.urls?.[0];
+            if (!uploadedVideoUrl) throw new Error('Upload returned no URL');
             updateVideoUploadState('ready', file.name);
         } catch (err) {
             updateVideoUploadState('idle');
@@ -631,7 +636,9 @@ export function LipSyncStudio() {
         if (!apiKey) { AuthModal(() => audioFileInput.click()); return; }
         updateAudioUploadState('loading');
         try {
-            uploadedAudioUrl = await muapi.uploadFile(file);
+            const result = await processFileUpload(file);
+            uploadedAudioUrl = result.url || result.urls?.[0];
+            if (!uploadedAudioUrl) throw new Error('Upload returned no URL');
             updateAudioUploadState('ready', file.name);
         } catch (err) {
             updateAudioUploadState('idle');

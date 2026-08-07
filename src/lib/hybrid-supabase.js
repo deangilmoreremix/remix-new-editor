@@ -5,6 +5,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { offlineStorage } from './offline-storage.js';
+import { getUserKey as getSharedUserKey } from './userKey.js';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -840,13 +841,14 @@ export function getSupabaseAnonKey() {
   return SUPABASE_ANON_KEY || '';
 }
 
-export function getUserKey() {
-  const { data: { user } } = hybridSupabase.auth.getUser();
-  return user?.id || offlineStorage.getCurrentUserId();
+export async function getUserKey() {
+  const { data: { user } } = await hybridSupabase.auth.getUser();
+  if (user?.id) return user.id;
+  return getSharedUserKey();
 }
 
 export async function uploadFileToStorage(file) {
-  const userKey = getUserKey();
+  const userKey = await getUserKey();
   const ext = file.name.split('.').pop() || 'bin';
   const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
   const path = `${userKey}/${uniqueName}`;

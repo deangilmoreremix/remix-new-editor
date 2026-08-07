@@ -1,8 +1,8 @@
-import { muapi } from '../lib/muapi.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
-import { getUploadHistory, saveUpload, removeUpload, generateThumbnail } from '../lib/uploadHistory.js';
-import { fetchUrlAsFile } from '../lib/editor/uploadPipeline.js';
+import { getUploadHistory, saveUpload, removeUpload } from '../lib/uploadHistory.js';
+import { fetchUrlAsFile, processFileUpload } from '../lib/editor/uploadPipeline.js';
+import { showToast } from '../lib/loading.js';
 
 /**
  * Creates a self-contained upload picker: a trigger button + history panel.
@@ -22,7 +22,9 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
 
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
-    fileInput.accept = acceptVideo ? 'image/*,video/*' : 'image/*';
+    fileInput.accept = acceptVideo 
+        ? 'image/jpeg,image/png,image/webp,image/gif,image/svg+xml,video/mp4,video/webm,video/quicktime'
+        : 'image/jpeg,image/png,image/webp,image/gif,image/svg+xml';
     fileInput.className = 'hidden';
 
     // ── Trigger button ────────────────────────────────────────────────────────
@@ -658,6 +660,15 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
     });
 
     // ── File upload handler ───────────────────────────────────────────────────
+    const minState = {
+        tracks: [],
+        assets: [],
+        mediaLibrary: [],
+        undoStack: [],
+        redoStack: [],
+        selectedClipId: null
+    };
+
     fileInput.onchange = async (e) => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
@@ -675,13 +686,14 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
         try {
             if (maxImages === 1) {
                 const file = files[0];
-                const [uploadedUrl, thumbnail] = await Promise.all([
-                    muapi.uploadFile(file),
-                    generateThumbnail(file)
-                ]);
-                const entry = { id: Date.now().toString(), name: file.name, uploadedUrl, thumbnail, timestamp: new Date().toISOString() };
+                const result = await processFileUpload(file, { state: minState, showToast });
+                if (!result.success) {
+                    throw new Error(result.error || 'Upload failed');
+                }
+                const { asset } = result;
+                const entry = { id: Date.now().toString(), name: file.name, uploadedUrl: asset.url, thumbnail: asset.thumbnail, timestamp: new Date().toISOString() };
                 saveUpload(entry);
-                selectedEntries = [{ url: uploadedUrl, thumbnail }];
+                selectedEntries = [{ url: asset.url, thumbnail: asset.thumbnail }];
                 updateTrigger();
                 fireOnSelect();
             } else {
@@ -689,16 +701,27 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
                 const slots = maxImages - selectedEntries.length;
                 const toUpload = files.slice(0, Math.max(slots, 1));
 
-                // Upload all in parallel
-                const results = await Promise.all(toUpload.map(async (file) => {
-                    const [uploadedUrl, thumbnail] = await Promise.all([
-                        muapi.uploadFile(file),
-                        generateThumbnail(file)
-                    ]);
-                    return { id: Date.now().toString() + Math.random(), name: file.name, uploadedUrl, thumbnail, timestamp: new Date().toISOString() };
-                }));
+                // Upload all in parallel; individual failures must not block
+                // successful uploads.
+                const results = await Promise.allSettled(
+                    toUpload.map(async (file) => {
+                        const result = await processFileUpload(file, { state: minState, showToast });
+                        if (!result.success) {
+                            throw new Error(result.error || 'Upload failed');
+                        }
+                        const { asset } = result;
+                        return { id: Date.now().toString() + Math.random(), name: file.name, uploadedUrl: asset.url, thumbnail: asset.thumbnail, timestamp: new Date().toISOString() };
+                    })
+                );
 
-                results.forEach(entry => {
+                const failed = results.filter(r => r.status === 'rejected');
+                if (failed.length > 0) {
+                    const firstErr = failed[0]?.reason?.message || 'Upload failed';
+                    showToast(`${acceptVideo ? 'Media' : 'Image'} upload failed: ${firstErr}`, 'error');
+                }
+
+                const succeeded = results.filter(r => r.status === 'fulfilled').map(r => r.value);
+                succeeded.forEach(entry => {
                     saveUpload(entry);
                     if (selectedEntries.length < maxImages) {
                         selectedEntries.push({ url: entry.uploadedUrl, thumbnail: entry.thumbnail });
@@ -713,7 +736,7 @@ export function createUploadPicker({ anchorContainer, onSelect, onClear, maxImag
             console.error('[UploadPicker] Upload failed:', err);
             updateTrigger();
             const uploadType = acceptVideo ? 'Media' : 'Image';
-            alert(`${uploadType} upload failed: ${err.message}`);
+            showToast(`${uploadType} upload failed: ${err.message}`, 'error');
         }
 
         fileInput.value = '';

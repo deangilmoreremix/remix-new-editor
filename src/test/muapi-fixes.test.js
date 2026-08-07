@@ -4,37 +4,28 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { MuapiClient, muapi } from '../lib/muapi.js';
 
+vi.mock('../lib/supabase.js', () => ({
+  uploadFileToStorage: vi.fn(async (file) => {
+    return `https://cdn.muapi.ai/${file.name}`;
+  })
+}));
+
 describe('MuapiClient Fixes', () => {
   let client;
 
   beforeEach(async () => {
     client = new MuapiClient();
-    // Mock proxyUrl to simulate Supabase proxy
-    client.proxyUrl = 'https://test.supabase.co/functions/v1/muapi-proxy';
     await client.apiKeyManager.setMuapiKey('test-muapi-key');
   });
 
-  describe('uploadFile routes to muapi upload endpoint', () => {
-    test('sends multipart to proxy with x-endpoint header', async () => {
+  describe('uploadFile routes to Supabase Storage directly', () => {
+    test('calls uploadFileToStorage directly without proxy', async () => {
       const mockFile = new File(['test'], 'test.png', { type: 'image/png' });
-      const mockResponse = {
-        ok: true,
-        json: () => Promise.resolve({ url: 'https://cdn.muapi.ai/test.png' })
-      };
-      
-      global.fetch = vi.fn(() => Promise.resolve(mockResponse));
+      const { uploadFileToStorage } = await import('../lib/supabase.js');
 
       const result = await client.uploadFile(mockFile);
 
-      expect(fetch).toHaveBeenCalledWith(
-        'https://test.supabase.co/functions/v1/muapi-proxy',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'x-endpoint': 'upload_file'
-          })
-        })
-      );
+      expect(uploadFileToStorage).toHaveBeenCalledWith(mockFile);
       expect(result).toBe('https://cdn.muapi.ai/test.png');
     });
   });

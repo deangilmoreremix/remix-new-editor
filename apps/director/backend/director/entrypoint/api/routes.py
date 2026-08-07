@@ -14,7 +14,7 @@ videodb_bp = Blueprint("videodb", __name__, url_prefix="/videodb")
 config_bp = Blueprint("config", __name__, url_prefix="/config")
 
 
-@agent_bp.route("/", methods=["GET"], strict_slashes=False)
+@agent_bp.route("/", methods=["GET", "POST"], strict_slashes=False)
 def agent():
     """
     Handle the agent request
@@ -22,6 +22,23 @@ def agent():
     chat_handler = ChatHandler(
         db=load_db(os.getenv("SERVER_DB_TYPE", app.config["DB_TYPE"]))
     )
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+        try:
+            message = payload.get("message") or payload.get("command") or payload
+            if not isinstance(message, dict):
+                message = {"text": str(message)}
+            message.setdefault("session_id", str(datetime.now().timestamp()))
+            message.setdefault("conv_id", str(datetime.now().timestamp()))
+            chat_handler.chat(message)
+            session_handler = SessionHandler(
+                db=load_db(os.getenv("SERVER_DB_TYPE", app.config["DB_TYPE"]))
+            )
+            session = session_handler.get_session(message["session_id"])
+            conversations = session_handler.db.get_conversations(message["session_id"]) if session else []
+            return {"status": "ok", "session": session, "conversations": conversations}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}, 200
     return chat_handler.agents_list()
 
 
@@ -312,3 +329,13 @@ def videoagent_workflow():
         "command": payload.get("command"),
         "result": "workflow received by Director backend",
     }
+
+
+health_bp = Blueprint("health", __name__)
+
+
+@health_bp.route("/health", methods=["GET"])
+def health():
+    config_handler = ConfigHandler()
+    check = config_handler.check()
+    return {"status": "ok", "timestamp": datetime.now().isoformat(), "config": check}

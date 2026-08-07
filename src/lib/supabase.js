@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { apiKeyManager } from './apiKeyManager.js';
+import { getUserKey } from './userKey.js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -54,22 +54,10 @@ export function getSupabaseAnonKey() {
   return import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 }
 
-export function getUserKey() {
-  let key = apiKeyManager.getMuapiKey();
-  if (!key) return 'anonymous';
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) {
-    const char = key.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash |= 0;
-  }
-  return 'user_' + Math.abs(hash).toString(36);
-}
-
 export async function uploadFileToStorage(file) {
   const ext = file.name.split('.').pop() || 'bin';
   const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
-  const path = `${getUserKey()}/${uniqueName}`;
+  const path = `${await getUserKey()}/${uniqueName}`;
 
   const { error } = await supabase.storage
     .from('uploads')

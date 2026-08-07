@@ -28,6 +28,7 @@
 
 import { validateFile as validateFileImpl } from './validateFile.js';
 import { uploadFileToStorage } from '../hybrid-supabase.js';
+import { muapi } from '../muapi.js';
 import { mediaWorker } from '../media-worker-manager.js';
 import { saveProject } from './persistence.js';
 import { validateOrPass } from './schemas.js';
@@ -401,14 +402,14 @@ export async function processFileUpload(file, options = {}) {
     rotation: fullMeta.rotation
   };
 
-  // Step 3: Upload
-  let publicUrl;
-  try {
-    publicUrl = await uploadFileToStorage(file);
-  } catch (e) {
-    if (opts.showToast) opts.showToast(`Upload failed for ${fileName}`, 'error');
-    return { success: false, error: e.message || 'Upload failed', validation };
-  }
+   // Step 3: Upload
+   let publicUrl;
+   try {
+     publicUrl = await muapi.uploadFile(file);
+   } catch (e) {
+     if (opts.showToast) opts.showToast(`Upload failed for ${fileName}`, 'error');
+     return { success: false, error: e.message || 'Upload failed', validation };
+   }
 
   // Step 4: Generate thumbnail (use the one from fullMeta, or fall back)
   let thumbnail = fullMeta.thumbnail;
