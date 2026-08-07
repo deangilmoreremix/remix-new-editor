@@ -18,6 +18,7 @@ import { CameraEffects } from './timeline/CameraEffects.js';
 import AIChatPanel from './timeline/AIChatPanel.js';
 import TIMELINE_DESIGN_SYSTEM, { enforceDesignSystem } from '../lib/designSystemEnforcer.js';
 import { createVideoPreview, addVideoErrorRecovery } from '../lib/videoPlayer.js';
+import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
 // Design-system styles are imported statically so Vite bundles and emits them
 // into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
 // project-root path 404s in production because Vite never copies unreferenced
@@ -1205,17 +1206,35 @@ export function TimelineEditorPage() {
           ? selected.fields
           : [{ id: 'email', type: 'email', label: 'Email' }];
         const inputType = (type) => (type === 'phone' ? 'tel' : type === 'email' ? 'email' : 'text');
+
+        // Personalization pre-fill: reuse the fork's existing profile/token
+        // mechanism (same one every Studio page uses for prompts) rather
+        // than inventing a parallel one. {{token}} placeholders in
+        // heading/CTA/privacy text resolve via replaceTokensInPrompt, and
+        // fields whose id maps to a known profile variable (first_name,
+        // email, company, ...) get pre-filled directly, matching upstream
+        // form.js's personalizedTokens[declaration.token] behavior.
+        const activeProfile = getActivePersonalizationProfile();
+        const heading = activeProfile ? replaceTokensInPrompt(selected.heading || '', activeProfile) : selected.heading;
+        const ctaText = activeProfile ? replaceTokensInPrompt(selected.ctaText || 'Submit', activeProfile) : (selected.ctaText || 'Submit');
+        const privacyText = activeProfile ? replaceTokensInPrompt(selected.privacyText || '', activeProfile) : selected.privacyText;
+
         card.innerHTML = `
           <form class="preview-lead-form">
-            ${selected.heading ? `<h3 class="preview-form-heading">${selected.heading}</h3>` : ''}
-            ${fields.map((f) => `
+            ${heading ? `<h3 class="preview-form-heading">${escapeHtml(heading)}</h3>` : ''}
+            ${fields.map((f) => {
+              const varKey = FIELD_TOKEN_ALIASES[f.id] || f.id;
+              const prefill = activeProfile?.variables?.[varKey];
+              const prefillStr = prefill ? escapeHtml(String(prefill)) : '';
+              return `
               <div class="preview-form-field">
-                <label>${f.label || f.type}</label>
-                <input type="${inputType(f.type)}" name="${f.id}" placeholder="${f.label || ''}" required />
+                <label>${escapeHtml(f.label || f.type)}</label>
+                <input type="${inputType(f.type)}" name="${f.id}" placeholder="${escapeHtml(f.label || '')}"${prefillStr ? ` value="${prefillStr}"` : ''} required />
               </div>
-            `).join('')}
-            ${selected.privacyText ? `<p class="preview-form-privacy">${selected.privacyText}</p>` : ''}
-            <button type="submit" class="preview-form-submit"${selected.style?.buttonColor ? ` style="background:${selected.style.buttonColor}"` : ''}>${selected.ctaText || 'Submit'}</button>
+            `;
+            }).join('')}
+            ${privacyText ? `<p class="preview-form-privacy">${escapeHtml(privacyText)}</p>` : ''}
+            <button type="submit" class="preview-form-submit"${selected.style?.buttonColor ? ` style="background:${selected.style.buttonColor}"` : ''}>${escapeHtml(ctaText)}</button>
           </form>
         `;
         if (selected.style?.backgroundColor) card.style.background = selected.style.backgroundColor;
@@ -1243,6 +1262,14 @@ export function TimelineEditorPage() {
       }
 
       if (selected.type === 'click-to-call') {
+        // Intentionally a plain <a href="tel:..."> styled with CSS, not a
+        // Lottie animation like upstream's json-button plugin. Decided
+        // against porting Lottie support: upstream's animated button has
+        // no real href at all (a decorative click-away overlay), while a
+        // native tel: link is a strictly more functional call-to-action,
+        // and this avoids an ongoing per-clip Lottie-asset authoring
+        // burden for a general-purpose clip type. This is the permanent
+        // design, not a placeholder pending a future upgrade.
         const wrap = document.createElement('div');
         wrap.className = 'preview-click-to-call';
         wrap.dataset.clipId = selected.id;
@@ -1269,6 +1296,46 @@ export function TimelineEditorPage() {
     function isValidPhoneNumber(value) {
       if (!value) return false;
       return /^(\+[0-9\s]*-?)?(\([0-9\s]*\))?[0-9-.\s]{10,14}$/.test(value.trim());
+    }
+
+    // Same localStorage read every other Studio page (AudioStudio,
+    // ImageStudio, VideoStudio, ...) uses to get the active contact profile
+    // before calling replaceTokensInPrompt — see personalizePopover.js's
+    // module comment: "intentionally tiny so they can be inlined without
+    // pulling in src/lib/contactStore.js."
+    function getActivePersonalizationProfile() {
+      try {
+        const id = localStorage.getItem('remix_selected_contact_id');
+        if (!id) return null;
+        return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === id) || null;
+      } catch {
+        return null;
+      }
+    }
+
+    // Maps common lead-form field ids to the profile.variables keys set by
+    // PersonalizeModal (firstName/lastName/fullName/company/email/...), so
+    // a field can be pre-filled without the user having to type a matching
+    // {{token}} manually. Mirrors upstream form.js's
+    // personalizedTokens[declaration.token] pre-fill, adapted to this
+    // fork's camelCase variable names.
+    const FIELD_TOKEN_ALIASES = {
+      first_name: 'firstName',
+      last_name: 'lastName',
+      name: 'fullName',
+      full_name: 'fullName',
+      company: 'company',
+      email: 'email',
+      industry: 'industry',
+    };
+
+    function escapeHtml(str) {
+      if (str === undefined || str === null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
     function updatePreview(clip) {
