@@ -2173,7 +2173,15 @@ export function TimelineEditorPage() {
               if (event.target.classList.contains('clip-handle')) return;
               event.stopPropagation();
               state.selectedClipId = clip.id;
-              updatePreview(clip);
+              // Resolve the real clip object rather than passing this
+              // stripped view-model copy straight through: renderPreviewAsset
+              // binds its submit/click handlers to whatever object it's
+              // given, and mutations those handlers make (e.g. lead-form's
+              // _submittedLeads) must land on the same object the settings
+              // panel reads from, or they're silently lost on the next
+              // render's fresh copy.
+              const realClip = state.tracks.flatMap((t) => t.items || t.clips || []).find((c) => c.id === clip.id) || clip;
+              updatePreview(realClip);
               // Full pipeline rebuild: re-rendering with the viewState closure
               // would keep the stale selectedClipId and .active would never move.
               renderTracks();
@@ -2347,8 +2355,18 @@ export function TimelineEditorPage() {
             fields: clip.fields,
             ctaText: clip.ctaText,
             privacyText: clip.privacyText,
+            privacyPolicyCaption: clip.privacyPolicyCaption,
+            privacyPolicyLink: clip.privacyPolicyLink,
+            skipButtonEnabled: clip.skipButtonEnabled,
+            brandLogoUrl: clip.brandLogoUrl,
             webhookEnabled: clip.webhookEnabled,
             webhookUrl: clip.webhookUrl,
+            webhookUrl2: clip.webhookUrl2,
+            webhookUrl3: clip.webhookUrl3,
+            emailNotificationEnabled: clip.emailNotificationEnabled,
+            notificationEmail: clip.notificationEmail,
+            fbPixelId: clip.fbPixelId,
+            _submittedLeads: clip._submittedLeads,
             style: clip.style,
             phoneNumber: clip.phoneNumber,
             buttonText: clip.buttonText
