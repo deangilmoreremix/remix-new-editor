@@ -1107,9 +1107,13 @@ export function TimelineEditorPage() {
       // keyframes stay in sync during playback. Rebuilding the media element
       // every tick would tear down and restart it from 0 continuously,
       // making video/audio preview unable to play past its first frame — so
-      // skip the rebuild when the same clip is already showing.
+      // skip the rebuild when the same clip is already showing. Scoped to
+      // video/audio only: non-media types (lead-form, click-to-call, text)
+      // have no playback state to lose, and their settings panels need
+      // every field edit to reach the preview immediately.
       const existing = els.previewStage.firstElementChild;
-      const alreadyShowingThisClip = existing?.dataset?.clipId === String(selected.id);
+      const isMediaType = selected.type === 'video' || selected.type === 'audio';
+      const alreadyShowingThisClip = isMediaType && existing?.dataset?.clipId === String(selected.id);
 
       els.previewEmpty.style.display = 'none';
 
@@ -2639,32 +2643,32 @@ export function TimelineEditorPage() {
 
       const rerenderFields = () => {
         renderLeadFormEditor(clip);
-        renderPreview();
+        updatePreview(clip);
       };
 
       els.clipEditorContainer.querySelector('#lf-heading').addEventListener('input', (e) => {
         clip.heading = e.target.value;
         renderTracks();
-        renderPreview();
+        updatePreview(clip);
       });
       els.clipEditorContainer.querySelector('#lf-cta').addEventListener('input', (e) => {
         clip.ctaText = e.target.value;
-        renderPreview();
+        updatePreview(clip);
       });
       els.clipEditorContainer.querySelector('#lf-privacy').addEventListener('input', (e) => {
         clip.privacyText = e.target.value;
-        renderPreview();
+        updatePreview(clip);
       });
       els.clipEditorContainer.querySelectorAll('.lf-field-row').forEach((row) => {
         const index = parseInt(row.dataset.index, 10);
         row.querySelector('.lf-field-label').addEventListener('input', (e) => {
           clip.fields[index].label = e.target.value;
           clip.fields[index].id = e.target.value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_') || clip.fields[index].id;
-          renderPreview();
+          updatePreview(clip);
         });
         row.querySelector('.lf-field-type').addEventListener('change', (e) => {
           clip.fields[index].type = e.target.value;
-          renderPreview();
+          updatePreview(clip);
         });
         row.querySelector('.lf-field-remove').addEventListener('click', () => {
           if (clip.fields.length <= 1) return;
@@ -2678,11 +2682,11 @@ export function TimelineEditorPage() {
       });
       els.clipEditorContainer.querySelector('#lf-bg').addEventListener('input', (e) => {
         clip.style.backgroundColor = e.target.value;
-        renderPreview();
+        updatePreview(clip);
       });
       els.clipEditorContainer.querySelector('#lf-btn-color').addEventListener('input', (e) => {
         clip.style.buttonColor = e.target.value;
-        renderPreview();
+        updatePreview(clip);
       });
       els.clipEditorContainer.querySelector('#lf-webhook-enabled').addEventListener('change', (e) => {
         clip.webhookEnabled = e.target.checked;
@@ -2726,15 +2730,15 @@ export function TimelineEditorPage() {
         const isValid = isValidPhoneNumber(clip.phoneNumber);
         errEl.style.display = (isValid || !clip.phoneNumber) ? 'none' : 'block';
         renderTracks();
-        renderPreview();
+        updatePreview(clip);
       });
       els.clipEditorContainer.querySelector('#ctc-btn-text').addEventListener('input', (e) => {
         clip.buttonText = e.target.value;
-        renderPreview();
+        updatePreview(clip);
       });
       els.clipEditorContainer.querySelector('#ctc-btn-color').addEventListener('input', (e) => {
         clip.style.buttonColor = e.target.value;
-        renderPreview();
+        updatePreview(clip);
       });
     }
 
