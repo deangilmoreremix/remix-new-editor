@@ -1205,7 +1205,13 @@ export function TimelineEditorPage() {
         const fields = Array.isArray(selected.fields) && selected.fields.length
           ? selected.fields
           : [{ id: 'email', type: 'email', label: 'Email' }];
-        const inputType = (type) => (type === 'phone' ? 'tel' : type === 'email' ? 'email' : 'text');
+        const inputType = (type) => (
+          type === 'phone' ? 'tel'
+            : type === 'email' ? 'email'
+            : type === 'number' ? 'number'
+            : type === 'date' ? 'date'
+            : 'text'
+        );
 
         // Personalization pre-fill: reuse the fork's existing profile/token
         // mechanism (same one every Studio page uses for prompts) rather
@@ -1226,10 +1232,13 @@ export function TimelineEditorPage() {
               const varKey = FIELD_TOKEN_ALIASES[f.id] || f.id;
               const prefill = activeProfile?.variables?.[varKey];
               const prefillStr = prefill ? escapeHtml(String(prefill)) : '';
+              const fieldInput = f.type === 'multiline'
+                ? `<textarea name="${f.id}" placeholder="${escapeHtml(f.label || '')}" rows="3" required>${prefillStr}</textarea>`
+                : `<input type="${inputType(f.type)}" name="${f.id}" placeholder="${escapeHtml(f.label || '')}"${prefillStr ? ` value="${prefillStr}"` : ''} required />`;
               return `
               <div class="preview-form-field">
                 <label>${escapeHtml(f.label || f.type)}</label>
-                <input type="${inputType(f.type)}" name="${f.id}" placeholder="${escapeHtml(f.label || '')}"${prefillStr ? ` value="${prefillStr}"` : ''} required />
+                ${fieldInput}
               </div>
             `;
             }).join('')}
@@ -2671,18 +2680,22 @@ export function TimelineEditorPage() {
             <h3>Fields</h3>
             <div id="lf-fields-list">
               ${clip.fields.map((f, i) => `
-                <div class="clip-editor__field lf-field-row" data-index="${i}" style="display:flex;gap:6px;align-items:center">
+                <div class="clip-editor__field lf-field-row" data-index="${i}" draggable="true" style="display:flex;gap:6px;align-items:center;cursor:grab">
+                  <span class="lf-field-drag-handle" title="Drag to reorder" style="cursor:grab;opacity:.5;user-select:none">⠿</span>
                   <input type="text" class="lf-field-label" value="${f.label || ''}" placeholder="Label" style="flex:1" />
                   <select class="lf-field-type">
                     <option value="text" ${f.type === 'text' ? 'selected' : ''}>Text</option>
+                    <option value="multiline" ${f.type === 'multiline' ? 'selected' : ''}>Multiline</option>
                     <option value="email" ${f.type === 'email' ? 'selected' : ''}>Email</option>
                     <option value="phone" ${f.type === 'phone' ? 'selected' : ''}>Phone</option>
+                    <option value="number" ${f.type === 'number' ? 'selected' : ''}>Number</option>
+                    <option value="date" ${f.type === 'date' ? 'selected' : ''}>Date</option>
                   </select>
                   <button type="button" class="lf-field-remove mini-btn" data-tooltip="Remove field">✕</button>
                 </div>
               `).join('')}
             </div>
-            <button id="lf-field-add" class="mini-btn" style="width:100%;margin-top:6px">+ Add Field</button>
+            <button id="lf-field-add" class="mini-btn" style="width:100%;margin-top:6px" ${clip.fields.length >= 5 ? 'disabled title="Maximum 5 fields"' : ''}>+ Add Field${clip.fields.length >= 5 ? ' (max 5)' : ''}</button>
           </div>
           <div class="clip-editor__section">
             <h3>Style</h3>
@@ -2726,6 +2739,7 @@ export function TimelineEditorPage() {
         clip.privacyText = e.target.value;
         updatePreview(clip);
       });
+      let dragFromIndex = null;
       els.clipEditorContainer.querySelectorAll('.lf-field-row').forEach((row) => {
         const index = parseInt(row.dataset.index, 10);
         row.querySelector('.lf-field-label').addEventListener('input', (e) => {
@@ -2742,8 +2756,40 @@ export function TimelineEditorPage() {
           clip.fields.splice(index, 1);
           rerenderFields();
         });
+
+        // Native HTML5 drag-and-drop reorder, matching the same pattern
+        // used for clip drag-and-drop on the timeline itself.
+        row.addEventListener('dragstart', (e) => {
+          dragFromIndex = index;
+          e.dataTransfer.effectAllowed = 'move';
+          row.style.opacity = '0.4';
+        });
+        row.addEventListener('dragend', () => {
+          row.style.opacity = '';
+        });
+        row.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          row.style.borderTop = '2px solid var(--cyan, #22d3ee)';
+        });
+        row.addEventListener('dragleave', () => {
+          row.style.borderTop = '';
+        });
+        row.addEventListener('drop', (e) => {
+          e.preventDefault();
+          row.style.borderTop = '';
+          if (dragFromIndex === null || dragFromIndex === index) return;
+          const [moved] = clip.fields.splice(dragFromIndex, 1);
+          clip.fields.splice(index, 0, moved);
+          dragFromIndex = null;
+          rerenderFields();
+        });
       });
       els.clipEditorContainer.querySelector('#lf-field-add').addEventListener('click', () => {
+        if (clip.fields.length >= 5) {
+          showToast('A lead form can have a maximum of 5 fields', 'info');
+          return;
+        }
         clip.fields.push({ id: `field_${clip.fields.length + 1}`, type: 'text', label: 'New Field' });
         rerenderFields();
       });
