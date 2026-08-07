@@ -84,18 +84,24 @@ button, input, textarea, select { font: inherit; }
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; pointer-events: none;
 }
 /* Viewer wrapper (prototype parity) */
-.viewer { display: flex; flex-direction: column; height: 100%; }
+/* width:100% is required here: .preview-inner is a row flex container using
+   `justify-content: stretch`, which isn't a valid value for justify-content
+   (only align-items/align-content/align-self accept stretch) — so without
+   an explicit width, .viewer falls back to its content's intrinsic width
+   instead of filling the row. Invisible at the old small preview size;
+   glaring now that the preview is full-viewport. */
+.viewer { display: flex; flex-direction: column; width: 100%; height: 100%; }
 .viewer-stage { position: relative; flex: 1; min-height: 180px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }
 .viewer-frame { position: absolute; inset: 0; background: radial-gradient(120% 80% at 30% 20%, rgba(56,189,248,0.25), transparent 55%), radial-gradient(100% 90% at 80% 90%, rgba(168,85,247,0.22), transparent 60%), linear-gradient(135deg, #0b1220, #060911); }
 .vf-gradient { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.55), transparent 40%); }
 .vf-subtitle { position: absolute; left: 0; right: 0; bottom: 56px; text-align: center; font-size: 15px; font-weight: 700; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.8); padding: 0 16px; }
-.vf-badge { position: absolute; top: 12px; left: 12px; font-size: 10px; letter-spacing: .06em; color: #fca5a5; background: rgba(0,0,0,0.45); padding: 4px 8px; border-radius: 6px; }
 .viewer-controls { position: relative; display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3); background: rgba(7,12,18,0.6); backdrop-filter: blur(8px); }
 .vf-progress { flex: 1; height: 5px; border-radius: var(--r-full); background: rgba(255,255,255,0.18); overflow: hidden; }
 .vf-fill { height: 100%; background: var(--accent-grad); }
 .vf-time { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .preview-media { width: 100%; height: 100%; object-fit: cover; display: block; background: #020406; }
 .preview-media.contain { object-fit: contain; }
+
 .preview-audio-card {
   width: min(88%, 640px); padding: 24px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);
   background: var(--surface-1); box-shadow: 0 20px 40px rgba(0,0,0,0.35);
@@ -120,6 +126,34 @@ button, input, textarea, select { font: inherit; }
 .preview-text-kicker { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: #a5f3fc; }
 .preview-text-heading { margin-top: 12px; font-size: clamp(28px, 4vw, 54px); line-height: 1.02; font-weight: 900; color: white; }
 .preview-text-body { margin-top: 12px; max-width: 520px; font-size: 15px; line-height: 1.55; color: rgba(255,255,255,0.68); }
+
+.preview-form-card {
+  width: min(82%, 480px); padding: 28px; border-radius: 28px; border: 1px solid rgba(255,255,255,0.1);
+  background: linear-gradient(135deg, rgba(3,7,18,0.86), rgba(17,24,39,0.82)); box-shadow: 0 30px 70px rgba(0,0,0,0.45); text-align: left;
+}
+.preview-form-heading { margin: 0 0 16px; font-size: 22px; font-weight: 800; color: white; }
+.preview-form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.preview-form-field label { font-size: 12px; font-weight: 700; letter-spacing: .04em; color: rgba(255,255,255,0.68); }
+.preview-form-field input {
+  padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.06); color: white; font-size: 14px;
+}
+.preview-form-field input:focus { outline: none; border-color: var(--cyan, #22d3ee); }
+.preview-form-privacy { margin: 4px 0 16px; font-size: 11px; line-height: 1.5; color: rgba(255,255,255,0.5); }
+.preview-form-submit {
+  width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 800;
+  color: #03131a; background: var(--accent-grad, linear-gradient(135deg, #22d3ee, #34d399)); cursor: pointer;
+}
+.preview-form-submit:hover { filter: brightness(1.08); }
+
+.preview-click-to-call { display: flex; align-items: center; justify-content: center; }
+.preview-call-btn {
+  display: inline-flex; align-items: center; gap: 10px; padding: 16px 32px; border-radius: 999px;
+  font-size: 18px; font-weight: 800; color: #03131a; background: var(--accent-grad, linear-gradient(135deg, #22d3ee, #34d399));
+  text-decoration: none; box-shadow: 0 20px 50px rgba(34,211,238,0.25); cursor: pointer;
+}
+.preview-call-btn:hover { filter: brightness(1.08); }
+.preview-call-btn--invalid { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
 .circle-btn { width: 40px; height: 40px; border-radius: var(--r-full); border: 1px solid transparent; background: var(--surface-3); color: white; cursor: pointer; display: grid; place-items: center; transition: transform .15s ease, background .15s ease; }
 .circle-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.16); }
 .circle-btn.primary { width: 48px; height: 48px; background: white; color: black; box-shadow: 0 10px 30px rgba(255,255,255,0.15); }
@@ -867,7 +901,11 @@ body.is-dragging .floating-rail { pointer-events: none; }
 .time-total { font-size: 11px; color: var(--text-muted); }
 
 /* ---- Prototype-matched side-card components ---- */
-.preview-large { width: 100%; aspect-ratio: 16 / 9; min-height: 360px; }
+/* Preview player is the dominant element of the editor by default — sized
+   relative to viewport height rather than a fixed 16:9-of-width box, so it
+   stays large regardless of column width. Sidebar and timeline tracks
+   remain visible below/beside it. */
+.preview-large { width: 100%; aspect-ratio: auto; height: 68vh; min-height: 520px; }
 .cc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
 .cc-row { display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: var(--text-muted); }
 .cc-row input[type="range"] { width: 100%; accent-color: var(--cyan); }

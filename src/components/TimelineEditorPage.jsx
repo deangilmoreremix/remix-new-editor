@@ -17,7 +17,7 @@ import { SceneDetector } from './timeline/SceneDetector.js';
 import { CameraEffects } from './timeline/CameraEffects.js';
 import AIChatPanel from './timeline/AIChatPanel.js';
 import TIMELINE_DESIGN_SYSTEM, { enforceDesignSystem } from '../lib/designSystemEnforcer.js';
-import { createVideoPreview } from '../lib/videoPlayer.js';
+import { createVideoPreview, addVideoErrorRecovery } from '../lib/videoPlayer.js';
 // Design-system styles are imported statically so Vite bundles and emits them
 // into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
 // project-root path 404s in production because Vite never copies unreferenced
@@ -361,8 +361,8 @@ export function TimelineEditorPage() {
     <div class="brand">
       <div class="brand-mark">🎬</div>
       <div>
-        <div class="brand-title">Higgsfield</div>
-        <div class="brand-sub">Editor</div>
+        <div class="brand-title">SmartVideo AI</div>
+        <div class="brand-sub">Timeline Editor</div>
       </div>
     </div>
     <div class="project-head">
@@ -418,7 +418,6 @@ export function TimelineEditorPage() {
                 <div class="preview-empty" id="previewEmpty">
                   <div class="vf-subtitle" id="vfSubtitle">Your story starts here.</div>
                 </div>
-                <div class="vf-badge" id="vfBadge">● REC · 00:12.4</div>
               </div>
               <div class="viewer-controls">
                 <button class="circle-btn" id="rewindBtn" data-tooltip="Rewind - Move the playhead back by 10% (←)" aria-label="Rewind the playhead by 10%">⏮</button>
@@ -426,7 +425,6 @@ export function TimelineEditorPage() {
                 <button class="circle-btn" id="stopBtn" data-tooltip="Stop - Stop playback and return to beginning" aria-label="Stop playback and return to the beginning">⏹</button>
                 <div class="vf-progress"><div class="vf-fill" id="progressFill" style="width:28%"></div></div>
                 <span class="vf-time"><span id="currentTime">00:12.4</span> / <span id="totalTime">00:45.0</span></span>
-                <button class="circle-btn" id="vfFull" aria-label="Fullscreen / open player" title="Open Video Player" data-tooltip="Open the fullscreen video player">⤢</button>
               </div>
             </div>
             <div class="filmstrip" id="filmstrip" aria-label="Clip thumbnails"></div>
@@ -1098,12 +1096,20 @@ export function TimelineEditorPage() {
     }
 
     function renderPreviewAsset(selected) {
-      clearPreviewStage();
       if (!selected) {
+        clearPreviewStage();
         els.previewEmpty.style.display = 'flex';
         if (els.vfSubtitle) els.vfSubtitle.textContent = 'Your story starts here.';
         return;
       }
+
+      // togglePlayback's interval calls this on every tick (every 120ms) so
+      // keyframes stay in sync during playback. Rebuilding the media element
+      // every tick would tear down and restart it from 0 continuously,
+      // making video/audio preview unable to play past its first frame — so
+      // skip the rebuild when the same clip is already showing.
+      const existing = els.previewStage.firstElementChild;
+      const alreadyShowingThisClip = existing?.dataset?.clipId === String(selected.id);
 
       els.previewEmpty.style.display = 'none';
 
@@ -1123,9 +1129,16 @@ export function TimelineEditorPage() {
         }
       }
 
+      if (alreadyShowingThisClip) return;
+      clearPreviewStage();
+
       if (selected.type === 'video' && selected.src) {
         const video = createVideoPreview(selected.src, 'preview-media', {
           poster: selected.poster
+        });
+        video.dataset.clipId = selected.id;
+        addVideoErrorRecovery(video, {
+          onError: (message) => showToast(`Preview playback error: ${message}`, 'error'),
         });
         els.previewStage.appendChild(video);
         return;
@@ -1136,6 +1149,7 @@ export function TimelineEditorPage() {
         image.className = `preview-media ${selected.fit === 'cover' ? '' : 'contain'}`;
         image.src = selected.src;
         image.alt = selected.name;
+        image.dataset.clipId = selected.id;
         els.previewStage.appendChild(image);
         return;
       }
@@ -1143,6 +1157,7 @@ export function TimelineEditorPage() {
       if (selected.type === 'audio') {
         const wrap = document.createElement('div');
         wrap.className = 'preview-audio-card';
+        wrap.dataset.clipId = selected.id;
         wrap.innerHTML = `
           <div class="preview-audio-top">
             <div class="preview-audio-icon">🎵</div>
@@ -1157,6 +1172,9 @@ export function TimelineEditorPage() {
         audio.controls = true;
         if (selected.src) audio.src = selected.src;
         audio.style.width = '100%';
+        addVideoErrorRecovery(audio, {
+          onError: (message) => showToast(`Preview playback error: ${message}`, 'error'),
+        });
         wrap.appendChild(audio);
         els.previewStage.appendChild(wrap);
         return;
@@ -1165,6 +1183,7 @@ export function TimelineEditorPage() {
       if (selected.type === 'text') {
         const textCard = document.createElement('div');
         textCard.className = 'preview-text-card';
+        textCard.dataset.clipId = selected.id;
         textCard.innerHTML = `
           <div class="preview-text-kicker">Text Overlay Preview</div>
           <div class="preview-text-heading">${selected.heading || selected.name}</div>
@@ -1174,7 +1193,78 @@ export function TimelineEditorPage() {
         return;
       }
 
+      if (selected.type === 'lead-form') {
+        const card = document.createElement('div');
+        card.className = 'preview-form-card';
+        card.dataset.clipId = selected.id;
+        const fields = Array.isArray(selected.fields) && selected.fields.length
+          ? selected.fields
+          : [{ id: 'email', type: 'email', label: 'Email' }];
+        const inputType = (type) => (type === 'phone' ? 'tel' : type === 'email' ? 'email' : 'text');
+        card.innerHTML = `
+          <form class="preview-lead-form">
+            ${selected.heading ? `<h3 class="preview-form-heading">${selected.heading}</h3>` : ''}
+            ${fields.map((f) => `
+              <div class="preview-form-field">
+                <label>${f.label || f.type}</label>
+                <input type="${inputType(f.type)}" name="${f.id}" placeholder="${f.label || ''}" required />
+              </div>
+            `).join('')}
+            ${selected.privacyText ? `<p class="preview-form-privacy">${selected.privacyText}</p>` : ''}
+            <button type="submit" class="preview-form-submit"${selected.style?.buttonColor ? ` style="background:${selected.style.buttonColor}"` : ''}>${selected.ctaText || 'Submit'}</button>
+          </form>
+        `;
+        if (selected.style?.backgroundColor) card.style.background = selected.style.backgroundColor;
+        els.previewStage.appendChild(card);
+
+        card.querySelector('form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(e.target).entries());
+          if (selected.webhookEnabled && selected.webhookUrl) {
+            try {
+              await fetch(selected.webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+              });
+              showToast('Form submitted to webhook', 'success');
+            } catch (err) {
+              showToast(`Webhook submission failed: ${err.message}`, 'error');
+            }
+          } else {
+            showToast('Form submitted (no webhook configured — this is a preview)', 'info');
+          }
+        });
+        return;
+      }
+
+      if (selected.type === 'click-to-call') {
+        const wrap = document.createElement('div');
+        wrap.className = 'preview-click-to-call';
+        wrap.dataset.clipId = selected.id;
+        const valid = isValidPhoneNumber(selected.phoneNumber);
+        const telHref = valid ? `tel:${(selected.phoneNumber || '').replace(/[^0-9+]/g, '')}` : '#';
+        wrap.innerHTML = `
+          <a class="preview-call-btn ${valid ? '' : 'preview-call-btn--invalid'}" href="${telHref}"${valid ? '' : ' aria-disabled="true" title="Enter a valid phone number in the clip settings"'}${selected.style?.buttonColor ? ` style="background:${selected.style.buttonColor}"` : ''}>
+            📞 ${selected.buttonText || 'Call Now'}
+          </a>
+        `;
+        if (!valid) {
+          wrap.querySelector('a').addEventListener('click', (e) => e.preventDefault());
+        }
+        els.previewStage.appendChild(wrap);
+        return;
+      }
+
       els.previewEmpty.style.display = 'flex';
+    }
+
+    // Shared with the click-to-call settings panel for live validation
+    // feedback. Pattern matches upstream json-button.js's phoneRegex
+    // (country-code prefix, optional parenthesized area code, 10-14 digits).
+    function isValidPhoneNumber(value) {
+      if (!value) return false;
+      return /^(\+[0-9\s]*-?)?(\([0-9\s]*\))?[0-9-.\s]{10,14}$/.test(value.trim());
     }
 
     function updatePreview(clip) {
@@ -1458,8 +1548,17 @@ export function TimelineEditorPage() {
 
     function openVideoPlayerModal(state, showToast) {
       try {
+        // VideoPlayerModal reads options.url/options.title — it previously
+        // got timelineData instead, so it always rendered "No video URL
+        // provided" no matter what was selected.
+        const selected = findSelectedClip();
+        if (!selected || (selected.type !== 'video' && selected.type !== 'audio') || !selected.src) {
+          showToast('Select a video or audio clip first', 'info');
+          return;
+        }
         const modal = new VideoPlayerModal({
-          timelineData: state,
+          url: selected.src,
+          title: selected.name || 'Video Player',
           onComplete: (result) => {
           },
           onError: (error) => console.log(`Video player error: ${error}`, 'error')
@@ -1936,6 +2035,7 @@ export function TimelineEditorPage() {
               // Full pipeline rebuild: re-rendering with the viewState closure
               // would keep the stale selectedClipId and .active would never move.
               renderTracks();
+              showClipEditor(clip.id);
             });
 
             clipEl.addEventListener('dragstart', (e) => {
@@ -1969,9 +2069,11 @@ export function TimelineEditorPage() {
           const needsStructure = !prevData || prevData.label !== label || prevData.type !== trackType;
           if (needsStructure) {
             const isAudio = trackType === 'audio';
-            const isText = trackType === 'text';
+            const isText = trackType === 'text' || clip.type === 'lead-form' || clip.type === 'click-to-call';
             const isFx = trackType === 'effects' || trackType === 'fx';
-            const icon = isAudio ? '🎙️' : isText ? '🅣' : isFx ? '✨' : '🎥';
+            const icon = clip.type === 'lead-form' ? '📝'
+              : clip.type === 'click-to-call' ? '📞'
+              : isAudio ? '🎙️' : (trackType === 'text') ? '🅣' : isFx ? '✨' : '🎥';
             const durSec = Math.max(0, (clip.end || 0) - (clip.start || 0)).toFixed(1);
             clipEl.setAttribute('aria-label', `Clip: ${label}, ${durSec}s`);
             clipEl.innerHTML = `
@@ -2091,7 +2193,23 @@ export function TimelineEditorPage() {
             end: clip.end || ((clip.left + (clip.width || 0)) / 100) * state.timelineSeconds,
             type: clip.type,
             src: clip.src,
-            metadata: clip.metadata || {}
+            metadata: clip.metadata || {},
+            // Type-specific fields the preview/settings panels need for
+            // 'lead-form' and 'click-to-call' clips. These clips are
+            // reselected through this stripped-down view model (see the
+            // click handler in renderTracksIncremental), so any field
+            // renderPreviewAsset/renderClipEditor reads for these types
+            // must be forwarded here or it silently reverts to defaults
+            // on every re-selection.
+            heading: clip.heading,
+            fields: clip.fields,
+            ctaText: clip.ctaText,
+            privacyText: clip.privacyText,
+            webhookEnabled: clip.webhookEnabled,
+            webhookUrl: clip.webhookUrl,
+            style: clip.style,
+            phoneNumber: clip.phoneNumber,
+            buttonText: clip.buttonText
           }))
         })),
         selectedClipId: state.selectedClipId,
@@ -2343,10 +2461,15 @@ export function TimelineEditorPage() {
         delete clip.start;
         delete clip.end;
       } else {
-        clip.left = Math.min(78, 8 + targetTrack.clips.length * 10);
+        clip.left = Math.min(78, 8 + targetTrack.items.length * 10);
       }
 
-      targetTrack.clips.push(clip);
+      // renderTracks() only ever reads track.items (see the enhancedState
+      // mapping) — pushing to track.clips here meant every clip inserted
+      // through this function (addTextOverlay, addPersonalizationOverlay,
+      // addLeadCapture, ...) rendered once in the preview but was invisible
+      // on the actual timeline from the next render onward.
+      targetTrack.items.push(clip);
       state.selectedClipId = clip.id;
       renderTracks();
       updatePreview(clip);
@@ -2452,10 +2575,182 @@ export function TimelineEditorPage() {
 
 
 
+    function renderLeadFormEditor(clip) {
+      clip.fields = Array.isArray(clip.fields) && clip.fields.length ? clip.fields : [{ id: 'email', type: 'email', label: 'Email' }];
+      clip.style = clip.style || {};
+
+      els.clipEditorContainer.innerHTML = `
+        <div class="clip-editor">
+          <div class="clip-editor__section">
+            <h3>Content</h3>
+            <div class="clip-editor__field">
+              <label for="lf-heading">Heading</label>
+              <input id="lf-heading" type="text" value="${clip.heading || ''}" placeholder="Get Your Free Guide" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-cta">Button Text</label>
+              <input id="lf-cta" type="text" value="${clip.ctaText || ''}" placeholder="Submit" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-privacy">Privacy Text</label>
+              <input id="lf-privacy" type="text" value="${clip.privacyText || ''}" placeholder="We respect your privacy." />
+            </div>
+          </div>
+          <div class="clip-editor__section">
+            <h3>Fields</h3>
+            <div id="lf-fields-list">
+              ${clip.fields.map((f, i) => `
+                <div class="clip-editor__field lf-field-row" data-index="${i}" style="display:flex;gap:6px;align-items:center">
+                  <input type="text" class="lf-field-label" value="${f.label || ''}" placeholder="Label" style="flex:1" />
+                  <select class="lf-field-type">
+                    <option value="text" ${f.type === 'text' ? 'selected' : ''}>Text</option>
+                    <option value="email" ${f.type === 'email' ? 'selected' : ''}>Email</option>
+                    <option value="phone" ${f.type === 'phone' ? 'selected' : ''}>Phone</option>
+                  </select>
+                  <button type="button" class="lf-field-remove mini-btn" data-tooltip="Remove field">✕</button>
+                </div>
+              `).join('')}
+            </div>
+            <button id="lf-field-add" class="mini-btn" style="width:100%;margin-top:6px">+ Add Field</button>
+          </div>
+          <div class="clip-editor__section">
+            <h3>Style</h3>
+            <div class="clip-editor__field">
+              <label for="lf-bg">Background Color</label>
+              <input id="lf-bg" type="color" value="${clip.style.backgroundColor || '#0b1120'}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-btn-color">Button Color</label>
+              <input id="lf-btn-color" type="color" value="${clip.style.buttonColor || '#22d3ee'}" />
+            </div>
+          </div>
+          <div class="clip-editor__section">
+            <h3>Integrations</h3>
+            <div class="clip-editor__field">
+              <label for="lf-webhook-enabled"><input id="lf-webhook-enabled" type="checkbox" ${clip.webhookEnabled ? 'checked' : ''} /> Send submissions to webhook</label>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-webhook-url">Webhook URL</label>
+              <input id="lf-webhook-url" type="url" value="${clip.webhookUrl || ''}" placeholder="https://your-endpoint.com/hook" />
+            </div>
+          </div>
+        </div>
+      `;
+
+      const rerenderFields = () => {
+        renderLeadFormEditor(clip);
+        renderPreview();
+      };
+
+      els.clipEditorContainer.querySelector('#lf-heading').addEventListener('input', (e) => {
+        clip.heading = e.target.value;
+        renderTracks();
+        renderPreview();
+      });
+      els.clipEditorContainer.querySelector('#lf-cta').addEventListener('input', (e) => {
+        clip.ctaText = e.target.value;
+        renderPreview();
+      });
+      els.clipEditorContainer.querySelector('#lf-privacy').addEventListener('input', (e) => {
+        clip.privacyText = e.target.value;
+        renderPreview();
+      });
+      els.clipEditorContainer.querySelectorAll('.lf-field-row').forEach((row) => {
+        const index = parseInt(row.dataset.index, 10);
+        row.querySelector('.lf-field-label').addEventListener('input', (e) => {
+          clip.fields[index].label = e.target.value;
+          clip.fields[index].id = e.target.value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_') || clip.fields[index].id;
+          renderPreview();
+        });
+        row.querySelector('.lf-field-type').addEventListener('change', (e) => {
+          clip.fields[index].type = e.target.value;
+          renderPreview();
+        });
+        row.querySelector('.lf-field-remove').addEventListener('click', () => {
+          if (clip.fields.length <= 1) return;
+          clip.fields.splice(index, 1);
+          rerenderFields();
+        });
+      });
+      els.clipEditorContainer.querySelector('#lf-field-add').addEventListener('click', () => {
+        clip.fields.push({ id: `field_${clip.fields.length + 1}`, type: 'text', label: 'New Field' });
+        rerenderFields();
+      });
+      els.clipEditorContainer.querySelector('#lf-bg').addEventListener('input', (e) => {
+        clip.style.backgroundColor = e.target.value;
+        renderPreview();
+      });
+      els.clipEditorContainer.querySelector('#lf-btn-color').addEventListener('input', (e) => {
+        clip.style.buttonColor = e.target.value;
+        renderPreview();
+      });
+      els.clipEditorContainer.querySelector('#lf-webhook-enabled').addEventListener('change', (e) => {
+        clip.webhookEnabled = e.target.checked;
+      });
+      els.clipEditorContainer.querySelector('#lf-webhook-url').addEventListener('input', (e) => {
+        clip.webhookUrl = e.target.value;
+      });
+    }
+
+    function renderClickToCallEditor(clip) {
+      clip.style = clip.style || {};
+      const valid = isValidPhoneNumber(clip.phoneNumber);
+
+      els.clipEditorContainer.innerHTML = `
+        <div class="clip-editor">
+          <div class="clip-editor__section">
+            <h3>Content</h3>
+            <div class="clip-editor__field">
+              <label for="ctc-phone">Phone Number</label>
+              <input id="ctc-phone" type="tel" value="${clip.phoneNumber || ''}" placeholder="+1 555-123-4567" />
+              <span id="ctc-phone-error" style="color:#f87171;font-size:11px;${valid || !clip.phoneNumber ? 'display:none' : ''}">Enter a valid phone number</span>
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-btn-text">Button Text</label>
+              <input id="ctc-btn-text" type="text" value="${clip.buttonText || 'Call Now'}" />
+            </div>
+          </div>
+          <div class="clip-editor__section">
+            <h3>Style</h3>
+            <div class="clip-editor__field">
+              <label for="ctc-btn-color">Button Color</label>
+              <input id="ctc-btn-color" type="color" value="${clip.style.buttonColor || '#22d3ee'}" />
+            </div>
+          </div>
+        </div>
+      `;
+
+      els.clipEditorContainer.querySelector('#ctc-phone').addEventListener('input', (e) => {
+        clip.phoneNumber = e.target.value;
+        const errEl = els.clipEditorContainer.querySelector('#ctc-phone-error');
+        const isValid = isValidPhoneNumber(clip.phoneNumber);
+        errEl.style.display = (isValid || !clip.phoneNumber) ? 'none' : 'block';
+        renderTracks();
+        renderPreview();
+      });
+      els.clipEditorContainer.querySelector('#ctc-btn-text').addEventListener('input', (e) => {
+        clip.buttonText = e.target.value;
+        renderPreview();
+      });
+      els.clipEditorContainer.querySelector('#ctc-btn-color').addEventListener('input', (e) => {
+        clip.style.buttonColor = e.target.value;
+        renderPreview();
+      });
+    }
+
     function renderClipEditor(clipId) {
-      const clip = state.tracks.flatMap(t => t.clips).find(c => c.id === clipId);
+      const clip = state.tracks.flatMap(t => t.items || t.clips || []).find(c => c.id === clipId);
       if (!clip) {
         els.clipEditorContainer.innerHTML = '<p>Clip not found</p>';
+        return;
+      }
+
+      if (clip.type === 'lead-form') {
+        renderLeadFormEditor(clip);
+        return;
+      }
+      if (clip.type === 'click-to-call') {
+        renderClickToCallEditor(clip);
         return;
       }
 
@@ -3275,15 +3570,37 @@ export function TimelineEditorPage() {
         name: 'Lead Capture Form',
         left: state.playheadPercent * 10,
         width: 6,
-        type: 'text',
+        type: 'lead-form',
         heading: 'Get Your Free Guide',
-        body: 'Enter your email to receive personalized content.',
-        formFields: ['email', 'first_name'],
-        ctaText: 'Download Now'
+        fields: [
+          { id: 'first_name', type: 'text', label: 'First Name' },
+          { id: 'email', type: 'email', label: 'Email' }
+        ],
+        ctaText: 'Download Now',
+        privacyText: 'We respect your privacy. Unsubscribe anytime.',
+        webhookEnabled: false,
+        webhookUrl: '',
+        style: { backgroundColor: '', buttonColor: '' }
       };
       insertClipIntoTrack(leadClip, 'Text');
     };
     TLEditor.addLeadCapture = window.addLeadCapture;
+
+    // Global function to add a click-to-call button
+    window.addClickToCall = () => {
+      const callClip = {
+        id: Date.now(),
+        name: 'Click to Call',
+        left: state.playheadPercent * 10,
+        width: 6,
+        type: 'click-to-call',
+        phoneNumber: '',
+        buttonText: 'Call Now',
+        style: { buttonColor: '' }
+      };
+      insertClipIntoTrack(callClip, 'Text');
+    };
+    TLEditor.addClickToCall = window.addClickToCall;
 
     // Global function to apply dynamic personalization layer to current clip
     window.applyPersonalizationLayer = async (clipId, scanData) => {
@@ -4865,9 +5182,8 @@ export function TimelineEditorPage() {
       if (zoomInBtn) zoomInBtn.addEventListener('click', () => setZoom((state.zoom || 1) + 0.25));
       if (zoomFitBtn) zoomFitBtn.addEventListener('click', () => setZoom(1));
 
-      // Viewer fullscreen → video player modal (prototype vfFull)
-      const vfFull = root.querySelector('#vfFull');
-      if (vfFull) vfFull.addEventListener('click', () => openVideoPlayerModal(state, showToast));
+      // The preview is always edge-to-edge (see .preview-large CSS in
+      // timeline-editor-page.css) — no toggle, no button, always on.
 
       // Generate card tiles (prototype-style) → open the matching surface
       const genAutoCut = root.querySelector('#genAutoCut');
