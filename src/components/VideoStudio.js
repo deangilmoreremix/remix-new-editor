@@ -1,6 +1,7 @@
 import { muapi } from '../lib/muapi.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { createSafeVideo } from '../lib/security.js';
 import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
@@ -221,7 +222,9 @@ export function VideoStudio() {
 
         showVideoSpinner();
         try {
-            const url = await muapi.uploadFile(file);
+            const result = await processFileUpload(file);
+            const url = result.url || result.urls?.[0];
+            if (!url) throw new Error('Upload returned no URL');
             uploadedVideoUrl = url;
             showVideoReady(file.name);
 

@@ -1,8 +1,16 @@
 import { getModelById, getVideoModelById, getI2IModelById, getI2VModelById, getV2VModelById, getLipSyncModelById, getAudioModelById, getVideoToolById, getAvatarModelById, getTextModelById, getTrainingModelById, i2vModels } from './models.js';
 import { apiKeyManager, isDevBypass } from './apiKeyManager.js';
 import { uploadFileToStorage } from './supabase.js';
+import { validateFile } from './editor/validateFile.js';
 import { analytics } from './analytics.js';
 import { rateLimiter } from './services/RateLimiter.js';
+import {
+  validateEffectParams,
+  validateEffectName,
+  validateResolution,
+  validateQuality,
+  EFFECT_PARAM_SCHEMA,
+} from './effectParamValidator.js';
 
 async function acquireRateLimitToken() {
     try {
@@ -99,38 +107,29 @@ export class MuapiClient {
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'image', { endpoint, studioType: params.studioType });
 
-        const finalPayload = {
-            prompt: params.prompt,
-        };
+        const finalPayload = {};
 
-        if (params.aspect_ratio) {
-            finalPayload.aspect_ratio = params.aspect_ratio;
-        }
+        if (params.prompt) finalPayload.prompt = params.prompt;
 
-        if (params.resolution) {
-            finalPayload.resolution = params.resolution;
-        }
-
-        if (params.quality) {
-            finalPayload.quality = params.quality;
-        }
+        if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
+        if (params.resolution) finalPayload.resolution = params.resolution;
+        if (params.quality) finalPayload.quality = params.quality;
 
         if (params.image_url) {
             finalPayload.image_url = params.image_url;
             finalPayload.strength = params.strength || 0.6;
         }
 
-        if (params.seed && params.seed !== -1) {
-            finalPayload.seed = params.seed;
-        }
+        if (params.seed && params.seed !== -1) finalPayload.seed = params.seed;
+        if (params.negative_prompt) finalPayload.negative_prompt = params.negative_prompt;
+        if (params.guidance_scale !== undefined && params.guidance_scale !== 7.5) finalPayload.guidance_scale = params.guidance_scale;
+        if (params.steps !== undefined && params.steps !== 20) finalPayload.steps = params.steps;
+        if (params.denoise_strength !== undefined && params.denoise_strength !== 0.7) finalPayload.denoise_strength = params.denoise_strength;
+        if (params.effect_strength !== undefined && params.effect_strength !== 1.0) finalPayload.strength = params.effect_strength;
+        if (params.cfg_scale !== undefined && params.cfg_scale !== 0.5) finalPayload.cfg_scale = params.cfg_scale;
+        if (params.prompt_extend) finalPayload.prompt_extend = true;
 
-        if (params.negative_prompt) {
-            finalPayload.negative_prompt = params.negative_prompt;
-        }
-
-        if (params.thumbnail_url) {
-            finalPayload.thumbnail_url = params.thumbnail_url;
-        }
+        if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
 
         try {
             const response = await fetch(this.proxyUrl, {
@@ -267,13 +266,16 @@ export class MuapiClient {
         // Effect endpoints (generate_wan_ai_effects) REQUIRE `name`.
         if (params.name) finalPayload.name = params.name;
 
-        if (params.negative_prompt) {
-            finalPayload.negative_prompt = params.negative_prompt;
-        }
+        if (params.negative_prompt) finalPayload.negative_prompt = params.negative_prompt;
+        if (params.seed && params.seed !== -1) finalPayload.seed = params.seed;
+        if (params.guidance_scale !== undefined && params.guidance_scale !== 7.5) finalPayload.guidance_scale = params.guidance_scale;
+        if (params.steps !== undefined && params.steps !== 20) finalPayload.steps = params.steps;
+        if (params.denoise_strength !== undefined && params.denoise_strength !== 0.7) finalPayload.denoise_strength = params.denoise_strength;
+        if (params.effect_strength !== undefined && params.effect_strength !== 1.0) finalPayload.strength = params.effect_strength;
+        if (params.cfg_scale !== undefined && params.cfg_scale !== 0.5) finalPayload.cfg_scale = params.cfg_scale;
+        if (params.prompt_extend) finalPayload.prompt_extend = true;
 
-        if (params.thumbnail_url) {
-            finalPayload.thumbnail_url = params.thumbnail_url;
-        }
+        if (params.thumbnail_url) finalPayload.thumbnail_url = params.thumbnail_url;
 
         try {
             const response = await fetch(this.proxyUrl, {
@@ -321,12 +323,20 @@ export class MuapiClient {
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'i2i', { endpoint, studioType: params.studioType });
 
+        // ─── Validate & sanitize ─────────────────────────────────────────
+        const validation = validateEffectParams(params, EFFECT_PARAM_SCHEMA);
+        if (!validation.valid) {
+            const firstError = validation.errors[0];
+            throw new EffectParamError(firstError.message, firstError.field, firstError.code);
+        }
+        const p = validation.sanitized;
+
         const finalPayload = {};
 
-        if (params.prompt) finalPayload.prompt = params.prompt;
+        if (p.prompt) finalPayload.prompt = p.prompt;
 
         const imageField = modelInfo?.imageField || 'image_url';
-        const imagesList = params.images_list?.length > 0 ? params.images_list : (params.image_url ? [params.image_url] : null);
+        const imagesList = p.images_list?.length > 0 ? p.images_list : (p.image_url ? [p.image_url] : null);
         if (imagesList) {
             if (imageField === 'images_list') {
                 finalPayload.images_list = imagesList;
@@ -335,21 +345,24 @@ export class MuapiClient {
             }
         }
 
-        if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
-        if (params.resolution) finalPayload.resolution = params.resolution;
-        if (params.quality) finalPayload.quality = params.quality;
+        if (p.aspect_ratio) finalPayload.aspect_ratio = p.aspect_ratio;
+        if (p.resolution) finalPayload.resolution = p.resolution;
+        if (p.quality) finalPayload.quality = p.quality;
         // Effect endpoints (generate_wan_ai_effects / video-effects) REQUIRE `name`.
-        // The caller (Effects Studio / Templates video) sets it; forward it or the
-        // API returns 422 "Field required: name" and video creation silently fails.
-        if (params.name) finalPayload.name = params.name;
+        if (p.name) finalPayload.name = p.name;
 
-        if (params.negative_prompt) {
-            finalPayload.negative_prompt = params.negative_prompt;
-        }
+        if (p.negative_prompt) finalPayload.negative_prompt = p.negative_prompt;
 
-        if (params.thumbnail_url) {
-            finalPayload.thumbnail_url = params.thumbnail_url;
-        }
+        // Advanced controls (forward when non-default)
+        if (p.seed !== null && p.seed !== undefined && p.seed !== -1) finalPayload.seed = p.seed;
+        if (p.guidance_scale !== undefined && p.guidance_scale !== 7.5) finalPayload.guidance_scale = p.guidance_scale;
+        if (p.steps !== undefined && p.steps !== 20) finalPayload.steps = p.steps;
+        if (p.denoise_strength !== undefined && p.denoise_strength !== 0.7) finalPayload.denoise_strength = p.denoise_strength;
+        if (p.effect_strength !== undefined && p.effect_strength !== 1.0) finalPayload.strength = p.effect_strength;
+        if (p.cfg_scale !== undefined && p.cfg_scale !== 0.5) finalPayload.cfg_scale = p.cfg_scale;
+        if (p.prompt_extend) finalPayload.prompt_extend = true;
+
+        if (p.thumbnail_url) finalPayload.thumbnail_url = p.thumbnail_url;
 
         try {
             const response = await fetch(this.proxyUrl, {
@@ -395,34 +408,47 @@ export class MuapiClient {
         const endpoint = modelInfo?.endpoint || params.model;
         analytics.trackGeneration(params.model, 'i2v', { endpoint, studioType: params.studioType });
 
+        // ─── Validate & sanitize ─────────────────────────────────────────
+        const validation = validateEffectParams(params, EFFECT_PARAM_SCHEMA);
+        if (!validation.valid) {
+            const firstError = validation.errors[0];
+            throw new EffectParamError(firstError.message, firstError.field, firstError.code);
+        }
+        const p = validation.sanitized;
+
         const finalPayload = {};
 
-        if (params.prompt) finalPayload.prompt = params.prompt;
+        if (p.prompt) finalPayload.prompt = p.prompt;
 
         const imageField = modelInfo?.imageField || 'image_url';
-        if (params.image_url) {
+        if (p.image_url) {
             if (imageField === 'images_list') {
-                finalPayload.images_list = [params.image_url];
+                finalPayload.images_list = [p.image_url];
             } else {
-                finalPayload[imageField] = params.image_url;
+                finalPayload[imageField] = p.image_url;
             }
         }
 
-        if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
-        if (params.duration) finalPayload.duration = params.duration;
-        if (params.resolution) finalPayload.resolution = params.resolution;
-        if (params.quality) finalPayload.quality = params.quality;
+        if (p.aspect_ratio) finalPayload.aspect_ratio = p.aspect_ratio;
+        if (p.duration) finalPayload.duration = p.duration;
+        if (p.resolution) finalPayload.resolution = p.resolution;
+        if (p.quality) finalPayload.quality = p.quality;
         // Effect endpoints (generate_wan_ai_effects) REQUIRE `name`.
         // Forward it from the template's effect selection input or defaultParams.
-        if (params.name) finalPayload.name = params.name;
+        if (p.name) finalPayload.name = p.name;
 
-        if (params.negative_prompt) {
-            finalPayload.negative_prompt = params.negative_prompt;
-        }
+        if (p.negative_prompt) finalPayload.negative_prompt = p.negative_prompt;
 
-        if (params.thumbnail_url) {
-            finalPayload.thumbnail_url = params.thumbnail_url;
-        }
+        // Advanced controls (forward when non-default)
+        if (p.seed !== null && p.seed !== undefined && p.seed !== -1) finalPayload.seed = p.seed;
+        if (p.guidance_scale !== undefined && p.guidance_scale !== 7.5) finalPayload.guidance_scale = p.guidance_scale;
+        if (p.steps !== undefined && p.steps !== 20) finalPayload.steps = p.steps;
+        if (p.denoise_strength !== undefined && p.denoise_strength !== 0.7) finalPayload.denoise_strength = p.denoise_strength;
+        if (p.effect_strength !== undefined && p.effect_strength !== 1.0) finalPayload.strength = p.effect_strength;
+        if (p.cfg_scale !== undefined && p.cfg_scale !== 0.5) finalPayload.cfg_scale = p.cfg_scale;
+        if (p.prompt_extend) finalPayload.prompt_extend = true;
+
+        if (p.thumbnail_url) finalPayload.thumbnail_url = p.thumbnail_url;
 
         try {
             const response = await fetch(this.proxyUrl, {
@@ -465,6 +491,25 @@ export class MuapiClient {
         this._requireMuapiKey();
         await acquireRateLimitToken();
         const key = this.getKey();
+
+        // Use the same magic-byte / MIME / extension chain as the rest of the
+        // editor so we don't mis-classify files whose browser-reported MIME is
+        // empty or generic (e.g. application/octet-stream).
+        let validation;
+        try {
+            validation = await validateFile(file);
+        } catch (e) {
+            throw new Error(`Validation failed: ${e.message}`);
+        }
+
+        const isImage = validation.type === 'image';
+        const isVideo = validation.type === 'video';
+        const maxSize = isImage ? 10 * 1024 * 1024 : isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            const typeLabel = isImage ? 'Images' : isVideo ? 'Videos' : 'Files';
+            throw new Error(`${typeLabel} must be under ${maxSize / 1024 / 1024}MB for muapi.ai upload`);
+        }
+
         const formData = new FormData();
         formData.append('file', file);
 
@@ -480,7 +525,16 @@ export class MuapiClient {
 
             if (!response.ok) {
                 const errText = await response.text();
-                throw new Error(`Upload Failed: ${response.status} ${response.statusText} - ${errText.slice(0, 100)}`);
+                const status = response.status;
+                const err = new Error(`Upload failed: ${errText.slice(0, 200)}`);
+                err.status = status;
+                // For client-side errors from muapi.ai (credits, quota, too large,
+                // unsupported type), do NOT fall back to Supabase — surface the
+                // real error so the user knows what to fix.
+                if (status === 402 || status === 403 || status === 413 || status === 422) {
+                    throw err;
+                }
+                throw new Error(`Upload Failed: ${status} ${response.statusText} - ${errText.slice(0, 100)}`);
             }
 
             const result = await response.json();
@@ -488,8 +542,23 @@ export class MuapiClient {
                 throw new Error(`Upload Failed: ${result.error}`);
             }
 
-            return result.url || result.data?.url;
+            const publicUrl = result.url || result.data?.url;
+            if (!publicUrl) {
+                const err = new Error('Upload Failed: No URL returned by the server');
+                err.retryable = false;
+                throw err;
+            }
+            return publicUrl;
         } catch (err) {
+            // Only fall back for genuine network/server errors, not for logical
+            // client errors or muapi.ai client-side rejections.
+            if (err.retryable === false) {
+                throw err;
+            }
+            const status = err.status || (err.response?.status);
+            if (status === 402 || status === 403 || status === 413 || status === 422) {
+                throw err;
+            }
             console.warn('[MuapiClient] Proxy upload failed, falling back to Supabase Storage:', err);
             try {
                 return await uploadFileToStorage(file);
@@ -708,8 +777,7 @@ export class MuapiClient {
         const endpoint = 'generate_wan_ai_effects';
         analytics.trackGeneration(params.model, 'video-effect', { endpoint, effectName: params.name, studioType: params.studioType });
 
-        // Enforce the documented contract up front so we never send an
-        // invalid `name`/`resolution` and get an opaque "Invalid input" 400.
+        // ─── Validate effect name against allowlist ───────────────────────
         if (!params.name || typeof params.name !== 'string' || !params.name.trim()) {
             throw new Error('generateVideoEffect requires a non-empty `name` (effect preset).');
         }
@@ -717,19 +785,58 @@ export class MuapiClient {
         if (!ALLOWED_WAN_EFFECT_NAMES.has(trimmedName)) {
             throw new Error(`Effect "${trimmedName}" is not supported by the API. Use a preset from the studio's effect list.`);
         }
-        const resolution = ['480p', '720p'].includes(params.resolution) ? params.resolution : '480p';
-        const quality = ['medium', 'high'].includes(params.quality) ? params.quality : 'medium';
 
+        // ─── Validate & sanitize all parameters ──────────────────────────
+        const validation = validateEffectParams(params, EFFECT_PARAM_SCHEMA);
+        if (!validation.valid) {
+            const firstError = validation.errors[0];
+            throw new EffectParamError(firstError.message, firstError.field, firstError.code);
+        }
+        const p = validation.sanitized;
+
+        // ─── Apply endpoint-specific constraints ─────────────────────────
+        // generate_wan_ai_effects only supports 480p/720p
+        const resolution = validateResolution(p.resolution, ['480p', '720p']);
+        const quality = validateQuality(p.quality, ['medium', 'high']);
+
+        // ─── Build payload ───────────────────────────────────────────────
         const finalPayload = {};
 
-        if (params.prompt) finalPayload.prompt = params.prompt;
-        if (params.image_url) finalPayload.image_url = params.image_url;
-        if (params.video_url) finalPayload.video_url = params.video_url;
+        // Required / core fields
         finalPayload.name = trimmedName;
-        if (params.aspect_ratio) finalPayload.aspect_ratio = params.aspect_ratio;
-        if (params.duration) finalPayload.duration = params.duration;
-        if (params.resolution) finalPayload.resolution = params.resolution;
-        if (params.quality) finalPayload.quality = params.quality;
+        if (p.image_url) finalPayload.image_url = p.image_url;
+        if (p.video_url) finalPayload.video_url = p.video_url;
+        if (p.prompt) finalPayload.prompt = p.prompt;
+        if (p.negative_prompt) finalPayload.negative_prompt = p.negative_prompt;
+        if (p.aspect_ratio) finalPayload.aspect_ratio = p.aspect_ratio;
+        finalPayload.resolution = resolution;
+        finalPayload.quality = quality;
+        if (p.duration) finalPayload.duration = p.duration;
+
+        // Advanced generation controls (forwarded when provided)
+        // These are passed through to the backend if the endpoint supports them.
+        // The proxy / backend should ignore unknown params gracefully.
+        if (p.seed !== null && p.seed !== undefined && p.seed !== -1) {
+            finalPayload.seed = p.seed;
+        }
+        if (p.guidance_scale !== undefined && p.guidance_scale !== 7.5) {
+            finalPayload.guidance_scale = p.guidance_scale;
+        }
+        if (p.steps !== undefined && p.steps !== 20) {
+            finalPayload.steps = p.steps;
+        }
+        if (p.denoise_strength !== undefined && p.denoise_strength !== 0.7) {
+            finalPayload.denoise_strength = p.denoise_strength;
+        }
+        if (p.effect_strength !== undefined && p.effect_strength !== 1.0) {
+            finalPayload.strength = p.effect_strength;
+        }
+        if (p.cfg_scale !== undefined && p.cfg_scale !== 0.5) {
+            finalPayload.cfg_scale = p.cfg_scale;
+        }
+        if (p.prompt_extend) {
+            finalPayload.prompt_extend = true;
+        }
 
         try {
             const response = await fetch(this.proxyUrl, {

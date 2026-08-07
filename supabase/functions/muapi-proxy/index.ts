@@ -199,22 +199,45 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Dev-bypass: allow a known placeholder value so developers can test the
-      // proxy locally without supplying a real Muapi key. Production callers
-      // must always supply their actual key.
-      const DEV_BYPASS_KEY = 'dev';
-      const effectiveApiKey = userApiKey === DEV_BYPASS_KEY ? '' : userApiKey;
+    // Dev-bypass: allow a known placeholder value so developers can test the
+    // proxy locally without supplying a real Muapi key. Production callers
+    // must always supply their actual key.
+    const isDev = Deno.env.get('ENVIRONMENT') === 'development';
+    const DEV_BYPASS_KEY = 'dev';
+    const effectiveApiKey = (isDev && userApiKey === DEV_BYPASS_KEY) ? '' : userApiKey;
 
       const normalizedEndpoint = normalizeLegacyEndpoint(endpoint);
       const muapiUrl = `https://api.muapi.ai/api/v1/${normalizedEndpoint}`;
 
+      // Buffer the multipart body so we can set Content-Length. Some upstream
+      // servers reject chunked multipart uploads; a known length is required.
+      const chunks: Uint8Array[] = [];
+      let totalBytes = 0;
+      if (req.body) {
+        for await (const chunk of req.body) {
+          chunks.push(chunk);
+          totalBytes += chunk.length;
+        }
+      }
+      const bodyBuffer = new Uint8Array(totalBytes);
+      let offset = 0;
+      for (const chunk of chunks) {
+        bodyBuffer.set(chunk, offset);
+        offset += chunk.length;
+      }
+
+      const forwardHeaders: Record<string, string> = {
+        'x-api-key': effectiveApiKey,
+        'content-type': contentType,
+      };
+      if (totalBytes > 0) {
+        forwardHeaders['content-length'] = String(totalBytes);
+      }
+
       const muapiResponse = await fetch(muapiUrl, {
         method: 'POST',
-        headers: {
-          'x-api-key': effectiveApiKey,
-          'content-type': contentType,
-        },
-        body: req.body,
+        headers: forwardHeaders,
+        body: bodyBuffer,
       });
 
       if (!muapiResponse.ok) {
@@ -309,8 +332,9 @@ Deno.serve(async (req: Request) => {
     // Dev-bypass: allow a known placeholder value so developers can test the
     // proxy locally without supplying a real Muapi key. Production callers
     // must always supply their actual key.
+    const isDev = Deno.env.get('ENVIRONMENT') === 'development';
     const DEV_BYPASS_KEY = 'dev';
-    const effectiveApiKey = userApiKey === DEV_BYPASS_KEY ? '' : userApiKey;
+    const effectiveApiKey = (isDev && userApiKey === DEV_BYPASS_KEY) ? '' : userApiKey;
 
     // Strip the key from the request body before forwarding so it is never
     // leaked as a model parameter to muapi.ai.
