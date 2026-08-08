@@ -17,7 +17,8 @@ import { SceneDetector } from './timeline/SceneDetector.js';
 import { CameraEffects } from './timeline/CameraEffects.js';
 import AIChatPanel from './timeline/AIChatPanel.js';
 import TIMELINE_DESIGN_SYSTEM, { enforceDesignSystem } from '../lib/designSystemEnforcer.js';
-import { createVideoPreview } from '../lib/videoPlayer.js';
+import { createVideoPreview, addVideoErrorRecovery } from '../lib/videoPlayer.js';
+import { replaceTokensInPrompt } from './personalize/personalizePopover.js';
 // Design-system styles are imported statically so Vite bundles and emits them
 // into dist/ (with subpath-safe URLs). Injecting them via a runtime <link> to a
 // project-root path 404s in production because Vite never copies unreferenced
@@ -361,8 +362,8 @@ export function TimelineEditorPage() {
     <div class="brand">
       <div class="brand-mark">🎬</div>
       <div>
-        <div class="brand-title">Higgsfield</div>
-        <div class="brand-sub">Editor</div>
+        <div class="brand-title">SmartVideo AI</div>
+        <div class="brand-sub">Timeline Editor</div>
       </div>
     </div>
     <div class="project-head">
@@ -418,7 +419,6 @@ export function TimelineEditorPage() {
                 <div class="preview-empty" id="previewEmpty">
                   <div class="vf-subtitle" id="vfSubtitle">Your story starts here.</div>
                 </div>
-                <div class="vf-badge" id="vfBadge">● REC · 00:12.4</div>
               </div>
               <div class="viewer-controls">
                 <button class="circle-btn" id="rewindBtn" data-tooltip="Rewind - Move the playhead back by 10% (←)" aria-label="Rewind the playhead by 10%">⏮</button>
@@ -426,7 +426,6 @@ export function TimelineEditorPage() {
                 <button class="circle-btn" id="stopBtn" data-tooltip="Stop - Stop playback and return to beginning" aria-label="Stop playback and return to the beginning">⏹</button>
                 <div class="vf-progress"><div class="vf-fill" id="progressFill" style="width:28%"></div></div>
                 <span class="vf-time"><span id="currentTime">00:12.4</span> / <span id="totalTime">00:45.0</span></span>
-                <button class="circle-btn" id="vfFull" aria-label="Fullscreen / open player" title="Open Video Player" data-tooltip="Open the fullscreen video player">⤢</button>
               </div>
             </div>
             <div class="filmstrip" id="filmstrip" aria-label="Clip thumbnails"></div>
@@ -1098,12 +1097,24 @@ export function TimelineEditorPage() {
     }
 
     function renderPreviewAsset(selected) {
-      clearPreviewStage();
       if (!selected) {
+        clearPreviewStage();
         els.previewEmpty.style.display = 'flex';
         if (els.vfSubtitle) els.vfSubtitle.textContent = 'Your story starts here.';
         return;
       }
+
+      // togglePlayback's interval calls this on every tick (every 120ms) so
+      // keyframes stay in sync during playback. Rebuilding the media element
+      // every tick would tear down and restart it from 0 continuously,
+      // making video/audio preview unable to play past its first frame — so
+      // skip the rebuild when the same clip is already showing. Scoped to
+      // video/audio only: non-media types (lead-form, click-to-call, text)
+      // have no playback state to lose, and their settings panels need
+      // every field edit to reach the preview immediately.
+      const existing = els.previewStage.firstElementChild;
+      const isMediaType = selected.type === 'video' || selected.type === 'audio';
+      const alreadyShowingThisClip = isMediaType && existing?.dataset?.clipId === String(selected.id);
 
       els.previewEmpty.style.display = 'none';
 
@@ -1123,9 +1134,16 @@ export function TimelineEditorPage() {
         }
       }
 
+      if (alreadyShowingThisClip) return;
+      clearPreviewStage();
+
       if (selected.type === 'video' && selected.src) {
         const video = createVideoPreview(selected.src, 'preview-media', {
           poster: selected.poster
+        });
+        video.dataset.clipId = selected.id;
+        addVideoErrorRecovery(video, {
+          onError: (message) => showToast(`Preview playback error: ${message}`, 'error'),
         });
         els.previewStage.appendChild(video);
         return;
@@ -1136,6 +1154,7 @@ export function TimelineEditorPage() {
         image.className = `preview-media ${selected.fit === 'cover' ? '' : 'contain'}`;
         image.src = selected.src;
         image.alt = selected.name;
+        image.dataset.clipId = selected.id;
         els.previewStage.appendChild(image);
         return;
       }
@@ -1143,6 +1162,7 @@ export function TimelineEditorPage() {
       if (selected.type === 'audio') {
         const wrap = document.createElement('div');
         wrap.className = 'preview-audio-card';
+        wrap.dataset.clipId = selected.id;
         wrap.innerHTML = `
           <div class="preview-audio-top">
             <div class="preview-audio-icon">🎵</div>
@@ -1157,6 +1177,9 @@ export function TimelineEditorPage() {
         audio.controls = true;
         if (selected.src) audio.src = selected.src;
         audio.style.width = '100%';
+        addVideoErrorRecovery(audio, {
+          onError: (message) => showToast(`Preview playback error: ${message}`, 'error'),
+        });
         wrap.appendChild(audio);
         els.previewStage.appendChild(wrap);
         return;
@@ -1165,6 +1188,7 @@ export function TimelineEditorPage() {
       if (selected.type === 'text') {
         const textCard = document.createElement('div');
         textCard.className = 'preview-text-card';
+        textCard.dataset.clipId = selected.id;
         textCard.innerHTML = `
           <div class="preview-text-kicker">Text Overlay Preview</div>
           <div class="preview-text-heading">${selected.heading || selected.name}</div>
@@ -1174,7 +1198,312 @@ export function TimelineEditorPage() {
         return;
       }
 
+      if (selected.type === 'lead-form') {
+        const card = document.createElement('div');
+        const fields = Array.isArray(selected.fields) && selected.fields.length
+          ? selected.fields
+          : [{ id: 'email', type: 'email', label: 'Email' }];
+        // Adaptive layout: field count changes the arrangement, matching
+        // upstream's per-count flex rules (2/3/4/5 fields laid out
+        // differently rather than always stacking one-per-row).
+        const isMobilePreview = els.previewStage.clientWidth < 640;
+        card.className = `preview-form-card preview-form-card--fields-${Math.min(fields.length, 5)}${isMobilePreview ? ' preview-form-card--mobile' : ''}`;
+        card.dataset.clipId = selected.id;
+        const inputType = (type) => (
+          type === 'phone' ? 'tel'
+            : type === 'email' ? 'email'
+            : type === 'number' ? 'number'
+            : type === 'date' ? 'date'
+            : 'text'
+        );
+
+        // Personalization pre-fill: reuse the fork's existing profile/token
+        // mechanism (same one every Studio page uses for prompts) rather
+        // than inventing a parallel one. {{token}} placeholders in
+        // heading/CTA/privacy text resolve via replaceTokensInPrompt, and
+        // fields whose id maps to a known profile variable (first_name,
+        // email, company, ...) get pre-filled directly, matching upstream
+        // form.js's personalizedTokens[declaration.token] behavior.
+        const activeProfile = getActivePersonalizationProfile();
+        const heading = activeProfile ? replaceTokensInPrompt(selected.heading || '', activeProfile) : selected.heading;
+        const ctaText = activeProfile ? replaceTokensInPrompt(selected.ctaText || 'Submit', activeProfile) : (selected.ctaText || 'Submit');
+        const privacyText = activeProfile ? replaceTokensInPrompt(selected.privacyText || '', activeProfile) : selected.privacyText;
+
+        const style = selected.style || {};
+        const captionAlign = style.captionAlignment || 'center';
+
+        card.innerHTML = `
+          <form class="preview-lead-form">
+            ${selected.brandLogoUrl ? `<img class="preview-form-logo" src="${escapeHtml(selected.brandLogoUrl)}" alt="" />` : ''}
+            ${heading ? `<h3 class="preview-form-heading" style="text-align:${captionAlign};${style.captionFontSize ? `font-size:${style.captionFontSize}%;` : ''}">${escapeHtml(heading)}</h3>` : ''}
+            <div class="preview-form-fields">
+            ${fields.map((f) => {
+              const varKey = FIELD_TOKEN_ALIASES[f.id] || f.id;
+              const prefill = activeProfile?.variables?.[varKey];
+              const prefillStr = prefill ? escapeHtml(String(prefill)) : '';
+              const fieldInput = f.type === 'multiline'
+                ? `<textarea name="${f.id}" placeholder="${escapeHtml(f.label || '')}" rows="3" required>${prefillStr}</textarea>`
+                : `<input type="${inputType(f.type)}" name="${f.id}" placeholder="${escapeHtml(f.label || '')}"${prefillStr ? ` value="${prefillStr}"` : ''} required />`;
+              return `
+              <div class="preview-form-field">
+                <label>${escapeHtml(f.label || f.type)}</label>
+                ${fieldInput}
+              </div>
+            `;
+            }).join('')}
+            </div>
+            ${privacyText ? `<p class="preview-form-privacy">${escapeHtml(privacyText)}</p>` : ''}
+            ${selected.privacyPolicyCaption && selected.privacyPolicyLink
+              ? `<a class="preview-form-privacy-link" href="${escapeHtml(selected.privacyPolicyLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(selected.privacyPolicyCaption)}</a>`
+              : ''}
+            <button type="submit" class="preview-form-submit" style="${style.buttonColor ? `background:${style.buttonColor};` : ''}${style.buttonFontColor ? `color:${style.buttonFontColor};` : ''}${style.buttonBorderRadius !== undefined ? `border-radius:${style.buttonBorderRadius}px;` : ''}${style.buttonBottomBorder ? `border-bottom:3px solid ${style.buttonBottomBorder};` : ''}">${escapeHtml(ctaText)}</button>
+            ${selected.skipButtonEnabled ? `<button type="button" class="preview-form-skip">Skip</button>` : ''}
+          </form>
+        `;
+        if (style.backgroundImage) {
+          card.style.backgroundImage = `url(${style.backgroundImage})`;
+          card.style.backgroundSize = 'cover';
+          card.style.backgroundPosition = 'center';
+        } else if (style.backgroundColor) {
+          card.style.background = style.backgroundColor;
+        }
+        if (style.fontFamily) {
+          ensureGoogleFontLoaded(style.fontFamily);
+          card.style.fontFamily = `"${style.fontFamily}"`;
+        }
+        if (style.fontSize) {
+          card.querySelectorAll('input, textarea, button, label').forEach((el) => {
+            el.style.fontSize = `${style.fontSize}%`;
+          });
+        }
+        // Configurable size/position as a % of the frame, replacing the
+        // fixed min(82%, 480px) CSS default when the user sets one.
+        if (style.widthPercent) card.style.width = `${style.widthPercent}%`;
+        if (style.heightPercent) {
+          card.style.maxHeight = `${style.heightPercent}%`;
+          card.style.overflowY = 'auto';
+        }
+        card.style.alignSelf = style.position === 'top' ? 'flex-start' : style.position === 'bottom' ? 'flex-end' : 'center';
+        // Entrance transition: mirrors upstream's animation.in classes
+        // (formAnimationStart applying a CSS class to the transition
+        // container) via a plain CSS animation instead of a JS timeline.
+        if (style.transition && style.transition !== 'none') {
+          card.classList.add(`preview-form-card--enter-${style.transition}`);
+        }
+        els.previewStage.appendChild(card);
+
+        const skipBtn = card.querySelector('.preview-form-skip');
+        if (skipBtn) {
+          skipBtn.addEventListener('click', () => {
+            card.classList.add('preview-form-card--exit');
+            card.addEventListener('animationend', () => {
+              card.style.display = 'none';
+            }, { once: true });
+            if (!state.playing) togglePlayback();
+          });
+        }
+
+        card.querySelector('form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const data = Object.fromEntries(new FormData(e.target).entries());
+
+          selected._submittedLeads = selected._submittedLeads || [];
+          selected._submittedLeads.push({ ...data, submittedAt: new Date().toISOString() });
+          // Keep the Download-leads button's count in sync if its settings
+          // panel is currently open for this clip.
+          if (state.selectedClipId === selected.id) {
+            const downloadBtn = els.clipEditorContainer.querySelector('#lf-download-leads');
+            if (downloadBtn) {
+              downloadBtn.disabled = false;
+              downloadBtn.textContent = `Download leads (${selected._submittedLeads.length})`;
+            }
+          }
+
+          const webhookUrls = selected.webhookEnabled
+            ? [selected.webhookUrl, selected.webhookUrl2, selected.webhookUrl3].filter(Boolean)
+            : [];
+          if (webhookUrls.length) {
+            const results = await Promise.allSettled(webhookUrls.map((url) => fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data),
+            })));
+            const failed = results.filter((r) => r.status === 'rejected').length;
+            showToast(
+              failed ? `Submitted, but ${failed}/${webhookUrls.length} webhook(s) failed` : 'Form submitted to webhook',
+              failed ? 'error' : 'success',
+            );
+          } else {
+            showToast('Form submitted (no webhook configured — this is a preview)', 'info');
+          }
+
+          if (selected.emailNotificationEnabled && selected.notificationEmail) {
+            // No backend mail service is wired into this fork — there is no
+            // client-side mechanism that can actually deliver an email, so
+            // this is surfaced honestly rather than faked as "sent".
+            showToast(`Email notification to ${selected.notificationEmail} configured, but no email service is connected yet`, 'info');
+          }
+
+          if (selected.fbPixelId) {
+            if (typeof window.fbq === 'function') {
+              window.fbq('trackSingle', selected.fbPixelId, 'Lead', data);
+            } else {
+              showToast(`Facebook Pixel ${selected.fbPixelId} configured, but the Pixel script isn't loaded on this page`, 'info');
+            }
+          }
+        });
+        return;
+      }
+
+      if (selected.type === 'click-to-call') {
+        // Intentionally a plain <a href="tel:..."> styled with CSS, not a
+        // Lottie animation like upstream's json-button plugin. Decided
+        // against porting Lottie support: upstream's animated button has
+        // no real href at all (a decorative click-away overlay), while a
+        // native tel: link is a strictly more functional call-to-action,
+        // and this avoids an ongoing per-clip Lottie-asset authoring
+        // burden for a general-purpose clip type. This is the permanent
+        // design, not a placeholder pending a future upgrade.
+        const ctcStyle = selected.style || {};
+        const wrap = document.createElement('div');
+        wrap.className = 'preview-click-to-call';
+        wrap.dataset.clipId = selected.id;
+        const valid = isValidPhoneNumber(selected.phoneNumber);
+        const telHref = valid ? `tel:${(selected.phoneNumber || '').replace(/[^0-9+]/g, '')}` : '#';
+        wrap.innerHTML = `
+          <a class="preview-call-btn ${valid ? '' : 'preview-call-btn--invalid'}" href="${telHref}"${valid ? '' : ' aria-disabled="true" title="Enter a valid phone number in the clip settings"'}${ctcStyle.buttonColor ? ` style="background:${ctcStyle.buttonColor}"` : ''}>
+            📞 ${selected.buttonText || 'Call Now'}
+          </a>
+        `;
+        if (!valid) {
+          wrap.querySelector('a').addEventListener('click', (e) => e.preventDefault());
+        }
+
+        // Positioning within the frame (% of the preview stage), matching
+        // upstream json-button's left/top/width/height model. Anchored by
+        // center point so drag math and CSS translate stay in sync.
+        const posLeft = ctcStyle.posLeft ?? 50;
+        const posTop = ctcStyle.posTop ?? 50;
+        const posWidth = ctcStyle.posWidth ?? 40;
+        wrap.style.position = 'absolute';
+        wrap.style.left = `${posLeft}%`;
+        wrap.style.top = `${posTop}%`;
+        wrap.style.width = `${posWidth}%`;
+        wrap.style.transform = 'translate(-50%, -50%)';
+        wrap.style.mixBlendMode = ctcStyle.blendMode || 'normal';
+        wrap.style.opacity = (ctcStyle.opacity ?? 100) / 100;
+
+        els.previewStage.appendChild(wrap);
+
+        // Drag-to-move + resize, only when this clip is the current
+        // timeline selection — otherwise every click-to-call preview would
+        // intercept clicks meant for the tel: link.
+        if (state.selectedClipId === selected.id) {
+          wrap.classList.add('preview-click-to-call--selected');
+          const dragHandle = document.createElement('div');
+          dragHandle.className = 'ctc-drag-handle';
+          dragHandle.title = 'Drag to reposition';
+          dragHandle.textContent = '✥';
+          const resizeHandle = document.createElement('div');
+          resizeHandle.className = 'ctc-resize-handle';
+          resizeHandle.title = 'Drag to resize';
+          wrap.appendChild(dragHandle);
+          wrap.appendChild(resizeHandle);
+
+          const stageRect = () => els.previewStage.getBoundingClientRect();
+
+          dragHandle.addEventListener('mousedown', (downEvent) => {
+            downEvent.preventDefault();
+            const rect = stageRect();
+            const onMove = (moveEvent) => {
+              const newLeft = ((moveEvent.clientX - rect.left) / rect.width) * 100;
+              const newTop = ((moveEvent.clientY - rect.top) / rect.height) * 100;
+              selected.style.posLeft = Math.max(0, Math.min(100, newLeft));
+              selected.style.posTop = Math.max(0, Math.min(100, newTop));
+              wrap.style.left = `${selected.style.posLeft}%`;
+              wrap.style.top = `${selected.style.posTop}%`;
+            };
+            const onUp = () => {
+              document.removeEventListener('mousemove', onMove);
+              document.removeEventListener('mouseup', onUp);
+              renderClipEditor(selected.id);
+            };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+          });
+
+          resizeHandle.addEventListener('mousedown', (downEvent) => {
+            downEvent.preventDefault();
+            downEvent.stopPropagation();
+            const rect = stageRect();
+            const onMove = (moveEvent) => {
+              const wrapRect = wrap.getBoundingClientRect();
+              const newWidthPx = (moveEvent.clientX - wrapRect.left) * 2;
+              const newWidthPct = (newWidthPx / rect.width) * 100;
+              selected.style.posWidth = Math.max(10, Math.min(90, newWidthPct));
+              wrap.style.width = `${selected.style.posWidth}%`;
+            };
+            const onUp = () => {
+              document.removeEventListener('mousemove', onMove);
+              document.removeEventListener('mouseup', onUp);
+              renderClipEditor(selected.id);
+            };
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+          });
+        }
+        return;
+      }
+
       els.previewEmpty.style.display = 'flex';
+    }
+
+    // Shared with the click-to-call settings panel for live validation
+    // feedback. Pattern matches upstream json-button.js's phoneRegex
+    // (country-code prefix, optional parenthesized area code, 10-14 digits).
+    function isValidPhoneNumber(value) {
+      if (!value) return false;
+      return /^(\+[0-9\s]*-?)?(\([0-9\s]*\))?[0-9-.\s]{10,14}$/.test(value.trim());
+    }
+
+    // Same localStorage read every other Studio page (AudioStudio,
+    // ImageStudio, VideoStudio, ...) uses to get the active contact profile
+    // before calling replaceTokensInPrompt — see personalizePopover.js's
+    // module comment: "intentionally tiny so they can be inlined without
+    // pulling in src/lib/contactStore.js."
+    function getActivePersonalizationProfile() {
+      try {
+        const id = localStorage.getItem('remix_selected_contact_id');
+        if (!id) return null;
+        return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === id) || null;
+      } catch {
+        return null;
+      }
+    }
+
+    // Maps common lead-form field ids to the profile.variables keys set by
+    // PersonalizeModal (firstName/lastName/fullName/company/email/...), so
+    // a field can be pre-filled without the user having to type a matching
+    // {{token}} manually. Mirrors upstream form.js's
+    // personalizedTokens[declaration.token] pre-fill, adapted to this
+    // fork's camelCase variable names.
+    const FIELD_TOKEN_ALIASES = {
+      first_name: 'firstName',
+      last_name: 'lastName',
+      name: 'fullName',
+      full_name: 'fullName',
+      company: 'company',
+      email: 'email',
+      industry: 'industry',
+    };
+
+    function escapeHtml(str) {
+      if (str === undefined || str === null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
     function updatePreview(clip) {
@@ -1389,6 +1718,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('End screen creation failed:', error);
+        showToast(`End screen creation failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -1403,6 +1734,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Project save failed:', error);
+        showToast(`Project save failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -1417,6 +1750,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Settings update failed:', error);
+        showToast(`Settings update failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -1430,6 +1765,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Connection setup failed:', error);
+        showToast(`Connection setup failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -1443,36 +1780,49 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Media preview failed:', error);
+        showToast(`Media preview failed: ${error.message || error}`, 'error');
       }
     }
 
     function openVideoPlayerModal(state, showToast) {
       try {
+        // VideoPlayerModal reads options.url/options.title — it previously
+        // got timelineData instead, so it always rendered "No video URL
+        // provided" no matter what was selected.
+        const selected = findSelectedClip();
+        if (!selected || (selected.type !== 'video' && selected.type !== 'audio') || !selected.src) {
+          showToast('Select a video or audio clip first', 'info');
+          return;
+        }
         const modal = new VideoPlayerModal({
-          timelineData: state,
+          url: selected.src,
+          title: selected.name || 'Video Player',
           onComplete: (result) => {
           },
           onError: (error) => console.log(`Video player error: ${error}`, 'error')
         });
         modal.open();
       } catch (error) {
+        console.error('Video player error:', error);
+        showToast(`Video player error: ${error.message || error}`, 'error');
       }
     }
 
     function addEndScreenToTimeline(endScreenData, state) {
       // Add end screen elements to the end of the timeline
-      const videoTrack = state.tracks.find(t => t.name === 'Video');
-      if (videoTrack && endScreenData.elements) {
-        endScreenData.elements.forEach(element => {
+      const videoTrack = state.tracks.find(t => t.type === 'video');
+      if (videoTrack && endScreenData.buttons) {
+        endScreenData.buttons.forEach(button => {
           const clip = {
+            ...button,
             id: Date.now() + Math.random(),
-            name: element.name || 'End Screen Element',
+            name: button.text || 'End Screen Element',
             left: state.timelineSeconds * 10, // Position at end
-            width: element.duration || 5,
-            type: element.type || 'text',
-            ...element
+            width: button.duration || 5,
+            type: button.type || 'text',
           };
-          videoTrack.clips.push(clip);
+          videoTrack.items.push(clip);
         });
         renderTracks();
       }
@@ -1920,10 +2270,19 @@ export function TimelineEditorPage() {
               if (event.target.classList.contains('clip-handle')) return;
               event.stopPropagation();
               state.selectedClipId = clip.id;
-              updatePreview(clip);
+              // Resolve the real clip object rather than passing this
+              // stripped view-model copy straight through: renderPreviewAsset
+              // binds its submit/click handlers to whatever object it's
+              // given, and mutations those handlers make (e.g. lead-form's
+              // _submittedLeads) must land on the same object the settings
+              // panel reads from, or they're silently lost on the next
+              // render's fresh copy.
+              const realClip = state.tracks.flatMap((t) => t.items || t.clips || []).find((c) => c.id === clip.id) || clip;
+              updatePreview(realClip);
               // Full pipeline rebuild: re-rendering with the viewState closure
               // would keep the stale selectedClipId and .active would never move.
               renderTracks();
+              showClipEditor(clip.id);
             });
 
             clipEl.addEventListener('dragstart', (e) => {
@@ -1957,9 +2316,11 @@ export function TimelineEditorPage() {
           const needsStructure = !prevData || prevData.label !== label || prevData.type !== trackType;
           if (needsStructure) {
             const isAudio = trackType === 'audio';
-            const isText = trackType === 'text';
+            const isText = trackType === 'text' || clip.type === 'lead-form' || clip.type === 'click-to-call';
             const isFx = trackType === 'effects' || trackType === 'fx';
-            const icon = isAudio ? '🎙️' : isText ? '🅣' : isFx ? '✨' : '🎥';
+            const icon = clip.type === 'lead-form' ? '📝'
+              : clip.type === 'click-to-call' ? '📞'
+              : isAudio ? '🎙️' : (trackType === 'text') ? '🅣' : isFx ? '✨' : '🎥';
             const durSec = Math.max(0, (clip.end || 0) - (clip.start || 0)).toFixed(1);
             clipEl.setAttribute('aria-label', `Clip: ${label}, ${durSec}s`);
             clipEl.innerHTML = `
@@ -2079,7 +2440,33 @@ export function TimelineEditorPage() {
             end: clip.end || ((clip.left + (clip.width || 0)) / 100) * state.timelineSeconds,
             type: clip.type,
             src: clip.src,
-            metadata: clip.metadata || {}
+            metadata: clip.metadata || {},
+            // Type-specific fields the preview/settings panels need for
+            // 'lead-form' and 'click-to-call' clips. These clips are
+            // reselected through this stripped-down view model (see the
+            // click handler in renderTracksIncremental), so any field
+            // renderPreviewAsset/renderClipEditor reads for these types
+            // must be forwarded here or it silently reverts to defaults
+            // on every re-selection.
+            heading: clip.heading,
+            fields: clip.fields,
+            ctaText: clip.ctaText,
+            privacyText: clip.privacyText,
+            privacyPolicyCaption: clip.privacyPolicyCaption,
+            privacyPolicyLink: clip.privacyPolicyLink,
+            skipButtonEnabled: clip.skipButtonEnabled,
+            brandLogoUrl: clip.brandLogoUrl,
+            webhookEnabled: clip.webhookEnabled,
+            webhookUrl: clip.webhookUrl,
+            webhookUrl2: clip.webhookUrl2,
+            webhookUrl3: clip.webhookUrl3,
+            emailNotificationEnabled: clip.emailNotificationEnabled,
+            notificationEmail: clip.notificationEmail,
+            fbPixelId: clip.fbPixelId,
+            _submittedLeads: clip._submittedLeads,
+            style: clip.style,
+            phoneNumber: clip.phoneNumber,
+            buttonText: clip.buttonText
           }))
         })),
         selectedClipId: state.selectedClipId,
@@ -2331,10 +2718,15 @@ export function TimelineEditorPage() {
         delete clip.start;
         delete clip.end;
       } else {
-        clip.left = Math.min(78, 8 + targetTrack.clips.length * 10);
+        clip.left = Math.min(78, 8 + targetTrack.items.length * 10);
       }
 
-      targetTrack.clips.push(clip);
+      // renderTracks() only ever reads track.items (see the enhancedState
+      // mapping) — pushing to track.clips here meant every clip inserted
+      // through this function (addTextOverlay, addPersonalizationOverlay,
+      // addLeadCapture, ...) rendered once in the preview but was invisible
+      // on the actual timeline from the next render onward.
+      targetTrack.items.push(clip);
       state.selectedClipId = clip.id;
       renderTracks();
       updatePreview(clip);
@@ -2440,10 +2832,577 @@ export function TimelineEditorPage() {
 
 
 
+    // Small curated set rather than the full Google Fonts catalog (upstream
+    // pulls from a large constants/fonts list) — enough real choice without
+    // shipping a font-directory dependency.
+    const LEAD_FORM_GOOGLE_FONTS = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Oswald', 'Raleway', 'Nunito', 'Playfair Display', 'Bebas Neue', 'Anton'];
+    const loadedGoogleFonts = new Set();
+    function ensureGoogleFontLoaded(family) {
+      if (!family || loadedGoogleFonts.has(family)) return;
+      loadedGoogleFonts.add(family);
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css?family=${family.replace(/\s/g, '+')}:400,700`;
+      document.head.appendChild(link);
+    }
+
+    function renderLeadFormEditor(clip) {
+      clip.fields = Array.isArray(clip.fields) && clip.fields.length ? clip.fields : [{ id: 'email', type: 'email', label: 'Email' }];
+      clip.style = clip.style || {};
+      // Transient UI state, not part of the clip's actual data — persisted
+      // on the clip object purely so the active tab survives re-renders
+      // triggered by field add/remove/reorder/webhook add-remove.
+      const activeTab = clip._activeSettingsTab || 'fields';
+
+      els.clipEditorContainer.innerHTML = `
+        <div class="clip-editor">
+          <div class="clip-editor__tabs" style="display:flex;gap:4px;margin-bottom:12px;border-bottom:1px solid var(--border,rgba(255,255,255,0.1))">
+            <button type="button" class="lf-tab-btn mini-btn${activeTab === 'fields' ? ' active' : ''}" data-tab="fields">Fields</button>
+            <button type="button" class="lf-tab-btn mini-btn${activeTab === 'style' ? ' active' : ''}" data-tab="style">Style</button>
+            <button type="button" class="lf-tab-btn mini-btn${activeTab === 'integrations' ? ' active' : ''}" data-tab="integrations">Integrations</button>
+          </div>
+          <div class="clip-editor__tab-panel" data-tab-panel="fields" ${activeTab === 'fields' ? '' : 'hidden'}>
+          <div class="clip-editor__section">
+            <h3>Content</h3>
+            <div class="clip-editor__field">
+              <label for="lf-heading">Heading</label>
+              <input id="lf-heading" type="text" value="${clip.heading || ''}" placeholder="Get Your Free Guide" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-cta">Button Text</label>
+              <input id="lf-cta" type="text" value="${clip.ctaText || ''}" placeholder="Submit" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-privacy">Privacy Disclaimer</label>
+              <input id="lf-privacy" type="text" value="${clip.privacyText || ''}" placeholder="We respect your privacy." />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-privacy-caption">Privacy Policy Link Text</label>
+              <input id="lf-privacy-caption" type="text" value="${clip.privacyPolicyCaption || ''}" placeholder="Privacy Policy" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-privacy-link">Privacy Policy URL</label>
+              <input id="lf-privacy-link" type="url" value="${clip.privacyPolicyLink || ''}" placeholder="https://example.com/privacy" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-skip-enabled"><input id="lf-skip-enabled" type="checkbox" ${clip.skipButtonEnabled ? 'checked' : ''} /> Show Skip button (dismiss form, resume video)</label>
+            </div>
+          </div>
+          <div class="clip-editor__section">
+            <h3>Fields</h3>
+            <div id="lf-fields-list">
+              ${clip.fields.map((f, i) => `
+                <div class="clip-editor__field lf-field-row" data-index="${i}" draggable="true" style="display:flex;gap:6px;align-items:center;cursor:grab">
+                  <span class="lf-field-drag-handle" title="Drag to reorder" style="cursor:grab;opacity:.5;user-select:none">⠿</span>
+                  <input type="text" class="lf-field-label" value="${f.label || ''}" placeholder="Label" style="flex:1" />
+                  <select class="lf-field-type">
+                    <option value="text" ${f.type === 'text' ? 'selected' : ''}>Text</option>
+                    <option value="multiline" ${f.type === 'multiline' ? 'selected' : ''}>Multiline</option>
+                    <option value="email" ${f.type === 'email' ? 'selected' : ''}>Email</option>
+                    <option value="phone" ${f.type === 'phone' ? 'selected' : ''}>Phone</option>
+                    <option value="number" ${f.type === 'number' ? 'selected' : ''}>Number</option>
+                    <option value="date" ${f.type === 'date' ? 'selected' : ''}>Date</option>
+                  </select>
+                  <button type="button" class="lf-field-remove mini-btn" data-tooltip="Remove field">✕</button>
+                </div>
+              `).join('')}
+            </div>
+            <button id="lf-field-add" class="mini-btn" style="width:100%;margin-top:6px" ${clip.fields.length >= 5 ? 'disabled title="Maximum 5 fields"' : ''}>+ Add Field${clip.fields.length >= 5 ? ' (max 5)' : ''}</button>
+          </div>
+          </div>
+          <div class="clip-editor__tab-panel" data-tab-panel="style" ${activeTab === 'style' ? '' : 'hidden'}>
+          <div class="clip-editor__section">
+            <h3>Style</h3>
+            <div class="clip-editor__field">
+              <label for="lf-brand-logo">Brand Logo URL</label>
+              <input id="lf-brand-logo" type="url" value="${clip.brandLogoUrl || ''}" placeholder="https://example.com/logo.png" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-bg">Background Color</label>
+              <input id="lf-bg" type="color" value="${clip.style.backgroundColor || '#0b1120'}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-bg-image">Background Image URL</label>
+              <input id="lf-bg-image" type="url" value="${clip.style.backgroundImage || ''}" placeholder="https://example.com/bg.jpg (overrides color)" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-font-family">Font Family</label>
+              <select id="lf-font-family">
+                <option value="">Default</option>
+                ${LEAD_FORM_GOOGLE_FONTS.map((f) => `<option value="${f}" ${clip.style.fontFamily === f ? 'selected' : ''}>${f}</option>`).join('')}
+              </select>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-font-size">Font Size (${clip.style.fontSize || 100}%)</label>
+              <input id="lf-font-size" type="range" min="60" max="160" value="${clip.style.fontSize || 100}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-caption-font-size">Heading Size (${clip.style.captionFontSize || 130}%)</label>
+              <input id="lf-caption-font-size" type="range" min="60" max="220" value="${clip.style.captionFontSize || 130}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-caption-align">Heading Alignment</label>
+              <select id="lf-caption-align">
+                <option value="left" ${clip.style.captionAlignment === 'left' ? 'selected' : ''}>Left</option>
+                <option value="center" ${!clip.style.captionAlignment || clip.style.captionAlignment === 'center' ? 'selected' : ''}>Center</option>
+                <option value="right" ${clip.style.captionAlignment === 'right' ? 'selected' : ''}>Right</option>
+              </select>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-btn-color">Button Background Color</label>
+              <input id="lf-btn-color" type="color" value="${clip.style.buttonColor || '#22d3ee'}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-btn-font-color">Button Font Color</label>
+              <input id="lf-btn-font-color" type="color" value="${clip.style.buttonFontColor || '#03131a'}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-btn-radius">Button Border Radius (${clip.style.buttonBorderRadius ?? 10}px)</label>
+              <input id="lf-btn-radius" type="range" min="0" max="40" value="${clip.style.buttonBorderRadius ?? 10}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-btn-bottom-border"><input id="lf-btn-bottom-border-enabled" type="checkbox" ${clip.style.buttonBottomBorder ? 'checked' : ''} /> Button Bottom Border</label>
+              <input id="lf-btn-bottom-border" type="color" value="${clip.style.buttonBottomBorder || '#000000'}" ${clip.style.buttonBottomBorder ? '' : 'disabled'} />
+            </div>
+          </div>
+          <div class="clip-editor__section">
+            <h3>Layout &amp; Animation</h3>
+            <div class="clip-editor__field">
+              <label for="lf-transition">Entrance Transition</label>
+              <select id="lf-transition">
+                <option value="none" ${!clip.style.transition || clip.style.transition === 'none' ? 'selected' : ''}>None</option>
+                <option value="fade" ${clip.style.transition === 'fade' ? 'selected' : ''}>Fade</option>
+                <option value="slide-up" ${clip.style.transition === 'slide-up' ? 'selected' : ''}>Slide Up</option>
+                <option value="slide-down" ${clip.style.transition === 'slide-down' ? 'selected' : ''}>Slide Down</option>
+              </select>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-width-pct">Width (${clip.style.widthPercent || 'auto'}${clip.style.widthPercent ? '%' : ''})</label>
+              <input id="lf-width-pct" type="range" min="30" max="100" value="${clip.style.widthPercent || 82}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-height-pct">Max Height (${clip.style.heightPercent || 'auto'}${clip.style.heightPercent ? '%' : ''})</label>
+              <input id="lf-height-pct" type="range" min="20" max="100" value="${clip.style.heightPercent || 100}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-position">Vertical Position</label>
+              <select id="lf-position">
+                <option value="top" ${clip.style.position === 'top' ? 'selected' : ''}>Top</option>
+                <option value="center" ${!clip.style.position || clip.style.position === 'center' ? 'selected' : ''}>Center</option>
+                <option value="bottom" ${clip.style.position === 'bottom' ? 'selected' : ''}>Bottom</option>
+              </select>
+            </div>
+          </div>
+          </div>
+          <div class="clip-editor__tab-panel" data-tab-panel="integrations" ${activeTab === 'integrations' ? '' : 'hidden'}>
+          <div class="clip-editor__section">
+            <h3>Integrations</h3>
+            <div class="clip-editor__field">
+              <label for="lf-webhook-enabled"><input id="lf-webhook-enabled" type="checkbox" ${clip.webhookEnabled ? 'checked' : ''} /> Send submissions to webhook(s)</label>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-webhook-url">Webhook URL</label>
+              <input id="lf-webhook-url" type="url" value="${clip.webhookUrl || ''}" placeholder="https://your-endpoint.com/hook" />
+            </div>
+            ${clip.webhookUrl2 !== undefined ? `
+            <div class="clip-editor__field lf-webhook-extra" style="display:flex;gap:6px;align-items:flex-end">
+              <div style="flex:1"><label for="lf-webhook-url2">Webhook URL 2</label><input id="lf-webhook-url2" type="url" value="${clip.webhookUrl2 || ''}" placeholder="https://your-endpoint.com/hook-2" /></div>
+              <button type="button" class="lf-webhook-remove mini-btn" data-target="2" data-tooltip="Remove webhook 2">✕</button>
+            </div>` : ''}
+            ${clip.webhookUrl3 !== undefined ? `
+            <div class="clip-editor__field lf-webhook-extra" style="display:flex;gap:6px;align-items:flex-end">
+              <div style="flex:1"><label for="lf-webhook-url3">Webhook URL 3</label><input id="lf-webhook-url3" type="url" value="${clip.webhookUrl3 || ''}" placeholder="https://your-endpoint.com/hook-3" /></div>
+              <button type="button" class="lf-webhook-remove mini-btn" data-target="3" data-tooltip="Remove webhook 3">✕</button>
+            </div>` : ''}
+            ${clip.webhookUrl3 === undefined ? `
+            <div class="clip-editor__field">
+              <button id="lf-webhook-add" class="mini-btn" style="width:100%">+ Add Webhook Address</button>
+            </div>` : ''}
+            <div class="clip-editor__field">
+              <button id="lf-webhook-test" type="button" class="mini-btn" style="width:100%">Test Webhook</button>
+              <span id="lf-webhook-test-result" style="font-size:11px;color:var(--text-dim)"></span>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-email-enabled"><input id="lf-email-enabled" type="checkbox" ${clip.emailNotificationEnabled ? 'checked' : ''} /> Email notification on submit</label>
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-email-address">Notification Address</label>
+              <input id="lf-email-address" type="email" value="${clip.notificationEmail || ''}" placeholder="you@example.com" ${clip.emailNotificationEnabled ? '' : 'disabled'} />
+            </div>
+            <div class="clip-editor__field">
+              <label for="lf-fb-pixel">Facebook Pixel ID</label>
+              <input id="lf-fb-pixel" type="text" value="${clip.fbPixelId || ''}" placeholder="1234567890" />
+            </div>
+            <div class="clip-editor__field">
+              <button id="lf-download-leads" class="mini-btn" style="width:100%" ${(clip._submittedLeads || []).length ? '' : 'disabled'}>Download leads (${(clip._submittedLeads || []).length})</button>
+            </div>
+          </div>
+          </div>
+        </div>
+      `;
+
+      els.clipEditorContainer.querySelectorAll('.lf-tab-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          clip._activeSettingsTab = btn.dataset.tab;
+          els.clipEditorContainer.querySelectorAll('.lf-tab-btn').forEach((b) => b.classList.toggle('active', b === btn));
+          els.clipEditorContainer.querySelectorAll('.clip-editor__tab-panel').forEach((panel) => {
+            panel.hidden = panel.dataset.tabPanel !== btn.dataset.tab;
+          });
+        });
+      });
+
+      const rerenderFields = () => {
+        renderLeadFormEditor(clip);
+        updatePreview(clip);
+      };
+
+      els.clipEditorContainer.querySelector('#lf-heading').addEventListener('input', (e) => {
+        clip.heading = e.target.value;
+        renderTracks();
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-cta').addEventListener('input', (e) => {
+        clip.ctaText = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-privacy').addEventListener('input', (e) => {
+        clip.privacyText = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-privacy-caption').addEventListener('input', (e) => {
+        clip.privacyPolicyCaption = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-privacy-link').addEventListener('input', (e) => {
+        clip.privacyPolicyLink = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-skip-enabled').addEventListener('change', (e) => {
+        clip.skipButtonEnabled = e.target.checked;
+        updatePreview(clip);
+      });
+      let dragFromIndex = null;
+      els.clipEditorContainer.querySelectorAll('.lf-field-row').forEach((row) => {
+        const index = parseInt(row.dataset.index, 10);
+        row.querySelector('.lf-field-label').addEventListener('input', (e) => {
+          clip.fields[index].label = e.target.value;
+          clip.fields[index].id = e.target.value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_') || clip.fields[index].id;
+          updatePreview(clip);
+        });
+        row.querySelector('.lf-field-type').addEventListener('change', (e) => {
+          clip.fields[index].type = e.target.value;
+          updatePreview(clip);
+        });
+        row.querySelector('.lf-field-remove').addEventListener('click', () => {
+          if (clip.fields.length <= 1) return;
+          clip.fields.splice(index, 1);
+          rerenderFields();
+        });
+
+        // Native HTML5 drag-and-drop reorder, matching the same pattern
+        // used for clip drag-and-drop on the timeline itself.
+        row.addEventListener('dragstart', (e) => {
+          dragFromIndex = index;
+          e.dataTransfer.effectAllowed = 'move';
+          row.style.opacity = '0.4';
+        });
+        row.addEventListener('dragend', () => {
+          row.style.opacity = '';
+        });
+        row.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          row.style.borderTop = '2px solid var(--cyan, #22d3ee)';
+        });
+        row.addEventListener('dragleave', () => {
+          row.style.borderTop = '';
+        });
+        row.addEventListener('drop', (e) => {
+          e.preventDefault();
+          row.style.borderTop = '';
+          if (dragFromIndex === null || dragFromIndex === index) return;
+          const [moved] = clip.fields.splice(dragFromIndex, 1);
+          clip.fields.splice(index, 0, moved);
+          dragFromIndex = null;
+          rerenderFields();
+        });
+      });
+      els.clipEditorContainer.querySelector('#lf-field-add').addEventListener('click', () => {
+        if (clip.fields.length >= 5) {
+          showToast('A lead form can have a maximum of 5 fields', 'info');
+          return;
+        }
+        clip.fields.push({ id: `field_${clip.fields.length + 1}`, type: 'text', label: 'New Field' });
+        rerenderFields();
+      });
+      els.clipEditorContainer.querySelector('#lf-brand-logo').addEventListener('input', (e) => {
+        clip.brandLogoUrl = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-bg').addEventListener('input', (e) => {
+        clip.style.backgroundColor = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-bg-image').addEventListener('input', (e) => {
+        clip.style.backgroundImage = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-font-family').addEventListener('change', (e) => {
+        clip.style.fontFamily = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-font-size').addEventListener('input', (e) => {
+        clip.style.fontSize = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Font Size (${clip.style.fontSize}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-caption-font-size').addEventListener('input', (e) => {
+        clip.style.captionFontSize = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Heading Size (${clip.style.captionFontSize}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-caption-align').addEventListener('change', (e) => {
+        clip.style.captionAlignment = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-btn-color').addEventListener('input', (e) => {
+        clip.style.buttonColor = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-btn-font-color').addEventListener('input', (e) => {
+        clip.style.buttonFontColor = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-btn-radius').addEventListener('input', (e) => {
+        clip.style.buttonBorderRadius = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Button Border Radius (${clip.style.buttonBorderRadius}px)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-btn-bottom-border-enabled').addEventListener('change', (e) => {
+        clip.style.buttonBottomBorder = e.target.checked ? (els.clipEditorContainer.querySelector('#lf-btn-bottom-border').value || '#000000') : '';
+        els.clipEditorContainer.querySelector('#lf-btn-bottom-border').disabled = !e.target.checked;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-btn-bottom-border').addEventListener('input', (e) => {
+        clip.style.buttonBottomBorder = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-transition').addEventListener('change', (e) => {
+        clip.style.transition = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-width-pct').addEventListener('input', (e) => {
+        clip.style.widthPercent = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Width (${clip.style.widthPercent}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-height-pct').addEventListener('input', (e) => {
+        clip.style.heightPercent = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Max Height (${clip.style.heightPercent}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-position').addEventListener('change', (e) => {
+        clip.style.position = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#lf-webhook-enabled').addEventListener('change', (e) => {
+        clip.webhookEnabled = e.target.checked;
+      });
+      els.clipEditorContainer.querySelector('#lf-webhook-url').addEventListener('input', (e) => {
+        clip.webhookUrl = e.target.value;
+      });
+      const webhook2Input = els.clipEditorContainer.querySelector('#lf-webhook-url2');
+      if (webhook2Input) {
+        webhook2Input.addEventListener('input', (e) => { clip.webhookUrl2 = e.target.value; });
+      }
+      const webhook3Input = els.clipEditorContainer.querySelector('#lf-webhook-url3');
+      if (webhook3Input) {
+        webhook3Input.addEventListener('input', (e) => { clip.webhookUrl3 = e.target.value; });
+      }
+      const webhookAddBtn = els.clipEditorContainer.querySelector('#lf-webhook-add');
+      if (webhookAddBtn) {
+        webhookAddBtn.addEventListener('click', () => {
+          if (clip.webhookUrl2 === undefined) {
+            clip.webhookUrl2 = '';
+          } else if (clip.webhookUrl3 === undefined) {
+            clip.webhookUrl3 = '';
+          }
+          renderLeadFormEditor(clip);
+        });
+      }
+      els.clipEditorContainer.querySelectorAll('.lf-webhook-remove').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.target;
+          if (target === '2') {
+            // Shift webhook3 into webhook2's slot, matching upstream's
+            // removeWebhook behavior, so there's never a gap between slots.
+            clip.webhookUrl2 = clip.webhookUrl3 !== undefined ? clip.webhookUrl3 : undefined;
+            clip.webhookUrl3 = undefined;
+          } else if (target === '3') {
+            clip.webhookUrl3 = undefined;
+          }
+          renderLeadFormEditor(clip);
+        });
+      });
+      els.clipEditorContainer.querySelector('#lf-webhook-test').addEventListener('click', async () => {
+        const urls = [clip.webhookUrl, clip.webhookUrl2, clip.webhookUrl3].filter(Boolean);
+        const resultEl = els.clipEditorContainer.querySelector('#lf-webhook-test-result');
+        if (!urls.length) {
+          resultEl.textContent = 'No webhook URL configured';
+          return;
+        }
+        resultEl.textContent = 'Testing...';
+        const results = await Promise.allSettled(urls.map((url) => fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ test: true, source: 'lead-form-test', clipId: clip.id }),
+        })));
+        const failures = results.filter((r) => r.status === 'rejected' || (r.value && !r.value.ok));
+        if (failures.length) {
+          resultEl.textContent = `${failures.length}/${urls.length} failed`;
+          showToast('Webhook test failed for one or more URLs', 'error');
+        } else {
+          resultEl.textContent = `${urls.length}/${urls.length} succeeded`;
+          showToast('Webhook test succeeded', 'success');
+        }
+      });
+      els.clipEditorContainer.querySelector('#lf-email-enabled').addEventListener('change', (e) => {
+        clip.emailNotificationEnabled = e.target.checked;
+        els.clipEditorContainer.querySelector('#lf-email-address').disabled = !e.target.checked;
+      });
+      els.clipEditorContainer.querySelector('#lf-email-address').addEventListener('input', (e) => {
+        clip.notificationEmail = e.target.value;
+      });
+      els.clipEditorContainer.querySelector('#lf-fb-pixel').addEventListener('input', (e) => {
+        clip.fbPixelId = e.target.value;
+      });
+      els.clipEditorContainer.querySelector('#lf-download-leads').addEventListener('click', () => {
+        const leads = clip._submittedLeads || [];
+        if (!leads.length) return;
+        const headers = Array.from(new Set(leads.flatMap((l) => Object.keys(l))));
+        const csvRows = [
+          headers.join(','),
+          ...leads.map((lead) => headers.map((h) => `"${String(lead[h] ?? '').replace(/"/g, '""')}"`).join(',')),
+        ];
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${(clip.name || 'leads').replace(/[^a-z0-9]+/gi, '_')}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    function renderClickToCallEditor(clip) {
+      clip.style = clip.style || {};
+      const valid = isValidPhoneNumber(clip.phoneNumber);
+
+      els.clipEditorContainer.innerHTML = `
+        <div class="clip-editor">
+          <div class="clip-editor__section">
+            <h3>Content</h3>
+            <div class="clip-editor__field">
+              <label for="ctc-phone">Phone Number</label>
+              <input id="ctc-phone" type="tel" value="${clip.phoneNumber || ''}" placeholder="+1 555-123-4567" />
+              <span id="ctc-phone-error" style="color:#f87171;font-size:11px;${valid || !clip.phoneNumber ? 'display:none' : ''}">Enter a valid phone number</span>
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-btn-text">Button Text</label>
+              <input id="ctc-btn-text" type="text" value="${clip.buttonText || 'Call Now'}" />
+            </div>
+          </div>
+          <div class="clip-editor__section">
+            <h3>Style</h3>
+            <div class="clip-editor__field">
+              <label for="ctc-btn-color">Button Color</label>
+              <input id="ctc-btn-color" type="color" value="${clip.style.buttonColor || '#22d3ee'}" />
+            </div>
+          </div>
+          <div class="clip-editor__section">
+            <h3>Position &amp; Blend</h3>
+            <p style="font-size:11px;color:var(--text-dim);margin:0 0 8px">Drag the button directly in the preview to reposition, or use the handle in its top-right corner to resize.</p>
+            <div class="clip-editor__field">
+              <label for="ctc-pos-left">Horizontal Position (${Math.round(clip.style.posLeft ?? 50)}%)</label>
+              <input id="ctc-pos-left" type="range" min="0" max="100" value="${clip.style.posLeft ?? 50}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-pos-top">Vertical Position (${Math.round(clip.style.posTop ?? 50)}%)</label>
+              <input id="ctc-pos-top" type="range" min="0" max="100" value="${clip.style.posTop ?? 50}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-pos-width">Width (${Math.round(clip.style.posWidth ?? 40)}%)</label>
+              <input id="ctc-pos-width" type="range" min="10" max="90" value="${clip.style.posWidth ?? 40}" />
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-blend-mode">Blend Mode</label>
+              <select id="ctc-blend-mode">
+                ${['normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'difference', 'exclusion'].map((m) => `<option value="${m}" ${(clip.style.blendMode || 'normal') === m ? 'selected' : ''}>${m}</option>`).join('')}
+              </select>
+            </div>
+            <div class="clip-editor__field">
+              <label for="ctc-opacity">Opacity (${clip.style.opacity ?? 100}%)</label>
+              <input id="ctc-opacity" type="range" min="0" max="100" value="${clip.style.opacity ?? 100}" />
+            </div>
+          </div>
+        </div>
+      `;
+
+      els.clipEditorContainer.querySelector('#ctc-phone').addEventListener('input', (e) => {
+        clip.phoneNumber = e.target.value;
+        const errEl = els.clipEditorContainer.querySelector('#ctc-phone-error');
+        const isValid = isValidPhoneNumber(clip.phoneNumber);
+        errEl.style.display = (isValid || !clip.phoneNumber) ? 'none' : 'block';
+        renderTracks();
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#ctc-btn-text').addEventListener('input', (e) => {
+        clip.buttonText = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#ctc-btn-color').addEventListener('input', (e) => {
+        clip.style.buttonColor = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#ctc-pos-left').addEventListener('input', (e) => {
+        clip.style.posLeft = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Horizontal Position (${clip.style.posLeft}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#ctc-pos-top').addEventListener('input', (e) => {
+        clip.style.posTop = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Vertical Position (${clip.style.posTop}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#ctc-pos-width').addEventListener('input', (e) => {
+        clip.style.posWidth = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Width (${clip.style.posWidth}%)`;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#ctc-blend-mode').addEventListener('change', (e) => {
+        clip.style.blendMode = e.target.value;
+        updatePreview(clip);
+      });
+      els.clipEditorContainer.querySelector('#ctc-opacity').addEventListener('input', (e) => {
+        clip.style.opacity = parseInt(e.target.value, 10);
+        e.target.previousElementSibling.textContent = `Opacity (${clip.style.opacity}%)`;
+        updatePreview(clip);
+      });
+    }
+
     function renderClipEditor(clipId) {
-      const clip = state.tracks.flatMap(t => t.clips).find(c => c.id === clipId);
+      const clip = state.tracks.flatMap(t => t.items || t.clips || []).find(c => c.id === clipId);
       if (!clip) {
         els.clipEditorContainer.innerHTML = '<p>Clip not found</p>';
+        return;
+      }
+
+      if (clip.type === 'lead-form') {
+        renderLeadFormEditor(clip);
+        return;
+      }
+      if (clip.type === 'click-to-call') {
+        renderClickToCallEditor(clip);
         return;
       }
 
@@ -3061,6 +4020,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('AI Video creation failed:', error);
+        showToast(`AI Video creation failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3074,6 +4035,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Recording failed:', error);
+        showToast(`Recording failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3087,6 +4050,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Enhanced recording failed:', error);
+        showToast(`Enhanced recording failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3101,6 +4066,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Template generation failed:', error);
+        showToast(`Template generation failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3114,6 +4081,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Template preview failed:', error);
+        showToast(`Template preview failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3127,6 +4096,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Publishing failed:', error);
+        showToast(`Publishing failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3140,6 +4111,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Email campaign creation failed:', error);
+        showToast(`Email campaign creation failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3153,6 +4126,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('URL video import failed:', error);
+        showToast(`URL video import failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3166,6 +4141,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Page screenshot failed:', error);
+        showToast(`Page screenshot failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3180,6 +4157,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Contact import failed:', error);
+        showToast(`Contact import failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3202,6 +4181,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Personalization Suite error:', error);
+        showToast(`Personalization Suite error: ${error.message || error}`, 'error');
       }
     }
 
@@ -3241,15 +4222,37 @@ export function TimelineEditorPage() {
         name: 'Lead Capture Form',
         left: state.playheadPercent * 10,
         width: 6,
-        type: 'text',
+        type: 'lead-form',
         heading: 'Get Your Free Guide',
-        body: 'Enter your email to receive personalized content.',
-        formFields: ['email', 'first_name'],
-        ctaText: 'Download Now'
+        fields: [
+          { id: 'first_name', type: 'text', label: 'First Name' },
+          { id: 'email', type: 'email', label: 'Email' }
+        ],
+        ctaText: 'Download Now',
+        privacyText: 'We respect your privacy. Unsubscribe anytime.',
+        webhookEnabled: false,
+        webhookUrl: '',
+        style: { backgroundColor: '', buttonColor: '' }
       };
       insertClipIntoTrack(leadClip, 'Text');
     };
     TLEditor.addLeadCapture = window.addLeadCapture;
+
+    // Global function to add a click-to-call button
+    window.addClickToCall = () => {
+      const callClip = {
+        id: Date.now(),
+        name: 'Click to Call',
+        left: state.playheadPercent * 10,
+        width: 6,
+        type: 'click-to-call',
+        phoneNumber: '',
+        buttonText: 'Call Now',
+        style: { buttonColor: '' }
+      };
+      insertClipIntoTrack(callClip, 'Text');
+    };
+    TLEditor.addClickToCall = window.addClickToCall;
 
     // Global function to apply dynamic personalization layer to current clip
     window.applyPersonalizationLayer = async (clipId, scanData) => {
@@ -3389,6 +4392,8 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Landing page generation failed:', error);
+        showToast(`Landing page generation failed: ${error.message || error}`, 'error');
       }
     }
 
@@ -3402,23 +4407,26 @@ export function TimelineEditorPage() {
         });
         modal.open();
       } catch (error) {
+        console.error('Lead generation failed:', error);
+        showToast(`Lead generation failed: ${error.message || error}`, 'error');
       }
     }
 
     // Helper functions for modal integration
     function addVideoToTimeline(videoData, state) {
-      const videoTrack = state.tracks.find(t => t.name === 'Video');
+      const videoTrack = state.tracks.find(t => t.type === 'video');
       if (videoTrack) {
+        const src = videoData.blob ? URL.createObjectURL(videoData.blob) : videoData.src;
         const newClip = {
           id: Date.now(),
           name: videoData.name || 'Imported Video',
           left: 50,
           width: 20,
           type: 'video',
-          src: videoData.src,
+          src,
           poster: videoData.poster
         };
-        videoTrack.clips.push(newClip);
+        videoTrack.items.push(newClip);
         renderTracks();
       }
     }
@@ -4826,9 +5834,8 @@ export function TimelineEditorPage() {
       if (zoomInBtn) zoomInBtn.addEventListener('click', () => setZoom((state.zoom || 1) + 0.25));
       if (zoomFitBtn) zoomFitBtn.addEventListener('click', () => setZoom(1));
 
-      // Viewer fullscreen → video player modal (prototype vfFull)
-      const vfFull = root.querySelector('#vfFull');
-      if (vfFull) vfFull.addEventListener('click', () => openVideoPlayerModal(state, showToast));
+      // The preview is always edge-to-edge (see .preview-large CSS in
+      // timeline-editor-page.css) — no toggle, no button, always on.
 
       // Generate card tiles (prototype-style) → open the matching surface
       const genAutoCut = root.querySelector('#genAutoCut');

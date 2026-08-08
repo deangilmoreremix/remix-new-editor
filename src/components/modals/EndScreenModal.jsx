@@ -43,6 +43,7 @@ export class EndScreenModal extends BaseModal {
     };
     this.isPlaying = false;
     this.playbackProgress = 0;
+    this.previewInterval = null;
   }
 
   renderBody() {
@@ -99,7 +100,7 @@ export class EndScreenModal extends BaseModal {
       <div class="presets-section">
         <h3 class="section-title">Choose a Preset</h3>
         <p class="section-description">Start with a template and customize it</p>
-        
+
         <div class="presets-grid">
           ${END_SCREEN_PRESETS.map(preset => `
             <div class="preset-card ${this.selectedPreset === preset.id ? 'selected' : ''}" data-preset="${preset.id}">
@@ -200,6 +201,11 @@ export class EndScreenModal extends BaseModal {
             </div>
           ` : ''}
         </div>
+
+        <div class="step-actions">
+          <button class="modal-btn modal-btn-secondary modal-cancel">Cancel</button>
+          <button class="modal-btn modal-btn-primary apply-buttons-btn">Apply Changes</button>
+        </div>
       </div>
     `;
   }
@@ -242,6 +248,11 @@ export class EndScreenModal extends BaseModal {
             </label>
           </div>
         </div>
+
+        <div class="step-actions">
+          <button class="modal-btn modal-btn-secondary modal-cancel">Cancel</button>
+          <button class="modal-btn modal-btn-primary apply-style-btn">Apply Changes</button>
+        </div>
       </div>
     `;
   }
@@ -249,8 +260,8 @@ export class EndScreenModal extends BaseModal {
   renderPreviewTab() {
     return `
       <div class="preview-section">
-        <h3 class="section-title">Preview</h3>
-        <p class="section-description">See how your end screen will look</p>
+        <h3 class="section-title">Timing Preview</h3>
+        <p class="section-description">Simulated button timing and position — not actual video playback</p>
 
         <div class="preview-viewport">
           <div class="endscreen-preview" style="background: ${this.endScreenStyle.backgroundColor}; color: ${this.endScreenStyle.textColor};">
@@ -267,7 +278,7 @@ export class EndScreenModal extends BaseModal {
             }).join('')}
           </div>
           <div class="preview-controls">
-            <button class="preview-play-btn ${this.isPlaying ? 'playing' : ''}" aria-label="Play preview">
+            <button class="preview-play-btn ${this.isPlaying ? 'playing' : ''}" aria-label="Play timing preview">
               ${this.isPlaying ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>' : '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>'}
             </button>
             <div class="preview-progress">
@@ -285,6 +296,7 @@ export class EndScreenModal extends BaseModal {
 
     this.overlay.querySelectorAll('.endscreen-tab').forEach(tab => {
       tab.addEventListener('click', (e) => {
+        this.stopPreview();
         this.activeTab = e.currentTarget.dataset.tab;
         this.updateBody(this.renderBody());
         this.setupEventListeners();
@@ -375,6 +387,10 @@ export class EndScreenModal extends BaseModal {
           this.setupEventListeners();
         });
       });
+
+      this.overlay.querySelector('.apply-buttons-btn')?.addEventListener('click', () => {
+        this.applyButtons();
+      });
     }
 
     if (this.activeTab === 'style') {
@@ -386,6 +402,10 @@ export class EndScreenModal extends BaseModal {
           if (valueSpan) valueSpan.textContent = `${e.target.value} seconds`;
         });
       }
+
+      this.overlay.querySelector('.apply-style-btn')?.addEventListener('click', () => {
+        this.applyStyle();
+      });
     }
 
     if (this.activeTab === 'preview') {
@@ -394,6 +414,8 @@ export class EndScreenModal extends BaseModal {
         this.isPlaying = !this.isPlaying;
         if (this.isPlaying) {
           this.playPreview();
+        } else {
+          this.stopPreview();
         }
         this.updateBody(this.renderBody());
         this.setupEventListeners();
@@ -425,12 +447,30 @@ export class EndScreenModal extends BaseModal {
     this.close();
   }
 
+  // Buttons and Style previously had no way to reach onConfirm at all —
+  // edits were only ever held in memory and lost on close. Both now commit
+  // through the same `buttons` field addEndScreenToTimeline reads.
+  applyButtons() {
+    this.onConfirm({ action: 'buttonsUpdated', buttons: this.ctaButtons });
+    this.close();
+  }
+
+  applyStyle() {
+    // addEndScreenToTimeline doesn't currently consume `style` (no project-level
+    // end-screen style storage exists yet) — included so the caller has it
+    // available once that lands, and buttons still ride along so any CTA
+    // edits made before switching to Style aren't lost either.
+    this.onConfirm({ action: 'styleUpdated', style: this.endScreenStyle, buttons: this.ctaButtons });
+    this.close();
+  }
+
   playPreview() {
+    this.stopPreview();
     this.playbackProgress = 0;
-    const interval = setInterval(() => {
+    this.previewInterval = setInterval(() => {
       this.playbackProgress += 1;
       if (this.playbackProgress >= 100 || !this.isPlaying) {
-        clearInterval(interval);
+        this.stopPreview();
         if (this.playbackProgress >= 100) {
           this.isPlaying = false;
           this.playbackProgress = 0;
@@ -439,6 +479,18 @@ export class EndScreenModal extends BaseModal {
         this.setupEventListeners();
       }
     }, this.endScreenStyle.duration * 10);
+  }
+
+  stopPreview() {
+    if (this.previewInterval) {
+      clearInterval(this.previewInterval);
+      this.previewInterval = null;
+    }
+  }
+
+  close() {
+    this.stopPreview();
+    super.close();
   }
 }
 
