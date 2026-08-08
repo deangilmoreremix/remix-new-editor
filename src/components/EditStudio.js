@@ -8,20 +8,55 @@ import { createHeroSection, getToolThumbnail, createThumbnailImg, getCustomThumb
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { getI2IModelById } from '../lib/models.js';
+
+const EDIT_AI_MODELS = [
+  { id: 'flux-kontext-dev-i2i', name: 'Flux Kontext Dev I2I', hasPrompt: true },
+  { id: 'flux-kontext-pro-i2i', name: 'Flux Kontext Pro I2I', hasPrompt: true },
+  { id: 'flux-kontext-max-i2i', name: 'Flux Kontext Max I2I', hasPrompt: true },
+  { id: 'gpt4o-image-to-image', name: 'GPT-4o Image To Image', hasPrompt: true },
+  { id: 'gpt4o-edit', name: 'GPT-4o Edit', hasPrompt: true },
+  { id: 'gpt-image-1.5-edit', name: 'Gpt Image 1.5 Edit', hasPrompt: true },
+  { id: 'midjourney-v7-image-to-image', name: 'Midjourney v7 Image To Image', hasPrompt: true },
+  { id: 'midjourney-v7-style-reference', name: 'Midjourney v7 Style Reference', hasPrompt: true },
+  { id: 'midjourney-v7-omni-reference', name: 'Midjourney v7 Omni Reference', hasPrompt: true },
+  { id: 'bytedance-seededit-v3', name: 'Bytedance Seededit v3', hasPrompt: true },
+  { id: 'bytedance-seedream-edit-v4', name: 'Bytedance Seedream Edit v4', hasPrompt: true },
+  { id: 'bytedance-seedream-v4.5-edit', name: 'Bytedance Seedream v4.5 Edit', hasPrompt: true },
+  { id: 'nano-banana-edit', name: 'Nano Banana Edit', hasPrompt: true },
+  { id: 'nano-banana-pro-edit', name: 'Nano Banana Pro Edit', hasPrompt: true },
+  { id: 'nano-banana-2-edit', name: 'Nano Banana 2 Edit', hasPrompt: true },
+  { id: 'qwen-image-edit', name: 'Qwen Image Edit', hasPrompt: true },
+  { id: 'qwen-image-edit-plus', name: 'Qwen Image Edit Plus', hasPrompt: true },
+  { id: 'qwen-image-edit-2511', name: 'Qwen Image Edit 2511', hasPrompt: true },
+  { id: 'ideogram-character', name: 'Ideogram Character', hasPrompt: true },
+  { id: 'wan2.5-image-edit', name: 'Wan2.5 Image Edit', hasPrompt: true },
+  { id: 'wan2.6-image-edit', name: 'Wan2.6 Image Edit', hasPrompt: true },
+  { id: 'reve-image-edit', name: 'Reve Image Edit', hasPrompt: true },
+  { id: 'kling-o1-edit-image', name: 'Kling O1 Edit Image', hasPrompt: true },
+  { id: 'vidu-q2-reference-to-image', name: 'Vidu Q2 Reference To Image', hasPrompt: true },
+  { id: 'grok-imagine-image-to-image', name: 'Grok Imagine Image To Image', hasPrompt: true },
+  { id: 'flux-2-dev-edit', name: 'Flux 2 Dev Edit', hasPrompt: true },
+  { id: 'flux-2-flex-edit', name: 'Flux 2 Flex Edit', hasPrompt: true },
+  { id: 'flux-2-pro-edit', name: 'Flux 2 Pro Edit', hasPrompt: true },
+  { id: 'flux-2-klein-4b-edit', name: 'Flux 2 Klein 4b Edit', hasPrompt: true },
+  { id: 'flux-2-klein-9b-edit', name: 'Flux 2 Klein 9b Edit', hasPrompt: true },
+  { id: 'flux-redux', name: 'Flux Redux', hasPrompt: true },
+];
 
 const EDIT_TOOLS = [
-  { id: 'ai-object-eraser', name: 'Remove Object', description: 'Erase unwanted objects from images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 5H9l-7 7 7 7h11a2 2 0 002-2V7a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>', hasPrompt: true, promptPlaceholder: 'What to remove...' },
+  { id: 'ai-object-eraser', name: 'Remove Object', description: 'Erase unwanted objects from images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 5H9l-7 7 7 7h11a2 2 0 002-2V7a2 2 0 00-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>', hasPrompt: false },
   { id: 'ai-background-remover', name: 'Remove Background', description: 'Clean background removal', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 3l18 18"/></svg>', hasPrompt: false },
-  { id: 'ai-image-extension', name: 'Extend Image', description: 'AI outpainting to expand images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>', hasPrompt: true, promptPlaceholder: 'What to extend with...' },
+  { id: 'ai-image-extension', name: 'Extend Image', description: 'AI outpainting to expand images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>', hasPrompt: false },
   { id: 'seedream-5.0-edit', name: 'AI Edit', description: 'Instruction-based image editing', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>', hasPrompt: true, promptPlaceholder: 'Describe the edit...' },
   { id: 'ideogram-v3-reframe', name: 'Reframe', description: 'Change aspect ratio intelligently', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="6" y="6" width="12" height="12" rx="1"/></svg>', hasPrompt: false },
-  { id: 'ai-dress-change', name: 'Change Dress', description: 'AI outfit and clothing swap', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46L16 2 12 5.5 8 2l-4.38 1.46a2 2 0 00-1.34 2.31l2.1 9.89A2 2 0 006.34 17H7l-2 5h14l-2-5h.66a2 2 0 001.96-1.34l2.1-9.89a2 2 0 00-1.34-2.31z"/></svg>', hasPrompt: true, promptPlaceholder: 'Describe the outfit...' },
+  { id: 'ai-dress-change', name: 'Change Dress', description: 'AI outfit and clothing swap', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.38 3.46L16 2 12 5.5 8 2l-4.38 1.46a2 2 0 00-1.34 2.31l2.1 9.89A2 2 0 006.34 17H7l-2 5h14l-2-5h.66a2 2 0 001.96-1.34l2.1-9.89a2 2 0 00-1.34-2.31z"/></svg>', hasPrompt: false },
   { id: 'ai-skin-enhancer', name: 'Enhance Skin', description: 'Professional skin retouching', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>', hasPrompt: false },
   { id: 'ai-color-photo', name: 'Colorize', description: 'Add color to B&W photos', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="19" cy="13" r="2.5"/><circle cx="7" cy="13" r="2.5"/><circle cx="13.5" cy="19.5" r="2.5"/></svg>', hasPrompt: false },
-  { id: 'add-image-watermark', name: 'Add Watermark', description: 'Overlay watermark on images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', hasPrompt: true, promptPlaceholder: 'Watermark text...' },
+  { id: 'add-image-watermark', name: 'Add Watermark', description: 'Overlay watermark on images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>', hasPrompt: false },
   { id: 'ai-image-upscaler', name: 'Upscale', description: 'AI image upscaling to higher resolution', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>', hasPrompt: false },
   { id: 'ai-image-face-swap', name: 'Face Swap', description: 'Swap faces in images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>', hasPrompt: false },
-  { id: 'ai-product-shot', name: 'Product Shot', description: 'Create professional product images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>', hasPrompt: true, promptPlaceholder: 'Product style...' },
+  { id: 'ai-product-shot', name: 'Product Shot', description: 'Create professional product images', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>', hasPrompt: true, promptPlaceholder: 'Describe the scene...' },
   { id: 'ai-ghibli-style', name: 'Ghibli Style', description: 'Transform into Studio Ghibli art style', icon: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>', hasPrompt: false },
 ];
 
@@ -33,6 +68,23 @@ export function EditStudio() {
   let activeTool = null;
   let uploadedUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('edit-studio');
+  let currentBlobUrl = null;
+  let selectedModelId = 'seedream-5.0-edit';
+
+  // Control values for static tools
+  let aspectRatioValue = '1:1';
+  let qualityValue = 'basic';
+  let targetIndexValue = '0';
+  let numImagesValue = '1';
+  let renderSpeedValue = 'Balanced';
+  let styleValue = 'Auto';
+  let watermarkPositionValue = 'bottom-right';
+  let watermarkOpacityValue = '0.7';
+  let watermarkScaleValue = '0.2';
+
+  // Dynamic controls for dropdown models
+  const modelControlValues = {};
+  let dynamicControlsContainer = null;
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
@@ -123,26 +175,45 @@ export function EditStudio() {
       clearBtn.classList.remove('hidden');
     },
     onClear: () => {
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
       uploadedUrl = null;
       previewImg.classList.add('hidden');
       previewImg.src = '';
+      previewImg.onerror = null;
       uploadHint.textContent = 'Upload source image or video';
       clearBtn.classList.add('hidden');
     },
     onFilePreview: (file) => {
+      if (currentBlobUrl) {
+        URL.revokeObjectURL(currentBlobUrl);
+        currentBlobUrl = null;
+      }
       const blobUrl = URL.createObjectURL(file);
+      currentBlobUrl = blobUrl;
       previewImg.src = blobUrl;
       previewImg.classList.remove('hidden');
       uploadHint.textContent = file.name;
+      previewImg.onerror = () => {
+        previewImg.classList.add('hidden');
+        uploadHint.textContent = 'Preview failed to load';
+      };
     },
   });
 
   clearBtn.onclick = (e) => {
     e.stopPropagation();
     picker.reset();
+    if (currentBlobUrl) {
+      URL.revokeObjectURL(currentBlobUrl);
+      currentBlobUrl = null;
+    }
     uploadedUrl = null;
     previewImg.classList.add('hidden');
     previewImg.src = '';
+    previewImg.onerror = null;
     uploadHint.textContent = 'Upload source image or video';
     clearBtn.classList.add('hidden');
   };
@@ -161,10 +232,166 @@ export function EditStudio() {
   promptField.setAttribute('aria-label', 'Edit prompt');
   workCard.appendChild(promptField);
 
+  const controlsRow = document.createElement('div');
+  controlsRow.className = 'flex flex-col gap-3 hidden';
+  workCard.appendChild(controlsRow);
+
+  const aspectRatioSelect = document.createElement('select');
+  aspectRatioSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+  aspectRatioSelect.setAttribute('aria-label', 'Aspect ratio');
+  [
+    { value: '1:1', label: '1:1' },
+    { value: '16:9', label: '16:9' },
+    { value: '9:16', label: '9:16' },
+    { value: '4:3', label: '4:3' },
+    { value: '3:4', label: '3:4' },
+    { value: '2:3', label: '2:3' },
+    { value: '3:2', label: '3:2' },
+    { value: '21:9', label: '21:9' },
+  ].forEach(opt => {
+    const option = document.createElement('option');
+    option.value = opt.value;
+    option.textContent = opt.label;
+    aspectRatioSelect.appendChild(option);
+  });
+  aspectRatioSelect.addEventListener('change', () => {
+    aspectRatioValue = aspectRatioSelect.value;
+  });
+  controlsRow.appendChild(aspectRatioSelect);
+
+  const qualitySelect = document.createElement('select');
+  qualitySelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+  qualitySelect.setAttribute('aria-label', 'Quality');
+  [
+    { value: 'basic', label: 'Basic' },
+    { value: 'high', label: 'High' },
+  ].forEach(opt => {
+    const option = document.createElement('option');
+    option.value = opt.value;
+    option.textContent = opt.label;
+    qualitySelect.appendChild(option);
+  });
+  qualitySelect.addEventListener('change', () => {
+    qualityValue = qualitySelect.value;
+  });
+  controlsRow.appendChild(qualitySelect);
+
+  const numImagesSelect = document.createElement('select');
+  numImagesSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+  numImagesSelect.setAttribute('aria-label', 'Number of images');
+  [1, 2, 3, 4].forEach(n => {
+    const option = document.createElement('option');
+    option.value = String(n);
+    option.textContent = String(n);
+    numImagesSelect.appendChild(option);
+  });
+  numImagesSelect.addEventListener('change', () => {
+    numImagesValue = numImagesSelect.value;
+  });
+
+  const renderSpeedSelect = document.createElement('select');
+  renderSpeedSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+  renderSpeedSelect.setAttribute('aria-label', 'Render speed');
+  ['Turbo', 'Balanced', 'Quality'].forEach(speed => {
+    const option = document.createElement('option');
+    option.value = speed;
+    option.textContent = speed;
+    renderSpeedSelect.appendChild(option);
+  });
+  renderSpeedSelect.addEventListener('change', () => {
+    renderSpeedValue = renderSpeedSelect.value;
+  });
+
+  const styleSelect = document.createElement('select');
+  styleSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+  styleSelect.setAttribute('aria-label', 'Style');
+  ['Auto', 'General', 'Realistic', 'Design'].forEach(s => {
+    const option = document.createElement('option');
+    option.value = s;
+    option.textContent = s;
+    styleSelect.appendChild(option);
+  });
+  styleSelect.addEventListener('change', () => {
+    styleValue = styleSelect.value;
+  });
+
+  const targetIndexInput = document.createElement('input');
+  targetIndexInput.type = 'number';
+  targetIndexInput.min = '0';
+  targetIndexInput.max = '10';
+  targetIndexInput.value = '0';
+  targetIndexInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+  targetIndexInput.setAttribute('aria-label', 'Target face index');
+  targetIndexInput.addEventListener('input', () => {
+    targetIndexValue = targetIndexInput.value;
+  });
+
+  const watermarkPositionSelect = document.createElement('select');
+  watermarkPositionSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+  watermarkPositionSelect.setAttribute('aria-label', 'Watermark position');
+  ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'center'].forEach(pos => {
+    const option = document.createElement('option');
+    option.value = pos;
+    option.textContent = pos.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    watermarkPositionSelect.appendChild(option);
+  });
+  watermarkPositionSelect.addEventListener('change', () => {
+    watermarkPositionValue = watermarkPositionSelect.value;
+  });
+
+  const watermarkOpacityInput = document.createElement('input');
+  watermarkOpacityInput.type = 'number';
+  watermarkOpacityInput.min = '0';
+  watermarkOpacityInput.max = '1';
+  watermarkOpacityInput.step = '0.1';
+  watermarkOpacityInput.value = '0.7';
+  watermarkOpacityInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+  watermarkOpacityInput.setAttribute('aria-label', 'Watermark opacity');
+  watermarkOpacityInput.addEventListener('input', () => {
+    watermarkOpacityValue = watermarkOpacityInput.value;
+  });
+
+  const watermarkScaleInput = document.createElement('input');
+  watermarkScaleInput.type = 'number';
+  watermarkScaleInput.min = '0.1';
+  watermarkScaleInput.max = '1';
+  watermarkScaleInput.step = '0.1';
+  watermarkScaleInput.value = '0.2';
+  watermarkScaleInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+  watermarkScaleInput.setAttribute('aria-label', 'Watermark scale');
+  watermarkScaleInput.addEventListener('input', () => {
+    watermarkScaleValue = watermarkScaleInput.value;
+  });
+
+  // Model selector dropdown — only shown for AI Edit card
+  const modelSelect = document.createElement('select');
+  modelSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors hidden';
+  modelSelect.setAttribute('aria-label', 'AI model');
+  
+  const defaultOption = document.createElement('option');
+  defaultOption.value = 'seedream-5.0-edit';
+  defaultOption.textContent = 'Seedream 5.0 Edit (Default)';
+  modelSelect.appendChild(defaultOption);
+  
+  const editModels = EDIT_AI_MODELS;
+  
+  editModels.sort((a, b) => a.name.localeCompare(b.name)).forEach(model => {
+    const option = document.createElement('option');
+    option.value = model.id;
+    option.textContent = model.name;
+    modelSelect.appendChild(option);
+  });
+  
+  modelSelect.addEventListener('change', () => {
+    selectedModelId = modelSelect.value;
+    buildDynamicControls(selectedModelId);
+  });
+  workCard.appendChild(modelSelect);
+
   // Thumbnail studio button — next to creation controls, GTM Boost styling
   const thumbBtn = document.createElement('button');
   thumbBtn.type = 'button';
-  thumbBtn.textContent = '🖼 Thumbnail';
+  thumbBtn.textContent = 'Thumbnail';
   thumbBtn.title = 'Generate a custom thumbnail';
   thumbBtn.className = 'gtm-boost-btn w-full';
   thumbBtn.addEventListener('click', () => {
@@ -204,6 +431,132 @@ export function EditStudio() {
   workArea.appendChild(workCard);
   container.appendChild(workArea);
 
+  function buildDynamicControls(modelId) {
+    const model = getI2IModelById(modelId);
+    if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
+      if (dynamicControlsContainer) dynamicControlsContainer.classList.add('hidden');
+      return;
+    }
+
+    if (!dynamicControlsContainer) {
+      dynamicControlsContainer = document.createElement('div');
+      dynamicControlsContainer.className = 'flex flex-col gap-3';
+      workCard.insertBefore(dynamicControlsContainer, controlsRow);
+    }
+
+    dynamicControlsContainer.innerHTML = '';
+    const fields = Object.entries(model.inputs);
+
+    fields.forEach(([fieldName, fieldConfig]) => {
+      if (fieldName === 'prompt') return;
+
+      const field = document.createElement('select');
+      field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+      field.setAttribute('aria-label', fieldConfig.title || fieldName);
+
+      const defaultVal = fieldConfig.default ?? (fieldConfig.enum ? fieldConfig.enum[0] : null);
+
+      if (fieldConfig.enum) {
+        fieldConfig.enum.forEach(enumVal => {
+          const option = document.createElement('option');
+          option.value = String(enumVal);
+          option.textContent = String(enumVal);
+          if (String(enumVal) === String(defaultVal)) option.selected = true;
+          field.appendChild(option);
+        });
+      } else if (fieldConfig.type === 'int' || fieldConfig.type === 'integer') {
+        fieldConfig.minValue = fieldConfig.minValue ?? 0;
+        fieldConfig.maxValue = fieldConfig.maxValue ?? 100;
+        fieldConfig.step = fieldConfig.step ?? 1;
+        for (let v = fieldConfig.minValue; v <= fieldConfig.maxValue; v += fieldConfig.step) {
+          const option = document.createElement('option');
+          option.value = String(v);
+          option.textContent = String(v);
+          if (v === defaultVal) option.selected = true;
+          field.appendChild(option);
+        }
+      } else {
+        const option = document.createElement('option');
+        option.value = String(defaultVal ?? '');
+        option.textContent = String(defaultVal ?? '');
+        field.appendChild(option);
+      }
+
+      field.addEventListener('change', () => {
+        const raw = field.value;
+        if (fieldConfig.type === 'int' || fieldConfig.type === 'integer') {
+          modelControlValues[modelId + '_' + fieldName] = parseInt(raw, 10);
+        } else if (fieldConfig.type === 'number') {
+          modelControlValues[modelId + '_' + fieldName] = parseFloat(raw);
+        } else {
+          modelControlValues[modelId + '_' + fieldName] = raw;
+        }
+      });
+
+      // Initialize stored value
+      if (defaultVal !== null && defaultVal !== undefined) {
+        if (fieldConfig.type === 'int' || fieldConfig.type === 'integer') {
+          modelControlValues[modelId + '_' + fieldName] = parseInt(defaultVal, 10);
+        } else if (fieldConfig.type === 'number') {
+          modelControlValues[modelId + '_' + fieldName] = parseFloat(defaultVal);
+        } else {
+          modelControlValues[modelId + '_' + fieldName] = String(defaultVal);
+        }
+      }
+
+      const label = document.createElement('div');
+      label.className = 'text-[10px] text-muted mb-1';
+      label.textContent = fieldConfig.title || fieldName;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'flex flex-col gap-1';
+      wrapper.appendChild(label);
+      wrapper.appendChild(field);
+      dynamicControlsContainer.appendChild(wrapper);
+    });
+
+    dynamicControlsContainer.classList.remove('hidden');
+  }
+
+  function showControlsForTool(toolId) {
+    controlsRow.innerHTML = '';
+    promptField.classList.add('hidden');
+    modelSelect.classList.add('hidden');
+    if (dynamicControlsContainer) dynamicControlsContainer.classList.add('hidden');
+
+    if (toolId === 'seedream-5.0-edit') {
+      modelSelect.classList.remove('hidden');
+      promptField.classList.remove('hidden');
+      promptField.placeholder = 'Describe the edit...';
+      buildDynamicControls(selectedModelId || 'seedream-5.0-edit');
+    } else if (toolId === 'ideogram-v3-reframe') {
+      controlsRow.classList.remove('hidden');
+      controlsRow.appendChild(aspectRatioSelect);
+      controlsRow.appendChild(renderSpeedSelect);
+      controlsRow.appendChild(styleSelect);
+      controlsRow.appendChild(numImagesSelect);
+      aspectRatioSelect.value = aspectRatioValue;
+      renderSpeedSelect.value = renderSpeedValue;
+      styleSelect.value = styleValue;
+      numImagesSelect.value = numImagesValue;
+    } else if (toolId === 'add-image-watermark') {
+      controlsRow.classList.remove('hidden');
+      controlsRow.appendChild(watermarkPositionSelect);
+      controlsRow.appendChild(watermarkOpacityInput);
+      controlsRow.appendChild(watermarkScaleInput);
+      watermarkPositionSelect.value = watermarkPositionValue;
+      watermarkOpacityInput.value = watermarkOpacityValue;
+      watermarkScaleInput.value = watermarkScaleValue;
+    } else if (toolId === 'ai-image-face-swap') {
+      controlsRow.classList.remove('hidden');
+      controlsRow.appendChild(targetIndexInput);
+      targetIndexInput.value = targetIndexValue;
+    } else if (toolId === 'ai-product-shot') {
+      promptField.classList.remove('hidden');
+      promptField.placeholder = 'Describe the scene...';
+    }
+  }
+
   function selectTool(tool, cardEl) {
     activeTool = tool;
     toolGrid.querySelectorAll('.border-primary').forEach(el => {
@@ -217,12 +570,7 @@ export function EditStudio() {
     workCard.classList.add('flex');
     toolTitle.textContent = tool.name;
 
-    if (tool.hasPrompt) {
-      promptField.classList.remove('hidden');
-      promptField.placeholder = tool.promptPlaceholder || 'Describe...';
-    } else {
-      promptField.classList.add('hidden');
-    }
+    showControlsForTool(tool.id);
     resultArea.classList.add('hidden');
   }
 
@@ -237,15 +585,47 @@ export function EditStudio() {
     editBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
 
     try {
-      const params = { model: activeTool.id, image_url: uploadedUrl, customThumbnailUrl: customThumbnailUrl || undefined };
+      const modelToUse = selectedModelId || activeTool.id;
+      const params = { model: modelToUse, image_url: uploadedUrl, thumbnail_url: customThumbnailUrl || undefined };
       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
-      if (activeTool.hasPrompt && promptField.value.trim()) {
-        if (activeTool.id === 'ai-product-shot') {
-          params.scene_description = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
-        } else {
-          params.prompt = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
-        }
+
+      if (modelToUse === 'ai-product-shot') {
+        params.scene_description = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
+      } else if (activeTool.hasPrompt && promptField.value.trim()) {
+        params.prompt = replaceTokensInPrompt(promptField.value.trim(), activeProfile);
       }
+
+      if (activeTool.id === 'seedream-5.0-edit' || modelToUse === 'seedream-5.0-edit') {
+        params.aspect_ratio = aspectRatioValue;
+        params.quality = qualityValue;
+      }
+      if (activeTool.id === 'ideogram-v3-reframe') {
+        params.aspect_ratio = aspectRatioValue;
+        params.render_speed = renderSpeedValue;
+        params.style = styleValue;
+        params.num_images = parseInt(numImagesValue, 10);
+      }
+      if (activeTool.id === 'add-image-watermark') {
+        params.position = watermarkPositionValue;
+        params.opacity = parseFloat(watermarkOpacityValue);
+        params.scale = parseFloat(watermarkScaleValue);
+      }
+      if (activeTool.id === 'ai-image-face-swap') {
+        params.target_index = parseInt(targetIndexValue, 10);
+      }
+
+      // Append dynamic model-specific controls
+      const selectedModel = getI2IModelById(modelToUse);
+      if (selectedModel && selectedModel.inputs) {
+        Object.keys(selectedModel.inputs).forEach(key => {
+          if (key === 'prompt') return;
+          const storedKey = modelToUse + '_' + key;
+          if (storedKey in modelControlValues) {
+            params[key] = modelControlValues[storedKey];
+          }
+        });
+      }
+
       const result = await muapi.generateI2I(params);
       if (result?.url) {
         resultArea.classList.remove('hidden');
