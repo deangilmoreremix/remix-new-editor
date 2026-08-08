@@ -2,6 +2,12 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import OpenAI from "npm:openai";
 
+const OPENAI_IMAGE_MODELS = new Set(['gpt-image-2', 'gpt-image-1.5', 'gpt-image-1', 'gpt-image-1-mini']);
+
+function isOpenAIImageModel(modelId: string): boolean {
+  return OPENAI_IMAGE_MODELS.has(modelId);
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -617,10 +623,25 @@ async function handleGenerate(body: GenerateRequest) {
     return jsonResponse({ error: e instanceof Error ? e.message : "Server not configured" }, 500);
   }
 
-  // Model selection: gpt-image-2 (default), 1.5, 1, 1-mini.
-  // Per-model quirks are applied below (size allowlist, style support,
-  // background support).
   const model = body.model || "gpt-image-2";
+
+  if (isOpenAIImageModel(model)) {
+    return handleGenerateOpenAI(body, model, openai, keySource);
+  }
+
+  return handleGenerateMuapi(body, model, keySource);
+}
+
+// ---------------------------------------------------------------------------
+// OpenAI Images API path (gpt-image-2, 1.5, 1, 1-mini)
+// ---------------------------------------------------------------------------
+
+async function handleGenerateOpenAI(
+  body: GenerateRequest,
+  model: string,
+  openai: OpenAI,
+  keySource: "user" | "server"
+) {
   const isGptImage2 = model === "gpt-image-2";
 
   let aspectRatio = body.aspectRatio;
@@ -630,12 +651,10 @@ async function handleGenerate(body: GenerateRequest) {
   if (body.platform && PLATFORM_SPECS[body.platform]) {
     const spec = PLATFORM_SPECS[body.platform];
     aspectRatio = spec.aspectRatio;
-    // Only override size if the caller did not pass an explicit one.
     if (!body.size) size = spec.size;
     quality = spec.quality as "low" | "medium" | "high" | "auto";
   }
 
-  // For non-gpt-image-2 models, enforce the model's size allowlist.
   if (!isGptImage2 && size !== "auto" && !isSizeAllowedForModel(model, size)) {
     return jsonResponse({
       error: `Size ${size} not supported by ${model}. Allowed: ${getModelAllowedSizes(model).join(", ")}`,
@@ -645,61 +664,33 @@ async function handleGenerate(body: GenerateRequest) {
   const brandInjection = BRAND_KIT_PROMPT_INJECTION(body.brandKit);
   const prompt = brandInjection ? `${body.prompt}\n\n${brandInjection}` : body.prompt;
 
-  // gpt-image-2 supports up to 10 candidates; older models cap at lower
-  // counts (we cap at 4 to be safe across all models).
   const maxN = isGptImage2 ? 10 : 4;
   const n = Math.min(Math.max(body.n || 3, 1), maxN);
 
-  // Style: only gpt-image-2 supports vivid/natural. For older models, omit.
   const style = isGptImage2 ? (body.style || "vivid") : undefined;
-
-  // Background: gpt-image-2 doesn't support "transparent".
   const background = !isGptImage2 && body.background === "transparent"
     ? "transparent"
     : (body.background === "transparent" ? "auto" : (body.background || "auto"));
-
   const outputFormat = body.outputFormat || "webp";
   const outputCompression = body.outputCompression ?? 80;
   const moderation = body.moderation || "auto";
-
-  // input_fidelity: gpt-image-2 doesn't allow the param (always high).
-  // For other models, forward as provided.
   const inputFidelity = isGptImage2 ? undefined : (body.inputFidelity || "high");
 
-  // Route to streaming variant when requested.
   if (body.stream) {
     return streamGenerate({
-      prompt,
-      model,
-      n,
-      size,
-      quality,
+      prompt, model, n, size, quality,
       style: style as "vivid" | "natural" | undefined,
-      background,
-      outputFormat,
-      outputCompression,
-      moderation,
-      inputFidelity,
-      partialImages: body.partialImages ?? 0,
-      user: body.user,
-      keySource,
-      openai,
+      background, outputFormat, outputCompression, moderation,
+      inputFidelity, partialImages: body.partialImages ?? 0,
+      user: body.user, keySource, openai,
     });
   }
 
   try {
-    // Build the request payload conditionally.
     const generatePayload: Record<string, unknown> = {
-      model,
-      prompt,
-      n,
-      size,
-      quality,
-      background,
-      output_format: outputFormat,
-      output_compression: outputCompression,
-      response_format: "b64_json",
-      moderation,
+      model, prompt, n, size, quality, background,
+      output_format: outputFormat, output_compression: outputCompression,
+      response_format: "b64_json", moderation,
     };
     if (style) generatePayload.style = style;
     if (inputFidelity) generatePayload.input_fidelity = inputFidelity;
@@ -725,6 +716,84 @@ async function handleGenerate(body: GenerateRequest) {
       ...(hint ? { moderation_blocked: true } : {}),
     }, 502);
   }
+}
+
+// ---------------------------------------------------------------------------
+// muapi-proxy path (all non-OpenAI models)
+// ---------------------------------------------------------------------------
+
+async function handleGenerateMuapi(
+  body: GenerateRequest,
+  model: string,
+  keySource: "user" | "server"
+) {
+  const muapiKey = body.muapi_api_key || Deno.env.get("MUAPI_API_KEY");
+  if (!muapiKey) {
+    return jsonResponse({
+      error: "Muapi API key required for this model. Set MUAPI_API_KEY on the server or provide muapi_api_key in the request.",
+    }, 500);
+  }
+
+  const endpoint = normalizeLegacyEndpoint(model);
+  const params: Record<string, unknown> = {
+    prompt: body.prompt,
+  };
+  if (body.n) params.n = body.n;
+  if (body.aspectRatio) params.aspect_ratio = body.aspectRatio;
+  if (body.size) params.size = body.size;
+  if (body.quality) params.quality = body.quality;
+
+  const proxyUrl = `${SUPABASE_URL}/functions/v1/muapi-proxy`;
+
+  let proxyRes: Response;
+  try {
+    proxyRes = await fetch(proxyUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        apikey: SUPABASE_SERVICE_ROLE_KEY || "",
+      },
+      body: JSON.stringify({
+        endpoint,
+        params,
+        muapi_api_key: muapiKey,
+        generationType: "image",
+      }),
+    });
+  } catch (err) {
+    return jsonResponse({
+      error: `Failed to reach muapi-proxy: ${err instanceof Error ? err.message : "network error"}`,
+    }, 502);
+  }
+
+  if (!proxyRes.ok) {
+    let detail = "";
+    try { detail = await proxyRes.text(); } catch { /* ignore */ }
+    return jsonResponse({
+      error: `muapi-proxy error (${proxyRes.status}): ${detail || proxyRes.statusText}`,
+    }, 502);
+  }
+
+  let muapiResult: Record<string, unknown>;
+  try {
+    muapiResult = await proxyRes.json();
+  } catch {
+    return jsonResponse({ error: "Invalid JSON response from muapi-proxy" }, 502);
+  }
+
+  const images = (muapiResult.images || muapiResult.data || []) as Array<Record<string, unknown>>;
+  const candidates = images.map((img) => ({
+    b64_json: (img.b64 as string) || (img.base64 as string) || "",
+    revised_prompt: (img.revised_prompt as string) || "",
+  }));
+
+  return jsonResponse({
+    candidates,
+    params: { size: body.size, quality: body.quality, aspectRatio: body.aspectRatio },
+    key_source: keySource,
+    model_used: model,
+  });
 }
 
 function streamGenerate(opts: {

@@ -3,6 +3,8 @@ import { supabase } from '../../lib/supabase.js';
 import { ThumbnailService } from '../../lib/thumbnailService.js';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { PRESET_LIST, applyPresetToControls, getPresetForTemplate, applyPresetToBrief } from '../../lib/thumbnailPresets.js';
+import { ModelSelectorDropdown } from './ModelSelectorDropdown.jsx';
+import { t2iModels } from '../../lib/models.js';
 
 /**
  * StudioThumbnailPanel — side drawer version of the thumbnail studio.
@@ -110,6 +112,7 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
       size: 48,
       color: '#ffffff',
     };
+    this._modelDropdown = null;
   }
 
   getPlatformLabel() {
@@ -443,10 +446,11 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
       ${this.showAdvanced ? `
         <div class="form-grid">
           <div class="form-section">
-            <label for="thumb-model">Image Model</label>
-            <select id="thumb-model" title="gpt-image-2 supports any resolution; 1.5/1/1-mini only support 1024x1024, 1536x1024, 1024x1536">
-              ${opts.models.map((m) => `<option value="${m}" ${this.model === m ? 'selected' : ''}>${m}${m === 'gpt-image-2' ? ' (any resolution)' : ''}</option>`).join('')}
-            </select>
+            <label>Image Model</label>
+            <button type="button" id="thumb-model-btn" title="gpt-image-2 supports any resolution; 1.5/1/1-mini only support 1024x1024, 1536x1024, 1024x1536" style="width:100%;min-height:40px;padding:10px 12px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:var(--border-radius-md);color:var(--text-primary);font-size:14px;font-family:inherit;line-height:1.5;outline:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:space-between;gap:8px;transition:border-color var(--transition-fast),background var(--transition-fast),box-shadow var(--transition-fast);box-sizing:border-box;">
+              <span>${this.model || 'gpt-image-2'}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9" /></svg>
+            </button>
           </div>
           <div class="form-section">
             <label for="thumb-n-candidates"># Candidates (n)</label>
@@ -673,13 +677,24 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
     bindSelect('#thumb-n-candidates', 'n', 'this');
     bindSelect('#thumb-input-fidelity', 'inputFidelity', 'this');
 
-    // Model selection — changing the model re-renders size/background
-    // options because per-model constraints differ.
-    const modelSelect = container.querySelector('#thumb-model');
-    if (modelSelect) {
-      modelSelect.addEventListener('change', (e) => {
-        this.model = e.target.value;
-        this._refreshPanel();
+    // Model selection — opens split-pane dropdown.
+    const modelBtn = container.querySelector('#thumb-model-btn');
+    if (modelBtn) {
+      modelBtn.addEventListener('click', () => {
+        if (this._modelDropdown) {
+          this._modelDropdown.destroy();
+          this._modelDropdown = null;
+        }
+        const models = opts.models;
+        this._modelDropdown = new ModelSelectorDropdown(modelBtn, {
+          models,
+          selectedModel: this.model,
+          onSelect: (model) => {
+            this.model = model.id;
+            this._refreshPanel();
+          },
+        });
+        this._modelDropdown.open();
       });
     }
     // Style is disabled for non-gpt-image-2 models but still bound.
@@ -1403,16 +1418,12 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
     try {
       if (this.videoThumbEnabled) {
         await this._generateVideoThumbnail();
-        // Video thumbnail path doesn't populate lastKeySource, but the
-        // service returns frames; we leave the badge untouched.
       } else {
-        // Merge panel-specific options into controls before calling parent.
         this.controls = {
           ...this.controls,
           size: this.customSize && this.customSize !== 'auto' ? this.customSize : (this.controls.size || undefined),
           moderation: this.moderation,
         };
-        // Promote panel state to parent's state so super.goGenerate() picks it up.
         this.partialImages = this.partialImages;
         this.streaming = this.streaming;
         this.responsesModel = this.responsesModel;
@@ -1421,7 +1432,6 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
         this.model = this.model;
         this.inputFidelity = this.inputFidelity;
         await super.goGenerate();
-        // The parent's goGenerate stores keySource on `this.lastKeySource`.
         this._updateKeyBadge(this.lastKeySource);
       }
     } finally {
@@ -1609,6 +1619,10 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
   }
 
   _refreshPanel() {
+    if (this._modelDropdown) {
+      this._modelDropdown.destroy();
+      this._modelDropdown = null;
+    }
     // Replace the body inside its scroll wrapper.
     const newBody = this._renderPanelBody();
     const bodyWrap = this._bodyWrap || this._panel.querySelector('.thumb-panel-body');
@@ -1644,6 +1658,10 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
     if (this._boundKeydown) {
       document.removeEventListener('keydown', this._boundKeydown);
       this._boundKeydown = null;
+    }
+    if (this._modelDropdown) {
+      this._modelDropdown.destroy();
+      this._modelDropdown = null;
     }
     if (this._overlay) {
       this._overlay.remove();

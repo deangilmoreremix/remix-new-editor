@@ -4,6 +4,7 @@
  */
 
 import { apiKeyManager } from '../apiKeyManager.js';
+import { t2iModels } from '../models.js';
 
 /**
  * Studio / app color schemes. Single source of truth shared by
@@ -65,16 +66,30 @@ class OpenAIConfig {
         'gpt-5'
       ],
       // Thumbnail overrides used by ThumbnailService / ai-thumbnail-generator
-      thumbnailModel: 'gpt-image-2',
+      thumbnailModel: 'flux-dev',
+      thumbnailAllModels: [
+        ...['gpt-image-2', 'gpt-image-1.5', 'gpt-image-1', 'gpt-image-1-mini'].map(id => ({
+          id, name: id, provider: 'openai', provider_name: 'OpenAI',
+        })),
+        ...t2iModels.map(m => ({
+          id: m.id,
+          name: m.name,
+          provider: m.provider || 'muapi',
+          provider_name: m.provider_name || m.provider || 'MuAPI',
+        })),
+      ],
       // Per-model allowlist — gpt-image-2 supports any resolution; the older
       // gpt-image-1.x models only support the three fixed sizes.
       thumbnailModelSizes: {
-        'gpt-image-2': 'any', // 1024x1024 … 3840x2160, edges multiples of 16, ratio <= 3:1
+        'gpt-image-2': 'any',
         'gpt-image-1.5': ['1024x1024', '1536x1024', '1024x1536', 'auto'],
         'gpt-image-1': ['1024x1024', '1536x1024', '1024x1536', 'auto'],
         'gpt-image-1-mini': ['1024x1024', '1536x1024', '1024x1536', 'auto'],
       },
       // 1.5/1/1-mini do not support `vivid`/`natural`; only gpt-image-2 does.
+      // muapi-routed models (blackforest, midjourney, google, etc.) do not
+      // support OpenAI's style/background parameters and are omitted here so
+      // the UI hides those controls for them.
       thumbnailModelStyles: {
         'gpt-image-2': ['vivid', 'natural'],
         'gpt-image-1.5': [],
@@ -278,6 +293,16 @@ class OpenAIConfig {
   }
 
   /**
+   * Check whether a model ID belongs to the OpenAI Images API family.
+   * muapi-routed models (blackforest, google, midjourney, etc.) return false.
+   * @param {string} modelId
+   * @returns {boolean}
+   */
+  static isOpenAIImageModel(modelId) {
+    return ['gpt-image-2', 'gpt-image-1.5', 'gpt-image-1', 'gpt-image-1-mini'].includes(modelId);
+  }
+
+  /**
    * Get complete configuration object
    * @returns {object} Full configuration
    */
@@ -288,7 +313,8 @@ class OpenAIConfig {
       baseURL: this.defaultConfig.baseURL,
       timeout: this.defaultConfig.timeout,
       maxRetries: this.defaultConfig.maxRetries,
-      supportedImageModels: [...this.defaultConfig.supportedImageModels]
+      supportedImageModels: [...this.defaultConfig.supportedImageModels],
+      thumbnailAllModels: [...this.defaultConfig.thumbnailAllModels],
     };
   }
 
@@ -350,7 +376,7 @@ class OpenAIConfig {
   getThumbnailOutputSettings() {
     return {
       model: this.defaultConfig.thumbnailModel,
-      models: [...this.defaultConfig.supportedImageModels],
+      models: [...this.defaultConfig.thumbnailAllModels],
       modelSizes: { ...this.defaultConfig.thumbnailModelSizes },
       modelStyles: { ...this.defaultConfig.thumbnailModelStyles },
       modelBackgrounds: { ...this.defaultConfig.thumbnailModelBackgrounds },

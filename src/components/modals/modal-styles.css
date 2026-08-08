@@ -4515,7 +4515,7 @@
 
 .thumb-modal .gtm-action.copy-prompt-btn {
   background: var(--app-primary);
-  color: #ffffff;
+  color: #03131a;
 }
 
 .thumb-modal .gtm-action.copy-prompt-btn:hover:not(:disabled) {
@@ -4792,8 +4792,8 @@
   font-family: var(--font-family);
   border-radius: var(--border-radius-lg);
   border: 1px solid transparent;
-  background: linear-gradient(135deg, var(--app-primary), var(--app-accent));
-  color: #ffffff;
+  background: var(--app-primary);
+  color: #03131a;
   box-shadow: 0 6px 20px var(--app-soft);
   cursor: pointer;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
@@ -5103,8 +5103,8 @@
 }
 
 .studio-thumb-panel .thumb-action-primary {
-  background: linear-gradient(135deg, var(--app-primary), var(--app-accent));
-  color: #ffffff;
+  background: var(--app-primary);
+  color: #03131a;
   border-color: var(--app-primary);
   box-shadow: 0 2px 8px var(--app-soft);
 }

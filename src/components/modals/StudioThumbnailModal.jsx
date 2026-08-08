@@ -104,7 +104,7 @@ export class StudioThumbnailModal extends TemplateThumbnailModal {
     }
 
     return `<div class="thumb-modal studio-thumb-modal" style="--app-primary: ${primary}; --app-accent: ${accent}; --app-soft: ${this.hexToRgba(primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(accent, 0.12)}">
-      <p class="thumb-subtitle">Generate a custom thumbnail for your ${this.studioOutputType} using OpenAI's image model. Create, refine, and apply it before generation.</p>
+      <p class="thumb-subtitle">Generate a custom thumbnail for your ${this.studioOutputType} using AI. Create, refine, and apply it before generation.</p>
       <div class="thumb-form">${main}</div>
     </div>`;
   }

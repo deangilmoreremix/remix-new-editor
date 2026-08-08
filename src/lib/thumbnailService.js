@@ -31,6 +31,22 @@ function resolveUserOpenAIKey(optsApiKey) {
   return '';
 }
 
+function resolveUserMuapiKey() {
+  try {
+    if (apiKeyManager && typeof apiKeyManager.getMuapiKey === 'function') {
+      return apiKeyManager.getMuapiKey() || '';
+    }
+  } catch {
+    // apiKeyManager not loaded in this context.
+  }
+  return '';
+}
+
+function isMuapiModel(modelId) {
+  if (!modelId) return false;
+  return !openaiConfig.isOpenAIImageModel(modelId);
+}
+
 export class ThumbnailService {
   /**
    * @param {Object} options
@@ -111,18 +127,25 @@ export class ThumbnailService {
       brandKit: opts.brandKit || this._brandKit || null,
       platform: opts.platform || this._platform || null,
     };
-    if (opts.model) body.model = opts.model; // gpt-image-2, 1.5, 1, 1-mini
-    if (opts.size) body.size = opts.size; // explicit WxH override
+    if (opts.model) body.model = opts.model;
+    if (opts.size) body.size = opts.size;
     if (opts.quality) body.quality = opts.quality;
     if (opts.style) body.style = opts.style;
     if (opts.background) body.background = opts.background;
     if (opts.inputFidelity) body.inputFidelity = opts.inputFidelity;
     if (opts.outputFormat) body.outputFormat = opts.outputFormat;
     if (typeof opts.outputCompression === 'number') body.outputCompression = opts.outputCompression;
-    if (opts.moderation) body.moderation = opts.moderation; // auto | low
-    if (opts.user) body.user = opts.user; // OpenAI abuse-tracking identifier
-    const userKey = resolveUserOpenAIKey(opts.apiKey);
-    if (userKey) body.apiKey = userKey;
+    if (opts.moderation) body.moderation = opts.moderation;
+    if (opts.user) body.user = opts.user;
+
+    const modelId = opts.model || openaiConfig.defaultConfig.thumbnailModel;
+    if (isMuapiModel(modelId)) {
+      const muapiKey = resolveUserMuapiKey();
+      if (muapiKey) body.muapi_api_key = muapiKey;
+    } else {
+      const userKey = resolveUserOpenAIKey(opts.apiKey);
+      if (userKey) body.apiKey = userKey;
+    }
 
     const { data, error } = await supabase.functions.invoke(EDGE_FUNCTION, { body });
     if (error) {
@@ -171,8 +194,15 @@ export class ThumbnailService {
     if (typeof opts.partialImages === 'number') body.partialImages = opts.partialImages;
     if (opts.moderation) body.moderation = opts.moderation;
     if (opts.user) body.user = opts.user;
-    const userKey = resolveUserOpenAIKey(opts.apiKey);
-    if (userKey) body.apiKey = userKey;
+
+    const modelId = opts.model || openaiConfig.defaultConfig.thumbnailModel;
+    if (isMuapiModel(modelId)) {
+      const muapiKey = resolveUserMuapiKey();
+      if (muapiKey) body.muapi_api_key = muapiKey;
+    } else {
+      const userKey = resolveUserOpenAIKey(opts.apiKey);
+      if (userKey) body.apiKey = userKey;
+    }
 
     let res;
     try {
@@ -626,6 +656,18 @@ export class ThumbnailService {
   static hasUserOpenAIKey() {
     try {
       return Boolean(apiKeyManager && apiKeyManager.hasOpenAIKey && apiKeyManager.hasOpenAIKey());
+    } catch {
+      return false;
+    }
+  }
+
+  static isOpenAIImageModel(modelId) {
+    return openaiConfig.isOpenAIImageModel(modelId);
+  }
+
+  static hasUserMuapiKey() {
+    try {
+      return Boolean(apiKeyManager && apiKeyManager.hasMuapiKey && apiKeyManager.hasMuapiKey());
     } catch {
       return false;
     }

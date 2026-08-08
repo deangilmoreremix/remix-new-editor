@@ -3,6 +3,8 @@ import { supabase } from '../../lib/supabase.js';
 import { ThumbnailService } from '../../lib/thumbnailService.js';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { PRESET_LIST, getPresetForTemplate, applyPresetToControls, applyPresetToBrief } from '../../lib/thumbnailPresets.js';
+import { ModelSelectorDropdown } from './ModelSelectorDropdown.jsx';
+import { t2iModels } from '../../lib/models.js';
 
 /**
  * TemplateThumbnailModal — redesigned to match the GTM Boost modal design system.
@@ -131,6 +133,7 @@ export class TemplateThumbnailModal extends BaseModal {
     this.refineChatResponseId = '';
     this.showDiff = false;
     this.generationTime = '';
+    this._modelDropdown = null;
   }
 
   // -------------------------------------------------------------------------
@@ -172,7 +175,7 @@ export class TemplateThumbnailModal extends BaseModal {
     }
 
     return `<div class="thumb-modal" style="--app-primary: ${primary}; --app-accent: ${accent}; --app-soft: ${this.hexToRgba(primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(accent, 0.12)}">
-      <p class="thumb-subtitle">Generate AI thumbnails using OpenAI's image generation model. Create, refine, and apply custom thumbnails to your template.</p>
+      <p class="thumb-subtitle">Generate AI thumbnails using image generation models. Create, refine, and apply custom thumbnails to your template.</p>
       <div class="thumb-form">${main}</div>
     </div>`;
   }
@@ -268,10 +271,11 @@ export class TemplateThumbnailModal extends BaseModal {
       <div class="advanced-options">
         <div class="form-grid">
           <div class="form-section">
-            <label for="thumb-image-model">Image Model</label>
-            <select id="thumb-image-model" title="gpt-image-2 supports any resolution; 1.5/1/1-mini only support 1024x1024, 1536x1024, 1024x1536">
-              ${opts.models.map((m) => `<option value="${m}" ${this.model === m ? 'selected' : ''}>${m}${m === 'gpt-image-2' ? ' (any resolution)' : ''}</option>`).join('')}
-            </select>
+            <label>Image Model</label>
+            <button type="button" id="thumb-image-model-btn" title="gpt-image-2 supports any resolution; 1.5/1/1-mini only support 1024x1024, 1536x1024, 1024x1536" style="width:100%;min-height:40px;padding:10px 12px;background:var(--bg-panel);border:1px solid var(--border-color);border-radius:var(--border-radius-md);color:var(--text-primary);font-size:14px;font-family:inherit;line-height:1.5;outline:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:space-between;gap:8px;transition:border-color var(--transition-fast),background var(--transition-fast),box-shadow var(--transition-fast);box-sizing:border-box;">
+              <span>${this.model || 'gpt-image-2'}</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9" /></svg>
+            </button>
           </div>
           <div class="form-section">
             <label for="thumb-n-candidates"># Candidates (n)</label>
@@ -672,6 +676,14 @@ export class TemplateThumbnailModal extends BaseModal {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
+  updateBody(content) {
+    if (this._modelDropdown) {
+      this._modelDropdown.destroy();
+      this._modelDropdown = null;
+    }
+    return super.updateBody(content);
+  }
+
   // -------------------------------------------------------------------------
   // Actions
   // -------------------------------------------------------------------------
@@ -723,7 +735,7 @@ export class TemplateThumbnailModal extends BaseModal {
     };
 
     try {
-      if (this.streaming && this.partialImages > 0) {
+      if (this.streaming && this.partialImages > 0 && ThumbnailService.isOpenAIImageModel(this.model || openaiConfig.defaultConfig.thumbnailModel)) {
         // Streaming path — update partial preview as frames arrive.
         const collected = [];
         let partialIndex = 0;
@@ -1438,16 +1450,28 @@ export class TemplateThumbnailModal extends BaseModal {
       this.refreshBody();
     });
 
-    // Advanced settings — image model
-    const imageModelSelect = body.querySelector('#thumb-image-model');
-    if (imageModelSelect) {
-      imageModelSelect.addEventListener('change', (e) => {
-        this.model = e.target.value;
-        // Reset style to '' (not supported by older models) and re-render.
-        if (this.model !== 'gpt-image-2' && this.controls.style) {
-          this.controls.style = '';
+    // Advanced settings — model selector dropdown
+    const imageModelBtn = this.overlay?.querySelector('#thumb-image-model-btn');
+    if (imageModelBtn) {
+      imageModelBtn.addEventListener('click', () => {
+        if (this._modelDropdown) {
+          this._modelDropdown.destroy();
+          this._modelDropdown = null;
         }
-        this.refreshBody();
+        const opts = openaiConfig.getThumbnailOutputSettings();
+        const models = opts.models;
+        this._modelDropdown = new ModelSelectorDropdown(imageModelBtn, {
+          models,
+          selectedModel: this.model,
+          onSelect: (model) => {
+            this.model = model.id;
+            if (!ThumbnailService.isOpenAIImageModel(this.model) && this.controls.style) {
+              this.controls.style = '';
+            }
+            this.updateBody(this.renderBody());
+          },
+        });
+        this._modelDropdown.open();
       });
     }
     // Advanced settings — n candidates
