@@ -14,6 +14,8 @@ class GTMContentLibrary {
     this.methodologies = this.initializeMethodologies();
     this.tonalities = this.initializeTonalities();
     this.workflows = this.initializeWorkflows();
+    this.modelOptions = this.initializeModelOptions();
+    this.cinematicElements = this.initializeCinematicElements();
   }
 
   /**
@@ -24,18 +26,40 @@ class GTMContentLibrary {
    */
   initializeFocusAreas() {
     return [
-      { id: 'lead-gen',   label: 'Lead Generation',         description: 'Lead generation with contact capture' },
-      { id: 'awareness',  label: 'Brand Awareness',         description: 'Brand awareness and market education' },
-      { id: 'education',  label: 'Education',                description: 'Educational content and knowledge sharing' },
-      { id: 'demo',       label: 'Product Demo',            description: 'Product demonstration and capability showcase' },
+      { id: 'lead-gen',   label: 'Lead Generation',         description: 'Lead generation with contact capture', bestFor: 'Top-of-funnel campaigns needing contacts', example: '“Book a demo” CTA with lead magnet', difficulty: 'Easy' },
+      { id: 'awareness',  label: 'Brand Awareness',         description: 'Brand awareness and market education', bestFor: 'Launch phases and category creation', example: '“Did you know 70% of teams…?” hook', difficulty: 'Easy' },
+      { id: 'education',  label: 'Education',                description: 'Educational content and knowledge sharing', bestFor: 'Complex products needing explainers', example: 'Step-by-step breakdown with diagrams', difficulty: 'Medium' },
+      { id: 'demo',       label: 'Product Demo',            description: 'Product demonstration and capability showcase', bestFor: 'Bottom-funnel proof and close', example: 'Walkthrough of key workflow in 60s', difficulty: 'Medium' },
+    ];
+  }
+
+  initializeModelOptions() {
+    return [
+      { id: 'gpt-4o-mini', label: 'GPT-4o Mini (fast/cheap)', description: 'Fast, cost-effective model for quick prompt generation and high-volume usage', bestFor: 'Drafts, iterations, and bulk prompts', example: 'Quickly generate 10 prompt variants', difficulty: 'Easy' },
+      { id: 'gpt-4o',      label: 'GPT-4o (balanced)',       description: 'Balanced performance and quality for most GTM prompt enhancement tasks', bestFor: 'Most GTM workflows and daily use', example: 'Polished prompt with solid methodology framing', difficulty: 'Easy' },
+      { id: 'gpt-4.1',     label: 'GPT-4.1 (quality)',       description: 'Highest quality outputs for critical prompts where nuance and precision matter most', bestFor: 'Executive decks and high-stakes video', example: 'Narrative prompt with layered emotional cues', difficulty: 'Medium' },
+      { id: 'gpt-5-mini',  label: 'GPT-5 Mini (next-gen fast)', description: 'Next-generation fast model with improved reasoning for rapid iteration', bestFor: 'Fast refinement of good first drafts', example: 'Rapid A/B prompt rewrites', difficulty: 'Easy' },
+      { id: 'gpt-5-nano', label: 'GPT-5 Nano (ultra-fast)', description: 'Ultra-fast lightweight model ideal for real-time prompt suggestions and drafts', bestFor: 'In-the-moment suggestions and sketches', example: 'One-line prompt polish on the fly', difficulty: 'Easy' },
+    ];
+  }
+
+  initializeCinematicElements() {
+    return [
+      { id: 'openingHook',         label: 'Opening Hooks',          description: 'Grab viewer attention in the first 3 seconds with a compelling hook', bestFor: 'Stopping scroll and reducing drop-off', example: 'Start with a surprising stat or bold claim', difficulty: 'Easy' },
+      { id: 'storytellingStructure', label: 'Storytelling Structure', description: 'Apply narrative arcs and story beats for a coherent, memorable video flow', bestFor: 'Case studies and brand films', example: 'Setup → conflict → resolution with CTA', difficulty: 'Medium' },
+      { id: 'visualElements',      label: 'Visual Cinematography',  description: 'Enhance shot composition, lighting, and visual storytelling direction', bestFor: 'Premium image and hero video', example: 'Slow dolly, golden hour, shallow DOF', difficulty: 'Hard' },
+      { id: 'audioElements',       label: 'Audio Excellence',       description: 'Improve voiceover tone, music selection, and sound design cues', bestFor: 'Emotional and branded audio identity', example: 'Warm narration + rising orchestral score', difficulty: 'Medium' },
+      { id: 'pacingEditing',       label: 'Pacing & Editing',       description: 'Control rhythm, cut frequency, and timing to maintain engagement', bestFor: 'Social shorts and promo videos', example: 'Hard cut hook, hold beats, punch CTA', difficulty: 'Medium' },
+      { id: 'emotionalEngagement', label: 'Emotional Engagement',   description: 'Amplify emotional resonance and audience connection through storytelling', bestFor: 'Customer stories and retention', example: 'Validation-first copy with calm score', difficulty: 'Hard' },
+      { id: 'ctaIntegration',      label: 'CTA Integration',        description: 'Weave in clear, conversion-focused calls to action aligned with GTM goals', bestFor: 'Direct response and pipeline generation', example: 'Arrow pointer + “Book your demo now” card', difficulty: 'Easy' },
     ];
   }
 
   /**
-   * Get role-based content for a specific role
-   * @param {string} role - Role identifier (sdr, ae, sales-manager, etc.)
-   * @returns {Object} Role content and templates
-   */
+    * Get role-based content for a specific role
+    * @param {string} role - Role identifier (sdr, ae, sales-manager, etc.)
+    * @returns {Object} Role content and templates
+    */
   getRoleContent(role) {
     return this.roles[role] || this.roles.sdr;
   }
@@ -228,7 +252,87 @@ class GTMContentLibrary {
    * Dropdown options for the GTM Boost modal's focus area checklist.
    */
   getFocusAreaOptions() {
-    return (this.focusAreas || []).map((f) => ({ value: f.id, label: f.label }));
+    return (this.focusAreas || []).map((f) => ({ value: f.id, label: f.label, description: f.description, bestFor: f.bestFor, example: f.example, difficulty: f.difficulty }));
+  }
+
+  getModelOptions() {
+    return this.modelOptions.map((m) => ({ value: m.id, label: m.label, description: m.description, bestFor: m.bestFor, example: m.example, difficulty: m.difficulty }));
+  }
+
+  getCinematicElementOptions() {
+    return this.cinematicElements.map((c) => ({ value: c.id, label: c.label, description: c.description, bestFor: c.bestFor, example: c.example, difficulty: c.difficulty }));
+  }
+
+  getModelDescription(id) {
+    return (this.modelOptions || []).find((m) => m.id === id)?.description || '';
+  }
+
+  getCinematicElementDescription(id) {
+    return (this.cinematicElements || []).find((c) => c.id === id)?.description || '';
+  }
+
+  getFocusAreaDescription(id) {
+    return (this.focusAreas || []).find((f) => f.id === id)?.description || '';
+  }
+
+  getRoleDescription(id) {
+    return (this.roles || [])[id]?.description || '';
+  }
+
+  getIndustryDescription(id) {
+    return (this.industries || [])[id]?.description || '';
+  }
+
+  getMethodologyDescription(id) {
+    return (this.methodologies || [])[id]?.description || '';
+  }
+
+  getTonalityDescription(id) {
+    return (this.tonalities || [])[id]?.description || '';
+  }
+
+  getRoleOptions() {
+    return Object.entries(this.roles).map(([value, role]) => ({
+      value,
+      label: role.title,
+      description: role.description || '',
+      bestFor: role.bestFor || '',
+      example: role.example || '',
+      difficulty: role.difficulty || ''
+    }));
+  }
+
+  getIndustryOptions() {
+    return Object.entries(this.industries).map(([value, i]) => ({
+      value,
+      label: i.name,
+      description: i.description || '',
+      bestFor: i.bestFor || '',
+      example: i.example || '',
+      difficulty: i.difficulty || ''
+    }));
+  }
+
+  getMethodologyOptions() {
+    return Object.entries(this.methodologies).map(([value, m]) => ({
+      value,
+      label: m.name,
+      description: m.description || '',
+      bestFor: m.bestFor || '',
+      example: m.example || '',
+      difficulty: m.difficulty || ''
+    }));
+  }
+
+  getTonalityOptions() {
+    return Object.entries(this.tonalities).map(([value, t]) => ({
+      value,
+      label: t.name,
+      description: t.description || '',
+      bestFor: t.bestFor || '',
+      example: t.example || '',
+      difficulty: t.difficulty || ''
+    }));
   }
 
   // ===== ROLE DEFINITIONS =====
@@ -238,6 +342,9 @@ class GTMContentLibrary {
       sdr: {
         title: 'SDR/BDR Prospecting',
         description: 'Sales Development Representative / Business Development Representative content for cold outreach and lead qualification',
+        bestFor: 'Cold outreach sequences and early pipeline creation',
+        example: '"I noticed your team scaled 40%—here’s how we cut ramp time in half."',
+        difficulty: 'Easy',
         objectives: [
           'Generate qualified leads',
           'Create pipeline opportunities',
@@ -259,6 +366,9 @@ class GTMContentLibrary {
       ae: {
         title: 'Account Executive Discovery',
         description: 'Account Executive content for qualified prospects, discovery, and value demonstration',
+        bestFor: 'Qualified opportunity follow-up and discovery calls',
+        example: '"Walk me through how your team handles [workflow] today."',
+        difficulty: 'Medium',
         objectives: [
           'Advance qualified opportunities',
           'Demonstrate ROI and business value',
@@ -280,84 +390,96 @@ class GTMContentLibrary {
       'sales-manager': {
         title: 'Sales Management',
         description: 'Sales leadership content for team enablement and pipeline management',
+        bestFor: 'Team coaching, hiring, and forecast reviews',
+        example: '"Here’s the exact playbook that took our SDRs from 20 to 60 demos/month."',
+        difficulty: 'Medium',
         objectives: [
           'Accelerate team performance',
           'Build management credibility',
-          'Drive revenue growth'
+          'Drive predictable revenue growth'
         ],
-        primaryKPI: 'team quota attainment',
+        primaryKPI: 'team productivity',
         templates: [
-          'Team capability showcase and success stories',
-          'Market intelligence and competitive insights',
-          'Strategic planning and market expansion'
+          'Performance analytics and coaching frameworks',
+          'Hiring and onboarding best practices',
+          'Revenue forecasting and pipeline management'
         ],
         promptStarters: [
-          'Create a leadership video demonstrating [team capability]',
-          'Develop a market intelligence video sharing [industry insight]',
-          'Build a strategic planning video for [market opportunity]'
+          'Create a coaching video for [specific sales challenge]',
+          'Develop a training video on [sales methodology]',
+          'Build a pipeline review presentation for [quarter]'
         ]
       },
 
-      revops: {
+      'revops': {
         title: 'Revenue Operations',
         description: 'Revenue Operations content for process optimization and data-driven insights',
+        bestFor: 'Operations enablement and stack alignment',
+        example: '"We reduced lead-to-close time by 32% by fixing these three handoffs."',
+        difficulty: 'Hard',
         objectives: [
-          'Improve operational efficiency',
-          'Enhance data accuracy and insights',
-          'Optimize sales processes and automation'
+          'Optimize revenue processes',
+          'Improve data accuracy and reporting',
+          'Streamline system integrations'
         ],
-        primaryKPI: 'operational efficiency gains',
+        primaryKPI: 'process efficiency',
         templates: [
-          'Process optimization and automation benefits',
-          'Data-driven decision making frameworks',
-          'Performance analytics and forecasting'
+          'Process mapping and optimization',
+          'Data analysis and insights reporting',
+          'System integration and automation'
         ],
         promptStarters: [
-          'Create a process optimization video showing [efficiency gains]',
-          'Develop an analytics video demonstrating [data insights]',
-          'Build an automation video highlighting [time savings]'
+          'Create a process improvement video for [revenue stage]',
+          'Develop a data insights presentation for [metric]',
+          'Build a system integration guide for [tools]'
         ]
       },
 
-      csm: {
+      'customer-success': {
         title: 'Customer Success',
         description: 'Customer Success Management content for retention and expansion',
+        bestFor: 'Onboarding, renewal, and expansion campaigns',
+        example: '"You’re only getting 60% of the value—let’s fix that in 15 minutes."',
+        difficulty: 'Medium',
         objectives: [
-          'Reduce customer churn',
-          'Identify expansion opportunities',
-          'Build long-term customer loyalty'
+          'Reduce churn and increase retention',
+          'Drive expansion revenue',
+          'Improve customer health scores'
         ],
-        primaryKPI: 'customer retention and expansion',
+        primaryKPI: 'net revenue retention',
         templates: [
-          'Customer onboarding and adoption acceleration',
-          'Value realization and ROI demonstration',
-          'Relationship building and proactive support'
+          'Onboarding and adoption programs',
+          'Health scoring and intervention plays',
+          'Renewal and expansion strategies'
         ],
         promptStarters: [
-          'Create an onboarding video that accelerates [customer time-to-value]',
-          'Develop a success story video showcasing [customer results]',
-          'Build an expansion video identifying [growth opportunities]'
+          'Create an onboarding video for [feature set]',
+          'Develop a renewal campaign for [customer segment]',
+          'Build an expansion playbook for [use case]'
         ]
       },
 
-      founder: {
+      executive: {
         title: 'Executive Leadership',
         description: 'Founder and executive content for strategic partnerships and vision communication',
+        bestFor: 'Board updates, investor decks, and keynote narratives',
+        example: '"We’re not building a feature—we’re rewriting the category."',
+        difficulty: 'Hard',
         objectives: [
-          'Build strategic relationships',
-          'Communicate company vision',
-          'Drive executive-level engagement'
+          'Communicate vision and strategy',
+          'Build strategic partnerships',
+          'Drive organizational alignment'
         ],
-        primaryKPI: 'strategic partnership development',
+        primaryKPI: 'strategic influence',
         templates: [
-          'Vision communication and market positioning',
-          'Strategic partnership development',
-          'Executive decision-making frameworks'
+          'Vision and mission storytelling',
+          'Strategic partnership frameworks',
+          'Change management and alignment'
         ],
         promptStarters: [
-          'Create a vision video communicating [strategic direction]',
-          'Develop a partnership video for [target executive audience]',
-          'Build a positioning video establishing [market leadership]'
+          'Create a vision video for [company direction]',
+          'Develop a partnership announcement for [alliance]',
+          'Build an all-hands presentation for [initiative]'
         ]
       }
     };
