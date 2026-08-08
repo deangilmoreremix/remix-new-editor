@@ -6,6 +6,7 @@ import { supabase, isSupabaseConfigured } from '../../lib/supabase.js';
 import { openaiConfig } from '../../lib/config/openaiConfig.js';
 import { AuthModal } from '../AuthModal.js';
 import { saveGtmContext } from '../../lib/gtmContextStore.js';
+import { GTMInfoModal } from './GTMInfoModal.jsx';
 
 /**
  * GTMPromptModal - GTM-Powered Prompt Enhancement Modal
@@ -101,6 +102,9 @@ export class GTMPromptModal extends BaseModal {
     return `
       <div class="gtm-prompt-modal" style="--app-primary: ${this.appColors.primary}; --app-accent: ${this.appColors.accent}; --app-soft: ${this.hexToRgba(this.appColors.primary, 0.12)}; --app-soft-accent: ${this.hexToRgba(this.appColors.accent, 0.12)}">
         <p class="gtm-subtitle">Transform basic prompts into professional cinematic videos with GTM methodologies and storytelling mastery</p>
+        <div class="gtm-info-trigger-row">
+          <button type="button" class="gtm-info-trigger" data-action="open-gtm-info" aria-label="What is GTM Boost?">What is GTM Boost?</button>
+        </div>
         <div class="gtm-form">
           ${this.errorMessage ? `<div class="error-message" role="alert">⚠ ${this.errorMessage}</div>` : ''}
           ${this.missingOpenAIKey ? `
@@ -421,6 +425,13 @@ export class GTMPromptModal extends BaseModal {
       toggleBtn.addEventListener('click', () => {
         this.showAdvanced = !this.showAdvanced;
         this.refreshBody();
+      });
+    }
+
+    const infoBtn = scope.querySelector('[data-action="open-gtm-info"]');
+    if (infoBtn) {
+      infoBtn.addEventListener('click', () => {
+        new GTMInfoModal({ appTheme: this.appTheme }).open();
       });
     }
 

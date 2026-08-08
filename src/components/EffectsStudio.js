@@ -13,6 +13,8 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { navigate } from '../lib/router.js';
 import { saveGeneratedAsset } from '../lib/assets/assetActions.js';
 import { showToast } from '../lib/loading.js';
+import { validateEffectParams, EFFECT_PARAM_SCHEMA, createSliderControl, createAdvancedSection } from '../lib/effectParamValidator.js';
+import { EffectCompositor } from '../lib/editor/effectCompositor.js';
 
 const EFFECT_TABS = [
   { id: 'image-effects', label: 'Image Effects', type: 'i2i', field: 'name' },
@@ -59,6 +61,37 @@ export function EffectsStudio() {
   let lastResultUrl = null;
   let lastResultType = null;
   let lastInputUrl = null;
+
+  // ─── Advanced generation controls ────────────────────────────────────
+  const ADVANCED_STORAGE_KEY = 'effects_studio_advanced_settings';
+  const advancedDefaults = {
+    guidanceScale: 7.5,
+    steps: 20,
+    seed: -1,       // -1 = random
+    negativePrompt: '',
+    denoiseStrength: 0.7,
+    effectStrength: 1.0,
+    cfgScale: 0.5,
+  };
+
+  let advancedSettings = loadAdvancedSettings();
+
+  function loadAdvancedSettings() {
+    try {
+      const raw = localStorage.getItem(ADVANCED_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return { ...advancedDefaults, ...parsed };
+      }
+    } catch { /* ignore */ }
+    return { ...advancedDefaults };
+  }
+
+  function saveAdvancedSettings() {
+    try {
+      localStorage.setItem(ADVANCED_STORAGE_KEY, JSON.stringify(advancedSettings));
+    } catch { /* ignore quota errors */ }
+  }
 
   const fullscreen = createFullscreenPreview();
   container.appendChild(fullscreen.element);
@@ -336,6 +369,366 @@ export function EffectsStudio() {
     mountPersonalizeTrigger({ controlsContainer: promptRow, getTextarea: () => promptInput, appId: 'effects-studio' });
     previewTop.appendChild(promptRow);
 
+  // ─── Advanced Generation Controls ────────────────────────────────────
+  const advancedControls = document.createElement('div');
+  advancedControls.className = 'flex flex-col gap-3';
+
+  // Advanced toggle button
+  const advToggleBtn = document.createElement('button');
+  advToggleBtn.type = 'button';
+  advToggleBtn.className = 'text-[10px] font-bold text-secondary hover:text-white uppercase tracking-wider transition-colors flex items-center gap-1';
+  advToggleBtn.textContent = '⚙ Advanced';
+  advToggleBtn.setAttribute('aria-expanded', 'false');
+  advancedControls.appendChild(advToggleBtn);
+
+  const advContent = document.createElement('div');
+  advContent.className = 'hidden flex-col gap-3 p-4 border border-white/5 rounded-xl bg-white/[0.01]';
+  advancedControls.appendChild(advContent);
+
+  // Toggle logic
+  let showAdvanced = false;
+  advToggleBtn.onclick = () => {
+    showAdvanced = !showAdvanced;
+    advToggleBtn.setAttribute('aria-expanded', String(showAdvanced));
+    advToggleBtn.textContent = showAdvanced ? '⚙ Less' : '⚙ Advanced';
+    advContent.classList.toggle('hidden', !showAdvanced);
+    advContent.style.display = showAdvanced ? 'flex' : 'none';
+  };
+
+  // Row 1: Guidance Scale | Steps | Seed
+  const row1 = document.createElement('div');
+  row1.className = 'flex gap-3 flex-wrap';
+
+  const guidanceSlider = createSliderControl({
+    id: 'fx-guidance-slider',
+    label: 'Guidance',
+    min: 1, max: 20, step: 0.5, value: advancedSettings.guidanceScale,
+    format: '%.1f',
+    description: 'How closely to follow the prompt (1=creative, 20=strict)',
+  });
+  guidanceSlider.querySelector('label').setAttribute('for', 'fx-guidance-slider');
+
+  const stepsSlider = createSliderControl({
+    id: 'fx-steps-slider',
+    label: 'Steps',
+    min: 1, max: 50, step: 1, value: advancedSettings.steps,
+    format: '%d',
+    description: 'More steps = better quality, slower generation',
+  });
+
+  const seedWrapper = document.createElement('div');
+  seedWrapper.className = 'flex flex-col gap-1.5 flex-1 min-w-[120px]';
+  const seedLabelRow = document.createElement('div');
+  seedLabelRow.className = 'flex items-center justify-between';
+  const seedLabel = document.createElement('label');
+  seedLabel.className = 'text-[10px] font-bold text-secondary uppercase tracking-wider';
+  seedLabel.textContent = 'Seed';
+  seedLabel.setAttribute('for', 'fx-seed-input');
+  const seedRandomBtn = document.createElement('button');
+  seedRandomBtn.type = 'button';
+  seedRandomBtn.textContent = '🎲';
+  seedRandomBtn.title = 'Randomize seed';
+  seedRandomBtn.className = 'text-xs hover:scale-110 transition-transform';
+  seedRandomBtn.onclick = () => {
+    advancedSettings.seed = Math.floor(Math.random() * 999999999);
+    seedInput.value = String(advancedSettings.seed);
+    saveAdvancedSettings();
+  };
+  seedLabelRow.appendChild(seedLabel);
+  seedLabelRow.appendChild(seedRandomBtn);
+  seedWrapper.appendChild(seedLabelRow);
+  const seedInput = document.createElement('input');
+  seedInput.type = 'number';
+  seedInput.id = 'fx-seed-input';
+  seedInput.value = String(advancedSettings.seed);
+  seedInput.placeholder = '-1 = random';
+  seedInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
+  seedInput.setAttribute('aria-label', 'Generation seed');
+  seedInput.oninput = (e) => {
+    advancedSettings.seed = parseInt(e.target.value) || -1;
+    saveAdvancedSettings();
+  };
+  seedWrapper.appendChild(seedInput);
+
+  row1.appendChild(guidanceSlider);
+  row1.appendChild(stepsSlider);
+  row1.appendChild(seedWrapper);
+  advContent.appendChild(row1);
+
+  // Row 2: Negative Prompt
+  const negPromptWrapper = document.createElement('div');
+  negPromptWrapper.className = 'flex flex-col gap-1.5';
+  const negPromptLabel = document.createElement('label');
+  negPromptLabel.className = 'text-[10px] font-bold text-secondary uppercase tracking-wider';
+  negPromptLabel.textContent = 'Negative Prompt';
+  negPromptLabel.setAttribute('for', 'fx-neg-prompt');
+  negPromptWrapper.appendChild(negPromptLabel);
+  const negPromptInput = document.createElement('input');
+  negPromptInput.type = 'text';
+  negPromptInput.id = 'fx-neg-prompt';
+  negPromptInput.value = advancedSettings.negativePrompt;
+  negPromptInput.placeholder = 'What to avoid (e.g., blurry, distorted, watermark)';
+  negPromptInput.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
+  negPromptInput.setAttribute('aria-label', 'Negative prompt');
+  negPromptInput.oninput = (e) => {
+    advancedSettings.negativePrompt = e.target.value;
+    saveAdvancedSettings();
+  };
+  negPromptWrapper.appendChild(negPromptInput);
+  advContent.appendChild(negPromptWrapper);
+
+  // Row 3: Effect Strength | Denoise Strength
+  const row3 = document.createElement('div');
+  row3.className = 'flex gap-3 flex-wrap';
+
+  const effectStrengthSlider = createSliderControl({
+    id: 'fx-effect-strength-slider',
+    label: 'Effect Strength',
+    min: 0, max: 1, step: 0.05, value: advancedSettings.effectStrength,
+    format: '%.0f%%',
+    description: 'How strongly the effect is applied',
+  });
+  effectStrengthSlider.querySelector('label').setAttribute('for', 'fx-effect-strength-slider');
+  // Override display to show percentage
+  const effectStrengthValueEl = effectStrengthSlider.querySelector(`#fx-effect-strength-slider-value`);
+  if (effectStrengthValueEl) {
+    effectStrengthSlider.querySelector('#fx-effect-strength-slider').oninput = (e) => {
+      const val = parseFloat(e.target.value);
+      effectStrengthValueEl.textContent = Math.round(val * 100) + '%';
+      advancedSettings.effectStrength = val;
+      saveAdvancedSettings();
+    };
+  }
+
+  const denoiseSlider = createSliderControl({
+    id: 'fx-denoise-slider',
+    label: 'Denoise Strength',
+    min: 0, max: 1, step: 0.05, value: advancedSettings.denoiseStrength,
+    format: '%.2f',
+    description: 'How much to change from source (0=preserve, 1=regenerate)',
+  });
+  denoiseSlider.querySelector('label').setAttribute('for', 'fx-denoise-slider');
+
+  row3.appendChild(effectStrengthSlider);
+  row3.appendChild(denoiseSlider);
+  advContent.appendChild(row3);
+
+  // Reset button
+  const resetRow = document.createElement('div');
+  resetRow.className = 'flex justify-end';
+  const resetBtn = document.createElement('button');
+  resetBtn.type = 'button';
+  resetBtn.textContent = 'Reset to defaults';
+  resetBtn.className = 'text-[10px] font-bold text-muted hover:text-white transition-colors';
+  resetBtn.onclick = () => {
+    advancedSettings = { ...advancedDefaults };
+    seedInput.value = String(advancedSettings.seed);
+    negPromptInput.value = advancedSettings.negativePrompt;
+    guidanceSlider.setValue(advancedSettings.guidanceScale);
+    stepsSlider.setValue(advancedSettings.steps);
+    effectStrengthSlider.setValue(advancedSettings.effectStrength);
+    denoiseSlider.setValue(advancedSettings.denoiseStrength);
+    saveAdvancedSettings();
+    showToast('Advanced settings reset', 'success');
+  };
+  resetRow.appendChild(resetBtn);
+  advContent.appendChild(resetRow);
+
+  // ─── Keyframe Animate Toggles ─────────────────────────────────────────
+  const fxKeyframes = {
+    guidance_scale: [],
+    steps: [],
+    denoise_strength: [],
+    effect_strength: [],
+  };
+  const fxAnimatedProps = new Set();
+
+  function addAnimateToggle(sliderEl, propertyName, currentValue) {
+    const row = sliderEl.querySelector('.slider-row') || sliderEl;
+    const existingValue = row.querySelector('.value-display') || sliderEl.querySelector('span') || sliderEl;
+    
+    const animBtn = document.createElement('button');
+    animBtn.type = 'button';
+    animBtn.textContent = '🎬';
+    animBtn.title = 'Toggle animation for this property';
+    animBtn.className = 'text-xs hover:scale-110 transition-transform ml-1';
+    animBtn.onclick = () => {
+      const isAnimated = fxAnimatedProps.has(propertyName);
+      if (isAnimated) {
+        fxAnimatedProps.delete(propertyName);
+        animBtn.textContent = '🎬';
+        animBtn.classList.remove('text-yellow-400');
+      } else {
+        fxAnimatedProps.add(propertyName);
+        fxKeyframes[propertyName] = [{ time: 0, value: currentValue }];
+        animBtn.textContent = '🎬';
+        animBtn.classList.add('text-yellow-400');
+        showToast(`Animation enabled for ${propertyName}`, 'success');
+      }
+    };
+    
+    // Try to insert after the value display
+    const valueDisplay = sliderEl.querySelector('.value-display');
+    if (valueDisplay && valueDisplay.parentNode) {
+      valueDisplay.parentNode.insertBefore(animBtn, valueDisplay.nextSibling);
+    } else if (existingValue && existingValue.parentNode) {
+      existingValue.parentNode.insertBefore(animBtn, existingValue.nextSibling);
+    } else {
+      sliderEl.appendChild(animBtn);
+    }
+  }
+
+  // Add animate toggles to sliders
+  addAnimateToggle(guidanceSlider, 'guidance_scale', advancedSettings.guidanceScale);
+  addAnimateToggle(stepsSlider, 'steps', advancedSettings.steps);
+  addAnimateToggle(effectStrengthSlider, 'effect_strength', advancedSettings.effectStrength);
+  addAnimateToggle(denoiseSlider, 'denoise_strength', advancedSettings.denoiseStrength);
+
+  previewTop.appendChild(advancedControls);
+
+  // ─── Effect Layers ────────────────────────────────────────────────────
+  const layersPanel = document.createElement('div');
+  layersPanel.className = 'flex flex-col gap-2 mt-3';
+  const layersHeader = document.createElement('div');
+  layersHeader.className = 'flex items-center justify-between';
+  layersHeader.innerHTML = '<div class="text-[10px] font-bold text-secondary uppercase tracking-wider">Effect Layers</div>';
+  const addLayerBtn = document.createElement('button');
+  addLayerBtn.type = 'button';
+  addLayerBtn.textContent = '+ Add Layer';
+  addLayerBtn.className = 'text-[10px] font-bold text-primary hover:text-white transition-colors';
+  addLayerBtn.onclick = () => addEffectLayer();
+  layersHeader.appendChild(addLayerBtn);
+  layersPanel.appendChild(layersHeader);
+
+  const layersList = document.createElement('div');
+  layersList.className = 'flex flex-col gap-2';
+  layersPanel.appendChild(layersList);
+
+  const layersPreview = document.createElement('canvas');
+  layersPreview.className = 'hidden w-full h-32 rounded-lg border border-white/5 bg-black/20 mt-2';
+  layersPreview.width = 640;
+  layersPreview.height = 360;
+  layersPanel.appendChild(layersPreview);
+
+  previewTop.appendChild(layersPanel);
+
+  const fxLayers = [];
+  let fxLayerCounter = 0;
+
+  function addEffectLayer(overrides = {}) {
+    fxLayerCounter++;
+    const id = `fx-layer-${fxLayerCounter}-${Date.now()}`;
+    const layer = {
+      id,
+      name: `Layer ${fxLayerCounter}`,
+      blendMode: 'normal',
+      opacity: 1.0,
+      effectOverrides: {},
+      ...overrides,
+    };
+    fxLayers.push(layer);
+    renderLayersList();
+    updateLayersPreview();
+    return layer;
+  }
+
+  function removeEffectLayer(id) {
+    const idx = fxLayers.findIndex(l => l.id === id);
+    if (idx !== -1) fxLayers.splice(idx, 1);
+    renderLayersList();
+    updateLayersPreview();
+  }
+
+  function updateEffectLayer(id, props) {
+    const layer = fxLayers.find(l => l.id === id);
+    if (!layer) return;
+    Object.assign(layer, props);
+    if (props.blendMode !== undefined || props.opacity !== undefined) {
+      updateLayersPreview();
+    }
+  }
+
+  function renderLayersList() {
+    layersList.innerHTML = '';
+    fxLayers.forEach(layer => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5';
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = layer.name;
+      nameInput.className = 'flex-1 bg-transparent text-[10px] font-bold text-white border-none outline-none';
+      nameInput.oninput = (e) => updateEffectLayer(layer.id, { name: e.target.value });
+
+      const blendSelect = document.createElement('select');
+      blendSelect.className = 'bg-white/5 border border-white/10 rounded text-[10px] text-white px-1 py-1';
+      ['normal', 'multiply', 'screen', 'overlay', 'soft-light', 'hard-light', 'color-dodge', 'color-burn', 'darken', 'lighten', 'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity'].forEach(mode => {
+        const opt = document.createElement('option');
+        opt.value = mode;
+        opt.textContent = mode;
+        if (mode === layer.blendMode) opt.selected = true;
+        blendSelect.appendChild(opt);
+      });
+      blendSelect.onchange = (e) => updateEffectLayer(layer.id, { blendMode: e.target.value });
+
+      const opacityInput = document.createElement('input');
+      opacityInput.type = 'range';
+      opacityInput.min = '0';
+      opacityInput.max = '1';
+      opacityInput.step = '0.05';
+      opacityInput.value = String(layer.opacity);
+      opacityInput.className = 'w-16';
+      opacityInput.oninput = (e) => updateEffectLayer(layer.id, { opacity: parseFloat(e.target.value) });
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.textContent = '✕';
+      removeBtn.className = 'text-[10px] text-red-400 hover:text-red-300 transition-colors';
+      removeBtn.onclick = () => removeEffectLayer(layer.id);
+
+      row.appendChild(nameInput);
+      row.appendChild(blendSelect);
+      row.appendChild(opacityInput);
+      row.appendChild(removeBtn);
+      layersList.appendChild(row);
+    });
+  }
+
+  async function updateLayersPreview() {
+    if (fxLayers.length === 0 || !uploadedUrl) {
+      layersPreview.classList.add('hidden');
+      return;
+    }
+    layersPreview.classList.remove('hidden');
+    const ctx = layersPreview.getContext('2d');
+    ctx.clearRect(0, 0, layersPreview.width, layersPreview.height);
+    // Draw base
+    const baseImg = new Image();
+    baseImg.crossOrigin = 'anonymous';
+    await new Promise((resolve, reject) => {
+      baseImg.onload = resolve;
+      baseImg.onerror = reject;
+      baseImg.src = uploadedUrl;
+    });
+    ctx.drawImage(baseImg, 0, 0, layersPreview.width, layersPreview.height);
+    // Composite layers
+    for (const layer of fxLayers) {
+      if (!layer.imageUrl) continue;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = layer.imageUrl;
+      });
+      ctx.globalCompositeOperation = layer.blendMode === 'normal' ? 'source-over' : layer.blendMode;
+      ctx.globalAlpha = layer.opacity;
+      ctx.drawImage(img, 0, 0, layersPreview.width, layersPreview.height);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1.0;
+  }
+
   previewPanel.appendChild(previewTop);
 
   bodyArea.appendChild(effectsPanel);
@@ -556,62 +949,22 @@ export function EffectsStudio() {
 
     const controller = new AbortController();
     const isVideo = activeTab.type === 'i2v';
-    const timeoutMs = isVideo ? 120000 : 60000;
+    const timeoutMs = isVideo ? 180000 : 90000;
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-      const params = {
-        model: activeTab.id,
-        image_url: uploadedUrl,
-        [activeTab.field]: selectedEffect,
-        customThumbnailUrl: customThumbnailUrl || undefined,
-      };
+      const hasLayers = fxLayers.length > 0;
+      const hasKeyframes = fxAnimatedProps.size > 0 && isVideo;
 
-      let profiles = null;
-      try {
-        const raw = localStorage.getItem('remix_contact_profiles');
-        if (raw) profiles = JSON.parse(raw);
-      } catch {
-        profiles = null;
-      }
-      let selectedContactId = null;
-      try {
-        selectedContactId = localStorage.getItem('remix_selected_contact_id');
-      } catch {
-        selectedContactId = null;
-      }
-      const activeProfile = profiles?.find((p) => p.id === selectedContactId) || null;
-
-      const prompt = replaceTokensInPrompt(promptInput.value.trim() || mobilePrompt.value.trim(), activeProfile);
-      if (prompt) params.prompt = prompt;
-
-      let result;
-      if (activeTab.id === 'ai-video-effects' || activeTab.id === 'motion-controls') {
-        params.resolution = '720p';
-        params.duration = 5;
-        result = await muapi.generateVideoEffect(params, controller.signal);
-      } else if (activeTab.type === 'i2v') {
-        params.resolution = '720p';
-        params.duration = 5;
-        result = await muapi.generateI2V(params, controller.signal);
+      if (hasLayers) {
+        // Generate base + each layer, then composite
+        await generateWithLayers(controller);
+      } else if (hasKeyframes) {
+        // Generate video with keyframe segments
+        await generateWithKeyframes(controller);
       } else {
-        result = await muapi.generateI2I(params, controller.signal);
-      }
-
-      if (result?.url) {
-        const mediaType = isVideo ? 'video' : 'image';
-        outputPreview.load(result.url, { type: mediaType, model: activeTab.label, filename: `${selectedEffect}-${Date.now()}` });
-        mobileOutputPreview.load(result.url, { type: mediaType });
-
-        lastResultUrl = result.url;
-        lastResultType = mediaType;
-        lastInputUrl = uploadedUrl;
-        updateComparisonView();
-
-        saveToHistory(result.url, mediaType);
-      } else {
-        outputPreview.showError('No output URL returned');
-        mobileOutputPreview.showError('Failed');
+        // Standard single generation
+        await generateSingle(controller);
       }
     } catch (err) {
       outputPreview.showError(`Error: ${err.message}`);
@@ -623,6 +976,305 @@ export function EffectsStudio() {
       mobileGenBtn.disabled = false;
       generateBtn.textContent = 'Apply Effect';
       mobileGenBtn.textContent = 'Apply Effect';
+    }
+  }
+
+  async function buildBaseParams() {
+    const params = {
+      model: activeTab.id,
+      image_url: uploadedUrl,
+      [activeTab.field]: selectedEffect,
+      customThumbnailUrl: customThumbnailUrl || undefined,
+      guidance_scale: advancedSettings.guidanceScale,
+      steps: advancedSettings.steps,
+      seed: advancedSettings.seed,
+      negative_prompt: advancedSettings.negativePrompt || undefined,
+      denoise_strength: advancedSettings.denoiseStrength,
+      effect_strength: advancedSettings.effectStrength,
+      cfg_scale: advancedSettings.cfgScale,
+    };
+
+    let profiles = null;
+    try {
+      const raw = localStorage.getItem('remix_contact_profiles');
+      if (raw) profiles = JSON.parse(raw);
+    } catch { profiles = null; }
+    let selectedContactId = null;
+    try {
+      selectedContactId = localStorage.getItem('remix_selected_contact_id');
+    } catch { selectedContactId = null; }
+    const activeProfile = profiles?.find((p) => p.id === selectedContactId) || null;
+    const prompt = replaceTokensInPrompt(promptInput.value.trim() || mobilePrompt.value.trim(), activeProfile);
+    if (prompt) params.prompt = prompt;
+
+    return params;
+  }
+
+  async function generateSingle(controller) {
+    const params = await buildBaseParams();
+    const isVideo = activeTab.type === 'i2v';
+    
+    if (activeTab.id === 'ai-video-effects' || activeTab.id === 'motion-controls') {
+      params.resolution = '720p';
+      params.duration = 5;
+      const result = await muapi.generateVideoEffect(params, controller.signal);
+      handleResult(result, isVideo);
+    } else if (activeTab.type === 'i2v') {
+      params.resolution = '720p';
+      params.duration = 5;
+      const result = await muapi.generateI2V(params, controller.signal);
+      handleResult(result, isVideo);
+    } else {
+      const result = await muapi.generateI2I(params, controller.signal);
+      handleResult(result, isVideo);
+    }
+  }
+
+  async function generateWithLayers(controller) {
+    const isVideo = activeTab.type === 'i2v';
+    const layerResults = [];
+    
+    // Generate base
+    const baseParams = await buildBaseParams();
+    let baseResult;
+    if (activeTab.id === 'ai-video-effects' || activeTab.id === 'motion-controls') {
+      baseParams.resolution = '720p';
+      baseParams.duration = 5;
+      baseResult = await muapi.generateVideoEffect(baseParams, controller.signal);
+    } else if (activeTab.type === 'i2v') {
+      baseParams.resolution = '720p';
+      baseParams.duration = 5;
+      baseResult = await muapi.generateI2V(baseParams, controller.signal);
+    } else {
+      baseResult = await muapi.generateI2I(baseParams, controller.signal);
+    }
+    layerResults.push({ url: baseResult.url, blendMode: 'normal', opacity: 1.0 });
+
+    // Generate each layer
+    for (const layer of fxLayers) {
+      const layerParams = await buildBaseParams();
+      // Apply layer overrides
+      if (layer.effectOverrides) {
+        Object.assign(layerParams, layer.effectOverrides);
+      }
+      layerParams.blendMode = layer.blendMode;
+      layerParams.opacity = layer.opacity;
+      
+      let layerResult;
+      if (activeTab.type === 'i2v') {
+        layerParams.resolution = '720p';
+        layerParams.duration = 5;
+        layerResult = await muapi.generateI2V(layerParams, controller.signal);
+      } else {
+        layerResult = await muapi.generateI2I(layerParams, controller.signal);
+      }
+      layerResults.push({ url: layerResult.url, blendMode: layer.blendMode, opacity: layer.opacity });
+    }
+
+    // Composite layers
+    const compositor = new EffectCompositor(1280, 720);
+    await compositor.setBaseImage(baseResult.url);
+    for (let i = 1; i < layerResults.length; i++) {
+      await compositor.addLayer({
+        id: `layer-${i}`,
+        imageSource: layerResults[i].url,
+        blendMode: layerResults[i].blendMode,
+        opacity: layerResults[i].opacity,
+      });
+    }
+    await compositor.composite();
+    const compositeDataUrl = compositor.getOutputDataURL('image/png', 0.92);
+    handleResult({ url: compositeDataUrl }, isVideo);
+  }
+
+  async function generateWithKeyframes(controller) {
+    const isVideo = activeTab.type === 'i2v';
+    const duration = 5; // seconds
+    const keyframeSegments = buildKeyframeSegments(duration);
+    
+    outputPreview.showLoading(`Generating ${keyframeSegments.length} segments...`);
+    mobileOutputPreview.showLoading('Generating segments...');
+
+    const segmentResults = [];
+    for (let i = 0; i < keyframeSegments.length; i++) {
+      const segment = keyframeSegments[i];
+      const params = await buildBaseParams();
+      params.resolution = '720p';
+      params.duration = segment.duration;
+      params.start_time = segment.startTime;
+      params.end_time = segment.endTime;
+      // Apply interpolated params
+      Object.assign(params, segment.params);
+      
+      const result = await muapi.generateVideoEffect(params, controller.signal);
+      segmentResults.push({ url: result.url, startTime: segment.startTime, duration: segment.duration });
+      
+      const progress = Math.round(((i + 1) / keyframeSegments.length) * 100);
+      outputPreview.showLoading(`Generating segment ${i + 1}/${keyframeSegments.length}...`);
+      mobileOutputPreview.showLoading(`Segment ${i + 1}/${keyframeSegments.length}`);
+    }
+
+    // Stitch segments using canvas recording
+    const stitchedBlob = await stitchVideoSegments(segmentResults, duration);
+    const stitchedUrl = URL.createObjectURL(stitchedBlob);
+    handleResult({ url: stitchedUrl }, isVideo);
+  }
+
+  function buildKeyframeSegments(totalDuration) {
+    const segments = [];
+    const animatedProps = {};
+    
+    for (const prop of fxAnimatedProps) {
+      const keyframes = fxKeyframes[prop] || [];
+      if (keyframes.length > 0) {
+        animatedProps[prop] = keyframes;
+      }
+    }
+
+    if (Object.keys(animatedProps).length === 0) {
+      return [{ startTime: 0, endTime: totalDuration, duration: totalDuration, params: {} }];
+    }
+
+    // Collect all keyframe times
+    const times = new Set([0, totalDuration]);
+    for (const keyframes of Object.values(animatedProps)) {
+      for (const kf of keyframes) {
+        times.add(Math.max(0, Math.min(totalDuration, kf.time)));
+      }
+    }
+    const sortedTimes = Array.from(times).sort((a, b) => a - b);
+
+    for (let i = 0; i < sortedTimes.length - 1; i++) {
+      const startTime = sortedTimes[i];
+      const endTime = sortedTimes[i + 1];
+      const midTime = (startTime + endTime) / 2;
+      const params = {};
+      
+      for (const [prop, keyframes] of Object.entries(animatedProps)) {
+        params[prop] = interpolateKeyframes(keyframes, midTime);
+      }
+      
+      segments.push({
+        startTime,
+        endTime,
+        duration: endTime - startTime,
+        params,
+      });
+    }
+
+    return segments;
+  }
+
+  function interpolateKeyframes(keyframes, time) {
+    if (!keyframes || keyframes.length === 0) return 0;
+    if (keyframes.length === 1) return keyframes[0].value;
+
+    // Find surrounding keyframes
+    let before = keyframes[0];
+    let after = keyframes[keyframes.length - 1];
+    
+    for (let i = 0; i < keyframes.length - 1; i++) {
+      if (keyframes[i].time <= time && keyframes[i + 1].time >= time) {
+        before = keyframes[i];
+        after = keyframes[i + 1];
+        break;
+      }
+    }
+
+    if (time <= before.time) return before.value;
+    if (time >= after.time) return after.value;
+
+    const t = (time - before.time) / (after.time - before.time);
+    return before.value + (after.value - before.value) * t;
+  }
+
+  async function stitchVideoSegments(segments, totalDuration) {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.muted = true;
+      video.crossOrigin = 'anonymous';
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = 1280;
+      canvas.height = 720;
+      const ctx = canvas.getContext('2d');
+      
+      const stream = canvas.captureStream(30);
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : 'video/webm';
+      const recorder = new MediaRecorder(stream, { mimeType });
+      const chunks = [];
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+      };
+      
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: mimeType });
+        resolve(blob);
+      };
+      recorder.onerror = (e) => reject(e.error || new Error('MediaRecorder failed'));
+      
+      let segmentIndex = 0;
+      
+      function playNextSegment() {
+        if (segmentIndex >= segments.length) {
+          recorder.stop();
+          return;
+        }
+        
+        const segment = segments[segmentIndex];
+        video.src = segment.url;
+        video.currentTime = 0;
+        
+        video.onseeked = () => {
+          video.play().catch(() => {});
+        };
+        
+        video.onended = () => {
+          segmentIndex++;
+          playNextSegment();
+        };
+        
+        // Timeout fallback
+        setTimeout(() => {
+          if (video.currentTime < (segment.duration - 0.1)) {
+            video.onended();
+          }
+        }, segment.duration * 1000 + 500);
+      }
+      
+      // Draw loop
+      function drawFrame() {
+        if (video.paused || video.ended) {
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        } else {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        }
+        requestAnimationFrame(drawFrame);
+      }
+      drawFrame();
+      
+      recorder.start(100);
+      playNextSegment();
+    });
+  }
+
+  function handleResult(result, isVideo) {
+    if (result?.url) {
+      const mediaType = isVideo ? 'video' : 'image';
+      outputPreview.load(result.url, { type: mediaType, model: activeTab.label, filename: `${selectedEffect}-${Date.now()}` });
+      mobileOutputPreview.load(result.url, { type: mediaType });
+      lastResultUrl = result.url;
+      lastResultType = mediaType;
+      lastInputUrl = uploadedUrl;
+      updateComparisonView();
+      saveToHistory(result.url, mediaType);
+    } else {
+      outputPreview.showError('No output URL returned');
+      mobileOutputPreview.showError('Failed');
     }
   }
 
