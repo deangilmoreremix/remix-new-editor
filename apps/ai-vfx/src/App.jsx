@@ -1,4 +1,3 @@
-'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
@@ -17,11 +16,11 @@ import {
   HelpCircle, 
   Bell 
 } from 'lucide-react';
-import './globals.css'; // if not already imported
-import BottomInputBar from '../components/BottomInputBar';
+import './index.css';
+import BottomInputBar from './components/BottomInputBar.jsx';
 
 
-const HomePage = () => {
+const App = () => {
   const [activeFilter, setActiveFilter] = useState('AI Effects');
   const [showInputBar, setShowInputBar] = useState(true);
   const [showChatButton, setShowChatButton] = useState(false);
@@ -257,27 +256,6 @@ const HomePage = () => {
       trigger_word: "cr34sh crash zoom out effect",
       input_type: "i2v",
     },
-    { 
-      url: 'https://d3adwkbyhxyrtq.cloudfront.net/motioncontrols/Dolly+In.webp', 
-      name: 'Dolly In',
-      path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/dolly-in/adapter_model.safetensors",
-      trigger_word: "d0lly dolly in camera move",
-      input_type: "i2v",
-    },
-    { 
-      url: 'https://d3adwkbyhxyrtq.cloudfront.net/motioncontrols/Dolly+Out.webp', 
-      name: 'Dolly Out',
-      path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/dolly-out/adapter_model.safetensors",
-      trigger_word: "d0lly dolly out camera move",
-      input_type: "i2v",
-    },
-    { 
-      url: 'https://d3adwkbyhxyrtq.cloudfront.net/motioncontrols/Vertigo.webp', 
-      name: 'Vertigo Effect',
-      path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/vertigo/adapter_model.safetensors",
-      trigger_word: "v3rt1go vertigo effect dolly zoom",
-      input_type: "i2v",
-    },
   ];
 
   // VFX Controls (from utility.json)
@@ -364,27 +342,6 @@ const HomePage = () => {
       name: 'Building Explosion',
       path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/77a2daa2-c255-4ea8-9581-594853a6d96e/adapter_model.safetensors",
       trigger_word: "b32ldi4ng exp39lsion the building explodes in a massive blast",
-      input_type: "i2v",
-    },
-    { 
-      url: 'https://d3adwkbyhxyrtq.cloudfront.net/motioncontrols/Invisibility.webp', 
-      name: 'Invisibility',
-      path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/invisibility/adapter_model.safetensors",
-      trigger_word: "1nv1s1bl3 invisibility effect fading away",
-      input_type: "i2v",
-    },
-    { 
-      url: 'https://d3adwkbyhxyrtq.cloudfront.net/motioncontrols/Tentacles.webp', 
-      name: 'Tentacles',
-      path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/tentacles/adapter_model.safetensors",
-      trigger_word: "t3nt4cl3s supernatural tentacles wrap around",
-      input_type: "i2v",
-    },
-    { 
-      url: 'https://d3adwkbyhxyrtq.cloudfront.net/motioncontrols/Turning+Metal.webp', 
-      name: 'Turning Metal',
-      path: "https://d3adwkbyhxyrtq.cloudfront.net/loratensors/turning-metal/adapter_model.safetensors",
-      trigger_word: "t4rn1ng m3t4l body turns to metal",
       input_type: "i2v",
     },
   ];
@@ -593,8 +550,8 @@ const HomePage = () => {
     <div
       style={{
         minHeight: '100vh',
-        background: '#050505',
-        color: 'white',
+        background: 'var(--bg-app, #050505)',
+        color: 'var(--text-primary, #ffffff)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -610,7 +567,7 @@ const HomePage = () => {
           position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.55)', zIndex: 2000,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <div style={{ background: '#0a0a0a', padding: 32, borderRadius: 16, minWidth: 340, minHeight: 220, boxShadow: '0 4px 32px 0 #0008', color: '#fff', display: 'flex', flexDirection: 'column', gap: 18, alignItems: 'center', position: 'relative' }}>
+          <div style={{ background: 'var(--bg-panel, #0a0a0a)', padding: 32, borderRadius: 16, minWidth: 340, minHeight: 220, boxShadow: '0 4px 32px 0 #0008', color: 'var(--text-primary, #fff)', display: 'flex', flexDirection: 'column', gap: 18, alignItems: 'center', position: 'relative' }}>
             {/* Close button */}
             <button
               onClick={() => {
@@ -626,11 +583,11 @@ const HomePage = () => {
                 setPreviewUrl(null);
                 setSelectedEffect(null);
               }}
-              style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: '#fff', fontSize: 22, cursor: 'pointer', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
-              title="Close"
-              aria-label="Close"
-               onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-              onMouseOut={e => e.currentTarget.style.background = 'none'}
+              style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: 'var(--text-primary, #fff)', fontSize: 22, cursor: 'pointer', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
+               title="Close"
+               aria-label="Close"
+               onMouseOver={e => e.currentTarget.style.background = 'var(--border-color, #27272a)'}
+               onMouseOut={e => e.currentTarget.style.background = 'none'}
             >×</button>
             {/* Loading or Video */}
             {(status === 'submitting' || status === 'polling') && (
@@ -638,8 +595,8 @@ const HomePage = () => {
                 <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8, textAlign: 'center' }}>
                   <span role="img" aria-label="hourglass">⏳</span> Generating your video...
                 </div>
-                <div style={{ width: 320, maxWidth: '90vw', height: 8, background: 'rgba(255,255,255,0.03)', borderRadius: 8, margin: '0 auto', overflow: 'hidden' }}>
-                  <div className="loading-bar" style={{ width: '100%', height: '100%', background: 'linear-gradient(90deg,#d9ff00 0%,#c4e600 100%)', animation: 'loadingBarAnim 1.2s linear infinite' }} />
+                <div style={{ width: 320, maxWidth: '90vw', height: 8, background: 'var(--bg-card, #141414)', borderRadius: 8, margin: '0 auto', overflow: 'hidden' }}>
+                  <div className="loading-bar" style={{ width: '100%', height: '100%', background: 'linear-gradient(90deg, var(--color-primary, #d9ff00) 0%, var(--color-accent, #a855f7) 100%)', animation: 'loadingBarAnim 1.2s linear infinite' }} />
                 </div>
                 <style>{`
                   @keyframes loadingBarAnim {
@@ -656,28 +613,28 @@ const HomePage = () => {
                 </div>
                 <video src={videoUrl} controls style={{ maxWidth: 400, maxHeight: 300, borderRadius: 10, marginBottom: 12, background: '#000' }} />
                 <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-                  <a href={videoUrl} download target="_blank" rel="noopener noreferrer" style={{ padding: '8px 18px', borderRadius: 8, background: '#d9ff00', color: '#050505', border: 'none', fontWeight: 600, fontSize: 15, textDecoration: 'none', cursor: 'pointer' }}>Download</a>
+                  <a href={videoUrl} download target="_blank" rel="noopener noreferrer" style={{ padding: '8px 18px', borderRadius: 8, background: 'var(--color-primary, #d9ff00)', color: '#000', border: 'none', fontWeight: 600, fontSize: 15, textDecoration: 'none', cursor: 'pointer' }}>Download</a>
                   <button
-                    onClick={() => {
-                      setShowVideoModal(false);
-                      setStatus('idle');
-                      setError('');
-                      setLog([]);
-                      setVideoUrl('');
-                      setRequestId(null);
-                      setInputText('');
-                      setImageUrl('');
-                      setUploadedFile(null);
-                      setPreviewUrl(null);
-                      setSelectedEffect(null);
-                    }}
-                    style={{ padding: '8px 18px', borderRadius: 8, background: '#0a0a0a', color: '#fff', border: '1px solid rgba(255,255,255,0.16)', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}
-                  >Close</button>
+                     onClick={() => {
+                       setShowVideoModal(false);
+                       setStatus('idle');
+                       setError('');
+                       setLog([]);
+                       setVideoUrl('');
+                       setRequestId(null);
+                       setInputText('');
+                       setImageUrl('');
+                       setUploadedFile(null);
+                       setPreviewUrl(null);
+                       setSelectedEffect(null);
+                     }}
+                     style={{ padding: '8px 18px', borderRadius: 8, background: 'var(--bg-panel, #0a0a0a)', color: 'var(--text-primary, #fff)', border: '1px solid var(--border-color, #444)', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}
+                   >Close</button>
                 </div>
               </>
             )}
             {status === 'error' && error && (
-              <div style={{ color: '#f87171', marginTop: 12, textAlign: 'center' }}>
+                <div style={{ color: 'var(--color-danger, #f87171)', marginTop: 12, textAlign: 'center' }}>
                 <b>Error:</b> {error}
               </div>
             )}
@@ -692,7 +649,7 @@ const HomePage = () => {
                     setRequestId(null);
                     setShowApiKeyModal(true);
                   }}
-                  style={{ padding: '10px 28px', borderRadius: 8, background: '#f87171', color: '#fff', border: 'none', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}
+                  style={{ padding: '10px 28px', borderRadius: 8, background: 'var(--color-danger, #f87171)', color: 'var(--text-primary, #fff)', border: 'none', fontWeight: 600, fontSize: 16, cursor: 'pointer' }}
                 >
                   Retry Generation
                 </button>
@@ -707,110 +664,29 @@ const HomePage = () => {
         </div>
       )}
       {/* Main Content */}
-      <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#050505' }}>
+      <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--bg-app, #050505)' }}>
         {/* Top Header */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           padding: '16px 24px',
-          borderBottom: '1px solid rgba(255,255,255,0.10)',
+          borderBottom: '1px solid var(--border-color, #27272a)',
           width: '100%'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
               width: '32px',
               height: '32px',
-          background: 'linear-gradient(135deg, #d9ff00 0%, #c4e600 100%)',
+              background: 'linear-gradient(135deg, var(--color-accent, #a855f7) 0%, var(--color-primary, #d9ff00) 100%)',
               borderRadius: '4px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <span style={{ color: 'white', fontWeight: 'bold', fontSize: '14px' }}>AI</span>
+              <span style={{ color: 'var(--text-primary, #fff)', fontWeight: 'bold', fontSize: '14px' }}>V</span>
             </div>
-            <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>AI VFX Studio</span>
-          </div>
-        </div>
-
-        {/* Hero banner — full-width AI-created header image (matches other studios) */}
-        <div style={{
-          position: 'relative',
-          width: '100%',
-          height: '180px',
-          borderRadius: '16px',
-          overflow: 'hidden',
-          margin: '16px 24px 0',
-          maxWidth: '1152px'
-        }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/hero.webp"
-            alt="AI VFX Studio"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-          />
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(to top, rgba(5,5,5,0.92) 0%, rgba(5,5,5,0.25) 55%, rgba(5,5,5,0.10) 100%)'
-          }} />
-          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '20px 24px', zIndex: 2 }}>
-            <h1 style={{ fontSize: '28px', fontWeight: 900, color: '#fff', letterSpacing: '-0.02em', margin: 0, marginBottom: '4px' }}>
-              AI VFX Studio
-            </h1>
-            <p style={{ fontSize: '13px', color: '#a1a1aa', margin: 0 }}>
-              Transform static images into stunning cinematic videos with AI-powered visual effects.
-            </p>
-          </div>
-        </div>
-
-        {/* How it works — 3 steps (matches other studios' onboarding) */}
-        <div style={{ width: '100%', maxWidth: '1152px', padding: '24px 24px 0' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-            {[
-              { n: '1', title: 'Define your sequence', body: 'Describe the story you want to tell across multiple frames. Each frame represents a key moment.' },
-              { n: '2', title: 'Set frame count', body: 'Choose how many frames you need (3-12). More frames create a more detailed narrative.' },
-              { n: '3', title: 'Generate frames', body: 'The AI creates each frame with visual consistency, maintaining characters and settings across the sequence.' },
-            ].map((step) => (
-              <div key={step.n} style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.10)',
-                borderRadius: '16px',
-                padding: '20px'
-              }}>
-                <div style={{
-                  width: '28px', height: '28px', borderRadius: '999px',
-                  background: '#d9ff00', color: '#050505',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 800, fontSize: '13px', marginBottom: '12px'
-                }}>{step.n}</div>
-                <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', margin: '0 0 6px' }}>{step.title}</h3>
-                <p style={{ fontSize: '13px', color: '#a1a1aa', margin: 0, lineHeight: 1.5 }}>{step.body}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Quick Tips */}
-          <div style={{
-            marginTop: '16px',
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.10)',
-            borderRadius: '16px',
-            padding: '18px 20px'
-          }}>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginBottom: '10px' }}>Quick Tips</div>
-            <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {[
-                'Start with 4-6 frames for a simple scene',
-                'Describe camera angles for each shot for variety',
-                'Use consistent character descriptions across frames',
-              ].map((tip) => (
-                <li key={tip} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#a1a1aa' }}>
-                  <span style={{ color: '#d9ff00', fontWeight: 700 }}>●</span>
-                  <span>{tip}</span>
-                </li>
-              ))}
-            </ul>
+            <span style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--text-primary, #fff)' }}>vadoo AI</span>
           </div>
         </div>
 
@@ -820,7 +696,7 @@ const HomePage = () => {
           alignItems: 'center',
           gap: '8px',
           padding: '16px 24px',
-          borderBottom: '1px solid rgba(255,255,255,0.10)',
+          borderBottom: '1px solid var(--border-color, #27272a)',
           overflowX: 'auto',
           width: '100%'
         }}>
@@ -834,9 +710,9 @@ const HomePage = () => {
                 gap: '8px',
                 padding: '8px 16px',
                 borderRadius: '20px',
-                border: `1px solid ${activeFilter === filter.name ? '#d9ff00' : 'rgba(255,255,255,0.10)'}`,
-                backgroundColor: activeFilter === filter.name ? 'rgba(255,255,255,0.03)' : 'transparent',
-                color: activeFilter === filter.name ? 'white' : '#9ca3af',
+                border: `1px solid ${activeFilter === filter.name ? 'var(--color-primary, #d9ff00)' : 'var(--border-color, #27272a)'}`,
+                backgroundColor: activeFilter === filter.name ? 'var(--bg-card, #141414)' : 'transparent',
+                color: activeFilter === filter.name ? 'var(--text-primary, #fff)' : 'var(--text-secondary, #a1a1aa)',
                 whiteSpace: 'nowrap',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
@@ -854,7 +730,7 @@ const HomePage = () => {
         <div ref={aiEffectsRef} style={{ flex: 1, padding: '24px', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
             <span style={{ fontSize: '18px' }}>⭐</span>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'white', margin: 0 }}>AI Effects</h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-primary, #fff)', margin: 0 }}>AI Effects</h2>
           </div>
           <div
             style={{
@@ -869,10 +745,10 @@ const HomePage = () => {
                 key={index}
                 style={{
                   cursor: 'pointer',
-                  backgroundColor: selectedEffect && selectedEffect.name === effect.name ? '#d9ff00' : 'rgba(255,255,255,0.03)',
+                  backgroundColor: selectedEffect && selectedEffect.name === effect.name ? 'var(--color-primary, #d9ff00)' : 'var(--bg-card, #141414)',
                   borderRadius: '12px',
                   overflow: 'hidden',
-                  border: selectedEffect && selectedEffect.name === effect.name ? '2px solid #d9ff00' : '1px solid rgba(255,255,255,0.10)',
+                  border: selectedEffect && selectedEffect.name === effect.name ? '2px solid var(--color-primary, #d9ff00)' : '1px solid var(--border-color, #27272a)',
                   display: 'flex',
                   flexDirection: 'column',
                   minHeight: '200px'
@@ -882,10 +758,10 @@ const HomePage = () => {
                 <div style={{
                   position: 'relative',
                   aspectRatio: '4/3',
-                  backgroundColor: 'rgba(255,255,255,0.03)',
+                  backgroundColor: 'var(--bg-card, #141414)',
                   borderRadius: '12px 12px 0 0',
                   overflow: 'hidden',
-                  borderBottom: '1px solid rgba(255,255,255,0.10)',
+                  borderBottom: '1px solid var(--border-color, #27272a)',
                   flex: 1,
                   display: 'flex',
                   alignItems: 'center',
@@ -914,18 +790,18 @@ const HomePage = () => {
                       width: '40px',
                       height: '40px',
                       borderRadius: '50%',
-                      backgroundColor: '#d9ff00',
+                      backgroundColor: 'var(--color-primary, #d9ff00)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}>
-                      <Play size={20} color="white" />
+                      <Play size={20} color="#000" />
                     </div>
                   </div>
                 </div>
                 <p style={{
                   fontSize: '14px',
-                  color: '#fff',
+                  color: 'var(--text-primary, #fff)',
                   textAlign: 'center',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -945,7 +821,7 @@ const HomePage = () => {
         <div ref={motionControlsRef} style={{ flex: 1, padding: '24px', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
             <span style={{ fontSize: '18px' }}>🎬</span>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'white', margin: 0 }}>Motion Controls</h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-primary, #fff)', margin: 0 }}>Motion Controls</h2>
           </div>
           <div
             style={{
@@ -960,10 +836,10 @@ const HomePage = () => {
                 key={index}
                 style={{
                   cursor: 'pointer',
-                  backgroundColor: selectedEffect && selectedEffect.name === control.name ? '#d9ff00' : 'rgba(255,255,255,0.03)',
+                  backgroundColor: selectedEffect && selectedEffect.name === control.name ? 'var(--color-primary, #d9ff00)' : 'var(--bg-card, #141414)',
                   borderRadius: '12px',
                   overflow: 'hidden',
-                  border: selectedEffect && selectedEffect.name === control.name ? '2px solid #d9ff00' : '1px solid rgba(255,255,255,0.10)',
+                  border: selectedEffect && selectedEffect.name === control.name ? '2px solid var(--color-primary, #d9ff00)' : '1px solid var(--border-color, #27272a)',
                   display: 'flex',
                   flexDirection: 'column',
                   minHeight: '200px'
@@ -973,10 +849,10 @@ const HomePage = () => {
                 <div style={{
                   position: 'relative',
                   aspectRatio: '4/3',
-                  backgroundColor: 'rgba(255,255,255,0.03)',
+                  backgroundColor: 'var(--bg-card, #141414)',
                   borderRadius: '12px 12px 0 0',
                   overflow: 'hidden',
-                  borderBottom: '1px solid rgba(255,255,255,0.10)',
+                  borderBottom: '1px solid var(--border-color, #27272a)',
                   flex: 1,
                   display: 'flex',
                   alignItems: 'center',
@@ -994,7 +870,7 @@ const HomePage = () => {
                 </div>
                 <p style={{
                   fontSize: '14px',
-                  color: '#fff',
+                  color: 'var(--text-primary, #fff)',
                   textAlign: 'center',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -1014,7 +890,7 @@ const HomePage = () => {
         <div ref={vfxControlsRef} style={{ flex: 1, padding: '24px', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
             <span style={{ fontSize: '18px' }}>⭐</span>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'white', margin: 0 }}>VFX Controls</h2>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-primary, #fff)', margin: 0 }}>VFX Controls</h2>
           </div>
           <div
             style={{
@@ -1029,10 +905,10 @@ const HomePage = () => {
                 key={index}
                 style={{
                   cursor: 'pointer',
-                  backgroundColor: selectedEffect && selectedEffect.name === vfx.name ? '#d9ff00' : 'rgba(255,255,255,0.03)',
+                  backgroundColor: selectedEffect && selectedEffect.name === vfx.name ? 'var(--color-primary, #d9ff00)' : 'var(--bg-card, #141414)',
                   borderRadius: '12px',
                   overflow: 'hidden',
-                  border: selectedEffect && selectedEffect.name === vfx.name ? '2px solid #d9ff00' : '1px solid rgba(255,255,255,0.10)',
+                  border: selectedEffect && selectedEffect.name === vfx.name ? '2px solid var(--color-primary, #d9ff00)' : '1px solid var(--border-color, #27272a)',
                   display: 'flex',
                   flexDirection: 'column',
                   minHeight: '200px'
@@ -1042,10 +918,10 @@ const HomePage = () => {
                 <div style={{
                   position: 'relative',
                   aspectRatio: '4/3',
-                  backgroundColor: 'rgba(255,255,255,0.03)',
+                  backgroundColor: 'var(--bg-card, #141414)',
                   borderRadius: '12px 12px 0 0',
                   overflow: 'hidden',
-                  borderBottom: '1px solid rgba(255,255,255,0.10)',
+                  borderBottom: '1px solid var(--border-color, #27272a)',
                   flex: 1,
                   display: 'flex',
                   alignItems: 'center',
@@ -1063,7 +939,7 @@ const HomePage = () => {
                 </div>
                 <p style={{
                   fontSize: '14px',
-                  color: '#fff',
+                  color: 'var(--text-primary, #fff)',
                   textAlign: 'center',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -1120,13 +996,13 @@ const HomePage = () => {
             bottom: '80px',
             right: '40px',
             zIndex: 30,
-          background: 'linear-gradient(120deg, #0a0a0a 0%, #d9ff00 100%)',
-            color: 'white',
+            background: 'linear-gradient(120deg, var(--bg-panel, #0a0a0a) 0%, var(--color-primary, #d9ff00) 100%)',
+            color: 'var(--text-primary, #fff)',
             border: 'none',
             borderRadius: '50%',
             width: '54px',
             height: '54px',
-            boxShadow: '0 4px 24px 0 rgba(59,130,246,0.25)',
+            boxShadow: '0 4px 24px 0 rgba(var(--color-primary-rgb, 217, 255, 0), 0.25)',
             display: showInputBar ? 'none' : 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1147,14 +1023,14 @@ const HomePage = () => {
             position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.45)', zIndex: 1000,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <div style={{ background: '#0a0a0a', padding: 32, borderRadius: 16, minWidth: 320, boxShadow: '0 4px 32px 0 #0008', color: '#fff', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ background: 'var(--bg-panel, #0a0a0a)', padding: 32, borderRadius: 16, minWidth: 320, boxShadow: '0 4px 32px 0 #0008', color: 'var(--text-primary, #fff)', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>Enter your MuApi API Key</div>
               <input
                 type="password"
                 value={apiKeyInput}
                 onChange={e => setApiKeyInput(e.target.value)}
                 placeholder="API Key"
-                style={{ padding: 10, borderRadius: 8, border: '1px solid rgba(255,255,255,0.16)', fontSize: 16, background: 'rgba(255,255,255,0.03)', color: '#fff' }}
+                style={{ padding: 10, borderRadius: 8, border: '1px solid var(--border-color, #333)', fontSize: 16, background: 'var(--bg-card, #141414)', color: 'var(--text-primary, #fff)' }}
                 autoFocus
                 disabled={status === 'submitting' || status === 'polling'}
               />
@@ -1164,7 +1040,7 @@ const HomePage = () => {
                     setShowApiKeyModal(false);
                     setApiKeyInput('');
                   }}
-                  style={{ padding: '8px 18px', borderRadius: 8, background: '#0a0a0a', color: '#fff', border: '1px solid rgba(255,255,255,0.16)', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}
+                  style={{ padding: '8px 18px', borderRadius: 8, background: 'var(--bg-panel, #0a0a0a)', color: 'var(--text-primary, #fff)', border: '1px solid var(--border-color, #444)', fontWeight: 500, fontSize: 15, cursor: 'pointer' }}
                   disabled={status === 'submitting' || status === 'polling'}
                 >Cancel</button>
                 <button
@@ -1172,7 +1048,7 @@ const HomePage = () => {
                     setShowApiKeyModal(false);
                     startGenerationWithKey(apiKeyInput);
                   }}
-                  style={{ padding: '8px 18px', borderRadius: 8, background: '#d9ff00', color: '#050505', border: 'none', fontWeight: 600, fontSize: 15, cursor: (!apiKeyInput.trim() || status === 'submitting' || status === 'polling') ? 'not-allowed' : 'pointer', opacity: (!apiKeyInput.trim() || status === 'submitting' || status === 'polling') ? 0.6 : 1 }}
+                  style={{ padding: '8px 18px', borderRadius: 8, background: 'var(--color-primary, #d9ff00)', color: '#000', border: 'none', fontWeight: 600, fontSize: 15, cursor: (!apiKeyInput.trim() || status === 'submitting' || status === 'polling') ? 'not-allowed' : 'pointer', opacity: (!apiKeyInput.trim() || status === 'submitting' || status === 'polling') ? 0.6 : 1 }}
                   disabled={!apiKeyInput.trim() || status === 'submitting' || status === 'polling'}
                 >Continue</button>
               </div>
@@ -1184,4 +1060,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default App;

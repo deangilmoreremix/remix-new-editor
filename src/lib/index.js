@@ -76,6 +76,10 @@ export {
     isNotErrorResponse
 } from './schemas.js';
 
+// Character and Environment registries
+export { CharacterRegistry, characterRegistry } from './characterRegistry.js';
+export { EnvironmentRegistry, environmentRegistry } from './environmentRegistry.js';
+
 // Constants
 export {
     FILE_LIMITS as FILE_SIZE_LIMITS,

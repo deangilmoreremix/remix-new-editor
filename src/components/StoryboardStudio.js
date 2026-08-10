@@ -14,9 +14,11 @@ import { t2iModels, getAspectRatiosForModel } from '../lib/models.js';
 import { ENHANCE_TAGS, QUICK_PROMPTS, buildNanoBananaPrompt } from '../lib/promptUtils.js';
 import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
 import { createUploadPicker } from './UploadPicker.js';
-import { createFullscreenPreview } from '../components/MediaPreview.js';
+import { createFullscreenPreview } from './components/MediaPreview.js';
 import Store from '../stores/base/Store.js';
 import { createAutosave, saveProject, saveProjectSync, loadProjectFromStorage, setSupabaseClient } from '../lib/editor/persistence.js';
+import { generateStoryboardFromIntent } from '../lib/storyboardEngine.js';
+import { navigate } from '../lib/router.js';
 
 let supabaseAvailable = false;
 try {
@@ -155,7 +157,8 @@ function createUndoRedo() {
   return { push, undo, redo, canUndo, canRedo };
 }
 
-export function StoryboardStudio() {
+export function StoryboardStudio(options = {}) {
+  const { embedded = false, onBack } = options;
   const undoRedo = createUndoRedo();
   const autosave = createAutosave({
     debounceMs: 1500,
@@ -164,7 +167,9 @@ export function StoryboardStudio() {
   });
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col bg-app-bg overflow-y-auto relative storyboard-studio';
-  mountStudioChrome(container, { currentRoute: 'storyboard' });
+  if (!embedded) {
+    mountStudioChrome(container, { currentRoute: 'storyboard', onBack });
+  }
   container.setAttribute('data-app', 'storyboard');
 
   const fullscreen = createFullscreenPreview();
@@ -172,15 +177,17 @@ export function StoryboardStudio() {
 
   const topBar = document.createElement('div');
   topBar.className = 'px-4 md:px-8 pt-6 pb-4 shrink-0';
-  const storyBanner = createHeroSection('storyboard', 'h-32 md:h-44 mb-4');
-  if (storyBanner) {
-    const bannerText = document.createElement('div');
-    bannerText.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
-    bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Storyboard Studio</h1><p class="text-white/60 text-xs">Plan your scenes with AI-generated storyboard frames</p>';
-    storyBanner.appendChild(bannerText);
-    topBar.appendChild(storyBanner);
-  } else {
-    topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Storyboard Studio</h1><p class="text-secondary text-xs mb-4">Plan your scenes with AI-generated storyboard frames</p>';
+  if (!embedded) {
+    const storyBanner = createHeroSection('storyboard', 'h-32 md:h-44 mb-4');
+    if (storyBanner) {
+      const bannerText = document.createElement('div');
+      bannerText.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
+      bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Storyboard Studio</h1><p class="text-white/60 text-xs">Plan your scenes with AI-generated storyboard frames</p>';
+      storyBanner.appendChild(bannerText);
+      topBar.appendChild(storyBanner);
+    } else {
+      topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Storyboard Studio</h1><p class="text-secondary text-xs mb-4">Plan your scenes with AI-generated storyboard frames</p>';
+    }
   }
   const inlineInstructions = createInlineInstructions('storyboard');
   inlineInstructions.classList.add('px-4', 'md:px-8', 'mt-2');
@@ -188,14 +195,198 @@ export function StoryboardStudio() {
 
   container.appendChild(topBar);
 
+  let generatedStoryboard = null;
+
+  const videoIntentSection = document.createElement('div');
+  videoIntentSection.className = 'px-4 md:px-8 mb-4';
+  videoIntentSection.innerHTML = `
+    <div class="bg-white/5 border border-white/10 rounded-xl p-4 md:p-6">
+      <button id="video-intent-toggle" class="flex items-center justify-between w-full text-left mb-4">
+        <span class="text-sm font-bold text-white">Video Intent</span>
+        <svg id="video-intent-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-white/60 transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="video-intent-form" class="hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Video Type</label>
+            <select id="vi-videoType" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
+              <option value="commercial">Commercial</option>
+              <option value="brand film">Brand Film</option>
+              <option value="trailer">Trailer</option>
+              <option value="social reel">Social Reel</option>
+              <option value="testimonial">Testimonial</option>
+              <option value="documentary">Documentary</option>
+              <option value="short film">Short Film</option>
+              <option value="explainer">Explainer</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Duration (seconds)</label>
+            <input type="number" id="vi-duration" value="60" min="10" max="300" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Aspect Ratio</label>
+            <select id="vi-aspectRatio" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
+              <option value="16:9">16:9</option>
+              <option value="9:16">9:16</option>
+              <option value="1:1">1:1</option>
+              <option value="4:5">4:5</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Tone</label>
+            <select id="vi-tone" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
+              <option value="dramatic">Dramatic</option>
+              <option value="cinematic">Cinematic</option>
+              <option value="upbeat">Upbeat</option>
+              <option value="luxury">Luxury</option>
+              <option value="gritty">Gritty</option>
+              <option value="minimal">Minimal</option>
+              <option value="emotional">Emotional</option>
+              <option value="humorous">Humorous</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Style Preset</label>
+            <select id="vi-stylePreset" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
+              <option value="None">None</option>
+              <option value="Photorealistic">Photorealistic</option>
+              <option value="Cinematic">Cinematic</option>
+              <option value="Noir">Noir</option>
+              <option value="Anime">Anime</option>
+              <option value="Watercolor">Watercolor</option>
+              <option value="Oil Painting">Oil Painting</option>
+              <option value="Cyberpunk">Cyberpunk</option>
+              <option value="Fantasy">Fantasy</option>
+              <option value="Documentary">Documentary</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Lighting Preset</label>
+            <select id="vi-lightingPreset" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
+              <option value="None">None</option>
+              <option value="Golden Hour">Golden Hour</option>
+              <option value="Neon">Neon</option>
+              <option value="Studio">Studio</option>
+              <option value="Dramatic">Dramatic</option>
+              <option value="Soft">Soft</option>
+              <option value="Volumetric">Volumetric</option>
+              <option value="High Key">High Key</option>
+              <option value="Low Key">Low Key</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Color Grade</label>
+            <select id="vi-colorGrade" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer">
+              <option value="None">None</option>
+              <option value="Warm">Warm</option>
+              <option value="Cool">Cool</option>
+              <option value="Desaturated">Desaturated</option>
+              <option value="Vibrant">Vibrant</option>
+              <option value="Monochrome">Monochrome</option>
+              <option value="Sepia">Sepia</option>
+              <option value="Teal & Orange">Teal & Orange</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Target Audience</label>
+            <input type="text" id="vi-targetAudience" placeholder="e.g. Gen Z, professionals" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Call to Action (optional)</label>
+            <input type="text" id="vi-cta" placeholder="e.g. Buy now, Sign up" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none" />
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Subject</label>
+          <input type="text" id="vi-subject" placeholder="What is the video about?" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-[10px] font-bold text-secondary uppercase tracking-widest mb-1.5">Premise</label>
+          <textarea id="vi-premise" rows="3" placeholder="Core narrative or value prop..." class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs placeholder:text-muted focus:outline-none resize-none"></textarea>
+        </div>
+        <div class="flex items-center gap-3 flex-wrap">
+          <button id="vi-generate-btn" class="px-4 py-2 bg-primary text-black rounded-xl text-xs font-bold hover:shadow-glow transition-all">Generate Storyboard</button>
+          <button id="vi-template-btn" class="hidden px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white hover:bg-white/10 transition-all">Send to Template Studio</button>
+          <span id="vi-status" class="text-[10px] text-muted"></span>
+        </div>
+        <p class="text-[10px] text-muted mt-3">Describe your video and we'll generate a complete storyboard with frames, shots, and prompts.</p>
+      </div>
+    </div>
+  `;
+
+  container.appendChild(videoIntentSection);
+
+  const toggleBtn = videoIntentSection.querySelector('#video-intent-toggle');
+  const formEl = videoIntentSection.querySelector('#video-intent-form');
+  const chevron = videoIntentSection.querySelector('#video-intent-chevron');
+  toggleBtn.addEventListener('click', () => {
+    const isHidden = formEl.classList.contains('hidden');
+    formEl.classList.toggle('hidden');
+    chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+  });
+
+  const generateBtn = videoIntentSection.querySelector('#vi-generate-btn');
+  const templateBtn = videoIntentSection.querySelector('#vi-template-btn');
+  const statusEl = videoIntentSection.querySelector('#vi-status');
+
+  generateBtn.addEventListener('click', async () => {
+    if (!(await requireEntitlement())) return;
+    const intent = {
+      videoType: videoIntentSection.querySelector('#vi-videoType').value,
+      duration: parseInt(videoIntentSection.querySelector('#vi-duration').value, 10) || 60,
+      aspectRatio: videoIntentSection.querySelector('#vi-aspectRatio').value,
+      subject: videoIntentSection.querySelector('#vi-subject').value,
+      premise: videoIntentSection.querySelector('#vi-premise').value,
+      tone: videoIntentSection.querySelector('#vi-tone').value,
+      targetAudience: videoIntentSection.querySelector('#vi-targetAudience').value,
+      stylePreset: videoIntentSection.querySelector('#vi-stylePreset').value,
+      lightingPreset: videoIntentSection.querySelector('#vi-lightingPreset').value,
+      colorGrade: videoIntentSection.querySelector('#vi-colorGrade').value,
+      cta: videoIntentSection.querySelector('#vi-cta').value,
+      model: selectedModel,
+      customThumbnailUrl: customThumbnailUrl || undefined,
+    };
+
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
+    statusEl.textContent = 'Generating storyboard...';
+
+    try {
+      const result = await generateStoryboardFromIntent(intent, { generateImages: true });
+      generatedStoryboard = result;
+      frames.length = 0;
+      frames.push(...result.frames.map(f => ({ ...f, imageUrl: f.imageUrl || null })));
+      frameDurations = frames.map(() => Math.max(2, Math.round(intent.duration / frames.length)));
+      layout = 'grid';
+      layoutSelect.value = 'grid';
+      renderFrames();
+      templateBtn.classList.remove('hidden');
+      statusEl.textContent = `Generated ${result.frames.length} frames`;
+      showToast('Storyboard generated from intent', 'success');
+    } catch (err) {
+      statusEl.textContent = '';
+      showToast('Generation failed: ' + err.message, 'error');
+    } finally {
+      generateBtn.disabled = false;
+      generateBtn.textContent = 'Generate Storyboard';
+    }
+  });
+
+  templateBtn.addEventListener('click', () => {
+    if (!generatedStoryboard) return;
+    if (typeof window.useStoryboardInTemplate === 'function') {
+      window.useStoryboardInTemplate(generatedStoryboard);
+    } else {
+      navigate('cinema-template', { storyboard: JSON.stringify(generatedStoryboard) });
+    }
+  });
+
   const frames = [
     { prompt: '', narration: '', shot: 'Wide Shot', imageUrl: null, notes: '', referenceImages: [] },
     { prompt: '', narration: '', shot: 'Medium Shot', imageUrl: null, notes: '', referenceImages: [] },
     { prompt: '', narration: '', shot: 'Close-Up', imageUrl: null, notes: '', referenceImages: [] },
   ];
-
-  let comparisonMode = false;
-  let compareIndices = [0, 0];
 
   let frameDurations = frames.map(() => 3);
 
@@ -617,7 +808,7 @@ export function StoryboardStudio() {
               <span>Available models</span>
               <span data-provider-badge class="text-[10px] bg-white/5 px-2 py-0.5 rounded text-white/60 hidden"></span>
             </div>
-            <div data-model-list></div>
+            <div data-model-list"></div>
           </div>
         </div>
       `;

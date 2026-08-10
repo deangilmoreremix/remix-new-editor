@@ -134,57 +134,6 @@ export function TemplateStudio(templateId) {
   backBtn.onclick = () => navigate('templates');
   contentArea.appendChild(backBtn);
 
-  // Cinematic wizard CTA: opt-in alternative flow for templates flagged
-  // `cinematic: true`. Hidden by default; clicking mounts the wizard inline
-  // in place of the standard form.
-  let wizardMounted = false;
-  let wizardContainer = null;
-  if (template.cinematic) {
-    const wizardRow = document.createElement('div');
-    wizardRow.className = 'mb-6 flex items-center gap-3 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl';
-    wizardRow.innerHTML = `
-      <div class="flex-1 min-w-0">
-        <div class="text-sm font-bold text-white">Cinematic wizard available</div>
-        <div class="text-xs text-secondary">Step-by-step storyboard builder with scene structure, visual style, and brand context.</div>
-      </div>
-      <button id="open-wizard-btn" class="px-4 py-2 bg-emerald-500 text-black font-black rounded-xl text-sm hover:scale-[1.02] transition-transform">Open wizard</button>
-    `;
-    contentArea.appendChild(wizardRow);
-
-    wizardRow.querySelector('#open-wizard-btn').onclick = () => {
-      if (wizardMounted) return;
-      wizardMounted = true;
-      // Import the wizard lazily so non-cinematic templates don't pull it in
-      import('./CinematicTemplateWizard.js').then(({ CinematicTemplateWizard }) => {
-        wizardContainer = CinematicTemplateWizard({
-          template,
-          onCancel: () => {
-            if (wizardContainer && wizardContainer.parentNode) wizardContainer.parentNode.removeChild(wizardContainer);
-            wizardMounted = false;
-            wizardContainer = null;
-            wizardRow.style.display = '';
-          },
-          onGenerate: (result) => {
-            // Hand the result back to TemplateStudio's render flow by stashing
-            // it on the container. Future enhancement: render the player in
-            // the existing result area.
-            container.__wizardResult = result;
-          },
-        });
-        wizardContainer.className = 'mb-8';
-        contentArea.insertBefore(wizardContainer, centeredContainer);
-        wizardRow.style.display = 'none';
-      }).catch((e) => {
-        console.error('[TemplateStudio] wizard load failed:', e);
-        // Show user-facing feedback in the wizard CTA row
-        const errorMsg = document.createElement('div');
-        errorMsg.className = 'text-xs text-red-300 mt-2';
-        errorMsg.textContent = 'Cinematic wizard failed to load. You can still use the standard form below.';
-        wizardRow.appendChild(errorMsg);
-      });
-    };
-  }
-
   // Centered template container
   const centeredContainer = document.createElement('div');
   centeredContainer.className = 'mx-auto max-w-[980px]';

@@ -40,11 +40,15 @@ function normalizeEffectName(name) {
 
 export class MuapiClient {
     constructor() {
-        // Validate that Supabase URL is configured before building proxy URL
+        // In dev, prefer the same-origin relative path so Vite can proxy it
+        // without triggering the Supabase function's cross-site Origin check.
+        // In production, keep using the configured Supabase proxy URL.
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        if (!supabaseUrl) {
+        if (import.meta.env.DEV) {
+            this.proxyUrl = '/functions/v1/muapi-proxy';
+        } else if (!supabaseUrl) {
             console.error('[MuapiClient] VITE_SUPABASE_URL is not configured');
-            this.proxyUrl = '/functions/v1/muapi-proxy'; // Fallback to relative path
+            this.proxyUrl = '/functions/v1/muapi-proxy';
         } else {
             this.proxyUrl = `${supabaseUrl}/functions/v1/muapi-proxy`;
         }
@@ -64,7 +68,8 @@ export class MuapiClient {
 
     _getMuapiHeaders() {
         const key = this.apiKeyManager.getMuapiKey();
-        if (key && !isDevBypass) {
+        const isPlaceholder = key === 'dev-bypass-key-not-real';
+        if (key && (!isDevBypass || !isPlaceholder)) {
             return { 'Content-Type': 'application/json', 'x-api-key': key };
         }
         return { 'Content-Type': 'application/json' };

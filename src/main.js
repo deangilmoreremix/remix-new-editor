@@ -125,7 +125,7 @@ try {
 
   // Hash-based routing (e.g. /#/signin)
   if (hash && hash.startsWith('#/')) {
-    const hashPage = hash.slice(2);
+    const hashPage = hash.slice(2).replace(/^\//, '');
     if (hashPage) initialPage = hashPage;
   }
 

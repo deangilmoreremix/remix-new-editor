@@ -18,7 +18,7 @@ const _customThumbnailCache = (() => {
   try {
     const raw = localStorage.getItem(CUSTOM_THUMB_KEY);
     return raw ? new Map(Object.entries(JSON.parse(raw))) : new Map();
-  } catch (_) {
+  } catch {
     return new Map();
   }
 })();
@@ -26,7 +26,7 @@ const _customThumbnailCache = (() => {
 function _persistCustomThumbnails() {
   try {
     localStorage.setItem(CUSTOM_THUMB_KEY, JSON.stringify(Object.fromEntries(_customThumbnailCache)));
-  } catch (_) { /* storage unavailable — keep in-memory only */ }
+  } catch { /* storage unavailable — keep in-memory only */ }
 }
 
 export function saveCustomThumbnailToCache(templateId, imageUrl) {
@@ -384,21 +384,36 @@ export function getTemplateThumbnail(templateId) {
 // Get a list of all candidate paths to try for a template, in priority order.
 // Used by createThumbnailImg so niche templates can fall back to industry
 // thumbnails when their individual file is missing.
+const TEMPLATE_ID_TO_THUMBNAIL = {
+  'fashion_lifestyle_film': 'fashion_lifestyle',
+  'high_end_ugc_cinematic': 'high_end_ugc',
+  'visual_pitch_film': 'visual_pitch',
+  'case_study_film': 'case_study',
+};
+
+// Some template ids differ from their thumbnail file stem (suffix drops or slug differs).
+// Normalize template id → file stem so candidate generation hits real files on disk.
+function thumbnailStemForId(id) {
+  if (!id) return id;
+  return TEMPLATE_ID_TO_THUMBNAIL[id] || id;
+}
+
 export function getTemplateThumbnailCandidates(template) {
   const candidates = [];
   const id = typeof template === 'string' ? template : template?.id;
   const niche = typeof template === 'object' ? template?.niche : null;
   const category = typeof template === 'object' ? template?.category : null;
+  const stem = thumbnailStemForId(id);
 
   // 0) User-selected custom thumbnail (highest priority) — set via TemplateStudio
   const customThumb = getCustomThumbnailFromCache(id);
   if (customThumb) candidates.push(customThumb);
 
   // 1) Per-template .webp — unique to this template, never deduped
-  if (id) candidates.push(`/thumbnails/templates/${id}.webp`);
+  if (stem) candidates.push(`/thumbnails/templates/${stem}.webp`);
 
   // 2) Per-template .webp.png
-  if (id) candidates.push(`/thumbnails/templates/${id}.webp.png`);
+  if (stem) candidates.push(`/thumbnails/templates/${stem}.webp.png`);
 
   // 3) Niche/industry thumbnail rotation — find the FIRST unused rotation entry
   // for this niche and claim only that one; the rest of the niche's own pool

@@ -1,13 +1,12 @@
-const path = require('path');
-const glob = require('glob');
-const withSass = require('@zeit/next-sass');
-const withImages = require('next-images');
-// const withTM = require('next-transpile-modules')([
-//   '@pqina/pintura',
-//   '@pqina/react-pintura',
-// ]);
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { glob } from 'glob';
+import withSass from '@zeit/next-sass';
+import withImages from 'next-images';
 
-module.exports = withSass({
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+export default withSass({
   exportPathMap() {
     return {
       '/': { page: '/' },
@@ -47,8 +46,5 @@ module.exports = withSass({
     },
   },
   withImages: withImages(),
-  // withTM:withTM({
-  //   swcMinify: false,
-  // }),
   compress: false,
 });

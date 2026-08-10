@@ -4,6 +4,15 @@
  * Supports quick mode (simple inputs) and advanced mode (full scene/shot control)
  */
 
+import {
+  FILM_TYPES,
+  detectNiche,
+  getStoryBeats,
+  inferFilmTypeFromBlueprint
+} from './templateEngine.js';
+
+import { ContinuityEngine } from './continuityEngine.js';
+
 // ============================================
 // TEMPLATE CATEGORIES
 // ============================================
@@ -338,7 +347,7 @@ export const CINEMATIC_TEMPLATES = [
     aspectRatios: ['16:9', '21:9', '9:16'],
     sceneStructure: SCENE_STRUCTURES.THREE_ACT,
     quickInputs: [
-      { name: 'genre', type: 'select', label: 'Genre', placeholder: 'e.g. drama, action, romance', required: true },
+      { name: 'genre', type: 'select', label: 'Genre', placeholder: 'e.g. drama, action, romance', required: true, options: ['action', 'drama', 'comedy', 'horror', 'sci-fi', 'romance', 'thriller'] },
       { name: 'premise', type: 'textarea', label: 'Story Premise', placeholder: 'What happens in your story?', required: true },
       { name: 'tone', type: 'select', label: 'Tone', options: ['dramatic', 'lighthearted', 'mysterious', 'uplifting'] }
     ],
@@ -1745,159 +1754,566 @@ export class PromptAssemblyEngine {
   assemble() {
     const parts = [];
 
-    // 1. Scene/Story foundation
-    parts.push(this.getScenePrompt());
+    // 1. Core cinematic type + narrative
+    parts.push(this.buildNarrativeSection());
 
-    // 2. Visual style
-    parts.push(this.getVisualStylePrompt());
+    // 2. Subject & action details
+    parts.push(this.buildSubjectSection());
 
-    // 3. Camera & shot specifications
-    if (this.mode === 'advanced') {
-      parts.push(this.getCameraPrompt());
-      parts.push(this.getShotPrompt());
-    }
+    // 3. Setting & environment
+    parts.push(this.buildSettingSection());
 
-    // 4. Pacing & editing
-    parts.push(this.getPacingPrompt());
+    // 4. Cinematography — ALWAYS included for video
+    parts.push(this.buildCinematographySection());
 
-    // 5. Brand context injection
+    // 5. Lighting design
+    parts.push(this.buildLightingSection());
+
+    // 6. Color palette & grading
+    parts.push(this.buildColorSection());
+
+    // 7. Mood & emotional tone
+    parts.push(this.buildMoodSection());
+
+    // 8. Pacing, editing & transitions
+    parts.push(this.buildPacingSection());
+
+    // 9. Audio direction
+    parts.push(this.buildAudioSection());
+
+    // 10. Brand context injection
     if (this.template.includeBrandContext) {
       parts.push(this.getBrandPrompt());
     }
 
-    // 6. Output style modifiers
-    parts.push(this.getOutputStylePrompt());
-
-    // 7. CTA (if applicable)
+    // 11. CTA (if applicable)
     if (this.template.includeCTA && this.options.includeCTA !== false) {
       parts.push(this.getCTAPrompt());
     }
 
-    // 8. Technical specs
+    // 12. Technical specs & format
     parts.push(this.getTechnicalSpecs());
 
-    return parts.filter(p => p).join(', ');
+    // 13. Style references / film grammar
+    parts.push(this.buildStyleReferenceSection());
+
+    return parts.filter(Boolean).join(', ');
   }
 
-  getScenePrompt() {
-    const { genre, premise, story, subject, hook, content } = this.inputs;
-    
-    const sceneElements = [];
-    
-    if (genre) sceneElements.push(`${genre} genre`);
-    if (premise) sceneElements.push(premise);
-    if (story) sceneElements.push(story);
-    if (subject) sceneElements.push(subject);
-    if (hook) sceneElements.push(`opening hook: ${hook}`);
-    if (content) sceneElements.push(content);
-    
-    return sceneElements.join(', ');
-  }
+  buildNarrativeSection() {
+    const typeLabel = this.template.name || 'Cinematic video';
+    const outputStyle = this.template.outputStyle;
+    const styleDesc = outputStyle ? outputStyle.description : '';
+    const characteristics = outputStyle && outputStyle.characteristics
+      ? outputStyle.characteristics.slice(0, 3).join(', ')
+      : 'cinematic, high-production, emotionally engaging';
 
-  getVisualStylePrompt() {
-    const visualStyle = this.inputs.visualStyle || this.options.visualStyle;
-    if (visualStyle && VISUAL_STYLES[visualStyle.toUpperCase().replace(/ /g, '_')]) {
-      const style = VISUAL_STYLES[visualStyle.toUpperCase().replace(/ /g, '_')];
-      return style.modifiers.join(', ');
+    const storyBeats = getStoryBeats(
+      inferFilmTypeFromBlueprint(this.template.storyBlueprint || this.template.sceneStructure || '')
+    );
+
+    let narrative = `${typeLabel}. ${styleDesc}. `;
+    narrative += `Visual narrative structure: ${storyBeats.join(' → ')}. `;
+    narrative += `Key qualities: ${characteristics}. `;
+
+    const coreInputs = this.inputs;
+    const premise =
+      coreInputs.premise ||
+      coreInputs.story ||
+      coreInputs.brandStory ||
+      coreInputs.keyMessage ||
+      coreInputs.problem ||
+      coreInputs.solution ||
+      coreInputs.journey ||
+      coreInputs.conflict ||
+      coreInputs.sceneDescription ||
+      coreInputs.sequence ||
+      coreInputs.content ||
+      '';
+
+    if (premise) {
+      narrative += `Core narrative: ${premise}. `;
     }
-    
-    // Default cinematic modifiers
-    return 'cinematic color grading, professional cinematography, moody atmospheric lighting, high production value';
+
+    const niche = detectNiche({
+      businessType: coreInputs.businessType,
+      niche: coreInputs.niche,
+      productService: coreInputs.subject,
+      rawIdea: premise
+    });
+    const nicheLabel = niche.replace(/-/g, ' ');
+    narrative += `Genre context: ${nicheLabel}. `;
+
+    return narrative.trim();
   }
 
-  getCameraPrompt() {
-    const { camera, lens, focal, aperture } = this.inputs;
+  buildSubjectSection() {
+    const i = this.inputs;
     const parts = [];
 
-    if (camera) parts.push(`camera: ${camera}`);
-    if (lens) parts.push(`lens: ${lens}`);
-    if (focal) parts.push(`focal length: ${focal}mm`);
-    if (aperture) parts.push(`aperture: ${aperture}`);
+    const subject = i.subject || i.product || i.brandName || i.company || i.startupName || i.clientName || i.founderName || i.character || '';
+    const emotion = i.emotion || i.tone || '';
 
-    return parts.join(', ');
+    if (subject) {
+      const contextualVerbs = {
+        restaurant: 'being prepared, plated, and served with care',
+        med_spa: 'receiving treatment, glowing transformation',
+        salon: 'receiving a fresh look, confident reveal',
+        barbershop: 'getting a precision cut, sharp transformation',
+        fitness: 'training hard, pushing limits, transforming',
+        real_estate: 'showcasing space, light-filled living',
+        dental: 'bright smile reveal, comfortable care',
+        chiropractic: 'adjustment, relief, mobility restored',
+        legal: 'consultation, trust, expertise',
+        automotive: 'driving, sleek motion, performance',
+        fashion: 'posing, movement, texture detail',
+        event: 'gathering, celebration, energy',
+        luxury: 'exclusive experience, refined detail',
+        saas: 'interface in use, seamless workflow',
+        agency: 'creative process, collaboration, results'
+      };
+
+      const niche = detectNiche({
+        businessType: i.businessType,
+        niche: i.niche,
+        productService: i.subject,
+        rawIdea: subject
+      }).toLowerCase().replace(/[^a-z0-9_]/g, '_');
+
+      const verb = contextualVerbs[niche] || 'centered, dynamic, emotionally grounded';
+      parts.push(`${subject} — ${verb}`);
+    }
+
+    if (emotion) {
+      parts.push(`Emotional tone: ${emotion}`);
+    }
+
+    const businessType = i.businessType || '';
+    const audience = i.audience || '';
+    const setting = i.setting || '';
+    if (businessType) parts.push(`Business context: ${businessType}`);
+    if (audience) parts.push(`Intended audience: ${audience}`);
+    if (setting) parts.push(`Primary setting: ${setting}`);
+
+    return parts.length ? parts.join('. ') + '.' : '';
   }
 
-  getShotPrompt() {
-    const { shotType, cameraMovement } = this.inputs;
+  buildSettingSection() {
+    const i = this.inputs;
     const parts = [];
 
+    const setting = i.setting || i.location || i.environment || '';
+    const visualStyle = (i.visualStyle || 'commercial').toLowerCase();
+
+    if (setting) {
+      const styleDefaults = {
+        luxury: 'golden hour, warm ambient light, premium atmosphere',
+        dramatic: 'dusk, dramatic shadows, volumetric haze',
+        documentary: 'natural daylight, authentic environment, real-world conditions',
+        commercial: 'bright studio lighting, clean environment, professional setup',
+        bold: 'high-key lighting, bold color blocks, graphic environment',
+        minimal: 'clean neutral background, soft shadows, airy space',
+        warm: 'golden hour, warm tones, inviting glow',
+        cool: 'blue hour, cool tones, modern atmosphere',
+        low_key_dark: 'night, selective illumination, moody shadows',
+        film_noir: 'night, venetian blind shadows, high contrast'
+      };
+
+      const defaultSetting = styleDefaults[visualStyle] || styleDefaults.commercial;
+      parts.push(`${setting}, ${defaultSetting}`);
+    }
+
+    const extra = i.extraInstructions || '';
+    if (extra && extra.length > 10) {
+      parts.push(`Creative direction: ${extra}`);
+    }
+
+    return parts.length ? parts.join('. ') + '.' : '';
+  }
+
+  buildCinematographySection() {
+    const i = this.inputs;
+    const parts = [];
+
+    // Shot type
+    const shotType = i.shotType || i.sceneType || '';
     if (shotType && SHOT_TYPES[shotType.toUpperCase().replace(/ /g, '_')]) {
       const shot = SHOT_TYPES[shotType.toUpperCase().replace(/ /g, '_')];
-      parts.push(shot.description);
+      parts.push(`${shot.description}`);
+    } else {
+      parts.push('Medium-wide cinematic framing, rule of thirds composition');
     }
 
-    if (cameraMovement && CAMERA_MOVEMENTS[cameraMovement.toUpperCase().replace(/ /g, '_')]) {
-      const movement = CAMERA_MOVEMENTS[cameraMovement.toUpperCase().replace(/ /g, '_')];
-      parts.push(`camera movement: ${movement.description}`);
+    // Camera movement
+    const movements = i.cameraMovements || (i.cameraMovement ? [i.cameraMovement] : []);
+    if (movements.length) {
+      const validMovements = movements
+        .map(m => CAMERA_MOVEMENTS[m.toUpperCase().replace(/ /g, '_')])
+        .filter(Boolean)
+        .map(m => m.description);
+      if (validMovements.length) {
+        parts.push(`Camera movement: ${validMovements.join(', ')}`);
+      }
+    } else {
+      parts.push('Slow dolly in with subtle push-in, smooth and steady');
     }
+
+    // Lens / optics
+    const lens = i.lens || '';
+    const focal = i.focal || '';
+    const aperture = i.aperture || '';
+    if (lens) parts.push(`Lens: ${lens}`);
+    if (focal) parts.push(`Focal length: ${focal}mm`);
+    if (aperture) parts.push(`Aperture: f/${aperture}`);
+
+    if (!lens && !focal) {
+      parts.push('Anamorphic lens aesthetic, cinematic bokeh, shallow depth of field');
+    }
+
+    // Camera body / format hint
+    parts.push('Shot on cinema camera, professional color pipeline, filmic texture');
 
     return parts.join(', ');
   }
 
-  getPacingPrompt() {
-    const { pacing } = this.inputs;
-    
-    if (pacing && PACING_OPTIONS[pacing.toUpperCase()]) {
-      const pace = PACING_OPTIONS[pacing.toUpperCase()];
-      return `${pace.name} editing, ${pace.description}`;
-    }
-    
-    return 'moderate cinematic pacing, deliberate shot composition';
-  }
-
-  getBrandPrompt() {
-    const { brandName, brandVoice, targetAudience } = { ...this.brandContext, ...this.inputs };
+  buildLightingSection() {
+    const i = this.inputs;
     const parts = [];
 
-    if (brandName) parts.push(`brand: ${brandName}`);
-    if (brandVoice && BRAND_VOICES[brandVoice.toUpperCase()]) {
-      const voice = BRAND_VOICES[brandVoice.toUpperCase()];
-      parts.push(`brand voice: ${voice.adjectives.join(', ')}`);
-    }
-    if (targetAudience && TARGET_AUDIENCES[targetAudience.toUpperCase()]) {
-      const audience = TARGET_AUDIENCES[targetAudience.toUpperCase()];
-      parts.push(`target audience: ${audience.name}`);
+    const visualStyle = (i.visualStyle || 'commercial').toLowerCase();
+
+    const lightingProfiles = {
+      luxury: 'soft key light, subtle rim light, elegant fill, warm highlights, controlled shadows',
+      dramatic: 'high-contrast key light, deep shadows, dramatic backlight, chiaroscuro elements',
+      documentary: 'natural available light, soft fill, ambient environmental lighting, authentic exposure',
+      commercial: 'bright key light, clean fill, softbox diffusion, even exposure, product-friendly lighting',
+      bold: 'bold key light, strong contrast, colorful gels, high-impact illumination',
+      minimal: 'clean single-source lighting, soft shadows, minimalist illumination, airy exposure',
+      warm: 'golden-hour warmth, amber key, soft orange fill, inviting ambient glow',
+      cool: 'cool LED panels, blue-hour feel, crisp highlights, modern atmosphere',
+      low_key_dark: 'low-key lighting, selective illumination, deep blacks, moody shadows',
+      film_noir: 'high-contrast noir lighting, venetian blind shadows, dramatic single source'
+    };
+
+    const profile = lightingProfiles[visualStyle] || lightingProfiles.commercial;
+    parts.push(profile);
+
+    // Add film-specific lighting hints
+    const outputStyleId = this.template.outputStyle?.id || '';
+    if (outputStyleId.includes('luxury') || outputStyleId.includes('emotional')) {
+      parts.push('soft luxury glow, premium interior atmosphere');
+    } else if (outputStyleId.includes('dramatic') || outputStyleId.includes('trailer')) {
+      parts.push('dramatic side-light, volumetric haze, anamorphic lens flares');
+    } else if (outputStyleId.includes('documentary')) {
+      parts.push('natural documentary lighting, handheld authenticity, real-world exposure');
     }
 
     return parts.join(', ');
   }
 
-  getOutputStylePrompt() {
-    if (this.template.outputStyle) {
-      const style = this.template.outputStyle;
-      return style.characteristics.join(', ');
+  buildColorSection() {
+    const i = this.inputs;
+    const visualStyle = (i.visualStyle || 'commercial').toLowerCase();
+
+    const palettes = {
+      luxury: 'warm gold and champagne palette, soft highlights, muted tones, elegant contrast',
+      dramatic: 'high-contrast teal and orange, deep shadows, crushed blacks, intense color separation',
+      documentary: 'natural color palette, muted tones, authentic skin tones, realistic white balance',
+      commercial: 'clean vibrant palette, brand-forward colors, high saturation, polished finish',
+      bold: 'bold saturated colors, high contrast, striking color blocking, graphic intensity',
+      minimal: 'neutral palette, clean whites, subtle tones, refined simplicity',
+      warm: 'warm amber and gold tones, golden-hour color temperature, inviting warmth',
+      cool: 'cool blue and silver tones, crisp modern palette, clean color temperature',
+      low_key_dark: 'dark muted palette, selective color accents, deep shadows, film noir contrast',
+      film_noir: 'high-contrast black and white, deep shadows, dramatic tonal range'
+    };
+
+    const palette = palettes[visualStyle] || palettes.commercial;
+
+    let color = `${palette}. `;
+    color += 'Professional color grading, LUT-applied finish, cinematic color science, wide color gamut, HDR-ready. ';
+
+    const outputStyleId = this.template.outputStyle?.id || '';
+    if (outputStyleId.includes('luxury')) {
+      color += 'Soft Kodak Portra-like tones, luxurious warmth, refined highlight roll-off.';
+    } else if (outputStyleId.includes('dramatic') || outputStyleId.includes('trailer')) {
+      color += 'Action-heavy color grade, teal-orange contrast, punchy shadows, theatrical release look.';
+    } else if (outputStyleId.includes('documentary')) {
+      color += 'Natural documentary color, authentic skin tones, minimal grading, real-world palette.';
+    } else if (outputStyleId.includes('social')) {
+      color += 'Scroll-stopping saturation, social-optimized contrast, platform-native color curve.';
     }
-    return 'cinematic commercial quality';
+
+    return color.trim();
   }
 
-  getCTAPrompt() {
-    const { ctaType } = this.inputs;
-    let ctaText = 'call to action';
+  buildMoodSection() {
+    const i = this.inputs;
+    const parts = [];
 
-    if (ctaType && CTA_TYPES[ctaType.toUpperCase().replace(/ /g, '_')]) {
-      const cta = CTA_TYPES[ctaType.toUpperCase().replace(/ /g, '_')];
-      ctaText = `CTA: ${cta.name}`;
+    const tone = i.tone || '';
+    const emotion = i.emotion || '';
+    const musicMood = i.musicMood || '';
+
+    if (tone) parts.push(`Overall tone: ${tone}`);
+    if (emotion) parts.push(`Primary emotion: ${emotion}`);
+
+    const outputStyle = this.template.outputStyle?.id || '';
+    if (outputStyle.includes('emotional')) {
+      parts.push('Emotionally resonant, intimate, human-centered, heartfelt');
+    } else if (outputStyle.includes('dramatic')) {
+      parts.push('High tension, gripping, suspenseful, dramatic impact');
+    } else if (outputStyle.includes('bold_direct_response')) {
+      parts.push('Urgent, high-energy, persuasive, action-driving');
+    } else if (outputStyle.includes('luxury')) {
+      parts.push('Sophisticated, aspirational, premium, exclusive');
+    } else if (outputStyle.includes('documentary')) {
+      parts.push('Authentic, observational, truthful, human');
+    } else if (outputStyle.includes('inspirational')) {
+      parts.push('Visionary, passionate, determined, forward-looking');
+    } else if (outputStyle.includes('customer_transformation')) {
+      parts.push('Transformative, hopeful, results-driven, trustworthy');
     }
 
-    const ending = this.inputs.endingType || 'fade_to_black';
-    if (ending && ENDING_TYPES[ending.toUpperCase().replace(/ /g, '_')]) {
-      const endType = ENDING_TYPES[ending.toUpperCase().replace(/ /g, '_')];
-      return `${ctaText}, ending: ${endType.description}`;
+    if (musicMood) {
+      parts.push(`Music direction: ${musicMood}`);
     }
 
-    return ctaText;
+    return parts.length ? parts.join('. ') + '.' : '';
+  }
+
+  buildPacingSection() {
+    const i = this.inputs;
+    const pacing = i.pacing || '';
+
+    if (pacing && PACING_OPTIONS[pacing.toUpperCase()]) {
+      const pace = PACING_OPTIONS[pacing.toUpperCase()];
+      return `${pace.name} editing rhythm. ${pace.description}. Deliberate transitions, purposeful shot duration, narrative-driven timing.`;
+    }
+
+    const outputStyle = this.template.outputStyle?.id || '';
+    if (outputStyle.includes('dramatic') || outputStyle.includes('trailer')) {
+      return 'Fast-cut pacing with rising tension. Impactful transitions, hook-first rhythm, escalating visual intensity, theatrical trailer energy.';
+    }
+    if (outputStyle.includes('documentary')) {
+      return 'Measured natural pacing. Observational rhythm, authentic timing, unhurried storytelling, real-world editorial feel.';
+    }
+    if (outputStyle.includes('social')) {
+      return 'Hook-first pacing, scroll-stopping opening, rapid engagement rhythm, social-native editing tempo.';
+    }
+    if (outputStyle.includes('emotional')) {
+      return 'Slow deliberate pacing, lingering emotional beats, measured reveals, heartfelt rhythm.';
+    }
+
+    return 'Moderate cinematic pacing, deliberate shot composition, natural narrative rhythm, professional editorial timing.';
+  }
+
+  buildAudioSection() {
+    const i = this.inputs;
+    const parts = [];
+
+    const musicMood = i.musicMood || i.musicScore || '';
+    if (musicMood) {
+      parts.push(`Background music: ${musicMood}`);
+    }
+
+    const outputStyle = this.template.outputStyle?.id || '';
+    if (outputStyle.includes('dramatic') || outputStyle.includes('trailer')) {
+      parts.push('Epic orchestral score or intense electronic soundscape, hit-and-hold audio transitions');
+    } else if (outputStyle.includes('documentary')) {
+      parts.push('Ambient natural sound, subtle underscore, authentic location audio');
+    } else if (outputStyle.includes('luxury')) {
+      parts.push('Sophisticated ambient score, elegant minimal music, premium audio tone');
+    } else if (outputStyle.includes('social')) {
+      parts.push('Trending audio direction, platform-native sound, beat-synced audio cues');
+    } else if (outputStyle.includes('emotional')) {
+      parts.push('Emotional piano or strings underscore, quiet intimate audio, voice-over friendly mix');
+    } else {
+      parts.push('Professional cinematic score, clean mix, platform-optimized audio levels');
+    }
+
+    return parts.length ? parts.join('. ') + '.' : '';
+  }
+
+  buildStyleReferenceSection() {
+    const i = this.inputs;
+    const visualStyle = (i.visualStyle || '').toLowerCase();
+    const outputStyle = this.template.outputStyle?.id || '';
+    const filmType = inferFilmTypeFromBlueprint(this.template.storyBlueprint || this.template.sceneStructure || '');
+
+    const references = [];
+
+    if (outputStyle.includes('luxury')) {
+      references.push('in the style of high-end fashion film, luxury brand cinema');
+    } else if (outputStyle.includes('dramatic') || filmType === FILM_TYPES.DRAMATIC_TRAILER) {
+      references.push('in the style of epic film trailer, dramatic Hollywood cinematography');
+    } else if (outputStyle.includes('documentary')) {
+      references.push('in the style of premium documentary, National Geographic visual storytelling');
+    } else if (outputStyle.includes('emotional')) {
+      references.push('in the style of intimate character-driven film, emotional brand storytelling');
+    } else if (outputStyle.includes('bold_direct_response')) {
+      references.push('in the style of high-conversion direct response advertising');
+    } else if (outputStyle.includes('cinematic_commercial')) {
+      references.push('in the style of premium commercial production, broadcast-quality advertising');
+    } else if (outputStyle.includes('inspirational')) {
+      references.push('in the style of inspirational keynote visuals, startup origin story cinema');
+    } else if (outputStyle.includes('customer_transformation')) {
+      references.push('in the style of customer success documentary, testimonial-driven storytelling');
+    }
+
+    if (visualStyle === 'luxury') {
+      references.push('soft Kodak Portra-like tones, elegant color science');
+    } else if (visualStyle === 'dramatic') {
+      references.push('teal-and-orange grade, theatrical color palette, high contrast');
+    } else if (visualStyle === 'documentary') {
+      references.push('natural color, authentic texture, minimal grading');
+    } else if (visualStyle === 'commercial') {
+      references.push('clean commercial grade, brand-safe color, polished finish');
+    }
+
+    return references.length ? `Style reference: ${references.join(', ')}.` : '';
+  }
+
+  // Build a scene-aware prompt string for a single scene config.
+  // Used by the scene-selector path (Phase 1+).
+  buildScenePrompt(sceneConfig, continuityNotes = '') {
+    if (!sceneConfig) return this.assemble();
+
+    const parts = [];
+
+    // Scene header
+    if (sceneConfig.name) {
+      parts.push(`SCENE ${sceneConfig.order || ''}: ${sceneConfig.name.toUpperCase()}`);
+    }
+    if (sceneConfig.storyPurpose) {
+      parts.push(`Story purpose: ${sceneConfig.storyPurpose}`);
+    }
+    if (sceneConfig.emotionalTone && sceneConfig.emotionalTone.length) {
+      parts.push(`Emotional tone: ${sceneConfig.emotionalTone.join(', ')}`);
+    }
+    // New schema: emotion.primary / emotion.secondary
+    const emotionPrimary = sceneConfig.emotion?.primary || sceneConfig.emotionalTone?.[0];
+    const emotionSecondary = sceneConfig.emotion?.secondary || sceneConfig.emotionalTone?.[1];
+    if (emotionPrimary && !sceneConfig.emotionalTone?.length) {
+      parts.push(`Emotional tone: ${[emotionPrimary, emotionSecondary].filter(Boolean).join(', ')}`);
+    }
+    const duration = sceneConfig.timing?.duration_seconds || sceneConfig.duration;
+    if (duration) {
+      parts.push(`Duration: ${duration}s`);
+    }
+
+    // Beats
+    if (sceneConfig.beats && sceneConfig.beats.length) {
+      parts.push(`Beats: ${sceneConfig.beats.join(' → ')}`);
+    }
+
+    // Shot sequence
+    if (sceneConfig.shots && sceneConfig.shots.length) {
+      const shotDescriptions = sceneConfig.shots.map(shot => {
+        const shotType = SHOT_TYPES[shot.type?.toUpperCase().replace(/ /g, '_')];
+        const movement = CAMERA_MOVEMENTS[shot.movement?.toUpperCase().replace(/ /g, '_')];
+        return `${shotType?.description || shot.type || 'medium shot'} (${movement?.description || shot.movement || 'static'}, ${shot.duration || 3}s)`;
+      });
+      parts.push(`Shot sequence: ${shotDescriptions.join(' → ')}`);
+    }
+
+    // Subject / narrative
+    const subjectParts = [];
+    const i = this.inputs;
+    const subject = i.subject || i.product || i.brandName || i.company || i.character || '';
+    const premise = i.premise || i.story || i.brandStory || i.keyMessage || '';
+    if (subject) subjectParts.push(subject);
+    if (premise) subjectParts.push(`Core narrative: ${premise}`);
+    if (subjectParts.length) {
+      parts.push(subjectParts.join('. ') + '.');
+    }
+
+    // Style / lighting / color / audio / pacing
+    parts.push(this.buildCinematographySection());
+    parts.push(this.buildLightingSection());
+    parts.push(this.buildColorSection());
+    parts.push(this.buildAudioSection());
+    parts.push(this.buildPacingSection());
+    parts.push(this.buildStyleReferenceSection());
+    parts.push(this.getTechnicalSpecs());
+
+    // Scene flow context
+    if (sceneConfig.flowName) {
+      parts.push(`Story flow: ${sceneConfig.flowName}`);
+    }
+
+    // Transition hint to next scene (if provided)
+    if (sceneConfig.transition) {
+      parts.push(`Transition: ${sceneConfig.transition}`);
+    }
+
+    // Continuity notes from previous scene(s)
+    if (continuityNotes) {
+      parts.push(continuityNotes);
+    }
+
+    return parts.filter(Boolean).join(', ');
+  }
+
+  // Build a transition hint between two scenes.
+  buildTransitionHint(fromScene, toScene) {
+    if (!fromScene || !toScene) return '';
+    const fromName = fromScene.name || fromScene.id || 'previous scene';
+    const toName = toScene.name || toScene.id || 'next scene';
+    return `Transition from ${fromName} to ${toName}: seamless narrative bridge.`;
+  }
+
+  // Assemble prompts from scene-selector output.
+  // If `selectedScenes` is provided, use it; otherwise fall back to the
+  // legacy scene-builder path; if that is unavailable, fall back to a
+  // single monolithic prompt.
+  assembleScenePromptsFromSelector(selectedScenes) {
+    if (!Array.isArray(selectedScenes) || !selectedScenes.length) {
+      return this.assembleScenePrompts();
+    }
+
+    const continuity = new ContinuityEngine();
+
+    // Register all scenes so the engine can track characters, environments, etc.
+    selectedScenes.forEach(scene => continuity.ingestScene(scene));
+
+    return selectedScenes.map((scene, idx) => {
+      const prev = idx > 0 ? selectedScenes[idx - 1] : null;
+      const next = idx < selectedScenes.length - 1 ? selectedScenes[idx + 1] : null;
+
+      // Build continuity notes from previous scene
+      const continuityNotes = prev
+        ? continuity.buildContinuityNotes(prev, scene)
+        : '';
+
+      // Inject transition hints
+      const enriched = { ...scene };
+      if (next) {
+        enriched.transition = this.buildTransitionHint(scene, next);
+      }
+
+      return this.buildScenePrompt(enriched, continuityNotes);
+    });
   }
 
   getTechnicalSpecs() {
-    const { aspectRatio, duration } = this.inputs;
-    const parts = [];
+    const i = this.inputs;
+    const specs = [];
+    const resolution = i.resolution || '4K';
+    const aspectRatio = i.aspectRatio || this.template.aspectRatios?.[0] || '16:9';
+    const frameRate = i.frameRate || 24;
+    specs.push(`${resolution} resolution, ${aspectRatio} aspect ratio, ${frameRate}fps`);
+    if (i.colorSpace) specs.push(`${i.colorSpace} color space`);
+    return specs.length ? `Technical specs: ${specs.join(', ')}.` : '';
+  }
 
-    if (aspectRatio) parts.push(`aspect ratio: ${aspectRatio}`);
-    if (duration) parts.push(`duration: ${duration} seconds`);
-    
-    parts.push('4K resolution, professional color grading, high dynamic range');
-
-    return parts.join(', ');
+  _hashCode(str) {
+    let hash = 0;
+    for (let i = 0; i < (str || '').length; i++) {
+      hash = ((hash << 5) - hash) + (str || '').charCodeAt(i);
+      hash |= 0;
+    }
+    return hash;
   }
 
   // Generate multiple prompts for scene-based templates
@@ -1931,10 +2347,10 @@ export class PromptAssemblyEngine {
     const scenes = [];
     const totalDuration = this.inputs.duration || this.template.duration?.default || 60;
 
-    structure.acts.forEach((act, actIndex) => {
+    structure.acts.forEach((act) => {
       const actDuration = (parseInt(act.duration) / 100) * totalDuration;
       
-      act.beats.forEach((beat, beatIndex) => {
+      act.beats.forEach((beat) => {
         scenes.push({
           sceneNumber: scenes.length + 1,
           act: act.act,
@@ -2201,10 +2617,6 @@ export class TemplateInputBuilder {
   }
 
   getSection(input) {
-    const quickSections = ['basic', 'content'];
-    const advancedSections = ['camera', 'shots', 'style', 'brand', 'cta'];
-    
-    // Categorize inputs into sections
     if (['genre', 'tone', 'subject', 'premise', 'story', 'product'].includes(input.name)) {
       return 'content';
     }
@@ -2464,7 +2876,35 @@ export class RenderHandoff {
 
   getSceneData() {
     if (!this.scenes.length) return null;
-    
+
+    // Scene-selector path: scenes are plain config objects with
+    // id/name/storyPurpose/beats/shots. Render them verbatim so the
+    // consumer gets the full scene vocabulary.
+    const isSelectorScene = (s) => !('sceneNumber' in s) && (s.id || s.name);
+
+    if (isSelectorScene(this.scenes[0])) {
+      return this.scenes.map((scene, idx) => ({
+        number: idx + 1,
+        id: scene.id,
+        name: scene.name,
+        storyPurpose: scene.storyPurpose,
+        emotionalTone: scene.emotionalTone,
+        beats: scene.beats,
+        duration: scene.duration,
+        shots: scene.shots?.map((shot, sIdx) => ({
+          number: sIdx + 1,
+          type: shot.type,
+          movement: shot.movement,
+          duration: shot.duration,
+          description: shot.description || `${shot.type} (${shot.movement || 'static'}, ${shot.duration || 3}s)`
+        })) || [],
+        keywords: scene.keywords,
+        flowId: scene.flowId,
+        flowName: scene.flowName
+      }));
+    }
+
+    // Legacy scene-builder path
     return this.scenes.map(scene => ({
       number: scene.sceneNumber,
       name: scene.beat || `Scene ${scene.sceneNumber}`,
@@ -2548,6 +2988,10 @@ export class RenderHandoff {
     );
 
     if (this.scenes.length > 0) {
+      const isSelectorScene = (s) => !('sceneNumber' in s) && (s.id || s.name);
+      if (isSelectorScene(this.scenes[0])) {
+        return engine.assembleScenePromptsFromSelector(this.scenes);
+      }
       return engine.assembleScenePrompts();
     }
 

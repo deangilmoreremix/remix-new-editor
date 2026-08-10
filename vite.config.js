@@ -3,7 +3,67 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import fs from 'fs';
+import http from 'http';
+import https from 'https';
 // Cache-bust: 2026-07-28
+
+// Helper: forward a request to the Supabase muapi-proxy without Origin/Referer
+// and with the correct Host header so Cloudflare routes it to the project.
+function createMuapiProxyMiddleware(targetUrl) {
+  return async function muapiProxyMiddleware(req, res, next) {
+    const pathname = (req.url || '').split('?')[0];
+    if (pathname !== '/functions/v1/muapi-proxy' || req.method !== 'POST') {
+      return next();
+    }
+
+    const url = new URL(targetUrl);
+    
+    // Read the request body
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', () => {
+      const body = Buffer.concat(chunks);
+      
+      const options = {
+        hostname: url.hostname,
+        port: url.port || 443,
+        path: '/functions/v1/muapi-proxy',
+        method: req.method,
+        headers: { ...req.headers },
+        rejectUnauthorized: false,
+      };
+
+      // Strip origin-like headers and set the correct Host header
+      // so the Supabase edge function accepts the request.
+      delete options.headers['origin'];
+      delete options.headers['Origin'];
+      delete options.headers['referer'];
+      delete options.headers['Referer'];
+      options.headers['host'] = url.hostname;
+      options.headers['content-length'] = body.length;
+
+      const proxyReq = https.request(options, (proxyRes) => {
+        res.statusCode = proxyRes.statusCode;
+        Object.entries(proxyRes.headers).forEach(([key, value]) => {
+          res.setHeader(key, value);
+        });
+        proxyRes.pipe(res);
+      });
+
+      proxyReq.on('error', (err) => {
+        console.error('[muapi-proxy] request error:', err);
+        if (!res.headersSent) {
+          res.statusCode = 502;
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ error: 'Proxy error', details: err.message }));
+        }
+      });
+
+      proxyReq.write(body);
+      proxyReq.end();
+    });
+  };
+}
 
 // Vite plugin: stub out unresolved legacy imports under components/ and
 // src/lib/ that are not part of the media-creation flow. Returns an empty
@@ -924,6 +984,17 @@ export default defineConfig({
         svgMissingFallback(),
         modelCatalogBuildPlugin(),
         modelCatalogDevPlugin(),
+        // Custom proxy plugin for /functions/v1/muapi-proxy that strips
+        // origin/referer headers so the Supabase edge function accepts
+        // localhost requests during development.
+        {
+          name: 'muapi-proxy-dev',
+          apply: 'serve',
+          configureServer(server) {
+            const target = process.env.VITE_SUPABASE_URL || 'https://bzxohkrxcwodllketcpz.supabase.co';
+            server.middlewares.use(createMuapiProxyMiddleware(target));
+          },
+        },
         // Only load the gtm-boost dev plugin during `vite dev` to avoid
         // pulling in the express dependency (used by the backend
         // gtmBoostService) at build time. The plugin itself already has

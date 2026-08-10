@@ -57,6 +57,7 @@ const pageLoaders = {
   image: () => import('../components/ImageStudio.js').then(m => m.ImageStudio()),
   video: () => import('../components/VideoStudio.js').then(m => m.VideoStudio()),
   cinema: () => import('../components/CinemaStudio.js').then(m => m.CinemaStudio()),
+  'cinema-template': () => import('../components/CinemaTemplateStudio.js').then(m => m.CinemaTemplateStudio()),
   apps: () => import('../components/AppsHub.js').then(m => m.AppsHub()),
   templates: () => import('../components/TemplatesPage.js').then(m => m.TemplatesPage()),
   effects: () => import('../components/EffectsStudio.js').then(m => m.EffectsStudio()),
@@ -110,6 +111,24 @@ export function initRouter(container, callback) {
   onNavigateCallback = callback;
 }
 
+function getExistingParams() {
+  if (typeof window === 'undefined') return {};
+  const search = window.location.search;
+  if (!search || search.length <= 1) return {};
+  const params = new URLSearchParams(search.slice(1));
+  const result = {};
+  for (const [key, value] of params) {
+    result[key] = value;
+  }
+  return result;
+}
+
+export function getQueryParam(name) {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name);
+}
+
 export async function navigate(page, params = {}) {
   if (!contentArea) return;
 
@@ -121,7 +140,8 @@ export async function navigate(page, params = {}) {
   isNavigating = true;
   currentPage = page;
 
-  const searchParams = new URLSearchParams(params).toString();
+  const mergedParams = { ...getExistingParams(), ...params };
+  const searchParams = new URLSearchParams(mergedParams).toString();
   const newUrl = searchParams ? `/?${searchParams}#/${page}` : `/#/${page}`;
   window.history.pushState({}, '', newUrl);
 

@@ -28,12 +28,124 @@ export class ContactImporterModal extends BaseModal {
     this.importSource = null;
     this.csvHeaders = [];
     this.csvData = [];
+    this.csvFileName = null;
+    this.csvError = null;
     this.selectedMapping = {};
     this.previewContacts = SAMPLE_CONTACTS;
     this.isImporting = false;
     this.importProgress = 0;
     this.tags = [];
     this.newTag = '';
+  }
+
+  // Minimal RFC4180-style CSV line splitter: handles quoted fields that may
+  // contain commas or escaped double-quotes ("").
+  parseCsvLine(line) {
+    const fields = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (inQuotes) {
+        if (char === '"') {
+          if (line[i + 1] === '"') { current += '"'; i++; } else { inQuotes = false; }
+        } else {
+          current += char;
+        }
+      } else if (char === '"') {
+        inQuotes = true;
+      } else if (char === ',') {
+        fields.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    fields.push(current.trim());
+    return fields;
+  }
+
+  parseCsvText(text) {
+    const lines = text.split(/\r\n|\n|\r/).filter((line) => line.trim().length > 0);
+    if (lines.length === 0) {
+      return { headers: [], rows: [] };
+    }
+    const headers = this.parseCsvLine(lines[0]);
+    const rows = lines.slice(1).map((line) => this.parseCsvLine(line));
+    return { headers, rows };
+  }
+
+  // Best-effort mapping from whatever headers the file actually has to the
+  // internal contact shape, so a real uploaded file — not just files that
+  // happen to match FIELD_MAPPINGS exactly — still produces a usable preview.
+  mapRowsToContacts(headers, rows) {
+    const findColumn = (...candidates) => headers.findIndex((h) =>
+      candidates.some((c) => h.toLowerCase().replace(/[^a-z]/g, '') === c));
+
+    const firstNameIdx = findColumn('firstname', 'first');
+    const lastNameIdx = findColumn('lastname', 'last');
+    const emailIdx = findColumn('email', 'emailaddress');
+    const phoneIdx = findColumn('phone', 'phonenumber', 'mobile');
+    const companyIdx = findColumn('company', 'organization');
+    const nameIdx = findColumn('name', 'fullname');
+
+    return rows.map((row) => {
+      let firstName = firstNameIdx >= 0 ? row[firstNameIdx] || '' : '';
+      let lastName = lastNameIdx >= 0 ? row[lastNameIdx] || '' : '';
+      if (!firstName && !lastName && nameIdx >= 0) {
+        const parts = (row[nameIdx] || '').split(' ');
+        firstName = parts[0] || '';
+        lastName = parts.slice(1).join(' ');
+      }
+      return {
+        firstName,
+        lastName,
+        email: emailIdx >= 0 ? row[emailIdx] || '' : '',
+        phone: phoneIdx >= 0 ? row[phoneIdx] || '' : '',
+        company: companyIdx >= 0 ? row[companyIdx] || '' : '',
+      };
+    }).filter((contact) => contact.firstName || contact.lastName || contact.email);
+  }
+
+  handleCsvFile(file) {
+    if (!file) return;
+    this.csvError = null;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const { headers, rows } = this.parseCsvText(String(reader.result || ''));
+        if (headers.length === 0 || rows.length === 0) {
+          this.csvError = 'This file has no readable rows.';
+          this.csvFileName = null;
+          this.csvData = [];
+        } else {
+          const contacts = this.mapRowsToContacts(headers, rows);
+          this.csvHeaders = headers;
+          this.csvData = contacts;
+          this.csvFileName = file.name;
+          this.previewContacts = contacts.length > 0 ? contacts : rows.map((row) => ({
+            firstName: row[0] || '',
+            lastName: '',
+            email: '',
+            phone: '',
+            company: '',
+          }));
+        }
+      } catch (e) {
+        this.csvError = `Couldn't read this file: ${e.message}`;
+        this.csvFileName = null;
+        this.csvData = [];
+      }
+      this.updateBody(this.renderBody());
+      this.setupEventListeners();
+    };
+    reader.onerror = () => {
+      this.csvError = 'Failed to read the file.';
+      this.updateBody(this.renderBody());
+      this.setupEventListeners();
+    };
+    reader.readAsText(file);
   }
 
   renderBody() {
@@ -111,9 +223,15 @@ export class ContactImporterModal extends BaseModal {
                 <polyline points="17 8 12 3 7 8"/>
                 <line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
-              <p>Drag & drop your CSV file here or</p>
-              <button class="modal-btn modal-btn-primary browse-btn">Browse Files</button>
-              <input type="file" accept=".csv,.txt" style="display:none" />
+              ${this.csvFileName ? `
+                <p class="csv-file-loaded">${this.csvFileName} — ${this.csvData.length} contact${this.csvData.length === 1 ? '' : 's'} found</p>
+                <button class="modal-btn modal-btn-secondary browse-btn">Choose a Different File</button>
+              ` : `
+                <p>Drag & drop your CSV file here or</p>
+                <button class="modal-btn modal-btn-primary browse-btn">Browse Files</button>
+              `}
+              ${this.csvError ? `<p class="csv-error">${this.csvError}</p>` : ''}
+              <input type="file" class="csv-file-input" accept=".csv,.txt" style="display:none" />
             </div>
           </div>
         ` : ''}
@@ -266,10 +384,13 @@ export class ContactImporterModal extends BaseModal {
       });
 
       const browseBtn = this.overlay.querySelector('.browse-btn');
-      if (browseBtn) {
-        browseBtn.addEventListener('click', () => {
-          const fileInput = this.overlay.querySelector('input[type="file"]');
-          if (fileInput) fileInput.click();
+      const fileInput = this.overlay.querySelector('.csv-file-input');
+      if (browseBtn && fileInput) {
+        browseBtn.addEventListener('click', () => fileInput.click());
+      }
+      if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+          this.handleCsvFile(e.target.files[0]);
         });
       }
 

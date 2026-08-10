@@ -40,7 +40,7 @@ export function hasFullAccess() {
 
 export async function requireEntitlement() {
   if (hasFullAccess()) return true;
-  const { UpgradePrompt } = await import('../components/UpgradePrompt.js');
+  const { default: UpgradePrompt } = await import('../components/UpgradePrompt.js');
   UpgradePrompt();
   return false;
 }
