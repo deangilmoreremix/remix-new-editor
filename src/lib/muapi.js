@@ -27,13 +27,18 @@ const ALLOWED_WAN_EFFECT_NAMES = new Set(
 
 export class MuapiClient {
     constructor() {
-        // Validate that Supabase URL is configured before building proxy URL
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        if (!supabaseUrl) {
-            console.error('[MuapiClient] VITE_SUPABASE_URL is not configured');
-            this.proxyUrl = '/functions/v1/muapi-proxy'; // Fallback to relative path
+        const proxyUrlEnv = import.meta.env.VITE_MUAPI_PROXY_URL;
+        if (proxyUrlEnv) {
+            this.proxyUrl = proxyUrlEnv;
         } else {
-            this.proxyUrl = `${supabaseUrl}/functions/v1/muapi-proxy`;
+            // Validate that Supabase URL is configured before building proxy URL
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            if (!supabaseUrl) {
+                console.error('[MuapiClient] VITE_SUPABASE_URL is not configured');
+                this.proxyUrl = '/functions/v1/muapi-proxy'; // Fallback to relative path
+            } else {
+                this.proxyUrl = `${supabaseUrl}/functions/v1/muapi-proxy`;
+            }
         }
         this.activeControllers = new Map(); // For request cancellation
         this.apiKeyManager = apiKeyManager;
@@ -838,7 +843,9 @@ export class MuapiClient {
         this._requireMuapiKey();
         await acquireRateLimitToken();
         const modelInfo = getTextModelById(params.model);
-        const endpoint = modelInfo?.endpoint || params.model || 'text';
+        // Allow an explicit endpoint override (e.g. OpenRouter gateway pattern
+        // where the gateway endpoint differs from the target model name).
+        const endpoint = params.endpoint || modelInfo?.endpoint || params.model || 'text';
         analytics.trackGeneration(params.model, 'text', { endpoint });
         const finalPayload = {};
 
@@ -1048,3 +1055,82 @@ export class MuapiClient {
 export default MuapiClient;
 
 export const muapi = new MuapiClient();
+
+// ============================================================================
+// THIN HELPERS used by generationService.js + tests
+// ============================================================================
+//
+// submitOnly / checkStatus / downloadResult are the lowest-level network
+// primitives. They isolate the network call from the rest of the
+// generationService so it can be mocked in tests and reused by
+// MuAPIProvider without re-implementing the proxy plumbing.
+
+/**
+ * Submit a generation request to the muapi proxy and return the raw
+ * submit response (typically { request_id, status }). The third arg is an
+ * optional API key override (defaults to apiKeyManager's current key).
+ *
+ * @param {string} endpoint  e.g. '/api/v1/seedance/generate'
+ * @param {Object} payload   request body
+ * @param {string|null} [key]
+ * @returns {Promise<{ requestId: string, submitData: any }>}
+ */
+export async function submitOnly(endpoint, payload, key = null) {
+  const client = muapi;
+  const apiKey = key || client.getKey();
+  const url = `${client.proxyUrl}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(apiKey ? { 'X-API-Key': apiKey } : {}),
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const txt = await response.text().catch(() => '');
+    throw new Error(`muapi submit failed: ${response.status} ${response.statusText} ${txt.slice(0, 200)}`);
+  }
+  const data = await response.json();
+  return {
+    requestId: data.request_id || data.id || data.requestId,
+    submitData: data,
+  };
+}
+
+/**
+ * Check the status of a previously-submitted muapi request.
+ * @param {string} requestId
+ * @param {string|null} [key]
+ * @returns {Promise<{ status: string, progress: number, url: string|null }>}
+ */
+export async function checkStatus(requestId, key = null) {
+  const client = muapi;
+  const apiKey = key || client.getKey();
+  const url = `${client.proxyUrl}/requests/${encodeURIComponent(requestId)}`;
+  const response = await fetch(url, {
+    headers: apiKey ? { 'X-API-Key': apiKey } : {},
+  });
+  if (!response.ok) {
+    throw new Error(`muapi status check failed: ${response.status}`);
+  }
+  const data = await response.json();
+  return {
+    status: data.status || 'processing',
+    progress: typeof data.progress === 'number' ? data.progress : 0,
+    url: data.url || data.video_url || data.output_url || null,
+  };
+}
+
+/**
+ * Download a result from the given URL and return it as a Blob.
+ * @param {string} url
+ * @returns {Promise<Blob>}
+ */
+export async function downloadResult(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`download failed: ${response.status}`);
+  }
+  return response.blob();
+}

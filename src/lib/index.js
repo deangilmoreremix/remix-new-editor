@@ -3,6 +3,13 @@
  * Central export point for all utility libraries
  */
 
+// Batch processing
+export {
+    createBatchProcessor,
+    processBatch,
+    createBatchQueue,
+} from './batchProcessor.js';
+
 // Security utilities
 export {
     safeSetText,
@@ -91,3 +98,6 @@ export {
     VIDEO_DURATIONS,
     QUALITY_PRESETS
 } from './constants.js';
+
+// Undo/Redo
+export { createUndoRedo, MAX_HISTORY_DEFAULT } from './undoRedo.js';

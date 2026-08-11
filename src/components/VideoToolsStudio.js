@@ -9,6 +9,7 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { mountModelSelector } from '../lib/modelSelectorUI.js';
 
 export function VideoToolsStudio() {
   const container = document.createElement('div');
@@ -34,24 +35,18 @@ export function VideoToolsStudio() {
   container.appendChild(header);
 
   // Model selector
-  const modelRow = document.createElement('div');
-  modelRow.className = 'flex gap-3 mb-6 flex-wrap justify-center animate-fade-in-up';
-  modelRow.style.animationDelay = '0.1s';
+  const modelSelectorContainer = document.createElement('div');
+  modelSelectorContainer.className = 'w-full mb-6';
+  container.appendChild(modelSelectorContainer);
 
-  const modelBtns = {};
-  videoToolsModels.forEach(m => {
-    const btn = document.createElement('button');
-    btn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
-    btn.textContent = m.name;
-    btn.onclick = () => {
-      selectedModel = m;
-      updateModelBtns();
+  mountModelSelector(modelSelectorContainer, {
+    models: videoToolsModels,
+    selectedModelId: selectedModel.id,
+    onSelectModel: (modelId) => {
+      selectedModel = videoToolsModels.find(m => m.id === modelId) || selectedModel;
       updateFormVisibility();
-    };
-    modelBtns[m.id] = btn;
-    modelRow.appendChild(btn);
+    },
   });
-  container.appendChild(modelRow);
 
   // Form card
   const formCard = document.createElement('div');
@@ -162,16 +157,6 @@ export function VideoToolsStudio() {
   container.appendChild(resultArea);
 
   // Helper functions
-  function updateModelBtns() {
-    Object.entries(modelBtns).forEach(([id, btn]) => {
-      if (id === selectedModel.id) {
-        btn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all border bg-primary text-black border-primary';
-      } else {
-        btn.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all border bg-white/5 text-secondary border-white/10 hover:bg-white/10';
-      }
-    });
-  }
-
   function updateFormVisibility() {
     // Show/hide prompt based on model
     const supportsPrompt = selectedModel.hasPrompt;
@@ -224,7 +209,6 @@ export function VideoToolsStudio() {
     }
   };
 
-  updateModelBtns();
   updateFormVisibility();
   return container;
 }
