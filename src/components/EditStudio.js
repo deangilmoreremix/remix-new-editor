@@ -226,6 +226,18 @@ export function EditStudio() {
   workCard.appendChild(uploadSection);
   container.appendChild(picker.panel);
 
+  // Watermark image upload row (hidden by default)
+  const watermarkImageRow = document.createElement('div');
+  watermarkImageRow.className = 'watermark-image-row hidden flex flex-col gap-3';
+  const watermarkImageRowInner = document.createElement('div');
+  watermarkImageRowInner.className = 'flex items-center gap-4';
+  watermarkImageRowInner.appendChild(watermarkPicker.trigger);
+  watermarkImageRowInner.appendChild(watermarkImageHint);
+  watermarkImageRowInner.appendChild(watermarkClearBtn);
+  watermarkImageRow.appendChild(watermarkImageRowInner);
+  container.appendChild(watermarkPicker.panel);
+  workCard.appendChild(watermarkImageRow);
+
   const promptField = document.createElement('input');
   promptField.type = 'text';
   promptField.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors hidden';
@@ -363,6 +375,42 @@ export function EditStudio() {
     watermarkScaleValue = watermarkScaleInput.value;
   });
 
+  // Watermark image uploader (second image for watermark tool)
+  let watermarkImageUrl = null;
+  const watermarkImageHint = document.createElement('span');
+  watermarkImageHint.className = 'text-sm text-muted hidden';
+  watermarkImageHint.textContent = 'Upload watermark image';
+
+  const watermarkClearBtn = document.createElement('button');
+  watermarkClearBtn.type = 'button';
+  watermarkClearBtn.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+  watermarkClearBtn.textContent = 'Remove';
+
+  const watermarkPicker = createUploadPicker({
+    anchorContainer: container,
+    onSelect: ({ url }) => {
+      watermarkImageUrl = url;
+      watermarkImageHint.textContent = 'Watermark uploaded';
+      watermarkImageHint.classList.remove('hidden');
+      watermarkClearBtn.classList.remove('hidden');
+    },
+    onClear: () => {
+      watermarkImageUrl = null;
+      watermarkImageHint.textContent = 'Upload watermark image';
+      watermarkImageHint.classList.add('hidden');
+      watermarkClearBtn.classList.add('hidden');
+    },
+  });
+
+  watermarkClearBtn.onclick = (e) => {
+    e.stopPropagation();
+    watermarkPicker.reset();
+    watermarkImageUrl = null;
+    watermarkImageHint.textContent = 'Upload watermark image';
+    watermarkImageHint.classList.add('hidden');
+    watermarkClearBtn.classList.add('hidden');
+  };
+
   // Model selector dropdown — only shown for AI Edit card
   const modelSelect = document.createElement('select');
   modelSelect.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors hidden';
@@ -422,6 +470,11 @@ export function EditStudio() {
   editBtn.setAttribute('aria-label', 'Apply edit');
   workCard.appendChild(editBtn);
 
+  const errorArea = document.createElement('div');
+  errorArea.className = 'hidden mt-4';
+  errorArea.setAttribute('role', 'alert');
+  workCard.appendChild(errorArea);
+
   const resultArea = document.createElement('div');
   resultArea.className = 'hidden mt-4';
   resultArea.setAttribute('role', 'status');
@@ -450,13 +503,49 @@ export function EditStudio() {
     fields.forEach(([fieldName, fieldConfig]) => {
       if (fieldName === 'prompt') return;
 
-      const field = document.createElement('select');
-      field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-      field.setAttribute('aria-label', fieldConfig.title || fieldName);
-
+      const title = fieldConfig.title || fieldName;
+      const description = fieldConfig.description || '';
+      const type = fieldConfig.type || 'string';
       const defaultVal = fieldConfig.default ?? (fieldConfig.enum ? fieldConfig.enum[0] : null);
 
-      if (fieldConfig.enum) {
+      // Determine widget type
+      const isEnum = Array.isArray(fieldConfig.enum) && fieldConfig.enum.length > 0;
+      const isBool = type === 'boolean';
+      const isNum = type === 'int' || type === 'integer' || type === 'number';
+      const isImage = type === 'image' || fieldName === 'watermark_image_url';
+
+      // For numeric types, decide between select and number input
+      let useSelectForNumber = false;
+      if (isNum && !isBool) {
+        const min = fieldConfig.minValue ?? 0;
+        const max = fieldConfig.maxValue ?? 100;
+        const step = fieldConfig.step ?? 1;
+        const optionCount = Math.floor((max - min) / step) + 1;
+        useSelectForNumber = optionCount <= 10;
+      }
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'flex flex-col gap-1';
+
+      const label = document.createElement('label');
+      label.className = 'text-[10px] text-muted mb-1';
+      label.textContent = title;
+      wrapper.appendChild(label);
+
+      if (description) {
+        const desc = document.createElement('span');
+        desc.className = 'text-[10px] text-muted/70 mb-1';
+        desc.textContent = description;
+        wrapper.appendChild(desc);
+      }
+
+      let field;
+      let storedValue;
+
+      if (isEnum) {
+        field = document.createElement('select');
+        field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+        field.setAttribute('aria-label', title);
         fieldConfig.enum.forEach(enumVal => {
           const option = document.createElement('option');
           option.value = String(enumVal);
@@ -464,53 +553,131 @@ export function EditStudio() {
           if (String(enumVal) === String(defaultVal)) option.selected = true;
           field.appendChild(option);
         });
-      } else if (fieldConfig.type === 'int' || fieldConfig.type === 'integer') {
-        fieldConfig.minValue = fieldConfig.minValue ?? 0;
-        fieldConfig.maxValue = fieldConfig.maxValue ?? 100;
-        fieldConfig.step = fieldConfig.step ?? 1;
-        for (let v = fieldConfig.minValue; v <= fieldConfig.maxValue; v += fieldConfig.step) {
+        storedValue = String(defaultVal ?? '');
+      } else if (isBool) {
+        field = document.createElement('div');
+        field.className = 'flex items-center gap-2';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'w-4 h-4 rounded border-white/20 bg-white/5 text-primary focus:ring-primary/50';
+        checkbox.checked = Boolean(defaultVal);
+        const checkLabel = document.createElement('span');
+        checkLabel.className = 'text-xs text-white/80';
+        checkLabel.textContent = 'Enabled';
+        field.appendChild(checkbox);
+        field.appendChild(checkLabel);
+        storedValue = Boolean(defaultVal);
+        // Store reference for change handler
+        field._checkbox = checkbox;
+      } else if (useSelectForNumber) {
+        field = document.createElement('select');
+        field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+        field.setAttribute('aria-label', title);
+        const min = fieldConfig.minValue ?? 0;
+        const max = fieldConfig.maxValue ?? 100;
+        const step = fieldConfig.step ?? 1;
+        for (let v = min; v <= max; v += step) {
           const option = document.createElement('option');
           option.value = String(v);
           option.textContent = String(v);
           if (v === defaultVal) option.selected = true;
           field.appendChild(option);
         }
+        storedValue = Number(defaultVal ?? min);
+      } else if (isNum) {
+        field = document.createElement('input');
+        field.type = 'number';
+        field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
+        field.setAttribute('aria-label', title);
+        field.min = String(fieldConfig.minValue ?? 0);
+        field.max = String(fieldConfig.maxValue ?? 100);
+        field.step = String(fieldConfig.step ?? 1);
+        field.value = String(defaultVal ?? fieldConfig.minValue ?? 0);
+        storedValue = Number(defaultVal ?? fieldConfig.minValue ?? 0);
+      } else if (isImage) {
+        field = document.createElement('div');
+        field.className = 'flex flex-col gap-2';
+        const imgHint = document.createElement('span');
+        imgHint.className = 'text-xs text-muted';
+        imgHint.textContent = description || 'Upload an image';
+        const imgClear = document.createElement('button');
+        imgClear.type = 'button';
+        imgClear.textContent = 'Remove image';
+        imgClear.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
+        const imgPicker = createUploadPicker({
+          anchorContainer: container,
+          onSelect: ({ url }) => {
+            watermarkImageUrl = url;
+            imgHint.textContent = 'Image uploaded';
+            imgHint.classList.remove('hidden');
+            imgClear.classList.remove('hidden');
+          },
+          onClear: () => {
+            watermarkImageUrl = null;
+            imgHint.textContent = description || 'Upload an image';
+            imgClear.classList.add('hidden');
+          },
+        });
+        imgClear.onclick = (e) => {
+          e.stopPropagation();
+          imgPicker.reset();
+          watermarkImageUrl = null;
+          imgHint.textContent = description || 'Upload an image';
+          imgClear.classList.add('hidden');
+        };
+        field.appendChild(imgHint);
+        field.appendChild(imgClear);
+        storedValue = null;
       } else {
-        const option = document.createElement('option');
-        option.value = String(defaultVal ?? '');
-        option.textContent = String(defaultVal ?? '');
-        field.appendChild(option);
-      }
-
-      field.addEventListener('change', () => {
-        const raw = field.value;
-        if (fieldConfig.type === 'int' || fieldConfig.type === 'integer') {
-          modelControlValues[modelId + '_' + fieldName] = parseInt(raw, 10);
-        } else if (fieldConfig.type === 'number') {
-          modelControlValues[modelId + '_' + fieldName] = parseFloat(raw);
+        // Default: string text input
+        const isLongText = description && description.length > 80;
+        field = document.createElement(isLongText ? 'textarea' : 'input');
+        if (isLongText) {
+          field.rows = 3;
+          field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-y';
         } else {
-          modelControlValues[modelId + '_' + fieldName] = raw;
+          field.type = 'text';
+          field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
         }
-      });
+        field.setAttribute('aria-label', title);
+        if (defaultVal) {
+          field.value = String(defaultVal);
+        }
+        storedValue = String(defaultVal ?? '');
+      }
 
       // Initialize stored value
-      if (defaultVal !== null && defaultVal !== undefined) {
-        if (fieldConfig.type === 'int' || fieldConfig.type === 'integer') {
-          modelControlValues[modelId + '_' + fieldName] = parseInt(defaultVal, 10);
-        } else if (fieldConfig.type === 'number') {
-          modelControlValues[modelId + '_' + fieldName] = parseFloat(defaultVal);
-        } else {
-          modelControlValues[modelId + '_' + fieldName] = String(defaultVal);
-        }
+      const storedKey = modelId + '_' + fieldName;
+      if (isBool) {
+        modelControlValues[storedKey] = storedValue;
+      } else if (isNum && !useSelectForNumber) {
+        modelControlValues[storedKey] = storedValue;
+      } else if (isEnum) {
+        modelControlValues[storedKey] = storedValue;
+      } else if (typeof storedValue === 'string') {
+        modelControlValues[storedKey] = storedValue;
       }
 
-      const label = document.createElement('div');
-      label.className = 'text-[10px] text-muted mb-1';
-      label.textContent = fieldConfig.title || fieldName;
+      // Attach change handler
+      if (isBool && field._checkbox) {
+        field._checkbox.addEventListener('change', () => {
+          modelControlValues[storedKey] = field._checkbox.checked;
+        });
+      } else if (field.tagName === 'SELECT' || field.tagName === 'INPUT' || field.tagName === 'TEXTAREA') {
+        field.addEventListener('input', () => {
+          const raw = field.value;
+          if (type === 'int' || type === 'integer') {
+            modelControlValues[storedKey] = parseInt(raw, 10);
+          } else if (type === 'number') {
+            modelControlValues[storedKey] = parseFloat(raw);
+          } else if (isBool) {
+            modelControlValues[storedKey] = field.checked;
+          } else {
+            modelControlValues[storedKey] = raw;
+          }
+        });
+      }
 
-      const wrapper = document.createElement('div');
-      wrapper.className = 'flex flex-col gap-1';
-      wrapper.appendChild(label);
       wrapper.appendChild(field);
       dynamicControlsContainer.appendChild(wrapper);
     });
@@ -523,6 +690,7 @@ export function EditStudio() {
     promptField.classList.add('hidden');
     modelSelect.classList.add('hidden');
     if (dynamicControlsContainer) dynamicControlsContainer.classList.add('hidden');
+    container.querySelectorAll('.watermark-image-row').forEach(el => el.classList.add('hidden'));
 
     if (toolId === 'seedream-5.0-edit') {
       modelSelect.classList.remove('hidden');
@@ -547,6 +715,9 @@ export function EditStudio() {
       watermarkPositionSelect.value = watermarkPositionValue;
       watermarkOpacityInput.value = watermarkOpacityValue;
       watermarkScaleInput.value = watermarkScaleValue;
+      // Show watermark image upload row
+      const wmImgRow = container.querySelector('.watermark-image-row');
+      if (wmImgRow) wmImgRow.classList.remove('hidden');
     } else if (toolId === 'ai-image-face-swap') {
       controlsRow.classList.remove('hidden');
       controlsRow.appendChild(targetIndexInput);
@@ -572,17 +743,39 @@ export function EditStudio() {
 
     showControlsForTool(tool.id);
     resultArea.classList.add('hidden');
+    errorArea.classList.add('hidden');
   }
 
   editBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
     if (!activeTool) return;
-    if (!uploadedUrl) { alert('Upload an image or video first'); return; }
+    if (!uploadedUrl) { showError('Upload a source image first'); return; }
+
+    // Validate static controls
+    const faceIndex = parseInt(targetIndexValue, 10);
+    if (activeTool.id === 'ai-image-face-swap' && (isNaN(faceIndex) || faceIndex < 0 || faceIndex > 10)) {
+      showError('Target face index must be between 0 and 10'); return;
+    }
+    const wmOpacity = parseFloat(watermarkOpacityValue);
+    if (activeTool.id === 'add-image-watermark' && (isNaN(wmOpacity) || wmOpacity < 0 || wmOpacity > 1)) {
+      showError('Watermark opacity must be between 0 and 1'); return;
+    }
+    const wmScale = parseFloat(watermarkScaleValue);
+    if (activeTool.id === 'add-image-watermark' && (isNaN(wmScale) || wmScale < 0.1 || wmScale > 1)) {
+      showError('Watermark scale must be between 0.1 and 1'); return;
+    }
+    const numImages = parseInt(numImagesValue, 10);
+    if (activeTool.id === 'ideogram-v3-reframe' && (isNaN(numImages) || numImages < 1 || numImages > 4)) {
+      showError('Number of images must be between 1 and 4'); return;
+    }
+
     const apiKey = apiKeyManager.getMuapiKey();
     if (!apiKey) { AuthModal(() => editBtn.click()); return; }
 
     editBtn.disabled = true;
     editBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Processing...';
+    errorArea.classList.add('hidden');
+    resultArea.classList.add('hidden');
 
     try {
       const modelToUse = selectedModelId || activeTool.id;
@@ -603,15 +796,18 @@ export function EditStudio() {
         params.aspect_ratio = aspectRatioValue;
         params.render_speed = renderSpeedValue;
         params.style = styleValue;
-        params.num_images = parseInt(numImagesValue, 10);
+        params.num_images = numImages;
       }
       if (activeTool.id === 'add-image-watermark') {
         params.position = watermarkPositionValue;
-        params.opacity = parseFloat(watermarkOpacityValue);
-        params.scale = parseFloat(watermarkScaleValue);
+        params.opacity = wmOpacity;
+        params.scale = wmScale;
+        if (watermarkImageUrl) {
+          params.watermark_image_url = watermarkImageUrl;
+        }
       }
       if (activeTool.id === 'ai-image-face-swap') {
-        params.target_index = parseInt(targetIndexValue, 10);
+        params.target_index = faceIndex;
       }
 
       // Append dynamic model-specific controls
@@ -621,7 +817,10 @@ export function EditStudio() {
           if (key === 'prompt') return;
           const storedKey = modelToUse + '_' + key;
           if (storedKey in modelControlValues) {
-            params[key] = modelControlValues[storedKey];
+            const val = modelControlValues[storedKey];
+            if (val !== null && val !== undefined && val !== '') {
+              params[key] = val;
+            }
           }
         });
       }
@@ -638,12 +837,17 @@ export function EditStudio() {
         resultArea.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">Edit completed, but no result image was returned. Please try again.</div>`;
       }
     } catch (err) {
-      alert(`Error: ${err.message}`);
+      showError(err.message || 'An unexpected error occurred');
     } finally {
       editBtn.disabled = false;
       editBtn.textContent = 'Apply Edit';
     }
   };
+
+  function showError(message) {
+    errorArea.classList.remove('hidden');
+    errorArea.innerHTML = `<div class="text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl p-3">${message}</div>`;
+  }
 
   return container;
 }
