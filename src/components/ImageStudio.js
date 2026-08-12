@@ -6,7 +6,7 @@ import { createSafeImage } from '../lib/security.js';
 import {
     t2iModels, getAspectRatiosForModel, getResolutionsForModel, getQualityFieldForModel,
     i2iModels, getAspectRatiosForI2IModel, getResolutionsForI2IModel, getQualityFieldForI2IModel,
-    getMaxImagesForI2IModel
+    getMaxImagesForI2IModel, getModelById
 } from '../lib/models.js';
 import { ENHANCE_TAGS, QUICK_PROMPTS } from '../lib/promptUtils.js';
 import { AuthModal } from './AuthModal.js';
@@ -18,6 +18,8 @@ import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/Studio
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
 
 export function ImageStudio() {
     const container = document.createElement('div');
@@ -399,119 +401,48 @@ export function ImageStudio() {
     const advancedPanel = document.createElement('div');
     advancedPanel.className = 'w-full mt-6 animate-fade-in-up hidden';
     advancedPanel.id = 'advanced-panel';
-    advancedPanel.innerHTML = `
-        <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4">
-            <div class="flex items-center justify-between pb-3 border-b border-white/5">
-                <h3 class="text-sm font-bold text-white">Advanced Options</h3>
-                <button id="close-adv-btn" class="text-white/40 hover:text-white transition-colors">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                </button>
-            </div>
-            
-            <!-- Style Presets -->
-            <div class="flex flex-col gap-2">
-                <label class="text-xs font-bold text-secondary uppercase tracking-wider">Style Preset</label>
-                <div class="flex gap-2 flex-wrap">
-                    ${STYLE_PRESETS.map(s => `<button class="style-preset-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-white/5 text-secondary hover:bg-white/10 transition-all" data-style="${s}">${s}</button>`).join('')}
-                </div>
-            </div>
-            
-            <!-- Negative Prompt -->
-            <div class="flex flex-col gap-2">
-                <label class="text-xs font-bold text-secondary uppercase tracking-wider">Negative Prompt</label>
-                <input type="text" id="negative-prompt-input" 
-                    placeholder="What to exclude from the image (e.g., blurry, distorted, watermark)"
-                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors">
-            </div>
-            
-            <!-- Guidance Scale & Steps Row -->
-            <div class="flex gap-4 flex-wrap">
-                <div class="flex-1 min-w-[200px] flex flex-col gap-2">
-                    <div class="flex items-center justify-between">
-                        <label class="text-xs font-bold text-secondary uppercase tracking-wider">Guidance Scale</label>
-                        <span id="guidance-value" class="text-xs font-bold text-primary">7.5</span>
-                    </div>
-                    <input type="range" id="guidance-slider" min="1" max="20" step="0.5" value="7.5" 
-                        class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary">
-                </div>
-                
-                <div class="flex-1 min-w-[200px] flex flex-col gap-2">
-                    <div class="flex items-center justify-between">
-                        <label class="text-xs font-bold text-secondary uppercase tracking-wider">Steps</label>
-                        <span id="steps-value" class="text-xs font-bold text-primary">25</span>
-                    </div>
-                    <input type="range" id="steps-slider" min="1" max="50" step="1" value="25" 
-                        class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary">
-                </div>
-            </div>
-            
-            <!-- Seed -->
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-secondary uppercase tracking-wider">Seed</label>
-                    <button id="randomize-seed-btn" class="text-xs font-bold text-primary hover:text-primary/80 transition-colors">Randomize</button>
-                </div>
-                <input type="number" id="seed-input" 
-                    placeholder="-1 for random"
-                    value="-1"
-                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors">
-            </div>
-            
-            <!-- Batch Count -->
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-secondary uppercase tracking-wider">Batch Count</label>
-                    <span id="batch-value" class="text-xs font-bold text-primary">1</span>
-                </div>
-                <input type="range" id="batch-slider" min="1" max="4" step="1" value="1" 
-                    class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary">
-            </div>
-            
-            <!-- Width & Height -->
-            <div class="flex gap-4 flex-wrap">
-                <div class="flex-1 min-w-[120px] flex flex-col gap-2">
-                    <label class="text-xs font-bold text-secondary uppercase tracking-wider">Width</label>
-                    <input type="number" id="width-input" 
-                        placeholder="Auto"
-                        value=""
-                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors">
-                </div>
-                <div class="flex-1 min-w-[120px] flex flex-col gap-2">
-                    <label class="text-xs font-bold text-secondary uppercase tracking-wider">Height</label>
-                    <input type="number" id="height-input" 
-                        placeholder="Auto"
-                        value=""
-                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors">
-                </div>
-            </div>
-            
-            <!-- Reference Strength (for I2I models) -->
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-secondary uppercase tracking-wider">Reference Strength</label>
-                    <span id="reference-strength-value" class="text-xs font-bold text-primary">50%</span>
-                </div>
-                <input type="range" id="reference-strength-slider" min="0" max="100" step="5" value="50" 
-                    class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary">
-                <p class="text-xs text-muted">How much to preserve the reference image characteristics</p>
-            </div>
-            
-            <!-- LoRA Model Selection -->
-            <div class="flex flex-col gap-2">
-                <label class="text-xs font-bold text-secondary uppercase tracking-wider">LoRA Model (Optional)</label>
-                <input type="text" id="lora-input" 
-                    placeholder="e.g., civitai:1642876@1864626"
-                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors">
-                <div class="flex items-center gap-2 mt-1">
-                    <label class="text-xs font-bold text-secondary">LoRA Weight:</label>
-                    <input type="number" id="lora-weight-input" 
-                        value="1.0" min="0" max="4" step="0.1"
-                        class="w-20 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors">
-                </div>
-                <p class="text-xs text-muted">Enter a LoRA model ID from Civitai (format: civitai:id@version)</p>
-            </div>
-        </div>
+    const advancedCard = document.createElement('div');
+    advancedCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
+    advancedPanel.appendChild(advancedCard);
+
+    const advHeader = document.createElement('div');
+    advHeader.className = 'flex items-center justify-between pb-3 border-b border-white/5';
+    advHeader.innerHTML = `
+        <h3 class="text-sm font-bold text-white">Advanced Options</h3>
+        <button id="close-adv-btn" class="text-white/40 hover:text-white transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
     `;
+    advancedPanel.appendChild(advHeader);
+
+    const advancedControlsContainer = document.createElement('div');
+    advancedControlsContainer.className = 'flex flex-col gap-4';
+    advancedCard.appendChild(advancedControlsContainer);
+
+    const dynamicControls = createAdvancedControls({
+      model: getExtendedModel(getModelById(selectedModel)),
+      state: { imageMode },
+      container: advancedControlsContainer,
+      exclude: new Set(['style', 'batch_count']),
+      extraInputs: {
+        style: { type: 'enum', title: 'Style Preset', options: STYLE_PRESETS, default: 'None', group: 'basic' },
+        batch_count: { type: 'integer', title: 'Batch Count', default: 1, minValue: 1, maxValue: 4, step: 1, group: 'advanced', visibleWhen: 'imageMode == false' },
+        reference_strength: { type: 'slider', title: 'Reference Strength', default: 50, minValue: 0, maxValue: 100, step: 5, group: 'advanced', visibleWhen: 'imageMode == true' },
+      },
+      onChange: (key, value) => {
+        if (key === 'style') selectedStyle = value;
+        if (key === 'batch_count') batchCount = value;
+        if (key === 'reference_strength') referenceStrength = value;
+        if (key === 'negative_prompt') negativePrompt = value;
+        if (key === 'guidance_scale') guidanceScale = value;
+        if (key === 'steps') steps = value;
+        if (key === 'seed') seed = value;
+        if (key === 'width') customWidth = value;
+        if (key === 'height') customHeight = value;
+        if (key === 'lora') selectedLora = value;
+        if (key === 'lora_weight') loraWeight = value;
+      }
+    });
     container.appendChild(advancedPanel);
 
     // Advanced panel toggle logic
@@ -632,107 +563,9 @@ export function ImageStudio() {
         };
     }
     
-    // Negative prompt
-    const negPromptInput = advancedPanel.querySelector('#negative-prompt-input');
-    if (negPromptInput) negPromptInput.oninput = (e) => { negativePrompt = e.target.value; };
-    
-    // Guidance scale slider
-    const guidanceSlider = advancedPanel.querySelector('#guidance-slider');
-    const guidanceValue = advancedPanel.querySelector('#guidance-value');
-    if (guidanceSlider && guidanceValue) {
-        guidanceSlider.oninput = (e) => {
-            guidanceScale = parseFloat(e.target.value);
-            guidanceValue.textContent = guidanceScale;
-        };
-    }
-    
-    // Steps slider
-    const stepsSlider = advancedPanel.querySelector('#steps-slider');
-    const stepsValue = advancedPanel.querySelector('#steps-value');
-    if (stepsSlider && stepsValue) {
-        stepsSlider.oninput = (e) => {
-            steps = parseInt(e.target.value);
-            stepsValue.textContent = steps;
-        };
-    }
-    
-    // Seed input
-    const seedInput = advancedPanel.querySelector('#seed-input');
-    if (seedInput) seedInput.oninput = (e) => { seed = parseInt(e.target.value) || -1; };
-    
-    // Randomize seed button
-    const randSeedBtn = advancedPanel.querySelector('#randomize-seed-btn');
-    if (randSeedBtn) {
-        randSeedBtn.onclick = () => {
-            seed = Math.floor(Math.random() * 999999999);
-            if (seedInput) seedInput.value = seed;
-        };
-    }
-    
-    // Batch count slider
-    const batchSlider = advancedPanel.querySelector('#batch-slider');
-    const batchValueEl = advancedPanel.querySelector('#batch-value');
-    if (batchSlider && batchValueEl) {
-        batchSlider.oninput = (e) => {
-            batchCount = parseInt(e.target.value);
-            batchValueEl.textContent = batchCount;
-        };
-    }
-    
-    // Width input
-    const widthInput = advancedPanel.querySelector('#width-input');
-    if (widthInput) {
-        widthInput.oninput = (e) => {
-            customWidth = parseInt(e.target.value) || 0;
-        };
-    }
-    
-    // Height input
-    const heightInput = advancedPanel.querySelector('#height-input');
-    if (heightInput) {
-        heightInput.oninput = (e) => {
-            customHeight = parseInt(e.target.value) || 0;
-        };
-    }
-    
-    // Reference strength slider
-    const refStrengthSlider = advancedPanel.querySelector('#reference-strength-slider');
-    const refStrengthValue = advancedPanel.querySelector('#reference-strength-value');
-    if (refStrengthSlider && refStrengthValue) {
-        refStrengthSlider.oninput = (e) => {
-            referenceStrength = parseInt(e.target.value);
-            refStrengthValue.textContent = referenceStrength + '%';
-        };
-    }
-    
-    // LoRA input
-    const loraInput = advancedPanel.querySelector('#lora-input');
-    if (loraInput) {
-        loraInput.oninput = (e) => {
-            selectedLora = e.target.value.trim();
-        };
-    }
-    
-    // LoRA weight input
-    const loraWeightInput = advancedPanel.querySelector('#lora-weight-input');
-    if (loraWeightInput) {
-        loraWeightInput.oninput = (e) => {
-            loraWeight = parseFloat(e.target.value) || 1.0;
-        };
-    }
-    
-    // Style preset handlers
-    advancedPanel.querySelectorAll('.style-preset-btn').forEach(btn => {
-        btn.onclick = () => {
-            selectedStyle = btn.dataset.style;
-            advancedPanel.querySelectorAll('.style-preset-btn').forEach(b => {
-                b.classList.remove('bg-primary/20', 'text-primary', 'border-primary/30');
-                b.classList.add('bg-white/5', 'text-secondary');
-            });
-            btn.classList.add('bg-primary/20', 'text-primary', 'border-primary/30');
-            btn.classList.remove('bg-white/5', 'text-secondary');
-        };
-    });
+    // Dynamic advanced controls are rendered by createAdvancedControls.
+    // Studio-specific values are synced via the onChange callback above.
+    // Old static event handlers removed; dynamicControls manages all advanced inputs.
 
     // ==========================================
     // 3. DROPDOWNS (Professional implementation)
@@ -795,6 +628,9 @@ export function ImageStudio() {
                         picker.setMaxImages(getMaxImagesForI2IModel(selectedModel));
                     }
                     updateModelBtnIcon();
+                    if (dynamicControls) {
+                        dynamicControls.update(getExtendedModel(getModelById(selectedModel)));
+                    }
                     closeDropdown();
                 });
 
@@ -1181,42 +1017,36 @@ export function ImageStudio() {
         try {
             let res;
             const qualityLabel = document.getElementById('quality-btn-label')?.textContent;
+            // Collect dynamic control values. Studio-specific fields (style, batch_count)
+            // are excluded from the payload and handled manually below.
+            const dynamicPayload = dynamicControls.getPayload({});
+
             if (imageMode) {
                 const genParams = {
                     model: selectedModel,
                     images_list: uploadedImageUrls,
                     image_url: uploadedImageUrls[0], // backward compat for single-image models
-                    aspect_ratio: selectedAr
+                    aspect_ratio: selectedAr,
+                    ...dynamicPayload
                 };
                 if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
                 if (prompt) genParams.prompt = prompt;
-                if (negativePrompt) genParams.negative_prompt = negativePrompt;
-                if (guidanceScale && guidanceScale !== 7.5) genParams.guidance_scale = guidanceScale;
-                if (steps && steps !== 25) genParams.steps = steps;
-                if (customWidth > 0) genParams.width = customWidth;
-                if (customHeight > 0) genParams.height = customHeight;
-                if (selectedLora) {
-                    genParams.model_id = [{ model: selectedLora, weight: loraWeight }];
-                }
-                if (seed && seed !== -1) genParams.seed = seed;
                 const qualityField = getCurrentQualityField(selectedModel);
                 if (qualityField && qualityLabel) genParams[qualityField] = qualityLabel;
                 res = await muapi.generateI2I(genParams);
             } else {
-                const genParams = {
-                    model: selectedModel,
-                    prompt,
-                    aspect_ratio: selectedAr
-                };
-                if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
+                let finalPrompt = prompt;
                 // Add style to prompt if selected
                 if (selectedStyle && selectedStyle !== 'None') {
-                    genParams.prompt = `${prompt}, ${selectedStyle.toLowerCase()} style`;
+                    finalPrompt = `${prompt}, ${selectedStyle.toLowerCase()} style`;
                 }
-                if (negativePrompt) genParams.negative_prompt = negativePrompt;
-                if (guidanceScale && guidanceScale !== 7.5) genParams.guidance_scale = guidanceScale;
-                if (steps && steps !== 25) genParams.steps = steps;
-                if (seed && seed !== -1) genParams.seed = seed;
+                const genParams = {
+                    model: selectedModel,
+                    prompt: finalPrompt,
+                    aspect_ratio: selectedAr,
+                    ...dynamicPayload
+                };
+                if (customThumbnailUrl) genParams.thumbnail_url = customThumbnailUrl;
                 const qualityField = getCurrentQualityField(selectedModel);
                 if (qualityField && qualityLabel) genParams[qualityField] = qualityLabel;
                 res = await muapi.generateImage(genParams);

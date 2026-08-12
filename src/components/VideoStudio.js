@@ -3,7 +3,9 @@ import { mountStudioChrome } from '../lib/studioChrome.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { createSafeVideo } from '../lib/security.js';
-import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels } from '../lib/models.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { t2vModels, getAspectRatiosForVideoModel, getDurationsForModel, getResolutionsForVideoModel, i2vModels, getAspectRatiosForI2VModel, getDurationsForI2VModel, getResolutionsForI2VModel, v2vModels, getModelById } from '../lib/models.js';
 import { AuthModal } from './AuthModal.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createInlineInstructions } from './InlineInstructions.js';
@@ -53,9 +55,6 @@ export function VideoStudio() {
       void restoredGtmContext;
     } catch { /* ignore */ }
     
-    // Advanced parameters state
-    let negativePrompt = '';
-    let seed = -1;
     let showAdvanced = false;
 
     const getCurrentModels = () => v2vMode ? v2vModels : (imageMode ? i2vModels : t2vModels);
@@ -500,61 +499,50 @@ export function VideoStudio() {
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
             </div>
-            
-            <!-- Negative Prompt -->
-            <div class="flex flex-col gap-2">
-                <label class="text-xs font-bold text-secondary uppercase tracking-wider">Negative Prompt</label>
-                <input type="text" id="v-negative-prompt-input" 
-                    placeholder="What to exclude from the video (e.g., blurry, distorted, watermark)"
-                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors">
-            </div>
-            
-            <!-- Seed -->
-            <div class="flex flex-col gap-2">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-secondary uppercase tracking-wider">Seed</label>
-                    <button id="v-randomize-seed-btn" class="text-xs font-bold text-primary hover:text-primary/80 transition-colors">Randomize</button>
-                </div>
-                <input type="number" id="v-seed-input" 
-                    placeholder="-1 for random"
-                    value="-1"
-                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors">
-            </div>
+            <div id="v-advanced-controls-container" class="flex flex-col gap-4"></div>
         </div>
     `;
     container.appendChild(advancedPanel);
 
-    // Advanced panel toggle logic
-    const toggleAdvanced = () => {
-        showAdvanced = !showAdvanced;
-        advancedPanel.classList.toggle('hidden', !showAdvanced);
-        document.getElementById('v-advanced-btn-label').textContent = showAdvanced ? 'Less' : 'Advanced';
+    let dynamicControls = null;
+
+    const getAdvancedModel = () => {
+      const base = getExtendedModel(getCurrentModel());
+      if (!base) return null;
+      const advancedInputs = {};
+      for (const [key, schema] of Object.entries(base.inputs || {})) {
+        if (key === 'negative_prompt' || key === 'seed') {
+          advancedInputs[key] = schema;
+        }
+      }
+      return { ...base, inputs: advancedInputs };
     };
-    
-    // Add advanced panel to container first
-    container.appendChild(advancedPanel);
-    
-    // Now set up event handlers after elements are in DOM
+
+    const initAdvancedControls = () => {
+      if (dynamicControls) return;
+      const advModel = getAdvancedModel();
+      if (!advModel) return;
+      const controlsContainer = advancedPanel.querySelector('#v-advanced-controls-container');
+      dynamicControls = createAdvancedControls({
+        model: advModel,
+        state: { imageMode, v2vMode },
+        container: controlsContainer,
+        exclude: new Set(['aspect_ratio', 'duration', 'resolution', 'quality']),
+      });
+    };
+
+    const toggleAdvanced = () => {
+      showAdvanced = !showAdvanced;
+      advancedPanel.classList.toggle('hidden', !showAdvanced);
+      document.getElementById('v-advanced-btn-label').textContent = showAdvanced ? 'Less' : 'Advanced';
+      if (showAdvanced && !dynamicControls) {
+        initAdvancedControls();
+      }
+    };
+
     advancedBtn.onclick = toggleAdvanced;
     const vCloseAdvBtn = advancedPanel.querySelector('#v-close-adv-btn');
     if (vCloseAdvBtn) vCloseAdvBtn.onclick = toggleAdvanced;
-    
-    // Negative prompt
-    const vNegPromptInput = advancedPanel.querySelector('#v-negative-prompt-input');
-    if (vNegPromptInput) vNegPromptInput.oninput = (e) => { negativePrompt = e.target.value; };
-    
-    // Seed input
-    const vSeedInput = advancedPanel.querySelector('#v-seed-input');
-    if (vSeedInput) vSeedInput.oninput = (e) => { seed = parseInt(e.target.value) || -1; };
-    
-    // Randomize seed button
-    const vRandSeedBtn = advancedPanel.querySelector('#v-randomize-seed-btn');
-    if (vRandSeedBtn) {
-        vRandSeedBtn.onclick = () => {
-            seed = Math.floor(Math.random() * 999999999);
-            if (vSeedInput) vSeedInput.value = seed;
-        };
-    }
 
     // ==========================================
     // 3. DROPDOWNS
@@ -624,6 +612,11 @@ export function VideoStudio() {
         } else {
             extendBanner.classList.add('hidden');
             extendBanner.classList.remove('flex');
+        }
+
+        if (dynamicControls) {
+          const advModel = getAdvancedModel();
+          if (advModel) dynamicControls.update(advModel);
         }
     };
 
@@ -1317,8 +1310,9 @@ export function VideoStudio() {
                 if (prompt) i2vParams.prompt = prompt;
                 const isWanI2V = selectedModel === 'wan2.1-image-to-video' || selectedModel === 'wan2.5-image-to-video';
                 if (!isWanI2V && customThumbnailUrl) i2vParams.thumbnail_url = customThumbnailUrl;
-                if (!isWanI2V && negativePrompt) i2vParams.negative_prompt = negativePrompt;
-                if (!isWanI2V && seed && seed !== -1) i2vParams.seed = seed;
+                const advancedPayload = dynamicControls ? dynamicControls.getPayload() : {};
+                if (!isWanI2V && advancedPayload.negative_prompt) i2vParams.negative_prompt = advancedPayload.negative_prompt;
+                if (!isWanI2V && advancedPayload.seed) i2vParams.seed = advancedPayload.seed;
                 const durations = getCurrentDurations(selectedModel);
                 if (durations.length > 0) i2vParams.duration = selectedDuration;
                 const resolutions = getCurrentResolutions(selectedModel);
@@ -1350,8 +1344,9 @@ export function VideoStudio() {
 
             if (customThumbnailUrl) params.thumbnail_url = customThumbnailUrl;
             if (prompt) params.prompt = prompt;
-            if (negativePrompt) params.negative_prompt = negativePrompt;
-            if (seed && seed !== -1) params.seed = seed;
+            const advancedPayload = dynamicControls ? dynamicControls.getPayload() : {};
+            if (advancedPayload.negative_prompt) params.negative_prompt = advancedPayload.negative_prompt;
+            if (advancedPayload.seed) params.seed = advancedPayload.seed;
 
             // Extend mode: pass stored request_id, skip aspect_ratio
             if (isExtendMode) {

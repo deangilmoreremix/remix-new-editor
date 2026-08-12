@@ -31,6 +31,7 @@ import {
   RenderHandoff,
   TemplateStorage
 } from '../lib/cinematicTemplates.js';
+import { getVideoIntent, setVideoIntent, subscribeVideoIntent } from '../lib/videoIntentStore.js';
 
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
@@ -419,6 +420,10 @@ export function CinemaTemplateStudio() {
     formPanel.className = 'flex-1 overflow-auto p-6';
     formPanel.innerHTML = `
       <div class="max-w-2xl mx-auto">
+        <div id="video-intent-section" class="mb-6">
+          <!-- Video Intent form rendered here -->
+        </div>
+
         <div class="mb-6">
           <h2 class="text-lg font-bold text-white mb-2">Basic Information</h2>
           <p class="text-sm text-secondary">Enter the key details for your video</p>
@@ -557,10 +562,16 @@ export function CinemaTemplateStudio() {
     container.appendChild(mobileOutputBtn);
 
     renderFormInputs();
+    renderVideoIntentForm();
     renderSceneTimeline();
     renderSceneBuilder();
     updatePreviewThumbnail();
     updateApiKeyIndicator();
+
+    // Sync initial video intent into template inputs and listen for changes
+    const initialIntent = getVideoIntent();
+    syncVideoIntentToTemplate(initialIntent);
+    subscribeVideoIntent(onVideoIntentChanged);
 
     // Debounced scene timeline refresh on input changes
     const formEl = container.querySelector('#inputs-form');
@@ -674,8 +685,8 @@ export function CinemaTemplateStudio() {
         </div>
         <button id="clear-storyboard-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-xs font-bold rounded-lg transition-colors">Clear</button>
       `;
-      content.insertBefore(banner, formPanel);
-      
+      formPanel.insertBefore(banner, formPanel.firstChild);
+
       banner.querySelector('#clear-storyboard-btn').onclick = () => {
         incomingStoryboard = null;
         storyboardProjectId = null;
@@ -750,6 +761,159 @@ export function CinemaTemplateStudio() {
         });
       }
     }
+  }
+
+  function renderVideoIntentForm() {
+    const section = container.querySelector('#video-intent-section');
+    if (!section) return;
+
+    const intent = getVideoIntent();
+
+    section.innerHTML = `
+      <div class="bg-white/5 border border-white/10 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white">Video Intent</h2>
+            <p class="text-xs text-secondary">Describe the video you want to create</p>
+          </div>
+          <button id="open-storyboard-btn-2" class="px-4 py-2 bg-primary text-black text-xs font-bold rounded-lg hover:scale-105 transition-transform">
+            🎨 Storyboard
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-white uppercase mb-1.5">Video Type</label>
+            <select id="vi-videoType" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm">
+              ${['commercial','brand film','trailer','social reel','testimonial','documentary','short film','explainer'].map(v => `<option value="${v}" ${intent.videoType === v ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-white uppercase mb-1.5">Duration (seconds)</label>
+            <input id="vi-duration" type="number" min="5" max="300" value="${intent.duration}" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-white uppercase mb-1.5">Aspect Ratio</label>
+            <select id="vi-aspectRatio" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm">
+              ${['16:9','9:16','1:1','4:5'].map(v => `<option value="${v}" ${intent.aspectRatio === v ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-white uppercase mb-1.5">Tone</label>
+            <select id="vi-tone" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm">
+              ${['dramatic','cinematic','upbeat','luxury','gritty','minimal','emotional','humorous'].map(v => `<option value="${v}" ${intent.tone === v ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-white uppercase mb-1.5">Style Preset</label>
+            <select id="vi-stylePreset" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm">
+              ${['None','Photorealistic','Cinematic','Noir','Anime','Watercolor','Oil Painting','Cyberpunk','Fantasy','Documentary'].map(v => `<option value="${v}" ${intent.stylePreset === v ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-white uppercase mb-1.5">Lighting Preset</label>
+            <select id="vi-lightingPreset" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm">
+              ${['None','Golden Hour','Neon','Studio','Dramatic','Soft','Volumetric','High Key','Low Key'].map(v => `<option value="${v}" ${intent.lightingPreset === v ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-white uppercase mb-1.5">Color Grade</label>
+            <select id="vi-colorGrade" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm">
+              ${['None','Warm','Cool','Desaturated','Vibrant','Monochrome','Sepia','Teal & Orange'].map(v => `<option value="${v}" ${intent.colorGrade === v ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-white uppercase mb-1.5">Target Audience</label>
+            <input id="vi-targetAudience" type="text" value="${escapeHtml(intent.targetAudience || '')}" placeholder="e.g. Gen Z, professionals" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-white uppercase mb-1.5">Call to Action (optional)</label>
+            <input id="vi-cta" type="text" value="${escapeHtml(intent.cta || '')}" placeholder="e.g. Buy now, Sign up" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-bold text-white uppercase mb-1.5">Subject</label>
+            <input id="vi-subject" type="text" value="${escapeHtml(intent.subject || '')}" placeholder="What is the video about?" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm" />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-bold text-white uppercase mb-1.5">Premise</label>
+            <textarea id="vi-premise" rows="2" placeholder="Core narrative or value prop..." class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm resize-none">${escapeHtml(intent.premise || '')}</textarea>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <button id="vi-reset-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-xs font-bold rounded-lg transition-colors">Reset</button>
+          <span class="text-[10px] text-secondary">Video intent is saved automatically</span>
+        </div>
+      </div>
+    `;
+
+    const debounce = (fn, ms) => {
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), ms);
+      };
+    };
+
+    const syncIntent = debounce(() => {
+      setVideoIntent({
+        videoType: section.querySelector('#vi-videoType')?.value || intent.videoType,
+        duration: parseInt(section.querySelector('#vi-duration')?.value || intent.duration, 10),
+        aspectRatio: section.querySelector('#vi-aspectRatio')?.value || intent.aspectRatio,
+        tone: section.querySelector('#vi-tone')?.value || intent.tone,
+        stylePreset: section.querySelector('#vi-stylePreset')?.value || intent.stylePreset,
+        lightingPreset: section.querySelector('#vi-lightingPreset')?.value || intent.lightingPreset,
+        colorGrade: section.querySelector('#vi-colorGrade')?.value || intent.colorGrade,
+        targetAudience: section.querySelector('#vi-targetAudience')?.value || intent.targetAudience,
+        cta: section.querySelector('#vi-cta')?.value || intent.cta,
+        subject: section.querySelector('#vi-subject')?.value || intent.subject,
+        premise: section.querySelector('#vi-premise')?.value || intent.premise,
+      });
+    }, 300);
+
+    section.querySelectorAll('input, select, textarea').forEach(el => {
+      el.addEventListener('input', syncIntent);
+      el.addEventListener('change', syncIntent);
+    });
+
+    section.querySelector('#vi-reset-btn')?.addEventListener('click', () => {
+      resetVideoIntent();
+      renderVideoIntentForm();
+      showToast('Video intent reset', 'success');
+    });
+
+    section.querySelector('#open-storyboard-btn-2')?.addEventListener('click', () => {
+      view = 'storyboard';
+      render();
+    });
+  }
+
+  function syncVideoIntentToTemplate(intent) {
+    if (!currentTemplate || !intent) return;
+    const mapping = {
+      subject: 'subject',
+      tone: 'tone',
+      targetAudience: 'targetAudience',
+      duration: 'duration',
+      aspectRatio: 'aspectRatio',
+      stylePreset: 'visualStyle',
+      lightingPreset: 'lighting',
+      colorGrade: 'colorPalette',
+      cta: 'cta',
+    };
+    Object.entries(mapping).forEach(([intentKey, inputKey]) => {
+      if (intent[intentKey] !== undefined && intent[intentKey] !== null && intent[intentKey] !== '') {
+        currentInputs[inputKey] = intent[intentKey];
+      }
+    });
+    if (intent.premise) {
+      currentInputs.premise = intent.premise;
+    }
+  }
+
+  function onVideoIntentChanged(intent) {
+    syncVideoIntentToTemplate(intent);
+    renderSceneTimeline();
+    renderSceneBuilder();
+    updateOutputContent();
   }
 
   function renderSceneTimeline() {

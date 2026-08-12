@@ -8,6 +8,9 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { getModelById } from '../lib/models.js';
 
 const UPSCALE_METHODS = [
   { id: 'ai-image-upscaler', name: 'AI Upscaler', description: 'General-purpose AI upscaling with 2x/4x factor', factors: ['2', '4'], provider: 'muapi', provider_name: 'MuAPI' },
@@ -22,6 +25,8 @@ export function UpscaleStudio() {
 
   let selectedMethod = UPSCALE_METHODS[0];
   let selectedFactor = '2';
+  let dynamicControls = null;
+  let dynamicControlsContainer = null;
   let uploadedUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('upscale-studio');
 
@@ -104,6 +109,7 @@ export function UpscaleStudio() {
           selectedFactor = selectedMethod.factors[0] || '';
           updateTrigger();
           updateFactorBtns();
+          buildDynamicControls();
           closeDropdown();
         });
         if (selectedProvider !== 'all') {
@@ -173,6 +179,28 @@ export function UpscaleStudio() {
   uploadRow.appendChild(hint);
   formCard.appendChild(uploadRow);
   container.appendChild(picker.panel);
+
+  // Dynamic model-specific advanced controls
+  dynamicControlsContainer = document.createElement('div');
+  dynamicControlsContainer.className = 'flex flex-col gap-3';
+  formCard.appendChild(dynamicControlsContainer);
+
+  function buildDynamicControls() {
+    if (!dynamicControlsContainer) return;
+    if (dynamicControls) dynamicControls.destroy();
+    const model = getExtendedModel(getModelById(selectedMethod.id));
+    if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
+      dynamicControlsContainer.classList.add('hidden');
+      return;
+    }
+    dynamicControlsContainer.classList.remove('hidden');
+    dynamicControls = createAdvancedControls({
+      model,
+      container: dynamicControlsContainer,
+      exclude: new Set(['image_url']),
+    });
+  }
+  buildDynamicControls();
 
   // Thumbnail studio button — next to creation controls, GTM Boost styling
   const thumbBtn = document.createElement('button');
@@ -246,6 +274,9 @@ export function UpscaleStudio() {
     try {
       const params = { model: selectedMethod.id, image_url: uploadedUrl, customThumbnailUrl: customThumbnailUrl || undefined };
       if (selectedFactor) params.upscale_factor = parseInt(selectedFactor);
+      if (dynamicControls) {
+        Object.assign(params, dynamicControls.getPayload({}));
+      }
       const result = await muapi.generateI2I(params);
       if (result?.url) {
         resultArea.classList.remove('hidden');

@@ -1,6 +1,6 @@
 // AI-VFX Studio Page
 // Embeds the ai-vfx studio as an iframe. In dev it points at the Vite
-// dev server on port 3001, and in production it loads the built files
+// dev server on port 3002, and in production it loads the built files
 // from /ai-vfx/ inside the main app's dist folder.
 
 export function AIVFXPage() {
@@ -19,7 +19,7 @@ export function AIVFXPage() {
       </div>
       <div>
         <h1 class="text-xl font-black text-white">AI VFX STUDIO</h1>
-        <p class="text-xs text-secondary">Visual effects & motion generation • Powered by MuAPI</p>
+        <p class="text-xs text-secondary">Visual effects & motion generation</p>
       </div>
     </div>
   `;

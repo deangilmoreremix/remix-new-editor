@@ -10,8 +10,8 @@ import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/Studio
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { showToast } from '../lib/loading.js';
-import { t2iModels, getAspectRatiosForModel } from '../lib/models.js';
 import { ENHANCE_TAGS, QUICK_PROMPTS, buildNanoBananaPrompt } from '../lib/promptUtils.js';
+import { t2iModels, getModelById, getAspectRatiosForModel } from '../lib/models.js';
 import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
 import { createUploadPicker } from './UploadPicker.js';
 import { createFullscreenPreview } from './components/MediaPreview.js';
@@ -19,6 +19,9 @@ import Store from '../stores/base/Store.js';
 import { createAutosave, saveProject, saveProjectSync, loadProjectFromStorage, setSupabaseClient } from '../lib/editor/persistence.js';
 import { generateStoryboardFromIntent } from '../lib/storyboardEngine.js';
 import { navigate } from '../lib/router.js';
+import { getVideoIntent, setVideoIntent, subscribeVideoIntent } from '../lib/videoIntentStore.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
 
 let supabaseAvailable = false;
 try {
@@ -326,6 +329,29 @@ export function StoryboardStudio(options = {}) {
     chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
   });
 
+  // Sync standalone form into shared store
+  if (!embedded) {
+    const syncFormToStore = () => {
+      setVideoIntent({
+        videoType: videoIntentSection.querySelector('#vi-videoType')?.value || getVideoIntent().videoType,
+        duration: parseInt(videoIntentSection.querySelector('#vi-duration')?.value || getVideoIntent().duration, 10),
+        aspectRatio: videoIntentSection.querySelector('#vi-aspectRatio')?.value || getVideoIntent().aspectRatio,
+        tone: videoIntentSection.querySelector('#vi-tone')?.value || getVideoIntent().tone,
+        stylePreset: videoIntentSection.querySelector('#vi-stylePreset')?.value || getVideoIntent().stylePreset,
+        lightingPreset: videoIntentSection.querySelector('#vi-lightingPreset')?.value || getVideoIntent().lightingPreset,
+        colorGrade: videoIntentSection.querySelector('#vi-colorGrade')?.value || getVideoIntent().colorGrade,
+        targetAudience: videoIntentSection.querySelector('#vi-targetAudience')?.value || getVideoIntent().targetAudience,
+        cta: videoIntentSection.querySelector('#vi-cta')?.value || getVideoIntent().cta,
+        subject: videoIntentSection.querySelector('#vi-subject')?.value || getVideoIntent().subject,
+        premise: videoIntentSection.querySelector('#vi-premise')?.value || getVideoIntent().premise,
+      });
+    };
+    videoIntentSection.querySelectorAll('input, select, textarea').forEach(el => {
+      el.addEventListener('input', syncFormToStore);
+      el.addEventListener('change', syncFormToStore);
+    });
+  }
+
   const generateBtn = videoIntentSection.querySelector('#vi-generate-btn');
   const templateBtn = videoIntentSection.querySelector('#vi-template-btn');
   const statusEl = videoIntentSection.querySelector('#vi-status');
@@ -333,17 +359,7 @@ export function StoryboardStudio(options = {}) {
   generateBtn.addEventListener('click', async () => {
     if (!(await requireEntitlement())) return;
     const intent = {
-      videoType: videoIntentSection.querySelector('#vi-videoType').value,
-      duration: parseInt(videoIntentSection.querySelector('#vi-duration').value, 10) || 60,
-      aspectRatio: videoIntentSection.querySelector('#vi-aspectRatio').value,
-      subject: videoIntentSection.querySelector('#vi-subject').value,
-      premise: videoIntentSection.querySelector('#vi-premise').value,
-      tone: videoIntentSection.querySelector('#vi-tone').value,
-      targetAudience: videoIntentSection.querySelector('#vi-targetAudience').value,
-      stylePreset: videoIntentSection.querySelector('#vi-stylePreset').value,
-      lightingPreset: videoIntentSection.querySelector('#vi-lightingPreset').value,
-      colorGrade: videoIntentSection.querySelector('#vi-colorGrade').value,
-      cta: videoIntentSection.querySelector('#vi-cta').value,
+      ...getVideoIntent(),
       model: selectedModel,
       customThumbnailUrl: customThumbnailUrl || undefined,
     };
@@ -596,60 +612,6 @@ export function StoryboardStudio(options = {}) {
   };
   controlBar.appendChild(retryBtn);
 
-  const styleLabel = document.createElement('span');
-  styleLabel.className = 'text-xs font-bold text-secondary';
-  styleLabel.textContent = 'Style:';
-  controlBar.appendChild(styleLabel);
-
-  const styleSelect = document.createElement('select');
-  styleSelect.className = 'bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
-  STYLE_OPTIONS.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    opt.style.background = '#111';
-    if (s === selectedStyle) opt.selected = true;
-    styleSelect.appendChild(opt);
-  });
-  styleSelect.onchange = () => { selectedStyle = styleSelect.value; };
-  controlBar.appendChild(styleSelect);
-
-  const lightingLabel = document.createElement('span');
-  lightingLabel.className = 'text-xs font-bold text-secondary';
-  lightingLabel.textContent = 'Lighting:';
-  controlBar.appendChild(lightingLabel);
-
-  const lightingSelect = document.createElement('select');
-  lightingSelect.className = 'bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
-  LIGHTING_OPTIONS.forEach(l => {
-    const opt = document.createElement('option');
-    opt.value = l;
-    opt.textContent = l;
-    opt.style.background = '#111';
-    if (l === selectedLighting) opt.selected = true;
-    lightingSelect.appendChild(opt);
-  });
-  lightingSelect.onchange = () => { selectedLighting = lightingSelect.value; };
-  controlBar.appendChild(lightingSelect);
-
-  const colorLabel = document.createElement('span');
-  colorLabel.className = 'text-xs font-bold text-secondary';
-  colorLabel.textContent = 'Color:';
-  controlBar.appendChild(colorLabel);
-
-  const colorSelect = document.createElement('select');
-  colorSelect.className = 'bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none appearance-none cursor-pointer';
-  COLOR_OPTIONS.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c;
-    opt.textContent = c;
-    opt.style.background = '#111';
-    if (c === selectedColor) opt.selected = true;
-    colorSelect.appendChild(opt);
-  });
-  colorSelect.onchange = () => { selectedColor = colorSelect.value; };
-  controlBar.appendChild(colorSelect);
-
   let enhancedConcept = '';
   let customThumbnailUrl = getCustomThumbnailFromCache('storyboard-studio');
   const gtmBtn = document.createElement('button');
@@ -833,6 +795,10 @@ export function StoryboardStudio(options = {}) {
           document.getElementById('model-btn-label').textContent = selectedModelName;
           document.getElementById('ar-btn-label').textContent = selectedAr;
           updateModelBtnIcon();
+          if (dynamicControls) {
+            dynamicControls.update(getExtendedModel(getModelById(selectedModel)));
+            dynamicControls.setValue('aspect_ratio', selectedAr);
+          }
           closeDropdown();
         });
 
@@ -958,6 +924,54 @@ export function StoryboardStudio(options = {}) {
   });
 
   container.appendChild(controlBar);
+
+  // ==========================================
+  // ADVANCED OPTIONS PANEL (control engine)
+  // ==========================================
+  const advancedPanel = document.createElement('div');
+  advancedPanel.className = 'px-4 md:px-8 mb-4 animate-fade-in-up';
+  advancedPanel.id = 'storyboard-advanced-panel';
+  const advancedCard = document.createElement('div');
+  advancedCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
+  advancedPanel.appendChild(advancedCard);
+
+  const advHeader = document.createElement('div');
+  advHeader.className = 'flex items-center justify-between pb-3 border-b border-white/5';
+  advHeader.innerHTML = `
+    <h3 class="text-sm font-bold text-white">Advanced Options</h3>
+    <button id="close-storyboard-adv-btn" class="text-white/40 hover:text-white transition-colors">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  `;
+  advancedPanel.appendChild(advHeader);
+
+  const advancedControlsContainer = document.createElement('div');
+  advancedControlsContainer.className = 'flex flex-col gap-4';
+  advancedCard.appendChild(advancedControlsContainer);
+
+  const dynamicControls = createAdvancedControls({
+    model: getExtendedModel(getModelById(selectedModel)),
+    state: {},
+    container: advancedControlsContainer,
+    exclude: new Set(['style', 'lighting', 'color', 'prompt', 'batch_count']),
+    extraInputs: {
+      style: { type: 'enum', title: 'Style', options: STYLE_OPTIONS, default: 'None', group: 'basic' },
+      lighting: { type: 'enum', title: 'Lighting', options: LIGHTING_OPTIONS, default: 'None', group: 'basic' },
+      color: { type: 'enum', title: 'Color Grade', options: COLOR_OPTIONS, default: 'None', group: 'basic' },
+    },
+    onChange: (key, value) => {
+      if (key === 'style')    { selectedStyle    = value; }
+      if (key === 'lighting') { selectedLighting = value; }
+      if (key === 'color')    { selectedColor    = value; }
+      if (key === 'aspect_ratio') { selectedAr = value; if (updateArBtn) updateArBtn(); }
+      if (key === 'negative_prompt') { currentSettings.negativePrompt = value; }
+    }
+  });
+  container.appendChild(advancedPanel);
+
+  advancedPanel.querySelector('#close-storyboard-adv-btn').onclick = () => {
+    advancedPanel.classList.add('hidden');
+  };
 
   const comparisonOverlay = document.createElement('div');
   comparisonOverlay.className = 'fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4';
@@ -1292,7 +1306,11 @@ export function StoryboardStudio(options = {}) {
       genFrameBtn.setAttribute('aria-label', 'Generate frame');
       genFrameBtn.onclick = async () => {
         if (!(await requireEntitlement())) return;
-        generateFrame(idx, genFrameBtn, imageArea);
+        try {
+          await generateFrame(idx, genFrameBtn, imageArea);
+        } catch (err) {
+          // Error already shown in generateFrame
+        }
       };
       card.appendChild(genFrameBtn);
 

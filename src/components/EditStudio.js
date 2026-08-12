@@ -9,6 +9,8 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { getI2IModelById } from '../lib/models.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
 
 const EDIT_AI_MODELS = [
   { id: 'flux-kontext-dev-i2i', name: 'Flux Kontext Dev I2I', hasPrompt: true },
@@ -83,7 +85,7 @@ export function EditStudio() {
   let watermarkScaleValue = '0.2';
 
   // Dynamic controls for dropdown models
-  const modelControlValues = {};
+  let dynamicControls = null;
   let dynamicControlsContainer = null;
 
   const topBar = document.createElement('div');
@@ -497,192 +499,18 @@ export function EditStudio() {
       workCard.insertBefore(dynamicControlsContainer, controlsRow);
     }
 
-    dynamicControlsContainer.innerHTML = '';
-    const fields = Object.entries(model.inputs);
-
-    fields.forEach(([fieldName, fieldConfig]) => {
-      if (fieldName === 'prompt') return;
-
-      const title = fieldConfig.title || fieldName;
-      const description = fieldConfig.description || '';
-      const type = fieldConfig.type || 'string';
-      const defaultVal = fieldConfig.default ?? (fieldConfig.enum ? fieldConfig.enum[0] : null);
-
-      // Determine widget type
-      const isEnum = Array.isArray(fieldConfig.enum) && fieldConfig.enum.length > 0;
-      const isBool = type === 'boolean';
-      const isNum = type === 'int' || type === 'integer' || type === 'number';
-      const isImage = type === 'image' || fieldName === 'watermark_image_url';
-
-      // For numeric types, decide between select and number input
-      let useSelectForNumber = false;
-      if (isNum && !isBool) {
-        const min = fieldConfig.minValue ?? 0;
-        const max = fieldConfig.maxValue ?? 100;
-        const step = fieldConfig.step ?? 1;
-        const optionCount = Math.floor((max - min) / step) + 1;
-        useSelectForNumber = optionCount <= 10;
-      }
-
-      const wrapper = document.createElement('div');
-      wrapper.className = 'flex flex-col gap-1';
-
-      const label = document.createElement('label');
-      label.className = 'text-[10px] text-muted mb-1';
-      label.textContent = title;
-      wrapper.appendChild(label);
-
-      if (description) {
-        const desc = document.createElement('span');
-        desc.className = 'text-[10px] text-muted/70 mb-1';
-        desc.textContent = description;
-        wrapper.appendChild(desc);
-      }
-
-      let field;
-      let storedValue;
-
-      if (isEnum) {
-        field = document.createElement('select');
-        field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-        field.setAttribute('aria-label', title);
-        fieldConfig.enum.forEach(enumVal => {
-          const option = document.createElement('option');
-          option.value = String(enumVal);
-          option.textContent = String(enumVal);
-          if (String(enumVal) === String(defaultVal)) option.selected = true;
-          field.appendChild(option);
-        });
-        storedValue = String(defaultVal ?? '');
-      } else if (isBool) {
-        field = document.createElement('div');
-        field.className = 'flex items-center gap-2';
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'w-4 h-4 rounded border-white/20 bg-white/5 text-primary focus:ring-primary/50';
-        checkbox.checked = Boolean(defaultVal);
-        const checkLabel = document.createElement('span');
-        checkLabel.className = 'text-xs text-white/80';
-        checkLabel.textContent = 'Enabled';
-        field.appendChild(checkbox);
-        field.appendChild(checkLabel);
-        storedValue = Boolean(defaultVal);
-        // Store reference for change handler
-        field._checkbox = checkbox;
-      } else if (useSelectForNumber) {
-        field = document.createElement('select');
-        field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-        field.setAttribute('aria-label', title);
-        const min = fieldConfig.minValue ?? 0;
-        const max = fieldConfig.maxValue ?? 100;
-        const step = fieldConfig.step ?? 1;
-        for (let v = min; v <= max; v += step) {
-          const option = document.createElement('option');
-          option.value = String(v);
-          option.textContent = String(v);
-          if (v === defaultVal) option.selected = true;
-          field.appendChild(option);
-        }
-        storedValue = Number(defaultVal ?? min);
-      } else if (isNum) {
-        field = document.createElement('input');
-        field.type = 'number';
-        field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary/50 transition-colors';
-        field.setAttribute('aria-label', title);
-        field.min = String(fieldConfig.minValue ?? 0);
-        field.max = String(fieldConfig.maxValue ?? 100);
-        field.step = String(fieldConfig.step ?? 1);
-        field.value = String(defaultVal ?? fieldConfig.minValue ?? 0);
-        storedValue = Number(defaultVal ?? fieldConfig.minValue ?? 0);
-      } else if (isImage) {
-        field = document.createElement('div');
-        field.className = 'flex flex-col gap-2';
-        const imgHint = document.createElement('span');
-        imgHint.className = 'text-xs text-muted';
-        imgHint.textContent = description || 'Upload an image';
-        const imgClear = document.createElement('button');
-        imgClear.type = 'button';
-        imgClear.textContent = 'Remove image';
-        imgClear.className = 'hidden text-xs font-bold text-red-400 hover:text-red-300 transition-colors';
-        const imgPicker = createUploadPicker({
-          anchorContainer: container,
-          onSelect: ({ url }) => {
-            watermarkImageUrl = url;
-            imgHint.textContent = 'Image uploaded';
-            imgHint.classList.remove('hidden');
-            imgClear.classList.remove('hidden');
-          },
-          onClear: () => {
-            watermarkImageUrl = null;
-            imgHint.textContent = description || 'Upload an image';
-            imgClear.classList.add('hidden');
-          },
-        });
-        imgClear.onclick = (e) => {
-          e.stopPropagation();
-          imgPicker.reset();
-          watermarkImageUrl = null;
-          imgHint.textContent = description || 'Upload an image';
-          imgClear.classList.add('hidden');
-        };
-        field.appendChild(imgHint);
-        field.appendChild(imgClear);
-        storedValue = null;
-      } else {
-        // Default: string text input
-        const isLongText = description && description.length > 80;
-        field = document.createElement(isLongText ? 'textarea' : 'input');
-        if (isLongText) {
-          field.rows = 3;
-          field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors resize-y';
-        } else {
-          field.type = 'text';
-          field.className = 'w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted focus:outline-none focus:border-primary/50 transition-colors';
-        }
-        field.setAttribute('aria-label', title);
-        if (defaultVal) {
-          field.value = String(defaultVal);
-        }
-        storedValue = String(defaultVal ?? '');
-      }
-
-      // Initialize stored value
-      const storedKey = modelId + '_' + fieldName;
-      if (isBool) {
-        modelControlValues[storedKey] = storedValue;
-      } else if (isNum && !useSelectForNumber) {
-        modelControlValues[storedKey] = storedValue;
-      } else if (isEnum) {
-        modelControlValues[storedKey] = storedValue;
-      } else if (typeof storedValue === 'string') {
-        modelControlValues[storedKey] = storedValue;
-      }
-
-      // Attach change handler
-      if (isBool && field._checkbox) {
-        field._checkbox.addEventListener('change', () => {
-          modelControlValues[storedKey] = field._checkbox.checked;
-        });
-      } else if (field.tagName === 'SELECT' || field.tagName === 'INPUT' || field.tagName === 'TEXTAREA') {
-        field.addEventListener('input', () => {
-          const raw = field.value;
-          if (type === 'int' || type === 'integer') {
-            modelControlValues[storedKey] = parseInt(raw, 10);
-          } else if (type === 'number') {
-            modelControlValues[storedKey] = parseFloat(raw);
-          } else if (isBool) {
-            modelControlValues[storedKey] = field.checked;
-          } else {
-            modelControlValues[storedKey] = raw;
-          }
-        });
-      }
-
-      wrapper.appendChild(field);
-      dynamicControlsContainer.appendChild(wrapper);
-    });
-
     dynamicControlsContainer.classList.remove('hidden');
+
+    if (dynamicControls) {
+      dynamicControls.destroy();
+    }
+
+    const extendedModel = getExtendedModel(model);
+    dynamicControls = createAdvancedControls({
+      model: extendedModel,
+      container: dynamicControlsContainer,
+      exclude: new Set(['prompt']),
+    });
   }
 
   function showControlsForTool(toolId) {
@@ -810,19 +638,10 @@ export function EditStudio() {
         params.target_index = faceIndex;
       }
 
-      // Append dynamic model-specific controls
-      const selectedModel = getI2IModelById(modelToUse);
-      if (selectedModel && selectedModel.inputs) {
-        Object.keys(selectedModel.inputs).forEach(key => {
-          if (key === 'prompt') return;
-          const storedKey = modelToUse + '_' + key;
-          if (storedKey in modelControlValues) {
-            const val = modelControlValues[storedKey];
-            if (val !== null && val !== undefined && val !== '') {
-              params[key] = val;
-            }
-          }
-        });
+      // Append dynamic model-specific controls via the control engine
+      if (dynamicControls) {
+        const dynamicPayload = dynamicControls.getPayload({});
+        Object.assign(params, dynamicPayload);
       }
 
       const result = await muapi.generateI2I(params);

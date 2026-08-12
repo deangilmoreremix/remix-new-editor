@@ -7,6 +7,9 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/personalizePopover.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { getModelById } from '../lib/models.js';
 
 const STYLE_PRESETS = [
   'Realistic', 'DigitalCam', 'Quiet luxury', 'FashionShow', '90s Grain', 'Sunset beach',
@@ -31,6 +34,8 @@ export function InfluencerStudio() {
   let selectedStyle = STYLE_PRESETS[0];
   let selectedFormat = FORMAT_PRESETS[0];
   let customThumbnailUrl = getCustomThumbnailFromCache('influencer-studio');
+  let dynamicControls = null;
+  let dynamicControlsContainer = null;
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-xl';
@@ -146,6 +151,28 @@ export function InfluencerStudio() {
     formCard.appendChild(gtmBtn);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'influencer-studio' });
 
+  // Dynamic model-specific advanced controls
+  dynamicControlsContainer = document.createElement('div');
+  dynamicControlsContainer.className = 'flex flex-col gap-3';
+  formCard.appendChild(dynamicControlsContainer);
+
+  function buildDynamicControls() {
+    if (!dynamicControlsContainer) return;
+    if (dynamicControls) dynamicControls.destroy();
+    const model = getExtendedModel(getModelById('higgsfield-soul-image-to-image'));
+    if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
+      dynamicControlsContainer.classList.add('hidden');
+      return;
+    }
+    dynamicControlsContainer.classList.remove('hidden');
+    dynamicControls = createAdvancedControls({
+      model,
+      container: dynamicControlsContainer,
+      exclude: new Set(['image_url', 'prompt', 'aspect_ratio', 'style']),
+    });
+  }
+  buildDynamicControls();
+
   // Thumbnail studio button — next to creation controls, GTM Boost styling
   const thumbBtn = document.createElement('button');
   thumbBtn.type = 'button';
@@ -207,6 +234,9 @@ export function InfluencerStudio() {
         aspect_ratio: selectedFormat.ar,
         customThumbnailUrl: customThumbnailUrl || undefined,
       };
+      if (dynamicControls) {
+        Object.assign(params, dynamicControls.getPayload({}));
+      }
       const result = await muapi.generateI2I(params);
       if (result?.url) {
         resultArea.classList.remove('hidden');

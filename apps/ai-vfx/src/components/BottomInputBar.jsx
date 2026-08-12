@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Image } from 'lucide-react';
+import { Image, Upload } from 'lucide-react';
 
 const BottomInputBar = ({
   showInputBar,
@@ -264,6 +264,37 @@ const BottomInputBar = ({
           >
             {/* Top row: Upload button */}
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0', gap: '10px' }}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'var(--bg-panel, rgba(35,43,57,0.95))',
+                  padding: '8px 28px',
+                  borderRadius: '999px',
+                  border: 'none',
+                  color: 'var(--text-primary, #fff)',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  boxShadow: '0 2px 8px 0 rgba(0,0,0,0.10)',
+                  transition: 'background 0.2s'
+                }}
+                onMouseOver={e => e.currentTarget.style.background = 'var(--bg-panel, #232b39)'}
+                onMouseOut={e => e.currentTarget.style.background = 'var(--bg-panel, rgba(35,43,57,0.95))'}
+              >
+                <Upload size={18} />
+                <span>Upload Image</span>
+              </button>
               <button
                 type="button"
                 onClick={() => {

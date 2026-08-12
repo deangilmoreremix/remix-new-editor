@@ -10,6 +10,9 @@ import { createInlineInstructions } from './InlineInstructions.js';
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { getModelById } from '../lib/models.js';
 
 export function AvatarStudio() {
   const container = document.createElement('div');
@@ -21,6 +24,8 @@ export function AvatarStudio() {
   let uploadedAudioUrl = null;
   let prompt = '';
   let customThumbnailUrl = getCustomThumbnailFromCache('avatar-studio');
+  let dynamicControls = null;
+  let dynamicControlsContainer = null;
 
   // Header with hero banner
   const header = document.createElement('div');
@@ -102,6 +107,7 @@ export function AvatarStudio() {
           selectedModel = avatarModels.find(x => x.id === m.id) || m;
           updateTrigger();
           updateFormVisibility();
+          buildDynamicControls();
           closeDropdown();
         });
         if (selectedProvider !== 'all') {
@@ -229,6 +235,28 @@ export function AvatarStudio() {
   formCard.appendChild(promptGroup);
   mountPersonalizeTrigger({ controlsContainer: formCard, getTextarea: () => promptInput, appId: 'avatar-studio' });
 
+  // Dynamic model-specific advanced controls
+  dynamicControlsContainer = document.createElement('div');
+  dynamicControlsContainer.className = 'flex flex-col gap-3';
+  formCard.appendChild(dynamicControlsContainer);
+
+  function buildDynamicControls() {
+    if (!dynamicControlsContainer) return;
+    if (dynamicControls) dynamicControls.destroy();
+    const model = getExtendedModel(getModelById(selectedModel.id));
+    if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
+      dynamicControlsContainer.classList.add('hidden');
+      return;
+    }
+    dynamicControlsContainer.classList.remove('hidden');
+    dynamicControls = createAdvancedControls({
+      model,
+      container: dynamicControlsContainer,
+      exclude: new Set(['video_url', 'audio_url', 'prompt']),
+    });
+  }
+  buildDynamicControls();
+
   // Generate button
   const genBtn = document.createElement('button');
   genBtn.type = 'button';
@@ -314,17 +342,20 @@ export function AvatarStudio() {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Generating...';
 
     try {
-      const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
-       const params = {
-         model: selectedModel.id,
-         video_url: uploadedVideoUrl,
-         customThumbnailUrl: customThumbnailUrl || undefined,
-       };
+       const activeProfile = (() => { try { return JSON.parse(localStorage.getItem('remix_contact_profiles') || '[]').find((p) => p.id === localStorage.getItem('remix_selected_contact_id')) || null; } catch { return null; } })();
+        const params = {
+          model: selectedModel.id,
+          video_url: uploadedVideoUrl,
+          customThumbnailUrl: customThumbnailUrl || undefined,
+        };
 
-      if (uploadedAudioUrl) params.audio_url = uploadedAudioUrl;
-      if (prompt) params.prompt = replaceTokensInPrompt(prompt, activeProfile);
-      
-      const result = await muapi.generateAvatar(params);
+       if (uploadedAudioUrl) params.audio_url = uploadedAudioUrl;
+       if (prompt) params.prompt = replaceTokensInPrompt(prompt, activeProfile);
+       if (dynamicControls) {
+         Object.assign(params, dynamicControls.getPayload({}));
+       }
+       
+       const result = await muapi.generateAvatar(params);
       if (result?.url) {
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `

@@ -8,6 +8,9 @@ import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCa
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { getModelById } from '../lib/models.js';
 
 const SCENE_PRESETS = [
   'Studio white background', 'Luxury marble surface', 'Outdoor natural light',
@@ -31,6 +34,8 @@ export function CommercialStudio() {
   let selectedScene = SCENE_PRESETS[0];
   let selectedFormat = FORMAT_PRESETS[0];
   let selectedModel = 'ai-product-shot';
+  let dynamicControls = null;
+  let dynamicControlsContainer = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('commercial-studio');
 
   const header = document.createElement('div');
@@ -242,6 +247,28 @@ export function CommercialStudio() {
   });
   formCard.appendChild(formatRow);
 
+  // Dynamic model-specific advanced controls
+  dynamicControlsContainer = document.createElement('div');
+  dynamicControlsContainer.className = 'flex flex-col gap-3';
+  formCard.appendChild(dynamicControlsContainer);
+
+  function buildDynamicControls() {
+    if (!dynamicControlsContainer) return;
+    if (dynamicControls) dynamicControls.destroy();
+    const model = getExtendedModel(getModelById(selectedModel));
+    if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
+      dynamicControlsContainer.classList.add('hidden');
+      return;
+    }
+    dynamicControlsContainer.classList.remove('hidden');
+    dynamicControls = createAdvancedControls({
+      model,
+      container: dynamicControlsContainer,
+      exclude: new Set(['image_url', 'prompt', 'aspect_ratio']),
+    });
+  }
+  buildDynamicControls();
+
   // Thumbnail studio button — next to creation controls, GTM Boost styling
   const thumbBtn = document.createElement('button');
   thumbBtn.type = 'button';
@@ -302,6 +329,9 @@ export function CommercialStudio() {
         image_url: uploadedUrl,
         customThumbnailUrl: customThumbnailUrl || undefined,
       };
+      if (dynamicControls) {
+        Object.assign(params, dynamicControls.getPayload({}));
+      }
       if (selectedModel === 'ai-product-shot') {
         params.scene_description = `${selectedScene}, professional product photography, commercial quality`;
       } else {

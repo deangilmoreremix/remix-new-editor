@@ -9,6 +9,9 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { getModelLogoHtml, PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { getModelById } from '../lib/models.js';
 
 const CHARACTER_MODELS = [
   { id: 'flux-pulid', name: 'Flux PuLID', description: 'Face ID preservation with text prompt', provider: 'blackforest', provider_name: 'Black Forest Labs' },
@@ -23,6 +26,8 @@ export function CharacterStudio() {
   let uploadedUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('character-studio');
   let selectedModel = CHARACTER_MODELS[0];
+  let dynamicControls = null;
+  let dynamicControlsContainer = null;
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-lg';
@@ -109,6 +114,7 @@ export function CharacterStudio() {
         modelListEl.innerHTML = renderModelList(filtered, selectedModel.id, showProviderName, (m) => {
           selectedModel = CHARACTER_MODELS.find(x => x.id === m.id) || m;
           updateTrigger();
+          buildDynamicControls();
           closeDropdown();
         });
         if (selectedProvider !== 'all') {
@@ -187,6 +193,28 @@ export function CharacterStudio() {
   promptInput.placeholder = 'e.g. wearing a leather jacket, standing in a neon-lit alley, cyberpunk style';
   promptInput.setAttribute('aria-label', 'Character description');
   formCard.appendChild(promptInput);
+
+  // Dynamic model-specific advanced controls
+  dynamicControlsContainer = document.createElement('div');
+  dynamicControlsContainer.className = 'flex flex-col gap-3';
+  formCard.appendChild(dynamicControlsContainer);
+
+  function buildDynamicControls() {
+    if (!dynamicControlsContainer) return;
+    if (dynamicControls) dynamicControls.destroy();
+    const model = getExtendedModel(getModelById(selectedModel.id));
+    if (!model || !model.inputs || Object.keys(model.inputs).length === 0) {
+      dynamicControlsContainer.classList.add('hidden');
+      return;
+    }
+    dynamicControlsContainer.classList.remove('hidden');
+    dynamicControls = createAdvancedControls({
+      model,
+      container: dynamicControlsContainer,
+      exclude: new Set(['prompt', 'image_url']),
+    });
+  }
+  buildDynamicControls();
 
     // GTM Boost entry point — opens the prompt enhancer themed for character
     // creation and loads the result straight into this prompt.
@@ -357,6 +385,9 @@ export function CharacterStudio() {
         prompt: replaceTokensInPrompt(promptInput.value.trim(), activeProfile) || 'professional portrait photo',
         customThumbnailUrl: customThumbnailUrl || undefined,
       };
+      if (dynamicControls) {
+        Object.assign(params, dynamicControls.getPayload({}));
+      }
       const result = await muapi.generateI2I(params);
       if (result?.url) {
         resultArea.classList.remove('hidden');

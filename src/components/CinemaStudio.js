@@ -6,7 +6,7 @@ import { CameraControls } from './CameraControls.js';
 import { buildNanoBananaPrompt, CAMERA_MAP, LENS_MAP, FOCAL_PERSPECTIVE, APERTURE_EFFECT } from '../lib/promptUtils.js';
 import { AuthModal } from './AuthModal.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
-import { getVideoModelById, getI2VModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel } from '../lib/models.js';
+import { getVideoModelById, getI2VModelById, t2vModels, i2vModels, getDurationsForModel, getDurationsForI2VModel, getResolutionsForVideoModel, getResolutionsForI2VModel, getModelById } from '../lib/models.js';
 import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
 import { createInlineInstructions } from './InlineInstructions.js';
 import { createHeroSection, getCustomThumbnailFromCache, saveCustomThumbnailToCache, clearCustomThumbnailCache } from '../lib/thumbnails.js';
@@ -15,6 +15,8 @@ import { mountPersonalizeTrigger, replaceTokensInPrompt } from './personalize/pe
 import { StudioThumbnailModal, mountStudioThumbnailModal } from './modals/StudioThumbnailPanel.jsx';
 import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
+import { createAdvancedControls } from '../lib/studioControls.js';
+import { getExtendedModel } from '../lib/modelInputExtensions.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -68,6 +70,7 @@ export function CinemaStudio() {
     
     // Camera builder panel state
     let showCameraBuilder = false;
+    let showAdvanced = false;
     let customThumbnailUrl = getCustomThumbnailFromCache('cinema-studio');
 
     // ==========================================
@@ -502,6 +505,9 @@ export function CinemaStudio() {
                 currentSettings.model = m.id;
                 updateModelBtn();
                 updateControlsForModel();
+                if (dynamicControls) {
+                  dynamicControls.update(getExtendedModel(getModelById(currentSettings.model)));
+                }
                 closeModelDropdown();
             });
 
@@ -548,13 +554,15 @@ export function CinemaStudio() {
         if (!model) return;
         const durations = isI2V ? getDurationsForI2VModel(model.id) : getDurationsForModel(model.id);
         const resolutions = isI2V ? getResolutionsForI2VModel(model.id) : getResolutionsForVideoModel(model.id);
-        // Only override the free-text resolution default when the model
-        // advertises supported values; otherwise leave the user's choice.
         if (resolutions && resolutions.length > 0 && !resBtn.dataset.touched) {
             updateResBtn(resolutions[0]);
         }
         if (durations && durations.length > 0) {
             currentSettings.duration = durations[0];
+        }
+        if (dynamicControls) {
+          dynamicControls.update(getExtendedModel(getModelById(currentSettings.model)));
+          dynamicControls.setValue('aspect_ratio', currentSettings.aspect_ratio);
         }
     }
 
@@ -569,6 +577,7 @@ export function CinemaStudio() {
         createDropdown(['16:9', '21:9', '9:16', '1:1', '4:5'], currentSettings.aspect_ratio, (val) => {
             currentSettings.aspect_ratio = val;
             updateArBtn();
+            if (dynamicControls) dynamicControls.setValue('aspect_ratio', val);
         }, arBtn);
     };
     settingsToolbar.appendChild(arBtn);
@@ -823,6 +832,54 @@ export function CinemaStudio() {
     container.appendChild(historySidebar);
 
     // ==========================================
+    // 4. ADVANCED OPTIONS PANEL (control engine)
+    // ==========================================
+    const advancedPanel = document.createElement('div');
+    advancedPanel.className = 'w-full max-w-3xl mx-auto px-4 mt-6 animate-fade-in-up hidden';
+    advancedPanel.id = 'cinema-advanced-panel';
+    const advancedCard = document.createElement('div');
+    advancedCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
+    advancedPanel.appendChild(advancedCard);
+
+    const advHeader = document.createElement('div');
+    advHeader.className = 'flex items-center justify-between pb-3 border-b border-white/5';
+    advHeader.innerHTML = `
+        <h3 class="text-sm font-bold text-white">Advanced Options</h3>
+        <button id="close-cinema-adv-btn" class="text-white/40 hover:text-white transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+    `;
+    advancedPanel.appendChild(advHeader);
+
+    const advancedControlsContainer = document.createElement('div');
+    advancedControlsContainer.className = 'flex flex-col gap-4';
+    advancedCard.appendChild(advancedControlsContainer);
+
+    const dynamicControls = createAdvancedControls({
+      model: getExtendedModel(getModelById(currentSettings.model)),
+      state: {},
+      container: advancedControlsContainer,
+      exclude: new Set(['style', 'batch_count', 'prompt']),
+      extraInputs: {
+        duration: { type: 'integer', title: 'Duration (s)', default: 5, minValue: 1, maxValue: 60, step: 1, group: 'basic' },
+        resolution: { type: 'enum', title: 'Resolution', options: ['1K', '2K', '4K'], default: '2K', group: 'basic' },
+      },
+      onChange: (key, value) => {
+        if (key === 'duration') currentSettings.duration = value;
+        if (key === 'resolution') { resBtn.dataset.value = value; updateResBtn(value); }
+        if (key === 'negative_prompt') currentSettings.negativePrompt = value;
+        if (key === 'seed') currentSettings.seed = value;
+      }
+    });
+    container.appendChild(advancedPanel);
+
+    const toggleAdvanced = () => {
+      showAdvanced = !showAdvanced;
+      advancedPanel.classList.toggle('hidden', !showAdvanced);
+      document.getElementById('advanced-btn-label').textContent = showAdvanced ? 'Less' : 'Advanced';
+    };
+
+    // ==========================================
     // 4. CANVAS AREA (Result View)
     // ==========================================
     const canvas = document.createElement('div');
@@ -1070,30 +1127,24 @@ export function CinemaStudio() {
         ].filter(Boolean).join(', ');
 
         try {
-            const resolution = (resBtn.dataset.value || '1k').toLowerCase();
+            const dynamicPayload = dynamicControls.getPayload({});
+            const resolution = (dynamicPayload.resolution || resBtn.dataset.value || '2k').toLowerCase();
             const isRef = !!currentSettings.referenceUrl;
 
-            // Use the model the user picked in the catalog picker. Resolve it
-            // through the catalog so an unknown/renamed id degrades gracefully
-            // instead of 404-ing the backend. Falls back to a known-good Kling
-            // model when the selected id isn't in the catalog.
             const catalogModel = isRef ? getI2VModelById(currentSettings.model) : getVideoModelById(currentSettings.model);
             const resolvedModel = (catalogModel && catalogModel.id) || currentSettings.model
                 || (isRef ? 'kling-v2.6-pro-i2v' : 'kling-v2.6-pro-t2v');
 
-            // Honor the per-model duration if the catalog advertises one,
-            // otherwise keep the default 5s.
             const durations = isRef ? getDurationsForI2VModel(resolvedModel) : getDurationsForModel(resolvedModel);
-            const duration = (durations && durations.length > 0) ? durations[0] : (currentSettings.duration || 5);
+            const duration = dynamicPayload.duration || ((durations && durations.length > 0) ? durations[0] : (currentSettings.duration || 5));
 
             let res;
             if (isRef) {
-                // Image-to-video: use the uploaded still as the seed.
                 const i2vParams = {
                     model: resolvedModel,
                     image_url: currentSettings.referenceUrl,
                     prompt: finalPrompt,
-                    aspect_ratio: currentSettings.aspect_ratio,
+                    ...dynamicPayload,
                     duration,
                     resolution,
                 };
@@ -1103,7 +1154,7 @@ export function CinemaStudio() {
                 const t2vParams = {
                     model: resolvedModel,
                     prompt: finalPrompt,
-                    aspect_ratio: currentSettings.aspect_ratio,
+                    ...dynamicPayload,
                     duration,
                     resolution,
                 };
@@ -1112,14 +1163,13 @@ export function CinemaStudio() {
             }
 
             if (res && res.url) {
-                // Save to history
                 addToHistory({
                     url: res.url,
                     timestamp: Date.now(),
                     settings: {
                         prompt: basePrompt,
                         ...currentSettings,
-                        resolution: resBtn.dataset.value
+                        resolution: dynamicPayload.resolution || resBtn.dataset.value
                     }
                 });
 
