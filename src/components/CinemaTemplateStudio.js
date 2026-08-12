@@ -32,6 +32,7 @@ import {
   TemplateStorage
 } from '../lib/cinematicTemplates.js';
 import { getVideoIntent, setVideoIntent, subscribeVideoIntent } from '../lib/videoIntentStore.js';
+import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
 
 export function CinemaTemplateStudio() {
   const container = document.createElement('div');
@@ -1127,7 +1128,7 @@ export function CinemaTemplateStudio() {
     overlay.className = 'fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4';
 
     const modal = document.createElement('div');
-    modal.className = 'w-full max-w-lg bg-[#1a1a1a] border border-white/10 rounded-2xl p-6';
+    modal.className = 'w-full max-w-lg bg-white/[0.04] border border-white/10 rounded-2xl p-6';
 
     const shots = scene.shots || [];
     const defaultShotType = Object.keys(SHOT_TYPES)[0];
@@ -1455,7 +1456,7 @@ export function CinemaTemplateStudio() {
     updateTrigger();
 
     const dropdown = document.createElement('div');
-    dropdown.className = 'fixed z-[100] bg-[#111] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
+    dropdown.className = 'fixed z-[100] bg-white/[0.04] border border-white/10 rounded-2xl shadow-3xl p-2 opacity-0 pointer-events-none transition-all duration-200 scale-95 origin-bottom-left';
     dropdown.style.width = 'calc(100vw - 2rem)';
     dropdown.style.maxWidth = '480px';
     dropdown.style.maxHeight = '70vh';

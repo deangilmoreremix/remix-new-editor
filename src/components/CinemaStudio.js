@@ -17,6 +17,7 @@ import { requireEntitlement } from '../lib/clerkEntitlements.js';
 import { subscribeToGtmThumbnails } from '../lib/gtmThumbnailBridge.js';
 import { createAdvancedControls } from '../lib/studioControls.js';
 import { getExtendedModel } from '../lib/modelInputExtensions.js';
+import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
 
 // Camera movements promised by the Cinema Studio intro copy
 // ("Select camera movement … dolly, crane, orbit, FPV drone").
@@ -125,7 +126,7 @@ export function CinemaStudio() {
     cineBuilderWrapper.style.animationDelay = '0.15s';
 
     const cineBuilderToggle = document.createElement('button');
-    cineBuilderToggle.className = 'w-full flex items-center justify-between bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3.5 text-left hover:bg-white/[0.04] transition-all';
+    cineBuilderToggle.className = 'w-full flex items-center justify-between bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-2xl px-5 py-3.5 text-left hover:bg-white/[0.04] transition-all';
     cineBuilderToggle.innerHTML = `
         <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -140,7 +141,7 @@ export function CinemaStudio() {
     `;
 
     const cineBuilderPanel = document.createElement('div');
-    cineBuilderPanel.className = 'hidden bg-[#111]/90 backdrop-blur-xl border border-white/10 border-t-0 rounded-b-2xl px-5 pb-5 pt-3';
+    cineBuilderPanel.className = 'hidden bg-white/[0.06] backdrop-blur-xl border border-white/10 border-t-0 rounded-b-2xl px-5 pb-5 pt-3';
 
     const cinePrompt = document.createElement('input');
     cinePrompt.type = 'text';
@@ -205,7 +206,7 @@ export function CinemaStudio() {
 
     const overlayContent = document.createElement('div');
     // Reduced padding for mobile (p-4) and added max-height/overflow handling
-    overlayContent.className = 'w-full bg-[#141414] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]';
+    overlayContent.className = 'w-full bg-white/[0.04] border border-white/10 rounded-3xl p-4 md:p-8 shadow-2xl transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]';
     overlayBackdrop.appendChild(overlayContent);
 
     // Header for Overlay
@@ -256,7 +257,7 @@ export function CinemaStudio() {
     promptBarWrapper.className = 'relative w-full max-w-3xl mx-auto px-4 mt-6 z-30';
 
     const promptBar = document.createElement('div');
-    promptBar.className = 'bg-[#1a1a1a] border border-white/10 rounded-[2rem] p-4 flex justify-between shadow-3xl items-end relative';
+    promptBar.className = 'bg-white/[0.04] border border-white/10 rounded-[2rem] p-4 flex justify-between shadow-3xl items-end relative';
 
     // --- LEFT COLUMN (Input + Settings) ---
     const leftColumn = document.createElement('div');
@@ -410,7 +411,7 @@ export function CinemaStudio() {
 
         const rect = trigger.getBoundingClientRect();
         const menu = document.createElement('div');
-        menu.className = 'custom-dropdown fixed bg-[#1a1a1a] border border-white/10 rounded-xl py-1 shadow-2xl z-50 flex flex-col min-w-[100px] animate-fade-in';
+        menu.className = 'custom-dropdown fixed bg-white/[0.04] border border-white/10 rounded-xl py-1 shadow-2xl z-50 flex flex-col min-w-[100px] animate-fade-in';
         menu.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
         menu.style.left = rect.left + 'px';
 
@@ -675,7 +676,7 @@ export function CinemaStudio() {
     cameraBuilderPanel.style.display = 'none'; // Hidden by default
     
     const builderCard = document.createElement('div');
-    builderCard.className = 'bg-[#1a1a1a] border border-white/10 rounded-2xl p-4 shadow-3xl';
+    builderCard.className = 'bg-white/[0.04] border border-white/10 rounded-2xl p-4 shadow-3xl';
     
     builderCard.innerHTML = `
         <div class="flex items-center justify-between mb-4">
@@ -838,7 +839,7 @@ export function CinemaStudio() {
     advancedPanel.className = 'w-full max-w-3xl mx-auto px-4 mt-6 animate-fade-in-up hidden';
     advancedPanel.id = 'cinema-advanced-panel';
     const advancedCard = document.createElement('div');
-    advancedCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
+    advancedCard.className = 'bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
     advancedPanel.appendChild(advancedCard);
 
     const advHeader = document.createElement('div');

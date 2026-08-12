@@ -1,4 +1,5 @@
 import { muapi } from '../lib/muapi.js';
+import { CINEMATIC_THEME, cx } from '../lib/cinematicTheme.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { AuthModal } from './AuthModal.js';
 import { createInlineInstructions } from './InlineInstructions.js';
@@ -932,7 +933,7 @@ export function StoryboardStudio(options = {}) {
   advancedPanel.className = 'px-4 md:px-8 mb-4 animate-fade-in-up';
   advancedPanel.id = 'storyboard-advanced-panel';
   const advancedCard = document.createElement('div');
-  advancedCard.className = 'bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
+  advancedCard.className = 'bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex flex-col gap-4';
   advancedPanel.appendChild(advancedCard);
 
   const advHeader = document.createElement('div');

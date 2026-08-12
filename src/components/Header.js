@@ -26,7 +26,7 @@ export function Header(navigate) {
 
   const menu = document.createElement('nav');
   menu.className = 'hidden lg:flex items-center gap-5 text-[13px] font-bold text-secondary';
-  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Vibe Motion', 'Cinema Studio', 'Cinema Templates', 'AI Influencer', 'Apps', 'Templates', 'Assist', 'Community', 'Content Library'];
+  const items = ['Explore', 'Image', 'Video', 'Tools', 'Storyboard', 'Edit', 'Character', 'Vibe Motion', 'Cinema Studio', 'Cinema Template Studio', 'AI Influencer', 'Apps', 'Templates', 'Assist', 'Community', 'Content Library'];
 
   const links = {};
 
@@ -115,7 +115,7 @@ export function Header(navigate) {
       link.onclick = () => navigate('effects-page');
     } else if (item === 'Cinema Studio') {
       link.onclick = () => navigate('cinema-page');
-    } else if (item === 'Cinema Templates') {
+    } else if (item === 'Cinema Template Studio') {
       link.onclick = () => navigate('cinema-template');
     } else if (item === 'AI Influencer') {
       link.onclick = () => navigate('influencer-page');
@@ -204,7 +204,7 @@ export function Header(navigate) {
         mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
       };
       mobileMenu.appendChild(link);
-    } else if (item === 'Cinema Templates') {
+    } else if (item === 'Cinema Template Studio') {
       link.onclick = () => {
         navigate('cinema-template');
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');
@@ -292,7 +292,7 @@ export function Header(navigate) {
       } else if (page === 'cinema-page' && route === 'Cinema Studio') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
-      } else if (page === 'cinema-template' && route === 'Cinema Templates') {
+      } else if (page === 'cinema-template' && route === 'Cinema Template Studio') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
       } else if (page === 'influencer-page' && route === 'AI Influencer') {
