@@ -85,7 +85,7 @@ export function CinemaStudio() {
         bannerContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10 text-left';
         bannerContent.innerHTML = `
             <div class="mb-2 text-xs font-bold text-white/40 tracking-[0.2em] uppercase">Cinema Studio 2.0</div>
-            <h1 class="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
+            <h1 class="${CINEMATIC_THEME.text.titleLg} text-white leading-tight">
                 What would you shoot<br>with infinite budget?
             </h1>
         `;
@@ -621,7 +621,7 @@ export function CinemaStudio() {
     // Summary Card (Triggers Overlay)
     const summaryCard = document.createElement('button');
     // Removed 'hidden' class, added 'flex' and refined width constraints for mobile
-    summaryCard.className = 'flex flex-col items-start justify-center px-4 py-2 bg-[#2a2a2a] rounded-xl border border-white/5 hover:border-white/20 transition-colors text-left flex-1 min-w-[100px] md:min-w-[140px] max-w-[240px] h-[56px] relative group overflow-hidden';
+    summaryCard.className = 'flex flex-col items-start justify-center px-4 py-2 bg-white/[0.04] rounded-xl border border-white/5 hover:border-white/20 transition-colors text-left flex-1 min-w-[100px] md:min-w-[140px] max-w-[240px] h-[56px] relative group overflow-hidden';
     summaryCard.setAttribute('data-tooltip', 'Open camera settings');
 
     // Dot indicator
@@ -654,7 +654,7 @@ export function CinemaStudio() {
     // Generate Button
     const generateBtn = document.createElement('button');
     generateBtn.type = 'button';
-    generateBtn.className = 'h-[56px] px-8 bg-[#d9ff00] text-black rounded-xl font-black text-xs uppercase hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
+    generateBtn.className = 'h-[56px] px-8 bg-primary text-black rounded-xl font-black text-xs uppercase hover:bg-white transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
     generateBtn.setAttribute('data-tooltip', 'Generate cinema shot');
     generateBtn.setAttribute('aria-label', 'Generate cinema shot');
     generateBtn.innerHTML = `GENERATE ✨`;
@@ -903,7 +903,7 @@ export function CinemaStudio() {
     const createActionBtn = (label, primary = false) => {
         const btn = document.createElement('button');
         btn.className = primary
-            ? 'bg-[#d9ff00] text-black px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-white transition-colors shadow-glow-sm hover:scale-105 active:scale-95'
+            ? 'bg-primary text-black px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide hover:bg-white transition-colors shadow-glow-sm hover:scale-105 active:scale-95'
             : 'bg-white/10 hover:bg-white/20 px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border border-white/5 backdrop-blur-lg text-white hover:border-white/20';
         btn.textContent = label;
         return btn;
@@ -925,7 +925,7 @@ export function CinemaStudio() {
         historyList.innerHTML = '';
         generationHistory.forEach((entry, idx) => {
             const thumb = document.createElement('div');
-            thumb.className = `relative group/thumb cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-300 aspect-square ${idx === 0 ? 'border-[#d9ff00] shadow-glow-sm' : 'border-white/10 hover:border-white/30'}`;
+            thumb.className = `relative group/thumb cursor-pointer rounded-lg overflow-hidden border-2 transition-all duration-300 aspect-square ${idx === 0 ? 'border-primary shadow-glow-sm' : 'border-white/10 hover:border-white/30'}`;
 
             // Safe media creation - prevents XSS from user-provided URLs.
             // Render a <video> for cinematic video results, <img> for stills.
@@ -992,11 +992,11 @@ export function CinemaStudio() {
         // Highlight active history item
         if (thumbElement) {
             historyList.querySelectorAll('div').forEach(t => {
-                t.classList.remove('border-[#d9ff00]', 'shadow-glow-sm');
+                t.classList.remove('border-primary', 'shadow-glow-sm');
                 t.classList.add('border-white/10');
             });
             thumbElement.classList.remove('border-white/10');
-            thumbElement.classList.add('border-[#d9ff00]', 'shadow-glow-sm');
+            thumbElement.classList.add('border-primary', 'shadow-glow-sm');
         }
     };
 

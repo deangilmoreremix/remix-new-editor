@@ -186,11 +186,11 @@ export function StoryboardStudio(options = {}) {
     if (storyBanner) {
       const bannerText = document.createElement('div');
       bannerText.className = 'absolute bottom-0 left-0 right-0 p-4 z-10';
-      bannerText.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Storyboard Studio</h1><p class="text-white/60 text-xs">Plan your scenes with AI-generated storyboard frames</p>';
+      bannerText.innerHTML = `<h1 class="${CINEMATIC_THEME.text.title} text-white mb-1">Storyboard Studio</h1><p class="${CINEMATIC_THEME.text.eyebrow} text-white/60">Plan your scenes with AI-generated storyboard frames</p>`;
       storyBanner.appendChild(bannerText);
       topBar.appendChild(storyBanner);
     } else {
-      topBar.innerHTML = '<h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">Storyboard Studio</h1><p class="text-secondary text-xs mb-4">Plan your scenes with AI-generated storyboard frames</p>';
+      topBar.innerHTML = `<h1 class="${CINEMATIC_THEME.text.title} text-white mb-1">Storyboard Studio</h1><p class="${CINEMATIC_THEME.text.eyebrow} text-secondary mb-4">Plan your scenes with AI-generated storyboard frames</p>`;
     }
   }
   const inlineInstructions = createInlineInstructions('storyboard');
@@ -206,7 +206,7 @@ export function StoryboardStudio(options = {}) {
   videoIntentSection.innerHTML = `
     <div class="bg-white/5 border border-white/10 rounded-xl p-4 md:p-6">
       <button id="video-intent-toggle" class="flex items-center justify-between w-full text-left mb-4">
-        <span class="text-sm font-bold text-white">Video Intent</span>
+        <span class="${CINEMATIC_THEME.text.body} font-bold text-white">Video Intent</span>
         <svg id="video-intent-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="text-white/60 transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div id="video-intent-form" class="hidden">
@@ -939,7 +939,7 @@ export function StoryboardStudio(options = {}) {
   const advHeader = document.createElement('div');
   advHeader.className = 'flex items-center justify-between pb-3 border-b border-white/5';
   advHeader.innerHTML = `
-    <h3 class="text-sm font-bold text-white">Advanced Options</h3>
+    <h3 class="${CINEMATIC_THEME.text.body} font-bold text-white">Advanced Options</h3>
     <button id="close-storyboard-adv-btn" class="text-white/40 hover:text-white transition-colors">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
@@ -979,7 +979,7 @@ export function StoryboardStudio(options = {}) {
   comparisonOverlay.innerHTML = `
     <div class="bg-app-bg border border-white/10 rounded-2xl shadow-4xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
       <div class="flex items-center justify-between px-6 py-4 border-b border-white/5 shrink-0">
-        <h2 class="text-sm font-bold text-white tracking-tight">Compare Frames</h2>
+        <h2 class="${CINEMATIC_THEME.text.body} font-bold text-white tracking-tight">Compare Frames</h2>
         <button class="compare-close-btn text-muted hover:text-white transition-colors text-lg leading-none px-2">&times;</button>
       </div>
       <div class="flex-1 overflow-y-auto p-6">

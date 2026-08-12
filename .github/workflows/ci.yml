@@ -14,6 +14,7 @@ jobs:
           cache: "npm"
       - run: npm ci
       - run: npm run lint
+      - run: npm run lint:cinema-hex
       - run: npm run lint --workspace backend --if-present
       - run: npm run lint --workspace apps/director/frontend --if-present
 

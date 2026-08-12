@@ -153,7 +153,7 @@ export function CinemaTemplateStudio() {
             <span class="text-xl">🎬</span>
           </div>
           <div>
-            <h1 class="text-xl font-black text-white">CINEMATIC TEMPLATES</h1>
+            <h1 class="${CINEMATIC_THEME.text.title} text-white">CINEMATIC TEMPLATES</h1>
             <p class="text-xs text-secondary">${registry.getAll().length} Templates</p>
           </div>
         </div>
@@ -426,7 +426,7 @@ export function CinemaTemplateStudio() {
         </div>
 
         <div class="mb-6">
-          <h2 class="text-lg font-bold text-white mb-2">Basic Information</h2>
+          <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white mb-2">Basic Information</h2>
           <p class="text-sm text-secondary">Enter the key details for your video</p>
         </div>
 
@@ -436,7 +436,7 @@ export function CinemaTemplateStudio() {
 
         ${currentTemplate.includeBrandContext ? `
           <div class="mt-8 pt-8 border-t border-white/10">
-            <h2 class="text-lg font-bold text-white mb-2">Brand Context</h2>
+            <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white mb-2">Brand Context</h2>
             <p class="text-sm text-secondary">Add your brand details for consistent messaging</p>
             <div id="brand-form" class="space-y-4 mt-4">
               <!-- Brand inputs -->
@@ -448,7 +448,7 @@ export function CinemaTemplateStudio() {
           <div class="mt-8 pt-8 border-t border-white/10">
             <div class="flex items-center justify-between mb-4">
               <div>
-                <h2 class="text-lg font-bold text-white">Scene Timeline</h2>
+                <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white">Scene Timeline</h2>
                 <p class="text-sm text-secondary">Auto-selected scenes for your video</p>
               </div>
               <button id="refresh-scenes-btn" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-secondary text-xs font-bold rounded-lg transition-colors">
@@ -465,7 +465,7 @@ export function CinemaTemplateStudio() {
           <div class="mt-8 pt-8 border-t border-white/10">
             <div class="flex items-center justify-between mb-4">
               <div>
-                <h2 class="text-lg font-bold text-white">Scene Builder</h2>
+                <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white">Scene Builder</h2>
                 <p class="text-sm text-secondary">Structure your video into scenes</p>
               </div>
               <div class="flex items-center gap-2">
@@ -498,7 +498,7 @@ export function CinemaTemplateStudio() {
     outputPanel.className = 'w-full lg:w-96 border-l border-white/10 p-6 overflow-auto hidden lg:block';
     outputPanel.innerHTML = `
       <div class="sticky top-0 relative">
-        <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Output</h3>
+          <h3 class="${CINEMATIC_THEME.text.eyebrow} text-white mb-4">Output</h3>
         <button id="close-output-btn" class="lg:hidden absolute top-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/70 hover:bg-white/20 transition" title="Close output">✕</button>
 
         <div class="bg-white/5 rounded-2xl p-4 mb-4">
@@ -1623,7 +1623,7 @@ export function CinemaTemplateStudio() {
     enhancerSection.innerHTML = `
       <div class="flex items-center justify-between gap-4">
         <div>
-          <div class="text-sm font-semibold text-white">AI Enhancer</div>
+          <div class="${CINEMATIC_THEME.text.sectionTitle} text-white">AI Enhancer</div>
           <div class="mt-1 text-xs leading-6 text-secondary">
             Keeps the simple template flow, but auto-detects niche, applies cinematic prompt expansion, scene logic, and cleanup in the background.
           </div>
@@ -1714,7 +1714,7 @@ export function CinemaTemplateStudio() {
     const intelligenceSection = document.createElement('div');
     intelligenceSection.className = 'mt-6 rounded-2xl border border-white/10 bg-white/5 p-5';
     intelligenceSection.innerHTML = `
-      <h2 class="text-lg font-bold text-white">Creative Intelligence</h2>
+      <h2 class="${CINEMATIC_THEME.text.sectionTitle} text-white">Creative Intelligence</h2>
       <p class="mt-2 mb-5 text-sm text-secondary">These tiles show the cinematic structure, creative direction, and visual strategy this template will use.</p>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div class="rounded-xl border border-white/10 bg-white/5 p-4 hover:border-blue-400/20 transition">

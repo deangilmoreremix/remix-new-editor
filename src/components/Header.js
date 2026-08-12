@@ -114,7 +114,7 @@ export function Header(navigate) {
     } else if (item === 'Vibe Motion') {
       link.onclick = () => navigate('effects-page');
     } else if (item === 'Cinema Studio') {
-      link.onclick = () => navigate('cinema-page');
+      link.onclick = () => navigate('cinema');
     } else if (item === 'Cinema Template Studio') {
       link.onclick = () => navigate('cinema-template');
     } else if (item === 'AI Influencer') {
@@ -199,7 +199,7 @@ export function Header(navigate) {
       mobileMenu.appendChild(link);
     } else if (item === 'Cinema Studio') {
       link.onclick = () => {
-        navigate('cinema-page');
+        navigate('cinema');
         mobileMenu.classList.add('opacity-0', 'pointer-events-none');
         mobileMenu.classList.remove('opacity-100', 'pointer-events-auto');
       };
@@ -289,7 +289,7 @@ export function Header(navigate) {
       } else if (page === 'effects-page' && route === 'Vibe Motion') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
-      } else if (page === 'cinema-page' && route === 'Cinema Studio') {
+      } else if (page === 'cinema' && route === 'Cinema Studio') {
         el.classList.add('text-white');
         el.classList.remove('text-secondary');
       } else if (page === 'cinema-template' && route === 'Cinema Template Studio') {
