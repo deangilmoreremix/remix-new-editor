@@ -70,7 +70,12 @@ export function snapToHalfSecond(time) {
 
 /* Clip CRUD */
 
-export function addClipToTrack(timeline, trackId, asset, startTime) {
+export function addClipToTrack(
+  timeline,
+  trackId,
+  asset,
+  startTime,
+) {
   const track = timeline.tracks.find((t) => t.id === trackId);
   const isVideoOnVideoTrack = asset.type === 'video' && track?.kind === 'video';
 
@@ -104,7 +109,7 @@ export function addClipToTrack(timeline, trackId, asset, startTime) {
   let audioTrack = tl.tracks.find((t) => t.kind === 'audio');
   if (!audioTrack) {
     tl = addTrack(tl, 'audio');
-      audioTrack = tl.tracks.find((t) => t.kind === 'audio');
+    audioTrack = tl.tracks.find((t) => t.kind === 'audio');
   }
 
   const audioClip = {
@@ -145,7 +150,12 @@ export function removeClip(timeline, clipId) {
   });
 }
 
-export function moveClip(timeline, clipId, newTrackId, newStartTime) {
+export function moveClip(
+  timeline,
+  clipId,
+  newTrackId,
+  newStartTime,
+) {
   const clip = timeline.clips.find((c) => c.id === clipId);
   const timeDelta = clip ? newStartTime - clip.startTime : 0;
   const linkedIds = new Set(getLinkedIds(clip));
@@ -168,7 +178,13 @@ export function moveClip(timeline, clipId, newTrackId, newStartTime) {
   });
 }
 
-export function trimClip(timeline, clipId, trimStart, trimEnd, startTime) {
+export function trimClip(
+  timeline,
+  clipId,
+  trimStart,
+  trimEnd,
+  startTime,
+) {
   const clip = timeline.clips.find((c) => c.id === clipId);
   const linkedIds = new Set(getLinkedIds(clip));
   return withDuration({
@@ -187,7 +203,11 @@ export function trimClip(timeline, clipId, trimStart, trimEnd, startTime) {
   });
 }
 
-export function splitClip(timeline, clipId, splitTime) {
+export function splitClip(
+  timeline,
+  clipId,
+  splitTime,
+) {
   const clip = timeline.clips.find((c) => c.id === clipId);
   if (!clip) return timeline;
 
@@ -393,7 +413,11 @@ export function removeTrack(timeline, trackId) {
   });
 }
 
-export function updateTrack(timeline, trackId, updates) {
+export function updateTrack(
+  timeline,
+  trackId,
+  updates,
+) {
   return {
     ...timeline,
     tracks: timeline.tracks.map((t) =>
@@ -439,7 +463,12 @@ export function createDefaultTimeline(name) {
 
 const MIN_CLIP_DURATION = 0.1;
 
-export function rippleTrim(timeline, clipId, edge, delta) {
+export function rippleTrim(
+  timeline,
+  clipId,
+  edge,
+  delta,
+) {
   const clip = timeline.clips.find((c) => c.id === clipId);
   if (!clip) return timeline;
 
@@ -488,7 +517,12 @@ export function rippleTrim(timeline, clipId, edge, delta) {
   });
 }
 
-export function rollTrim(timeline, leftClipId, rightClipId, delta) {
+export function rollTrim(
+  timeline,
+  leftClipId,
+  rightClipId,
+  delta,
+) {
   const left = timeline.clips.find((c) => c.id === leftClipId);
   const right = timeline.clips.find((c) => c.id === rightClipId);
   if (!left || !right) return timeline;
@@ -599,7 +633,11 @@ export function trackSelectForward(timeline, clipId) {
    Keyframe & Transition Operations
    ------------------------------------------------------------------ */
 
-export function interpolateProperty(clip, property, clipTime) {
+export function interpolateProperty(
+  clip,
+  property,
+  clipTime,
+) {
   const kfs = clip.keyframes
     .filter((k) => k.property === property)
     .sort((a, b) => a.time - b.time);
@@ -641,7 +679,12 @@ export function removeKeyframe(timeline, clipId, keyframeIndex) {
   };
 }
 
-export function moveKeyframe(timeline, clipId, keyframeIndex, newTime) {
+export function moveKeyframe(
+  timeline,
+  clipId,
+  keyframeIndex,
+  newTime,
+) {
   return {
     ...timeline,
     clips: timeline.clips.map((c) => {
@@ -691,7 +734,11 @@ export function removeTransition(timeline, transitionId) {
   };
 }
 
-export function updateTransition(timeline, transitionId, updates) {
+export function updateTransition(
+  timeline,
+  transitionId,
+  updates,
+) {
   return {
     ...timeline,
     transitions: (timeline.transitions ?? []).map((t) =>
@@ -735,7 +782,13 @@ export function unlinkAllFromClip(timeline, clipId) {
  * @param {number} offsetSeconds
  * @param {'replace' | 'keep'} scratchMode
  */
-export function syncClips(timeline, videoClipId, audioClipId, offsetSeconds, scratchMode) {
+export function syncClips(
+  timeline,
+  videoClipId,
+  audioClipId,
+  offsetSeconds,
+  scratchMode,
+) {
   const videoClip = timeline.clips.find((c) => c.id === videoClipId);
   if (!videoClip) return timeline;
 
@@ -770,90 +823,11 @@ export function syncClips(timeline, videoClipId, audioClipId, offsetSeconds, scr
   return withDuration({ ...timeline, clips, tracks });
 }
 
-/**
- * @param {string} name
- * @param {Array<{videoAsset: {id: string; name: string; duration: number}, audioAsset: {id: string; name: string; duration: number}, offsetSeconds: number}>} pairs
- * @param {'replace' | 'keep'} scratchMode
- * @param {Array<{id: string; name: string; duration: number}>} unmatchedVideoAssets
- * @param {Array<{id: string; name: string; duration: number}>} unmatchedAudioAssets
- */
-export function createSyncedTimeline(name, pairs, scratchMode, unmatchedVideoAssets, unmatchedAudioAssets) {
-  let tl = createDefaultTimeline(name);
-
-  if (scratchMode === 'keep') {
-    tl = addTrack(tl, 'audio');
-    const lastAudioTrack = [...tl.tracks].reverse().find((t) => t.kind === 'audio');
-    tl = {
-      ...tl,
-      tracks: tl.tracks.map((t) =>
-        t.id === lastAudioTrack.id ? { ...t, name: 'A3 (Scratch)', muted: true } : t
-      ),
-    };
-  }
-
-  const v1Track = tl.tracks.find((t) => t.kind === 'video');
-  const a1Track = tl.tracks.find((t) => t.kind === 'audio');
-  const scratchTrack = scratchMode === 'keep' ? tl.tracks.find((t) => t.name === 'A3 (Scratch)') ?? null : null;
-
-  let cursor = 0;
-  const clips = [];
-
-  for (const pair of pairs) {
-    const videoClipId = generateId();
-    const audioClipId = generateId();
-    const scratchClipId = scratchMode === 'keep' ? generateId() : undefined;
-
-    clips.push({
-      id: videoClipId, assetId: pair.videoAsset.id, trackId: v1Track.id,
-      name: pair.videoAsset.name, startTime: cursor, duration: pair.videoAsset.duration,
-      trimStart: 0, trimEnd: 0, speed: 1, opacity: 1, volume: 1,
-      flipH: false, flipV: false, keyframes: [], linkedClipIds: [audioClipId],
-    });
-
-    clips.push({
-      id: audioClipId, assetId: pair.audioAsset.id, trackId: a1Track.id,
-      name: pair.audioAsset.name, startTime: Math.max(0, cursor + pair.offsetSeconds),
-      duration: pair.audioAsset.duration, trimStart: 0, trimEnd: 0, speed: 1, opacity: 1,
-      volume: 1, flipH: false, flipV: false, keyframes: [], linkedClipIds: [videoClipId],
-    });
-
-    if (scratchMode === 'keep' && scratchTrack) {
-      clips.push({
-        id: scratchClipId, assetId: pair.videoAsset.id, trackId: scratchTrack.id,
-        name: `${pair.videoAsset.name} (scratch)`, startTime: cursor,
-        duration: pair.videoAsset.duration, trimStart: 0, trimEnd: 0, speed: 1,
-        opacity: 1, volume: 0, flipH: false, flipV: false, keyframes: [],
-      });
-    }
-
-    cursor += pair.videoAsset.duration;
-  }
-
-  for (const asset of unmatchedVideoAssets) {
-    clips.push({
-      id: generateId(), assetId: asset.id, trackId: v1Track.id,
-      name: asset.name, startTime: cursor, duration: asset.duration,
-      trimStart: 0, trimEnd: 0, speed: 1, opacity: 1, volume: 1,
-      flipH: false, flipV: false, keyframes: [],
-    });
-    cursor += asset.duration;
-  }
-
-  let audioCursor = cursor;
-  for (const asset of unmatchedAudioAssets) {
-    clips.push({
-      id: generateId(), assetId: asset.id, trackId: a1Track.id,
-      name: asset.name, startTime: audioCursor, duration: asset.duration,
-      trimStart: 0, trimEnd: 0, speed: 1, opacity: 1, volume: 1,
-      flipH: false, flipV: false, keyframes: [],
-    });
-    audioCursor += asset.duration;
-  }
-
-  return withDuration({ ...tl, clips });
-}
-
-export function updateClipProperties(timeline, clipId, updates) {
+export function updateClipProperties(
+  timeline,
+  clipId,
+  updates,
+) {
   const clip = timeline.clips.find((c) => c.id === clipId);
   const linkedIds = new Set(getLinkedIds(clip));
   // Only propagate speed to linked clips (not visual props like opacity/flip)
@@ -878,4 +852,32 @@ export function updateClipProperties(timeline, clipId, updates) {
       return c;
     }),
   });
+}
+
+/* ------------------------------------------------------------------
+   Our own helpers (not in CineGen)
+   ------------------------------------------------------------------ */
+
+/**
+ * Set clip speed with clamping to 0.25–4. Linked clips are updated together.
+ * @param {Object} timeline
+ * @param {string} clipId
+ * @param {number} speed
+ * @returns {Object}
+ */
+export function setClipSpeed(timeline, clipId, speed) {
+  return updateClipProperties(timeline, clipId, { speed });
+}
+
+/**
+ * Compute whether a track should be audible during playback/render.
+ * Solo is a derived read: it does not mutate other tracks' mute state.
+ *
+ * @param {Object} track - The track to evaluate
+ * @param {Object[]} allTracks - All tracks in the timeline
+ * @returns {boolean} true if the track should produce audio
+ */
+export function isTrackAudible(track, allTracks) {
+  const anySoloed = allTracks.some((t) => t.solo);
+  return !track.muted && (!anySoloed || track.solo);
 }

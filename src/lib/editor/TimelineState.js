@@ -8,6 +8,10 @@
 
 import { createCameraState } from './cameraState';
 import { EditorStateSchema, validateOrPass } from './schemas.js';
+import { legacyToTimeline, timelineToLegacy } from './timeline-bridge.js';
+import { generateId } from './renderActions.js';
+import { createDefaultTimeline } from './timeline-operations.js';
+import { DEFAULT_VIDEO_COLOR, DEFAULT_AUDIO_COLOR } from '../../types/timeline.js';
 
 export class TimelineState {
   /**
@@ -60,6 +64,11 @@ export class TimelineState {
       this._state = defaultState;
     }
 
+    // Backward compatibility: derive timelines from project.tracks if missing
+    if (!this._state.timelines || Object.keys(this._state.timelines).length === 0) {
+      this._deriveTimelinesFromProject();
+    }
+
     // Validate loaded/default state with zod. Permissive mode: on failure,
     // we log a warning and keep the data (legacy/demo data may not fully
     // conform but we don't want to drop the user's project). Schemas apply
@@ -75,163 +84,175 @@ export class TimelineState {
    * Get default state structure
    */
   _getDefaultState() {
+    const projectId = `project-${Date.now()}`;
+    const defaultTracks = [
+      {
+        id: 'video-1',
+        type: 'video',
+        name: 'Video',
+        locked: false,
+        muted: false,
+        solo: false,
+        visible: true,
+        height: 80,
+        color: '#3b82f6',
+        items: [
+          {
+            id: 1,
+            assetId: 'asset-1',
+            type: 'video',
+            start: 4.8,
+            end: 22.8,
+            sourceStart: 0,
+            sourceEnd: 18,
+            lane: 0,
+            trimIn: 0,
+            trimOut: 18,
+            volume: 1,
+            playbackRate: 1,
+            effects: [],
+            opacity: 1,
+            transform: { x: 0, y: 0, scale: 1, rotation: 0 },
+            name: 'Opening Shot'
+          },
+          {
+            id: 2,
+            assetId: 'asset-2',
+            type: 'video',
+            start: 20.4,
+            end: 32.4,
+            sourceStart: 0,
+            sourceEnd: 12,
+            lane: 0,
+            trimIn: 0,
+            trimOut: 12,
+            volume: 1,
+            playbackRate: 1,
+            effects: [],
+            opacity: 1,
+            transform: { x: 0, y: 0, scale: 1, rotation: 0 },
+            name: 'Generated Clip'
+          }
+        ]
+      },
+      {
+        id: 'audio-1',
+        type: 'audio',
+        name: 'Audio',
+        locked: false,
+        muted: false,
+        solo: false,
+        visible: true,
+        height: 60,
+        color: '#10b981',
+        items: [
+          {
+            id: 3,
+            assetId: 'asset-3',
+            type: 'audio',
+            start: 3,
+            end: 45,
+            sourceStart: 0,
+            sourceEnd: 42,
+            lane: 0,
+            trimIn: 0,
+            trimOut: 42,
+            volume: 0.8,
+            playbackRate: 1,
+            effects: [],
+            opacity: 1,
+            waveformData: [0.1, 0.3, 0.5, 0.7, 0.9, 0.8, 0.6, 0.4, 0.2, 0.3, 0.5, 0.7, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1],
+            name: 'Music Bed'
+          }
+        ]
+      },
+      {
+        id: 'text-1',
+        type: 'text',
+        name: 'Text',
+        locked: false,
+        muted: false,
+        solo: false,
+        visible: true,
+        height: 50,
+        color: '#f59e0b',
+        items: [
+          {
+            id: 4,
+            assetId: 'asset-4',
+            type: 'text',
+            start: 8.4,
+            end: 16.8,
+            sourceStart: 0,
+            sourceEnd: 8.4,
+            lane: 0,
+            trimIn: 0,
+            trimOut: 8.4,
+            volume: 1,
+            playbackRate: 1,
+            effects: [],
+            opacity: 1,
+            text: 'Welcome to our enhanced timeline editor',
+            style: {
+              fontSize: 24,
+              color: '#ffffff',
+              background: 'rgba(0,0,0,0.7)',
+              fontFamily: 'Inter',
+              textAlign: 'center'
+            },
+            name: 'Title Card'
+          }
+        ]
+      },
+      {
+        id: 'broll-1',
+        type: 'video',
+        name: 'B-Roll',
+        locked: false,
+        muted: false,
+        solo: false,
+        visible: true,
+        height: 60,
+        color: '#8b5cf6',
+        items: [
+          {
+            id: 5,
+            assetId: 'asset-5',
+            type: 'video',
+            start: 31.2,
+            end: 43.2,
+            sourceStart: 0,
+            sourceEnd: 12,
+            lane: 0,
+            trimIn: 0,
+            trimOut: 12,
+            volume: 1,
+            playbackRate: 1,
+            effects: [],
+            opacity: 1,
+            transform: { x: 0, y: 0, scale: 1, rotation: 0 },
+            name: 'City Cutaway'
+          }
+        ]
+      }
+    ];
+
+    const defaultTimeline = legacyToTimeline({
+      tracks: defaultTracks,
+      timelineSeconds: 60,
+      projectId,
+      projectTitle: 'Untitled Project'
+    });
+    defaultTimeline.id = 'timeline-1';
+    defaultTimeline.name = 'Main Timeline';
+
     return {
       project: {
-        id: `project-${Date.now()}`,
+        id: projectId,
         fps: 30,
         duration: 60,
         aspectRatio: '16:9',
-        tracks: [
-          {
-            id: 'video-1',
-            type: 'video',
-            name: 'Video',
-            locked: false,
-            muted: false,
-            solo: false,
-            visible: true,
-            height: 80,
-            color: '#3b82f6',
-            items: [
-              {
-                id: 1,
-                assetId: 'asset-1',
-                type: 'video',
-                start: 4.8,
-                end: 22.8,
-                sourceStart: 0,
-                sourceEnd: 18,
-                lane: 0,
-                trimIn: 0,
-                trimOut: 18,
-                volume: 1,
-                playbackRate: 1,
-                effects: [],
-                opacity: 1,
-                transform: { x: 0, y: 0, scale: 1, rotation: 0 },
-                name: 'Opening Shot'
-              },
-              {
-                id: 2,
-                assetId: 'asset-2',
-                type: 'video',
-                start: 20.4,
-                end: 32.4,
-                sourceStart: 0,
-                sourceEnd: 12,
-                lane: 0,
-                trimIn: 0,
-                trimOut: 12,
-                volume: 1,
-                playbackRate: 1,
-                effects: [],
-                opacity: 1,
-                transform: { x: 0, y: 0, scale: 1, rotation: 0 },
-                name: 'Generated Clip'
-              }
-            ]
-          },
-          {
-            id: 'audio-1',
-            type: 'audio',
-            name: 'Audio',
-            locked: false,
-            muted: false,
-            solo: false,
-            visible: true,
-            height: 60,
-            color: '#10b981',
-            items: [
-              {
-                id: 3,
-                assetId: 'asset-3',
-                type: 'audio',
-                start: 3,
-                end: 45,
-                sourceStart: 0,
-                sourceEnd: 42,
-                lane: 0,
-                trimIn: 0,
-                trimOut: 42,
-                volume: 0.8,
-                playbackRate: 1,
-                effects: [],
-                opacity: 1,
-                waveformData: [0.1, 0.3, 0.5, 0.7, 0.9, 0.8, 0.6, 0.4, 0.2, 0.3, 0.5, 0.7, 0.9, 0.8, 0.6, 0.4, 0.2, 0.1],
-                name: 'Music Bed'
-              }
-            ]
-          },
-          {
-            id: 'text-1',
-            type: 'text',
-            name: 'Text',
-            locked: false,
-            muted: false,
-            solo: false,
-            visible: true,
-            height: 50,
-            color: '#f59e0b',
-            items: [
-              {
-                id: 4,
-                assetId: 'asset-4',
-                type: 'text',
-                start: 8.4,
-                end: 16.8,
-                sourceStart: 0,
-                sourceEnd: 8.4,
-                lane: 0,
-                trimIn: 0,
-                trimOut: 8.4,
-                volume: 1,
-                playbackRate: 1,
-                effects: [],
-                opacity: 1,
-                text: 'Welcome to our enhanced timeline editor',
-                style: {
-                  fontSize: 24,
-                  color: '#ffffff',
-                  background: 'rgba(0,0,0,0.7)',
-                  fontFamily: 'Inter',
-                  textAlign: 'center'
-                },
-                name: 'Title Card'
-              }
-            ]
-          },
-          {
-            id: 'broll-1',
-            type: 'video',
-            name: 'B-Roll',
-            locked: false,
-            muted: false,
-            solo: false,
-            visible: true,
-            height: 60,
-            color: '#8b5cf6',
-            items: [
-              {
-                id: 5,
-                assetId: 'asset-5',
-                type: 'video',
-                start: 31.2,
-                end: 43.2,
-                sourceStart: 0,
-                sourceEnd: 12,
-                lane: 0,
-                trimIn: 0,
-                trimOut: 12,
-                volume: 1,
-                playbackRate: 1,
-                effects: [],
-                opacity: 1,
-                transform: { x: 0, y: 0, scale: 1, rotation: 0 },
-                name: 'City Cutaway'
-              }
-            ]
-          }
-        ],
+        tracks: defaultTracks,
         assets: [
           { id: 'asset-1', type: 'video', name: 'Opening Shot', duration: 18, url: null, thumbnail: null },
           { id: 'asset-2', type: 'video', name: 'Generated Clip', duration: 12, url: null, thumbnail: null },
@@ -243,6 +264,10 @@ export class TimelineState {
         captions: [],
         effects: []
       },
+      timelines: {
+        'timeline-1': defaultTimeline
+      },
+      activeTimelineId: 'timeline-1',
       projectTitle: 'Untitled Project',
       timelineSeconds: 60,
       zoom: 1.0,
@@ -250,7 +275,7 @@ export class TimelineState {
       isTimelineOpen: true,
       timelineHeight: 300,
       playheadPercent: 0,
-      selectedTool: 'Select',
+      selectedTool: 'select',
       selectedClipId: null,
       selectedClipIds: new Set(),
       generateType: 'Text',
@@ -305,7 +330,119 @@ export class TimelineState {
     if (!Array.isArray(state.project.tracks)) return false;
     if (typeof state.zoom !== 'number' || isNaN(state.zoom)) return false;
     if (typeof state.playheadPercent !== 'number' || isNaN(state.playheadPercent)) return false;
+    if (state.timelines && typeof state.timelines !== 'object') return false;
     return true;
+  }
+
+  /**
+   * Derive timelines map from legacy project.tracks when timelines is missing.
+   * Called during initialization for backward compatibility.
+   */
+  _deriveTimelinesFromProject() {
+    const tracks = this._state.project.tracks || [];
+    const timeline = legacyToTimeline({
+      tracks,
+      timelineSeconds: this._state.timelineSeconds || 60,
+      projectId: this._state.project.id || 'timeline-1',
+      projectTitle: this._state.projectTitle || 'Untitled Project'
+    });
+    timeline.id = 'timeline-1';
+    timeline.name = this._state.projectTitle || 'Main Timeline';
+
+    this._state.timelines = { 'timeline-1': timeline };
+    if (!this._state.activeTimelineId) {
+      this._state.activeTimelineId = 'timeline-1';
+    }
+  }
+
+  /**
+   * Sync state.tracks / state.project.tracks from the active timeline.
+   */
+  _syncStateFromActiveTimeline() {
+    const timeline = this.getActiveTimeline();
+    if (!timeline) return;
+    const legacy = timelineToLegacy(timeline, { timelineSeconds: this._state.timelineSeconds || 60 });
+    this._state.project.tracks = legacy.tracks;
+    this._state.tracks = legacy.tracks;
+  }
+
+  // ============================================
+  // MULTI-TIMELINE HELPERS
+  // ============================================
+
+  /**
+   * Get the currently active timeline, or null if none.
+   */
+  getActiveTimeline() {
+    if (!this._state.timelines || !this._state.activeTimelineId) return null;
+    return this._state.timelines[this._state.activeTimelineId] || null;
+  }
+
+  /**
+   * Set the active timeline by id. Updates state.tracks to match.
+   * @param {string} id - Timeline id
+   */
+  setActiveTimeline(id) {
+    if (!this._state.timelines || !(id in this._state.timelines)) return;
+    this._state.activeTimelineId = id;
+    this._syncStateFromActiveTimeline();
+  }
+
+  /**
+   * Add a new named timeline and switch to it.
+   * @param {string} name - Display name for the new timeline
+   * @returns {string} New timeline id
+   */
+  addTimeline(name) {
+    const id = `timeline-${Date.now()}`;
+    const count = Object.keys(this._state.timelines || {}).length + 1;
+    const newTimeline = createDefaultTimeline(name || `Timeline ${count}`);
+    newTimeline.id = id;
+    newTimeline.name = name || `Timeline ${count}`;
+
+    this._state.timelines = { ...this._state.timelines, [id]: newTimeline };
+    this._state.activeTimelineId = id;
+    this._syncStateFromActiveTimeline();
+    this.setState({ timelines: this._state.timelines, activeTimelineId: id });
+    return id;
+  }
+
+  /**
+   * Remove a timeline by id. Refuses to remove the last timeline.
+   * Switches to another timeline if the active one is removed.
+   * @param {string} id - Timeline id
+   * @returns {boolean} Success
+   */
+  removeTimeline(id) {
+    if (!this._state.timelines || !(id in this._state.timelines)) return false;
+    const remaining = Object.keys(this._state.timelines).filter(k => k !== id);
+    if (remaining.length === 0) return false;
+
+    const newTimelines = { ...this._state.timelines };
+    delete newTimelines[id];
+    this._state.timelines = newTimelines;
+
+    if (this._state.activeTimelineId === id) {
+      this._state.activeTimelineId = remaining[0];
+    }
+    this._syncStateFromActiveTimeline();
+    this.setState({ timelines: this._state.timelines, activeTimelineId: this._state.activeTimelineId });
+    return true;
+  }
+
+  /**
+   * Rename a timeline.
+   * @param {string} id - Timeline id
+   * @param {string} name - New display name
+   */
+  renameTimeline(id, name) {
+    if (!this._state.timelines || !(id in this._state.timelines)) return;
+    const timeline = this._state.timelines[id];
+    this._state.timelines = {
+      ...this._state.timelines,
+      [id]: { ...timeline, name }
+    };
+    this.setState({ timelines: this._state.timelines });
   }
 
   // ============================================
@@ -322,6 +459,10 @@ export class TimelineState {
     if (clone.project) {
       clone.tracks = clone.project.tracks;
       clone.duration = clone.project.duration;
+    }
+    // Backward compatibility: expose active timeline as state.timeline
+    if (clone.timelines && clone.activeTimelineId) {
+      clone.timeline = clone.timelines[clone.activeTimelineId];
     }
     return clone;
   }

@@ -1,106 +1,60 @@
-import { navigate } from '../lib/router.js';
 import { mountStudioChrome } from '../lib/studioChrome.js';
 import { createHeroSection } from '../lib/thumbnails.js';
-
-const VIDEO_TO_VIDEO_MODELS = [
-  { name: 'AI Video Style Transfer', description: 'Apply artistic styles to your videos', category: 'AI Tools' },
-  { name: 'AI Video Color Grading', description: 'Professional color grading for videos', category: 'AI Tools' },
-  { name: 'AI Video Slow Motion', description: 'Create smooth slow motion effects', category: 'AI Tools' },
-  { name: 'AI Video Speed Ramping', description: 'Dynamic speed changes', category: 'AI Tools' },
-];
-
-const EXAMPLE_PROMPTS = [
-  { prompt: 'Transform to anime/cartoon style', model: 'AI Video Style Transfer' },
-  { prompt: 'Apply cinematic color grading with teal and orange tones', model: 'AI Video Color Grading' },
-  { prompt: 'Convert to dramatic slow motion at 60fps', model: 'AI Video Slow Motion' },
-];
-
-const FEATURES = [
-  { icon: '🎨', title: 'Style Transfer', description: 'Apply artistic styles and effects to existing videos' },
-  { icon: '🎞️', title: 'Speed Control', description: 'Create slow motion or speed up your footage' },
-  { icon: '🎬', title: 'Professional Grading', description: 'Cinematic color grading and LUTs' },
-  { icon: '⚡', title: 'Real-time Preview', description: 'See changes instantly before rendering' },
-];
+import { muapi } from '../lib/muapi.js';
+import { apiKeyManager } from '../lib/apiKeyManager.js';
+import { v2vModels } from '../lib/models.js';
+import { AuthModal } from './AuthModal.js';
+import { requireEntitlement } from '../lib/clerkEntitlements.js';
+import { showInlineError, hideInlineError, startGenerationProgress, createAbortAwareGenerate, categorizeGenerationError } from '../lib/studioHelpers.js';
+import { createLoadingOverlay, createProgressBar } from '../lib/loading.js';
+import { mountModelSelector } from '../lib/modelSelectorUI.js';
 
 export function VideoToVideoPage() {
-  const container = document.createElement('div');
-  container.className = 'w-full h-full flex flex-col items-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
-  mountStudioChrome(container, { currentRoute: 'video-to-video' });
+    const container = document.createElement('div');
+    container.className = 'w-full h-full flex flex-col items-center bg-app-bg relative p-4 md:p-6 overflow-y-auto custom-scrollbar overflow-x-hidden';
+    mountStudioChrome(container, { currentRoute: 'video-to-video' });
 
-  // ==========================================
-  // 1. HERO SECTION
-  // ==========================================
-  const hero = document.createElement('div');
-  hero.className = 'flex flex-col items-center mb-8 md:mb-12 animate-fade-in-up w-full max-w-5xl';
-  const heroBanner = createHeroSection('video', 'h-32 md:h-44 mb-4');
-  if (heroBanner) {
-    const heroContent = document.createElement('div');
-    heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
-    heroContent.innerHTML = `
-      <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight mb-1">Video to Video</h1>
-      <p class="text-white/60 text-sm font-medium">Transform and enhance your videos with AI-powered editing tools</p>
-    `;
-    heroBanner.appendChild(heroContent);
-    hero.appendChild(heroBanner);
-  }
-  container.appendChild(hero);
+    // ==========================================
+    // State
+    // ==========================================
+    let selectedModel = v2vModels[0]?.id || '';
+    let uploadedVideoUrl = null;
+    let isLoading = false;
+    let loadingOverlay = null;
+    let progressHandle = null;
+    let abortController = null;
+    let generationError = null;
 
-  // ==========================================
-  // 2. MAIN CONTENT
-  // ==========================================
-  const contentWrapper = document.createElement('div');
-  contentWrapper.className = 'w-full max-w-5xl relative z-40 animate-fade-in-up';
-  contentWrapper.style.animationDelay = '0.1s';
+    // ==========================================
+    // 1. HERO SECTION
+    // ==========================================
+    const hero = document.createElement('div');
+    hero.className = 'flex flex-col items-center mb-2 md:mb-4 animate-fade-in-up transition-all duration-700 w-full';
+    const heroBanner = createHeroSection('video', 'h-32 md:h-44 mb-3');
+    if (heroBanner) {
+        const heroContent = document.createElement('div');
+        heroContent.className = 'absolute bottom-0 left-0 right-0 p-6 z-10';
+        heroContent.innerHTML = `
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight mb-1">Video to Video</h1>
+            <p class="text-white/60 text-sm font-medium">Transform and enhance your videos with AI-powered tools</p>
+        `;
+        heroBanner.appendChild(heroContent);
+        hero.appendChild(heroBanner);
+    }
+    container.appendChild(hero);
 
-  contentWrapper.innerHTML = `
-    <!-- Features Section -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
-      <h2 class="text-xl font-black text-white mb-1">Transform Your Footage</h2>
-      <p class="text-sm text-muted mb-4">Professional video transformation tools at your fingertips</p>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        ${FEATURES.map(f => `
-          <div class="bg-white/[0.03] border border-white/5 rounded-xl p-4 hover:border-primary/20 transition-all duration-300">
-            <div class="text-3xl mb-3">${f.icon}</div>
-            <h3 class="text-sm font-black text-white mb-1">${f.title}</h3>
-            <p class="text-xs text-muted">${f.description}</p>
-          </div>
-        `).join('')}
-      </div>
-    </div>
+    // ==========================================
+    // 2. PROMPT BAR / STUDIO CONTROLS
+    // ==========================================
+    const promptWrapper = document.createElement('div');
+    promptWrapper.className = 'w-full relative z-40 animate-fade-in-up';
+    promptWrapper.style.animationDelay = '0.2s';
 
-    <!-- Tools Section -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
-      <h2 class="text-xl font-black text-white mb-1">Available Tools</h2>
-      <p class="text-sm text-muted mb-4">Powerful video transformation tools</p>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        ${VIDEO_TO_VIDEO_MODELS.map(m => `
-          <button class="model-card bg-white/[0.03] border border-white/5 rounded-xl p-4 hover:border-primary/20 transition-all duration-300 text-left" data-model="${m.name}">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-black text-white truncate mr-2">${m.name}</span>
-              <span class="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full flex-shrink-0">${m.category}</span>
-            </div>
-            <p class="text-xs text-muted">${m.description}</p>
-          </button>
-        `).join('')}
-      </div>
-    </div>
+    const bar = document.createElement('div');
+    bar.className = 'w-full bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] p-3 md:p-5 flex flex-col gap-3 md:gap-5 shadow-3xl';
 
-    <!-- Example Prompts Section -->
-    <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-4 md:p-6 shadow-3xl mb-6">
-      <h2 class="text-xl font-black text-white mb-1">Example Transformations</h2>
-      <p class="text-sm text-muted mb-4">Get inspired by these video transformations</p>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        ${EXAMPLE_PROMPTS.map((p, i) => `
-          <div class="prompt-card bg-white/[0.03] border border-white/5 rounded-xl p-4 hover:border-primary/20 cursor-pointer transition-all duration-300">
-            <div class="flex items-center justify-between mb-3">
-              <span class="bg-primary/10 text-primary text-xs font-medium px-3 py-1 rounded-full">${p.model}</span>
-              <button class="text-xs text-muted hover:text-white transition-colors try-btn">Try this →</button>
-            </div>
-            <p class="text-sm text-gray-300 leading-relaxed">${p.prompt}</p>
-          </div>
-        `).join('')}
-      </div>
-    </div>
+    const topRow = document.createElement('div');
+    topRow.className = 'flex items-start gap-5 px-2';
 
     <!-- CTA Section -->
     <div class="bg-[#111]/90 backdrop-blur-xl border border-white/10 rounded-[1.5rem] p-6 md:p-8 shadow-3xl text-center">
@@ -113,13 +67,14 @@ export function VideoToVideoPage() {
     </div>
   `;
 
-  container.appendChild(contentWrapper);
+    const videoPickerBtn = document.createElement('button');
+    videoPickerBtn.type = 'button';
+    videoPickerBtn.title = 'Upload video for transformation';
+    videoPickerBtn.className = 'w-10 h-10 shrink-0 rounded-xl border transition-all flex items-center justify-center relative overflow-hidden mt-1.5 bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/40 group';
 
-  // ==========================================
-  // 3. EVENT LISTENERS
-  // ==========================================
-  container.querySelector('.start-btn')?.addEventListener('click', () => navigate('video'));
-  container.querySelector('.cta-btn').addEventListener('click', () => navigate('video'));
+    const videoIconEl = document.createElement('div');
+    videoIconEl.className = 'flex items-center justify-center w-full h-full';
+    videoIconEl.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted group-hover:text-primary transition-colors"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>`;
 
   const gtmBoostBtn = contentWrapper.querySelector('.gtm-boost-btn');
   if (gtmBoostBtn) {
@@ -139,26 +94,7 @@ export function VideoToVideoPage() {
       localStorage.setItem('prefill_model', modelName);
       navigate('video');
     });
-  });
 
-  container.querySelectorAll('.prompt-card').forEach((card, i) => {
-    card.addEventListener('click', () => {
-      const prompt = EXAMPLE_PROMPTS[i];
-      localStorage.setItem('prefill_prompt', prompt.prompt);
-      localStorage.setItem('prefill_model', prompt.model);
-      navigate('video');
-    });
-  });
-
-  container.querySelectorAll('.prompt-card .try-btn').forEach((btn, i) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const prompt = EXAMPLE_PROMPTS[i];
-      localStorage.setItem('prefill_prompt', prompt.prompt);
-      localStorage.setItem('prefill_model', prompt.model);
-      navigate('video');
-    });
-  });
-
-  return container;
+    return container;
 }
+

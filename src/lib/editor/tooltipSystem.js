@@ -1,6 +1,6 @@
 export function createTooltipSystem() {
   const tooltips = {
-    'fill-gap': 'AI generates new footage to bridge gaps between clips using adjacent frame context',
+    'fillGap': 'AI generates new footage to bridge gaps between clips using adjacent frame context',
     'extend-clip': 'Lengthen clips by generating additional footage before/after using 9 video models',
     'music-gen': 'Generate music from video context with genre, mood, and tempo presets',
     'node-workflow': 'Create AI generation pipelines by connecting nodes on a canvas with 50+ models',

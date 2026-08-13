@@ -16,6 +16,17 @@ export const QUICK_PROMPTS = [
   { label: 'Fashion', prompt: 'High fashion editorial, avant-garde styling, studio lighting, Vogue aesthetic, professional' },
 ];
 
+export const VIDEO_QUICK_PROMPTS = [
+  { label: 'Cinematic Drone', prompt: 'Cinematic drone shot sweeping over a dramatic mountain landscape, golden hour lighting, epic scale, 4K video' },
+  { label: 'Product Demo', prompt: 'Professional product demo video, smooth 360 rotation, clean white background, studio lighting, commercial quality' },
+  { label: 'Social Reel', prompt: 'Viral social media reel, fast cuts, trendy music, vibrant colors, engaging hook in first 3 seconds, vertical 9:16' },
+  { label: 'Nature B-roll', prompt: 'Beautiful nature B-roll footage, flowing water, wind through trees, soft sunlight, peaceful ambient motion' },
+  { label: 'Urban Timelapse', prompt: 'Urban city timelapse, day to night transition, traffic trails, building lights, cinematic color grading' },
+  { label: 'Character Walk', prompt: 'Character walking through a vibrant city street, natural motion, dynamic camera movement, cinematic lighting' },
+  { label: 'Abstract Motion', prompt: 'Abstract motion graphics, flowing particles, smooth gradients, hypnotic loop, modern aesthetic' },
+  { label: 'Fashion Film', prompt: 'High fashion film, editorial style, slow motion, dramatic lighting, Vogue aesthetic, professional color grading' },
+];
+
 export const CAMERA_MAP = {
     "Modular 8K Digital": "modular 8K digital cinema camera",
     "Full-Frame Cine Digital": "full-frame digital cinema camera",

@@ -28,7 +28,10 @@ export function UpscaleStudio() {
   let dynamicControls = null;
   let dynamicControlsContainer = null;
   let uploadedUrl = null;
+  let originalUrl = null;
   let customThumbnailUrl = getCustomThumbnailFromCache('upscale-studio');
+  let denoiseLevel = 0;
+  let faceEnhance = false;
 
   const header = document.createElement('div');
   header.className = 'mb-8 animate-fade-in-up text-center w-full max-w-xl';
@@ -161,23 +164,29 @@ export function UpscaleStudio() {
   factorRow.className = 'flex gap-2 mb-6 justify-center';
   container.appendChild(factorRow);
 
-  const formCard = document.createElement('div');
-  formCard.className = 'w-full max-w-md bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
-  formCard.style.animationDelay = '0.2s';
+  const controlsCard = document.createElement('div');
+  controlsCard.className = 'w-full max-w-xl bg-[#111]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex flex-col gap-5 animate-fade-in-up';
+  controlsCard.style.animationDelay = '0.2s';
 
   const uploadRow = document.createElement('div');
   uploadRow.className = 'flex items-center gap-4';
   const picker = createUploadPicker({
     anchorContainer: container,
-    onSelect: ({ url }) => { uploadedUrl = url; },
-    onClear: () => { uploadedUrl = null; },
+    onSelect: ({ url }) => {
+      uploadedUrl = url;
+      originalUrl = url;
+    },
+    onClear: () => {
+      uploadedUrl = null;
+      originalUrl = null;
+    },
   });
   uploadRow.appendChild(picker.trigger);
   const hint = document.createElement('span');
   hint.className = 'text-sm text-muted';
   hint.textContent = 'Upload image or video to upscale';
   uploadRow.appendChild(hint);
-  formCard.appendChild(uploadRow);
+  controlsCard.appendChild(uploadRow);
   container.appendChild(picker.panel);
 
   // Dynamic model-specific advanced controls
@@ -227,22 +236,76 @@ export function UpscaleStudio() {
     mountStudioThumbnailModal(modal);
     modal.open();
   });
-  formCard.appendChild(thumbBtn);
+  controlsCard.appendChild(thumbBtn);
+
+  const denoiseRow = document.createElement('div');
+  denoiseRow.className = 'flex flex-col gap-2';
+  denoiseRow.innerHTML = `
+    <div class="flex items-center justify-between">
+      <label class="text-xs font-bold text-secondary uppercase tracking-wider">Denoise Level</label>
+      <span id="denoise-val" class="text-xs font-bold text-primary">${denoiseLevel}</span>
+    </div>
+    <input type="range" id="denoise-slider" min="0" max="100" step="5" value="${denoiseLevel}"
+      class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary">
+    <p class="text-[10px] text-muted">Higher values remove more noise but may soften details</p>
+  `;
+  controlsCard.appendChild(denoiseRow);
+
+  const denoiseSlider = denoiseRow.querySelector('#denoise-slider');
+  const denoiseVal = denoiseRow.querySelector('#denoise-val');
+  if (denoiseSlider) {
+    denoiseSlider.oninput = (e) => {
+      denoiseLevel = parseInt(e.target.value);
+      denoiseVal.textContent = denoiseLevel;
+    };
+  }
+
+  const faceRow = document.createElement('div');
+  faceRow.className = 'flex items-center justify-between bg-white/[0.03] border border-white/5 rounded-xl px-4 py-3';
+  faceRow.innerHTML = `
+    <div class="flex items-center gap-3">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-secondary"><circle cx="12" cy="12" r="10"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>
+      <div>
+        <div class="text-xs font-bold text-white">Face Enhancement</div>
+        <div class="text-[10px] text-muted">Improve facial features and sharpness</div>
+      </div>
+    </div>
+    <button id="face-enhance-toggle" class="relative w-11 h-6 bg-white/10 rounded-full transition-colors" aria-label="Toggle face enhancement">
+      <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
+    </button>
+  `;
+  controlsCard.appendChild(faceRow);
+
+  const faceToggle = faceRow.querySelector('#face-enhance-toggle');
+  if (faceToggle) {
+    faceToggle.onclick = () => {
+      faceEnhance = !faceEnhance;
+      if (faceEnhance) {
+        faceToggle.classList.remove('bg-white/10');
+        faceToggle.classList.add('bg-primary');
+        faceToggle.querySelector('span').classList.add('translate-x-5');
+      } else {
+        faceToggle.classList.add('bg-white/10');
+        faceToggle.classList.remove('bg-primary');
+        faceToggle.querySelector('span').classList.remove('translate-x-5');
+      }
+    };
+  }
 
   const genBtn = document.createElement('button');
   genBtn.type = 'button';
-  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all';
+  genBtn.className = 'w-full bg-primary text-black py-3.5 rounded-xl font-black text-sm hover:shadow-glow transition-all mt-2';
   genBtn.textContent = 'Upscale Image';
   genBtn.setAttribute('aria-label', 'Upscale image');
-  formCard.appendChild(genBtn);
-  container.appendChild(formCard);
+  controlsCard.appendChild(genBtn);
+  container.appendChild(controlsCard);
 
   const inlineInstructions = createInlineInstructions('upscale');
-  inlineInstructions.classList.add('max-w-md', 'mt-6');
+  inlineInstructions.classList.add('max-w-xl', 'mt-6');
   container.appendChild(inlineInstructions);
 
   const resultArea = document.createElement('div');
-  resultArea.className = 'w-full max-w-md mt-6 hidden';
+  resultArea.className = 'w-full max-w-xl mt-6 hidden';
   resultArea.setAttribute('role', 'status');
   resultArea.setAttribute('aria-live', 'polite');
   container.appendChild(resultArea);
@@ -262,6 +325,13 @@ export function UpscaleStudio() {
     });
   }
 
+  function renderComparison(upscaledUrl) {
+    if (!originalUrl || !upscaledUrl) return;
+    resultArea.innerHTML = '';
+    const slider = createBeforeAfterSlider(originalUrl, upscaledUrl, 'Before', 'After');
+    resultArea.appendChild(slider);
+  }
+
   genBtn.onclick = async () => {
     if (!(await requireEntitlement())) return;
     if (!uploadedUrl) { alert('Upload an image or video first'); return; }
@@ -272,7 +342,13 @@ export function UpscaleStudio() {
     genBtn.innerHTML = '<span class="animate-spin inline-block mr-2">&#9711;</span> Upscaling...';
 
     try {
-      const params = { model: selectedMethod.id, image_url: uploadedUrl, customThumbnailUrl: customThumbnailUrl || undefined };
+      const params = {
+        model: selectedMethod.id,
+        image_url: uploadedUrl,
+        denoise_level: denoiseLevel / 100,
+        face_enhance: faceEnhance,
+        customThumbnailUrl: customThumbnailUrl || undefined,
+      };
       if (selectedFactor) params.upscale_factor = parseInt(selectedFactor);
       if (dynamicControls) {
         Object.assign(params, dynamicControls.getPayload({}));
@@ -281,11 +357,16 @@ export function UpscaleStudio() {
       if (result?.url) {
         resultArea.classList.remove('hidden');
         resultArea.innerHTML = `
-          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4">
+          <div class="bg-[#111]/80 border border-white/10 rounded-2xl p-4 animate-fade-in-up">
             <img src="${result.url}" class="w-full rounded-xl mb-3">
-            <a href="${result.url}" download class="block w-full bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+            <div class="flex gap-3">
+              <a href="${result.url}" download class="flex-1 bg-primary text-black py-2.5 rounded-xl font-bold text-sm text-center hover:shadow-glow transition-all">Download</a>
+              <button class="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-white/20 transition-all regen-btn">Generate Again</button>
+            </div>
           </div>
         `;
+        resultArea.querySelector('.regen-btn').onclick = () => genBtn.click();
+        renderComparison(result.url);
       }
     } catch (err) {
       alert(`Error: ${err.message}`);

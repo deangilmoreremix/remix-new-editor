@@ -725,6 +725,7 @@ function getClipTypeClass(item) {
 
 // Import other functions that were moved
 export function drawWaveform(canvas, waveformData) {
+  if (!waveformData || !waveformData.length) return;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = 'rgba(255,255,255,0.7)';
@@ -738,6 +739,19 @@ export function drawWaveform(canvas, waveformData) {
     else ctx.lineTo(x, y);
   });
   ctx.stroke();
+}
+
+export function getOrCreateWaveformCanvas(container, width = 200, height = 30) {
+  if (!container) return null;
+  let canvas = container.querySelector('canvas');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.className = 'waveform-canvas';
+    canvas.width = width;
+    canvas.height = height;
+    container.appendChild(canvas);
+  }
+  return canvas;
 }
 
 // Multi-camera compositing overlay renderer
