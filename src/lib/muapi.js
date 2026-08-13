@@ -50,14 +50,7 @@ export class MuapiClient {
             console.error('[MuapiClient] VITE_SUPABASE_URL is not configured');
             this.proxyUrl = '/functions/v1/muapi-proxy';
         } else {
-            // Validate that Supabase URL is configured before building proxy URL
-            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-            if (!supabaseUrl) {
-                console.error('[MuapiClient] VITE_SUPABASE_URL is not configured');
-                this.proxyUrl = '/functions/v1/muapi-proxy'; // Fallback to relative path
-            } else {
-                this.proxyUrl = `${supabaseUrl}/functions/v1/muapi-proxy`;
-            }
+            this.proxyUrl = `${supabaseUrl}/functions/v1/muapi-proxy`;
         }
         this.activeControllers = new Map(); // For request cancellation
         this.apiKeyManager = apiKeyManager;
@@ -525,58 +518,72 @@ export class MuapiClient {
         const formData = new FormData();
         formData.append('file', file);
 
-        try {
-            const response = await fetch(this.proxyUrl, {
-                method: 'POST',
-                headers: {
-                    'x-api-key': key,
-                    'x-endpoint': 'upload_file',
-                },
-                body: formData
-            });
+        const attemptUpload = async (signal) => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000);
+            try {
+                const response = await fetch(this.proxyUrl, {
+                    method: 'POST',
+                    headers: {
+                        'x-api-key': key,
+                        'x-endpoint': 'upload_file',
+                    },
+                    body: formData,
+                    signal: controller.signal
+                });
 
-            if (!response.ok) {
-                const errText = await response.text();
-                const status = response.status;
-                const err = new Error(`Upload failed: ${errText.slice(0, 200)}`);
-                err.status = status;
-                // For client-side errors from muapi.ai (credits, quota, too large,
-                // unsupported type), do NOT fall back to Supabase — surface the
-                // real error so the user knows what to fix.
-                if (status === 402 || status === 403 || status === 413 || status === 422) {
+                if (!response.ok) {
+                    const errText = await response.text();
+                    const status = response.status;
+                    const err = new Error(`Upload failed: ${errText.slice(0, 200)}`);
+                    err.status = status;
+                    if (status === 402 || status === 403 || status === 413 || status === 422) {
+                        err.retryable = false;
+                    }
                     throw err;
                 }
-                throw new Error(`Upload Failed: ${status} ${response.statusText} - ${errText.slice(0, 100)}`);
-            }
 
-            const result = await response.json();
-            if (result.error) {
-                throw new Error(`Upload Failed: ${result.error}`);
-            }
+                const result = await response.json();
+                if (result.error) {
+                    const err = new Error(`Upload Failed: ${result.error}`);
+                    err.retryable = false;
+                    throw err;
+                }
 
-            const publicUrl = result.url || result.data?.url;
-            if (!publicUrl) {
-                const err = new Error('Upload Failed: No URL returned by the server');
-                err.retryable = false;
-                throw err;
+                const publicUrl = result.url || result.data?.url;
+                if (!publicUrl) {
+                    const err = new Error('Upload Failed: No URL returned by the server');
+                    err.retryable = false;
+                    throw err;
+                }
+                return publicUrl;
+            } finally {
+                clearTimeout(timeoutId);
             }
-            return publicUrl;
-        } catch (err) {
-            // Only fall back for genuine network/server errors, not for logical
-            // client errors or muapi.ai client-side rejections.
-            if (err.retryable === false) {
-                throw err;
+        };
+
+        let lastErr;
+        for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+                return await attemptUpload();
+            } catch (err) {
+                lastErr = err;
+                if (err.retryable === false) break;
+                const status = err.status || (err.response?.status);
+                if (status === 402 || status === 403 || status === 413 || status === 422) break;
+                if (attempt === 0) {
+                    await new Promise(r => setTimeout(r, 800));
+                }
             }
-            const status = err.status || (err.response?.status);
-            if (status === 402 || status === 403 || status === 413 || status === 422) {
-                throw err;
-            }
-            console.warn('[MuapiClient] Proxy upload failed, falling back to Supabase Storage:', err);
+        }
+
+        if (lastErr) {
+            console.warn('[MuapiClient] Proxy upload failed, falling back to Supabase Storage:', lastErr);
             try {
                 return await uploadFileToStorage(file);
             } catch (fallbackErr) {
                 console.error('[MuapiClient] Fallback upload also failed:', fallbackErr);
-                throw new Error(`Upload failed: ${err.message || fallbackErr.message}`);
+                throw new Error(`Upload failed: ${lastErr.message || fallbackErr.message}`);
             }
         }
     }

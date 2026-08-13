@@ -853,11 +853,18 @@ export async function uploadFileToStorage(file) {
   const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
   const path = `${userKey}/${uniqueName}`;
 
-  const { data, error } = await hybridSupabase.storage
+  const timeoutMs = 60000;
+  const uploadPromise = hybridSupabase.storage
     .from('uploads')
     .upload(path, file, { contentType: file.type, upsert: false });
 
-  if (error) throw new Error(`Upload failed: ${error.message}`);
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Upload to storage timed out')), timeoutMs);
+  });
+
+  const { error } = await Promise.race([uploadPromise, timeoutPromise]).catch(err => ({ error: err }));
+
+  if (error) throw new Error(`Upload failed: ${error.message || error}`);
 
   const { data: urlData } = hybridSupabase.storage
     .from('uploads')

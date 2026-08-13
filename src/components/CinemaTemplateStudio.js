@@ -7,12 +7,13 @@ import { getTemplateThumbnailCandidates, saveCustomThumbnailToCache, clearCustom
 import { TemplateThumbnailModal, mountThumbnailModal } from './modals/TemplateThumbnailModal.jsx';
 import { getEnrichedModels } from '../lib/modelCatalog.js';
 import { PROVIDER_LOGOS, invertLogos, getProviderStyle, getAvailableProviders, filterModels, renderProviderSidebar, renderSearchBar, renderModelList } from '../lib/modelSelectorUI.js';
-import { t2iModels, i2vModels } from '../lib/models.js';
+import { t2iModels, i2vModels, i2iModels } from '../lib/models.js';
 import { composeNegativePrompt, enrichPromptString } from '../lib/templateEngine.js';
 import { getGtmContext } from '../lib/gtmContextStore.js';
 import { selectScenes } from '../lib/sceneSelector.js';
 import { apiKeyManager } from '../lib/apiKeyManager.js';
 import { AuthModal } from './AuthModal.js';
+import { createUploadPicker } from './UploadPicker.js';
 import { mountStudioDrawer, createStudioMenuButton } from '../lib/studioChrome.js';
 import { showToast } from '../lib/loading.js';
 import { escapeHtml, sanitizeUrl } from '../lib/security.js';
@@ -1347,6 +1348,31 @@ export function CinemaTemplateStudio() {
         break;
       }
 
+      case 'image': {
+        const uploadTrigger = document.createElement('button');
+        uploadTrigger.type = 'button';
+        uploadTrigger.className = 'w-full flex items-center gap-3 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition text-left';
+        uploadTrigger.innerHTML = `<div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><span class="text-sm text-white/80">${input.label || 'Upload image'}</span>`;
+
+        uploadTrigger.onclick = (e) => {
+          e.stopPropagation();
+          const picker = createUploadPicker({
+            anchorContainer: container,
+            onSelect: ({ url }) => {
+              currentInputs[input.name] = url;
+              uploadTrigger.innerHTML = `<div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-300 shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><span class="text-sm text-emerald-200">Image uploaded</span>`;
+            },
+            onClear: () => {
+              currentInputs[input.name] = null;
+              uploadTrigger.innerHTML = `<div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-muted shrink-0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><span class="text-sm text-white/80">${input.label || 'Upload image'}</span>`;
+            }
+          });
+          container.appendChild(picker.panel);
+        };
+        field.appendChild(uploadTrigger);
+        break;
+      }
+
       case 'checkbox': {
         const checkbox = document.createElement('label');
         checkbox.className = 'flex items-center gap-3 cursor-pointer';
@@ -2089,13 +2115,15 @@ export function CinemaTemplateStudio() {
     const isVideo = currentTemplate.outputType === 'video';
     const imageUrl = currentInputs.image_url || currentInputs.referenceImage || null;
 
-    let model;
-    if (imageUrl && isVideo) {
-      model = 'kling-v2.6-pro-i2v';
-    } else if (isVideo) {
-      model = 'kling-v2.6-pro-t2v';
-    } else {
-      model = 'flux-dev';
+    let model = selectedModel;
+    if (!model) {
+      if (imageUrl && isVideo) {
+        model = 'kling-v2.6-pro-i2v';
+      } else if (isVideo) {
+        model = 'kling-v2.6-pro-t2v';
+      } else {
+        model = 'flux-dev';
+      }
     }
 
     let prompt;
