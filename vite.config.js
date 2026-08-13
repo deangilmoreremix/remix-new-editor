@@ -418,8 +418,14 @@ function securityHeaders() {
                 ].join('; ');
                 res.setHeader('Content-Security-Policy', csp);
                 
-                // Prevent clickjacking
-                res.setHeader('X-Frame-Options', 'DENY');
+                 // Prevent clickjacking
+                 // In dev, allow framing for embedded studio iframes via CSP frame-src.
+                 // Production should reconsider this based on actual framing needs.
+                 if (process.env.NODE_ENV !== 'production') {
+                   res.removeHeader('X-Frame-Options');
+                 } else {
+                   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+                 }
                 
                 // Prevent MIME type sniffing
                 res.setHeader('X-Content-Type-Options', 'nosniff');
