@@ -39,6 +39,40 @@ const ALL_APPS = [
 
 let globalStylesAdded = false;
 
+// MiniMax H3 cinematic showcase.
+//
+// Set to false to fall back to the original hero-first ordering. Nothing is
+// removed either way — the existing HeroSection and all 13 original sections
+// always render; the cinematic hero is added above them.
+const ENABLE_CINEMATIC_HERO = true;
+
+/**
+ * Keeps the document to a single <h1> and a single banner landmark once the
+ * cinematic hero is added above the original hero.
+ *
+ * The original hero keeps 100% of its markup, classes, ids, copy and behaviour
+ * (including the typewriter spans) — only the wrapper tag is swapped h1 -> h2
+ * and the duplicate role="banner" is dropped, both of which are pure
+ * accessibility fixes for having two heroes on one page.
+ */
+function demoteLegacyHero(heroEl) {
+  heroEl.removeAttribute('role');
+  heroEl.setAttribute('aria-labelledby', 'hero-headline');
+
+  const legacyHeadline = heroEl.querySelector('h1#hero-headline');
+  if (!legacyHeadline) return;
+
+  const replacement = document.createElement('h2');
+  for (const attribute of Array.from(legacyHeadline.attributes)) {
+    replacement.setAttribute(attribute.name, attribute.value);
+  }
+  while (legacyHeadline.firstChild) {
+    replacement.appendChild(legacyHeadline.firstChild);
+  }
+  legacyHeadline.replaceWith(replacement);
+}
+
+
 function addGlobalStyles() {
   if (globalStylesAdded) return;
   globalStylesAdded = true;
@@ -140,8 +174,16 @@ export default async function LandingPage() {
     const headerEl = LandingHeader();
     container.appendChild(headerEl);
 
+    // NEW: cinematic MiniMax H3 video hero, added above the original hero.
+    if (ENABLE_CINEMATIC_HERO) {
+      const { CinematicVideoHero } = await import('./sections/CinematicVideoHero.jsx');
+      const cinematicHeroEl = CinematicVideoHero();
+      container.appendChild(cinematicHeroEl);
+    }
+
     const { HeroSection } = await import('./sections/HeroSection.jsx');
     const heroEl = HeroSection();
+    if (ENABLE_CINEMATIC_HERO) demoteLegacyHero(heroEl);
     heroEl.classList.add('animate-in');
     heroEl.classList.add('stagger-0');
     container.appendChild(heroEl);
@@ -164,12 +206,27 @@ export default async function LandingPage() {
     const offer = createLazySection(() => import('./sections/OfferSection.jsx'), 'offer', {}, 11);
     const finalCTA = createLazySection(() => import('./sections/FinalCTASection.jsx'), 'cta', {}, 12);
 
+    // NEW: MiniMax H3 showcase sections, lazy-loaded with the same observer
+    // pattern as every other section on this page.
+    const aiWorkflow = createLazySection(() => import('./sections/MinimaxWorkflowSection.jsx'), 'ai-workflow', {}, 2);
+    const madeWith = createLazySection(() => import('./sections/MadeWithSmartVideo.jsx'), 'made-with', {}, 4);
+    const ugcShowcase = createLazySection(() => import('./sections/UGCDemoShowcase.jsx'), 'ugc', {}, 5);
+    const videoGallery = createLazySection(() => import('./sections/AIVideoGallery.jsx'), 'gallery', {}, 6);
+    const academyShowcase = createLazySection(() => import('./sections/AcademyVideoShowcase.jsx'), 'academy', {}, 7);
+    const repoShowcase = createLazySection(() => import('./sections/RepoShowcase.jsx'), 'repos', {}, 8);
+
     container.appendChild(scrollingStrip);
     container.appendChild(hookSection);
+    container.appendChild(aiWorkflow);      // NEW
     container.appendChild(sixEngines);
     container.appendChild(appsGrid);
+    container.appendChild(madeWith);        // NEW
+    container.appendChild(ugcShowcase);     // NEW
     container.appendChild(demos);
     container.appendChild(features);
+    container.appendChild(videoGallery);    // NEW
+    container.appendChild(academyShowcase); // NEW
+    container.appendChild(repoShowcase);    // NEW
     container.appendChild(problem);
     container.appendChild(workflow);
     container.appendChild(comparison);
@@ -195,6 +252,12 @@ export default async function LandingPage() {
     } catch (fabErr) {
       console.error('[Landing] failed to mount GTM Boost FAB:', fabErr);
     }
+
+    // Tear down media observers / timers if the landing page is ever unmounted.
+    container.cleanup = () => {
+      container.querySelectorAll('section').forEach((section) => section.cleanup?.());
+      heroEl._cleanup?.();
+    };
   } catch (error) {
     console.error('Error rendering landing page:', error);
     container.innerHTML = `
