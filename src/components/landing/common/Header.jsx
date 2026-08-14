@@ -12,6 +12,24 @@
 // navigation in-app.
 import { navigate } from "../../../lib/router.js";
 
+// The standalone landing route never calls initRouter() (src/main.js returns
+// early before the app shell is built), so the in-app navigate() is a no-op
+// there. Detect a live router by the app shell's content area, and fall back
+// to a full page load so main.js can boot the shell and route — the same
+// approach used by goToRoute() in sections/minimax/ui.js.
+function routerIsMounted() {
+  return typeof document !== 'undefined' && !!document.getElementById('content-area');
+}
+
+function navigateOrReload(route, params = {}) {
+  if (routerIsMounted()) {
+    navigate(route, params);
+    return;
+  }
+  const query = new URLSearchParams(params).toString();
+  window.location.assign(query ? `/?${query}#/${route}` : `/#/${route}`);
+}
+
 // Route metadata. The `route` field is the router key (see
 // src/lib/router.js pageLoaders); `label` is the displayed text; `isNew`
 // adds the small "New" pill on the landing page header.
@@ -71,7 +89,7 @@ function buildNavLink(item) {
     // navigation (which would scroll but skip our page-loader); route via the
     // hash router so the page component actually mounts.
     e.preventDefault();
-    navigate(item.route);
+    navigateOrReload(item.route);
   });
   return a;
 }
@@ -99,7 +117,7 @@ export function LandingHeader() {
   `;
   logo.addEventListener('click', (e) => {
     e.preventDefault();
-    navigate('apps');
+    navigateOrReload('apps');
   });
   nav.appendChild(logo);
 
