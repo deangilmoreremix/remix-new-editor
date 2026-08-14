@@ -192,13 +192,7 @@ export async function resolveInput(body = {}) {
     });
     return out;
   }
-  // No real source provided. In production, fail fast so users know a video
-  // is required. In development/demo mode, synthesize a short test clip so
-  // the real ffmpeg pipeline still runs.
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('A videoUrl or videoPath is required to process media. Upload a video first.');
-  }
-  return makeSyntheticVideo(8);
+  throw new Error('No video source provided. Expected a server-reachable https videoUrl.');
 }
 
 export function cleanup(file) {

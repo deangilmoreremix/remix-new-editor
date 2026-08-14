@@ -1,5 +1,4 @@
 import { supabase, uploadFileToStorage } from '../lib/hybrid-supabase.js';
-import { setupEnhancedTooltips } from '../lib/editor/dragDrop.js';
 // MARKER_TEST_ABC123import { processFileUpload } from '../lib/editor/uploadPipeline.js';
 import { setupUploadSources } from '../lib/editor/uploadSources.js';
 import { saveProjectToStorage } from '../lib/editor/persistence.js';
@@ -11,7 +10,6 @@ import { renderMultiCameraToolbar, renderPipControls, renderSplitScreenControls 
 import { createTimelineState } from '../lib/editor/timelineEditorState.js';
 import { legacyToTimeline, getPreviewClipFromTimeline, syncTimelineFromState } from '../lib/editor/timeline-bridge.js';
 import { KeyframeSystem } from '../lib/editor/keyframeSystem.jsx';
-import { TransitionEditor } from '../lib/editor/transitionEditor.js';
 import { TimelineTransitions } from '../lib/editor/timelineTransitions.js';
 import { SceneDetector } from './timeline/SceneDetector.js';
 import { CameraEffects } from './timeline/CameraEffects.js';
@@ -71,6 +69,19 @@ import { ImportTimelineModal } from './ImportTimelineModal.jsx';
 import { ICLoraPanel } from './ICLoraPanel.jsx';
 // Category C Editor Surface imports removed - not implemented
 import { createHeroSection } from '../lib/thumbnails.js';
+// Timeline editor styles are imported here so Vite bundles them. Injecting them
+// via a runtime <link href="styles/timeline-editor-page.css"> 404s in production
+// because Vite never copies that path into dist (it was served as text/html).
+import '../styles/timeline-editor-page.css';
+
+// Initialize the global TimelineEditor registry at MODULE scope (not inside the
+// exported function). In the production bundle Rollup merges this module into a
+// shared chunk and can hoist the `const TLEditor` binding to module scope; when
+// that hoisted binding is touched during chunk evaluation before its
+// initializer runs it throws "Cannot access 'TLEditor' before initialization"
+// and the editor never mounts. Initializing it once here, at module-eval time,
+// guarantees it is always defined before TimelineEditorPage() is ever invoked.
+const TLEditor = (window.TimelineEditor = window.TimelineEditor || {});
 
 // Waveform cache: assetId -> waveformData (module-level, shared across editor instances)
 const waveformCache = new Map(); // assetId -> waveformData
@@ -79,7 +90,8 @@ export function TimelineEditorPage() {
   const container = document.createElement('div');
   container.className = 'w-full h-full flex flex-col overflow-hidden bg-app-bg relative';
 
-  const TLEditor = (window.TimelineEditor = window.TimelineEditor || {});
+  // `TLEditor` is initialized at module scope (see top of file), so it is always
+  // defined by the time this function runs.
 
   // Feature flags — single source of truth for gating optional behaviour.
   // Routines that are not yet wired end their bodies with a `// DISABLED:`
@@ -627,56 +639,9 @@ export function TimelineEditorPage() {
 `;
 
   function injectStyles() {
-    // No-op: the timeline design-system styles (timeline-tokens.css and
-    // timeline-editor-page.css) are now imported statically at the top of this
-    // module, so Vite bundles and emits them into the production build with
-    // correct (subpath-safe) URLs. Injecting them via a runtime <link> to a
-    // project-root path 404s in production because Vite never copies
-    // unreferenced files into dist/. Kept as a guard so existing call sites
-    // remain valid.
-    if (document.getElementById('timeline-editor-styles')) return;
-    const marker = document.createElement('meta');
-    marker.id = 'timeline-editor-styles';
-    marker.name = 'timeline-editor-styles-loaded';
-    document.head.appendChild(marker);
-
-    // Timeline tab chrome styles
-    if (!document.getElementById('timeline-tab-styles')) {
-      const style = document.createElement('style');
-      style.id = 'timeline-tab-styles';
-      style.textContent = `
-        .timeline-tabs { display: flex; align-items: center; gap: 4px; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.15); }
-        .tab-list { display: flex; gap: 2px; flex: 1; overflow-x: auto; scrollbar-width: none; }
-        .tab-list::-webkit-scrollbar { display: none; }
-        .tab { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; font-size: 12px; color: rgba(255,255,255,0.6); cursor: pointer; border: 1px solid transparent; background: transparent; white-space: nowrap; user-select: none; }
-        .tab.active { color: #fff; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.12); }
-        .tab-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
-        .tab-close { display: none; background: none; border: none; color: inherit; font-size: 14px; line-height: 1; padding: 0; cursor: pointer; opacity: 0.6; margin-left: 2px; }
-        .tab:hover .tab-close { display: inline-block; }
-        .tab-close:hover { opacity: 1; }
-        .tab-add { background: none; border: 1px dashed rgba(255,255,255,0.2); color: rgba(255,255,255,0.5); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .tab-add:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
-        .tab-rename-input { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 12px; width: 100px; }
-      `;
-      document.head.appendChild(style);
-    }
-
-    // Mask preview control bar styles
-    if (!document.getElementById('mask-controls-styles')) {
-      const style = document.createElement('style');
-      style.id = 'mask-controls-styles';
-      style.textContent = `
-        .mask-controls { display: flex; align-items: center; gap: 6px; padding: 6px 8px; background: rgba(0,0,0,0.35); border-top: 1px solid rgba(255,255,255,0.06); }
-        .mask-controls[hidden] { display: none; }
-        .mask-label { font-size: 11px; color: rgba(255,255,255,0.55); margin-right: 4px; }
-        .mask-btn { appearance: none; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.75); padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
-        .mask-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
-        .mask-btn.active { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.25); color: #fff; }
-        .mask-clear { color: rgba(255,255,255,0.5); }
-        .mask-clear:hover { color: #fca5a5; border-color: rgba(239,68,68,0.35); }
-      `;
-      document.head.appendChild(style);
-    }
+    // Styles are bundled via the `import '../styles/timeline-editor-page.css'`
+    // at the top of this module (handled by Vite), so no runtime <link> is
+    // needed. Kept as a no-op hook in case callers expect it.
   }
 
   // Memoize SVG data-URI generation so identical posters are created once and
@@ -4230,11 +4195,18 @@ export function TimelineEditorPage() {
      }
 
     function initializeTransitionEditor() {
-      if (!transitionEditor) {
-        transitionEditor = new TransitionEditor(els.transitionEditorContainer, (transition, params, duration) => {
-          // Handle transition application from editor
-        });
-      }
+      if (transitionEditor) return;
+      // Lazy-load the (heavy) TransitionEditor. Loading it dynamically — instead
+      // of a static import — keeps TimelineEditorPage out of the shared
+      // `transitionEditor-lazy` chunk, which in production avoided the
+      // module-graph reordering that surfaced as a TDZ crash on load.
+      import('../lib/editor/transitionEditor-lazy.js')
+        .then(({ TransitionEditor }) => {
+          transitionEditor = new TransitionEditor(els.transitionEditorContainer, (transition, params, duration) => {
+            // Handle transition application from editor
+          });
+        })
+        .catch((err) => console.warn('[Timeline] transition editor failed to load', err));
     }
 
     function initializeTimelineTransitions() {
@@ -7350,7 +7322,16 @@ export function TimelineEditorPage() {
 
       renderAll();
       bindEvents();
-      setupEnhancedTooltips();
+      // Tooltips + media-library drag/drop are loaded lazily so the heavy
+      // dragDrop module stays out of the editor's initial chunk. This also
+      // prevents the forced shared-chunk merge that caused the production
+      // "Cannot access 'TLEditor' before initialization" TDZ crash.
+      import('../lib/editor/dragDrop.js')
+        .then(({ setupEnhancedTooltips, initializeMediaLibraryDragDrop }) => {
+          setupEnhancedTooltips();
+          initializeMediaLibraryDragDrop(state, els.mediaGrid, { showToast });
+        })
+        .catch((err) => console.warn('[Timeline] drag/drop init failed', err));
       setupUploadSources({ state, showToast });
 
       // Initialize media ingest components

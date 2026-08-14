@@ -20,8 +20,7 @@ import {
 } from '@clerk/react';
 import { SignInPage } from '../landing/SignInPage.jsx';
 import { SignUpPage } from '../landing/SignUpPage.jsx';
-import { ForgotPasswordPage } from '../landing/ForgotPasswordPage.jsx';
-import { ResetPasswordPage } from '../landing/ResetPasswordPage.jsx';
+import { clerkAppearance } from './clerkAppearance.js';
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -58,6 +57,7 @@ function SignInCard() {
         signUpUrl="/signup"
         afterSignInUrl="/#/image"
         afterSignUpUrl="/#/image"
+        appearance={clerkAppearance}
       />
     </div>
   );
@@ -72,6 +72,7 @@ function SignUpCard() {
         signInUrl="/signin"
         afterSignInUrl="/#/image"
         afterSignUpUrl="/#/image"
+        appearance={clerkAppearance}
       />
     </div>
   );
